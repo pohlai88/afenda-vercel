@@ -46,16 +46,16 @@ export default function AdminUsersPage() {
 
   if (sessionPending) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+      <div className="mx-auto w-full max-w-3xl py-10">
+        <p className="text-sm text-muted-foreground">Loading…</p>
       </div>
     )
   }
 
   if (!session) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
-        <p className="text-muted-foreground text-sm">
+      <div className="mx-auto w-full max-w-3xl py-10">
+        <p className="text-sm text-muted-foreground">
           <Link href="/sign-in" className="underline">
             Sign in
           </Link>{" "}
@@ -66,11 +66,11 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="mt-1 text-sm text-muted-foreground">
             Admin plugin — requires permission to list users.
           </p>
         </div>
@@ -79,16 +79,16 @@ export default function AdminUsersPage() {
         </Button>
       </div>
       {error ? (
-        <p className="text-destructive text-sm" role="alert">
+        <p className="text-sm text-destructive" role="alert">
           {error}
         </p>
       ) : null}
       {loading ? (
-        <p className="text-muted-foreground text-sm">Loading users…</p>
+        <p className="text-sm text-muted-foreground">Loading users…</p>
       ) : (
-        <ul className="divide-border divide-y rounded-md border">
+        <ul className="divide-y divide-border rounded-md border">
           {users.length === 0 ? (
-            <li className="text-muted-foreground px-4 py-6 text-sm">
+            <li className="px-4 py-6 text-sm text-muted-foreground">
               No users returned (empty project or insufficient admin access).
             </li>
           ) : (

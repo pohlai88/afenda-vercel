@@ -8,7 +8,9 @@ import { ContactsListPanel } from "./contacts-list-panel"
 
 export async function ContactsPage() {
   const org = await requireOrgSession()
-  const rows: ContactRow[] = await listContactsForOrganization(org.organizationId)
+  const rows: ContactRow[] = await listContactsForOrganization(
+    org.organizationId
+  )
 
   return (
     <div className="space-y-8">

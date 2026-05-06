@@ -14,7 +14,7 @@ import type { InventoryActionState } from "../types"
  */
 export async function reserveStock(
   _prevState: InventoryActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<InventoryActionState> {
   await requireOrgSession()
 

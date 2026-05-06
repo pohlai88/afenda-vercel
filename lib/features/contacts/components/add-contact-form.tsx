@@ -32,7 +32,7 @@ export function AddContactForm() {
             aria-invalid={state && !state.ok && !!state.errors.name}
           />
           {state && !state.ok && state.errors.name ? (
-            <p className="text-destructive text-xs" role="alert">
+            <p className="text-xs text-destructive" role="alert">
               {state.errors.name}
             </p>
           ) : null}
@@ -47,7 +47,7 @@ export function AddContactForm() {
             aria-invalid={state && !state.ok && !!state.errors.email}
           />
           {state && !state.ok && state.errors.email ? (
-            <p className="text-destructive text-xs" role="alert">
+            <p className="text-xs text-destructive" role="alert">
               {state.errors.email}
             </p>
           ) : null}

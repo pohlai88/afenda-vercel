@@ -13,7 +13,9 @@ export function DashboardTopBar({ userEmail }: DashboardTopBarProps) {
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div>
         <CardTitle className="text-2xl">Dashboard</CardTitle>
-        <p className="text-sm text-muted-foreground">Signed in as {userEmail}</p>
+        <p className="text-sm text-muted-foreground">
+          Signed in as {userEmail}
+        </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <SignOutButton />

@@ -6,10 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"
 import { Input } from "#components/ui/input"
 import { Label } from "#components/ui/label"
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "#components/ui/native-select"
+import { NativeSelect, NativeSelectOption } from "#components/ui/native-select"
 
 import { postEntry } from "../actions/post-entry"
 
@@ -27,7 +24,9 @@ export function AccountingActionForm() {
       {state?.ok ? (
         <Alert>
           <AlertTitle>Ready</AlertTitle>
-          <AlertDescription>Accounting action stub executed successfully.</AlertDescription>
+          <AlertDescription>
+            Accounting action stub executed successfully.
+          </AlertDescription>
         </Alert>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto] sm:items-end">

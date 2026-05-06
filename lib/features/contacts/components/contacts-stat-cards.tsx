@@ -9,7 +9,8 @@ export function ContactsStatCards({
   totalContacts,
   withEmailCount,
 }: ContactsStatCardsProps) {
-  const coverage = totalContacts === 0 ? 0 : Math.round((withEmailCount / totalContacts) * 100)
+  const coverage =
+    totalContacts === 0 ? 0 : Math.round((withEmailCount / totalContacts) * 100)
 
   return (
     <div className="grid gap-3 sm:grid-cols-3">
@@ -18,7 +19,9 @@ export function ContactsStatCards({
           <CardTitle>Total contacts</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-semibold tracking-tight">{totalContacts}</p>
+          <p className="text-2xl font-semibold tracking-tight">
+            {totalContacts}
+          </p>
         </CardContent>
       </Card>
       <Card size="sm">
@@ -26,7 +29,9 @@ export function ContactsStatCards({
           <CardTitle>With email</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-semibold tracking-tight">{withEmailCount}</p>
+          <p className="text-2xl font-semibold tracking-tight">
+            {withEmailCount}
+          </p>
         </CardContent>
       </Card>
       <Card size="sm">

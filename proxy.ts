@@ -1,16 +1,22 @@
+import { getSessionCookie } from "better-auth/cookies"
 import { NextRequest, NextResponse } from "next/server"
 
-import { auth } from "#lib/auth"
-
-export async function proxy(request: NextRequest) {
-  // Prefer the incoming request headers (Next.js proxy convention) so the session
-  // cookie is always the one from this request.
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  })
-
-  if (!session) {
-    return NextResponse.redirect(new URL("/sign-in", request.url))
+/**
+ * Presence-only session cookie check (Better Auth + Next.js guidance).
+ * Does not validate the session — RSC, layouts, and Server Actions must call
+ * `auth.api.getSession` / `requireOrgSession` / `requireGlobalAdminSession`.
+ */
+export function proxy(request: NextRequest) {
+  const token = getSessionCookie(request)
+  if (!token) {
+    const signIn = new URL("/sign-in", request.url)
+    const returnTo =
+      request.nextUrl.pathname +
+      (request.nextUrl.searchParams.toString()
+        ? `?${request.nextUrl.searchParams.toString()}`
+        : "")
+    signIn.searchParams.set("callbackUrl", returnTo)
+    return NextResponse.redirect(signIn)
   }
 
   return NextResponse.next()

@@ -16,7 +16,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!organizationId) {
     return NextResponse.json(
       { error: "No active organization" },
-      { status: 403 },
+      { status: 403 }
     )
   }
 
@@ -63,7 +63,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : String(error) },
-      { status: 400 },
+      { status: 400 }
     )
   }
 }

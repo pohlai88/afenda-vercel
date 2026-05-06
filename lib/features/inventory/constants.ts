@@ -1,1 +1,1 @@
-export const INVENTORY_ROUTE = "/dashboard/inventory"
+export { INVENTORY_ROUTE } from "#lib/dashboard-module-paths"

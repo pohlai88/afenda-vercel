@@ -1,1 +1,1 @@
-export const PURCHASE_ROUTE = "/dashboard/purchase"
+export { PURCHASE_ROUTE } from "#lib/dashboard-module-paths"

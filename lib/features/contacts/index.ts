@@ -6,4 +6,7 @@ export { ContactsStatCards } from "#features/contacts/components/contacts-stat-c
 export { ContactsBulkActions } from "#features/contacts/components/contacts-bulk-actions"
 export { ContactsEmptyState } from "#features/contacts/components/contacts-empty-state"
 export { CONTACTS_ROUTE } from "#features/contacts/constants"
-export type { CreateContactFormState, ContactRow } from "#features/contacts/types"
+export type {
+  CreateContactFormState,
+  ContactRow,
+} from "#features/contacts/types"

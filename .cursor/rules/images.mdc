@@ -1,0 +1,37 @@
+---
+description: next/image, public vs remote, Vercel /_next/image allowlists
+alwaysApply: true
+---
+
+# Images (`next/image`)
+
+## Defaults
+
+- Use **`next/image`** for raster images in the React tree unless there is a concrete reason not to (e.g. constrained HTML context).
+- Provide meaningful **`alt`**. Prefer explicit **`width`** and **`height`** for `public/` and remote URLs to avoid layout shift; **static import** of an image module lets Next infer size (and optional blur metadata).
+
+## Local assets (`public/`)
+
+- The optimizer only accepts paths allowed by **[`next.config.ts`](next.config.ts) `images.localPatterns`**. This repo allowlists **`/icons/**`** and **`afenda-brand/**`** with **`search: ""`** (no query string on `src`). Other paths return **400** from **`/_next/image`** until `localPatterns` is extended.
+- When adding a new `public/` subtree used with **`next/image`**: update **`localPatterns`**, add a short note under **Images** in [`AGENTS.md`](AGENTS.md), and add path constants to [`lib/site.ts`](lib/site.ts) when the files are long-lived product assets.
+
+## Remote URLs
+
+- **`src`** must match **`images.remotePatterns`**. Currently: **`https`**, **`*.public.blob.vercel-storage.com`**, path **`/**`**. New external hosts need an explicit **`remotePatterns`** entry—do not widen without a clear consumer.
+- Remote images require **`width`**, **`height`**, and **`alt`** per [App Router images](https://nextjs.org/docs/app/getting-started/images).
+
+## SVG
+
+- **`.svg`** with **`next/image`** is treated as **unoptimized** by default (security). Do not turn on **`images.dangerouslyAllowSVG`** for routine UI; if it becomes necessary, apply Next and Vercel safe-SVG configuration (CSP, disposition).
+
+## Brand identity
+
+- Afenda marks, favicon/manifest/OG wiring, and taxonomy: **[`.cursor/rules/brand-assets.mdc`](.cursor/rules/brand-assets.mdc)** and **`#lib/site`** exports.
+
+## Metadata and generated images
+
+- **`metadata.openGraph.images`**: keep **`width`**, **`height`**, and **`alt`** consistent with the real asset. Dynamic cards: **`ImageResponse`** from **`next/og`** (see Next docs). Prefer **Context7** `/vercel/next.js` for API details.
+
+## Platform
+
+- On **Vercel**, `next/image` uses **`/_next/image`** ([Image Optimization](https://vercel.com/docs/image-optimization)).

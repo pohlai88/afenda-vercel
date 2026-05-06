@@ -42,6 +42,9 @@ pnpm-debug.log*
 # local Cursor IDE preferences
 .cursor/settings.json
 
+# Brand guideline source export — exceeds GitHub 100 MB limit; keep locally or use Git LFS
+public/afenda-brand/brand-guideline/afenda-figma-export-full-guideline.png
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

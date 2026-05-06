@@ -9,6 +9,8 @@ import {
   usernameClient,
 } from "better-auth/client/plugins"
 
+export { resolvePostAuthCallbackUrl } from "#lib/auth/callback-path"
+
 export const authClient = createAuthClient({
   plugins: [
     organizationClient(),

@@ -8,7 +8,7 @@ import type { ContactRow } from "#features/contacts/types"
 
 /** Tenant-scoped listing — call only after `requireOrgSession()` (or equivalent). */
 export async function listContactsForOrganization(
-  organizationId: string,
+  organizationId: string
 ): Promise<ContactRow[]> {
   return db
     .select({

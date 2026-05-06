@@ -12,20 +12,28 @@ jobs:
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9.15.9
+          version: 10.21.0
 
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: "pnpm"
 
+      - run: node scripts/check-agent-contract.mjs
+
       - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run lint:agent-contract
 
       - run: pnpm run typecheck
 
       - run: pnpm run lint
+
+      - run: pnpm run format:check
 
       - run: pnpm run build

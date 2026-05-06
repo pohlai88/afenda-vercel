@@ -58,7 +58,9 @@ function warnIfMissing(parsedConfig) {
   for (const key of critical) {
     const v = parsedConfig[key]
     if (v === undefined || v === "") {
-      console.warn(`[env:sync] Warning: ${key} is empty — auth or DB may fail locally.`)
+      console.warn(
+        `[env:sync] Warning: ${key} is empty — auth or DB may fail locally.`
+      )
     }
   }
 
@@ -67,7 +69,7 @@ function warnIfMissing(parsedConfig) {
     parsedConfig.NEXT_PUBLIC_APP_URL?.trim()
   if (!site) {
     console.warn(
-      "[env:sync] Warning: NEXT_PUBLIC_SITE_URL and NEXT_PUBLIC_APP_URL are both empty — metadataBase / OG URLs may be wrong.",
+      "[env:sync] Warning: NEXT_PUBLIC_SITE_URL and NEXT_PUBLIC_APP_URL are both empty — metadataBase / OG URLs may be wrong."
     )
   }
 }
@@ -75,7 +77,7 @@ function warnIfMissing(parsedConfig) {
 if (!fs.existsSync(srcPath)) {
   console.error(
     "[env:sync] Missing .env.config.\n" +
-      "  Copy .env.config.example → .env.config and fill in values, then run again.",
+      "  Copy .env.config.example → .env.config and fill in values, then run again."
   )
   process.exit(1)
 }
@@ -128,7 +130,7 @@ console.log(
     (Object.keys(preserved).length > 0
       ? ` (+ ${Object.keys(preserved).length} local-only key(s))`
       : "") +
-    ".",
+    "."
 )
 warnIfMissing(parsedConfig)
 console.log("[env:sync] Restart `pnpm dev` if running.")

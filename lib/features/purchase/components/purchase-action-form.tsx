@@ -6,17 +6,14 @@ import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"
 import { Input } from "#components/ui/input"
 import { Label } from "#components/ui/label"
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "#components/ui/native-select"
+import { NativeSelect, NativeSelectOption } from "#components/ui/native-select"
 
 import { createPurchaseOrder } from "../actions/create-purchase-order"
 
 export function PurchaseActionForm() {
   const [state, formAction, pending] = useActionState(
     createPurchaseOrder,
-    undefined,
+    undefined
   )
 
   return (

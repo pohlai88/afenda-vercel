@@ -14,9 +14,5 @@ function subscribe(callback: () => void) {
 }
 
 export function useIsMobile() {
-  return React.useSyncExternalStore(
-    subscribe,
-    getMatches,
-    () => false
-  )
+  return React.useSyncExternalStore(subscribe, getMatches, () => false)
 }

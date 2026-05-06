@@ -1,1 +1,1 @@
-export const ACCOUNTING_ROUTE = "/dashboard/accounting"
+export { ACCOUNTING_ROUTE } from "#lib/dashboard-module-paths"

@@ -14,7 +14,7 @@ import type { AccountingActionState } from "../types"
  */
 export async function postEntry(
   _prevState: AccountingActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<AccountingActionState> {
   await requireOrgSession()
 

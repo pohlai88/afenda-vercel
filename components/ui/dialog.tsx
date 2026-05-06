@@ -76,8 +76,7 @@ function DialogContent({
               className="absolute top-4 right-4 bg-secondary/70 hover:bg-secondary"
               size="icon-sm"
             >
-              <XIcon
-              />
+              <XIcon />
               <span className="sr-only">Close</span>
             </Button>
           </DialogPrimitive.Close>
@@ -131,10 +130,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn(
-        uiTitle.sm,
-        className
-      )}
+      className={cn(uiTitle.sm, className)}
       {...props}
     />
   )

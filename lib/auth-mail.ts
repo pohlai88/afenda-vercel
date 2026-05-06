@@ -1,4 +1,4 @@
-/** Server-only by usage (`lib/auth.ts`). Avoid `import "server-only"` so `pnpm auth:generate` can load the config. */
+/** Server-only by usage (`lib/auth/config.server.ts`). Avoid `import "server-only"` so `pnpm auth:generate` can load the config. */
 import { Resend } from "resend"
 
 import { getSiteUrl } from "#lib/site"
@@ -27,7 +27,12 @@ export function sendAuthEmail(input: {
   const client = getResend()
   if (!client) {
     if (process.env.NODE_ENV !== "production") {
-      console.info("[auth-mail] (no RESEND_API_KEY)", input.subject, "→", input.to)
+      console.info(
+        "[auth-mail] (no RESEND_API_KEY)",
+        input.subject,
+        "→",
+        input.to
+      )
     }
     return
   }
@@ -39,7 +44,7 @@ export function sendAuthEmail(input: {
       subject: input.subject,
       text: input.text,
       html: input.html,
-    }),
+    })
   )
 }
 

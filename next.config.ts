@@ -1,8 +1,10 @@
 import type { NextConfig } from "next"
 
+import { betterAuthAllowedHostsFromEnv } from "./lib/site"
+
 /** @see https://nextjs.org/docs/app/api-reference/config/next-config-js/serverActions (wildcard origins). */
 const serverActionAllowedOrigins = buildServerActionAllowedOrigins(
-  process.env.BETTER_AUTH_TRUSTED_ORIGINS,
+  betterAuthAllowedHostsFromEnv()
 )
 
 const nextConfig: NextConfig = {
@@ -21,6 +23,16 @@ const nextConfig: NextConfig = {
         hostname: "*.public.blob.vercel-storage.com",
         pathname: "/**",
       },
+    ],
+    /**
+     * Allowlist local paths for `next/image` optimization on Vercel (`/_next/image`).
+     * @see https://vercel.com/docs/image-optimization
+     * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/images#localpatterns
+     * Keep in sync with `public/` and `#lib/site` brand constants (`/icons/*`, `/afenda-brand/*`).
+     */
+    localPatterns: [
+      { pathname: "/icons/**", search: "" },
+      { pathname: "/afenda-brand/**", search: "" },
     ],
   },
   experimental: {
@@ -63,31 +75,10 @@ export default nextConfig
  * On Vercel preview deployments, add `*.vercel.app` so branch URLs work without listing every host
  * (see Vercel `VERCEL_ENV` and Next.js `allowedOrigins` wildcard support).
  */
-function buildServerActionAllowedOrigins(raw: string | undefined) {
-  const hosts = parseServerActionAllowedOrigins(raw)
+function buildServerActionAllowedOrigins(hosts: string[]) {
+  const list = [...new Set(hosts.filter(Boolean))]
   if (process.env.VERCEL_ENV === "preview") {
-    return [...new Set([...hosts, "*.vercel.app"])]
+    return [...new Set([...list, "*.vercel.app"])]
   }
-  return hosts
-}
-
-function parseServerActionAllowedOrigins(raw: string | undefined) {
-  if (!raw) return []
-
-  return [
-    ...new Set(
-      raw
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean)
-        .map((value) => {
-          try {
-            return new URL(value).host
-          } catch {
-            return value.replace(/^https?:\/\//, "").replace(/\/+$/, "")
-          }
-        })
-        .filter(Boolean),
-    ),
-  ]
+  return list
 }

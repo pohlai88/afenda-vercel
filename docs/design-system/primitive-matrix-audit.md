@@ -1,5 +1,7 @@
 # Primitive Matrix Audit
 
+**Snapshot:** Synchronized with `app/globals.css`, `lib/design-system.ts`, and `docs/design-system/governance.md` for the **pre–Figma / Code Connect** slice.
+
 Audit target from upgrade plan:
 
 - button
@@ -20,23 +22,33 @@ Audit target from upgrade plan:
 - slot naming via `data-slot`
 - focus/invalid state consistency
 - semantic color token usage
+- spacing tokens (`surface-*`, `density-*`) where primitives implement inset or stack rhythm
 
 ## Current audit snapshot
 
-| Primitive | Variant/Size | Slots | Focus/Invalid | Semantic tokens | Notes |
-| --- | --- | --- | --- | --- | --- |
-| button | pass | pass | pass | pass | Uses `uiRadius` + `uiTracking` |
-| input | pass | pass | pass | pass | Consistent invalid states |
-| select | pass | pass | pass | pass | Uses semantic background/foreground tokens |
-| textarea | pass | pass | pass | pass | Matches input focus/invalid behavior |
-| badge | pass | pass | pass | pass | Includes status variants (`success`, `warning`, `info`, `critical`) |
-| card | pass | pass | pass | pass | Uses surface radii and title contract |
-| dialog | pass | pass | pass | pass | Overlay/content follow token contract |
-| table | pass | pass | pass | pass | Added `density` support (`comfortable`/`compact`) |
-| sidebar | pass | pass | pass | pass | Comprehensive slot model + semantic tokens |
-| tooltip | pass | pass | pass | pass | Aligned to shared radius/tracking |
+| Primitive | Variant/Size | Slots | Focus/Invalid | Semantic tokens | Notes                                                                                            |
+| --------- | ------------ | ----- | ------------- | --------------- | ------------------------------------------------------------------------------------------------ |
+| button    | pass         | pass  | pass          | pass            | `uiRadius`, `uiTracking`, `primary-hover` / `secondary-hover`                                    |
+| input     | pass         | pass  | pass          | pass            | Inset uses `px-surface-sm` / `py-2.5`; consistent invalid states                                 |
+| select    | pass         | pass  | pass          | pass            | Semantic background/foreground tokens                                                            |
+| textarea  | pass         | pass  | pass          | pass            | Matches input focus/invalid behavior                                                             |
+| badge     | pass         | pass  | pass          | pass            | Status variants (`success`, `warning`, `info`, `critical`); link hover uses hover tokens         |
+| card      | pass         | pass  | pass          | pass            | `uiRadius.surface*`, `uiTitle.sm`, `uiSurfaceElevation.default`, `p-surface-*` / `gap-surface-*` |
+| dialog    | pass         | pass  | pass          | pass            | Overlay/content follow token contract                                                            |
+| table     | pass         | pass  | pass          | pass            | `density` prop (`comfortable` / `compact`); row/cell padding via group selectors                 |
+| sidebar   | pass         | pass  | pass          | pass            | Slot model + sidebar semantic tokens                                                             |
+| tooltip   | pass         | pass  | pass          | pass            | Shared radius/tracking                                                                           |
+
+## Design-system.ts alignment
+
+- **`uiDensity`** — `gap-density-comfortable` / `gap-density-compact` (token-backed; matches `--density-*` in `app/globals.css`).
+- **`uiSurfaceSpaceKeys` / `uiSurfaceInset` / `parseUiSurfaceSpaceKey`** — mirror `--space-surface-*` for CMS/API validation and composition.
 
 ## Remaining plan-related blocker
 
-- Browser validation for authenticated dashboard flows remains partially blocked by sign-in requirement in local runtime.
-- Code Connect execution remains blocked by Figma Developer seat permissions (deferred by request).
+- **Figma:** Empty file → `afenda/semantic` variables (light/dark) + primitive components; paste **Figma file URL** into `figma-code-connect-mapping.md`.
+- **Code Connect:** Deferred until Figma library is stable and publish access is available.
+
+## Enforcement note
+
+- ERP UI under `lib/features/` is included in `scripts/check-design-contract.mjs` (same radius/shadow/arbitrary-rounded rules as `app/`).

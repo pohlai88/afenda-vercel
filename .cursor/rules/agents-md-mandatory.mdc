@@ -19,5 +19,17 @@ For every repository task:
 4. Do not introduce new architectural categories, folders, or conventions unless `AGENTS.md` is updated first.
 5. If user instructions conflict with `AGENTS.md`, prefer the safer interpretation and ask for clarification when necessary.
 6. Keep all code, plans, and recommendations aligned with the latest `AGENTS.md`.
+7. Reject architecture drift: no new categories, no boundary leaks, no deep imports across modules.
+8. Prefer contraction over expansion: simplify structure before adding folders or abstractions.
+
+## Non-negotiable compliance checks
+
+- Use `lib/features/<module>/index.ts` as the module public door.
+- Treat deep imports to other module internals as violations.
+- Keep dashboard CRUD mutations in Server Actions by default.
+- Keep Route Handlers for allowed HTTP use cases only (`auth`, `cron`, `upload`, `webhooks`, `integrations`, `api/erp/<module>` when justified).
+- Keep `proxy.ts` minimal and free of business/domain workflow logic.
+- Do not create banned categories (`services`, `utils`, `helpers`, `repositories`, etc.) unless `AGENTS.md` is explicitly updated first.
+- Keep repo root and module roots clean; do not create dumping directories.
 
 `AGENTS.md` is the source of truth for repository structure and engineering governance.

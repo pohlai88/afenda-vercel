@@ -43,7 +43,7 @@ export const session = pgTable(
     activeTeamId: text("activeTeamId"),
     impersonatedBy: text("impersonatedBy"),
   },
-  (t) => [index("session_userId_idx").on(t.userId)],
+  (t) => [index("session_userId_idx").on(t.userId)]
 )
 
 export const account = pgTable(
@@ -65,7 +65,7 @@ export const account = pgTable(
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
-  (t) => [index("account_userId_idx").on(t.userId)],
+  (t) => [index("account_userId_idx").on(t.userId)]
 )
 
 export const verification = pgTable(
@@ -78,7 +78,7 @@ export const verification = pgTable(
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
-  (t) => [index("verification_identifier_idx").on(t.identifier)],
+  (t) => [index("verification_identifier_idx").on(t.identifier)]
 )
 
 /** Better Auth — organization plugin */
@@ -104,7 +104,7 @@ export const member = pgTable(
     role: text("role").notNull().default("member"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("member_user_org_uidx").on(t.userId, t.organizationId)],
+  (t) => [uniqueIndex("member_user_org_uidx").on(t.userId, t.organizationId)]
 )
 
 export const invitation = pgTable(
@@ -126,7 +126,7 @@ export const invitation = pgTable(
   (t) => [
     index("invitation_organizationId_idx").on(t.organizationId),
     index("invitation_email_idx").on(t.email),
-  ],
+  ]
 )
 
 /** Better Auth — two-factor plugin */
@@ -144,7 +144,7 @@ export const twoFactor = pgTable(
   (t) => [
     index("twoFactor_secret_idx").on(t.secret),
     index("twoFactor_userId_idx").on(t.userId),
-  ],
+  ]
 )
 
 /** Better Auth — @better-auth/passkey */
@@ -168,7 +168,47 @@ export const passkey = pgTable(
   (t) => [
     index("passkey_userId_idx").on(t.userId),
     index("passkey_credentialID_idx").on(t.credentialID),
-  ],
+  ]
+)
+
+/**
+ * IAM / security audit trail (org-scoped where applicable).
+ * Append-only; writers live in `lib/auth/audit.server.ts` and Better Auth hooks. Action strings: see IAM audit policy in `AGENTS.md` (`erp.*`, `org.*`, `iam.session.*`).
+ */
+export const iamAuditEvent = pgTable(
+  "iam_audit_event",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    action: text("action").notNull(),
+    actorUserId: text("actorUserId").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    actorSessionId: text("actorSessionId"),
+    organizationId: text("organizationId").references(() => organization.id, {
+      onDelete: "set null",
+    }),
+    resourceType: text("resourceType"),
+    resourceId: text("resourceId"),
+    path: text("path"),
+    ipAddress: text("ipAddress"),
+    userAgent: text("userAgent"),
+    /** JSON object serialized with `JSON.stringify` */
+    metadata: text("metadata"),
+  },
+  (t) => [
+    index("iam_audit_event_organizationId_createdAt_idx").on(
+      t.organizationId,
+      t.createdAt
+    ),
+    index("iam_audit_event_actorUserId_createdAt_idx").on(
+      t.actorUserId,
+      t.createdAt
+    ),
+    index("iam_audit_event_action_createdAt_idx").on(t.action, t.createdAt),
+  ]
 )
 
 /** ERP sample domain — scoped by organization */
@@ -186,5 +226,5 @@ export const customers = pgTable(
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
-  (t) => [index("customers_organization_id_idx").on(t.organizationId)],
+  (t) => [index("customers_organization_id_idx").on(t.organizationId)]
 )

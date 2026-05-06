@@ -96,13 +96,15 @@ function vercelEnvAdd({ key, value, target, sensitive }) {
 
   if (dryRun) {
     console.log(
-      `[dry-run] node ${path.basename(vercelCli)} env add ${key} ${target} … (${sensitive ? "sensitive" : "plain"})`,
+      `[dry-run] node ${path.basename(vercelCli)} env add ${key} ${target} … (${sensitive ? "sensitive" : "plain"})`
     )
     return { status: 0 }
   }
 
   if (!fs.existsSync(vercelCli)) {
-    console.error("[env:push-vercel] Missing node_modules/vercel — run pnpm install")
+    console.error(
+      "[env:push-vercel] Missing node_modules/vercel — run pnpm install"
+    )
     return { status: 1, stderr: "" }
   }
 
@@ -118,7 +120,7 @@ function vercelEnvAdd({ key, value, target, sensitive }) {
 
 if (!fs.existsSync(vercelDir)) {
   console.error(
-    "[env:push-vercel] No .vercel/ — run: vercel link --yes --scope <team-slug> --project <name>",
+    "[env:push-vercel] No .vercel/ — run: vercel link --yes --scope jacks-projects-7b3cfe94 --project afenda-vercel"
   )
   process.exit(1)
 }
@@ -143,7 +145,7 @@ for (const { key, sensitive } of KEYS) {
     const r = vercelEnvAdd({ key, value, target, sensitive })
     if (r.status !== 0) {
       console.error(
-        `[env:push-vercel] Failed ${key} (${target}):\n${r.stderr || r.stdout || r.error}`,
+        `[env:push-vercel] Failed ${key} (${target}):\n${r.stderr || r.stdout || r.error}`
       )
       process.exit(1)
     }
@@ -155,5 +157,5 @@ for (const { key, sensitive } of KEYS) {
 console.log(
   dryRun
     ? `[env:push-vercel] Dry run complete (${KEYS.length} keys known; ${skipped} empty in .env.config).`
-    : `[env:push-vercel] Done. ${pushed} variable target(s) written; ${skipped} empty key slots skipped.`,
+    : `[env:push-vercel] Done. ${pushed} variable target(s) written; ${skipped} empty key slots skipped.`
 )

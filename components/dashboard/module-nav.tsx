@@ -5,11 +5,13 @@ import type { Route } from "next"
 import { usePathname } from "next/navigation"
 
 import { Button } from "#components/ui/button"
-import { ACCOUNTING_ROUTE } from "#features/accounting"
-import { CONTACTS_ROUTE } from "#features/contacts"
-import { INVENTORY_ROUTE } from "#features/inventory"
-import { PURCHASE_ROUTE } from "#features/purchase"
-import { SALE_ROUTE } from "#features/sale"
+import {
+  ACCOUNTING_ROUTE,
+  CONTACTS_ROUTE,
+  INVENTORY_ROUTE,
+  PURCHASE_ROUTE,
+  SALE_ROUTE,
+} from "#lib/dashboard-module-paths"
 
 const navItems = [
   { href: CONTACTS_ROUTE as Route, label: "Contacts" },
@@ -25,7 +27,8 @@ export function DashboardModuleNav() {
   return (
     <nav className="flex flex-wrap gap-2" aria-label="Dashboard modules">
       {navItems.map((item) => {
-        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+        const isActive =
+          pathname === item.href || pathname.startsWith(`${item.href}/`)
 
         return (
           <Button

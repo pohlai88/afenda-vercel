@@ -1,19 +1,25 @@
 import * as React from "react"
 
 import { cn } from "#lib/utils"
-import { uiRadius, uiTitle } from "#lib/design-system"
+import {
+  type CardSize,
+  uiRadius,
+  uiSurfaceElevation,
+  uiTitle,
+} from "#lib/design-system"
 
 function Card({
   className,
   size = "default",
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+}: React.ComponentProps<"div"> & { size?: CardSize }) {
   return (
     <div
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-6 overflow-hidden bg-card py-6 text-sm text-card-foreground shadow-md ring-1 ring-foreground/5 has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 dark:ring-foreground/10",
+        "group/card flex flex-col gap-surface-lg overflow-hidden bg-card py-surface-lg text-sm text-card-foreground ring-1 ring-foreground/5 has-[>img:first-child]:pt-0 data-[size=sm]:gap-surface-md data-[size=sm]:py-surface-md dark:ring-foreground/10",
+        uiSurfaceElevation.default,
         uiRadius.surface,
         uiRadius.surfaceMediaTop,
         uiRadius.surfaceMediaBottom,
@@ -75,7 +81,10 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-content"
-      className={cn("px-6 group-data-[size=sm]/card:px-4", className)}
+      className={cn(
+        "px-surface-lg group-data-[size=sm]/card:px-surface-md",
+        className
+      )}
       {...props}
     />
   )
@@ -86,7 +95,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center px-6 group-data-[size=sm]/card:px-4 [.border-t]:pt-6 group-data-[size=sm]/card:[.border-t]:pt-4",
+        "flex items-center px-surface-lg group-data-[size=sm]/card:px-surface-md [.border-t]:pt-surface-lg group-data-[size=sm]/card:[.border-t]:pt-surface-md",
         uiRadius.surfaceBottom,
         className
       )}

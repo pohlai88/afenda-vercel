@@ -6,7 +6,11 @@ import { ThemeProvider } from "#components/theme-provider"
 import { Toaster } from "#components/ui/sonner"
 import { TooltipProvider } from "#components/ui/tooltip"
 import {
+  APP_ICON_192_PNG,
+  APP_ICON_512_PNG,
+  APP_ICON_APPLE_180_PNG,
   DEFAULT_OG_IMAGE,
+  FAVICON_ICO,
   SITE_DESCRIPTION,
   SITE_NAME,
   getSiteUrl,
@@ -34,19 +38,62 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   icons: {
+    /**
+     * OS / browser tab follows `prefers-color-scheme`, not the in-page `next-themes` toggle.
+     * Light and dark both use the same transparent square marks (`APP_ICON_*`); maskable stays
+     * on the PWA manifest only (`purpose: "maskable"`).
+     * `shortcut` → real multi-size ICO at `/favicon.ico` (`pnpm icons:favicon`).
+     * @see https://nextjs.org/docs/app/api-reference/functions/generate-metadata#icons
+     */
+    shortcut: FAVICON_ICO,
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
       {
-        url: "/icons/afenda-icon-192-transparent.png",
+        url: APP_ICON_512_PNG,
+        sizes: "512x512",
+        type: "image/png",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: APP_ICON_192_PNG,
+        sizes: "192x192",
+        type: "image/png",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: APP_ICON_512_PNG,
+        sizes: "512x512",
+        type: "image/png",
+        media: "(prefers-color-scheme: dark)",
+      },
+      {
+        url: APP_ICON_192_PNG,
+        sizes: "192x192",
+        type: "image/png",
+        media: "(prefers-color-scheme: dark)",
+      },
+      {
+        url: APP_ICON_512_PNG,
+        sizes: "512x512",
+        type: "image/png",
+      },
+      {
+        url: APP_ICON_192_PNG,
         sizes: "192x192",
         type: "image/png",
       },
     ],
-    apple: {
-      url: "/icons/afenda-icon-180-transparent.png",
-      sizes: "180x180",
-      type: "image/png",
-    },
+    apple: [
+      {
+        url: APP_ICON_512_PNG,
+        sizes: "512x512",
+        type: "image/png",
+      },
+      {
+        url: APP_ICON_APPLE_180_PNG,
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
   },
   openGraph: {
     type: "website",
@@ -85,7 +132,11 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("font-sans antialiased", inter.variable, geistMono.variable)}
+      className={cn(
+        "font-sans antialiased",
+        inter.variable,
+        geistMono.variable
+      )}
     >
       <body className="min-h-svh">
         <ThemeProvider

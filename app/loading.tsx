@@ -1,3 +1,4 @@
+import { AfendaBrandLockup } from "#components/afenda-brand"
 import { Skeleton } from "#components/ui/skeleton"
 
 export default function Loading() {
@@ -7,6 +8,7 @@ export default function Loading() {
         <Skeleton className="size-9 rounded-lg" />
       </div>
       <div className="flex max-w-md min-w-0 flex-col gap-4">
+        <AfendaBrandLockup className="max-w-[200px]" />
         <div className="flex flex-col gap-2">
           <Skeleton className="h-5 w-40" />
           <Skeleton className="h-4 w-full max-w-sm" />

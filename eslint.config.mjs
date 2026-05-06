@@ -1,6 +1,6 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import { defineConfig, globalIgnores } from "eslint/config"
+import nextVitals from "eslint-config-next/core-web-vitals"
+import nextTs from "eslint-config-next/typescript"
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -20,7 +20,7 @@ const eslintConfig = defineConfig([
       "hooks/**/*.{js,jsx,ts,tsx}",
       "lib/**/*.{js,jsx,ts,tsx}",
     ],
-    ignores: ["components/ui/**"],
+    ignores: ["components/ui/**", "lib/features/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -41,11 +41,16 @@ const eslintConfig = defineConfig([
               message:
                 "Use #components/ui/* wrappers (e.g. Combobox); @base-ui/react only inside components/ui.",
             },
+            {
+              group: ["#features/*/*"],
+              message:
+                "Do not deep-import feature internals. Import from #features/<module> only.",
+            },
           ],
         },
       ],
     },
   },
-]);
+])
 
-export default eslintConfig;
+export default eslintConfig

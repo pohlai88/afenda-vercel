@@ -1,6 +1,12 @@
 import type { MetadataRoute } from "next"
 
-import { SITE_DESCRIPTION, SITE_NAME } from "#lib/site"
+import {
+  APP_ICON_192_PNG,
+  APP_ICON_512_PNG,
+  APP_ICON_MASKABLE_512_PNG,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+} from "#lib/site"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -13,19 +19,19 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#5a4a6e",
     icons: [
       {
-        src: "/icons/afenda-icon-192-transparent.png",
+        src: APP_ICON_192_PNG,
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/afenda-icon-512-transparent.png",
+        src: APP_ICON_512_PNG,
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/afenda-icon-512-maskable.png",
+        src: APP_ICON_MASKABLE_512_PNG,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

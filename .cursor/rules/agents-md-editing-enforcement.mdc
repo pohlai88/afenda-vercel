@@ -1,7 +1,7 @@
 ---
 description: Enforce AGENTS.md during repository edits
 globs: "**/*.{ts,tsx,js,jsx,mjs,cjs,json,md,mdx,css,scss,yml,yaml}"
-alwaysApply: false
+alwaysApply: true
 ---
 
 # AGENTS.md editing enforcement
@@ -19,6 +19,24 @@ Before editing repository files:
 4. Preserve import boundaries and public module access patterns.
 5. Prefer existing repository patterns over inventing new abstractions.
 6. Keep edits incremental and structurally consistent with the surrounding module.
+7. Treat boundary violations as blockers, not style nits.
+
+## Hard boundary checks (required)
+
+- Do not deep-import from another module internals.
+  - Allowed: `#features/<module>`
+  - Forbidden: `#features/<module>/*` (except inside the same module)
+- Keep ERP business logic inside `lib/features/<module>/...`; do not place it in `app/`, `proxy.ts`, or random shared folders.
+- Keep `app/` route-layer focused (routing, composition, page wiring), not data/domain workflow implementation.
+- Keep `lib/erp/` minimal shared primitives only; no module-specific workflows.
+- Keep `app/api/*` inside approved API families from `AGENTS.md`.
+- Keep repo root and module roots clean; do not create dumping directories.
+
+## Change governance
+
+- If a request implies a new architectural category, first update `AGENTS.md` contract in the same change.
+- If a request conflicts with boundaries, provide the closest compliant alternative and clearly explain the trade-off.
+- Prefer reducing architecture surface area (fewer abstractions/folders) over adding new layers.
 
 If a requested change conflicts with `AGENTS.md`:
 

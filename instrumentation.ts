@@ -14,7 +14,7 @@ export async function register() {
 export const onRequestError: Instrumentation.onRequestError = async (
   error,
   request,
-  context,
+  context
 ) => {
   const err = error as Error & { digest: string }
   console.error("[onRequestError]", {

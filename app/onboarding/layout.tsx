@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import type { Metadata } from "next"
 
+import { requireSignedInSession } from "#lib/tenant"
 import { SITE_NAME } from "#lib/site"
 
 export const metadata: Metadata = {
@@ -9,6 +10,11 @@ export const metadata: Metadata = {
   openGraph: { title: `Onboarding | ${SITE_NAME}` },
 }
 
-export default function OnboardingLayout({ children }: { children: ReactNode }) {
+export default async function OnboardingLayout({
+  children,
+}: {
+  children: ReactNode
+}) {
+  await requireSignedInSession()
   return children
 }

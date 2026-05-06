@@ -27,7 +27,9 @@ export default function GlobalError({
               A critical error occurred. Please try again or return home.
             </p>
             {error.digest ? (
-              <p className="font-mono text-xs text-muted-foreground">Reference: {error.digest}</p>
+              <p className="font-mono text-xs text-muted-foreground">
+                Reference: {error.digest}
+              </p>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center justify-center gap-3">

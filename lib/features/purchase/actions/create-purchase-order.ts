@@ -14,7 +14,7 @@ import type { PurchaseActionState } from "../types"
  */
 export async function createPurchaseOrder(
   _prevState: PurchaseActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<PurchaseActionState> {
   await requireOrgSession()
 

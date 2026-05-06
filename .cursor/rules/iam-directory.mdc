@@ -1,0 +1,38 @@
+---
+description: IAM control plane lives in lib/auth/; app/ is surface only
+alwaysApply: true
+---
+
+# IAM directory boundary (`lib/auth/`)
+
+## Authority
+
+- **`lib/auth/`** owns the **IAM control plane**: Better Auth configuration, session/step-up guards, **audit writers** ([`audit.server.ts`](lib/auth/audit.server.ts) + `iam_audit_event` in [`lib/db/schema.ts`](lib/db/schema.ts)), and **permission predicates** ([`permission.server.ts`](lib/auth/permission.server.ts) — org role + global admin only; no duplicate RBAC trees in `app/` or features).
+- **`app/`** owns **routes and UI** only (`/sign-in`, `/account`, `/admin`, `/dashboard`, `/api/auth/*`). Do not introduce an `app/iam/*` URL tree for configuration authority.
+
+## Import rules
+
+- **Public server door:** import `auth` from `#lib/auth` only (resolved to [`lib/auth/index.ts`](lib/auth/index.ts)). Import guards such as `requireRecentAuthStepUp` from `#lib/auth` as well.
+- **Do not** deep-import `lib/auth/config.server.ts` from `app/` or from ERP feature modules unless `AGENTS.md` explicitly allows it; prefer `#lib/auth`. **Exception (cycle avoidance):** low-level `lib` modules that must load the Better Auth instance before the barrel re-exports (e.g. [`lib/session-cache.ts`](lib/session-cache.ts)) may import `#lib/auth/config.server` only — not from `app/`.
+- **Shared path helpers** (no React): e.g. [`lib/auth/callback-path.ts`](lib/auth/callback-path.ts) may be imported as `#lib/auth/callback-path` from server or client when the symbol is intentionally shared.
+
+## Proxy and validation
+
+- **[`proxy.ts`](proxy.ts)** stays **narrow**: cookie presence, redirects, matcher only — **no** business logic, **no** DB, **no** session body validation.
+- **Post-login `callbackUrl`** must be validated for **open redirects** (same-origin relative paths only). Server Components should resolve/validate before passing props to client islands.
+
+## ERP modules
+
+- **Do not** embed IAM workflows inside `lib/features/<module>/` beyond calling guards or `#lib/auth` APIs exported for that purpose.
+
+## Evidence / object storage
+
+- **R2 / archive / long-lived evidence** are **storage roadmap** concerns. Document policy in `AGENTS.md` / env as needed; **implementation follows** once IAM audit semantics are stable — they **must not block** IAM control-plane PRs.
+
+## Audit action names
+
+- ERP/org events use **`erp.<module>.<object>.<verb>`** and **`org.<object>.<verb>`** (see **IAM audit policy (ERP)** in `AGENTS.md`). Session hooks keep **`iam.session.*`**.
+
+## Contract changes
+
+- New filenames under `lib/auth/` or new IAM categories require updating **`AGENTS.md`** in the same change.
