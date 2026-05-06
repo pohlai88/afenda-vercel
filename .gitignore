@@ -28,8 +28,16 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# env files
+# env files (Next.js: .env.local is loaded for local dev; keep secrets out of git)
+.env
 .env*.local
+# Maintainer copy for `pnpm env:sync` → .env.local; may hold secrets — never commit
+.env.config
+.env.vercel
+.env.vercel.pull
+
+# Vercel CLI (project link; may reference env)
+.vercel
 
 # typescript
 *.tsbuildinfo

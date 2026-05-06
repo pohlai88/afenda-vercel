@@ -1,0 +1,39 @@
+---
+description: Next.js App Router — critical patterns for RSC, data, caching, and routing
+alwaysApply: true
+---
+
+# Next.js (App Router) — critical practices
+
+This project uses **Next.js 16** with the App Router. Apply these patterns by default.
+
+## Server vs client
+
+- Prefer **Server Components**; add `'use client'` only for state, effects, events, or browser-only APIs.
+- Pass **server UI through `children` / `ReactNode` props** into client wrappers instead of importing server modules into client files.
+
+## Async dynamic APIs
+
+- **`await cookies()`** and **`await headers()`** (`next/headers`).
+- **`await params`** and **`await searchParams`** in `page`, `layout`, and **`generateMetadata`** (they are Promises in current versions).
+
+## Data and cache
+
+- **Parallelize** independent fetches; avoid request waterfalls.
+- **`fetch`:** `next: { revalidate }` for time-based revalidation; `next: { tags: ['x'] }` with **`revalidateTag('x', 'max')`** after mutations.
+- Use **Server Actions** for form/server mutations; **Route Handlers** for HTTP/webhooks/external callers.
+
+## Routing and edge
+
+- This repo uses **Next.js 16 `proxy.ts`** (replaces `middleware.ts`). Keep **`config.matcher`** narrow; avoid **`fetch` in proxy** unless necessary (latency + Vercel conformance).
+- Use **`NextResponse`**, rewrites, and redirects deliberately; know **`searchParams` forces dynamic rendering**.
+
+## UI and robustness
+
+- **`next/image`** for images; configure remotes; meaningful **`alt`**; size remote images.
+- Add **`error.tsx`**, **`not-found.tsx`**, **Suspense** / **`loading.tsx`** where users need clear failure and streaming states.
+
+## Don’t
+
+- Don’t mark **`async`** a file that has **`'use client'`** (invalid Server Component pattern).
+- Don’t pass **non-serializable** props (functions, class instances) from Server to Client Components.

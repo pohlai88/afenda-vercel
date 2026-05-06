@@ -1,0 +1,24 @@
+---
+description: Enforce Afenda design contract — tokens, imports, no drift
+globs: "**/*.{tsx,ts,css}"
+alwaysApply: false
+---
+
+# Design system enforcement
+
+## Tokens & geometry
+
+- Import shape/typography helpers from `#lib/design-system` (`uiRadius`, `uiTracking`, `uiTitle`) in UI primitives; do not introduce raw `rounded-3xl`, `rounded-4xl`, `shadow-2xl`, or arbitrary `rounded-[…]` unless the file is allowlisted in `scripts/check-design-contract.mjs`.
+- Semantic colors stay in `app/globals.css` (`:root` / `.dark`); components use `bg-primary`, `text-muted-foreground`, etc.
+
+## Primitive imports
+
+- **Never** import `radix-ui`, `@radix-ui/*`, or `@base-ui/react` outside `components/ui/**`. ESLint `no-restricted-imports` enforces this. App and features must use `#components/ui/*`.
+
+## Runtime validation
+
+- When `variant` / `size` / theme keys come from JSON, CMS, or query params, validate with Zod schemas exported from `#lib/design-system` (e.g. `buttonVariantSchema.parse(...)`).
+
+## CI
+
+- `pnpm run lint` runs ESLint + `scripts/check-design-contract.mjs`. Keep both green before merge.
