@@ -1,6 +1,6 @@
 ---
-description: Enforce Afenda design contract and UI governance (tokens, primitives, Figma docs)
-globs: "**/*.{ts,tsx,css},docs/design-system/**/*.md"
+description: Afenda design tokens, primitives, and UI class contracts (TS/TSX/CSS)
+globs: "**/*.{ts,tsx,css}"
 alwaysApply: false
 ---
 

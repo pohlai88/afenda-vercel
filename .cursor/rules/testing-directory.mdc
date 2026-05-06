@@ -1,0 +1,24 @@
+---
+description: Testing directory contract — tests/fixtures, tests/unit, tests/e2e, tests/e2e/utils
+globs: tests/**/*
+alwaysApply: false
+---
+
+# Testing directory contract
+
+Authoritative rules live in **AGENTS.md** (section 2 commands + section 6 canonical tree + **Testing directory contract**). This rule mirrors boundaries for edits under `tests/`.
+
+## Layout
+
+- **`tests/fixtures/`** — Deterministic IDs, emails, user-visible copy strings, static factories. **No** Playwright `Page` / browser APIs. **No** ERP domain workflows.
+- **`tests/unit/`** — Vitest. Default **Node**; use `/** @vitest-environment jsdom */` only when DOM/RTL is required.
+- **`tests/e2e/`** — Playwright `*.spec.ts`. Prefer explicit `goto` / `getByRole` / `getByLabel`. Tag stable gates (e.g. `@smoke`).
+- **`tests/e2e/utils/`** — Browser helpers (navigation, auth steps). Import canonical data from **`tests/fixtures`**, do not duplicate magic IDs/copy. Avoid deep `test.extend` pyramids.
+
+## Artifacts
+
+- CI JUnit and similar outputs go under **`.artifacts/`** (gitignored). Do not commit reports.
+
+## Playwright URL
+
+- Default **`PLAYWRIGHT_BASE_URL`** is **`http://127.0.0.1:3001`** so **`pnpm dev`** can keep **3000**. Full contract: **AGENTS.md** testing subsection.

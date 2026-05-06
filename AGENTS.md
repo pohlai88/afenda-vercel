@@ -8,14 +8,15 @@ Instructions for AI agents working in this repository. Stack: **Next.js 16** (Ap
 
 Use this block for fast orientation; deep rules stay in the numbered sections below.
 
-| Goal | Where to look / what to do |
-| --- | --- |
-| Jump to a topic | [Contents](#contents) — anchor links to every § |
-| ERP feature work | `lib/features/<module>/` · public imports `#features/<module>` only · no cross-module deep imports (**§6**, **§4.1**) |
-| Dashboard UI | `#components/ui/*` · `#lib/design-system` · tokens `app/globals.css` (**§7**) |
-| Next / RSC | Server Components default · async `cookies` / `headers` / `params` · thin `proxy.ts` — also `.cursor/rules/nextjs-best-practices.mdc` (always on) |
-| Green CI | `pnpm lint` · `pnpm typecheck` · `pnpm format:check` — or `pnpm smoke` before a big push (**§2**) |
-| Local editor | `.vscode/settings.json` — workspace TypeScript, Prettier on save, ESLint fix on save, Tailwind v4 entry = `app/globals.css` |
+| Goal                  | Where to look / what to do                                                                                                                                                                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Jump to a topic       | [Contents](#contents) — anchor links to every §                                                                                                                                                                                                         |
+| ERP feature work      | `lib/features/<module>/` · public imports `#features/<module>` only · no cross-module deep imports (**§6**, **§4.1**)                                                                                                                                   |
+| Dashboard UI          | `#components/ui/*` · `#lib/design-system` · tokens `app/globals.css` (**§7**)                                                                                                                                                                           |
+| Next / RSC            | Server Components default · async `cookies` / `headers` / `params` · thin `proxy.ts` — also `.cursor/rules/nextjs-best-practices.mdc` (always on)                                                                                                       |
+| Green CI              | `pnpm lint` · `pnpm typecheck` · `pnpm test:ci` · `pnpm format:check` — or `pnpm smoke` before a big push (**§2**); Playwright in CI after `pnpm build`                                                                                                 |
+| Tests / E2E           | **§2** commands + **Testing directory contract** below; Vitest (Node-first `tests/unit`); Playwright (`tests/e2e`); default **`PLAYWRIGHT_BASE_URL`** **`http://127.0.0.1:3001`** vs **`pnpm dev`** on **3000** · `.cursor/rules/testing-directory.mdc` |
+| Local editor / Cursor | `.editorconfig` + `.gitattributes` (LF / UTF-8 / 2-space) · `.vscode/settings.json` (workspace TS, Prettier + ESLint on save, Tailwind v4 = `app/globals.css`) · `.vscode/extensions.json` + `.vscode/tasks.json` · `.cursorignore` trims index noise   |
 
 ## Contents
 
@@ -35,30 +36,31 @@ Use this block for fast orientation; deep rules stay in the numbered sections be
 
 ## 1. How to use this document
 
-| Role                          | Source                                                                                                                                                           |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Single operating contract** | This file (`AGENTS.md`)                                                                                                                                          |
-| **Always-on Cursor rules**    | `.cursor/rules/agents-md-mandatory.mdc`, `.cursor/rules/agents-md-editing-enforcement.mdc`                                                                       |
-| **Design / UI edits (globs)** | `.cursor/rules/design-system-enforcement.mdc`                                                                                                                    |
-| **Other focused rules**       | `.cursor/rules/nextjs-best-practices.mdc`, `images.mdc`, `brand-assets.mdc`, `iam-directory.mdc`, `registry-bases-parity.mdc`, `figma-code-connect-workflow.mdc` |
+| Role                          | Source                                                                                                                                                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Single operating contract** | This file (`AGENTS.md`)                                                                                                                                                                                |
+| **Always-on Cursor rules**    | `.cursor/rules/agents-md-mandatory.mdc`, `.cursor/rules/agents-md-editing-enforcement.mdc`                                                                                                             |
+| **Design / UI edits (globs)** | `.cursor/rules/design-system-enforcement.mdc` (`*.{ts,tsx,css}`) · `.cursor/rules/design-system-docs-enforcement.mdc` (`docs/design-system/**/*.md`)                                                   |
+| **Other focused rules**       | `.cursor/rules/nextjs-best-practices.mdc`, `images.mdc`, `brand-assets.mdc`, `iam-directory.mdc`, `testing-directory.mdc` (`tests/**`), `registry-bases-parity.mdc`, `figma-code-connect-workflow.mdc` |
 
 **Change order:** If a task needs a new architectural category, API family, or folder vocabulary, **update this file first** in the same change, then implementation. Keep `.cursor/rules/*` aligned when they mirror this contract (they must not contradict it).
 
-**Mechanical alignment:** `scripts/check-agent-contract.mjs` declares `REQUIRED_FILES` (this doc + mandatory rules + `design-system-enforcement.mdc` + `eslint.config.mjs` + `check-design-contract.mjs`). Do not remove or weaken those paths without updating the script and this section.
+**Mechanical alignment:** `scripts/check-agent-contract.mjs` declares `REQUIRED_FILES` (this doc + mandatory agent rules + `design-system-enforcement.mdc` + `design-system-docs-enforcement.mdc` + `eslint.config.mjs` + `check-design-contract.mjs`). Do not remove or weaken those paths without updating the script and this section.
 
 ---
 
 ## 2. Commands & quality gates
 
-| Command                             | Purpose                                                     |
-| ----------------------------------- | ----------------------------------------------------------- |
-| `pnpm dev`                          | Dev server (Turbopack)                                      |
-| `pnpm build` / `pnpm start`         | Production build / serve                                    |
-| `pnpm lint`                         | `lint:agent-contract` → ESLint → `lint:design-contract`     |
-| `pnpm typecheck`                    | `tsc --noEmit`                                              |
-| `pnpm format` / `pnpm format:check` | Prettier (Tailwind class sorting via `prettier.config.mjs`) |
-| `pnpm test` / `pnpm test:ci`         | Vitest unit tests (`tests/unit`)                            |
-| `pnpm test:e2e`                      | Playwright (`tests/e2e`; starts dev server when not in CI) |
+| Command                             | Purpose                                                               |
+| ----------------------------------- | --------------------------------------------------------------------- |
+| `pnpm dev`                          | Dev server (Turbopack)                                                |
+| `pnpm build` / `pnpm start`         | Production build / serve                                              |
+| `pnpm lint`                         | `lint:agent-contract` → ESLint → `lint:design-contract`               |
+| `pnpm typecheck`                    | `tsc --noEmit`                                                        |
+| `pnpm format` / `pnpm format:check` | Prettier (Tailwind class sorting via `prettier.config.mjs`)           |
+| `pnpm test` / `pnpm test:ci`        | Vitest unit tests (`tests/unit`, Node by default)                     |
+| `pnpm test:e2e`                     | Playwright (`tests/e2e`; starts `pnpm dev` when not in CI)            |
+| `pnpm test:e2e:ci`                  | `pnpm build` then Playwright against `next start` (local prod-shaped) |
 
 **Before merge** (boundaries, modules, routing, APIs, or design tokens):
 
@@ -70,6 +72,15 @@ Use this block for fast orientation; deep rules stay in the numbered sections be
 Do not mark work complete if these fail for reasons introduced by the change.
 
 Path aliases (see `package.json`): `#components/*`, `#lib/*`, `#hooks/*`, `#features/*`.
+
+### Testing directory contract
+
+- **`tests/fixtures/`** — Canonical **deterministic data**: UUIDs, emails, slugs, user-visible **copy** for assertions, small static factories. Consumed by Vitest and Playwright. **Forbidden:** Playwright/browser imports, ERP business workflows, hidden mega user journeys.
+- **`tests/unit/`** — Vitest. Default runtime is **Node** (semantic match for `lib/` and `.server` boundaries). Use a file-level **`@vitest-environment jsdom`** directive only for DOM/RTL tests. Do not introduce Vitest **`projects`** until many `*.dom.test.tsx` files justify the complexity.
+- **`tests/e2e/`** — Playwright specs (`*.spec.ts`). Prefer **explicit** steps (`goto`, `getByRole`, `getByLabel`). Tag stable gates (e.g. **`@smoke`**). Default **`PLAYWRIGHT_BASE_URL`** is **`http://127.0.0.1:3001`** — **`pnpm dev`** stays on **3000**; E2E starts **`pnpm dev`** or **`pnpm start`** on **3001** unless overridden. **CI** runs E2E against **`pnpm start`** after `pnpm build`; **`pnpm test:e2e:ci`** does not reuse a server — ensure port **3001** is free for prod-shaped runs.
+- **`tests/e2e/utils/`** — Optional **browser helpers** (navigation, auth helpers). **Import** IDs/copy from `tests/fixtures`; do not duplicate canonical strings. Avoid deep **`test.extend`** chains; keep specs readable.
+
+Transient reports (e.g. Playwright JUnit) belong under **`.artifacts/`** (gitignored), not in `tests/`.
 
 ---
 
@@ -102,6 +113,7 @@ The agent-contract script fails if any of these are missing:
 - `.cursor/rules/agents-md-mandatory.mdc`
 - `.cursor/rules/agents-md-editing-enforcement.mdc`
 - `.cursor/rules/design-system-enforcement.mdc`
+- `.cursor/rules/design-system-docs-enforcement.mdc`
 - `eslint.config.mjs`
 - `scripts/check-design-contract.mjs`
 
@@ -123,7 +135,7 @@ The agent-contract script fails if any of these are missing:
 ## 5. ERP / full-stack stack (this repo)
 
 - **DB:** Neon Postgres + **Drizzle** — schema in [`lib/db/schema.ts`](lib/db/schema.ts); client in [`lib/db/index.ts`](lib/db/index.ts).
-- **Auth / IAM:** **Better Auth** + **organization** plugin (multi-tenant `activeOrganizationId`). **Control plane** lives under [`lib/auth/`](lib/auth/) ([`index.ts`](lib/auth/index.ts) is the public import door for `auth`; [`config.server.ts`](lib/auth/config.server.ts) holds `betterAuth(...)`). Routes: `/api/auth/*`, product surfaces `/sign-in`, `/account`, `/admin`, `/dashboard`. **Next.js 16** [`proxy.ts`](proxy.ts) on **`/dashboard`**, **`/onboarding`**, **`/account`**, **`/admin`** — **session cookie presence only** (optimistic redirect to `/sign-in?callbackUrl=…`); real session and org membership are enforced in RSC / Server Actions. **Session freshness** follows Better Auth [`freshAge`](https://www.better-auth.com/docs/concepts/session-management#session-freshness) (shared constant [`AUTH_SESSION_FRESH_AGE_SECONDS`](lib/auth/session-policy.server.ts)). **Step-up:** [`requireRecentAuthStepUp`](lib/auth/stepup.server.ts) uses `getSession` with `disableCookieCache: true` (see [session management](https://www.better-auth.com/docs/concepts/session-management)) so cookie cache cannot bypass re-auth; sensitive layouts (`/admin`, `/account/security`) call it after role/session guards. **IAM audit:** table [`iamAuditEvent`](lib/db/schema.ts) (`iam_audit_event`); writers in [`lib/auth/audit.server.ts`](lib/auth/audit.server.ts); Better Auth [`hooks`](https://www.better-auth.com/docs/concepts/hooks) for session lifecycle; ERP mutations use `writeIamAuditEvent` per [**IAM audit policy (ERP)**](#iam-audit-policy-erp) below. Apply migrations with `pnpm db:migrate` or `pnpm db:push`. **IAM spine (contract):** identity and session are authoritative in `lib/auth/`; `app/` renders UI only. **Permissions:** org/global checks live in [`lib/auth/permission.server.ts`](lib/auth/permission.server.ts) (`isGlobalAdminUser`, `getOrgMemberRole`, `orgRoleAtLeast`, `canActInOrganization`); [`lib/tenant.ts`](lib/tenant.ts) reuses `isGlobalAdminUser` for `requireGlobalAdminSession`. Session payloads include `user.role` (Better Auth user role) for passing into predicates (see `.cursor/rules/iam-directory.mdc`). **Files / evidence:** **Vercel Blob** is the supported upload path today ([`app/api/upload/blob`](app/api/upload/blob/route.ts)). **S3-compatible (e.g. Cloudflare R2)** is reserved for **archive / long-lived evidence** once IAM audit semantics are stable — do not duplicate Blob for the same use case; see `.env.config.example` section F (S3-compatible placeholders).
+- **Auth / IAM:** **Better Auth** + **organization** plugin (multi-tenant `activeOrganizationId`). **Control plane** lives under [`lib/auth/`](lib/auth/) ([`index.ts`](lib/auth/index.ts) is the public import door for `auth`; [`config.server.ts`](lib/auth/config.server.ts) holds `betterAuth(...)`). **Auth interruption semantics:** canonical codes in [`lib/auth/auth-status.shared.ts`](lib/auth/auth-status.shared.ts) (query param `authStatus`), href builder [`lib/auth/auth-interruption-url.shared.ts`](lib/auth/auth-interruption-url.shared.ts), server redirect [`lib/auth/interruption-redirect.server.ts`](lib/auth/interruption-redirect.server.ts), request path capture for RSC guards [`lib/auth/forwarded-path-headers.shared.ts`](lib/auth/forwarded-path-headers.shared.ts) + [`lib/auth/intended-path.server.ts`](lib/auth/intended-path.server.ts), copy resolver [`lib/auth/auth-status-copy.ts`](lib/auth/auth-status-copy.ts), UI primitive [`components/auth/auth-result.tsx`](components/auth/auth-result.tsx), example routes [`app/session-expired/page.tsx`](app/session-expired/page.tsx), [`app/verify-email/page.tsx`](app/verify-email/page.tsx), alias [`app/check-email/page.tsx`](app/check-email/page.tsx) → `/verify-email`. Routes: `/api/auth/*`, product surfaces `/sign-in`, `/account`, `/admin`, `/dashboard`. **Next.js 16** [`proxy.ts`](proxy.ts) on **`/dashboard`**, **`/onboarding`**, **`/account`**, **`/admin`** — **session cookie presence only** (optimistic redirect to `/sign-in?callbackUrl=…`); real session and org membership are enforced in RSC / Server Actions. **Session freshness** follows Better Auth [`freshAge`](https://www.better-auth.com/docs/concepts/session-management#session-freshness) (shared constant [`AUTH_SESSION_FRESH_AGE_SECONDS`](lib/auth/session-policy.server.ts)). **Step-up:** [`requireRecentAuthStepUp`](lib/auth/stepup.server.ts) uses `getSession` with `disableCookieCache: true` (see [session management](https://www.better-auth.com/docs/concepts/session-management)) so cookie cache cannot bypass re-auth; missing session → [`AUTH_STATUS.SESSION_EXPIRED`](lib/auth/auth-status.shared.ts), stale session → [`AUTH_STATUS.STEP_UP_REQUIRED`](lib/auth/auth-status.shared.ts), both via [`redirectToAuthInterruption`](lib/auth/interruption-redirect.server.ts) to [`app/session-expired/page.tsx`](app/session-expired/page.tsx) (sign-in CTA adds `stepUp=1` for step-up). Sensitive layouts (`/admin`, `/account/security`) call it after role/session guards. **IAM audit:** table [`iamAuditEvent`](lib/db/schema.ts) (`iam_audit_event`); writers in [`lib/auth/audit.server.ts`](lib/auth/audit.server.ts); Better Auth [`hooks`](https://www.better-auth.com/docs/concepts/hooks) for session lifecycle; ERP mutations use `writeIamAuditEvent` per [**IAM audit policy (ERP)**](#iam-audit-policy-erp) below. Apply migrations with `pnpm db:migrate` or `pnpm db:push`. **IAM spine (contract):** identity and session are authoritative in `lib/auth/`; `app/` renders UI only. **Permissions:** org/global checks live in [`lib/auth/permission.server.ts`](lib/auth/permission.server.ts) (`isGlobalAdminUser`, `getOrgMemberRole`, `orgRoleAtLeast`, `canActInOrganization`); [`lib/tenant.ts`](lib/tenant.ts) reuses `isGlobalAdminUser` for `requireGlobalAdminSession`. Session payloads include `user.role` (Better Auth user role) for passing into predicates (see `.cursor/rules/iam-directory.mdc`). **Files / evidence:** **Vercel Blob** is the supported upload path today ([`app/api/upload/blob`](app/api/upload/blob/route.ts)). **S3-compatible (e.g. Cloudflare R2)** is reserved for **archive / long-lived evidence** once IAM audit semantics are stable — do not duplicate Blob for the same use case; see `.env.config.example` section F (S3-compatible placeholders).
 - **Tenant guard:** [`lib/tenant.ts`](lib/tenant.ts) — `requireSignedInSession()` for **`/onboarding`** and **`/account`** (validated session, not cookie-only); `requireOrgSession()` for ERP (org + membership); `requireGlobalAdminSession()` for **`/admin`**. All use cached reads via [`lib/session-cache.ts`](lib/session-cache.ts) (`React.cache`).
 - **Dashboard paths:** [`lib/dashboard-module-paths.ts`](lib/dashboard-module-paths.ts) — canonical `/dashboard/...` pathnames. Client shell (e.g. module nav) imports this file instead of `#features/<module>` barrels so Server Component / `server-only` exports are not pulled into the client graph; each module’s `constants.ts` re-exports its route from here.
 - **Vercel (canonical):** Deploy from team **Jack's projects** (`jacks-projects-7b3cfe94`), project name **`afenda-vercel`**. Link with `vercel link --scope jacks-projects-7b3cfe94` (do not rely on hardcoded `prj_*` IDs in docs — use the dashboard or CLI). Do not use duplicate hobby-team projects for production secrets.
@@ -264,7 +276,14 @@ lib/
   db/
     index.ts
     schema.ts
+tests/
+  fixtures/
+  e2e/
+    utils/
+  unit/
 ```
+
+Root tooling (not under `app/` or `lib/`): `vitest.config.ts`, `vitest.setup.ts`, `playwright.config.ts`.
 
 ### Contacts is the reference ceiling module
 
@@ -450,10 +469,10 @@ Stable ERP boundaries are allowed early (`actions`, `data`, `components`, `schem
 
 **Rules:**
 
-- Import primitives from **`#components/ui/*`** only. **`radix-ui` / `@radix-ui/*` / `@base-ui/react`** are confined to **`components/ui`** (ESLint also enforces this on **`lib/features/**`\*\*).
+- Import primitives from **`#components/ui/*`** only. **`radix-ui` / `@radix-ui/*` / `@base-ui/react`** are confined to **`components/ui`** (ESLint enforces the same boundary on `lib/features/**`).
 - Use **`#lib/design-system`** for allowlisted geometry, elevation, density/surface helpers, and runtime parsers for untrusted variant payloads.
 - On filled primary/secondary controls in primitives, use **`bg-primary-hover` / `bg-secondary-hover`**, not **`hover:bg-primary/…`** / **`hover:bg-secondary/…`** (design-contract).
-- Detail and examples: `.cursor/rules/design-system-enforcement.mdc`.
+- Code / CSS detail: `.cursor/rules/design-system-enforcement.mdc` · design docs: `.cursor/rules/design-system-docs-enforcement.mdc`.
 
 ---
 

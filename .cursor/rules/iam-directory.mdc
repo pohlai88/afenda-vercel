@@ -14,7 +14,7 @@ alwaysApply: true
 
 - **Public server door:** import `auth` from `#lib/auth` only (resolved to [`lib/auth/index.ts`](lib/auth/index.ts)). Import guards such as `requireRecentAuthStepUp` from `#lib/auth` as well.
 - **Do not** deep-import `lib/auth/config.server.ts` from `app/` or from ERP feature modules unless `AGENTS.md` explicitly allows it; prefer `#lib/auth`. **Exception (cycle avoidance):** low-level `lib` modules that must load the Better Auth instance before the barrel re-exports (e.g. [`lib/session-cache.ts`](lib/session-cache.ts)) may import `#lib/auth/config.server` only — not from `app/`.
-- **Shared path helpers** (no React): e.g. [`lib/auth/callback-path.ts`](lib/auth/callback-path.ts) may be imported as `#lib/auth/callback-path` from server or client when the symbol is intentionally shared.
+- **Shared path helpers** (no React): e.g. [`lib/auth/callback-path.ts`](lib/auth/callback-path.ts) may be imported as `#lib/auth/callback-path` from server or client when the symbol is intentionally shared. **Proxy-safe header names** for path intent: [`lib/auth/forwarded-path-headers.shared.ts`](lib/auth/forwarded-path-headers.shared.ts) (Edge `proxy.ts` must not import `server-only` / `next/headers` helpers). **Canonical auth interruption codes** live in [`lib/auth/auth-status.shared.ts`](lib/auth/auth-status.shared.ts); bookmarkable URLs via [`lib/auth/auth-interruption-url.shared.ts`](lib/auth/auth-interruption-url.shared.ts); server redirect + intended path in [`lib/auth/interruption-redirect.server.ts`](lib/auth/interruption-redirect.server.ts) + [`lib/auth/intended-path.server.ts`](lib/auth/intended-path.server.ts). UI copy resolver [`lib/auth/auth-status-copy.ts`](lib/auth/auth-status-copy.ts).
 
 ## Proxy and validation
 

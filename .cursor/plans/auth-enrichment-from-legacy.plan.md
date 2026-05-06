@@ -1,5 +1,7 @@
 # Auth enrichment plan (normalized)
 
+> **Superseded for maintenance:** the merged canonical plan is [auth-iam-roadmap-final.plan.md](auth-iam-roadmap-final.plan.md), which includes serialized WPs, implementation status, and the CNA IAM reference track. This file is kept for historical detail (full WP JSON and file lists).
+
 ## Document control
 
 - **plan_id:** `auth-enrichment-from-legacy`

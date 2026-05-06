@@ -1,6 +1,6 @@
 # Afenda ERP Design System Governance
 
-**Contract anchor:** Product-wide policy for structure, enforcement, and primitives is **[`AGENTS.md`](../../AGENTS.md)** (especially **§4**, **§6**, **§7**). This doc is the design-system playbook and Figma handoff; it must not contradict `AGENTS.md`.
+**Contract anchor:** Product-wide policy for structure, enforcement, and primitives is **[`AGENTS.md`](../../AGENTS.md)** (especially **§4**, **§6**, **§7**). This doc is the design-system playbook and Figma handoff; it must not contradict `AGENTS.md`. **Cursor:** when editing files here, `.cursor/rules/design-system-docs-enforcement.mdc` attaches (single glob, no comma pattern).
 
 ## Doctrine
 
