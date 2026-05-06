@@ -1,0 +1,22 @@
+---
+description: Keep Figma Code Connect and UI primitives in lockstep
+globs: "components/ui/**/*.{ts,tsx},lib/design-system.ts,docs/design-system/**/*.md"
+alwaysApply: false
+---
+
+# Figma Code Connect workflow
+
+- For any primitive API change, keep parity across:
+  - `components/ui/*`
+  - `lib/design-system.ts`
+  - `docs/design-system/figma-code-connect-mapping.md`
+
+- Before adding a new component in Figma workflows:
+  - check existing design system components first (`search_design_system`)
+  - keep variant names equal to code variant names
+  - keep slot names aligned to `data-slot` anatomy
+
+- If variant names diverge between Figma and code, normalize code and mapping docs in the same change.
+
+- Never introduce hardcoded palette colors in primitives to satisfy design mocks.
+  Convert to semantic token usage in `app/globals.css` first.

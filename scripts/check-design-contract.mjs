@@ -17,6 +17,9 @@ const FORBIDDEN_RADIUS = /\brounded-(3xl|4xl|5xl|6xl)\b/g
 /** Heavy shadow — prefer shadow-md / shadow-lg / shadow-xl per luxury ERP direction */
 const FORBIDDEN_SHADOW = /\bshadow-2xl\b/g
 
+/** Primitive files must use semantic color tokens, not palette shades. */
+const FORBIDDEN_PRIMITIVE_COLOR = /\b(?:bg|text|border|ring)-(?:slate|gray|zinc|stone|neutral|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/g
+
 /**
  * Arbitrary rounded-[…] is opt-in only (Tailwind still needs literals in allowlisted files).
  * Add a file here if you truly need a non-token radius.
@@ -69,6 +72,10 @@ for (const file of files) {
     FORBIDDEN_SHADOW.lastIndex = 0
     if (FORBIDDEN_SHADOW.test(row)) {
       report("forbidden shadow-2xl", lineNo, row)
+    }
+    FORBIDDEN_PRIMITIVE_COLOR.lastIndex = 0
+    if (rel.startsWith("components/ui/") && FORBIDDEN_PRIMITIVE_COLOR.test(row)) {
+      report("forbidden palette color in primitive (use semantic tokens)", lineNo, row)
     }
     ARBITRARY_ROUNDED.lastIndex = 0
     if (ARBITRARY_ROUNDED.test(row) && !ARBITRARY_ROUNDED_ALLOWLIST.has(rel)) {

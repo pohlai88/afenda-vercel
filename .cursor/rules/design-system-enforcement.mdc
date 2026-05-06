@@ -1,24 +1,94 @@
 ---
-description: Enforce Afenda design contract — tokens, imports, no drift
-globs: "**/*.{tsx,ts,css}"
+description: Enforce Afenda design contract and UI governance
+globs: "**/*.{ts,tsx,css}"
 alwaysApply: false
 ---
 
 # Design system enforcement
 
-## Tokens & geometry
+## Design token contract
 
-- Import shape/typography helpers from `#lib/design-system` (`uiRadius`, `uiTracking`, `uiTitle`) in UI primitives; do not introduce raw `rounded-3xl`, `rounded-4xl`, `shadow-2xl`, or arbitrary `rounded-[…]` unless the file is allowlisted in `scripts/check-design-contract.mjs`.
-- Semantic colors stay in `app/globals.css` (`:root` / `.dark`); components use `bg-primary`, `text-muted-foreground`, etc.
+- Use design-system exports from `#lib/design-system` for:
+  - geometry
+  - radius
+  - typography
+  - tracking
+  - semantic variants
+- Do not introduce raw geometry utilities such as:
+  - `rounded-3xl`
+  - `rounded-4xl`
+  - `shadow-2xl`
+  - arbitrary `rounded-[...]`
+  - arbitrary shadow systems
+- Exceptions must be explicitly allowlisted in:
+  - `scripts/check-design-contract.mjs`
 
-## Primitive imports
+## Semantic color contract
 
-- **Never** import `radix-ui`, `@radix-ui/*`, or `@base-ui/react` outside `components/ui/**`. ESLint `no-restricted-imports` enforces this. App and features must use `#components/ui/*`.
+- Semantic colors are defined centrally in:
+  - `app/globals.css`
+- Components must consume semantic tokens:
+  - `bg-primary`
+  - `text-muted-foreground`
+  - `border-border`
+  - etc.
+- Avoid hardcoded color values in components unless explicitly approved.
 
-## Runtime validation
+## Primitive ownership contract
 
-- When `variant` / `size` / theme keys come from JSON, CMS, or query params, validate with Zod schemas exported from `#lib/design-system` (e.g. `buttonVariantSchema.parse(...)`).
+- UI primitives are owned by:
+  - `components/ui/**`
+- Application/features must import primitives only from:
+  - `#components/ui/*`
+
+Forbidden outside primitive layer:
+
+```txt
+@radix-ui/*
+radix-ui
+@base-ui/react
+```
+
+## Runtime validation contract
+
+When variants, sizes, themes, or appearance values originate from:
+
+- JSON
+- CMS
+- query params
+- APIs
+- external payloads
+
+validate them using exported schemas from:
+
+```txt
+#lib/design-system
+```
+
+Examples:
+
+```ts
+buttonVariantSchema.parse(value)
+buttonSizeSchema.parse(value)
+```
+
+## Anti-drift rules
+
+- Prefer existing design-system patterns over introducing new visual abstractions.
+- Do not create parallel token systems.
+- Do not introduce local shadow/radius scales.
+- Keep visual language structurally consistent across ERP modules.
 
 ## CI
 
-- `pnpm run lint` runs ESLint + `scripts/check-design-contract.mjs`. Keep both green before merge.
+Before merge, keep all checks green:
+
+```bash
+pnpm lint
+pnpm typecheck
+```
+
+`pnpm lint` must include:
+
+- ESLint
+- `scripts/check-design-contract.mjs`

@@ -56,10 +56,46 @@ export const uiTracking = {
   control: "tracking-[0.01em]",
 } as const
 
+export const uiDensity = {
+  comfortable: "gap-4",
+  compact: "gap-3",
+} as const
+
+export const uiDensitySchema = z.enum(["comfortable", "compact"])
+export type UiDensity = z.infer<typeof uiDensitySchema>
+
 export const uiTitle = {
   /** Card / dialog titles — matches globals h3 scale */
   sm: "font-heading text-lg leading-tight font-semibold",
 } as const
+
+export const uiStatusToneKeys = [
+  "neutral",
+  "success",
+  "warning",
+  "info",
+  "critical",
+] as const
+
+export type UiStatusTone = (typeof uiStatusToneKeys)[number]
+export const uiStatusToneSchema = z.enum(uiStatusToneKeys)
+
+export const uiStatusToneClasses: Record<UiStatusTone, string> = {
+  neutral: "bg-muted text-muted-foreground",
+  success: "bg-success/15 text-success",
+  warning: "bg-warning/20 text-warning-foreground",
+  info: "bg-info/15 text-info",
+  critical: "bg-critical/15 text-critical",
+}
+
+export const uiSurfaceElevation = {
+  default: "shadow-elevation-1",
+  raised: "shadow-elevation-2",
+  floating: "shadow-elevation-3",
+} as const
+
+export const uiSurfaceElevationSchema = z.enum(["default", "raised", "floating"])
+export type UiSurfaceElevation = z.infer<typeof uiSurfaceElevationSchema>
 
 /** Button variants — keep in sync with `components/ui/button.tsx` */
 export const buttonVariantKeys = [
@@ -101,4 +137,16 @@ export function parseButtonVariant(value: unknown): ButtonVariant {
 
 export function parseButtonSize(value: unknown): ButtonSize {
   return buttonSizeSchema.parse(value)
+}
+
+export function parseUiDensity(value: unknown): UiDensity {
+  return uiDensitySchema.parse(value)
+}
+
+export function parseUiStatusTone(value: unknown): UiStatusTone {
+  return uiStatusToneSchema.parse(value)
+}
+
+export function parseSurfaceElevation(value: unknown): UiSurfaceElevation {
+  return uiSurfaceElevationSchema.parse(value)
 }

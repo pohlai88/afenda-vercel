@@ -1,0 +1,23 @@
+---
+description: Load and follow AGENTS.md before repository work
+alwaysApply: true
+---
+
+# AGENTS.md mandatory preload
+
+For every repository task:
+
+1. Read `AGENTS.md` before analysis, planning, coding, refactoring, testing, or tool execution.
+2. Treat `AGENTS.md` as the repository operating contract for:
+   - architecture
+   - directory boundaries
+   - routing
+   - API governance
+   - ERP module structure
+   - coding workflow
+3. Prefer existing repository patterns over inventing new structures.
+4. Do not introduce new architectural categories, folders, or conventions unless `AGENTS.md` is updated first.
+5. If user instructions conflict with `AGENTS.md`, prefer the safer interpretation and ask for clarification when necessary.
+6. Keep all code, plans, and recommendations aligned with the latest `AGENTS.md`.
+
+`AGENTS.md` is the source of truth for repository structure and engineering governance.

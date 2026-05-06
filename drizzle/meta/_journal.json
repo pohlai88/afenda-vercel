@@ -15,6 +15,13 @@
       "when": 1778038179276,
       "tag": "0001_free_dust",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778047875515,
+      "tag": "0002_wakeful_ozymandias",
+      "breakpoints": true
     }
   ]
 }

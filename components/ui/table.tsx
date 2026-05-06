@@ -3,12 +3,18 @@
 import * as React from "react"
 
 import { cn } from "#lib/utils"
+import { uiDensity } from "#lib/design-system"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+function Table({
+  className,
+  density = "comfortable",
+  ...props
+}: React.ComponentProps<"table"> & { density?: keyof typeof uiDensity }) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      data-density={density}
+      className="group/table-container relative w-full overflow-x-auto"
     >
       <table
         data-slot="table"
@@ -70,7 +76,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-12 px-3 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        "h-12 px-3 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0 group-data-[density=compact]/table-container:h-10 group-data-[density=compact]/table-container:px-2.5",
         className
       )}
       {...props}
@@ -83,7 +89,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-3 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        "p-3 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 group-data-[density=compact]/table-container:px-2.5 group-data-[density=compact]/table-container:py-2",
         className
       )}
       {...props}

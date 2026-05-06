@@ -1,0 +1,27 @@
+---
+description: Enforce AGENTS.md during repository edits
+globs: "**/*.{ts,tsx,js,jsx,mjs,cjs,json,md,mdx,css,scss,yml,yaml}"
+alwaysApply: false
+---
+
+# AGENTS.md editing enforcement
+
+Before editing repository files:
+
+1. Read `AGENTS.md` and apply its latest rules.
+2. Keep changes within approved:
+   - architecture boundaries
+   - directory contracts
+   - routing rules
+   - API governance
+   - ERP module structure
+3. Do not introduce new folders, architectural categories, or conventions unless `AGENTS.md` is updated first.
+4. Preserve import boundaries and public module access patterns.
+5. Prefer existing repository patterns over inventing new abstractions.
+6. Keep edits incremental and structurally consistent with the surrounding module.
+
+If a requested change conflicts with `AGENTS.md`:
+
+- call out the conflict clearly
+- explain the risk
+- propose the closest compliant alternative

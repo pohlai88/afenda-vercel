@@ -4,7 +4,8 @@
     "paths": {
       "#components/*": ["./components/*"],
       "#lib/*": ["./lib/*"],
-      "#hooks/*": ["./hooks/*"]
+      "#hooks/*": ["./hooks/*"],
+      "#features/*": ["./lib/features/*"]
     },
     "target": "ES2022",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],

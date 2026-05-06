@@ -1,32 +1,20 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { z } from "zod"
 
-import { requireOrgSession } from "#lib/tenant"
 import { db } from "#lib/db"
 import { customers } from "#lib/db/schema"
+import { contactSchema } from "#features/contacts/schemas/contact.schema"
+import type { CreateContactFormState } from "#features/contacts/types"
+import { requireOrgSession } from "#lib/tenant"
 
-const createCustomerSchema = z.object({
-  name: z.string().min(1).max(200),
-  email: z.string().email().optional().or(z.literal("")),
-})
-
-export type CreateCustomerFormState =
-  | undefined
-  | { ok: true }
-  | {
-      ok: false
-      errors: Partial<Record<"name" | "email" | "form", string>>
-    }
-
-export async function createCustomer(
-  _prevState: CreateCustomerFormState,
+export async function createContact(
+  _prevState: CreateContactFormState,
   formData: FormData,
-): Promise<CreateCustomerFormState> {
+): Promise<CreateContactFormState> {
   const { organizationId } = await requireOrgSession()
 
-  const parsed = createCustomerSchema.safeParse({
+  const parsed = contactSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email") || "",
   })
@@ -43,9 +31,7 @@ export async function createCustomer(
   }
 
   const email =
-    parsed.data.email && parsed.data.email.length > 0
-      ? parsed.data.email
-      : null
+    parsed.data.email && parsed.data.email.length > 0 ? parsed.data.email : null
 
   try {
     await db.insert(customers).values({
@@ -57,11 +43,11 @@ export async function createCustomer(
     return {
       ok: false,
       errors: {
-        form: "Could not save customer. Try again.",
+        form: "Could not save contact. Try again.",
       },
     }
   }
 
-  revalidatePath("/dashboard")
+  revalidatePath("/dashboard/contacts")
   return { ok: true }
 }

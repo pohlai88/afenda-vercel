@@ -1,39 +1,166 @@
 ---
-description: Next.js App Router — critical patterns for RSC, data, caching, and routing
+description: Next.js App Router critical engineering contract
 alwaysApply: true
 ---
 
-# Next.js (App Router) — critical practices
+# Next.js App Router — critical engineering rules
 
-This project uses **Next.js 16** with the App Router. Apply these patterns by default.
+This repository uses:
 
-## Server vs client
+- Next.js 16
+- React 19
+- App Router
+- Server Components by default
 
-- Prefer **Server Components**; add `'use client'` only for state, effects, events, or browser-only APIs.
-- Pass **server UI through `children` / `ReactNode` props** into client wrappers instead of importing server modules into client files.
+Apply these patterns unless explicitly justified otherwise.
 
-## Async dynamic APIs
+## Server vs client boundary
 
-- **`await cookies()`** and **`await headers()`** (`next/headers`).
-- **`await params`** and **`await searchParams`** in `page`, `layout`, and **`generateMetadata`** (they are Promises in current versions).
+- Prefer Server Components.
+- Add `'use client'` only for:
+  - state
+  - effects
+  - event handlers
+  - browser APIs
+  - interactive UI
 
-## Data and cache
+Do not move large trees into client components unnecessarily.
 
-- **Parallelize** independent fetches; avoid request waterfalls.
-- **`fetch`:** `next: { revalidate }` for time-based revalidation; `next: { tags: ['x'] }` with **`revalidateTag('x', 'max')`** after mutations.
-- Use **Server Actions** for form/server mutations; **Route Handlers** for HTTP/webhooks/external callers.
+Preferred pattern:
 
-## Routing and edge
+- server components fetch/render data
+- client components stay narrow
+- pass server-rendered UI through `children` / `ReactNode`
 
-- This repo uses **Next.js 16 `proxy.ts`** (replaces `middleware.ts`). Keep **`config.matcher`** narrow; avoid **`fetch` in proxy** unless necessary (latency + Vercel conformance).
-- Use **`NextResponse`**, rewrites, and redirects deliberately; know **`searchParams` forces dynamic rendering**.
+## Async request APIs
 
-## UI and robustness
+Always treat dynamic request APIs as async:
 
-- **`next/image`** for images; configure remotes; meaningful **`alt`**; size remote images.
-- Add **`error.tsx`**, **`not-found.tsx`**, **Suspense** / **`loading.tsx`** where users need clear failure and streaming states.
+```ts
+await cookies()
+await headers()
+await params
+await searchParams
+```
 
-## Don’t
+Applies to:
 
-- Don’t mark **`async`** a file that has **`'use client'`** (invalid Server Component pattern).
-- Don’t pass **non-serializable** props (functions, class instances) from Server to Client Components.
+- `page`
+- `layout`
+- `generateMetadata`
+- route handlers
+
+## Data fetching and caching
+
+- Parallelize independent fetches.
+- Avoid request waterfalls.
+- Prefer server-side data orchestration.
+
+Use:
+
+```ts
+fetch(url, {
+  next: {
+    revalidate,
+    tags: ["x"],
+  },
+});
+```
+
+After mutations:
+
+```ts
+revalidateTag("x", "max");
+```
+
+## Mutation boundary
+
+Preferred:
+
+- Server Actions for ERP/dashboard mutations
+
+Use Route Handlers only for:
+
+- webhooks
+- uploads
+- integrations
+- external HTTP callers
+- streaming/public APIs
+
+## Routing and proxy
+
+This repository uses:
+
+```txt
+proxy.ts
+```
+
+Keep proxy narrow.
+
+Allowed:
+
+- auth/session gate
+- rewrites
+- redirects
+- coarse route protection
+
+Avoid:
+
+- business logic
+- database reads
+- large branching logic
+- unnecessary `fetch` inside proxy
+
+## Dynamic rendering awareness
+
+Using:
+
+```ts
+searchParams
+cookies
+headers
+```
+
+may opt routes into dynamic rendering.
+
+Use deliberately.
+
+## UI robustness
+
+Use:
+
+- `next/image`
+- meaningful `alt`
+- explicit sizing for remote images
+
+Provide route resilience where appropriate:
+
+```txt
+loading.tsx
+error.tsx
+not-found.tsx
+Suspense
+```
+
+## Forbidden patterns
+
+Do not:
+
+- use `async` client components
+- pass non-serializable props from server to client
+- import server-only modules into client components
+- trigger unnecessary client rendering
+- create client-side data waterfalls
+
+## Performance direction
+
+Preferred hierarchy:
+
+```txt
+Server Components
+→ Server Actions
+→ streaming/Suspense
+→ narrow client islands
+```
+
+Avoid SPA-style architecture unless explicitly required.
