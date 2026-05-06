@@ -1,8 +1,12 @@
+import type { Route } from "next"
+import { redirect } from "next/navigation"
+
 import {
   listDeviceSessions,
   listUserPasskeys,
   listUserSecurityActivity,
 } from "#lib/auth"
+import { resolvePostAuthCallbackUrl } from "#lib/auth/callback-path"
 import { getAuthSessionTrusted } from "#lib/session-cache"
 
 import {
@@ -20,7 +24,8 @@ function toIso(d: Date | string): string {
 export default async function AccountSecurityPage() {
   const session = await getAuthSessionTrusted()
   if (!session?.user?.id || !session.session) {
-    return null
+    const q = encodeURIComponent(resolvePostAuthCallbackUrl("/account/security"))
+    redirect(`/sign-in?callbackUrl=${q}` as Route)
   }
 
   const userId = session.user.id

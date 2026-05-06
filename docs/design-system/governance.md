@@ -1,5 +1,7 @@
 # Afenda ERP Design System Governance
 
+**Contract anchor:** Product-wide policy for structure, enforcement, and primitives is **[`AGENTS.md`](../../AGENTS.md)** (especially **§4**, **§6**, **§7**). This doc is the design-system playbook and Figma handoff; it must not contradict `AGENTS.md`.
+
 ## Doctrine
 
 **Code is truth. Figma is the visual mirror. CI is the enforcement layer.**
@@ -20,19 +22,19 @@ This repository uses a shadcn-style primitive layer in `components/ui` and ERP m
 
 ## Source of truth (finalized stack)
 
-| Layer                   | Location                             | Responsibility                                                                                          |
-| ----------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| **Semantic tokens**     | `app/globals.css` (`:root`, `.dark`) | OKLCH palette, elevation, motion, density, surface spacing scale, `color-scheme`                        |
-| **Tailwind bridge**     | `app/globals.css` (`@theme inline`)  | Maps CSS variables → utilities (`bg-primary`, `p-surface-md`, `shadow-elevation-*`, `gap-density-*`, …) |
-| **Primitive contracts** | `lib/design-system.ts`               | Allowlisted radii, elevations, density/surface class strings, Zod parsers, button/badge/card keys       |
-| **Primitives**          | `components/ui`                      | CVA variants, `data-slot`, hover/focus behavior                                                         |
-| **Drift gate**          | `scripts/check-design-contract.mjs`  | Scans `app/`, `components/`, `hooks/`, `lib/features/`                                                  |
+| Layer                   | Location                             | Responsibility                                                                                                                                         |
+| ----------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Semantic tokens**     | `app/globals.css` (`:root`, `.dark`) | OKLCH palette, elevation, motion, density, surface spacing scale, `color-scheme`                                                                       |
+| **Tailwind bridge**     | `app/globals.css` (`@theme inline`)  | Maps CSS variables → utilities (`bg-primary`, `p-surface-md`, `shadow-elevation-*`, `gap-density-*`, …)                                                |
+| **Primitive contracts** | `lib/design-system.ts`               | Allowlisted radii, elevations, density/surface class strings, Zod parsers, button/badge/card keys                                                      |
+| **Primitives**          | `components/ui`                      | CVA variants, `data-slot`, hover/focus behavior                                                                                                        |
+| **Drift gate**          | `scripts/check-design-contract.mjs`  | Scans `app/`, `components/`, `hooks/`, `lib/features/`, `lib/design-system.ts`; `@theme` ↔ `:root`/`.dark` parity; primitive hover/radius/shadow rules |
 
 ## Non-negotiable rules
 
 - Use semantic color tokens only (no raw palette utilities in `components/ui/*`).
 - Reuse `uiRadius`, `uiTracking`, `uiSurfaceElevation`, `uiDensity`, `uiSurfaceInset` / `uiSurfaceSpaceKeys`, and schema guards from `lib/design-system.ts`.
-- Prefer solid semantic hovers (`bg-primary-hover`, `bg-secondary-hover`) over opacity-only hover on filled controls (see `components/ui/button.tsx`).
+- On filled primary/secondary controls in `components/ui`, use `bg-primary-hover` / `bg-secondary-hover` — not `hover:bg-primary/…` or `hover:bg-secondary/…` (CI enforces).
 - Keep primitive anatomy discoverable with stable `data-slot` attributes.
 - Build ERP patterns in feature modules; do not fork primitives inside modules.
 
@@ -92,7 +94,8 @@ For visual checks, test dashboard and sign-in flows in both light and dark theme
 - `app/globals.css` — structured `:root` / `.dark`, `@theme inline` bridge, surface + density tokens, hover variant
 - `lib/design-system.ts` — `uiDensity` uses token-backed `gap-density-*`; `uiSurfaceSpaceKeys`, `uiSurfaceInset`, `parseUiSurfaceSpaceKey`
 - `docs/design-system/*` — this file, mapping doc, primitive audit, usage examples aligned with the above
-- `scripts/check-design-contract.mjs` — scans `app/`, `components/`, `hooks/`, `lib/features/`
+- `scripts/check-design-contract.mjs` — scans `app/`, `components/`, `hooks/`, `lib/features/`, `lib/design-system.ts`; `@theme` variable parity
+- `eslint.config.mjs` — `lib/features/**` may not import `radix-ui` / `@radix-ui/*` / `@base-ui/react` (primitives only via `#components/ui/*`)
 
 **Next (product process):**
 

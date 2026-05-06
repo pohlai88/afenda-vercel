@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
 import Link from "next/link"
 
@@ -48,6 +49,7 @@ export function AccountSecurityCenterClient(props: {
   passkeys: SecurityPasskeyRow[]
   activity: SecurityActivityRow[]
 }) {
+  const router = useRouter()
   const [passkeyMsg, setPasskeyMsg] = useState<string | null>(null)
   const [passkeyErr, setPasskeyErr] = useState<string | null>(null)
   const [password, setPassword] = useState("")
@@ -86,6 +88,7 @@ export function AccountSecurityCenterClient(props: {
       return
     }
     setPasskeyMsg("Passkey registered.")
+    router.refresh()
   }
 
   async function startTwoFactorSetup() {
@@ -148,9 +151,13 @@ export function AccountSecurityCenterClient(props: {
   function runAction(fn: () => Promise<void>) {
     setActionErr(null)
     startTransition(() => {
-      void fn().catch((e: unknown) => {
-        setActionErr(e instanceof Error ? e.message : "Something went wrong.")
-      })
+      void fn()
+        .then(() => router.refresh())
+        .catch((e: unknown) => {
+          setActionErr(
+            e instanceof Error ? e.message : "Something went wrong."
+          )
+        })
     })
   }
 

@@ -1,0 +1,6 @@
+# Cursor indexing — trim bulk that rarely helps inline AI context
+# (Source of truth remains git; this only affects Cursor's file index.)
+
+.next/
+node_modules/
+**/pnpm-lock.yaml

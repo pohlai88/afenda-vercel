@@ -1,7 +1,8 @@
 /**
  * Design system enforcement (mechanical, CI-safe).
  *
- * Scans app/, components/, hooks/, lib/features/ for drift patterns.
+ * Scans app/, components/, hooks/, lib/features/, and lib/design-system.ts for drift.
+ * Validates @theme inline var() refs against :root / .dark in app/globals.css.
  * See lib/design-system.ts for allowed radius tokens.
  */
 import fs from "node:fs"
@@ -10,6 +11,8 @@ import path from "node:path"
 const root = path.join(import.meta.dirname, "..")
 
 const SCAN_DIRS = ["app", "components", "hooks", "lib/features"]
+const DESIGN_SYSTEM_FILE = path.join(root, "lib", "design-system.ts")
+const GLOBALS_CSS = path.join(root, "app", "globals.css")
 
 /** Disallowed “pill” radii — use #lib/design-system uiRadius instead */
 const FORBIDDEN_RADIUS = /\brounded-(3xl|4xl|5xl|6xl)\b/g
@@ -22,8 +25,13 @@ const FORBIDDEN_PRIMITIVE_COLOR =
   /\b(?:bg|text|border|ring)-(?:slate|gray|zinc|stone|neutral|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/g
 
 /**
+ * Filled primary/secondary hovers must use --primary-hover / --secondary-hover, not opacity shortcuts.
+ */
+const FORBIDDEN_BRAND_OPACITY_HOVER =
+  /hover:bg-primary\/|dark:hover:bg-primary\/|hover:bg-secondary\/|dark:hover:bg-secondary\//
+
+/**
  * Arbitrary rounded-[…] is opt-in only (Tailwind still needs literals in allowlisted files).
- * Add a file here if you truly need a non-token radius.
  */
 const ARBITRARY_ROUNDED_ALLOWLIST = new Set([
   "components/ui/calendar.tsx",
@@ -50,8 +58,83 @@ function posixRel(file) {
   return path.relative(root, file).split(path.sep).join("/")
 }
 
-const files = SCAN_DIRS.flatMap((d) => walk(path.join(root, d)))
+/** Extract inner CSS for the first `{ ... }` block after `label` (e.g. `:root {`). */
+function sliceBraceBlock(content, label) {
+  const idx = content.indexOf(label)
+  if (idx === -1) return null
+  const open = content.indexOf("{", idx)
+  if (open === -1) return null
+  let depth = 0
+  for (let i = open; i < content.length; i++) {
+    const c = content[i]
+    if (c === "{") depth++
+    else if (c === "}") {
+      depth--
+      if (depth === 0) return content.slice(open + 1, i)
+    }
+  }
+  return null
+}
+
+function collectCustomPropNames(cssChunk) {
+  const names = new Set()
+  const re = /--([\w-]+)\s*:/g
+  let m
+  while ((m = re.exec(cssChunk))) names.add(m[1])
+  return names
+}
+
+function collectVarRefs(cssChunk) {
+  const refs = new Set()
+  const re = /var\(\s*--([\w-]+)\s*\)/g
+  let m
+  while ((m = re.exec(cssChunk))) refs.add(m[1])
+  return refs
+}
+
 let failed = false
+
+function assertGlobalsThemeParity() {
+  if (!fs.existsSync(GLOBALS_CSS)) {
+    failed = true
+    console.error("[design-contract] missing app/globals.css")
+    return
+  }
+  const content = fs.readFileSync(GLOBALS_CSS, "utf8")
+  const themeBody = sliceBraceBlock(content, "@theme inline")
+  const rootBody = sliceBraceBlock(content, ":root {")
+  const darkBody = sliceBraceBlock(content, ".dark {")
+
+  if (!themeBody || !rootBody || !darkBody) {
+    failed = true
+    console.error(
+      "[design-contract] globals.css: could not parse @theme inline, :root { }, or .dark { } blocks"
+    )
+    return
+  }
+
+  const defined = new Set([
+    ...collectCustomPropNames(rootBody),
+    ...collectCustomPropNames(darkBody),
+  ])
+  const refs = collectVarRefs(themeBody)
+
+  for (const name of refs) {
+    if (!defined.has(name)) {
+      failed = true
+      console.error(
+        `[design-contract] @theme references var(--${name}) but --${name} is not defined under :root or .dark`
+      )
+    }
+  }
+}
+
+assertGlobalsThemeParity()
+
+const dirFiles = SCAN_DIRS.flatMap((d) => walk(path.join(root, d)))
+const files = fs.existsSync(DESIGN_SYSTEM_FILE)
+  ? [...dirFiles, DESIGN_SYSTEM_FILE]
+  : dirFiles
 
 for (const file of files) {
   const rel = posixRel(file)
@@ -89,6 +172,17 @@ for (const file of files) {
         row
       )
     }
+    FORBIDDEN_BRAND_OPACITY_HOVER.lastIndex = 0
+    if (
+      rel.startsWith("components/ui/") &&
+      FORBIDDEN_BRAND_OPACITY_HOVER.test(row)
+    ) {
+      report(
+        "forbidden opacity hover on primary/secondary (use bg-primary-hover / bg-secondary-hover)",
+        lineNo,
+        row
+      )
+    }
     ARBITRARY_ROUNDED.lastIndex = 0
     if (ARBITRARY_ROUNDED.test(row) && !ARBITRARY_ROUNDED_ALLOWLIST.has(rel)) {
       report(
@@ -102,7 +196,8 @@ for (const file of files) {
 
 if (failed) {
   console.error(`
-Fix: import uiRadius / uiTitle / uiTracking from #lib/design-system, or extend the allowlist with a short comment in PR.
+Fix: import uiRadius / uiTitle / uiTracking / uiSurfaceInset from #lib/design-system, or extend the allowlist with a short comment in PR.
+Keep @theme inline var() references aligned with :root / .dark in app/globals.css.
 `)
   process.exit(1)
 }

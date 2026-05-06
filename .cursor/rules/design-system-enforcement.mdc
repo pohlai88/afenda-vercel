@@ -1,19 +1,21 @@
 ---
-description: Enforce Afenda design contract and UI governance
-globs: "**/*.{ts,tsx,css}"
+description: Enforce Afenda design contract and UI governance (tokens, primitives, Figma docs)
+globs: "**/*.{ts,tsx,css},docs/design-system/**/*.md"
 alwaysApply: false
 ---
 
 # Design system enforcement
 
+**Canonical summary:** **`AGENTS.md` §7 Design system**. This rule adds TS/TSX/CSS-glob detail for editors; do not contradict the contract file.
+
 ## Design token contract
 
 - Use design-system exports from `#lib/design-system` for:
-  - geometry
-  - radius
-  - typography
-  - tracking
-  - semantic variants
+  - geometry (`uiRadius`)
+  - elevation (`uiSurfaceElevation`)
+  - density / surface inset (`uiDensity`, `uiSurfaceInset`, `uiSurfaceSpaceKeys`)
+  - typography / tracking (`uiTitle`, `uiTracking`)
+  - semantic variants (button, badge, card schemas)
 - Do not introduce raw geometry utilities such as:
   - `rounded-3xl`
   - `rounded-4xl`
@@ -22,6 +24,7 @@ alwaysApply: false
   - arbitrary shadow systems
 - Exceptions must be explicitly allowlisted in:
   - `scripts/check-design-contract.mjs`
+- **`@theme inline`** in `app/globals.css` must only reference `var(--*)` names that exist under `:root` or `.dark` (checked by `check-design-contract.mjs`).
 
 ## Semantic color contract
 
@@ -32,22 +35,25 @@ alwaysApply: false
   - `text-muted-foreground`
   - `border-border`
   - etc.
+- **Primitives:** use solid hover tokens (`bg-primary-hover`, `bg-secondary-hover`), not `hover:bg-primary/…` or `hover:bg-secondary/…` on filled actions (enforced in `check-design-contract.mjs`).
 - Avoid hardcoded color values in components unless explicitly approved.
 
 ## Primitive ownership contract
 
 - UI primitives are owned by:
   - `components/ui/**`
-- Application/features must import primitives only from:
+- Application shell and **ERP modules** (`lib/features/**`) must import primitives only from:
   - `#components/ui/*`
 
-Forbidden outside primitive layer:
+Forbidden outside `components/ui` (ESLint + policy):
 
 ```txt
 @radix-ui/*
 radix-ui
 @base-ui/react
 ```
+
+Deep imports of another module’s internals (`#features/other/data/...`) remain forbidden outside that module; same-module paths are handled by `scripts/check-agent-contract.mjs`.
 
 ## Runtime validation contract
 
@@ -59,7 +65,7 @@ When variants, sizes, themes, or appearance values originate from:
 - APIs
 - external payloads
 
-validate them using exported schemas from:
+validate them using exported schemas / parsers from:
 
 ```txt
 #lib/design-system
@@ -68,8 +74,17 @@ validate them using exported schemas from:
 Examples:
 
 ```ts
+import {
+  buttonVariantSchema,
+  buttonSizeSchema,
+  badgeVariantSchema,
+  cardSizeSchema,
+  parseUiSurfaceSpaceKey,
+  parseSurfaceElevation,
+} from "#lib/design-system"
+
 buttonVariantSchema.parse(value)
-buttonSizeSchema.parse(value)
+parseUiSurfaceSpaceKey(payload.inset)
 ```
 
 ## Anti-drift rules
@@ -90,5 +105,6 @@ pnpm typecheck
 
 `pnpm lint` must include:
 
-- ESLint
+- ESLint (including radix/base-ui boundary on `lib/features/**`)
+- `scripts/check-agent-contract.mjs`
 - `scripts/check-design-contract.mjs`

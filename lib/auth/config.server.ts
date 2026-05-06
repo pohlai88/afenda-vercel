@@ -10,6 +10,7 @@ import {
   username,
 } from "better-auth/plugins"
 import { passkey } from "@better-auth/passkey"
+import { dash, sentinel } from "@better-auth/infra"
 import { APIError, createAuthMiddleware } from "better-auth/api"
 import { and, eq, gt } from "drizzle-orm"
 
@@ -110,6 +111,16 @@ function socialProviders(): Record<
 const mailCtx = authMailContext()
 const adminIds = parseAdminUserIds()
 const inviteOnlySignup = process.env.BETTER_AUTH_INVITE_ONLY_SIGNUP === "1"
+
+function betterAuthInfraServerPlugins() {
+  const apiKey = process.env.BETTER_AUTH_API_KEY?.trim()
+  if (!apiKey) return []
+  const plugins = [dash({ apiKey })]
+  if (process.env.BETTER_AUTH_INFRA_SENTINEL === "1") {
+    plugins.push(sentinel({ apiKey }))
+  }
+  return plugins
+}
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -254,6 +265,7 @@ export const auth = betterAuth({
     }),
   },
   plugins: [
+    ...betterAuthInfraServerPlugins(),
     organization(),
     admin({
       adminUserIds: adminIds.length > 0 ? adminIds : undefined,

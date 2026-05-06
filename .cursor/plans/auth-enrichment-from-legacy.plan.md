@@ -4,7 +4,7 @@
 
 - **plan_id:** `auth-enrichment-from-legacy`
 - **plan_version:** `1.1`
-- **status:** `draft`
+- **status:** `implemented` (partial — see § Implementation vs plan)
 - **target_repo:** `afenda-vercel` (canonical)
 - **legacy_extract:** `C:\JackProject\afenda-next` (patterns only; no URL tree copy)
 - **deferred_source:** `afenda-node` (awaiting source drop)
@@ -164,13 +164,28 @@ Add or confirm when implementing; sync via `pnpm env:sync` and Vercel project se
 
 When source is available: compare **IdP / PBAC / host-tenant** doctrine only; port **documentation or predicates** into `AGENTS.md` if product requires — **no automatic code merge** without explicit stack decision.
 
+## Implementation vs plan (actual)
+
+| WP | Planned | Delivered |
+|----|---------|-----------|
+| WP-01 | RSC security center, `listSessions` / `listPasskeys`, revoke / delete passkey actions, thin client | **Done:** [`lib/auth/security.server.ts`](lib/auth/security.server.ts), [`app/account/security/page.tsx`](app/account/security/page.tsx), [`security-center-client.tsx`](app/account/security/security-center-client.tsx), [`security-actions.ts`](app/account/security/security-actions.ts) using `auth.api.*` + [`next/headers`](https://nextjs.org/docs/app/api-reference/functions/headers) per Better Auth server session docs. |
+| WP-02 | User activity from `iam_audit_event` | **Done:** [`lib/auth/activity.server.ts`](lib/auth/activity.server.ts) — allowlisted `iam.session.*` only; labels for copy-safe UI. |
+| WP-03 | Identity, account linking, safe linked-account queries | **Done:** [`lib/auth/accounts.server.ts`](lib/auth/accounts.server.ts), [`app/account/identity/*`](app/account/identity/), `account.accountLinking` + `user.changeEmail` in [`config.server.ts`](lib/auth/config.server.ts) per [Better Auth options](https://www.better-auth.com/docs/reference/options) / [users & accounts](https://www.better-auth.com/docs/concepts/users-accounts). |
+| WP-04 | Verified email + step-up | **Done:** [`lib/auth/policy.server.ts`](lib/auth/policy.server.ts); security + organization layouts require verified email after step-up; identity allows unverified with banner. |
+| WP-05 | Org invites UI + `org.*` audit | **Partial:** [`app/account/organization/page.tsx`](app/account/organization/page.tsx) read-only org summary + onboarding links; **no** invite/member management UI or new `writeIamAuditEvent` org mutations. |
+| WP-06 | `@better-auth/infra` dash/sentinel | **Not done** (optional env-gated scope). |
+| WP-07 | Vitest auth tests | **Not done** (repo has no `vitest` devDependency). |
+| Deferred | afenda-node | Unchanged. |
+
+**Verification:** `pnpm typecheck`, `pnpm lint` after clearing stale `.next` (typed routes validator mismatch otherwise).
+
 ## Implementation todos (mirror)
 
-- [ ] WP-01 Security center (sessions/passkeys + actions + RSC refactor)
-- [ ] WP-02 Activity feed from `iam_audit_event`
-- [ ] WP-03 Identity + account linking + `/account/identity`
-- [ ] WP-04 Verified-email + step-up composition
-- [ ] WP-05 Org UX + `org.*` audit
+- [x] WP-01 Security center (sessions/passkeys + actions + RSC refactor)
+- [x] WP-02 Activity feed from `iam_audit_event`
+- [x] WP-03 Identity + account linking + `/account/identity`
+- [x] WP-04 Verified-email + step-up composition
+- [ ] WP-05 Org UX + `org.*` audit (partial: org summary page only)
 - [ ] WP-06 Optional `@better-auth/infra`
 - [ ] WP-07 Auth unit tests
 - [ ] Deferred: afenda-node review

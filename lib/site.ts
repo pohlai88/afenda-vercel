@@ -137,7 +137,9 @@ export const SITE_DESCRIPTION = "Afenda on Next.js" as const
 /**
  * Tab icons: `metadata.icons` + `shortcut` in `app/layout.tsx` — transparent `APP_ICON_*`
  * for light/dark `prefers-color-scheme`. **`/favicon.ico`** is a multi-size ICO generated
- * by `pnpm icons:favicon` from `APP_ICON_512_PNG` source. Maskable: PWA manifest only.
+ * by `pnpm icons:favicon` (`public/` + `app/`). `app/layout.tsx` `generateMetadata` resolves
+ * `metadataBase` from the request host so tab icons load on the deployment you’re viewing.
+ * Maskable: PWA manifest only.
  */
 export const FAVICON_ICO = "/favicon.ico" as const
 

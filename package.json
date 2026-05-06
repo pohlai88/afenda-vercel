@@ -24,6 +24,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,mjs,css,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,css,json}\"",
     "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "test:e2e": "playwright test",
     "smoke": "pnpm lint && pnpm typecheck && pnpm build",
     "env:sync": "node scripts/sync-env.mjs",
     "env:push-vercel": "node scripts/push-vercel-env.mjs",
@@ -38,6 +41,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
+    "@better-auth/infra": "^0.2.5",
     "@better-auth/passkey": "^1.6.9",
     "@hookform/resolvers": "^5.2.2",
     "@neondatabase/serverless": "^1.1.0",
@@ -72,15 +76,20 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@next/env": "16.2.4",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.2.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^25.5.0",
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
     "auth": "1.6.9",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.4",
+    "jsdom": "^29.1.1",
     "pg": "^8.20.0",
     "postcss": "^8",
     "prettier": "^3.8.1",
@@ -90,6 +99,8 @@
     "tailwindcss": "^4.2.1",
     "to-ico": "^1.1.5",
     "typescript": "^5.9.3",
-    "vercel": "^48.6.0"
+    "vercel": "^48.6.0",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.5"
   }
 }

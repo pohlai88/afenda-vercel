@@ -23,24 +23,25 @@ type AfendaBrandLockupProps = {
  * Light theme uses the full-color transparent PNG; dark theme uses the guideline
  * dark lockup with keyed canvas (see `scripts/knockout-dark-lockup-bg.mjs`).
  */
+/** Layout aspect for both lockups so theme toggle does not resize the slot (`object-contain` letterboxes the dark asset). */
+const LOCKUP_WIDTH = 1800
+const LOCKUP_HEIGHT = 488
+
 export function AfendaBrandLockup({
   className,
   imgClassName,
   priority = false,
 }: AfendaBrandLockupProps) {
-  /** One aspect box for both themes so toggling `dark` does not resize the slot. */
-  const wrapper = cn(
-    "relative w-full max-w-[240px] aspect-[1800/488]",
-    className,
-  )
-  const img = cn("object-contain object-center", imgClassName)
+  const wrapper = cn("w-full max-w-[240px]", className)
+  const img = cn("h-auto w-full object-contain object-center", imgClassName)
   const sizes = "(max-width: 768px) 100vw, 240px"
   return (
     <div className={wrapper}>
       <Image
         src={BRAND_COMBINED_LOCKUP_PNG}
         alt={SITE_NAME}
-        fill
+        width={LOCKUP_WIDTH}
+        height={LOCKUP_HEIGHT}
         sizes={sizes}
         className={cn(img, "dark:hidden")}
         priority={priority}
@@ -48,7 +49,8 @@ export function AfendaBrandLockup({
       <Image
         src={BRAND_COMBINED_LOCKUP_DARK_PNG}
         alt={SITE_NAME}
-        fill
+        width={LOCKUP_WIDTH}
+        height={LOCKUP_HEIGHT}
         sizes={sizes}
         className={cn(img, "hidden dark:block")}
         priority={priority}

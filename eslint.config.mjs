@@ -2,17 +2,47 @@ import { defineConfig, globalIgnores } from "eslint/config"
 import nextVitals from "eslint-config-next/core-web-vitals"
 import nextTs from "eslint-config-next/typescript"
 
+const radixRestrictedImports = {
+  patterns: [
+    {
+      group: ["radix-ui"],
+      message:
+        "Import primitives only via #components/ui/* — radix-ui stays inside components/ui.",
+    },
+    {
+      group: ["@radix-ui/*"],
+      message:
+        "Use #components/ui/* wrappers; do not import @radix-ui packages outside components/ui.",
+    },
+    {
+      group: ["@base-ui/react"],
+      message:
+        "Use #components/ui/* wrappers (e.g. Combobox); @base-ui/react only inside components/ui.",
+    },
+  ],
+}
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "playwright-report/**",
+    "test-results/**",
   ]),
+  /** ERP modules: same radix/base-ui boundary as app shell; deep #features imports are gated by check-agent-contract.mjs (same-module allowed). */
+  {
+    files: ["lib/features/**/*.{js,jsx,ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { patterns: radixRestrictedImports.patterns },
+      ],
+    },
+  },
   {
     files: [
       "app/**/*.{js,jsx,ts,tsx}",
@@ -26,21 +56,7 @@ const eslintConfig = defineConfig([
         "error",
         {
           patterns: [
-            {
-              group: ["radix-ui"],
-              message:
-                "Import primitives only via #components/ui/* — radix-ui stays inside components/ui.",
-            },
-            {
-              group: ["@radix-ui/*"],
-              message:
-                "Use #components/ui/* wrappers; do not import @radix-ui packages outside components/ui.",
-            },
-            {
-              group: ["@base-ui/react"],
-              message:
-                "Use #components/ui/* wrappers (e.g. Combobox); @base-ui/react only inside components/ui.",
-            },
+            ...radixRestrictedImports.patterns,
             {
               group: ["#features/*/*"],
               message:

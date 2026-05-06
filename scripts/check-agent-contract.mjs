@@ -13,7 +13,9 @@ const REQUIRED_FILES = [
   "AGENTS.md",
   ".cursor/rules/agents-md-mandatory.mdc",
   ".cursor/rules/agents-md-editing-enforcement.mdc",
+  ".cursor/rules/design-system-enforcement.mdc",
   "eslint.config.mjs",
+  "scripts/check-design-contract.mjs",
 ]
 
 const DUMP_DIR_NAMES = new Set([
@@ -44,6 +46,7 @@ const TOP_LEVEL_DIR_ALLOWLIST = new Set([
   "lib",
   "public",
   "scripts",
+  "tests",
 ])
 
 const ROOT_RUNTIME_FILES = new Set([
@@ -66,6 +69,8 @@ const ROOT_TOOLING_FILES = new Set([
   ".prettierignore",
   "postcss.config.mjs",
   "drizzle.config.ts",
+  "vitest.config.ts",
+  "playwright.config.ts",
   "components.json",
   ".gitignore",
   ".node-version",

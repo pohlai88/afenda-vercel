@@ -7,7 +7,7 @@ alwaysApply: true
 
 General **`next/image`** policy, **`localPatterns` / `remotePatterns`**, and SVG defaults: `.cursor/rules/images.mdc`.
 
-Authoritative paths live in [`lib/site.ts`](lib/site.ts) (`FAVICON_ICO`, `APP_ICON_*`, `BRAND_*`, `DEFAULT_OG_IMAGE`). **Browser tab:** [`app/layout.tsx`](app/layout.tsx) `metadata.icons` + `shortcut` with `media: "(prefers-color-scheme: light|dark)"` (not `next-themes`). **`/favicon.ico`** is a real ICO in `public/` (regenerate via `pnpm icons:favicon` from `APP_ICON_512_PNG` source). Avoid **`app/icon.png`** if it would override themed `<link rel="icon">` entries. Prefer importing constants instead of string literals.
+Authoritative paths live in [`lib/site.ts`](lib/site.ts) (`FAVICON_ICO`, `APP_ICON_*`, `BRAND_*`, `DEFAULT_OG_IMAGE`). **Browser tab:** [`app/layout.tsx`](app/layout.tsx) `metadata.icons` + `shortcut` with `media: "(prefers-color-scheme: light|dark)"` (not `next-themes`). **`/favicon.ico`** is a real ICO in `public/` and `app/` (App Router convention; regenerate both via `pnpm icons:favicon` from `APP_ICON_512_PNG` source). Root `generateMetadata` uses the **request host** for `metadataBase` so icon URLs match `*.vercel.app` vs custom domain. On Vercel, [`vercel.json`](vercel.json) attaches **CDN `Cache-Control`** to `/favicon.ico` and `/icons/*` per [Project Configuration → headers](https://vercel.com/docs/project-configuration/vercel-json#headers) (stabilizes edge delivery; bump filenames or reduce `max-age` if you replace assets in place). Avoid **`app/icon.png`** if it would override themed `<link rel="icon">` entries. Prefer importing constants instead of string literals.
 
 ## Taxonomy
 

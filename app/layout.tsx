@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Geist_Mono, Inter } from "next/font/google"
+import { headers } from "next/headers"
 
 import "./globals.css"
 import { ThemeProvider } from "#components/theme-provider"
@@ -29,58 +30,83 @@ const geistMono = Geist_Mono({
   display: "swap",
 })
 
-export const metadata: Metadata = {
-  metadataBase: new URL(getSiteUrl()),
-  title: {
-    default: SITE_NAME,
-    template: `%s | ${SITE_NAME}`,
-  },
-  description: SITE_DESCRIPTION,
-  applicationName: SITE_NAME,
-  icons: {
-    /**
-     * OS / browser tab follows `prefers-color-scheme`, not the in-page `next-themes` toggle.
-     * Light and dark both use the same transparent square marks (`APP_ICON_*`); maskable stays
-     * on the PWA manifest only (`purpose: "maskable"`).
-     * `shortcut` → real multi-size ICO at `/favicon.ico` (`pnpm icons:favicon`).
-     * @see https://nextjs.org/docs/app/api-reference/functions/generate-metadata#icons
-     */
-    shortcut: FAVICON_ICO,
-    icon: [
-      {
-        url: APP_ICON_512_PNG,
-        sizes: "512x512",
-        type: "image/png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: APP_ICON_192_PNG,
-        sizes: "192x192",
-        type: "image/png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: APP_ICON_512_PNG,
-        sizes: "512x512",
-        type: "image/png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: APP_ICON_192_PNG,
-        sizes: "192x192",
-        type: "image/png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: APP_ICON_512_PNG,
-        sizes: "512x512",
-        type: "image/png",
-      },
-      {
-        url: APP_ICON_192_PNG,
-        sizes: "192x192",
-        type: "image/png",
-      },
+/**
+ * Icons and OG URLs resolve against `metadataBase`. Using the **request host** avoids
+ * pointing at the wrong origin when `NEXT_PUBLIC_SITE_URL` is a custom domain but the user
+ * is on `*.vercel.app` (or vice versa), which breaks favicon fetches and shows a fallback.
+ */
+async function resolveRequestMetadataBase(): Promise<URL> {
+  const h = await headers()
+  const hostRaw =
+    h.get("x-forwarded-host")?.split(",")[0]?.trim() || h.get("host")?.trim()
+  if (hostRaw) {
+    const forwardedProto = h
+      .get("x-forwarded-proto")
+      ?.split(",")[0]
+      ?.trim()
+    const proto =
+      forwardedProto ||
+      (hostRaw.startsWith("localhost") || hostRaw.startsWith("127.0.0.1")
+        ? "http"
+        : "https")
+    return new URL(`${proto}://${hostRaw}`)
+  }
+  return new URL(getSiteUrl())
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const metadataBase = await resolveRequestMetadataBase()
+  return {
+    metadataBase,
+    title: {
+      default: SITE_NAME,
+      template: `%s | ${SITE_NAME}`,
+    },
+    description: SITE_DESCRIPTION,
+    applicationName: SITE_NAME,
+    icons: {
+      /**
+       * OS / browser tab follows `prefers-color-scheme`, not the in-page `next-themes` toggle.
+       * ICO first — browsers often prefer it for the tab; PNGs follow for high-DPI / PWA.
+       * @see https://nextjs.org/docs/app/api-reference/functions/generate-metadata#icons
+       */
+      shortcut: FAVICON_ICO,
+      icon: [
+        { url: FAVICON_ICO, sizes: "48x48", type: "image/x-icon" },
+        {
+          url: APP_ICON_512_PNG,
+          sizes: "512x512",
+          type: "image/png",
+          media: "(prefers-color-scheme: light)",
+        },
+        {
+          url: APP_ICON_192_PNG,
+          sizes: "192x192",
+          type: "image/png",
+          media: "(prefers-color-scheme: light)",
+        },
+        {
+          url: APP_ICON_512_PNG,
+          sizes: "512x512",
+          type: "image/png",
+          media: "(prefers-color-scheme: dark)",
+        },
+        {
+          url: APP_ICON_192_PNG,
+          sizes: "192x192",
+          type: "image/png",
+          media: "(prefers-color-scheme: dark)",
+        },
+        {
+          url: APP_ICON_512_PNG,
+          sizes: "512x512",
+          type: "image/png",
+        },
+        {
+          url: APP_ICON_192_PNG,
+          sizes: "192x192",
+          type: "image/png",
+        },
     ],
     apple: [
       {
@@ -95,28 +121,29 @@ export const metadata: Metadata = {
       },
     ],
   },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "/",
-    siteName: SITE_NAME,
-    title: SITE_NAME,
-    description: SITE_DESCRIPTION,
-    images: [
-      {
-        url: DEFAULT_OG_IMAGE,
-        width: 512,
-        height: 512,
-        alt: SITE_NAME,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: SITE_NAME,
-    description: SITE_DESCRIPTION,
-    images: [DEFAULT_OG_IMAGE],
-  },
+    openGraph: {
+      type: "website",
+      locale: "en_US",
+      url: "/",
+      siteName: SITE_NAME,
+      title: SITE_NAME,
+      description: SITE_DESCRIPTION,
+      images: [
+        {
+          url: DEFAULT_OG_IMAGE,
+          width: 512,
+          height: 512,
+          alt: SITE_NAME,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_NAME,
+      description: SITE_DESCRIPTION,
+      images: [DEFAULT_OG_IMAGE],
+    },
+  }
 }
 
 export const viewport: Viewport = {
