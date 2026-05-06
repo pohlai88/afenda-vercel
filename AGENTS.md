@@ -1,4 +1,4 @@
-# Agent guide — shadcn-next-app
+# Agent guide — afenda-vercel
 
 Instructions for AI agents working in this repository. Stack: **Next.js 16** (App Router), **React 19**, **TypeScript**, **Tailwind CSS v4**, **shadcn/ui**-style components.
 
@@ -25,7 +25,7 @@ Path aliases (see `package.json`): `#components/*`, `#lib/*`, `#hooks/*`.
 - **DB:** Neon Postgres + **Drizzle** — schema in [`lib/db/schema.ts`](lib/db/schema.ts); client in [`lib/db/index.ts`](lib/db/index.ts).
 - **Auth:** **Better Auth** + **organization** plugin (multi-tenant `activeOrganizationId`), [`lib/auth.ts`](lib/auth.ts), routes under `/api/auth/*`, **Next.js 16** [`proxy.ts`](proxy.ts) for **`/dashboard`** and **`/onboarding`** (session required before the route renders).
 - **Tenant guard:** [`lib/tenant.ts`](lib/tenant.ts) `requireOrgSession()` — uses per-request cached session reads via [`lib/session-cache.ts`](lib/session-cache.ts) (`React.cache`). Use for Server Actions and RSC that touch org data.
-- **Files / cron:** Vercel Blob upload [`app/api/upload/blob/route.ts`](app/api/upload/blob/route.ts); cron stub [`app/api/cron/erp-jobs/route.ts`](app/api/cron/erp-jobs/route.ts) + [`vercel.json`](vercel.json).
+- **Files / cron:** Vercel Blob upload [`app/api/upload/blob/route.ts`](app/api/upload/blob/route.ts); daily ERP cron (DB ping + hook for batch work) [`app/api/cron/erp-jobs/route.ts`](app/api/cron/erp-jobs/route.ts) + [`vercel.json`](vercel.json).
 - **Env:** Maintainer copy [`.env.config.example`](.env.config.example) → **`.env.config`** (gitignored), fill secrets, run **`pnpm env:sync`** to write **`.env.local`** (Next.js + gitignored). Minimal list: [`.env.example`](.env.example). Optional: **`pnpm env:pull-vercel`** → `.env.vercel` (gitignored) to diff against Vercel. See [Vercel env CLI](https://vercel.com/docs/cli/env).
 - **Observability:** root [`instrumentation.ts`](instrumentation.ts) registers **`@vercel/otel`** on the Node server and exports **`onRequestError`** for structured server error logs (digest, path, route type). Optional **`OTEL_SERVICE_NAME`** in env.
 

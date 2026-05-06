@@ -7,7 +7,7 @@ export async function register() {
 
   const { registerOTel } = await import("@vercel/otel")
   registerOTel({
-    serviceName: process.env.OTEL_SERVICE_NAME ?? "shadcn-next-app",
+    serviceName: process.env.OTEL_SERVICE_NAME ?? "afenda-vercel",
   })
 }
 

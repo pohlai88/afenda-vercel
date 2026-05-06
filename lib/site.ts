@@ -12,9 +12,9 @@ export function getSiteUrl(): string {
   return "http://localhost:3000"
 }
 
-export const SITE_NAME = "shadcn-next-app" as const
+export const SITE_NAME = "Afenda" as const
 
-export const SITE_DESCRIPTION = "Next.js app with shadcn/ui" as const
+export const SITE_DESCRIPTION = "Afenda on Next.js" as const
 
 /** Relative to site root; paired with metadataBase for OG/Twitter. */
 export const DEFAULT_OG_IMAGE = "/icons/afenda-icon-512-transparent.png" as const

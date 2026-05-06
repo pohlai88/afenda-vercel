@@ -1,5 +1,5 @@
 {
-  "name": "shadcn-next-app",
+  "name": "afenda-vercel",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -22,6 +22,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,css,json}\"",
     "typecheck": "tsc --noEmit",
     "env:sync": "node scripts/sync-env.mjs",
+    "env:push-vercel": "node scripts/push-vercel-env.mjs",
     "env:pull-vercel": "vercel env pull .env.vercel",
     "shadcn:info": "shadcn info --json",
     "db:generate": "drizzle-kit generate",
@@ -74,6 +75,7 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "shadcn": "^4.7.0",
     "tailwindcss": "^4.2.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vercel": "^48.6.0"
   }
 }
