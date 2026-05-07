@@ -85,9 +85,19 @@ function parseDotenv(content) {
     ) {
       val = val.slice(1, -1)
     }
-    out[key] = val
+    // Vercel rejects some secrets (e.g. CRON_SECRET) if they contain leading/trailing whitespace.
+    out[key] = val.trim()
   }
   return out
+}
+
+/** Vercel rejects `CRON_SECRET` if it contains any whitespace (used in HTTP headers). */
+function normalizeValueForVercel(key, raw) {
+  const trimmed = raw.replace(/^\uFEFF/, "").trim()
+  if (key === "CRON_SECRET") {
+    return trimmed.replace(/\s/g, "")
+  }
+  return trimmed
 }
 
 function vercelEnvAdd({ key, value, target, sensitive }) {
@@ -135,8 +145,14 @@ let pushed = 0
 let skipped = 0
 
 for (const { key, sensitive } of KEYS) {
-  const value = parsed[key]
-  if (value === undefined || value === "") {
+  const raw = parsed[key]
+  if (raw === undefined || raw === "") {
+    skipped++
+    continue
+  }
+
+  const value = normalizeValueForVercel(key, raw)
+  if (value === "") {
     skipped++
     continue
   }

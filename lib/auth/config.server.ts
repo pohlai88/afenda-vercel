@@ -51,7 +51,12 @@ function canonicalAuthBaseUrlString(): string {
 
 function resolveAuthBaseURL():
   | string
-  | { allowedHosts: string[]; protocol: "http" | "https" } {
+  | {
+      allowedHosts: string[]
+      protocol: "http" | "https"
+      /** When `Host` is not in `allowedHosts` (e.g. apex vs www), use this origin instead of 500. */
+      fallback: string
+    } {
   if (isProductionBuild) {
     return (
       process.env.BETTER_AUTH_URL?.trim().replace(/\/$/, "") ??
@@ -65,6 +70,7 @@ function resolveAuthBaseURL():
   return {
     allowedHosts: hosts,
     protocol: process.env.NODE_ENV === "development" ? "http" : "https",
+    fallback: canonicalAuthBaseUrlString(),
   }
 }
 
