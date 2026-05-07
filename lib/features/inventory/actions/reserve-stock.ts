@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache"
 
+import { ORG_DASHBOARD_INVENTORY } from "#lib/dashboard-module-paths"
+import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
-
-import { INVENTORY_ROUTE } from "../constants"
 import { inventoryFilterSchema } from "../schemas/inventory-filter.schema"
 import type { InventoryActionState } from "../types"
 
@@ -27,6 +27,9 @@ export async function reserveStock(
     return { ok: false, errors: { form: "Invalid inventory payload." } }
   }
 
-  revalidatePath(INVENTORY_ROUTE)
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_INVENTORY),
+    "page"
+  )
   return { ok: true }
 }

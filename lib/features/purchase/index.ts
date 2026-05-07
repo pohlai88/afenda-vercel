@@ -3,7 +3,7 @@ export { PurchaseActionForm } from "#features/purchase/components/purchase-actio
 export { createPurchaseOrder } from "#features/purchase/actions/create-purchase-order"
 export { listPurchaseOverview } from "#features/purchase/data/purchase.queries"
 export { purchaseFilterSchema } from "#features/purchase/schemas/purchase-filter.schema"
-export { PURCHASE_ROUTE } from "#features/purchase/constants"
+export { ORG_DASHBOARD_PURCHASE } from "#features/purchase/constants"
 export type {
   PurchaseActionState,
   PurchaseOverviewItem,

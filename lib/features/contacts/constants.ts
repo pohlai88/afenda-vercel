@@ -1,1 +1,4 @@
-export { CONTACTS_ROUTE } from "#lib/dashboard-module-paths"
+export {
+  organizationDashboardPath,
+  ORG_DASHBOARD_CONTACTS,
+} from "#lib/dashboard-module-paths"

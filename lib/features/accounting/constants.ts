@@ -1,1 +1,1 @@
-export { ACCOUNTING_ROUTE } from "#lib/dashboard-module-paths"
+export { ORG_DASHBOARD_ACCOUNTING } from "#lib/dashboard-module-paths"

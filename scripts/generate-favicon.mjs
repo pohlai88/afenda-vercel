@@ -13,7 +13,7 @@ const OUT_PATHS = ["public/favicon.ico", "app/favicon.ico"]
 const SIZES = [16, 32, 48]
 
 const buffers = await Promise.all(
-  SIZES.map((s) => sharp(SRC).resize(s, s).png().toBuffer()),
+  SIZES.map((s) => sharp(SRC).resize(s, s).png().toBuffer())
 )
 const ico = await toIco(buffers)
 for (const out of OUT_PATHS) {

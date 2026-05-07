@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache"
 
+import { ORG_DASHBOARD_ACCOUNTING } from "#lib/dashboard-module-paths"
+import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
-
-import { ACCOUNTING_ROUTE } from "../constants"
 import { accountingFilterSchema } from "../schemas/accounting-filter.schema"
 import type { AccountingActionState } from "../types"
 
@@ -27,6 +27,9 @@ export async function postEntry(
     return { ok: false, errors: { form: "Invalid accounting payload." } }
   }
 
-  revalidatePath(ACCOUNTING_ROUTE)
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_ACCOUNTING),
+    "page"
+  )
   return { ok: true }
 }

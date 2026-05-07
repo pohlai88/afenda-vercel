@@ -5,7 +5,8 @@
       "#components/*": ["./components/*"],
       "#lib/*": ["./lib/*"],
       "#hooks/*": ["./hooks/*"],
-      "#features/*": ["./lib/features/*"]
+      "#features/*": ["./lib/features/*"],
+      "#i18n/*": ["./i18n/*"]
     },
     "target": "ES2022",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
@@ -30,10 +31,12 @@
   },
   "include": [
     "next-env.d.ts",
+    "i18n/global.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    // Production typed routes only — do not include `.next/dev/types` (conflicts with `exclude` / AGENTS.md).
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", ".next/dev"]
 }

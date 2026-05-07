@@ -16,6 +16,8 @@ import {
   SITE_NAME,
   getSiteUrl,
 } from "#lib/site"
+import { AFENDA_LOCALE_HEADER } from "#lib/i18n/locale-header.shared"
+import { DEFAULT_APP_LOCALE, isAppLocale } from "#lib/i18n/locales.shared"
 import { cn } from "#lib/utils"
 
 const inter = Inter({
@@ -40,10 +42,7 @@ async function resolveRequestMetadataBase(): Promise<URL> {
   const hostRaw =
     h.get("x-forwarded-host")?.split(",")[0]?.trim() || h.get("host")?.trim()
   if (hostRaw) {
-    const forwardedProto = h
-      .get("x-forwarded-proto")
-      ?.split(",")[0]
-      ?.trim()
+    const forwardedProto = h.get("x-forwarded-proto")?.split(",")[0]?.trim()
     const proto =
       forwardedProto ||
       (hostRaw.startsWith("localhost") || hostRaw.startsWith("127.0.0.1")
@@ -107,20 +106,20 @@ export async function generateMetadata(): Promise<Metadata> {
           sizes: "192x192",
           type: "image/png",
         },
-    ],
-    apple: [
-      {
-        url: APP_ICON_512_PNG,
-        sizes: "512x512",
-        type: "image/png",
-      },
-      {
-        url: APP_ICON_APPLE_180_PNG,
-        sizes: "180x180",
-        type: "image/png",
-      },
-    ],
-  },
+      ],
+      apple: [
+        {
+          url: APP_ICON_512_PNG,
+          sizes: "512x512",
+          type: "image/png",
+        },
+        {
+          url: APP_ICON_APPLE_180_PNG,
+          sizes: "180x180",
+          type: "image/png",
+        },
+      ],
+    },
     openGraph: {
       type: "website",
       locale: "en_US",
@@ -150,14 +149,19 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const h = await headers()
+  const localeRaw = h.get(AFENDA_LOCALE_HEADER)?.trim()
+  const htmlLang =
+    localeRaw && isAppLocale(localeRaw) ? localeRaw : DEFAULT_APP_LOCALE
+
   return (
     <html
-      lang="en"
+      lang={htmlLang}
       suppressHydrationWarning
       className={cn(
         "font-sans antialiased",

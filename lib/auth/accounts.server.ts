@@ -5,16 +5,14 @@ import { and, eq, isNotNull } from "drizzle-orm"
 import { db } from "#lib/db"
 import { account } from "#lib/db/schema"
 
-export type SafeLinkedAccount = {
-  id: string
-  providerId: string
-  accountId: string
-  createdAt: Date
-  isCredentialAccount: boolean
-}
+import type { SafeLinkedAccount } from "./accounts.types.shared"
+
+export type { SafeLinkedAccount } from "./accounts.types.shared"
 
 /** Linked OAuth / credential rows without token fields (UI + identity page). */
-export async function listSafeLinkedAccounts(userId: string): Promise<SafeLinkedAccount[]> {
+export async function listSafeLinkedAccounts(
+  userId: string
+): Promise<SafeLinkedAccount[]> {
   const rows = await db
     .select({
       id: account.id,

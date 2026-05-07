@@ -1,0 +1,15 @@
+# Normalize line endings for cross-platform (Windows dev + Linux CI).
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Windows-only scripts may need CRLF locally; keep explicit if you add them.
+# *.cmd text eol=crlf

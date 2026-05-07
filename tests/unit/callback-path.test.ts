@@ -1,22 +1,50 @@
 import { describe, expect, it } from "vitest"
 
-import { resolvePostAuthCallbackUrl } from "#lib/auth/callback-path"
+import {
+  DEFAULT_POST_AUTH_PATH,
+  resolvePostAuthCallbackUrl,
+} from "#lib/auth/callback-path"
+import { DEFAULT_APP_LOCALE, toLocalePath } from "#lib/i18n/locales.shared"
 
 describe("resolvePostAuthCallbackUrl", () => {
   it("returns fallback for open redirects", () => {
-    expect(resolvePostAuthCallbackUrl("//evil.com")).toBe("/onboarding")
-    expect(resolvePostAuthCallbackUrl("https://evil.com/x")).toBe("/onboarding")
-    expect(resolvePostAuthCallbackUrl("/\n/x")).toBe("/onboarding")
+    expect(resolvePostAuthCallbackUrl("//evil.com")).toBe(
+      DEFAULT_POST_AUTH_PATH
+    )
+    expect(resolvePostAuthCallbackUrl("https://evil.com/x")).toBe(
+      DEFAULT_POST_AUTH_PATH
+    )
+    expect(resolvePostAuthCallbackUrl("/\n/x")).toBe(DEFAULT_POST_AUTH_PATH)
   })
 
-  it("allows same-origin relative paths", () => {
-    expect(resolvePostAuthCallbackUrl("/dashboard")).toBe("/dashboard")
+  it("rejects paths without locale prefix", () => {
+    expect(resolvePostAuthCallbackUrl("/dashboard")).toBe(
+      DEFAULT_POST_AUTH_PATH
+    )
     expect(resolvePostAuthCallbackUrl("/account/security")).toBe(
-      "/account/security"
+      DEFAULT_POST_AUTH_PATH
+    )
+  })
+
+  it("allows locale-prefixed same-origin paths", () => {
+    expect(
+      resolvePostAuthCallbackUrl(toLocalePath(DEFAULT_APP_LOCALE, "/dashboard"))
+    ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/dashboard"))
+    expect(
+      resolvePostAuthCallbackUrl(
+        toLocalePath(DEFAULT_APP_LOCALE, "/account/security")
+      )
+    ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/account/security"))
+  })
+
+  it("rejects double locale prefix", () => {
+    expect(resolvePostAuthCallbackUrl("/en/en/dashboard")).toBe(
+      DEFAULT_POST_AUTH_PATH
     )
   })
 
   it("accepts custom fallback", () => {
-    expect(resolvePostAuthCallbackUrl(null, "/demo")).toBe("/demo")
+    const demo = toLocalePath(DEFAULT_APP_LOCALE, "/demo")
+    expect(resolvePostAuthCallbackUrl(null, demo)).toBe(demo)
   })
 })

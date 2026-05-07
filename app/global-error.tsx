@@ -5,6 +5,7 @@ import Link from "next/link"
 
 import "./globals.css"
 import { Button } from "#components/ui/button"
+import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
 
 export default function GlobalError({
   error,
@@ -37,7 +38,9 @@ export default function GlobalError({
               Try again
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/">Go home</Link>
+              <Link href={DEFAULT_LOCALE_HOME_PATH} prefetch={false}>
+                Go home
+              </Link>
             </Button>
           </div>
         </div>

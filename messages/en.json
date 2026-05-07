@@ -1,0 +1,151 @@
+{
+  "Common": {
+    "loading": "Loading…",
+    "loadingSignIn": "Loading sign-in…",
+    "loadingInvitation": "Loading invitation…",
+    "loadingOnboarding": "Loading workspace setup…",
+    "loadingUsers": "Loading users…"
+  },
+  "Home": {
+    "heading": "Project ready!",
+    "body1": "You may now add components and start building.",
+    "body2": "We've already added the button component for you.",
+    "themeHintBefore": "Theme: menu (top right) or press",
+    "themeHintAfter": "to flip light/dark.",
+    "ctaSignIn": "Sign in",
+    "ctaDashboard": "Dashboard",
+    "demoButton": "Button"
+  },
+  "Auth": {
+    "pleaseWait": "Please wait…",
+    "oauthGoogle": "Continue with Google",
+    "oauthGithub": "Continue with GitHub",
+    "infoMagicLink": "Check your email for the sign-in link.",
+    "infoOtpCode": "Enter the code we emailed you.",
+    "titleSignIn": "Sign in",
+    "titleSignUp": "Create account",
+    "descriptionStepUp": "For your security, sign in again to continue.",
+    "descriptionDefault": "Use your email, OAuth, or passkey — pick what works best.",
+    "stepUpAlertTitle": "Step-up verification",
+    "stepUpAlertDescription": "Sensitive action — confirm it is you before continuing.",
+    "tabSignIn": "Sign in",
+    "tabSignUp": "Create account",
+    "footerSecurity": "Security",
+    "footerHome": "Home",
+    "ssoSectionLabelSocial": "Continue with",
+    "ssoSectionLabelPasskey": "Passkey",
+    "passkeyWaiting": "Waiting for passkey…",
+    "passkeySignIn": "Sign in with passkey",
+    "separatorOrEmail": "Or use email",
+    "emailMethod": "Email method",
+    "togglePassword": "Password",
+    "toggleMagic": "Magic link",
+    "toggleOtp": "Email code",
+    "ariaPassword": "Sign in with password",
+    "ariaMagic": "Sign in with magic link",
+    "ariaOtp": "Sign in with email code",
+    "labelName": "Name",
+    "labelEmail": "Email",
+    "labelPassword": "Password",
+    "forgotPassword": "Forgot password",
+    "ariaHidePassword": "Hide password",
+    "ariaShowPassword": "Show password",
+    "capsLockOn": "Caps Lock is on.",
+    "passwordRequirements": "Use at least 8 characters. Avoid passwords you use elsewhere.",
+    "labelOtp": "One-time code",
+    "otpHint": "Enter the 6-digit code from your email. You can paste the full code.",
+    "otpGroupAria": "One-time code digits",
+    "errorTitle": "Could not continue",
+    "infoTitle": "Check your inbox",
+    "submitMagic": "Email magic link",
+    "submitOtpVerify": "Verify code",
+    "submitOtpSend": "Send code",
+    "submitSignIn": "Sign in",
+    "submitCreateAccount": "Create account",
+    "pageMetadataTitle": "Sign in",
+    "pageOpenGraphTitle": "Sign in | {siteName}",
+    "ariaSsoSection": "Single sign-on",
+    "ariaEmailSection": "Email sign-in options"
+  },
+  "AuthStatus": {
+    "goHome": "Go to home",
+    "session_expired": {
+      "title": "Session expired",
+      "description": "Sign in again to continue where you left off.",
+      "descriptionWithContext": "Your session ended while you were working. {context}",
+      "trustNote": "Sessions expire after a period of inactivity to protect your organization.",
+      "primary": "Sign in"
+    },
+    "step_up_required": {
+      "title": "Additional verification required",
+      "description": "For your security, sign in again to continue this sensitive action.",
+      "trustNote": "Step-up verification helps ensure only you can change critical settings.",
+      "primary": "Continue"
+    },
+    "mfa_required": {
+      "title": "Multi-factor authentication required",
+      "description": "Your organization requires a second factor. Complete sign-in to continue.",
+      "trustNote": "MFA reduces the risk of unauthorized access to your workspace.",
+      "primary": "Sign in"
+    },
+    "email_unverified": {
+      "title": "Verify your email",
+      "description": "Confirm your email address before continuing. Check your inbox for a verification link.",
+      "trustNote": "Unverified accounts cannot access some ERP features for security reasons.",
+      "primary": "Account settings"
+    },
+    "org_required": {
+      "title": "Workspace setup needed",
+      "description": "Create or join an organization to open the dashboard.",
+      "trustNote": "Your account must belong to an active workspace before ERP modules are available.",
+      "primary": "Continue setup"
+    },
+    "invitation_expired": {
+      "title": "Invitation no longer valid",
+      "description": "This invitation has expired or was revoked. Ask your administrator for a new invite.",
+      "primary": "Sign in"
+    },
+    "rate_limited": {
+      "title": "Too many attempts",
+      "description": "Try again in a few minutes. If you need access urgently, contact your administrator.",
+      "trustNote": "Rate limits protect accounts from automated attacks.",
+      "primary": "Back to sign in"
+    },
+    "sign_in_failed": {
+      "title": "Sign-in could not complete",
+      "description": "Check your credentials and try again. If the problem continues, use another sign-in method or reset your password.",
+      "primary": "Try again"
+    },
+    "unknown_failure": {
+      "title": "Something went wrong",
+      "description": "We could not complete that request. Sign in again or return home.",
+      "primary": "Sign in"
+    }
+  },
+  "VerifyEmail": {
+    "meta": {
+      "email_unverified": "Verify email",
+      "session_expired": "Session expired",
+      "step_up_required": "Verification required",
+      "mfa_required": "Multi-factor authentication",
+      "org_required": "Workspace setup",
+      "invitation_expired": "Invitation expired",
+      "rate_limited": "Too many attempts",
+      "sign_in_failed": "Sign-in failed",
+      "unknown_failure": "Something went wrong"
+    },
+    "titleDefault": "Verify email",
+    "titleContinueSignIn": "Continue sign-in"
+  },
+  "CheckEmail": {
+    "note": "Redirecting to verify email…"
+  },
+  "Admin": {
+    "usersTitle": "Users",
+    "usersSubtitle": "Admin plugin — requires permission to list users.",
+    "linkDashboard": "Dashboard",
+    "signInLink": "Sign in",
+    "signInSuffix": "to access admin tools.",
+    "emptyUsers": "No users returned (empty project or insufficient admin access)."
+  }
+}

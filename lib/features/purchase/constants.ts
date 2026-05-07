@@ -1,1 +1,1 @@
-export { PURCHASE_ROUTE } from "#lib/dashboard-module-paths"
+export { ORG_DASHBOARD_PURCHASE } from "#lib/dashboard-module-paths"

@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "pnpm: lint",
+      "type": "shell",
+      "command": "pnpm run lint",
+      "problemMatcher": [],
+      "group": "test",
+      "presentation": { "reveal": "silent", "panel": "shared" }
+    },
+    {
+      "label": "pnpm: typecheck",
+      "type": "shell",
+      "command": "pnpm run typecheck",
+      "problemMatcher": "$tsc",
+      "group": "build"
+    },
+    {
+      "label": "pnpm: format:check",
+      "type": "shell",
+      "command": "pnpm run format:check",
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "pnpm: smoke",
+      "type": "shell",
+      "command": "pnpm run smoke",
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    }
+  ]
+}

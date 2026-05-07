@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth"
+import { betterAuth, type BetterAuthPlugin } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
 import {
@@ -16,6 +16,7 @@ import { and, eq, gt } from "drizzle-orm"
 
 import { authMailContext, sendAuthEmail } from "#lib/auth-mail"
 import { db } from "#lib/db"
+import { DEFAULT_APP_LOCALE, toLocalePath } from "#lib/i18n/locales.shared"
 import * as schema from "#lib/db/schema"
 import {
   betterAuthAllowedHostsFromEnv,
@@ -112,12 +113,33 @@ const mailCtx = authMailContext()
 const adminIds = parseAdminUserIds()
 const inviteOnlySignup = process.env.BETTER_AUTH_INVITE_ONLY_SIGNUP === "1"
 
-function betterAuthInfraServerPlugins() {
+/**
+ * Better Auth Infrastructure connection (dash + sentinel).
+ * @see https://better-auth.com/docs/infrastructure/plugins/dash#dashoptions
+ * @see https://better-auth.com/docs/infrastructure/plugins/sentinel#sentineloptions
+ */
+function betterAuthInfraConnection(): {
+  apiKey: string
+  apiUrl?: string
+  kvUrl?: string
+} | null {
   const apiKey = process.env.BETTER_AUTH_API_KEY?.trim()
-  if (!apiKey) return []
-  const plugins = [dash({ apiKey })]
+  if (!apiKey) return null
+  const apiUrl = process.env.BETTER_AUTH_API_URL?.trim()
+  const kvUrl = process.env.BETTER_AUTH_KV_URL?.trim()
+  return {
+    apiKey,
+    ...(apiUrl ? { apiUrl } : {}),
+    ...(kvUrl ? { kvUrl } : {}),
+  }
+}
+
+function betterAuthInfraServerPlugins(): BetterAuthPlugin[] {
+  const conn = betterAuthInfraConnection()
+  if (!conn) return []
+  const plugins: BetterAuthPlugin[] = [dash(conn) as BetterAuthPlugin]
   if (process.env.BETTER_AUTH_INFRA_SENTINEL === "1") {
-    plugins.push(sentinel({ apiKey }))
+    plugins.push(sentinel(conn) as BetterAuthPlugin)
   }
   return plugins
 }
@@ -266,7 +288,28 @@ export const auth = betterAuth({
   },
   plugins: [
     ...betterAuthInfraServerPlugins(),
-    organization(),
+    organization({
+      requireEmailVerificationOnInvitation:
+        process.env.BETTER_AUTH_REQUIRE_EMAIL_VERIFICATION_ON_INVITATION ===
+        "1",
+      sendInvitationEmail: async (data) => {
+        const { siteUrl, siteName } = authMailContext()
+        const base = siteUrl.replace(/\/$/, "")
+        const invitePath = `${toLocalePath(DEFAULT_APP_LOCALE, "/accept-invitation")}?invitationId=${encodeURIComponent(data.id)}`
+        const inviteLink = `${base}${invitePath}`
+        const orgName = data.organization.name
+        sendAuthEmail({
+          to: data.email,
+          subject: `${siteName} — invited to ${orgName}`,
+          text: [
+            `You've been invited to join ${orgName} on ${siteName}.`,
+            "",
+            `Accept (sign in if prompted): ${inviteLink}`,
+          ].join("\n"),
+          html: `<p>You've been invited to join <strong>${orgName}</strong> on ${siteName}.</p><p><a href="${inviteLink}">Accept invitation</a></p>`,
+        })
+      },
+    }),
     admin({
       adminUserIds: adminIds.length > 0 ? adminIds : undefined,
     }),

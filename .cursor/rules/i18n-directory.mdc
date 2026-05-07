@@ -1,0 +1,56 @@
+---
+description: next-intl locale routing, path builders, revalidation, and proxy contract
+alwaysApply: true
+---
+
+# i18n directory boundary (`i18n/`, `lib/i18n/`, `messages/`)
+
+## Stack
+
+- **`next-intl`** with **`localePrefix: "always"`** — public URLs are `/{locale}/…` (e.g. `/en/o/acme/dashboard/contacts`; legacy `/en/dashboard/...` redirects to the active org slug).
+- **Next.js 16** edge entry: [`proxy.ts`](../../proxy.ts) (not `middleware.ts`). Compose **`createIntlMiddleware(routing)`** with narrow product logic only.
+- Narrative (proxy + auth cookie gate + resilience): **`AGENTS.md` §5** — *Locale-first application surface*.
+
+## Path builders (locale-aware by construction)
+
+- **`toLocalePath(locale, "/segment")`** in [`lib/i18n/locales.shared.ts`](../../lib/i18n/locales.shared.ts) — first argument is always **`AppLocale`**; never emit bare `/dashboard` or `/sign-in` from server redirects or emails.
+- **Root recovery (outside `[locale]`):** [`DEFAULT_LOCALE_HOME_PATH`](../../lib/i18n/root-default-locale-href.shared.ts) for `app/not-found`, `app/error`, and `app/global-error` — same default-locale home as [`app/page.tsx`](../../app/page.tsx) redirect; use `next/link` with `prefetch={false}` there (not `#i18n/navigation`).
+- **`toLocaleRoutePattern("/segment")`** → `"/[locale]/segment"` for **`revalidatePath(..., "page")`** so all locales invalidate (Next.js dynamic segment pattern).
+- **`toLocaleOrgDashboardRevalidatePattern("/contacts")`** → `"/[locale]/o/[orgSlug]/dashboard/contacts"` for ERP **`revalidatePath`** (all locales + org slugs).
+- **`ensureAppLocale(params.locale)`** for `app/[locale]/…` **RSC** `params`.
+- **`getRequestAppLocale()`** in [`lib/i18n/request-locale.server.ts`](../../lib/i18n/request-locale.server.ts) for **Server Actions** / guards without route `params` (wraps `getLocale()`).
+
+Forbidden:
+
+```txt
+redirect("/dashboard")
+redirect("/sign-in")
+revalidatePath("/en/dashboard/contacts")  // only one locale — use pattern + "page"
+```
+
+## Navigation
+
+- Client: **`Link`**, **`useRouter`**, **`usePathname`** from [`#i18n/navigation`](../../i18n/navigation.tsx) (locale-internal `href` like `/o/acme/dashboard/contacts`). `Link` defaults **`prefetch={false}`**; pass **`prefetch={true}`** to opt in.
+- Server RSC redirects: **`redirect` from `next/navigation`** + **`toLocalePath(locale, …)`** (or `ensureAppLocale` + `params`).
+
+## Callbacks and auth
+
+- **`callbackUrl`** query values must be **locale-prefixed** same-origin paths (`/en/...`). Validation: [`resolvePostAuthCallbackUrl`](../../lib/auth/callback-path.ts) + [`stripLeadingLocalePrefix`](../../lib/i18n/locales.shared.ts).
+- Interruption URLs: [`authInterruptionHref`](../../lib/auth/auth-interruption-url.shared.ts) requires **`locale: AppLocale`** (no module-level locale capture).
+
+## Config
+
+- Plugin: [`next.config.ts`](../../next.config.ts) → **`createNextIntlPlugin("./i18n/request.ts")`**.
+- Routing: [`i18n/routing.ts`](../../i18n/routing.ts) — **`defineRouting`**, single source of locales from [`APP_LOCALES`](../../lib/i18n/locales.shared.ts).
+- Request: [`i18n/request.ts`](../../i18n/request.ts) — **`server-only`**, `messages`, optional **`formats`**, **`timeZone`**, **`onError`**, **`getMessageFallback`**.
+- Types: [`i18n/global.d.ts`](../../i18n/global.d.ts) augments **`next-intl`** `AppConfig` (`Locale`, `Messages`, `Formats`).
+
+## Proxy
+
+- [`proxy.ts`](../../proxy.ts): forwards **`x-afenda-locale`** ([`AFENDA_LOCALE_HEADER`](../../lib/i18n/locale-header.shared.ts)) for root [`app/layout.tsx`](../../app/layout.tsx) `<html lang>`. Keep matcher excluding **`api`**, **`_next`**, **`_vercel`**, static files.
+
+## Messages
+
+- Catalogs: **`messages/<locale>.json`**. Add namespaces incrementally; auth shell uses **`Auth`**, **`AuthStatus`**, **`CheckEmail`**, **`VerifyEmail`** where wired.
+
+When unsure, follow **Context7** `/amannn/next-intl` and **Next.js** `revalidatePath` docs for dynamic `[locale]` segments.

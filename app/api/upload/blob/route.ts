@@ -1,24 +1,15 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client"
 import { NextResponse } from "next/server"
 
-import { auth } from "#lib/auth"
+import { getOrgSessionFromRequest } from "#lib/tenant"
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  })
-
-  if (!session?.user?.id) {
+  const orgSession = await getOrgSessionFromRequest(request)
+  if (!orgSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const organizationId = session.session.activeOrganizationId
-  if (!organizationId) {
-    return NextResponse.json(
-      { error: "No active organization" },
-      { status: 403 }
-    )
-  }
+  const { userId, organizationId } = orgSession
 
   const body = (await request.json()) as HandleUploadBody
 
@@ -36,7 +27,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           ],
           addRandomSuffix: true,
           tokenPayload: JSON.stringify({
-            userId: session.user.id,
+            userId,
             organizationId,
             clientPayload: clientPayload ?? null,
           }),

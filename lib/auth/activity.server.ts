@@ -9,12 +9,22 @@ const USER_SECURITY_ACTIVITY_ACTIONS = [
   "iam.session.sign_in",
   "iam.session.sign_out",
   "iam.session.sign_up",
+  "iam.session.revoke",
+  "iam.session.revoke_other",
+  "iam.passkey.remove",
+  "org.invitation.accept",
+  "org.invitation.reject",
 ] as const
 
 const ACTION_LABEL: Record<string, string> = {
   "iam.session.sign_in": "Signed in",
   "iam.session.sign_out": "Signed out",
   "iam.session.sign_up": "Account created",
+  "iam.session.revoke": "Ended another session",
+  "iam.session.revoke_other": "Signed out all other sessions",
+  "iam.passkey.remove": "Removed a passkey",
+  "org.invitation.accept": "Accepted organization invitation",
+  "org.invitation.reject": "Declined organization invitation",
 }
 
 export type UserSecurityActivityRow = {

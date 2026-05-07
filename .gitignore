@@ -8,11 +8,11 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-/playwright-report/
-/test-results/
-/blob-report/
+# testing & CI tool output (Vitest coverage, Playwright junit/traces/screenshots, etc.)
+/.artifacts/
+
+# Local Playwright MCP / browser debug captures (not product source)
+.playwright-mcp/
 
 # next.js
 /.next/

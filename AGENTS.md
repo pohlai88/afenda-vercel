@@ -2,21 +2,22 @@
 
 Instructions for AI agents working in this repository. Stack: **Next.js 16** (App Router), **React 19**, **TypeScript**, **Tailwind CSS v4**, **shadcn/ui**-style components.
 
-**Read first:** [§4 Enforcement & governance artifacts](#4-enforcement--governance-artifacts) and [§6 ERP clean directory contract](#6-erp-clean-directory-engineer-contract-required). They define tooling gates and non‑negotiable boundaries.
+**Read first:** [§4 Enforcement & governance artifacts](#4-enforcement--governance-artifacts), [§5 ERP stack + locale-first application surface](#5-erp--full-stack-stack-this-repo) (including [locale-first routing](#locale-first-application-surface)), and [§6 ERP clean directory contract](#6-erp-clean-directory-engineer-contract-required). They define tooling gates, product routing behavior, and non‑negotiable boundaries.
 
 ### IDE & AI quickstart (vibe coding)
 
 Use this block for fast orientation; deep rules stay in the numbered sections below.
 
-| Goal                  | Where to look / what to do                                                                                                                                                                                                                              |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Jump to a topic       | [Contents](#contents) — anchor links to every §                                                                                                                                                                                                         |
-| ERP feature work      | `lib/features/<module>/` · public imports `#features/<module>` only · no cross-module deep imports (**§6**, **§4.1**)                                                                                                                                   |
-| Dashboard UI          | `#components/ui/*` · `#lib/design-system` · tokens `app/globals.css` (**§7**)                                                                                                                                                                           |
-| Next / RSC            | Server Components default · async `cookies` / `headers` / `params` · thin `proxy.ts` — also `.cursor/rules/nextjs-best-practices.mdc` (always on)                                                                                                       |
-| Green CI              | `pnpm lint` · `pnpm typecheck` · `pnpm test:ci` · `pnpm format:check` — or `pnpm smoke` before a big push (**§2**); Playwright in CI after `pnpm build`                                                                                                 |
-| Tests / E2E           | **§2** commands + **Testing directory contract** below; Vitest (Node-first `tests/unit`); Playwright (`tests/e2e`); default **`PLAYWRIGHT_BASE_URL`** **`http://127.0.0.1:3001`** vs **`pnpm dev`** on **3000** · `.cursor/rules/testing-directory.mdc` |
-| Local editor / Cursor | `.editorconfig` + `.gitattributes` (LF / UTF-8 / 2-space) · `.vscode/settings.json` (workspace TS, Prettier + ESLint on save, Tailwind v4 = `app/globals.css`) · `.vscode/extensions.json` + `.vscode/tasks.json` · `.cursorignore` trims index noise   |
+| Goal                   | Where to look / what to do                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Jump to a topic        | [Contents](#contents) — anchor links to every §                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ERP feature work       | `lib/features/<module>/` · public imports `#features/<module>` only · no cross-module deep imports (**§6**, **§4.1**)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Dashboard UI           | `#components/ui/*` · `#components/dashboard/*` (shell, module nav, loading) · `#lib/design-system` · tokens `app/globals.css` (**§7**)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| i18n & locale-first UX | [Locale-first application surface](#locale-first-application-surface) in **§5** · **`next-intl`** · `localePrefix: "always"` (e.g. `/en/...`) · [`i18n/routing.ts`](i18n/routing.ts) + [`i18n/request.ts`](i18n/request.ts) · [`messages/<locale>.json`](messages/en.json) · **`Link` / `useRouter` / `usePathname` from `#i18n/navigation`** · **Server `redirect`:** `next/navigation` + [`toLocalePath(locale, "/path")`](lib/i18n/locales.shared.ts) (`locale` from `params` or [`getRequestAppLocale`](lib/i18n/request-locale.server.ts)) · **`revalidatePath`:** [`toLocaleRoutePattern`](lib/i18n/locales.shared.ts) for static locale routes; **[`toLocaleOrgDashboardRevalidatePattern`](lib/i18n/locales.shared.ts)** for ERP dashboard modules under `/o/[orgSlug]/dashboard/...` · locales in [`lib/i18n/locales.shared.ts`](lib/i18n/locales.shared.ts) · **[`proxy.ts`](proxy.ts)** forwards locale for `<html lang>` · **`.cursor/rules/i18n-directory.mdc`** |
+| Next / RSC             | Server Components default · async `cookies` / `headers` / `params` · thin `proxy.ts` — also `.cursor/rules/nextjs-best-practices.mdc` (always on)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Green CI               | `pnpm verify` (lint → typecheck → `test:ci` → format) — or `pnpm smoke` before a big push (**§2**); optional `pnpm lint:a11y`; Playwright in CI after `pnpm build`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Tests / E2E            | **§2** commands + **Testing directory contract** below; Vitest (Node-first `tests/unit`); Playwright (`tests/e2e`); default **`http://127.0.0.1:3001`** + **`next start`** so **`pnpm dev`** can stay on **3000** · `.cursor/rules/testing-directory.mdc`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Local editor / Cursor  | `.editorconfig` + `.gitattributes` (LF / UTF-8 / 2-space) · `.vscode/settings.json` (workspace TS, Prettier + ESLint on save, Tailwind v4 = `app/globals.css`) · `.vscode/extensions.json` + `.vscode/tasks.json` · `.cursorignore` trims index noise                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ## Contents
 
@@ -24,7 +25,7 @@ Use this block for fast orientation; deep rules stay in the numbered sections be
 2. [Commands & quality gates](#2-commands--quality-gates)
 3. [Toolchain](#3-toolchain)
 4. [Enforcement & governance artifacts](#4-enforcement--governance-artifacts)
-5. [ERP / full-stack stack](#5-erp--full-stack-stack-this-repo)
+5. [ERP / full-stack stack](#5-erp--full-stack-stack-this-repo) — [locale-first application surface](#locale-first-application-surface)
 6. [ERP clean directory engineer contract](#6-erp-clean-directory-engineer-contract-required)
 7. [Design system](#7-design-system)
 8. [Critical Next.js practices (App Router)](#8-critical-nextjs-practices-app-router)
@@ -36,38 +37,43 @@ Use this block for fast orientation; deep rules stay in the numbered sections be
 
 ## 1. How to use this document
 
-| Role                          | Source                                                                                                                                                                                                 |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Single operating contract** | This file (`AGENTS.md`)                                                                                                                                                                                |
-| **Always-on Cursor rules**    | `.cursor/rules/agents-md-mandatory.mdc`, `.cursor/rules/agents-md-editing-enforcement.mdc`                                                                                                             |
-| **Design / UI edits (globs)** | `.cursor/rules/design-system-enforcement.mdc` (`*.{ts,tsx,css}`) · `.cursor/rules/design-system-docs-enforcement.mdc` (`docs/design-system/**/*.md`)                                                   |
-| **Other focused rules**       | `.cursor/rules/nextjs-best-practices.mdc`, `images.mdc`, `brand-assets.mdc`, `iam-directory.mdc`, `testing-directory.mdc` (`tests/**`), `registry-bases-parity.mdc`, `figma-code-connect-workflow.mdc` |
+| Role                          | Source                                                                                                                                                                                                                       |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Single operating contract** | This file (`AGENTS.md`)                                                                                                                                                                                                      |
+| **Always-on Cursor rules**    | `.cursor/rules/agents-md-mandatory.mdc` (preload + edit-boundary checks)                                                                                                                                                     |
+| **Design / UI edits (globs)** | `.cursor/rules/design-system-enforcement.mdc` (`*.{ts,tsx,css}`) · `.cursor/rules/design-system-docs-enforcement.mdc` (`docs/design-system/**/*.md`)                                                                         |
+| **Other focused rules**       | `.cursor/rules/nextjs-best-practices.mdc`, `i18n-directory.mdc`, `images.mdc`, `brand-assets.mdc`, `iam-directory.mdc`, `testing-directory.mdc` (`tests/**`), `registry-bases-parity.mdc`, `figma-code-connect-workflow.mdc` |
 
 **Change order:** If a task needs a new architectural category, API family, or folder vocabulary, **update this file first** in the same change, then implementation. Keep `.cursor/rules/*` aligned when they mirror this contract (they must not contradict it).
 
-**Mechanical alignment:** `scripts/check-agent-contract.mjs` declares `REQUIRED_FILES` (this doc + mandatory agent rules + `design-system-enforcement.mdc` + `design-system-docs-enforcement.mdc` + `eslint.config.mjs` + `check-design-contract.mjs`). Do not remove or weaken those paths without updating the script and this section.
+**Mechanical alignment:** `scripts/check-agent-contract.mjs` declares `REQUIRED_FILES` (this doc + `agents-md-mandatory.mdc` + `design-system-enforcement.mdc` + `design-system-docs-enforcement.mdc` + `i18n-directory.mdc` + `eslint.config.mjs` + `check-design-contract.mjs`). Do not remove or weaken those paths without updating the script and this section.
 
 ---
 
 ## 2. Commands & quality gates
 
-| Command                             | Purpose                                                               |
-| ----------------------------------- | --------------------------------------------------------------------- |
-| `pnpm dev`                          | Dev server (Turbopack)                                                |
-| `pnpm build` / `pnpm start`         | Production build / serve                                              |
-| `pnpm lint`                         | `lint:agent-contract` → ESLint → `lint:design-contract`               |
-| `pnpm typecheck`                    | `tsc --noEmit`                                                        |
-| `pnpm format` / `pnpm format:check` | Prettier (Tailwind class sorting via `prettier.config.mjs`)           |
-| `pnpm test` / `pnpm test:ci`        | Vitest unit tests (`tests/unit`, Node by default)                     |
-| `pnpm test:e2e`                     | Playwright (`tests/e2e`; starts `pnpm dev` when not in CI)            |
-| `pnpm test:e2e:ci`                  | `pnpm build` then Playwright against `next start` (local prod-shaped) |
+| Command                             | Purpose                                                                                                                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                          | Dev server (Turbopack)                                                                                                                                        |
+| `pnpm build` / `pnpm start`         | Production build / serve                                                                                                                                      |
+| `pnpm lint`                         | `lint:agent-contract` → ESLint (`--max-warnings 0`, `--report-unused-disable-directives`) → `lint:design-contract`                                                                                                       |
+| `pnpm lint:a11y`                    | ESLint with `eslint-plugin-jsx-a11y` recommended rules (`eslint-a11y.config.mjs`) — separate from default `lint` until baseline is clean                      |
+| `pnpm typecheck`                    | `tsc --noEmit`                                                                                                                                                |
+| `pnpm format` / `pnpm format:check` | Prettier (Tailwind class sorting via `prettier.config.mjs`)                                                                                                   |
+| `pnpm verify`                       | `lint` → `typecheck` → `test:ci` → `format:check` (local pre-merge)                                                                                           |
+| `pnpm test`                         | Vitest watch mode (`tests/unit`, Node by default)                                                                                                             |
+| `pnpm test:ci`                      | `node scripts/with-env.mjs` + Vitest single run **with v8 coverage** (`.artifacts/coverage/`; see `vitest.config.ts`)                                         |
+| `pnpm test:coverage`                | Same env merge as `test:ci` — discoverability for coverage runs                                                                                               |
+| `pnpm test:e2e`                     | `pnpm build` then Playwright (`tests/e2e`; `with-env.mjs` loads `.env.local`; Playwright `webServer` uses `next start` on **3001** when no external base URL) |
+| `pnpm test:e2e:ci`                  | Same as `test:e2e` — prod-shaped E2E                                                                                                                          |
+| `pnpm env:sync`                     | `.env.config` → `.env.local` (see `.env.config.example`)                                                                                                      |
+| `pnpm verify:upstash`               | PING Upstash Redis when `UPSTASH_REDIS_REST_*` are in `.env.local` ([redis-js](https://github.com/upstash/redis-js))                                          |
 
 **Before merge** (boundaries, modules, routing, APIs, or design tokens):
 
-- `pnpm lint`
-- `pnpm typecheck`
-- `pnpm test:ci` (Vitest; CI also runs Playwright smoke when browsers are installed)
-- `pnpm format:check` (also in CI)
+- `pnpm verify` (or individually: `pnpm lint`, `pnpm typecheck`, `pnpm test:ci`, `pnpm format:check`)
+- `pnpm lint:a11y` when touching interactive UI (optional gate until folded into `lint`)
+- CI also runs Playwright after `pnpm build` when browsers are installed
 
 Do not mark work complete if these fail for reasons introduced by the change.
 
@@ -76,11 +82,13 @@ Path aliases (see `package.json`): `#components/*`, `#lib/*`, `#hooks/*`, `#feat
 ### Testing directory contract
 
 - **`tests/fixtures/`** — Canonical **deterministic data**: UUIDs, emails, slugs, user-visible **copy** for assertions, small static factories. Consumed by Vitest and Playwright. **Forbidden:** Playwright/browser imports, ERP business workflows, hidden mega user journeys.
-- **`tests/unit/`** — Vitest. Default runtime is **Node** (semantic match for `lib/` and `.server` boundaries). Use a file-level **`@vitest-environment jsdom`** directive only for DOM/RTL tests. Do not introduce Vitest **`projects`** until many `*.dom.test.tsx` files justify the complexity.
-- **`tests/e2e/`** — Playwright specs (`*.spec.ts`). Prefer **explicit** steps (`goto`, `getByRole`, `getByLabel`). Tag stable gates (e.g. **`@smoke`**). Default **`PLAYWRIGHT_BASE_URL`** is **`http://127.0.0.1:3001`** — **`pnpm dev`** stays on **3000**; E2E starts **`pnpm dev`** or **`pnpm start`** on **3001** unless overridden. **CI** runs E2E against **`pnpm start`** after `pnpm build`; **`pnpm test:e2e:ci`** does not reuse a server — ensure port **3001** is free for prod-shaped runs.
+- **`tests/unit/`** — Vitest is **Node-first** by default. Use `// @vitest-environment jsdom` only for small DOM/React Testing Library tests, preferably named **`*.dom.test.tsx`**. Do not introduce Vitest **`projects`** until DOM suites become large enough to justify the split.
+- **Coverage** — Uses **V8** (`pnpm test:ci`). **`lib/auth/**/\*.shared.ts`** and **`lib/auth/callback-path.ts`** require **≥ 95%** coverage (identity-sensitive, deterministic). **Global** executed coverage is **ratcheted** from the current baseline toward **80%**; do **not** enable **`coverage.all`** until the repo has enough intentional unit breadth. Config: [`vitest.config.ts`](vitest.config.ts).
+- **Next.js + Vitest** — Async Server Components are not unit-tested in isolation; use **E2E** for async routes and full flows. See [Next.js: Vitest](https://nextjs.org/docs/app/guides/testing/vitest).
+- **`tests/e2e/`** — Playwright specs (`*.spec.ts`). Prefer **explicit** steps (`goto`, `getByRole`, `getByLabel`). Tag stable gates (e.g. **`@smoke`**). **App Router** surfaces are validated with Playwright for now — do not treat **`app/**`** as a Vitest coverage gate until the strategy changes. Default base URL is **`http://127.0.0.1:3001`**: Playwright starts **`next start -p 3001`** (after **`pnpm build`** via **`pnpm test:e2e`**) so **`pnpm dev`** on **3000** is unchanged. Set **`PLAYWRIGHT_BASE_URL`** or **`BASE_URL`** to point at another server and skip the built-in **`webServer`**. **CI** runs **`pnpm build`** then **`playwright test`**; keep port **3001** free (or override the base URL).
 - **`tests/e2e/utils/`** — Optional **browser helpers** (navigation, auth helpers). **Import** IDs/copy from `tests/fixtures`; do not duplicate canonical strings. Avoid deep **`test.extend`** chains; keep specs readable.
 
-Transient reports (e.g. Playwright JUnit) belong under **`.artifacts/`** (gitignored), not in `tests/`.
+**Transient tool output** (gitignored **`.artifacts/`** only — keeps the repo root minimal): Vitest coverage → **`.artifacts/coverage/`**; Playwright JUnit (CI) → **`.artifacts/playwright-junit.xml`**; Playwright traces/screenshots/videos → **`.artifacts/playwright/test-results/`**. Do not commit reports under `tests/` or ad hoc root folders. Delete any legacy root **`coverage/`**, **`test-results/`**, or **`playwright-report/`** trees left over from older configs so ESLint and searches stay clean.
 
 ---
 
@@ -88,7 +96,7 @@ Transient reports (e.g. Playwright JUnit) belong under **`.artifacts/`** (gitign
 
 - **Node:** `.node-version` / `.nvmrc` → **24** (matches Vercel project default **24.x** and CI); `package.json` **`engines.node`** `>=24.0.0`.
 - **pnpm:** **`packageManager`** `pnpm@10.21.0` (lockfile v9); use Corepack or match CI pin.
-- **TypeScript:** `tsconfig` — **`target` ES2022**, **`lib` ES2022 + DOM**, **`forceConsistentCasingInFileNames`**, Next `plugins`, `.next/types` includes for **`typedRoutes`**.
+- **TypeScript:** `tsconfig` — **`target` ES2022**, **`lib` ES2022 + DOM**, **`forceConsistentCasingInFileNames`**, Next `plugins`, **`typedRoutes`** via **`.next/types` only** — **`exclude`** **`.next/dev`** so dev and prod typed-route validators do not merge; **`pnpm build`** may suggest adding **`.next/dev/types`** — drop that include if it reappears (keep **`exclude`**).
 - **Next config:** typed **`next.config.ts`** (`NextConfig` from `next`).
 - **Drizzle Kit:** `strict` + `verbose` in [`drizzle.config.ts`](drizzle.config.ts).
 
@@ -111,16 +119,16 @@ The agent-contract script fails if any of these are missing:
 
 - `AGENTS.md`
 - `.cursor/rules/agents-md-mandatory.mdc`
-- `.cursor/rules/agents-md-editing-enforcement.mdc`
 - `.cursor/rules/design-system-enforcement.mdc`
 - `.cursor/rules/design-system-docs-enforcement.mdc`
+- `.cursor/rules/i18n-directory.mdc`
 - `eslint.config.mjs`
 - `scripts/check-design-contract.mjs`
 
 ### 4.3 When checks run
 
 - **preinstall:** `check-agent-contract.mjs`
-- **`pnpm lint`:** `lint:agent-contract` → ESLint (includes **radix / base-ui** ban on `lib/features/**`; deep `#features/*/*` ban on `app/`, `components/`, `hooks/`, `lib/**` except `components/ui` and `lib/features`) → `lint:design-contract`
+- **`pnpm lint`:** `lint:agent-contract` → ESLint (**zero warnings**, unused `eslint-disable` reported; includes **radix / base-ui** ban on `lib/features/**`; deep `#features/*/*` ban on `app/`, `components/`, `hooks/`, `lib/**` except `components/ui` and `lib/features`) → `lint:design-contract`
 - **CI:** contract scripts, `typecheck`, full `lint`, `format:check`, `build`
 
 ### 4.4 Fail-fast summary
@@ -135,13 +143,24 @@ The agent-contract script fails if any of these are missing:
 ## 5. ERP / full-stack stack (this repo)
 
 - **DB:** Neon Postgres + **Drizzle** — schema in [`lib/db/schema.ts`](lib/db/schema.ts); client in [`lib/db/index.ts`](lib/db/index.ts).
-- **Auth / IAM:** **Better Auth** + **organization** plugin (multi-tenant `activeOrganizationId`). **Control plane** lives under [`lib/auth/`](lib/auth/) ([`index.ts`](lib/auth/index.ts) is the public import door for `auth`; [`config.server.ts`](lib/auth/config.server.ts) holds `betterAuth(...)`). **Auth interruption semantics:** canonical codes in [`lib/auth/auth-status.shared.ts`](lib/auth/auth-status.shared.ts) (query param `authStatus`), href builder [`lib/auth/auth-interruption-url.shared.ts`](lib/auth/auth-interruption-url.shared.ts), server redirect [`lib/auth/interruption-redirect.server.ts`](lib/auth/interruption-redirect.server.ts), request path capture for RSC guards [`lib/auth/forwarded-path-headers.shared.ts`](lib/auth/forwarded-path-headers.shared.ts) + [`lib/auth/intended-path.server.ts`](lib/auth/intended-path.server.ts), copy resolver [`lib/auth/auth-status-copy.ts`](lib/auth/auth-status-copy.ts), UI primitive [`components/auth/auth-result.tsx`](components/auth/auth-result.tsx), example routes [`app/session-expired/page.tsx`](app/session-expired/page.tsx), [`app/verify-email/page.tsx`](app/verify-email/page.tsx), alias [`app/check-email/page.tsx`](app/check-email/page.tsx) → `/verify-email`. Routes: `/api/auth/*`, product surfaces `/sign-in`, `/account`, `/admin`, `/dashboard`. **Next.js 16** [`proxy.ts`](proxy.ts) on **`/dashboard`**, **`/onboarding`**, **`/account`**, **`/admin`** — **session cookie presence only** (optimistic redirect to `/sign-in?callbackUrl=…`); real session and org membership are enforced in RSC / Server Actions. **Session freshness** follows Better Auth [`freshAge`](https://www.better-auth.com/docs/concepts/session-management#session-freshness) (shared constant [`AUTH_SESSION_FRESH_AGE_SECONDS`](lib/auth/session-policy.server.ts)). **Step-up:** [`requireRecentAuthStepUp`](lib/auth/stepup.server.ts) uses `getSession` with `disableCookieCache: true` (see [session management](https://www.better-auth.com/docs/concepts/session-management)) so cookie cache cannot bypass re-auth; missing session → [`AUTH_STATUS.SESSION_EXPIRED`](lib/auth/auth-status.shared.ts), stale session → [`AUTH_STATUS.STEP_UP_REQUIRED`](lib/auth/auth-status.shared.ts), both via [`redirectToAuthInterruption`](lib/auth/interruption-redirect.server.ts) to [`app/session-expired/page.tsx`](app/session-expired/page.tsx) (sign-in CTA adds `stepUp=1` for step-up). Sensitive layouts (`/admin`, `/account/security`) call it after role/session guards. **IAM audit:** table [`iamAuditEvent`](lib/db/schema.ts) (`iam_audit_event`); writers in [`lib/auth/audit.server.ts`](lib/auth/audit.server.ts); Better Auth [`hooks`](https://www.better-auth.com/docs/concepts/hooks) for session lifecycle; ERP mutations use `writeIamAuditEvent` per [**IAM audit policy (ERP)**](#iam-audit-policy-erp) below. Apply migrations with `pnpm db:migrate` or `pnpm db:push`. **IAM spine (contract):** identity and session are authoritative in `lib/auth/`; `app/` renders UI only. **Permissions:** org/global checks live in [`lib/auth/permission.server.ts`](lib/auth/permission.server.ts) (`isGlobalAdminUser`, `getOrgMemberRole`, `orgRoleAtLeast`, `canActInOrganization`); [`lib/tenant.ts`](lib/tenant.ts) reuses `isGlobalAdminUser` for `requireGlobalAdminSession`. Session payloads include `user.role` (Better Auth user role) for passing into predicates (see `.cursor/rules/iam-directory.mdc`). **Files / evidence:** **Vercel Blob** is the supported upload path today ([`app/api/upload/blob`](app/api/upload/blob/route.ts)). **S3-compatible (e.g. Cloudflare R2)** is reserved for **archive / long-lived evidence** once IAM audit semantics are stable — do not duplicate Blob for the same use case; see `.env.config.example` section F (S3-compatible placeholders).
-- **Tenant guard:** [`lib/tenant.ts`](lib/tenant.ts) — `requireSignedInSession()` for **`/onboarding`** and **`/account`** (validated session, not cookie-only); `requireOrgSession()` for ERP (org + membership); `requireGlobalAdminSession()` for **`/admin`**. All use cached reads via [`lib/session-cache.ts`](lib/session-cache.ts) (`React.cache`).
-- **Dashboard paths:** [`lib/dashboard-module-paths.ts`](lib/dashboard-module-paths.ts) — canonical `/dashboard/...` pathnames. Client shell (e.g. module nav) imports this file instead of `#features/<module>` barrels so Server Component / `server-only` exports are not pulled into the client graph; each module’s `constants.ts` re-exports its route from here.
+- **Auth / IAM:** **Better Auth** + **organization** plugin (multi-tenant `activeOrganizationId`). Optional env: **`BETTER_AUTH_REQUIRE_EMAIL_VERIFICATION_ON_INVITATION=1`**; **`ORG_INVITE_MAX_PER_HOUR`** (default **30**, **`0`** = unlimited). **Invite rate limits:** with **`UPSTASH_REDIS_REST_URL`** + **`UPSTASH_REDIS_REST_TOKEN`** (Upstash / Vercel Marketplace) use **@upstash/ratelimit**; otherwise rolling counts on **`iam_audit_event`** — [`org-invite-rate.server.ts`](lib/auth/org-invite-rate.server.ts). **Control plane** lives under [`lib/auth/`](lib/auth/) ([`index.ts`](lib/auth/index.ts) is the public import door for server-side `auth` (starts with **`server-only`** so Client Components must not import **`#lib/auth`** — use **`#lib/auth-client`** and **`#lib/auth/*.shared`** for client-safe symbols); [`config.server.ts`](lib/auth/config.server.ts) holds `betterAuth(...)`). **Better Auth Infrastructure (optional):** when **`BETTER_AUTH_API_KEY`** is set, the server registers **`@better-auth/infra`** `dash` (and optional `sentinel` when **`BETTER_AUTH_INFRA_SENTINEL=1`**); the browser bundle must enable matching **`NEXT_PUBLIC_BETTER_AUTH_INFRA=1`** (and **`NEXT_PUBLIC_BETTER_AUTH_INFRA_SENTINEL`** when sentinel is on) at **build** time — see [`lib/auth-client.ts`](lib/auth-client.ts) and [`.env.config.example`](.env.config.example) §A–B. **Auth interruption semantics:** canonical codes in [`lib/auth/auth-status.shared.ts`](lib/auth/auth-status.shared.ts) (query param `authStatus`), href builder [`lib/auth/auth-interruption-url.shared.ts`](lib/auth/auth-interruption-url.shared.ts), server redirect [`lib/auth/interruption-redirect.server.ts`](lib/auth/interruption-redirect.server.ts), request path capture for RSC guards [`lib/auth/forwarded-path-headers.shared.ts`](lib/auth/forwarded-path-headers.shared.ts) + [`lib/auth/intended-path.server.ts`](lib/auth/intended-path.server.ts), copy resolver [`lib/auth/auth-status-copy.ts`](lib/auth/auth-status-copy.ts), client sign-in error normalization [`lib/auth/auth-client-error.shared.ts`](lib/auth/auth-client-error.shared.ts), UI primitive [`components/auth/auth-result.tsx`](components/auth/auth-result.tsx); locale-scoped examples under **`app/[locale]/…`** (session-expired, verify-email, check-email). **HTTP:** `/api/auth/*`. **Locale-internal pathnames** for links and after locale strip: `/sign-in`, `/account`, `/admin`, `/dashboard`, `/onboarding`, `/accept-invitation`, etc. **Next.js 16** [`proxy.ts`](proxy.ts) applies a **presence-only session cookie** check on those prefixes after intl (see [locale-first application surface](#locale-first-application-surface)); real session and org membership are enforced in RSC / Server Actions. **Session freshness** follows Better Auth [`freshAge`](https://www.better-auth.com/docs/concepts/session-management#session-freshness) (shared constant [`AUTH_SESSION_FRESH_AGE_SECONDS`](lib/auth/session-policy.server.ts)). **Step-up:** [`requireRecentAuthStepUp`](lib/auth/stepup.server.ts) uses `getSession` with `disableCookieCache: true` (see [session management](https://www.better-auth.com/docs/concepts/session-management)) so cookie cache cannot bypass re-auth; missing session → [`AUTH_STATUS.SESSION_EXPIRED`](lib/auth/auth-status.shared.ts), stale session → [`AUTH_STATUS.STEP_UP_REQUIRED`](lib/auth/auth-status.shared.ts), both via [`redirectToAuthInterruption`](lib/auth/interruption-redirect.server.ts) to **`/[locale]/session-expired`** (`app/[locale]/session-expired/page.tsx`; sign-in CTA adds `stepUp=1` for step-up). Sensitive layouts (`/admin`, `/account/security`) call it after role/session guards. **IAM audit:** table [`iamAuditEvent`](lib/db/schema.ts) (`iam_audit_event`); writers in [`lib/auth/audit.server.ts`](lib/auth/audit.server.ts); Better Auth [`hooks`](https://www.better-auth.com/docs/concepts/hooks) for session lifecycle; ERP mutations use `writeIamAuditEvent` per [**IAM audit policy (ERP)**](#iam-audit-policy-erp) below. Apply migrations with `pnpm db:migrate` or `pnpm db:push`. **IAM spine (contract):** identity and session are authoritative in `lib/auth/`; `app/` renders UI only. **Permissions:** org/global checks live in [`lib/auth/permission.server.ts`](lib/auth/permission.server.ts) (`isGlobalAdminUser`, `getOrgMemberRole`, `orgRoleAtLeast`, `canActInOrganization`); [`lib/tenant.ts`](lib/tenant.ts) reuses `isGlobalAdminUser` for `requireGlobalAdminSession`. Session payloads include `user.role` (Better Auth user role) for passing into predicates (see `.cursor/rules/iam-directory.mdc`). **Files / evidence:** **Vercel Blob** is the supported upload path today ([`app/api/upload/blob`](app/api/upload/blob/route.ts)). **S3-compatible (e.g. Cloudflare R2)** is reserved for **archive / long-lived evidence** once IAM audit semantics are stable — do not duplicate Blob for the same use case; see `.env.config.example` section F (S3-compatible placeholders).
+- **Tenant guard:** [`lib/tenant.ts`](lib/tenant.ts) — `requireSignedInSession()` for **`/onboarding`** and **`/account`** (validated session, not cookie-only); **`requireOrgSession()`** / **`getOrgTenantContext()`** for ERP (Better Auth **`activeOrganizationId`** plus a **`member`** row). **`requireOrgSession`** is wrapped in **`React.cache`** (same request dedupe). Route handlers use **`getOrgSessionFromRequest(request)`** (same membership semantics, no redirect). **`requireGlobalAdminSession()`** for **`/admin`**. Session reads use [`lib/session-cache.ts`](lib/session-cache.ts) (`React.cache`).
+- **Tenant ID and IDOR:** Treat **`organizationId`** as authoritative **only** when it comes from **`requireOrgSession`**, **`getOrgTenantContext`**, or **`getOrgSessionFromRequest`** — never trust `organizationId` (or org slug) from untrusted **`FormData`**, JSON bodies, or query strings alone. Scope every tenant read/write with that ID. See Next.js [Data Security](https://nextjs.org/docs/app/guides/data-security) (auth inside Server Actions / Route Handlers; Proxy is not sufficient). **`[orgSlug]` params** are validated with **`normalizeOrgSlugParam`** ([`lib/org-slug.shared.ts`](lib/org-slug.shared.ts)) before DB resolution; forwarded pathname tails for cross-tenant redirects are sanitized ([`lib/dashboard-org-path.shared.ts`](lib/dashboard-org-path.shared.ts)).
+- **Dashboard paths:** [`lib/dashboard-module-paths.ts`](lib/dashboard-module-paths.ts) — canonical **locale-internal** ERP URLs are **`/o/{orgSlug}/dashboard/...`** (organization slug from the DB; URL-bound tenant check in **`app/[locale]/o/[orgSlug]/layout.tsx`**). Use **`organizationDashboardPath(orgSlug, module)`** with **`Link` / `redirect` from `#i18n/navigation`**. Legacy **`/dashboard/...`** redirects to the active org’s slug route via **`app/[locale]/dashboard/[[...segments]]/page.tsx`**. Client shell (module nav) imports **`#lib/dashboard-module-paths`** (not feature barrels) to avoid pulling **`server-only`** into the client graph. Server Actions that revalidate ERP modules must call **`revalidatePath(toLocaleOrgDashboardRevalidatePattern("/contacts"), "page")`** (etc.) so all **`/[locale]/o/[orgSlug]/...`** builds refresh. Non-ERP paths still use **`toLocaleRoutePattern`**. **`callbackUrl`** / post-auth returns stay **locale-prefixed** (`/en/...`); validate with [`resolvePostAuthCallbackUrl`](lib/auth/callback-path.ts).
 - **Vercel (canonical):** Deploy from team **Jack's projects** (`jacks-projects-7b3cfe94`), project name **`afenda-vercel`**. Link with `vercel link --scope jacks-projects-7b3cfe94` (do not rely on hardcoded `prj_*` IDs in docs — use the dashboard or CLI). Do not use duplicate hobby-team projects for production secrets.
 - **Files / cron:** Vercel Blob upload [`app/api/upload/blob/route.ts`](app/api/upload/blob/route.ts); daily ERP cron (DB ping + hook for batch work) [`app/api/cron/erp-jobs/route.ts`](app/api/cron/erp-jobs/route.ts) + [`vercel.json`](vercel.json) (crons + favicon/icon CDN `Cache-Control` headers).
 - **Env:** Maintainer copy [`.env.config.example`](.env.config.example) → **`.env.config`** (gitignored), fill secrets, run **`pnpm env:sync`** → **`.env.local`** (generated for Next.js + Drizzle; gitignored). Optional: **`pnpm env:pull-vercel`** → `.env.vercel` (gitignored) to diff against Vercel. See [Vercel env CLI](https://vercel.com/docs/cli/env).
-- **Observability:** root [`instrumentation.ts`](instrumentation.ts) registers **`@vercel/otel`** on the Node server and exports **`onRequestError`** for structured server error logs (digest, path, route type). Optional **`OTEL_SERVICE_NAME`** in env.
+- **Observability:** root [`instrumentation.ts`](instrumentation.ts) registers **`@vercel/otel`** on the Node server and exports **`onRequestError`** for structured server error logs (digest, path, route type). Optional **`OTEL_SERVICE_NAME`** in env. Successful **`iam_audit_event`** inserts optionally emit one JSON line per row (`tag`: **`IAM_AUDIT_TELEMETRY_TAG`** in [`lib/auth/iam-audit-telemetry.shared.ts`](lib/auth/iam-audit-telemetry.shared.ts)) for Vercel Runtime Logs — gated by **`AFENDA_IAM_AUDIT_LOG`** / **`VERCEL`** (see `.env.config.example` §E).
+
+### Locale-first application surface
+
+Single narrative for **how users move through the app** (URLs, edge entry, navigation, auth surfaces, resilience):
+
+- **Public URLs** always include the locale segment (`localePrefix: "always"`, e.g. `/en/dashboard`). Product pages live under **`app/[locale]/…`**. Root [`app/layout.tsx`](app/layout.tsx) reads the forwarded locale header for `<html lang>`.
+- **Edge entry:** [`proxy.ts`](proxy.ts) runs **`createIntlMiddleware(routing)`** first, then a **presence-only** Better Auth session cookie check on **locale-stripped** path prefixes (`/dashboard`, **`/o/*/dashboard`**, `/onboarding`, `/account`, `/admin`, `/accept-invitation`). Unauthenticated hits redirect to locale-prefixed **`/sign-in`** with a **`callbackUrl`** that preserves the full path (including locale). Authenticated hits on those prefixes forward pathname/query headers for RSC interruption redirects. Matcher excludes **`api`**, **`_next`**, **`_vercel`**, and static assets.
+- **Navigation:** client islands use **`#i18n/navigation`** with **locale-internal** `href` values (no leading `/{locale}` in code). [`i18n/navigation.tsx`](i18n/navigation.tsx) wraps next-intl’s `Link` with **`prefetch` defaulting to `false`** (less eager prefetch for dynamic RSC segments); pass **`prefetch={true}`** to opt in. Server Components use **`redirect` from `next/navigation`** with [`toLocalePath`](lib/i18n/locales.shared.ts) / [`ensureAppLocale`](lib/i18n/locales.shared.ts). Never emit bare `/dashboard` or `/sign-in` from server redirects, emails, or `callbackUrl` — validate with [`resolvePostAuthCallbackUrl`](lib/auth/callback-path.ts). **Root `app/not-found` / `app/error` / `app/global-error`:** use [`DEFAULT_LOCALE_HOME_PATH`](lib/i18n/root-default-locale-href.shared.ts) with **`next/link`** and **`prefetch={false}`** (outside `[locale]`, `#i18n/navigation` is not mounted). **Path builders and anti-patterns:** **`.cursor/rules/i18n-directory.mdc`**.
+- **Auth / marketing UI:** shared framing in [`components/auth/`](components/auth/) (e.g. `auth-page-frame`, `auth-result`). Interruption flows use canonical `authStatus` codes and [`authInterruptionHref`](lib/auth/auth-interruption-url.shared.ts) with an explicit **`AppLocale`**. IAM import boundaries: **`.cursor/rules/iam-directory.mdc`**.
+- **Route resilience:** add **`loading.tsx`**, **`error.tsx`**, **`not-found.tsx`**, or **Suspense** where a segment benefits from streaming or graceful failure (checklist: **`.cursor/rules/nextjs-best-practices.mdc`**).
 
 ### IAM audit policy (ERP)
 
@@ -179,7 +198,7 @@ org.<object>.<verb>
 iam.<area>.<verb>
 ```
 
-Examples: `erp.contact.record.create`, `erp.sale.order.post`, `erp.purchase.order.approve`, `erp.inventory.stock.reserve`, `erp.accounting.entry.post`, `erp.accounting.entry.reverse`, `org.member.invite`, `org.member.role.update`. Session lifecycle remains `iam.session.*` from Better Auth hooks.
+Examples: `erp.contact.record.create`, `erp.sale.order.post`, `erp.purchase.order.approve`, `erp.inventory.stock.reserve`, `erp.accounting.entry.post`, `erp.accounting.entry.reverse`, `org.member.invite`, `org.member.remove`, `org.member.role.update`, `org.invitation.cancel`, `org.invitation.accept`, `org.invitation.reject`, `iam.session.revoke`, `iam.session.revoke_other`, `iam.passkey.remove`. Session lifecycle remains `iam.session.*` from Better Auth hooks.
 
 **Server Action checklist** (aligned with [Next.js Server Actions — auth inside the action](https://github.com/vercel/next.js/blob/v16.1.6/docs/01-app/02-guides/authentication.mdx)):
 
@@ -189,6 +208,10 @@ Examples: `erp.contact.record.create`, `erp.sale.order.post`, `erp.purchase.orde
 4. Call **`writeIamAuditEvent` only after a successful commit**; include `actorSessionId`, `organizationId`, `resourceType`, `resourceId`; keep `metadata` minimal (no secrets / bulk PII).
 
 Implement writers only in `lib/features/<module>/actions/*` via [`writeIamAuditEvent`](lib/auth/audit.server.ts) from [`#lib/auth`](lib/auth/index.ts).
+
+### Postgres row-level security (RLS) — optional compliance layer
+
+When regulatory or threat models require **defense against a forgotten `WHERE organizationId = …`**, add **Postgres RLS** on tenant-scoped tables (e.g. `customers`, future ERP facts) plus a per-request **`SET LOCAL`** (or transaction-scoped) session variable holding the tenant id, set from the same **`requireOrgSession`** / pool entry path that already gates the app. **Drizzle:** keep schema as today; policies live in SQL migrations alongside Drizzle **`db:push` / `db:migrate`**. **Neon / serverless:** ensure the variable is set on the same connection that runs queries (pool/session pooling patterns — verify with Neon docs for your driver). **Operational note:** RLS complements app-layer guards; it does **not** replace **`requireOrgSession`** or membership checks. Treat RLS rollout as a dedicated migration + performance review (policy predicates on **`organization_id`** indexes).
 
 ---
 
@@ -238,13 +261,28 @@ Keep repository roots and module roots intentionally clean.
 
 ```txt
 app/
-  dashboard/
-    contacts/
-      page.tsx
-    sale/
-      page.tsx
-    purchase/
-      page.tsx
+  [locale]/
+    layout.tsx
+    page.tsx
+    dashboard/
+      [[...segments]]/
+        page.tsx
+    o/
+      [orgSlug]/
+        layout.tsx
+        dashboard/
+          layout.tsx
+          page.tsx
+          contacts/
+            page.tsx
+          sale/
+            page.tsx
+          purchase/
+            page.tsx
+    sign-in/
+    account/
+    admin/
+    onboarding/
   api/
     auth/
     cron/
@@ -259,6 +297,9 @@ lib/
     session-policy.server.ts
     stepup.server.ts
     audit.server.ts
+    org-audit.server.ts
+    org-audit-csv.shared.ts
+    org-audit-export-verify.server.ts
     permission.server.ts
   dashboard-module-paths.ts
   features/
@@ -418,6 +459,8 @@ app/api/erp/<module>/*
 
 `app/api/erp/<module>/*` is allowed only for mobile/external/public API/streaming/webhook callback contracts.
 
+`app/api/integrations/*` may host authenticated streaming or integration-shaped endpoints that are not ERP modules (for example, organization IAM audit CSV export) when Server Actions are a poor fit for large binary responses.
+
 Forbidden examples:
 
 ```txt
@@ -478,63 +521,22 @@ Stable ERP boundaries are allowed early (`actions`, `data`, `components`, `schem
 
 ## 8. Critical Next.js practices (App Router)
 
-Sourced from **Vercel documentation** (via MCP) and **Next.js v16 docs** (Context7 `/vercel/next.js/v16.1.6`). Treat these as non-negotiable defaults.
+**Canonical checklist (always-on in-editor):** **`.cursor/rules/nextjs-best-practices.mdc`** — Server vs client boundaries, async `cookies` / `headers` / `params` / `searchParams`, caching, Server Actions vs Route Handlers, forbidden client patterns, loading/error/Suspense defaults.
 
-### Server vs client
+**Repo deltas (read with §5 [locale-first surface](#locale-first-application-surface)):**
 
-- **Default to Server Components.** Add `'use client'` only for interactivity: state, effects, event handlers, or browser-only APIs.
-- **Composition:** Prefer passing **server-rendered content as `children`** (or other `ReactNode` props) into small client wrappers instead of turning large trees into client components.
-- **Server Actions:** Define mutations in modules with `'use server'` (top of file or per function). Invoke from forms (`action` / `formAction`) or import into client components as needed.
+- **`proxy.ts`** composes **next-intl** + **Better Auth cookie presence**; keep it narrow (no DB, no session body validation). Post-login **`callbackUrl`** must be **locale-prefixed** and validated as same-origin relative paths only ([`resolvePostAuthCallbackUrl`](lib/auth/callback-path.ts)).
+- **Product routes** default under **`app/[locale]/…`**; use **`#i18n/navigation`** on the client and **`toLocalePath`** / **`toLocaleRoutePattern`** on the server for redirects and `revalidatePath`.
 
-### Async request APIs (Next 15+)
-
-- **`cookies()` and `headers()`** from `next/headers` are async: use `const store = await cookies()` (same for `headers()`).
-- **`params` and `searchParams`** in `page`, `layout`, and `generateMetadata` are **Promises** — `await` them (or use `React.use()` where applicable). Typing: e.g. `params: Promise<{ slug: string }>`.
-
-Using `searchParams` (and other dynamic APIs) opts the route into **dynamic rendering**; expect cache behavior to match the caching docs.
-
-### Data fetching and caching
-
-- **Avoid waterfalls:** parallelize independent work (`Promise.all`, split Server Components, or `preload` patterns).
-- **`fetch`:** use `next: { revalidate: seconds }` for time-based ISR-style behavior; use `next: { tags: ['tag'] }` for tag-based invalidation.
-- **On-demand revalidation:** after mutations, call `revalidateTag('tag', 'max')` from Server Actions or Route Handlers (stale-while-revalidate profile `'max'` is recommended where supported).
-- **Route segment:** `export const revalidate = N` applies to the segment’s static cache lifetime where appropriate.
-
-### Route Handlers vs Server Actions
-
-- **Route Handlers** (`app/**/route.ts`): HTTP APIs, webhooks, non-React clients, file uploads, integrations.
-- **Server Actions:** form posts and mutations from the React tree; keep auth and validation on the server.
-
-### Proxy / edge routing (Next.js 16)
-
-- Use root **`proxy.ts`** with a narrow **`matcher`** (this project protects `/dashboard`, `/onboarding`, `/account`, `/admin`).
-- **Avoid `fetch` in proxy** unless necessary — latency and Vercel `NO_FETCH_FROM_MIDDLEWARE` rules. Prefer passing **`request.headers`** into auth/session helpers tied to the incoming request.
-- **Unauthenticated redirect:** send users to **`/sign-in?callbackUrl=<encoded path+query>`** so post-login return is explicit; validate `callbackUrl` on the sign-in surface (same-origin relative paths only).
-- For work that can run after the response, **`waitUntil`** (where supported) can defer logging/analytics.
-
-### Assets and metadata
-
-- Use **`next/image`** for images; remote URLs require configuration (`remotePatterns` / legacy `domains`). Remote images need **`width`**, **`height`**, and meaningful **`alt`**.
-- **Repo image policy:** [`.cursor/rules/images.mdc`](.cursor/rules/images.mdc) — local **`images.localPatterns`** (see [`next.config.ts`](next.config.ts)), Vercel Blob **`remotePatterns`**, SVG defaults, and metadata image fields.
-- Use **`metadata` / `generateMetadata`** for SEO; OG images via `next/og` / `ImageResponse` when needed.
-
-### Errors and loading UI
-
-- Provide **`error.tsx`**, **`not-found.tsx`**, and **`loading.tsx`** (or Suspense boundaries) where routes need graceful failure and streaming UX.
-- Use **`redirect` / `permanentRedirect` / `notFound`** from appropriate server contexts.
-
-### Performance signals
-
-- Consider **Web Vitals** reporting (`next/web-vitals`) for real-user metrics when product requirements need it.
+When framework or platform behavior is uncertain, prefer **Context7** (`/vercel/next.js`) or **Vercel MCP** over stale training data (see [§11](#11-documentation-refresh)).
 
 ---
 
 ## 9. Repo-specific rules
 
 - **UI / registry:** When editing mirrored registry trees, follow `.cursor/rules/registry-bases-parity.mdc` (if those paths exist in your branch).
-- **Next.js defaults:** See `.cursor/rules/nextjs-best-practices.mdc` for a short in-editor checklist.
-- **Images:** Follow [`.cursor/rules/images.mdc`](.cursor/rules/images.mdc). Summary: prefer **`next/image`** with **`alt`** and explicit dimensions (or static import); local **`src`** must match [`next.config.ts`](next.config.ts) **`images.localPatterns`** (`/icons/**`, `/afenda-brand/**`); remote **`src`** must match **`images.remotePatterns`** (Vercel Blob host); extend both when adding new optimized sources. SVG stays unoptimized by default—do not enable **`dangerouslyAllowSVG`** casually. On Vercel, optimization goes through **`/_next/image`**.
-- **Brand assets:** Canonical Afenda marks under `public/afenda-brand/` and `public/icons/`. **Two theme systems:** (1) **Browser tab / OS** — `metadata.icons` in [`app/layout.tsx`](app/layout.tsx) uses `media: "(prefers-color-scheme: …)"` with the **same transparent square PNGs** (`APP_ICON_192_PNG` / `APP_ICON_512_PNG`) for light and dark per [Next.js `generateMetadata` icons](https://nextjs.org/docs/app/api-reference/functions/generate-metadata#icons); **`APP_ICON_MASKABLE_512_PNG`** is for the PWA manifest (`purpose: "maskable"`), not the tab `<link rel="icon">` pair. `/favicon.ico` is a **generated multi-size ICO** from the same mark (`pnpm icons:favicon`, see [`lib/site.ts`](lib/site.ts) `FAVICON_ICO` + [`app/layout.tsx`](app/layout.tsx) `icons.shortcut`). (2) **In-app** — `next-themes` + `html.dark`; use Tailwind `dark:` and [`AfendaBrandLockup`](components/afenda-brand.tsx) / [`AfendaBrandIcon`](components/afenda-brand.tsx) as appropriate. Dashboard shell, account layout, and admin layout use the **full lockup** (light/dark PNG pair); OS dark mode and in-app theme can differ. **[`vercel.json`](vercel.json)** sets CDN **`Cache-Control`** on `/favicon.ico` and `/icons/*` ([Vercel headers](https://vercel.com/docs/project-configuration/vercel-json#headers)). Regenerate **`public/favicon.ico`** / **`app/favicon.ico`** with **`pnpm icons:favicon`** when the 512×512 source changes; **do not** swap in an unbranded placeholder ICO or a single `app/icon.png` unless you accept losing themed tab icons. When the mark changes, update [`lib/site.ts`](lib/site.ts), [`.cursor/rules/brand-assets.mdc`](.cursor/rules/brand-assets.mdc), **`metadata.icons`**, and **`images.localPatterns`** for new paths. Details: **brand-assets** rule.
+- **Images:** [`.cursor/rules/images.mdc`](.cursor/rules/images.mdc) — `next/image`, **`images.localPatterns`** / **`remotePatterns`** in [`next.config.ts`](next.config.ts), SVG defaults, OG image field consistency.
+- **Brand assets:** Marks under `public/afenda-brand/` and `public/icons/`; constants in [`lib/site.ts`](lib/site.ts); tab icons + PWA maskable rules in [`app/layout.tsx`](app/layout.tsx); regenerate favicons with **`pnpm icons:favicon`** when the 512 source changes. Full taxonomy, themed tab policy, lockup usage, and change checklist: [`.cursor/rules/brand-assets.mdc`](.cursor/rules/brand-assets.mdc).
 
 ---
 

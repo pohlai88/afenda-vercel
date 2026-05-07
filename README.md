@@ -15,8 +15,8 @@ Full command list and directory rules: **[`AGENTS.md`](./AGENTS.md)** (section 2
 | Command                      | Purpose                                                                                                       |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `pnpm test` / `pnpm test:ci` | Vitest unit tests (`tests/unit`, Node by default)                                                             |
-| `pnpm test:e2e`              | Playwright — starts **`pnpm dev`** on **3001** by default ( **`pnpm dev`** for the app can stay on **3000** ) |
-| `pnpm test:e2e:ci`           | `pnpm build` then Playwright against **`next start`** (production-shaped); ensure port **3001** is free       |
+| `pnpm test:e2e`              | **`pnpm build`** then Playwright — default **`http://127.0.0.1:3001`** + **`next start`** (leave **`pnpm dev`** on **3000**) |
+| `pnpm test:e2e:ci`           | Same as **`pnpm test:e2e`** (prod-shaped E2E); ensure port **3001** is free unless you set **`PLAYWRIGHT_BASE_URL`** / **`BASE_URL`** |
 
 Optional: `PLAYWRIGHT_BASE_URL` (see [`.env.config.example`](./.env.config.example) section G).
 

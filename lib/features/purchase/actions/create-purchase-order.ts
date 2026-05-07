@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache"
 
+import { ORG_DASHBOARD_PURCHASE } from "#lib/dashboard-module-paths"
+import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
-
-import { PURCHASE_ROUTE } from "../constants"
 import { purchaseFilterSchema } from "../schemas/purchase-filter.schema"
 import type { PurchaseActionState } from "../types"
 
@@ -27,6 +27,9 @@ export async function createPurchaseOrder(
     return { ok: false, errors: { form: "Invalid purchase payload." } }
   }
 
-  revalidatePath(PURCHASE_ROUTE)
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_PURCHASE),
+    "page"
+  )
   return { ok: true }
 }

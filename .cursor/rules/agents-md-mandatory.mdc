@@ -1,5 +1,5 @@
 ---
-description: Load and follow AGENTS.md before repository work
+description: Load and follow AGENTS.md before repository work (preload + edit boundaries)
 alwaysApply: true
 ---
 
@@ -7,7 +7,7 @@ alwaysApply: true
 
 For every repository task:
 
-1. Read **`AGENTS.md`** before analysis, planning, coding, refactoring, testing, or tool execution — use the **IDE & AI quickstart** table for fast routing, then **§4** / **§6** when changing structure or imports.
+1. Read **`AGENTS.md`** before analysis, planning, coding, refactoring, testing, or tool execution — use the **IDE & AI quickstart** table for fast routing, then **§4**, **§5** (locale-first application surface when routing, i18n, auth UX, or `proxy.ts`), and **§6** when changing structure or imports.
 2. Treat **`AGENTS.md`** as the repository operating contract for:
    - architecture and directory boundaries
    - routing and **proxy** scope
@@ -34,3 +34,45 @@ For every repository task:
 - **UI:** consume primitives via **`#components/ui/*`**; do not use **`radix-ui` / `@radix-ui/*` / `@base-ui/react`** outside **`components/ui`** (see **AGENTS.md §7** and ESLint).
 
 **`AGENTS.md`** is the source of truth for repository structure and engineering governance. Cursor rules **mirror** it; if they diverge, follow **`AGENTS.md`** and fix the rule in the same PR.
+
+---
+
+## Before editing repository files
+
+1. Read **`AGENTS.md`** and apply its latest rules (especially **§4**, **§5**, **§6**, **§7** for structure, imports, design tokens, and locale-first routing).
+2. Keep changes within approved:
+   - architecture boundaries
+   - directory contracts
+   - routing rules
+   - API governance
+   - ERP module structure
+   - **design system** boundaries (**AGENTS.md §7**)
+3. Do not introduce new folders, architectural categories, or conventions unless **`AGENTS.md`** is updated first.
+4. Preserve import boundaries and public module access patterns.
+5. Prefer existing repository patterns over inventing new abstractions.
+6. Keep edits incremental and structurally consistent with the surrounding module.
+7. Treat boundary violations as blockers, not style nits.
+
+### Hard boundary checks (required)
+
+- Do not deep-import from another module internals.
+  - Allowed: `#features/<module>`
+  - Forbidden: `#features/<module>/*` (except inside the same module, per **`check-agent-contract.mjs`**)
+- Keep ERP business logic inside `lib/features/<module>/...`; do not place it in `app/`, `proxy.ts`, or random shared folders.
+- Keep `app/` route-layer focused (routing, composition, page wiring), not data/domain workflow implementation.
+- Keep `lib/erp/` minimal shared primitives only; no module-specific workflows.
+- Keep `app/api/*` inside approved API families from **`AGENTS.md`**.
+- Keep repo root and module roots clean; do not create dumping directories.
+- **Design tokens:** editing **`app/globals.css`** must keep **`@theme inline`** `var(--*)` references aligned with **`:root` / `.dark`** (validated by **`scripts/check-design-contract.mjs`**). Prefer updating **`docs/design-system/*`** when variant or token names change for Figma parity.
+
+### Change governance
+
+- If a request implies a new architectural category, first update **`AGENTS.md`** contract in the same change.
+- If a request conflicts with boundaries, provide the closest compliant alternative and clearly explain the trade-off.
+- Prefer reducing architecture surface area (fewer abstractions/folders) over adding new layers.
+
+If a requested change conflicts with **`AGENTS.md`**:
+
+- call out the conflict clearly
+- explain the risk
+- propose the closest compliant alternative

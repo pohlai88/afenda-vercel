@@ -1,1 +1,1 @@
-export { INVENTORY_ROUTE } from "#lib/dashboard-module-paths"
+export { ORG_DASHBOARD_INVENTORY } from "#lib/dashboard-module-paths"

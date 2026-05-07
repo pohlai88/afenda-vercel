@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache"
 
+import { ORG_DASHBOARD_SALE } from "#lib/dashboard-module-paths"
+import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
-
-import { SALE_ROUTE } from "../constants"
 import { saleFilterSchema } from "../schemas/sale-filter.schema"
 import type { SaleActionState } from "../types"
 
@@ -27,6 +27,9 @@ export async function createSaleOrder(
     return { ok: false, errors: { form: "Invalid sale payload." } }
   }
 
-  revalidatePath(SALE_ROUTE)
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_SALE),
+    "page"
+  )
   return { ok: true }
 }

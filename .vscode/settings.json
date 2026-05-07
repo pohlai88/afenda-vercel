@@ -1,11 +1,23 @@
 {
   "css.lint.unknownAtRules": "ignore",
+  // Tailwind class/name lint only; does not turn off CSS *syntax* validation inside Tailwind language mode.
   "tailwindCSS.validate": false,
+  // Tailwind v4 `@theme inline`, `@source`, `@custom-variant`, etc. are not standard CSS. The Tailwind language
+  // mode still runs an embedded CSS validator in some versions → false-positive `{ expected` / unknown at-rule noise.
+  "css.validate": false,
+  // Tailwind v4 CSS-first entry — IntelliSense 0.14.3+ (tailwindcss-intellisense; single-file form).
+  // If completion fails: update "Tailwind CSS IntelliSense" extension; multi-root workspaces may need a map — see extension docs.
   "tailwindCSS.experimental.configFile": "app/globals.css",
 
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
 
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.linkedEditing": true,
@@ -13,8 +25,18 @@
     "source.fixAll.eslint": "always"
   },
 
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.encoding": "utf8",
+
   "eslint.useFlatConfig": true,
-  "eslint.probe": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.probe": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
 
   "files.associations": {
     "*.css": "tailwindcss"
@@ -31,5 +53,53 @@
     "**/node_modules": true,
     "**/.next": true,
     "**/pnpm-lock.yaml": true
+  },
+
+  // Port forwarding (Remote SSH / Dev Containers / Codespaces).
+  "remote.autoForwardPorts": true,
+  "remote.autoForwardPortsSource": "hybrid",
+  "remote.portsAttributes": {
+    "3000": {
+      "label": "Next.js (pnpm dev)",
+      "onAutoForward": "notify",
+      "protocol": "http"
+    },
+    "3001": {
+      "label": "Playwright E2E (next start)",
+      "onAutoForward": "notify",
+      "protocol": "http"
+    }
+  },
+
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.wordWrap": "on",
+    "files.trimTrailingWhitespace": false
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[tailwindcss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "css.validate": false,
+    "css.lint.unknownAtRules": "ignore"
   }
 }

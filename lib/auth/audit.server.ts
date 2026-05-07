@@ -5,6 +5,11 @@ import { headers } from "next/headers"
 import { db } from "#lib/db"
 import { iamAuditEvent } from "#lib/db/schema"
 
+import {
+  IAM_AUDIT_TELEMETRY_TAG,
+  resolveIamAuditTelemetryEnabled,
+} from "./iam-audit-telemetry.shared"
+
 export type WriteIamAuditEventInput = {
   action: string
   actorUserId?: string | null
@@ -60,6 +65,17 @@ export async function writeIamAuditEvent(
       userAgent: input.userAgent ?? null,
       metadata,
     })
+    if (resolveIamAuditTelemetryEnabled()) {
+      console.info(
+        JSON.stringify({
+          tag: IAM_AUDIT_TELEMETRY_TAG,
+          action: input.action,
+          resourceType: input.resourceType ?? undefined,
+          organizationScoped: Boolean(input.organizationId),
+          t: new Date().toISOString(),
+        })
+      )
+    }
   } catch (err) {
     if (process.env.NODE_ENV === "development") {
       console.error("[iam_audit_event] write failed:", err)

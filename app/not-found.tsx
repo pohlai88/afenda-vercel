@@ -2,12 +2,14 @@ import Link from "next/link"
 
 import { AfendaBrandLockup } from "#components/afenda-brand"
 import { Button } from "#components/ui/button"
+import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
 
 export default function NotFound() {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6">
       <Link
-        href="/"
+        href={DEFAULT_LOCALE_HOME_PATH}
+        prefetch={false}
         className="rounded-md outline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
       >
         <AfendaBrandLockup className="max-w-[200px]" />
@@ -20,7 +22,9 @@ export default function NotFound() {
         </p>
       </div>
       <Button asChild>
-        <Link href="/">Go home</Link>
+        <Link href={DEFAULT_LOCALE_HOME_PATH} prefetch={false}>
+          Go home
+        </Link>
       </Button>
     </div>
   )

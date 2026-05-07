@@ -3,7 +3,7 @@ export { InventoryActionForm } from "#features/inventory/components/inventory-ac
 export { reserveStock } from "#features/inventory/actions/reserve-stock"
 export { listInventoryOverview } from "#features/inventory/data/inventory.queries"
 export { inventoryFilterSchema } from "#features/inventory/schemas/inventory-filter.schema"
-export { INVENTORY_ROUTE } from "#features/inventory/constants"
+export { ORG_DASHBOARD_INVENTORY } from "#features/inventory/constants"
 export type {
   InventoryActionState,
   InventoryOverviewItem,

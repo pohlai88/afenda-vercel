@@ -1,6 +1,9 @@
 import type { NextConfig } from "next"
+import createNextIntlPlugin from "next-intl/plugin"
 
 import { betterAuthAllowedHostsFromEnv } from "./lib/site"
+
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
 
 /** @see https://nextjs.org/docs/app/api-reference/config/next-config-js/serverActions (wildcard origins). */
 const serverActionAllowedOrigins = buildServerActionAllowedOrigins(
@@ -36,7 +39,11 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "recharts", "date-fns"],
+    /**
+     * `lucide-react`, `date-fns`, and `recharts` are barrel-optimized by default in Next.js 16.2+
+     * (@see nextjs_docs optimizePackageImports). Omit redundant entries; add packages here only when
+     * the upstream default list does not cover them.
+     */
     staticGenerationRetryCount: 1,
     serverActions: {
       bodySizeLimit: "1mb",
@@ -68,7 +75,7 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withNextIntl(nextConfig)
 
 /**
  * Host allowlist for Server Actions (CSRF / reverse-proxy safety).

@@ -12,6 +12,8 @@ This repository uses:
 - App Router
 - Server Components by default
 
+**Locale + product routing** (`app/[locale]/…`, `proxy.ts` + next-intl, `#i18n/navigation`, locale-prefixed `callbackUrl`): **`AGENTS.md` §5** — *Locale-first application surface* — and **`.cursor/rules/i18n-directory.mdc`**.
+
 Apply these patterns unless explicitly justified otherwise.
 
 ## Server vs client boundary

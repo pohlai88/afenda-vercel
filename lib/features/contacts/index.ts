@@ -5,7 +5,10 @@ export { ContactsFiltersToolbar } from "#features/contacts/components/contacts-f
 export { ContactsStatCards } from "#features/contacts/components/contacts-stat-cards"
 export { ContactsBulkActions } from "#features/contacts/components/contacts-bulk-actions"
 export { ContactsEmptyState } from "#features/contacts/components/contacts-empty-state"
-export { CONTACTS_ROUTE } from "#features/contacts/constants"
+export {
+  organizationDashboardPath,
+  ORG_DASHBOARD_CONTACTS,
+} from "#features/contacts/constants"
 export type {
   CreateContactFormState,
   ContactRow,

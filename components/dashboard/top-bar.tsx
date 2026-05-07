@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { Link } from "#i18n/navigation"
 
 import { SignOutButton } from "#components/sign-out-button"
 import { Button } from "#components/ui/button"

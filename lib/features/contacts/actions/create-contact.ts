@@ -7,6 +7,8 @@ import { db } from "#lib/db"
 import { customers } from "#lib/db/schema"
 import { contactSchema } from "#features/contacts/schemas/contact.schema"
 import type { CreateContactFormState } from "#features/contacts/types"
+import { ORG_DASHBOARD_CONTACTS } from "#lib/dashboard-module-paths"
+import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
 
 export async function createContact(
@@ -66,6 +68,9 @@ export async function createContact(
     }
   }
 
-  revalidatePath("/dashboard/contacts")
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_CONTACTS),
+    "page"
+  )
   return { ok: true }
 }

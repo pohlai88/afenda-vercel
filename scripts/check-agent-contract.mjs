@@ -12,8 +12,9 @@ const root = path.join(import.meta.dirname, "..")
 const REQUIRED_FILES = [
   "AGENTS.md",
   ".cursor/rules/agents-md-mandatory.mdc",
-  ".cursor/rules/agents-md-editing-enforcement.mdc",
   ".cursor/rules/design-system-enforcement.mdc",
+  ".cursor/rules/design-system-docs-enforcement.mdc",
+  ".cursor/rules/i18n-directory.mdc",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
 ]
@@ -43,7 +44,9 @@ const TOP_LEVEL_DIR_ALLOWLIST = new Set([
   "docs",
   "drizzle",
   "hooks",
+  "i18n",
   "lib",
+  "messages",
   "public",
   "scripts",
   "tests",
@@ -70,6 +73,7 @@ const ROOT_TOOLING_FILES = new Set([
   "postcss.config.mjs",
   "drizzle.config.ts",
   "vitest.config.ts",
+  "vitest.setup.ts",
   "playwright.config.ts",
   "components.json",
   ".gitignore",
@@ -78,7 +82,10 @@ const ROOT_TOOLING_FILES = new Set([
 ])
 
 const ROOT_WORKSPACE_FILES = new Set([
+  ".cursorignore",
+  ".editorconfig",
   ".env.config.example",
+  ".gitattributes",
   "skills-lock.json",
 ])
 
@@ -142,18 +149,13 @@ function assertRequiredFiles() {
 
 function assertRuleStrength() {
   if (!exists(".cursor/rules/agents-md-mandatory.mdc")) return
-  if (!exists(".cursor/rules/agents-md-editing-enforcement.mdc")) return
   if (!exists("eslint.config.mjs")) return
 
   const mandatory = read(".cursor/rules/agents-md-mandatory.mdc")
-  const editing = read(".cursor/rules/agents-md-editing-enforcement.mdc")
   const eslintConfig = read("eslint.config.mjs")
 
   if (!/alwaysApply:\s*true/.test(mandatory)) {
     fail("agents-md-mandatory.mdc must keep alwaysApply: true")
-  }
-  if (!/alwaysApply:\s*true/.test(editing)) {
-    fail("agents-md-editing-enforcement.mdc must keep alwaysApply: true")
   }
   if (!/#features\/\*\/\*/.test(eslintConfig)) {
     fail("eslint must restrict deep feature imports (#features/*/*)")

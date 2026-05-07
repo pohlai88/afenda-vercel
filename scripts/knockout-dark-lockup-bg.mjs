@@ -104,6 +104,6 @@ console.log(
       totalPixels: w * h,
     },
     null,
-    2,
-  ),
+    2
+  )
 )

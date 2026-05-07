@@ -11,6 +11,11 @@ import {
 } from "better-auth/client/plugins"
 
 export { resolvePostAuthCallbackUrl } from "#lib/auth/callback-path"
+export {
+  AUTH_CLIENT_ERROR_CODE,
+  normalizeAuthClientError,
+  type NormalizedAuthClientError,
+} from "#lib/auth/auth-client-error.shared"
 
 const infraClientPlugins =
   process.env.NEXT_PUBLIC_BETTER_AUTH_INFRA === "1"
