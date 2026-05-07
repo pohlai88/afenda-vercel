@@ -1,0 +1,32 @@
+---
+description: Knip — dead code, unused deps, strict graph; knip.json contract and when to fix vs ignore
+globs: knip.json,package.json,scripts/**/*.mjs
+alwaysApply: false
+---
+
+# Knip (dead code & dependency hygiene)
+
+Authoritative commands and merge gates live in **AGENTS.md** §2 (`pnpm knip`, `pnpm knip:production`, `pnpm verify`). Config: **[`knip.json`](../../knip.json)**.
+
+## Defaults (strict)
+
+- **`treatConfigHintsAsErrors: true`** — fix or explicitly allow; do not silence hints globally.
+- **`ignoreExportsUsedInFile: true`** — same-file-only exports are not failures.
+- **Rules at `error`:** unused **files**, **dependencies** / **devDependencies**, **unlisted** / **unresolved** imports, **binaries**, **catalog**, unused **exports** / **types** / **enumMembers** / **namespaceMembers** / **nsExports** / **nsTypes**, **duplicates**.
+- Do **not** reintroduce a top-level **`exclude`** that blanket-suppresses export/type noise unless there is a repo-wide decision recorded in **AGENTS.md** and **`knip.json`** stays intentional.
+
+## Allowed suppressions (keep narrow)
+
+- **`ignoreFiles`** — shadcn shelf (`components/ui/**`) and **`hooks/use-mobile.ts`** until wired product-wide.
+- **`ignoreDependencies`** — packages consumed only from ignored UI shelf files (see **`knip.json`** list). Adding a new dep-only-for-ui pattern: extend the list **only** with a short comment in PR / adjacent note in **AGENTS.md** if policy changes.
+- **`ignoreIssues`** — **targeted paths** for intentional public barrels (`lib/auth/index.ts`, `lib/features/*/index.ts`, `*.shared.ts`, etc.), design-system surface, brand/auth/dashboard components, **i18n/navigation**, fixtures, and feature **data/actions/schemas**. New barrels: prefer **exporting through `index.ts`** and add a **minimal** `ignoreIssues` entry if Knip still flags re-exports; do not widen globs carelessly.
+
+## Workflow
+
+- After removing code or changing imports: run **`pnpm knip`**. Prefer **deleting** dead code and **dropping** unused deps over expanding ignores.
+- **`pnpm knip:production`** — ship-only dependency view when debugging “why is this in prod?”.
+- **`pnpm verify`** includes **`knip`** — CI-aligned.
+
+## Contract
+
+- **`knip.json`** is a **required root tooling file** in **`scripts/check-agent-contract.mjs`** (`ROOT_TOOLING_FILES`). Do not delete or rename without updating the script.

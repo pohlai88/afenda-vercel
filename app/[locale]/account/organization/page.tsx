@@ -5,6 +5,8 @@ import { redirect } from "next/navigation"
 import { Link } from "#i18n/navigation"
 import { and, asc, eq, gt } from "drizzle-orm"
 
+import { organizationAdminPath } from "#features/org-admin"
+
 import { canActInOrganization } from "#lib/auth"
 import { db } from "#lib/db"
 import { invitation, member, organization, user } from "#lib/db/schema"
@@ -85,19 +87,33 @@ export default async function AccountOrganizationPage({
       </div>
 
       {canAdmin ? (
-        <p className="text-sm">
-          <Link
-            href={"/account/organization/audit" as Route}
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            View organization audit log
-          </Link>
-          <span className="text-muted-foreground">
-            {" "}
-            — invites, membership changes, and other{" "}
-            <code className="text-xs">org.*</code> events.
-          </span>
-        </p>
+        <div className="flex flex-col gap-2 text-sm">
+          <p>
+            <Link
+              href={organizationAdminPath(row.slug, "overview") as Route}
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Open admin workbench
+            </Link>
+            <span className="text-muted-foreground">
+              {" "}
+              — members, invitations, audit, settings, and integrations.
+            </span>
+          </p>
+          <p>
+            <Link
+              href={organizationAdminPath(row.slug, "audit") as Route}
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Audit log only
+            </Link>
+            <span className="text-muted-foreground">
+              {" "}
+              — <code className="text-xs">org.*</code> IAM events (also in
+              workbench).
+            </span>
+          </p>
+        </div>
       ) : null}
 
       {canAdmin ? (

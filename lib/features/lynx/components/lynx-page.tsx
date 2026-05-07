@@ -1,0 +1,62 @@
+import { getTranslations } from "next-intl/server"
+
+import { ModulePageHeader } from "#components/dashboard/module-page-header"
+import { requireOrgSession } from "#lib/tenant"
+
+import {
+  AddKnowledgeChunkForm,
+  listRecentKnowledgeChunks,
+  SearchKnowledgeChunksForm,
+} from "#features/knowledge"
+
+import { TruthSearchClient } from "./truth-search-client"
+
+export async function LynxPage() {
+  const org = await requireOrgSession()
+  const recent = await listRecentKnowledgeChunks(org.organizationId, 12)
+
+  const t = await getTranslations("Dashboard.Lynx")
+  const ts = await getTranslations("Dashboard.Lynx.substrate")
+
+  return (
+    <div className="space-y-8">
+      <ModulePageHeader
+        title={t("title")}
+        eyebrow={t("eyebrow")}
+        description={t("description")}
+      />
+
+      <TruthSearchClient />
+
+      <section className="flex flex-col gap-4 rounded-2xl border bg-card p-4">
+        <h2 className="font-medium">{ts("addTitle")}</h2>
+        <p className="text-sm text-muted-foreground">{ts("addDescription")}</p>
+        <AddKnowledgeChunkForm />
+      </section>
+
+      <section className="flex flex-col gap-4 rounded-2xl border bg-card p-4">
+        <h2 className="font-medium">{ts("searchTitle")}</h2>
+        <p className="text-sm text-muted-foreground">
+          {ts("searchDescription")}
+        </p>
+        <SearchKnowledgeChunksForm />
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="font-medium">{ts("recentTitle")}</h2>
+        {recent.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{ts("recentEmpty")}</p>
+        ) : (
+          <ul className="space-y-2 text-sm">
+            {recent.map((row) => (
+              <li key={row.id} className="rounded-lg border bg-card px-3 py-2">
+                <span className="font-medium">{row.title}</span>
+                <p className="line-clamp-2 text-muted-foreground">{row.body}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  )
+}

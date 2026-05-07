@@ -8,12 +8,14 @@ import { Card, CardContent, CardHeader } from "#components/ui/card"
 type DashboardShellProps = {
   userEmail: string
   orgSlug: string
+  showOrgAdminLink?: boolean
   children: ReactNode
 }
 
 export function DashboardShell({
   userEmail,
   orgSlug,
+  showOrgAdminLink = false,
   children,
 }: DashboardShellProps) {
   return (
@@ -30,7 +32,10 @@ export function DashboardShell({
             <DashboardTopBar userEmail={userEmail} />
           </CardHeader>
           <CardContent className="pt-0">
-            <DashboardModuleNav orgSlug={orgSlug} />
+            <DashboardModuleNav
+              orgSlug={orgSlug}
+              showOrgAdminLink={showOrgAdminLink}
+            />
           </CardContent>
         </Card>
       </header>

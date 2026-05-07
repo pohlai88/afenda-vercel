@@ -42,6 +42,12 @@ describe("toLocaleOrgDashboardRevalidatePattern", () => {
     expect(toLocaleOrgDashboardRevalidatePattern("/contacts")).toBe(
       "/[locale]/o/[orgSlug]/dashboard/contacts"
     )
+    expect(toLocaleOrgDashboardRevalidatePattern("/knowledge")).toBe(
+      "/[locale]/o/[orgSlug]/dashboard/knowledge"
+    )
+    expect(toLocaleOrgDashboardRevalidatePattern("/lynx")).toBe(
+      "/[locale]/o/[orgSlug]/dashboard/lynx"
+    )
     expect(toLocaleOrgDashboardRevalidatePattern("")).toBe(
       "/[locale]/o/[orgSlug]/dashboard"
     )

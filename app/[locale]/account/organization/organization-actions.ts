@@ -11,7 +11,10 @@ import {
   canActInOrganization,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
-import { toLocaleRoutePattern } from "#lib/i18n/locales.shared"
+import {
+  toLocaleOrgAdminRevalidatePattern,
+  toLocaleRoutePattern,
+} from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
 
 const emailSchema = z.string().trim().email().max(320)
@@ -23,6 +26,11 @@ export type OrgAdminActionState =
   | { ok: true; message?: string }
   | { ok: false; error: string }
   | null
+
+function revalidateOrganizationAdminSurfaces() {
+  revalidatePath(toLocaleRoutePattern("/account/organization"), "page")
+  revalidatePath(toLocaleOrgAdminRevalidatePattern(""), "layout")
+}
 
 function apiErrorMessage(err: unknown): string {
   if (err instanceof APIError) {
@@ -115,7 +123,7 @@ export async function inviteMemberAction(
         role: parsedRole.data,
       },
     })
-    revalidatePath(toLocaleRoutePattern("/account/organization"), "page")
+    revalidateOrganizationAdminSurfaces()
     return { ok: true, message: "Invitation sent." }
   } catch (e) {
     return { ok: false, error: apiErrorMessage(e) }
@@ -150,7 +158,7 @@ export async function cancelInvitationAction(
       resourceType: "invitation",
       resourceId: invId.data,
     })
-    revalidatePath(toLocaleRoutePattern("/account/organization"), "page")
+    revalidateOrganizationAdminSurfaces()
     return { ok: true, message: "Invitation cancelled." }
   } catch (e) {
     return { ok: false, error: apiErrorMessage(e) }
@@ -218,7 +226,7 @@ export async function updateMemberRoleAction(
       resourceId: memberId.data,
       metadata: { role: role.data, targetUserId: targetUserId.data },
     })
-    revalidatePath(toLocaleRoutePattern("/account/organization"), "page")
+    revalidateOrganizationAdminSurfaces()
     return { ok: true, message: "Role updated." }
   } catch (e) {
     return { ok: false, error: apiErrorMessage(e) }
@@ -266,7 +274,7 @@ export async function removeMemberAction(
       resourceId: memberId.data,
       metadata: { targetUserId: targetUserId.data },
     })
-    revalidatePath(toLocaleRoutePattern("/account/organization"), "page")
+    revalidateOrganizationAdminSurfaces()
     return { ok: true, message: "Member removed." }
   } catch (e) {
     return { ok: false, error: apiErrorMessage(e) }

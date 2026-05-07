@@ -29,6 +29,13 @@
       "when": 1778084831755,
       "tag": "0003_iam_audit_event",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778114553906,
+      "tag": "0004_knowledge_chunk_vector",
+      "breakpoints": true
     }
   ]
 }

@@ -12,13 +12,17 @@ This is a Next.js template with shadcn/ui.
 
 Full command list and directory rules: **[`AGENTS.md`](./AGENTS.md)** (section 2 and **Testing directory contract**).
 
-| Command                      | Purpose                                                                                                       |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `pnpm test` / `pnpm test:ci` | Vitest unit tests (`tests/unit`, Node by default)                                                             |
-| `pnpm test:e2e`              | **`pnpm build`** then Playwright — default **`http://127.0.0.1:3001`** + **`next start`** (leave **`pnpm dev`** on **3000**) |
+| Command                      | Purpose                                                                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm test` / `pnpm test:ci` | Vitest unit tests (`tests/unit`, Node by default)                                                                                     |
+| `pnpm test:e2e`              | **`pnpm build`** then Playwright — default **`http://127.0.0.1:3001`** + **`next start`** (leave **`pnpm dev`** on **3000**)          |
 | `pnpm test:e2e:ci`           | Same as **`pnpm test:e2e`** (prod-shaped E2E); ensure port **3001** is free unless you set **`PLAYWRIGHT_BASE_URL`** / **`BASE_URL`** |
 
 Optional: `PLAYWRIGHT_BASE_URL` (see [`.env.config.example`](./.env.config.example) section G).
+
+## Database (Neon + Drizzle + pgvector)
+
+Production-shaped Postgres is **Neon** (see **[`AGENTS.md`](./AGENTS.md)** §5 — [**Neon + Vercel + pgvector checklist**](./AGENTS.md#neon--vercel--pgvector-checklist)). After connecting the **Vercel Marketplace Neon** integration and setting **`DATABASE_URL`**, run **`pnpm db:migrate:local`** (or migrate against each Neon branch you deploy). Knowledge / vector search also needs **`OPENAI_API_KEY`** on Vercel.
 
 ## Adding components
 

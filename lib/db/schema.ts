@@ -6,6 +6,7 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  vector,
 } from "drizzle-orm/pg-core"
 
 /** Better Auth — core + admin + username + two-factor */
@@ -227,4 +228,31 @@ export const customers = pgTable(
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [index("customers_organization_id_idx").on(t.organizationId)]
+)
+
+/** Org-scoped knowledge chunks with pgvector embeddings (RAG / similarity MVP). */
+export const knowledgeChunk = pgTable(
+  "knowledge_chunk",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    embedding: vector("embedding", { dimensions: 1536 }).notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId").references(() => user.id, {
+      onDelete: "set null",
+    }),
+  },
+  (t) => [
+    index("knowledge_chunk_organization_id_idx").on(t.organizationId),
+    index("knowledge_chunk_embedding_hnsw").using(
+      "hnsw",
+      t.embedding.op("vector_cosine_ops")
+    ),
+  ]
 )

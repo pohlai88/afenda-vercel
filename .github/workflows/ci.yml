@@ -1,3 +1,6 @@
+# CI does not spin up Postgres/pgvector by default (path A in AGENTS.md): Vitest uses mocks;
+# apply `drizzle` migrations against a real Neon branch locally or in a follow-up job (Neon
+# branch per PR / Docker pgvector) if you need DB-backed vector tests in CI.
 name: CI
 
 on:
@@ -35,6 +38,8 @@ jobs:
       - run: pnpm run test:ci
 
       - run: pnpm run lint
+
+      - run: pnpm run knip
 
       - run: pnpm run format:check
 

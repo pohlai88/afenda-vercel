@@ -1,0 +1,55 @@
+---
+description: Lynx ERP machine layer — vocabulary, knowledge substrate, lynx.contract.ts, Phase 1 truth UX
+alwaysApply: true
+---
+
+# Lynx directory boundary (`lib/features/lynx/`)
+
+## Product framing
+
+- **Lynx** is Afenda’s **machine layer** for resolving truth, preparing work, and recommending controlled action — an **ERP module** (`lib/features/lynx`), not a generic “AI” or chatbot product.
+- **The Machine** is the **UI companion** (e.g. `ModulePageHeader` eyebrow) and the engineering name for the inference stack. **Vercel AI SDK** and providers are **implementation details only** — not user-facing copy.
+
+**Canonical line:**
+
+```txt
+Lynx is Afenda’s machine layer for resolving truth, preparing work, and recommending controlled action.
+```
+
+## Banned user-facing vocabulary
+
+Do **not** use in product copy, nav, or `messages/*`: **AI assistant**, **chatbot**, **copilot**. Prefer **Lynx**, **The Machine**, and layer names.
+
+## Knowledge vs Lynx
+
+- **`#features/knowledge`** — **substrate**: pgvector, `knowledge_chunk`, embeddings, chunk CRUD.
+- **`#features/lynx`** — **product**: Truth Retrieval UI, streaming truth, future Briefs / Canonical Intake / Operator. Composes **`#features/knowledge`** via the **barrel only** (no deep imports).
+
+Do **not** position “Knowledge” as the primary branded dashboard module once **`/dashboard/lynx`** is canonical.
+
+## Canonical contract
+
+- **`lib/features/lynx/lynx.contract.ts`** — `LYNX_MODULE_ID`, `LYNX_LAYERS`, `LYNX_AUDIT_ACTIONS`. Derive audits, tests, and guards from here to avoid drift.
+
+## Four layers (product names)
+
+1. Truth Retrieval  
+2. Operating Briefs  
+3. **Canonical Intake** (code slug `structured` until refactored)  
+4. Decision Operator  
+
+## Phase 1 truth UX
+
+Surface **retrieved evidence** (chunks) plus streamed **Answer**, **Limitations**, and **Next safe action** (see `schemas/truth-markdown.ts` parsing).
+
+## HTTP
+
+- **`app/api/erp/lynx/*`** only for Lynx streaming HTTP. Handlers thin; logic in **`#features/lynx`**.
+
+## Imports
+
+- Public door: **`#features/lynx`** from `app/`, `components/`, other features.
+
+## Contract changes
+
+- Update **`AGENTS.md`** and this rule together when Lynx boundaries change.

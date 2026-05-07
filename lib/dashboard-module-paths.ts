@@ -9,6 +9,8 @@ export function organizationDashboardPath(
   orgSlug: string,
   modulePath:
     | "contacts"
+    | "knowledge"
+    | "lynx"
     | "sale"
     | "purchase"
     | "inventory"
@@ -28,6 +30,8 @@ export function organizationDashboardPath(
 
 /** Tails for `toLocaleOrgDashboardRevalidatePattern` (leading slash). */
 export const ORG_DASHBOARD_CONTACTS = "/contacts" as const
+export const ORG_DASHBOARD_KNOWLEDGE = "/knowledge" as const
+export const ORG_DASHBOARD_LYNX = "/lynx" as const
 export const ORG_DASHBOARD_SALE = "/sale" as const
 export const ORG_DASHBOARD_PURCHASE = "/purchase" as const
 export const ORG_DASHBOARD_INVENTORY = "/inventory" as const

@@ -15,6 +15,7 @@ const REQUIRED_FILES = [
   ".cursor/rules/design-system-enforcement.mdc",
   ".cursor/rules/design-system-docs-enforcement.mdc",
   ".cursor/rules/i18n-directory.mdc",
+  ".cursor/rules/lynx-directory.mdc",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
 ]
@@ -67,6 +68,7 @@ const ROOT_TOOLING_FILES = new Set([
   "pnpm-lock.yaml",
   "tsconfig.json",
   "eslint.config.mjs",
+  "eslint-a11y.config.mjs",
   "prettier.config.mjs",
   ".prettierrc",
   ".prettierignore",
@@ -75,6 +77,7 @@ const ROOT_TOOLING_FILES = new Set([
   "vitest.config.ts",
   "vitest.setup.ts",
   "playwright.config.ts",
+  "knip.json",
   "components.json",
   ".gitignore",
   ".node-version",
@@ -260,9 +263,13 @@ function assertModuleRootShape() {
 
     for (const entry of entries) {
       const name = entry.name
-      if (!ALLOWED_MODULE_ROOT_ENTRIES.has(name)) {
+      const isContractTs =
+        entry.isFile() &&
+        name.endsWith(".contract.ts") &&
+        /^[a-z0-9][a-z0-9-]*\.contract\.ts$/.test(name)
+      if (!ALLOWED_MODULE_ROOT_ENTRIES.has(name) && !isContractTs) {
         fail(
-          `forbidden module root entry in ${moduleRel}: ${name} (allowed: actions, data, components, schemas, constants.ts, types.ts, index.ts, README.md)`
+          `forbidden module root entry in ${moduleRel}: ${name} (allowed: actions, data, components, schemas, constants.ts, types.ts, index.ts, README.md, *.contract.ts)`
         )
       }
     }

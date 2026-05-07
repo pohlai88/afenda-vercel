@@ -64,6 +64,19 @@ export function toLocaleOrgDashboardRevalidatePattern(
   return `/[locale]/o/[orgSlug]/dashboard${tail}` as AppPath
 }
 
+/**
+ * `revalidatePath` for org admin workbench routes (`/o/[orgSlug]/admin/...`).
+ */
+export function toLocaleOrgAdminRevalidatePattern(adminTail: string): AppPath {
+  const tail =
+    adminTail === "" || adminTail === "/"
+      ? ""
+      : adminTail.startsWith("/")
+        ? adminTail
+        : `/${adminTail}`
+  return `/[locale]/o/[orgSlug]/admin${tail}` as AppPath
+}
+
 export type StrippedLocalePath = {
   locale: AppLocale
   /** Pathname without the leading `/{locale}` (e.g. `/dashboard` or `/`). */

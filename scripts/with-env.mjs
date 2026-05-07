@@ -58,6 +58,14 @@ const fromFile = loadEnvLocal()
 const childEnv = { ...fromFile, ...process.env }
 const [command, ...commandArgs] = args
 
+// Vitest v8 coverage on Windows can race on `.tmp/*.json` under reportsDirectory;
+// pre-create the folder so merge/read does not ENOENT (see vitest.config coverage path).
+if (command === "vitest" && commandArgs.includes("--coverage")) {
+  fs.mkdirSync(path.join(root, ".artifacts", "coverage", ".tmp"), {
+    recursive: true,
+  })
+}
+
 const result = spawnSync(command, commandArgs, {
   env: childEnv,
   shell: process.platform === "win32",

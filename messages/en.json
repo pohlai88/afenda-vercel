@@ -140,6 +140,64 @@
   "CheckEmail": {
     "note": "Redirecting to verify email…"
   },
+  "Dashboard": {
+    "nav": {
+      "contacts": "Contacts",
+      "lynx": "Lynx",
+      "knowledge": "Knowledge",
+      "sale": "Sale",
+      "purchase": "Purchase",
+      "inventory": "Inventory",
+      "accounting": "Accounting",
+      "admin": "Admin"
+    },
+    "Lynx": {
+      "title": "Lynx",
+      "eyebrow": "The Machine",
+      "description": "Afenda’s machine layer for resolving truth, preparing work, and recommending controlled action.",
+      "truth": {
+        "sectionTitle": "Truth retrieval",
+        "sectionDescription": "Ask a question. Lynx answers from your organization’s stored knowledge chunks only.",
+        "labelQuestion": "Question",
+        "placeholderQuestion": "e.g. Why was this return rejected?",
+        "submit": "Retrieve truth",
+        "pending": "Working…",
+        "errorGeneric": "Something went wrong. Try again.",
+        "errorStream": "Could not read the response stream.",
+        "headingAnswer": "Answer",
+        "headingEvidence": "Evidence used",
+        "headingLimitations": "Limitations",
+        "headingNextAction": "Next safe action",
+        "evidenceEmpty": "No passages retrieved. Add knowledge chunks below.",
+        "distanceLabel": "cosine distance {distance}"
+      },
+      "substrate": {
+        "addTitle": "Knowledge substrate",
+        "addDescription": "Add text chunks with embeddings so Truth retrieval has evidence to draw on.",
+        "searchTitle": "Similarity search (substrate)",
+        "searchDescription": "Debug retrieval with raw cosine distance — the same substrate Truth retrieval uses.",
+        "recentTitle": "Recent chunks",
+        "recentEmpty": "No chunks yet."
+      }
+    },
+    "Knowledge": {
+      "errorTitle": "Error",
+      "savedTitle": "Saved",
+      "savedDescription": "Chunk stored with embedding.",
+      "labelTitle": "Title",
+      "labelBody": "Body",
+      "labelSearch": "Search query",
+      "placeholderTitle": "e.g. Return policy",
+      "placeholderBody": "Paste or type the text to embed…",
+      "placeholderSearch": "Describe what you are looking for…",
+      "submitPending": "Saving…",
+      "submitSave": "Save chunk",
+      "searchPending": "Searching…",
+      "searchSubmit": "Search",
+      "searchEmpty": "No similar chunks found.",
+      "distanceLabel": "Cosine distance: {distance}"
+    }
+  },
   "Admin": {
     "usersTitle": "Users",
     "usersSubtitle": "Admin plugin — requires permission to list users.",
@@ -147,5 +205,58 @@
     "signInLink": "Sign in",
     "signInSuffix": "to access admin tools.",
     "emptyUsers": "No users returned (empty project or insufficient admin access)."
+  },
+  "PlatformAdmin": {
+    "title": "Platform administration",
+    "description": "Global tools for operators with the admin role. Organization admins use the workspace Admin workbench from the ERP dashboard.",
+    "usersCardTitle": "Directory",
+    "usersCardDescription": "List and inspect Better Auth users (admin plugin).",
+    "openUsers": "Open users →"
+  },
+  "OrgAdmin": {
+    "nav": {
+      "aria": "Organization admin sections",
+      "overview": "Overview",
+      "members": "Members",
+      "audit": "Audit log",
+      "settings": "Settings",
+      "integrations": "Integrations"
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Quick snapshot of membership and shortcuts to governance tools.",
+      "membersCardTitle": "Members",
+      "membersCardDescription": "People with access to this workspace.",
+      "invitesCardTitle": "Pending invitations",
+      "invitesCardDescription": "Invites waiting to be accepted.",
+      "manageMembers": "Manage members",
+      "viewInvites": "View invitations",
+      "backToErp": "Back to ERP dashboard",
+      "openAudit": "Audit log"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Workspace administration links. Identity and security stay on your account profile.",
+      "accountSecurityTitle": "Account & security",
+      "accountSecurityDescription": "Sessions, passkeys, and verification for your user.",
+      "securityCenter": "Security center",
+      "identity": "Identity & linked accounts",
+      "orgProfileTitle": "Organization profile",
+      "orgProfileDescription": "Name and slug are shown across the workspace.",
+      "orgProfileHint": "To change organization details, use the account organization page or contact support if your plan includes assisted changes.",
+      "legacyOrgPage": "Open account organization page",
+      "backAdmin": "← Admin overview"
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Connect external systems and automate workflows. More surfaces will land here as the IAM and ERP roadmap progresses.",
+      "webhooksTitle": "Outbound webhooks",
+      "webhooksDescription": "Notify external URLs when organization events occur.",
+      "webhooksSoon": "Webhook endpoints, signing secrets, and delivery history are planned. Server actions and audit hooks will follow the IAM policy in AGENTS.md.",
+      "importTitle": "Bulk import",
+      "importDescription": "Invite or provision many users from a file.",
+      "importSoon": "CSV preview, validation, and rate-limited invites will ship after core audit and webhook contracts are stable.",
+      "backAdmin": "← Admin overview"
+    }
   }
 }

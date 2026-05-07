@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import type { Metadata } from "next"
 
 import { DashboardShell } from "#components/dashboard/dashboard-shell"
+import { canActInOrganization } from "#lib/auth"
 import { SITE_NAME } from "#lib/site"
 import { requireOrgSession } from "#lib/tenant"
 
@@ -20,9 +21,19 @@ export default async function OrgDashboardLayout({
 }) {
   const { orgSlug } = await params
   const org = await requireOrgSession()
+  const showOrgAdminLink = await canActInOrganization(
+    org.userId,
+    org.user.role,
+    org.organizationId,
+    "admin"
+  )
 
   return (
-    <DashboardShell userEmail={org.user.email} orgSlug={orgSlug}>
+    <DashboardShell
+      userEmail={org.user.email}
+      orgSlug={orgSlug}
+      showOrgAdminLink={showOrgAdminLink}
+    >
       {children}
     </DashboardShell>
   )
