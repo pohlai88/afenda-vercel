@@ -16,3 +16,9 @@ export type LynxTruthNdjsonDelta = {
   type: "delta"
   delta: string
 }
+
+/** Streamed after deltas when generation fails mid-stream (client can show a message). */
+export type LynxTruthNdjsonError = {
+  type: "error"
+  message: string
+}

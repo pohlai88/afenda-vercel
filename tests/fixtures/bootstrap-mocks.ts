@@ -1,7 +1,14 @@
 /**
  * Deterministic IDs and copy for demos, Vitest expectations, and future Playwright / MSW wiring.
  * Do not use for production data — documentation and local bootstrap only.
+ *
+ * Emails match `components/dev/dev-signin-panel.tsx` dev shortcuts.
  */
+export const DEV_SIGNIN_PRESET_EMAILS = {
+  owner: "owner@afenda.com",
+  erp: "erp@afenda.com",
+} as const
+
 export const BOOTSTRAP_FIXTURE = {
   organization: {
     id: "00000000-0000-4000-8000-000000000001",
@@ -11,14 +18,14 @@ export const BOOTSTRAP_FIXTURE = {
   members: [
     {
       userId: "00000000-0000-4000-8000-000000000002",
-      email: "owner@example.com",
+      email: DEV_SIGNIN_PRESET_EMAILS.owner,
       name: "Demo Owner",
       role: "owner",
     },
     {
       userId: "00000000-0000-4000-8000-000000000003",
-      email: "member@example.com",
-      name: "Demo Member",
+      email: DEV_SIGNIN_PRESET_EMAILS.erp,
+      name: "Demo ERP",
       role: "member",
     },
   ],

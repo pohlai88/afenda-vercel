@@ -1,0 +1,51 @@
+---
+description: Org admin workbench is registry-driven; capabilities first, routes derived
+globs: app/[locale]/o/[orgSlug]/admin/**,lib/features/org-admin/**,messages/*.json
+alwaysApply: false
+---
+
+# Org admin directory boundary (`lib/features/org-admin/`)
+
+Mirrors **AGENTS.md §5 → Organizational control plane**. If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.
+
+## Authority
+
+- **`lib/features/org-admin/`** owns the **organizational control plane**: capability registry, sidebar shell, audit/integrations panels, server actions, and module-local types/constants. Public door is **`#features/org-admin`** ([`index.ts`](lib/features/org-admin/index.ts)). The module follows the strict shape from **AGENTS §6** (validated by [`scripts/check-agent-contract.mjs`](scripts/check-agent-contract.mjs)).
+- **`app/[locale]/o/[orgSlug]/admin/`** owns **routing and composition only**: page wiring, guards, `params` / `searchParams` resolution. Any business logic, data access, or shared component must live inside `lib/features/org-admin/`.
+
+## Capability registry is the single source of truth
+
+- All allowed segments, sidebar nav items, audit prefixes, and route helpers derive from **`ORG_ADMIN_CAPABILITIES`** in [`lib/features/org-admin/constants.ts`](lib/features/org-admin/constants.ts). Adding or renaming a section means **registering the capability**; do not add parallel constants.
+- Reuse:
+ - **Path:** [`organizationAdminPath(orgSlug, segment | "overview")`](lib/features/org-admin/constants.ts).
+ - **Sanitizer:** [`isAllowedOrgAdminSegment`](lib/features/org-admin/constants.ts) (consumed by [`sanitizePathAfterOrgSlug`](lib/dashboard-org-path.shared.ts)).
+ - **Sidebar:** [`buildOrgAdminNav(orgSlug)`](lib/features/org-admin/constants.ts) → [`OrgAdminSidebar`](lib/features/org-admin/components/org-admin-sidebar.tsx) renders one item per registered capability with nav metadata.
+ - **Audit gate:** [`isAllowedAuditAction`](lib/features/org-admin/constants.ts) checks the prefix matches **`ORG_ADMIN_EVENT_NAMESPACES`** before write.
+
+## Capability-prefixed filenames (not folders)
+
+- Capabilities are encoded as **filename prefixes** within the allowed module categories: e.g. `actions/identity-members.actions.ts`, `data/governance-audit.queries.ts`, `components/integrations-endpoints-panel.tsx`. **Do not** create capability sub-folders such as `identity/`, `governance/`, `integrations/` — `ALLOWED_MODULE_ROOT_ENTRIES` rejects them.
+- New module-root files (e.g. `*.contract.ts`) require updating **`AGENTS.md`** + [`scripts/check-agent-contract.mjs`](scripts/check-agent-contract.mjs) in the same PR.
+
+## Event taxonomy (canonical prefixes)
+
+- New audit / outbound delivery / automation event names must start with one of **`ORG_ADMIN_EVENT_NAMESPACES`** (`iam.* · org.* · erp.* · governance.* · integration.* · workflow.* · system.*`). Existing `iam.*` / `org.*` / `erp.*` stay; anything else is a contract violation. Capability ↔ default audit prefix mapping lives in **AGENTS.md §5 → Organizational control plane**.
+
+## i18n
+
+- All workbench copy lives under **`OrgAdmin.*`** in [`messages/<locale>.json`](messages/en.json). Sidebar nav labels are **`OrgAdmin.nav.<navKey>`**, where `navKey` is constrained by **`OrgAdminNavKey`** in [`lib/features/org-admin/types.ts`](lib/features/org-admin/types.ts). User-facing labels (e.g. **Audit**, **Integrations**) stay familiar until the post-MVP rebrand pass.
+
+## Cache invalidation
+
+- Server Actions touching admin surfaces **must** revalidate via [`toLocaleOrgAdminRevalidatePattern`](lib/i18n/locales.shared.ts) so all `/[locale]/o/[orgSlug]/admin/...` builds refresh; do not call `revalidatePath` with a hand-written pattern.
+
+## Forbidden
+
+- Deep-importing internals: any path other than `#features/org-admin` from outside the module (e.g. `#features/org-admin/components/org-audit-events-view`).
+- Parallel segment lists, sidebar arrays, or audit prefix constants outside the registry.
+- Placing data access (DB queries, audit writes) inside `app/[locale]/o/[orgSlug]/admin/*` route files — keep route layers thin and compose from `#features/org-admin`.
+- Embedding IAM control-plane logic here (`lib/features/org-admin/` calls guards from **`#lib/auth`**; it does not redefine them).
+
+## Contract tests
+
+- Every capability/segment/audit prefix is asserted by [`tests/unit/org-admin-contract.test.ts`](tests/unit/org-admin-contract.test.ts). Failing those tests means the change violates the contract — fix the registry / messages, not the tests.

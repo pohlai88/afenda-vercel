@@ -37,7 +37,25 @@
     "react-hook-form",
     "react-resizable-panels",
     "recharts",
-    "vaul"
+    "vaul",
+    "@radix-ui/react-use-controllable-state",
+    "@rive-app/react-webgl2",
+    "@streamdown/cjk",
+    "@streamdown/code",
+    "@streamdown/math",
+    "@streamdown/mermaid",
+    "@vercel/sandbox",
+    "@xyflow/react",
+    "ansi-to-react",
+    "media-chrome",
+    "motion",
+    "nanoid",
+    "react-jsx-parser",
+    "shiki",
+    "streamdown",
+    "tokenlens",
+    "use-stick-to-bottom",
+    "workflow"
   ],
   "ignoreIssues": {
     "lib/auth/index.ts": [

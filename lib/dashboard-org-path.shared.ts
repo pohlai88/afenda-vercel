@@ -4,7 +4,7 @@ import type { AppPath } from "#lib/i18n/locales.shared"
  * Admin workbench segments under `/o/{slug}/admin/{segment}`.
  * Keep in sync with `ORG_ADMIN_CAPABILITIES` in `#features/org-admin/constants`.
  */
-const ORG_ADMIN_PATH_SEGMENTS = new Set([
+export const ORG_ADMIN_PATH_SEGMENTS = new Set([
   "members",
   "audit",
   "settings",

@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test"
 
-import { DEMO_PUBLIC_COPY } from "../fixtures/bootstrap-mocks"
+import {
+  DEMO_PUBLIC_COPY,
+  DEV_SIGNIN_PRESET_EMAILS,
+} from "../fixtures/bootstrap-mocks"
 
 test.describe("public shell", () => {
   test(
@@ -32,6 +35,32 @@ test.describe("public shell", () => {
       await expect(page).toHaveURL(/\/en\/sign-in\?/)
       const u = new URL(page.url())
       expect(u.searchParams.get("callbackUrl")).toBe(target)
+    }
+  )
+
+  test(
+    "org admin workbench redirects unauthenticated users to sign-in with callbackUrl",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      const target = "/en/o/acme-corp/admin"
+      await page.goto(target)
+      await expect(page).toHaveURL(/\/en\/sign-in\?/)
+      const u = new URL(page.url())
+      expect(u.searchParams.get("callbackUrl")).toBe(target)
+    }
+  )
+
+  test(
+    "sign-in prefills email from query string (dev panel parity)",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      const email = DEV_SIGNIN_PRESET_EMAILS.owner
+      await page.goto(`/en/sign-in?email=${encodeURIComponent(email)}`, {
+        waitUntil: "domcontentloaded",
+      })
+      await expect(
+        page.getByLabel(DEMO_PUBLIC_COPY.signInEmailLabel, { exact: true })
+      ).toHaveValue(email)
     }
   )
 

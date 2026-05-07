@@ -3,10 +3,11 @@ import type { Route } from "next"
 import { redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
-import { OrgAuditEventsView } from "#features/org-admin"
+import { OrgAuditEventsView, organizationAdminPath } from "#features/org-admin"
 
 import { canActInOrganization, listOrganizationIamAuditEvents } from "#lib/auth"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+import { getOrganizationSlugById } from "#lib/org-slug.server"
 import { requireOrgSession } from "#lib/tenant"
 
 import { OrganizationAuditCsvExport } from "./audit-export-client"
@@ -42,6 +43,13 @@ export default async function OrganizationAuditPage({
   )
   if (!allowed) {
     redirect(toLocalePath(locale, "/account/organization") as Route)
+  }
+
+  const slug = await getOrganizationSlugById(organizationId)
+  if (slug) {
+    redirect(
+      toLocalePath(locale, organizationAdminPath(slug, "audit")) as Route
+    )
   }
 
   const sp = await searchParams

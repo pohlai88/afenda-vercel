@@ -1,5 +1,4 @@
-import type { AppPath } from "#lib/i18n/locales.shared"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+import { organizationAdminPath } from "#lib/dashboard-module-paths"
 
 import type {
   OrgAdminCapability,
@@ -7,6 +6,10 @@ import type {
   OrgAdminEventNamespace,
   OrgAdminNavItem,
   OrgAdminNavKey,
+  OrgEventDeliveryState,
+  OrgImportAdapterId,
+  OrgImportJobState,
+  OrgImportRowState,
 } from "./types"
 import { ORG_ADMIN_NAV_NAMESPACE } from "./types"
 
@@ -59,6 +62,110 @@ export const ORG_ADMIN_EVENT_NAMESPACES = [
   "system",
 ] as const satisfies readonly OrgAdminEventNamespace[]
 
+/**
+ * Canonical lifecycle states for `org_event_delivery` rows. Order is
+ * documentation-only; persistence stores the state string verbatim.
+ */
+export const EVENT_DELIVERY_STATES = [
+  "queued",
+  "sending",
+  "delivered",
+  "failed",
+  "expired",
+  "disabled",
+] as const satisfies readonly OrgEventDeliveryState[]
+
+const DELIVERY_STATE_SET = new Set<string>(EVENT_DELIVERY_STATES)
+
+/** Type guard: validates a stored `state` string against the canonical set. */
+export function isEventDeliveryState(
+  value: string
+): value is OrgEventDeliveryState {
+  return DELIVERY_STATE_SET.has(value)
+}
+
+/** Current signature algorithm version for outbound HMAC delivery. */
+export const ORG_EVENT_SIGNATURE_VERSION = "v1" as const
+
+/**
+ * Allowlist of canonical event types that endpoints may subscribe to.
+ * Each entry must match `ORG_ADMIN_EVENT_NAMESPACES.<segment>...` so the gate
+ * in `isAllowedEventType` covers both creation forms and delivery enqueue.
+ */
+export const ORG_EVENT_TYPES = [
+  "iam.session.sign_in",
+  "iam.session.sign_out",
+  "iam.session.revoke",
+  "iam.passkey.add",
+  "iam.passkey.remove",
+  "org.member.invite",
+  "org.member.role.update",
+  "org.member.remove",
+  "org.invitation.accept",
+  "org.invitation.cancel",
+  "org.integration.endpoint.create",
+  "org.integration.endpoint.update",
+  "org.integration.endpoint.delete",
+  "org.integration.endpoint.rotate_secret",
+  "org.integration.endpoint.ping",
+  "erp.contact.record.create",
+  "erp.contact.record.update",
+  "erp.knowledge.chunk.create",
+] as const
+
+const EVENT_TYPE_SET = new Set<string>(ORG_EVENT_TYPES)
+
+/** Membership check for the canonical event-type allowlist. */
+export function isAllowedEventType(value: string): boolean {
+  return EVENT_TYPE_SET.has(value)
+}
+
+/** Canonical lifecycle states for `import_job` rows. */
+export const IMPORT_JOB_STATES = [
+  "uploaded",
+  "running",
+  "completed",
+  "failed",
+  "cancelled",
+] as const satisfies readonly OrgImportJobState[]
+
+const IMPORT_JOB_STATE_SET = new Set<string>(IMPORT_JOB_STATES)
+
+export function isImportJobState(value: string): value is OrgImportJobState {
+  return IMPORT_JOB_STATE_SET.has(value)
+}
+
+/** Canonical per-row outcome states for `import_job_row` rows. */
+export const IMPORT_ROW_STATES = [
+  "pending",
+  "applied",
+  "failed",
+  "skipped",
+] as const satisfies readonly OrgImportRowState[]
+
+const IMPORT_ROW_STATE_SET = new Set<string>(IMPORT_ROW_STATES)
+
+export function isImportRowState(value: string): value is OrgImportRowState {
+  return IMPORT_ROW_STATE_SET.has(value)
+}
+
+/** Registered ingestion adapters — extend in lockstep with `OrgImportAdapterId`. */
+export const IMPORT_ADAPTERS = [
+  "member_invite",
+] as const satisfies readonly OrgImportAdapterId[]
+
+const IMPORT_ADAPTER_SET = new Set<string>(IMPORT_ADAPTERS)
+
+export function isImportAdapterId(value: string): value is OrgImportAdapterId {
+  return IMPORT_ADAPTER_SET.has(value)
+}
+
+/** Maximum number of rows accepted per ingestion job (synchronous Apply guard). */
+export const IMPORT_MAX_ROWS_PER_JOB = 500
+
+/** Maximum CSV text byte size accepted by the import form. */
+export const IMPORT_MAX_CSV_BYTES = 256 * 1024
+
 const SEGMENT_LIST: readonly string[] = ORG_ADMIN_CAPABILITIES.flatMap(
   (capability) => [...capability.segments]
 )
@@ -92,27 +199,7 @@ export function getCapabilityById(
   )
 }
 
-/**
- * Locale-internal pathname for the org admin workbench. `"overview"` resolves
- * to the workbench root; other values must be a registered admin segment.
- */
-export function organizationAdminPath(
-  orgSlug: string,
-  section: "overview" | string
-): AppPath {
-  const slug = normalizeOrgSlugParam(orgSlug)
-  if (!slug) {
-    throw new Error("organizationAdminPath: invalid org slug")
-  }
-  const base = `/o/${slug}/admin`
-  if (section === "overview") {
-    return base as AppPath
-  }
-  if (!SEGMENT_SET.has(section)) {
-    throw new Error(`organizationAdminPath: unknown admin segment "${section}"`)
-  }
-  return `${base}/${section}` as AppPath
-}
+export { organizationAdminPath }
 
 /** Validates the second path segment under `/o/.../admin/` for sanitizers. */
 export function isAllowedOrgAdminSegment(segment: string): boolean {

@@ -1,119 +1,130 @@
-"use client"
+import type { Route } from "next"
 
-import { useEffect, useState } from "react"
-import { useTranslations } from "next-intl"
-import { Link } from "#i18n/navigation"
+import { getTranslations } from "next-intl/server"
 
-import { authClient } from "#lib/auth-client"
 import { Button } from "#components/ui/button"
 
-type ListedUser = {
-  id: string
-  email: string
-  name: string
-  role?: string | null
+import { Link } from "#i18n/navigation"
+
+import {
+  PLATFORM_ADMIN_USERS_PAGE_SIZE,
+  PlatformAdminShell,
+  PlatformAdminUsersSearch,
+  PlatformAdminUsersTable,
+  listUsersForPlatformAdmin,
+  platformAdminPath,
+} from "#features/platform-admin"
+import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+import { requireGlobalAdminSession } from "#lib/tenant"
+
+type SearchParamsRecord = Record<string, string | string[] | undefined>
+
+function readParam(
+  params: SearchParamsRecord,
+  key: string
+): string | undefined {
+  const raw = params[key]
+  if (typeof raw === "string") return raw
+  if (Array.isArray(raw)) return raw[0]
+  return undefined
 }
 
-export default function AdminUsersPage() {
-  const t = useTranslations("Admin")
-  const tCommon = useTranslations("Common")
-  const { data: session, isPending: sessionPending } = authClient.useSession()
-  const [users, setUsers] = useState<ListedUser[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+function parsePage(value: string | undefined): number {
+  if (!value) return 1
+  const parsed = Number.parseInt(value, 10)
+  if (!Number.isFinite(parsed) || parsed < 1) return 1
+  return parsed
+}
 
-  useEffect(() => {
-    if (!session) return
-    const ac = new AbortController()
-    void (async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const { data, error: err } = await authClient.admin.listUsers({
-          query: { limit: 100, offset: 0 },
-          fetchOptions: { signal: ac.signal },
-        })
-        if (err) {
-          throw new Error(err.message ?? "Failed to load users")
-        }
-        setUsers(data?.users ?? [])
-      } catch (e: unknown) {
-        if ((e as Error).name === "AbortError") return
-        setError(e instanceof Error ? e.message : "Failed to load users")
-      } finally {
-        setLoading(false)
-      }
-    })()
-    return () => ac.abort()
-  }, [session])
+export default async function PlatformAdminUsersPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<SearchParamsRecord>
+}) {
+  const { locale: localeRaw } = await params
+  const locale = ensureAppLocale(localeRaw)
+  const sp = await searchParams
+  const session = await requireGlobalAdminSession()
 
-  if (sessionPending) {
-    return (
-      <div className="mx-auto w-full max-w-3xl py-10">
-        <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
-      </div>
-    )
-  }
+  const t = await getTranslations("PlatformAdmin.users")
 
-  if (!session) {
-    return (
-      <div className="mx-auto w-full max-w-3xl py-10">
-        <p className="text-sm text-muted-foreground">
-          <Link href="/sign-in" className="underline">
-            {t("signInLink")}
-          </Link>{" "}
-          {t("signInSuffix")}
-        </p>
-      </div>
-    )
+  const search = readParam(sp, "q") ?? ""
+  const page = parsePage(readParam(sp, "page"))
+  const limit = PLATFORM_ADMIN_USERS_PAGE_SIZE
+  const offset = (page - 1) * limit
+
+  const result = await listUsersForPlatformAdmin({
+    searchValue: search,
+    limit,
+    offset,
+  })
+
+  const totalPages = Math.max(1, Math.ceil(result.total / limit))
+  const basePath = toLocalePath(locale, platformAdminPath("users"))
+
+  function buildPageHref(targetPage: number): Route {
+    const params = new URLSearchParams()
+    if (search) params.set("q", search)
+    if (targetPage > 1) params.set("page", String(targetPage))
+    const query = params.size > 0 ? `?${params.toString()}` : ""
+    return `${basePath}${query}` as Route
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {t("usersTitle")}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t("usersSubtitle")}
-          </p>
+    <PlatformAdminShell>
+      <section className="space-y-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold tracking-tight">{t("title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("description")}</p>
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/dashboard">{t("linkDashboard")}</Link>
-        </Button>
-      </div>
-      {error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {error}
+
+        <PlatformAdminUsersSearch
+          initialValue={search}
+          basePath={platformAdminPath("users")}
+        />
+
+        <p className="text-xs text-muted-foreground" aria-live="polite">
+          {t("pagination", {
+            page,
+            totalPages,
+            total: result.total,
+          })}
         </p>
-      ) : null}
-      {loading ? (
-        <p className="text-sm text-muted-foreground">
-          {tCommon("loadingUsers")}
-        </p>
-      ) : (
-        <ul className="divide-y divide-border rounded-md border">
-          {users.length === 0 ? (
-            <li className="px-4 py-6 text-sm text-muted-foreground">
-              {t("emptyUsers")}
-            </li>
-          ) : (
-            users.map((u) => (
-              <li
-                key={u.id}
-                className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3 text-sm"
-              >
-                <span className="font-medium">{u.email}</span>
-                <span className="text-muted-foreground">
-                  {u.name}
-                  {u.role ? ` · ${u.role}` : ""}
-                </span>
-              </li>
-            ))
-          )}
-        </ul>
-      )}
-    </div>
+
+        <PlatformAdminUsersTable
+          users={result.users}
+          currentUserId={session.userId}
+        />
+
+        <nav
+          className="flex items-center gap-2"
+          aria-label={t("paginationAria")}
+        >
+          <Button asChild variant="outline" size="sm" disabled={page <= 1}>
+            <Link
+              href={buildPageHref(Math.max(1, page - 1))}
+              aria-disabled={page <= 1}
+            >
+              {t("prev")}
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages}
+          >
+            <Link
+              href={buildPageHref(Math.min(totalPages, page + 1))}
+              aria-disabled={page >= totalPages}
+            >
+              {t("next")}
+            </Link>
+          </Button>
+        </nav>
+      </section>
+    </PlatformAdminShell>
   )
 }

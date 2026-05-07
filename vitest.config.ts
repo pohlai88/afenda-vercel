@@ -25,10 +25,10 @@ export default defineConfig({
       // Ratchet global executed coverage toward 80%; keep coverage.all off until breadth grows.
       // Global floors track what Vitest currently executes from unit imports (lib/auth barrel drags many server modules).
       thresholds: {
-        statements: 48,
-        branches: 42,
-        lines: 49,
-        functions: 38,
+        statements: 53,
+        branches: 43,
+        lines: 54,
+        functions: 43,
         "lib/auth/**/*.shared.ts": {
           statements: 95,
           branches: 95,

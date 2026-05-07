@@ -27,6 +27,3 @@ export function resolvePostAuthCallbackUrl(
   if (stripLeadingLocalePrefix(t) == null) return fallback
   return t
 }
-
-/** @deprecated Use `defaultPostAuthPath(locale)` — kept for tests importing the name. */
-export const DEFAULT_POST_AUTH_PATH = defaultPostAuthPath(DEFAULT_APP_LOCALE)

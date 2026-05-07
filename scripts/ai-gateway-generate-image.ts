@@ -52,9 +52,9 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true })
 
   const modalities = [
-    { google: { responseModalities: ["TEXT", "IMAGE"] as const } },
-    { google: { responseModalities: ["IMAGE"] as const } },
-  ] as const
+    { google: { responseModalities: ["TEXT", "IMAGE"] } },
+    { google: { responseModalities: ["IMAGE"] } },
+  ]
 
   let result = await generateText({
     model: MODEL_ID,
@@ -86,16 +86,20 @@ async function main() {
     process.exit(1)
   }
 
-  const b64 = "base64Data" in file && typeof file.base64Data === "string" ? file.base64Data : null
+  const b64 =
+    "base64Data" in file && typeof file.base64Data === "string"
+      ? file.base64Data
+      : null
   if (!b64) {
     console.error("Image file has no base64Data:", Object.keys(file))
     process.exit(1)
   }
 
   const ext = extensionForMediaType(file.mediaType)
-  const finalPath = outPath.endsWith(`.${ext}`) || basename(outPath).includes(".")
-    ? outPath
-    : `${outPath}.${ext}`
+  const finalPath =
+    outPath.endsWith(`.${ext}`) || basename(outPath).includes(".")
+      ? outPath
+      : `${outPath}.${ext}`
 
   if (finalPath !== outPath) {
     mkdirSync(dirname(finalPath), { recursive: true })

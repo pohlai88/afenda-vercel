@@ -5,11 +5,12 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "#components/ui/button"
 
-import { organizationAdminPath } from "#features/org-admin"
-
 import { Link, usePathname } from "#i18n/navigation"
 
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import {
+  organizationAdminPath,
+  organizationDashboardPath,
+} from "#lib/dashboard-module-paths"
 
 const NAV_ITEMS = [
   { module: "contacts" as const, labelKey: "contacts" as const },

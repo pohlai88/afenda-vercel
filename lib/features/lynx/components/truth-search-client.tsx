@@ -81,6 +81,11 @@ export function TruthSearchClient() {
               evidence?: LynxTruthEvidenceDTO[]
               limitationsPreamble?: string
               delta?: string
+              message?: string
+            }
+            if (obj.type === "error" && typeof obj.message === "string") {
+              setState({ status: "error", message: obj.message })
+              return
             }
             if (obj.type === "evidence" && Array.isArray(obj.evidence)) {
               evidence = obj.evidence

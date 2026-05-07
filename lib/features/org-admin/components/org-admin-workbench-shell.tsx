@@ -1,5 +1,7 @@
 import type { ReactNode } from "react"
 
+import { useTranslations } from "next-intl"
+
 import { AfendaBrandLockup } from "#components/afenda-brand"
 import { Card, CardContent, CardHeader } from "#components/ui/card"
 
@@ -18,6 +20,7 @@ export function OrgAdminWorkbenchShell({
   orgName: string
   children: ReactNode
 }) {
+  const t = useTranslations("OrgAdmin.shell")
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
       <header>
@@ -31,13 +34,15 @@ export function OrgAdminWorkbenchShell({
                 <AfendaBrandLockup className="max-w-[min(100%,260px)] sm:max-w-[280px]" />
               </Link>
               <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Organization admin
+                {t("kicker")}
               </p>
               <div>
                 <h1 className="text-xl font-semibold tracking-tight">
                   {orgName}
                 </h1>
-                <p className="text-sm text-muted-foreground">Slug: {orgSlug}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("slugLabel", { slug: orgSlug })}
+                </p>
               </div>
             </div>
           </CardHeader>

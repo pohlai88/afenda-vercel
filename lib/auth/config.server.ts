@@ -114,7 +114,8 @@ const adminIds = parseAdminUserIds()
 const inviteOnlySignup = process.env.BETTER_AUTH_INVITE_ONLY_SIGNUP === "1"
 
 /**
- * Better Auth Infrastructure connection (dash + sentinel).
+ * Better Auth Infrastructure connection (`dash()` Dashboard plugin + optional `sentinel()`).
+ * @see https://better-auth.com/docs/infrastructure/plugins/dashboard
  * @see https://better-auth.com/docs/infrastructure/plugins/dash#dashoptions
  * @see https://better-auth.com/docs/infrastructure/plugins/sentinel#sentineloptions
  */
@@ -134,11 +135,51 @@ function betterAuthInfraConnection(): {
   }
 }
 
-function betterAuthInfraServerPlugins(): BetterAuthPlugin[] {
+function parsePositiveIntEnv(raw: string | undefined, fallback: number): number {
+  const s = raw?.trim()
+  if (!s || !/^\d+$/.test(s)) return fallback
+  const n = Number.parseInt(s, 10)
+  return n > 0 ? n : fallback
+}
+
+/**
+ * Options for `dash()` — `apiKey` / optional `apiUrl` / `kvUrl`, plus optional activity tracking.
+ * @see https://better-auth.com/docs/infrastructure/plugins/dashboard#activity-tracking
+ * Enable with `BETTER_AUTH_INFRA_ACTIVITY_TRACKING=1` after `user.lastActiveAt` migration (0007).
+ */
+function betterAuthDashPluginOptions():
+  | Parameters<typeof dash>[0]
+  | null {
   const conn = betterAuthInfraConnection()
-  if (!conn) return []
-  const plugins: BetterAuthPlugin[] = [dash(conn) as BetterAuthPlugin]
-  if (process.env.BETTER_AUTH_INFRA_SENTINEL === "1") {
+  if (!conn) return null
+
+  const activityEnabled =
+    process.env.BETTER_AUTH_INFRA_ACTIVITY_TRACKING === "1"
+  const updateInterval = parsePositiveIntEnv(
+    process.env.BETTER_AUTH_INFRA_ACTIVITY_INTERVAL_MS,
+    300_000
+  )
+
+  return {
+    ...conn,
+    ...(activityEnabled
+      ? {
+          activityTracking: {
+            enabled: true,
+            updateInterval,
+          },
+        }
+      : {}),
+  }
+}
+
+function betterAuthInfraServerPlugins(): BetterAuthPlugin[] {
+  const dashOpts = betterAuthDashPluginOptions()
+  if (!dashOpts) return []
+
+  const plugins: BetterAuthPlugin[] = [dash(dashOpts) as BetterAuthPlugin]
+  const conn = betterAuthInfraConnection()
+  if (conn && process.env.BETTER_AUTH_INFRA_SENTINEL === "1") {
     plugins.push(sentinel(conn) as BetterAuthPlugin)
   }
   return plugins

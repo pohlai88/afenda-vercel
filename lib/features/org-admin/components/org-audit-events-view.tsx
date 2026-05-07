@@ -76,9 +76,7 @@ export function OrgAuditEventsView({
                 <th className="px-3 py-2 font-medium">{t("headerWhen")}</th>
                 <th className="px-3 py-2 font-medium">{t("headerAction")}</th>
                 <th className="px-3 py-2 font-medium">{t("headerActor")}</th>
-                <th className="px-3 py-2 font-medium">
-                  {t("headerResource")}
-                </th>
+                <th className="px-3 py-2 font-medium">{t("headerResource")}</th>
                 <th className="px-3 py-2 font-medium">{t("headerDetails")}</th>
               </tr>
             </thead>

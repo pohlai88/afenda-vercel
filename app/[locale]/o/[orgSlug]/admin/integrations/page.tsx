@@ -2,17 +2,15 @@ import type { Route } from "next"
 
 import { getTranslations } from "next-intl/server"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "#components/ui/card"
-
-import { organizationAdminPath } from "#features/org-admin"
-
 import { Link } from "#i18n/navigation"
+
+import {
+  IntegrationsEndpointsPanel,
+  IntegrationsImportsPanel,
+  organizationAdminPath,
+} from "#features/org-admin"
+
+import { requireOrgSession } from "#lib/tenant"
 
 export default async function OrgAdminIntegrationsPage({
   params,
@@ -21,35 +19,40 @@ export default async function OrgAdminIntegrationsPage({
 }) {
   const { orgSlug } = await params
   const t = await getTranslations("OrgAdmin.integrations")
+  const orgSession = await requireOrgSession()
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">{t("title")}</h2>
         <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-dashed">
-          <CardHeader>
-            <CardTitle className="text-base">{t("webhooksTitle")}</CardTitle>
-            <CardDescription>{t("webhooksDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">{t("webhooksSoon")}</p>
-          </CardContent>
-        </Card>
+      <section className="space-y-3">
+        <header>
+          <h3 className="text-lg font-semibold tracking-tight">
+            {t("sectionEndpointsTitle")}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {t("sectionEndpointsDescription")}
+          </p>
+        </header>
+        <IntegrationsEndpointsPanel
+          organizationId={orgSession.organizationId}
+        />
+      </section>
 
-        <Card className="border-dashed">
-          <CardHeader>
-            <CardTitle className="text-base">{t("importTitle")}</CardTitle>
-            <CardDescription>{t("importDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">{t("importSoon")}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <section className="space-y-3">
+        <header>
+          <h3 className="text-lg font-semibold tracking-tight">
+            {t("sectionImportsTitle")}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {t("sectionImportsDescription")}
+          </p>
+        </header>
+        <IntegrationsImportsPanel organizationId={orgSession.organizationId} />
+      </section>
 
       <p className="text-sm text-muted-foreground">
         <Link

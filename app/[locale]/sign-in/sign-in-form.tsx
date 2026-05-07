@@ -61,17 +61,20 @@ function SubmitLabel({
 export function SignInForm({
   postAuthPath,
   stepUp = false,
+  initialEmail,
   enabledSocialProviders,
 }: {
   postAuthPath: string
   stepUp?: boolean
+  /** Optional sign-in page `?email=` prefill (e.g. dev shortcuts). */
+  initialEmail?: string
   enabledSocialProviders: string[]
 }) {
   const t = useTranslations("Auth")
   const router = useRouter()
   const authErrorRegionId = useId()
   const authErrorDescId = `${authErrorRegionId}-desc`
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState(initialEmail ?? "")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [otp, setOtp] = useState("")

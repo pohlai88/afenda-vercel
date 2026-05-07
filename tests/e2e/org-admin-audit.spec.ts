@@ -4,6 +4,27 @@ import { DEMO_PUBLIC_COPY } from "../fixtures/bootstrap-mocks"
 
 const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
 const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
+const orgSlugFromEnv = process.env.E2E_ORG_SLUG?.trim()
+
+const ORG_SLUG_RE = /\/en\/o\/([^/]+)\/(?:dashboard|admin)/
+
+async function resolveOrgSlug(
+  page: import("@playwright/test").Page
+): Promise<string | null> {
+  if (orgSlugFromEnv) return orgSlugFromEnv
+
+  const m = page.url().match(ORG_SLUG_RE)
+  if (m) return m[1]
+
+  await page.goto("/en/dashboard")
+  try {
+    await page.waitForURL(ORG_SLUG_RE, { timeout: 15_000 })
+  } catch {
+    return null
+  }
+  const after = page.url().match(ORG_SLUG_RE)
+  return after ? after[1] : null
+}
 
 test.describe("org admin audit (optional credentials)", () => {
   test.beforeEach(({}, testInfo) => {
@@ -29,7 +50,7 @@ test.describe("org admin audit (optional credentials)", () => {
     await page.getByLabel("Password", { exact: true }).fill(orgAdminPassword!)
     await page.getByRole("button", { name: "Sign in" }).click()
 
-    await page.waitForURL(/\/en\/(dashboard|onboarding|account)/, {
+    await page.waitForURL(/\/en\/(dashboard|onboarding|account|o)/, {
       timeout: 30_000,
     })
 
@@ -56,5 +77,50 @@ test.describe("org admin audit (optional credentials)", () => {
     ).toBeVisible({
       timeout: 15_000,
     })
+  })
+
+  test("signed-in org admin can open workbench overview and audit page", async ({
+    page,
+  }) => {
+    await page.goto("/en/sign-in")
+    await page
+      .getByLabel(DEMO_PUBLIC_COPY.signInEmailLabel, { exact: true })
+      .fill(orgAdminEmail!)
+    await page.getByLabel("Password", { exact: true }).fill(orgAdminPassword!)
+    await page.getByRole("button", { name: "Sign in" }).click()
+
+    await page.waitForURL(/\/en\/(dashboard|onboarding|account|o)/, {
+      timeout: 30_000,
+    })
+
+    const slug = await resolveOrgSlug(page)
+    test.skip(
+      !slug,
+      "No active organization slug detected — set E2E_ORG_SLUG or finish onboarding."
+    )
+
+    await page.goto(`/en/o/${slug}/admin`)
+    await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible({
+      timeout: 15_000,
+    })
+
+    const sidebar = page.getByRole("navigation", {
+      name: "Organization admin sections",
+    })
+    await expect(sidebar).toBeVisible()
+    for (const label of [
+      "Overview",
+      "Members",
+      "Audit log",
+      "Integrations",
+      "Settings",
+    ]) {
+      await expect(sidebar.getByRole("link", { name: label })).toBeVisible()
+    }
+
+    await page.goto(`/en/o/${slug}/admin/audit`)
+    await expect(
+      page.getByRole("heading", { name: "Organization audit" })
+    ).toBeVisible({ timeout: 15_000 })
   })
 })

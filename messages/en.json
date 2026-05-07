@@ -198,20 +198,64 @@
       "distanceLabel": "Cosine distance: {distance}"
     }
   },
-  "Admin": {
-    "usersTitle": "Users",
-    "usersSubtitle": "Admin plugin — requires permission to list users.",
-    "linkDashboard": "Dashboard",
-    "signInLink": "Sign in",
-    "signInSuffix": "to access admin tools.",
-    "emptyUsers": "No users returned (empty project or insufficient admin access)."
-  },
   "PlatformAdmin": {
     "title": "Platform administration",
     "description": "Global tools for operators with the admin role. Organization admins use the workspace Admin workbench from the ERP dashboard.",
-    "usersCardTitle": "Directory",
-    "usersCardDescription": "List and inspect Better Auth users (admin plugin).",
-    "openUsers": "Open users →"
+    "overviewTitle": "Overview",
+    "overviewDescription": "Cross-tenant capabilities. Tenant-scoped governance lives in the organization Admin workbench.",
+    "shell": {
+      "kicker": "Platform administration",
+      "title": "Operator console",
+      "subtitle": "Global controls for users, organizations, and platform telemetry."
+    },
+    "nav": {
+      "aria": "Platform admin sections",
+      "overview": "Overview",
+      "users": "Users",
+      "organizations": "Organizations"
+    },
+    "card": {
+      "users": {
+        "title": "User directory",
+        "description": "Search, promote, ban, or unban Better Auth users.",
+        "action": "Open users →"
+      },
+      "organizations": {
+        "title": "Organizations",
+        "description": "Cross-tenant directory with member counts and quick links.",
+        "action": "Open organizations →"
+      }
+    },
+    "users": {
+      "title": "User directory",
+      "description": "Cross-tenant view of Better Auth users. Role and ban actions are audited as iam.user.*.",
+      "search": "Search",
+      "searching": "Searching…",
+      "searchLabel": "Search users by email",
+      "searchPlaceholder": "Search by email…",
+      "empty": "No users match the current filters.",
+      "nameless": "(no display name)",
+      "bannedTag": "banned",
+      "makeAdmin": "Make admin",
+      "makeUser": "Make user",
+      "ban": "Ban",
+      "unban": "Unban",
+      "disabledSelf": "You can't change your own role or ban yourself.",
+      "prev": "Previous",
+      "next": "Next",
+      "pagination": "Page {page} of {totalPages} · {total} users",
+      "paginationAria": "User directory pagination"
+    },
+    "organizations": {
+      "title": "Organizations",
+      "description": "Every organization on the platform with current member counts.",
+      "empty": "No organizations have been created yet.",
+      "countLabel": "{count, plural, one {# organization} other {# organizations}}",
+      "members": "{count, plural, one {# member} other {# members}}",
+      "slug": "Slug: {slug}",
+      "openDashboard": "Open dashboard →",
+      "openAdmin": "Open admin →"
+    }
   },
   "OrgAdmin": {
     "shell": {
@@ -309,13 +353,63 @@
     "integrations": {
       "title": "Integrations",
       "description": "Connect external systems and automate workflows. More surfaces will land here as the IAM and ERP roadmap progresses.",
-      "webhooksTitle": "Outbound webhooks",
-      "webhooksDescription": "Notify external URLs when organization events occur.",
-      "webhooksSoon": "Webhook endpoints, signing secrets, and delivery history are planned. Server actions and audit hooks will follow the IAM policy in AGENTS.md.",
-      "importTitle": "Bulk import",
-      "importDescription": "Invite or provision many users from a file.",
-      "importSoon": "CSV preview, validation, and rate-limited invites will ship after core audit and webhook contracts are stable.",
-      "backAdmin": "← Admin overview"
+      "sectionEndpointsTitle": "Outbound event delivery",
+      "sectionEndpointsDescription": "Receive HMAC-signed POSTs when organization events occur.",
+      "sectionImportsTitle": "Organizational ingestion jobs",
+      "sectionImportsDescription": "Stage CSV-based bulk operations (member invites today; vendors, SKUs, and contracts later).",
+      "backAdmin": "← Admin overview",
+      "imports": {
+        "createTitle": "New ingestion job",
+        "createDescription": "Paste CSV content. Required columns depend on the chosen adapter (member invites: email, optional role).",
+        "listTitle": "Recent jobs",
+        "listDescription": "Most recent ingestion jobs for this organization.",
+        "listEmpty": "No ingestion jobs yet — create one above.",
+        "formAdapterLabel": "Adapter",
+        "formFilenameLabel": "Filename (optional)",
+        "formCsvLabel": "CSV body",
+        "formCsvPlaceholder": "email,role\nalice@example.com,member\nbob@example.com,admin",
+        "formSubmit": "Stage ingestion job",
+        "formSubmitting": "Staging…",
+        "formErrorTitle": "Could not stage job",
+        "formSuccessTitle": "Job staged",
+        "formSuccessDescription": "{total, plural, one {# row} other {# rows}} staged with {failures, plural, one {# validation failure} other {# validation failures}}. Click Run to apply.",
+        "rowSummary": "{total, plural, one {# row} other {# rows}} · applied {applied} · failed {failed} · state: {state}",
+        "run": "Run",
+        "running": "Running…",
+        "cancel": "Cancel",
+        "cancelling": "Cancelling…",
+        "recentFailuresTitle": "Recent failures",
+        "adapter": {
+          "member_invite": "Member invitations"
+        }
+      },
+      "endpoints": {
+        "createTitle": "Add outbound endpoint",
+        "createDescription": "Receive HMAC-signed POSTs when organization events occur. The signing key is shown once on create.",
+        "listTitle": "Endpoints",
+        "listDescription": "All endpoints registered for this organization.",
+        "listEmpty": "No endpoints yet — create one above to start receiving deliveries.",
+        "formNameLabel": "Display name",
+        "formNamePlaceholder": "Production billing receiver",
+        "formUrlLabel": "URL",
+        "formEventsLegend": "Subscribe to events",
+        "formSubmit": "Create endpoint",
+        "formSubmitting": "Creating…",
+        "formErrorTitle": "Could not create endpoint",
+        "signingKeyTitle": "Signing key — copy it now",
+        "signingKeyDescription": "This is the only time we will display the key. Store it securely; rotating issues a new one and invalidates the old.",
+        "ping": "Ping",
+        "pinging": "Pinging…",
+        "pingResult": "Last ping: {state} (HTTP {httpStatus}, {durationMs}ms)",
+        "rotate": "Rotate key",
+        "rotating": "Rotating…",
+        "rotateErrorTitle": "Could not rotate key",
+        "delete": "Delete",
+        "deleting": "Deleting…",
+        "statusEnabled": "enabled: {enabled}",
+        "statusEvents": "{count, plural, one {# event} other {# events}}",
+        "recentTitle": "Recent deliveries"
+      }
     }
   }
 }

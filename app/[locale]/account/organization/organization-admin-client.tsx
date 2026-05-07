@@ -3,6 +3,8 @@
 import { useActionState } from "react"
 import { useFormStatus } from "react-dom"
 
+import { useTranslations } from "next-intl"
+
 import type { OrgAdminActionState } from "./organization-actions"
 import {
   cancelInvitationAction,
@@ -67,23 +69,25 @@ function ActionMessage({ state }: { state: OrgAdminActionState }) {
 }
 
 function ActionError({ state }: { state: OrgAdminActionState }) {
+  const t = useTranslations("OrgAdmin.client")
   if (!state || state.ok) return null
   return (
     <Alert variant="destructive">
-      <AlertTitle>Could not complete action</AlertTitle>
+      <AlertTitle>{t("errorTitle")}</AlertTitle>
       <AlertDescription>{state.error}</AlertDescription>
     </Alert>
   )
 }
 
 function CancelInvitationButton({ invitationId }: { invitationId: string }) {
+  const t = useTranslations("OrgAdmin.pending")
   const [state, formAction] = useActionState(cancelInvitationAction, null)
   return (
     <form action={formAction} className="flex flex-col items-start gap-1">
       <input type="hidden" name="invitationId" value={invitationId} />
       <SubmitButton
-        label="Cancel invite"
-        pendingLabel="Cancelling…"
+        label={t("cancel")}
+        pendingLabel={t("cancelling")}
         variant="outline"
       />
       <ActionError state={state} />
@@ -92,6 +96,8 @@ function CancelInvitationButton({ invitationId }: { invitationId: string }) {
 }
 
 function UpdateMemberRoleForm({ m }: { m: MemberRow }) {
+  const tInvite = useTranslations("OrgAdmin.invite")
+  const tList = useTranslations("OrgAdmin.memberList")
   const [state, formAction] = useActionState(updateMemberRoleAction, null)
   return (
     <form action={formAction} className="flex flex-col gap-1">
@@ -101,15 +107,16 @@ function UpdateMemberRoleForm({ m }: { m: MemberRow }) {
         <select
           name="role"
           defaultValue={m.role}
+          aria-label={tInvite("labelRole")}
           className="h-9 rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
         >
-          <option value="member">Member</option>
-          <option value="admin">Admin</option>
-          <option value="owner">Owner</option>
+          <option value="member">{tInvite("roleMember")}</option>
+          <option value="admin">{tInvite("roleAdmin")}</option>
+          <option value="owner">{tInvite("roleOwner")}</option>
         </select>
         <SubmitButton
-          label="Update role"
-          pendingLabel="Saving…"
+          label={tList("updateRole")}
+          pendingLabel={tList("saving")}
           variant="secondary"
         />
       </div>
@@ -120,20 +127,37 @@ function UpdateMemberRoleForm({ m }: { m: MemberRow }) {
 }
 
 function RemoveMemberForm({ m }: { m: MemberRow }) {
+  const t = useTranslations("OrgAdmin.memberList")
   const [state, formAction] = useActionState(removeMemberAction, null)
   return (
     <form action={formAction} className="flex flex-col gap-1">
       <input type="hidden" name="memberId" value={m.id} />
       <input type="hidden" name="targetUserId" value={m.userId} />
       <SubmitButton
-        label="Remove"
-        pendingLabel="Removing…"
+        label={t("remove")}
+        pendingLabel={t("removing")}
         variant="destructive"
       />
       <ActionError state={state} />
       <ActionMessage state={state} />
     </form>
   )
+}
+
+function localizeRole(
+  role: string,
+  tInvite: ReturnType<typeof useTranslations<"OrgAdmin.invite">>
+): string {
+  switch (role) {
+    case "owner":
+      return tInvite("roleOwner")
+    case "admin":
+      return tInvite("roleAdmin")
+    case "member":
+      return tInvite("roleMember")
+    default:
+      return role
+  }
 }
 
 export function OrganizationAdminClient({
@@ -145,6 +169,9 @@ export function OrganizationAdminClient({
   invitations: InvitationRow[]
   currentUserId: string
 }) {
+  const tInvite = useTranslations("OrgAdmin.invite")
+  const tPending = useTranslations("OrgAdmin.pending")
+  const tList = useTranslations("OrgAdmin.memberList")
   const [inviteState, inviteFormAction] = useActionState(
     inviteMemberAction,
     null
@@ -153,33 +180,36 @@ export function OrganizationAdminClient({
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium">Invite member</h2>
+        <h2 className="text-sm font-medium">{tInvite("title")}</h2>
         <form action={inviteFormAction} className="flex flex-col gap-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="grid flex-1 gap-2">
-              <Label htmlFor="invite-email">Email</Label>
+              <Label htmlFor="invite-email">{tInvite("labelEmail")}</Label>
               <Input
                 id="invite-email"
                 name="email"
                 type="email"
                 autoComplete="off"
                 required
-                placeholder="colleague@company.com"
+                placeholder={tInvite("placeholderEmail")}
               />
             </div>
             <div className="grid w-full gap-2 sm:w-40">
-              <Label htmlFor="invite-role">Role</Label>
+              <Label htmlFor="invite-role">{tInvite("labelRole")}</Label>
               <select
                 id="invite-role"
                 name="role"
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 defaultValue="member"
               >
-                <option value="member">Member</option>
-                <option value="admin">Admin</option>
+                <option value="member">{tInvite("roleMember")}</option>
+                <option value="admin">{tInvite("roleAdmin")}</option>
               </select>
             </div>
-            <SubmitButton label="Send invite" pendingLabel="Sending…" />
+            <SubmitButton
+              label={tInvite("submit")}
+              pendingLabel={tInvite("submitting")}
+            />
           </div>
           <ActionError state={inviteState} />
           <ActionMessage state={inviteState} />
@@ -187,9 +217,9 @@ export function OrganizationAdminClient({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium">Pending invitations</h2>
+        <h2 className="text-sm font-medium">{tPending("title")}</h2>
         {invitations.length === 0 ? (
-          <p className="text-sm text-muted-foreground">None pending.</p>
+          <p className="text-sm text-muted-foreground">{tPending("empty")}</p>
         ) : (
           <ul className="divide-y rounded-md border">
             {invitations.map((inv) => (
@@ -200,8 +230,10 @@ export function OrganizationAdminClient({
                 <div>
                   <span className="font-medium">{inv.email}</span>
                   <span className="ml-2 text-xs text-muted-foreground capitalize">
-                    {inv.role ?? "member"} · expires{" "}
-                    {inv.expiresAt.toLocaleDateString()}
+                    {tPending("metaRoleAndExpiry", {
+                      role: localizeRole(inv.role ?? "member", tInvite),
+                      expiresAt: inv.expiresAt,
+                    })}
                   </span>
                 </div>
                 <CancelInvitationButton invitationId={inv.id} />
@@ -212,7 +244,7 @@ export function OrganizationAdminClient({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium">Members</h2>
+        <h2 className="text-sm font-medium">{tList("title")}</h2>
         <ul className="divide-y rounded-md border">
           {members.map((m) => (
             <li
@@ -226,7 +258,9 @@ export function OrganizationAdminClient({
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 {m.userId === currentUserId ? (
                   <span className="text-xs text-muted-foreground capitalize">
-                    {m.role} (you)
+                    {tList("selfBadge", {
+                      role: localizeRole(m.role, tInvite),
+                    })}
                   </span>
                 ) : (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start">

@@ -10,6 +10,8 @@ import {
   usernameClient,
 } from "better-auth/client/plugins"
 
+import { getSiteUrl } from "#lib/site"
+
 export { resolvePostAuthCallbackUrl } from "#lib/auth/callback-path"
 export {
   AUTH_CLIENT_ERROR_CODE,
@@ -20,7 +22,11 @@ export {
 const infraClientPlugins =
   process.env.NEXT_PUBLIC_BETTER_AUTH_INFRA === "1"
     ? [
-        dashClient(),
+        dashClient({
+          // Dashboard plugin client — https://better-auth.com/docs/infrastructure/plugins/dashboard#client-configuration
+          resolveUserId: ({ userId, user, session }) =>
+            userId || user?.id || session?.user?.id || "",
+        }),
         ...(process.env.NEXT_PUBLIC_BETTER_AUTH_INFRA_SENTINEL === "1"
           ? [sentinelClient({ autoSolveChallenge: true })]
           : []),
@@ -28,6 +34,7 @@ const infraClientPlugins =
     : []
 
 export const authClient = createAuthClient({
+  baseURL: getSiteUrl(),
   plugins: [
     ...infraClientPlugins,
     organizationClient(),
