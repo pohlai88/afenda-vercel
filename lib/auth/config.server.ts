@@ -118,6 +118,9 @@ function socialProviders(): Record<
 const mailCtx = authMailContext()
 const adminIds = parseAdminUserIds()
 const inviteOnlySignup = process.env.BETTER_AUTH_INVITE_ONLY_SIGNUP === "1"
+const DEBUG_INGEST_ENDPOINT =
+  "http://127.0.0.1:7415/ingest/b27b55a1-e565-4f60-bec5-5a536020f3b6"
+const DEBUG_SESSION_ID = "522434"
 
 /**
  * Better Auth Infrastructure connection (`dash()` Dashboard plugin + optional `sentinel()`).
@@ -131,6 +134,29 @@ function betterAuthInfraConnection(): {
   kvUrl?: string
 } | null {
   const apiKey = process.env.BETTER_AUTH_API_KEY?.trim()
+  // #region agent log
+  fetch(DEBUG_INGEST_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": DEBUG_SESSION_ID,
+    },
+    body: JSON.stringify({
+      sessionId: DEBUG_SESSION_ID,
+      runId: "pre-fix",
+      hypothesisId: "H1",
+      location: "lib/auth/config.server.ts:betterAuthInfraConnection",
+      message: "Infra API key presence check",
+      data: {
+        hasApiKey: Boolean(apiKey),
+        apiKeyLength: apiKey?.length ?? 0,
+        hasApiUrl: Boolean(process.env.BETTER_AUTH_API_URL?.trim()),
+        hasKvUrl: Boolean(process.env.BETTER_AUTH_KV_URL?.trim()),
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {})
+  // #endregion
   if (!apiKey) return null
   const apiUrl = process.env.BETTER_AUTH_API_URL?.trim()
   const kvUrl = process.env.BETTER_AUTH_KV_URL?.trim()
@@ -157,6 +183,28 @@ function betterAuthDashPluginOptions():
   | Parameters<typeof dash>[0]
   | null {
   const conn = betterAuthInfraConnection()
+  // #region agent log
+  fetch(DEBUG_INGEST_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": DEBUG_SESSION_ID,
+    },
+    body: JSON.stringify({
+      sessionId: DEBUG_SESSION_ID,
+      runId: "pre-fix",
+      hypothesisId: "H2",
+      location: "lib/auth/config.server.ts:betterAuthDashPluginOptions",
+      message: "Dash options assembly check",
+      data: {
+        hasConnection: Boolean(conn),
+        activityTrackingEnabled:
+          process.env.BETTER_AUTH_INFRA_ACTIVITY_TRACKING === "1",
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {})
+  // #endregion
   if (!conn) return null
 
   const activityEnabled =
@@ -181,6 +229,27 @@ function betterAuthDashPluginOptions():
 
 function betterAuthInfraServerPlugins(): BetterAuthPlugin[] {
   const dashOpts = betterAuthDashPluginOptions()
+  // #region agent log
+  fetch(DEBUG_INGEST_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": DEBUG_SESSION_ID,
+    },
+    body: JSON.stringify({
+      sessionId: DEBUG_SESSION_ID,
+      runId: "pre-fix",
+      hypothesisId: "H3",
+      location: "lib/auth/config.server.ts:betterAuthInfraServerPlugins",
+      message: "Server plugin registration check",
+      data: {
+        dashEnabled: Boolean(dashOpts),
+        sentinelEnabled: process.env.BETTER_AUTH_INFRA_SENTINEL === "1",
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {})
+  // #endregion
   if (!dashOpts) return []
 
   const plugins: BetterAuthPlugin[] = [dash(dashOpts) as BetterAuthPlugin]
