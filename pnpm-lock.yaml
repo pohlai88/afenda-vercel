@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@ai-sdk/gateway':
+        specifier: ^3.0.110
+        version: 3.0.110(zod@4.4.3)
       '@ai-sdk/openai':
         specifier: ^3.0.62
         version: 3.0.62(zod@4.4.3)

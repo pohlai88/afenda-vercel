@@ -1,4 +1,3 @@
-import { openai } from "@ai-sdk/openai"
 import { streamText } from "ai"
 
 import {
@@ -9,6 +8,7 @@ import {
   buildLynxTruthSystemPrompt,
   LYNX_TRUTH_TOP_K,
   lynxTruthSearchBodySchema,
+  resolveLynxTruthStreamModel,
   type LynxTruthEvidenceDTO,
   type LynxTruthNdjsonDelta,
   type LynxTruthNdjsonMeta,
@@ -61,7 +61,21 @@ export async function POST(request: Request) {
 
   if (!process.env.OPENAI_API_KEY?.trim()) {
     return new Response(
-      JSON.stringify({ error: "OPENAI_API_KEY is not configured" }),
+      JSON.stringify({
+        error:
+          "OPENAI_API_KEY is required for knowledge embeddings (Lynx retrieval). Optional: AI_GATEWAY_API_KEY routes answer generation via Vercel AI Gateway.",
+      }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    )
+  }
+
+  const languageModel = resolveLynxTruthStreamModel()
+  if (!languageModel) {
+    return new Response(
+      JSON.stringify({
+        error:
+          "Could not resolve a language model for Lynx generation (configure AI_GATEWAY_API_KEY or OPENAI_API_KEY)",
+      }),
       { status: 503, headers: { "Content-Type": "application/json" } }
     )
   }
@@ -87,10 +101,8 @@ export async function POST(request: Request) {
   const evidence = toEvidenceDto(passages)
   const system = buildLynxTruthSystemPrompt(passages)
 
-  const modelId = process.env.LYNX_GENERATION_MODEL?.trim() || "gpt-4o-mini"
-
   const result = streamText({
-    model: openai(modelId),
+    model: languageModel,
     system,
     prompt: question,
   })

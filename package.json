@@ -52,6 +52,7 @@
     "knip:production": "knip --no-progress --production"
   },
   "dependencies": {
+    "@ai-sdk/gateway": "^3.0.110",
     "@ai-sdk/openai": "^3.0.62",
     "@base-ui/react": "^1.4.1",
     "@better-auth/infra": "^0.2.5",

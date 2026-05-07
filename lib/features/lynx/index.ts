@@ -1,3 +1,4 @@
+export { resolveLynxTruthStreamModel } from "#features/lynx/data/truth-generation-model.server"
 export { buildLynxTruthSystemPrompt } from "#features/lynx/data/truth-prompt.server"
 export { LynxPage } from "#features/lynx/components/lynx-page"
 export { TruthSearchClient } from "#features/lynx/components/truth-search-client"
