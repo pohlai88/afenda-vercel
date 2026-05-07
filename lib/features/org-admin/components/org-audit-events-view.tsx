@@ -1,6 +1,8 @@
 import type { Route } from "next"
 import type { ReactNode } from "react"
 
+import { useTranslations } from "next-intl"
+
 import { Link } from "#i18n/navigation"
 
 import type { OrganizationIamAuditRow } from "#lib/auth"
@@ -31,6 +33,9 @@ export function OrgAuditEventsView({
   prevHref,
   nextHref,
 }: OrgAuditEventsViewProps) {
+  const t = useTranslations("OrgAdmin.audit.events")
+  const noValue = t("noValue")
+
   return (
     <div className="flex w-full min-w-0 flex-col gap-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -50,50 +55,51 @@ export function OrgAuditEventsView({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Showing {result.rows.length} of {result.total} event
-        {result.total === 1 ? "" : "s"}
+        {t("showingShort", { shown: result.rows.length, total: result.total })}
         {result.totalPages > 0 ? (
           <>
-            {" "}
-            — page {result.page} of {result.totalPages}
+            {" — "}
+            {t("pageOf", { page: result.page, totalPages: result.totalPages })}
           </>
         ) : null}
       </p>
 
       {result.rows.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          No organization audit events yet.
+          {t("empty")}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-md border">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="border-b bg-muted/40">
               <tr>
-                <th className="px-3 py-2 font-medium">When</th>
-                <th className="px-3 py-2 font-medium">Action</th>
-                <th className="px-3 py-2 font-medium">Actor</th>
-                <th className="px-3 py-2 font-medium">Resource</th>
-                <th className="px-3 py-2 font-medium">Details</th>
+                <th className="px-3 py-2 font-medium">{t("headerWhen")}</th>
+                <th className="px-3 py-2 font-medium">{t("headerAction")}</th>
+                <th className="px-3 py-2 font-medium">{t("headerActor")}</th>
+                <th className="px-3 py-2 font-medium">
+                  {t("headerResource")}
+                </th>
+                <th className="px-3 py-2 font-medium">{t("headerDetails")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {result.rows.map((r) => (
                 <tr key={r.id}>
                   <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">
-                    {r.createdAt.toISOString().replace("T", " ").slice(0, 19)}
-                    UTC
+                    {r.createdAt.toISOString().replace("T", " ").slice(0, 19)}{" "}
+                    {t("timestampSuffix")}
                   </td>
                   <td className="px-3 py-2 font-mono text-xs">{r.action}</td>
                   <td className="max-w-[180px] truncate px-3 py-2">
-                    {r.actorEmail ?? r.actorUserId ?? "—"}
+                    {r.actorEmail ?? r.actorUserId ?? noValue}
                   </td>
                   <td className="max-w-[200px] truncate px-3 py-2 text-xs">
                     {r.resourceType && r.resourceId
                       ? `${r.resourceType}:${r.resourceId}`
-                      : "—"}
+                      : noValue}
                   </td>
                   <td className="max-w-[280px] truncate px-3 py-2 text-xs text-muted-foreground">
-                    {r.metadataSummary ?? r.path ?? "—"}
+                    {r.metadataSummary ?? r.path ?? noValue}
                   </td>
                 </tr>
               ))}
@@ -108,20 +114,20 @@ export function OrgAuditEventsView({
             href={prevHref}
             className="text-sm font-medium text-primary underline-offset-4 hover:underline"
           >
-            Previous
+            {t("previous")}
           </Link>
         ) : (
-          <span className="text-sm text-muted-foreground">Previous</span>
+          <span className="text-sm text-muted-foreground">{t("previous")}</span>
         )}
         {nextHref ? (
           <Link
             href={nextHref}
             className="text-sm font-medium text-primary underline-offset-4 hover:underline"
           >
-            Next
+            {t("next")}
           </Link>
         ) : (
-          <span className="text-sm text-muted-foreground">Next</span>
+          <span className="text-sm text-muted-foreground">{t("next")}</span>
         )}
       </div>
     </div>

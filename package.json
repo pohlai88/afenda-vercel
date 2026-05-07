@@ -49,7 +49,9 @@
     "auth:generate": "pnpm exec auth generate --config lib/auth/config.server.ts --output lib/db/schema.generated.ts -y",
     "icons:favicon": "node scripts/generate-favicon.mjs",
     "knip": "knip --no-progress",
-    "knip:production": "knip --no-progress --production"
+    "knip:production": "knip --no-progress --production",
+    "ai:gateway:smoke": "tsx scripts/ai-gateway-stream-text.ts",
+    "ai:gateway:image": "tsx scripts/ai-gateway-generate-image.ts"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.110",
@@ -104,6 +106,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.5",
     "auth": "1.6.9",
+    "dotenv": "^17.4.2",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.4",
@@ -120,6 +123,7 @@
     "sharp": "^0.34.5",
     "tailwindcss": "^4.2.1",
     "to-ico": "^1.1.5",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vercel": "^48.6.0",
     "vitest": "^4.1.5"

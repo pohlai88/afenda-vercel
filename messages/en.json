@@ -214,6 +214,10 @@
     "openUsers": "Open users →"
   },
   "OrgAdmin": {
+    "shell": {
+      "kicker": "Organization admin",
+      "slugLabel": "Slug: {slug}"
+    },
     "nav": {
       "aria": "Organization admin sections",
       "overview": "Overview",
@@ -233,6 +237,61 @@
       "viewInvites": "View invitations",
       "backToErp": "Back to ERP dashboard",
       "openAudit": "Audit log"
+    },
+    "members": {
+      "title": "Members & invitations",
+      "description": "Invite colleagues, manage roles, and cancel pending invitations."
+    },
+    "audit": {
+      "title": "Organization audit",
+      "descriptionLead": "IAM events for this organization (actions starting with",
+      "descriptionTail": "). Sensitive mutations should appear here after successful writes.",
+      "backToWorkbench": "← Back to admin overview",
+      "backToOrganization": "← Back to organization",
+      "actionPrefix": "org.",
+      "events": {
+        "showingShort": "Showing {shown} of {total, plural, one {# event} other {# events}}",
+        "pageOf": "page {page} of {totalPages}",
+        "empty": "No organization audit events yet.",
+        "headerWhen": "When",
+        "headerAction": "Action",
+        "headerActor": "Actor",
+        "headerResource": "Resource",
+        "headerDetails": "Details",
+        "timestampSuffix": "UTC",
+        "previous": "Previous",
+        "next": "Next",
+        "noValue": "—"
+      }
+    },
+    "client": {
+      "errorTitle": "Could not complete action"
+    },
+    "invite": {
+      "title": "Invite member",
+      "labelEmail": "Email",
+      "labelRole": "Role",
+      "placeholderEmail": "colleague@company.com",
+      "submit": "Send invite",
+      "submitting": "Sending…",
+      "roleMember": "Member",
+      "roleAdmin": "Admin",
+      "roleOwner": "Owner"
+    },
+    "pending": {
+      "title": "Pending invitations",
+      "empty": "None pending.",
+      "metaRoleAndExpiry": "{role} · expires {expiresAt, date, short}",
+      "cancel": "Cancel invite",
+      "cancelling": "Cancelling…"
+    },
+    "memberList": {
+      "title": "Members",
+      "selfBadge": "{role} (you)",
+      "updateRole": "Update role",
+      "saving": "Saving…",
+      "remove": "Remove",
+      "removing": "Removing…"
     },
     "settings": {
       "title": "Settings",

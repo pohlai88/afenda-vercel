@@ -1,5 +1,7 @@
 import type { Route } from "next"
 
+import { getTranslations } from "next-intl/server"
+
 import { OrgAuditEventsView, organizationAdminPath } from "#features/org-admin"
 
 import { listOrganizationIamAuditEvents } from "#lib/auth"
@@ -24,6 +26,7 @@ export default async function OrgAdminAuditPage({
 }) {
   const { orgSlug } = await params
   const orgSession = await requireOrgSession()
+  const t = await getTranslations("OrgAdmin.audit")
   const sp = await searchParams
   const page = parsePage(
     typeof sp.page === "string"
@@ -47,17 +50,17 @@ export default async function OrgAdminAuditPage({
 
   return (
     <OrgAuditEventsView
-      title="Organization audit"
+      title={t("title")}
       description={
         <>
-          IAM events for this organization (actions starting with{" "}
-          <code className="text-xs">org.</code>). Sensitive mutations should
-          appear here after successful writes.
+          {t("descriptionLead")}{" "}
+          <code className="text-xs">{t("actionPrefix")}</code>
+          {t("descriptionTail")}
         </>
       }
       exportSlot={<OrganizationAuditCsvExport />}
       backHref={organizationAdminPath(orgSlug, "overview") as Route}
-      backLabel="← Back to admin overview"
+      backLabel={t("backToWorkbench")}
       result={result}
       prevHref={prevHref}
       nextHref={nextHref}

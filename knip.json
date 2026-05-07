@@ -5,7 +5,11 @@
   "playwright": true,
   "treatConfigHintsAsErrors": true,
   "ignoreExportsUsedInFile": true,
-  "entry": ["package.json", "scripts/**/*.{mjs,cjs,js}", "tests/**/*.{ts,tsx}"],
+  "entry": [
+    "package.json",
+    "scripts/**/*.{mjs,cjs,js,ts}",
+    "tests/**/*.{ts,tsx}"
+  ],
   "rules": {
     "files": "error",
     "dependencies": "error",
