@@ -1,1 +1,0 @@
-CREATE INDEX "customers_organization_id_idx" ON "customers" USING btree ("organizationId");
