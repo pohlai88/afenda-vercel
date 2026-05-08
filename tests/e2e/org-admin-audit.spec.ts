@@ -16,7 +16,7 @@ async function resolveOrgSlug(
   const m = page.url().match(ORG_SLUG_RE)
   if (m) return m[1]
 
-  await page.goto("/en/dashboard")
+  await page.goto("/en/o")
   try {
     await page.waitForURL(ORG_SLUG_RE, { timeout: 15_000 })
   } catch {
@@ -50,11 +50,17 @@ test.describe("org admin audit (optional credentials)", () => {
     await page.getByLabel("Password", { exact: true }).fill(orgAdminPassword!)
     await page.getByRole("button", { name: "Sign in" }).click()
 
-    await page.waitForURL(/\/en\/(dashboard|onboarding|account|o)/, {
+    await page.waitForURL(/\/en\/(onboarding|account|o)/, {
       timeout: 30_000,
     })
 
-    await page.goto("/en/account/organization/audit")
+    const slug = await resolveOrgSlug(page)
+    test.skip(
+      !slug,
+      "No active organization slug detected — set E2E_ORG_SLUG or finish onboarding."
+    )
+
+    await page.goto(`/en/o/${slug}/admin/audit`)
     await expect(
       page.getByRole("heading", { name: "Organization audit" })
     ).toBeVisible({
@@ -70,13 +76,6 @@ test.describe("org admin audit (optional credentials)", () => {
     const text = await response.text()
     expect(text).toContain("\uFEFF")
     expect(text).toContain("id,created_at_utc,action")
-
-    await page.goto("/en/account/organization")
-    await expect(
-      page.getByRole("heading", { name: "Organization" })
-    ).toBeVisible({
-      timeout: 15_000,
-    })
   })
 
   test("signed-in org admin can open workbench overview and audit page", async ({
@@ -89,7 +88,7 @@ test.describe("org admin audit (optional credentials)", () => {
     await page.getByLabel("Password", { exact: true }).fill(orgAdminPassword!)
     await page.getByRole("button", { name: "Sign in" }).click()
 
-    await page.waitForURL(/\/en\/(dashboard|onboarding|account|o)/, {
+    await page.waitForURL(/\/en\/(onboarding|account|o)/, {
       timeout: 30_000,
     })
 

@@ -45,6 +45,8 @@ export {
 export { OrgAdminSidebar } from "./components/org-admin-sidebar"
 export { OrgAdminWorkbenchShell } from "./components/org-admin-workbench-shell"
 export { OrgAuditEventsView } from "./components/org-audit-events-view"
+export { OrganizationAdminClient } from "./components/organization-admin-client"
+export { OrganizationAuditCsvExport } from "./components/organization-audit-csv-export"
 export { IntegrationsEndpointsPanel } from "./components/integrations-endpoints-panel"
 export { IntegrationsImportsPanel } from "./components/integrations-imports-panel"
 
@@ -59,6 +61,7 @@ export {
   getOrgImportJob,
   listJobRows,
   listJobFailures,
+  countActiveImportJobsForOrganization,
 } from "./data/import-jobs.queries"
 
 export {
@@ -77,6 +80,19 @@ export {
   cancelOrgImportJob,
   type ImportJobActionState,
 } from "./actions/import-jobs.actions"
+
+export {
+  cancelInvitationAction,
+  inviteMemberAction,
+  removeMemberAction,
+  updateMemberRoleAction,
+  type OrgAdminActionState,
+} from "./actions/members.actions"
+
+export {
+  exportOrganizationIamAuditCsvAction,
+  type OrgAuditExportState,
+} from "./actions/audit-export.actions"
 
 export {
   orgEventEndpointInputSchema,

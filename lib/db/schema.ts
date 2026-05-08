@@ -1,183 +1,22 @@
 import {
   boolean,
+  date,
+  decimal,
   index,
   integer,
   jsonb,
   pgTable,
+  serial,
   text,
   timestamp,
   uniqueIndex,
   vector,
 } from "drizzle-orm/pg-core"
 
-/** Better Auth — core + admin + username + two-factor */
-export const user = pgTable("user", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("emailVerified").notNull().default(false),
-  image: text("image"),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-  role: text("role").default("user"),
-  banned: boolean("banned").default(false),
-  banReason: text("banReason"),
-  banExpires: timestamp("banExpires", { mode: "date" }),
-  twoFactorEnabled: boolean("twoFactorEnabled").default(false),
-  username: text("username").unique(),
-  displayUsername: text("displayUsername"),
-  /** Better Auth Infrastructure `dash()` activity tracking (optional column). */
-  lastActiveAt: timestamp("lastActiveAt", { mode: "date" }),
-})
-
-export const session = pgTable(
-  "session",
-  {
-    id: text("id").primaryKey(),
-    expiresAt: timestamp("expiresAt", { mode: "date" }).notNull(),
-    token: text("token").notNull().unique(),
-    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-    ipAddress: text("ipAddress"),
-    userAgent: text("userAgent"),
-    userId: text("userId")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    activeOrganizationId: text("activeOrganizationId"),
-    activeTeamId: text("activeTeamId"),
-    impersonatedBy: text("impersonatedBy"),
-  },
-  (t) => [index("session_userId_idx").on(t.userId)]
-)
-
-export const account = pgTable(
-  "account",
-  {
-    id: text("id").primaryKey(),
-    accountId: text("accountId").notNull(),
-    providerId: text("providerId").notNull(),
-    userId: text("userId")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    accessToken: text("accessToken"),
-    refreshToken: text("refreshToken"),
-    idToken: text("idToken"),
-    accessTokenExpiresAt: timestamp("accessTokenExpiresAt", { mode: "date" }),
-    refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt", { mode: "date" }),
-    scope: text("scope"),
-    password: text("password"),
-    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-  },
-  (t) => [index("account_userId_idx").on(t.userId)]
-)
-
-export const verification = pgTable(
-  "verification",
-  {
-    id: text("id").primaryKey(),
-    identifier: text("identifier").notNull(),
-    value: text("value").notNull(),
-    expiresAt: timestamp("expiresAt", { mode: "date" }).notNull(),
-    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-  },
-  (t) => [index("verification_identifier_idx").on(t.identifier)]
-)
-
-/** Better Auth — organization plugin */
-export const organization = pgTable("organization", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  slug: text("slug").notNull().unique(),
-  logo: text("logo"),
-  metadata: text("metadata"),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-})
-
-export const member = pgTable(
-  "member",
-  {
-    id: text("id").primaryKey(),
-    organizationId: text("organizationId")
-      .notNull()
-      .references(() => organization.id, { onDelete: "cascade" }),
-    userId: text("userId")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    role: text("role").notNull().default("member"),
-    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-  },
-  (t) => [uniqueIndex("member_user_org_uidx").on(t.userId, t.organizationId)]
-)
-
-export const invitation = pgTable(
-  "invitation",
-  {
-    id: text("id").primaryKey(),
-    organizationId: text("organizationId")
-      .notNull()
-      .references(() => organization.id, { onDelete: "cascade" }),
-    email: text("email").notNull(),
-    role: text("role"),
-    status: text("status").notNull().default("pending"),
-    expiresAt: timestamp("expiresAt", { mode: "date" }).notNull(),
-    inviterId: text("inviterId")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-  },
-  (t) => [
-    index("invitation_organizationId_idx").on(t.organizationId),
-    index("invitation_email_idx").on(t.email),
-  ]
-)
-
-/** Better Auth — two-factor plugin */
-export const twoFactor = pgTable(
-  "twoFactor",
-  {
-    id: text("id").primaryKey(),
-    secret: text("secret").notNull(),
-    backupCodes: text("backupCodes").notNull(),
-    userId: text("userId")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    verified: boolean("verified").default(true),
-  },
-  (t) => [
-    index("twoFactor_secret_idx").on(t.secret),
-    index("twoFactor_userId_idx").on(t.userId),
-  ]
-)
-
-/** Better Auth — @better-auth/passkey */
-export const passkey = pgTable(
-  "passkey",
-  {
-    id: text("id").primaryKey(),
-    name: text("name"),
-    publicKey: text("publicKey").notNull(),
-    userId: text("userId")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    credentialID: text("credentialID").notNull(),
-    counter: integer("counter").notNull(),
-    deviceType: text("deviceType").notNull(),
-    backedUp: boolean("backedUp").notNull(),
-    transports: text("transports"),
-    createdAt: timestamp("createdAt", { mode: "date" }),
-    aaguid: text("aaguid"),
-  },
-  (t) => [
-    index("passkey_userId_idx").on(t.userId),
-    index("passkey_credentialID_idx").on(t.credentialID),
-  ]
-)
-
 /**
  * IAM / security audit trail (org-scoped where applicable).
- * Append-only; writers live in `lib/auth/audit.server.ts` and Better Auth hooks. Action strings: see IAM audit policy in `AGENTS.md` (`erp.*`, `org.*`, `iam.session.*`).
+ * Append-only; writers live in `lib/auth/audit.server.ts` and Neon Auth hooks. Action strings: see IAM audit policy in `AGENTS.md` (`erp.*`, `org.*`, `iam.session.*`).
+ * FK references to user/organization are intentionally omitted — IDs come from `neon_auth.*` which is managed by Neon Auth and does not expose cross-schema FK constraints.
  */
 export const iamAuditEvent = pgTable(
   "iam_audit_event",
@@ -187,13 +26,9 @@ export const iamAuditEvent = pgTable(
       .$defaultFn(() => crypto.randomUUID()),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     action: text("action").notNull(),
-    actorUserId: text("actorUserId").references(() => user.id, {
-      onDelete: "set null",
-    }),
+    actorUserId: text("actorUserId"),
     actorSessionId: text("actorSessionId"),
-    organizationId: text("organizationId").references(() => organization.id, {
-      onDelete: "set null",
-    }),
+    organizationId: text("organizationId"),
     resourceType: text("resourceType"),
     resourceId: text("resourceId"),
     path: text("path"),
@@ -215,16 +50,14 @@ export const iamAuditEvent = pgTable(
   ]
 )
 
-/** ERP sample domain — scoped by organization */
+/** ERP sample domain — scoped by organization (organizationId from neon_auth.organization). */
 export const customers = pgTable(
   "customers",
   {
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organizationId")
-      .notNull()
-      .references(() => organization.id, { onDelete: "cascade" }),
+    organizationId: text("organizationId").notNull(),
     name: text("name").notNull(),
     email: text("email"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
@@ -250,9 +83,7 @@ export const orgEventEndpoint = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organizationId")
-      .notNull()
-      .references(() => organization.id, { onDelete: "cascade" }),
+    organizationId: text("organizationId").notNull(),
     name: text("name").notNull(),
     url: text("url").notNull(),
     signingKeyEncoded: text("signingKeyEncoded").notNull(),
@@ -315,18 +146,15 @@ export const importJob = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organizationId")
-      .notNull()
-      .references(() => organization.id, { onDelete: "cascade" }),
+    organizationId: text("organizationId").notNull(),
     adapter: text("adapter").notNull(),
     state: text("state").notNull(),
     totalRows: integer("totalRows").notNull().default(0),
     successCount: integer("successCount").notNull().default(0),
     failureCount: integer("failureCount").notNull().default(0),
     inputDigest: text("inputDigest").notNull(),
-    createdByUserId: text("createdByUserId").references(() => user.id, {
-      onDelete: "set null",
-    }),
+    /** userId from neon_auth.user */
+    createdByUserId: text("createdByUserId"),
     metadata: jsonb("metadata").$type<Record<string, unknown>>(),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
@@ -404,22 +232,45 @@ export const knowledgeChunk = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organizationId")
-      .notNull()
-      .references(() => organization.id, { onDelete: "cascade" }),
+    organizationId: text("organizationId").notNull(),
     title: text("title").notNull(),
     body: text("body").notNull(),
     embedding: vector("embedding", { dimensions: 1536 }).notNull(),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-    createdByUserId: text("createdByUserId").references(() => user.id, {
-      onDelete: "set null",
-    }),
+    /** userId from neon_auth.user */
+    createdByUserId: text("createdByUserId"),
   },
   (t) => [
     index("knowledge_chunk_organization_id_idx").on(t.organizationId),
     index("knowledge_chunk_embedding_hnsw").using(
       "hnsw",
       t.embedding.op("vector_cosine_ops")
+    ),
+  ]
+)
+
+/**
+ * Demo dataset for Lynx **natural language → SQL** (Vercel Labs pattern).
+ * Org-scoped only; guarded execution allowlists this table in `nl-sql-demo-guard`.
+ */
+export const lynxDemoUnicorn = pgTable(
+  "lynx_demo_unicorn",
+  {
+    id: serial("id").primaryKey(),
+    organizationId: text("organizationId").notNull(),
+    company: text("company").notNull(),
+    valuation: decimal("valuation", { precision: 10, scale: 2 }).notNull(),
+    dateJoined: date("dateJoined", { mode: "date" }),
+    country: text("country").notNull(),
+    city: text("city").notNull(),
+    industry: text("industry").notNull(),
+    selectInvestors: text("selectInvestors").notNull(),
+  },
+  (t) => [
+    index("lynx_demo_unicorn_organization_id_idx").on(t.organizationId),
+    uniqueIndex("lynx_demo_unicorn_org_company_uidx").on(
+      t.organizationId,
+      t.company
     ),
   ]
 )

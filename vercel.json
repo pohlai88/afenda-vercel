@@ -98,7 +98,7 @@
       ]
     },
     {
-      "source": "/en/dashboard/(.*)",
+      "source": "/en/o/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

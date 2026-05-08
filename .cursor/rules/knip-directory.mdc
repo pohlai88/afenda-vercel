@@ -8,25 +8,84 @@ alwaysApply: false
 
 Authoritative commands and merge gates live in **AGENTS.md** §2 (`pnpm knip`, `pnpm knip:production`, `pnpm verify`). Config: **[`knip.json`](../../knip.json)**.
 
+> **Knip is not a cleanup helper. It is the repo's unused-surface verdict.**
+>
+> Knip failures are treated as architecture drift. The preferred fix is deletion or dependency correction; suppression is reserved for intentional public or framework-discovered surfaces and must remain narrow, path-based, and explainable.
+
+It enforces five invariants:
+
+1. **No dead files**
+2. **No hidden dependencies**
+3. **No accidental public API drift**
+4. **No "temporary" barrels becoming permanent noise**
+5. **No ignored shelf leaking into production architecture**
+
 ## Defaults (strict)
 
-- **`treatConfigHintsAsErrors: true`** — fix or explicitly allow; do not silence hints globally.
+- **`treatConfigHintsAsErrors: false`** (current) — hints are not hard errors; explicit issue rules are.
 - **`ignoreExportsUsedInFile: true`** — same-file-only exports are not failures.
-- **Rules at `error`:** unused **files**, **dependencies** / **devDependencies**, **unlisted** / **unresolved** imports, **binaries**, **catalog**, unused **exports** / **types** / **enumMembers** / **namespaceMembers** / **nsExports** / **nsTypes**, **duplicates**.
+- **Rules at `error`:** unused **files**, **dependencies** / **devDependencies**, **unlisted** / **unresolved** imports, **binaries**, **catalog**, unused **exports** / **types**.
+- **Rules at `warn`:** `enumMembers`, `namespaceMembers`, `nsExports`, `nsTypes`, `duplicates`.
 - Do **not** reintroduce a top-level **`exclude`** that blanket-suppresses export/type noise unless there is a repo-wide decision recorded in **AGENTS.md** and **`knip.json`** stays intentional.
+
+## Default action order (non-negotiable)
+
+When Knip flags something, resolve it in this order — do not skip ahead:
+
+```txt
+1. Delete the unused file, export, or dependency
+2. Fix the import path or missing dependency declaration
+3. Route through an existing index.ts barrel
+4. Add a narrow ignoreIssues entry only when the export is intentional API surface
+```
+
+## Suppression doctrine
+
+Suppressions are allowed **only** when the code is intentionally retained as one of:
+
+- **Public surface** — exported from a module barrel (`index.ts`) and allowed to be consumed by other modules.
+- **Framework-discovered surface** — Next.js page/layout/route entry, Playwright/Vitest test entry, script entry — already covered by `entry` globs in `knip.json`.
+- **Generated-adjacent surface** — schema file, shared type, auth client re-export that tools or types consume non-statically.
+- **Ignored shelf surface** — explicitly listed in `ignoreFiles` (shadcn shelf only).
+
+Every new `ignoreIssues` entry must be able to answer:
+
+- Why is this code intentionally kept?
+- Who consumes it now, or who is allowed to consume it?
+- Can this be solved by deleting, importing directly, or exporting through an existing barrel instead?
+- Is the glob narrow enough to avoid hiding future drift?
 
 ## Allowed suppressions (keep narrow)
 
-- **`ignoreFiles`** — shadcn shelf (`components/ui/**`) and **`hooks/use-mobile.ts`** until wired product-wide.
-- **`ignoreDependencies`** — packages consumed only from ignored UI shelf files (see **`knip.json`** list). Adding a new dep-only-for-ui pattern: extend the list **only** with a short comment in PR / adjacent note in **AGENTS.md** if policy changes.
-- **`ignoreIssues`** — **targeted paths** for intentional public barrels (`lib/auth/index.ts`, `lib/features/*/index.ts`, `*.shared.ts`, etc.), design-system surface, brand/auth/dashboard components, **i18n/navigation**, fixtures, and feature **data/actions/schemas**. New barrels: prefer **exporting through `index.ts`** and add a **minimal** `ignoreIssues` entry if Knip still flags re-exports; do not widen globs carelessly.
+- **`ignoreFiles`** — shadcn shelf (`components/ui/**`) and **`hooks/use-mobile.ts`** until wired product-wide. Do not add new paths without a clear "shelf" rationale.
+- **`ignoreDependencies`** — packages consumed **only** from ignored shelf files (see `knip.json` list). Adding a new entry: extend the list only with a short note in the PR explaining which shelf file consumes it.
+- **`ignoreIssues`** — targeted path-based entries for intentional surfaces:
+  - IAM barrels: `lib/auth/index.ts`, `lib/auth-client.ts`, `lib/auth-v2/index.ts`
+  - Feature module public doors: `lib/features/*/index.ts`
+  - Shared client/server files: `lib/**/*.shared.ts`, `lib/auth/**/*.server.ts`
+  - Design / brand surface: `lib/design-system.ts`, `lib/site.ts`, `lib/tenant.ts`
+  - UI primitives: `components/ui/**`; auth/dashboard components: `components/auth/**`, `components/dashboard/**`
+  - i18n entry: `i18n/navigation.tsx`
+  - Test fixtures: `tests/fixtures/**`
+  - Feature internals: `lib/features/**/data/`, `actions/`, `schemas/`, `components/`, `*.contract.ts`, `constants.ts` — **suppressed because they are route-discovered or module-barrel-proxied, not because they are dead**.
+
+### Feature internals suppression rule
+
+Feature `data/`, `actions/`, `schemas/`, and `components/` paths are suppressed **only** because:
+- Server Actions are discovered at runtime by Next.js, not statically imported.
+- Data query files are imported through the module barrel or server-side composition, not always statically traceable.
+- Schema files are consumed by validators at form/action boundaries that Knip cannot always follow.
+
+This suppression is **not** a blank escape hatch. If a file in these paths is genuinely unused — no longer called from the barrel, no longer wired to a Server Action or page — it must be **deleted**, not left suppressed.
 
 ## Workflow
 
 - After removing code or changing imports: run **`pnpm knip`**. Prefer **deleting** dead code and **dropping** unused deps over expanding ignores.
-- **`pnpm knip:production`** — ship-only dependency view when debugging “why is this in prod?”.
-- **`pnpm verify`** includes **`knip`** — CI-aligned.
+- **`pnpm knip:production`** — ship-only dependency view when debugging "why is this in prod?".
+- **`pnpm verify`** includes **`knip`** — CI-aligned gate for every merge.
+- Unused surface is ungoverned surface. Do not defer Knip fixes past the PR that introduced them.
 
 ## Contract
 
 - **`knip.json`** is a **required root tooling file** in **`scripts/check-agent-contract.mjs`** (`ROOT_TOOLING_FILES`). Do not delete or rename without updating the script.
+- Do not weaken the action order. Do not widen `ignoreIssues` globs casually. Every suppression is a documented debt entry, not a free pass.

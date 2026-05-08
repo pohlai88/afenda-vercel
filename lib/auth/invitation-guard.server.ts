@@ -3,7 +3,7 @@ import "server-only"
 import { eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { invitation } from "#lib/db/schema"
+import { neonAuthInvitation } from "#lib/db/schema-neon-auth"
 
 export type InvitationGuardOk = {
   ok: true
@@ -20,7 +20,7 @@ function normalizeEmail(email: string): string {
 
 /**
  * Ensures an invitation exists, is pending, unexpired, and matches the signed-in
- * user's email (defense in depth alongside Better Auth).
+ * user's email (defense in depth alongside Neon Auth).
  */
 export async function assertInvitationForUser(
   invitationId: string,
@@ -29,13 +29,13 @@ export async function assertInvitationForUser(
   const want = normalizeEmail(userEmail)
   const [row] = await db
     .select({
-      organizationId: invitation.organizationId,
-      email: invitation.email,
-      status: invitation.status,
-      expiresAt: invitation.expiresAt,
+      organizationId: neonAuthInvitation.organizationId,
+      email: neonAuthInvitation.email,
+      status: neonAuthInvitation.status,
+      expiresAt: neonAuthInvitation.expiresAt,
     })
-    .from(invitation)
-    .where(eq(invitation.id, invitationId))
+    .from(neonAuthInvitation)
+    .where(eq(neonAuthInvitation.id, invitationId))
     .limit(1)
 
   if (!row) {

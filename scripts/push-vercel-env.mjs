@@ -20,6 +20,7 @@ const dryRun = process.argv.includes("--dry-run")
 /** Keys to sync when non-empty in `.env.config` (order does not matter). */
 const KEYS = [
   { key: "DATABASE_URL", sensitive: true },
+  { key: "DATABASE_URL_UNPOOLED", sensitive: true },
   { key: "BETTER_AUTH_SECRET", sensitive: true },
   { key: "BETTER_AUTH_URL", sensitive: true },
   { key: "BETTER_AUTH_TRUSTED_ORIGINS", sensitive: false },

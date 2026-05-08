@@ -3,7 +3,8 @@ import "server-only"
 import { and, count, desc, eq, like } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { iamAuditEvent, user } from "#lib/db/schema"
+import { iamAuditEvent } from "#lib/db/schema"
+import { neonAuthUser } from "#lib/db/schema-neon-auth"
 
 import { computeOrganizationIamAuditExportSignature } from "./org-audit-export-verify.server"
 import {
@@ -82,14 +83,14 @@ export async function listOrganizationIamAuditEvents(input: {
       createdAt: iamAuditEvent.createdAt,
       action: iamAuditEvent.action,
       actorUserId: iamAuditEvent.actorUserId,
-      actorEmail: user.email,
+      actorEmail: neonAuthUser.email,
       resourceType: iamAuditEvent.resourceType,
       resourceId: iamAuditEvent.resourceId,
       path: iamAuditEvent.path,
       metadata: iamAuditEvent.metadata,
     })
     .from(iamAuditEvent)
-    .leftJoin(user, eq(iamAuditEvent.actorUserId, user.id))
+    .leftJoin(neonAuthUser, eq(iamAuditEvent.actorUserId, neonAuthUser.id))
     .where(whereClause)
     .orderBy(desc(iamAuditEvent.createdAt))
     .limit(pageSize)
@@ -137,7 +138,7 @@ export async function listOrganizationIamAuditEventsForExport(input: {
       createdAt: iamAuditEvent.createdAt,
       action: iamAuditEvent.action,
       actorUserId: iamAuditEvent.actorUserId,
-      actorEmail: user.email,
+      actorEmail: neonAuthUser.email,
       resourceType: iamAuditEvent.resourceType,
       resourceId: iamAuditEvent.resourceId,
       path: iamAuditEvent.path,
@@ -146,7 +147,7 @@ export async function listOrganizationIamAuditEventsForExport(input: {
       userAgent: iamAuditEvent.userAgent,
     })
     .from(iamAuditEvent)
-    .leftJoin(user, eq(iamAuditEvent.actorUserId, user.id))
+    .leftJoin(neonAuthUser, eq(iamAuditEvent.actorUserId, neonAuthUser.id))
     .where(whereClause)
     .orderBy(desc(iamAuditEvent.createdAt))
     .limit(cap)
@@ -217,7 +218,7 @@ export function organizationIamAuditExportReadableStream(
               createdAt: iamAuditEvent.createdAt,
               action: iamAuditEvent.action,
               actorUserId: iamAuditEvent.actorUserId,
-              actorEmail: user.email,
+              actorEmail: neonAuthUser.email,
               resourceType: iamAuditEvent.resourceType,
               resourceId: iamAuditEvent.resourceId,
               path: iamAuditEvent.path,
@@ -226,7 +227,10 @@ export function organizationIamAuditExportReadableStream(
               userAgent: iamAuditEvent.userAgent,
             })
             .from(iamAuditEvent)
-            .leftJoin(user, eq(iamAuditEvent.actorUserId, user.id))
+            .leftJoin(
+              neonAuthUser,
+              eq(iamAuditEvent.actorUserId, neonAuthUser.id)
+            )
             .where(whereClause)
             .orderBy(desc(iamAuditEvent.createdAt))
             .limit(take)
@@ -256,7 +260,7 @@ export function organizationIamAuditExportReadableStream(
 
         const secret =
           process.env.ORG_AUDIT_EXPORT_HMAC_SECRET ??
-          process.env.BETTER_AUTH_SECRET ??
+          process.env.NEON_AUTH_COOKIE_SECRET ??
           ""
 
         const footer: string[] = [

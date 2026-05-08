@@ -1,4 +1,3 @@
-import type { ReactNode } from "react"
 import type { Metadata } from "next"
 
 import { DashboardShell } from "#components/dashboard/dashboard-shell"
@@ -15,10 +14,7 @@ export const metadata: Metadata = {
 export default async function OrgDashboardLayout({
   children,
   params,
-}: {
-  children: ReactNode
-  params: Promise<{ orgSlug: string }>
-}) {
+}: LayoutProps<"/[locale]/o/[orgSlug]/dashboard">) {
   const { orgSlug } = await params
   const org = await requireOrgSession()
   const showOrgAdminLink = await canActInOrganization(

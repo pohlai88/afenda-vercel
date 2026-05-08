@@ -22,7 +22,7 @@ export async function localePrefixedOrgDashboardRedirect(
 ): Promise<AppPath> {
   const safeSlug = normalizeOrgSlugParam(canonicalSlug)
   if (!safeSlug) {
-    return toLocalePath(locale, "/dashboard" as AppPath)
+    return toLocalePath(locale, "/o" as AppPath)
   }
   const pathname = (await headers()).get(AFENDA_PATHNAME_HEADER)?.trim()
   if (!pathname?.startsWith("/")) {

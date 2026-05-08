@@ -1,6 +1,5 @@
 "use server"
 
-import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -29,12 +28,15 @@ export type PlatformAdminUserActionState =
   | { ok: false; error: string }
   | null
 
-const USERS_REVALIDATE_PATTERN = toLocaleRoutePattern("/admin/users")
+const USERS_REVALIDATE_PATTERN = toLocaleRoutePattern("/operator/users")
+
+function neonErr(e: { message?: string } | null): string {
+  return e?.message?.trim() || "Request failed."
+}
 
 /**
  * Promote a user to / demote from the global `admin` role. Tier S audit:
- * `iam.user.role.update`. Caller must be a global admin (verified twice —
- * once here, once by Better Auth's `setRole` endpoint).
+ * `iam.user.role.update`.
  */
 export async function setUserRoleAction(
   _prev: PlatformAdminUserActionState,
@@ -49,17 +51,12 @@ export async function setUserRoleAction(
     return { ok: false, error: "Invalid input." }
   }
 
-  try {
-    await auth.api.setRole({
-      body: { userId: parsed.data.userId, role: parsed.data.role },
-      headers: await headers(),
-    })
-  } catch (error) {
-    return {
-      ok: false,
-      error:
-        error instanceof Error ? error.message : "Failed to update user role.",
-    }
+  const result = await auth.admin.setRole({
+    userId: parsed.data.userId,
+    role: parsed.data.role,
+  })
+  if (result.error) {
+    return { ok: false, error: neonErr(result.error) }
   }
 
   await writeIamAuditEventFromNextHeaders({
@@ -77,9 +74,7 @@ export async function setUserRoleAction(
 }
 
 /**
- * Ban a user via Better Auth's admin plugin. Tier S audit:
- * `iam.user.ban`. Optional `banReason` is captured in audit metadata only
- * when present.
+ * Ban a user via Neon Auth admin API. Tier S audit: `iam.user.ban`.
  */
 export async function banUserAction(
   _prev: PlatformAdminUserActionState,
@@ -97,19 +92,12 @@ export async function banUserAction(
     return { ok: false, error: "Cannot ban your own account." }
   }
 
-  try {
-    await auth.api.banUser({
-      body: {
-        userId: parsed.data.userId,
-        ...(parsed.data.banReason ? { banReason: parsed.data.banReason } : {}),
-      },
-      headers: await headers(),
-    })
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Failed to ban user.",
-    }
+  const result = await auth.admin.banUser({
+    userId: parsed.data.userId,
+    ...(parsed.data.banReason ? { banReason: parsed.data.banReason } : {}),
+  })
+  if (result.error) {
+    return { ok: false, error: neonErr(result.error) }
   }
 
   await writeIamAuditEventFromNextHeaders({
@@ -141,16 +129,11 @@ export async function unbanUserAction(
     return { ok: false, error: "Invalid input." }
   }
 
-  try {
-    await auth.api.unbanUser({
-      body: { userId: parsed.data.userId },
-      headers: await headers(),
-    })
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Failed to unban user.",
-    }
+  const result = await auth.admin.unbanUser({
+    userId: parsed.data.userId,
+  })
+  if (result.error) {
+    return { ok: false, error: neonErr(result.error) }
   }
 
   await writeIamAuditEventFromNextHeaders({

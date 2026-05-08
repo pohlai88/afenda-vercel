@@ -1,5 +1,3 @@
-import type { Route } from "next"
-
 import { getTranslations } from "next-intl/server"
 
 import { Link } from "#i18n/navigation"
@@ -14,9 +12,7 @@ import { requireOrgSession } from "#lib/tenant"
 
 export default async function OrgAdminIntegrationsPage({
   params,
-}: {
-  params: Promise<{ orgSlug: string }>
-}) {
+}: PageProps<"/[locale]/o/[orgSlug]/admin/integrations">) {
   const { orgSlug } = await params
   const t = await getTranslations("OrgAdmin.integrations")
   const orgSession = await requireOrgSession()
@@ -56,7 +52,7 @@ export default async function OrgAdminIntegrationsPage({
 
       <p className="text-sm text-muted-foreground">
         <Link
-          href={organizationAdminPath(orgSlug, "overview") as Route}
+          href={organizationAdminPath(orgSlug, "overview")}
           className="font-medium text-primary underline-offset-4 hover:underline"
         >
           {t("backAdmin")}

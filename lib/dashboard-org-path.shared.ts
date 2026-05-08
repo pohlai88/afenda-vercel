@@ -31,28 +31,6 @@ export type OrgDashboardModule = (typeof ORG_DASHBOARD_MODULES)[number]
 const MODULE_SET = new Set<string>(ORG_DASHBOARD_MODULES)
 
 /**
- * Validates legacy `[[...segments]]` under `/dashboard` (one allowed module or default).
- */
-export function legacyDashboardSegmentsToTail(
-  segments: string[] | undefined
-): AppPath {
-  if (!segments?.length) {
-    return "/contacts" as AppPath
-  }
-  if (segments.length !== 1) {
-    return "/contacts" as AppPath
-  }
-  const [one] = segments
-  if (!one || one.includes("/") || one.includes("..") || one.includes("\\")) {
-    return "/contacts" as AppPath
-  }
-  if (!MODULE_SET.has(one)) {
-    return "/contacts" as AppPath
-  }
-  return `/${one}` as AppPath
-}
-
-/**
  * Sanitize path after `/o/{slug}` from a trusted forwarded pathname header.
  * Prevents odd tails if headers are ever wrong or duplicated.
  */

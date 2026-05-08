@@ -4,9 +4,7 @@ export const dynamic = "force-dynamic"
 
 export default async function OrgDashboardAccountingPage({
   params,
-}: {
-  params: Promise<{ orgSlug: string }>
-}) {
+}: PageProps<"/[locale]/o/[orgSlug]/dashboard/accounting">) {
   const { orgSlug } = await params
   return <AccountingPage orgSlug={orgSlug} />
 }

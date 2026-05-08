@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { parseLynxTruthMarkdown } from "#features/lynx"
+import { parseLynxTruthMarkdown } from "#features/lynx/schemas/truth-markdown"
 
 describe("parseLynxTruthMarkdown", () => {
   it("parses the three required sections", () => {

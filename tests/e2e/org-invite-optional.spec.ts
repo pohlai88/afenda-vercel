@@ -15,7 +15,7 @@ test.describe("org invite UI (optional credentials)", () => {
     }
   })
 
-  test("signed-in org admin can open organization page and invite member form", async ({
+  test("signed-in org admin can open members workbench and invite member form", async ({
     page,
   }) => {
     await page.goto("/en/sign-in")
@@ -29,20 +29,18 @@ test.describe("org invite UI (optional credentials)", () => {
     await page.getByLabel("Password", { exact: true }).fill(invitePassword!)
     await page.getByRole("button", { name: "Sign in" }).click()
 
-    await page.waitForURL(/\/en\/(dashboard|onboarding|account)/, {
+    await page.waitForURL(/\/en\/(onboarding|account|o)/, {
       timeout: 30_000,
     })
 
-    await page.goto("/en/account/organization")
-    await expect(
-      page.getByRole("heading", { name: "Organization" })
-    ).toBeVisible({
-      timeout: 15_000,
-    })
+    const slugMatch = page.url().match(/\/en\/o\/([^/]+)\//)
+    test.skip(!slugMatch, "No active organization slug detected after sign-in.")
+    const slug = slugMatch![1]
 
+    await page.goto(`/en/o/${slug}/admin/members`)
     await expect(
       page.getByRole("heading", { name: "Invite member" })
-    ).toBeVisible()
+    ).toBeVisible({ timeout: 15_000 })
     await expect(page.getByLabel("Email", { exact: true })).toBeVisible()
   })
 })

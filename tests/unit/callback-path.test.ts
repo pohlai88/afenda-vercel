@@ -26,8 +26,8 @@ describe("resolvePostAuthCallbackUrl", () => {
 
   it("allows locale-prefixed same-origin paths", () => {
     expect(
-      resolvePostAuthCallbackUrl(toLocalePath(DEFAULT_APP_LOCALE, "/dashboard"))
-    ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/dashboard"))
+      resolvePostAuthCallbackUrl(toLocalePath(DEFAULT_APP_LOCALE, "/o"))
+    ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/o"))
     expect(
       resolvePostAuthCallbackUrl(
         toLocalePath(DEFAULT_APP_LOCALE, "/account/security")

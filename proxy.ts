@@ -1,4 +1,4 @@
-import { getSessionCookie } from "better-auth/cookies"
+import { hasNeonAuthSessionCookie } from "#lib/auth/neon-session-cookie.shared"
 import createIntlMiddleware from "next-intl/middleware"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -6,6 +6,10 @@ import {
   AFENDA_PATHNAME_HEADER,
   AFENDA_SEARCH_HEADER,
 } from "#lib/auth/forwarded-path-headers.shared"
+import {
+  isProtectedLocaleInternalPath,
+  localeInternalSignInPathForProtectedRoute,
+} from "#lib/auth/proxy-protected-paths.shared"
 import { AFENDA_LOCALE_HEADER } from "#lib/i18n/locale-header.shared"
 import {
   stripLeadingLocalePrefix,
@@ -15,33 +19,6 @@ import {
 import { routing } from "./i18n/routing"
 
 const intlMiddleware = createIntlMiddleware(routing)
-
-const PROTECTED_PATH_PREFIXES = [
-  "/dashboard",
-  "/onboarding",
-  "/account",
-  "/admin",
-  "/accept-invitation",
-] as const
-
-/** Any locale-internal path under `/o/{slug}/…` (tenant surface). */
-function isOrgScopedPathname(pathnameWithoutLocale: string): boolean {
-  if (/^\/o\/[^/]+\//.test(pathnameWithoutLocale)) {
-    return true
-  }
-  return /^\/o\/[^/]+$/.test(pathnameWithoutLocale)
-}
-
-function isProtectedPathname(pathnameWithoutLocale: string): boolean {
-  if (isOrgScopedPathname(pathnameWithoutLocale)) {
-    return true
-  }
-  return PROTECTED_PATH_PREFIXES.some(
-    (prefix) =>
-      pathnameWithoutLocale === prefix ||
-      pathnameWithoutLocale.startsWith(`${prefix}/`)
-  )
-}
 
 function copySetCookieHeaders(from: NextResponse, to: NextResponse) {
   const getSetCookie = (
@@ -60,13 +37,14 @@ function copySetCookieHeaders(from: NextResponse, to: NextResponse) {
 /**
  * Locale routing (next-intl) + presence-only session cookie check (Better Auth).
  * Does not validate the session — RSC, layouts, and Server Actions must call
- * `auth.api.getSession` / `requireOrgSession` / `requireGlobalAdminSession`.
+ * Neon Auth `getSession` / `requireOrgSession` / `requireGlobalAdminSession`.
  *
  * For authenticated hits, forwards full pathname + query to Server Components via
  * request headers so guards can preserve `callbackUrl` on interruption redirects.
  *
- * Tenant URLs under `/o/{slug}/…` require the same cookie gate as `/dashboard` (see
- * Next.js Data Security — proxy checks are optimistic only).
+ * Tenant URLs under `/o/{slug}/…` and canonical auth/account surfaces
+ * (`/sign-in`, `/account/*`, `/onboarding`, `/accept-invitation`, `/operator/*`)
+ * require a cookie gate (see Next.js Data Security — proxy checks are optimistic only).
  */
 export function proxy(request: NextRequest) {
   const intlResponse = intlMiddleware(request)
@@ -77,17 +55,22 @@ export function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
   const stripped = stripLeadingLocalePrefix(pathname)
-  const token = getSessionCookie(request)
+  const token = hasNeonAuthSessionCookie(request)
 
   const protectedHit =
-    stripped && isProtectedPathname(stripped.pathnameWithoutLocale) && token
+    stripped &&
+    isProtectedLocaleInternalPath(stripped.pathnameWithoutLocale) &&
+    token
 
   const protectedRedirect =
-    stripped && isProtectedPathname(stripped.pathnameWithoutLocale) && !token
+    stripped &&
+    isProtectedLocaleInternalPath(stripped.pathnameWithoutLocale) &&
+    !token
 
   if (protectedRedirect) {
+    const signInPath = localeInternalSignInPathForProtectedRoute()
     const signIn = new URL(
-      toLocalePath(stripped.locale, "/sign-in"),
+      toLocalePath(stripped.locale, signInPath),
       request.url
     )
     const returnTo =
@@ -123,5 +106,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
+  matcher: ["/((?!api|_next|_vercel|\\.well-known/workflow|.*\\..*).*)"],
 }

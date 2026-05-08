@@ -2,7 +2,7 @@ import "server-only"
 
 import { headers } from "next/headers"
 
-import { auth } from "#lib/auth"
+import { auth } from "#lib/auth/neon.server"
 
 import {
   PLATFORM_ADMIN_USERS_MAX_PAGE_SIZE,
@@ -11,7 +11,7 @@ import {
 } from "../constants"
 import type { PlatformAdminUserPage, PlatformAdminUserSummary } from "../types"
 
-/** Sanitized inputs used to drive `auth.api.listUsers`. */
+/** Sanitized inputs used to drive Neon Auth `admin.listUsers`. */
 export type PlatformAdminUserListInput = {
   readonly searchValue?: string
   readonly limit?: number
@@ -19,12 +19,11 @@ export type PlatformAdminUserListInput = {
 }
 
 /**
- * Server-side wrapper around Better Auth's admin `listUsers` endpoint. Handles
+ * Server-side wrapper around Neon Auth's admin `listUsers` endpoint. Handles
  * search/pagination clamping, projects rows into {@link PlatformAdminUserSummary},
  * and forwards request headers so Better Auth can authorize the caller.
  *
- * Caller is responsible for `requireGlobalAdminSession()` before invoking this
- * (Better Auth will also reject non-admin sessions; this is the second line).
+ * Caller is responsible for `requireGlobalAdminSession()` before invoking this.
  */
 export async function listUsersForPlatformAdmin(
   input: PlatformAdminUserListInput = {}
@@ -37,7 +36,7 @@ export async function listUsersForPlatformAdmin(
       ? trimmedSearch.slice(0, PLATFORM_ADMIN_USERS_SEARCH_MAX_LENGTH)
       : undefined
 
-  const result = await auth.api.listUsers({
+  const { data: result, error } = await auth.admin.listUsers({
     query: {
       limit,
       offset,
@@ -51,11 +50,15 @@ export async function listUsersForPlatformAdmin(
           }
         : {}),
     },
-    headers: await headers(),
+    fetchOptions: { headers: await headers() },
   })
 
-  const users = (result?.users ?? []).map(toUserSummary)
-  const total = typeof result?.total === "number" ? result.total : users.length
+  if (error || !result) {
+    return { users: [], total: 0, limit, offset }
+  }
+
+  const users = (result.users ?? []).map(toUserSummary)
+  const total = typeof result.total === "number" ? result.total : users.length
 
   return { users, total, limit, offset }
 }

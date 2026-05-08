@@ -1,0 +1,40 @@
+"use client"
+
+import { useEffect } from "react"
+
+import { Button } from "#components/ui/button"
+
+/**
+ * Platform admin (operator) tier error boundary — keeps the operator shell mounted
+ * so cross-tenant navigation remains available while the panel recovers.
+ */
+export default function OperatorError({
+  error,
+  unstable_retry,
+}: {
+  error: Error & { digest?: string }
+  unstable_retry: () => void
+}) {
+  useEffect(() => {
+    console.error(error)
+  }, [error])
+
+  return (
+    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
+      <h1 className="text-lg font-medium text-foreground">
+        Operator panel failed to load
+      </h1>
+      <p className="max-w-md text-sm text-muted-foreground">
+        Try again, or navigate to another panel from the sidebar.
+      </p>
+      {error.digest ? (
+        <p className="font-mono text-xs text-muted-foreground">
+          Reference: {error.digest}
+        </p>
+      ) : null}
+      <Button type="button" onClick={() => unstable_retry()}>
+        Try again
+      </Button>
+    </div>
+  )
+}

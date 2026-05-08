@@ -1,35 +1,37 @@
-import type { AppPath } from "#lib/i18n/locales.shared"
+import type { Route } from "next"
+
 import { ORG_ADMIN_PATH_SEGMENTS } from "#lib/dashboard-org-path.shared"
 import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
 
 /**
- * Locale-internal pathname for an org-scoped dashboard URL (`localePrefix: "always"`).
- * Use with `Link` / `redirect` from `#i18n/navigation`.
- */
-/**
  * Locale-internal pathname for the org admin workbench (`localePrefix: "always"`).
- * Client-safe — use from dashboard shell instead of the `#features/org-admin` barrel
- * so Server Actions / `server-only` query modules are not pulled into the client graph.
- * Segment allowlist mirrors {@link ORG_ADMIN_PATH_SEGMENTS}.
+ * Returns a typed {@link Route} for `Link` / `redirect` from `#i18n/navigation` and
+ * Next.js typed routes. Client-safe — use from dashboard shell instead of the
+ * `#features/org-admin` barrel so Server Actions / `server-only` query modules are
+ * not pulled into the client graph. Segment allowlist mirrors {@link ORG_ADMIN_PATH_SEGMENTS}.
  */
 export function organizationAdminPath(
   orgSlug: string,
   section: "overview" | string
-): AppPath {
+): Route {
   const slug = normalizeOrgSlugParam(orgSlug)
   if (!slug) {
     throw new Error("organizationAdminPath: invalid org slug")
   }
   const base = `/o/${slug}/admin`
   if (section === "overview") {
-    return base as AppPath
+    return base as Route
   }
   if (!ORG_ADMIN_PATH_SEGMENTS.has(section)) {
     throw new Error(`organizationAdminPath: unknown admin segment "${section}"`)
   }
-  return `${base}/${section}` as AppPath
+  return `${base}/${section}` as Route
 }
 
+/**
+ * Locale-internal pathname for an org-scoped dashboard URL (`localePrefix: "always"`).
+ * Returns a typed {@link Route} for `Link` / `redirect` from `#i18n/navigation`.
+ */
 export function organizationDashboardPath(
   orgSlug: string,
   modulePath:
@@ -41,16 +43,16 @@ export function organizationDashboardPath(
     | "inventory"
     | "accounting"
     | "home"
-): AppPath {
+): Route {
   const slug = normalizeOrgSlugParam(orgSlug)
   if (!slug) {
     throw new Error("organizationDashboardPath: invalid org slug")
   }
   const base = `/o/${slug}/dashboard`
   if (modulePath === "home") {
-    return base as AppPath
+    return base as Route
   }
-  return `${base}/${modulePath}` as AppPath
+  return `${base}/${modulePath}` as Route
 }
 
 /** Tails for `toLocaleOrgDashboardRevalidatePattern` (leading slash). */

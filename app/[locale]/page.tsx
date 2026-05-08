@@ -8,9 +8,9 @@ import { SITE_DESCRIPTION, SITE_NAME } from "#lib/site"
 
 import { Link } from "#i18n/navigation"
 
-type Props = { params: Promise<{ locale: string }> }
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params
   const base = `/${locale}`
   return {
@@ -47,7 +47,7 @@ export default async function Page() {
               <Link href="/sign-in">{t("ctaSignIn")}</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/dashboard">{t("ctaDashboard")}</Link>
+              <Link href="/o">{t("ctaDashboard")}</Link>
             </Button>
             <Button variant="secondary">{t("demoButton")}</Button>
           </div>

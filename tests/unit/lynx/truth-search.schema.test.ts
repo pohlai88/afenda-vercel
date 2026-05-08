@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { lynxTruthSearchBodySchema } from "#features/lynx"
+import { lynxTruthSearchBodySchema } from "#features/lynx/schemas/truth-search.schema"
 
 describe("lynxTruthSearchBodySchema", () => {
   it("accepts a non-empty trimmed question", () => {

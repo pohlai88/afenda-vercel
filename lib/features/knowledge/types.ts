@@ -11,6 +11,8 @@ export type SimilarChunkRow = {
   title: string
   body: string
   distance: number
+  /** Chunk creation time (used for provenance / recency in Lynx tools). */
+  createdAt: Date
 }
 
 export type SearchSimilarFormState =

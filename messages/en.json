@@ -2,6 +2,8 @@
   "Common": {
     "loading": "Loading…",
     "loadingSignIn": "Loading sign-in…",
+    "loadingSignUp": "Loading sign-up…",
+    "loadingResetPassword": "Loading reset password…",
     "loadingInvitation": "Loading invitation…",
     "loadingOnboarding": "Loading workspace setup…",
     "loadingUsers": "Loading users…"
@@ -142,6 +144,7 @@
   },
   "Dashboard": {
     "nav": {
+      "label": "Dashboard modules",
       "contacts": "Contacts",
       "lynx": "Lynx",
       "knowledge": "Knowledge",
@@ -155,6 +158,17 @@
       "title": "Lynx",
       "eyebrow": "The Machine",
       "description": "Afenda’s machine layer for resolving truth, preparing work, and recommending controlled action.",
+      "operator": {
+        "sectionTitle": "Operator assist (preview)",
+        "sectionDescription": "Ask about read-only org facts. Lynx can use governed tools: contact totals and recent contacts, recent knowledge chunks, semantic knowledge search, and active import job counts. Responses stream as they are produced; nothing here changes your data.",
+        "labelMessage": "Request",
+        "placeholderMessage": "e.g. How many contacts do we have, and what is in knowledge lately?",
+        "submit": "Ask Lynx",
+        "pending": "Working…",
+        "errorGeneric": "Something went wrong. Try again.",
+        "errorStream": "Could not read the response stream.",
+        "toolsLabel": "Tools available"
+      },
       "truth": {
         "sectionTitle": "Truth retrieval",
         "sectionDescription": "Ask a question. Lynx answers from your organization’s stored knowledge chunks only.",
@@ -170,6 +184,22 @@
         "headingNextAction": "Next safe action",
         "evidenceEmpty": "No passages retrieved. Add knowledge chunks below.",
         "distanceLabel": "cosine distance {distance}"
+      },
+      "nlDemo": {
+        "sectionTitle": "Structured query (demo)",
+        "sectionDescription": "Ask in plain English. Lynx generates read-only SQL against the org-scoped demo dataset (`lynx_demo_unicorn`), runs it in Postgres, and suggests a chart. Seed rows first — see AGENTS.md (Lynx NL→SQL demo).",
+        "labelQuestion": "Question",
+        "placeholderQuestion": "e.g. Average valuation by industry in the United States",
+        "submit": "Run query",
+        "pending": "Working…",
+        "clear": "Clear",
+        "errorGeneric": "Something went wrong. Try again.",
+        "headingSql": "Generated SQL",
+        "explainSql": "Explain SQL",
+        "headingExplain": "How this SQL works",
+        "tabTable": "Table",
+        "tabChart": "Chart",
+        "chartPending": "Chart suggestion unavailable — try a broader question."
       },
       "substrate": {
         "addTitle": "Knowledge substrate",
@@ -346,8 +376,7 @@
       "identity": "Identity & linked accounts",
       "orgProfileTitle": "Organization profile",
       "orgProfileDescription": "Name and slug are shown across the workspace.",
-      "orgProfileHint": "To change organization details, use the account organization page or contact support if your plan includes assisted changes.",
-      "legacyOrgPage": "Open account organization page",
+      "orgProfileHint": "Organization profile editing is not yet wired in this build. Member management lives in the Members tab.",
       "backAdmin": "← Admin overview"
     },
     "integrations": {
@@ -410,6 +439,36 @@
         "statusEvents": "{count, plural, one {# event} other {# events}}",
         "recentTitle": "Recent deliveries"
       }
+    }
+  },
+  "AuthV2": {
+    "shell": {
+      "title": "Auth V2",
+      "subtitle": "Parallel Neon Auth control plane."
+    },
+    "signIn": {
+      "title": "Sign in",
+      "magicLink": "Send magic link",
+      "google": "Continue with Google",
+      "github": "Continue with GitHub"
+    },
+    "signUp": {
+      "title": "Create account"
+    },
+    "checkEmail": {
+      "title": "Check your email"
+    },
+    "verifyEmail": {
+      "title": "Verify email"
+    },
+    "account": {
+      "title": "Account"
+    },
+    "admin": {
+      "title": "V2 Admin"
+    },
+    "org": {
+      "title": "Organization"
     }
   }
 }

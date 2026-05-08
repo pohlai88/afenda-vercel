@@ -7,12 +7,16 @@ import { AfendaBrandLockup } from "#components/afenda-brand"
 import { Button } from "#components/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
 
+/**
+ * Next.js 16+ error boundaries receive `unstable_retry` (canonical) instead of `reset`.
+ * @see https://nextjs.org/docs/app/api-reference/file-conventions/error
+ */
 export default function Error({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
+  unstable_retry: () => void
 }) {
   useEffect(() => {
     console.error(error)
@@ -41,7 +45,7 @@ export default function Error({
         ) : null}
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <Button type="button" onClick={() => reset()}>
+        <Button type="button" onClick={() => unstable_retry()}>
           Try again
         </Button>
         <Button variant="outline" asChild>

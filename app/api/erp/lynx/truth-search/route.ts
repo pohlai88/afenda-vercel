@@ -20,8 +20,14 @@ import {
   type LynxTruthNdjsonMeta,
 } from "#features/lynx"
 import { writeIamAuditEventFromHeaders } from "#lib/auth"
+import {
+  readRequestJson,
+  ROUTE_JSON_HEADERS,
+  routeJsonError,
+} from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
 
+export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 export const maxDuration = 60
 
@@ -51,48 +57,29 @@ function toEvidenceDto(
 export async function POST(request: Request) {
   const org = await getOrgSessionFromRequest(request)
   if (!org) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    })
+    return routeJsonError("Unauthorized", 401)
   }
 
-  let json: unknown
-  try {
-    json = await request.json()
-  } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    })
-  }
+  const parsedBody = await readRequestJson(request)
+  if (!parsedBody.ok) return parsedBody.response
 
-  const parsed = lynxTruthSearchBodySchema.safeParse(json)
+  const parsed = lynxTruthSearchBodySchema.safeParse(parsedBody.value)
   if (!parsed.success) {
-    return new Response(JSON.stringify({ error: "Invalid question" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    })
+    return routeJsonError("Invalid question", 400)
   }
 
   if (!process.env.OPENAI_API_KEY?.trim()) {
-    return new Response(
-      JSON.stringify({
-        error:
-          "OPENAI_API_KEY is required for knowledge embeddings (Lynx retrieval). Optional: AI_GATEWAY_API_KEY routes answer generation via Vercel AI Gateway.",
-      }),
-      { status: 503, headers: { "Content-Type": "application/json" } }
+    return routeJsonError(
+      "OPENAI_API_KEY is required for knowledge embeddings (Lynx retrieval). Optional: AI_GATEWAY_API_KEY routes answer generation via Vercel AI Gateway.",
+      503
     )
   }
 
   const languageModel = resolveLynxTruthStreamModel()
   if (!languageModel) {
-    return new Response(
-      JSON.stringify({
-        error:
-          "Could not resolve a language model for Lynx generation (configure AI_GATEWAY_API_KEY or OPENAI_API_KEY)",
-      }),
-      { status: 503, headers: { "Content-Type": "application/json" } }
+    return routeJsonError(
+      "Could not resolve a language model for Lynx generation (configure AI_GATEWAY_API_KEY or OPENAI_API_KEY)",
+      503
     )
   }
 
@@ -102,10 +89,7 @@ export async function POST(request: Request) {
   try {
     queryEmbedding = await embedKnowledgeText(question)
   } catch {
-    return new Response(JSON.stringify({ error: "Could not embed question" }), {
-      status: 503,
-      headers: { "Content-Type": "application/json" },
-    })
+    return routeJsonError("Could not embed question", 503)
   }
 
   const passages = await findSimilarKnowledgeChunks(
@@ -177,8 +161,7 @@ export async function POST(request: Request) {
     status: 200,
     headers: {
       "Content-Type": "application/x-ndjson; charset=utf-8",
-      "Cache-Control": "private, no-store",
-      "X-Content-Type-Options": "nosniff",
+      ...ROUTE_JSON_HEADERS,
     },
   })
 }

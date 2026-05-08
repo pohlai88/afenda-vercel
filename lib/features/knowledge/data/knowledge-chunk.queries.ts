@@ -45,6 +45,7 @@ export async function findSimilarKnowledgeChunks(
       id: knowledgeChunk.id,
       title: knowledgeChunk.title,
       body: knowledgeChunk.body,
+      createdAt: knowledgeChunk.createdAt,
       distance: dist,
     })
     .from(knowledgeChunk)
@@ -56,6 +57,7 @@ export async function findSimilarKnowledgeChunks(
     id: r.id,
     title: r.title,
     body: r.body,
+    createdAt: r.createdAt,
     distance: Number(r.distance),
   }))
 }

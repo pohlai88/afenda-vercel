@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { resolveLynxTruthStreamModel } from "#features/lynx"
+import { resolveLynxTruthStreamModel } from "#features/lynx/data/truth-generation-model.server"
 
 describe("resolveLynxTruthStreamModel", () => {
   afterEach(() => {

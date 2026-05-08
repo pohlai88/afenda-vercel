@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import type { Route } from "next"
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
@@ -17,7 +18,10 @@ describe("AuthResult", () => {
       <AuthResult
         title="Session expired"
         description="Please sign in again to continue."
-        primaryAction={{ label: "Sign in", href: "/en/sign-in" }}
+        primaryAction={{
+          label: "Sign in",
+          href: "/en/sign-in" as unknown as Route,
+        }}
       />
     )
 
@@ -34,8 +38,11 @@ describe("AuthResult", () => {
         variant="destructive"
         title="Invitation expired"
         description="Ask your admin for a new invite."
-        primaryAction={{ label: "Sign in", href: "/en/sign-in" }}
-        secondaryAction={{ label: "Home", href: "/en" }}
+        primaryAction={{
+          label: "Sign in",
+          href: "/en/sign-in" as unknown as Route,
+        }}
+        secondaryAction={{ label: "Home", href: "/en" as unknown as Route }}
       />
     )
 

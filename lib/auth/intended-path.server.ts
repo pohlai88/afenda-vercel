@@ -16,11 +16,11 @@ const MAX_SEARCH_LEN = 2048
 
 /**
  * Best-effort return path for the current document request (pathname + query).
- * Falls back to locale-prefixed `/en/dashboard` when headers are missing (e.g. non-proxy context).
+ * Falls back to locale-prefixed `/en/o` when headers are missing (e.g. non-proxy context).
  */
 export async function getIntendedReturnPathFromRequest(): Promise<string> {
   const locale = await getRequestAppLocale()
-  const fallback = toLocalePath(locale, "/dashboard")
+  const fallback = toLocalePath(locale, "/o")
   const h = await headers()
   const pathname = h.get(AFENDA_PATHNAME_HEADER)?.trim()
   if (!pathname || !pathname.startsWith("/")) {

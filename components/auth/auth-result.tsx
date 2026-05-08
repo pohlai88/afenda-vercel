@@ -14,7 +14,18 @@ import { cn } from "#lib/utils"
 
 export type AuthResultAction = {
   label: string
-  href: string
+  href: Route
+}
+
+type AuthResultProps = {
+  variant?: AuthResultVariant
+  title: string
+  description: string
+  trustNote?: string
+  primaryAction: AuthResultAction
+  secondaryAction?: AuthResultAction
+  supportReference?: string
+  className?: string
 }
 
 export function AuthResult({
@@ -26,16 +37,7 @@ export function AuthResult({
   secondaryAction,
   supportReference,
   className,
-}: {
-  variant?: AuthResultVariant
-  title: string
-  description: string
-  trustNote?: string
-  primaryAction: AuthResultAction
-  secondaryAction?: AuthResultAction
-  supportReference?: string
-  className?: string
-}) {
+}: AuthResultProps) {
   return (
     <Card
       role="region"
@@ -58,6 +60,7 @@ export function AuthResult({
         >
           {title}
         </CardTitle>
+
         <p
           id="auth-result-desc"
           className="text-sm leading-relaxed text-pretty text-muted-foreground"
@@ -65,6 +68,7 @@ export function AuthResult({
           {description}
         </p>
       </CardHeader>
+
       {trustNote ? (
         <CardContent className="pt-0">
           <p className="text-xs leading-relaxed text-muted-foreground">
@@ -72,18 +76,19 @@ export function AuthResult({
           </p>
         </CardContent>
       ) : null}
+
       <CardFooter className="flex flex-col gap-2 border-t pt-6 sm:flex-row sm:justify-end">
         {secondaryAction ? (
           <Button asChild variant="outline" className="w-full sm:w-auto">
-            <Link href={secondaryAction.href as Route}>
-              {secondaryAction.label}
-            </Link>
+            <Link href={secondaryAction.href}>{secondaryAction.label}</Link>
           </Button>
         ) : null}
+
         <Button asChild className="w-full sm:w-auto">
-          <Link href={primaryAction.href as Route}>{primaryAction.label}</Link>
+          <Link href={primaryAction.href}>{primaryAction.label}</Link>
         </Button>
       </CardFooter>
+
       {supportReference ? (
         <div className="border-t px-6 py-4">
           <p className="text-xs text-muted-foreground">

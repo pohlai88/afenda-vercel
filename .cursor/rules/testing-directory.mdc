@@ -18,6 +18,7 @@ Authoritative rules live in **AGENTS.md** (section 2 commands + section 6 canoni
 ## Coverage (V8)
 
 - **`pnpm test:ci`** / **`pnpm test:coverage`** run Vitest with **`@vitest/coverage-v8`**. Reports: **`.artifacts/coverage/`** (`coverage-summary.json`, `lcov.info`, text).
+- Do **not** delete **`.artifacts/coverage/.tmp`** or shard files from shell/bootstrap scripts — Vitest owns that lifecycle (**AGENTS.md** testing contract).
 - **IAM-sensitive shared modules** (`lib/auth/**/*.shared.ts`, **`lib/auth/callback-path.ts`**) must meet **≥ 95%** coverage (lines, statements, branches, functions) — enforced in [`vitest.config.ts`](vitest.config.ts).
 - **Global executed coverage** is **ratcheted** from the current baseline (~mid-60%) toward **80%**. Do **not** enable **`coverage.all: true`** until the repo has enough intentional unit breadth — untouched files must not count as 0% prematurely.
 

@@ -9,7 +9,7 @@ import type {
 
 /**
  * Canonical platform-admin capability registry — single source of truth for
- * the global `/admin/*` surface. Sidebar, breadcrumbs, route validators and
+ * the global `/operator/*` surface. Sidebar, breadcrumbs, route validators and
  * audit prefixes are derived from this list.
  *
  * IDs are stable strings (referenced from i18n + audit). Add capabilities by
@@ -68,13 +68,13 @@ export function getPlatformAdminCapabilityById(
   return PLATFORM_ADMIN_CAPABILITIES.find((capability) => capability.id === id)
 }
 
-/** Build a locale-internal `/admin/{segment}` path. Strips leading slashes. */
+/** Build a locale-internal `/operator/{segment}` path. Strips leading slashes. */
 export function platformAdminPath(segment?: string): AppPath {
   if (!segment) {
-    return "/admin" as AppPath
+    return "/operator" as AppPath
   }
   const trimmed = segment.replace(/^\/+/, "")
-  return `/admin/${trimmed}` as AppPath
+  return `/operator/${trimmed}` as AppPath
 }
 
 /** Sidebar nav items derived from {@link PLATFORM_ADMIN_CAPABILITIES}. */

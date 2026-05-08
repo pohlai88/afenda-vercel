@@ -7,22 +7,25 @@ import {
 
 test.describe("public shell", () => {
   test(
-    "organization audit redirects unauthenticated users to sign-in",
+    "org admin audit redirects unauthenticated users to sign-in",
     { tag: "@smoke" },
     async ({ page }) => {
-      await page.goto("/en/account/organization/audit")
-      await expect(page).toHaveURL(/\/en\/sign-in/)
+      const target = "/en/o/acme-corp/admin/audit"
+      await page.goto(target)
+      await expect(page).toHaveURL(/\/en\/sign-in\?/)
+      const u = new URL(page.url())
+      expect(u.searchParams.get("callbackUrl")).toBe(target)
     }
   )
 
   test(
-    "dashboard redirects unauthenticated users to sign-in with locale-prefixed callbackUrl",
+    "org resolver /o redirects unauthenticated users to sign-in with locale-prefixed callbackUrl",
     { tag: "@smoke" },
     async ({ page }) => {
-      await page.goto("/en/dashboard")
+      await page.goto("/en/o")
       await expect(page).toHaveURL(/\/en\/sign-in\?/)
       const u = new URL(page.url())
-      expect(u.searchParams.get("callbackUrl")).toBe("/en/dashboard")
+      expect(u.searchParams.get("callbackUrl")).toBe("/en/o")
     }
   )
 
@@ -43,6 +46,30 @@ test.describe("public shell", () => {
     { tag: "@smoke" },
     async ({ page }) => {
       const target = "/en/o/acme-corp/admin"
+      await page.goto(target)
+      await expect(page).toHaveURL(/\/en\/sign-in\?/)
+      const u = new URL(page.url())
+      expect(u.searchParams.get("callbackUrl")).toBe(target)
+    }
+  )
+
+  test(
+    "account URL redirects unauthenticated users to sign-in with callbackUrl",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      const target = "/en/account"
+      await page.goto(target)
+      await expect(page).toHaveURL(/\/en\/sign-in\?/)
+      const u = new URL(page.url())
+      expect(u.searchParams.get("callbackUrl")).toBe(target)
+    }
+  )
+
+  test(
+    "invitation route redirects unauthenticated users to sign-in with callbackUrl",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      const target = "/en/accept-invitation"
       await page.goto(target)
       await expect(page).toHaveURL(/\/en\/sign-in\?/)
       const u = new URL(page.url())

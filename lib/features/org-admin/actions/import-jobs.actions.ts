@@ -1,8 +1,11 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { headers } from "next/headers"
 
+import {
+  enqueueOrgImportJobWorkflowRun,
+  importJobRunPayloadSchema,
+} from "#features/execution"
 import {
   canActInOrganization,
   writeIamAuditEventFromNextHeaders,
@@ -13,16 +16,10 @@ import { requireOrgSession } from "#lib/tenant"
 import { IMPORT_MAX_ROWS_PER_JOB, isImportAdapterId } from "../constants"
 import { digestCsv, parseCsv } from "../data/csv-parser.shared"
 import {
-  appendImportFailure,
   insertImportJob,
-  markImportRowApplied,
-  markImportRowFailed,
   updateImportJobState,
 } from "../data/import-jobs.mutations"
-import {
-  getOrgImportJob,
-  listPendingJobRows,
-} from "../data/import-jobs.queries"
+import { getOrgImportJob } from "../data/import-jobs.queries"
 import { getImportAdapter } from "../data/member-invite.adapter.server"
 import { importJobInputSchema } from "../schemas/import-job-input.schema"
 import type { OrgImportAdapterId, OrgImportJobSummary } from "../types"
@@ -203,9 +200,10 @@ export async function createOrgImportJob(
 }
 
 /**
- * Tier A — `org.import.job.run`. Applies all `pending` rows synchronously
- * via the registered adapter. Each row produces either an `applied` row plus
- * (optional) downstream resource ids, or a `failed` row plus a failure entry.
+ * Tier A — `org.import.job.run`. Transitions to `running`, audits the run, then
+ * enqueues a durable Workflow DevKit pipeline that applies `pending` rows in
+ * batches (`lib/features/org-admin/data/import-job-run.workflow.ts`). Tenant
+ * and admin guards stay here; workflow arguments use only Server Action–trusted IDs.
  */
 export async function runOrgImportJob(
   _prev: ImportJobActionState,
@@ -244,64 +242,20 @@ export async function runOrgImportJob(
     resourceId: jobId,
   })
 
-  const pendingRows = await listPendingJobRows(jobId)
-  const reqHeaders = await headers()
-
-  let applied = 0
-  let failed = 0
-
-  for (const row of pendingRows) {
-    const result = await adapter.applyRow(
-      {
-        organizationId: session.organizationId,
-        actorUserId: session.userId,
-        actorSessionId: session.sessionId,
-        headers: reqHeaders,
-      },
-      row.payload
-    )
-    if (result.ok) {
-      await markImportRowApplied({
-        rowId: row.id,
-        resourceType: result.resourceType,
-        resourceId: result.resourceId,
-      })
-      applied++
-    } else {
-      await markImportRowFailed({ rowId: row.id })
-      await appendImportFailure({
-        jobId,
-        rowId: row.id,
-        code: result.code,
-        message: result.message,
-        field: result.field,
-      })
-      failed++
-    }
-  }
-
-  const finalJob = await updateImportJobState({
-    organizationId: session.organizationId,
+  const payload = importJobRunPayloadSchema.parse({
     jobId,
-    state: "completed",
-    successDelta: applied,
-    failureDelta: failed,
-    completedAt: new Date(),
-  })
-
-  await writeIamAuditEventFromNextHeaders({
-    action: "org.import.job.complete",
+    organizationId: session.organizationId,
     actorUserId: session.userId,
     actorSessionId: session.sessionId,
-    organizationId: session.organizationId,
-    resourceType: "import.job",
-    resourceId: jobId,
-    metadata: { applied, failed },
   })
 
+  await enqueueOrgImportJobWorkflowRun(payload)
+
+  const runningJob = await getOrgImportJob(session.organizationId, jobId)
+
   revalidateIntegrations()
-  return finalJob
-    ? { ok: true, job: finalJob }
+  return runningJob
+    ? { ok: true, job: runningJob }
     : { ok: false, error: "Job state could not be loaded." }
 }
 

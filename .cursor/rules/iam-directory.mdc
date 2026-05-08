@@ -7,31 +7,44 @@ alwaysApply: true
 
 ## Authority
 
-- **`lib/auth/`** owns the **IAM control plane**: Better Auth configuration, session/step-up guards, **audit writers** ([`audit.server.ts`](lib/auth/audit.server.ts) + `iam_audit_event` in [`lib/db/schema.ts`](lib/db/schema.ts)), **org IAM audit CSV** ([`org-audit.server.ts`](lib/auth/org-audit.server.ts), [`org-audit-csv.shared.ts`](lib/auth/org-audit-csv.shared.ts), [`org-audit-export-verify.server.ts`](lib/auth/org-audit-export-verify.server.ts)), and **permission predicates** ([`permission.server.ts`](lib/auth/permission.server.ts) — org role + global admin only; no duplicate RBAC trees in `app/` or features).
-- **`app/[locale]/…`** owns **routes and UI** only (locale-internal segments such as `/sign-in`, `/account`, `/admin`, `/dashboard`; HTTP **`/api/auth/*`**). Do not introduce an `app/iam/*` URL tree for configuration authority.
+- **`lib/auth/`** owns the **IAM control plane**: Better Auth configuration, session/step-up guards, audit writers ([`audit.server.ts`](lib/auth/audit.server.ts)), org IAM audit CSV ([`org-audit.server.ts`](lib/auth/org-audit.server.ts), `org-audit-csv.shared.ts`, `org-audit-export-verify.server.ts`), and permission predicates ([`permission.server.ts`](lib/auth/permission.server.ts) — org role + global admin; no duplicate RBAC trees elsewhere).
+- **`app/[locale]/…`** owns **routes and UI only** — do not introduce an `app/iam/*` URL tree for configuration authority.
 
 ## Import rules
 
-- **Public server door:** import `auth` from `#lib/auth` only (resolved to [`lib/auth/index.ts`](lib/auth/index.ts)). Import guards such as `requireRecentAuthStepUp` from `#lib/auth` as well.
-- **Do not** deep-import `lib/auth/config.server.ts` from `app/` or from ERP feature modules unless `AGENTS.md` explicitly allows it; prefer `#lib/auth`. **Exception (cycle avoidance):** low-level `lib` modules that must load the Better Auth instance before the barrel re-exports (e.g. [`lib/session-cache.ts`](lib/session-cache.ts)) may import `#lib/auth/config.server` only — not from `app/`.
-- **Shared path helpers** (no React): e.g. [`lib/auth/callback-path.ts`](lib/auth/callback-path.ts) may be imported as `#lib/auth/callback-path` from server or client when the symbol is intentionally shared. **Proxy-safe header names** for path intent: [`lib/auth/forwarded-path-headers.shared.ts`](lib/auth/forwarded-path-headers.shared.ts) (Edge `proxy.ts` must not import `server-only` / `next/headers` helpers). **Canonical auth interruption codes** live in [`lib/auth/auth-status.shared.ts`](lib/auth/auth-status.shared.ts); bookmarkable URLs via [`lib/auth/auth-interruption-url.shared.ts`](lib/auth/auth-interruption-url.shared.ts); server redirect + intended path in [`lib/auth/interruption-redirect.server.ts`](lib/auth/interruption-redirect.server.ts) + [`lib/auth/intended-path.server.ts`](lib/auth/intended-path.server.ts). UI copy resolver [`lib/auth/auth-status-copy.ts`](lib/auth/auth-status-copy.ts). **Client-only** Better Auth error strings: [`lib/auth/auth-client-error.shared.ts`](lib/auth/auth-client-error.shared.ts) (`normalizeAuthClientError`, `AUTH_CLIENT_ERROR_CODE` including MFA — use from `#lib/auth`; not for server interruption URLs). Security center session/passkey actions write `iam.session.revoke`, `iam.session.revoke_other`, `iam.passkey.remove` via [`writeIamAuditEventFromNextHeaders`](lib/auth/audit.server.ts). Telemetry: [`resolveIamAuditTelemetryEnabled`](lib/auth/iam-audit-telemetry.shared.ts) controls JSON stdout lines after successful audit inserts for Vercel log drains.
+- **Public server door:** `#lib/auth` → [`lib/auth/index.ts`](lib/auth/index.ts). Import `auth`, `requireRecentAuthStepUp`, and all guards from here.
+- **Do not** deep-import `lib/auth/neon.server.ts` from `app/` or ERP features. **Exception:** low-level `lib` modules that load the Neon instance before the barrel (e.g. [`lib/session-cache.ts`](lib/session-cache.ts)) may use `#lib/auth/neon.server` only.
+- **Shared helpers** (Edge/client-safe, no React, no `server-only`):
+  - `#lib/auth/callback-path` — post-auth URL validation
+  - `lib/auth/forwarded-path-headers.shared.ts` — proxy-safe header names (`proxy.ts` must not import `server-only` / `next/headers`)
+  - `lib/auth/auth-status.shared.ts` — canonical interruption codes (`authStatus` query param)
+  - `lib/auth/auth-interruption-url.shared.ts` — bookmarkable interruption URLs (requires `locale: AppLocale`)
+  - `lib/auth/auth-client-error.shared.ts` — `normalizeAuthClientError`, `AUTH_CLIENT_ERROR_CODE` (client sign-in error normalization; not for server interruption URLs)
+  - `lib/auth/auth-status-copy.ts` — UI copy resolver
+- **Server-only helpers** (import via `#lib/auth` barrel):
+  - `interruption-redirect.server.ts` + `intended-path.server.ts` — server redirect + path capture
+  - `audit.server.ts` — `writeIamAuditEvent`, `writeIamAuditEventFromNextHeaders`
+  - `iam-audit-telemetry.shared.ts` — `resolveIamAuditTelemetryEnabled` (Vercel log drain gate)
 
-## Proxy and validation
+## Proxy and open-redirect validation
 
-- **[`proxy.ts`](proxy.ts)** stays **narrow**: cookie presence, redirects, matcher only — **no** business logic, **no** DB, **no** session body validation.
-- **Post-login `callbackUrl`** must be validated for **open redirects** (same-origin relative paths only). Server Components should resolve/validate before passing props to client islands.
+- **`proxy.ts`** stays **narrow**: cookie presence, redirects, matcher only — no business logic, no DB, no session body validation.
+- **`callbackUrl`** must be validated for open redirects (same-origin relative paths only) via [`resolvePostAuthCallbackUrl`](lib/auth/callback-path.ts) before passing to client.
 
 ## ERP modules
 
-- **Do not** embed IAM workflows inside `lib/features/<module>/` beyond calling guards or `#lib/auth` APIs exported for that purpose.
-
-## Evidence / object storage
-
-- **R2 / archive / long-lived evidence** are **storage roadmap** concerns. Document policy in `AGENTS.md` / env as needed; **implementation follows** once IAM audit semantics are stable — they **must not block** IAM control-plane PRs.
+- Do not embed IAM workflows inside `lib/features/<module>/` beyond calling guards or `#lib/auth` APIs.
 
 ## Audit action names
 
-- ERP/org events use **`erp.<module>.<object>.<verb>`** and **`org.<object>.<verb>`** (see **IAM audit policy (ERP)** in `AGENTS.md`). Session hooks keep **`iam.session.*`**.
+- `erp.<module>.<object>.<verb>` and `org.<object>.<verb>` for ERP/org events.
+- `iam.session.*` for session lifecycle hooks.
+- Full canonical list: **AGENTS.md §5 → IAM audit policy (ERP)**.
+
+## Auth V2 canonical control plane
+
+- V2 is the canonical Neon Auth control plane; see **`.cursor/rules/auth-v2-directory.mdc`** for the full boundary.
+- Short version: `#lib/auth-v2` (server) / `#lib/auth-v2-client` (client); locale-first UI is organized via route groups under `app/[locale]/(auth)/**` and `app/[locale]/(iam)/**`; keep `lib/auth/` stable and avoid deep cross-imports between `lib/auth/*` and `lib/auth-v2/*`.
 
 ## Contract changes
 

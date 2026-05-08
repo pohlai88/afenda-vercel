@@ -26,7 +26,7 @@ export {
   type AuthResultVariant,
   type AuthStatusResolvedContent,
 } from "./auth-status-copy"
-export { auth } from "./config.server"
+export { auth } from "./neon.server"
 export {
   inferAuthMethodFromPath,
   resolveIamSessionLifecycleAudit,

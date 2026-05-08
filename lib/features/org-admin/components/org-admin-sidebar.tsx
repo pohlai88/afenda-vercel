@@ -1,6 +1,5 @@
 "use client"
 
-import type { Route } from "next"
 import { useTranslations } from "next-intl"
 
 import { Link, usePathname } from "#i18n/navigation"
@@ -23,7 +22,7 @@ export function OrgAdminSidebar({
   const pathname = usePathname()
   const t = useTranslations("OrgAdmin.nav")
 
-  const overviewHref = organizationAdminPath(orgSlug, "overview") as Route
+  const overviewHref = organizationAdminPath(orgSlug, "overview")
   const overviewActive = pathname === overviewHref
   const navItems = buildOrgAdminNav(orgSlug)
 
@@ -46,7 +45,7 @@ export function OrgAdminSidebar({
         {t(ORG_ADMIN_OVERVIEW_NAV_KEY)}
       </Link>
       {navItems.map((item) => {
-        const href = item.href as Route
+        const href = item.href
         const isActive = pathname === href || pathname.startsWith(`${href}/`)
         return (
           <Link

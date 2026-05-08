@@ -10,7 +10,7 @@ import { authInterruptionHref } from "./auth-interruption-url.shared"
 import { getIntendedReturnPathFromRequest } from "./intended-path.server"
 
 /**
- * Redirect to the shared interruption surface with canonical `authStatus` and
+ * Redirect to the canonical auth-v2 interruption surface with canonical `authStatus` and
  * preserved intent (`callbackUrl` from `opts` or the current request path).
  */
 export async function redirectToAuthInterruption(

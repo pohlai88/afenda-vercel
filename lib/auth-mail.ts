@@ -1,4 +1,4 @@
-/** Server-only by usage (`lib/auth/config.server.ts`). Avoid `import "server-only"` so `pnpm auth:generate` can load the config. */
+/** Server-only email helper for IAM flows; avoid `import "server-only"` so tooling/tests can import safely. */
 import { Resend } from "resend"
 
 import { getSiteUrl } from "#lib/site"

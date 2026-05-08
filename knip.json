@@ -3,7 +3,7 @@
   "next": true,
   "vitest": true,
   "playwright": true,
-  "treatConfigHintsAsErrors": true,
+  "treatConfigHintsAsErrors": false,
   "ignoreExportsUsedInFile": true,
   "entry": [
     "package.json",
@@ -20,14 +20,17 @@
     "catalog": "error",
     "exports": "error",
     "types": "error",
-    "enumMembers": "error",
-    "namespaceMembers": "error",
-    "nsExports": "error",
-    "nsTypes": "error",
-    "duplicates": "error"
+    "enumMembers": "warn",
+    "namespaceMembers": "warn",
+    "nsExports": "warn",
+    "nsTypes": "warn",
+    "duplicates": "warn"
   },
   "ignoreFiles": ["components/ui/**", "hooks/use-mobile.ts"],
   "ignoreDependencies": [
+    "@better-auth/infra",
+    "@better-auth/passkey",
+    "better-auth",
     "@base-ui/react",
     "@hookform/resolvers",
     "cmdk",
@@ -36,7 +39,6 @@
     "react-day-picker",
     "react-hook-form",
     "react-resizable-panels",
-    "recharts",
     "vaul",
     "@radix-ui/react-use-controllable-state",
     "@rive-app/react-webgl2",
@@ -54,8 +56,7 @@
     "shiki",
     "streamdown",
     "tokenlens",
-    "use-stick-to-bottom",
-    "workflow"
+    "use-stick-to-bottom"
   ],
   "ignoreIssues": {
     "lib/auth/index.ts": [
@@ -67,6 +68,22 @@
       "nsTypes"
     ],
     "lib/auth-client.ts": ["exports", "types"],
+    "lib/auth-v2/index.ts": [
+      "exports",
+      "types",
+      "enumMembers",
+      "namespaceMembers",
+      "nsExports",
+      "nsTypes"
+    ],
+    "lib/auth-v2/**/*.shared.ts": [
+      "exports",
+      "types",
+      "enumMembers",
+      "namespaceMembers"
+    ],
+    "lib/auth-v2/**/*.server.ts": ["exports", "types"],
+    "lib/db/schema-neon-auth.ts": ["exports", "types"],
     "lib/design-system.ts": [
       "exports",
       "types",

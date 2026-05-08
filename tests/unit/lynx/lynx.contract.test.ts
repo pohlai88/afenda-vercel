@@ -14,6 +14,7 @@ describe("lynx.contract", () => {
 
   it("uses erp.lynx audit prefix", () => {
     expect(LYNX_AUDIT_ACTIONS.truthQuery.startsWith("erp.lynx.")).toBe(true)
+    expect(LYNX_AUDIT_ACTIONS.nlDemoQuery.startsWith("erp.lynx.")).toBe(true)
     expect(LYNX_AUDIT_ACTIONS.briefGenerate.startsWith("erp.lynx.")).toBe(true)
   })
 })

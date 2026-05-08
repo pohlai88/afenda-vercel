@@ -3,7 +3,7 @@ import "server-only"
 import { and, eq, isNotNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { account } from "#lib/db/schema"
+import { neonAuthAccount } from "#lib/db/schema-neon-auth"
 
 import type { SafeLinkedAccount } from "./accounts.types.shared"
 
@@ -15,13 +15,13 @@ export async function listSafeLinkedAccounts(
 ): Promise<SafeLinkedAccount[]> {
   const rows = await db
     .select({
-      id: account.id,
-      providerId: account.providerId,
-      accountId: account.accountId,
-      createdAt: account.createdAt,
+      id: neonAuthAccount.id,
+      providerId: neonAuthAccount.providerId,
+      accountId: neonAuthAccount.accountId,
+      createdAt: neonAuthAccount.createdAt,
     })
-    .from(account)
-    .where(eq(account.userId, userId))
+    .from(neonAuthAccount)
+    .where(eq(neonAuthAccount.userId, userId))
 
   return rows.map((row) => ({
     ...row,
@@ -31,14 +31,19 @@ export async function listSafeLinkedAccounts(
 
 export async function hasCredentialAccount(userId: string): Promise<boolean> {
   const row = await db
-    .select({ id: account.id })
-    .from(account)
-    .where(and(eq(account.userId, userId), isNotNull(account.password)))
+    .select({ id: neonAuthAccount.id })
+    .from(neonAuthAccount)
+    .where(
+      and(
+        eq(neonAuthAccount.userId, userId),
+        isNotNull(neonAuthAccount.password)
+      )
+    )
     .limit(1)
   return row.length > 0
 }
 
-/** Social providers configured in env (matches `socialProviders()` in config). */
+/** Social providers configured in env (parity with legacy Better Auth env names). */
 export function getEnabledSocialProviderIds(): string[] {
   const ids: string[] = []
   const ghId =

@@ -54,7 +54,11 @@ function formatEnvValue(val) {
 
 /** @param {Record<string, string>} parsedConfig */
 function warnIfMissing(parsedConfig) {
-  const critical = ["DATABASE_URL", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL"]
+  const critical = [
+    "DATABASE_URL",
+    "NEON_AUTH_BASE_URL",
+    "NEON_AUTH_COOKIE_SECRET",
+  ]
   for (const key of critical) {
     const v = parsedConfig[key]
     if (v === undefined || v === "") {
@@ -70,6 +74,28 @@ function warnIfMissing(parsedConfig) {
   if (!site) {
     console.warn(
       "[env:sync] Warning: NEXT_PUBLIC_SITE_URL and NEXT_PUBLIC_APP_URL are both empty — metadataBase / OG URLs may be wrong."
+    )
+  }
+
+  const neonAuthBase = parsedConfig.NEON_AUTH_BASE_URL?.trim()
+  const neonPublicProxy = parsedConfig.NEXT_PUBLIC_AUTH_URL?.trim()
+  if (neonAuthBase && !neonPublicProxy) {
+    console.warn(
+      "[env:sync] Warning: NEON_AUTH_BASE_URL is set but NEXT_PUBLIC_AUTH_URL is empty — " +
+        "the browser auth client should target the app proxy; set NEXT_PUBLIC_AUTH_URL to your site origin + /api/auth " +
+        "(see .env.config.example §I)."
+    )
+  }
+
+  const neonAuthOn =
+    parsedConfig.AFENDA_NEON_AUTH_ENABLED?.trim() === "1" ||
+    parsedConfig.NEXT_PUBLIC_AFENDA_NEON_AUTH_ENABLED?.trim() === "1" ||
+    Boolean(neonAuthBase)
+  if (neonAuthOn) {
+    console.warn(
+      "[env:sync] Neon Auth V2: ensure the Postgres branch behind DATABASE_URL has the neon_auth schema " +
+        "(Neon Console → Branch → Auth). Preview/dev branches often omit it until Auth is enabled there. " +
+        "Run Drizzle migrations on that branch for app tables + pgvector (pnpm db:migrate:local). See AGENTS.md § Neon checklist."
     )
   }
 }

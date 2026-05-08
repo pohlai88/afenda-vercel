@@ -1,13 +1,12 @@
-import { NextResponse } from "next/server"
-
 import { auth } from "#lib/auth"
+import { routeJsonOk } from "#lib/route-handler-json.shared"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
-  return NextResponse.json({
+  return routeJsonOk({
     ok: true,
-    service: "better-auth",
+    service: "neon-auth",
     checks: {
       configLoaded: Boolean(auth),
     },

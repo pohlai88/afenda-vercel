@@ -1,5 +1,3 @@
-import type { Route } from "next"
-
 import { getTranslations } from "next-intl/server"
 
 import { Button } from "#components/ui/button"
@@ -24,9 +22,7 @@ import { requireOrgSession } from "#lib/tenant"
 
 export default async function OrgAdminOverviewPage({
   params,
-}: {
-  params: Promise<{ orgSlug: string }>
-}) {
+}: PageProps<"/[locale]/o/[orgSlug]/admin">) {
   const { orgSlug } = await params
   const t = await getTranslations("OrgAdmin.overview")
   const orgSession = await requireOrgSession()
@@ -53,7 +49,7 @@ export default async function OrgAdminOverviewPage({
               {members.length}
             </p>
             <Button variant="outline" size="sm" asChild>
-              <Link href={organizationAdminPath(orgSlug, "members") as Route}>
+              <Link href={organizationAdminPath(orgSlug, "members")}>
                 {t("manageMembers")}
               </Link>
             </Button>
@@ -70,7 +66,7 @@ export default async function OrgAdminOverviewPage({
               {invitations.length}
             </p>
             <Button variant="outline" size="sm" asChild>
-              <Link href={organizationAdminPath(orgSlug, "members") as Route}>
+              <Link href={organizationAdminPath(orgSlug, "members")}>
                 {t("viewInvites")}
               </Link>
             </Button>
@@ -80,12 +76,12 @@ export default async function OrgAdminOverviewPage({
 
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" size="sm" asChild>
-          <Link href={organizationDashboardPath(orgSlug, "home") as Route}>
+          <Link href={organizationDashboardPath(orgSlug, "home")}>
             {t("backToErp")}
           </Link>
         </Button>
         <Button variant="outline" size="sm" asChild>
-          <Link href={organizationAdminPath(orgSlug, "audit") as Route}>
+          <Link href={organizationAdminPath(orgSlug, "audit")}>
             {t("openAudit")}
           </Link>
         </Button>

@@ -18,7 +18,7 @@ export function PlatformAdminShell({ children }: { children: ReactNode }) {
           <CardHeader className="gap-3">
             <div className="flex flex-col gap-2">
               <Link
-                href="/dashboard"
+                href="/o"
                 className="w-fit rounded-md outline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
               >
                 <AfendaBrandLockup className="max-w-[min(100%,260px)] sm:max-w-[280px]" />

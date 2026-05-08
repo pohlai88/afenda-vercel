@@ -1,12 +1,12 @@
 import { getTranslations } from "next-intl/server"
 
+import { OrganizationAdminClient } from "#features/org-admin"
+
 import {
   fetchOrgWorkbenchMembers,
   fetchOrgWorkbenchPendingInvitations,
 } from "#lib/auth"
 import { requireOrgSession } from "#lib/tenant"
-
-import { OrganizationAdminClient } from "../../../../account/organization/organization-admin-client"
 
 export default async function OrgAdminMembersPage() {
   const orgSession = await requireOrgSession()

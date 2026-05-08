@@ -1,17 +1,26 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client"
-import { NextResponse } from "next/server"
 
+import {
+  readRequestJson,
+  routeJsonError,
+  routeJsonOk,
+  routePublicErrorMessage,
+} from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
 
-export async function POST(request: Request): Promise<NextResponse> {
+export const dynamic = "force-dynamic"
+
+export async function POST(request: Request) {
   const orgSession = await getOrgSessionFromRequest(request)
   if (!orgSession) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return routeJsonError("Unauthorized", 401)
   }
 
   const { userId, organizationId } = orgSession
 
-  const body = (await request.json()) as HandleUploadBody
+  const parsed = await readRequestJson(request)
+  if (!parsed.ok) return parsed.response
+  const body = parsed.value as HandleUploadBody
 
   try {
     const jsonResponse = await handleUpload({
@@ -50,11 +59,9 @@ export async function POST(request: Request): Promise<NextResponse> {
       },
     })
 
-    return NextResponse.json(jsonResponse)
+    return routeJsonOk(jsonResponse)
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : String(error) },
-      { status: 400 }
-    )
+    const message = routePublicErrorMessage(error, "Upload failed")
+    return routeJsonError(message, 400)
   }
 }

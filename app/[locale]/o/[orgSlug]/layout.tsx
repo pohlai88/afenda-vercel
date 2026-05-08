@@ -1,7 +1,5 @@
-import type { ReactNode } from "react"
-
 import type { Route } from "next"
-import { notFound, permanentRedirect } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 
 import { localePrefixedOrgDashboardRedirect } from "#lib/dashboard-org-redirect.server"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
@@ -15,10 +13,7 @@ import { requireOrgSession } from "#lib/tenant"
 export default async function OrgSlugLayout({
   children,
   params,
-}: {
-  children: ReactNode
-  params: Promise<{ locale: string; orgSlug: string }>
-}) {
+}: LayoutProps<"/[locale]/o/[orgSlug]">) {
   const { locale: localeRaw, orgSlug: orgSlugRaw } = await params
   const locale = ensureAppLocale(localeRaw)
   const orgSlug = normalizeOrgSlugParam(orgSlugRaw)
@@ -38,11 +33,12 @@ export default async function OrgSlugLayout({
   }
 
   if (resolvedOrgId !== session.organizationId) {
+    // Cross-tenant correction is not a permanent move — the user's active org can change.
     const target = await localePrefixedOrgDashboardRedirect(
       locale,
       canonicalSlug
     )
-    permanentRedirect(target as Route)
+    redirect(target as Route)
   }
 
   return children

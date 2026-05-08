@@ -17,7 +17,7 @@ export const PLATFORM_ADMIN_NAV_NAMESPACE = "PlatformAdmin.nav" as const
  */
 export type PlatformAdminCapability = {
   readonly id: PlatformAdminCapabilityId
-  /** Path segments the capability owns under `/admin/{segment}`. */
+  /** Path segments the capability owns under `/operator/{segment}`. */
   readonly segments: readonly string[]
   /** Required prefix for IAM audit actions written by this capability. */
   readonly auditPrefix: string

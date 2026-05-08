@@ -2,14 +2,14 @@ import type { Route } from "next"
 
 import { getTranslations } from "next-intl/server"
 
-import { OrgAuditEventsView, organizationAdminPath } from "#features/org-admin"
+import {
+  OrgAuditEventsView,
+  OrganizationAuditCsvExport,
+  organizationAdminPath,
+} from "#features/org-admin"
 
 import { listOrganizationIamAuditEvents } from "#lib/auth"
 import { requireOrgSession } from "#lib/tenant"
-
-import { OrganizationAuditCsvExport } from "../../../../account/organization/audit/audit-export-client"
-
-type Search = Promise<{ page?: string | string[] }>
 
 function parsePage(raw: string | undefined): number {
   const n = Number.parseInt(raw ?? "1", 10)
@@ -20,10 +20,7 @@ function parsePage(raw: string | undefined): number {
 export default async function OrgAdminAuditPage({
   searchParams,
   params,
-}: {
-  searchParams: Search
-  params: Promise<{ orgSlug: string }>
-}) {
+}: PageProps<"/[locale]/o/[orgSlug]/admin/audit">) {
   const { orgSlug } = await params
   const orgSession = await requireOrgSession()
   const t = await getTranslations("OrgAdmin.audit")
@@ -59,7 +56,7 @@ export default async function OrgAdminAuditPage({
         </>
       }
       exportSlot={<OrganizationAuditCsvExport />}
-      backHref={organizationAdminPath(orgSlug, "overview") as Route}
+      backHref={organizationAdminPath(orgSlug, "overview")}
       backLabel={t("backToWorkbench")}
       result={result}
       prevHref={prevHref}

@@ -1,6 +1,4 @@
-import type { ReactNode } from "react"
 import type { Metadata } from "next"
-import type { Route } from "next"
 
 import { notFound, redirect } from "next/navigation"
 
@@ -29,10 +27,7 @@ export const metadata: Metadata = {
 export default async function OrgAdminWorkbenchLayout({
   children,
   params,
-}: {
-  children: ReactNode
-  params: Promise<{ locale: string; orgSlug: string }>
-}) {
+}: LayoutProps<"/[locale]/o/[orgSlug]/admin">) {
   const { locale: localeRaw, orgSlug } = await params
   const locale = ensureAppLocale(localeRaw)
   const resume = toLocalePath(
@@ -51,9 +46,7 @@ export default async function OrgAdminWorkbenchLayout({
     "admin"
   )
   if (!canAdmin) {
-    redirect(
-      toLocalePath(locale, organizationDashboardPath(orgSlug, "home")) as Route
-    )
+    redirect(toLocalePath(locale, organizationDashboardPath(orgSlug, "home")))
   }
 
   const identity = await fetchOrgWorkbenchIdentity(orgSession.organizationId)

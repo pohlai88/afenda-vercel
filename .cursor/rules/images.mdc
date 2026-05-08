@@ -1,6 +1,7 @@
 ---
 description: next/image, public vs remote, Vercel /_next/image allowlists
-alwaysApply: true
+globs: "**/*.{ts,tsx},next.config.ts,app/layout.tsx"
+alwaysApply: false
 ---
 
 # Images (`next/image`)

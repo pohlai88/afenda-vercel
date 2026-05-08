@@ -1,22 +1,28 @@
 ---
-description: Keep Figma Code Connect and UI primitives in lockstep
+description: Keep Figma Code Connect and UI primitives in lockstep — variant names, slots, palette discipline
 globs: "components/ui/**/*.{ts,tsx},lib/design-system.ts,docs/design-system/**/*.md"
 alwaysApply: false
 ---
 
 # Figma Code Connect workflow
 
-- For any primitive API change, keep parity across:
-  - `components/ui/*`
-  - `lib/design-system.ts`
-  - `docs/design-system/figma-code-connect-mapping.md`
+Code contracts for `components/ui/*` and `lib/design-system.ts` live in **`design-system-enforcement.mdc`**. This rule covers the **Figma↔code parity** workflow specifically.
 
-- Before adding a new component in Figma workflows:
-  - check existing design system components first (`search_design_system`)
-  - keep variant names equal to code variant names
-  - keep slot names aligned to `data-slot` anatomy
+## Primitive API change checklist
 
-- If variant names diverge between Figma and code, normalize code and mapping docs in the same change.
+When changing a primitive in `components/ui/*`:
 
-- Never introduce hardcoded palette colors in primitives to satisfy design mocks.
-  Convert to semantic token usage in `app/globals.css` first.
+1. Keep variant names identical between Figma and code — normalize code first if they diverge.
+2. Keep slot names aligned to `data-slot` anatomy (do not rename slots without updating the mapping doc).
+3. Update `docs/design-system/figma-code-connect-mapping.md` in the **same** change.
+4. Update `lib/design-system.ts` schemas / parsers if new variants are added.
+
+## Before adding a new component via Figma workflows
+
+- Run `search_design_system` — reuse an existing primitive before creating a new one.
+- Do not introduce a Figma component that has no code counterpart; they must stay in sync.
+
+## Palette discipline (non-negotiable)
+
+- Never introduce hardcoded palette colors in primitives to satisfy a Figma mock.
+- Convert to a semantic token in `app/globals.css` first, then reference the token in both code and Figma.

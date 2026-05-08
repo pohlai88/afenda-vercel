@@ -1,12 +1,12 @@
 ---
-description: Afenda design tokens, primitives, and UI class contracts (TS/TSX/CSS)
-globs: "**/*.{ts,tsx,css}"
+description: Afenda design tokens, primitives, UI class contracts, and documentation sync (TS/TSX/CSS/MD)
+globs: "**/*.{ts,tsx,css},docs/design-system/**/*.md"
 alwaysApply: false
 ---
 
 # Design system enforcement
 
-**Canonical summary:** **`AGENTS.md` §7 Design system**. This rule adds TS/TSX/CSS-glob detail for editors; do not contradict the contract file.
+**Canonical summary:** **`AGENTS.md` §7 Design system**. This rule adds TS/TSX/CSS/MD-glob detail for editors; do not contradict the contract file.
 
 ## Design token contract
 
@@ -17,33 +17,21 @@ alwaysApply: false
   - typography / tracking (`uiTitle`, `uiTracking`)
   - semantic variants (button, badge, card schemas)
 - Do not introduce raw geometry utilities such as:
-  - `rounded-3xl`
-  - `rounded-4xl`
-  - `shadow-2xl`
-  - arbitrary `rounded-[...]`
-  - arbitrary shadow systems
-- Exceptions must be explicitly allowlisted in:
-  - `scripts/check-design-contract.mjs`
+  - `rounded-3xl`, `rounded-4xl`, `shadow-2xl`, arbitrary `rounded-[...]`, arbitrary shadow systems
+- Exceptions must be explicitly allowlisted in `scripts/check-design-contract.mjs`.
 - **`@theme inline`** in `app/globals.css` must only reference `var(--*)` names that exist under `:root` or `.dark` (checked by `check-design-contract.mjs`).
 
 ## Semantic color contract
 
-- Semantic colors are defined centrally in:
-  - `app/globals.css`
-- Components must consume semantic tokens:
-  - `bg-primary`
-  - `text-muted-foreground`
-  - `border-border`
-  - etc.
+- Semantic colors are defined centrally in `app/globals.css`.
+- Components must consume semantic tokens: `bg-primary`, `text-muted-foreground`, `border-border`, etc.
 - **Primitives:** use solid hover tokens (`bg-primary-hover`, `bg-secondary-hover`), not `hover:bg-primary/…` or `hover:bg-secondary/…` on filled actions (enforced in `check-design-contract.mjs`).
 - Avoid hardcoded color values in components unless explicitly approved.
 
 ## Primitive ownership contract
 
-- UI primitives are owned by:
-  - `components/ui/**`
-- Application shell and **ERP modules** (`lib/features/**`) must import primitives only from:
-  - `#components/ui/*`
+- UI primitives are owned by `components/ui/**`.
+- Application shell and ERP modules (`lib/features/**`) must import primitives only from `#components/ui/*`.
 
 Forbidden outside `components/ui` (ESLint + policy):
 
@@ -53,25 +41,11 @@ radix-ui
 @base-ui/react
 ```
 
-Deep imports of another module’s internals (`#features/other/data/...`) remain forbidden outside that module; same-module paths are handled by `scripts/check-agent-contract.mjs`.
+Deep imports of another module's internals (`#features/other/data/...`) remain forbidden outside that module; same-module paths are handled by `scripts/check-agent-contract.mjs`.
 
 ## Runtime validation contract
 
-When variants, sizes, themes, or appearance values originate from:
-
-- JSON
-- CMS
-- query params
-- APIs
-- external payloads
-
-validate them using exported schemas / parsers from:
-
-```txt
-#lib/design-system
-```
-
-Examples:
+When variants, sizes, themes, or appearance values originate from JSON, CMS, query params, APIs, or external payloads — validate using exported schemas / parsers from `#lib/design-system`:
 
 ```ts
 import {
@@ -90,21 +64,23 @@ parseUiSurfaceSpaceKey(payload.inset)
 ## Anti-drift rules
 
 - Prefer existing design-system patterns over introducing new visual abstractions.
-- Do not create parallel token systems.
-- Do not introduce local shadow/radius scales.
+- Do not create parallel token systems or local shadow/radius scales.
 - Keep visual language structurally consistent across ERP modules.
+
+## Documentation sync (`docs/design-system/**/*.md`)
+
+Applies when editing **`docs/design-system/**/*.md`**.
+
+- **Code is truth:** [`app/globals.css`](../../app/globals.css), [`lib/design-system.ts`](../../lib/design-system.ts), [`components/ui/`](../../components/ui/). Docs describe what code implements, never ahead of it.
+- Do not document Figma names, variant strings, or CSS variables that are **not** implemented in code and `lib/design-system.ts`.
+- When tokens or primitive APIs change, update **`docs/design-system/figma-code-connect-mapping.md`** in the **same** change as `globals.css` / primitives when possible.
+- For class-level UI rules (radius, semantic colors, hover tokens), follow the sections above — same source of truth.
 
 ## CI
 
 Before merge, keep all checks green:
 
 ```bash
-pnpm lint
+pnpm lint       # includes check-agent-contract.mjs + check-design-contract.mjs
 pnpm typecheck
 ```
-
-`pnpm lint` must include:
-
-- ESLint (including radix/base-ui boundary on `lib/features/**`)
-- `scripts/check-agent-contract.mjs`
-- `scripts/check-design-contract.mjs`

@@ -13,6 +13,8 @@ export type LynxLayerId = (typeof LYNX_LAYERS)[number]
 
 export const LYNX_AUDIT_ACTIONS = {
   truthQuery: "erp.lynx.truth.query",
+  /** Org-scoped demo NL→SQL execution against `lynx_demo_unicorn` only. */
+  nlDemoQuery: "erp.lynx.nl_demo.query",
   briefGenerate: "erp.lynx.brief.generate",
   intakeCommit: "erp.lynx.intake.commit",
   operatorRecommend: "erp.lynx.operator.recommend",

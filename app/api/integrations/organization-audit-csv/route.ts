@@ -4,17 +4,19 @@ import {
   canActInOrganization,
   organizationIamAuditExportReadableStream,
 } from "#lib/auth"
+import { routeTextError } from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
+
+export const dynamic = "force-dynamic"
 
 /**
  * Streaming org IAM audit CSV (larger cap than the Server Action export).
  * Authenticated org admins only; same filter as the audit UI (`org.%` actions).
- * Dynamic by default (Next.js Route Handler) — do not force-static; uses request/session + streaming.
  */
 export async function GET(request: NextRequest): Promise<Response> {
   const session = await getOrgSessionFromRequest(request)
   if (!session) {
-    return new Response("Unauthorized", { status: 401 })
+    return routeTextError("Unauthorized", 401)
   }
 
   const allowed = await canActInOrganization(
@@ -24,7 +26,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     "admin"
   )
   if (!allowed) {
-    return new Response("Forbidden", { status: 403 })
+    return routeTextError("Forbidden", 403)
   }
 
   const stream = organizationIamAuditExportReadableStream(

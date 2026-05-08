@@ -18,6 +18,9 @@
 /.next/
 /out/
 
+# Workflow DevKit — generated route bundles (`withWorkflow`); do not commit
+/app/.well-known/workflow/
+
 # production
 /build
 

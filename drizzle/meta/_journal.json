@@ -57,6 +57,20 @@
       "when": 1778128258353,
       "tag": "0007_user_last_active_at",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1778153547257,
+      "tag": "0008_lynx_demo_unicorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1746619200000,
+      "tag": "0009_drop_public_auth_fks",
+      "breakpoints": true
     }
   ]
 }

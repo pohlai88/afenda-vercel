@@ -139,18 +139,18 @@ describe("PLATFORM_ADMIN_NAV_ITEMS", () => {
 })
 
 describe("platformAdminPath", () => {
-  it("returns /admin without arguments", () => {
-    expect(platformAdminPath()).toBe("/admin")
+  it("returns /operator without arguments", () => {
+    expect(platformAdminPath()).toBe("/operator")
   })
 
-  it("returns /admin/{segment} for a non-empty segment", () => {
-    expect(platformAdminPath("users")).toBe("/admin/users")
-    expect(platformAdminPath("organizations")).toBe("/admin/organizations")
+  it("returns /operator/{segment} for a non-empty segment", () => {
+    expect(platformAdminPath("users")).toBe("/operator/users")
+    expect(platformAdminPath("organizations")).toBe("/operator/organizations")
   })
 
   it("strips leading slashes from the segment", () => {
-    expect(platformAdminPath("/users")).toBe("/admin/users")
-    expect(platformAdminPath("///nested")).toBe("/admin/nested")
+    expect(platformAdminPath("/users")).toBe("/operator/users")
+    expect(platformAdminPath("///nested")).toBe("/operator/nested")
   })
 })
 

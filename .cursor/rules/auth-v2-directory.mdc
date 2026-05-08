@@ -1,0 +1,40 @@
+---
+description: Neon Auth V2 canonical control-plane boundaries and naming
+globs: "{lib/auth-v2/**,lib/auth-v2-client.ts,lib/db/schema-neon-auth.ts,app/api/integrations/neon-auth-webhooks/**,app/[locale]/(auth)/**,app/[locale]/(iam)/**}"
+alwaysApply: false
+---
+
+# Auth V2 directory boundary (`lib/auth-v2/`)
+
+## Purpose
+
+- `lib/auth-v2/` is the canonical Neon Auth control plane around the same Neon **`auth`** instance as **`#lib/auth`**.
+- Public auth/account URLs are flat (`/{locale}/sign-in`, `/{locale}/account/*`, `/{locale}/onboarding`, etc.) and route groups organize code under **`app/[locale]/(auth)/**`** (auth flows) and **`app/[locale]/(iam)/**`** (identity/security/org management).
+
+## Structure and naming
+
+- Public server door is `#lib/auth-v2` (`lib/auth-v2/index.ts`, `server-only`).
+- Client door is `#lib/auth-v2-client` (re-exports `#lib/auth-client`).
+- File suffixes follow existing auth conventions:
+  - `*.server.ts` for server-only logic
+  - `*.shared.ts` for client/server-safe constants/parsers
+  - `*.types.shared.ts` for shared types
+- V2-specific interruption URL helpers still live in `interruption-url.shared.ts` / `interruption-redirect.server.ts`, but canonical paths are flat (`/{locale}/session-expired`, default post-auth callback `/{locale}`).
+
+## API and routes
+
+- Canonical auth proxy is **`app/api/auth/[...path]/route.ts`** (single Neon handler for the whole app).
+- Browser `createAuthClient()` needs **`NEXT_PUBLIC_AUTH_URL`** = full URL ending in **`/api/auth`** when not using the default `{origin}/api/auth`.
+- Neon webhook receiver: `app/api/integrations/neon-auth-webhooks/route.ts`.
+- Auth/account UI routes live under `app/[locale]/(auth)/**` + `app/[locale]/(iam)/**` (locale-first URLs).
+
+## DB boundary
+
+- Neon-managed auth tables are represented in `lib/db/schema-neon-auth.ts` (Drizzle `pgSchema("neon_auth")`).
+- Do not add `neon_auth.*` DDL to `drizzle/*.sql` migrations.
+- **Per-branch:** the Postgres branch behind `DATABASE_URL` must have **Neon Auth turned on** in the Neon Console for that branch (Neon provisions `neon_auth`). Preview branches used by Vercel may omit it until enabled — runtime queries to `#lib/db/schema-neon-auth` will fail without it.
+
+## Drift guard
+
+- Do not deep-import V2 internals from outside V2; import via `#lib/auth-v2` (server) or `#lib/auth-v2-client` (client).
+- Prefer `#lib/auth` / `#lib/auth-client` for new code outside the `(auth)` / `(iam)` UI slices.

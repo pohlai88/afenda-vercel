@@ -28,7 +28,7 @@ export function authInterruptionHref(
   q.set(AUTH_STATUS_QUERY_KEY, status)
   const callback = resolvePostAuthCallbackUrl(
     opts.callbackPath ?? null,
-    toLocalePath(locale, "/dashboard")
+    toLocalePath(locale, "/o")
   )
   q.set("callbackUrl", callback)
   const ctx =

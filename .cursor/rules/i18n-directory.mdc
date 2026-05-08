@@ -7,13 +7,13 @@ alwaysApply: true
 
 ## Stack
 
-- **`next-intl`** with **`localePrefix: "always"`** — public URLs are `/{locale}/…` (e.g. `/en/o/acme/dashboard/contacts`; legacy `/en/dashboard/...` redirects to the active org slug).
+- **`next-intl`** with **`localePrefix: "always"`** — public URLs are `/{locale}/…` (e.g. `/en/o/acme/dashboard/contacts`; bare `/en/o` resolves the active org slug via `app/[locale]/o/page.tsx`).
 - **Next.js 16** edge entry: [`proxy.ts`](../../proxy.ts) (not `middleware.ts`). Compose **`createIntlMiddleware(routing)`** with narrow product logic only.
 - Narrative (proxy + auth cookie gate + resilience): **`AGENTS.md` §5** — *Locale-first application surface*.
 
 ## Path builders (locale-aware by construction)
 
-- **`toLocalePath(locale, "/segment")`** in [`lib/i18n/locales.shared.ts`](../../lib/i18n/locales.shared.ts) — first argument is always **`AppLocale`**; never emit bare `/dashboard` or `/sign-in` from server redirects or emails.
+- **`toLocalePath(locale, "/segment")`** in [`lib/i18n/locales.shared.ts`](../../lib/i18n/locales.shared.ts) — first argument is always **`AppLocale`**; never emit bare `/o` or `/sign-in` from server redirects or emails.
 - **Root recovery (outside `[locale]`):** [`DEFAULT_LOCALE_HOME_PATH`](../../lib/i18n/root-default-locale-href.shared.ts) for `app/not-found`, `app/error`, and `app/global-error` — same default-locale home as [`app/page.tsx`](../../app/page.tsx) redirect; use `next/link` with `prefetch={false}` there (not `#i18n/navigation`).
 - **`toLocaleRoutePattern("/segment")`** → `"/[locale]/segment"` for **`revalidatePath(..., "page")`** so all locales invalidate (Next.js dynamic segment pattern).
 - **`toLocaleOrgDashboardRevalidatePattern("/contacts")`** → `"/[locale]/o/[orgSlug]/dashboard/contacts"` for ERP **`revalidatePath`** (all locales + org slugs).
@@ -23,9 +23,9 @@ alwaysApply: true
 Forbidden:
 
 ```txt
-redirect("/dashboard")
+redirect("/o")
 redirect("/sign-in")
-revalidatePath("/en/dashboard/contacts")  // only one locale — use pattern + "page"
+revalidatePath("/en/o/acme/dashboard/contacts")  // only one locale — use pattern + "page"
 ```
 
 ## Navigation

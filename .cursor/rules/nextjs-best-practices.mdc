@@ -72,7 +72,7 @@ fetch(url, {
 After mutations:
 
 ```ts
-revalidateTag("x", "max");
+revalidateTag("x");
 ```
 
 ## Mutation boundary

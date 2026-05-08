@@ -1,8 +1,6 @@
 import "server-only"
 
-import { APIError } from "better-auth/api"
-
-import { auth } from "#lib/auth/config.server"
+import { auth } from "#lib/auth/neon.server"
 import { assertOrgInviteRateAllowed } from "#lib/auth"
 
 import {
@@ -31,21 +29,22 @@ function invitationIdFromCreateResult(result: unknown): string | null {
   return null
 }
 
-function apiErrorMessage(err: unknown): string {
-  if (err instanceof APIError) {
-    const body = err.body as { message?: string } | undefined
-    if (body?.message) return body.message
-    if (typeof err.message === "string" && err.message.length > 0)
-      return err.message
-  }
-  if (err instanceof Error && err.message) return err.message
-  return "Better Auth API call failed"
+function neonAuthErrorMessage(
+  err: {
+    message?: string
+    statusText?: string
+  } | null
+): string {
+  const m = err?.message?.trim()
+  if (m) return m
+  const s = err?.statusText?.trim()
+  if (s) return s
+  return "Neon Auth API call failed"
 }
 
 /**
- * Bulk member-invite adapter. Wraps the same Better Auth `createInvitation`
- * primitive as the single-row `inviteMemberAction`, including rate-limit
- * enforcement, so quotas apply per-row inside ingestion runs too.
+ * Bulk member-invite adapter. Uses the same Neon Auth `inviteMember` primitive as
+ * single-row org admin actions, including rate-limit enforcement.
  */
 export const memberInviteAdapter: OrgImportAdapter<MemberInviteRow> = {
   id: "member_invite",
@@ -88,15 +87,19 @@ export const memberInviteAdapter: OrgImportAdapter<MemberInviteRow> = {
     }
 
     try {
-      const result = await auth.api.createInvitation({
-        body: {
-          email: payload.email,
-          role: payload.role,
-          organizationId: ctx.organizationId,
-        },
-        headers: ctx.headers,
+      const result = await auth.organization.inviteMember({
+        organizationId: ctx.organizationId,
+        email: payload.email,
+        role: payload.role,
       })
-      const id = invitationIdFromCreateResult(result)
+      if (result.error) {
+        return {
+          ok: false,
+          code: "external_api",
+          message: neonAuthErrorMessage(result.error),
+        }
+      }
+      const id = invitationIdFromCreateResult(result.data)
       return {
         ok: true,
         resourceType: "invitation",
@@ -105,8 +108,9 @@ export const memberInviteAdapter: OrgImportAdapter<MemberInviteRow> = {
     } catch (err) {
       return {
         ok: false,
-        code: err instanceof APIError ? "external_api" : "unknown",
-        message: apiErrorMessage(err),
+        code: "unknown",
+        message:
+          err instanceof Error ? err.message : neonAuthErrorMessage(null),
       }
     }
   },

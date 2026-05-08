@@ -3,7 +3,7 @@ import "server-only"
 import { desc, eq, sql } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { member, organization } from "#lib/db/schema"
+import { neonAuthMember, neonAuthOrganization } from "#lib/db/schema-neon-auth"
 
 import type { PlatformAdminOrganizationSummary } from "../types"
 
@@ -14,20 +14,25 @@ import type { PlatformAdminOrganizationSummary } from "../types"
 export async function listOrganizationsForPlatformAdmin(): Promise<
   PlatformAdminOrganizationSummary[]
 > {
-  const memberCount = sql<number>`count(${member.id})::int`.as("member_count")
+  const memberCount = sql<number>`count(${neonAuthMember.id})::int`.as(
+    "member_count"
+  )
 
   const rows = await db
     .select({
-      id: organization.id,
-      name: organization.name,
-      slug: organization.slug,
-      createdAt: organization.createdAt,
+      id: neonAuthOrganization.id,
+      name: neonAuthOrganization.name,
+      slug: neonAuthOrganization.slug,
+      createdAt: neonAuthOrganization.createdAt,
       memberCount,
     })
-    .from(organization)
-    .leftJoin(member, eq(member.organizationId, organization.id))
-    .groupBy(organization.id)
-    .orderBy(desc(organization.createdAt))
+    .from(neonAuthOrganization)
+    .leftJoin(
+      neonAuthMember,
+      eq(neonAuthMember.organizationId, neonAuthOrganization.id)
+    )
+    .groupBy(neonAuthOrganization.id)
+    .orderBy(desc(neonAuthOrganization.createdAt))
 
   return rows.map((row) => ({
     id: row.id,

@@ -1,4 +1,4 @@
-import type { AppPath } from "#lib/i18n/locales.shared"
+import type { Route } from "next"
 
 /** Stable capability identifiers for the organizational control plane. */
 export type OrgAdminCapabilityId =
@@ -36,7 +36,7 @@ export type OrgAdminNavKey = "members" | "audit" | "integrations" | "settings"
 
 export type OrgAdminNavItem = {
   readonly capabilityId: OrgAdminCapabilityId
-  readonly href: AppPath
+  readonly href: Route
   readonly navKey: OrgAdminNavKey
   readonly order: number
 }

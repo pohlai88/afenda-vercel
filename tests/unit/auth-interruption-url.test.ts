@@ -10,7 +10,7 @@ describe("authInterruptionHref locale propagation", () => {
       locale: DEFAULT_APP_LOCALE,
     })
     expect(href).toContain(
-      `callbackUrl=${encodeURIComponent(toLocalePath(DEFAULT_APP_LOCALE, "/dashboard"))}`
+      `callbackUrl=${encodeURIComponent(toLocalePath(DEFAULT_APP_LOCALE, "/o"))}`
     )
     expect(
       href.startsWith(toLocalePath(DEFAULT_APP_LOCALE, "/session-expired"))

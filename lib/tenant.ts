@@ -8,13 +8,13 @@ import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 
 import { AUTH_STATUS, redirectToAuthInterruption } from "#lib/auth"
-import { auth } from "#lib/auth/config.server"
+import { auth } from "#lib/auth/neon.server"
 import { isGlobalAdminUser } from "#lib/auth/permission.server"
 import { getAuthSession } from "#lib/session-cache"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { member } from "#lib/db/schema"
+import { neonAuthMember } from "#lib/db/schema-neon-auth"
 
 export type OrgSession = {
   userId: string
@@ -83,7 +83,7 @@ export async function requireGlobalAdminSession(): Promise<GlobalAdminSession> {
 
   if (!isGlobalAdminUser(user.id, user.role)) {
     const locale = await getRequestAppLocale()
-    redirect(toLocalePath(locale, "/dashboard") as Route)
+    redirect(toLocalePath(locale, "/o") as Route)
   }
 
   return {
@@ -119,12 +119,12 @@ export const requireOrgSession = cache(
     }
 
     const [row] = await db
-      .select({ id: member.id })
-      .from(member)
+      .select({ id: neonAuthMember.id })
+      .from(neonAuthMember)
       .where(
         and(
-          eq(member.userId, user.id),
-          eq(member.organizationId, organizationId)
+          eq(neonAuthMember.userId, user.id),
+          eq(neonAuthMember.organizationId, organizationId)
         )
       )
       .limit(1)
@@ -159,8 +159,8 @@ export const getOrgTenantContext = requireOrgSession
 export async function getOrgSessionFromRequest(
   request: Request
 ): Promise<OrgSession | null> {
-  const session = await auth.api.getSession({
-    headers: request.headers,
+  const { data: session } = await auth.getSession({
+    fetchOptions: { headers: request.headers },
   })
 
   if (!session?.user?.id || !session.session?.id) {
@@ -175,10 +175,13 @@ export async function getOrgSessionFromRequest(
   }
 
   const [row] = await db
-    .select({ id: member.id })
-    .from(member)
+    .select({ id: neonAuthMember.id })
+    .from(neonAuthMember)
     .where(
-      and(eq(member.userId, user.id), eq(member.organizationId, organizationId))
+      and(
+        eq(neonAuthMember.userId, user.id),
+        eq(neonAuthMember.organizationId, organizationId)
+      )
     )
     .limit(1)
 

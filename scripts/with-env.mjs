@@ -58,8 +58,10 @@ const fromFile = loadEnvLocal()
 const childEnv = { ...fromFile, ...process.env }
 const [command, ...commandArgs] = args
 
-// Vitest v8 coverage on Windows can race on `.tmp/*.json` under reportsDirectory;
-// pre-create the folder so merge/read does not ENOENT (see vitest.config coverage path).
+// Vitest v8 writes merge shards under `coverage.reportsDirectory/.tmp`. Do not delete
+// that tree here — Vitest owns lifecycle via `coverage.clean` and removing `.tmp`
+// mid-run causes ENOENT / "Something removed the coverage directory" (Vitest docs:
+// createCoverageProvider + coverage.clean). Only ensure parent dirs exist.
 if (command === "vitest" && commandArgs.includes("--coverage")) {
   fs.mkdirSync(path.join(root, ".artifacts", "coverage", ".tmp"), {
     recursive: true,

@@ -1,5 +1,6 @@
 import type { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
+import { withWorkflow } from "workflow/next"
 
 import { betterAuthAllowedHostsFromEnv } from "./lib/site"
 
@@ -75,7 +76,7 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withNextIntl(nextConfig)
+export default withWorkflow(withNextIntl(nextConfig))
 
 /**
  * Host allowlist for Server Actions (CSRF / reverse-proxy safety).

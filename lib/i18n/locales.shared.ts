@@ -1,3 +1,5 @@
+import type { Route } from "next"
+
 /**
  * Single source of truth for supported UI locales (path prefix + catalogs).
  * First slice: `en` only; add more after routing/proxy/callbacks are stable.
@@ -25,7 +27,10 @@ export type AppPath = `/${string}`
  * Idempotent if `path` is already `/{locale}` or `/{locale}/...`.
  * Locale must be explicit — no implicit default.
  */
-export function toLocalePath(locale: AppLocale, path: AppPath): AppPath {
+export function toLocalePath(
+  locale: AppLocale,
+  path: AppPath | Route
+): AppPath {
   const raw = (path.startsWith("/") ? path : `/${path}`) as AppPath
   if (raw === `/${locale}` || raw.startsWith(`/${locale}/`)) {
     return raw

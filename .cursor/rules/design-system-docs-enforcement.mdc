@@ -11,15 +11,11 @@ Applies when editing **`docs/design-system/**/*.md`**.
 ## Authority
 
 - **`AGENTS.md` §7** — product contract for tokens and primitives.
-- **`docs/design-system/governance.md`** — process and verification.
 - **Code truth:** [`app/globals.css`](../../app/globals.css), [`lib/design-system.ts`](../../lib/design-system.ts), [`components/ui/`](../../components/ui/).
+- Class-level UI contracts are enforced in **`design-system-enforcement.mdc`**; this file keeps docs in sync.
 
 ## Rules
 
-- Do not document Figma names, variant strings, or CSS variables that **are not** implemented in code and `lib/design-system.ts`.
-- When tokens or primitive APIs change, update **`docs/design-system/figma-code-connect-mapping.md`** (and related docs) in the **same** change as `globals.css` / primitives when possible.
-- For **class-level** UI rules (radius, semantic colors, hover tokens, `check-design-contract` allowlists), follow sibling rule **`design-system-enforcement.mdc`** (`*.{ts,tsx,css}`).
-
-## CI
-
-`pnpm lint` runs `check-design-contract.mjs` — `@theme` ↔ `:root`/`.dark` parity must stay green after token doc edits that claim specific variables.
+- Do not document token names, variant strings, or CSS variables that are not implemented in code.
+- When primitive APIs or tokens change, update `docs/design-system/figma-code-connect-mapping.md` in the same change when possible.
+- Prefer documenting existing contracts over introducing new terminology.

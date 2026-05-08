@@ -1,44 +1,50 @@
 ---
-description: Canonical Afenda brand paths, next/image and metadata usage
-alwaysApply: true
+description: Canonical Afenda brand paths, taxonomy, metadata, and composition rules
+globs: "public/**,lib/site.ts,app/layout.tsx,app/manifest.ts,components/afenda-brand.tsx"
+alwaysApply: false
 ---
 
 # Brand assets (`public/`)
 
-General **`next/image`** policy, **`localPatterns` / `remotePatterns`**, and SVG defaults: `.cursor/rules/images.mdc`.
+General `next/image` policy, `localPatterns`/`remotePatterns`, and SVG defaults: **`.cursor/rules/images.mdc`**.
 
-Authoritative paths live in [`lib/site.ts`](lib/site.ts) (`FAVICON_ICO`, `APP_ICON_*`, `BRAND_*`, `DEFAULT_OG_IMAGE`). **Browser tab:** [`app/layout.tsx`](app/layout.tsx) `metadata.icons` + `shortcut` with `media: "(prefers-color-scheme: light|dark)"` (not `next-themes`). **`/favicon.ico`** is a real ICO in `public/` and `app/` (App Router convention; regenerate both via `pnpm icons:favicon` from `APP_ICON_512_PNG` source). Root `generateMetadata` uses the **request host** for `metadataBase` so icon URLs match `*.vercel.app` vs custom domain. On Vercel, [`vercel.json`](vercel.json) attaches **CDN `Cache-Control`** to `/favicon.ico` and `/icons/*` per [Project Configuration → headers](https://vercel.com/docs/project-configuration/vercel-json#headers) (stabilizes edge delivery; bump filenames or reduce `max-age` if you replace assets in place). Avoid **`app/icon.png`** if it would override themed `<link rel="icon">` entries. Prefer importing constants instead of string literals.
+Authoritative path constants: [`lib/site.ts`](lib/site.ts) (`FAVICON_ICO`, `APP_ICON_*`, `BRAND_*`, `DEFAULT_OG_IMAGE`). Import constants — never string literals.
 
-## Taxonomy
+## Asset taxonomy
 
-- **Symbol / app mark** (`APP_ICON_*`, maskable variant): tab icon via `metadata.icons` — **transparent** `APP_ICON_192/512_PNG` for both `prefers-color-scheme` values; PWA manifest adds `APP_ICON_MASKABLE_512_PNG` with `purpose: "maskable"`; Apple touch icon; in-app [`AfendaBrandIcon`](components/afenda-brand.tsx) uses **transparent** `APP_ICON_512_PNG` for both themes (no maskable swap); default OG/Twitter (`DEFAULT_OG_IMAGE`).
-- **Combined lockup** (`BRAND_COMBINED_LOCKUP_PNG` light, `BRAND_COMBINED_LOCKUP_DARK_PNG` for `html.dark`): [`AfendaBrandLockup`](components/afenda-brand.tsx) (`"use client"`) on marketing/auth flows, **dashboard** shell header, **account** / **admin** layouts, `not-found` / `error` / root `loading` where brand presence matters. Dark raster is keyed from `brand-guideline/dark-full-icon-bar.png` via [`scripts/knockout-dark-lockup-bg.mjs`](scripts/knockout-dark-lockup-bg.mjs); output `dark-full-icon-bar-transparent.png`.
-- **Typography / wordmark** (`BRAND_TYPOGRAPHY_LOCKUP_SVG`, `BRAND_WORDMARK_MONO_SVG`): text-first branding; respect theme and contrast (semantic Tailwind surfaces — avoid hardcoded colors that fight tokens).
-- **Maskable** (`APP_ICON_MASKABLE_512_PNG`): only for manifest entries with `purpose: "maskable"`; do not swap in arbitrary art without safe-zone awareness.
+| Constant | Purpose | Where used |
+|---|---|---|
+| `APP_ICON_192/512_PNG` | Transparent tab icon (both themes) | `metadata.icons` with `media: "(prefers-color-scheme: light\|dark)"` |
+| `APP_ICON_MASKABLE_512_PNG` | PWA manifest only (`purpose: "maskable"`) | `app/manifest.ts` — do not swap into UI art |
+| `BRAND_COMBINED_LOCKUP_PNG` / `BRAND_COMBINED_LOCKUP_DARK_PNG` | Full brand lockup, theme-aware | [`AfendaBrandLockup`](components/afenda-brand.tsx) — auth flows, dashboard shell, account/admin layouts, `not-found`/`error`/root `loading` |
+| `BRAND_TYPOGRAPHY_LOCKUP_SVG` / `BRAND_WORDMARK_MONO_SVG` | Text-first wordmark | Text-forward branding surfaces |
+| `DEFAULT_OG_IMAGE` | Default OG/Twitter share card | `metadata.openGraph.images` |
 
-## UI (Next.js App Router)
+## Tab icons and metadata
 
-- Use **`next/image`** for PNG marks; set **`width`**, **`height`**, and meaningful **`alt`** (e.g. site name or “Afenda logo”) per [Next.js images](https://nextjs.org/docs/app/getting-started/images).
-- **`src` must match [`next.config.ts`](next.config.ts) `images.localPatterns`** (`/icons/**`, `/afenda-brand/**`). Other `public/` paths will return **400** from `/_next/image` until you extend the allowlist (and `#lib/site` if brand-related).
-- **SVG** lockups: `next/image` with root-relative `src` is fine; SVG is served **unoptimized** by default (security). Do **not** enable `images.dangerouslyAllowSVG` in `next.config` for routine brand usage.
-- Do not substitute **Lucide or generic icons** for product identity surfaces (nav brand, auth header).
-- **Composition:** prefer small components (`BrandMark` / `BrandLockup` or layout wrappers with `children`) over one logo component with many boolean modes.
+- `metadata.icons` in [`app/layout.tsx`](app/layout.tsx): use typed `url`/`sizes`/`type` with `media: "(prefers-color-scheme: light|dark)"` — not `next-themes`.
+- `/favicon.ico` is a real ICO in both `public/` and `app/` (App Router convention). Regenerate both via `pnpm icons:favicon` when `APP_ICON_512_PNG` changes.
+- Root `generateMetadata` uses the **request host** for `metadataBase` so icon URLs resolve correctly on `*.vercel.app` and custom domains.
+- `vercel.json` attaches CDN `Cache-Control` to `/favicon.ico` and `/icons/*` — bump filenames or reduce `max-age` when replacing assets in place.
+- Avoid `app/icon.png` if it overrides themed `<link rel="icon">` entries.
 
-## Metadata and sharing
+## Composition rules
 
-- Keep **`metadataBase`** and relative URLs consistent with [`app/layout.tsx`](app/layout.tsx). For `openGraph.images`, set **`width`**, **`height`**, and **`alt`** to match the asset.
-- **`metadata.icons`:** use typed `url` / `sizes` / `type`. For light/dark-specific marks, use multiple `icon` entries with `media` (e.g. `prefers-color-scheme: dark`) per [generateMetadata](https://nextjs.org/docs/app/api-reference/functions/generate-metadata).
-- **PWA:** keep using [`app/manifest.ts`](app/manifest.ts) with `purpose: "any"` vs `"maskable"` as appropriate.
+- Do not substitute Lucide or generic icons for product identity surfaces (nav brand, auth header).
+- Prefer small focused components (`BrandMark` / `BrandLockup`) over one component with many boolean modes.
+- Dark lockup raster is generated by [`scripts/knockout-dark-lockup-bg.mjs`](scripts/knockout-dark-lockup-bg.mjs) from `brand-guideline/dark-full-icon-bar.png`.
 
-## Optional patterns (not default here)
+## OG and PWA
 
-- File-based **`opengraph-image`** or **`app/icon.tsx`** / **`app/icon.png`** — only if product needs a single generated/static tab asset; today themed tabs use **`metadata.icons`** + `media` instead.
+- `openGraph.images`: always include `width`, `height`, and `alt` matching the real asset dimensions.
+- PWA manifest: use `purpose: "any"` vs `"maskable"` per asset — do not mix them.
 
-## Process
+## Process checklist (new files under `public/afenda-brand/` or `public/icons/`)
 
-- New files under `public/afenda-brand/` or `public/icons/` require updating [`AGENTS.md`](AGENTS.md) (Brand assets / Images), this rule, [`lib/site.ts`](lib/site.ts) constants, [`app/layout.tsx`](app/layout.tsx) **`metadata.icons`** when tab art changes, run **`pnpm icons:favicon`** when the 512 source changes, and [`next.config.ts`](next.config.ts) **`localPatterns`** as needed (see **`.cursor/rules/images.mdc`**).
-- The full Figma guideline raster (`afenda-figma-export-full-guideline.png`) is **gitignored** (GitHub 100 MB limit); keep it locally under `public/afenda-brand/brand-guideline/` for design reference.
+1. Update [`lib/site.ts`](lib/site.ts) with path constant.
+2. Update [`app/layout.tsx`](app/layout.tsx) `metadata.icons` if tab art changes.
+3. Run `pnpm icons:favicon` if the 512 source changed.
+4. Extend `images.localPatterns` in [`next.config.ts`](next.config.ts) if a new `public/` subtree is used with `next/image`.
+5. Add a short note under **Brand assets / Images** in [`AGENTS.md`](AGENTS.md).
 
-## When unsure
-
-Re-query **Context7** `/vercel/next.js` pinned to the repo’s Next major (see `AGENTS.md` toolchain) or **Vercel MCP** `search_vercel_documentation` for image optimization — do not rely on stale model knowledge.
+The full Figma guideline raster (`afenda-figma-export-full-guideline.png`) is gitignored (GitHub 100 MB limit); keep it locally under `public/afenda-brand/brand-guideline/` for design reference only.

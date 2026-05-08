@@ -7,9 +7,7 @@ export const dynamic = "force-dynamic"
 
 export default async function OrgDashboardKnowledgePage({
   params,
-}: {
-  params: Promise<{ orgSlug: string }>
-}) {
+}: PageProps<"/[locale]/o/[orgSlug]/dashboard/knowledge">) {
   const { orgSlug } = await params
   const locale = await getRequestAppLocale()
   redirect({

@@ -31,6 +31,7 @@ const eslintConfig = defineConfig([
     "build/**",
     ".artifacts/**",
     "next-env.d.ts",
+    "app/.well-known/workflow/**",
   ]),
   /** ERP modules: same radix/base-ui boundary as app shell; deep #features imports are gated by check-agent-contract.mjs (same-module allowed). */
   {

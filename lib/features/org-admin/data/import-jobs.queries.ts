@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, asc, desc, eq } from "drizzle-orm"
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { importJob, importJobFailure, importJobRow } from "#lib/db/schema"
@@ -15,6 +15,22 @@ import type {
   OrgImportJobRowSummary,
   OrgImportJobSummary,
 } from "../types"
+
+/** Count of jobs still in-flight (`uploaded` waiting to run, or `running`). */
+export async function countActiveImportJobsForOrganization(
+  organizationId: string
+): Promise<number> {
+  const [row] = await db
+    .select({ n: count() })
+    .from(importJob)
+    .where(
+      and(
+        eq(importJob.organizationId, organizationId),
+        inArray(importJob.state, ["uploaded", "running"])
+      )
+    )
+  return Number(row?.n ?? 0)
+}
 
 /** Lists jobs for an organization (newest first). */
 export async function listOrgImportJobs(

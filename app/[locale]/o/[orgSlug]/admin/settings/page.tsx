@@ -16,9 +16,7 @@ import { Link } from "#i18n/navigation"
 
 export default async function OrgAdminSettingsPage({
   params,
-}: {
-  params: Promise<{ orgSlug: string }>
-}) {
+}: PageProps<"/[locale]/o/[orgSlug]/admin/settings">) {
   const { orgSlug } = await params
   const t = await getTranslations("OrgAdmin.settings")
 
@@ -60,19 +58,13 @@ export default async function OrgAdminSettingsPage({
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
             <p>{t("orgProfileHint")}</p>
-            <Link
-              href={"/account/organization" as Route}
-              className="mt-3 inline-block font-medium text-primary underline-offset-4 hover:underline"
-            >
-              {t("legacyOrgPage")}
-            </Link>
           </CardContent>
         </Card>
       </div>
 
       <p className="text-sm text-muted-foreground">
         <Link
-          href={organizationAdminPath(orgSlug, "overview") as Route}
+          href={organizationAdminPath(orgSlug, "overview")}
           className="font-medium text-primary underline-offset-4 hover:underline"
         >
           {t("backAdmin")}

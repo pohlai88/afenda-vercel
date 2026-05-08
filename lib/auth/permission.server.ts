@@ -3,10 +3,10 @@ import "server-only"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { member } from "#lib/db/schema"
+import { neonAuthMember } from "#lib/db/schema-neon-auth"
 
 /**
- * Better Auth organization plugin built-in roles (lowest → highest).
+ * Organization roles (Neon Auth `neon_auth.member`, lowest → highest).
  * Custom org role strings not in this map rank as `0` for comparisons.
  */
 const ORG_ROLE_RANK = {
@@ -27,7 +27,7 @@ function parseBetterAuthAdminUserIdsFromEnv(): string[] {
 }
 
 /**
- * Global Better Auth admin: `admin` appears in the user's `role` field (comma-separated)
+ * Global admin: `admin` appears in the user's `role` field (comma-separated)
  * or the user id is listed in `BETTER_AUTH_ADMIN_USER_IDS`.
  * Must stay aligned with `requireGlobalAdminSession` in `lib/tenant.ts`.
  */
@@ -63,10 +63,13 @@ export async function getOrgMemberRole(
   organizationId: string
 ): Promise<string | null> {
   const [row] = await db
-    .select({ role: member.role })
-    .from(member)
+    .select({ role: neonAuthMember.role })
+    .from(neonAuthMember)
     .where(
-      and(eq(member.userId, userId), eq(member.organizationId, organizationId))
+      and(
+        eq(neonAuthMember.userId, userId),
+        eq(neonAuthMember.organizationId, organizationId)
+      )
     )
     .limit(1)
   return row?.role ?? null
