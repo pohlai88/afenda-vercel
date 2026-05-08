@@ -12,6 +12,7 @@ const PROTECTED_PATH_PREFIXES = [
   "/account",
   "/operator",
   "/accept-invitation",
+  "/console",
 ] as const
 
 /** Locale-internal paths under `/o/{slug}/…` (V1 tenant surface). */

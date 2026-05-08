@@ -28,12 +28,24 @@ function isTypingTarget(target: EventTarget | null) {
   )
 }
 
+/**
+ * Some hosts / synthetic events omit `key` or expose non-strings; `code` is the
+ * stable fallback for the physical D key (Layout-independent).
+ */
+function isThemeToggleKey(event: KeyboardEvent): boolean {
+  const raw = event.key
+  if (typeof raw === "string") {
+    return raw.toLowerCase() === "d"
+  }
+  return event.code === "KeyD"
+}
+
 function ThemeHotkey() {
   const { resolvedTheme, setTheme } = useTheme()
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.defaultPrevented || event.repeat) {
+      if (!event || event.defaultPrevented || event.repeat) {
         return
       }
 
@@ -41,7 +53,7 @@ function ThemeHotkey() {
         return
       }
 
-      if (event.key.toLowerCase() !== "d") {
+      if (!isThemeToggleKey(event)) {
         return
       }
 

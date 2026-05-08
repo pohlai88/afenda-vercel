@@ -5,10 +5,10 @@ import { z } from "zod"
 
 import {
   auth,
-  requireSignedInSession,
+  requireAuthShellSignedInSession,
   requireVerifiedEmailForAccount,
   writeIamAuditEventFromNextHeaders,
-} from "#lib/auth-v2"
+} from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath, toLocaleRoutePattern } from "#lib/i18n/locales.shared"
 
@@ -30,7 +30,7 @@ export async function revokeSessionAction(
   if (revoked.error) {
     throw new Error(revoked.error.message ?? "Failed to revoke session.")
   }
-  const session = await requireSignedInSession()
+  const session = await requireAuthShellSignedInSession()
   await writeIamAuditEventFromNextHeaders({
     action: "iam.session.revoke",
     actorUserId: session.userId,
@@ -48,7 +48,7 @@ export async function revokeOtherSessionsAction() {
   if (out.error) {
     throw new Error(out.error.message ?? "Failed to revoke other sessions.")
   }
-  const session = await requireSignedInSession()
+  const session = await requireAuthShellSignedInSession()
   await writeIamAuditEventFromNextHeaders({
     action: "iam.session.revoke_other",
     actorUserId: session.userId,

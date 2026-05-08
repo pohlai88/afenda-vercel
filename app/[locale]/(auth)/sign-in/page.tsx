@@ -1,8 +1,6 @@
-import {
-  getEnabledSocialProviderIds,
-  resolvePostAuthCallbackUrl,
-} from "#lib/auth-v2"
 import { AuthPageFrame } from "#components/auth/auth-page-frame"
+import { resolvePostAuthCallbackUrl } from "#lib/auth/callback-path"
+import { getEnabledSocialProviderIds } from "#lib/auth/social-providers-env.shared"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 
 import { SignInForm } from "./sign-in-form"

@@ -1,6 +1,10 @@
 import type { Metadata } from "next"
 
+import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
+
+import { ensureAppLocale } from "#lib/i18n/locales.shared"
+import type { RouteEnvelope } from "#lib/route-envelope.shared"
 
 /**
  * Route group layout (`(iam)` is invisible in URLs): shared **private-surface** robots for
@@ -15,10 +19,18 @@ export async function generateMetadata({
   }
 }
 
-export default function IamRouteGroupLayout({
+export default async function IamRouteGroupLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
-  return children
+  params,
+}: LayoutProps<"/[locale]">) {
+  const { locale: localeRaw } = await params
+  const locale = ensureAppLocale(localeRaw)
+  const envelope: RouteEnvelope = {
+    surface: "iam",
+    locale,
+  }
+
+  return (
+    <RouteEnvelopeProvider value={envelope}>{children}</RouteEnvelopeProvider>
+  )
 }

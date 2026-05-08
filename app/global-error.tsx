@@ -1,11 +1,13 @@
 "use client"
 
-import { useEffect } from "react"
 import Link from "next/link"
 
 import "./globals.css"
+import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
+import { RouteErrorActions } from "#components/route-error-primitives"
 import { Button } from "#components/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
+import { useReportRouteError } from "#components/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
@@ -21,9 +23,7 @@ export default function GlobalError(props: NextAppErrorPageProps) {
   const { error } = props
   const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
   const retry = retryAction ?? resetAction
-  useEffect(() => {
-    console.error(error)
-  }, [error])
+  useReportRouteError({ segment: "global", error })
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -40,7 +40,7 @@ export default function GlobalError(props: NextAppErrorPageProps) {
               </p>
             ) : null}
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <RouteErrorActions>
             <Button type="button" onClick={() => retry?.()}>
               Try again
             </Button>
@@ -49,7 +49,8 @@ export default function GlobalError(props: NextAppErrorPageProps) {
                 Go home
               </Link>
             </Button>
-          </div>
+          </RouteErrorActions>
+          <RouteErrorDebugPanel segment="global" error={error} />
         </div>
       </body>
     </html>

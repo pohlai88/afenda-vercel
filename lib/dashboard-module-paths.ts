@@ -8,7 +8,8 @@ import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
  * Returns a typed {@link Route} for `Link` / `redirect` from `#i18n/navigation` and
  * Next.js typed routes. Client-safe — use from dashboard shell instead of the
  * `#features/org-admin` barrel so Server Actions / `server-only` query modules are
- * not pulled into the client graph. Segment allowlist mirrors {@link ORG_ADMIN_PATH_SEGMENTS}.
+ * not pulled into the client graph (queries live under `#features/org-admin/server`).
+ * Segment allowlist mirrors {@link ORG_ADMIN_PATH_SEGMENTS}.
  */
 export function organizationAdminPath(
   orgSlug: string,
@@ -36,6 +37,7 @@ export function organizationDashboardPath(
   orgSlug: string,
   modulePath:
     | "contacts"
+    | "todos"
     | "knowledge"
     | "lynx"
     | "sale"
@@ -55,8 +57,30 @@ export function organizationDashboardPath(
   return `${base}/${modulePath}` as Route
 }
 
+/**
+ * Single source for ERP module chrome order under `/o/{slug}/dashboard`.
+ * Excludes `home` (dashboard index). Keep aligned with
+ * {@link ORG_DASHBOARD_MODULES} in `dashboard-org-path.shared.ts` and
+ * `Dashboard.nav` in `messages/*`.
+ */
+export const DASHBOARD_NAV_MODULES = [
+  "contacts",
+  "todos",
+  "knowledge",
+  "lynx",
+  "sale",
+  "purchase",
+  "inventory",
+  "accounting",
+] as const satisfies ReadonlyArray<
+  Exclude<Parameters<typeof organizationDashboardPath>[1], "home">
+>
+
+export type DashboardNavModule = (typeof DASHBOARD_NAV_MODULES)[number]
+
 /** Tails for `toLocaleOrgDashboardRevalidatePattern` (leading slash). */
 export const ORG_DASHBOARD_CONTACTS = "/contacts" as const
+export const ORG_DASHBOARD_TODOS = "/todos" as const
 export const ORG_DASHBOARD_KNOWLEDGE = "/knowledge" as const
 export const ORG_DASHBOARD_LYNX = "/lynx" as const
 export const ORG_DASHBOARD_SALE = "/sale" as const

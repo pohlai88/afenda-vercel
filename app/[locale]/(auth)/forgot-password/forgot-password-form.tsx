@@ -5,7 +5,7 @@ import { useLocale } from "next-intl"
 import { useState } from "react"
 import { Link } from "#i18n/navigation"
 
-import { authClient } from "#lib/auth-v2-client"
+import { authClient } from "#lib/auth-client"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"

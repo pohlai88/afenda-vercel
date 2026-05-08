@@ -12,7 +12,10 @@ import {
   type LynxTruthNdjsonDelta,
   type LynxTruthNdjsonError,
 } from "#features/lynx"
+import * as Sentry from "@sentry/nextjs"
+
 import { writeIamAuditEventFromHeaders } from "#lib/auth"
+import { logUnexpectedServerError } from "#lib/logger.server"
 import {
   readRequestJson,
   ROUTE_JSON_HEADERS,
@@ -202,7 +205,21 @@ export async function POST(request: Request) {
           },
         })
       } catch (err) {
-        console.error("[lynx operator]", err)
+        logUnexpectedServerError("lynx_operator_stream_failed", err, {
+          scope: "api.erp.lynx.operator",
+          "erp.module": "lynx",
+          organizationId: org.organizationId,
+        })
+        Sentry.captureException(
+          err instanceof Error ? err : new Error(String(err)),
+          {
+            tags: {
+              scope: "api.erp.lynx.operator",
+              "erp.module": "lynx",
+            },
+            extra: { organizationId: org.organizationId },
+          }
+        )
         const msg =
           err instanceof Error ? err.message : "Operator generation failed"
         const line: LynxTruthNdjsonError = { type: "error", message: msg }

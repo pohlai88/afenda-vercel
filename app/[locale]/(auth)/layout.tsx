@@ -1,6 +1,10 @@
 import type { Metadata } from "next"
 
+import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
+
+import { ensureAppLocale } from "#lib/i18n/locales.shared"
+import type { RouteEnvelope } from "#lib/route-envelope.shared"
 
 /**
  * Route group layout (URL segment `(auth)` is invisible): centralizes **private-surface**
@@ -18,10 +22,18 @@ export async function generateMetadata({
   }
 }
 
-export default function AuthRouteGroupLayout({
+export default async function AuthRouteGroupLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
-  return children
+  params,
+}: LayoutProps<"/[locale]">) {
+  const { locale: localeRaw } = await params
+  const locale = ensureAppLocale(localeRaw)
+  const envelope: RouteEnvelope = {
+    surface: "auth",
+    locale,
+  }
+
+  return (
+    <RouteEnvelopeProvider value={envelope}>{children}</RouteEnvelopeProvider>
+  )
 }

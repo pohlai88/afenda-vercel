@@ -7,6 +7,7 @@ import { Button } from "#components/ui/button"
 import { Input } from "#components/ui/input"
 
 import type { LynxOperatorNdjsonMeta } from "#features/lynx"
+import { LYNX_ERP_HTTP_ROUTES } from "../lynx.contract"
 
 function parseOperatorMetaTools(
   tools: string[] | undefined
@@ -36,7 +37,7 @@ export function OperatorAssistClient() {
 
     setState({ status: "loading" })
     try {
-      const res = await fetch("/api/erp/lynx/operator", {
+      const res = await fetch(LYNX_ERP_HTTP_ROUTES.operator, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

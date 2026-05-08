@@ -28,13 +28,14 @@ This repository uses a shadcn-style primitive layer in `components/ui` and ERP m
 | **Tailwind bridge**     | `app/globals.css` (`@theme inline`)  | Maps CSS variables → utilities (`bg-primary`, `p-surface-md`, `shadow-elevation-*`, `gap-density-*`, …)                                                |
 | **Primitive contracts** | `lib/design-system.ts`               | Allowlisted radii, elevations, density/surface class strings, Zod parsers, button/badge/card keys                                                      |
 | **Primitives**          | `components/ui`                      | CVA variants, `data-slot`, hover/focus behavior                                                                                                        |
-| **Drift gate**          | `scripts/check-design-contract.mjs`  | Scans `app/`, `components/`, `hooks/`, `lib/features/`, `lib/design-system.ts`; `@theme` ↔ `:root`/`.dark` parity; primitive hover/radius/shadow rules |
+| **Drift gate**          | `scripts/check-design-contract.mjs`  | Scans `app/`, `components/`, `hooks/`, `lib/features/`, `lib/design-system.ts`; `@theme` ↔ `:root`/`.dark` parity; primitive hover/radius/shadow rules; arbitrary spacing rhythm rule (`p-[…]`, `gap-[…]`, `space-[xy]-[…]`) |
 
 ## Non-negotiable rules
 
 - Use semantic color tokens only (no raw palette utilities in `components/ui/*`).
 - Reuse `uiRadius`, `uiTracking`, `uiSurfaceElevation`, `uiDensity`, `uiSurfaceInset` / `uiSurfaceSpaceKeys`, and schema guards from `lib/design-system.ts`.
 - On filled primary/secondary controls in `components/ui`, use `bg-primary-hover` / `bg-secondary-hover` — not `hover:bg-primary/…` or `hover:bg-secondary/…` (CI enforces).
+- Spacing rhythm (`p-*`, `m*`, `gap-*`, `space-[xy]-*`) must come from the token scale: Tailwind's spacing scale, `p-surface-*` / `gap-surface-*` (`--space-surface-*`), or `gap-density-*` (`--density-*`). Arbitrary literals (`p-[12px]`, `gap-[7px]`) are forbidden; CSS-variable references (`var(--…)` / `--spacing(var(--…))`) remain allowed for primitives that drive spacing dynamically.
 - Keep primitive anatomy discoverable with stable `data-slot` attributes.
 - Build ERP patterns in feature modules; do not fork primitives inside modules.
 

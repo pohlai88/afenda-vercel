@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
 
+import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import { requireRecentAuthStepUp } from "#lib/auth"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+import type { RouteEnvelope } from "#lib/route-envelope.shared"
 import { SITE_NAME } from "#lib/site"
 import { requireGlobalAdminSession } from "#lib/tenant"
 
@@ -20,5 +22,13 @@ export default async function OperatorLayout({
   const locale = ensureAppLocale(localeRaw)
   await requireGlobalAdminSession()
   await requireRecentAuthStepUp({ returnTo: toLocalePath(locale, "/operator") })
-  return children
+
+  const envelope: RouteEnvelope = {
+    surface: "operator",
+    locale,
+  }
+
+  return (
+    <RouteEnvelopeProvider value={envelope}>{children}</RouteEnvelopeProvider>
+  )
 }

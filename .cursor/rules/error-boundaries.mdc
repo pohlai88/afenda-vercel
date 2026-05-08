@@ -1,0 +1,104 @@
+---
+description: App Router route error files — recoverable failure boundary, shell boundaries only, RouteEnvelope bridge, MCP docs
+globs: app/**/error.tsx,app/global-error.tsx,components/route-error*.tsx,lib/next-app-error-page-props.shared.ts,scripts/check-route-error-files.mjs
+alwaysApply: false
+---
+
+# Route error files (`error.tsx` / `global-error.tsx`)
+
+## Doctrine
+
+```txt
+error.tsx = recoverable failure boundary
+```
+
+`error.tsx` handles **uncaught exceptions**, not expected business failure. It is an **operational ownership boundary**, not a generic fallback tool.
+
+Add a nested `error.tsx` only at durable route shells:
+
+- org shell (`/o/[orgSlug]`)
+- dashboard shell (`/o/[orgSlug]/dashboard`)
+- admin / operator workbench
+- auth / IAM shell
+- major product surface with independent recovery ownership
+
+Do **not** add `dashboard/<module>/error.tsx` for widgets, cards, tables, forms, charts, or expected data failures.
+
+For local or partial failure, use instead:
+
+- `Suspense` + `fallback`
+- inline fallback UI in Server Components
+- `Promise.allSettled` for multi-fetch resilience
+- Server Action return values (expected errors)
+- conditional Server Component rendering
+- `unstable_catchError` for component-level recovery ([docs](https://nextjs.org/docs/app/api-reference/functions/catchError))
+
+Route error boundaries **isolate uncaught rendering failures**. They do **not** replace retries, idempotency, request timeouts, durable workflows, validation, or degraded-mode data handling.
+
+## Decision rule
+
+Before adding any `error.tsx`, answer all four questions:
+
+1. **Is this segment an operational ownership boundary** with its own recovery copy and retry semantics?
+2. **Does it represent a durable route shell** — not a widget, card, table, or form?
+3. **Would a lower-level tool solve it** — Suspense, inline fallback, `Promise.allSettled`, or Server Action return value?
+4. **Would this file hide a problem** — build error, typecheck failure, brittle import, weak data contract, unstable client island, or missing Suspense boundary?
+
+A new `error.tsx` is approved **only** when #1 and #2 are yes, #3 is no, and #4 is no. If #4 is yes, **fix the underlying issue** — do not use `error.tsx` as architectural deodorant.
+
+## Concerns (do not mix)
+
+| Concern | Correct tool |
+| ------- | ------------ |
+| Build / typecheck failures | TypeScript, ESLint, imports — **never** fixed by adding `error.tsx` |
+| Brittle imports or weak data contracts | Fix the contract — not a boundary problem |
+| Uncaught render errors at a shell boundary | Route segment `error.tsx` |
+| Expected / validation failures | Server Action return values; conditional Server Component UI |
+| Partial or section failure | `Suspense`, `Promise.allSettled`, inline fallback |
+| Component-level recovery | `unstable_catchError` |
+
+## Implementation rules
+
+- **Props typing:** [`lib/next-app-error-page-props.shared.ts`](../../lib/next-app-error-page-props.shared.ts) — **`NextAppErrorPageProps`** + **`resolveErrorBoundaryRetryCallbacks`** (avoids TS plugin / serializable-prop drift). Recovery: prefer framework **`unstable_retry`** via **`RouteErrorRetryButton`**.
+- **UI composition:** **`RouteErrorShell`**, **`RouteErrorDigest`**, **`RouteErrorActions`** from [`components/route-error-primitives.tsx`](../../components/route-error-primitives.tsx) + existing **`RouteErrorRetryButton`**. Keep segment **copy** local; avoid markup drift.
+- **`global-error.tsx`** is the last-resort crash surface — it replaces the root layout entirely. Keep it **brutally minimal**: `"use client"`, `import "./globals.css"`, own `<html>` and `<body>`. Must **not** depend on `next-intl`, feature modules, auth state, database access, dashboard components, or any large runtime graph. Root/outside-`[locale]` links: **`DEFAULT_LOCALE_HOME_PATH`** + `next/link`, `prefetch={false}` (see [**`AGENTS.md`**](../../AGENTS.md) locale-first surface).
+
+## Afenda RouteEnvelope bridge
+
+`error.tsx` is a Client Component and cannot directly receive layout-resolved server data (session, orgSlug, surface). The layout bridges this via **`RouteEnvelopeProvider`**:
+
+```
+layout.tsx resolves authority (orgSlug, orgId, surface, locale)
+↓ RouteEnvelopeProvider broadcasts to the client tree
+↓ error.tsx calls useRouteEnvelope() to read context
+```
+
+In every approved shell boundary `error.tsx`:
+
+```tsx
+"use client"
+import { useRouteEnvelope } from "#components/route-envelope-context"
+import { useReportRouteError } from "#components/use-report-route-error"
+
+export default function OrgDashboardError(props: NextAppErrorPageProps) {
+  const { error } = props
+  const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
+  const envelope = useRouteEnvelope()
+  const segment = envelope?.orgSlug ? `dashboard/${envelope.orgSlug}` : "dashboard"
+  useReportRouteError({ segment, error })
+  // ...
+}
+```
+
+This makes error reports surface-aware: `surface`, `locale`, `orgSlug`, `orgId` are all available for Sentry, Pino, and `useReportRouteError`. The `RouteEnvelopeProvider` must be in the corresponding layout.
+
+See [`components/route-envelope-context.tsx`](../../components/route-envelope-context.tsx) and [`lib/route-envelope.shared.ts`](../../lib/route-envelope.shared.ts).
+
+## Next.js MCP (authoritative docs)
+
+1. Read MCP resource **`nextjs-docs://llms-index`** (project Next DevTools MCP).
+2. Call **`nextjs_docs`** with paths from that index, e.g. **`/docs/app/api-reference/file-conventions/error`**, **`/docs/app/getting-started/error-handling`**.
+
+## CI
+
+[`scripts/check-route-error-files.mjs`](../../scripts/check-route-error-files.mjs) runs under **`pnpm lint`** (`lint:agent-contract`).

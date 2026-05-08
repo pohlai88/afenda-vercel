@@ -25,6 +25,7 @@ import {
 } from "../schemas/nl-sql-demo.schema"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
+import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/tenant"
 import { z } from "zod"
 
@@ -85,7 +86,12 @@ export async function generateLynxNlDemoSqlAction(
       ...(gatewayOpts ? { providerOptions: gatewayOpts } : {}),
     })
     return { ok: true, sql: object.query }
-  } catch {
+  } catch (err) {
+    logUnexpectedServerError("lynx_nl_demo_generate_sql_failed", err, {
+      scope: "action.lynx.nl_sql_demo",
+      "erp.module": "lynx",
+      organizationId: org.organizationId,
+    })
     return { ok: false, error: "Could not generate SQL" }
   }
 }
@@ -128,6 +134,11 @@ export async function executeLynxNlDemoSqlAction(
 
     return { ok: true, rows, columns }
   } catch (err) {
+    logUnexpectedServerError("lynx_nl_demo_execute_sql_failed", err, {
+      scope: "action.lynx.nl_sql_demo",
+      "erp.module": "lynx",
+      organizationId: org.organizationId,
+    })
     const message = err instanceof Error ? err.message : "Query failed"
     return { ok: false, error: message }
   }
@@ -143,7 +154,7 @@ export async function explainLynxNlDemoSqlAction(
       error: string
     }
 > {
-  await requireOrgSession()
+  const org = await requireOrgSession()
   const parsedQ = lynxNlDemoQuestionSchema.safeParse({ question })
   if (!parsedQ.success) {
     return { ok: false, error: "Invalid question" }
@@ -175,7 +186,12 @@ export async function explainLynxNlDemoSqlAction(
       ...(gatewayOpts ? { providerOptions: gatewayOpts } : {}),
     })
     return { ok: true, explanations: object.explanations }
-  } catch {
+  } catch (err) {
+    logUnexpectedServerError("lynx_nl_demo_explain_sql_failed", err, {
+      scope: "action.lynx.nl_sql_demo",
+      "erp.module": "lynx",
+      organizationId: org.organizationId,
+    })
     return { ok: false, error: "Could not explain SQL" }
   }
 }
@@ -186,7 +202,7 @@ export async function suggestLynxNlDemoChartAction(
 ): Promise<
   { ok: true; config: LynxNlDemoChartConfig } | { ok: false; error: string }
 > {
-  await requireOrgSession()
+  const org = await requireOrgSession()
   const parsedQ = lynxNlDemoQuestionSchema.safeParse({ question: userQuery })
   if (!parsedQ.success) {
     return { ok: false, error: "Invalid question" }
@@ -229,7 +245,12 @@ ${JSON.stringify(results.slice(0, 40), null, 2)}`,
 
     const merged: LynxNlDemoChartConfig = { ...config, colors }
     return { ok: true, config: merged }
-  } catch {
+  } catch (err) {
+    logUnexpectedServerError("lynx_nl_demo_suggest_chart_failed", err, {
+      scope: "action.lynx.nl_sql_demo",
+      "erp.module": "lynx",
+      organizationId: org.organizationId,
+    })
     return { ok: false, error: "Could not suggest chart" }
   }
 }

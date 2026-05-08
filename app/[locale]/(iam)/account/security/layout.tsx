@@ -1,7 +1,7 @@
 import {
   requireRecentAuthStepUp,
   requireVerifiedEmailForAccount,
-} from "#lib/auth-v2"
+} from "#lib/auth"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 
 export default async function AccountSecurityLayout({

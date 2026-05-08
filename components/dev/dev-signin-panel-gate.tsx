@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+
 import { DevSignInPanel } from "./dev-signin-panel"
 
 /**
@@ -8,5 +10,9 @@ import { DevSignInPanel } from "./dev-signin-panel"
 export function DevSignInPanelGate() {
   if (process.env.NODE_ENV !== "development") return null
   if (process.env.NEXT_PUBLIC_DEV_SIGNIN_PANEL === "0") return null
-  return <DevSignInPanel />
+  return (
+    <Suspense fallback={null}>
+      <DevSignInPanel />
+    </Suspense>
+  )
 }

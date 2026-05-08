@@ -31,6 +31,11 @@ describe("proxy-protected-paths.shared", () => {
     it("does not protect public auth pages", () => {
       expect(isProtectedLocaleInternalPath("/sign-in")).toBe(false)
       expect(isProtectedLocaleInternalPath("/sign-up")).toBe(false)
+      expect(isProtectedLocaleInternalPath("/forgot-password")).toBe(false)
+      expect(isProtectedLocaleInternalPath("/reset-password")).toBe(false)
+      expect(isProtectedLocaleInternalPath("/check-email")).toBe(false)
+      expect(isProtectedLocaleInternalPath("/verify-email")).toBe(false)
+      expect(isProtectedLocaleInternalPath("/session-expired")).toBe(false)
     })
   })
 

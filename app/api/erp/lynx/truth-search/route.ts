@@ -19,7 +19,10 @@ import {
   type LynxTruthNdjsonError,
   type LynxTruthNdjsonMeta,
 } from "#features/lynx"
+import * as Sentry from "@sentry/nextjs"
+
 import { writeIamAuditEventFromHeaders } from "#lib/auth"
+import { logUnexpectedServerError } from "#lib/logger.server"
 import {
   readRequestJson,
   ROUTE_JSON_HEADERS,
@@ -145,7 +148,21 @@ export async function POST(request: Request) {
           },
         })
       } catch (err) {
-        console.error("[lynx truth-search]", err)
+        logUnexpectedServerError("lynx_truth_search_stream_failed", err, {
+          scope: "api.erp.lynx.truth_search",
+          "erp.module": "lynx",
+          organizationId: org.organizationId,
+        })
+        Sentry.captureException(
+          err instanceof Error ? err : new Error(String(err)),
+          {
+            tags: {
+              scope: "api.erp.lynx.truth_search",
+              "erp.module": "lynx",
+            },
+            extra: { organizationId: org.organizationId },
+          }
+        )
         const message =
           err instanceof Error ? err.message : "Truth generation failed"
         const line: LynxTruthNdjsonError = { type: "error", message }

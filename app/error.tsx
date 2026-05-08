@@ -1,12 +1,14 @@
 "use client"
 
-import { useEffect } from "react"
 import Link from "next/link"
 
 import { AfendaBrandLockup } from "#components/afenda-brand"
+import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
+import { RouteErrorActions } from "#components/route-error-primitives"
 import { RouteErrorRetryButton } from "#components/route-error-retry-button"
 import { Button } from "#components/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
+import { useReportRouteError } from "#components/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
@@ -19,9 +21,7 @@ import {
 export default function Error(props: NextAppErrorPageProps) {
   const { error } = props
   const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
-  useEffect(() => {
-    console.error(error)
-  }, [error])
+  useReportRouteError({ segment: "root", error })
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6">
@@ -45,7 +45,7 @@ export default function Error(props: NextAppErrorPageProps) {
           </p>
         ) : null}
       </div>
-      <div className="flex flex-wrap items-center justify-center gap-3">
+      <RouteErrorActions>
         <RouteErrorRetryButton
           retryAction={retryAction}
           resetAction={resetAction}
@@ -57,7 +57,8 @@ export default function Error(props: NextAppErrorPageProps) {
             Go home
           </Link>
         </Button>
-      </div>
+      </RouteErrorActions>
+      <RouteErrorDebugPanel segment="root" error={error} />
     </div>
   )
 }

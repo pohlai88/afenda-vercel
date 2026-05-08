@@ -9,9 +9,9 @@ import { z } from "zod"
 import {
   assertInvitationForUser,
   auth,
-  requireSignedInSession,
+  requireAuthShellSignedInSession,
   writeIamAuditEventFromNextHeaders,
-} from "#lib/auth-v2"
+} from "#lib/auth"
 import { db } from "#lib/db"
 import { neonAuthOrganization } from "#lib/db/schema-neon-auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
@@ -57,7 +57,7 @@ export async function acceptOrganizationInvitationAction(
   _prev: AcceptInviteActionState,
   formData: FormData
 ): Promise<AcceptInviteActionState> {
-  const session = await requireSignedInSession()
+  const session = await requireAuthShellSignedInSession()
   const parsed = idSchema.safeParse(formData.get("invitationId"))
   if (!parsed.success) {
     return { ok: false, error: "Invalid invitation." }
@@ -97,7 +97,7 @@ export async function rejectOrganizationInvitationAction(
   _prev: AcceptInviteActionState,
   formData: FormData
 ): Promise<AcceptInviteActionState> {
-  const session = await requireSignedInSession()
+  const session = await requireAuthShellSignedInSession()
   const parsed = idSchema.safeParse(formData.get("invitationId"))
   if (!parsed.success) {
     return { ok: false, error: "Invalid invitation." }

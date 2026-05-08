@@ -41,10 +41,12 @@ alwaysApply: true
 - `iam.session.*` for session lifecycle hooks.
 - Full canonical list: **AGENTS.md §5 → IAM audit policy (ERP)**.
 
-## Auth V2 canonical control plane
+## Auth/IAM route groups
 
-- V2 is the canonical Neon Auth control plane; see **`.cursor/rules/auth-v2-directory.mdc`** for the full boundary.
-- Short version: **`lib/auth/`** holds the canonical IAM implementation; **`#lib/auth-v2`** is the `(auth)` / `(iam)` server barrel (re-exports `#lib/auth/*` + V2-only modules). Client: **`#lib/auth-v2-client`** (re-exports **`#lib/auth-client`**). Locale-first routes under `app/[locale]/(auth)/**` and `app/[locale]/(iam)/**`. See **`.cursor/rules/auth-v2-directory.mdc`** — do not duplicate IAM logic under `lib/auth-v2/` or deep-cross-import between trees except `auth-v2/server.ts` → `lib/auth/neon.server`.
+- Locale-first routes under `app/[locale]/(auth)/**` (auth flows: sign-in, sign-up, verify-email, forgot/reset password, accept-invitation) and `app/[locale]/(iam)/**` (identity/security/org management: account, onboarding).
+- Both route groups import **`#lib/auth`** (server) and **`#lib/auth-client`** (client) directly — no intermediary barrel.
+- Auth/account shell session guards: **`requireAuthShellSignedInSession`**, **`requireAuthShellOrgSession`**, **`requireAuthShellGlobalAdminSession`** from **`#lib/auth`** (`lib/auth/auth-shell-session.server.ts`).
+- Neon webhook receiver: `app/api/integrations/neon-auth-webhooks/route.ts` — verify with **`verifyNeonAuthWebhookSignature`** from **`#lib/auth`**.
 
 ## Contract changes
 

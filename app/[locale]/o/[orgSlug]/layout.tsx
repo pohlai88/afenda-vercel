@@ -1,6 +1,7 @@
 import type { Metadata, Route } from "next"
 import { notFound, redirect } from "next/navigation"
 
+import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
 import { localePrefixedOrgDashboardRedirect } from "#lib/dashboard-org-redirect.server"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
@@ -9,6 +10,7 @@ import {
   getOrganizationIdBySlug,
   getOrganizationSlugById,
 } from "#lib/org-slug.server"
+import type { RouteEnvelope } from "#lib/route-envelope.shared"
 import { requireOrgSession } from "#lib/tenant"
 
 /** Tenant ERP shell: keep org-scoped URLs out of public search indexes by default. */
@@ -52,5 +54,14 @@ export default async function OrgSlugLayout({
     redirect(target as Route)
   }
 
-  return children
+  const envelope: RouteEnvelope = {
+    surface: "org",
+    locale,
+    orgSlug,
+    orgId: session.organizationId,
+  }
+
+  return (
+    <RouteEnvelopeProvider value={envelope}>{children}</RouteEnvelopeProvider>
+  )
 }

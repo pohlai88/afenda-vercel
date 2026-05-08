@@ -7,6 +7,7 @@ import { Button } from "#components/ui/button"
 import { Input } from "#components/ui/input"
 
 import type { LynxTruthEvidenceDTO } from "#features/lynx/types"
+import { LYNX_ERP_HTTP_ROUTES } from "../lynx.contract"
 import { parseLynxTruthMarkdown } from "#features/lynx/schemas/truth-markdown"
 
 type StreamState =
@@ -36,7 +37,7 @@ export function TruthSearchClient() {
 
     setState({ status: "loading" })
     try {
-      const res = await fetch("/api/erp/lynx/truth-search", {
+      const res = await fetch(LYNX_ERP_HTTP_ROUTES.truthSearch, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

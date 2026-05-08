@@ -60,7 +60,7 @@ Every new `ignoreIssues` entry must be able to answer:
 - **`ignoreFiles`** — shadcn shelf (`components/ui/**`) and **`hooks/use-mobile.ts`** until wired product-wide. Do not add new paths without a clear "shelf" rationale.
 - **`ignoreDependencies`** — packages consumed **only** from ignored shelf files (see `knip.json` list). Adding a new entry: extend the list only with a short note in the PR explaining which shelf file consumes it.
 - **`ignoreIssues`** — targeted path-based entries for intentional surfaces:
-  - IAM barrels: `lib/auth/index.ts`, `lib/auth-client.ts`, `lib/auth-v2/index.ts`
+  - IAM barrels: `lib/auth/index.ts`, `lib/auth-client.ts`
   - Feature module public doors: `lib/features/*/index.ts`
   - Shared client/server files: `lib/**/*.shared.ts`, `lib/auth/**/*.server.ts`
   - Design / brand surface: `lib/design-system.ts`, `lib/site.ts`, `lib/tenant.ts`

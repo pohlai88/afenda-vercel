@@ -1,4 +1,4 @@
-import { requireRecentAuthStepUp } from "#lib/auth-v2"
+import { requireRecentAuthStepUp } from "#lib/auth"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 
 export default async function AccountIdentityLayout({

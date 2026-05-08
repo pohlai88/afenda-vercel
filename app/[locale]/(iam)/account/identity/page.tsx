@@ -2,8 +2,8 @@ import {
   getEnabledSocialProviderIds,
   hasCredentialAccount,
   listSafeLinkedAccounts,
-  requireSignedInSession,
-} from "#lib/auth-v2"
+  requireAuthShellSignedInSession,
+} from "#lib/auth"
 
 import { AccountIdentityClient } from "./identity-client"
 
@@ -12,7 +12,7 @@ export default async function AccountIdentityPage({
 }: {
   searchParams?: Promise<{ notice?: string }>
 }) {
-  const session = await requireSignedInSession()
+  const session = await requireAuthShellSignedInSession()
 
   const sp = searchParams ? await searchParams : {}
   const notice = typeof sp.notice === "string" ? sp.notice : undefined

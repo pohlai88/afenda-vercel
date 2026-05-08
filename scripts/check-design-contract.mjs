@@ -43,6 +43,25 @@ const ARBITRARY_ROUNDED_ALLOWLIST = new Set([
 
 const ARBITRARY_ROUNDED = /\brounded-\[/g
 
+/**
+ * Spacing rhythm utilities must come from the token scale: Tailwind's spacing scale,
+ * `p-surface-*` / `gap-surface-*` (mapped to `--space-surface-*`), or `gap-density-*`
+ * (mapped to `--density-*`). Arbitrary literal values like `p-[12px]` / `gap-[7px]`
+ * are forbidden because they bypass `lib/design-system.ts` and `app/globals.css`.
+ *
+ * CSS-variable references (`var(--…)`, `--spacing(var(--…))`, `calc(var(--…)*…)`) stay
+ * allowed — they reference tokens dynamically and do not introduce new visual values.
+ *
+ * Out of scope: positioning (`top-[…]`, `left-[…]`, `inset-[…]`) and sizing
+ * (`w-[…]`, `h-[…]`, `min-w-[…]`, etc.) — those have no token scale today.
+ */
+const ARBITRARY_SPACING =
+  /\b(?:[mp][trblxy]?|gap(?:-[xy])?|space-[xy])-\[([^\]]+)\]/g
+
+function isSpacingTokenReference(value) {
+  return value.includes("var(") || value.startsWith("--")
+}
+
 function walk(dir) {
   const out = []
   if (!fs.existsSync(dir)) return out
@@ -191,12 +210,24 @@ for (const file of files) {
         row
       )
     }
+    ARBITRARY_SPACING.lastIndex = 0
+    let spacingMatch
+    while ((spacingMatch = ARBITRARY_SPACING.exec(row))) {
+      if (!isSpacingTokenReference(spacingMatch[1])) {
+        report(
+          "forbidden arbitrary spacing literal (use Tailwind scale, p-surface-* / gap-surface-*, gap-density-*, or var(--token))",
+          lineNo,
+          row
+        )
+      }
+    }
   })
 }
 
 if (failed) {
   console.error(`
 Fix: import uiRadius / uiTitle / uiTracking / uiSurfaceInset from #lib/design-system, or extend the allowlist with a short comment in PR.
+Spacing rhythm: use Tailwind's spacing scale, p-surface-* / gap-surface-*, gap-density-*, or var(--token); avoid arbitrary p-[…] / gap-[…] literals.
 Keep @theme inline var() references aligned with :root / .dark in app/globals.css.
 `)
   process.exit(1)

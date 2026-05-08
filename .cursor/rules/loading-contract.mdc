@@ -1,0 +1,125 @@
+---
+description: App Router loading.tsx doctrine — acceptable waiting state, Tier A/B discipline, skeleton patterns
+globs: app/**/loading.tsx
+alwaysApply: false
+---
+
+# `loading.tsx` — acceptable waiting state
+
+## Doctrine
+
+```txt
+loading.tsx = acceptable waiting state
+```
+
+`loading.tsx` is not decoration. It defines what the user sees while the route segment streams. It is the **streaming contract** for its segment.
+
+When placed alongside `page.tsx`, Next.js automatically wraps the page content in a `<Suspense>` boundary. The layout renders immediately as a **static shell**; the loading skeleton appears instantly; once the page component resolves, its HTML replaces the skeleton.
+
+Docs: [Next.js streaming — loading.js](https://nextjs.org/docs/app/api-reference/file-conventions/loading)
+
+---
+
+## Afenda rule
+
+```md
+Add loading.tsx when page-level async work should not block the shell.
+```
+
+Specifically: when `page.tsx` performs async data fetches and the layout shell (sidebar, topbar, nav) must appear instantly regardless of how long the query takes.
+
+---
+
+## What `loading.tsx` wraps (docs-validated)
+
+`loading.tsx` automatically wraps **both `page.tsx` and `not-found.tsx`** in a Suspense boundary.
+
+Component hierarchy within a segment:
+```
+layout → template → error → [loading wraps] → not-found / page
+```
+
+The layout is the static shell that is *outside* the Suspense boundary. The Suspense boundary covers everything inside.
+
+---
+
+## Correct use in Afenda
+
+```txt
+app/[locale]/o/[orgSlug]/dashboard/loading.tsx    ✓ dashboard page streams
+app/[locale]/o/[orgSlug]/admin/loading.tsx         ✓ admin page streams
+app/[locale]/operator/loading.tsx                  ✓ operator page streams
+app/[locale]/o/[orgSlug]/dashboard/sale/loading.tsx ✓ per-module skeleton
+```
+
+Use it when:
+
+- The layout shell (sidebar, topbar) can render first
+- Page-level data may take time (DB query, AI response, slow API)
+- Module content can stream independently
+- Users should keep full navigation context during load
+
+---
+
+## Best Afenda pattern
+
+```txt
+layout.tsx   → renders shell immediately (Tier A data only)
+loading.tsx  → renders module skeleton
+page.tsx     → streams real content
+```
+
+### Example skeleton pattern
+
+```tsx
+// dashboard/loading.tsx
+export { default } from "#components/dashboard/dashboard-loading"
+
+// components/dashboard/dashboard-loading.tsx
+import { SegmentRouteSpinner } from "#components/segment-route-spinner"
+export default function DashboardLoading() {
+  return <SegmentRouteSpinner />
+}
+```
+
+---
+
+## Anti-patterns
+
+### Do not use `loading.tsx` to hide layout discipline problems
+
+If the entire dashboard shell waits for non-critical data (e.g. org switcher, notifications, activity feed), the fix is splitting the layout into **Tier A blocking** and **Tier B streamable** — not adding `loading.tsx` to mask the delay.
+
+```txt
+WRONG: layout fetches everything → loading.tsx hides the wait
+RIGHT: layout fetches Tier A only → Tier B slots stream via Suspense
+```
+
+### Do not add `loading.tsx` speculatively
+
+Only add it when the page performs async work that benefits from an instant static shell. Trivial synchronous pages do not need a skeleton.
+
+---
+
+## Relationship to Tier A / Tier B split
+
+`loading.tsx` operates at the **page layer**, not the layout layer.
+
+The Tier A/B split happens inside `layout.tsx`:
+- Tier A resolves before the shell renders → blocking `Promise.all`
+- Tier B streams behind `Suspense` → individual Server Component slots
+
+`loading.tsx` then covers the **page itself**, allowing the fully-rendered shell (including Tier B slots as they arrive) to stay visible while the page content resolves.
+
+See `layout-contract.mdc` for the full Tier A/B doctrine.
+
+---
+
+## Benefits (Next.js docs)
+
+Adding `loading.tsx` improves:
+
+- **TTFB** — layout HTML is sent immediately
+- **FCP** — skeleton appears instantly, navigation feels responsive  
+- **TTI** — shared layouts stay interactive while page streams
+- **Navigation interruptibility** — user can navigate away mid-load

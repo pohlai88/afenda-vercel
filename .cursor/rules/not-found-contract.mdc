@@ -1,0 +1,185 @@
+---
+description: App Router not-found.tsx doctrine — invalid truth boundary, shell continuity, params access, HTTP status semantics
+globs: app/**/not-found.tsx
+alwaysApply: false
+---
+
+# `not-found.tsx` — invalid truth boundary
+
+## Doctrine
+
+```txt
+not-found.tsx = invalid truth boundary
+```
+
+It means:
+
+```txt
+route exists
+shell exists
+but requested org / module / record is not valid truth
+```
+
+`not-found.tsx` is not a generic 404 page. It is the segment-level declaration that the **requested resource does not exist** while keeping the **operational shell intact**.
+
+Docs: [Next.js — not-found.js](https://nextjs.org/docs/app/api-reference/file-conventions/not-found)
+
+---
+
+## Afenda rule
+
+```md
+Use not-found.tsx to preserve operational continuity when a resource is missing.
+The shell — sidebar, topbar, org context, navigation — must remain mounted.
+```
+
+---
+
+## How it renders (docs-validated)
+
+`not-found.tsx` renders **inside the parent layout** — it is wrapped by the same `layout.tsx` that wraps `page.tsx`. This means:
+
+```txt
+dashboard/not-found.tsx → rendered inside DashboardShell (sidebar intact)
+admin/not-found.tsx     → rendered inside OrgAdminWorkbenchShell (sidebar intact)
+operator/not-found.tsx  → rendered inside PlatformAdminShell (header + sidebar intact)
+```
+
+This is intentional. A 404 inside the dashboard should not destroy the shell — the user still has navigation, org context, and can recover. This is the GitHub-style behaviour: 404 inside operational continuity, not 404 that destroys the experience.
+
+Component hierarchy:
+```
+layout → template → error → [loading wraps] → not-found / page
+```
+
+---
+
+## Triggering `not-found()`
+
+`notFound()` from `next/navigation` throws `NEXT_HTTP_ERROR_FALLBACK;404` and terminates rendering of the segment where it is thrown.
+
+```tsx
+import { notFound } from 'next/navigation'
+
+// In a layout — triggers not-found.tsx for this segment
+const identity = await fetchOrgWorkbenchIdentity(orgSession.organizationId)
+if (!identity) notFound()
+
+// In a page — triggers not-found.tsx for this segment
+const record = await getContactById(id)
+if (!record) notFound()
+```
+
+---
+
+## Cannot receive `params` as props
+
+`not-found.tsx` does **not** receive route params. To access dynamic segments (e.g. `orgSlug`):
+
+- **Client Component** using `useParams()` from `next/navigation` — preferred when recovery links need dynamic values
+- **Server Component** using `headers()` — for locale-aware content when no dynamic params are needed
+
+```tsx
+// dashboard/not-found.tsx — Client Component for orgSlug access
+"use client"
+import { useParams } from "next/navigation"
+import { Link } from "#i18n/navigation"
+import { Button } from "#components/ui/button"
+
+export default function OrgDashboardNotFound() {
+  const params = useParams<{ orgSlug: string }>()
+  return (
+    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-muted-foreground">404</p>
+        <h1 className="text-lg font-medium text-foreground">Page not found</h1>
+        <p className="max-w-md text-sm text-muted-foreground">
+          The dashboard shell is still available — use the sidebar to navigate.
+        </p>
+      </div>
+      {params?.orgSlug ? (
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/o/${params.orgSlug}/dashboard`}>Back to dashboard</Link>
+        </Button>
+      ) : null}
+    </div>
+  )
+}
+```
+
+---
+
+## Correct use in Afenda
+
+```txt
+app/[locale]/o/[orgSlug]/dashboard/not-found.tsx   ✓ dashboard org/module missing
+app/[locale]/o/[orgSlug]/admin/not-found.tsx        ✓ admin identity missing
+app/[locale]/operator/not-found.tsx                 ✓ operator section missing
+```
+
+Use it for:
+
+```txt
+org identity not found (layout calls notFound())
+record not found (page calls notFound())
+module route invalid
+admin resource missing
+```
+
+---
+
+## Shell continuity requirement
+
+When the route surface has a shell component:
+
+| Surface     | Shell                    | not-found.tsx wraps in... |
+| ----------- | ------------------------ | ------------------------- |
+| Dashboard   | `DashboardShell`         | Auto (layout wraps)       |
+| Admin       | `OrgAdminWorkbenchShell` | Auto (layout wraps)       |
+| Operator    | `PlatformAdminShell`     | Must wrap explicitly      |
+
+For **operator** pages: `PlatformAdminShell` is in each page, not in the layout. The `operator/not-found.tsx` must explicitly wrap in `PlatformAdminShell` to maintain the brand header and sidebar.
+
+```tsx
+// operator/not-found.tsx — explicit shell for continuity
+import { PlatformAdminShell } from "#features/platform-admin"
+
+export default function OperatorNotFound() {
+  return (
+    <PlatformAdminShell>
+      <div className="...">...</div>
+    </PlatformAdminShell>
+  )
+}
+```
+
+---
+
+## HTTP status and streaming (docs-validated)
+
+> Next.js will return a 200 status for streamed responses and 404 for non-streamed responses, impacting SEO.
+
+| Where `notFound()` is called                        | HTTP status |
+| ---------------------------------------------------- | ----------- |
+| In a **layout** — before any `await` or Suspense    | **404**     |
+| In a **page** behind a `loading.tsx` Suspense       | **200**     |
+
+**For public indexed routes** — call `notFound()` before any `await` or `<Suspense>` boundary:
+
+```tsx
+// CORRECT for public SEO pages — real 404 before streaming starts
+const exists = await checkSlugExists(slug) // fast existence check
+if (!exists) notFound()                    // fires before any Suspense
+
+return <Suspense fallback={...}><PostContent slug={slug} /></Suspense>
+```
+
+**For private authenticated surfaces** (dashboard, admin, operator) — 200 vs 404 is invisible to users and SEO is irrelevant. Shell continuity takes priority.
+
+---
+
+## When NOT to add `not-found.tsx`
+
+- Do not add a `not-found.tsx` to every nested segment speculatively
+- For rare missing-record cases inside a page, use inline conditional rendering or `notFound()` without a dedicated not-found file (the parent segment's not-found will catch it)
+- For known empty states (empty contact list, no knowledge chunks), use inline empty-state UI — not `notFound()`

@@ -1,6 +1,6 @@
 "use client"
 
-import { SearchIcon } from "lucide-react"
+import { SearchIcon, X } from "lucide-react"
 
 import { Input } from "#components/ui/input"
 import { ToggleGroup, ToggleGroupItem } from "#components/ui/toggle-group"
@@ -19,19 +19,34 @@ export function ContactsFiltersToolbar({
   onModeChange,
 }: ContactsFiltersToolbarProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border bg-card p-3 sm:flex-row sm:items-center">
-      <div className="relative flex-1">
+    <div className="flex flex-col gap-3 rounded-xl bg-muted/50 p-3 sm:flex-row sm:items-center">
+      {/* Search — clear button appears when query is non-empty */}
+      <div className="relative min-w-0 flex-1">
         <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           placeholder="Search contacts"
-          className="pl-9"
+          className="bg-background pl-9 pr-9"
         />
+        {query ? (
+          <button
+            type="button"
+            onClick={() => onQueryChange("")}
+            aria-label="Clear search"
+            className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          >
+            <X className="size-3.5" aria-hidden />
+          </button>
+        ) : null}
       </div>
+
+      {/* Mode filter */}
       <ToggleGroup
         type="single"
+        variant="outline"
         value={mode}
+        className="shrink-0 justify-start sm:justify-center"
         onValueChange={(value) => {
           if (value === "all" || value === "withEmail") onModeChange(value)
         }}

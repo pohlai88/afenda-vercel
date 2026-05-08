@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation"
 
-import { auth } from "#lib/auth-v2"
+import { auth } from "#lib/auth"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 
 export type VerifyEmailState = { error: string } | null

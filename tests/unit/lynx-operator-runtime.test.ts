@@ -14,7 +14,7 @@ vi.mock("#features/knowledge", () => ({
   listRecentKnowledgeChunks: vi.fn(async () => []),
 }))
 
-vi.mock("#features/org-admin", () => ({
+vi.mock("#features/org-admin/server", () => ({
   countActiveImportJobsForOrganization: vi.fn(async () => 0),
 }))
 

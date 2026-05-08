@@ -10,7 +10,7 @@ Mirrors **AGENTS.md §5 → Organizational control plane**. If this rule and `AG
 
 ## Authority
 
-- **`lib/features/org-admin/`** owns the **organizational control plane**: capability registry, sidebar shell, audit/integrations panels, server actions, and module-local types/constants. Public door is **`#features/org-admin`** ([`index.ts`](lib/features/org-admin/index.ts)). The module follows the strict shape from **AGENTS §6** (validated by [`scripts/check-agent-contract.mjs`](scripts/check-agent-contract.mjs)).
+- **`lib/features/org-admin/`** owns the **organizational control plane**: capability registry, sidebar shell, audit/integrations panels, server actions, and module-local types/constants. Public doors: **`#features/org-admin`** ([`index.ts`](lib/features/org-admin/index.ts), full module barrel for Server Components), **`#features/org-admin/client`** ([`client.ts`](lib/features/org-admin/client.ts), types + Server Actions for Client Components — avoids pulling async server panels into client chunks), and **`#features/org-admin/server`** ([`server.ts`](lib/features/org-admin/server.ts), server-only queries / delivery helpers). The module follows the strict shape from **AGENTS §6** (validated by [`scripts/check-agent-contract.mjs`](scripts/check-agent-contract.mjs)).
 - **`app/[locale]/o/[orgSlug]/admin/`** owns **routing and composition only**: page wiring, guards, `params` / `searchParams` resolution. Any business logic, data access, or shared component must live inside `lib/features/org-admin/`.
 
 ## Capability registry is the single source of truth
@@ -41,7 +41,7 @@ Mirrors **AGENTS.md §5 → Organizational control plane**. If this rule and `AG
 
 ## Forbidden
 
-- Deep-importing internals: any path other than `#features/org-admin` from outside the module (e.g. `#features/org-admin/components/org-audit-events-view`).
+- Deep-importing internals: any path other than `#features/org-admin`, `#features/org-admin/client`, or `#features/org-admin/server` from outside the module (e.g. `#features/org-admin/components/org-audit-events-view`).
 - Parallel segment lists, sidebar arrays, or audit prefix constants outside the registry.
 - Placing data access (DB queries, audit writes) inside `app/[locale]/o/[orgSlug]/admin/*` route files — keep route layers thin and compose from `#features/org-admin`.
 - Embedding IAM control-plane logic here (`lib/features/org-admin/` calls guards from **`#lib/auth`**; it does not redefine them).

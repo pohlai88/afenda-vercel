@@ -1,11 +1,11 @@
-import { auth, requireSignedInSession } from "#lib/auth-v2"
+import { auth, requireAuthShellSignedInSession } from "#lib/auth"
 import { Link } from "#i18n/navigation"
 import { Button } from "#components/ui/button"
 
 export const dynamic = "force-dynamic"
 
 export default async function AccountIndexPage() {
-  const session = await requireSignedInSession()
+  const session = await requireAuthShellSignedInSession()
 
   return (
     <main className="mx-auto flex min-h-[70vh] w-full max-w-xl flex-col justify-center gap-4 px-4">

@@ -1,9 +1,11 @@
 "use client"
 
 import { Building2Icon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { Link, useRouter } from "#i18n/navigation"
 
+import type { PrepareOrgSlugState } from "#features/org-admin/client"
 import { authClient } from "#lib/auth-client"
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"
@@ -19,8 +21,18 @@ import { Input } from "#components/ui/input"
 import { Label } from "#components/ui/label"
 import { Spinner } from "#components/ui/spinner"
 
-export function OnboardingForm() {
+type PrepareSlugAction = (input: {
+  organizationName: string
+  preferredSlug: string | null
+}) => Promise<PrepareOrgSlugState>
+
+export function OnboardingForm({
+  prepareSlugAction,
+}: {
+  prepareSlugAction: PrepareSlugAction
+}) {
   const router = useRouter()
+  const t = useTranslations("Onboarding")
   const [orgName, setOrgName] = useState("")
   const [slug, setSlug] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -31,9 +43,20 @@ export function OnboardingForm() {
     setError(null)
     setPending(true)
     try {
+      const prepared = await prepareSlugAction({
+        organizationName: orgName,
+        preferredSlug: slug.trim() ? slug.trim() : null,
+      })
+      if (!prepared.ok) {
+        setError(prepared.error)
+        return
+      }
+      if (prepared.adjusted) {
+        setSlug(prepared.slug)
+      }
       const { error: err } = await authClient.organization.create({
         name: orgName,
-        slug: slug || orgName.toLowerCase().replace(/\s+/g, "-"),
+        slug: prepared.slug,
       })
       if (err) {
         setError(err.message ?? "Could not create organization")
@@ -79,12 +102,9 @@ export function OnboardingForm() {
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               placeholder="acme-corp"
-              pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+              pattern="[a-z0-9]+(?:[-_][a-z0-9]+)*"
             />
-            <p className="text-xs text-muted-foreground">
-              Lowercase letters, numbers, and hyphens. Leave blank to derive
-              from the name.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("slugRules")}</p>
           </div>
           {error ? (
             <Alert variant="destructive">

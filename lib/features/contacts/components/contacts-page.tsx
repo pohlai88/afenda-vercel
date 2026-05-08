@@ -1,9 +1,17 @@
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "#components/ui/card"
 import { ModulePageHeader } from "#components/dashboard/module-page-header"
 import { requireOrgSession } from "#lib/tenant"
 
 import { listContactsForOrganization } from "../data/contacts.queries"
 import type { ContactRow } from "../types"
-import { AddContactForm } from "./add-contact-form"
+import { AddContactDialog } from "./add-contact-dialog"
 import { ContactsListPanel } from "./contacts-list-panel"
 
 export async function ContactsPage() {
@@ -13,21 +21,27 @@ export async function ContactsPage() {
   )
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-6">
       <ModulePageHeader
         title="Contacts"
         description="Manage customers, suppliers, and partner records."
         eyebrow="CRM"
       />
-      <section className="flex flex-col gap-4 rounded-2xl border bg-card p-4">
-        <h2 className="font-medium">Add contact</h2>
-        <AddContactForm />
-      </section>
 
-      <section className="space-y-2">
-        <h2 className="font-medium">Contacts</h2>
-        <ContactsListPanel rows={rows} />
-      </section>
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>Directory</CardTitle>
+          <CardDescription>
+            Search and open contact records. Click any row to view details.
+          </CardDescription>
+          <CardAction>
+            <AddContactDialog />
+          </CardAction>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <ContactsListPanel rows={rows} />
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm"
 import {
   boolean,
   date,
@@ -225,7 +226,338 @@ export const importJobFailure = pgTable(
   ]
 )
 
-/** Org-scoped knowledge chunks with pgvector embeddings (RAG / similarity MVP). */
+/**
+ * Org or personal task lists (`todo_list` — migration `0014_erp_todos.sql`).
+ * Exactly one of `organizationId` / `ownerUserId` is non-null (DB CHECK).
+ */
+export const todoList = pgTable(
+  "todo_list",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId"),
+    ownerUserId: text("ownerUserId"),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    shareTokenHash: text("shareTokenHash"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("todo_list_organization_id_idx").on(t.organizationId),
+    index("todo_list_owner_user_id_idx").on(t.ownerUserId),
+    uniqueIndex("todo_list_org_slug_uidx")
+      .on(t.organizationId, t.slug)
+      .where(sql`${t.organizationId} IS NOT NULL`),
+    uniqueIndex("todo_list_owner_slug_uidx")
+      .on(t.ownerUserId, t.slug)
+      .where(sql`${t.ownerUserId} IS NOT NULL`),
+  ]
+)
+
+/** Org or personal todo rows (`todo`). */
+export const erpTodo = pgTable(
+  "todo",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    listId: text("listId")
+      .notNull()
+      .references(() => todoList.id, { onDelete: "cascade" }),
+    organizationId: text("organizationId"),
+    ownerUserId: text("ownerUserId"),
+    assigneeUserId: text("assigneeUserId"),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    state: text("state").notNull().default("pending"),
+    priority: text("priority").notNull().default("normal"),
+    dueAt: timestamp("dueAt", { mode: "date" }),
+    snoozeUntil: timestamp("snoozeUntil", { mode: "date" }),
+    recurrenceRule: text("recurrenceRule"),
+    parentTodoId: text("parentTodoId"),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("todo_organization_id_state_idx").on(t.organizationId, t.state),
+    index("todo_owner_user_id_state_idx").on(t.ownerUserId, t.state),
+    index("todo_assignee_user_id_state_idx").on(t.assigneeUserId, t.state),
+    index("todo_due_at_idx").on(t.dueAt),
+    index("todo_list_id_idx").on(t.listId),
+    index("todo_snooze_until_idx").on(t.snoozeUntil),
+  ]
+)
+
+export const todoAttachment = pgTable(
+  "todo_attachment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    todoId: text("todoId")
+      .notNull()
+      .references(() => erpTodo.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    contentSha256: text("contentSha256").notNull(),
+    mimeType: text("mimeType").notNull(),
+    sizeBytes: integer("sizeBytes").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("todo_attachment_todo_id_idx").on(t.todoId)]
+)
+
+export const todoComment = pgTable(
+  "todo_comment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    todoId: text("todoId")
+      .notNull()
+      .references(() => erpTodo.id, { onDelete: "cascade" }),
+    authorUserId: text("authorUserId").notNull(),
+    body: text("body").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("todo_comment_todo_id_created_at_idx").on(t.todoId, t.createdAt),
+  ]
+)
+
+/** Knowledge ingestion sources (`0010_knowledge_sources_and_evals.sql`). */
+export const knowledgeSource = pgTable(
+  "knowledge_source",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    kind: text("kind").notNull(),
+    name: text("name").notNull(),
+    config: jsonb("config").$type<Record<string, unknown>>().notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    lastSyncedAt: timestamp("lastSyncedAt", { mode: "date" }),
+    createdByUserId: text("createdByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("knowledge_source_organization_id_createdAt_idx").on(
+      t.organizationId,
+      t.createdAt
+    ),
+    index("knowledge_source_organization_id_enabled_idx").on(
+      t.organizationId,
+      t.enabled
+    ),
+  ]
+)
+
+export const knowledgeDocument = pgTable(
+  "knowledge_document",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    sourceId: text("sourceId")
+      .notNull()
+      .references(() => knowledgeSource.id, { onDelete: "cascade" }),
+    externalId: text("externalId").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    inputDigest: text("inputDigest").notNull(),
+    tokenCount: integer("tokenCount").notNull().default(0),
+    embeddingModelVersion: text("embeddingModelVersion"),
+    lastEmbeddedAt: timestamp("lastEmbeddedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("knowledge_document_source_external_uidx").on(
+      t.sourceId,
+      t.externalId
+    ),
+    index("knowledge_document_organization_id_source_id_idx").on(
+      t.organizationId,
+      t.sourceId
+    ),
+    index("knowledge_document_organization_id_updatedAt_idx").on(
+      t.organizationId,
+      t.updatedAt
+    ),
+  ]
+)
+
+export const knowledgeOrgSetting = pgTable(
+  "knowledge_org_setting",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    retrievalHybridEnabled: boolean("retrievalHybridEnabled")
+      .notNull()
+      .default(false),
+    retrievalRerankEnabled: boolean("retrievalRerankEnabled")
+      .notNull()
+      .default(false),
+    enforceZdr: boolean("enforceZdr").notNull().default(false),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("knowledge_org_setting_organization_uidx").on(t.organizationId),
+  ]
+)
+
+export const knowledgeEvalSet = pgTable(
+  "knowledge_eval_set",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    createdByUserId: text("createdByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("knowledge_eval_set_organization_id_createdAt_idx").on(
+      t.organizationId,
+      t.createdAt
+    ),
+  ]
+)
+
+export const knowledgeEvalCase = pgTable(
+  "knowledge_eval_case",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    evalSetId: text("evalSetId")
+      .notNull()
+      .references(() => knowledgeEvalSet.id, { onDelete: "cascade" }),
+    question: text("question").notNull(),
+    expectedEvidenceIds: jsonb("expectedEvidenceIds")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    expectedAnswerSubstring: text("expectedAnswerSubstring"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("knowledge_eval_case_eval_set_id_created_at_idx").on(
+      t.evalSetId,
+      t.createdAt
+    ),
+  ]
+)
+
+export const knowledgeOrgCredential = pgTable(
+  "knowledge_org_credential",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    provider: text("provider").notNull(),
+    cipherText: text("cipherText").notNull(),
+    cipherIv: text("cipherIv").notNull(),
+    cipherTag: text("cipherTag").notNull(),
+    keyVersion: integer("keyVersion").notNull().default(1),
+    state: text("state").notNull().default("active"),
+    enabled: boolean("enabled").notNull().default(true),
+    lastRotatedAt: timestamp("lastRotatedAt", { mode: "date" }),
+    lastUsedAt: timestamp("lastUsedAt", { mode: "date" }),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdByUserId: text("createdByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("knowledge_org_credential_org_provider_uidx").on(
+      t.organizationId,
+      t.provider
+    ),
+  ]
+)
+
+export const orgBotLink = pgTable(
+  "org_bot_link",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    platform: text("platform").notNull(),
+    externalWorkspaceId: text("externalWorkspaceId"),
+    externalRepository: text("externalRepository"),
+    externalInstallationId: text("externalInstallationId"),
+    enabled: boolean("enabled").notNull().default(true),
+    createdByUserId: text("createdByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    displayName: text("displayName"),
+    lastTestedAt: timestamp("lastTestedAt", { mode: "date" }),
+    lastTestStatus: text("lastTestStatus"),
+    lastTestError: text("lastTestError"),
+  },
+  (t) => [
+    index("org_bot_link_organization_id_platform_idx").on(
+      t.organizationId,
+      t.platform
+    ),
+  ]
+)
+
+export const knowledgeEvalRun = pgTable(
+  "knowledge_eval_run",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    evalSetId: text("evalSetId")
+      .notNull()
+      .references(() => knowledgeEvalSet.id, { onDelete: "cascade" }),
+    topK: integer("topK").notNull(),
+    retrievalMode: text("retrievalMode").notNull(),
+    totalCases: integer("totalCases").notNull().default(0),
+    recallAtK: decimal("recallAtK", { precision: 5, scale: 4 }).notNull(),
+    meanReciprocalRank: decimal("meanReciprocalRank", {
+      precision: 5,
+      scale: 4,
+    }).notNull(),
+    evidenceOverlap: decimal("evidenceOverlap", {
+      precision: 5,
+      scale: 4,
+    }).notNull(),
+    durationMs: integer("durationMs").notNull().default(0),
+    createdByUserId: text("createdByUserId"),
+    judgeModel: text("judgeModel"),
+    judgeScore: decimal("judgeScore", { precision: 5, scale: 4 }),
+    judgeMetadata: jsonb("judgeMetadata").$type<Record<string, unknown>>(),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("knowledge_eval_run_organization_eval_set_createdAt_idx").on(
+      t.organizationId,
+      t.evalSetId,
+      t.createdAt
+    ),
+  ]
+)
+
+/** Org-scoped knowledge chunks with pgvector embeddings (+ optional document lineage). */
 export const knowledgeChunk = pgTable(
   "knowledge_chunk",
   {
@@ -233,15 +565,24 @@ export const knowledgeChunk = pgTable(
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     organizationId: text("organizationId").notNull(),
+    documentId: text("documentId").references(() => knowledgeDocument.id, {
+      onDelete: "set null",
+    }),
+    chunkIndex: integer("chunkIndex"),
+    tokenCount: integer("tokenCount"),
+    embeddingModelVersion: text("embeddingModelVersion"),
     title: text("title").notNull(),
     body: text("body").notNull(),
     embedding: vector("embedding", { dimensions: 1536 }).notNull(),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-    /** userId from neon_auth.user */
     createdByUserId: text("createdByUserId"),
   },
   (t) => [
     index("knowledge_chunk_organization_id_idx").on(t.organizationId),
+    index("knowledge_chunk_organization_document_idx").on(
+      t.organizationId,
+      t.documentId
+    ),
     index("knowledge_chunk_embedding_hnsw").using(
       "hnsw",
       t.embedding.op("vector_cosine_ops")

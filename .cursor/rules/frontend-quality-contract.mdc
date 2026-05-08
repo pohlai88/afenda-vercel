@@ -1,0 +1,448 @@
+---
+description: Afenda frontend production quality contract — React/TypeScript code review standards, composition patterns, ERP interface rules, performance, design review pillars, layout geometry ownership.
+globs: **/*.{ts,tsx}
+alwaysApply: true
+---
+
+# Afenda Frontend Production Quality Contract
+
+Distilled from: `frontend-design-review`, `vercel-react-best-practices`, `typescript-react-reviewer`, `vercel-composition-patterns`, `coding-standards`.
+
+Complements (does not duplicate):
+- `nextjs-best-practices.mdc` — where code may live (RSC, routing, caching, proxy)
+- `design-system-enforcement.mdc` — design tokens, palette, geometry
+
+Together they form:
+```txt
+Runtime contract    = where code may live
+Frontend contract   = how code must behave
+```
+
+---
+
+## Prime directive
+
+Frontend code must be boring, typed, accessible, server-first, and reviewable.
+
+```txt
+Do not optimize for cleverness.
+Do not create UI magic that hides state ownership.
+Do not move server truth into client state.
+Do not create abstractions before repetition is proven.
+```
+
+---
+
+## 1. Critical Anti-Patterns (Block Merge)
+
+### `useEffect` abuse — never use it for derived state or event logic
+
+```tsx
+// ❌ derived state in useEffect — extra render cycle + sync bugs
+const [fullName, setFullName] = useState('');
+useEffect(() => { setFullName(first + ' ' + last); }, [first, last]);
+
+// ✅ compute during render
+const fullName = `${first} ${last}`;
+```
+
+```tsx
+// ❌ event side-effect in useEffect
+useEffect(() => { if (added) showNotification('Added!'); }, [added]);
+
+// ✅ logic in the event handler
+function handleAdd() { addToCart(item); showNotification('Added!'); }
+```
+
+### React 19 hook placement
+
+```tsx
+// ❌ useFormStatus in the same component as <form> — always returns { pending: false }
+function Form() {
+  const { pending } = useFormStatus();
+  return <form action={submit}><button disabled={pending}>Send</button></form>;
+}
+
+// ✅ useFormStatus must live in a child of <form>
+function SubmitButton() { const { pending } = useFormStatus(); return <button disabled={pending}>Send</button>; }
+function Form() { return <form action={submit}><SubmitButton /></form>; }
+```
+
+### `use()` — never create a Promise inside render
+
+```tsx
+// ❌ new Promise on every render → infinite loop
+function Widget() { const data = use(fetch('/api/data')); }
+
+// ✅ Promise from props or stable state outside render
+function Widget({ dataPromise }: { dataPromise: Promise<Data> }) { const data = use(dataPromise); }
+```
+
+### Immutability — never mutate state directly
+
+```tsx
+// ❌
+items.push(newItem); setItems(items);
+arr[i] = val; setArr(arr);
+
+// ✅
+setItems(prev => [...prev, newItem]);
+setArr(prev => prev.map((x, idx) => idx === i ? val : x));
+```
+
+### Other blocking issues
+
+- `key={index}` in dynamic reorderable or business-data lists — use stable entity IDs
+- Conditional hook calls — always call hooks unconditionally at top level
+- Missing `useEffect` cleanup — event listeners, subscriptions, and timers must return a cleanup function
+- `any` type without an explicit justification comment immediately above
+
+---
+
+## 2. Client Component Import Boundary
+
+Client Components may only import:
+
+- Client-safe UI primitives (`#components/ui/*`, `#components/dashboard/*`)
+- Client-safe hooks (`#hooks/*`)
+- Shared types and constants (no `server-only` transitive imports)
+- Designated client barrels: `#features/<module>/client`
+
+```tsx
+// ❌ imports server barrel from a Client Component — pulls server-only into the client bundle
+import { listContacts } from '#features/contacts';
+
+// ✅ use the explicit client barrel
+import { archiveContactAction } from '#features/contacts/client';
+```
+
+Client Components must not import feature `index.ts` barrels unless the barrel is explicitly verified as client-safe (no `server-only`, no DB, no `next/headers`).
+
+---
+
+## 3. ERP Interface Rules
+
+Every ERP screen must explicitly handle all reachable states:
+
+| State | Required |
+|---|---|
+| Loading | Skeleton matching content shape |
+| Empty | Actionable empty state, not blank |
+| Error | Specific message + recovery path |
+| Permission denied | Honest, non-leaking message |
+| Dirty form | Warn before navigate-away |
+| Pending mutation | Optimistic or disabled + spinner |
+| Audit/history | Visible where data changes are auditable |
+
+ERP tables must:
+
+- Use stable row IDs — never `key={index}` for business rows
+- Support keyboard navigation where practical
+- Show a clear selected/active row state
+- Provide bulk-action affordance where the workflow supports it
+- Show column headers that sort or filter without full-page reload
+
+---
+
+## 4. Component Composition
+
+### Avoid boolean prop proliferation — use composition instead
+
+```tsx
+// ❌ boolean flags accumulate indefinitely; each one forks internal branching
+<Button primary disabled loading iconLeft={<Spinner />} />
+
+// ✅ explicit variants + composition
+<Button variant="primary" state="loading">
+  <Spinner aria-hidden /> Save
+</Button>
+```
+
+### Compound components for complex shared-state UI
+
+```tsx
+// ✅ share state via context, not prop drilling
+<Tabs defaultValue="overview">
+  <Tabs.List>
+    <Tabs.Trigger value="overview">Overview</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Panel value="overview"><Overview /></Tabs.Panel>
+</Tabs>
+```
+
+### `children` over render-prop callbacks for composition slots
+
+```tsx
+// ❌ renderHeader={...} renderFooter={...} — caller must know internal structure
+// ✅ children + named slot components or slot props typed as ReactNode
+```
+
+### React 19: drop `forwardRef` — refs are plain props
+
+```tsx
+// ✅ React 19 — ref is a normal prop, no forwardRef wrapper needed
+function Input({ ref, ...props }: InputProps & { ref?: Ref<HTMLInputElement> }) {
+  return <input ref={ref} {...props} />;
+}
+```
+
+---
+
+## 5. Performance
+
+### Eliminate waterfalls — parallelize independent fetches
+
+```tsx
+// ❌ sequential — second fetch waits unnecessarily for first
+const user = await getUser();
+const prefs = await getPrefs(user.id);
+
+// ✅ parallel when independent
+const [user, config] = await Promise.all([getUser(), getConfig()]);
+```
+
+### Dynamic imports for heavy, conditionally rendered UI
+
+```tsx
+const HeavyChart = dynamic(() => import('./heavy-chart'), { loading: () => <Skeleton /> });
+```
+
+### Memoization — only where measurably expensive
+
+```tsx
+// ✅ expensive derived data
+const sorted = useMemo(() => expensiveSort(items), [items]);
+
+// ❌ primitive derivations — memo overhead exceeds any gain
+const label = useMemo(() => `Hello ${name}`, [name]);
+```
+
+### Refs for transient high-frequency values
+
+```tsx
+// ✅ mouse position, scroll offsets, animation frames → useRef, not useState
+const posRef = useRef({ x: 0, y: 0 });
+```
+
+---
+
+## 6. TypeScript Standards
+
+### Naming
+
+```ts
+// Variables: descriptive noun/adjective
+const isUserAuthenticated = true;            // ✅
+const flag = true;                           // ❌
+
+// Functions: verb-noun
+async function fetchOrgContacts(orgId: string) {}   // ✅
+async function contacts(id: string) {}              // ❌
+```
+
+### Types: no `any`, no `React.FC`
+
+```ts
+// ❌
+const data: any = response;
+const App: React.FC<Props> = () => {};
+
+// ✅
+const data: ResponseType = response;
+const App = ({ prop }: Props) => {};
+```
+
+### Discriminated unions over boolean flag bags
+
+```ts
+// ❌ impossible states become representable
+type State = { loading: boolean; error?: string; data?: Data };
+
+// ✅ only valid states are expressible
+type State =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'error'; error: string }
+  | { status: 'success'; data: Data };
+```
+
+### Early returns over deep nesting
+
+```ts
+if (!user) return null;
+if (!user.isAdmin) return <Forbidden />;
+// happy path — no nesting
+```
+
+### Constants over magic numbers
+
+```ts
+const DEBOUNCE_MS = 300;
+const MAX_RETRIES = 3;
+```
+
+---
+
+## 7. State Management
+
+Default App Router reads must remain **Server Components**. Use client-side state only when the interaction genuinely requires it.
+
+| Data type | Solution |
+|---|---|
+| Server reads (default) | Server Component — no client cache needed |
+| Client interactive async | TanStack Query — live search, polling, infinite scroll, optimistic mutations |
+| Simple global UI state | Zustand |
+| Fine-grained derived state | Jotai |
+| Component-local state | `useState` / `useReducer` |
+| Form / action state | React 19 `useActionState` / Server Actions |
+
+**TanStack Query is not a replacement for Server Components.** Use it only for client-interactive async state where a Server Component cannot react to user input without a round-trip:
+
+```txt
+✅ TanStack Query: live search, optimistic mutations, polling, infinite scrolling, highly interactive tables
+❌ TanStack Query: initial page data that a Server Component already owns
+```
+
+```tsx
+// ❌ copying server data into local state
+const { data } = useQuery(...);
+const [items, setItems] = useState([]);
+useEffect(() => setItems(data), [data]);
+
+// ✅ query IS the source of truth — never duplicate it
+const { data: items } = useQuery({ queryKey: ['contacts'], queryFn: fetchContacts });
+```
+
+---
+
+## 8. Design Review Pillars
+
+When reviewing or implementing UI, confirm all three:
+
+### Frictionless insight → action
+- Primary action is obvious and reachable in minimal steps.
+- Cancel / back / next paths are always visible.
+- No dead ends, no buried primary CTAs, no equal-weight competing actions.
+
+### Quality craft
+- Design-system tokens everywhere — no hardcoded hex, no hardcoded spacing.
+- All interactive states covered: hover, focus, active, disabled, loading, error, empty.
+- Responsive at mobile breakpoints; dark mode correct.
+- Focus ring visible and keyboard-navigable.
+- No decorative motion that does not clarify state or hierarchy.
+
+### Trustworthy signals
+- AI-generated content disclosed where required.
+- Errors are specific, actionable, and honest — not "Something went wrong."
+- Loading skeletons match the shape and density of real content.
+
+---
+
+## 9. Error Handling
+
+Expected business failures (validation, permission denied, empty state, conflicts) are **return values**, not thrown exceptions. See `nextjs-best-practices.mdc §8`.
+
+```ts
+// ✅ log cause, throw typed error for unexpected server failures
+async function fetchData(url: string) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json() as ResponseType;
+  } catch (err) {
+    // Server modules: logUnexpectedServerError from #lib/logger.server
+    throw new FetchError('Failed to load data', { cause: err });
+  }
+}
+
+// ❌ swallowed errors, bare console.log, re-throwing without context
+try { ... } catch (e) { console.log(e); }
+```
+
+---
+
+## 10. Comments
+
+Write comments that explain **why**, not **what**:
+
+```ts
+// ✅ non-obvious constraint
+// Deliberately mutating here; this array is local and never escapes this function.
+items.push(newItem);
+
+// ❌ restates the code
+// increment count by 1
+count++;
+```
+
+No `// TODO` without an issue link or owner. No commented-out dead code in PRs.
+
+---
+
+## 11. Layout Ownership Contract
+
+### Doctrine
+
+```txt
+Every UI surface must declare which layer owns geometry.
+A component may only control layout at its own ownership level.
+No lower layer may override the geometry of a higher layer.
+Components must live inside the shell contract; they must not renegotiate the shell contract.
+```
+
+- App shell owns viewport geometry.
+- Route layout owns surface geometry.
+- Page owns content flow.
+- Section owns local rhythm.
+- Component owns only its internal arrangement.
+
+### Layer ownership (Afenda mapping)
+
+| Layer | Afenda files | Owns | Must not own |
+| --- | --- | --- | --- |
+| Shell | `components/dashboard/dashboard-shell.tsx`, `app-sidebar.tsx`, `app-topbar.tsx`, `right-inspector.tsx` | `--sidebar-width` var, `SidebarProvider`/`SidebarInset`, viewport flex row, global scroll | Business content width, page scroll, feature-level overflow |
+| Route layout | `app/[locale]/o/[orgSlug]/dashboard/layout.tsx`, etc. | `DashboardShell {children}` slot, Tier A session gates, `RouteEnvelope` | Any CSS applied to the `{children}` slot that resizes the shell |
+| Page | `page.tsx` leaves | `flex flex-col gap-6`, `ModulePageHeader`, card/section sequence | `h-screen`, `min-h-screen`, viewport overflow |
+| Section | Stat card grids, filter toolbars, list panels | `grid gap-3 sm:grid-cols-3`, `divide-y`, local Tailwind spacing | Shell sidebar width, parent scroll context |
+| Component | `Card`, `Button`, `Input`, `Avatar`, feature components | Internal padding, alignment, variant states, `rounded-*`, `shadow-*` | Sibling geometry, scroll regions, viewport dimensions |
+
+### CSS that crosses ownership layers (block merge when misplaced)
+
+These are safe at their correct layer and violations when used at a lower layer:
+
+| CSS / Tailwind | Correct owner | Violation if placed in |
+| --- | --- | --- |
+| `h-screen`, `min-h-screen` | Shell | Page, Section, Component |
+| `overflow-hidden`, `overflow-auto` on a container | Shell or Route layout | Component that clips sibling scroll |
+| `w-full` on a layout container | Shell (`SidebarInset`) | Nested `SidebarProvider` or leaf panel |
+| `flex-1` / `grow` fighting a sibling | Shell (sets the flex context) | Component overriding the flex distribution |
+| `position: fixed` / `fixed inset-0` | Shell | Any component below Route layout |
+| `z-index` escalation without shell coordination | Shell | Feature components |
+
+### Secondary rails inside `SidebarInset`
+
+Do **not** nest a second shadcn `Sidebar` (`SidebarProvider` + `Sidebar` with `position: fixed` and an in-flow gap) beside dashboard `main`. That pattern targets the **primary** rail; inside `SidebarInset` it can reserve a layout column while the painted panel hugs the viewport, leaving a **dead gap** and horizontal overflow. Prefer an **in-flow** `aside` with explicit `width` (use `0` when closed, transition when opening) so `main` keeps `flex-1 min-w-0` without fighting a duplicate geometry system.
+
+### Geometry ownership review gate
+
+Before adding layout CSS to any file, answer:
+
+1. Am I sizing the viewport, the route surface, the page, a section, or a component?
+2. Does this CSS affect siblings outside my ownership layer?
+3. Could this create body scroll, horizontal overflow, overlap, or hidden content?
+4. Am I fighting the shell instead of consuming the shell slot?
+
+If any answer is yes, move the CSS up to the owning layout or down into a smaller component.
+
+### Cross-references
+
+- Runtime kernel (data) ownership → `.cursor/rules/layout-contract.mdc`
+- Shell composition primitives → `.cursor/rules/app-shell-directory.mdc` (`SidebarProvider`, `--sidebar-width`)
+- Design token geometry (`rounded-*`, `shadow-*`) → `.cursor/rules/design-system-enforcement.mdc`
+
+### Final rule
+
+```txt
+If a CSS decision changes how neighboring regions are sized, clipped, scrolled,
+or overlapped, it belongs to the nearest layout owner — not the leaf component.
+```

@@ -58,9 +58,20 @@ const eslintConfig = defineConfig([
           patterns: [
             ...radixRestrictedImports.patterns,
             {
-              group: ["#features/*/*"],
+              group: [
+                "#features/*/actions",
+                "#features/*/actions/*",
+                "#features/*/components",
+                "#features/*/components/*",
+                "#features/*/constants",
+                "#features/*/data",
+                "#features/*/data/*",
+                "#features/*/schemas",
+                "#features/*/schemas/*",
+                "#features/*/types",
+              ],
               message:
-                "Do not deep-import feature internals. Import from #features/<module> only.",
+                "Do not deep-import feature internals. Use #features/<module> or #features/<module>/server.",
             },
           ],
         },

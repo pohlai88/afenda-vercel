@@ -1,11 +1,14 @@
 "use client"
 
-import { useEffect } from "react"
 import Link from "next/link"
 
+import { useRouteEnvelope } from "#components/route-envelope-context"
+import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
+import { RouteErrorActions } from "#components/route-error-primitives"
 import { RouteErrorRetryButton } from "#components/route-error-retry-button"
 import { Button } from "#components/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
+import { useReportRouteError } from "#components/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
@@ -21,9 +24,9 @@ import {
 export default function OrgError(props: NextAppErrorPageProps) {
   const { error } = props
   const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
-  useEffect(() => {
-    console.error(error)
-  }, [error])
+  const envelope = useRouteEnvelope()
+  const segment = envelope?.orgSlug ? `org/${envelope.orgSlug}` : "org"
+  useReportRouteError({ segment, error })
 
   return (
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
@@ -39,7 +42,7 @@ export default function OrgError(props: NextAppErrorPageProps) {
           Reference: {error.digest}
         </p>
       ) : null}
-      <div className="flex flex-wrap items-center justify-center gap-3">
+      <RouteErrorActions>
         <RouteErrorRetryButton
           retryAction={retryAction}
           resetAction={resetAction}
@@ -51,7 +54,8 @@ export default function OrgError(props: NextAppErrorPageProps) {
             Go home
           </Link>
         </Button>
-      </div>
+      </RouteErrorActions>
+      <RouteErrorDebugPanel segment={segment} error={error} />
     </div>
   )
 }

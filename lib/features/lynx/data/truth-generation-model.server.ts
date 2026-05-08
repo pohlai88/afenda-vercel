@@ -73,3 +73,11 @@ export function resolveLynxTruthStreamProviderOptions():
 
   return { gateway: { models: fallbacks } }
 }
+
+/** Org-scoped hook for BYOK / routing overrides; today delegates to global gateway options. */
+export async function resolveLynxTruthStreamProviderOptionsForOrg(
+  organizationId: string
+): Promise<{ gateway: { models: string[] } } | undefined> {
+  void organizationId
+  return resolveLynxTruthStreamProviderOptions()
+}

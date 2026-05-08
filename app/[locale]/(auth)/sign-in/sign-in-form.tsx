@@ -10,7 +10,7 @@ import {
   AUTH_CLIENT_ERROR_CODE,
   normalizeAuthClientError,
   type NormalizedAuthClientError,
-} from "#lib/auth-v2-client"
+} from "#lib/auth-client"
 import { neonAuthClient } from "#lib/auth-client-neon-compat"
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"
@@ -29,7 +29,23 @@ import { Separator } from "#components/ui/separator"
 import { Spinner } from "#components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "#components/ui/toggle-group"
+import { stripLeadingLocalePrefix } from "#lib/i18n/locales.shared"
 import { cn } from "#lib/utils"
+
+/** next-intl `useRouter` expects locale-internal `href`; server gives locale-prefixed paths. */
+function postAuthPathForClientRouter(
+  localeAwarePathWithOptionalQuery: string
+): Route {
+  const raw = localeAwarePathWithOptionalQuery.trim()
+  const qIdx = raw.indexOf("?")
+  const pathOnly = qIdx >= 0 ? raw.slice(0, qIdx) : raw
+  const query = qIdx >= 0 ? raw.slice(qIdx) : ""
+  const stripped = stripLeadingLocalePrefix(pathOnly)
+  const pathnameWithoutLocale =
+    stripped?.pathnameWithoutLocale ??
+    (pathOnly.startsWith("/") ? pathOnly : `/${pathOnly}`)
+  return `${pathnameWithoutLocale}${query}` as Route
+}
 
 type Mode = "sign-in" | "sign-up"
 type AuthKind = "password" | "magic" | "otp"
@@ -99,7 +115,7 @@ export function SignInForm({
   }
 
   function goPostAuth() {
-    router.push(postAuthPath as Route)
+    router.push(postAuthPathForClientRouter(postAuthPath))
     router.refresh()
   }
 
@@ -186,6 +202,9 @@ export function SignInForm({
         }
       }
       goPostAuth()
+    } catch (caught: unknown) {
+      const msg = caught instanceof Error ? caught.message : undefined
+      setAuthError(normalizeAuthClientError(msg))
     } finally {
       setPending(null)
     }
@@ -200,6 +219,9 @@ export function SignInForm({
         provider,
         callbackURL: postAuthPath,
       })
+    } catch (caught: unknown) {
+      const msg = caught instanceof Error ? caught.message : undefined
+      setAuthError(normalizeAuthClientError(msg))
     } finally {
       setPending(null)
     }
@@ -224,6 +246,9 @@ export function SignInForm({
           },
         },
       })
+    } catch (caught: unknown) {
+      const msg = caught instanceof Error ? caught.message : undefined
+      setAuthError(normalizeAuthClientError(msg))
     } finally {
       setPending(null)
     }
@@ -337,7 +362,7 @@ export function SignInForm({
           </Link>
           {" · "}
           <Link
-            href="/auth-v2"
+            href="/"
             className="font-medium underline-offset-4 hover:text-foreground"
           >
             {t("footerHome")}

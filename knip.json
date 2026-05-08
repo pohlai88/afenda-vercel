@@ -26,7 +26,12 @@
     "nsTypes": "warn",
     "duplicates": "warn"
   },
-  "ignoreFiles": ["components/ui/**", "hooks/use-mobile.ts"],
+  "ignoreFiles": [
+    "components/ui/**",
+    "hooks/use-mobile.ts",
+    ".venv/**",
+    "components/dashboard/module-subnav.tsx"
+  ],
   "ignoreDependencies": [
     "@better-auth/infra",
     "@better-auth/passkey",
@@ -52,6 +57,8 @@
     "media-chrome",
     "motion",
     "nanoid",
+    "next-devtools-mcp",
+    "pino-pretty",
     "react-jsx-parser",
     "shiki",
     "streamdown",
@@ -68,21 +75,6 @@
       "nsTypes"
     ],
     "lib/auth-client.ts": ["exports", "types"],
-    "lib/auth-v2/index.ts": [
-      "exports",
-      "types",
-      "enumMembers",
-      "namespaceMembers",
-      "nsExports",
-      "nsTypes"
-    ],
-    "lib/auth-v2/**/*.shared.ts": [
-      "exports",
-      "types",
-      "enumMembers",
-      "namespaceMembers"
-    ],
-    "lib/auth-v2/**/*.server.ts": ["exports", "types"],
     "lib/db/schema-neon-auth.ts": ["exports", "types"],
     "lib/design-system.ts": [
       "exports",
@@ -93,6 +85,22 @@
       "nsTypes"
     ],
     "lib/features/*/index.ts": [
+      "exports",
+      "types",
+      "enumMembers",
+      "namespaceMembers",
+      "nsExports",
+      "nsTypes"
+    ],
+    "lib/features/*/server.ts": [
+      "exports",
+      "types",
+      "enumMembers",
+      "namespaceMembers",
+      "nsExports",
+      "nsTypes"
+    ],
+    "lib/features/*/client.ts": [
       "exports",
       "types",
       "enumMembers",
@@ -125,6 +133,7 @@
     "components/afenda-brand.tsx": ["exports", "types"],
     "components/auth/**/*.tsx": ["exports", "types"],
     "components/dashboard/**/*.tsx": ["exports", "types"],
+    "components/route-error-primitives.tsx": ["exports", "types"],
     "i18n/navigation.tsx": ["exports", "types"],
     "tests/fixtures/**/*.ts": ["exports", "types"],
     "lib/features/**/data/*.ts": ["exports", "types"],

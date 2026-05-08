@@ -1,5 +1,7 @@
+import * as Sentry from "@sentry/nextjs"
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client"
 
+import { logUnexpectedServerError } from "#lib/logger.server"
 import {
   readRequestJson,
   routeJsonError,
@@ -9,6 +11,7 @@ import {
 import { getOrgSessionFromRequest } from "#lib/tenant"
 
 export const dynamic = "force-dynamic"
+export const runtime = "nodejs"
 
 export async function POST(request: Request) {
   const orgSession = await getOrgSessionFromRequest(request)
@@ -54,13 +57,37 @@ export async function POST(request: Request) {
             organizationId: payload.organizationId,
           })
         } catch {
-          console.error("blob upload completed but tokenPayload parse failed")
+          logUnexpectedServerError(
+            "blob_upload_token_payload_parse_failed",
+            new Error("tokenPayload JSON parse failed"),
+            {
+              scope: "api.upload.blob",
+              "erp.module": "upload",
+              organizationId,
+            }
+          )
+          Sentry.captureException(new Error("tokenPayload JSON parse failed"), {
+            tags: { scope: "api.upload.blob", "erp.module": "upload" },
+            extra: { organizationId },
+          })
         }
       },
     })
 
     return routeJsonOk(jsonResponse)
   } catch (error) {
+    logUnexpectedServerError("blob_upload_handle_failed", error, {
+      scope: "api.upload.blob",
+      "erp.module": "upload",
+      organizationId,
+    })
+    Sentry.captureException(
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        tags: { scope: "api.upload.blob", "erp.module": "upload" },
+        extra: { organizationId },
+      }
+    )
     const message = routePublicErrorMessage(error, "Upload failed")
     return routeJsonError(message, 400)
   }

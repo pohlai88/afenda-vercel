@@ -1,0 +1,248 @@
+---
+description: App Router layout contract — runtime kernel doctrine, Tier A/B data split, five-file surface decision gates, RouteEnvelope, streaming + notFound semantics
+globs: ["app/[locale]/**/{layout,loading,error,not-found,template}.tsx"]
+alwaysApply: false
+---
+
+# Layout contract — runtime kernel doctrine
+
+## Mental model
+
+Treat each special file as a **runtime layer**, not a UI file:
+
+| File            | Runtime meaning                        |
+| --------------- | -------------------------------------- |
+| `layout.tsx`    | establish authority + shell contract   |
+| `loading.tsx`   | define acceptable waiting state        |
+| `error.tsx`     | define recoverable failure boundary    |
+| `not-found.tsx` | define invalid truth boundary          |
+| `template.tsx`  | define remount / reset semantics       |
+
+`layout.tsx` is the **runtime kernel** for its segment. It owns:
+
+1. **Session gate** — `requireOrgSession()` / `requireGlobalAdminSession()` / `requireRecentAuthStepUp()`. Real session validation, not proxy cookie presence.
+2. **Tenant resolution** — `organizationId`, `orgSlug`, identity, permissions. All cross-cutting authority needed by the shell.
+3. **RouteEnvelope construction** — build after session/org resolve; emit via `RouteEnvelopeProvider` so client-side `error.tsx` boundaries inherit surface/org context.
+4. **Shell composition** — pass resolved Tier A data to `DashboardShell` / `OrgAdminWorkbenchShell` / etc.
+5. **Streaming contracts** — own the Suspense boundaries for Tier B enrichment; the shell renders immediately.
+
+```tsx
+// layout.tsx — canonical shape for org-scoped surfaces
+const envelope: RouteEnvelope = { surface: "dashboard", locale, orgSlug, orgId: org.organizationId }
+return (
+  <RouteEnvelopeProvider value={envelope}>
+    <DashboardShell
+      centerSlot={
+        <Suspense fallback={<OrgSwitcherSkeleton />}>
+          <OrgSwitcherSlot userId={org.userId} currentOrgId={org.organizationId} />
+        </Suspense>
+      }
+    >
+      {children}
+    </DashboardShell>
+  </RouteEnvelopeProvider>
+)
+```
+
+---
+
+## Blocking authority vs streamable enrichment
+
+**Layouts may resolve only the minimum blocking authority required to establish the route contract. Non-critical shell enrichment must stream independently through Suspense boundaries.**
+
+This is the canonical sentence. Every layout addition must pass this test.
+
+### Tier A — blocking shell truth (await in the layout `Promise.all`)
+
+- Session validation
+- Locale resolution
+- Org membership / role / permissions
+- Critical shell identity (`orgName` / surface label)
+- Translations consumed by the shell chrome
+- RouteEnvelope construction
+
+### Tier B — streamable shell enrichment (dedicated Server Component + Suspense)
+
+- Org switcher content (`listUserOrganizationsForSwitcher`)
+- Notifications / presence / activity feeds
+- Assistant / Lynx context
+- Recent records / quick actions
+- Inspector default content
+
+**Never place Tier B fetches in the layout's blocking `Promise.all`.** Wrap each Tier B slot in a dedicated async Server Component inside its own `Suspense` boundary so the shell renders immediately and Tier B streams in behind it.
+
+```tsx
+// Tier A — resolves before shell renders
+const [showOrgAdminLink, identity, tNav] = await Promise.all([
+  canActInOrganization(org.userId, org.user.role, org.organizationId, "admin"),
+  fetchOrgWorkbenchIdentity(org.organizationId),
+  getTranslations("Dashboard.nav"),
+])
+
+// Tier B — streams independently; shell does not wait
+const centerSlot = (
+  <Suspense fallback={<OrgSwitcherSkeleton />}>
+    <OrgSwitcherSlot userId={org.userId} currentOrgId={org.organizationId} />
+  </Suspense>
+)
+```
+
+### Tier B Server Component pattern
+
+Each Tier B slot is a standalone async Server Component that owns its fetch + translations:
+
+```tsx
+// components/dashboard/org-switcher-slot.tsx
+export async function OrgSwitcherSlot({ userId, currentOrgId }: Props) {
+  const [orgs, t] = await Promise.all([
+    listUserOrganizationsForSwitcher(userId),
+    getTranslations("Dashboard.shell"),
+  ])
+  if (orgs.length === 0) return null
+  return <OrgSwitcher orgs={orgs} currentOrgId={currentOrgId} labels={...} />
+}
+```
+
+---
+
+## Five-file decision gates
+
+| File            | Add when                                                                                                                                                             | Never add for                                                                           |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `layout.tsx`    | Every segment that owns a session gate or shell                                                                                                                      | Page-level side effects, feature business logic, Tier B fetches                        |
+| `loading.tsx`   | `page.tsx` performs async data fetches and the layout shell must appear instantly. Wraps both `page.tsx` and `not-found.tsx` in a Suspense boundary                  | Trivial fast fetches; do not add speculatively                                          |
+| `error.tsx`     | Segment is an approved operational shell boundary — see `error-boundaries.mdc` and `APPROVED_BOUNDARIES` in `scripts/check-route-error-files.mjs`                    | Per-module widgets, cards, tables, forms, expected data failures                        |
+| `not-found.tsx` | Layout calls `notFound()` directly (e.g. identity resolution fails), or module pages call `notFound()` frequently enough to need a shell-aware fallback              | Every nested segment; use inline fallback for rare cases                                |
+| `template.tsx`  | Per-navigation Client Component state or effect reset is required at this **exact segment level** — a `useEffect` must re-fire or input must reset when params change | Inner-segment navigations; persistent shell state; most cases                           |
+
+### `loading.tsx` — static shell + streaming page
+
+`loading.tsx` automatically wraps `page.tsx` **and** `not-found.tsx` in a Suspense boundary. The layout renders as the static shell immediately; the page content streams in. This is the primary mechanism for perceived performance on data-heavy pages — the sidebar, topbar, and nav appear instantly regardless of how long the page query takes.
+
+### `template.tsx` remount semantics (validated against Next.js 16 docs)
+
+`template.tsx` receives a unique key **for its own segment level**. It remounts when **that segment's params change** — e.g. navigating from `/o/acme/dashboard` to `/o/beta/dashboard` remounts a `dashboard/template.tsx`.
+
+**Inner-segment navigations do NOT trigger remount.** Navigating from `dashboard/contacts` to `dashboard/sale` does NOT remount a `dashboard/template.tsx`. For per-module state reset, add `template.tsx` inside that module's own segment.
+
+Component hierarchy within a segment: `layout → template → error → loading → not-found → page`.
+
+---
+
+## `not-found.tsx` — implementation rules
+
+- **Renders inside the parent layout** — no need to reconstruct the shell. The sidebar, topbar, and shell context remain mounted.
+- **Cannot receive `params` as props.** To access dynamic segments (e.g. `orgSlug`), use a Client Component with `useParams()` from `next/navigation`.
+- **Can be a Server Component** using `headers()` / `getRequestAppLocale()` for locale-aware content when no dynamic params are needed.
+- For **dashboard** and **admin** surfaces (where `orgSlug` enables contextual recovery links), use a Client Component.
+- For **operator** and routes without dynamic params, a Server Component suffices.
+- When the surface has a per-page shell (e.g. `PlatformAdminShell` in operator pages), the `not-found.tsx` should wrap content in that same shell for continuity.
+
+```tsx
+// dashboard/not-found.tsx — Client Component for orgSlug access
+"use client"
+import { useParams } from "next/navigation"
+import { Link } from "#i18n/navigation"
+
+export default function OrgDashboardNotFound() {
+  const params = useParams<{ orgSlug: string }>()
+  return (
+    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
+      <p className="text-sm font-medium text-muted-foreground">404</p>
+      <h1 className="text-lg font-medium text-foreground">Page not found</h1>
+      <p className="max-w-md text-sm text-muted-foreground">
+        The dashboard shell is still available — use the sidebar to navigate.
+      </p>
+      {params?.orgSlug ? (
+        <Link href={`/o/${params.orgSlug}/dashboard`}>Back to dashboard</Link>
+      ) : null}
+    </div>
+  )
+}
+```
+
+### HTTP status and streaming
+
+`notFound()` called in a **layout** (before any `await` or Suspense boundary) returns true **HTTP 404**.
+
+`notFound()` called in a **page** behind a `loading.tsx` Suspense boundary returns **HTTP 200** (the response is already streaming) with not-found UI rendered.
+
+For **private authenticated surfaces** (dashboard, admin, operator) this is acceptable — SEO is irrelevant.
+
+For **public indexed routes**, call `notFound()` before any `await` or Suspense to preserve true 404 semantics.
+
+---
+
+## `RouteEnvelope` — server-to-client surface context
+
+`RouteEnvelope` (`lib/route-envelope.shared.ts`) is the typed contract for what a layout resolves after session and org authority. It bridges server-resolved context to client-side `error.tsx` boundaries via `RouteEnvelopeProvider` (`components/route-envelope-context.tsx`).
+
+```ts
+export type RouteSurface =
+  | "locale"
+  | "dashboard"
+  | "admin"
+  | "operator"
+  | "auth"
+  | "iam"
+  | "account"
+  | "console"
+  | "org"
+export interface RouteEnvelope { surface: RouteSurface; locale: string; orgSlug?: string; orgId?: string }
+```
+
+Usage in `error.tsx`:
+```tsx
+const envelope = useRouteEnvelope()
+const segment = envelope?.orgSlug ? `dashboard/${envelope.orgSlug}` : "dashboard"
+useReportRouteError({ segment, error })
+```
+
+### RouteEnvelope — evolution path
+
+Today: `{ surface, locale, orgSlug?, orgId? }`.
+
+**Add fields only when a concrete consumer ships.** Do not speculate.
+
+| Field       | Add when                                                                                              |
+| ----------- | ----------------------------------------------------------------------------------------------------- |
+| `module?`   | Per-module page wrappers exist that need to include module name in error reports without parsing URLs |
+| `traceId?`  | OpenTelemetry instrumentation lands; layouts broadcast active trace to client error boundaries        |
+| `actorId?`  | Sentry user scoping needs the actor client-side (already available server-side on the session)        |
+
+---
+
+## `metadata` in layouts
+
+Use `export const metadata: Metadata` when the title is fixed (most layouts).
+
+Use `export async function generateMetadata({ params })` when the title needs dynamic data — e.g. org name in the browser tab:
+
+```tsx
+export async function generateMetadata({
+  params,
+}: LayoutProps<"/[locale]/o/[orgSlug]/dashboard">): Promise<Metadata> {
+  const { orgSlug } = await params
+  const identity = await fetchOrgWorkbenchIdentity(/* orgId from session */)
+  return {
+    title: identity?.name ?? orgSlug,
+    openGraph: { title: `${identity?.name ?? orgSlug} | ${SITE_NAME}` },
+  }
+}
+```
+
+Fetch requests inside `generateMetadata` are automatically memoized — the same fetch in the layout function is not re-fetched (React `cache` semantics).
+
+---
+
+## Observability and data contracts
+
+- Layouts are the **only place** to emit `logUnexpectedServerError` for layout-level fetch failures. Do not log expected `null` / `notFound()` outcomes.
+- Pass minimal, serializable data across the server→client boundary. `RouteEnvelope` carries identifiers only — never full records or session payloads.
+- Do not put domain data fetches (contacts list, knowledge chunks, etc.) in `layout.tsx`. Those belong in `page.tsx` or `loading.tsx`-wrapped Server Component leaves.
+
+---
+
+## Relationship to `error-boundaries.mdc`
+
+This rule governs the full five-file surface. The `error.tsx` slot defers to `error-boundaries.mdc` for the approved-boundary allowlist and decision rules.

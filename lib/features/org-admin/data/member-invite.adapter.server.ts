@@ -16,6 +16,7 @@ import type {
   AdapterParseOk,
   OrgImportAdapter,
 } from "./import-adapter.server"
+import { todoImportAdapter } from "./todo-import.adapter.server"
 
 function invitationIdFromCreateResult(result: unknown): string | null {
   if (!result || typeof result !== "object") return null
@@ -118,6 +119,7 @@ export const memberInviteAdapter: OrgImportAdapter<MemberInviteRow> = {
 
 const ADAPTER_REGISTRY = {
   member_invite: memberInviteAdapter,
+  todo_import: todoImportAdapter,
 } as const
 
 export type RegisteredAdapterId = keyof typeof ADAPTER_REGISTRY

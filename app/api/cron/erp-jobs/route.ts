@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server"
 import { sql } from "drizzle-orm"
 
 import { db } from "#lib/db"
+import { runWithNodeOtelSpan } from "#lib/otel-span.server"
 import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
 
 export const dynamic = "force-dynamic"
@@ -16,7 +17,13 @@ export async function GET(request: NextRequest) {
   }
 
   const started = Date.now()
-  await db.execute(sql`select 1`)
+  await runWithNodeOtelSpan(
+    "cron.erp_jobs.database_ping",
+    { "erp.cron": "erp-jobs", "erp.probe": "database_select_1" },
+    async () => {
+      await db.execute(sql`select 1`)
+    }
+  )
   const durationMs = Date.now() - started
 
   return routeJsonOk({
@@ -24,6 +31,7 @@ export async function GET(request: NextRequest) {
     job: "erp-jobs",
     ranAt: new Date().toISOString(),
     durationMs,
+    observabilityProbe: "cron_database_ping",
     checks: { database: "ok" },
   })
 }

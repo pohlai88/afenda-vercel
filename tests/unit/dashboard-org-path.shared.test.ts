@@ -13,6 +13,9 @@ describe("sanitizePathAfterOrgSlug", () => {
       "/dashboard/knowledge"
     )
     expect(sanitizePathAfterOrgSlug("/dashboard/lynx")).toBe("/dashboard/lynx")
+    expect(sanitizePathAfterOrgSlug("/dashboard/todos")).toBe(
+      "/dashboard/todos"
+    )
     expect(sanitizePathAfterOrgSlug("/dashboard/../contacts")).toBe(
       "/dashboard"
     )

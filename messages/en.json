@@ -8,6 +8,9 @@
     "loadingOnboarding": "Loading workspace setup…",
     "loadingUsers": "Loading users…"
   },
+  "Onboarding": {
+    "slugRules": "Lowercase letters, numbers, hyphens, and underscores. Leave blank to derive from the organization name."
+  },
   "Home": {
     "heading": "Project ready!",
     "body1": "You may now add components and start building.",
@@ -143,9 +146,45 @@
     "note": "Redirecting to verify email…"
   },
   "Dashboard": {
+    "shell": {
+      "skipToMain": "Skip to dashboard content",
+      "sidebarToggle": "Toggle navigation",
+      "expandSidebar": "Expand sidebar",
+      "collapseSidebar": "Collapse sidebar",
+      "orgSwitcher": {
+        "trigger": "Switch organization",
+        "search": "Search organizations…",
+        "empty": "No organizations found.",
+        "open": "Open"
+      },
+      "inspector": {
+        "toggleDetails": "Details panel",
+        "toggleAriaOpen": "Close details panel",
+        "toggleAriaClosed": "Open details panel"
+      }
+    },
+    "commandPalette": {
+      "dialogTitle": "Command palette",
+      "dialogDescription": "Search modules, organizations, or admin actions.",
+      "placeholder": "Search…",
+      "empty": "No results found.",
+      "triggerLabel": "Search…",
+      "kbdHint": "⌘K · Ctrl+K",
+      "groupModules": "Modules",
+      "groupOrganizations": "Organizations",
+      "groupAdmin": "Admin",
+      "currentOrg": "Current",
+      "admin": {
+        "members": "Members",
+        "audit": "Audit",
+        "settings": "Settings",
+        "integrations": "Integrations"
+      }
+    },
     "nav": {
       "label": "Dashboard modules",
       "contacts": "Contacts",
+      "todos": "Todos",
       "lynx": "Lynx",
       "knowledge": "Knowledge",
       "sale": "Sale",
@@ -201,6 +240,17 @@
         "tabChart": "Chart",
         "chartPending": "Chart suggestion unavailable — try a broader question."
       },
+      "nlDemoTodo": {
+        "sectionTitle": "Structured query — todos (demo)",
+        "sectionDescription": "Ask in plain English. Lynx generates read-only SQL against your organization’s `todo` rows only.",
+        "labelQuestion": "Question",
+        "placeholderQuestion": "e.g. How many tasks are still pending?",
+        "submit": "Run query",
+        "pending": "Working…",
+        "clear": "Clear",
+        "errorGeneric": "Something went wrong. Try again.",
+        "headingSql": "Generated SQL"
+      },
       "substrate": {
         "addTitle": "Knowledge substrate",
         "addDescription": "Add text chunks with embeddings so Truth retrieval has evidence to draw on.",
@@ -226,6 +276,30 @@
       "searchSubmit": "Search",
       "searchEmpty": "No similar chunks found.",
       "distanceLabel": "Cosine distance: {distance}"
+    },
+    "Todos": {
+      "title": "Todos",
+      "description": "Org-wide tasks for this workspace.",
+      "personalTitle": "Personal tasks",
+      "personalDescription": "Your private tasks stay on your account. Switch to a workspace for shared team todos.",
+      "addTask": "Add task",
+      "titleLabel": "Title",
+      "descriptionLabel": "Description",
+      "dueLabel": "Due",
+      "priorityLabel": "Priority",
+      "assigneeLabel": "Assignee",
+      "pending": "Working…",
+      "purgeCompleted": "Purge completed",
+      "rotateShareToken": "Rotate share token",
+      "ariaTaskList": "Todo list",
+      "empty": "No tasks yet.",
+      "complete": "Mark complete",
+      "reopen": "Reopen",
+      "snooze": "Snooze 1h",
+      "deleteTask": "Delete",
+      "commentPlaceholder": "Add a comment…",
+      "addComment": "Comment",
+      "addAttachment": "Attach file"
     }
   },
   "PlatformAdmin": {
@@ -374,10 +448,19 @@
       "accountSecurityDescription": "Sessions, passkeys, and verification for your user.",
       "securityCenter": "Security center",
       "identity": "Identity & linked accounts",
-      "orgProfileTitle": "Organization profile",
-      "orgProfileDescription": "Name and slug are shown across the workspace.",
-      "orgProfileHint": "Organization profile editing is not yet wired in this build. Member management lives in the Members tab.",
-      "backAdmin": "← Admin overview"
+      "orgProfileTitle": "Workspace URL (slug)",
+      "orgProfileDescription": "The segment in your organization URLs. Renaming it changes links to this workspace; we may add a short suffix if the name is already taken.",
+      "orgProfileHint": "You can change the URL slug here. For the organization display name, use your account or future profile fields as the product adds them.",
+      "backAdmin": "← Admin overview",
+      "slug": {
+        "label": "URL slug",
+        "hintBefore": "Your workspace lives at paths like ",
+        "hintAfter": " — use lowercase letters, numbers, hyphens, and underscores.",
+        "save": "Save URL slug",
+        "saving": "Saving…",
+        "errorTitle": "Could not update slug",
+        "unchanged": "No change to save."
+      }
     },
     "integrations": {
       "title": "Integrations",
@@ -409,7 +492,8 @@
         "cancelling": "Cancelling…",
         "recentFailuresTitle": "Recent failures",
         "adapter": {
-          "member_invite": "Member invitations"
+          "member_invite": "Member invitations",
+          "todo_import": "Todo import"
         }
       },
       "endpoints": {
@@ -438,7 +522,85 @@
         "statusEnabled": "enabled: {enabled}",
         "statusEvents": "{count, plural, one {# event} other {# events}}",
         "recentTitle": "Recent deliveries"
+      },
+      "botLinks": {
+        "title": "Bot links",
+        "description": "Map GitHub or Discord workspace IDs to this organization for inbound automation.",
+        "platformLabel": "Platform",
+        "repositoryLabel": "Repository",
+        "installationLabel": "Installation ID",
+        "workspaceLabel": "Workspace / guild ID",
+        "createSubmit": "Add link",
+        "empty": "No bot links yet.",
+        "disableSubmit": "Disable",
+        "enableSubmit": "Enable",
+        "testSubmit": "Test",
+        "deleteSubmit": "Remove",
+        "statusLabel": "Status: {status}",
+        "editSubmit": "Edit",
+        "displayNameLabel": "Display name",
+        "saveSubmit": "Save"
       }
+    },
+    "knowledge": {
+      "title": "Knowledge sources",
+      "description": "Connect repositories, todo lists, and manual chunks; run retrieval evaluation sets.",
+      "backAdmin": "← Admin overview",
+      "createTitle": "New knowledge source",
+      "createDescription": "Choose an adapter kind and JSON configuration. Manual sources accept ingest from the ERP dashboard.",
+      "kindLabel": "Kind",
+      "nameLabel": "Name",
+      "namePlaceholder": "Primary wiki",
+      "configLabel": "Configuration (JSON)",
+      "createSubmit": "Create source",
+      "listTitle": "Sources",
+      "listDescription": "Enable sync, edit configuration, or remove sources.",
+      "listEmpty": "No sources yet — create one above.",
+      "enabled": "enabled",
+      "disabled": "disabled",
+      "lastSyncedAt": "Last synced: {value}",
+      "neverSynced": "never",
+      "syncState": "Sync",
+      "disableSubmit": "Disable",
+      "enableSubmit": "Enable",
+      "syncSubmit": "Sync now",
+      "cancelSyncSubmit": "Cancel sync",
+      "deleteSubmit": "Delete",
+      "editSource": "Edit source",
+      "saveSource": "Save changes",
+      "evalTitle": "Evaluation sets",
+      "evalDescription": "Run a batch evaluation against your indexed chunks.",
+      "evalEmpty": "No evaluation sets yet.",
+      "evalSubmit": "Run evaluation",
+      "evalHistoryTitle": "Recent eval runs",
+      "evalHistoryDescription": "Latest retrieval quality metrics for this organization.",
+      "evalHistoryEmpty": "No evaluation runs yet.",
+      "evalHistoryRow": "Recall {recall} · MRR {mrr} · {total, plural, one {# case} other {# cases}}",
+      "evalHistoryViewRun": "View run",
+      "runDetailTitle": "Evaluation run",
+      "runDetailSummary": "Recall {recall} · MRR {mrr} · {total, plural, one {# case} other {# cases}}",
+      "runDetailNotFound": "This run was not found.",
+      "runDetailBack": "← Back to knowledge sources",
+      "settingsTitle": "Retrieval settings",
+      "settingsDescription": "Hybrid lexical + vector retrieval and optional reranking.",
+      "settingsTogglesLabel": "Modes",
+      "settingsHybrid": "Hybrid retrieval",
+      "settingsRerank": "Rerank",
+      "settingsZdr": "Zero data retention (BYOK)",
+      "settingsSubmit": "Save settings",
+      "byokTitle": "Bring your own key",
+      "byokDescription": "Store encrypted provider credentials for this organization.",
+      "byokProviderLabel": "Provider",
+      "byokSecretLabel": "Secret",
+      "byokCreateSubmit": "Save credential",
+      "byokEmpty": "No credentials stored.",
+      "byokStateLabel": "{state} · enabled: {enabled}",
+      "byokDisableSubmit": "Disable",
+      "byokEnableSubmit": "Enable",
+      "byokDeleteSubmit": "Delete",
+      "byokRotateSummary": "Rotate secret",
+      "byokRotatePlaceholder": "New secret",
+      "byokRotateSubmit": "Rotate"
     }
   },
   "AuthV2": {
@@ -470,5 +632,11 @@
     "org": {
       "title": "Organization"
     }
+  },
+  "Console": {
+    "subtitle": "Select a workspace to continue.",
+    "orgsLabel": "Your organizations",
+    "noOrgs": "You are not a member of any organization yet.",
+    "open": "Open"
   }
 }

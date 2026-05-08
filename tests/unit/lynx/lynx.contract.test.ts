@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   LYNX_AUDIT_ACTIONS,
+  LYNX_ERP_HTTP_ROUTES,
   LYNX_LAYERS,
   LYNX_MODULE_ID,
 } from "#features/lynx/lynx.contract"
@@ -16,5 +17,10 @@ describe("lynx.contract", () => {
     expect(LYNX_AUDIT_ACTIONS.truthQuery.startsWith("erp.lynx.")).toBe(true)
     expect(LYNX_AUDIT_ACTIONS.nlDemoQuery.startsWith("erp.lynx.")).toBe(true)
     expect(LYNX_AUDIT_ACTIONS.briefGenerate.startsWith("erp.lynx.")).toBe(true)
+  })
+
+  it("pins Lynx ERP HTTP route paths", () => {
+    expect(LYNX_ERP_HTTP_ROUTES.truthSearch).toBe("/api/erp/lynx/truth-search")
+    expect(LYNX_ERP_HTTP_ROUTES.operator).toBe("/api/erp/lynx/operator")
   })
 })

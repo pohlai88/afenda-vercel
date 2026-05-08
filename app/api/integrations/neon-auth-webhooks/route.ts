@@ -1,15 +1,16 @@
 import { and, eq, gt } from "drizzle-orm"
 
+import * as Sentry from "@sentry/nextjs"
+
 import { authMailContext, sendAuthEmail } from "#lib/auth-mail"
-import {
-  verifyNeonAuthWebhookSignature,
-  writeIamAuditEvent,
-} from "#lib/auth-v2"
+import { verifyNeonAuthWebhookSignature, writeIamAuditEvent } from "#lib/auth"
 import { db } from "#lib/db"
 import { neonAuthInvitation } from "#lib/db/schema-neon-auth"
+import { logUnexpectedServerError } from "#lib/logger.server"
 import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
 
 export const dynamic = "force-dynamic"
+export const runtime = "nodejs"
 
 export async function POST(request: Request) {
   let rawBody: string
@@ -101,7 +102,21 @@ export async function POST(request: Request) {
         return routeJsonOk({ ok: true })
     }
   } catch (err) {
-    console.error("[neon-auth-webhooks]", err)
+    logUnexpectedServerError("neon_auth_webhook_handler_failed", err, {
+      scope: "api.integrations.neon_auth_webhooks",
+      "erp.module": "integrations",
+      webhookEventType: payload.event_type,
+    })
+    Sentry.captureException(
+      err instanceof Error ? err : new Error(String(err)),
+      {
+        tags: {
+          scope: "api.integrations.neon_auth_webhooks",
+          "erp.module": "integrations",
+        },
+        extra: { event_type: payload.event_type },
+      }
+    )
     return routeJsonError("Internal Server Error", 500)
   }
 }

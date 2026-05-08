@@ -1,8 +1,8 @@
 import {
   listDeviceSessions,
   listUserSecurityActivity,
-  requireSignedInSession,
-} from "#lib/auth-v2"
+  requireAuthShellSignedInSession,
+} from "#lib/auth"
 
 import {
   AccountSecurityCenterClient,
@@ -10,7 +10,7 @@ import {
   type SecurityPasskeyRow,
   type SecuritySessionRow,
 } from "./security-center-client"
-import { auth } from "#lib/auth-v2"
+import { auth } from "#lib/auth"
 
 function toIso(d: Date | string): string {
   if (d instanceof Date) return d.toISOString()
@@ -18,7 +18,7 @@ function toIso(d: Date | string): string {
 }
 
 export default async function AccountSecurityPage() {
-  const session = await requireSignedInSession()
+  const session = await requireAuthShellSignedInSession()
   const { data: rawSession } = await auth.getSession()
   const currentSessionToken = rawSession?.session?.token ?? ""
 

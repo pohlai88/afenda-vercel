@@ -18,6 +18,7 @@ alwaysApply: false
   - semantic variants (button, badge, card schemas)
 - Do not introduce raw geometry utilities such as:
   - `rounded-3xl`, `rounded-4xl`, `shadow-2xl`, arbitrary `rounded-[...]`, arbitrary shadow systems
+- Spacing rhythm utilities (`p-*` / `m*` / `gap-*` / `space-[xy]-*`) must come from the token scale: Tailwind's spacing scale, `p-surface-*` / `gap-surface-*` (`--space-surface-*`), or `gap-density-*` (`--density-*`). Arbitrary literals (`p-[12px]`, `gap-[7px]`, `ml-[3.25rem]`) are forbidden; CSS-variable references (`var(--…)` / `--spacing(var(--…))` / `calc(var(--…)*…)`) remain allowed. Positioning (`top-[…]`, `inset-[…]`) and sizing (`w-[…]`, `h-[…]`) are out of scope.
 - Exceptions must be explicitly allowlisted in `scripts/check-design-contract.mjs`.
 - **`@theme inline`** in `app/globals.css` must only reference `var(--*)` names that exist under `:root` or `.dark` (checked by `check-design-contract.mjs`).
 

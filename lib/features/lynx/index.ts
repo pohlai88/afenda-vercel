@@ -1,6 +1,7 @@
 export {
   resolveLynxTruthStreamModel,
   resolveLynxTruthStreamProviderOptions,
+  resolveLynxTruthStreamProviderOptionsForOrg,
 } from "#features/lynx/data/truth-generation-model.server"
 export { buildLynxTruthSystemPrompt } from "#features/lynx/data/truth-prompt.server"
 export { buildLynxOperatorSystemPrompt } from "#features/lynx/data/operator-prompt.server"
@@ -30,10 +31,12 @@ export {
 export {
   LYNX_NL_DEMO_ROW_CAP,
   LYNX_NL_DEMO_TABLE,
+  LYNX_NL_DEMO_TODO_TABLE,
   validateLynxNlDemoSql,
 } from "#features/lynx/data/nl-sql-demo-guard.shared"
 export { LynxPage } from "#features/lynx/components/lynx-page"
 export { NlSqlDemoClient } from "#features/lynx/components/nl-sql-demo-client"
+export { TodoNlDemoClient } from "#features/lynx/components/todo-nl-demo-client"
 export { TruthSearchClient } from "#features/lynx/components/truth-search-client"
 export { OperatorAssistClient } from "#features/lynx/components/operator-assist-client"
 export {
@@ -47,6 +50,7 @@ export {
 } from "#features/lynx/constants"
 export {
   LYNX_AUDIT_ACTIONS,
+  LYNX_ERP_HTTP_ROUTES,
   LYNX_LAYERS,
   LYNX_MODULE_ID,
 } from "#features/lynx/lynx.contract"

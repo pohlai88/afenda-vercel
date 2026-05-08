@@ -19,3 +19,9 @@ export const LYNX_AUDIT_ACTIONS = {
   intakeCommit: "erp.lynx.intake.commit",
   operatorRecommend: "erp.lynx.operator.recommend",
 } as const
+
+/** Locale-agnostic Lynx ERP HTTP paths (`app/api/erp/lynx/*`). Client fetch targets. */
+export const LYNX_ERP_HTTP_ROUTES = {
+  truthSearch: "/api/erp/lynx/truth-search",
+  operator: "/api/erp/lynx/operator",
+} as const

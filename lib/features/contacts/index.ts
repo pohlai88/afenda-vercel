@@ -5,6 +5,8 @@ export {
   listRecentContactsForOrganization,
 } from "#features/contacts/data/contacts.queries"
 export { ContactsPage } from "#features/contacts/components/contacts-page"
+export { AddContactDialog } from "#features/contacts/components/add-contact-dialog"
+export { ContactDetailPanel } from "#features/contacts/components/contact-detail-panel"
 export { ContactsFiltersToolbar } from "#features/contacts/components/contacts-filters-toolbar"
 export { ContactsStatCards } from "#features/contacts/components/contacts-stat-cards"
 export { ContactsBulkActions } from "#features/contacts/components/contacts-bulk-actions"

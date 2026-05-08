@@ -11,7 +11,7 @@ import {
   findSimilarKnowledgeChunks,
   listRecentKnowledgeChunks,
 } from "#features/knowledge"
-import { countActiveImportJobsForOrganization } from "#features/org-admin"
+import { countActiveImportJobsForOrganization } from "#features/org-admin/server"
 
 import { LYNX_TRUTH_TOP_K } from "../constants"
 import type { LynxOperatorEvidenceHit } from "../types"

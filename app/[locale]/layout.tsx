@@ -3,6 +3,9 @@ import { getMessages, setRequestLocale } from "next-intl/server"
 import { notFound } from "next/navigation"
 
 import { DevSignInPanelGate } from "#components/dev/dev-signin-panel-gate"
+import { RouteEnvelopeProvider } from "#components/route-envelope-context"
+import { ensureAppLocale } from "#lib/i18n/locales.shared"
+import type { RouteEnvelope } from "#lib/route-envelope.shared"
 import { routing } from "../../i18n/routing"
 
 export function generateStaticParams() {
@@ -13,16 +16,25 @@ export default async function LocaleLayout({
   children,
   params,
 }: LayoutProps<"/[locale]">) {
-  const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) {
+  const { locale: localeRaw } = await params
+  if (!hasLocale(routing.locales, localeRaw)) {
     notFound()
   }
+  const locale = ensureAppLocale(localeRaw)
   setRequestLocale(locale)
   const messages = await getMessages()
+
+  const envelope: RouteEnvelope = {
+    surface: "locale",
+    locale,
+  }
+
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      {children}
-      <DevSignInPanelGate />
+      <RouteEnvelopeProvider value={envelope}>
+        {children}
+        <DevSignInPanelGate />
+      </RouteEnvelopeProvider>
     </NextIntlClientProvider>
   )
 }

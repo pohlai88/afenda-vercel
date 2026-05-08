@@ -10,7 +10,10 @@ import {
   CardTitle,
 } from "#components/ui/card"
 
-import { organizationAdminPath } from "#features/org-admin"
+import {
+  OrganizationSlugSettingsForm,
+  organizationAdminPath,
+} from "#features/org-admin"
 
 import { Link } from "#i18n/navigation"
 
@@ -56,8 +59,9 @@ export default async function OrgAdminSettingsPage({
             <CardTitle className="text-base">{t("orgProfileTitle")}</CardTitle>
             <CardDescription>{t("orgProfileDescription")}</CardDescription>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            <p>{t("orgProfileHint")}</p>
+          <CardContent className="space-y-4 text-sm">
+            <p className="text-muted-foreground">{t("orgProfileHint")}</p>
+            <OrganizationSlugSettingsForm orgSlug={orgSlug} />
           </CardContent>
         </Card>
       </div>

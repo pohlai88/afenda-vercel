@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import type { Metadata } from "next"
 
-import { requireSignedInSession } from "#lib/auth-v2"
+import { requireAuthShellSignedInSession } from "#lib/auth"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
 import { SITE_NAME } from "#lib/site"
 
@@ -16,6 +16,6 @@ export default async function OnboardingLayout({
 }: {
   children: ReactNode
 }) {
-  await requireSignedInSession()
+  await requireAuthShellSignedInSession()
   return children
 }

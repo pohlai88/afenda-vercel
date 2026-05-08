@@ -1,6 +1,9 @@
 /** Allowed base table for Lynx NL→SQL demo (must match `lib/db/schema.ts`). */
 export const LYNX_NL_DEMO_TABLE = "lynx_demo_unicorn" as const
 
+/** Org-scoped todo rows — NL→SQL todo variant (`erp.todo` / `"todo"`). */
+export const LYNX_NL_DEMO_TODO_TABLE = "todo" as const
+
 const FORBIDDEN_SQL_PATTERN =
   /\b(delete|insert|update|drop|alter|truncate|create|grant|revoke|merge|copy|into\s+outfile)\b/i
 
@@ -18,7 +21,10 @@ function escapeRegex(s: string): string {
  */
 export function validateLynxNlDemoSql(
   rawQuery: string,
-  organizationId: string
+  organizationId: string,
+  allowedTable:
+    | typeof LYNX_NL_DEMO_TABLE
+    | typeof LYNX_NL_DEMO_TODO_TABLE = LYNX_NL_DEMO_TABLE
 ): { ok: true; sql: string } | { ok: false; error: string } {
   const trimmed = rawQuery.trim()
   if (!trimmed) {
@@ -48,12 +54,15 @@ export function validateLynxNlDemoSql(
     return { ok: false, error: "JOIN is not allowed for this demo" }
   }
 
-  const fromRe = new RegExp(`\\bfrom\\s+"${LYNX_NL_DEMO_TABLE}"`, "i")
-  const fromBareRe = new RegExp(`\\bfrom\\s+${LYNX_NL_DEMO_TABLE}\\b`, "i")
+  const fromRe = new RegExp(`\\bfrom\\s+"${escapeRegex(allowedTable)}"`, "i")
+  const fromBareRe = new RegExp(
+    `\\bfrom\\s+${escapeRegex(allowedTable)}\\b`,
+    "i"
+  )
   if (!fromRe.test(core) && !fromBareRe.test(core)) {
     return {
       ok: false,
-      error: `Query must read only from "${LYNX_NL_DEMO_TABLE}"`,
+      error: `Query must read only from "${allowedTable}"`,
     }
   }
 

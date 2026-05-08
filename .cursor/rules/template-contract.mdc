@@ -1,0 +1,148 @@
+---
+description: App Router template.tsx doctrine — intentional remount/reset boundary, when to use vs layout, segment key semantics
+globs: app/**/template.tsx
+alwaysApply: false
+---
+
+# `template.tsx` — intentional remount/reset boundary
+
+## Doctrine
+
+```txt
+template.tsx = intentional remount / reset boundary
+```
+
+`template.tsx` is similar to `layout.tsx` in that it wraps children — but unlike layouts, templates receive a **unique key on navigation**, causing children Client Components to reset their state and effects to re-synchronize.
+
+Docs: [Next.js — template.js](https://nextjs.org/docs/app/api-reference/file-conventions/template)
+
+---
+
+## Afenda rule
+
+```md
+Do not introduce template.tsx unless the desired behaviour is to intentionally
+remount Client Components at that exact segment boundary.
+
+Defer unless the reset requirement is explicit and proven.
+```
+
+This is not a layout alternative. It is a **reset weapon** — powerful when you need it, harmful when added without intent.
+
+---
+
+## What template does (docs-validated)
+
+On navigation:
+
+- Templates receive a **unique key for their own segment level**
+- Child Client Components **reset all state**
+- `useEffect` hooks **re-synchronize** (fire cleanup + setup again)
+- DOM elements inside the template are **fully recreated**
+
+On searches and inner-segment navigation:
+
+- **Search params do NOT trigger remounts**
+- **Inner-segment navigations do NOT remount a higher-level template**
+  — navigating from `dashboard/contacts` to `dashboard/sale` does NOT remount a `dashboard/template.tsx`
+
+Segment level remount only:
+```
+/o/acme/dashboard → /o/beta/dashboard  — remounts dashboard/template.tsx ✓
+/o/acme/dashboard/contacts → /o/acme/dashboard/sale  — does NOT remount dashboard/template.tsx ✗
+```
+
+For per-module state reset, add `template.tsx` inside that module's own segment.
+
+---
+
+## Component hierarchy
+
+```
+layout → template → error → [loading wraps] → not-found / page
+```
+
+`template.tsx` sits between `layout.tsx` and the error/loading/page layer. The layout persists; the template remounts.
+
+---
+
+## Correct use cases
+
+Add `template.tsx` **only** when you need to reset:
+
+```txt
+local client state when the segment's params change
+useEffect to re-fire on every navigation within this segment
+inspector / command scope state tied to the current route
+form island state that must clear on segment change
+animation lifecycle that should restart on each navigation
+Suspense boundaries that must show the fallback on every navigation (not just first load)
+```
+
+The last point is important: **Suspense inside `layout.tsx` only shows its fallback on first load**. Suspense inside `template.tsx` shows the fallback on every navigation to that segment.
+
+---
+
+## Do NOT use `template.tsx` for
+
+```txt
+normal shell positioning or visual layout
+breadcrumb or navigation updates
+page-level data refresh (use Server Action revalidation instead)
+module navigation (inner-segment navigation does not trigger remount)
+general layout composition
+```
+
+---
+
+## When you might actually need it in Afenda
+
+| Scenario | File location | Reason |
+| -------- | ------------- | ------ |
+| Inspector state must reset when navigating between contacts | `dashboard/contacts/[id]/template.tsx` | Reset detail-panel client state on record change |
+| Command palette scope must clear on module switch | `dashboard/[module]/template.tsx` | Each module gets fresh command scope |
+| Form island must clear when navigating to a different segment | Segment-level `template.tsx` | Forces form island unmount |
+| Suspense fallback must show on every module navigation | `dashboard/template.tsx` | Layout Suspense only shows once |
+
+---
+
+## Minimal template pattern
+
+```tsx
+// dashboard/contacts/[id]/template.tsx
+export default function ContactDetailTemplate({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}
+```
+
+The template adds no markup — its only effect is the unique key that causes remount. Keep it transparent.
+
+---
+
+## Anti-pattern — template as a layout substitute
+
+```tsx
+// WRONG — using template for visual layout
+export default function Template({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[sidebar] gap-6">
+      <Sidebar />
+      {children}
+    </div>
+  )
+}
+```
+
+This rebuilds the sidebar on every navigation. Use `layout.tsx` instead.
+
+---
+
+## Relationship to `layout.tsx`
+
+`layout.tsx` **persists** across navigations within its segment — state is maintained, effects are not re-fired.
+
+`template.tsx` **remounts** on navigation to its segment — state resets, effects re-fire.
+
+Use `layout.tsx` for persistent shell authority. Add `template.tsx` only when you need the opposite.
+
+See `layout-contract.mdc` for the full runtime kernel doctrine.

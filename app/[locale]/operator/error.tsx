@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
-
+import { useRouteEnvelope } from "#components/route-envelope-context"
+import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
 import { RouteErrorRetryButton } from "#components/route-error-retry-button"
+import { useReportRouteError } from "#components/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
@@ -15,9 +16,9 @@ import {
 export default function OperatorError(props: NextAppErrorPageProps) {
   const { error } = props
   const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
-  useEffect(() => {
-    console.error(error)
-  }, [error])
+  const envelope = useRouteEnvelope()
+  const segment = envelope?.locale ? `operator/${envelope.locale}` : "operator"
+  useReportRouteError({ segment, error })
 
   return (
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
@@ -38,6 +39,7 @@ export default function OperatorError(props: NextAppErrorPageProps) {
       >
         Try again
       </RouteErrorRetryButton>
+      <RouteErrorDebugPanel segment={segment} error={error} />
     </div>
   )
 }

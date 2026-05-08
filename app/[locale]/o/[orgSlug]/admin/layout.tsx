@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 
 import { notFound, redirect } from "next/navigation"
 
+import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import {
   OrgAdminWorkbenchShell,
   organizationAdminPath,
@@ -15,6 +16,7 @@ import {
 } from "#lib/auth"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+import type { RouteEnvelope } from "#lib/route-envelope.shared"
 import { SITE_NAME } from "#lib/site"
 import { requireOrgSession } from "#lib/tenant"
 
@@ -53,9 +55,18 @@ export default async function OrgAdminWorkbenchLayout({
     notFound()
   }
 
+  const envelope: RouteEnvelope = {
+    surface: "admin",
+    locale,
+    orgSlug,
+    orgId: orgSession.organizationId,
+  }
+
   return (
-    <OrgAdminWorkbenchShell orgSlug={orgSlug} orgName={identity.name}>
-      {children}
-    </OrgAdminWorkbenchShell>
+    <RouteEnvelopeProvider value={envelope}>
+      <OrgAdminWorkbenchShell orgSlug={orgSlug} orgName={identity.name}>
+        {children}
+      </OrgAdminWorkbenchShell>
+    </RouteEnvelopeProvider>
   )
 }

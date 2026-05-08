@@ -49,7 +49,7 @@ test.describe("org admin import job workflow (optional credentials)", () => {
         .getByLabel(DEMO_PUBLIC_COPY.signInEmailLabel, { exact: true })
         .fill(orgAdminEmail!)
       await page.getByLabel("Password", { exact: true }).fill(orgAdminPassword!)
-      await page.getByRole("button", { name: "Sign in" }).click()
+      await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
       await page.waitForURL(/\/en\/(dashboard|onboarding|account|o)/, {
         timeout: 30_000,

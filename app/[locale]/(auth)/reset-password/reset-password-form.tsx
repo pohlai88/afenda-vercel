@@ -5,7 +5,7 @@ import { Link, useRouter } from "#i18n/navigation"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useState } from "react"
 
-import { authClient } from "#lib/auth-v2-client"
+import { authClient } from "#lib/auth-client"
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"
 import {

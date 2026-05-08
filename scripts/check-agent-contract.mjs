@@ -58,6 +58,9 @@ const ROOT_RUNTIME_FILES = new Set([
   "README.md",
   "proxy.ts",
   "instrumentation.ts",
+  "instrumentation-client.ts",
+  "sentry.server.config.ts",
+  "sentry.edge.config.ts",
   "next.config.ts",
   "next-env.d.ts",
   "vercel.json",
@@ -106,11 +109,14 @@ const ALLOWED_MODULE_ROOT_ENTRIES = new Set([
   "constants.ts",
   "types.ts",
   "index.ts",
+  "server.ts",
+  "client.ts",
   "README.md",
 ])
 
 const CODE_EXT_RE = /\.(ts|tsx|js|jsx|mjs|cjs)$/
-const DEEP_FEATURE_IMPORT_RE = /from\s+["']#features\/([^/"']+)\/[^"']+["']/g
+/** Second segment `server` / `client` are allowed composition barrels. */
+const DEEP_FEATURE_IMPORT_RE = /from\s+["']#features\/([^/"']+)\/([^"']+)["']/g
 
 let failed = false
 
@@ -160,8 +166,10 @@ function assertRuleStrength() {
   if (!/alwaysApply:\s*true/.test(mandatory)) {
     fail("agents-md-mandatory.mdc must keep alwaysApply: true")
   }
-  if (!/#features\/\*\/\*/.test(eslintConfig)) {
-    fail("eslint must restrict deep feature imports (#features/*/*)")
+  if (!/#features\/\*\/actions/.test(eslintConfig)) {
+    fail(
+      "eslint must restrict deep feature imports (explicit #features/*/… patterns)"
+    )
   }
 }
 
@@ -269,7 +277,7 @@ function assertModuleRootShape() {
         /^[a-z0-9][a-z0-9-]*\.contract\.ts$/.test(name)
       if (!ALLOWED_MODULE_ROOT_ENTRIES.has(name) && !isContractTs) {
         fail(
-          `forbidden module root entry in ${moduleRel}: ${name} (allowed: actions, data, components, schemas, constants.ts, types.ts, index.ts, README.md, *.contract.ts)`
+          `forbidden module root entry in ${moduleRel}: ${name} (allowed: actions, data, components, schemas, constants.ts, types.ts, index.ts, server.ts, client.ts, README.md, *.contract.ts)`
         )
       }
     }
@@ -286,19 +294,24 @@ function assertNoDeepFeatureImports() {
     const lines = text.split("\n")
 
     lines.forEach((line, index) => {
+      let match
       DEEP_FEATURE_IMPORT_RE.lastIndex = 0
-      const match = DEEP_FEATURE_IMPORT_RE.exec(line)
-      if (!match) return
-      const importedModule = match[1]
-      const fromModuleMatch = rel.match(/^lib\/features\/([^/]+)\//)
-      const fromModule = fromModuleMatch ? fromModuleMatch[1] : null
-      const isCrossModule = fromModule !== null && fromModule !== importedModule
-      const isOutsideFeatures = fromModule === null
+      while ((match = DEEP_FEATURE_IMPORT_RE.exec(line)) !== null) {
+        const importedModule = match[1]
+        const subpath = match[2]
+        if (subpath === "server" || subpath === "client") continue
 
-      if (isOutsideFeatures || isCrossModule) {
-        fail(
-          `deep feature import violation at ${rel}:${index + 1} -> ${line.trim()}`
-        )
+        const fromModuleMatch = rel.match(/^lib\/features\/([^/]+)\//)
+        const fromModule = fromModuleMatch ? fromModuleMatch[1] : null
+        const isCrossModule =
+          fromModule !== null && fromModule !== importedModule
+        const isOutsideFeatures = fromModule === null
+
+        if (isOutsideFeatures || isCrossModule) {
+          fail(
+            `deep feature import violation at ${rel}:${index + 1} -> ${line.trim()}`
+          )
+        }
       }
     })
   }
@@ -317,7 +330,7 @@ if (failed) {
   console.error(`
 Contract failed.
 - Keep AGENTS.md + .cursor/rules authoritative and strict.
-- Import features via #features/<module> only.
+- Import features via #features/<module>, #features/<module>/client (client islands), or #features/<module>/server (server-only).
 - Keep repo/module roots clean (no dumping dirs, no extra module-root categories).
 `)
   process.exit(1)

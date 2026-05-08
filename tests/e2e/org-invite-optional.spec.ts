@@ -27,7 +27,7 @@ test.describe("org invite UI (optional credentials)", () => {
       .getByLabel(DEMO_PUBLIC_COPY.signInEmailLabel, { exact: true })
       .fill(inviteEmail!)
     await page.getByLabel("Password", { exact: true }).fill(invitePassword!)
-    await page.getByRole("button", { name: "Sign in" }).click()
+    await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
     await page.waitForURL(/\/en\/(onboarding|account|o)/, {
       timeout: 30_000,

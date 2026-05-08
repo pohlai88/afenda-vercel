@@ -10,6 +10,11 @@
  *   2. SQL-patch emailVerified = true so sign-in works without the email flow.
  *   3. Create the Demo Org + member rows in neon_auth via SQL.
  *
+ * Tenant bootstrap: ERP routes need `activeOrganizationId` on the session.
+ * The browser Dev panel (`components/dev/dev-signin-panel.tsx`) calls
+ * `organization.setActive({ organizationId: DEMO_ORG.id })` after email/password
+ * sign-in — signing in manually still requires picking the org or onboarding.
+ *
  * Usage:
  *   # Dev server must be running (pnpm dev) OR pass a custom AUTH_URL:
  *   node scripts/with-env.mjs node scripts/seed-dev-users.mjs
