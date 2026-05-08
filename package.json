@@ -43,6 +43,7 @@
     "shadcn:info": "shadcn info --json",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:extensions:local": "node scripts/with-env.mjs node scripts/enable-pgvector.mjs",
     "db:migrate:local": "dotenv -e .env.local -- drizzle-kit migrate",
     "db:migrate:vercel": "dotenv -e .env.vercel -- drizzle-kit migrate",
     "db:push": "drizzle-kit push",

@@ -7,6 +7,10 @@
  *
  * Run once manually:
  *   node scripts/with-env.mjs node scripts/nuke-db-public.mjs
+ *
+ * AFTER this script, re-enable extensions before migrating:
+ *   pnpm db:extensions:local   (re-installs pgvector)
+ *   pnpm db:migrate:local
  */
 
 import { neon } from "@neondatabase/serverless"

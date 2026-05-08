@@ -76,7 +76,9 @@ Only when the ledger and DB are fully out of sync beyond recovery:
 2. Delete `drizzle/*.sql` and `drizzle/meta/*.json`
 3. Reset `drizzle/meta/_journal.json` to `{"version":"7","dialect":"postgresql","entries":[]}`
 4. Run `pnpm db:generate` in an interactive terminal (step 2 of workflow above)
-5. Run `pnpm db:migrate:local`
+5. **Re-enable extensions before migrating:** `pnpm db:extensions:local`
+   - `DROP SCHEMA public CASCADE` removes the `vector` extension; it must be re-enabled.
+6. Run `pnpm db:migrate:local`
 
 ## CI gate
 
