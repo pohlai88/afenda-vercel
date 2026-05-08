@@ -11,7 +11,7 @@ alwaysApply: true
 
 1. Read **`AGENTS.md`** before analysis, planning, coding, refactoring, testing, or tool execution.
    - **IDE & AI quickstart** table for fast routing.
-   - **§4** for CI gates and enforcement scripts.
+   - **§4** for CI gates and enforcement scripts (including **Drizzle migrations (journal + SQL)** when editing `drizzle/` or `lib/db/schema.ts`).
    - **§5** for routing, auth UX, locale, and `proxy.ts`.
    - **§6** for directory shape and import rules.
    - **§7** for design system boundaries.

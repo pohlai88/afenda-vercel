@@ -12,6 +12,8 @@ import { CommandPaletteProvider } from "./command-palette-context"
 import { CommandPaletteSlot } from "./command-palette-slot"
 import { CommandPaletteTrigger } from "./command-palette-trigger"
 import { INSPECTOR_COOKIE_NAME, InspectorProvider } from "./inspector-context"
+import { LynxSummon } from "./lynx-summon.client"
+import { LynxSummonProvider } from "./lynx-summon-context"
 import {
   INSPECTOR_WIDTH_COOKIE,
   InspectorTrigger,
@@ -81,60 +83,65 @@ export async function DashboardShell({
   return (
     <InspectorProvider defaultOpen={inspectorDefaultOpen}>
       <CommandPaletteProvider>
-        <SidebarProvider>
-          <a
-            href="#dashboard-main"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-elevation-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {t("skipToMain")}
-          </a>
+        <LynxSummonProvider>
+          <SidebarProvider>
+            <a
+              href="#dashboard-main"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-elevation-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {t("skipToMain")}
+            </a>
 
-          <AppSidebar
-            orgSlug={orgSlug}
-            orgName={orgName}
-            showOrgAdminLink={showOrgAdminLink}
-            initialWidth={sidebarInitialWidth}
-          />
-
-          <SidebarInset>
-            <AppTopBar
-              userEmail={userEmail}
-              breadcrumbs={breadcrumbs}
-              centerSlot={centerSlot}
-              commandPaletteTrigger={<CommandPaletteTrigger />}
-              subActions={
-                <InspectorTrigger
-                  label={t("inspector.toggleDetails")}
-                  ariaLabelClosed={t("inspector.toggleAriaClosed")}
-                  ariaLabelOpen={t("inspector.toggleAriaOpen")}
-                />
-              }
+            <AppSidebar
+              orgSlug={orgSlug}
+              orgName={orgName}
+              showOrgAdminLink={showOrgAdminLink}
+              initialWidth={sidebarInitialWidth}
             />
-            {moduleSubnav}
-            <div className="flex flex-1 overflow-hidden">
-              <main
-                id="dashboard-main"
-                tabIndex={-1}
-                className="min-w-0 flex-1 overflow-y-auto p-6 outline-none"
-              >
-                {children}
-              </main>
-              <RightInspector initialWidth={inspectorInitialWidth} />
-            </div>
-          </SidebarInset>
 
-          {/* Global command palette — streams independently behind Suspense */}
-          {userId ? (
-            <Suspense fallback={null}>
-              <CommandPaletteSlot
-                userId={userId}
-                currentOrgId={currentOrgId}
-                orgSlug={orgSlug}
-                showOrgAdminLink={showOrgAdminLink}
+            <SidebarInset>
+              <AppTopBar
+                userEmail={userEmail}
+                breadcrumbs={breadcrumbs}
+                centerSlot={centerSlot}
+                commandPaletteTrigger={<CommandPaletteTrigger />}
+                subActions={
+                  <InspectorTrigger
+                    label={t("inspector.toggleDetails")}
+                    ariaLabelClosed={t("inspector.toggleAriaClosed")}
+                    ariaLabelOpen={t("inspector.toggleAriaOpen")}
+                  />
+                }
               />
-            </Suspense>
-          ) : null}
-        </SidebarProvider>
+              {moduleSubnav}
+              <div className="flex flex-1 overflow-hidden">
+                <main
+                  id="dashboard-main"
+                  tabIndex={-1}
+                  className="min-w-0 flex-1 overflow-y-auto p-6 outline-none"
+                >
+                  {children}
+                </main>
+                <RightInspector initialWidth={inspectorInitialWidth} />
+              </div>
+            </SidebarInset>
+
+            {/* Global command palette — streams independently behind Suspense */}
+            {userId ? (
+              <Suspense fallback={null}>
+                <CommandPaletteSlot
+                  userId={userId}
+                  currentOrgId={currentOrgId}
+                  orgSlug={orgSlug}
+                  showOrgAdminLink={showOrgAdminLink}
+                />
+              </Suspense>
+            ) : null}
+
+            {/* Floating Lynx summon — drawer mounted once, hidden until invoked. */}
+            <LynxSummon />
+          </SidebarProvider>
+        </LynxSummonProvider>
       </CommandPaletteProvider>
     </InspectorProvider>
   )

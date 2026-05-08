@@ -1,0 +1,69 @@
+---
+description: Drizzle schema truth, SQL migration evidence, journal ledger, and meta baseline governance
+globs: "drizzle/**,lib/db/schema.ts,drizzle.config.ts"
+alwaysApply: false
+---
+
+# Drizzle migration boundary
+
+## Doctrine
+
+`lib/db/schema.ts` is the app-owned schema truth.
+`drizzle/*.sql` is the deployable DDL evidence.
+`drizzle/meta/_journal.json` is the ordered migration ledger.
+`drizzle/meta/*_snapshot.json` is the diff baseline used by `drizzle-kit generate`.
+
+**The database is not the source of truth for app-owned schema. The committed schema, SQL migrations, and meta files together form the deployable database contract.**
+
+## Four-layer truth model
+
+| Layer          | Authority                       | Owned by      |
+| -------------- | ------------------------------- | ------------- |
+| Schema truth   | `lib/db/schema.ts`              | App           |
+| Migration truth | `drizzle/*.sql`                | App           |
+| Ordering truth | `drizzle/meta/_journal.json`    | App           |
+| Diff truth     | `drizzle/meta/*_snapshot.json`  | drizzle-kit   |
+
+## Rules
+
+- Every committed `drizzle/NNNN_*.sql` file must be listed in `drizzle/meta/_journal.json`.
+- Journal `tag` must match the SQL filename without `.sql`.
+- Journal order must match the numeric migration prefix order.
+- Journal `idx` must be contiguous from `0`.
+- Commit SQL and meta files together — never split them across PRs.
+- Never edit `_journal.json` alone to force-register a migration.
+- Never delete `drizzle/meta/` while legacy numbered SQL still exists — Drizzle will emit a duplicate baseline migration on the next `generate`.
+- Never use `pnpm db:push` as a substitute for reviewed migrations on shared Neon branches.
+
+## Neon Auth
+
+`neon_auth.*` is external platform-owned schema.
+Do not create, alter, or drop `neon_auth.*` in app migrations.
+Use [`lib/db/schema-neon-auth.ts`](../../lib/db/schema-neon-auth.ts) only as a query mirror.
+
+## Workflow for schema changes
+
+1. Edit `lib/db/schema.ts`.
+2. Run `pnpm db:generate` in an **interactive terminal** (agent/CI shells lack `isTTY` — Drizzle will error if it needs to prompt for renames/conflicts).
+3. Review generated SQL; reject destructive DDL that wasn't intended.
+4. Commit `schema.ts`, SQL, and meta files together.
+5. Run `pnpm lint:drizzle-journal` to confirm journal ↔ SQL parity.
+6. Apply to each Neon branch with `pnpm db:migrate:local` or `pnpm db:migrate:vercel`.
+
+## Hand-written SQL
+
+Use `pnpm exec drizzle-kit generate --custom --name=<slug>` to produce an empty SQL file registered in the journal; edit the file, then follow the workflow above from step 3.
+
+## Recovery
+
+If SQL and meta drift, do not patch the journal blindly.
+Restore the missing SQL or regenerate from a clean branch with the correct prior meta baseline.
+If a migration was manually written, review it as deployable DDL and ensure the journal/meta contract is intentionally updated in the same PR.
+
+## CI gate
+
+**`pnpm lint:drizzle-journal`** (`scripts/check-drizzle-journal.mjs`) enforces SQL ↔ journal parity (count, tag match, contiguous `idx`). Runs as part of `pnpm lint`. Failures are blockers — do not suppress.
+
+## Contract changes
+
+New migration governance or scripts → update **AGENTS.md §4** in the same PR; keep this rule aligned.

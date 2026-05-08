@@ -6,8 +6,10 @@ import { useTranslations } from "next-intl"
 import { Button } from "#components/ui/button"
 import { Input } from "#components/ui/input"
 
-import type { LynxOperatorNdjsonMeta } from "#features/lynx"
-import { LYNX_ERP_HTTP_ROUTES } from "../lynx.contract"
+import {
+  LYNX_ERP_HTTP_ROUTES,
+  type LynxOperatorNdjsonMeta,
+} from "#features/lynx/client"
 
 function parseOperatorMetaTools(
   tools: string[] | undefined

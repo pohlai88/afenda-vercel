@@ -1,0 +1,376 @@
+<!doctype html>
+<!--
+  Breakthrough Todo — operational atom shell (Stage 1 preview).
+
+  What each region argues:
+  - Atom canvas (centre): one commitment owns the viewport; linkage / party /
+    provenance / impact are body content, not folded metadata.
+  - Why-now strip: the queue pick is explained in one deterministic sentence.
+  - Operational tail: ranked next steps without resurrecting a kanban “home”.
+  - Floating Lynx: summoned on demand; no fixed assistant rail.
+  - Capture row: one keystroke reveals an atom-shaped inline composer.
+
+  Open this file in a browser — no build step. Trading-terminal metaphors are
+  intentionally absent (no risk tape, no run bar).
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Afenda · Operational Todo Shell (preview)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: oklch(0.14 0.02 260);
+        --surface: oklch(0.18 0.02 260);
+        --border: oklch(0.28 0.02 260);
+        --fg: oklch(0.96 0.01 260);
+        --muted: oklch(0.72 0.02 260);
+        --primary: oklch(0.72 0.14 250);
+        --primary-soft: oklch(0.72 0.14 250 / 0.15);
+        --destructive: oklch(0.62 0.2 25);
+        --font-sans: "Inter", system-ui, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font-sans);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      .shell-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--border);
+        background: oklch(0.12 0.015 260);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .shell-strip strong {
+        color: var(--fg);
+        font-weight: 600;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 20px;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 24px 20px 96px;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      .why-now {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid oklch(0.72 0.14 250 / 0.35);
+        background: var(--primary-soft);
+        font-size: 12px;
+        margin-bottom: 16px;
+      }
+      .why-now .tag {
+        flex-shrink: 0;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--primary);
+        padding: 3px 6px;
+        border-radius: 4px;
+        background: oklch(0.14 0.02 260 / 0.6);
+      }
+      .canvas {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 28px;
+        background: var(--surface);
+        box-shadow: 0 1px 0 oklch(0 0 0 / 0.35);
+      }
+      .prov {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .prov span.accent {
+        color: var(--primary);
+      }
+      h1.title {
+        margin: 0 0 12px;
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .party {
+        font-size: 13px;
+        margin-bottom: 14px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: oklch(0.16 0.02 260);
+        font-size: 12px;
+      }
+      .chip .mod {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--primary);
+        letter-spacing: 0.06em;
+      }
+      .impact {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: oklch(0.15 0.015 260);
+        margin-bottom: 18px;
+      }
+      .impact .label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        width: 100%;
+      }
+      .impact strong {
+        font-family: var(--font-mono);
+        font-size: 18px;
+      }
+      .impact .slip {
+        color: var(--destructive);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      button.btn {
+        font-family: var(--font-sans);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 10px 18px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+      button.primary {
+        background: var(--primary);
+        color: oklch(0.14 0.02 260);
+      }
+      button.ghost {
+        background: transparent;
+        border-color: var(--border);
+        color: var(--muted);
+      }
+      .quote {
+        border-left: 2px solid oklch(0.72 0.14 250 / 0.45);
+        padding: 12px 16px;
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+        background: oklch(0.14 0.015 260);
+        border-radius: 0 6px 6px 0;
+      }
+      aside.tail {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        overflow: hidden;
+      }
+      .tail-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .tail-row {
+        padding: 14px 16px;
+        border-top: 1px solid oklch(0.28 0.02 260 / 0.6);
+        cursor: pointer;
+      }
+      .tail-row:first-of-type {
+        border-top: none;
+      }
+      .tail-row:hover {
+        background: oklch(0.2 0.02 260);
+      }
+      .tail-row h3 {
+        margin: 0 0 6px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .tail-meta {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--destructive);
+      }
+      .capture-hint {
+        margin-top: 20px;
+        padding: 14px;
+        border: 1px dashed oklch(0.72 0.14 250 / 0.35);
+        border-radius: 10px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .fab {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        width: 52px;
+        height: 52px;
+        border-radius: 999px;
+        border: none;
+        background: var(--primary);
+        color: oklch(0.14 0.02 260);
+        font-size: 22px;
+        cursor: pointer;
+        box-shadow: 0 8px 28px oklch(0 0 0 / 0.45);
+      }
+      .fab-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: oklch(0.96 0.01 260);
+        box-shadow: 0 0 0 2px var(--primary);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="shell-strip">
+      <span><strong>Acme Logistics</strong> · todos · <strong>you</strong></span>
+      <span>capture <strong>+</strong> · press <strong>c</strong></span>
+    </header>
+
+    <main class="layout">
+      <div>
+        <div class="why-now">
+          <span class="tag">first</span>
+          <span
+            >Completing this unblocks 3 downstream tasks and a customer SLA
+            window closing in 4h.</span
+          >
+        </div>
+
+        <article class="canvas">
+          <p class="prov">
+            <span class="accent">person</span> · todo-canvas · typed by you
+          </p>
+          <h1 class="title">Reconcile PO-4412 against vendor statement</h1>
+          <p class="party">
+            You owe this to <strong>M. Tanaka</strong> · AP review ·
+            <span style="color: var(--muted); font-family: var(--font-mono); font-size: 11px;">due in 3h</span>
+          </p>
+          <div class="chips">
+            <span class="chip"
+              ><span class="mod">PO</span>4412</span
+            >
+            <span class="chip"
+              ><span class="mod">ORG</span>acme</span
+            >
+          </div>
+          <div class="impact">
+            <span class="label">Impact</span>
+            <div><strong>4</strong> tasks unblocked</div>
+            <div><strong class="slip">$18K</strong> slip cost</div>
+            <div><strong>3h</strong> SLA window</div>
+          </div>
+          <div class="actions">
+            <button type="button" class="btn primary">Mark complete</button>
+            <button type="button" class="btn ghost">Snooze 1h</button>
+            <button type="button" class="btn ghost">Delete</button>
+          </div>
+          <p class="quote">
+            Vendor uploaded a revised PDF on Tuesday; match line 4–7 against GRN
+            batch B-908 before posting.
+          </p>
+        </article>
+
+        <div class="capture-hint">
+          Press <strong>c</strong> — inline capture opens with linkage seeded
+          from route context (no modal).
+        </div>
+      </div>
+
+      <aside class="tail" aria-label="Operational tail">
+        <div class="tail-head">
+          <span>your queue · ranked</span>
+          <span>6 open</span>
+        </div>
+        <div class="tail-row">
+          <h3>Approve freight invoice variance</h3>
+          <div class="chips" style="margin-bottom: 8px">
+            <span class="chip" style="padding: 4px 8px; font-size: 11px"
+              ><span class="mod">INV</span>8832</span
+            >
+          </div>
+          <div class="tail-meta">overdue · 2h</div>
+        </div>
+        <div class="tail-row">
+          <h3>Stage onboarding checklist — vendor #488</h3>
+          <div class="tail-meta">in 6h</div>
+        </div>
+      </aside>
+    </main>
+
+    <button type="button" class="fab" aria-label="Summon Lynx" title="Lynx">
+      ✦
+      <span class="fab-badge" aria-hidden="true"></span>
+    </button>
+
+    <!-- Product: Lynx opens from the FAB only; this preview omits interactive JS. -->
+  </body>
+</html>

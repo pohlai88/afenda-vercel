@@ -17,7 +17,72 @@ import {
 import { db } from "#lib/db"
 import { erpTodo, todoList } from "#lib/db/schema"
 
-import type { TodoListRow, TodoRow } from "../types"
+import {
+  safeParseTodoSpoke,
+  todoCounterpartySchema,
+  todoImpactSchema,
+  todoLinkageSchema,
+  todoProvenanceSchema,
+} from "../schemas/todo.schema"
+import type {
+  TodoCounterparty,
+  TodoImpact,
+  TodoLinkage,
+  TodoListRow,
+  TodoProvenance,
+  TodoRow,
+} from "../types"
+
+/**
+ * Hydrate a raw row (with `unknown` JSONB spokes) into the typed `TodoRow`.
+ * Malformed JSON for any spoke is coerced to `null` rather than rejected so
+ * that legacy rows from before `0015_todo_atom.sql` keep rendering.
+ */
+type RawTodoRow = Omit<
+  TodoRow,
+  "linkage" | "counterparty" | "provenance" | "impact"
+> & {
+  linkage: unknown
+  counterparty: unknown
+  provenance: unknown
+  impact: unknown
+}
+
+function hydrateTodoRow(row: RawTodoRow): TodoRow {
+  return {
+    ...row,
+    linkage: safeParseTodoSpoke<TodoLinkage>(todoLinkageSchema, row.linkage),
+    counterparty: safeParseTodoSpoke<TodoCounterparty>(
+      todoCounterpartySchema,
+      row.counterparty
+    ),
+    provenance: safeParseTodoSpoke<TodoProvenance>(
+      todoProvenanceSchema,
+      row.provenance
+    ),
+    impact: safeParseTodoSpoke<TodoImpact>(todoImpactSchema, row.impact),
+  }
+}
+
+const TODO_ROW_SELECT = {
+  id: erpTodo.id,
+  listId: erpTodo.listId,
+  title: erpTodo.title,
+  description: erpTodo.description,
+  state: erpTodo.state,
+  priority: erpTodo.priority,
+  dueAt: erpTodo.dueAt,
+  snoozeUntil: erpTodo.snoozeUntil,
+  assigneeUserId: erpTodo.assigneeUserId,
+  recurrenceRule: erpTodo.recurrenceRule,
+  position: erpTodo.position,
+  createdAt: erpTodo.createdAt,
+  updatedAt: erpTodo.updatedAt,
+  linkage: erpTodo.linkage,
+  counterparty: erpTodo.counterparty,
+  provenance: erpTodo.provenance,
+  impact: erpTodo.impact,
+} as const
 
 export async function listTodoListsForOrg(
   organizationId: string
@@ -124,26 +189,12 @@ export async function listTodosForList(
         : sql`false`
 
   const rows = await db
-    .select({
-      id: erpTodo.id,
-      listId: erpTodo.listId,
-      title: erpTodo.title,
-      description: erpTodo.description,
-      state: erpTodo.state,
-      priority: erpTodo.priority,
-      dueAt: erpTodo.dueAt,
-      snoozeUntil: erpTodo.snoozeUntil,
-      assigneeUserId: erpTodo.assigneeUserId,
-      recurrenceRule: erpTodo.recurrenceRule,
-      position: erpTodo.position,
-      createdAt: erpTodo.createdAt,
-      updatedAt: erpTodo.updatedAt,
-    })
+    .select(TODO_ROW_SELECT)
     .from(erpTodo)
     .where(and(eq(erpTodo.listId, listId), scope))
     .orderBy(asc(erpTodo.position), desc(erpTodo.createdAt))
 
-  return rows
+  return rows.map((r) => hydrateTodoRow(r as RawTodoRow))
 }
 
 export async function getTodoScoped(
@@ -159,26 +210,12 @@ export async function getTodoScoped(
         : sql`false`
 
   const [row] = await db
-    .select({
-      id: erpTodo.id,
-      listId: erpTodo.listId,
-      title: erpTodo.title,
-      description: erpTodo.description,
-      state: erpTodo.state,
-      priority: erpTodo.priority,
-      dueAt: erpTodo.dueAt,
-      snoozeUntil: erpTodo.snoozeUntil,
-      assigneeUserId: erpTodo.assigneeUserId,
-      recurrenceRule: erpTodo.recurrenceRule,
-      position: erpTodo.position,
-      createdAt: erpTodo.createdAt,
-      updatedAt: erpTodo.updatedAt,
-    })
+    .select(TODO_ROW_SELECT)
     .from(erpTodo)
     .where(and(eq(erpTodo.id, todoId), scope))
     .limit(1)
 
-  return row ?? null
+  return row ? hydrateTodoRow(row as RawTodoRow) : null
 }
 
 export async function countOverdueTodosForOrganization(
@@ -248,28 +285,14 @@ export async function getOrgTodoByIdForOrganization(
   todoId: string
 ): Promise<TodoRow | null> {
   const [row] = await db
-    .select({
-      id: erpTodo.id,
-      listId: erpTodo.listId,
-      title: erpTodo.title,
-      description: erpTodo.description,
-      state: erpTodo.state,
-      priority: erpTodo.priority,
-      dueAt: erpTodo.dueAt,
-      snoozeUntil: erpTodo.snoozeUntil,
-      assigneeUserId: erpTodo.assigneeUserId,
-      recurrenceRule: erpTodo.recurrenceRule,
-      position: erpTodo.position,
-      createdAt: erpTodo.createdAt,
-      updatedAt: erpTodo.updatedAt,
-    })
+    .select(TODO_ROW_SELECT)
     .from(erpTodo)
     .where(
       and(eq(erpTodo.id, todoId), eq(erpTodo.organizationId, organizationId))
     )
     .limit(1)
 
-  return row ?? null
+  return row ? hydrateTodoRow(row as RawTodoRow) : null
 }
 
 export async function listDueSoonTodoIdsForOrganization(

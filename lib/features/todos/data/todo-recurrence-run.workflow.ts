@@ -63,6 +63,10 @@ async function recurrenceApplyStep(payload: TodoRecurrenceRunPayload) {
     priority: completed.priority,
     dueAt: nextDue,
     recurrenceRule: completed.recurrenceRule,
+    linkage: completed.linkage,
+    counterparty: completed.counterparty,
+    impact: completed.impact,
+    provenance: { kind: "cron", source: "todo-recurrence" },
   })
 
   revalidatePath(

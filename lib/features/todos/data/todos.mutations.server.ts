@@ -6,6 +6,20 @@ import { db } from "#lib/db"
 import { erpTodo, todoAttachment, todoComment, todoList } from "#lib/db/schema"
 
 import { TODO_DEFAULT_LIST_SLUG } from "../constants"
+import type {
+  TodoCounterparty,
+  TodoImpact,
+  TodoLinkage,
+  TodoProvenance,
+} from "../types"
+
+/** Optional atom spokes accepted by `insert*Todo` callers. All four are nullable. */
+export type TodoAtomSeed = {
+  linkage?: TodoLinkage | null
+  counterparty?: TodoCounterparty | null
+  provenance?: TodoProvenance | null
+  impact?: TodoImpact | null
+}
 
 export async function ensureDefaultTodoListForOrg(
   organizationId: string
@@ -67,16 +81,18 @@ export async function ensureDefaultTodoListForUser(
   return created!.id
 }
 
-export async function insertOrgTodo(input: {
-  listId: string
-  organizationId: string
-  title: string
-  description: string
-  priority: string
-  dueAt: Date | null
-  assigneeUserId: string | null
-  recurrenceRule: string | null
-}): Promise<{ id: string }> {
+export async function insertOrgTodo(
+  input: {
+    listId: string
+    organizationId: string
+    title: string
+    description: string
+    priority: string
+    dueAt: Date | null
+    assigneeUserId: string | null
+    recurrenceRule: string | null
+  } & TodoAtomSeed
+): Promise<{ id: string }> {
   const [row] = await db
     .insert(erpTodo)
     .values({
@@ -90,20 +106,26 @@ export async function insertOrgTodo(input: {
       assigneeUserId: input.assigneeUserId,
       recurrenceRule: input.recurrenceRule,
       state: "pending",
+      linkage: input.linkage ?? null,
+      counterparty: input.counterparty ?? null,
+      provenance: input.provenance ?? null,
+      impact: input.impact ?? null,
     })
     .returning({ id: erpTodo.id })
 
   return { id: row!.id }
 }
 
-export async function insertPersonalTodo(input: {
-  listId: string
-  ownerUserId: string
-  title: string
-  description: string
-  priority: string
-  dueAt: Date | null
-}): Promise<{ id: string }> {
+export async function insertPersonalTodo(
+  input: {
+    listId: string
+    ownerUserId: string
+    title: string
+    description: string
+    priority: string
+    dueAt: Date | null
+  } & TodoAtomSeed
+): Promise<{ id: string }> {
   const [row] = await db
     .insert(erpTodo)
     .values({
@@ -115,6 +137,10 @@ export async function insertPersonalTodo(input: {
       priority: input.priority,
       dueAt: input.dueAt,
       state: "pending",
+      linkage: input.linkage ?? null,
+      counterparty: input.counterparty ?? null,
+      provenance: input.provenance ?? null,
+      impact: input.impact ?? null,
     })
     .returning({ id: erpTodo.id })
 
@@ -192,16 +218,22 @@ export async function archiveTodoListForOrg(
     )
 }
 
-/** Creates the next recurring instance after completion (workflow / inline). */
-export async function insertOrgTodoRecurrenceCopy(input: {
-  listId: string
-  organizationId: string
-  title: string
-  description: string
-  priority: string
-  dueAt: Date | null
-  recurrenceRule: string | null
-}): Promise<{ id: string }> {
+/**
+ * Creates the next recurring instance after completion (workflow / inline).
+ * Optionally carries the source atom's spokes forward and stamps `provenance`
+ * as `cron` so the canvas can mark recurring copies without guessing.
+ */
+export async function insertOrgTodoRecurrenceCopy(
+  input: {
+    listId: string
+    organizationId: string
+    title: string
+    description: string
+    priority: string
+    dueAt: Date | null
+    recurrenceRule: string | null
+  } & TodoAtomSeed
+): Promise<{ id: string }> {
   return insertOrgTodo({
     listId: input.listId,
     organizationId: input.organizationId,
@@ -211,6 +243,10 @@ export async function insertOrgTodoRecurrenceCopy(input: {
     dueAt: input.dueAt,
     assigneeUserId: null,
     recurrenceRule: input.recurrenceRule,
+    linkage: input.linkage ?? null,
+    counterparty: input.counterparty ?? null,
+    provenance: input.provenance ?? { kind: "cron", source: "todo-recurrence" },
+    impact: input.impact ?? null,
   })
 }
 

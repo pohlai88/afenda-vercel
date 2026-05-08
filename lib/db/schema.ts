@@ -257,7 +257,11 @@ export const todoList = pgTable(
   ]
 )
 
-/** Org or personal todo rows (`todo`). */
+/**
+ * Org or personal todo rows (`todo`). The four JSONB spokes — `linkage`,
+ * `counterparty`, `provenance`, `impact` — make the row an **operational
+ * atom** (`0015_todo_atom.sql`); see `lib/features/todos/types.ts`.
+ */
 export const erpTodo = pgTable(
   "todo",
   {
@@ -279,6 +283,15 @@ export const erpTodo = pgTable(
     recurrenceRule: text("recurrenceRule"),
     parentTodoId: text("parentTodoId"),
     position: integer("position").notNull().default(0),
+    /**
+     * Operational atom — sparse JSONB spokes. The application validates shape
+     * with Zod (see `safeParseTodoSpoke`); the DB stores raw JSON so future
+     * migrations can add subkey indexes without breaking older rows.
+     */
+    linkage: jsonb("linkage"),
+    counterparty: jsonb("counterparty"),
+    provenance: jsonb("provenance"),
+    impact: jsonb("impact"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },

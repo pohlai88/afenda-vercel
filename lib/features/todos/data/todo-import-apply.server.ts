@@ -108,6 +108,7 @@ export async function applyTodoImportRowFromAdapter(
       dueAt,
       assigneeUserId,
       state: "pending",
+      provenance: { kind: "import", source: "org-admin.csv" },
     })
     .returning({ id: erpTodo.id })
 

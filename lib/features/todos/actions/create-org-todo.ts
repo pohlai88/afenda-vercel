@@ -16,6 +16,22 @@ import {
 } from "../data/todos.mutations.server"
 import { getOrgTodoListById } from "../data/todos.queries.server"
 
+/**
+ * Read an optional JSON-encoded atom spoke from `FormData`. RSC-seeded values
+ * come in as compact JSON strings; absent / unparsable values are treated as
+ * `undefined` and let the Zod parser skip them. Malformed *parsed* shapes are
+ * still rejected by the Zod schema (`reject only when present and malformed`).
+ */
+function readJsonSpoke(formData: FormData, field: string): unknown {
+  const raw = formData.get(field)
+  if (typeof raw !== "string" || raw.trim() === "") return undefined
+  try {
+    return JSON.parse(raw) as unknown
+  } catch {
+    return undefined
+  }
+}
+
 export async function createOrgTodo(
   _prev: CreateOrgTodoFormState,
   formData: FormData
@@ -29,6 +45,10 @@ export async function createOrgTodo(
     dueAt: formData.get("dueAt") ?? "",
     assigneeUserId: formData.get("assigneeUserId") ?? "",
     listId: formData.get("listId") ?? "",
+    linkage: readJsonSpoke(formData, "linkage"),
+    counterparty: readJsonSpoke(formData, "counterparty"),
+    provenance: readJsonSpoke(formData, "provenance"),
+    impact: readJsonSpoke(formData, "impact"),
   })
 
   if (!parsed.success) {
@@ -63,6 +83,11 @@ export async function createOrgTodo(
       ? recurrenceRaw.trim()
       : null
 
+  const linkage = parsed.data.linkage ?? null
+  const counterparty = parsed.data.counterparty ?? null
+  const provenance = parsed.data.provenance ?? null
+  const impact = parsed.data.impact ?? null
+
   try {
     const row = await insertOrgTodo({
       listId,
@@ -73,6 +98,10 @@ export async function createOrgTodo(
       dueAt,
       assigneeUserId: assignee,
       recurrenceRule,
+      linkage,
+      counterparty,
+      provenance,
+      impact,
     })
 
     void writeIamAuditEventFromNextHeaders({
@@ -82,7 +111,12 @@ export async function createOrgTodo(
       actorSessionId: sessionId,
       resourceType: "todo.task",
       resourceId: row.id,
-      metadata: { listId, hasDueAt: Boolean(dueAt) },
+      metadata: {
+        listId,
+        hasDueAt: Boolean(dueAt),
+        ...(linkage?.runId ? { runId: linkage.runId } : {}),
+        ...(provenance?.kind ? { provenance: provenance.kind } : {}),
+      },
     })
 
     await emitTodoOrgWebhook({

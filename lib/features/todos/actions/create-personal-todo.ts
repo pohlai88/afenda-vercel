@@ -15,6 +15,17 @@ import {
   insertPersonalTodo,
 } from "../data/todos.mutations.server"
 
+/** See note in `create-org-todo.ts`; identical helper. */
+function readJsonSpoke(formData: FormData, field: string): unknown {
+  const raw = formData.get(field)
+  if (typeof raw !== "string" || raw.trim() === "") return undefined
+  try {
+    return JSON.parse(raw) as unknown
+  } catch {
+    return undefined
+  }
+}
+
 export async function createPersonalTodo(
   _prev: CreateOrgTodoFormState,
   formData: FormData
@@ -27,6 +38,10 @@ export async function createPersonalTodo(
     priority: formData.get("priority") ?? "normal",
     dueAt: formData.get("dueAt") ?? "",
     listId: formData.get("listId") ?? "",
+    linkage: readJsonSpoke(formData, "linkage"),
+    counterparty: readJsonSpoke(formData, "counterparty"),
+    provenance: readJsonSpoke(formData, "provenance"),
+    impact: readJsonSpoke(formData, "impact"),
   })
 
   if (!parsed.success) {
@@ -44,6 +59,11 @@ export async function createPersonalTodo(
 
   const dueAt = parseOptionalDueAt(parsed.data.dueAt ?? undefined)
 
+  const linkage = parsed.data.linkage ?? null
+  const counterparty = parsed.data.counterparty ?? null
+  const provenance = parsed.data.provenance ?? null
+  const impact = parsed.data.impact ?? null
+
   try {
     const row = await insertPersonalTodo({
       listId,
@@ -52,6 +72,10 @@ export async function createPersonalTodo(
       description: parsed.data.description ?? "",
       priority: parsed.data.priority,
       dueAt,
+      linkage,
+      counterparty,
+      provenance,
+      impact,
     })
 
     void writeIamAuditEventFromNextHeaders({
@@ -60,7 +84,12 @@ export async function createPersonalTodo(
       actorSessionId: session.sessionId,
       resourceType: "todo.task",
       resourceId: row.id,
-      metadata: { scope: "personal", listId },
+      metadata: {
+        scope: "personal",
+        listId,
+        ...(linkage?.runId ? { runId: linkage.runId } : {}),
+        ...(provenance?.kind ? { provenance: provenance.kind } : {}),
+      },
     })
   } catch {
     return {

@@ -8,7 +8,24 @@ export {
   type TodoState,
 } from "./constants"
 
-export type { CreateOrgTodoFormState, TodoListRow, TodoRow } from "./types"
+export type {
+  CreateOrgTodoFormState,
+  TodoCounterparty,
+  TodoImpact,
+  TodoLinkage,
+  TodoLinkageEntityRef,
+  TodoListRow,
+  TodoProvenance,
+  TodoRow,
+} from "./types"
+
+export {
+  todoCounterpartySchema,
+  todoImpactSchema,
+  todoLinkageEntityRefSchema,
+  todoLinkageSchema,
+  todoProvenanceSchema,
+} from "./schemas/todo.schema"
 
 export { TodosPage } from "./components/todos-page"
 export { PersonalTodosPage } from "./components/personal-todos-page"

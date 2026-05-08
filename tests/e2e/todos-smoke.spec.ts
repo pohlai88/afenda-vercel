@@ -67,12 +67,34 @@ test.describe("org todos (optional credentials)", () => {
         page.getByRole("heading", { name: "Todos", exact: true })
       ).toBeVisible({ timeout: 15_000 })
 
-      await page.getByLabel("Title", { exact: true }).fill(title)
+      // Capture row is keyboard-first — press `c` to open it, then fill + submit.
+      // Click into the canvas first to ensure focus is not in another widget.
+      await page
+        .getByRole("region", { name: "Todo list" })
+        .first()
+        .click({ position: { x: 4, y: 4 } })
+      await page.keyboard.press("c")
+      await page.getByPlaceholder("What needs to happen…").fill(title)
       await page.getByRole("button", { name: "Add task" }).click()
 
-      const row = page.getByRole("listitem").filter({ hasText: title })
-      await expect(row).toBeVisible({ timeout: 15_000 })
-      await row.getByRole("button", { name: "Mark complete" }).click()
+      // The new todo appears as the canvas (brand-new, top-ranked) or in the tail.
+      const canvasArticle = page.getByRole("article", { name: title })
+      const tailLink = page.getByRole("link").filter({ hasText: title }).first()
+      await expect
+        .poll(
+          async () =>
+            (await canvasArticle.count()) + (await tailLink.count()),
+          { timeout: 15_000 }
+        )
+        .toBeGreaterThan(0)
+
+      if ((await canvasArticle.count()) === 0) {
+        await tailLink.click()
+      }
+      await expect(canvasArticle).toBeVisible({ timeout: 15_000 })
+      await canvasArticle
+        .getByRole("button", { name: "Mark complete" })
+        .click()
 
       await page.goto(`/en/o/${slug}/admin/audit`)
       await expect(
