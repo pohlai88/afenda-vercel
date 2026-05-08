@@ -10,8 +10,9 @@ import { neonAuthMember, neonAuthOrganization } from "#lib/db/schema-neon-auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 
+import { isGlobalAdminUser } from "#lib/auth/permission.server"
+
 import { auth } from "./server"
-import { isGlobalAdminUser } from "./permission.server"
 
 export type SignedInSession = {
   userId: string

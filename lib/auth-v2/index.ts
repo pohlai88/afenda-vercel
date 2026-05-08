@@ -1,27 +1,38 @@
 import "server-only"
 
+/**
+ * Neon Auth UI slice (`(auth)` / `(iam)`) server barrel.
+ *
+ * **Canonical implementations** live under `#lib/auth/*`; this module adds only V2 UX
+ * primitives (`tenant`, flat-route interruptions, webhook verification) that compose them.
+ */
 export { auth } from "./server"
+export {
+  requireGlobalAdminSession,
+  requireOrgSession,
+  requireSignedInSession,
+} from "./tenant.server"
+export { verifyNeonAuthWebhookSignature } from "./webhook-verify.server"
+
+export {
+  normalizeAuthClientError,
+  AUTH_CLIENT_ERROR_CODE,
+} from "#lib/auth/auth-client-error.shared"
+export type {
+  AuthClientErrorCode,
+  AuthClientErrorHint,
+  NormalizedAuthClientError,
+} from "#lib/auth/auth-client-error.shared"
+
 export {
   canActInOrganization,
   getOrgMemberRole,
   isGlobalAdminUser,
   orgRoleAtLeast,
   orgRoleRank,
-} from "./permission.server"
-export type { OrgRoleMinimum } from "./permission.server"
-export {
-  requireGlobalAdminSession,
-  requireOrgSession,
-  requireSignedInSession,
-} from "./tenant.server"
-export {
-  normalizeAuthClientError,
-  AUTH_CLIENT_ERROR_CODE,
-} from "./auth-client-error.shared"
-export type { NormalizedAuthClientError } from "./auth-client-error.shared"
-export { verifyNeonAuthWebhookSignature } from "./webhook-verify.server"
+} from "#lib/auth/permission.server"
+export type { OrgRoleMinimum } from "#lib/auth/permission.server"
 
-// Shared interruption/status helpers are provider-agnostic and intentionally reused.
 export {
   AUTH_CONTEXT_QUERY_KEY,
   AUTH_STATUS,
@@ -70,28 +81,32 @@ export {
   type InvitationGuardErr,
   type InvitationGuardOk,
   type InvitationGuardResult,
-} from "./invitation-guard.server"
+} from "#lib/auth/invitation-guard.server"
 export {
   getEnabledSocialProviderIds,
   hasCredentialAccount,
   listSafeLinkedAccounts,
-} from "./accounts.server"
-export type { SafeLinkedAccount } from "./accounts.server"
-export { listDeviceSessions, listUserPasskeys } from "./security.server"
+} from "#lib/auth/accounts.server"
+export type { SafeLinkedAccount } from "#lib/auth/accounts.types.shared"
+export {
+  listDeviceSessions,
+  listUserPasskeys,
+  type ListedUserPasskey,
+} from "#lib/auth/security.server"
 export {
   listUserSecurityActivity,
   type UserSecurityActivityRow,
-} from "./activity.server"
-export { assertOrgInviteRateAllowed } from "./org-invite-rate.server"
+} from "#lib/auth/activity.server"
+export { assertOrgInviteRateAllowed } from "#lib/auth/org-invite-rate.server"
 export {
   fetchOrgWorkbenchIdentity,
   fetchOrgWorkbenchMembers,
   fetchOrgWorkbenchPendingInvitations,
-} from "./org-workbench.server"
+} from "#lib/auth/org-workbench.server"
 export type {
   OrgWorkbenchInvitationRow,
   OrgWorkbenchMemberRow,
-} from "./org-workbench.server"
+} from "#lib/auth/org-workbench.server"
 export {
   ORG_AUDIT_EXPORT_MAX_ROWS,
   ORG_AUDIT_STREAM_MAX_ROWS,
@@ -104,12 +119,12 @@ export {
   organizationIamAuditExportReadableStream,
   parseCsvFirstField,
   verifyOrganizationIamAuditExportCsv,
-} from "./org-audit.server"
+} from "#lib/auth/org-audit.server"
 export type {
   OrganizationIamAuditCsvVerification,
   OrganizationIamAuditExportRow,
   OrganizationIamAuditRow,
-} from "./org-audit.server"
+} from "#lib/auth/org-audit.server"
 export {
   AFENDA_PATHNAME_HEADER,
   AFENDA_SEARCH_HEADER,

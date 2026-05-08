@@ -33,7 +33,10 @@ export default function OrgAdminError(props: NextAppErrorPageProps) {
           Reference: {error.digest}
         </p>
       ) : null}
-      <RouteErrorRetryButton retryAction={retryAction} resetAction={resetAction}>
+      <RouteErrorRetryButton
+        retryAction={retryAction}
+        resetAction={resetAction}
+      >
         Try again
       </RouteErrorRetryButton>
     </div>

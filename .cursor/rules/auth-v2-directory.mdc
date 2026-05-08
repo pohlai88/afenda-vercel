@@ -8,8 +8,19 @@ alwaysApply: false
 
 ## Purpose
 
-- `lib/auth-v2/` is the canonical Neon Auth control plane around the same Neon **`auth`** instance as **`#lib/auth`**.
+- **`lib/auth/`** is the **canonical** IAM implementation (Neon Auth control plane, audits, permissions, session policy, callback validation).
+- **`lib/auth-v2/`** is the **server barrel** for the `(auth)` / `(iam)` route groups: it **re-exports** `#lib/auth/*` from `index.ts` and contains only **V2-only** modules (flat-route interruptions, tenant guards for that slice, webhook signature verification). Same Neon **`auth`** instance as **`#lib/auth`** via `server.ts` → `../auth/neon.server`.
 - Public auth/account URLs are flat (`/{locale}/sign-in`, `/{locale}/account/*`, `/{locale}/onboarding`, etc.) and route groups organize code under **`app/[locale]/(auth)/**`** (auth flows) and **`app/[locale]/(iam)/**`** (identity/security/org management).
+
+## V2-only files (do not duplicate elsewhere)
+
+- `server.ts` — re-exports `auth` from `#lib/auth/neon.server`
+- `tenant.server.ts` — `requireSignedInSession` / `requireOrgSession` / `requireGlobalAdminSession` for the auth UI slice
+- `interruption-url.shared.ts` — `authInterruptionHrefV2`
+- `interruption-redirect.server.ts` — `redirectToAuthInterruptionV2`
+- `stepup.server.ts` — step-up guard using V2 interruption redirects
+- `policy.server.ts` — `requireVerifiedEmailForAccount` using V2 interruptions
+- `webhook-verify.server.ts` — Neon webhook HMAC verification
 
 ## Structure and naming
 
@@ -19,7 +30,6 @@ alwaysApply: false
   - `*.server.ts` for server-only logic
   - `*.shared.ts` for client/server-safe constants/parsers
   - `*.types.shared.ts` for shared types
-- V2-specific interruption URL helpers still live in `interruption-url.shared.ts` / `interruption-redirect.server.ts`, but canonical paths are flat (`/{locale}/session-expired`, default post-auth callback `/{locale}`).
 
 ## API and routes
 
@@ -36,5 +46,6 @@ alwaysApply: false
 
 ## Drift guard
 
-- Do not deep-import V2 internals from outside V2; import via `#lib/auth-v2` (server) or `#lib/auth-v2-client` (client).
-- Prefer `#lib/auth` / `#lib/auth-client` for new code outside the `(auth)` / `(iam)` UI slices.
+- Callers outside `(auth)` / `(iam)` should use **`#lib/auth`** / **`#lib/auth-client`**, not **`#lib/auth-v2`**, unless importing a symbol exported only from the V2 barrel.
+- Do not add duplicate IAM modules under `lib/auth-v2/` — implement in **`lib/auth/`** and re-export from **`lib/auth-v2/index.ts`**.
+- Do not deep-import `lib/auth-v2/*.server.ts` from app routes except through **`#lib/auth-v2`** (barrel).

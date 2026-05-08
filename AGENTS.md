@@ -201,11 +201,11 @@ Single narrative for **how users move through the app** (URLs, edge entry, navig
 
 ### Auth V2 canonical control plane (`lib/auth-v2/`)
 
-- **`lib/auth-v2/`** is a thin barrel that re-exports the same Neon **`auth`** instance as **`#lib/auth`** for the canonical auth control plane; user-facing URLs are flat (`/sign-in`, `/account/*`, `/onboarding`, `/accept-invitation`) and may be organized with route groups under `app/[locale]/(auth)` and `app/[locale]/(iam)`; prefer **`#lib/auth`** / **`#lib/auth-client`** outside that UI slice.
+- **`lib/auth/`** owns the **canonical** IAM implementation (Neon `auth`, audit, permissions, org audit, client error normalization, etc.). **`lib/auth-v2/`** is the **server barrel** for the locale-first `(auth)` / `(iam)` UI slice: it **re-exports** those modules from `#lib/auth/*` and adds only **V2-only** files (`server.ts`, `tenant.server.ts`, `interruption-*.ts`, `stepup.server.ts`, `policy.server.ts`, `webhook-verify.server.ts`) for flat routes and webhook verification. User-facing URLs are flat (`/sign-in`, `/account/*`, `/onboarding`, `/accept-invitation`); prefer **`#lib/auth`** / **`#lib/auth-client`** outside that UI slice.
 - Public doors: **`#lib/auth-v2`** (server) and **`#lib/auth-v2-client`** (re-exports **`#lib/auth-client`**).
 - HTTP: canonical auth proxy is **`/api/auth/[...path]`** (single handler). **`app/api/integrations/neon-auth-webhooks`** receives Neon webhooks.
 - Neon-managed schema mirrors belong in **`lib/db/schema-neon-auth.ts`** (`pgSchema("neon_auth")`) for querying only; do not add `neon_auth.*` DDL to Drizzle migrations.
-- Avoid deep imports between `lib/auth/*` internals and `lib/auth-v2/*` except the shared Neon server module.
+- Do not duplicate IAM logic under `lib/auth-v2/` — extend **`#lib/auth`** and re-export from **`lib/auth-v2/index.ts`**. Avoid ad hoc cross-imports between `lib/auth/*` and `lib/auth-v2/*` except **`lib/auth-v2/server.ts`** → **`lib/auth/neon.server`** (same `auth` instance).
 
 ### Operational execution (Workflow DevKit)
 

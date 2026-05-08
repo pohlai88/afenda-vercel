@@ -44,7 +44,7 @@ alwaysApply: true
 ## Auth V2 canonical control plane
 
 - V2 is the canonical Neon Auth control plane; see **`.cursor/rules/auth-v2-directory.mdc`** for the full boundary.
-- Short version: `#lib/auth-v2` (server) / `#lib/auth-v2-client` (client); locale-first UI is organized via route groups under `app/[locale]/(auth)/**` and `app/[locale]/(iam)/**`; keep `lib/auth/` stable and avoid deep cross-imports between `lib/auth/*` and `lib/auth-v2/*`.
+- Short version: **`lib/auth/`** holds the canonical IAM implementation; **`#lib/auth-v2`** is the `(auth)` / `(iam)` server barrel (re-exports `#lib/auth/*` + V2-only modules). Client: **`#lib/auth-v2-client`** (re-exports **`#lib/auth-client`**). Locale-first routes under `app/[locale]/(auth)/**` and `app/[locale]/(iam)/**`. See **`.cursor/rules/auth-v2-directory.mdc`** — do not duplicate IAM logic under `lib/auth-v2/` or deep-cross-import between trees except `auth-v2/server.ts` → `lib/auth/neon.server`.
 
 ## Contract changes
 

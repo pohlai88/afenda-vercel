@@ -34,7 +34,10 @@ export default function AuthError(props: NextAppErrorPageProps) {
         </p>
       ) : null}
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <RouteErrorRetryButton retryAction={retryAction} resetAction={resetAction}>
+        <RouteErrorRetryButton
+          retryAction={retryAction}
+          resetAction={resetAction}
+        >
           Try again
         </RouteErrorRetryButton>
         <Button variant="outline" asChild>

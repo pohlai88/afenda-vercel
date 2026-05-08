@@ -20,7 +20,7 @@ type NextAppErrorFrameworkProps = NextAppErrorPageProps & {
 
 /** Maps Next-injected callbacks to `*Action` names safe for client component props. */
 export function resolveErrorBoundaryRetryCallbacks(
-  props: NextAppErrorPageProps,
+  props: NextAppErrorPageProps
 ): { retryAction?: () => void; resetAction?: () => void } {
   const framework = props as NextAppErrorFrameworkProps
   return {
