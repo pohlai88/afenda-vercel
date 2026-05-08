@@ -3,17 +3,18 @@
 import { useEffect } from "react"
 
 import { RouteErrorRetryButton } from "#components/route-error-retry-button"
-import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
+import {
+  resolveErrorBoundaryRetryCallbacks,
+  type NextAppErrorPageProps,
+} from "#lib/next-app-error-page-props.shared"
 
 /**
  * Platform admin (operator) tier error boundary — keeps the operator shell mounted
  * so cross-tenant navigation remains available while the panel recovers.
  */
-export default function OperatorError({
-  error,
-  unstable_retry,
-  reset,
-}: NextAppErrorPageProps) {
+export default function OperatorError(props: NextAppErrorPageProps) {
+  const { error } = props
+  const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -31,7 +32,7 @@ export default function OperatorError({
           Reference: {error.digest}
         </p>
       ) : null}
-      <RouteErrorRetryButton unstable_retry={unstable_retry} reset={reset}>
+      <RouteErrorRetryButton retryAction={retryAction} resetAction={resetAction}>
         Try again
       </RouteErrorRetryButton>
     </div>

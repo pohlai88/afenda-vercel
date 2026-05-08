@@ -3,17 +3,18 @@
 import { useEffect } from "react"
 
 import { RouteErrorRetryButton } from "#components/route-error-retry-button"
-import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
+import {
+  resolveErrorBoundaryRetryCallbacks,
+  type NextAppErrorPageProps,
+} from "#lib/next-app-error-page-props.shared"
 
 /**
  * Dashboard-tier error boundary — keeps the org dashboard shell (top bar, module nav)
  * mounted while the page content recovers.
  */
-export default function OrgDashboardError({
-  error,
-  unstable_retry,
-  reset,
-}: NextAppErrorPageProps) {
+export default function OrgDashboardError(props: NextAppErrorPageProps) {
+  const { error } = props
+  const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -32,7 +33,7 @@ export default function OrgDashboardError({
           Reference: {error.digest}
         </p>
       ) : null}
-      <RouteErrorRetryButton unstable_retry={unstable_retry} reset={reset}>
+      <RouteErrorRetryButton retryAction={retryAction} resetAction={resetAction}>
         Try again
       </RouteErrorRetryButton>
     </div>

@@ -5,17 +5,18 @@ import { useEffect } from "react"
 import { RouteErrorRetryButton } from "#components/route-error-retry-button"
 import { Button } from "#components/ui/button"
 import { Link } from "#i18n/navigation"
-import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
+import {
+  resolveErrorBoundaryRetryCallbacks,
+  type NextAppErrorPageProps,
+} from "#lib/next-app-error-page-props.shared"
 
 /**
  * IAM-shell error boundary — account, identity, security, onboarding.
  * Keeps the user inside the locale shell with a path back to safety.
  */
-export default function IamError({
-  error,
-  unstable_retry,
-  reset,
-}: NextAppErrorPageProps) {
+export default function IamError(props: NextAppErrorPageProps) {
+  const { error } = props
+  const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -34,7 +35,7 @@ export default function IamError({
         </p>
       ) : null}
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <RouteErrorRetryButton unstable_retry={unstable_retry} reset={reset}>
+        <RouteErrorRetryButton retryAction={retryAction} resetAction={resetAction}>
           Try again
         </RouteErrorRetryButton>
         <Button variant="outline" asChild>

@@ -6,7 +6,10 @@ import Link from "next/link"
 import "./globals.css"
 import { Button } from "#components/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
-import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
+import {
+  resolveErrorBoundaryRetryCallbacks,
+  type NextAppErrorPageProps,
+} from "#lib/next-app-error-page-props.shared"
 
 /**
  * Root fatal-error UI — must include `<html>` / `<body>` (replaces root layout when active).
@@ -14,12 +17,10 @@ import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.share
  *
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/error#global-error
  */
-export default function GlobalError({
-  error,
-  unstable_retry,
-  reset,
-}: NextAppErrorPageProps) {
-  const retry = unstable_retry ?? reset
+export default function GlobalError(props: NextAppErrorPageProps) {
+  const { error } = props
+  const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
+  const retry = retryAction ?? resetAction
   useEffect(() => {
     console.error(error)
   }, [error])

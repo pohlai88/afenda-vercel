@@ -7,17 +7,18 @@ import { AfendaBrandLockup } from "#components/afenda-brand"
 import { RouteErrorRetryButton } from "#components/route-error-retry-button"
 import { Button } from "#components/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
-import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
+import {
+  resolveErrorBoundaryRetryCallbacks,
+  type NextAppErrorPageProps,
+} from "#lib/next-app-error-page-props.shared"
 
 /**
  * Next.js 16+ error boundaries receive `unstable_retry` (canonical) instead of `reset`.
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/error
  */
-export default function Error({
-  error,
-  unstable_retry,
-  reset,
-}: NextAppErrorPageProps) {
+export default function Error(props: NextAppErrorPageProps) {
+  const { error } = props
+  const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -45,7 +46,7 @@ export default function Error({
         ) : null}
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <RouteErrorRetryButton unstable_retry={unstable_retry} reset={reset}>
+        <RouteErrorRetryButton retryAction={retryAction} resetAction={resetAction}>
           Try again
         </RouteErrorRetryButton>
         <Button variant="outline" asChild>

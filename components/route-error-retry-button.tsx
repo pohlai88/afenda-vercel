@@ -5,20 +5,22 @@ import type { ComponentProps } from "react"
 import { Button } from "#components/ui/button"
 
 type Props = {
-  unstable_retry?: () => void
-  reset?: () => void
+  retryAction?: () => void
+  resetAction?: () => void
 } & Omit<ComponentProps<typeof Button>, "onClick" | "type">
 
 /**
- * Next.js 16+ segment `error.tsx` receives `unstable_retry`; older setups may pass `reset`.
+ * Next.js passes `unstable_retry` / `reset` into segment `error.tsx`; callers should alias
+ * those to `retryAction` / `resetAction` so client entry files satisfy TS 71007 (props must
+ * use `action` or an `*Action` name at the client boundary).
  *
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/error
  */
 export function RouteErrorRetryButton({
-  unstable_retry,
-  reset,
+  retryAction,
+  resetAction,
   ...buttonProps
 }: Props) {
-  const retry = unstable_retry ?? reset
+  const retry = retryAction ?? resetAction
   return <Button type="button" {...buttonProps} onClick={() => retry?.()} />
 }

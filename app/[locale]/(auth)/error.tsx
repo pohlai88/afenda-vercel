@@ -5,17 +5,18 @@ import { useEffect } from "react"
 import { RouteErrorRetryButton } from "#components/route-error-retry-button"
 import { Button } from "#components/ui/button"
 import { Link } from "#i18n/navigation"
-import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
+import {
+  resolveErrorBoundaryRetryCallbacks,
+  type NextAppErrorPageProps,
+} from "#lib/next-app-error-page-props.shared"
 
 /**
  * Auth-shell error boundary — sign-in / sign-up / verify / reset flows.
  * Falls back to a clean recovery surface when an auth form/page errors out.
  */
-export default function AuthError({
-  error,
-  unstable_retry,
-  reset,
-}: NextAppErrorPageProps) {
+export default function AuthError(props: NextAppErrorPageProps) {
+  const { error } = props
+  const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -33,7 +34,7 @@ export default function AuthError({
         </p>
       ) : null}
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <RouteErrorRetryButton unstable_retry={unstable_retry} reset={reset}>
+        <RouteErrorRetryButton retryAction={retryAction} resetAction={resetAction}>
           Try again
         </RouteErrorRetryButton>
         <Button variant="outline" asChild>
