@@ -14,25 +14,12 @@ import {
   listUsersForPlatformAdmin,
   platformAdminPath,
 } from "#features/platform-admin"
+import {
+  searchParamFirst,
+  searchParamPositiveInt,
+} from "#lib/app-search-params.shared"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { requireGlobalAdminSession } from "#lib/tenant"
-
-function readParam(
-  params: Record<string, string | string[] | undefined>,
-  key: string
-): string | undefined {
-  const raw = params[key]
-  if (typeof raw === "string") return raw
-  if (Array.isArray(raw)) return raw[0]
-  return undefined
-}
-
-function parsePage(value: string | undefined): number {
-  if (!value) return 1
-  const parsed = Number.parseInt(value, 10)
-  if (!Number.isFinite(parsed) || parsed < 1) return 1
-  return parsed
-}
 
 export default async function PlatformAdminUsersPage({
   params,
@@ -45,8 +32,8 @@ export default async function PlatformAdminUsersPage({
 
   const t = await getTranslations("PlatformAdmin.users")
 
-  const search = readParam(sp, "q") ?? ""
-  const page = parsePage(readParam(sp, "page"))
+  const search = searchParamFirst(sp, "q") ?? ""
+  const page = searchParamPositiveInt(sp, "page", 1)
   const limit = PLATFORM_ADMIN_USERS_PAGE_SIZE
   const offset = (page - 1) * limit
 
@@ -60,10 +47,10 @@ export default async function PlatformAdminUsersPage({
   const basePath = toLocalePath(locale, platformAdminPath("users"))
 
   function buildPageHref(targetPage: number): Route {
-    const params = new URLSearchParams()
-    if (search) params.set("q", search)
-    if (targetPage > 1) params.set("page", String(targetPage))
-    const query = params.size > 0 ? `?${params.toString()}` : ""
+    const qs = new URLSearchParams()
+    if (search) qs.set("q", search)
+    if (targetPage > 1) qs.set("page", String(targetPage))
+    const query = qs.size > 0 ? `?${qs.toString()}` : ""
     return `${basePath}${query}` as Route
   }
 

@@ -1,13 +1,14 @@
 import type { Metadata } from "next"
 
 import { requireRecentAuthStepUp } from "#lib/auth"
+import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
 import { requireGlobalAdminSession } from "#lib/tenant"
 
 export const metadata: Metadata = {
   title: "Operator",
-  robots: { index: false, follow: false },
+  robots: PRIVATE_SURFACE_ROBOTS,
   openGraph: { title: `Operator | ${SITE_NAME}` },
 }
 

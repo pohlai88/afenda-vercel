@@ -6,14 +6,20 @@ import Link from "next/link"
 import "./globals.css"
 import { Button } from "#components/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
+import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
 
+/**
+ * Root fatal-error UI — must include `<html>` / `<body>` (replaces root layout when active).
+ * Next.js 16+ passes `unstable_retry`; older callers may still pass `reset`.
+ *
+ * @see https://nextjs.org/docs/app/api-reference/file-conventions/error#global-error
+ */
 export default function GlobalError({
   error,
+  unstable_retry,
   reset,
-}: {
-  error: Error & { digest?: string }
-  reset: () => void
-}) {
+}: NextAppErrorPageProps) {
+  const retry = unstable_retry ?? reset
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -34,7 +40,7 @@ export default function GlobalError({
             ) : null}
           </div>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button type="button" onClick={() => reset()}>
+            <Button type="button" onClick={() => retry?.()}>
               Try again
             </Button>
             <Button variant="outline" asChild>

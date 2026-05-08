@@ -4,8 +4,10 @@ import { useEffect } from "react"
 import Link from "next/link"
 
 import { AfendaBrandLockup } from "#components/afenda-brand"
+import { RouteErrorRetryButton } from "#components/route-error-retry-button"
 import { Button } from "#components/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
+import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
 
 /**
  * Next.js 16+ error boundaries receive `unstable_retry` (canonical) instead of `reset`.
@@ -14,10 +16,8 @@ import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.sha
 export default function Error({
   error,
   unstable_retry,
-}: {
-  error: Error & { digest?: string }
-  unstable_retry: () => void
-}) {
+  reset,
+}: NextAppErrorPageProps) {
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -45,9 +45,9 @@ export default function Error({
         ) : null}
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <Button type="button" onClick={() => unstable_retry()}>
+        <RouteErrorRetryButton unstable_retry={unstable_retry} reset={reset}>
           Try again
-        </Button>
+        </RouteErrorRetryButton>
         <Button variant="outline" asChild>
           <Link href={DEFAULT_LOCALE_HOME_PATH} prefetch={false}>
             Go home

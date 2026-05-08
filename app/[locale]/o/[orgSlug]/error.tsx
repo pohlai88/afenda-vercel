@@ -3,8 +3,10 @@
 import { useEffect } from "react"
 import Link from "next/link"
 
+import { RouteErrorRetryButton } from "#components/route-error-retry-button"
 import { Button } from "#components/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
+import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
 
 /**
  * Org-tier error boundary — catches failures inside `app/[locale]/o/[orgSlug]/layout.tsx`
@@ -16,10 +18,8 @@ import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.sha
 export default function OrgError({
   error,
   unstable_retry,
-}: {
-  error: Error & { digest?: string }
-  unstable_retry: () => void
-}) {
+  reset,
+}: NextAppErrorPageProps) {
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -39,9 +39,9 @@ export default function OrgError({
         </p>
       ) : null}
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <Button type="button" onClick={() => unstable_retry()}>
+        <RouteErrorRetryButton unstable_retry={unstable_retry} reset={reset}>
           Try again
-        </Button>
+        </RouteErrorRetryButton>
         <Button type="button" variant="outline" asChild>
           <Link href={DEFAULT_LOCALE_HOME_PATH} prefetch={false}>
             Go home

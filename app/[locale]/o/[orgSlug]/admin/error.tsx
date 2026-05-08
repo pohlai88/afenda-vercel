@@ -2,7 +2,8 @@
 
 import { useEffect } from "react"
 
-import { Button } from "#components/ui/button"
+import { RouteErrorRetryButton } from "#components/route-error-retry-button"
+import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
 
 /**
  * Org-admin tier error boundary — keeps the workbench shell (sidebar, header)
@@ -11,10 +12,8 @@ import { Button } from "#components/ui/button"
 export default function OrgAdminError({
   error,
   unstable_retry,
-}: {
-  error: Error & { digest?: string }
-  unstable_retry: () => void
-}) {
+  reset,
+}: NextAppErrorPageProps) {
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -33,9 +32,9 @@ export default function OrgAdminError({
           Reference: {error.digest}
         </p>
       ) : null}
-      <Button type="button" onClick={() => unstable_retry()}>
+      <RouteErrorRetryButton unstable_retry={unstable_retry} reset={reset}>
         Try again
-      </Button>
+      </RouteErrorRetryButton>
     </div>
   )
 }

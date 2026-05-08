@@ -20,7 +20,6 @@ import { requireOrgSession } from "#lib/tenant"
 
 export const metadata: Metadata = {
   title: "Admin",
-  robots: { index: false, follow: false },
   openGraph: { title: `Organization admin | ${SITE_NAME}` },
 }
 

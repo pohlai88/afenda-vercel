@@ -8,13 +8,12 @@ import { SITE_NAME } from "#lib/site"
 
 export async function generateMetadata({
   params,
-}: PageProps<"/[locale]/sign-in">): Promise<Metadata> {
+}: Pick<LayoutProps<"/[locale]/sign-in">, "params">): Promise<Metadata> {
   const { locale: localeRaw } = await params
   const locale = ensureAppLocale(localeRaw)
   const t = await getTranslations({ locale, namespace: "Auth" })
   return {
     title: t("pageMetadataTitle"),
-    robots: { index: false, follow: false },
     openGraph: { title: t("pageOpenGraphTitle", { siteName: SITE_NAME }) },
   }
 }

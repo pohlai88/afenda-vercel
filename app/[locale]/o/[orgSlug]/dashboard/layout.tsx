@@ -7,7 +7,6 @@ import { requireOrgSession } from "#lib/tenant"
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  robots: { index: false, follow: false },
   openGraph: { title: `Dashboard | ${SITE_NAME}` },
 }
 

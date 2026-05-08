@@ -8,14 +8,9 @@ import {
   organizationAdminPath,
 } from "#features/org-admin"
 
+import { searchParamPositiveInt } from "#lib/app-search-params.shared"
 import { listOrganizationIamAuditEvents } from "#lib/auth"
 import { requireOrgSession } from "#lib/tenant"
-
-function parsePage(raw: string | undefined): number {
-  const n = Number.parseInt(raw ?? "1", 10)
-  if (!Number.isFinite(n) || n < 1) return 1
-  return n
-}
 
 export default async function OrgAdminAuditPage({
   searchParams,
@@ -25,13 +20,7 @@ export default async function OrgAdminAuditPage({
   const orgSession = await requireOrgSession()
   const t = await getTranslations("OrgAdmin.audit")
   const sp = await searchParams
-  const page = parsePage(
-    typeof sp.page === "string"
-      ? sp.page
-      : Array.isArray(sp.page)
-        ? sp.page[0]
-        : undefined
-  )
+  const page = searchParamPositiveInt(sp, "page", 1)
 
   const result = await listOrganizationIamAuditEvents({
     organizationId: orgSession.organizationId,

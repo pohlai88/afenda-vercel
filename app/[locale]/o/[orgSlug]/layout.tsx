@@ -1,6 +1,7 @@
-import type { Route } from "next"
+import type { Metadata, Route } from "next"
 import { notFound, redirect } from "next/navigation"
 
+import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
 import { localePrefixedOrgDashboardRedirect } from "#lib/dashboard-org-redirect.server"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
@@ -9,6 +10,14 @@ import {
   getOrganizationSlugById,
 } from "#lib/org-slug.server"
 import { requireOrgSession } from "#lib/tenant"
+
+/** Tenant ERP shell: keep org-scoped URLs out of public search indexes by default. */
+export async function generateMetadata({
+  params: _params,
+}: Pick<LayoutProps<"/[locale]/o/[orgSlug]">, "params">): Promise<Metadata> {
+  void _params
+  return { robots: PRIVATE_SURFACE_ROBOTS }
+}
 
 export default async function OrgSlugLayout({
   children,
@@ -21,19 +30,21 @@ export default async function OrgSlugLayout({
     notFound()
   }
 
-  const resolvedOrgId = await getOrganizationIdBySlug(orgSlug)
-  if (!resolvedOrgId) {
-    notFound()
-  }
+  const [resolvedOrgId, session] = await Promise.all([
+    getOrganizationIdBySlug(orgSlug),
+    requireOrgSession(),
+  ])
 
-  const session = await requireOrgSession()
-  const canonicalSlug = await getOrganizationSlugById(session.organizationId)
-  if (!canonicalSlug) {
+  if (!resolvedOrgId) {
     notFound()
   }
 
   if (resolvedOrgId !== session.organizationId) {
     // Cross-tenant correction is not a permanent move — the user's active org can change.
+    const canonicalSlug = await getOrganizationSlugById(session.organizationId)
+    if (!canonicalSlug) {
+      notFound()
+    }
     const target = await localePrefixedOrgDashboardRedirect(
       locale,
       canonicalSlug

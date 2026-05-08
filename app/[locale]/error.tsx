@@ -2,9 +2,11 @@
 
 import { useEffect } from "react"
 
-import { Link } from "#i18n/navigation"
 import { AfendaBrandLockup } from "#components/afenda-brand"
+import { RouteErrorRetryButton } from "#components/route-error-retry-button"
 import { Button } from "#components/ui/button"
+import { Link } from "#i18n/navigation"
+import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
 
 /**
  * Locale-tier error boundary — catches RSC/render errors below `app/[locale]/layout.tsx`
@@ -16,10 +18,8 @@ import { Button } from "#components/ui/button"
 export default function LocaleError({
   error,
   unstable_retry,
-}: {
-  error: Error & { digest?: string }
-  unstable_retry: () => void
-}) {
+  reset,
+}: NextAppErrorPageProps) {
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -47,9 +47,9 @@ export default function LocaleError({
         ) : null}
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <Button type="button" onClick={() => unstable_retry()}>
+        <RouteErrorRetryButton unstable_retry={unstable_retry} reset={reset}>
           Try again
-        </Button>
+        </RouteErrorRetryButton>
         <Button variant="outline" asChild>
           <Link href="/" prefetch={false}>
             Go home
