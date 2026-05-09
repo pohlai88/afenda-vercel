@@ -144,10 +144,18 @@ function RemoveMemberForm({ m }: { m: MemberRow }) {
   )
 }
 
-function localizeRole(
-  role: string,
-  tInvite: ReturnType<typeof useTranslations<"OrgAdmin.invite">>
-): string {
+/**
+ * Narrow structural type — only the three role-key calls made by `localizeRole`.
+ *
+ * Avoids `ReturnType<typeof useTranslations<"OrgAdmin.invite">>` which forces
+ * TypeScript to instantiate the full next-intl message type on every check of
+ * this file.  The three literal keys are valid within the `"OrgAdmin.invite"`
+ * namespace, so the narrowed `t` from `useTranslations("OrgAdmin.invite")` is
+ * structurally assignable here without expanding the whole message graph.
+ */
+type LocalizeRoleT = (key: "roleOwner" | "roleAdmin" | "roleMember") => string
+
+function localizeRole(role: string, tInvite: LocalizeRoleT): string {
   switch (role) {
     case "owner":
       return tInvite("roleOwner")

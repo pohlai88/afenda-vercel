@@ -8,6 +8,8 @@ import {
   type AuditEvent7W1H,
 } from "#lib/erp/audit-7w1h.shared"
 
+import { formatAmbientTime } from "./hooks/ambient-time.shared"
+
 /**
  * Continuity footer — the operator's narrative audit trail.
  *
@@ -25,26 +27,7 @@ import {
  * default state — one tap reveals the trail.
  */
 
-const HOUR_MS = 60 * 60 * 1000
-const DAY_MS = 24 * HOUR_MS
 const VISIBLE_THRESHOLD = 6
-
-function ambientAgo(
-  msAgo: number,
-  t: ReturnType<typeof useTranslations>
-): string {
-  if (msAgo < 60_000) return t("shell.ambientTimeJustNow")
-  if (msAgo < HOUR_MS) {
-    const m = Math.max(1, Math.round(msAgo / 60_000))
-    return t("shell.ambientTimeMinutes", { m })
-  }
-  if (msAgo < DAY_MS) {
-    const h = Math.max(1, Math.floor(msAgo / HOUR_MS))
-    return t("shell.ambientTimeHours", { h })
-  }
-  const d = Math.max(1, Math.floor(msAgo / DAY_MS))
-  return t("shell.ambientTimeDays", { d })
-}
 
 function latestWhenMs(events: AuditEvent7W1H[]): number | null {
   let latest: number | null = null
@@ -77,7 +60,7 @@ export function OneThingDetailAuditFooter({
   const latestMs = latestWhenMs(events)
   const ago =
     latestMs !== null && nowMs > 0
-      ? ambientAgo(Math.max(0, nowMs - latestMs), t)
+      ? formatAmbientTime(Math.max(0, nowMs - latestMs), t)
       : t("shell.ambientTimeJustNow")
 
   const summary = t("auditFooter.summary", { ago, count: events.length })

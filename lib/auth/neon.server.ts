@@ -1,8 +1,10 @@
 import "server-only"
 
-import { createNeonAuth } from "@neondatabase/auth/next/server"
+import { createNeonAuth, type NeonAuth } from "@neondatabase/auth/next/server"
 
-type NeonAuthInstance = ReturnType<typeof createNeonAuth>
+/** Alias for the concrete auth instance — imported directly to avoid the
+ *  `ReturnType<typeof createNeonAuth>` instantiation cost at type-check time. */
+type NeonAuthInstance = NeonAuth
 
 function parseSessionCacheTtl(): number | undefined {
   const raw = process.env.NEON_AUTH_SESSION_CACHE_TTL?.trim()

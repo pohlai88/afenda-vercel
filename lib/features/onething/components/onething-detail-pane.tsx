@@ -20,6 +20,7 @@ import {
   type ResolveSeverity,
 } from "#features/onething/client"
 
+import { formatAmbientTime } from "./hooks/ambient-time.shared"
 import { useNow } from "./hooks/use-now"
 import { OneThingDetailAuditFooter } from "./onething-detail-audit-footer"
 import {
@@ -37,26 +38,6 @@ import {
  * No why-now pill. No provenance line. No labeled stakes block. No linkage
  * chips on the surface. The prose carries the weight; chrome is gone.
  */
-
-const HOUR_MS = 60 * 60 * 1000
-const DAY_MS = 24 * HOUR_MS
-
-function ambientTime(
-  msAgo: number,
-  t: ReturnType<typeof useTranslations>
-): string {
-  if (msAgo < 60_000) return t("shell.ambientTimeJustNow")
-  if (msAgo < HOUR_MS) {
-    const m = Math.max(1, Math.round(msAgo / 60_000))
-    return t("shell.ambientTimeMinutes", { m })
-  }
-  if (msAgo < DAY_MS) {
-    const h = Math.max(1, Math.floor(msAgo / HOUR_MS))
-    return t("shell.ambientTimeHours", { h })
-  }
-  const d = Math.max(1, Math.floor(msAgo / DAY_MS))
-  return t("shell.ambientTimeDays", { d })
-}
 
 function counterpartyLabel(
   cp: OneThingCounterparty | null,
@@ -152,7 +133,8 @@ export function OneThingDetailPane({
   )
 
   const updatedAtMs = canvas.updatedAt.getTime()
-  const ago = now > 0 ? ambientTime(Math.max(0, now - updatedAtMs), t) : ""
+  const ago =
+    now > 0 ? formatAmbientTime(Math.max(0, now - updatedAtMs), t) : ""
 
   const past = temporalSpine?.past?.trim() ?? ""
   const nowProse =

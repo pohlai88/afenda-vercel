@@ -46,5 +46,18 @@
   ],
   // tests/ and scripts/ have their own tsconfig (tsconfig.test.json / tsconfig.scripts.json)
   // so they don't pull Playwright + Vitest + seed-script types into the main compile graph.
-  "exclude": ["node_modules", ".next/dev", "tests", "scripts"],
+  // Root-level tool configs are also excluded here and covered by their respective split tsconfigs:
+  //   vitest.config.ts / vitest.setup.ts → tsconfig.test.json
+  //   playwright.config.ts               → tsconfig.test.json
+  //   drizzle.config.ts                  → tsconfig.scripts.json
+  "exclude": [
+    "node_modules",
+    ".next/dev",
+    "tests",
+    "scripts",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "playwright.config.ts",
+    "drizzle.config.ts"
+  ]
 }

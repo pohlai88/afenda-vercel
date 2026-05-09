@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef } from "react"
 
 import { useTranslations } from "next-intl"
 
+import { formatAmbientTime, HOUR_MS } from "./hooks/ambient-time.shared"
+
 import type { RankedOneThing } from "#features/onething/client"
 
 import { useFlip } from "./hooks/use-flip"
@@ -30,26 +32,6 @@ import type { ComponentProps } from "react"
  * `Today` renders as a quiet neutral line — never as eyebrow chrome
  * (uppercase / tracking-widest is forbidden by the doctrine).
  */
-
-const HOUR_MS = 60 * 60 * 1000
-const DAY_MS = 24 * HOUR_MS
-
-function ambientTime(
-  msAgo: number,
-  t: ReturnType<typeof useTranslations>
-): string {
-  if (msAgo < 60_000) return t("shell.ambientTimeJustNow")
-  if (msAgo < HOUR_MS) {
-    const m = Math.max(1, Math.round(msAgo / 60_000))
-    return t("shell.ambientTimeMinutes", { m })
-  }
-  if (msAgo < DAY_MS) {
-    const h = Math.max(1, Math.floor(msAgo / HOUR_MS))
-    return t("shell.ambientTimeHours", { h })
-  }
-  const d = Math.max(1, Math.floor(msAgo / DAY_MS))
-  return t("shell.ambientTimeDays", { d })
-}
 
 function isToday(date: Date, now: number): boolean {
   if (now === 0) return false
@@ -168,7 +150,7 @@ function ListRow({
   const t = useTranslations("Dashboard.OneThing")
 
   const updatedMs = item.updatedAt.getTime()
-  const ago = now > 0 ? ambientTime(Math.max(0, now - updatedMs), t) : ""
+  const ago = now > 0 ? formatAmbientTime(Math.max(0, now - updatedMs), t) : ""
   const fresh = now > 0 && now - updatedMs < HOUR_MS
 
   const weight =
