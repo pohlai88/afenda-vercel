@@ -1,10 +1,10 @@
 /**
  * Canonical declaration footer identity and route data (ported from afenda-next marketing).
- * Locale-internal paths use the `/legal/…` prefix.
+ * Locale-internal paths use the `/legal-docs/…` prefix.
  */
 import type { DeclarationLegalIdentity, DeclarationRelatedLink } from "../types"
 
-export const LEGAL_ROUTE_PREFIX = "/legal" as const
+export const LEGAL_ROUTE_PREFIX = "/legal-docs" as const
 
 export const declarationFooterIdentity = {
   legalEntityName: "VAP MANAGEMENT SERVICES SDN BHD",
@@ -30,21 +30,21 @@ export const trustRouteLink = {
 } satisfies DeclarationRelatedLink
 
 export const cookieNoticeLink = {
-  href: "/cookies",
+  href: `${LEGAL_ROUTE_PREFIX}/cookies`,
   label: "Cookie Notice",
   description:
     "Current essential cookie, local storage, authentication, session, and control posture.",
 } satisfies DeclarationRelatedLink
 
 export const dataProcessingAddendumLink = {
-  href: "/data-processing-addendum",
+  href: `${LEGAL_ROUTE_PREFIX}/data-processing-addendum`,
   label: "Data Processing Addendum",
   description:
     "Malaysia PDPA-aligned customer processing terms, request route, and legal section map.",
 } satisfies DeclarationRelatedLink
 
 export const subprocessorsLink = {
-  href: "/subprocessors",
+  href: `${LEGAL_ROUTE_PREFIX}/subprocessors`,
   label: "Subprocessors",
   description:
     "Validated vendor inventory, purpose, jurisdiction, and production-processing status.",

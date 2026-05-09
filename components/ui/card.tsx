@@ -1,12 +1,7 @@
 import * as React from "react"
 
 import { cn } from "#lib/utils"
-import {
-  type CardSize,
-  uiRadius,
-  uiSurfaceElevation,
-  uiTitle,
-} from "#lib/design-system"
+import { type CardSize, ui, uiRadius, uiTitle } from "#lib/design-system"
 
 function Card({
   className,
@@ -19,8 +14,8 @@ function Card({
       data-size={size}
       className={cn(
         "group/card flex flex-col gap-surface-lg overflow-hidden bg-card py-surface-lg text-sm text-card-foreground ring-1 ring-foreground/5 has-[>img:first-child]:pt-0 data-[size=sm]:gap-surface-md data-[size=sm]:py-surface-md dark:ring-foreground/10",
-        uiSurfaceElevation.default,
-        uiRadius.surface,
+        ui.elevation.card,
+        ui.radius.card,
         uiRadius.surfaceMediaTop,
         uiRadius.surfaceMediaBottom,
         className

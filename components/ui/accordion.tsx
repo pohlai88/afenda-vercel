@@ -4,7 +4,7 @@ import * as React from "react"
 import { Accordion as AccordionPrimitive } from "radix-ui"
 
 import { cn } from "#lib/utils"
-import { uiRadius, uiTracking } from "#lib/design-system"
+import { ui, uiTracking } from "#lib/design-system"
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 
 function Accordion({
@@ -16,7 +16,7 @@ function Accordion({
       data-slot="accordion"
       className={cn(
         "flex w-full flex-col overflow-hidden border",
-        uiRadius.section,
+        ui.radius.panel,
         className
       )}
       {...props}

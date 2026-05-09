@@ -9,6 +9,7 @@ import type {
   TrustSurfaceItem,
   TrustSurfaceState,
 } from "#features/public-trust"
+import { STATUS_ROUTE } from "#features/public-trust"
 import { cn } from "#lib/utils"
 
 const trustPageHref = `${LEGAL_ROUTE_PREFIX}/trust`
@@ -27,7 +28,7 @@ const trustSectionLinks = [
   {
     href: "#surfaces",
     label: "Surfaces",
-    description: "Live, planned, and withheld trust routes.",
+    description: "Public trust routes and current state.",
   },
   {
     href: "#commitments",
@@ -299,7 +300,7 @@ export function TrustControlSurface({
                     </div>
                     <div className="min-w-0">
                       <TrustHref
-                        href="/status"
+                        href={STATUS_ROUTE}
                         className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
                       >
                         <strong className="text-[0.94rem] leading-snug font-semibold text-inherit">
@@ -500,9 +501,9 @@ export function TrustControlSurface({
                 Public trust surfaces and state.
               </h2>
               <p className="mt-4 max-w-[760px] text-[0.98rem] leading-[1.76] text-muted-foreground">
-                Live surfaces have public links. Planned and withheld surfaces
-                are named here, but they remain inactive until their activation
-                rule is satisfied.
+                Live surfaces have public links and current evidence. Activation
+                rules remain visible so new trust claims do not ship before the
+                underlying operational truth exists.
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {definition.surfaces.map((surface) => (

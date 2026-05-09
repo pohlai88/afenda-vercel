@@ -26,22 +26,24 @@ Audit target from upgrade plan:
 
 ## Current audit snapshot
 
-| Primitive | Variant/Size | Slots | Focus/Invalid | Semantic tokens | Notes                                                                                            |
-| --------- | ------------ | ----- | ------------- | --------------- | ------------------------------------------------------------------------------------------------ |
-| button    | pass         | pass  | pass          | pass            | `uiRadius`, `uiTracking`, `primary-hover` / `secondary-hover`                                    |
-| input     | pass         | pass  | pass          | pass            | Inset uses `px-surface-sm` / `py-2.5`; consistent invalid states                                 |
-| select    | pass         | pass  | pass          | pass            | Semantic background/foreground tokens                                                            |
-| textarea  | pass         | pass  | pass          | pass            | Matches input focus/invalid behavior                                                             |
-| badge     | pass         | pass  | pass          | pass            | Status variants (`success`, `warning`, `info`, `critical`); link hover uses hover tokens         |
-| card      | pass         | pass  | pass          | pass            | `uiRadius.surface*`, `uiTitle.sm`, `uiSurfaceElevation.default`, `p-surface-*` / `gap-surface-*` |
-| dialog    | pass         | pass  | pass          | pass            | Overlay/content follow token contract                                                            |
-| table     | pass         | pass  | pass          | pass            | `density` prop (`comfortable` / `compact`); row/cell padding via group selectors                 |
-| sidebar   | pass         | pass  | pass          | pass            | Slot model + sidebar semantic tokens                                                             |
-| tooltip   | pass         | pass  | pass          | pass            | Shared radius/tracking                                                                           |
+| Primitive | Variant/Size | Slots | Focus/Invalid | Semantic tokens | Notes                                                                                          |
+| --------- | ------------ | ----- | ------------- | --------------- | ---------------------------------------------------------------------------------------------- |
+| button    | pass         | pass  | pass          | pass            | `uiRadius`, `uiTracking`, `primary-hover` / `secondary-hover`                                  |
+| input     | pass         | pass  | pass          | pass            | Inset uses `px-surface-sm` / `py-2.5`; consistent invalid states                               |
+| select    | pass         | pass  | pass          | pass            | Semantic background/foreground tokens                                                          |
+| textarea  | pass         | pass  | pass          | pass            | Matches input focus/invalid behavior                                                           |
+| badge     | pass         | pass  | pass          | pass            | Status variants (`success`, `warning`, `info`, `critical`); link hover uses hover tokens       |
+| card      | pass         | pass  | pass          | pass            | Preferred `ui.radius.card`, `uiTitle.sm`, `ui.elevation.card`, `p-surface-*` / `gap-surface-*` |
+| dialog    | pass         | pass  | pass          | pass            | Overlay/content follow token contract                                                          |
+| table     | pass         | pass  | pass          | pass            | `density` prop (`comfortable` / `compact`); row/cell padding via group selectors               |
+| sidebar   | pass         | pass  | pass          | pass            | Slot model + sidebar semantic tokens                                                           |
+| tooltip   | pass         | pass  | pass          | pass            | Shared radius/tracking                                                                         |
 
 ## Design-system.ts alignment
 
-- **`uiDensity`** — `gap-density-comfortable` / `gap-density-compact` (token-backed; matches `--density-*` in `app/globals.css`).
+- **`ui`** — preferred familiar aliases for radius, padding, gap, elevation, tone, and priority; maps to existing token-backed utilities.
+- **`uiPrimitiveKeys` / `uiPrimitiveSchema`** — governed primitive names (`button`, `input`, `badge`, `card`, `panel`, `dialog`, `popover`, `sheet`, `toolbar`, `table`).
+- **`uiDensity` / `uiDensityKeys`** — `gap-density-comfortable` / `gap-density-compact` (token-backed; matches `--density-*` in `app/globals.css`).
 - **`uiSurfaceSpaceKeys` / `uiSurfaceInset` / `parseUiSurfaceSpaceKey`** — mirror `--space-surface-*` for CMS/API validation and composition.
 
 ## Remaining plan-related blocker

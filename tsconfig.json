@@ -22,6 +22,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "tsBuildInfoFile": ".artifacts/.tsbuildinfo/main",
     "forceConsistentCasingInFileNames": true,
     // Assume a file change only affects files that directly import it — avoids rechecking
     // the full transitive closure on every save in watch mode (IDE language-server + tsc --watch).

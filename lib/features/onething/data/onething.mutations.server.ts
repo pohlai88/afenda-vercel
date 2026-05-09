@@ -215,6 +215,21 @@ export async function updateOneThingState(
     .where(eq(oneThing.id, oneThingId))
 }
 
+export async function updateOneThingFields(
+  oneThingId: string,
+  patch: Partial<{
+    title: string
+    consequence: string
+    dueAt: Date | null
+    assigneeUserId: string | null
+  }>
+): Promise<void> {
+  await db
+    .update(oneThing)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(eq(oneThing.id, oneThingId))
+}
+
 export async function deleteOneThingById(oneThingId: string): Promise<void> {
   await db.delete(oneThing).where(eq(oneThing.id, oneThingId))
 }

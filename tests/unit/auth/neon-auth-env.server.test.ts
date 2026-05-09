@@ -1,33 +1,44 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 describe("lib/auth/neon.server Neon Auth env", () => {
+  /** Cold `import("#lib/auth/neon.server")` can exceed 5s under parallel Vitest + Windows. */
+  const authImportTimeoutMs = 15_000
+
   afterEach(() => {
     vi.unstubAllEnvs()
     vi.resetModules()
   })
 
-  it("initializes during NEXT_PHASE production build without NEON_AUTH_*", async () => {
-    vi.stubEnv("NEXT_PHASE", "phase-production-build")
-    vi.stubEnv("NEON_AUTH_BASE_URL", "")
-    vi.stubEnv("NEON_AUTH_COOKIE_SECRET", "")
-    const { getNeonAuth } = await import("#lib/auth/neon.server")
-    expect(() => getNeonAuth()).not.toThrow()
-  })
-
-  it("initializes when NEXT_PHASE is unset but argv indicates next build (worker fallback)", async () => {
-    vi.stubEnv("NEXT_PHASE", "")
-    vi.stubEnv("NODE_ENV", "production")
-    vi.stubEnv("NEON_AUTH_BASE_URL", "")
-    vi.stubEnv("NEON_AUTH_COOKIE_SECRET", "")
-    const prevArgv = process.argv
-    process.argv = ["node", "/fake/path/next", "build"]
-    try {
+  it(
+    "initializes during NEXT_PHASE production build without NEON_AUTH_*",
+    async () => {
+      vi.stubEnv("NEXT_PHASE", "phase-production-build")
+      vi.stubEnv("NEON_AUTH_BASE_URL", "")
+      vi.stubEnv("NEON_AUTH_COOKIE_SECRET", "")
       const { getNeonAuth } = await import("#lib/auth/neon.server")
       expect(() => getNeonAuth()).not.toThrow()
-    } finally {
-      process.argv = prevArgv
-    }
-  })
+    },
+    authImportTimeoutMs
+  )
+
+  it(
+    "initializes when NEXT_PHASE is unset but argv indicates next build (worker fallback)",
+    async () => {
+      vi.stubEnv("NEXT_PHASE", "")
+      vi.stubEnv("NODE_ENV", "production")
+      vi.stubEnv("NEON_AUTH_BASE_URL", "")
+      vi.stubEnv("NEON_AUTH_COOKIE_SECRET", "")
+      const prevArgv = process.argv
+      process.argv = ["node", "/fake/path/next", "build"]
+      try {
+        const { getNeonAuth } = await import("#lib/auth/neon.server")
+        expect(() => getNeonAuth()).not.toThrow()
+      } finally {
+        process.argv = prevArgv
+      }
+    },
+    authImportTimeoutMs
+  )
 
   it("throws when NEON_AUTH_* missing outside production build phase", async () => {
     vi.stubEnv("NEXT_PHASE", "")

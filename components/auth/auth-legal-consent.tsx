@@ -17,7 +17,7 @@ export function AuthLegalConsent() {
       {t.rich("footerLegalConsent", {
         terms: (chunks) => (
           <Link
-            href={"/legal/terms" as Route}
+            href={"/legal-docs/terms" as Route}
             className="font-medium underline underline-offset-4 hover:text-foreground"
           >
             {chunks}

@@ -11,6 +11,7 @@ alwaysApply: false
 ## Design token contract
 
 - Use design-system exports from `#lib/design-system` for:
+  - preferred primitive aliases (`ui.radius`, `ui.padding`, `ui.gap`, `ui.elevation`, `ui.tone`, `ui.priority`)
   - geometry (`uiRadius`)
   - elevation (`uiSurfaceElevation`)
   - density / surface inset (`uiDensity`, `uiSurfaceInset`, `uiSurfaceSpaceKeys`)
@@ -54,23 +55,26 @@ import {
   buttonSizeSchema,
   badgeVariantSchema,
   cardSizeSchema,
+  uiPrimitiveSchema,
   parseUiSurfaceSpaceKey,
   parseSurfaceElevation,
 } from "#lib/design-system"
 
 buttonVariantSchema.parse(value)
+uiPrimitiveSchema.parse(payload.primitive)
 parseUiSurfaceSpaceKey(payload.inset)
 ```
 
 ## Anti-drift rules
 
 - Prefer existing design-system patterns over introducing new visual abstractions.
+- Prefer familiar primitive aliases (`card`, `panel`, `dialog`, `popover`, `toolbar`, `table`) through `ui.*`; keep product philosophy in behavior, not visual class names.
 - Do not create parallel token systems or local shadow/radius scales.
 - Keep visual language structurally consistent across ERP modules.
 
 ## Documentation sync (`docs/design-system/**/*.md`)
 
-Applies when editing **`docs/design-system/**/*.md`**.
+Applies when editing **`docs/design-system/**/\*.md`\*\*.
 
 - **Code is truth:** [`app/globals.css`](../../app/globals.css), [`lib/design-system.ts`](../../lib/design-system.ts), [`components/ui/`](../../components/ui/). Docs describe what code implements, never ahead of it.
 - Do not document Figma names, variant strings, or CSS variables that are **not** implemented in code and `lib/design-system.ts`.

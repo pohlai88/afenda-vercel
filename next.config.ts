@@ -6,6 +6,7 @@ import { withWorkflow } from "workflow/next"
 import { betterAuthAllowedHostsFromEnv } from "./lib/site"
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
+const LEGAL_DOCS_ROUTE_PREFIX = "/legal-docs"
 
 /** @see https://nextjs.org/docs/app/api-reference/config/next-config-js/serverActions (wildcard origins). */
 const serverActionAllowedOrigins = buildServerActionAllowedOrigins(
@@ -80,6 +81,35 @@ const nextConfig: NextConfig = {
     }
 
     return [{ source: "/:path*", headers: securityHeaders }]
+  },
+  async redirects() {
+    return [
+      {
+        source: "/:locale/legal/:path*",
+        destination: `/:locale${LEGAL_DOCS_ROUTE_PREFIX}/:path*`,
+        permanent: true,
+      },
+      {
+        source: "/:locale/cookies",
+        destination: `/:locale${LEGAL_DOCS_ROUTE_PREFIX}/cookies`,
+        permanent: true,
+      },
+      {
+        source: "/:locale/data-processing-addendum",
+        destination: `/:locale${LEGAL_DOCS_ROUTE_PREFIX}/data-processing-addendum`,
+        permanent: true,
+      },
+      {
+        source: "/:locale/subprocessors",
+        destination: `/:locale${LEGAL_DOCS_ROUTE_PREFIX}/subprocessors`,
+        permanent: true,
+      },
+      {
+        source: "/:locale/status",
+        destination: `/:locale${LEGAL_DOCS_ROUTE_PREFIX}/status`,
+        permanent: true,
+      },
+    ]
   },
 }
 

@@ -13,7 +13,7 @@ export function GET(): Response {
   const base = getSiteUrl().replace(/\/$/, "")
   const policyPath = toLocalePath(
     DEFAULT_APP_LOCALE,
-    securityDisclosureLink.href
+    securityDisclosureLink.href as `/${string}`
   )
   const body = [
     `Contact: mailto:${publicTrustOwnerRoutes.security.value}`,

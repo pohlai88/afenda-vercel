@@ -45,16 +45,16 @@ describe("legal declarations contract", () => {
   })
 
   it("tracks route freshness from the declaration registry", () => {
-    expect(declarationRouteReviewedAtByHref["/cookies"]).toBe(
+    expect(declarationRouteReviewedAtByHref["/legal-docs/cookies"]).toBe(
       declarationDocuments.cookies.reviewedAt
     )
-    expect(declarationRouteReviewedAtByHref["/data-processing-addendum"]).toBe(
-      declarationDocuments["data-processing-addendum"].reviewedAt
-    )
-    expect(declarationRouteReviewedAtByHref["/subprocessors"]).toBe(
+    expect(
+      declarationRouteReviewedAtByHref["/legal-docs/data-processing-addendum"]
+    ).toBe(declarationDocuments["data-processing-addendum"].reviewedAt)
+    expect(declarationRouteReviewedAtByHref["/legal-docs/subprocessors"]).toBe(
       declarationDocuments.subprocessors.reviewedAt
     )
-    expect(declarationRouteReviewedAtByHref["/legal/privacy"]).toBe(
+    expect(declarationRouteReviewedAtByHref["/legal-docs/privacy"]).toBe(
       declarationDocuments.privacy.reviewedAt
     )
     expect(latestLegalDeclarationReviewedAt).toBe(
@@ -65,14 +65,14 @@ describe("legal declarations contract", () => {
   it("keeps trust-route freshness aligned with the declaration registry", () => {
     expect(
       trustSurfaceDefinition.surfaces.find(
-        (surface) => surface.route === "/cookies"
+        (surface) => surface.route === "/legal-docs/cookies"
       )?.lastUpdatedLabel
     ).toBe(
       formatDeclarationReviewedLabel(declarationDocuments.cookies.reviewedAt)
     )
     expect(
       trustSurfaceDefinition.surfaces.find(
-        (surface) => surface.route === "/data-processing-addendum"
+        (surface) => surface.route === "/legal-docs/data-processing-addendum"
       )?.lastUpdatedLabel
     ).toBe(
       formatDeclarationReviewedLabel(
@@ -81,7 +81,7 @@ describe("legal declarations contract", () => {
     )
     expect(
       trustSurfaceDefinition.surfaces.find(
-        (surface) => surface.route === "/subprocessors"
+        (surface) => surface.route === "/legal-docs/subprocessors"
       )?.lastUpdatedLabel
     ).toBe(
       formatDeclarationReviewedLabel(

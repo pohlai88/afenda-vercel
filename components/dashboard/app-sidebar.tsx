@@ -22,7 +22,10 @@ import {
 } from "#components/ui/sidebar"
 import { AfendaBrandLockup } from "#components/afenda-brand"
 import { Link } from "#i18n/navigation"
-import type { DashboardNavModule } from "#lib/dashboard-module-paths"
+import {
+  DASHBOARD_NAV_MODULES,
+  type DashboardNavModule,
+} from "#lib/dashboard-module-paths"
 
 import {
   buildAdminNavItem,
@@ -67,16 +70,7 @@ export function AppSidebar({
   })
 
   const labels = Object.fromEntries(
-    [
-      "contacts",
-      "onething",
-      "knowledge",
-      "lynx",
-      "sale",
-      "purchase",
-      "inventory",
-      "accounting",
-    ].map((m) => [m, t(m as DashboardNavModule)])
+    DASHBOARD_NAV_MODULES.map((m) => [m, t(m)])
   ) as Record<DashboardNavModule, string>
 
   const navItems = buildDashboardNavItems(orgSlug, labels)

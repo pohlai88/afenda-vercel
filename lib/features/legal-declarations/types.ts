@@ -8,7 +8,7 @@ export type DeclarationSection = {
   readonly bullets?: readonly string[]
 }
 
-/** Locale-internal declaration keys. Most render under `/legal/`; cookies renders at `/cookies`. */
+/** Locale-internal declaration keys rendered under `/legal-docs/...`. */
 export type LegalDeclarationSlug =
   | "cookies"
   | "data-processing-addendum"

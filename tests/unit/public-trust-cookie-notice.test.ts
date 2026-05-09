@@ -10,10 +10,10 @@ import {
 } from "#features/public-trust"
 
 describe("cookie notice public trust contract", () => {
-  it("exposes a standalone cookie declaration at /cookies", () => {
-    expect(declarationDocuments.cookies.routeHref).toBe("/cookies")
+  it("exposes a standalone cookie declaration at /legal-docs/cookies", () => {
+    expect(declarationDocuments.cookies.routeHref).toBe("/legal-docs/cookies")
     expect(
-      declarationFooterLinks.some((link) => link.href === "/cookies")
+      declarationFooterLinks.some((link) => link.href === "/legal-docs/cookies")
     ).toBe(true)
   })
 
@@ -23,12 +23,12 @@ describe("cookie notice public trust contract", () => {
     )
 
     expect(cookieSurface).toMatchObject({
-      route: "/cookies",
+      route: "/legal-docs/cookies",
       state: "live",
       isPublicLink: true,
     })
     expect(cookieSurface?.activationRuleId).toBeUndefined()
-    expect(publicTrustIndexableRoutes).toContain("/cookies")
+    expect(publicTrustIndexableRoutes).toContain("/legal-docs/cookies")
   })
 
   it("does not claim non-essential tracking categories", () => {

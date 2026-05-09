@@ -8,5 +8,5 @@ alwaysApply: false
 
 - **Purpose:** local-only UX (e.g. sign-in shortcuts, `route-error-debug-panel.tsx`). Must stay **gated** (`NODE_ENV`, optional `NEXT_PUBLIC_*` — see `.env.config.example` §H).
 - **Do not** add routes, IAM, or ERP logic here.
-- **Do not** edit [`app/globals.css`](../../app/globals.css) for these surfaces. Style with existing semantic Tailwind tokens (`bg-card`, `border-border`, `text-muted-foreground`, `shadow-elevation-*`) plus **`#lib/design-system`** (`uiRadius`, `uiSurfaceElevation`, `uiStatusToneClasses`, surface spacing utilities).
+- **Do not** edit [`app/globals.css`](../../app/globals.css) for these surfaces. Style with existing semantic Tailwind tokens (`bg-card`, `border-border`, `text-muted-foreground`, `shadow-elevation-*`) plus **`#lib/design-system`** (`ui.*` preferred; legacy `uiRadius`, `uiSurfaceElevation`, `uiStatusToneClasses`, surface spacing utilities remain supported).
 - **Forbidden:** raw palette utilities (`bg-amber-*`, `text-blue-*`, etc.) — same spirit as `scripts/check-design-contract.mjs` for non-primitive app components.

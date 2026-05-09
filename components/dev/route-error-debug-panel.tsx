@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { Button } from "#components/ui/button"
 import type { RouteErrorSegment } from "#components/use-report-route-error"
-import { uiRadius, uiSurfaceElevation } from "#lib/design-system"
+import { ui } from "#lib/design-system"
 
 function serializeCause(cause: unknown, depth: number): unknown {
   if (depth > 10) return "[max depth]"
@@ -95,7 +95,7 @@ export function RouteErrorDebugPanel({
 
   return (
     <div
-      className={`mt-6 w-full max-w-2xl space-y-3 border border-border bg-card p-surface-md text-left ${uiRadius.section} ${uiSurfaceElevation.default}`}
+      className={`mt-6 w-full max-w-2xl space-y-3 border border-border bg-card p-surface-md text-left ${ui.radius.panel} ${ui.elevation.card}`}
       data-testid="route-error-debug-panel"
     >
       <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -112,7 +112,7 @@ export function RouteErrorDebugPanel({
         ) : null}
       </div>
       <pre
-        className={`max-h-80 overflow-auto border border-border bg-background p-3 font-mono text-xs break-words whitespace-pre-wrap text-muted-foreground ${uiRadius.chip}`}
+        className={`max-h-80 overflow-auto border border-border bg-background p-3 font-mono text-xs break-words whitespace-pre-wrap text-muted-foreground ${ui.radius.chip}`}
       >
         {error.stack ?? "(no stack)"}
       </pre>

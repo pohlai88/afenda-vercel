@@ -2,6 +2,8 @@
 
 Practical usage patterns for the most-used primitives and ERP compositions.
 
+Preferred naming follows **Primitive + intent + state**. Use normal primitive words from `#lib/design-system` (`ui.radius.card`, `ui.padding.card`, `ui.tone.warning`) instead of inventing product-specific visual nouns.
+
 ## Buttons
 
 Use semantic variants and sizes from `components/ui/button.tsx`. Default size uses token-backed padding (`py-surface-xs`, `px-3.5`) and solid hover fills (`bg-primary-hover`).
@@ -45,27 +47,26 @@ import { Label } from "#components/ui/label"
 
 ## Density (stack rhythm)
 
-Use `uiDensity` for vertical/horizontal gaps that must track `--density-comfortable` / `--density-compact` in `app/globals.css`:
+Use `ui.gap` for vertical/horizontal gaps that must track `--density-comfortable` / `--density-compact` in `app/globals.css`:
 
 ```tsx
 import { cn } from "#lib/utils"
-import { uiDensity } from "#lib/design-system"
+import { ui } from "#lib/design-system"
 
 export function StackedFields({ compact }: { compact?: boolean }) {
-  const density = compact ? uiDensity.compact : uiDensity.comfortable
+  const density = compact ? ui.gap.compact : ui.gap.comfortable
   return <div className={cn("flex flex-col", density)}>{/* fields */}</div>
 }
 ```
 
 ## Surface inset scale
 
-Prefer `p-surface-*` / `px-surface-*` / `gap-surface-*` over magic `p-4` / `p-6` for cards, sections, and scaffolds. Optional: use literals from `lib/design-system.ts`:
+Prefer `p-surface-*` / `px-surface-*` / `gap-surface-*` over magic `p-4` / `p-6` for cards, panels, and scaffolds. Optional: use literals from `lib/design-system.ts`:
 
 ```tsx
 import { cn } from "#lib/utils"
-import { uiSurfaceInset } from "#lib/design-system"
-
-;<section className={cn("border border-border bg-card", uiSurfaceInset.md)}>
+import { ui } from "#lib/design-system"
+;<section className={cn("border border-border bg-card", ui.padding.normal)}>
   {/* compact panel = 1rem inset */}
 </section>
 ```
@@ -89,7 +90,6 @@ import {
   TableHeader,
   TableRow,
 } from "#components/ui/table"
-
 ;<Table density="compact">
   <TableHeader>
     <TableRow>
@@ -99,6 +99,27 @@ import {
   </TableHeader>
   <TableBody>{/* rows */}</TableBody>
 </Table>
+```
+
+## Familiar UI aliases
+
+Use the `ui` object when composing primitive-adjacent classes directly:
+
+```tsx
+import { cn } from "#lib/utils"
+import { ui } from "#lib/design-system"
+;<article
+  className={cn(
+    "border border-border bg-card text-card-foreground",
+    ui.radius.card,
+    ui.padding.card,
+    ui.elevation.card
+  )}
+>
+  <span className={cn(ui.radius.chip, ui.tone.warning, "px-2 py-1 text-xs")}>
+    Needs review
+  </span>
+</article>
 ```
 
 ## Dashboard composition
@@ -125,4 +146,5 @@ Use module compositions from `lib/features/contacts/components`.
 - Prefer `#components/ui/*` primitives first
 - Keep feature-specific composition in `lib/features/<module>/components`
 - Avoid hardcoded palette colors in primitives; use semantic tokens from `app/globals.css`
+- Prefer `ui.*` aliases for direct class composition; legacy `uiRadius` / `uiSurfaceInset` exports remain supported
 - Editorial headings: use semantic `h1–h4` (globals `@layer base`); in-card titles: `uiTitle.sm` from `#lib/design-system`

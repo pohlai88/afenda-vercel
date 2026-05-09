@@ -1,8 +1,8 @@
 import type { ReactNode } from "react"
 
 import { Empty, EmptyDescription, EmptyTitle } from "#components/ui/empty"
+import { ui } from "#lib/design-system"
 import { cn } from "#lib/utils"
-import { uiRadius, uiSurfaceElevation } from "#lib/design-system"
 
 import { ModulePageHeader } from "./module-page-header"
 
@@ -35,8 +35,8 @@ export function ModuleScaffold({
       <section
         className={cn(
           "border border-border bg-card p-surface-md",
-          uiRadius.surface,
-          uiSurfaceElevation.default
+          ui.radius.card,
+          ui.elevation.card
         )}
       >
         <h3 className="mb-surface-sm text-sm font-medium text-foreground">

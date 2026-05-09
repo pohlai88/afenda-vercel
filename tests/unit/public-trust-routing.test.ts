@@ -8,6 +8,7 @@ import {
   securityDisclosureLink,
 } from "#features/legal-declarations"
 import {
+  fallbackOpenStatusSnapshot,
   publicTrustIndexableRoutes,
   publicTrustOwnerRoutes,
   securityTxtExpiresAt,
@@ -32,12 +33,13 @@ describe("public trust routing", () => {
       entries.map((entry) => [new URL(entry.url).pathname, entry])
     )
     expect(
-      byPath.get(toLocalePath(DEFAULT_APP_LOCALE, "/cookies"))?.lastModified
-    ).toEqual(declarationRouteReviewedAtByHref["/cookies"])
-    expect(
-      byPath.get(toLocalePath(DEFAULT_APP_LOCALE, "/legal/privacy"))
+      byPath.get(toLocalePath(DEFAULT_APP_LOCALE, "/legal-docs/cookies"))
         ?.lastModified
-    ).toEqual(declarationRouteReviewedAtByHref["/legal/privacy"])
+    ).toEqual(declarationRouteReviewedAtByHref["/legal-docs/cookies"])
+    expect(
+      byPath.get(toLocalePath(DEFAULT_APP_LOCALE, "/legal-docs/privacy"))
+        ?.lastModified
+    ).toEqual(declarationRouteReviewedAtByHref["/legal-docs/privacy"])
     expect(
       byPath.get(toLocalePath(DEFAULT_APP_LOCALE, "/"))?.lastModified
     ).toEqual(latestLegalDeclarationReviewedAt)
@@ -59,7 +61,7 @@ describe("public trust routing", () => {
     )
   })
 
-  it("keeps unbacked trust surfaces gated", () => {
+  it("keeps public trust routes truthful when status authority is missing", () => {
     expect(
       trustSurfaceDefinition.surfaces.filter(
         (surface) => surface.isPublicLink && surface.state !== "live"
@@ -68,7 +70,7 @@ describe("public trust routing", () => {
 
     expect(
       trustSurfaceDefinition.surfaces
-        .filter((surface) => ["/status"].includes(surface.route))
+        .filter((surface) => ["/legal-docs/status"].includes(surface.route))
         .map((surface) => ({
           route: surface.route,
           state: surface.state,
@@ -77,17 +79,27 @@ describe("public trust routing", () => {
         }))
     ).toEqual([
       {
-        route: "/status",
-        state: "planned",
-        isPublicLink: false,
-        activationRuleId: "TRUST-STATUS-001",
+        route: "/legal-docs/status",
+        state: "live",
+        isPublicLink: true,
+        activationRuleId: undefined,
       },
     ])
   })
 
-  it("promotes operational posture when OPENSTATUS_PUBLIC_STATUS_URL is configured", () => {
+  it("promotes operational posture when the OpenStatus authority is available", () => {
     const authority = "https://example.openstatus.dev"
-    const resolved = trustSurfaceDefinitionResolved(authority)
+    const resolved = trustSurfaceDefinitionResolved({
+      ...fallbackOpenStatusSnapshot({
+        publicStatusUrl: authority,
+        feedUrl: `${authority}/feed/json`,
+        reason: "missing-config",
+      }),
+      configured: true,
+      available: true,
+      publicStatusUrl: authority,
+      feedUrl: `${authority}/feed/json`,
+    })
 
     expect(
       resolved.currentPosture.find((p) => p.id === "operations-posture")
@@ -97,7 +109,9 @@ describe("public trust routing", () => {
     })
 
     expect(
-      resolved.surfaces.filter((surface) => surface.route === "/status")
+      resolved.surfaces.filter(
+        (surface) => surface.route === "/legal-docs/status"
+      )
     ).toMatchObject([
       {
         state: "live",
@@ -109,10 +123,5 @@ describe("public trust routing", () => {
     expect(
       resolved.evidence.some((e) => e.id === "evidence-openstatus-authority")
     ).toBe(true)
-
-    const statusRule = resolved.activationRules.find(
-      (r) => r.id === "TRUST-STATUS-001"
-    )
-    expect(statusRule?.requirements[0]).toContain(authority)
   })
 })

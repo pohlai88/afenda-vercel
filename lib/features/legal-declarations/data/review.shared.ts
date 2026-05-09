@@ -21,6 +21,7 @@ export const declarationStalePhrases = [
   "future trust route",
   "future trust routes",
   "becomes necessary",
+  "separate static routes",
   "should be treated as live",
   "before production scope depends on them",
 ] as const

@@ -129,7 +129,7 @@ export function StatusControlSurface({
                 Public availability evidence
               </p>
               <Link
-                href={"/legal/trust" as Route}
+                href={"/legal-docs/trust" as Route}
                 className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground"
               >
                 Trust surface

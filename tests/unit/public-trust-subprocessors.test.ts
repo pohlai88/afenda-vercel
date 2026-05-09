@@ -16,11 +16,13 @@ const documentCopy = document.sections
   .join(" ")
 
 describe("subprocessor public trust contract", () => {
-  it("exposes a standalone subprocessor declaration at /subprocessors", () => {
-    expect(document.routeHref).toBe("/subprocessors")
-    expect(subprocessorsLink.href).toBe("/subprocessors")
+  it("exposes a standalone subprocessor declaration at /legal-docs/subprocessors", () => {
+    expect(document.routeHref).toBe("/legal-docs/subprocessors")
+    expect(subprocessorsLink.href).toBe("/legal-docs/subprocessors")
     expect(
-      declarationFooterLinks.some((link) => link.href === "/subprocessors")
+      declarationFooterLinks.some(
+        (link) => link.href === "/legal-docs/subprocessors"
+      )
     ).toBe(true)
   })
 
@@ -30,12 +32,12 @@ describe("subprocessor public trust contract", () => {
     )
 
     expect(subprocessorSurface).toMatchObject({
-      route: "/subprocessors",
+      route: "/legal-docs/subprocessors",
       state: "live",
       isPublicLink: true,
     })
     expect(subprocessorSurface?.activationRuleId).toBeUndefined()
-    expect(publicTrustIndexableRoutes).toContain("/subprocessors")
+    expect(publicTrustIndexableRoutes).toContain("/legal-docs/subprocessors")
   })
 
   it("classifies current production and conditional processors", () => {

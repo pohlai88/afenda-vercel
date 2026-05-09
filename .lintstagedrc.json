@@ -1,0 +1,9 @@
+{
+  "*.{ts,tsx,mjs}": [
+    "eslint --cache --cache-location .artifacts/.eslintcache --max-warnings 0 --fix",
+    "prettier --write --cache --cache-location .artifacts/.prettiercache"
+  ],
+  "*.{css,json}": [
+    "prettier --write --cache --cache-location .artifacts/.prettiercache"
+  ]
+}

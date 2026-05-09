@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 
 import {
+  LEGAL_ROUTE_PREFIX,
   declarationRouteReviewedAtByHref,
   latestLegalDeclarationReviewedAt,
 } from "#features/legal-declarations"
@@ -14,7 +15,7 @@ import { getSiteUrl } from "#lib/site"
 
 function routePriority(path: AppPath): number {
   if (path === "/") return 1
-  if (path === "/legal/trust") return 0.8
+  if (path === `${LEGAL_ROUTE_PREFIX}/trust`) return 0.8
   return 0.7
 }
 

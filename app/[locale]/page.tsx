@@ -70,10 +70,13 @@ export default async function Page() {
         eyebrow={t("cookieConsent.eyebrow")}
         title={t("cookieConsent.title")}
         description={t("cookieConsent.description")}
-        comingSoonLabel={t("cookieConsent.comingSoon")}
+        statusLabel={t("cookieConsent.status")}
         acceptLabel={t("cookieConsent.accept")}
         rejectLabel={t("cookieConsent.reject")}
         manageLabel={t("cookieConsent.manage")}
+        acceptedStateLabel={t("cookieConsent.acceptedState")}
+        rejectedStateLabel={t("cookieConsent.rejectedState")}
+        stateHintLabel={t("cookieConsent.stateHint")}
       />
     </div>
   )

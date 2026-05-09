@@ -1,5 +1,5 @@
 /**
- * Static declaration registry for public `/legal/*` routes (ported from afenda-next marketing).
+ * Static declaration registry for public `/legal-docs/*` routes (ported from afenda-next marketing).
  */
 import type { Metadata } from "next"
 
@@ -11,7 +11,7 @@ import type {
   DeclarationRelatedLink,
   LegalDeclarationSlug,
 } from "../types"
-import { formatDeclarationReviewedLabel, maxReviewedAt } from "../review.shared"
+import { formatDeclarationReviewedLabel, maxReviewedAt } from "./review.shared"
 
 import {
   cookieNoticeLink,
@@ -48,6 +48,9 @@ const ownerRoutes = {
 } as const
 
 export const declarationDocumentSlugs = [
+  "cookies",
+  "data-processing-addendum",
+  "subprocessors",
   "privacy",
   "terms",
   "security",
@@ -58,20 +61,8 @@ export const declarationDocumentSlugs = [
 export type DeclarationDocumentSlug = (typeof declarationDocumentSlugs)[number]
 export type DeclarationSlug = DeclarationDocumentSlug
 
-export const declarationRouteSlugs = declarationDocumentSlugs
-
-export type DeclarationRouteSlug = (typeof declarationRouteSlugs)[number]
-
-export const declarationRouteHrefs = [
-  "/cookies",
-  "/data-processing-addendum",
-  "/subprocessors",
-  "/legal/privacy",
-  "/legal/terms",
-  "/legal/security",
-  "/legal/security/disclosure",
-  "/legal/support",
-] as const
+/** Route segments published under `/legal-docs/*` — same keys as {@link declarationDocumentSlugs}. */
+export type DeclarationRouteSlug = DeclarationDocumentSlug
 
 export { declarationFooterIdentity, declarationFooterLinks }
 
@@ -110,6 +101,7 @@ const PGVECTOR_URL = "https://github.com/pgvector/pgvector"
 
 const COOKIE_REPO_REFS = [
   "lib/auth/neon-session-cookie.shared.ts",
+  "components/marketing/cookie-consent-preview.tsx",
   "components/ui/sidebar.tsx",
   "components/dashboard/app-sidebar.tsx",
   "components/dashboard/inspector-context.tsx",
@@ -176,7 +168,7 @@ function buildRelatedLinks(
 export const declarationDocuments = {
   cookies: {
     slug: "cookies",
-    routeHref: "/cookies",
+    routeHref: "/legal-docs/cookies",
     title: "Cookie Notice",
     description:
       "Afenda describes the essential cookies, local storage, and session technologies used on current public and product surfaces, including authentication, security, route continuity, interface preferences, and future notice requirements before any non-essential tracking category is introduced.",
@@ -211,12 +203,14 @@ export const declarationDocuments = {
         body: [
           "The current first-party storage set is limited to authentication/session handling, locale continuity, and product interface preferences. Preference cookies are short-lived and scoped to the Afenda site.",
           "Known product preference storage includes dashboard sidebar and inspector state, dashboard panel widths, and the Lynx floating control position. These values preserve the user interface the user selected and are not used for advertising, retargeting, or cross-site profiling.",
+          "The landing-page cookie banner stores the visitor's current consent review choice in localStorage so the same browser can remember whether the notice was accepted or rejected while the site remains essential-only.",
         ],
         bullets: [
           "__Secure-neon-auth.session_token for authentication and session continuity.",
           "NEXT_LOCALE for locale-aware route continuity.",
           "sidebar_state, sidebar_width, inspector_state, and inspector_width for dashboard layout preferences.",
           "afenda:lynx-summon-fab-pos in localStorage for the Lynx floating control position.",
+          "afenda:cookie-consent-choice in localStorage for the current cookie-notice review choice.",
         ],
       },
       {
@@ -232,6 +226,7 @@ export const declarationDocuments = {
         title: "User controls",
         body: [
           "Users can control cookies through their browser settings. Blocking or deleting essential cookies may affect authentication, session persistence, security checks, and other necessary site functions.",
+          "The landing-page cookie banner records an accept or reject review choice in the browser, but that choice does not disable essential storage because no non-essential category is live on the current public surface.",
           "Afenda does not currently show a non-essential cookie preference center because no non-essential category is confirmed on the live surface. If such a category is introduced, an appropriate control surface should be added with the same release.",
         ],
       },
@@ -244,7 +239,7 @@ export const declarationDocuments = {
         ],
       },
     ],
-    relatedLinks: buildRelatedLinks("/cookies"),
+    relatedLinks: buildRelatedLinks("/legal-docs/cookies"),
     contactChannels: privacyChannels,
     reviewedAt: declarationReviewedAt,
     sourceRefs: [...COOKIE_REPO_REFS],
@@ -253,7 +248,7 @@ export const declarationDocuments = {
   },
   "data-processing-addendum": {
     slug: "data-processing-addendum",
-    routeHref: "/data-processing-addendum",
+    routeHref: "/legal-docs/data-processing-addendum",
     title: "Data Processing Addendum",
     description:
       "Afenda publishes a Malaysia PDPA-aligned data processing addendum route for customers who need written processing terms, statutory section mapping, and a clear request path before production processing begins.",
@@ -323,7 +318,7 @@ export const declarationDocuments = {
           "Act 709 section 129 governs transfers of personal data outside Malaysia. The 2024 Amendment Act section 12 updates that cross-border transfer framework. Customer-specific residency, transfer posture, and safeguard requirements are handled before production processing begins.",
         ],
         bullets: [
-          "Subprocessor detail is published at /subprocessors and should be reviewed before production scope depends on a vendor, region, or AI-processing path.",
+          "Subprocessor detail is published at /legal-docs/subprocessors and should be reviewed before production scope depends on a vendor, region, or AI-processing path.",
           "Cross-border processing travels with contractual, security, access, and due-diligence controls appropriate to the service boundary.",
           "Customer-specific residency, transfer, or vendor-review requirements are handled before production processing begins.",
         ],
@@ -362,7 +357,7 @@ export const declarationDocuments = {
         ],
       },
     ],
-    relatedLinks: buildRelatedLinks("/data-processing-addendum", [
+    relatedLinks: buildRelatedLinks("/legal-docs/data-processing-addendum", [
       trustRouteLink,
       cookieNoticeLink,
     ]),
@@ -371,7 +366,7 @@ export const declarationDocuments = {
     sourceRefs: [
       PDPA_ACT_URL,
       PDPA_AMENDMENT_URL,
-      "/subprocessors",
+      "/legal-docs/subprocessors",
       "lib/features/legal-declarations/data/footer.shared.ts",
     ],
     statusNote:
@@ -380,7 +375,7 @@ export const declarationDocuments = {
   },
   subprocessors: {
     slug: "subprocessors",
-    routeHref: "/subprocessors",
+    routeHref: "/legal-docs/subprocessors",
     title: "Subprocessors",
     description:
       "Afenda publishes a reviewed vendor inventory showing which services are current or conditional subprocessors, which tools are not production processors in the present repository, and which official vendor sources were used for the review.",
@@ -451,7 +446,7 @@ export const declarationDocuments = {
         ],
       },
     ],
-    relatedLinks: buildRelatedLinks("/subprocessors", [
+    relatedLinks: buildRelatedLinks("/legal-docs/subprocessors", [
       dataProcessingAddendumLink,
       trustRouteLink,
     ]),
@@ -561,18 +556,18 @@ export const declarationDocuments = {
         title: "Cookies and session technologies",
         body: [
           "Current public surfaces use essential cookies and session technologies required for authentication, security, and route continuity. These controls help preserve signed-in state, session integrity, and abuse prevention on Afenda-operated pages.",
-          "Afenda publishes a separate /cookies route for the current essential-only posture. If non-essential tracking is introduced later, Afenda will update that notice to name the categories, purposes, and user controls before treating those categories as live.",
+          "Afenda publishes a separate /legal-docs/cookies route for the current essential-only posture. If non-essential tracking is introduced later, Afenda will update that notice to name the categories, purposes, and user controls before treating those categories as live.",
         ],
       },
     ],
-    relatedLinks: buildRelatedLinks("/legal/privacy", [cookieNoticeLink]),
+    relatedLinks: buildRelatedLinks("/legal-docs/privacy", [cookieNoticeLink]),
     contactChannels: privacyChannels,
     reviewedAt: declarationReviewedAt,
     sourceRefs: [
       PDPA_ACT_URL,
       PDPA_AMENDMENT_URL,
-      "/cookies",
-      "/subprocessors",
+      "/legal-docs/cookies",
+      "/legal-docs/subprocessors",
       "lib/features/legal-declarations/data/footer.shared.ts",
     ],
     statusNote: declarationStatusNote,
@@ -641,12 +636,12 @@ export const declarationDocuments = {
         ],
       },
     ],
-    relatedLinks: buildRelatedLinks("/legal/terms"),
+    relatedLinks: buildRelatedLinks("/legal-docs/terms"),
     contactChannels: [supportChannels[0]!, privacyChannels[0]!],
     reviewedAt: declarationReviewedAt,
     sourceRefs: [
       "lib/features/legal-declarations/data/footer.shared.ts",
-      "app/[locale]/legal/[...slug]/page.tsx",
+      "app/[locale]/legal-docs/[...slug]/page.tsx",
     ],
     statusNote: declarationStatusNote,
     lastUpdatedLabel: declarationLastUpdatedLabel,
@@ -694,7 +689,7 @@ export const declarationDocuments = {
         title: "Incident and vulnerability reporting",
         body: [
           "Security questions, suspected vulnerabilities, or trust review requests should be sent through support@nexuscanon.com with a clear security or trust-review subject line. Include enough context for Afenda to reproduce the issue, understand severity, and assign the correct owner.",
-          "Afenda publishes a separate disclosure route at /legal/security/disclosure so scope, safe harbor, and expected report format are explicit instead of implied.",
+          "Afenda publishes a separate disclosure route at /legal-docs/security/disclosure so scope, safe harbor, and expected report format are explicit instead of implied.",
         ],
       },
       {
@@ -706,13 +701,13 @@ export const declarationDocuments = {
         ],
       },
     ],
-    relatedLinks: buildRelatedLinks("/legal/security", [
+    relatedLinks: buildRelatedLinks("/legal-docs/security", [
       securityDisclosureLink,
     ]),
     contactChannels: securityChannels,
     reviewedAt: declarationReviewedAt,
     sourceRefs: [
-      "/legal/security/disclosure",
+      "/legal-docs/security/disclosure",
       "/.well-known/security.txt",
       "app/.well-known/security.txt/route.ts",
       "lib/features/public-trust/data/trust-surface.fixture.shared.ts",
@@ -794,7 +789,7 @@ export const declarationDocuments = {
         ],
       },
     ],
-    relatedLinks: buildRelatedLinks("/legal/security/disclosure"),
+    relatedLinks: buildRelatedLinks("/legal-docs/security/disclosure"),
     contactChannels: securityChannels,
     reviewedAt: declarationReviewedAt,
     sourceRefs: [
@@ -842,8 +837,8 @@ export const declarationDocuments = {
         id: "declaration-index",
         title: "Declaration index",
         body: [
-          "The public declaration set is intentionally small and explicit. Privacy, terms, security, trust, and support are kept as separate static routes so enterprise buyers and regional stakeholders can find the right statement quickly.",
-          "The current public declaration set also includes /cookies, /subprocessors, and /data-processing-addendum as separate bounded routes rather than folding them into a generic support page.",
+          "The public declaration set is intentionally small and explicit. Privacy, terms, security, trust, and support are kept as separate public routes so enterprise buyers and regional stakeholders can find the right statement quickly.",
+          "The current public declaration set also includes /legal-docs/cookies, /legal-docs/subprocessors, and /legal-docs/data-processing-addendum as separate bounded routes rather than folding them into a generic support page.",
         ],
       },
       {
@@ -855,13 +850,13 @@ export const declarationDocuments = {
         ],
       },
     ],
-    relatedLinks: buildRelatedLinks("/legal/support", [trustRouteLink]),
+    relatedLinks: buildRelatedLinks("/legal-docs/support", [trustRouteLink]),
     contactChannels: supportChannels,
     reviewedAt: declarationReviewedAt,
     sourceRefs: [
-      "/cookies",
-      "/subprocessors",
-      "/data-processing-addendum",
+      "/legal-docs/cookies",
+      "/legal-docs/subprocessors",
+      "/legal-docs/data-processing-addendum",
       "lib/features/legal-declarations/data/footer.shared.ts",
     ],
     statusNote: declarationStatusNote,
@@ -869,10 +864,18 @@ export const declarationDocuments = {
   },
 } satisfies Record<LegalDeclarationSlug, DeclarationDocumentDefinition>
 
+export const declarationRouteHrefs = Object.freeze(
+  (
+    Object.values(
+      declarationDocuments
+    ) as readonly DeclarationDocumentDefinition[]
+  ).map((document) => document.routeHref ?? `/legal-docs/${document.slug}`)
+) as readonly `/${string}`[]
+
 export const declarationRouteReviewedAtByHref = Object.fromEntries(
   (Object.values(declarationDocuments) as DeclarationDocumentDefinition[]).map(
     (document) => [
-      document.routeHref ?? `/legal/${document.slug}`,
+      document.routeHref ?? `/legal-docs/${document.slug}`,
       document.reviewedAt,
     ]
   )
@@ -888,7 +891,7 @@ export function buildLegalDeclarationMetadata(
   locale: string,
   document: DeclarationDocumentDefinition
 ): Metadata {
-  const documentPath = document.routeHref ?? `/legal/${document.slug}`
+  const documentPath = document.routeHref ?? `/legal-docs/${document.slug}`
   const canonicalPath = `/${locale}${documentPath}`
   const base = getSiteUrl().replace(/\/$/, "")
   const canonicalUrl = `${base}${canonicalPath}`

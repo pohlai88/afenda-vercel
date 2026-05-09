@@ -10,7 +10,7 @@ Reviewed on `2026-05-09` against repository evidence and official source pages o
 
 ## Removed Or Rewritten
 
-- Removed stale support-page language that treated `/subprocessors` and `/data-processing-addendum` as future routes.
+- Removed stale support-page language that treated `/legal-docs/subprocessors` and `/legal-docs/data-processing-addendum` as future routes.
 - Rewrote DPA copy that overreached into unsupported legal-basis detail and converted it to section-mapped, source-backed public baseline wording.
 - Rewrote subprocessor copy to distinguish:
   current production or conditional processors,

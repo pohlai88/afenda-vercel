@@ -22,12 +22,15 @@
     "demoButton": "Button",
     "cookieConsent": {
       "eyebrow": "Cookie consent",
-      "title": "Consent controls are coming soon.",
-      "description": "Afenda currently uses essential storage only. Accept and reject controls are prepared for future non-essential categories and are disabled until those categories are live.",
-      "comingSoon": "Coming soon",
+      "title": "Essential storage is active.",
+      "description": "Afenda currently uses essential storage only. Accept or reject records that you reviewed this notice. Essential storage remains required for sign-in, locale continuity, security, and interface preferences.",
+      "status": "Essential only",
       "accept": "Accept",
       "reject": "Reject",
-      "manage": "Cookie notice"
+      "manage": "Cookie notice",
+      "acceptedState": "Saved in this browser: accepted. Essential storage remains active.",
+      "rejectedState": "Saved in this browser: rejected. No non-essential categories are active.",
+      "stateHint": "Your selection is stored in this browser so you can revisit the notice later."
     }
   },
   "Auth": {
@@ -190,6 +193,7 @@
       "label": "Dashboard modules",
       "contacts": "Contacts",
       "onething": "OneThing",
+      "ithink": "iThink",
       "lynx": "Lynx",
       "knowledge": "Knowledge",
       "sale": "Sale",

@@ -16,7 +16,7 @@ export type TrustPostureSignal = {
   readonly ownerRoute: string
   readonly proofSource: string
   readonly lastUpdatedLabel: string
-  /** Locale-internal path (`/legal/...`) or absolute OpenStatus / vendor authority URL. */
+  /** Locale-internal path (`/legal-docs/...`) or absolute OpenStatus / vendor authority URL. */
   readonly href?: string
 }
 
@@ -40,7 +40,7 @@ export type TrustSurfaceItem = {
   readonly lastUpdatedLabel: string
   readonly isPublicLink: boolean
   readonly activationRuleId?: string
-  /** OpenStatus (or other) authority URL shown beside the branded /status wrapper. */
+  /** OpenStatus (or other) authority URL shown beside the branded `/legal-docs/status` wrapper. */
   readonly authorityUrl?: string
 }
 

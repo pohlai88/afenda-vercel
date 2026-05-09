@@ -226,7 +226,7 @@ for (const file of files) {
 
 if (failed) {
   console.error(`
-Fix: import uiRadius / uiTitle / uiTracking / uiSurfaceInset from #lib/design-system, or extend the allowlist with a short comment in PR.
+Fix: import ui.* aliases or legacy uiRadius / uiTitle / uiTracking / uiSurfaceInset from #lib/design-system, or extend the allowlist with a short comment in PR.
 Spacing rhythm: use Tailwind's spacing scale, p-surface-* / gap-surface-*, gap-density-*, or var(--token); avoid arbitrary p-[…] / gap-[…] literals.
 Keep @theme inline var() references aligned with :root / .dark in app/globals.css.
 `)

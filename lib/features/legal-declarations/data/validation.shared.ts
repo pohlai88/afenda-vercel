@@ -1,16 +1,18 @@
-import { DEFAULT_APP_LOCALE } from "../../../lib/i18n/locales.shared"
+import { DEFAULT_APP_LOCALE } from "#lib/i18n/locales.shared"
 
 import {
   buildLegalDeclarationMetadata,
   declarationDocuments,
   declarationRouteHrefs,
-  formatDeclarationReviewedLabel,
+} from "./declaration-registry.shared"
+import {
   collectDeclarationCopy,
   declarationPlaceholderPatterns,
   declarationStalePhrases,
+  formatDeclarationReviewedLabel,
   isHttpSourceRef,
-} from "./index"
-import type { DeclarationDocumentDefinition } from "./types"
+} from "./review.shared"
+import type { DeclarationDocumentDefinition } from "../types"
 
 export type DeclarationValidationIssue = {
   readonly kind: "error" | "warning"
@@ -26,6 +28,7 @@ const REQUIRED_COOKIE_FACTS = [
   "inspector_state",
   "inspector_width",
   "afenda:lynx-summon-fab-pos",
+  "afenda:cookie-consent-choice",
 ] as const
 
 const REQUIRED_SUBPROCESSOR_FACTS = [
@@ -52,7 +55,7 @@ export function validateDeclarationRegistry(): DeclarationValidationIssue[] {
   for (const [slug, document] of Object.entries(
     declarationDocuments as Record<string, DeclarationDocumentDefinition>
   )) {
-    const routeHref = document.routeHref ?? `/legal/${document.slug}`
+    const routeHref = document.routeHref ?? `/legal-docs/${document.slug}`
     const allCopy = [
       document.title,
       document.description,
@@ -135,9 +138,9 @@ export function validateDeclarationRegistry(): DeclarationValidationIssue[] {
       .find((section) => section.id === "declaration-index")
       ?.body.join(" ") ?? ""
   for (const route of [
-    "/subprocessors",
-    "/data-processing-addendum",
-    "/cookies",
+    "/legal-docs/subprocessors",
+    "/legal-docs/data-processing-addendum",
+    "/legal-docs/cookies",
   ]) {
     if (!supportIndexCopy.includes(route)) {
       issues.push({

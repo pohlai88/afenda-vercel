@@ -19,6 +19,7 @@ function isAllowedForwardedOrgAdminSegment(segment: string): boolean {
 export const ORG_DASHBOARD_MODULES = [
   "contacts",
   "onething",
+  "ithink",
   "knowledge",
   "lynx",
   "sale",

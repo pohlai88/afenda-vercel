@@ -15,7 +15,6 @@ export {
   declarationFooterLinks,
   declarationRouteReviewedAtByHref,
   declarationRouteHrefs,
-  declarationRouteSlugs,
   latestLegalDeclarationReviewedAt,
 } from "./data/declaration-registry.shared"
 
@@ -40,4 +39,10 @@ export {
   formatDeclarationReviewedLabel,
   isHttpSourceRef,
   maxReviewedAt,
-} from "./review.shared"
+} from "./data/review.shared"
+
+export {
+  validateDeclarationRegistry,
+  validateOfficialSourceRefs,
+  type DeclarationValidationIssue,
+} from "./data/validation.shared"

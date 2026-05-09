@@ -11,14 +11,16 @@ import {
 } from "#features/public-trust"
 
 describe("data processing addendum public trust contract", () => {
-  it("exposes a standalone DPA declaration at /data-processing-addendum", () => {
+  it("exposes a standalone DPA declaration at /legal-docs/data-processing-addendum", () => {
     expect(declarationDocuments["data-processing-addendum"].routeHref).toBe(
-      "/data-processing-addendum"
+      "/legal-docs/data-processing-addendum"
     )
-    expect(dataProcessingAddendumLink.href).toBe("/data-processing-addendum")
+    expect(dataProcessingAddendumLink.href).toBe(
+      "/legal-docs/data-processing-addendum"
+    )
     expect(
       declarationFooterLinks.some(
-        (link) => link.href === "/data-processing-addendum"
+        (link) => link.href === "/legal-docs/data-processing-addendum"
       )
     ).toBe(true)
   })
@@ -29,12 +31,14 @@ describe("data processing addendum public trust contract", () => {
     )
 
     expect(dpaSurface).toMatchObject({
-      route: "/data-processing-addendum",
+      route: "/legal-docs/data-processing-addendum",
       state: "live",
       isPublicLink: true,
     })
     expect(dpaSurface?.activationRuleId).toBeUndefined()
-    expect(publicTrustIndexableRoutes).toContain("/data-processing-addendum")
+    expect(publicTrustIndexableRoutes).toContain(
+      "/legal-docs/data-processing-addendum"
+    )
   })
 
   it("cites the Malaysia PDPA sections used for the DPA baseline", () => {

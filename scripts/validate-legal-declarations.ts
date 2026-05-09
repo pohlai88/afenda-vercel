@@ -6,12 +6,10 @@ import {
   declarationRouteHrefs,
   isHttpSourceRef,
   securityDisclosureLink,
-} from "#features/legal-declarations"
-import {
   validateDeclarationRegistry,
   validateOfficialSourceRefs,
   type DeclarationValidationIssue,
-} from "#features/legal-declarations/validation.shared"
+} from "#features/legal-declarations"
 import {
   publicTrustOwnerRoutes,
   securityTxtExpiresAt,

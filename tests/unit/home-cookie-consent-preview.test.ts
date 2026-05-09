@@ -15,34 +15,43 @@ describe("landing cookie consent preview", () => {
 
     expect(page).toContain("CookieConsentPreview")
     expect(page).toContain("LandingFooter")
-    expect(page).toContain('t("cookieConsent.comingSoon")')
+    expect(page).toContain('t("cookieConsent.status")')
   })
 
-  it("keeps accept and reject controls disabled while coming soon", () => {
+  it("persists an active cookie-notice choice in browser storage", () => {
     const component = readProjectFile(
       "components",
       "marketing",
       "cookie-consent-preview.tsx"
     )
 
-    expect(component).toContain("comingSoonLabel")
-    expect(component).toContain('href={"/cookies"')
+    expect(component).toContain("statusLabel")
+    expect(component).toContain('href={"/legal-docs/cookies"')
+    expect(component).toContain("afenda:cookie-consent-choice")
     expect(component).toContain("rejectLabel")
     expect(component).toContain("acceptLabel")
-    expect(component.match(/disabled/g)?.length ?? 0).toBeGreaterThanOrEqual(2)
-    expect(component).not.toContain("document.cookie")
-    expect(component).not.toContain("localStorage")
+    expect(component).toContain("localStorage.setItem")
+    expect(component).toContain('persistChoice("accepted")')
+    expect(component).toContain('persistChoice("rejected")')
   })
 
-  it("ships home copy that marks the controls as coming soon", () => {
+  it("ships home copy for a live essential-only cookie bar", () => {
     const messages = JSON.parse(
       readProjectFile("messages", "en.json")
     ) as typeof import("../../messages/en.json")
 
-    expect(messages.Home.cookieConsent.comingSoon).toBe("Coming soon")
-    expect(messages.Home.cookieConsent.description).toContain("disabled")
+    expect(messages.Home.cookieConsent.status).toBe("Essential only")
+    expect(messages.Home.cookieConsent.title).toBe(
+      "Essential storage is active."
+    )
     expect(messages.Home.cookieConsent.description).toContain(
-      "future non-essential categories"
+      "Accept or reject records that you reviewed this notice"
+    )
+    expect(messages.Home.cookieConsent.acceptedState).toContain(
+      "Essential storage remains active"
+    )
+    expect(messages.Home.cookieConsent.rejectedState).toContain(
+      "No non-essential categories are active"
     )
   })
 })

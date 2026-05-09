@@ -4,6 +4,8 @@ This document defines the canonical mapping between Figma variables/components a
 
 **Doctrine:** Code (`app/globals.css`, `lib/design-system.ts`, `components/ui`) is truth. Figma mirrors this document **after** code and local stability (`lint`, `typecheck`, `build`); do not start Figma integration until that bar is green. Do not invent Figma-only variant names ahead of code.
 
+Naming doctrine: **Primitive + intent + state**. Figma and code should use familiar primitive names (`card`, `panel`, `dialog`, `popover`, `sheet`, `toolbar`, `table`) and avoid product-philosophy visual aliases.
+
 **Prerequisite:** Repo design-system docs and tokens are **finalized for the current slice** — see [`governance.md`](governance.md).
 
 ## Canonical Figma file
@@ -74,24 +76,24 @@ This document defines the canonical mapping between Figma variables/components a
 
 ### Spacing — surface inset + density
 
-| Figma variable (suggested)  | CSS variable            | Tailwind utility (examples)      | `lib/design-system.ts`        |
-| --------------------------- | ----------------------- | -------------------------------- | ----------------------------- |
-| `space.surface.xs`          | `--space-surface-xs`    | `p-surface-xs`, `gap-surface-xs` | `uiSurfaceInset.xs`, key `xs` |
-| `space.surface.sm`          | `--space-surface-sm`    | `p-surface-sm`, `px-surface-sm`  | `sm`                          |
-| `space.surface.md`          | `--space-surface-md`    | `p-surface-md`                   | `md`                          |
-| `space.surface.lg`          | `--space-surface-lg`    | `p-surface-lg`, `py-surface-lg`  | `lg`                          |
-| `space.surface.xl`          | `--space-surface-xl`    | `p-surface-xl`                   | `xl`                          |
-| `space.surface.2xl`         | `--space-surface-2xl`   | `p-surface-2xl`                  | `2xl`                         |
-| `density.stack.comfortable` | `--density-comfortable` | `gap-density-comfortable`        | `uiDensity.comfortable`       |
-| `density.stack.compact`     | `--density-compact`     | `gap-density-compact`            | `uiDensity.compact`           |
+| Figma variable (suggested)  | CSS variable            | Tailwind utility (examples)      | `lib/design-system.ts`                         |
+| --------------------------- | ----------------------- | -------------------------------- | ---------------------------------------------- |
+| `space.surface.xs`          | `--space-surface-xs`    | `p-surface-xs`, `gap-surface-xs` | `uiSurfaceInset.xs`, key `xs`                  |
+| `space.surface.sm`          | `--space-surface-sm`    | `p-surface-sm`, `px-surface-sm`  | `uiSurfaceInset.sm`, `ui.padding.dense`        |
+| `space.surface.md`          | `--space-surface-md`    | `p-surface-md`                   | `uiSurfaceInset.md`, `ui.padding.normal`       |
+| `space.surface.lg`          | `--space-surface-lg`    | `p-surface-lg`, `py-surface-lg`  | `uiSurfaceInset.lg`, `ui.padding.card`         |
+| `space.surface.xl`          | `--space-surface-xl`    | `p-surface-xl`                   | `uiSurfaceInset.xl`, `ui.padding.roomy`        |
+| `space.surface.2xl`         | `--space-surface-2xl`   | `p-surface-2xl`                  | `uiSurfaceInset["2xl"]`, `ui.padding.spacious` |
+| `density.stack.comfortable` | `--density-comfortable` | `gap-density-comfortable`        | `uiDensity.comfortable`, `ui.gap.comfortable`  |
+| `density.stack.compact`     | `--density-compact`     | `gap-density-compact`            | `uiDensity.compact`, `ui.gap.compact`          |
 
 ### Elevation + motion
 
-| Kind         | CSS variables                     | Tailwind / code                                                    |
-| ------------ | --------------------------------- | ------------------------------------------------------------------ |
-| Shadow L1–L3 | `--elevation-1` … `--elevation-3` | `shadow-elevation-1` … `shadow-elevation-3` → `uiSurfaceElevation` |
-| Duration     | `--motion-duration-fast` …        | `duration-*` / animation tokens from `@theme`                      |
-| Easing       | `--motion-ease-standard` …        | easing tokens from `@theme`                                        |
+| Kind         | CSS variables                     | Tailwind / code                                                                     |
+| ------------ | --------------------------------- | ----------------------------------------------------------------------------------- |
+| Shadow L1–L3 | `--elevation-1` … `--elevation-3` | `shadow-elevation-1` … `shadow-elevation-3` → `uiSurfaceElevation` / `ui.elevation` |
+| Duration     | `--motion-duration-fast` …        | `duration-*` / animation tokens from `@theme`                                       |
+| Easing       | `--motion-ease-standard` …        | easing tokens from `@theme`                                                         |
 
 ### Radius + typography
 
@@ -110,24 +112,31 @@ This document defines the canonical mapping between Figma variables/components a
 
 ### Radius mapping (full `uiRadius`)
 
-| Figma variable (suggested)  | Tailwind / code                     | `lib/design-system.ts`        |
-| --------------------------- | ----------------------------------- | ----------------------------- |
-| `radius.control`            | `rounded-lg`                        | `uiRadius.control`            |
-| `radius.chip`               | `rounded-md`                        | `uiRadius.chip`               |
-| `radius.surface`            | `rounded-2xl`                       | `uiRadius.surface`            |
-| `radius.surfaceTop`         | `rounded-t-2xl`                     | `uiRadius.surfaceTop`         |
-| `radius.surfaceBottom`      | `rounded-b-2xl`                     | `uiRadius.surfaceBottom`      |
-| `radius.surfaceMediaTop`    | `*:[img:first-child]:rounded-t-2xl` | `uiRadius.surfaceMediaTop`    |
-| `radius.surfaceMediaBottom` | `*:[img:last-child]:rounded-b-2xl`  | `uiRadius.surfaceMediaBottom` |
-| `radius.section`            | `rounded-xl`                        | `uiRadius.section`            |
+| Figma variable (suggested)  | Tailwind / code                     | `lib/design-system.ts`                  |
+| --------------------------- | ----------------------------------- | --------------------------------------- |
+| `radius.control`            | `rounded-lg`                        | `uiRadius.control`, `ui.radius.control` |
+| `radius.chip`               | `rounded-md`                        | `uiRadius.chip`, `ui.radius.chip`       |
+| `radius.card`               | `rounded-2xl`                       | `uiRadius.card`, `ui.radius.card`       |
+| `radius.panel`              | `rounded-xl`                        | `uiRadius.panel`, `ui.radius.panel`     |
+| `radius.dialog`             | `rounded-2xl`                       | `uiRadius.dialog`, `ui.radius.dialog`   |
+| `radius.popover`            | `rounded-xl`                        | `uiRadius.popover`, `ui.radius.popover` |
+| `radius.sheet`              | `rounded-2xl`                       | `uiRadius.sheet`, `ui.radius.sheet`     |
+| `radius.table`              | `rounded-xl`                        | `uiRadius.table`, `ui.radius.table`     |
+| `radius.surface`            | `rounded-2xl`                       | `uiRadius.surface`, legacy alias        |
+| `radius.surfaceTop`         | `rounded-t-2xl`                     | `uiRadius.surfaceTop`                   |
+| `radius.surfaceBottom`      | `rounded-b-2xl`                     | `uiRadius.surfaceBottom`                |
+| `radius.surfaceMediaTop`    | `*:[img:first-child]:rounded-t-2xl` | `uiRadius.surfaceMediaTop`              |
+| `radius.surfaceMediaBottom` | `*:[img:last-child]:rounded-b-2xl`  | `uiRadius.surfaceMediaBottom`           |
+| `radius.section`            | `rounded-xl`                        | `uiRadius.section`, legacy alias        |
 
 ### Elevation mapping (`uiSurfaceElevation`)
 
-| Figma effect (suggested) | Tailwind             | Code                          |
-| ------------------------ | -------------------- | ----------------------------- |
-| `elevation.default`      | `shadow-elevation-1` | `uiSurfaceElevation.default`  |
-| `elevation.raised`       | `shadow-elevation-2` | `uiSurfaceElevation.raised`   |
-| `elevation.floating`     | `shadow-elevation-3` | `uiSurfaceElevation.floating` |
+| Figma effect (suggested) | Tailwind             | Code                                                   |
+| ------------------------ | -------------------- | ------------------------------------------------------ |
+| `elevation.flat`         | `shadow-none`        | `ui.elevation.flat`                                    |
+| `elevation.card`         | `shadow-elevation-1` | `uiSurfaceElevation.default`, `ui.elevation.card`      |
+| `elevation.raised`       | `shadow-elevation-2` | `uiSurfaceElevation.raised`, `ui.elevation.raised`     |
+| `elevation.floating`     | `shadow-elevation-3` | `uiSurfaceElevation.floating`, `ui.elevation.floating` |
 
 **Card:** Root card uses `uiSurfaceElevation.default` plus `ring-1 ring-foreground/5` (see `components/ui/card.tsx`).
 

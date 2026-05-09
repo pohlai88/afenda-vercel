@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useEffect, useRef, useTransition } from "react"
 import {
   BookOpen,
+  Brain,
   Building2,
   Calculator,
   CheckSquare,
@@ -44,6 +45,7 @@ const MODULE_ICONS: Record<
 > = {
   contacts: Users,
   onething: CheckSquare,
+  ithink: Brain,
   knowledge: BookOpen,
   sale: ShoppingCart,
   purchase: Package,

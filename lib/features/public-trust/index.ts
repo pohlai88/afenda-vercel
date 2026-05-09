@@ -22,6 +22,7 @@ export {
 } from "./data/openstatus-status.shared"
 
 export {
+  STATUS_ROUTE,
   buildTrustPageMetadata,
   publicTrustIndexableRoutes,
   publicTrustOwnerRoutes,

@@ -6,6 +6,8 @@
 
 **Code is truth. Figma is the visual mirror. CI is the enforcement layer.**
 
+Naming doctrine: **Primitive + intent + state**. Keep product philosophy in behavior; code-facing names should stay familiar (`card`, `panel`, `dialog`, `toolbar`, `table`) and route through the governed `ui.*` aliases in `#lib/design-system`.
+
 Ship order when evolving the design system:
 
 1. **Code + schemas** (`app/globals.css`, `lib/design-system.ts`, `components/ui`)
@@ -22,18 +24,18 @@ This repository uses a shadcn-style primitive layer in `components/ui` and ERP m
 
 ## Source of truth (finalized stack)
 
-| Layer                   | Location                             | Responsibility                                                                                                                                         |
-| ----------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Semantic tokens**     | `app/globals.css` (`:root`, `.dark`) | OKLCH palette, elevation, motion, density, surface spacing scale, `color-scheme`                                                                       |
-| **Tailwind bridge**     | `app/globals.css` (`@theme inline`)  | Maps CSS variables → utilities (`bg-primary`, `p-surface-md`, `shadow-elevation-*`, `gap-density-*`, …)                                                |
-| **Primitive contracts** | `lib/design-system.ts`               | Allowlisted radii, elevations, density/surface class strings, Zod parsers, button/badge/card keys                                                      |
-| **Primitives**          | `components/ui`                      | CVA variants, `data-slot`, hover/focus behavior                                                                                                        |
+| Layer                   | Location                             | Responsibility                                                                                                                                                                                                               |
+| ----------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Semantic tokens**     | `app/globals.css` (`:root`, `.dark`) | OKLCH palette, elevation, motion, density, surface spacing scale, `color-scheme`                                                                                                                                             |
+| **Tailwind bridge**     | `app/globals.css` (`@theme inline`)  | Maps CSS variables → utilities (`bg-primary`, `p-surface-md`, `shadow-elevation-*`, `gap-density-*`, …)                                                                                                                      |
+| **Primitive contracts** | `lib/design-system.ts`               | Preferred `ui.*` aliases, allowlisted radii, elevations, density/surface class strings, Zod parsers, button/badge/card keys                                                                                                  |
+| **Primitives**          | `components/ui`                      | CVA variants, `data-slot`, hover/focus behavior                                                                                                                                                                              |
 | **Drift gate**          | `scripts/check-design-contract.mjs`  | Scans `app/`, `components/`, `hooks/`, `lib/features/`, `lib/design-system.ts`; `@theme` ↔ `:root`/`.dark` parity; primitive hover/radius/shadow rules; arbitrary spacing rhythm rule (`p-[…]`, `gap-[…]`, `space-[xy]-[…]`) |
 
 ## Non-negotiable rules
 
 - Use semantic color tokens only (no raw palette utilities in `components/ui/*`).
-- Reuse `uiRadius`, `uiTracking`, `uiSurfaceElevation`, `uiDensity`, `uiSurfaceInset` / `uiSurfaceSpaceKeys`, and schema guards from `lib/design-system.ts`.
+- Prefer the `ui.*` aliases from `lib/design-system.ts` for primitive class composition. Legacy exports (`uiRadius`, `uiSurfaceElevation`, `uiDensity`, `uiSurfaceInset`, `uiStatusToneClasses`) remain supported for compatibility and direct parser/schema work.
 - On filled primary/secondary controls in `components/ui`, use `bg-primary-hover` / `bg-secondary-hover` — not `hover:bg-primary/…` or `hover:bg-secondary/…` (CI enforces).
 - Spacing rhythm (`p-*`, `m*`, `gap-*`, `space-[xy]-*`) must come from the token scale: Tailwind's spacing scale, `p-surface-*` / `gap-surface-*` (`--space-surface-*`), or `gap-density-*` (`--density-*`). Arbitrary literals (`p-[12px]`, `gap-[7px]`) are forbidden; CSS-variable references (`var(--…)` / `--spacing(var(--…))`) remain allowed for primitives that drive spacing dynamically.
 - Keep primitive anatomy discoverable with stable `data-slot` attributes.
@@ -55,7 +57,7 @@ Authoritative values are only in `app/globals.css`. Summary for orientation:
 When adding a new variant/size/state:
 
 1. Update primitive CVA (or props) in `components/ui`
-2. Update `lib/design-system.ts` type/schema exports (`buttonVariantKeys`, `badgeVariantKeys`, `cardSizeKeys`, `uiSurfaceSpaceKeys`, etc.)
+2. Update `lib/design-system.ts` type/schema exports (`ui`, `uiPrimitiveKeys`, `buttonVariantKeys`, `badgeVariantKeys`, `cardSizeKeys`, `uiSurfaceSpaceKeys`, etc.)
 3. Add or update usage in feature components as needed
 4. Update `docs/design-system/figma-code-connect-mapping.md` for Figma naming parity
 5. Update Figma library properties **after** local stability — same release train as code, never Figma-first
@@ -93,7 +95,7 @@ For visual checks, test dashboard and sign-in flows in both light and dark theme
 **Synchronized for finalization:**
 
 - `app/globals.css` — structured `:root` / `.dark`, `@theme inline` bridge, surface + density tokens, hover variant
-- `lib/design-system.ts` — `uiDensity` uses token-backed `gap-density-*`; `uiSurfaceSpaceKeys`, `uiSurfaceInset`, `parseUiSurfaceSpaceKey`
+- `lib/design-system.ts` — preferred `ui.*` aliases; `uiDensity` uses token-backed `gap-density-*`; `uiSurfaceSpaceKeys`, `uiSurfaceInset`, `parseUiSurfaceSpaceKey`
 - `docs/design-system/*` — this file, mapping doc, primitive audit, usage examples aligned with the above
 - `scripts/check-design-contract.mjs` — scans `app/`, `components/`, `hooks/`, `lib/features/`, `lib/design-system.ts`; `@theme` variable parity
 - `eslint.config.mjs` — `lib/features/**` may not import `radix-ui` / `@radix-ui/*` / `@base-ui/react` (primitives only via `#components/ui/*`)

@@ -1,5 +1,5 @@
 /**
- * Static trust-surface data for `/legal/trust`. Locale-internal routes use the `/legal/*` prefix.
+ * Static trust-surface data for `/legal-docs/trust`. Locale-internal routes use the `/legal-docs/*` prefix.
  */
 import type { Metadata } from "next"
 
@@ -11,6 +11,7 @@ import {
 } from "#features/legal-declarations"
 import { DEFAULT_OG_IMAGE, SITE_NAME, getSiteUrl } from "#lib/site"
 
+import type { OpenStatusPublicSnapshot } from "./openstatus-status.shared"
 import type {
   TrustActivationRule,
   TrustBoundaryStatement,
@@ -52,6 +53,10 @@ export const publicTrustOwnerRoutes = {
 } as const
 
 const L = LEGAL_ROUTE_PREFIX
+const COOKIE_ROUTE = declarationDocuments.cookies.routeHref
+const DPA_ROUTE = declarationDocuments["data-processing-addendum"].routeHref
+const SUBPROCESSORS_ROUTE = declarationDocuments.subprocessors.routeHref
+export const STATUS_ROUTE = `${L}/status` as const
 
 function declarationRouteLabel(
   slug: keyof typeof declarationDocuments
@@ -60,9 +65,10 @@ function declarationRouteLabel(
 }
 
 export const publicTrustIndexableRoutes = [
-  "/cookies",
-  "/data-processing-addendum",
-  "/subprocessors",
+  COOKIE_ROUTE,
+  DPA_ROUTE,
+  SUBPROCESSORS_ROUTE,
+  STATUS_ROUTE,
   `${L}/privacy`,
   `${L}/terms`,
   `${L}/security`,
@@ -86,12 +92,13 @@ const trustPostureSignals = [
   {
     id: "operations-posture",
     label: "Operational status posture",
-    state: "withheld",
+    state: "live",
     summary:
-      "Afenda does not publish uptime or incident posture until the OpenStatus workspace, monitors, incident reports, maintenance publishing, and CI synthetic checks are configured.",
+      "Afenda publishes a public status route now. OpenStatus remains the intended availability authority, and the status route discloses source-health gaps instead of hiding them.",
     ownerRoute: publicTrustOwnerRoutes.support.value,
-    proofSource: "Status remains gated by TRUST-STATUS-001.",
+    proofSource: `Backed by the live ${STATUS_ROUTE} route and its current source-health disclosure.`,
     lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    href: STATUS_ROUTE,
   },
   {
     id: "data-handling-posture",
@@ -114,7 +121,7 @@ const trustEvidenceItems = [
     statement:
       "Afenda has a live privacy notice, commercial boundary, support route, cookie notice, data processing addendum route, and subprocessor inventory. The privacy notice names the Malaysia-established operator, the customer-controlled workflow boundary, and the current cookie posture instead of hiding that detail behind sales process.",
     href: `${L}/privacy`,
-    proofSource: `Backed by ${L}/privacy, ${L}/terms, ${L}/support, /cookies, /data-processing-addendum, and /subprocessors.`,
+    proofSource: `Backed by ${L}/privacy, ${L}/terms, ${L}/support, ${COOKIE_ROUTE}, ${DPA_ROUTE}, and ${SUBPROCESSORS_ROUTE}.`,
     lastUpdatedLabel: declarationRouteLabel("privacy"),
   },
   {
@@ -125,6 +132,15 @@ const trustEvidenceItems = [
     href: `${L}/security/disclosure`,
     proofSource: `Backed by ${L}/security/disclosure and ${securityTxtHref}.`,
     lastUpdatedLabel: declarationRouteLabel("security/disclosure"),
+  },
+  {
+    id: "evidence-status",
+    title: "Status route is public",
+    statement:
+      "Afenda publishes a public status wrapper even when the OpenStatus source needs remediation. The route stays visible so source-health gaps are declared rather than hidden.",
+    href: STATUS_ROUTE,
+    proofSource: `Backed by ${STATUS_ROUTE}.`,
+    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
   },
   {
     id: "evidence-boundaries",
@@ -146,7 +162,7 @@ const trustEvidenceItems = [
   },
 ] satisfies readonly TrustEvidenceItem[]
 
-const trustSurfaceItems = [
+const trustSurfaceItems: readonly TrustSurfaceItem[] = [
   {
     id: "surface-trust",
     label: "Trust control surface",
@@ -235,21 +251,20 @@ const trustSurfaceItems = [
   {
     id: "surface-status",
     label: "Status",
-    route: "/status",
-    state: "planned",
+    route: STATUS_ROUTE,
+    state: "live",
     summary:
-      "Branded wrapper implementation is prepared, but the public status surface remains gated until OpenStatus Cloud monitors, incident history, maintenance publishing, and CI synthetic checks are configured.",
+      "Public availability route that reflects OpenStatus when available and discloses source-health gaps when the authority is unconfigured or unavailable.",
     ownerRoute: publicTrustOwnerRoutes.support.value,
     proofSource:
-      "Planned with OpenStatus Cloud as the public availability authority. The route must not become a live trust claim until external monitors and publishing workflow exist.",
+      "The route is public now and names OpenStatus as the availability authority without inventing uptime claims.",
     lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
-    isPublicLink: false,
-    activationRuleId: "TRUST-STATUS-001",
+    isPublicLink: true,
   },
   {
     id: "surface-subprocessors",
     label: "Subprocessors",
-    route: "/subprocessors",
+    route: SUBPROCESSORS_ROUTE,
     state: "live",
     summary:
       "Public vendor inventory classifying production subprocessors, conditional processors, development tools, and software components.",
@@ -262,7 +277,7 @@ const trustSurfaceItems = [
   {
     id: "surface-dpa",
     label: "Data processing addendum",
-    route: "/data-processing-addendum",
+    route: DPA_ROUTE,
     state: "live",
     summary:
       "Public Malaysia PDPA-aligned DPA baseline with statutory section mapping, owner route, and request handling path.",
@@ -275,7 +290,7 @@ const trustSurfaceItems = [
   {
     id: "surface-cookies",
     label: "Cookie notice",
-    route: "/cookies",
+    route: COOKIE_ROUTE,
     state: "live",
     summary:
       "Public cookie notice covering the current essential/auth/session/local storage posture and the control rule for future non-essential categories.",
@@ -284,7 +299,7 @@ const trustSurfaceItems = [
     lastUpdatedLabel: declarationRouteLabel("cookies"),
     isPublicLink: true,
   },
-] satisfies readonly TrustSurfaceItem[]
+]
 
 const trustCommitments = [
   {
@@ -364,22 +379,9 @@ const trustBoundaryStatements = [
 
 const trustActivationRules = [
   {
-    id: "TRUST-STATUS-001",
-    surfaceLabel: "Status",
-    route: "/status",
-    requirements: [
-      "An OpenStatus Cloud workspace and Afenda Status page exist.",
-      "Production monitors exist for the public homepage, sign-in, health endpoint, trust/privacy routes, and status wrapper.",
-      "Incident history is persisted in OpenStatus status reports.",
-      "Maintenance events can be published through OpenStatus maintenance windows.",
-      "GitHub synthetic checks run through the OpenStatus GitHub Action with an explicit config path.",
-      "No hardcoded uptime percentages or fake availability claims exist.",
-    ],
-  },
-  {
     id: "TRUST-SUBPROC-001",
     surfaceLabel: "Subprocessors",
-    route: "/subprocessors",
+    route: SUBPROCESSORS_ROUTE,
     requirements: [
       "Vendor inventory is verified.",
       "Service purpose is defined.",
@@ -389,7 +391,7 @@ const trustActivationRules = [
   {
     id: "TRUST-DPA-001",
     surfaceLabel: "Data processing addendum",
-    route: "/data-processing-addendum",
+    route: DPA_ROUTE,
     requirements: [
       "A request intake path exists.",
       "An owner route exists.",
@@ -399,7 +401,7 @@ const trustActivationRules = [
   {
     id: "TRUST-COOKIE-001",
     surfaceLabel: "Cookie notice",
-    route: "/cookies",
+    route: COOKIE_ROUTE,
     requirements: [
       "The route names the currently verified cookie categories.",
       "Essential/auth/session/local storage is described without implying non-essential tracking.",
@@ -417,17 +419,17 @@ const trustActivationRules = [
   },
 ] satisfies readonly TrustActivationRule[]
 
-export const trustSurfaceDefinition = {
+export const trustSurfaceDefinition: TrustSurfaceDefinition = {
   eyebrow: "Canonical public assurance surface",
   title: "Trust",
   summary:
     "Afenda exposes public trust as bound operational truth: named routes, named owner paths, explicit evidence, and explicit boundaries.",
   description:
-    "This surface shows what is publicly live, what is proven, what remains withheld, and which activation rules govern future trust pages.",
+    "This surface shows what is publicly live, what is proven, what claims remain intentionally absent, and which activation rules govern future trust pages.",
   doctrine:
     "Afenda does not present trust as claims. It exposes trust as verifiable, time-bound operational truth.",
   statusNote:
-    "Only routes with real public backing are active. Planned and withheld routes are named here so their absence is explicit rather than implied away.",
+    "Only routes with real public backing are active. Claims without backing stay absent, and activation rules remain visible so future trust surfaces ship deliberately.",
   lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
   currentPosture: trustPostureSignals,
   evidence: trustEvidenceItems,
@@ -435,57 +437,101 @@ export const trustSurfaceDefinition = {
   commitments: trustCommitments,
   boundaries: trustBoundaryStatements,
   activationRules: trustActivationRules,
-} satisfies TrustSurfaceDefinition
+}
 
 /**
- * When `OPENSTATUS_PUBLIC_STATUS_URL` is set, operational posture and `/status` surface are treated as live.
- * Tests keep using {@link trustSurfaceDefinition} (withheld baseline).
+ * Status is always public. When an OpenStatus authority is available, this resolver
+ * enriches the trust surface with the authority URL and live-source wording.
  */
 export function trustSurfaceDefinitionResolved(
-  openStatusPublicUrl: string | undefined | null
+  statusSnapshot?: OpenStatusPublicSnapshot | null
 ): TrustSurfaceDefinition {
-  const authority = openStatusPublicUrl?.trim()
-  if (!authority) return trustSurfaceDefinition
+  const authority = statusSnapshot?.publicStatusUrl?.trim()
+  const configured = Boolean(statusSnapshot?.configured)
+  const available = Boolean(statusSnapshot?.available)
+
+  const operationsPosture =
+    authority && available
+      ? {
+          state: "live" as const,
+          summary: `Operational availability and incidents are published through OpenStatus (${authority}). Afenda does not maintain a parallel uptime narrative; the branded ${STATUS_ROUTE} route summarizes the same authority.`,
+          proofSource: `Public OpenStatus monitors and status page; Afenda consumes the feed for ${STATUS_ROUTE}.`,
+          href: authority,
+        }
+      : configured
+        ? {
+            state: "live" as const,
+            summary: `Operational availability is declared publicly on ${STATUS_ROUTE}. OpenStatus is configured as the authority, and the route currently discloses that the feed is unavailable so operators can remediate it.`,
+            proofSource: `The public ${STATUS_ROUTE} route is live and exposes the current OpenStatus source-health gap instead of hiding it.`,
+            href: STATUS_ROUTE,
+          }
+        : {
+            state: "live" as const,
+            summary: `Operational availability is declared publicly on ${STATUS_ROUTE}. The route currently shows that the OpenStatus authority is not configured yet, which remains an operational gap to close before availability reporting is mature.`,
+            proofSource: `The public ${STATUS_ROUTE} route is live and names the missing OpenStatus configuration explicitly.`,
+            href: STATUS_ROUTE,
+          }
+
+  const statusSurface =
+    authority && available
+      ? {
+          state: "live" as const,
+          isPublicLink: true,
+          summary: `Branded ${STATUS_ROUTE} reflects the OpenStatus JSON feed. The authority page carries full component history and incidents.`,
+          proofSource: `OpenStatus authority + Afenda wrapper (${STATUS_ROUTE}).`,
+          authorityUrl: authority,
+        }
+      : configured
+        ? {
+            state: "live" as const,
+            isPublicLink: true,
+            summary: `Public ${STATUS_ROUTE} remains live while the OpenStatus feed is temporarily unavailable. The route discloses the gap and keeps the authority model explicit.`,
+            proofSource: `The live ${STATUS_ROUTE} route reports that the configured OpenStatus source is currently unavailable.`,
+            authorityUrl: authority,
+          }
+        : {
+            state: "live" as const,
+            isPublicLink: true,
+            summary: `Public ${STATUS_ROUTE} is live and currently reports that OpenStatus has not been configured yet.`,
+            proofSource: `The live ${STATUS_ROUTE} route names the missing OpenStatus authority configuration.`,
+            authorityUrl: undefined,
+          }
 
   return {
     ...trustSurfaceDefinition,
     statusNote:
-      "OpenStatus is the public availability authority; Afenda /status reflects its JSON feed. Surfaces without backing stay withheld.",
+      authority && available
+        ? `OpenStatus is the public availability authority; Afenda ${STATUS_ROUTE} reflects its JSON feed. Claims without backing stay absent.`
+        : configured
+          ? `Afenda ${STATUS_ROUTE} remains public while the configured OpenStatus source is unhealthy. Source-health gaps are disclosed here until remediation lands.`
+          : `Afenda ${STATUS_ROUTE} remains public even before OpenStatus is configured. The missing authority setup is disclosed here until the availability source is wired.`,
     currentPosture: trustSurfaceDefinition.currentPosture.map((p) =>
       p.id === "operations-posture"
         ? {
             ...p,
-            state: "live",
-            summary: `Operational availability and incidents are published through OpenStatus (${authority}). Afenda does not maintain a parallel uptime narrative; the branded /status route summarizes the same authority.`,
-            proofSource:
-              "Public OpenStatus monitors and status page; Afenda consumes the feed for /status.",
-            href: authority,
+            ...operationsPosture,
           }
         : p
     ),
-    evidence: [
-      ...trustSurfaceDefinition.evidence,
-      {
-        id: "evidence-openstatus-authority",
-        title: "Availability authority is named",
-        statement:
-          "Incidents, components, and maintenance are communicated through OpenStatus. Afenda's /status route is an evidence-oriented wrapper, not a replacement authority.",
-        href: "/status",
-        proofSource: `Afenda /status plus OpenStatus (${authority}).`,
-        lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
-      },
-    ],
+    evidence:
+      authority && available
+        ? [
+            ...trustSurfaceDefinition.evidence,
+            {
+              id: "evidence-openstatus-authority",
+              title: "Availability authority is named",
+              statement: `Incidents, components, and maintenance are communicated through OpenStatus. Afenda's ${STATUS_ROUTE} route is an evidence-oriented wrapper, not a replacement authority.`,
+              href: STATUS_ROUTE,
+              proofSource: `Afenda ${STATUS_ROUTE} plus OpenStatus (${authority}).`,
+              lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+            },
+          ]
+        : trustSurfaceDefinition.evidence,
     surfaces: trustSurfaceDefinition.surfaces.map((s) =>
       s.id === "surface-status"
         ? {
             ...s,
-            state: "live",
-            isPublicLink: true,
-            summary:
-              "Branded /status reflects the OpenStatus JSON feed. The authority page carries full component history and incidents.",
-            proofSource: "OpenStatus authority + Afenda wrapper (/status).",
-            activationRuleId: undefined,
-            authorityUrl: authority,
+            ...statusSurface,
           }
         : s
     ),
@@ -497,20 +543,6 @@ export function trustSurfaceDefinitionResolved(
               "Afenda does not publish contractual uptime SLAs or availability percentages. Signals and incidents use the public OpenStatus authority without implying an SLA.",
           }
         : b
-    ),
-    activationRules: trustSurfaceDefinition.activationRules.map((rule) =>
-      rule.id === "TRUST-STATUS-001"
-        ? {
-            ...rule,
-            requirements: [
-              `Afenda is configured to read the public OpenStatus JSON feed from ${authority} (wrapped at /status).`,
-              "Expand monitors to match `.openstatus/production.yaml` (CLI `openstatus monitors apply`) so checks cover homepage, auth entry, health API, trust/privacy, and the status wrapper.",
-              "Publish incidents and maintenance in OpenStatus when customer-visible disruption occurs.",
-              "Keep GitHub synthetics wired: secret OPENSTATUS_API_TOKEN and `.openstatus/ci.yaml` ids (`pnpm openstatus:sync-ci`).",
-              "Do not publish uptime percentages or synthetic SLA claims without a separate contractual instrument.",
-            ],
-          }
-        : rule
     ),
   }
 }

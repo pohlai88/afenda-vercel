@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react"
 import {
   BookOpen,
+  Brain,
   Building2,
   Calculator,
   CheckSquare,
@@ -29,6 +30,7 @@ export type NavItem = {
 const MODULE_ICONS: Record<Exclude<DashboardNavModule, "lynx">, LucideIcon> = {
   contacts: Users,
   onething: CheckSquare,
+  ithink: Brain,
   knowledge: BookOpen,
   sale: ShoppingCart,
   purchase: Package,

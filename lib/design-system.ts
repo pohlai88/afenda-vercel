@@ -8,13 +8,39 @@ import { z } from "zod"
  * - Use Zod when variant names come from JSON/CMS/API so invalid values fail at runtime.
  * - CI: `pnpm run lint` runs ESLint (import boundaries) + `scripts/check-design-contract.mjs`
  *   (banned radii / shadows / arbitrary rounded outside allowlist under app/, components/, hooks/, lib/features/).
- * - Spacing: `uiSurfaceSpaceKeys` / `uiSurfaceInset` mirror `app/globals.css` `--space-surface-*` (Tailwind `*-surface-*`).
+ * - Preferred API: `ui.*` aliases use familiar primitive names while reusing the
+ *   legacy exports below for compatibility.
+ * - Spacing: `uiSurfaceSpaceKeys` / `uiSurfaceInset` mirror `app/globals.css`
+ *   `--space-surface-*` (Tailwind `*-surface-*`).
  */
+
+export const uiPrimitiveKeys = [
+  "button",
+  "input",
+  "badge",
+  "card",
+  "panel",
+  "dialog",
+  "popover",
+  "sheet",
+  "toolbar",
+  "table",
+] as const
+
+export type UiPrimitive = (typeof uiPrimitiveKeys)[number]
+
+export const uiPrimitiveSchema = z.enum(uiPrimitiveKeys)
 
 /** Radius roles — single source for keys + Zod (keep in sync with `scripts/check-design-contract.mjs` allowlist). */
 export const uiRadiusKeys = [
   "control",
   "chip",
+  "card",
+  "panel",
+  "dialog",
+  "popover",
+  "sheet",
+  "table",
   "surface",
   "surfaceTop",
   "surfaceBottom",
@@ -30,6 +56,13 @@ export const uiRadius = {
   control: "rounded-lg",
   /** Badges, kbd, compact chips */
   chip: "rounded-md",
+  /** Preferred aliases for familiar UI primitives */
+  card: "rounded-2xl",
+  panel: "rounded-xl",
+  dialog: "rounded-2xl",
+  popover: "rounded-xl",
+  sheet: "rounded-2xl",
+  table: "rounded-xl",
   /** Cards, dialogs, popovers, command surfaces */
   surface: "rounded-2xl",
   /** Top / bottom caps for media-in-card patterns */
@@ -47,6 +80,12 @@ export const uiRadiusKeySchema = z.enum(uiRadiusKeys)
 export const uiRadiusClassSchema = z.enum([
   uiRadius.control,
   uiRadius.chip,
+  uiRadius.card,
+  uiRadius.panel,
+  uiRadius.dialog,
+  uiRadius.popover,
+  uiRadius.sheet,
+  uiRadius.table,
   uiRadius.surface,
   uiRadius.surfaceTop,
   uiRadius.surfaceBottom,
@@ -66,13 +105,16 @@ export const uiTracking = {
  * Vertical rhythm between stacked blocks — mirrors `:root` `--density-comfortable` / `--density-compact`
  * (`1rem` / `0.75rem`) via Tailwind `gap-density-*` utilities from `@theme inline`.
  */
-export const uiDensity = {
-  comfortable: "gap-density-comfortable",
-  compact: "gap-density-compact",
-} as const
+export const uiDensityKeys = ["compact", "comfortable"] as const
 
-export const uiDensitySchema = z.enum(["comfortable", "compact"])
-export type UiDensity = z.infer<typeof uiDensitySchema>
+export type UiDensity = (typeof uiDensityKeys)[number]
+
+export const uiDensity = {
+  compact: "gap-density-compact",
+  comfortable: "gap-density-comfortable",
+} as const satisfies Record<UiDensity, string>
+
+export const uiDensitySchema = z.enum(uiDensityKeys)
 
 /** Keys for `--space-surface-*` in `app/globals.css` → `p-surface-*`, `gap-surface-*`, etc. */
 export const uiSurfaceSpaceKeys = ["xs", "sm", "md", "lg", "xl", "2xl"] as const
@@ -130,6 +172,51 @@ export const uiSurfaceElevationSchema = z.enum([
   "floating",
 ])
 export type UiSurfaceElevation = z.infer<typeof uiSurfaceElevationSchema>
+
+export const uiPriorityKeys = ["low", "normal", "high", "critical"] as const
+
+export type UiPriority = (typeof uiPriorityKeys)[number]
+
+export const uiPrioritySchema = z.enum(uiPriorityKeys)
+
+export const ui = {
+  radius: {
+    control: uiRadius.control,
+    chip: uiRadius.chip,
+    card: uiRadius.card,
+    panel: uiRadius.panel,
+    dialog: uiRadius.dialog,
+    popover: uiRadius.popover,
+    sheet: uiRadius.sheet,
+    table: uiRadius.table,
+    surface: uiRadius.surface,
+    section: uiRadius.section,
+  },
+  padding: {
+    dense: uiSurfaceInset.sm,
+    normal: uiSurfaceInset.md,
+    card: uiSurfaceInset.lg,
+    roomy: uiSurfaceInset.xl,
+    spacious: uiSurfaceInset["2xl"],
+  },
+  gap: {
+    compact: uiDensity.compact,
+    comfortable: uiDensity.comfortable,
+  },
+  elevation: {
+    flat: "shadow-none",
+    card: uiSurfaceElevation.default,
+    raised: uiSurfaceElevation.raised,
+    floating: uiSurfaceElevation.floating,
+  },
+  tone: uiStatusToneClasses,
+  priority: {
+    low: "opacity-70",
+    normal: "",
+    high: "ring-1 ring-border",
+    critical: "ring-1 ring-critical/35",
+  },
+} as const
 
 /** Button variants — keep in sync with `components/ui/button.tsx` */
 export const buttonVariantKeys = [
@@ -206,6 +293,10 @@ export function parseCardSize(value: unknown): CardSize {
   return cardSizeSchema.parse(value)
 }
 
+export function parseUiPrimitive(value: unknown): UiPrimitive {
+  return uiPrimitiveSchema.parse(value)
+}
+
 export function parseUiDensity(value: unknown): UiDensity {
   return uiDensitySchema.parse(value)
 }
@@ -228,4 +319,8 @@ export function parseUiRadiusClass(value: unknown): UiRadiusClass {
 
 export function parseUiSurfaceSpaceKey(value: unknown): UiSurfaceSpaceKey {
   return uiSurfaceSpaceSchema.parse(value)
+}
+
+export function parseUiPriority(value: unknown): UiPriority {
+  return uiPrioritySchema.parse(value)
 }

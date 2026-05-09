@@ -28,7 +28,7 @@ describe("landing footer", () => {
       expect.arrayContaining([
         expect.objectContaining({ href: trustRouteLink.href }),
         expect.objectContaining({ href: securityDisclosureLink.href }),
-        expect.objectContaining({ href: "/cookies" }),
+        expect.objectContaining({ href: "/legal-docs/cookies" }),
       ])
     )
     expect(landingFooterActionLinks).toEqual(
