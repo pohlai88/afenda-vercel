@@ -1,18 +1,50 @@
 import type { Route } from "next"
-import Image from "next/image"
 import type { AnchorHTMLAttributes, ReactNode } from "react"
 import { Link } from "#i18n/navigation"
 
+import { AfendaBrandLockup } from "#components/afenda-brand"
 import { LEGAL_ROUTE_PREFIX } from "#features/legal-declarations"
 import type {
   TrustControlSurfaceProps,
   TrustSurfaceItem,
   TrustSurfaceState,
 } from "#features/public-trust"
-import { BRAND_COMBINED_LOCKUP_SVG } from "#lib/site"
 import { cn } from "#lib/utils"
 
 const trustPageHref = `${LEGAL_ROUTE_PREFIX}/trust`
+
+const trustSectionLinks = [
+  {
+    href: "#posture",
+    label: "Current posture",
+    description: "What is publicly declared right now.",
+  },
+  {
+    href: "#evidence",
+    label: "Evidence",
+    description: "What is proven and when it was last updated.",
+  },
+  {
+    href: "#surfaces",
+    label: "Surfaces",
+    description: "Live, planned, and withheld trust routes.",
+  },
+  {
+    href: "#commitments",
+    label: "Commitments",
+    description: "How Afenda routes trust-sensitive work.",
+  },
+  {
+    href: "#boundaries",
+    label: "Boundaries",
+    description: "What Afenda explicitly does not claim.",
+  },
+  {
+    href: "#activation-rules",
+    label: "Activation rules",
+    description: "What must exist before new trust routes ship.",
+  },
+] as const
 
 function TrustHref({
   href,
@@ -103,29 +135,29 @@ export function TrustControlSurface({
   legalIdentity,
   footerLinks,
 }: TrustControlSurfaceProps) {
+  const statusAuthorityUrl = definition.surfaces.find(
+    (s) => s.id === "surface-status"
+  )?.authorityUrl
+
   return (
     <main className="afenda-trust-surface min-h-svh bg-background pb-16 text-foreground">
-      <div className="mx-auto w-[min(100%-48px,1260px)] pt-6 sm:w-[min(100%-24px,1260px)] sm:pt-4">
+      <div className="mx-auto w-full max-w-[1240px] px-4 pt-4 sm:px-6">
         <header className="border-b border-border pt-4 pb-8">
           <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
             <TrustHref
               href="/"
-              className="inline-flex max-w-[214px] shrink-0 items-center text-inherit no-underline"
-              aria-label="Afenda public landing"
+              className="inline-flex max-w-[214px] shrink-0 text-inherit no-underline"
+              aria-label="Afenda home"
             >
-              <Image
-                src={BRAND_COMBINED_LOCKUP_SVG}
-                alt="Afenda"
-                width={1800}
-                height={488}
-                sizes="(max-width: 680px) min(58vw, 192px), 214px"
-                className="block h-auto w-[min(214px,58vw)]"
+              <AfendaBrandLockup
+                className="max-w-[min(214px,58vw)]"
+                imgClassName="object-left"
                 priority
               />
             </TrustHref>
 
-            <div className="grid justify-items-end gap-2.5 sm:justify-items-end">
-              <p className="m-0 text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
+            <div className="flex flex-col items-start gap-2.5 sm:items-end">
+              <p className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
                 Canonical public assurance surface
               </p>
               <TrustHref
@@ -137,140 +169,207 @@ export function TrustControlSurface({
             </div>
           </div>
 
-          <div className="align-end mt-8 grid gap-7 lg:grid-cols-[minmax(0,1.36fr)_minmax(320px,0.88fr)] lg:gap-x-8 xl:gap-x-9">
+          <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.95fr)] lg:items-end">
             <div>
-              <p className="m-0 text-[0.72rem] font-bold tracking-[0.16em] text-primary uppercase">
+              <p className="text-[0.72rem] font-bold tracking-[0.16em] text-primary uppercase">
                 {definition.eyebrow}
               </p>
-              <h1 className="mt-3.5 text-[2.58rem] leading-[0.98] font-semibold tracking-tight text-balance sm:text-5xl lg:text-[4.5rem]">
+              <h1 className="mt-3.5 text-[2.52rem] leading-[0.98] font-semibold tracking-tight text-balance sm:text-5xl lg:text-[4.4rem]">
                 {definition.title}
               </h1>
-              <p className="mt-5 max-w-[780px] text-[0.96rem] leading-relaxed text-muted-foreground sm:text-[1.08rem] sm:leading-loose">
+              <p className="mt-5 max-w-[760px] text-[0.96rem] leading-relaxed text-muted-foreground sm:text-[1.08rem] sm:leading-loose">
                 {definition.summary}
-              </p>
-              <p className="mt-5 max-w-[760px] text-[0.98rem] leading-relaxed text-muted-foreground">
-                {definition.description}
               </p>
             </div>
 
-            <section
-              className="grid gap-3.5 rounded-lg border border-border bg-gradient-to-br from-card to-muted/40 p-5 shadow-elevation-1 sm:p-6"
-              aria-label="Trust doctrine"
-            >
-              <p className="m-0 text-[0.68rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
-                Doctrine
-              </p>
-              <p className="m-0 text-[1.08rem] leading-relaxed font-semibold text-foreground">
-                {definition.doctrine}
-              </p>
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5">
-                <span className="text-[0.92rem] leading-snug text-muted-foreground">
-                  {definition.statusNote}
-                </span>
-                <span className="text-xs leading-relaxed text-muted-foreground">
-                  {definition.lastUpdatedLabel}
-                </span>
+            <dl className="grid gap-3.5 rounded-lg border border-border bg-card p-4 shadow-elevation-1 sm:grid-cols-2 sm:p-5">
+              <div className="grid min-w-0 gap-2">
+                <dt className="text-[0.7rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                  Entity
+                </dt>
+                <dd className="m-0 text-sm leading-snug font-semibold">
+                  {legalIdentity.legalEntityName}
+                </dd>
               </div>
-            </section>
+              <div className="grid min-w-0 gap-2">
+                <dt className="text-[0.7rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                  Public route
+                </dt>
+                <dd className="m-0 text-sm leading-snug font-semibold">
+                  {trustPageHref}
+                </dd>
+              </div>
+              <div className="grid min-w-0 gap-2 sm:col-span-2">
+                <dt className="text-[0.7rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                  Doctrine
+                </dt>
+                <dd className="m-0 text-sm leading-snug font-semibold text-pretty">
+                  {definition.doctrine}
+                </dd>
+              </div>
+              <div className="grid min-w-0 gap-2 sm:col-span-2">
+                <dt className="text-[0.7rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                  Last updated
+                </dt>
+                <dd className="m-0 text-sm leading-snug font-semibold">
+                  {definition.lastUpdatedLabel}
+                </dd>
+              </div>
+            </dl>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 items-start gap-8 pt-9 xl:grid-cols-[minmax(228px,260px)_minmax(0,1fr)] xl:gap-x-8">
-          <aside className="min-w-0">
-            <nav
-              className="sticky top-24 grid gap-5 xl:top-[104px]"
-              aria-label="Trust sections"
-            >
-              <section className="grid gap-3.5 border-t border-border pt-3.5">
-                <h2 className="m-0 text-[0.7rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+        <div className="grid gap-8 pt-8 lg:grid-cols-[minmax(236px,272px)_minmax(0,1fr)] lg:gap-9 lg:pt-9">
+          <aside className="min-w-0 lg:sticky lg:top-24">
+            <div className="grid gap-5 lg:block lg:space-y-5">
+              <section className="border-t border-border pt-3.5">
+                <h2 className="text-[0.7rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
                   Control surface
                 </h2>
-                <ul className="m-0 grid list-none gap-2.5 p-0">
-                  <li>
-                    <a
-                      href="#posture"
-                      className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
-                    >
-                      <strong className="text-[0.92rem] leading-snug font-semibold text-inherit">
-                        Current posture
-                      </strong>
-                      <span className="text-[0.82rem] leading-relaxed text-muted-foreground">
-                        What is publicly declared right now.
-                      </span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#evidence"
-                      className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
-                    >
-                      <strong className="text-[0.92rem] leading-snug font-semibold text-inherit">
-                        Evidence
-                      </strong>
-                      <span className="text-[0.82rem] leading-relaxed text-muted-foreground">
-                        What is proven and when it was last updated.
-                      </span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#surfaces"
-                      className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
-                    >
-                      <strong className="text-[0.92rem] leading-snug font-semibold text-inherit">
-                        Surfaces
-                      </strong>
-                      <span className="text-[0.82rem] leading-relaxed text-muted-foreground">
-                        Live, planned, and withheld trust routes.
-                      </span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#commitments"
-                      className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
-                    >
-                      <strong className="text-[0.92rem] leading-snug font-semibold text-inherit">
-                        Commitments
-                      </strong>
-                      <span className="text-[0.82rem] leading-relaxed text-muted-foreground">
-                        How Afenda routes trust-sensitive work.
-                      </span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#boundaries"
-                      className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
-                    >
-                      <strong className="text-[0.92rem] leading-snug font-semibold text-inherit">
-                        Boundaries
-                      </strong>
-                      <span className="text-[0.82rem] leading-relaxed text-muted-foreground">
-                        What Afenda explicitly does not claim.
-                      </span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#activation-rules"
-                      className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
-                    >
-                      <strong className="text-[0.92rem] leading-snug font-semibold text-inherit">
-                        Activation rules
-                      </strong>
-                      <span className="text-[0.82rem] leading-relaxed text-muted-foreground">
-                        What must exist before new trust routes ship.
-                      </span>
-                    </a>
-                  </li>
-                </ul>
+                <nav aria-label="Trust sections">
+                  <ol className="mt-3.5 grid list-none gap-2.5 p-0">
+                    {trustSectionLinks.map((link) => (
+                      <li key={link.href} className="min-w-0">
+                        <a
+                          href={link.href}
+                          className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
+                        >
+                          <strong className="text-[0.94rem] leading-snug font-semibold text-inherit">
+                            {link.label}
+                          </strong>
+                          <span className="text-[0.82rem] leading-snug text-muted-foreground">
+                            {link.description}
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
               </section>
-            </nav>
+
+              <section className="border-t border-border pt-3.5">
+                <h2 className="text-[0.7rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                  Related routes
+                </h2>
+                <nav aria-label="Related public routes">
+                  <ul className="mt-3.5 grid list-none gap-2.5 p-0">
+                    {footerLinks
+                      .filter((link) => link.href !== trustPageHref)
+                      .map((link) => (
+                        <li key={link.href} className="min-w-0">
+                          <TrustHref
+                            href={link.href}
+                            className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
+                          >
+                            <strong className="text-[0.94rem] leading-snug font-semibold text-inherit">
+                              {link.label}
+                            </strong>
+                            <span className="text-[0.82rem] leading-snug text-muted-foreground">
+                              {link.description}
+                            </span>
+                          </TrustHref>
+                        </li>
+                      ))}
+                  </ul>
+                </nav>
+              </section>
+
+              {statusAuthorityUrl ? (
+                <section className="border-t border-border pt-3.5">
+                  <h2 className="text-[0.7rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                    Operational status
+                  </h2>
+                  <nav
+                    aria-label="Operational status links"
+                    className="mt-3.5 grid list-none gap-2.5 p-0"
+                  >
+                    <div className="min-w-0">
+                      <TrustHref
+                        href={statusAuthorityUrl}
+                        className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
+                      >
+                        <strong className="text-[0.94rem] leading-snug font-semibold text-inherit">
+                          OpenStatus authority
+                        </strong>
+                        <span className="text-[0.82rem] leading-snug break-words text-muted-foreground">
+                          Live monitors, incidents, and maintenance on
+                          OpenStatus.
+                        </span>
+                      </TrustHref>
+                    </div>
+                    <div className="min-w-0">
+                      <TrustHref
+                        href="/status"
+                        className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
+                      >
+                        <strong className="text-[0.94rem] leading-snug font-semibold text-inherit">
+                          Afenda status wrapper
+                        </strong>
+                        <span className="text-[0.82rem] leading-snug text-muted-foreground">
+                          Branded mirror that reflects the OpenStatus feed.
+                        </span>
+                      </TrustHref>
+                    </div>
+                  </nav>
+                </section>
+              ) : null}
+
+              <section className="border-t border-border pt-3.5">
+                <h2 className="text-[0.7rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                  Contact routes
+                </h2>
+                <div className="mt-3 grid gap-3">
+                  <div className="grid min-w-0 gap-1">
+                    <span className="text-sm font-semibold text-foreground">
+                      {legalIdentity.operationalSupportLabel}
+                    </span>
+                    <a
+                      href={`mailto:${legalIdentity.operationalSupportEmail}`}
+                      className="text-sm leading-relaxed text-muted-foreground underline-offset-4 hover:text-foreground"
+                    >
+                      {legalIdentity.operationalSupportEmail}
+                    </a>
+                    <span className="text-[0.82rem] leading-snug text-muted-foreground">
+                      Public operational routing and trust follow-up.
+                    </span>
+                  </div>
+                  <div className="grid min-w-0 gap-1">
+                    <span className="text-sm font-semibold text-foreground">
+                      {legalIdentity.privacyInquiryLabel}
+                    </span>
+                    <a
+                      href={`mailto:${legalIdentity.privacyInquiryEmail}`}
+                      className="text-sm leading-relaxed text-muted-foreground underline-offset-4 hover:text-foreground"
+                    >
+                      {legalIdentity.privacyInquiryEmail}
+                    </a>
+                    <span className="text-[0.82rem] leading-snug text-muted-foreground">
+                      Service notices and declaration follow-up routing.
+                    </span>
+                  </div>
+                </div>
+              </section>
+            </div>
           </aside>
 
-          <div className="min-w-0">
-            <section id="posture" className="pb-9">
+          <article className="min-w-0">
+            <div className="mb-5 flex flex-wrap items-center gap-2.5 gap-x-4 border-b border-border pb-3.5">
+              <span className="inline-flex min-h-8 items-center rounded-full border border-border bg-muted/80 px-3 text-[0.76rem] font-bold tracking-wider uppercase">
+                Trust control surface
+              </span>
+              <span className="text-sm leading-relaxed text-muted-foreground">
+                {definition.statusNote}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {definition.lastUpdatedLabel}
+              </span>
+            </div>
+
+            <p className="mb-3 max-w-[760px] text-base leading-relaxed text-muted-foreground">
+              {definition.description}
+            </p>
+
+            <section id="posture" className="border-t-0 pb-9">
               <p className="m-0 text-[0.72rem] font-bold tracking-[0.14em] text-primary uppercase">
                 Current posture
               </p>
@@ -451,6 +550,19 @@ export function TrustControlSurface({
                         {surface.proofSource}
                       </span>
                     </div>
+                    {surface.authorityUrl ? (
+                      <div className="grid gap-2">
+                        <span className="text-[0.68rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                          Authority page
+                        </span>
+                        <TrustHref
+                          href={surface.authorityUrl}
+                          className="text-[0.88rem] leading-snug break-all text-foreground underline-offset-4 hover:text-foreground"
+                        >
+                          {surface.authorityUrl}
+                        </TrustHref>
+                      </div>
+                    ) : null}
                     <div className="grid gap-2">
                       <span className="text-[0.68rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
                         Last updated
@@ -594,20 +706,16 @@ export function TrustControlSurface({
               </div>
             </section>
 
-            <footer className="mt-5 grid gap-5 border-t border-border pt-6 sm:grid-cols-[minmax(0,1.16fr)_auto] sm:items-end sm:gap-x-8">
+            <footer className="mt-12 grid gap-5 border-t border-border pt-6 sm:grid-cols-[minmax(0,1.16fr)_auto] sm:items-end">
               <div className="grid gap-2">
                 <TrustHref
                   href="/"
                   className="inline-flex w-fit items-center text-inherit no-underline"
                   aria-label="Afenda footer home"
                 >
-                  <Image
-                    src={BRAND_COMBINED_LOCKUP_SVG}
-                    alt="Afenda"
-                    width={1800}
-                    height={488}
-                    sizes="(max-width: 640px) min(62vw, 180px), 176px"
-                    className="block h-auto w-[min(176px,62vw)]"
+                  <AfendaBrandLockup
+                    className="max-w-[min(176px,62vw)]"
+                    imgClassName="object-left"
                   />
                 </TrustHref>
                 <div className="min-w-0">
@@ -669,7 +777,7 @@ export function TrustControlSurface({
                 ))}
               </nav>
             </footer>
-          </div>
+          </article>
         </div>
       </div>
     </main>

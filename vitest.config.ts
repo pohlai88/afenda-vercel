@@ -68,10 +68,34 @@ export default defineConfig({
         "lib/features/org-admin/data/import-job-run.workflow.ts",
         "lib/features/execution/data/import-job-run-entry.ts",
         "lib/features/execution/index.ts",
-        // OneThing decision-console (ADR-0001 §10): commit surface for the resolve Server Action
-        // (DB write + IAM audit + revalidation). Today renders nothing without a saveAction; once
-        // wired, it is exercised end-to-end via the canvas form, not Vitest-isolated.
-        "lib/features/todos/components/onething-decision-console.tsx",
+        // OneThing UI surfaces (ADR-0001): exercised via Playwright E2E — they hydrate against the
+        // DB-backed page composition (rank, audit, lynx grounding) and Server Actions, so unit
+        // isolation would mock away the whole behavior. Pure helpers (`onething-rank.shared`,
+        // `onething-page-view.shared`, schema parsers, title classifier) stay unit-covered.
+        "lib/features/onething/components/onething-shell.tsx",
+        "lib/features/onething/components/onething-list-pane.tsx",
+        "lib/features/onething/components/onething-detail-pane.tsx",
+        "lib/features/onething/components/onething-detail-toolbar.tsx",
+        "lib/features/onething/components/onething-detail-composer.tsx",
+        "lib/features/onething/components/onething-detail-empty.tsx",
+        "lib/features/onething/components/onething-detail-audit-footer.tsx",
+        "lib/features/onething/components/onething-page.tsx",
+        "lib/features/onething/components/personal-onething-page.tsx",
+        "lib/features/onething/components/hooks/use-flip.ts",
+        "lib/features/onething/components/hooks/use-focus-navigation.ts",
+        "lib/features/onething/components/hooks/use-resolve-with-focus-handoff.ts",
+        "lib/features/onething/components/hooks/use-onething-draft-persistence.ts",
+        // useNow + useViewedIds are React-only client hooks (DOM, localStorage,
+        // useSyncExternalStore). Their behavior is covered by the Playwright
+        // smoke spec; unit isolation would mock away the only thing they do.
+        "lib/features/onething/components/hooks/use-now.ts",
+        "lib/features/onething/components/hooks/use-viewed-ids.ts",
+        // Sign-out cleanup runs in the browser against `localStorage`; the
+        // canonical sign-out flow is exercised end-to-end by `auth-public-shell`
+        // / `onething-smoke` Playwright specs. The pure helpers
+        // `pickNextRankedId` and `splitOneThingDraft` still contribute to
+        // coverage from `tests/unit/onething/onething-shell-helpers.test.ts`.
+        "lib/features/onething/components/onething-client-storage.ts",
       ],
       // Ratchet global executed coverage toward 80%; keep coverage.all off until breadth grows.
       // Global floors track what Vitest currently executes from unit imports (lib/auth barrel drags many server modules).

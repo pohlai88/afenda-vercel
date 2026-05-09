@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from "react"
 
+import { writeClientPreferenceCookie } from "#lib/client-cookie.shared"
+
 export const INSPECTOR_COOKIE_NAME = "inspector_state"
 const INSPECTOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
@@ -22,7 +24,11 @@ function readInspectorCookie(): boolean {
 }
 
 function writeInspectorCookie(value: boolean): void {
-  document.cookie = `${INSPECTOR_COOKIE_NAME}=${value}; path=/; max-age=${INSPECTOR_COOKIE_MAX_AGE}`
+  writeClientPreferenceCookie({
+    name: INSPECTOR_COOKIE_NAME,
+    value,
+    maxAgeSeconds: INSPECTOR_COOKIE_MAX_AGE,
+  })
 }
 
 type InspectorContextValue = {

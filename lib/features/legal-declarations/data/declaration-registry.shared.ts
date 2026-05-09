@@ -13,6 +13,8 @@ import type {
 } from "../types"
 
 import {
+  cookieNoticeLink,
+  dataProcessingAddendumLink,
   declarationFooterLinks,
   declarationFooterIdentity,
   securityDisclosureLink,
@@ -60,6 +62,9 @@ export const declarationRouteSlugs = declarationDocumentSlugs
 export type DeclarationRouteSlug = (typeof declarationRouteSlugs)[number]
 
 export const declarationRouteHrefs = [
+  "/cookies",
+  "/data-processing-addendum",
+  "/subprocessors",
   "/legal/privacy",
   "/legal/terms",
   "/legal/security",
@@ -130,6 +135,283 @@ function buildRelatedLinks(
 }
 
 export const declarationDocuments = {
+  cookies: {
+    slug: "cookies",
+    routeHref: "/cookies",
+    title: "Cookie Notice",
+    description:
+      "Afenda describes the essential cookies, local storage, and session technologies used on current public and product surfaces, including authentication, security, route continuity, interface preferences, and future notice requirements before any non-essential tracking category is introduced.",
+    eyebrow: "Essential cookie posture",
+    summary:
+      "Afenda currently uses cookies, local storage, and similar session technologies for essential authentication, security, route continuity, interface preferences, and abuse-prevention purposes. This notice names that limited posture without inventing non-essential tracking categories that are not confirmed on the live surface.",
+    sections: [
+      {
+        id: "scope",
+        title: "Current cookie scope",
+        body: [
+          "This notice applies to cookies and similar browser storage used on Afenda-operated public routes, declaration routes, authentication routes, and product surfaces that refer to this notice.",
+          "Current live use is limited to essential, authentication, session, security, route-continuity, and abuse-prevention purposes. Afenda does not currently claim analytics, advertising, retargeting, or behavioural profiling cookie categories on the live public surface.",
+        ],
+      },
+      {
+        id: "essential-cookies",
+        title: "Essential and session cookies",
+        body: [
+          "Essential cookies and session technologies help keep signed-in users authenticated, preserve route continuity, support security checks, and reduce abuse. These controls are required for the service boundary to work safely.",
+          "Because these technologies are necessary for authentication, security, and service delivery, disabling them in the browser may prevent sign-in, account access, or secure route handling from working correctly.",
+        ],
+        bullets: [
+          "Authentication and session continuity for signed-in users.",
+          "Security controls that support integrity, abuse prevention, and account protection.",
+          "Operational route continuity so locale-aware and product routes behave consistently.",
+        ],
+      },
+      {
+        id: "current-storage",
+        title: "Current first-party storage",
+        body: [
+          "The current first-party storage set is limited to authentication/session handling, locale continuity, and product interface preferences. Preference cookies are short-lived and scoped to the Afenda site.",
+          "Known product preference storage includes dashboard sidebar and inspector state, dashboard panel widths, and the Lynx floating control position. These values preserve the user interface the user selected and are not used for advertising, retargeting, or cross-site profiling.",
+        ],
+        bullets: [
+          "__Secure-neon-auth.session_token for authentication and session continuity.",
+          "NEXT_LOCALE for locale-aware route continuity.",
+          "sidebar_state, sidebar_width, inspector_state, and inspector_width for dashboard layout preferences.",
+          "afenda:lynx-summon-fab-pos in localStorage for the Lynx floating control position.",
+        ],
+      },
+      {
+        id: "non-essential-categories",
+        title: "Non-essential categories",
+        body: [
+          "Afenda does not currently publish non-essential analytics, advertising, retargeting, or behavioural profiling cookie categories for the live surface.",
+          "If Afenda later introduces non-essential cookies or tracking, this notice must be updated before that category is treated as live. The update should name the category, purpose, provider or operating source where relevant, retention posture, and the available user control.",
+        ],
+      },
+      {
+        id: "controls",
+        title: "User controls",
+        body: [
+          "Users can control cookies through their browser settings. Blocking or deleting essential cookies may affect authentication, session persistence, security checks, and other necessary site functions.",
+          "Afenda does not currently show a non-essential cookie preference center because no non-essential category is confirmed on the live surface. If such a category is introduced, an appropriate control surface should be added with the same release.",
+        ],
+      },
+      {
+        id: "changes",
+        title: "Changes and owner route",
+        body: [
+          "Cookie posture should remain tied to operational truth. New cookie categories, tracking purposes, providers, or controls should not be implied by marketing copy before they exist and can be explained.",
+          "Questions about this notice should be routed through support@nexuscanon.com with enough context for Afenda to identify whether the request is privacy, security, or operational support.",
+        ],
+      },
+    ],
+    relatedLinks: buildRelatedLinks("/cookies"),
+    contactChannels: privacyChannels,
+    statusNote: declarationStatusNote,
+    lastUpdatedLabel: declarationLastUpdatedLabel,
+  },
+  "data-processing-addendum": {
+    slug: "data-processing-addendum",
+    routeHref: "/data-processing-addendum",
+    title: "Data Processing Addendum",
+    description:
+      "Afenda publishes a Malaysia PDPA-aligned data processing addendum route for customers who need written processing terms, statutory section mapping, and a clear request path before production processing begins.",
+    eyebrow: "Malaysia PDPA processing terms",
+    summary:
+      "This route states Afenda's public DPA baseline: customer instructions, bounded processing, confidentiality, security, retention, assistance, transfer controls, and request handling anchored to Malaysia's Personal Data Protection Act 2010 and the 2024 Amendment Act.",
+    sections: [
+      {
+        id: "status-and-use",
+        title: "Status and use of this addendum",
+        body: [
+          "This public DPA route is a request and baseline terms surface. It is intended to support customer diligence and contract preparation; it does not by itself replace a signed order form, master services agreement, negotiated DPA, statement of work, or other written customer contract.",
+          "A customer that needs this addendum attached to a live implementation should contact support@nexuscanon.com with the customer entity name, service scope, implementation route, intended categories of data, processing locations, and any required procurement or legal reference.",
+        ],
+        bullets: [
+          "Primary intake: support@nexuscanon.com, marked as a data processing addendum request.",
+          "Owner route: privacy route, with security coordination where the request concerns controls, incidents, or access governance.",
+          "Response model: Afenda reviews the request, confirms scope, and routes any negotiated terms before production processing depends on them.",
+        ],
+      },
+      {
+        id: "roles-and-instructions",
+        title: "Roles, scope, and customer instructions",
+        body: [
+          "For customer-controlled workflow data, the customer is expected to determine the business purpose, lawful basis, notices, and instructions for processing. Afenda processes that data only to provide, secure, support, and improve the contracted service boundary, unless a separate written instruction or legal obligation applies.",
+          "The PDPA legal map begins with Act 709 section 2, which applies the Act to processing and control of personal data in commercial transactions, and Act 709 section 4, which defines personal data, processing, data processor, data user, third party, and commercial transaction. The 2024 Amendment Act updates the statutory terminology toward data controller and data processor language.",
+        ],
+        bullets: [
+          "Customer: determines the workflow context, notices, permissions, and content placed into Afenda.",
+          "Afenda: processes customer data within documented instructions, support needs, security needs, and the agreed service boundary.",
+          "No public page should be read as authorising Afenda to use customer workflow data for unrelated advertising, resale, or independent profiling.",
+        ],
+      },
+      {
+        id: "pdpa-principles",
+        title: "PDPA principles mapped to the service",
+        body: [
+          "Act 709 section 5 requires processing to comply with the seven Personal Data Protection Principles set out in sections 6, 7, 8, 9, 10, 11, and 12. Afenda maps those principles into contract and operating terms instead of treating them as generic privacy slogans.",
+          "The public baseline is: process only on a proper instruction or recognised purpose; provide notice-and-choice support where Afenda controls the route; limit disclosure; apply security controls; retain data only while needed; keep operational data reasonably accurate in context; and support access or correction requests through the appropriate customer or Afenda route.",
+        ],
+        bullets: [
+          "Section 6, General Principle: processing should be tied to consent, contract necessity, legal obligation, vital interests, administration of justice, or statutory function where applicable.",
+          "Section 7, Notice and Choice Principle: relevant notices should identify purpose, source, rights, disclosure classes, and whether requested data is obligatory or voluntary where Afenda controls the notice.",
+          "Section 8, Disclosure Principle: disclosure should stay within the stated purpose, agreed service providers, legal requirements, or customer instructions.",
+          "Section 9, Security Principle: Afenda applies technical, organisational, and access controls appropriate to the service boundary.",
+          "Sections 10, 11, and 12: retention, integrity, and access are handled through customer instructions, support routes, audit records, and lawful request handling.",
+        ],
+      },
+      {
+        id: "security-and-breach",
+        title: "Security, breach, and accountability",
+        body: [
+          "Afenda treats processor security as a contractual and operational obligation. The 2024 Amendment Act section 4 inserts section 5(1a), requiring a data processor processing on behalf of a data controller to comply with the Security Principle in Act 709 section 9.",
+          "The 2024 Amendment Act section 6 introduces accountability provisions including section 12a on data protection officers and section 12b on data breach notification. Afenda uses those provisions as the public drafting baseline for privacy/security escalation, incident triage, and customer notification routing, subject to commencement, implementing directions, and the signed customer agreement.",
+        ],
+        bullets: [
+          "Security measures should cover access control, authentication, logging, least-privilege support, deployment discipline, and incident review.",
+          "Afenda will route suspected personal data incidents through privacy and security owners with enough context to assess customer, regulator, and data-subject notification duties.",
+          "Where a customer is the data controller for workflow data, Afenda should assist the customer with information reasonably needed for the customer's own assessment and notices.",
+        ],
+      },
+      {
+        id: "subprocessors-and-transfers",
+        title: "Subprocessors and cross-border transfers",
+        body: [
+          "Afenda may use infrastructure, hosting, authentication, communications, security, and support providers where needed to deliver the service. Afenda should require those providers to process data under confidentiality, security, and purpose-limited obligations appropriate to their role.",
+          "Act 709 section 129 governs transfers of personal data outside Malaysia. The 2024 Amendment Act section 12 amends section 129, including the cross-border transfer test and available transfer grounds. Afenda should document transfer posture, provider purpose, and safeguards where a customer implementation depends on cross-border processing.",
+        ],
+        bullets: [
+          "Subprocessor detail is published at /subprocessors and should be reviewed before production scope depends on a vendor, region, or AI-processing path.",
+          "Cross-border processing should travel with appropriate contractual, security, access, and due-diligence controls.",
+          "Customer-specific residency, transfer, or vendor-review requirements should be handled before production scope depends on them.",
+        ],
+      },
+      {
+        id: "retention-return-deletion",
+        title: "Retention, return, and deletion",
+        body: [
+          "Customer data should be retained only for the operational purpose, legal requirement, security review, support history, auditability need, or customer instruction that justifies keeping it. This implements the retention discipline reflected in Act 709 section 10.",
+          "At the end of the relevant service or on valid written instruction, Afenda should return, export, delete, or de-identify customer data as agreed, subject to legal holds, backup limits, security logs, dispute records, and records Afenda must keep for compliance or enforcement defence.",
+        ],
+      },
+      {
+        id: "rights-and-assistance",
+        title: "Rights requests and customer assistance",
+        body: [
+          "Where Afenda controls a public route, Afenda receives and handles privacy requests through the privacy route. Where a customer controls the underlying workflow data, Afenda expects the customer to lead data-subject notices and requests, with Afenda providing reasonable assistance within the service boundary.",
+          "The legal section map includes Act 709 sections 30 to 38 for access, correction, and withdrawal routes, Act 709 section 43 for direct-marketing objections, and the 2024 Amendment Act section 9 introducing section 43a on data portability, subject to technical feasibility and prescribed timing.",
+        ],
+      },
+      {
+        id: "legal-sources",
+        title: "Legal source map",
+        body: [
+          "Primary source: Malaysia Personal Data Protection Commissioner, Personal Data Protection Act 2010 [Act 709], official Act page and Act 709 bilingual PDF.",
+          "Amendment source: Malaysia Personal Data Protection Commissioner, Personal Data Protection (Amendment) Act 2024 [Act A1727], official amendment page and Act A1727 PDF.",
+          "This page is drafted as public legal operations content, not legal advice. Customers should review the final signed DPA with their own counsel, especially where sector rules, cross-border transfer posture, sensitive personal data, or regulated customer records are involved.",
+        ],
+        bullets: [
+          "Act 709 sections 2 and 4: application, commercial transaction scope, definitions of personal data, processing, processor, user/controller concepts, and third party.",
+          "Act 709 sections 5 to 12: Personal Data Protection Principles, including General, Notice and Choice, Disclosure, Security, Retention, Data Integrity, and Access.",
+          "Act 709 sections 30 to 40 and 43: access, correction, withdrawal, direct marketing objection, and sensitive personal data handling.",
+          "Act 709 section 129 and Act A1727 section 12: cross-border transfer framework and 2024 amendment.",
+          "Act A1727 sections 4 to 6 and 9: processor security obligation, section 9 security amendment, DPO/accountability and breach-notification provisions, and data portability.",
+          "Official sources: https://www.pdp.gov.my/ppdpv1/en/akta/pdp-act-2010-en/ and https://www.pdp.gov.my/ppdpv1/en/akta/personal-data-protection-amendment-act-2024/.",
+        ],
+      },
+    ],
+    relatedLinks: buildRelatedLinks("/data-processing-addendum", [
+      trustRouteLink,
+      cookieNoticeLink,
+    ]),
+    contactChannels: privacyChannels,
+    statusNote:
+      "Public DPA baseline. Customer-specific execution, procurement terms, and implementation scope require written confirmation.",
+    lastUpdatedLabel: "Updated May 9, 2026",
+  },
+  subprocessors: {
+    slug: "subprocessors",
+    routeHref: "/subprocessors",
+    title: "Subprocessors",
+    description:
+      "Afenda publishes a validated vendor inventory showing production and conditional subprocessors, development tools that are not production subprocessors, software components that are not legal processors, and official source links for vendor review.",
+    eyebrow: "Vendor inventory and processing map",
+    summary:
+      "This page separates production customer-data processors from development tooling and open-source software components. It exists so customers can see which vendors may process personal data, why they are used, and which jurisdiction or processing location should be reviewed before production scope depends on them.",
+    sections: [
+      {
+        id: "validation-method",
+        title: "Validation method",
+        body: [
+          "This inventory was validated against the current repository, environment template, deployed-service configuration, and official vendor legal or trust documents available on May 9, 2026. The duplicate Vercel entry in the working list is treated as one vendor entry.",
+          "A vendor is listed as a production or conditional subprocessor only where Afenda appears to use that service for hosting, database/authentication, storage, email, observability, rate limiting, or AI processing that may receive customer or end-user personal data.",
+        ],
+        bullets: [
+          "Jurisdiction means the vendor jurisdiction, stated processing location, or practical hosting/processing region that Afenda should review. It is not a customer-specific data residency promise.",
+          "Conditional means the code or environment supports the vendor, but the service only processes personal data when the corresponding feature, key, integration, or deployment path is enabled.",
+          "Development tools are kept out of the production subprocessor list unless customer data, production secrets, support exports, or customer records are deliberately sent to them.",
+        ],
+      },
+      {
+        id: "production-subprocessors",
+        title: "Production and conditional subprocessors",
+        body: [
+          "The following vendors are validated as current or conditional subprocessors for the Afenda application stack. Customer-specific contracts may narrow, remove, or add vendors for a particular deployment.",
+          "Vercel, Inc. Purpose: application hosting, serverless and edge runtime, CDN, deployment logs, cron execution, Vercel Blob uploads, Vercel OTEL, Vercel Sandbox, and Vercel AI Gateway where enabled. Jurisdiction/location: United States vendor with global cloud and edge processing. Official source: https://vercel.com/legal/dpa.",
+          "Neon, LLC / Databricks. Purpose: managed PostgreSQL, pooled database connectivity, Neon Auth, auth webhooks, user/session/organization records, and pgvector-backed knowledge data. Jurisdiction/location: Neon Platform Services with a Neon subprocessor list that provides identity, location, and role; the current app configuration points to an AWS ap-southeast-1 Neon region and should be confirmed per production branch. Official sources: https://neon.com/platform-terms and https://neon.com/subprocessors.",
+          "OpenAI, LLC. Purpose: embeddings, language generation, Lynx/knowledge retrieval, and model output where OPENAI_API_KEY or Vercel AI Gateway model routing sends prompts, chunks, or operational context to OpenAI models. Jurisdiction/location: OpenAI API processing and subprocessors as published by OpenAI, with model/infrastructure locations varying by service. Official sources: https://openai.com/policies/sub-processor-list/ and https://cdn.openai.com/pdf/openai-data-processing-addendum.pdf.",
+          "Upstash, Inc. Purpose: optional Redis-backed rate limiting for organization invitation controls when UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are configured. Jurisdiction/location: Upstash may process customer personal data globally as necessary to provide the services and uses transfer safeguards where required. Official source: https://upstash.com/trust/dpa.pdf.",
+          "Plus Five Five, Inc. / Resend. Purpose: optional transactional email delivery for authentication and service notices when RESEND_API_KEY is configured. Jurisdiction/location: United States vendor; ex-EEA transfers are addressed in the Resend DPA. Official source: https://resend.com/legal/dpa.",
+          "Functional Software, Inc. d/b/a Sentry. Purpose: optional error monitoring, exception capture, tracing, source-map assisted diagnostics, and incident review when Sentry DSNs are configured. Jurisdiction/location: United States vendor; customers should review Sentry DPA/subprocessor materials before enabling capture of customer personal data. Official source: https://sentry.zendesk.com/hc/en-us/articles/23856572755611-How-do-I-sign-your-Data-Processing-Addendum.",
+        ],
+      },
+      {
+        id: "provided-list-validation",
+        title: "Validation of the requested vendor list",
+        body: [
+          "Vercel: validated as a current production subprocessor. The duplicate Vercel entry is consolidated into one entry.",
+          "Hugging Face: not validated as a current production subprocessor in this repository. It becomes a subprocessor only if Afenda sends customer prompts, models, datasets, files, or inference payloads to Hugging Face. Hugging Face states that Inference Endpoints do not store customer payloads or tokens, stores logs for 30 days, and offers a GDPR DPA through Enterprise Hub. Official sources: https://huggingface.co/privacy and https://huggingface.co/docs/inference-endpoints/guides/security.",
+          "Supabase: not validated as a current Afenda production service. The lockfile contains a transitive Supabase package, but current app configuration uses Neon for database/auth. Supabase would become a subprocessor if Afenda adopts Supabase-hosted PostgreSQL, Auth, Storage, Edge Functions, or Realtime. Official source: https://supabase.com/downloads/docs/Supabase%2BDPA%2B260317.pdf.",
+          "Railway: not validated as a current Afenda production host. Railway would become a subprocessor if Afenda deploys app services, workers, databases, or customer-supporting infrastructure there. Railway states primary processing operations take place in the United States and offers transfer safeguards in its DPA. Official source: https://railway.com/legal/dpa.",
+          "Retool: not validated as a current Afenda production/admin processor. Retool would become a subprocessor if Afenda uses Retool Cloud to inspect, edit, support, or operate customer records. Retool's DPA points customers to a current subprocessor list with identities and country of location. Official source: https://retool.com/dpa.pdf.",
+          "Cursor: development tooling, not a production Afenda subprocessor by default. It becomes a processor for customer data only if customer data, production code containing secrets, support exports, or production records are sent through Cursor. Cursor offers a DPA and posts subprocessor changes at trust.cursor.com/subprocessors. Official source: https://cursor.com/terms/dpa.",
+          "Codex: development tooling and OpenAI service surface, not a production Afenda subprocessor by default. If customer data or production records are sent to OpenAI/Codex for support or implementation work, classify that processing under the OpenAI entry and customer approval path.",
+          "Cline: development tooling, not a production Afenda subprocessor by default. Cline states that when users use their own API keys, user content goes directly to the third-party model provider; if Cline-provided keys are used, Cline collects/transmits user content to model providers. Official source: https://cline.bot/privacy.",
+          "pgVector and PostgreSQL: software components, not legal subprocessors. The processor is the hosting/provider entity that runs the database, currently Neon for this application. Official sources: https://www.postgresql.org/about/ and https://github.com/pgvector/pgvector.",
+        ],
+      },
+      {
+        id: "ai-processing-boundary",
+        title: "AI processing boundary",
+        body: [
+          "Afenda's AI path should be treated separately from ordinary hosting because prompts, embeddings, retrieval chunks, generated outputs, and operator context can carry personal data or confidential business data.",
+          "The current code supports direct OpenAI use for embeddings and model calls, and Vercel AI Gateway for model routing where AI_GATEWAY_API_KEY is configured. Hugging Face, Cursor, Codex, and Cline should not be treated as production customer-data subprocessors unless customer data is intentionally submitted through those services.",
+        ],
+        bullets: [
+          "Do not send customer secrets, production credentials, personal data exports, or regulated records into development AI tools without a recorded approval path.",
+          "For customer-facing AI features, record the model provider, gateway, prompt category, retention posture, and whether outputs are stored back into Afenda.",
+          "If a new model provider is introduced, update this page, the DPA route, and the trust route before presenting the provider as live.",
+        ],
+      },
+      {
+        id: "change-control",
+        title: "Change control and customer notice",
+        body: [
+          "Afenda should review this list before enabling a new vendor, region, AI provider, storage path, monitoring tool, or customer-support platform that may receive customer personal data.",
+          "Material subprocessor changes should identify the vendor, purpose, processing location or jurisdiction, affected data categories, official legal source, and whether the change applies to all customers or only selected implementations.",
+        ],
+      },
+    ],
+    relatedLinks: buildRelatedLinks("/subprocessors", [
+      dataProcessingAddendumLink,
+      trustRouteLink,
+    ]),
+    contactChannels: privacyChannels,
+    statusNote:
+      "Validated vendor inventory. Customer-specific implementation may narrow or add vendors by written agreement.",
+    lastUpdatedLabel: "Updated May 9, 2026",
+  },
   privacy: {
     slug: "privacy",
     title: "Privacy Notice",
@@ -143,7 +425,7 @@ export const declarationDocuments = {
         id: "identity",
         title: "Company identity and scope",
         body: [
-          "Afenda is delivered through NexusCanon and operated by VAP MANAGEMENT SERVICES SDN BHD [Company No. (201901041084) (1350414-A)], incorporated in Malaysia and registered at 22-1, JALAN BAYU TINGGI 2A/KS6 BATU UNJUR, 41200 KLANG SELANGOR, MALAYSIA.",
+          "Afenda is delivered through NexusCanon and operated by VAP MANAGEMENT SERVICES SDN BHD [Company No. (201901041084) (1350414-A)], incorporated in Malaysia and registered at 22-1, Jalan Bayu Tinggi 2A/KS6 Batu Unjur, 41200 Klang Selangor, Malaysia.",
           "This notice applies to the public website, public declaration routes, business enquiry channels, and product interactions that refer to this notice. It is intended to provide the notice-and-choice baseline expected of a Malaysia-established operator while remaining legible to customers and evaluators across Southeast Asia.",
           "Where a customer uses Afenda inside its own workflows, the customer remains responsible for determining what business or personal data enters that workflow, which notices it gives to its own users, and which instructions govern the implementation.",
         ],
@@ -204,11 +486,11 @@ export const declarationDocuments = {
         title: "Cookies and session technologies",
         body: [
           "Current public surfaces use essential cookies and session technologies required for authentication, security, and route continuity. These controls help preserve signed-in state, session integrity, and abuse prevention on Afenda-operated pages.",
-          "Afenda does not currently publish a separate /cookies route because non-essential cookies or tracking categories have not been confirmed on the live surface. If non-essential tracking is introduced later, Afenda will publish a dedicated cookie notice that names the categories, purposes, and user controls before treating that route as a live trust surface.",
+          "Afenda publishes a separate /cookies route for the current essential-only posture. If non-essential tracking is introduced later, Afenda will update that notice to name the categories, purposes, and user controls before treating those categories as live.",
         ],
       },
     ],
-    relatedLinks: buildRelatedLinks("/legal/privacy"),
+    relatedLinks: buildRelatedLinks("/legal/privacy", [cookieNoticeLink]),
     contactChannels: privacyChannels,
     statusNote: declarationStatusNote,
     lastUpdatedLabel: declarationLastUpdatedLabel,
@@ -460,7 +742,7 @@ export const declarationDocuments = {
         title: "Declaration index",
         body: [
           "The public declaration set is intentionally small and explicit. Privacy, terms, security, trust, and support are kept as separate static routes so enterprise buyers and regional stakeholders can find the right statement quickly.",
-          "If a future route such as cookies, subprocessors, or a data processing addendum becomes necessary, Afenda should add it deliberately rather than overloading this page.",
+          "If a future route such as subprocessors or a data processing addendum becomes necessary, Afenda should add it deliberately rather than overloading this page. The cookie notice already exists as its own bounded route.",
         ],
       },
       {
@@ -483,7 +765,8 @@ export function buildLegalDeclarationMetadata(
   locale: string,
   document: DeclarationDocumentDefinition
 ): Metadata {
-  const canonicalPath = `/${locale}/legal/${document.slug}`
+  const documentPath = document.routeHref ?? `/legal/${document.slug}`
+  const canonicalPath = `/${locale}${documentPath}`
   const base = getSiteUrl().replace(/\/$/, "")
   const canonicalUrl = `${base}${canonicalPath}`
 

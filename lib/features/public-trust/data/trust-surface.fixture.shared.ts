@@ -16,7 +16,7 @@ import type {
   TrustSurfaceItem,
 } from "../types"
 
-export const trustSurfaceLastUpdatedLabel = "Updated May 6, 2026"
+export const trustSurfaceLastUpdatedLabel = "Updated May 9, 2026"
 export const securityTxtHref = "/.well-known/security.txt" as const
 export const securityTxtExpiresAt = "2027-05-05T00:00:00.000Z"
 
@@ -47,6 +47,9 @@ export const publicTrustOwnerRoutes = {
 const L = LEGAL_ROUTE_PREFIX
 
 export const publicTrustIndexableRoutes = [
+  "/cookies",
+  "/data-processing-addendum",
+  "/subprocessors",
   `${L}/privacy`,
   `${L}/terms`,
   `${L}/security`,
@@ -72,7 +75,7 @@ const trustPostureSignals = [
     label: "Operational status posture",
     state: "withheld",
     summary:
-      "Afenda does not publish uptime or incident posture until live monitoring, incident history, and maintenance publication exist.",
+      "Afenda does not publish uptime or incident posture until the OpenStatus workspace, monitors, incident reports, maintenance publishing, and CI synthetic checks are configured.",
     ownerRoute: publicTrustOwnerRoutes.support.value,
     proofSource: "Status remains gated by TRUST-STATUS-001.",
     lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
@@ -82,9 +85,10 @@ const trustPostureSignals = [
     label: "Data handling posture",
     state: "live",
     summary:
-      "Privacy, terms, and support ownership are public, indexable, and backed by a Malaysia-first PDPA notice plus explicit public routes rather than inferred marketing language.",
+      "Privacy, terms, support ownership, the cookie notice, the data processing addendum route, and the subprocessor inventory are public, indexable, and backed by a Malaysia-first PDPA notice plus explicit public routes rather than inferred marketing language.",
     ownerRoute: publicTrustOwnerRoutes.privacy.value,
-    proofSource: "Privacy, terms, and support routes are live.",
+    proofSource:
+      "Privacy, terms, support, cookie notice, DPA request, and subprocessor inventory routes are live.",
     lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
     href: `${L}/privacy`,
   },
@@ -95,9 +99,9 @@ const trustEvidenceItems = [
     id: "evidence-privacy",
     title: "Data handling route is public",
     statement:
-      "Afenda has a live privacy notice, commercial boundary, and support route. The privacy notice names the Malaysia-established operator, the customer-controlled workflow boundary, and the current cookie posture instead of hiding that detail behind sales process.",
+      "Afenda has a live privacy notice, commercial boundary, support route, cookie notice, data processing addendum route, and subprocessor inventory. The privacy notice names the Malaysia-established operator, the customer-controlled workflow boundary, and the current cookie posture instead of hiding that detail behind sales process.",
     href: `${L}/privacy`,
-    proofSource: `Backed by ${L}/privacy, ${L}/terms, and ${L}/support.`,
+    proofSource: `Backed by ${L}/privacy, ${L}/terms, ${L}/support, /cookies, /data-processing-addendum, and /subprocessors.`,
     lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
   },
   {
@@ -221,9 +225,10 @@ const trustSurfaceItems = [
     route: "/status",
     state: "planned",
     summary:
-      "Will remain withheld until live monitoring, incident history, and maintenance publication are real.",
+      "Branded wrapper implementation is prepared, but the public status surface remains gated until OpenStatus Cloud monitors, incident history, maintenance publishing, and CI synthetic checks are configured.",
     ownerRoute: publicTrustOwnerRoutes.support.value,
-    proofSource: "Planned with OpenStatus as the default backing system.",
+    proofSource:
+      "Planned with OpenStatus Cloud as the public availability authority. The route must not become a live trust claim until external monitors and publishing workflow exist.",
     lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
     isPublicLink: false,
     activationRuleId: "TRUST-STATUS-001",
@@ -232,40 +237,39 @@ const trustSurfaceItems = [
     id: "surface-subprocessors",
     label: "Subprocessors",
     route: "/subprocessors",
-    state: "withheld",
+    state: "live",
     summary:
-      "Vendor transparency will remain withheld until service purpose, jurisdiction, and inventory are verified.",
+      "Public vendor inventory classifying production subprocessors, conditional processors, development tools, and software components.",
     ownerRoute: publicTrustOwnerRoutes.privacy.value,
-    proofSource: "Gated by TRUST-SUBPROC-001.",
+    proofSource:
+      "Subprocessor route is live with vendor purpose, jurisdiction/location posture, and official source links.",
     lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
-    isPublicLink: false,
-    activationRuleId: "TRUST-SUBPROC-001",
+    isPublicLink: true,
   },
   {
     id: "surface-dpa",
     label: "Data processing addendum",
     route: "/data-processing-addendum",
-    state: "withheld",
+    state: "live",
     summary:
-      "DPA entry remains withheld until request handling and ownership are operationally real.",
+      "Public Malaysia PDPA-aligned DPA baseline with statutory section mapping, owner route, and request handling path.",
     ownerRoute: publicTrustOwnerRoutes.privacy.value,
-    proofSource: "Gated by TRUST-DPA-001.",
+    proofSource:
+      "DPA request route is live and cites Act 709 and Act A1727 sections.",
     lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
-    isPublicLink: false,
-    activationRuleId: "TRUST-DPA-001",
+    isPublicLink: true,
   },
   {
     id: "surface-cookies",
     label: "Cookie notice",
     route: "/cookies",
-    state: "withheld",
+    state: "live",
     summary:
-      "Cookie notice remains withheld while the live surface is limited to essential/auth/session cookies and no non-essential tracking categories are confirmed.",
+      "Public cookie notice covering the current essential/auth/session/local storage posture and the control rule for future non-essential categories.",
     ownerRoute: publicTrustOwnerRoutes.privacy.value,
-    proofSource: `Gated by TRUST-COOKIE-001 and described on ${L}/privacy.`,
+    proofSource: `Cookie notice is live and cross-referenced from ${L}/privacy.`,
     lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
-    isPublicLink: false,
-    activationRuleId: "TRUST-COOKIE-001",
+    isPublicLink: true,
   },
 ] satisfies readonly TrustSurfaceItem[]
 
@@ -327,21 +331,21 @@ const trustBoundaryStatements = [
   },
   {
     id: "boundary-subprocessors",
-    title: "No public subprocessor list until verified",
+    title: "No unverified tool treated as a production subprocessor",
     detail:
-      "Vendor transparency remains withheld until vendor purpose, region, and operating responsibility are confirmed.",
+      "The subprocessor route separates production processors from development tooling and software components. Customer data should not be sent through development tools unless a deliberate approval path exists.",
   },
   {
     id: "boundary-dpa",
-    title: "No DPA self-service workflow until request handling exists",
+    title: "No executed DPA implied by the public route",
     detail:
-      "Afenda will not publish a contract-entry route that implies an operational path which does not yet exist.",
+      "The public data processing addendum route is a request and baseline terms surface. Customer-specific execution, procurement terms, and implementation scope still require written confirmation.",
   },
   {
     id: "boundary-cookies",
-    title: "No public cookie notice until non-essential tracking is verified",
+    title: "No non-essential cookie categories claimed",
     detail:
-      "Essential/auth/session cookies alone do not activate a dedicated cookie route. A public cookie notice appears only after non-essential categories, purpose, and controls are real.",
+      "The cookie notice names only the current essential/auth/session/local storage posture. Non-essential categories should appear only after purpose, source, retention posture, and user controls are real.",
   },
 ] satisfies readonly TrustBoundaryStatement[]
 
@@ -351,9 +355,11 @@ const trustActivationRules = [
     surfaceLabel: "Status",
     route: "/status",
     requirements: [
-      "A live monitoring source exists.",
-      "Incident history is persisted.",
-      "Maintenance events can be published.",
+      "An OpenStatus Cloud workspace and Afenda Status page exist.",
+      "Production monitors exist for the public homepage, sign-in, health endpoint, trust/privacy routes, and status wrapper.",
+      "Incident history is persisted in OpenStatus status reports.",
+      "Maintenance events can be published through OpenStatus maintenance windows.",
+      "GitHub synthetic checks run through the OpenStatus GitHub Action with an explicit config path.",
       "No hardcoded uptime percentages or fake availability claims exist.",
     ],
   },
@@ -382,9 +388,9 @@ const trustActivationRules = [
     surfaceLabel: "Cookie notice",
     route: "/cookies",
     requirements: [
-      "Non-essential cookies or tracking actually exist.",
-      "Categories and purpose are known.",
-      "Essential/auth/session cookies alone do not trigger the public cookie route.",
+      "The route names the currently verified cookie categories.",
+      "Essential/auth/session/local storage is described without implying non-essential tracking.",
+      "Any future non-essential category names its purpose, source, retention posture, and user control before it is treated as live.",
     ],
   },
   {
@@ -417,6 +423,84 @@ export const trustSurfaceDefinition = {
   boundaries: trustBoundaryStatements,
   activationRules: trustActivationRules,
 } satisfies TrustSurfaceDefinition
+
+/**
+ * When `OPENSTATUS_PUBLIC_STATUS_URL` is set, operational posture and `/status` surface are treated as live.
+ * Tests keep using {@link trustSurfaceDefinition} (withheld baseline).
+ */
+export function trustSurfaceDefinitionResolved(
+  openStatusPublicUrl: string | undefined | null
+): TrustSurfaceDefinition {
+  const authority = openStatusPublicUrl?.trim()
+  if (!authority) return trustSurfaceDefinition
+
+  return {
+    ...trustSurfaceDefinition,
+    statusNote:
+      "OpenStatus is the public availability authority; Afenda /status reflects its JSON feed. Surfaces without backing stay withheld.",
+    currentPosture: trustSurfaceDefinition.currentPosture.map((p) =>
+      p.id === "operations-posture"
+        ? {
+            ...p,
+            state: "live",
+            summary: `Operational availability and incidents are published through OpenStatus (${authority}). Afenda does not maintain a parallel uptime narrative; the branded /status route summarizes the same authority.`,
+            proofSource:
+              "Public OpenStatus monitors and status page; Afenda consumes the feed for /status.",
+            href: authority,
+          }
+        : p
+    ),
+    evidence: [
+      ...trustSurfaceDefinition.evidence,
+      {
+        id: "evidence-openstatus-authority",
+        title: "Availability authority is named",
+        statement:
+          "Incidents, components, and maintenance are communicated through OpenStatus. Afenda's /status route is an evidence-oriented wrapper, not a replacement authority.",
+        href: "/status",
+        proofSource: `Afenda /status plus OpenStatus (${authority}).`,
+        lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+      },
+    ],
+    surfaces: trustSurfaceDefinition.surfaces.map((s) =>
+      s.id === "surface-status"
+        ? {
+            ...s,
+            state: "live",
+            isPublicLink: true,
+            summary:
+              "Branded /status reflects the OpenStatus JSON feed. The authority page carries full component history and incidents.",
+            proofSource: "OpenStatus authority + Afenda wrapper (/status).",
+            activationRuleId: undefined,
+            authorityUrl: authority,
+          }
+        : s
+    ),
+    boundaries: trustSurfaceDefinition.boundaries.map((b) =>
+      b.id === "boundary-sla"
+        ? {
+            ...b,
+            detail:
+              "Afenda does not publish contractual uptime SLAs or availability percentages. Signals and incidents use the public OpenStatus authority without implying an SLA.",
+          }
+        : b
+    ),
+    activationRules: trustSurfaceDefinition.activationRules.map((rule) =>
+      rule.id === "TRUST-STATUS-001"
+        ? {
+            ...rule,
+            requirements: [
+              `Afenda is configured to read the public OpenStatus JSON feed from ${authority} (wrapped at /status).`,
+              "Expand monitors to match `.openstatus/production.yaml` (CLI `openstatus monitors apply`) so checks cover homepage, auth entry, health API, trust/privacy, and the status wrapper.",
+              "Publish incidents and maintenance in OpenStatus when customer-visible disruption occurs.",
+              "Keep GitHub synthetics wired: secret OPENSTATUS_API_TOKEN and `.openstatus/ci.yaml` ids (`pnpm openstatus:sync-ci`).",
+              "Do not publish uptime percentages or synthetic SLA claims without a separate contractual instrument.",
+            ],
+          }
+        : rule
+    ),
+  }
+}
 
 export function buildTrustPageMetadata(locale: string): Metadata {
   const canonicalPath = `/${locale}${L}/trust`

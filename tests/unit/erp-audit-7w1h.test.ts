@@ -107,6 +107,6 @@ describe("audit-7w1h.shared", () => {
     expect(s).not.toMatch(/\bHOW:/i)
     expect(s).toContain("Jordan Liu")
     expect(s).toContain("Purchase")
-    expect(s).toContain("via a server action")
+    expect(s).toContain("Via a server action.")
   })
 })

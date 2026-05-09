@@ -1,0 +1,32 @@
+name: OpenStatus Synthetics
+
+on:
+  workflow_dispatch:
+
+jobs:
+  synthetic-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify OpenStatus secret
+        env:
+          OPENSTATUS_API_TOKEN: ${{ secrets.OPENSTATUS_API_TOKEN }}
+        run: |
+          if [ -z "$OPENSTATUS_API_TOKEN" ]; then
+            echo "Missing GitHub secret OPENSTATUS_API_TOKEN."
+            exit 1
+          fi
+
+      - name: Verify OpenStatus monitor IDs
+        run: |
+          if ! grep -Eq '^[[:space:]]*-[[:space:]]*[0-9]+' .openstatus/ci.yaml; then
+            echo ".openstatus/ci.yaml must contain OpenStatus monitor IDs under tests.ids before synthetic CI can run."
+            exit 1
+          fi
+
+      - name: Run OpenStatus synthetics
+        uses: openstatushq/openstatus-github-action@v1
+        with:
+          api_key: ${{ secrets.OPENSTATUS_API_TOKEN }}
+          config_path: .openstatus/ci.yaml

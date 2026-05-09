@@ -4,6 +4,7 @@
  * `#features/onething` — so Turbopack does not pull the full server barrel.
  */
 export { addOrgOneThingComment } from "./actions/add-org-onething-comment"
+export { rotateOneThingListShareToken } from "./actions/rotate-onething-list-share-token"
 export { completeOrgOneThing } from "./actions/complete-org-onething"
 export { completePersonalOneThing } from "./actions/complete-personal-onething"
 export { createOrgOneThing } from "./actions/create-org-onething"
@@ -32,9 +33,23 @@ export type { RankedOneThing } from "./data/onething-rank.shared"
 export type { OneThingTailPreserveSearchParams } from "./data/onething-page-view.shared"
 export { buildTailFocusHref } from "./data/onething-page-view.shared"
 
-export type { ResolveSeverity } from "./schemas/onething-onething.schema"
+export type {
+  Prediction,
+  ResolveSeverity,
+} from "./schemas/onething-onething.schema"
 
 export {
   inferResolveSeverityFromSignals,
   safeParsePredictions,
 } from "./schemas/onething-onething.schema"
+
+export {
+  classifyOneThingTitleIssue,
+  ONETHING_TITLE_NOT_SITUATION_CODE,
+  type OneThingTitleQualityIssue,
+} from "./schemas/onething.schema"
+
+export { clearOneThingClientStorage } from "./components/onething-client-storage"
+
+export { pickNextRankedId } from "./components/hooks/pick-next-ranked-id.shared"
+export { splitOneThingDraft } from "./components/hooks/split-onething-draft.shared"

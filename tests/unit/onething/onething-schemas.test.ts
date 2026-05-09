@@ -22,8 +22,10 @@ describe("onethingTitleSchema", () => {
 })
 
 describe("createOrgOneThingSchema", () => {
+  const SITUATION_TITLE = "Vendor payment blocked for three organizations"
+
   it("defaults consequence and severity", () => {
-    const out = createOrgOneThingSchema.parse({ title: "x" })
+    const out = createOrgOneThingSchema.parse({ title: SITUATION_TITLE })
     expect(out.consequence).toBe("")
     expect(out.severity).toBe("medium")
   })
@@ -31,12 +33,34 @@ describe("createOrgOneThingSchema", () => {
   it("accepts optional assignee and list", () => {
     const id = "00000000-0000-4000-8000-0000000000aa"
     const out = createOrgOneThingSchema.parse({
-      title: "t",
+      title: SITUATION_TITLE,
       assigneeUserId: id,
       listId: id,
     })
     expect(out.assigneeUserId).toBe(id)
     expect(out.listId).toBe(id)
+  })
+
+  it("rejects single-token titles", () => {
+    expect(createOrgOneThingSchema.safeParse({ title: "Hello" }).success).toBe(
+      false
+    )
+  })
+
+  it("rejects technical-event tail titles", () => {
+    expect(
+      createOrgOneThingSchema.safeParse({
+        title: "Vendor payment — RG-FIN-014 failed",
+      }).success
+    ).toBe(false)
+  })
+
+  it("rejects module-noun prefix titles", () => {
+    expect(
+      createOrgOneThingSchema.safeParse({
+        title: "PO: vendor onboarding",
+      }).success
+    ).toBe(false)
   })
 })
 

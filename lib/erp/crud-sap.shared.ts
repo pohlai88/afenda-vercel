@@ -36,7 +36,7 @@ export const CRUD_SAP_TEMPORAL_FOCUS = {
 /** Verbs that retire the object across all temporal layers (not Past/Now/Next). */
 export const CRUD_SAP_META_VERBS = ["deprecate"] as const
 
-const AUDIT_AREA_SCHEMA = z.enum([
+export const auditAreaSchema = z.enum([
   "erp",
   "org",
   "iam",
@@ -46,6 +46,8 @@ const AUDIT_AREA_SCHEMA = z.enum([
   "system",
 ])
 
+export type AuditArea = z.infer<typeof auditAreaSchema>
+
 function slugSegment(raw: string, maxLen: number): string {
   const s = raw
     .trim()
@@ -53,7 +55,7 @@ function slugSegment(raw: string, maxLen: number): string {
     .replace(/[^a-z0-9_]+/g, "_")
     .replace(/^_+|_+$/g, "")
   if (s.length === 0) return ""
-  return s.length > maxLen ? s.slice(0, maxLen) : s
+  return s.length > maxLen ? s.slice(0, maxLen).replace(/_+$/g, "") : s
 }
 
 export function isCrudSapVerb(value: string): value is CrudSapVerb {
@@ -90,12 +92,12 @@ export function crudSapVerbsForTemporalLayer(
  * CRUD-SAP verbs. Prefer for new operational objects.
  */
 export function buildCrudSapAuditAction(input: {
-  area: z.infer<typeof AUDIT_AREA_SCHEMA>
+  area: AuditArea
   module: string
   object: string
   verb: CrudSapVerb
 }): string {
-  const area = AUDIT_AREA_SCHEMA.parse(input.area)
+  const area = auditAreaSchema.parse(input.area)
   const moduleSlug = slugSegment(input.module, 64)
   const objectSlug = slugSegment(input.object, 64)
   const verb = crudSapVerbSchema.parse(input.verb)

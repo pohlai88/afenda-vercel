@@ -8,12 +8,15 @@ export type DeclarationSection = {
   readonly bullets?: readonly string[]
 }
 
-/** Locale-internal path segments after `/legal/` (e.g. `terms`, `security/disclosure`). */
+/** Locale-internal declaration keys. Most render under `/legal/`; cookies renders at `/cookies`. */
 export type LegalDeclarationSlug =
+  | "cookies"
+  | "data-processing-addendum"
   | "privacy"
   | "terms"
   | "security"
   | "security/disclosure"
+  | "subprocessors"
   | "support"
 
 export type DeclarationRelatedLink = {
@@ -46,6 +49,7 @@ export type DeclarationLegalIdentity = {
 
 export type DeclarationDocumentDefinition = {
   readonly slug: string
+  readonly routeHref?: `/${string}`
   readonly title: string
   readonly description: string
   readonly eyebrow: string

@@ -66,6 +66,11 @@ const KEYS = [
   { key: "AUTH_REPLY_TO_EMAIL", sensitive: false },
   { key: "DEFAULT_FROM_EMAIL", sensitive: false },
   { key: "DEFAULT_FROM_NAME", sensitive: false },
+  // OpenStatus — /status feed + synthetics (push token only to Vercel if you run API hooks server-side)
+  { key: "OPENSTATUS_PUBLIC_STATUS_URL", sensitive: false },
+  { key: "OPENSTATUS_STATUS_PAGE_ID", sensitive: false },
+  { key: "OPENSTATUS_STATUS_PAGE_SLUG", sensitive: false },
+  { key: "OPENSTATUS_API_TOKEN", sensitive: true },
 ]
 
 const TARGETS = ["production", "preview"]

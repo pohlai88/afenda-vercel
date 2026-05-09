@@ -246,7 +246,7 @@ function describeNext(next: TemporalNext): string {
   if (next.unlocksWorkflowId?.trim())
     bits.push(`Unlocks workflow ${next.unlocksWorkflowId.trim()}.`)
   if (next.failureConsequence?.trim())
-    bits.push(`If ignored: ${next.failureConsequence.trim()}`)
+    bits.push(`If ignored: ${next.failureConsequence.trim()}.`)
   return joinSentences(bits)
 }
 

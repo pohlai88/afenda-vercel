@@ -16,14 +16,15 @@ export type TrustPostureSignal = {
   readonly ownerRoute: string
   readonly proofSource: string
   readonly lastUpdatedLabel: string
-  readonly href?: `/${string}`
+  /** Locale-internal path (`/legal/...`) or absolute OpenStatus / vendor authority URL. */
+  readonly href?: string
 }
 
 export type TrustEvidenceItem = {
   readonly id: string
   readonly title: string
   readonly statement: string
-  readonly href: `/${string}`
+  readonly href: string
   readonly proofSource: string
   readonly lastUpdatedLabel: string
 }
@@ -39,6 +40,8 @@ export type TrustSurfaceItem = {
   readonly lastUpdatedLabel: string
   readonly isPublicLink: boolean
   readonly activationRuleId?: string
+  /** OpenStatus (or other) authority URL shown beside the branded /status wrapper. */
+  readonly authorityUrl?: string
 }
 
 export type TrustCommitment = {
@@ -47,7 +50,7 @@ export type TrustCommitment = {
   readonly summary: string
   readonly expectation: string
   readonly ownerRoute: string
-  readonly href?: `/${string}`
+  readonly href?: string
 }
 
 export type TrustBoundaryStatement = {

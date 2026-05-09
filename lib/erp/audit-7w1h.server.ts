@@ -39,9 +39,13 @@ export async function writeAuditEvent7W1H(
 ): Promise<{ trimmed: AuditEvent7W1H[] }> {
   const parsed = auditEvent7W1HSchema.safeParse(input.event)
   if (!parsed.success) {
-    throw new Error(
-      `writeAuditEvent7W1H: invalid event — ${parsed.error.flatten().formErrors.join("; ")}`
-    )
+    const details = parsed.error.issues
+      .map((issue) => {
+        const path = issue.path.length > 0 ? issue.path.join(".") : "event"
+        return `${path}: ${issue.message}`
+      })
+      .join("; ")
+    throw new Error(`writeAuditEvent7W1H: invalid event — ${details}`)
   }
   const event = parsed.data
 

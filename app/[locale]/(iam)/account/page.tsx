@@ -1,6 +1,7 @@
-import { auth, requireAuthShellSignedInSession } from "#lib/auth"
+import { requireAuthShellSignedInSession } from "#lib/auth"
 import { Link } from "#i18n/navigation"
 import { Button } from "#components/ui/button"
+import { SignOutButton } from "#components/sign-out-button"
 
 export const dynamic = "force-dynamic"
 
@@ -23,14 +24,13 @@ export default async function AccountIndexPage() {
         <Button asChild variant="outline">
           <Link href="/account/security">Security</Link>
         </Button>
-        <form
-          action={async () => {
-            "use server"
-            await auth.signOut()
-          }}
-        >
-          <Button type="submit">Sign out</Button>
-        </form>
+        {/*
+          Routes through the canonical client `SignOutButton` so the
+          per-device OneThing client storage (composer drafts, viewed LRU)
+          is wiped before the auth network call. A server-side `signOut`
+          form here would skip that cleanup.
+        */}
+        <SignOutButton />
       </div>
     </main>
   )

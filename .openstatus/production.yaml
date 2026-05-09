@@ -1,0 +1,122 @@
+# yaml-language-server: $schema=https://www.openstatus.dev/schema.json
+#
+# OpenStatus Cloud monitor-as-code source of truth for Afenda production.
+# Replace the domain if the production Afenda app moves away from www.nexuscanon.com.
+
+afenda-public-homepage:
+  name: "Afenda public homepage"
+  description: "Public landing route for Afenda availability."
+  frequency: "1m"
+  active: true
+  public: true
+  regions: [iad, ams, hkg, jnb, gru, syd]
+  retry: 3
+  kind: http
+  request:
+    url: "https://www.nexuscanon.com/en"
+    method: GET
+    headers:
+      User-Agent: "openstatus-afenda"
+  assertions:
+    - kind: statusCode
+      compare: eq
+      target: 200
+
+afenda-sign-in-route:
+  name: "Afenda sign-in route"
+  description: "Authentication entry route availability."
+  frequency: "1m"
+  active: true
+  public: true
+  regions: [iad, ams, hkg, jnb, gru, syd]
+  retry: 3
+  kind: http
+  request:
+    url: "https://www.nexuscanon.com/en/sign-in"
+    method: GET
+    headers:
+      User-Agent: "openstatus-afenda"
+  assertions:
+    - kind: statusCode
+      compare: eq
+      target: 200
+
+afenda-health-endpoint:
+  name: "Afenda health endpoint"
+  description: "Redacted app, database, and runtime health check."
+  frequency: "1m"
+  active: true
+  public: true
+  regions: [iad, ams, hkg, jnb, gru, syd]
+  retry: 3
+  kind: http
+  request:
+    url: "https://www.nexuscanon.com/api/health"
+    method: GET
+    headers:
+      Accept: "application/json"
+      User-Agent: "openstatus-afenda"
+  assertions:
+    - kind: statusCode
+      compare: eq
+      target: 200
+    - kind: textBody
+      compare: contains
+      target: '"ok":true'
+
+afenda-public-trust-route:
+  name: "Afenda public trust route"
+  description: "Canonical public trust surface availability."
+  frequency: "5m"
+  active: true
+  public: true
+  regions: [iad, ams, hkg, jnb, gru, syd]
+  retry: 3
+  kind: http
+  request:
+    url: "https://www.nexuscanon.com/en/legal/trust"
+    method: GET
+    headers:
+      User-Agent: "openstatus-afenda"
+  assertions:
+    - kind: statusCode
+      compare: eq
+      target: 200
+
+afenda-legal-privacy-route:
+  name: "Afenda legal privacy route"
+  description: "Privacy declaration availability."
+  frequency: "5m"
+  active: true
+  public: true
+  regions: [iad, ams, hkg, jnb, gru, syd]
+  retry: 3
+  kind: http
+  request:
+    url: "https://www.nexuscanon.com/en/legal/privacy"
+    method: GET
+    headers:
+      User-Agent: "openstatus-afenda"
+  assertions:
+    - kind: statusCode
+      compare: eq
+      target: 200
+
+afenda-branded-status-wrapper:
+  name: "Afenda branded status wrapper"
+  description: "Afenda wrapper route that reflects OpenStatus truth."
+  frequency: "5m"
+  active: true
+  public: true
+  regions: [iad, ams, hkg, jnb, gru, syd]
+  retry: 3
+  kind: http
+  request:
+    url: "https://www.nexuscanon.com/en/status"
+    method: GET
+    headers:
+      User-Agent: "openstatus-afenda"
+  assertions:
+    - kind: statusCode
+      compare: eq
+      target: 200

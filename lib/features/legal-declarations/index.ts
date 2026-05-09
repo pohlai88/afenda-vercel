@@ -22,4 +22,11 @@ export type {
   DeclarationRouteSlug,
 } from "./data/declaration-registry.shared"
 
-export { LEGAL_ROUTE_PREFIX } from "./data/footer.shared"
+export {
+  cookieNoticeLink,
+  dataProcessingAddendumLink,
+  LEGAL_ROUTE_PREFIX,
+  securityDisclosureLink,
+  subprocessorsLink,
+  trustRouteLink,
+} from "./data/footer.shared"

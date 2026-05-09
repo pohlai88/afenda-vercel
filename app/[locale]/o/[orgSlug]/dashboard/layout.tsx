@@ -1,17 +1,54 @@
 import { Suspense } from "react"
+import { headers } from "next/headers"
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
+import type { BreadcrumbSegment } from "#components/dashboard/breadcrumbs"
 import { DashboardShell } from "#components/dashboard/dashboard-shell"
 import { OrgSwitcherSkeleton } from "#components/dashboard/org-switcher-skeleton"
 import { OrgSwitcherSlot } from "#components/dashboard/org-switcher-slot"
 import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import { canActInOrganization } from "#lib/auth"
+import { AFENDA_PATHNAME_HEADER } from "#lib/auth/forwarded-path-headers.shared"
 import { fetchOrgWorkbenchIdentity } from "#lib/auth/org-workbench.server"
-import { ensureAppLocale } from "#lib/i18n/locales.shared"
+import {
+  DASHBOARD_NAV_MODULES,
+  organizationDashboardPath,
+  type DashboardNavModule,
+} from "#lib/dashboard-module-paths"
+import {
+  ensureAppLocale,
+  stripLeadingLocalePrefix,
+} from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/route-envelope.shared"
 import { SITE_NAME } from "#lib/site"
 import { requireOrgSession } from "#lib/tenant"
+
+/**
+ * Reads the proxy-forwarded pathname header to identify which dashboard module
+ * the current request is rendering, for breadcrumb labelling. Returns `null`
+ * when the header is missing, the path doesn't sit under this org's dashboard,
+ * or the segment isn't a registered nav module.
+ */
+function resolveCurrentDashboardModule(
+  forwardedPathname: string | null,
+  orgSlug: string
+): DashboardNavModule | null {
+  if (!forwardedPathname) return null
+  const stripped = stripLeadingLocalePrefix(forwardedPathname)
+  if (!stripped) return null
+  const dashboardPrefix = `/o/${orgSlug}/dashboard`
+  const tail = stripped.pathnameWithoutLocale
+  if (tail !== dashboardPrefix && !tail.startsWith(`${dashboardPrefix}/`)) {
+    return null
+  }
+  const after = tail.slice(dashboardPrefix.length)
+  const next = after.split("/").filter(Boolean)[0]
+  if (!next) return null
+  return (DASHBOARD_NAV_MODULES as readonly string[]).includes(next)
+    ? (next as DashboardNavModule)
+    : null
+}
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -29,7 +66,7 @@ export default async function OrgDashboardLayout({
 
   // Tier A — minimum blocking authority required to establish the route contract.
   // The shell cannot render without these; nothing else belongs here.
-  const [showOrgAdminLink, identity, tNav] = await Promise.all([
+  const [showOrgAdminLink, identity, tNav, requestHeaders] = await Promise.all([
     canActInOrganization(
       org.userId,
       org.user.role,
@@ -38,9 +75,24 @@ export default async function OrgDashboardLayout({
     ),
     fetchOrgWorkbenchIdentity(org.organizationId),
     getTranslations("Dashboard.nav"),
+    headers(),
   ])
 
   const orgName = identity?.name ?? orgSlug
+
+  const currentModule = resolveCurrentDashboardModule(
+    requestHeaders.get(AFENDA_PATHNAME_HEADER),
+    orgSlug
+  )
+
+  const breadcrumbs: BreadcrumbSegment[] = [
+    { label: orgName, href: organizationDashboardPath(orgSlug, "home") },
+  ]
+  if (currentModule) {
+    breadcrumbs.push({ label: tNav(currentModule) })
+  } else {
+    breadcrumbs.push({ label: tNav("label") })
+  }
 
   const envelope: RouteEnvelope = {
     surface: "dashboard",
@@ -64,7 +116,7 @@ export default async function OrgDashboardLayout({
         orgSlug={orgSlug}
         orgName={orgName}
         showOrgAdminLink={showOrgAdminLink}
-        breadcrumbs={[{ label: orgName }, { label: tNav("label") }]}
+        breadcrumbs={breadcrumbs}
         centerSlot={centerSlot}
         userId={org.userId}
         currentOrgId={org.organizationId}

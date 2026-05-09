@@ -2,11 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 
+import { writeClientPreferenceCookie } from "#lib/client-cookie.shared"
+
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days — same as sidebar_state
 const ARROW_STEP = 5 // px per arrow-key press
 
 function writeCookie(name: string, value: number): void {
-  document.cookie = `${name}=${value}; path=/; max-age=${COOKIE_MAX_AGE}`
+  writeClientPreferenceCookie({
+    name,
+    value,
+    maxAgeSeconds: COOKIE_MAX_AGE,
+  })
 }
 
 function clamp(value: number, min: number, max: number): number {

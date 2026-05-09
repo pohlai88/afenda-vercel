@@ -45,9 +45,9 @@ const auditEvent7W1HBaseSchema = z
   .object({
     who: z.string().trim().min(1).max(512),
     what: z.string().trim().min(1).max(2000),
-    when: z.string().trim().min(1).max(64),
+    when: z.string().trim().datetime({ offset: true }),
     where: z.string().trim().min(1).max(512),
-    why: z.string().max(8000).default(""),
+    why: z.string().trim().max(8000).default(""),
     which: z.string().trim().min(1).max(512),
     whom: z.string().trim().min(1).max(512),
     how: mechanismSchema,
@@ -78,22 +78,22 @@ export const auditEvent7W1HSchema = auditEvent7W1HBaseSchema.superRefine(
   }
 )
 
-function howToPhrase(how: AuditEvent7W1HMechanism): string {
+function howToSentence(how: AuditEvent7W1HMechanism): string {
   switch (how) {
     case "server-action":
-      return "via a server action"
+      return "Via a server action."
     case "lynx-operator":
-      return "via Lynx"
+      return "Via Lynx."
     case "cron":
-      return "via a scheduled job"
+      return "Via a scheduled job."
     case "webhook":
-      return "via a webhook"
+      return "Via a webhook."
     case "workflow":
-      return "via a workflow run"
+      return "Via a workflow run."
     case "import":
-      return "via an import"
+      return "Via an import."
     case "system":
-      return "via the system"
+      return "Via the system."
     default: {
       const _exhaustive: never = how
       return _exhaustive
@@ -139,7 +139,7 @@ export function describeAuditEvent7W1H(
     `In ${event.where.trim()}, ${event.who.trim()} ${event.what.trim().replace(/\.$/, "")}.`,
     timeClause,
     `This affects ${event.whom.trim()} (${event.which.trim()})${whyClause}`,
-    `${howToPhrase(event.how)}.`,
+    howToSentence(event.how),
   ]
   return parts
     .map((p) => p.trim())
@@ -154,7 +154,7 @@ export function trimAuditCache(
   next: AuditEvent7W1H,
   options?: { keep?: number }
 ): AuditEvent7W1H[] {
-  const keep = options?.keep ?? 20
+  const keep = Math.max(1, Math.min(options?.keep ?? 20, 100))
   const base = cache ?? []
   return [...base, next].slice(-keep)
 }

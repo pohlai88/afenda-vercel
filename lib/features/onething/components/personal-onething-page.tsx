@@ -8,19 +8,17 @@ import {
   buildPersonalOneThingCaptureSeedParts,
   parseOneThingCanvasSearchParams,
   resolveOneThingCanvasWithFocusOverride,
-  sliceOperationalOneThingTail,
 } from "../data/onething-page-view.shared"
 import { ensureDefaultOneThingListForUser } from "../data/onething.mutations.server"
 import { listOneThingForList } from "../data/onething.queries.server"
-import { OneThingCanvas } from "./onething-canvas"
-import { OneThingTail } from "./onething-tail"
+import { OneThingShell } from "./onething-shell"
 
 /**
- * Personal onething page — same canvas + tail primitives as the org page; the
- * party graph is "you" by default so the counter-party line and resolve
- * actions degrade gracefully. The personal page does not expose snooze /
- * reopen / comment / purge because the personal action surface is narrower
- * by design (see `lib/features/onething/actions/*-personal-onething.ts`).
+ * Personal OneThing page — same shell, narrower action surface.
+ *
+ * The personal scope intentionally exposes fewer toolbar actions (no
+ * snooze / reopen / comment / purge) — that policy lives inside the shell's
+ * `scope === "personal"` branch.
  */
 export async function PersonalOneThingPage({
   searchParams,
@@ -53,45 +51,21 @@ export async function PersonalOneThingPage({
   })
   const { canvas, whyNow } = focused
 
-  const tail = sliceOperationalOneThingTail(ranked.ranked, canvas?.id ?? null)
-  const totalOpen = ranked.ranked.length
-
   const captureParts = buildPersonalOneThingCaptureSeedParts({ locale, runId })
-  const captureSeed = {
+  const composerSeed = {
     linkage: captureParts.linkageJson,
     provenance: captureParts.provenanceJson,
   }
 
-  const captureSeedSummary = runId
-    ? t("captureSeedPersonalRun", { runId, locale })
-    : t("captureSeedPersonal", { locale })
-
   return (
-    <div className="mx-auto max-w-5xl space-y-6 py-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("personalTitle")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t("personalDescription")}
-        </p>
-      </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <OneThingCanvas
-          scope="personal"
-          canvas={canvas}
-          whyNow={whyNow}
-          defaultListId={defaultListId}
-          captureSeed={captureSeed}
-          captureSeedSummary={captureSeedSummary}
-        />
-        <OneThingTail
-          items={tail}
-          totalOpen={totalOpen}
-          currentId={canvas?.id ?? null}
-          linkSearchParams={params}
-        />
-      </div>
-    </div>
+    <OneThingShell
+      scope="personal"
+      ranked={ranked.ranked}
+      canvas={canvas}
+      whyNow={whyNow}
+      defaultListId={defaultListId}
+      composerSeed={composerSeed}
+      linkSearchParams={params}
+    />
   )
 }

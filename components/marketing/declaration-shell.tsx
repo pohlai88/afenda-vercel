@@ -1,8 +1,8 @@
 import type { Route } from "next"
-import Image from "next/image"
 import type { AnchorHTMLAttributes, ReactNode } from "react"
 import { Link } from "#i18n/navigation"
 
+import { AfendaBrandLockup } from "#components/afenda-brand"
 import {
   LEGAL_ROUTE_PREFIX,
   type DeclarationContactChannel,
@@ -11,7 +11,6 @@ import {
   type DeclarationRelatedLink,
   type DeclarationSection,
 } from "#features/legal-declarations"
-import { BRAND_COMBINED_LOCKUP_SVG } from "#lib/site"
 import { cn } from "#lib/utils"
 
 type DeclarationShellProps = {
@@ -107,7 +106,8 @@ export function DeclarationShell({
   legalIdentity,
 }: DeclarationShellProps) {
   const primaryContact = document.contactChannels[0]
-  const currentFooterHref = `${LEGAL_ROUTE_PREFIX}/${document.slug}`
+  const currentFooterHref =
+    document.routeHref ?? `${LEGAL_ROUTE_PREFIX}/${document.slug}`
 
   return (
     <main className="min-h-svh bg-background pb-16 text-foreground">
@@ -119,13 +119,9 @@ export function DeclarationShell({
               className="inline-flex max-w-[214px] shrink-0 text-inherit no-underline"
               aria-label="Afenda home"
             >
-              <Image
-                src={BRAND_COMBINED_LOCKUP_SVG}
-                alt="Afenda"
-                width={1800}
-                height={488}
-                sizes="(max-width: 680px) min(58vw, 192px), 214px"
-                className="h-auto w-[min(214px,58vw)]"
+              <AfendaBrandLockup
+                className="max-w-[min(214px,58vw)]"
+                imgClassName="object-left"
                 priority
               />
             </LegalLink>
@@ -342,13 +338,9 @@ export function DeclarationShell({
               className="inline-flex w-fit max-w-[176px] text-inherit no-underline"
               aria-label="Afenda footer home"
             >
-              <Image
-                src={BRAND_COMBINED_LOCKUP_SVG}
-                alt="Afenda"
-                width={1800}
-                height={488}
-                sizes="(max-width: 640px) min(62vw, 180px), 176px"
-                className="h-auto w-[min(176px,62vw)]"
+              <AfendaBrandLockup
+                className="max-w-[min(176px,62vw)]"
+                imgClassName="object-left"
               />
             </LegalLink>
             <div className="grid gap-0 text-[0.94rem] leading-snug font-semibold">

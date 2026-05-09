@@ -5,6 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
 import { useIsMobile } from "#hooks/use-mobile"
+import { writeClientPreferenceCookie } from "#lib/client-cookie.shared"
 import { cn } from "#lib/utils"
 import { Button } from "#components/ui/button"
 import { Input } from "#components/ui/input"
@@ -78,7 +79,11 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      writeClientPreferenceCookie({
+        name: SIDEBAR_COOKIE_NAME,
+        value: openState,
+        maxAgeSeconds: SIDEBAR_COOKIE_MAX_AGE,
+      })
     },
     [setOpenProp, open]
   )

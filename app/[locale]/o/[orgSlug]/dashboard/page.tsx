@@ -11,7 +11,7 @@ export default async function OrgDashboardIndexPage({
   const { orgSlug } = await params
   const locale = await getRequestAppLocale()
   redirect({
-    href: organizationDashboardPath(orgSlug, "contacts"),
+    href: organizationDashboardPath(orgSlug, "onething"),
     locale,
   })
 }

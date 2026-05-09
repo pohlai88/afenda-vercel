@@ -12,7 +12,7 @@ export const declarationFooterIdentity = {
   incorporationStatement: "Incorporated in Malaysia.",
   regionalStatement: "Serving businesses across Southeast Asia.",
   registeredAddress:
-    "22-1, JALAN BAYU TINGGI 2A/KS6 BATU UNJUR, 41200 KLANG SELANGOR, MALAYSIA",
+    "22-1, Jalan Bayu Tinggi 2A/KS6 Batu Unjur, 41200 Klang Selangor, Malaysia",
   websiteLabel: "Website",
   websiteValue: "www.nexuscanon.com",
   websiteHref: "https://www.nexuscanon.com",
@@ -27,6 +27,27 @@ export const trustRouteLink = {
   label: "Trust",
   description:
     "Canonical public assurance surface showing current posture, evidence, commitments, and boundaries.",
+} satisfies DeclarationRelatedLink
+
+export const cookieNoticeLink = {
+  href: "/cookies",
+  label: "Cookie Notice",
+  description:
+    "Current essential cookie, local storage, authentication, session, and control posture.",
+} satisfies DeclarationRelatedLink
+
+export const dataProcessingAddendumLink = {
+  href: "/data-processing-addendum",
+  label: "Data Processing Addendum",
+  description:
+    "Malaysia PDPA-aligned customer processing terms, request route, and legal section map.",
+} satisfies DeclarationRelatedLink
+
+export const subprocessorsLink = {
+  href: "/subprocessors",
+  label: "Subprocessors",
+  description:
+    "Validated vendor inventory, purpose, jurisdiction, and production-processing status.",
 } satisfies DeclarationRelatedLink
 
 export const securityDisclosureLink = {
@@ -61,5 +82,8 @@ export const declarationFooterLinks = [
     description:
       "Business support, escalation paths, declaration index, and operational contact model.",
   },
+  dataProcessingAddendumLink,
+  subprocessorsLink,
+  cookieNoticeLink,
   trustRouteLink,
 ] as const satisfies readonly DeclarationRelatedLink[]

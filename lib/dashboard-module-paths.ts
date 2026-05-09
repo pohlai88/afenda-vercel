@@ -64,8 +64,8 @@ export function organizationDashboardPath(
  * `Dashboard.nav` in `messages/*`.
  */
 export const DASHBOARD_NAV_MODULES = [
-  "contacts",
   "onething",
+  "contacts",
   "knowledge",
   "lynx",
   "sale",

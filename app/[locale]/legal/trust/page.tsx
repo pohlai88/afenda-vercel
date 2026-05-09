@@ -7,7 +7,7 @@ import {
 } from "#features/legal-declarations"
 import {
   buildTrustPageMetadata,
-  trustSurfaceDefinition,
+  trustSurfaceDefinitionResolved,
 } from "#features/public-trust"
 import { APP_LOCALES, ensureAppLocale } from "#lib/i18n/locales.shared"
 
@@ -29,9 +29,13 @@ export default async function LegalTrustPage({
   const { locale: localeRaw } = await params
   ensureAppLocale(localeRaw)
 
+  const definition = trustSurfaceDefinitionResolved(
+    process.env.OPENSTATUS_PUBLIC_STATUS_URL
+  )
+
   return (
     <TrustControlSurface
-      definition={trustSurfaceDefinition}
+      definition={definition}
       legalIdentity={declarationFooterIdentity}
       footerLinks={declarationFooterLinks}
     />

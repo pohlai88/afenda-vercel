@@ -2,7 +2,103 @@ import { z } from "zod"
 
 import { ONETHING_SEVERITIES, ONETHING_STATES } from "../constants"
 
+/**
+ * Title-as-situation contract.
+ *
+ * The list pane renders a single line per OneThing — the title carries the
+ * full operational situation. Without this contract the row anatomy degrades
+ * back to "I can't tell what this row means without clicking it" and the
+ * preview line / severity badge / assignee chip all return.
+ *
+ * Operational situations read like complete utterances:
+ *   - "Vendor payment blocked for three organizations"
+ *   - "South-facing succulents need rotation by month-end"
+ *
+ * Non-situations are rejected with `OneThingTitleNotSituation`:
+ *   - trailing em-dash + technical event ("Vendor payment — RG-FIN-014 failed")
+ *   - bare module-noun openers ("Contact:", "PO:", "RUN:")
+ *   - pure noun phrases ("Office plant rotation", "Q1 vendor onboarding")
+ *   - internal jargon tokens (raw audit verbs)
+ *
+ * The Lynx ranker still surfaces non-situation titles with a quieter
+ * `titleQuality: "event" | "noun"` advisory hint — this refine only blocks
+ * the most obvious shapes so operators are nudged, never trapped.
+ */
+
+const TECHNICAL_EVENT_TAIL_PATTERN =
+  /\s[—–-]\s\S+\s+(failed|pending|rejected|errored|blocked|aborted|dispatched|commissioned|scheduled|posted|reversed|approved|created|updated|deleted)\b/i
+
+const MODULE_NOUN_PREFIX_PATTERN =
+  /^(po|so|ct|run|cron|onething|task|ticket|lynx|knowledge|kn|admin|iam|org|sys|api|sql|cli|sdk|lp|pp)\s*[:#]/i
+
+const SINGLE_TOKEN_PATTERN = /^\S+$/
+
+export type OneThingTitleQualityIssue =
+  | "technical_event_tail"
+  | "module_noun_prefix"
+  | "single_token"
+
+/**
+ * Conservative title-quality classifier — only catches the three unambiguous
+ * structural shapes that would degrade the single-line list-pane row. Anything
+ * else (including "noun-phrase-y" rows) is left to the Lynx advisory hint.
+ *
+ * Returns `null` for acceptable titles, an issue code otherwise.
+ */
+export function classifyOneThingTitleIssue(
+  rawTitle: string
+): OneThingTitleQualityIssue | null {
+  const value = rawTitle.trim()
+  if (value.length === 0) return null
+
+  if (MODULE_NOUN_PREFIX_PATTERN.test(value)) return "module_noun_prefix"
+  if (TECHNICAL_EVENT_TAIL_PATTERN.test(value)) return "technical_event_tail"
+  if (SINGLE_TOKEN_PATTERN.test(value)) return "single_token"
+  return null
+}
+
+export const ONETHING_TITLE_NOT_SITUATION_CODE = "OneThingTitleNotSituation"
+
+/**
+ * Lenient title schema — accepts any non-empty trimmed string up to 500 chars.
+ * Kept permissive so legacy data, imported rows, and update paths never
+ * choke on hydration. New-capture paths layer `assertOneThingTitleIsSituation`
+ * on top of this base shape via `superRefine`.
+ */
 export const onethingTitleSchema = z.string().trim().min(1).max(500)
+
+/**
+ * Strict situation refine — applied only to the create path. Rejects the
+ * three structural shapes that would degrade the single-line list-pane row
+ * back into "I can't tell what this row means without clicking it".
+ *
+ * Lynx still surfaces non-situation titles with a soft `titleQuality` advisory
+ * for legacy rows (which were captured before this contract existed). The
+ * refine itself only prevents new technical-event / module-noun / pure-noun
+ * captures from entering the system.
+ */
+export function assertOneThingTitleIsSituation(
+  value: string,
+  ctx: z.RefinementCtx
+): void {
+  const issue = classifyOneThingTitleIssue(value)
+  if (!issue) return
+  ctx.addIssue({
+    code: z.ZodIssueCode.custom,
+    params: { code: ONETHING_TITLE_NOT_SITUATION_CODE, issue },
+    message:
+      issue === "technical_event_tail"
+        ? "Title reads as a technical event. Capture the situation it creates (e.g. 'Vendor payment blocked for three organizations')."
+        : issue === "module_noun_prefix"
+          ? "Title leads with an internal module tag. Lead with the operational situation instead."
+          : "Title is a single token. Capture the full situation, not just a label.",
+  })
+}
+
+/** Strict situation-shaped title — required on new captures. */
+export const onethingSituationTitleSchema = onethingTitleSchema.superRefine(
+  assertOneThingTitleIsSituation
+)
 
 /**
  * Operational atom — Zod parsers for the four JSONB spokes on `erp_onething`. All
@@ -57,7 +153,7 @@ export function safeParseOneThingSpoke<T>(
 }
 
 export const createOrgOneThingSchema = z.object({
-  title: onethingTitleSchema,
+  title: onethingSituationTitleSchema,
   consequence: z.string().trim().max(20_000).optional().default(""),
   severity: z.enum(ONETHING_SEVERITIES).optional().default("medium"),
   dueAt: z.string().optional().nullable(),

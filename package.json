@@ -56,7 +56,10 @@
     "ai:gateway:smoke": "tsx scripts/ai-gateway-stream-text.ts",
     "ai:gateway:image": "tsx scripts/ai-gateway-generate-image.ts",
     "lynx:seed-demo": "node scripts/with-env.mjs tsx scripts/seed-lynx-demo.ts",
-    "dev:seed": "node scripts/with-env.mjs node scripts/seed-dev-users.mjs"
+    "dev:seed": "node scripts/with-env.mjs node scripts/seed-dev-users.mjs",
+    "openstatus:sync-ci": "node scripts/with-env.mjs node scripts/openstatus-sync-ci.mjs",
+    "openstatus:env-hints": "node scripts/with-env.mjs node scripts/openstatus-env-hints.mjs",
+    "openstatus:validate-feed": "node scripts/with-env.mjs node scripts/validate-openstatus-feed.mjs"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.110",
@@ -122,6 +125,7 @@
   },
   "devDependencies": {
     "@next/env": "16.2.4",
+    "@openstatus/sdk-node": "^0.1.6",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.2.1",
     "@testing-library/dom": "^10.4.1",

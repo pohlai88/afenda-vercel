@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server"
 
 import { enqueueOneThingReminderWorkflowRun } from "#features/execution"
-import { listDistinctOrgIdsWithOneThing } from "#features/onething"
+import { listDistinctOrgIdsWithOneThing } from "#features/onething/server"
 import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
 
 export const dynamic = "force-dynamic"
