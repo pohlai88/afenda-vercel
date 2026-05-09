@@ -227,11 +227,11 @@ export const importJobFailure = pgTable(
 )
 
 /**
- * Org or personal task lists (`todo_list` — migration `0014_erp_todos.sql`).
+ * Org or personal OneThing lists (`onething_list`).
  * Exactly one of `organizationId` / `ownerUserId` is non-null (DB CHECK).
  */
-export const todoList = pgTable(
-  "todo_list",
+export const oneThingList = pgTable(
+  "onething_list",
   {
     id: text("id")
       .primaryKey()
@@ -246,98 +246,111 @@ export const todoList = pgTable(
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
-    index("todo_list_organization_id_idx").on(t.organizationId),
-    index("todo_list_owner_user_id_idx").on(t.ownerUserId),
-    uniqueIndex("todo_list_org_slug_uidx")
+    index("onething_list_organization_id_idx").on(t.organizationId),
+    index("onething_list_owner_user_id_idx").on(t.ownerUserId),
+    uniqueIndex("onething_list_org_slug_uidx")
       .on(t.organizationId, t.slug)
       .where(sql`${t.organizationId} IS NOT NULL`),
-    uniqueIndex("todo_list_owner_slug_uidx")
+    uniqueIndex("onething_list_owner_slug_uidx")
       .on(t.ownerUserId, t.slug)
       .where(sql`${t.ownerUserId} IS NOT NULL`),
   ]
 )
 
 /**
- * Org or personal todo rows (`todo`). The four JSONB spokes — `linkage`,
+ * Org or personal OneThing rows (`onething`). The four JSONB spokes — `linkage`,
  * `counterparty`, `provenance`, `impact` — make the row an **operational
- * atom** (`0015_todo_atom.sql`); see `lib/features/todos/types.ts`.
+ * atom** (`0015_onething_atom.sql`); see `lib/features/onething/types.ts`.
  */
-export const erpTodo = pgTable(
-  "todo",
+export const oneThing = pgTable(
+  "onething",
   {
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     listId: text("listId")
       .notNull()
-      .references(() => todoList.id, { onDelete: "cascade" }),
+      .references(() => oneThingList.id, { onDelete: "cascade" }),
     organizationId: text("organizationId"),
     ownerUserId: text("ownerUserId"),
     assigneeUserId: text("assigneeUserId"),
     title: text("title").notNull(),
-    description: text("description").notNull().default(""),
-    state: text("state").notNull().default("pending"),
-    priority: text("priority").notNull().default("normal"),
+    consequence: text("consequence").notNull().default(""),
+    state: text("state").notNull().default("detected"),
+    severity: text("severity").notNull().default("medium"),
     dueAt: timestamp("dueAt", { mode: "date" }),
     snoozeUntil: timestamp("snoozeUntil", { mode: "date" }),
     recurrenceRule: text("recurrenceRule"),
-    parentTodoId: text("parentTodoId"),
+    parentOneThingId: text("parentOneThingId"),
     position: integer("position").notNull().default(0),
     /**
      * Operational atom — sparse JSONB spokes. The application validates shape
-     * with Zod (see `safeParseTodoSpoke`); the DB stores raw JSON so future
+     * with Zod (see `safeParseOneThingSpoke`); the DB stores raw JSON so future
      * migrations can add subkey indexes without breaking older rows.
      */
     linkage: jsonb("linkage"),
     counterparty: jsonb("counterparty"),
     provenance: jsonb("provenance"),
     impact: jsonb("impact"),
+    temporalPast: jsonb("temporalPast"),
+    temporalNow: jsonb("temporalNow"),
+    temporalNext: jsonb("temporalNext"),
+    resolvedAt: timestamp("resolvedAt", { mode: "date" }),
+    deprecatedAt: timestamp("deprecatedAt", { mode: "date" }),
+    resolutionNote: text("resolutionNote"),
+    resolutionProof: jsonb("resolutionProof"),
+    predictions: jsonb("predictions"),
+    /** Trimmed 7W1H audit cache (last N events) — validated in `lib/features/onething`. */
+    audit7w1h: jsonb("audit7w1h"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
-    index("todo_organization_id_state_idx").on(t.organizationId, t.state),
-    index("todo_owner_user_id_state_idx").on(t.ownerUserId, t.state),
-    index("todo_assignee_user_id_state_idx").on(t.assigneeUserId, t.state),
-    index("todo_due_at_idx").on(t.dueAt),
-    index("todo_list_id_idx").on(t.listId),
-    index("todo_snooze_until_idx").on(t.snoozeUntil),
+    index("onething_organization_id_state_idx").on(t.organizationId, t.state),
+    index("onething_owner_user_id_state_idx").on(t.ownerUserId, t.state),
+    index("onething_assignee_user_id_state_idx").on(t.assigneeUserId, t.state),
+    index("onething_due_at_idx").on(t.dueAt),
+    index("onething_list_id_idx").on(t.listId),
+    index("onething_snooze_until_idx").on(t.snoozeUntil),
   ]
 )
 
-export const todoAttachment = pgTable(
-  "todo_attachment",
+export const oneThingAttachment = pgTable(
+  "onething_attachment",
   {
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    todoId: text("todoId")
+    oneThingId: text("oneThingId")
       .notNull()
-      .references(() => erpTodo.id, { onDelete: "cascade" }),
+      .references(() => oneThing.id, { onDelete: "cascade" }),
     url: text("url").notNull(),
     contentSha256: text("contentSha256").notNull(),
     mimeType: text("mimeType").notNull(),
     sizeBytes: integer("sizeBytes").notNull(),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   },
-  (t) => [index("todo_attachment_todo_id_idx").on(t.todoId)]
+  (t) => [index("onething_attachment_onething_id_idx").on(t.oneThingId)]
 )
 
-export const todoComment = pgTable(
-  "todo_comment",
+export const oneThingComment = pgTable(
+  "onething_comment",
   {
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    todoId: text("todoId")
+    oneThingId: text("oneThingId")
       .notNull()
-      .references(() => erpTodo.id, { onDelete: "cascade" }),
+      .references(() => oneThing.id, { onDelete: "cascade" }),
     authorUserId: text("authorUserId").notNull(),
     body: text("body").notNull(),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
-    index("todo_comment_todo_id_created_at_idx").on(t.todoId, t.createdAt),
+    index("onething_comment_onething_id_created_at_idx").on(
+      t.oneThingId,
+      t.createdAt
+    ),
   ]
 )
 

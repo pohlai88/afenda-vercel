@@ -9,7 +9,7 @@ describe("buildGroundedTruthQuestion", () => {
 
   it("includes title and trailing guidance", () => {
     const q = buildGroundedTruthQuestion({
-      source: "todo",
+      source: "onething",
       id: "x",
       title: "Approve vendor bill",
       summary: null,
@@ -22,7 +22,7 @@ describe("buildGroundedTruthQuestion", () => {
   it("clips long summaries", () => {
     const long = "x".repeat(500)
     const q = buildGroundedTruthQuestion({
-      source: "todo",
+      source: "onething",
       id: "y",
       title: "Task",
       summary: long,

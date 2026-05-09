@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useEffect, useRef, useTransition } from "react"
 import {
   BookOpen,
@@ -9,7 +10,6 @@ import {
   Package,
   Settings,
   ShoppingCart,
-  Sparkles,
   Users,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -34,14 +34,17 @@ import {
   organizationAdminPath,
   switchActiveOrgAction,
 } from "#features/org-admin/client"
+import { LYNX_MODULE_NAV_ICON_PNG } from "#lib/site"
 
 import { useCommandPalette } from "./command-palette-context"
 
-const MODULE_ICONS: Record<DashboardNavModule, React.ElementType> = {
+const MODULE_ICONS: Record<
+  Exclude<DashboardNavModule, "lynx">,
+  React.ElementType
+> = {
   contacts: Users,
-  todos: CheckSquare,
+  onething: CheckSquare,
   knowledge: BookOpen,
-  lynx: Sparkles,
   sale: ShoppingCart,
   purchase: Package,
   inventory: Package,
@@ -49,6 +52,23 @@ const MODULE_ICONS: Record<DashboardNavModule, React.ElementType> = {
 }
 
 const ADMIN_SEGMENTS = ["members", "audit", "settings", "integrations"] as const
+
+function DashboardModuleGlyph({ module }: { module: DashboardNavModule }) {
+  if (module === "lynx") {
+    return (
+      <Image
+        src={LYNX_MODULE_NAV_ICON_PNG}
+        alt=""
+        width={16}
+        height={16}
+        className="mr-2 size-4 shrink-0 object-contain opacity-80"
+        aria-hidden
+      />
+    )
+  }
+  const Icon = MODULE_ICONS[module]
+  return <Icon className="mr-2 size-4 text-muted-foreground" />
+}
 
 type CommandPaletteProps = {
   orgSlug: string
@@ -77,7 +97,9 @@ export function CommandPalette({
   const tNav = useTranslations("Dashboard.nav")
   const [isPending, startTransition] = useTransition()
   const openRef = useRef(open)
-  openRef.current = open
+  useEffect(() => {
+    openRef.current = open
+  }, [open])
 
   // Cmd/Ctrl+K — stable listener; when closed, ignore if focus is in a text field.
   useEffect(() => {
@@ -131,21 +153,18 @@ export function CommandPalette({
 
         {/* Group 1: Modules */}
         <CommandGroup heading={t("groupModules")}>
-          {DASHBOARD_NAV_MODULES.map((module) => {
-            const Icon = MODULE_ICONS[module]
-            return (
-              <CommandItem
-                key={module}
-                value={`module-${module}`}
-                onSelect={() =>
-                  navigateTo(organizationDashboardPath(orgSlug, module))
-                }
-              >
-                <Icon className="mr-2 size-4 text-muted-foreground" />
-                <span>{tNav(module as DashboardNavModule)}</span>
-              </CommandItem>
-            )
-          })}
+          {DASHBOARD_NAV_MODULES.map((module) => (
+            <CommandItem
+              key={module}
+              value={`module-${module}`}
+              onSelect={() =>
+                navigateTo(organizationDashboardPath(orgSlug, module))
+              }
+            >
+              <DashboardModuleGlyph module={module} />
+              <span>{tNav(module as DashboardNavModule)}</span>
+            </CommandItem>
+          ))}
         </CommandGroup>
 
         {/* Group 2: Organizations */}

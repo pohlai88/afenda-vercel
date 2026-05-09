@@ -152,7 +152,7 @@ export function isImportRowState(value: string): value is OrgImportRowState {
 /** Registered ingestion adapters — extend in lockstep with `OrgImportAdapterId`. */
 export const IMPORT_ADAPTERS = [
   "member_invite",
-  "todo_import",
+  "onething_import",
 ] as const satisfies readonly OrgImportAdapterId[]
 
 const IMPORT_ADAPTER_SET = new Set<string>(IMPORT_ADAPTERS)

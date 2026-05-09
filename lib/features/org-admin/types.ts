@@ -117,7 +117,7 @@ export type OrgImportRowState = "pending" | "applied" | "failed" | "skipped"
  * adapter requires extending this union, registering it in
  * {@link IMPORT_ADAPTERS}, and providing a row Zod schema + `applyRow` impl.
  */
-export type OrgImportAdapterId = "member_invite" | "todo_import"
+export type OrgImportAdapterId = "member_invite" | "onething_import"
 
 /** Public projection of an `import_job` row for UI listings. */
 export type OrgImportJobSummary = {

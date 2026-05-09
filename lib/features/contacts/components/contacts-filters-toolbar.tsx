@@ -27,14 +27,14 @@ export function ContactsFiltersToolbar({
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           placeholder="Search contacts"
-          className="bg-background pl-9 pr-9"
+          className="bg-background pr-9 pl-9"
         />
         {query ? (
           <button
             type="button"
             onClick={() => onQueryChange("")}
             aria-label="Clear search"
-            className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
           >
             <X className="size-3.5" aria-hidden />
           </button>

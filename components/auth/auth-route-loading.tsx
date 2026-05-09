@@ -10,6 +10,7 @@ type AuthFrameCommonLoadingKey =
   | "loadingSignIn"
   | "loadingSignUp"
   | "loadingResetPassword"
+  | "loadingInvitation"
   | "loadingOnboarding"
 
 export type AuthRouteLoadingConfig =

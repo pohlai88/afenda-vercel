@@ -155,6 +155,12 @@ export const APP_ICON_MASKABLE_512_PNG =
 export const APP_ICON_APPLE_180_PNG =
   "/icons/afenda-icon-180-transparent.png" as const
 
+/** Lynx module identity in dashboard chrome (sidebar, command palette). */
+export const LYNX_MODULE_NAV_ICON_PNG = "/icons/lynx/lynx-3d.png" as const
+
+/** Lynx floating summon mascot (`public/icons/lynx/lynx-smart.png`). */
+export const LYNX_SUMMON_MASCOT_PNG = "/icons/lynx/lynx-smart.png" as const
+
 /** Marketing lockups — use in wide headers / auth hero; not for favicon or maskable PWA. */
 export const BRAND_COMBINED_LOCKUP_SVG =
   "/afenda-brand/afenda-combined-lockup-full-color-transparent.svg" as const

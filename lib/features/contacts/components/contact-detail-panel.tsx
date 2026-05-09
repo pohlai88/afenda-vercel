@@ -1,6 +1,12 @@
 "use client"
 
-import { CalendarDays, Mail, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import {
+  CalendarDays,
+  Mail,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react"
 
 import { Avatar, AvatarFallback } from "#components/ui/avatar"
 import { Badge } from "#components/ui/badge"
@@ -29,7 +35,7 @@ export function ContactDetailPanel({ contact }: ContactDetailPanelProps) {
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold leading-tight">{contact.name}</p>
+          <p className="truncate leading-tight font-semibold">{contact.name}</p>
         </div>
         {/* Overflow menu stub — wired in a future action pass */}
         <Button variant="ghost" size="icon-sm" aria-label="More actions">
@@ -81,7 +87,12 @@ export function ContactDetailPanel({ contact }: ContactDetailPanelProps) {
 
       {/* Action stubs — stubbed pending a full edit/delete implementation pass */}
       <div className="flex flex-col gap-2">
-        <Button variant="outline" size="sm" className="w-full justify-start gap-2" disabled>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full justify-start gap-2"
+          disabled
+        >
           <Pencil className="size-3.5" aria-hidden />
           Edit contact
         </Button>

@@ -13,8 +13,8 @@ describe("sanitizePathAfterOrgSlug", () => {
       "/dashboard/knowledge"
     )
     expect(sanitizePathAfterOrgSlug("/dashboard/lynx")).toBe("/dashboard/lynx")
-    expect(sanitizePathAfterOrgSlug("/dashboard/todos")).toBe(
-      "/dashboard/todos"
+    expect(sanitizePathAfterOrgSlug("/dashboard/onething")).toBe(
+      "/dashboard/onething"
     )
     expect(sanitizePathAfterOrgSlug("/dashboard/../contacts")).toBe(
       "/dashboard"

@@ -1,7 +1,10 @@
 "use client"
 
+import Image from "next/image"
+import { usePathname as useNextPathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { usePathname } from "#i18n/navigation"
+
+import { stripLeadingLocalePrefix } from "#lib/i18n/locales.shared"
 
 import {
   Sidebar,
@@ -49,7 +52,9 @@ export function AppSidebar({
   showOrgAdminLink = false,
   initialWidth,
 }: AppSidebarProps) {
-  const pathname = usePathname()
+  const rawPathname = useNextPathname()
+  const pathname =
+    stripLeadingLocalePrefix(rawPathname)?.pathnameWithoutLocale ?? rawPathname
   const t = useTranslations("Dashboard.nav")
   const { state } = useSidebar()
 
@@ -64,7 +69,7 @@ export function AppSidebar({
   const labels = Object.fromEntries(
     [
       "contacts",
-      "todos",
+      "onething",
       "knowledge",
       "lynx",
       "sale",
@@ -158,7 +163,6 @@ function SidebarNavItem({
 }) {
   const isActive =
     pathname === item.href || pathname.startsWith(`${item.href}/`)
-  const Icon = item.icon
 
   return (
     <SidebarMenuItem>
@@ -169,7 +173,18 @@ function SidebarNavItem({
         aria-current={isActive ? "page" : undefined}
       >
         <Link href={item.href}>
-          <Icon />
+          {item.navDisplay === "image" ? (
+            <Image
+              src={item.imageSrc}
+              alt=""
+              width={20}
+              height={20}
+              className="size-5 shrink-0 object-contain"
+              aria-hidden
+            />
+          ) : (
+            <item.icon />
+          )}
           <span>{item.label}</span>
         </Link>
       </SidebarMenuButton>

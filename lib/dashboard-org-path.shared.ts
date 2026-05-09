@@ -18,7 +18,7 @@ function isAllowedForwardedOrgAdminSegment(segment: string): boolean {
 /** Single-segment ERP modules under `/o/{slug}/dashboard/{module}`. */
 export const ORG_DASHBOARD_MODULES = [
   "contacts",
-  "todos",
+  "onething",
   "knowledge",
   "lynx",
   "sale",

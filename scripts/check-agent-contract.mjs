@@ -16,6 +16,8 @@ const REQUIRED_FILES = [
   ".cursor/rules/design-system-docs-enforcement.mdc",
   ".cursor/rules/i18n-directory.mdc",
   ".cursor/rules/lynx-directory.mdc",
+  ".cursor/rules/erp-primitives.mdc",
+  ".cursor/rules/onething-directory.mdc",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
 ]
@@ -104,7 +106,7 @@ const TOP_LEVEL_FILE_ALLOWLIST = new Set([
   ...ROOT_WORKSPACE_FILES,
 ])
 
-const ALLOWED_MODULE_ROOT_ENTRIES = new Set([
+const DEFAULT_ALLOWED_MODULE_ROOT_ENTRIES = new Set([
   "actions",
   "data",
   "components",
@@ -115,6 +117,19 @@ const ALLOWED_MODULE_ROOT_ENTRIES = new Set([
   "server.ts",
   "client.ts",
   "README.md",
+])
+
+const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
+  [
+    "onething",
+    new Set([
+      ...DEFAULT_ALLOWED_MODULE_ROOT_ENTRIES,
+      "audit",
+      "domain",
+      "predictions",
+      "ranking",
+    ]),
+  ],
 ])
 
 const CODE_EXT_RE = /\.(ts|tsx|js|jsx|mjs|cjs)$/
@@ -272,15 +287,19 @@ function assertModuleRootShape() {
       fail(`missing required module public door: ${moduleRel}/index.ts`)
     }
 
+    const allowedEntries =
+      MODULE_ROOT_ENTRY_ALLOWLISTS.get(moduleEntry.name) ??
+      DEFAULT_ALLOWED_MODULE_ROOT_ENTRIES
+
     for (const entry of entries) {
       const name = entry.name
       const isContractTs =
         entry.isFile() &&
         name.endsWith(".contract.ts") &&
         /^[a-z0-9][a-z0-9-]*\.contract\.ts$/.test(name)
-      if (!ALLOWED_MODULE_ROOT_ENTRIES.has(name) && !isContractTs) {
+      if (!allowedEntries.has(name) && !isContractTs) {
         fail(
-          `forbidden module root entry in ${moduleRel}: ${name} (allowed: actions, data, components, schemas, constants.ts, types.ts, index.ts, server.ts, client.ts, README.md, *.contract.ts)`
+          `forbidden module root entry in ${moduleRel}: ${name} (allowed: ${[...allowedEntries].join(", ")}, *.contract.ts)`
         )
       }
     }

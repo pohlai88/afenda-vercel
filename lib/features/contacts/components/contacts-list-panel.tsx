@@ -156,7 +156,7 @@ export function ContactsListPanel({ rows }: ContactsListPanelProps) {
                   className="min-w-0 flex-1 text-left"
                   onClick={() => handleRowClick(contact)}
                 >
-                  <p className="truncate font-medium leading-tight">
+                  <p className="truncate leading-tight font-medium">
                     {contact.name}
                   </p>
                   {contact.email ? (

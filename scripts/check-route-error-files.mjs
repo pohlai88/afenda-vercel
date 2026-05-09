@@ -30,7 +30,7 @@ const appDir = path.join(root, "app")
  * product surface with independent recovery ownership).
  *
  * Do NOT add module-level boundaries (widgets, cards, tables, forms,
- * charts, todos, contacts, etc.) — use Suspense or inline fallback instead.
+ * charts, onething, contacts, etc.) — use Suspense or inline fallback instead.
  */
 const APPROVED_BOUNDARIES = new Set([
   // Last-resort crash surface (replaces root layout — must stay minimal)

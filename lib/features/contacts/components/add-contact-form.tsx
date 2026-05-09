@@ -22,7 +22,9 @@ export function AddContactForm({ onSuccess }: AddContactFormProps) {
 
   // Stable ref so the effect does not re-fire when the parent recreates the callback lambda.
   const onSuccessRef = useRef(onSuccess)
-  onSuccessRef.current = onSuccess
+  useEffect(() => {
+    onSuccessRef.current = onSuccess
+  }, [onSuccess])
 
   // Close the dialog (or run any success side-effect) as soon as the action succeeds.
   useEffect(() => {
@@ -76,7 +78,9 @@ export function AddContactForm({ onSuccess }: AddContactFormProps) {
         >
           <FieldLabel htmlFor="contact-email">
             Email{" "}
-            <span className="font-normal text-muted-foreground">(optional)</span>
+            <span className="font-normal text-muted-foreground">
+              (optional)
+            </span>
           </FieldLabel>
           <Input
             id="contact-email"

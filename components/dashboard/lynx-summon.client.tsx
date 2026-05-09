@@ -1,7 +1,17 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { Sparkles, X } from "lucide-react"
+import Image from "next/image"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from "react"
+import { X } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { useRouteEnvelope } from "#components/route-envelope-context"
@@ -19,16 +29,217 @@ import {
   type LynxTruthEvidenceDTO,
 } from "#features/lynx/client"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { LYNX_SUMMON_MASCOT_PNG } from "#lib/site"
 import { cn } from "#lib/utils"
 
 import { buildGroundedTruthQuestion } from "./lynx-grounded-truth-question.shared"
-import {
-  useLynxSummon,
-  type LynxGrounding,
-} from "./lynx-summon-context"
+import { useLynxSummon, type LynxGrounding } from "./lynx-summon-context"
+
+const LYNX_SUMMON_FAB_STORAGE_KEY = "afenda:lynx-summon-fab-pos"
+const LYNX_SUMMON_FAB_SIZE_PX = 80
+const LYNX_SUMMON_FAB_EDGE_PADDING_PX = 16
+const LYNX_SUMMON_FAB_DRAG_THRESHOLD_PX = 8
+
+function clampLynxSummonFabPosition(
+  right: number,
+  bottom: number
+): { right: number; bottom: number } {
+  if (typeof window === "undefined") {
+    return { right, bottom }
+  }
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const maxRight = Math.max(
+    LYNX_SUMMON_FAB_EDGE_PADDING_PX,
+    vw - LYNX_SUMMON_FAB_SIZE_PX - LYNX_SUMMON_FAB_EDGE_PADDING_PX
+  )
+  const maxBottom = Math.max(
+    LYNX_SUMMON_FAB_EDGE_PADDING_PX,
+    vh - LYNX_SUMMON_FAB_SIZE_PX - LYNX_SUMMON_FAB_EDGE_PADDING_PX
+  )
+  return {
+    right: Math.min(maxRight, Math.max(LYNX_SUMMON_FAB_EDGE_PADDING_PX, right)),
+    bottom: Math.min(
+      maxBottom,
+      Math.max(LYNX_SUMMON_FAB_EDGE_PADDING_PX, bottom)
+    ),
+  }
+}
+
+function useLynxSummonFabDrag(onTap: () => void) {
+  const [pos, setPos] = useState({
+    right: LYNX_SUMMON_FAB_EDGE_PADDING_PX,
+    bottom: LYNX_SUMMON_FAB_EDGE_PADDING_PX,
+  })
+  const posRef = useRef(pos)
+
+  useLayoutEffect(() => {
+    posRef.current = pos
+  }, [pos])
+
+  const [isDragging, setIsDragging] = useState(false)
+  const suppressClickRef = useRef(false)
+  const dragRef = useRef<{
+    pointerId: number
+    startX: number
+    startY: number
+    startRight: number
+    startBottom: number
+  } | null>(null)
+  /** Always cleared on drag end or unmount — window listeners must not leak. */
+  const removeActiveDragListenersRef = useRef<(() => void) | null>(null)
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      try {
+        const raw = localStorage.getItem(LYNX_SUMMON_FAB_STORAGE_KEY)
+        if (raw) {
+          const parsed = JSON.parse(raw) as {
+            right?: unknown
+            bottom?: unknown
+          }
+          const right = Number(parsed.right)
+          const bottom = Number(parsed.bottom)
+          if (Number.isFinite(right) && Number.isFinite(bottom)) {
+            setPos(clampLynxSummonFabPosition(right, bottom))
+            return
+          }
+        }
+      } catch {
+        /* ignore corrupt storage */
+      }
+      setPos((prev) => clampLynxSummonFabPosition(prev.right, prev.bottom))
+    })
+    return () => cancelAnimationFrame(handle)
+  }, [])
+
+  useEffect(() => {
+    function onResize() {
+      setPos((prev) => clampLynxSummonFabPosition(prev.right, prev.bottom))
+    }
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      removeActiveDragListenersRef.current?.()
+      removeActiveDragListenersRef.current = null
+    }
+  }, [])
+
+  const persistPos = useCallback((next: { right: number; bottom: number }) => {
+    try {
+      localStorage.setItem(LYNX_SUMMON_FAB_STORAGE_KEY, JSON.stringify(next))
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const fabPointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLButtonElement>) => {
+      if (e.button !== 0) return
+      removeActiveDragListenersRef.current?.()
+
+      dragRef.current = {
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+        startRight: posRef.current.right,
+        startBottom: posRef.current.bottom,
+      }
+      suppressClickRef.current = false
+      setIsDragging(true)
+
+      const applyMove = (ev: PointerEvent) => {
+        const d = dragRef.current
+        if (!d || ev.pointerId !== d.pointerId) return
+        const dx = ev.clientX - d.startX
+        const dy = ev.clientY - d.startY
+        if (
+          Math.abs(dx) > LYNX_SUMMON_FAB_DRAG_THRESHOLD_PX ||
+          Math.abs(dy) > LYNX_SUMMON_FAB_DRAG_THRESHOLD_PX
+        ) {
+          suppressClickRef.current = true
+        }
+        const next = clampLynxSummonFabPosition(
+          d.startRight - dx,
+          d.startBottom - dy
+        )
+        setPos(next)
+      }
+
+      const finishDrag = (ev: PointerEvent) => {
+        const d = dragRef.current
+        if (!d || ev.pointerId !== d.pointerId) return
+
+        removeActiveDragListenersRef.current?.()
+        removeActiveDragListenersRef.current = null
+        dragRef.current = null
+        setIsDragging(false)
+
+        let next: { right: number; bottom: number }
+        if (ev.type === "pointercancel") {
+          next = clampLynxSummonFabPosition(
+            posRef.current.right,
+            posRef.current.bottom
+          )
+        } else {
+          const dx = ev.clientX - d.startX
+          const dy = ev.clientY - d.startY
+          if (
+            Math.abs(dx) > LYNX_SUMMON_FAB_DRAG_THRESHOLD_PX ||
+            Math.abs(dy) > LYNX_SUMMON_FAB_DRAG_THRESHOLD_PX
+          ) {
+            suppressClickRef.current = true
+          }
+          next = clampLynxSummonFabPosition(
+            d.startRight - dx,
+            d.startBottom - dy
+          )
+        }
+        setPos(next)
+        persistPos(next)
+      }
+
+      const remove = () => {
+        window.removeEventListener("pointermove", applyMove)
+        window.removeEventListener("pointerup", finishDrag)
+        window.removeEventListener("pointercancel", finishDrag)
+      }
+      removeActiveDragListenersRef.current = remove
+
+      window.addEventListener("pointermove", applyMove)
+      window.addEventListener("pointerup", finishDrag)
+      window.addEventListener("pointercancel", finishDrag)
+    },
+    [persistPos]
+  )
+
+  const fabClick = useCallback(
+    (e: ReactMouseEvent<HTMLButtonElement>) => {
+      if (suppressClickRef.current) {
+        e.preventDefault()
+        e.stopPropagation()
+        suppressClickRef.current = false
+        return
+      }
+      onTap()
+    },
+    [onTap]
+  )
+
+  return {
+    fabPosition: pos,
+    isDraggingFab: isDragging,
+    fabPointerDown,
+    fabClick,
+  }
+}
 
 /**
- * Floating Lynx summon — TanStack-style fixed icon at bottom-right.
+ * Floating Lynx summon — fixed icon (default bottom-right); drag to reposition,
+ * persisted in `localStorage` (`afenda:lynx-summon-fab-pos`).
  *
  * Drawer feed is **grounded on the open operational atom** with automatic
  * Truth retrieval (no primary free-text field — plan trade-off §2.7). Deep
@@ -229,15 +440,22 @@ function TruthFeed({
     [t]
   )
 
+  const runRetrievalRef = useRef(runRetrieval)
+  useEffect(() => {
+    runRetrievalRef.current = runRetrieval
+  }, [runRetrieval])
+
   useEffect(() => {
     if (!sheetOpen || !groundedQuestion) return
     // Defer past the effect tick so the loading transition is not a sync
     // setState directly inside the effect body (react-hooks/set-state-in-effect).
     const handle = requestAnimationFrame(() => {
-      void runRetrieval(groundedQuestion)
+      void runRetrievalRef.current(groundedQuestion)
     })
     return () => cancelAnimationFrame(handle)
-  }, [sheetOpen, groundedQuestion, runRetrieval])
+    // Intentionally omit `runRetrieval`: next-intl's `t` can change identity and
+    // would retrigger this effect every render while the sheet is open.
+  }, [sheetOpen, groundedQuestion])
 
   const parsed = useMemo(() => {
     if (state.status !== "done") return null
@@ -397,6 +615,9 @@ export function LynxSummon() {
   const { grounding, open, openSummon, closeSummon, toggleSummon } =
     useLynxSummon()
 
+  const { fabPosition, isDraggingFab, fabPointerDown, fabClick } =
+    useLynxSummonFabDrag(toggleSummon)
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null
@@ -418,36 +639,58 @@ export function LynxSummon() {
 
   return (
     <>
-      <Button
+      <button
         type="button"
-        size="icon-lg"
-        variant="default"
-        aria-label={t("triggerAria")}
+        aria-label={`${t("triggerAria")}. ${t("dragHint")}.`}
         aria-expanded={open}
         aria-keyshortcuts="?"
-        onClick={toggleSummon}
+        style={{
+          right: fabPosition.right,
+          bottom: fabPosition.bottom,
+        }}
+        onPointerDown={fabPointerDown}
+        onClick={fabClick}
+        onDragStart={(e) => {
+          e.preventDefault()
+        }}
         className={cn(
-          "fixed right-5 bottom-5 z-40 rounded-full shadow-elevation-2",
-          "transition-transform motion-safe:hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100",
-          grounding ? "" : "opacity-90"
+          "fixed z-40 touch-none rounded-sm select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
+          "drop-shadow-xl",
+          isDraggingFab
+            ? "cursor-grabbing motion-safe:transition-none motion-reduce:transition-none"
+            : "cursor-grab motion-safe:transition-transform motion-safe:hover:scale-110 motion-reduce:transition-none motion-reduce:hover:scale-100",
+          grounding ? "opacity-100" : "opacity-90 hover:opacity-100"
         )}
       >
-        <Sparkles className="size-5" aria-hidden />
-        {grounding ? (
-          <span
+        <span className="relative inline-block">
+          <Image
+            src={LYNX_SUMMON_MASCOT_PNG}
+            alt=""
+            width={80}
+            height={80}
+            draggable={false}
+            className="pointer-events-none size-20 object-contain mix-blend-multiply dark:mix-blend-screen"
             aria-hidden
-            className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary-foreground/90 ring-2 ring-primary"
           />
-        ) : null}
-      </Button>
+          {grounding ? (
+            <span
+              aria-hidden
+              className="absolute top-2 right-2 size-2.5 rounded-full bg-primary ring-2 ring-background"
+            />
+          ) : null}
+        </span>
+      </button>
 
-      <Sheet open={open} onOpenChange={(next) => (next ? openSummon() : closeSummon())}>
+      <Sheet
+        open={open}
+        onOpenChange={(next) => (next ? openSummon() : closeSummon())}
+      >
         <SheetContent
           side="right"
           showCloseButton={false}
           className={cn(
             "flex w-full flex-col gap-4 p-0 sm:max-w-md",
-            "motion-reduce:data-open:animate-none motion-reduce:data-closed:animate-none motion-reduce:!transition-none"
+            "motion-reduce:!transition-none motion-reduce:data-open:animate-none motion-reduce:data-closed:animate-none"
           )}
         >
           <header className="flex items-start justify-between gap-3 border-b px-5 pt-5 pb-4">

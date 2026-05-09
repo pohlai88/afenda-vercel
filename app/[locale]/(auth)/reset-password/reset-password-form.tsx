@@ -1,11 +1,15 @@
 "use client"
 
 import { LockIcon } from "lucide-react"
-import { Link, useRouter } from "#i18n/navigation"
+import { useRouter } from "#i18n/navigation"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useState } from "react"
 
 import { authClient } from "#lib/auth-client"
+import {
+  AuthFooterLink,
+  AuthFooterLinks,
+} from "#components/auth/auth-footer-links"
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"
 import {
@@ -121,14 +125,9 @@ function ResetPasswordForm() {
         </form>
       </CardContent>
       <CardFooter className="border-t pt-6">
-        <p className="w-full text-center text-xs text-muted-foreground">
-          <Link
-            href="/sign-in"
-            className="font-medium underline-offset-4 hover:text-foreground"
-          >
-            Back to sign in
-          </Link>
-        </p>
+        <AuthFooterLinks>
+          <AuthFooterLink href="/sign-in">Back to sign in</AuthFooterLink>
+        </AuthFooterLinks>
       </CardFooter>
     </Card>
   )

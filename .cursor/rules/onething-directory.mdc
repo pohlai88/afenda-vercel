@@ -1,0 +1,40 @@
+---
+description: Canonical OneThing feature boundary and language.
+globs:
+  - "lib/features/onething/**"
+  - "app/**/onething/**"
+  - "tests/**/onething*.ts"
+  - "tests/**/onething/**"
+alwaysApply: false
+---
+
+# OneThing Directory Contract
+
+OneThing is the canonical replacement for Todos. It is Afenda's operational focus surface for resolving business consequences.
+
+Required product model:
+- Lead with consequence, owner, evidence, time, and next safe action.
+- UI language is Past · Now · Next.
+- Internal temporal model may use Past / Present / Future aliases, where Present maps to Now and Future maps to Next.
+- Resolution is stronger than completion: resolve only when consequence, proof, audit, and downstream safety are handled.
+- 7W1H audit should render as readable narrative first, with structured inspection secondary.
+- CRUD-SAP is an internal grammar only. Do not expose it as ordinary user-facing copy.
+
+Required state language:
+- Use operational states: `detected`, `owned`, `blocked`, `resolving`, `ready_to_release`, `released`, `resolved`, `deprecated`.
+- Use severity language: `low`, `medium`, `high`, `critical`.
+
+Forbidden user-facing language:
+- "todo"
+- "task list"
+- "checkbox"
+- CRUD-SAP labels as primary copy, except in docs or developer-only surfaces.
+
+Legacy behavior:
+- Old task-like complete/snooze/delete/import behavior may exist only as internal adapters under `lib/features/onething/data/legacy-*`.
+- Do not export legacy task APIs from `#features/onething`.
+
+Module imports:
+- Server composition and route wiring use `#features/onething` (`index.ts`).
+- Client Components under `lib/features/onething/components/` import types, pure helpers, and **Server Actions** from `#features/onething/client` (not the server barrel). `OneThingCanvas` binds org vs personal actions from that barrel using `scope` + `canAdmin`.
+- After org/personal OneThing mutations or workflows, invalidate UI via `revalidateOrgOneThingDashboard` / `revalidatePersonalOneThingSurface` from `data/onething-revalidate.server.ts` (centralizes `revalidatePath` + locale patterns).

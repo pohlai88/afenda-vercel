@@ -1,8 +1,8 @@
 import type { ImportJobRunPayload } from "./schemas/import-job-run-payload.schema"
 import type { KnowledgeEvalRunPayload } from "./schemas/knowledge-eval-run-payload.schema"
 import type { KnowledgeSourceSyncPayload } from "./schemas/knowledge-source-sync-payload.schema"
-import type { TodoRecurrenceRunPayload } from "./schemas/todo-recurrence-run-payload.schema"
-import type { TodoReminderRunPayload } from "./schemas/todo-reminder-run-payload.schema"
+import type { OneThingRecurrenceRunPayload } from "./schemas/onething-recurrence-run-payload.schema"
+import type { OneThingReminderRunPayload } from "./schemas/onething-reminder-run-payload.schema"
 
 export {
   EXECUTION_AUDIT_ACTIONS,
@@ -22,13 +22,13 @@ export {
   type KnowledgeSourceSyncPayload,
 } from "./schemas/knowledge-source-sync-payload.schema"
 export {
-  todoRecurrenceRunPayloadSchema,
-  type TodoRecurrenceRunPayload,
-} from "./schemas/todo-recurrence-run-payload.schema"
+  onethingRecurrenceRunPayloadSchema,
+  type OneThingRecurrenceRunPayload,
+} from "./schemas/onething-recurrence-run-payload.schema"
 export {
-  todoReminderRunPayloadSchema,
-  type TodoReminderRunPayload,
-} from "./schemas/todo-reminder-run-payload.schema"
+  onethingReminderRunPayloadSchema,
+  type OneThingReminderRunPayload,
+} from "./schemas/onething-reminder-run-payload.schema"
 
 async function enqueueWorkflowWithOtelSpan(
   spanName: string,
@@ -113,36 +113,36 @@ export async function enqueueKnowledgeSourceSyncWorkflowRun(
   )
 }
 
-export async function enqueueTodoRecurrenceWorkflowRun(
-  payload: TodoRecurrenceRunPayload
+export async function enqueueOneThingRecurrenceWorkflowRun(
+  payload: OneThingRecurrenceRunPayload
 ): Promise<void> {
   await enqueueWorkflowWithOtelSpan(
-    "execution.workflow.todo_recurrence.enqueue",
+    "execution.workflow.onething_recurrence.enqueue",
     payload.organizationId,
-    { "erp.workflow": "todo_recurrence" },
+    { "erp.workflow": "onething_recurrence" },
     async () => {
-      const [{ runTodoRecurrenceWorkflow }, { start }] = await Promise.all([
-        import("./data/todo-recurrence-run-entry"),
+      const [{ runOneThingRecurrenceWorkflow }, { start }] = await Promise.all([
+        import("./data/onething-recurrence-run-entry"),
         import("workflow/api"),
       ])
-      await start(runTodoRecurrenceWorkflow, [payload])
+      await start(runOneThingRecurrenceWorkflow, [payload])
     }
   )
 }
 
-export async function enqueueTodoReminderWorkflowRun(
-  payload: TodoReminderRunPayload
+export async function enqueueOneThingReminderWorkflowRun(
+  payload: OneThingReminderRunPayload
 ): Promise<void> {
   await enqueueWorkflowWithOtelSpan(
-    "execution.workflow.todo_reminder.enqueue",
+    "execution.workflow.onething_reminder.enqueue",
     payload.organizationId,
-    { "erp.workflow": "todo_reminder" },
+    { "erp.workflow": "onething_reminder" },
     async () => {
-      const [{ runTodoReminderWorkflow }, { start }] = await Promise.all([
-        import("./data/todo-reminder-run-entry"),
+      const [{ runOneThingReminderWorkflow }, { start }] = await Promise.all([
+        import("./data/onething-reminder-run-entry"),
         import("workflow/api"),
       ])
-      await start(runTodoReminderWorkflow, [payload])
+      await start(runOneThingReminderWorkflow, [payload])
     }
   )
 }

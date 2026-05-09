@@ -3,10 +3,13 @@
 import { MailIcon } from "lucide-react"
 import { useLocale } from "next-intl"
 import { useState } from "react"
-import { Link } from "#i18n/navigation"
 
 import { authClient } from "#lib/auth-client"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+import {
+  AuthFooterLink,
+  AuthFooterLinks,
+} from "#components/auth/auth-footer-links"
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"
 import {
@@ -98,14 +101,9 @@ export function ForgotPasswordForm() {
         </form>
       </CardContent>
       <CardFooter className="border-t pt-6">
-        <p className="w-full text-center text-xs text-muted-foreground">
-          <Link
-            href="/sign-in"
-            className="font-medium underline-offset-4 hover:text-foreground"
-          >
-            Back to sign in
-          </Link>
-        </p>
+        <AuthFooterLinks>
+          <AuthFooterLink href="/sign-in">Back to sign in</AuthFooterLink>
+        </AuthFooterLinks>
       </CardFooter>
     </Card>
   )

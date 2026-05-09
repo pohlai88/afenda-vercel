@@ -1,0 +1,29 @@
+---
+description: ERP primitive boundary for shared operational kernels.
+globs:
+  - "lib/erp/**"
+alwaysApply: false
+---
+
+# ERP Primitives Boundary
+
+`lib/erp` is Afenda's shared operational primitive layer. Keep it tiny and reusable.
+
+Allowed:
+- Shared TypeScript types.
+- Shared Zod schemas.
+- Pure describers and mappers.
+- Temporal Spine primitives: Past · Now · Next, with internal Past / Present / Future aliases.
+- CRUD-SAP internal grammar helpers.
+- 7W1H audit event shape, narrative describers, and the server-only DB-agnostic audit writer.
+
+Forbidden:
+- Feature imports from `#features/*` or `lib/features/*`.
+- Drizzle schema/table imports.
+- Route/path/revalidation logic.
+- Workflow or queue execution.
+- UI components.
+- Module-specific copy or product behavior.
+- OneThing-only domain decisions beyond consuming shared primitives.
+
+If a helper knows about a module, route, table, tenant, or workflow, it belongs in a feature module, not `lib/erp`.

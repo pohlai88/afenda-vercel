@@ -7,7 +7,11 @@ export {
 export const KNOWLEDGE_EMBEDDING_DIMENSIONS = 1536 as const
 
 /** Registered adapters: `source-adapter-registry.server.ts` plus manual ingest. */
-export const KNOWLEDGE_SOURCE_KINDS = ["manual", "github_repo", "todo"] as const
+export const KNOWLEDGE_SOURCE_KINDS = [
+  "manual",
+  "github_repo",
+  "onething",
+] as const
 
 export type KnowledgeSourceKind = (typeof KNOWLEDGE_SOURCE_KINDS)[number]
 

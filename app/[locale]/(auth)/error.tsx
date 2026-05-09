@@ -1,7 +1,11 @@
 "use client"
 
 import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
-import { RouteErrorActions } from "#components/route-error-primitives"
+import {
+  RouteErrorActions,
+  RouteErrorDigest,
+  RouteErrorShell,
+} from "#components/route-error-primitives"
 import { RouteErrorRetryButton } from "#components/route-error-retry-button"
 import { Button } from "#components/ui/button"
 import { Link } from "#i18n/navigation"
@@ -22,17 +26,13 @@ export default function AuthError(props: NextAppErrorPageProps) {
   useReportRouteError({ segment, error })
 
   return (
-    <main className="mx-auto flex min-h-[70vh] w-full max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
+    <RouteErrorShell variant="auth">
       <h1 className="text-2xl font-semibold text-foreground">Sign-in error</h1>
       <p className="text-sm text-muted-foreground">
         Something went wrong while loading this page. Try again, or return to
         sign in.
       </p>
-      {error.digest ? (
-        <p className="font-mono text-xs text-muted-foreground">
-          Reference: {error.digest}
-        </p>
-      ) : null}
+      <RouteErrorDigest digest={error.digest} />
       <RouteErrorActions>
         <RouteErrorRetryButton
           retryAction={retryAction}
@@ -45,6 +45,6 @@ export default function AuthError(props: NextAppErrorPageProps) {
         </Button>
       </RouteErrorActions>
       <RouteErrorDebugPanel segment={segment} error={error} />
-    </main>
+    </RouteErrorShell>
   )
 }

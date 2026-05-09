@@ -6,7 +6,6 @@ import {
   CheckSquare,
   Package,
   ShoppingCart,
-  Sparkles,
   Users,
 } from "lucide-react"
 
@@ -16,19 +15,21 @@ import {
   organizationDashboardPath,
   type DashboardNavModule,
 } from "#lib/dashboard-module-paths"
+import { LYNX_MODULE_NAV_ICON_PNG } from "#lib/site"
 
 export type NavItem = {
   label: string
   href: string
-  icon: LucideIcon
   module: DashboardNavModule | "admin"
-}
+} & (
+  | { navDisplay: "lucide"; icon: LucideIcon }
+  | { navDisplay: "image"; imageSrc: string; imageAlt: string }
+)
 
-const MODULE_ICONS: Record<DashboardNavModule, LucideIcon> = {
+const MODULE_ICONS: Record<Exclude<DashboardNavModule, "lynx">, LucideIcon> = {
   contacts: Users,
-  todos: CheckSquare,
+  onething: CheckSquare,
   knowledge: BookOpen,
-  lynx: Sparkles,
   sale: ShoppingCart,
   purchase: Package,
   inventory: Package,
@@ -44,19 +45,33 @@ export function buildDashboardNavItems(
   orgSlug: string,
   labels: Record<DashboardNavModule, string>
 ): NavItem[] {
-  return DASHBOARD_NAV_MODULES.map((module) => ({
-    label: labels[module],
-    href: organizationDashboardPath(orgSlug, module),
-    icon: MODULE_ICONS[module],
-    module,
-  }))
+  return DASHBOARD_NAV_MODULES.map((module) => {
+    if (module === "lynx") {
+      return {
+        label: labels[module],
+        href: organizationDashboardPath(orgSlug, module),
+        module,
+        navDisplay: "image" as const,
+        imageSrc: LYNX_MODULE_NAV_ICON_PNG,
+        imageAlt: labels[module],
+      }
+    }
+    return {
+      label: labels[module],
+      href: organizationDashboardPath(orgSlug, module),
+      module,
+      navDisplay: "lucide" as const,
+      icon: MODULE_ICONS[module],
+    }
+  })
 }
 
 export function buildAdminNavItem(orgSlug: string, label: string): NavItem {
   return {
     label,
     href: organizationAdminPath(orgSlug, "overview"),
-    icon: Building2,
     module: "admin",
+    navDisplay: "lucide",
+    icon: Building2,
   }
 }

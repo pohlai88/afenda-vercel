@@ -61,6 +61,35 @@ export function normalizeAuthClientError(
     }
   }
 
+  // HTTP status code passthrough (e.g. "HTTP 404 Not Found" from Better Auth / Neon Auth)
+  const httpStatus = raw.match(/^HTTP (\d{3})/i)?.[1]
+  if (httpStatus) {
+    const code = parseInt(httpStatus, 10)
+    if (code === 404) {
+      return {
+        code: AUTH_CLIENT_ERROR_CODE.UNKNOWN,
+        message:
+          "This sign-in method is not available. Use password or one-time code instead.",
+        fieldHint: "general",
+      }
+    }
+    if (code === 429) {
+      return {
+        code: AUTH_CLIENT_ERROR_CODE.RATE_LIMITED,
+        message: "Too many attempts. Wait a few minutes, then try again.",
+        fieldHint: "general",
+      }
+    }
+    if (code >= 500) {
+      return {
+        code: AUTH_CLIENT_ERROR_CODE.UNKNOWN,
+        message:
+          "Sign-in service is temporarily unavailable. Try again shortly.",
+        fieldHint: "general",
+      }
+    }
+  }
+
   if (
     lower.includes("rate limit") ||
     lower.includes("too many requests") ||

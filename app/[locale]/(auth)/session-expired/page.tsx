@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import type { Route } from "next"
 
+import { AuthPageFrame } from "#components/auth/auth-page-frame"
 import { AuthResult } from "#components/auth/auth-result"
 import {
   AUTH_CONTEXT_QUERY_KEY,
@@ -70,7 +71,7 @@ export default async function SessionExpiredPage({
   })
 
   return (
-    <main className="mx-auto flex min-h-[70vh] w-full max-w-xl flex-col items-center justify-center px-4 py-10">
+    <AuthPageFrame>
       <AuthResult
         variant={content.variant}
         title={content.title}
@@ -87,6 +88,6 @@ export default async function SessionExpiredPage({
         supportReference={pickFirstParam(sp[AUTH_SUPPORT_REF_QUERY_KEY])}
         className="w-full"
       />
-    </main>
+    </AuthPageFrame>
   )
 }

@@ -9,7 +9,4 @@ export {
   parseLynxTruthMarkdown,
   type LynxParsedTruth,
 } from "./schemas/truth-markdown"
-export type {
-  LynxOperatorNdjsonMeta,
-  LynxTruthEvidenceDTO,
-} from "./types"
+export type { LynxOperatorNdjsonMeta, LynxTruthEvidenceDTO } from "./types"

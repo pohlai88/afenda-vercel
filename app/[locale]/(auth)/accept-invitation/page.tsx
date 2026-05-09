@@ -1,3 +1,8 @@
+import type { Route } from "next"
+
+import { AuthPageFrame } from "#components/auth/auth-page-frame"
+import { AuthResult } from "#components/auth/auth-result"
+
 import { AcceptInvitationClient } from "./accept-invitation-client"
 
 type Search = Promise<{ invitationId?: string | string[] }>
@@ -12,15 +17,17 @@ export default async function AcceptInvitationPage({
   const invitationId = Array.isArray(raw) ? raw[0] : raw
   if (!invitationId?.trim()) {
     return (
-      <div className="mx-auto max-w-md py-10">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Missing invitation
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Open the link from your invitation email, or ask your administrator to
-          send a new invite.
-        </p>
-      </div>
+      <AuthPageFrame>
+        <AuthResult
+          variant="warning"
+          title="Missing invitation"
+          description="Open the link from your invitation email, or ask your administrator to send a new invite."
+          primaryAction={{
+            label: "Back to sign in",
+            href: "/sign-in" as Route,
+          }}
+        />
+      </AuthPageFrame>
     )
   }
 

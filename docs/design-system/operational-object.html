@@ -1,0 +1,1599 @@
+<!doctype html>
+<!--
+  ============================================================
+  Afenda · Operational Object (Stage 2 preview — the Jobs cut)
+  ============================================================
+
+  Predecessor:
+    docs/design-system/operational-todo-shell.html  (Stage 1 — the atom)
+
+  Source explorations (gitignored .artifacts/, kept for lineage):
+    afenda-todo-action-os.html              operator workbench (3-col)
+    afenda_intervention_todo_preview.html   intervention reframe (4-row)
+
+  ------------------------------------------------------------
+  What this preview is arguing
+  ------------------------------------------------------------
+  A todo is not a text item. It is an operational object —
+  a decision with consequences, evidence, participants, and a
+  promise about what "done" actually changes downstream.
+
+  The screen earns its minimalism: every visible claim is
+  provably backed by the engine (Lynx Truth, audit, run graph,
+  SLA worker, recurrence runner). Simplicity without that
+  backbone is immature. With it, it is calm.
+
+  ------------------------------------------------------------
+  Compression
+  ------------------------------------------------------------
+  Current   →  the operational object (full attention)
+  Next      →  one peek at the bottom of the canvas
+  Later     →  a count, never a list
+
+  ------------------------------------------------------------
+  Done = cognitive closure + operational safety
+  ------------------------------------------------------------
+  The primary action's promise line states what writes,
+  unblocks, audits, and notifies. "Resolved" is the engine
+  closing the loop, not a checkbox flipping.
+
+  ------------------------------------------------------------
+  What this preview rejects
+  ------------------------------------------------------------
+  kanban · sidebars · tabs · dashboards · gamification ·
+  always-on chat · multi-color severity zoo · module rails ·
+  checklist-as-product · workflow diagrams as UI ·
+  decorative metrics · fake collaboration indicators.
+
+  These expose architecture to humans. Jobs would not allow it.
+
+  Open in a browser. No build step.
+  ============================================================
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Afenda · Operational Object (preview)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+
+        /* Stage */
+        --bg: oklch(0.105 0.011 290);
+        --bg-deep: oklch(0.078 0.009 290);
+
+        /* Ink */
+        --ink: oklch(0.96 0.005 290);
+        --ink-muted: oklch(0.68 0.011 290);
+        --ink-faint: oklch(0.5 0.012 290);
+        --ink-ghost: oklch(0.38 0.012 290);
+
+        /* Surfaces */
+        --surface-1: oklch(0.145 0.012 290);
+        --surface-2: oklch(0.18 0.013 290);
+        --surface-3: oklch(0.215 0.014 290);
+
+        /* Lines */
+        --line: oklch(0.27 0.014 290 / 0.55);
+        --line-soft: oklch(0.27 0.014 290 / 0.28);
+        --line-strong: oklch(0.34 0.014 290 / 0.85);
+
+        /* The atom — one accent, period. */
+        --atom: oklch(0.78 0.13 268);
+        --atom-strong: oklch(0.86 0.14 268);
+        --atom-soft: oklch(0.78 0.13 268 / 0.13);
+        --atom-line: oklch(0.78 0.13 268 / 0.42);
+        --atom-glow: oklch(0.78 0.13 268 / 0.28);
+        --atom-deep: oklch(0.16 0.04 268);
+
+        /* Typography carries severity; color is restrained. */
+        --warn: oklch(0.8 0.14 75);
+        --crit: oklch(0.68 0.18 25);
+        --ok: oklch(0.74 0.14 152);
+
+        --r-sm: 6px;
+        --r-md: 10px;
+        --r-lg: 14px;
+
+        --font:
+          "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+          sans-serif;
+        --mono:
+          "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+          monospace;
+
+        --frame-h: 44px;
+        --status-h: 26px;
+        --drawer-w: 460px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg-deep);
+        color: var(--ink);
+        font-family: var(--font);
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        font-feature-settings: "ss01", "cv11", "tnum";
+        overflow: hidden;
+        height: 100vh;
+      }
+
+      /* ============================================================
+         FRAME — the smallest possible header.
+         Where you are, who you are, one keystroke. Nothing else.
+         ============================================================ */
+      .frame {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--frame-h);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 22px;
+        background: color-mix(in oklab, var(--bg) 78%, transparent);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line-soft);
+        z-index: 10;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-weight: 600;
+        font-size: 13px;
+        letter-spacing: -0.01em;
+      }
+      .brand-mark {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background:
+          radial-gradient(120% 120% at 30% 20%, oklch(0.86 0.13 268), transparent 55%),
+          linear-gradient(135deg, oklch(0.5 0.13 268), oklch(0.3 0.09 268));
+        box-shadow:
+          inset 0 0 0 1px oklch(1 0 0 / 0.18),
+          0 0 0 1px oklch(0 0 0 / 0.5),
+          0 4px 14px var(--atom-glow);
+      }
+      .scope {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--ink-faint);
+      }
+      .scope b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .frame-spacer {
+        flex: 1;
+      }
+      .capture-pill {
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 10px 0 12px;
+        border-radius: 8px;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        color: var(--ink-faint);
+        font-size: 12px;
+        cursor: pointer;
+        transition: color 120ms;
+        font-family: inherit;
+      }
+      .capture-pill:hover {
+        color: var(--ink);
+      }
+      .capture-pill .plus {
+        color: var(--atom);
+        font-weight: 600;
+      }
+      .capture-pill kbd {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        padding: 1px 5px;
+        border-radius: 3px;
+        background: var(--bg-deep);
+        color: var(--ink-faint);
+        border: 1px solid var(--line);
+      }
+      .you {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, oklch(0.62 0.1 30), oklch(0.4 0.08 30));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: white;
+        box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.12);
+      }
+
+      /* ============================================================
+         STAGE — the operational object, centred. No rails. No tabs.
+         A soft atom-tint glow proves "this object is alive".
+         ============================================================ */
+      .stage {
+        position: fixed;
+        top: var(--frame-h);
+        left: 0;
+        right: 0;
+        bottom: var(--status-h);
+        overflow-y: auto;
+        transition: right 280ms cubic-bezier(0.2, 0, 0, 1);
+        background: var(--bg);
+      }
+      body.lynx-open .stage {
+        right: var(--drawer-w);
+      }
+      .stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(900px 540px at 30% 8%, var(--atom-glow), transparent 65%),
+          radial-gradient(
+            700px 480px at 90% 100%,
+            oklch(0.7 0.1 230 / 0.08),
+            transparent 70%
+          );
+      }
+
+      .object {
+        position: relative;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 56px 32px 80px;
+      }
+
+      /* WHY NOW — the headline above the headline. Computed prose. */
+      .why {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 22px;
+        padding: 9px 14px 9px 11px;
+        border-radius: 999px;
+        background: var(--atom-soft);
+        border: 1px solid var(--atom-line);
+        color: var(--ink);
+        font-size: 13px;
+        line-height: 1.45;
+        max-width: 100%;
+      }
+      .why .label {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--atom);
+        padding: 2px 7px;
+        border-radius: 4px;
+        background: oklch(0 0 0 / 0.25);
+      }
+      .why b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* PROVENANCE — who surfaced this, how certain, when. Always visible. */
+      .prov {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-wrap: wrap;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-faint);
+        letter-spacing: 0.06em;
+        margin-bottom: 14px;
+      }
+      .prov .src {
+        color: var(--atom);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 600;
+      }
+      .prov .dot {
+        color: var(--ink-ghost);
+      }
+      .prov .age {
+        color: var(--ink-ghost);
+      }
+      .prov .conf {
+        color: var(--ink-muted);
+      }
+
+      /* THE OBJECT — a deliberate utterance, not a row. */
+      .title {
+        font-size: 36px;
+        font-weight: 600;
+        letter-spacing: -0.022em;
+        line-height: 1.15;
+        color: var(--ink);
+        margin: 0 0 18px;
+      }
+
+      /* PARTICIPANTS — one line. Multi-party choreography first-class. */
+      .who-line {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 32px;
+        font-size: 14px;
+        color: var(--ink-muted);
+        flex-wrap: wrap;
+      }
+      .who-line .pair {
+        display: inline-flex;
+        align-items: center;
+      }
+      .who-line .av {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, oklch(0.55 0.1 30), oklch(0.36 0.08 30));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: white;
+        box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.12);
+        border: 2px solid var(--bg);
+      }
+      .who-line .av.you {
+        background: linear-gradient(
+          135deg,
+          oklch(0.55 0.13 268),
+          oklch(0.34 0.09 268)
+        );
+      }
+      .who-line .av + .av {
+        margin-left: -8px;
+      }
+      .who-line .text b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .who-line .text .you-tag {
+        color: var(--atom-strong);
+        font-weight: 600;
+      }
+      .who-line .meta {
+        margin-left: 4px;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--ink-faint);
+        letter-spacing: 0.04em;
+      }
+
+      /* STAKES — the consequence chain in plain English.
+         Replaces the metrics row. Same numbers, prose form. */
+      .stakes {
+        padding: 18px 20px;
+        border-radius: var(--r-md);
+        background: var(--surface-1);
+        border: 1px solid var(--line-soft);
+        border-left: 3px solid var(--atom-line);
+        margin-bottom: 32px;
+      }
+      .stakes .head {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-bottom: 8px;
+      }
+      .stakes .body {
+        font-size: 14.5px;
+        line-height: 1.6;
+        color: var(--ink);
+      }
+      .stakes .body b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .stakes .body .crit {
+        color: var(--crit);
+        font-weight: 600;
+      }
+      .stakes .body .warn {
+        color: var(--warn);
+        font-weight: 600;
+      }
+
+      /* DECIDE — one verb. Hardware-like weight.
+         The promise line below states what "done" actually does. */
+      .decide {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-bottom: 36px;
+      }
+      .primary {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        height: 52px;
+        padding: 0 22px;
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(
+          180deg,
+          var(--atom-strong),
+          color-mix(in oklab, var(--atom) 70%, black)
+        );
+        color: var(--atom-deep);
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        box-shadow:
+          0 1px 0 oklch(1 0 0 / 0.2) inset,
+          0 -1px 0 oklch(0 0 0 / 0.3) inset,
+          0 8px 24px var(--atom-glow);
+        transition:
+          transform 120ms ease,
+          box-shadow 120ms ease;
+      }
+      .primary:hover {
+        transform: translateY(-1px);
+        box-shadow:
+          0 1px 0 oklch(1 0 0 / 0.22) inset,
+          0 -1px 0 oklch(0 0 0 / 0.3) inset,
+          0 14px 32px var(--atom-glow);
+      }
+      .primary:active {
+        transform: translateY(1px);
+        box-shadow:
+          0 1px 0 oklch(0 0 0 / 0.25) inset,
+          0 4px 10px oklch(0 0 0 / 0.4);
+      }
+      .primary .key {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 3px 7px;
+        border-radius: 4px;
+        background: oklch(0 0 0 / 0.18);
+        color: oklch(0.2 0.02 268);
+      }
+      .promise {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-ghost);
+        letter-spacing: 0.04em;
+        max-width: 580px;
+        line-height: 1.6;
+      }
+      .promise b {
+        color: var(--ink-muted);
+        font-weight: 500;
+      }
+      .alts {
+        display: flex;
+        gap: 6px;
+        margin-top: 2px;
+        flex-wrap: wrap;
+      }
+      .alt {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        height: 32px;
+        padding: 0 12px;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid var(--line-soft);
+        color: var(--ink-muted);
+        font-family: inherit;
+        font-size: 12.5px;
+        cursor: pointer;
+        transition:
+          color 120ms,
+          border-color 120ms;
+      }
+      .alt:hover {
+        color: var(--ink);
+        border-color: var(--line);
+      }
+      .alt .key {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        padding: 1px 5px;
+        border-radius: 3px;
+        background: oklch(0 0 0 / 0.3);
+        color: var(--ink-faint);
+        border: 1px solid var(--line);
+      }
+
+      /* CONNECTED TRUTH — sentences, not chips. Each line is a consequence. */
+      .truth {
+        margin-bottom: 36px;
+      }
+      .truth .head {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-bottom: 12px;
+      }
+      .truth ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .truth li {
+        display: grid;
+        grid-template-columns: 14px 1fr;
+        gap: 10px;
+        padding: 12px 0;
+        border-top: 1px solid var(--line-soft);
+        font-size: 13.5px;
+        color: var(--ink-muted);
+        line-height: 1.55;
+      }
+      .truth li:first-child {
+        border-top: none;
+        padding-top: 4px;
+      }
+      .truth li .mark {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--atom);
+        margin-top: 8px;
+        box-shadow: 0 0 0 3px var(--atom-soft);
+      }
+      .truth li.warn .mark {
+        background: var(--warn);
+        box-shadow: 0 0 0 3px oklch(0.8 0.14 75 / 0.13);
+      }
+      .truth li.crit .mark {
+        background: var(--crit);
+        box-shadow: 0 0 0 3px oklch(0.68 0.18 25 / 0.13);
+      }
+      .truth li b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* CONTINUITY — last hour. Mono. Auditable. Not nostalgia. */
+      .cont {
+        margin-bottom: 36px;
+      }
+      .cont .head {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-bottom: 12px;
+      }
+      .cont .row {
+        display: grid;
+        grid-template-columns: 60px 84px 1fr;
+        gap: 10px;
+        padding: 8px 0;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--ink-muted);
+        align-items: baseline;
+        border-top: 1px dashed var(--line-soft);
+      }
+      .cont .row:first-of-type {
+        border-top: none;
+      }
+      .cont .row .ts {
+        color: var(--ink-faint);
+      }
+      .cont .row .act {
+        color: var(--atom);
+        text-transform: uppercase;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+      }
+      .cont .row .who {
+        color: var(--ink);
+        font-family: var(--font);
+        font-size: 12.5px;
+      }
+
+      /* NEXT — a peek, never a list. One thing — or nothing. */
+      .next {
+        padding: 18px 20px;
+        border-radius: var(--r-md);
+        background: var(--bg-deep);
+        border: 1px solid var(--line-soft);
+        cursor: pointer;
+        transition:
+          border-color 120ms,
+          background 120ms;
+      }
+      .next:hover,
+      .next:focus-visible {
+        border-color: var(--line);
+        background: color-mix(in oklab, var(--bg-deep) 86%, var(--surface-1));
+        outline: none;
+      }
+      .next .head {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 10px;
+      }
+      .next .head .later {
+        color: var(--ink-ghost);
+        letter-spacing: 0.04em;
+        text-transform: none;
+        font-family: var(--font);
+        font-size: 11px;
+      }
+      .next .body {
+        font-size: 14px;
+        color: var(--ink);
+        line-height: 1.45;
+      }
+      .next .why-mini {
+        margin-top: 4px;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--ink-faint);
+        letter-spacing: 0.04em;
+      }
+
+      /* ============================================================
+         CAPTURE — atom-shaped, inline. Pre-seeds linkage from context.
+         The simplicity of typing is backed by knowing where you are.
+         ============================================================ */
+      .capture {
+        position: relative;
+        max-width: 720px;
+        margin: 0 auto 28px;
+        padding: 18px 20px;
+        border-radius: var(--r-md);
+        background: var(--surface-1);
+        border: 1px dashed var(--atom-line);
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+      }
+      body.capture-open .capture {
+        display: flex;
+      }
+      body.capture-open .object > .why {
+        display: none;
+      }
+      .capture .hdr {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--mono);
+        font-size: 9.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--ink-faint);
+      }
+      .capture-input {
+        background: transparent;
+        border: none;
+        outline: none;
+        font-family: inherit;
+        font-size: 20px;
+        color: var(--ink);
+        width: 100%;
+        padding: 4px 0;
+        letter-spacing: -0.01em;
+      }
+      .capture-input::placeholder {
+        color: var(--ink-ghost);
+      }
+      .seed {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--ink-faint);
+        letter-spacing: 0.04em;
+        line-height: 1.6;
+      }
+      .seed b {
+        color: var(--atom);
+        font-weight: 500;
+      }
+
+      /* ============================================================
+         LYNX — summoned, never enthroned. Research, not chat.
+         ============================================================ */
+      .lynx-btn {
+        position: fixed;
+        right: 24px;
+        bottom: calc(var(--status-h) + 22px);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          var(--atom-strong),
+          color-mix(in oklab, var(--atom) 65%, black)
+        );
+        border: 1px solid color-mix(in oklab, var(--atom) 50%, transparent);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+        color: var(--atom-deep);
+        box-shadow:
+          0 8px 24px var(--atom-glow),
+          inset 0 0 0 1px oklch(1 0 0 / 0.16);
+        transition:
+          transform 200ms cubic-bezier(0.2, 0, 0, 1),
+          right 280ms cubic-bezier(0.2, 0, 0, 1);
+        font-weight: 700;
+      }
+      .lynx-btn:hover {
+        transform: translateY(-2px) scale(1.04);
+      }
+      body.lynx-open .lynx-btn {
+        right: calc(var(--drawer-w) + 24px);
+      }
+      .lynx-btn .glyph {
+        font-size: 18px;
+        font-weight: 700;
+        font-family: var(--mono);
+      }
+      .lynx-btn .badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--ok);
+        box-shadow: 0 0 0 2px var(--bg-deep);
+        animation: pulse 2.4s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow:
+            0 0 0 2px var(--bg-deep),
+            0 0 0 6px transparent;
+        }
+        50% {
+          box-shadow:
+            0 0 0 2px var(--bg-deep),
+            0 0 0 6px oklch(0.74 0.14 152 / 0.22);
+        }
+      }
+
+      .drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: var(--drawer-w);
+        background: color-mix(in oklab, var(--surface-1) 92%, transparent);
+        backdrop-filter: blur(14px);
+        border-left: 1px solid var(--line-strong);
+        transform: translateX(100%);
+        transition: transform 280ms cubic-bezier(0.2, 0, 0, 1);
+        z-index: 15;
+        display: flex;
+        flex-direction: column;
+      }
+      body.lynx-open .drawer {
+        transform: translateX(0);
+        box-shadow: -16px 0 40px oklch(0 0 0 / 0.45);
+      }
+      .drawer-head {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .drawer-head .icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(
+          135deg,
+          var(--atom-strong),
+          color-mix(in oklab, var(--atom) 60%, black)
+        );
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--atom-deep);
+        font-family: var(--mono);
+      }
+      .drawer-head .name {
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .drawer-head .name .sub {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--ink-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-left: 8px;
+      }
+      .drawer-head .close {
+        margin-left: auto;
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--ink-muted);
+        padding: 4px 9px;
+        border-radius: 5px;
+        font-family: var(--mono);
+        font-size: 10px;
+        cursor: pointer;
+      }
+      .drawer-head .close:hover {
+        color: var(--ink);
+        background: var(--surface-2);
+      }
+      .drawer-grounded {
+        padding: 14px 20px;
+        font-size: 12px;
+        color: var(--ink-muted);
+        background: var(--atom-soft);
+        border-bottom: 1px solid var(--atom-line);
+        line-height: 1.55;
+      }
+      .drawer-grounded b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .drawer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 6px 0 24px;
+      }
+      .lx-section {
+        padding: 16px 20px;
+      }
+      .lx-section + .lx-section {
+        border-top: 1px solid var(--line-soft);
+      }
+      .lx-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--mono);
+        font-size: 9.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--ink-faint);
+        margin-bottom: 12px;
+      }
+      .lx-label .ct {
+        background: var(--surface-3);
+        color: var(--ink-muted);
+        padding: 1px 6px;
+        border-radius: 3px;
+      }
+      .lx-item {
+        padding: 12px 0;
+        border-top: 1px dashed var(--line-soft);
+      }
+      .lx-item:first-of-type {
+        border-top: none;
+        padding-top: 0;
+      }
+      .lx-item .meta {
+        display: flex;
+        gap: 10px;
+        font-family: var(--mono);
+        font-size: 9.5px;
+        color: var(--ink-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 6px;
+      }
+      .lx-item .meta .src {
+        color: var(--atom);
+      }
+      .lx-item .meta .conf {
+        color: var(--ok);
+      }
+      .lx-item .title-sm {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ink);
+        margin-bottom: 4px;
+        line-height: 1.4;
+      }
+      .lx-item .body {
+        font-size: 12px;
+        color: var(--ink-muted);
+        line-height: 1.55;
+      }
+      .lx-item .body b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .drawer-foot {
+        padding: 10px 20px;
+        border-top: 1px solid var(--line);
+        background: var(--bg-deep);
+        font-family: var(--mono);
+        font-size: 9.5px;
+        color: var(--ink-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .drawer-foot .pulse {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--ok);
+        box-shadow: 0 0 0 2.5px oklch(0.74 0.14 152 / 0.18);
+      }
+
+      /* ============================================================
+         STATUS — proves the engine is alive without claiming attention.
+         ============================================================ */
+      .status {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--status-h);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 22px;
+        background: var(--bg-deep);
+        border-top: 1px solid var(--line-soft);
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--ink-ghost);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        z-index: 11;
+      }
+      .status .live::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--ok);
+        box-shadow: 0 0 0 3px oklch(0.74 0.14 152 / 0.18);
+        margin-right: 8px;
+      }
+      .status .sep {
+        opacity: 0.4;
+      }
+      .status .right {
+        margin-left: auto;
+      }
+
+      /* RESOLVED — the loop closes. Done = closure + safety, made visible. */
+      body.resolved .why,
+      body.resolved .decide,
+      body.resolved .stakes {
+        display: none;
+      }
+      .resolved-banner {
+        display: none;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 18px;
+        margin-bottom: 28px;
+        border-radius: var(--r-md);
+        background: oklch(0.74 0.14 152 / 0.1);
+        border: 1px solid oklch(0.74 0.14 152 / 0.42);
+        color: var(--ink);
+      }
+      body.resolved .resolved-banner {
+        display: flex;
+      }
+      .resolved-banner .check {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--ok);
+        color: oklch(0.13 0.05 152);
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .resolved-banner .text {
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+      .resolved-banner .text b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .resolved-banner .text .meta {
+        display: block;
+        margin-top: 4px;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--ink-faint);
+        letter-spacing: 0.06em;
+      }
+
+      /* Scrollbars */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--surface-3);
+        border-radius: 4px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+      }
+
+      /* ============================================================
+         PHONE — the same object, condensed. Same primary verb.
+         The intervention tape from earlier explorations is rejected:
+         a tape is a list, and a list dilutes attention.
+         ============================================================ */
+      @media (max-width: 760px) {
+        :root {
+          --frame-h: 52px;
+        }
+        .frame {
+          padding: 0 14px;
+          gap: 10px;
+        }
+        .scope {
+          display: none;
+        }
+        .object {
+          padding: 28px 18px 60px;
+        }
+        .title {
+          font-size: 26px;
+        }
+        .stakes {
+          padding: 14px 16px;
+        }
+        .stakes .body {
+          font-size: 13.5px;
+        }
+        .primary {
+          align-self: stretch;
+          justify-content: center;
+          height: 56px;
+        }
+        .lynx-btn {
+          right: 18px;
+          bottom: calc(var(--status-h) + 18px);
+        }
+        .drawer {
+          width: 100%;
+        }
+        body.lynx-open .stage {
+          right: 0;
+          opacity: 0.3;
+        }
+        body.lynx-open .lynx-btn {
+          right: 18px;
+        }
+        .status {
+          padding: 0 14px;
+          gap: 10px;
+          font-size: 9px;
+        }
+        .status .ellipsis {
+          display: none;
+        }
+        .cont .row {
+          grid-template-columns: 50px 70px 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="frame">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <span>Afenda</span>
+      </div>
+      <div class="scope" aria-label="Active scope">
+        <b>Acme Industrial Co.</b>
+        <span>·</span>
+        <span>APAC production</span>
+      </div>
+      <span class="frame-spacer"></span>
+      <button class="capture-pill" id="capture-trigger" aria-label="Capture an object">
+        <span class="plus">+</span>
+        <span>capture</span>
+        <kbd>c</kbd>
+      </button>
+      <div class="you" title="Jordan Liu — Finance Controller">JL</div>
+    </header>
+
+    <main class="stage">
+      <div class="object">
+        <!-- CAPTURE — pre-seeded with current context. -->
+        <section class="capture" aria-label="Capture a new object">
+          <div class="hdr">
+            <span>capture · seeded from your context</span>
+            <span>esc to dismiss</span>
+          </div>
+          <input
+            class="capture-input"
+            id="capture-input"
+            type="text"
+            placeholder="What needs to happen."
+            autocomplete="off"
+          />
+          <div class="seed">
+            linked to <b>q1-vendor-onboarding/0488</b> · <b>PO-2026-0488</b> ·
+            supplier <b>Acme Industrial Co.</b> · provenance <b>you</b>
+          </div>
+        </section>
+
+        <!-- RESOLVED BANNER — appears when the loop closes. -->
+        <div class="resolved-banner" role="status" aria-live="polite">
+          <div class="check" aria-hidden="true">✓</div>
+          <div class="text">
+            <b>Resolved.</b> Truth updated to <b>VAT-PH-839-22-0118</b>.
+            <b>PO-2026-0488</b> unblocked. <b>Mei Tanaka</b> notified.
+            <span class="meta"
+              >audit · erp.contact.record.update · 0.3s · 4 downstream effects
+              cleared</span
+            >
+          </div>
+        </div>
+
+        <!-- WHY NOW — the headline above the headline. -->
+        <div class="why" role="status">
+          <span class="label">why now</span>
+          <span>
+            Because the next <b>3 things you've planned today</b> depend on this,
+            and a <b>customer SLA</b> expires in <b>2h 14m</b>.
+          </span>
+        </div>
+
+        <!-- PROVENANCE — who surfaced this, how certain, when. -->
+        <div class="prov">
+          <span class="src">Lynx Truth</span>
+          <span class="dot">·</span>
+          <span class="conf">cluster confidence 0.78</span>
+          <span class="dot">·</span>
+          <span class="conf">3 of 4 historical filings agree</span>
+          <span class="dot">·</span>
+          <span class="age">52m ago</span>
+        </div>
+
+        <!-- THE OBJECT — verbatim, sized like a deliberate utterance. -->
+        <h1 class="title">
+          Reconcile vendor VAT with Truth before posting PO-2026-0488
+        </h1>
+
+        <!-- PARTICIPANTS — one line, multi-party choreography. -->
+        <div class="who-line">
+          <div class="pair" aria-hidden="true">
+            <div class="av you">JL</div>
+            <div class="av">MT</div>
+          </div>
+          <div class="text">
+            <span class="you-tag">You</span> owe this to <b>Mei Tanaka</b> — CFO.
+            <span class="meta">due 2h 14m · she's idle 12m</span>
+          </div>
+        </div>
+
+        <!-- STAKES — the consequence chain, in plain English. -->
+        <div class="stakes">
+          <div class="head">if you skip this</div>
+          <div class="body">
+            Accounting will <span class="crit">block period close</span>,
+            <b>PO-2026-0488</b> won't post, and <b>Greene &amp; Sons</b> misses
+            an SLA in <span class="warn">2h 14m</span> — costing
+            <span class="crit">$12.4K</span> in slip. Three downstream tasks
+            stay parked.
+          </div>
+        </div>
+
+        <!-- DECIDE — one verb. The promise underneath shows what "done" means. -->
+        <div class="decide">
+          <button class="primary" id="resolve" type="button">
+            <span>Reconcile in Truth</span>
+            <span class="key">↵</span>
+          </button>
+          <div class="promise">
+            <b>Done</b> writes <b>VAT-PH-839-22-0118</b> as canonical to Truth,
+            unblocks <b>PO-2026-0488</b>, audits as
+            <b>erp.contact.record.update</b>, and notifies <b>Mei Tanaka</b>.
+          </div>
+          <div class="alts" role="group" aria-label="Alternatives">
+            <button class="alt" type="button" id="defer">
+              <span>Defer 1h</span>
+              <span class="key">d</span>
+            </button>
+            <button class="alt" type="button" id="handoff">
+              <span>Hand off</span>
+              <span class="key">h</span>
+            </button>
+            <button class="alt" type="button" id="ask-lynx">
+              <span>Ask Lynx</span>
+              <span class="key">?</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CONNECTED TRUTH — sentences, not chips. Each line is a consequence. -->
+        <div class="truth">
+          <div class="head">connected truth</div>
+          <ul>
+            <li class="warn">
+              <span class="mark" aria-hidden="true"></span>
+              <span>
+                Vendor declared <b>VAT-PH-839-22-0014</b> on intake; canonical
+                record holds <b>VAT-PH-839-22-0118</b>. Likely a typo, not an
+                alias.
+              </span>
+            </li>
+            <li>
+              <span class="mark" aria-hidden="true"></span>
+              <span>
+                Three of four prior filings on this entity agree with the
+                canonical value.
+              </span>
+            </li>
+            <li>
+              <span class="mark" aria-hidden="true"></span>
+              <span>
+                No sanctions match across OFAC, EU, UN —
+                <b>refreshed 2h ago</b>.
+              </span>
+            </li>
+            <li class="crit">
+              <span class="mark" aria-hidden="true"></span>
+              <span>
+                Posting without reconcile fails at <b>period close</b> and
+                requires a manual journal reversal.
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- CONTINUITY — last hour. Mono. Auditable. Not nostalgia. -->
+        <div class="cont">
+          <div class="head">last hour</div>
+          <div class="row">
+            <span class="ts">12m</span>
+            <span class="act">held</span>
+            <span class="who"
+              >You held this for review · linked to PO-0488</span
+            >
+          </div>
+          <div class="row">
+            <span class="ts">28m</span>
+            <span class="act">linked</span>
+            <span class="who"
+              >Auto-linked to SO-2026-1140 (commitment to Greene &amp; Sons)</span
+            >
+          </div>
+          <div class="row">
+            <span class="ts">52m</span>
+            <span class="act">opened</span>
+            <span class="who">Lynx Truth flagged variance · cluster 0.78</span>
+          </div>
+          <div class="row">
+            <span class="ts">1h 02m</span>
+            <span class="act">enriched</span>
+            <span class="who"
+              >Knowledge attached SEC PH registration evidence</span
+            >
+          </div>
+        </div>
+
+        <!-- NEXT — a peek, never a list. One thing — or nothing. -->
+        <div class="next" id="next" tabindex="0" role="button">
+          <div class="head">
+            <span>up next</span>
+            <span class="later"
+              >+ 12 later — they will surface when they matter</span
+            >
+          </div>
+          <div class="body">
+            Approve Net 45 override for Acme on PO-0488.
+          </div>
+          <div class="why-mini">why · blocking your CFO step in 28m</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- LYNX FAB — research, not chat. Summoned, never enthroned. -->
+    <button
+      class="lynx-btn"
+      id="lynx-btn"
+      aria-label="Open Lynx — grounded research"
+    >
+      <span class="glyph">L</span>
+      <span class="badge" aria-hidden="true"></span>
+    </button>
+
+    <!-- LYNX DRAWER — explicit grounding line states what is being read. -->
+    <aside
+      class="drawer"
+      id="lynx-drawer"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="drawer-name"
+    >
+      <div class="drawer-head">
+        <div class="icon" aria-hidden="true">L</div>
+        <div class="name" id="drawer-name">
+          Lynx
+          <span class="sub">grounded · 4 sources</span>
+        </div>
+        <button class="close" id="lynx-close" type="button">esc</button>
+      </div>
+
+      <div class="drawer-grounded">
+        Reading <b>this object</b>, <b>PO-2026-0488</b>,
+        <b>Truth record for Acme Industrial Co.</b>, and your
+        <b>last 3 vendor reviews</b>.
+      </div>
+
+      <div class="drawer-body">
+        <div class="lx-section">
+          <div class="lx-label">
+            <span>Truth · evidence</span>
+            <span class="ct">2</span>
+          </div>
+
+          <div class="lx-item">
+            <div class="meta">
+              <span class="src">truth</span>
+              <span>52m</span>
+              <span class="conf">conf 0.78</span>
+            </div>
+            <div class="title-sm">Tax ID variance on legal entity</div>
+            <div class="body">
+              Canonical record holds <b>VAT-PH-839-22-0118</b>; this run
+              captured <b>0014</b>. <b>3 of 4</b> historical filings agree with
+              the canonical. Likely typo on intake; <b>not</b> a sanctioned
+              alias.
+            </div>
+          </div>
+
+          <div class="lx-item">
+            <div class="meta">
+              <span class="src">truth</span>
+              <span>2h</span>
+              <span class="conf">conf 0.94</span>
+            </div>
+            <div class="title-sm">No sanctions match — OFAC + EU + UN</div>
+            <div class="body">
+              Vendor name and identifier do not match any active sanctions
+              list. Last refresh <b>2h</b> ago.
+            </div>
+          </div>
+        </div>
+
+        <div class="lx-section">
+          <div class="lx-label">
+            <span>Knowledge · context</span>
+            <span class="ct">2</span>
+          </div>
+
+          <div class="lx-item">
+            <div class="meta">
+              <span class="src">knowledge</span>
+              <span>1h</span>
+              <span>3 sources</span>
+            </div>
+            <div class="title-sm">
+              Net 45 precedent for PH manufacturing vendors
+            </div>
+            <div class="body">
+              Of 27 PH manufacturing vendors onboarded in last 12mo,
+              <b>4 accepted</b> Net 45 with CFO sign-off; average DSO impact
+              <b>+11.4 days</b>.
+            </div>
+          </div>
+
+          <div class="lx-item">
+            <div class="meta">
+              <span class="src">knowledge</span>
+              <span>2d</span>
+              <span>1 source</span>
+            </div>
+            <div class="title-sm">VAT correction precedent for Acme cluster</div>
+            <div class="body">
+              Three vendors in the Acme entity cluster previously had VAT
+              digits transposed at intake; resolved via <b>Mark canonical</b>
+              in Truth without supplier follow-up.
+            </div>
+          </div>
+        </div>
+
+        <div class="lx-section">
+          <div class="lx-label">
+            <span>Operator · prepared</span>
+            <span class="ct">1</span>
+          </div>
+
+          <div class="lx-item">
+            <div class="meta">
+              <span class="src">operator</span>
+              <span>1h 14m</span>
+              <span>auto</span>
+            </div>
+            <div class="title-sm">Recommended trade-off memo</div>
+            <div class="body">
+              Drafted a <b>1-page memo</b> for the CFO step covering Net 45 vs
+              SO-1140 SLA trade-off. Awaiting your review.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-foot">
+        <span class="pulse" aria-hidden="true"></span>
+        <span>grounded</span>
+        <span>· latency 41ms</span>
+        <span>· no chat</span>
+      </div>
+    </aside>
+
+    <!-- STATUS — proves the engine is alive. Faint. Auditable. -->
+    <footer class="status">
+      <span class="live">live</span>
+      <span class="sep">·</span>
+      <span>truth synced 8s</span>
+      <span class="sep ellipsis">·</span>
+      <span class="ellipsis">audit live</span>
+      <span class="sep ellipsis">·</span>
+      <span class="ellipsis">recurrence ok</span>
+      <span class="right">run q1-vendor-onboarding/0488</span>
+    </footer>
+
+    <script>
+      // Minimal interactivity. Just enough to demonstrate that:
+      //   - "c" opens an inline, context-seeded capture
+      //   - "?" summons Lynx (research drawer, not a chat surface)
+      //   - the primary action closes the operational loop
+      //   - "next" replaces the current object (no nav, no router)
+      (function () {
+        const body = document.body;
+        const captureTrigger = document.getElementById("capture-trigger");
+        const captureInput = document.getElementById("capture-input");
+        const lynxBtn = document.getElementById("lynx-btn");
+        const lynxClose = document.getElementById("lynx-close");
+        const askLynx = document.getElementById("ask-lynx");
+        const resolve = document.getElementById("resolve");
+        const next = document.getElementById("next");
+
+        function openCapture() {
+          body.classList.add("capture-open");
+          window.setTimeout(() => captureInput && captureInput.focus(), 50);
+        }
+        function closeCapture() {
+          body.classList.remove("capture-open");
+          if (captureInput) captureInput.value = "";
+        }
+        function openLynx() {
+          body.classList.add("lynx-open");
+        }
+        function closeLynx() {
+          body.classList.remove("lynx-open");
+        }
+        function toggleLynx() {
+          body.classList.toggle("lynx-open");
+        }
+
+        captureTrigger && captureTrigger.addEventListener("click", openCapture);
+        lynxBtn && lynxBtn.addEventListener("click", toggleLynx);
+        lynxClose && lynxClose.addEventListener("click", closeLynx);
+        askLynx && askLynx.addEventListener("click", openLynx);
+
+        // The loop closes — done means cognitive closure + operational safety.
+        resolve &&
+          resolve.addEventListener("click", () => {
+            body.classList.add("resolved");
+            closeLynx();
+            const stage = document.querySelector(".stage");
+            stage && stage.scrollTo({ top: 0, behavior: "smooth" });
+          });
+
+        // Next becomes the object — no navigation, no router, no list.
+        next &&
+          next.addEventListener("click", () => {
+            body.classList.remove("resolved");
+            const stage = document.querySelector(".stage");
+            stage && stage.scrollTo({ top: 0, behavior: "smooth" });
+          });
+
+        document.addEventListener("keydown", (e) => {
+          const tag = (e.target && e.target.tagName) || "";
+          const typing =
+            tag === "INPUT" ||
+            tag === "TEXTAREA" ||
+            (e.target && e.target.isContentEditable);
+
+          if (e.key === "Escape") {
+            if (body.classList.contains("capture-open")) {
+              closeCapture();
+              e.preventDefault();
+              return;
+            }
+            if (body.classList.contains("lynx-open")) {
+              closeLynx();
+              e.preventDefault();
+              return;
+            }
+          }
+
+          if (typing) return;
+
+          if (e.key === "c" || e.key === "C") {
+            openCapture();
+            e.preventDefault();
+            return;
+          }
+          if (e.key === "?" || (e.key === "/" && e.shiftKey)) {
+            toggleLynx();
+            e.preventDefault();
+            return;
+          }
+          if (e.key === "Enter" && resolve && !body.classList.contains("resolved")) {
+            resolve.click();
+            e.preventDefault();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

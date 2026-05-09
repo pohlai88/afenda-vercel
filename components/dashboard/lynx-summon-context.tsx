@@ -13,14 +13,14 @@ import {
  * Lightweight client context that lets feature components register the
  * "currently open" entity so the floating Lynx drawer can ground its feed.
  *
- * The provider lives once in the dashboard shell. Features (e.g. todo canvas)
+ * The provider lives once in the dashboard shell. Features (e.g. onething canvas)
  * call `setGrounding(...)` in an effect when they mount or the open atom
  * changes, and clear it on unmount. Outside the dashboard shell the optional
  * hook returns `null` so callers don't crash on the personal account routes.
  */
 
 export type LynxGroundingChip = {
-  /** Short module/source tag, e.g. "TODO", "PO", "CONTACT". */
+  /** Short module/source tag, e.g. "ONETHING", "PO", "CONTACT". */
   module: string
   /** Human-readable label (entity name or short description). */
   label: string
@@ -30,13 +30,25 @@ export type LynxGroundingChip = {
 
 export type LynxGrounding = {
   /** Where the grounding came from — used as a hint for the drawer copy. */
-  source: "todo" | "contact" | "run" | "page"
+  source: "onething" | "contact" | "run" | "page"
   /** Stable identifier (entity id, or a synthetic page id when source = "page"). */
   id: string
-  /** Display title, e.g. the open todo title. */
+  /** Display title, e.g. the open onething title. */
   title: string
   /** Optional one-line summary; falls back to chips when absent. */
   summary?: string | null
+  /**
+   * OneThing `now_context.consequence` — the operational consequence statement
+   * (per ADR-0001). When present, the Lynx drawer can render this as the
+   * grounding's "why this matters" line instead of a generic summary.
+   */
+  consequence?: string | null
+  /**
+   * OneThing `next_context.failureConsequence` — what breaks if the active
+   * OneThing is ignored (per ADR-0001). When present, the drawer can render
+   * this as the grounding's "if not resolved" line.
+   */
+  failureConsequence?: string | null
   /** Optional linkage chips (max 3 rendered in the drawer header). */
   chips?: LynxGroundingChip[]
 }
@@ -52,12 +64,29 @@ type LynxSummonContextValue = {
 
 const LynxSummonContext = createContext<LynxSummonContextValue | null>(null)
 
+function groundingPayloadEqual(
+  a: LynxGrounding | null,
+  b: LynxGrounding | null
+): boolean {
+  if (Object.is(a, b)) return true
+  if (a === null || b === null) return a === b
+  if (a.source !== b.source || a.id !== b.id || a.title !== b.title)
+    return false
+  if ((a.summary ?? null) !== (b.summary ?? null)) return false
+  if ((a.consequence ?? null) !== (b.consequence ?? null)) return false
+  if ((a.failureConsequence ?? null) !== (b.failureConsequence ?? null))
+    return false
+  return JSON.stringify(a.chips ?? []) === JSON.stringify(b.chips ?? [])
+}
+
 export function LynxSummonProvider({ children }: { children: ReactNode }) {
   const [grounding, setGroundingState] = useState<LynxGrounding | null>(null)
   const [open, setOpen] = useState(false)
 
   const setGrounding = useCallback((next: LynxGrounding | null) => {
-    setGroundingState(next)
+    setGroundingState((prev) =>
+      groundingPayloadEqual(prev, next) ? prev : next
+    )
   }, [])
 
   const openSummon = useCallback(() => setOpen(true), [])
@@ -97,8 +126,8 @@ export function useLynxSummon(): LynxSummonContextValue {
 
 /**
  * Optional hook — returns `null` outside the provider. Feature components
- * (e.g. `TodoCanvas`) use this so they keep working on routes that don't
- * mount the dashboard shell (e.g. personal account todos).
+ * (e.g. `OneThingCanvas`) use this so they keep working on routes that don't
+ * mount the dashboard shell (e.g. personal account onething).
  */
 export function useOptionalLynxSummon(): LynxSummonContextValue | null {
   return useContext(LynxSummonContext)

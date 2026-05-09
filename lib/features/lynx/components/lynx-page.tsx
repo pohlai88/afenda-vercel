@@ -11,7 +11,7 @@ import {
 
 import { NlSqlDemoClient } from "./nl-sql-demo-client"
 import { OperatorAssistClient } from "./operator-assist-client"
-import { TodoNlDemoClient } from "./todo-nl-demo-client"
+import { OneThingNlDemoClient } from "./onething-nl-demo-client"
 import { TruthSearchClient } from "./truth-search-client"
 
 export async function LynxPage() {
@@ -35,7 +35,7 @@ export async function LynxPage() {
 
       <NlSqlDemoClient />
 
-      <TodoNlDemoClient />
+      <OneThingNlDemoClient />
 
       <section className="flex flex-col gap-4 rounded-2xl border bg-card p-4">
         <h2 className="font-medium">{ts("addTitle")}</h2>
