@@ -1,5 +1,6 @@
 "use server"
 
+import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import {
@@ -123,17 +124,19 @@ export async function createOrgEventEndpoint(
       data: parsed.data,
     })
 
-    void writeIamAuditEventFromNextHeaders({
-      action: "org.integration.endpoint.create",
-      organizationId: session.organizationId,
-      actorUserId: session.userId,
-      actorSessionId: session.sessionId,
-      resourceType: "integration.endpoint",
-      resourceId: created.endpoint.id,
-      metadata: {
-        eventCount: created.endpoint.events.length,
-      },
-    })
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: "org.integration.endpoint.create",
+        organizationId: session.organizationId,
+        actorUserId: session.userId,
+        actorSessionId: session.sessionId,
+        resourceType: "integration.endpoint",
+        resourceId: created.endpoint.id,
+        metadata: {
+          eventCount: created.endpoint.events.length,
+        },
+      })
+    )
 
     revalidateIntegrations()
     return {
@@ -179,14 +182,16 @@ export async function updateOrgEventEndpoint(
     return { ok: false, error: "Endpoint not found in this organization." }
   }
 
-  void writeIamAuditEventFromNextHeaders({
-    action: "org.integration.endpoint.update",
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "integration.endpoint",
-    resourceId: endpointId,
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: "org.integration.endpoint.update",
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "integration.endpoint",
+      resourceId: endpointId,
+    })
+  )
 
   revalidateIntegrations()
   return { ok: true, endpoint: updated }
@@ -215,14 +220,16 @@ export async function deleteOrgEventEndpoint(
     return { ok: false, error: "Endpoint not found in this organization." }
   }
 
-  void writeIamAuditEventFromNextHeaders({
-    action: "org.integration.endpoint.delete",
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "integration.endpoint",
-    resourceId: endpointId,
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: "org.integration.endpoint.delete",
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "integration.endpoint",
+      resourceId: endpointId,
+    })
+  )
 
   revalidateIntegrations()
   return { ok: true }
@@ -251,14 +258,16 @@ export async function rotateOrgEventEndpointSecret(
     return { ok: false, error: "Endpoint not found in this organization." }
   }
 
-  void writeIamAuditEventFromNextHeaders({
-    action: "org.integration.endpoint.rotate_secret",
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "integration.endpoint",
-    resourceId: endpointId,
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: "org.integration.endpoint.rotate_secret",
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "integration.endpoint",
+      resourceId: endpointId,
+    })
+  )
 
   revalidateIntegrations()
   return {
@@ -307,18 +316,20 @@ export async function pingOrgEventEndpoint(
     },
   })
 
-  void writeIamAuditEventFromNextHeaders({
-    action: "org.integration.endpoint.ping",
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "integration.endpoint",
-    resourceId: endpointId,
-    metadata: {
-      deliveryState: delivery.state,
-      httpStatus: delivery.httpStatus,
-    },
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: "org.integration.endpoint.ping",
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "integration.endpoint",
+      resourceId: endpointId,
+      metadata: {
+        deliveryState: delivery.state,
+        httpStatus: delivery.httpStatus,
+      },
+    })
+  )
 
   revalidateIntegrations()
   return {

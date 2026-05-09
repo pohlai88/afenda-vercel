@@ -23,6 +23,8 @@ import {
   type LynxNlDemoChartConfig,
   type LynxNlDemoResultRow,
 } from "../schemas/nl-sql-demo.schema"
+import { after } from "next/server"
+
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { logUnexpectedServerError } from "#lib/logger.server"
@@ -120,17 +122,19 @@ export async function executeLynxNlDemoSqlAction(
       .update(validated.sql, "utf8")
       .digest("hex")
 
-    void writeIamAuditEventFromNextHeaders({
-      action: LYNX_AUDIT_ACTIONS.nlDemoQuery,
-      organizationId: org.organizationId,
-      actorUserId: org.userId,
-      actorSessionId: org.sessionId,
-      resourceType: "lynx.nl_demo",
-      resourceId: sqlDigest,
-      metadata: {
-        rowCount: rows.length,
-      },
-    })
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: LYNX_AUDIT_ACTIONS.nlDemoQuery,
+        organizationId: org.organizationId,
+        actorUserId: org.userId,
+        actorSessionId: org.sessionId,
+        resourceType: "lynx.nl_demo",
+        resourceId: sqlDigest,
+        metadata: {
+          rowCount: rows.length,
+        },
+      })
+    )
 
     return { ok: true, rows, columns }
   } catch (err) {

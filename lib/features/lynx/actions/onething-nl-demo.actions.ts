@@ -5,6 +5,8 @@ import { createHash } from "node:crypto"
 import { generateObject } from "ai"
 import { sql } from "drizzle-orm"
 
+import { after } from "next/server"
+
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { logUnexpectedServerError } from "#lib/logger.server"
@@ -123,18 +125,20 @@ export async function executeLynxOneThingNlDemoSqlAction(
       .update(validated.sql, "utf8")
       .digest("hex")
 
-    void writeIamAuditEventFromNextHeaders({
-      action: LYNX_AUDIT_ACTIONS.nlDemoQuery,
-      organizationId: org.organizationId,
-      actorUserId: org.userId,
-      actorSessionId: org.sessionId,
-      resourceType: "lynx.nl_demo.onething",
-      resourceId: sqlDigest,
-      metadata: {
-        rowCount: rows.length,
-        table: LYNX_NL_DEMO_ONETHING_TABLE,
-      },
-    })
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: LYNX_AUDIT_ACTIONS.nlDemoQuery,
+        organizationId: org.organizationId,
+        actorUserId: org.userId,
+        actorSessionId: org.sessionId,
+        resourceType: "lynx.nl_demo.onething",
+        resourceId: sqlDigest,
+        metadata: {
+          rowCount: rows.length,
+          table: LYNX_NL_DEMO_ONETHING_TABLE,
+        },
+      })
+    )
 
     return { ok: true, rows, columns }
   } catch (err) {

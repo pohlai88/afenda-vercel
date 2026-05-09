@@ -1,5 +1,6 @@
 "use server"
 
+import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import {
@@ -43,15 +44,17 @@ export async function toggleKnowledgeSourceEnabledAction(
   })
   if (!updated) return { ok: false, error: "Source not found." }
 
-  void writeIamAuditEventFromNextHeaders({
-    action: KNOWLEDGE_AUDIT_ACTIONS.SOURCE_UPDATE,
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "knowledge.source",
-    resourceId: sourceId,
-    metadata: { enabled },
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: KNOWLEDGE_AUDIT_ACTIONS.SOURCE_UPDATE,
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "knowledge.source",
+      resourceId: sourceId,
+      metadata: { enabled },
+    })
+  )
 
   revalidatePath(
     toLocaleOrgAdminRevalidatePattern("/knowledge/sources"),

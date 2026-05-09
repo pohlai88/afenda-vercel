@@ -1,5 +1,6 @@
 "use server"
 
+import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
@@ -64,18 +65,20 @@ export async function ingestKnowledgeChunk(
       })
       .returning({ id: knowledgeChunk.id })
 
-    void writeIamAuditEventFromNextHeaders({
-      action: "erp.knowledge.chunk.create",
-      organizationId,
-      actorUserId: userId,
-      actorSessionId: sessionId,
-      resourceType: "knowledge.chunk",
-      resourceId: row.id,
-      metadata: {
-        titleLen: parsed.data.title.length,
-        bodyLen: parsed.data.body.length,
-      },
-    })
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: "erp.knowledge.chunk.create",
+        organizationId,
+        actorUserId: userId,
+        actorSessionId: sessionId,
+        resourceType: "knowledge.chunk",
+        resourceId: row.id,
+        metadata: {
+          titleLen: parsed.data.title.length,
+          bodyLen: parsed.data.body.length,
+        },
+      })
+    )
   } catch {
     return {
       ok: false,

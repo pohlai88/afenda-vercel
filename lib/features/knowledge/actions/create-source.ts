@@ -1,5 +1,6 @@
 "use server"
 
+import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import {
@@ -67,15 +68,17 @@ export async function createKnowledgeSourceAction(
     createdByUserId: session.userId,
   })
 
-  void writeIamAuditEventFromNextHeaders({
-    action: KNOWLEDGE_AUDIT_ACTIONS.SOURCE_CREATE,
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "knowledge.source",
-    resourceId: row.id,
-    metadata: { kind: parsed.data.kind },
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: KNOWLEDGE_AUDIT_ACTIONS.SOURCE_CREATE,
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "knowledge.source",
+      resourceId: row.id,
+      metadata: { kind: parsed.data.kind },
+    })
+  )
 
   revalidatePath(
     toLocaleOrgAdminRevalidatePattern("/knowledge/sources"),

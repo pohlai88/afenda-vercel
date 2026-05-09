@@ -15,11 +15,14 @@ import { OneThingNlDemoClient } from "./onething-nl-demo-client"
 import { TruthSearchClient } from "./truth-search-client"
 
 export async function LynxPage() {
-  const org = await requireOrgSession()
+  // Start all independent fetches in parallel — translations and session auth
+  // are fully independent; the chunk list is the only one that needs org.organizationId.
+  const [t, ts, org] = await Promise.all([
+    getTranslations("Dashboard.Lynx"),
+    getTranslations("Dashboard.Lynx.substrate"),
+    requireOrgSession(),
+  ])
   const recent = await listRecentKnowledgeChunks(org.organizationId, 12)
-
-  const t = await getTranslations("Dashboard.Lynx")
-  const ts = await getTranslations("Dashboard.Lynx.substrate")
 
   return (
     <div className="space-y-8">

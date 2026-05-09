@@ -6,6 +6,10 @@ import type { RouteEnvelope } from "#lib/route-envelope.shared"
 import { SITE_NAME } from "#lib/site"
 import { requireSignedInSession } from "#lib/tenant"
 
+// Session auth reads cookies — declare dynamic so Next.js skips the static
+// prerender attempt and avoids noisy DYNAMIC_SERVER_USAGE error logs in CI.
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Console",
   openGraph: { title: `Console | ${SITE_NAME}` },

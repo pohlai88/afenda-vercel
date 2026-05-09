@@ -1,5 +1,6 @@
 "use server"
 
+import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import {
@@ -37,18 +38,20 @@ export async function cancelKnowledgeSourceSyncAction(
 
   // Workflow DevKit cancellation API is not exposed in this repository yet.
   // This writes an explicit cancel-request event for operators and dashboards.
-  void writeIamAuditEventFromNextHeaders({
-    action: KNOWLEDGE_AUDIT_ACTIONS.SOURCE_SYNC_CANCEL,
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "knowledge.source",
-    resourceId: sourceId,
-    metadata: {
-      runId: typeof runId === "string" ? runId : undefined,
-      status: "cancel_requested",
-    },
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: KNOWLEDGE_AUDIT_ACTIONS.SOURCE_SYNC_CANCEL,
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "knowledge.source",
+      resourceId: sourceId,
+      metadata: {
+        runId: typeof runId === "string" ? runId : undefined,
+        status: "cancel_requested",
+      },
+    })
+  )
 
   revalidatePath(
     toLocaleOrgAdminRevalidatePattern("/knowledge/sources"),

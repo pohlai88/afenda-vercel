@@ -1,5 +1,6 @@
 "use server"
 
+import { after } from "next/server"
 import { revalidatePath, revalidateTag } from "next/cache"
 
 import {
@@ -44,18 +45,20 @@ export async function updateKnowledgeOrgSettingsAction(
     enforceZdr,
   })
 
-  void writeIamAuditEventFromNextHeaders({
-    action: KNOWLEDGE_AUDIT_ACTIONS.SETTINGS_UPDATE,
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "knowledge.setting",
-    metadata: {
-      retrievalHybridEnabled,
-      retrievalRerankEnabled,
-      enforceZdr,
-    },
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: KNOWLEDGE_AUDIT_ACTIONS.SETTINGS_UPDATE,
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "knowledge.setting",
+      metadata: {
+        retrievalHybridEnabled,
+        retrievalRerankEnabled,
+        enforceZdr,
+      },
+    })
+  )
 
   revalidateTag(orgKnowledgeSettingsTag(session.organizationId), "max")
   revalidatePath(

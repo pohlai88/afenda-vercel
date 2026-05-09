@@ -1,5 +1,6 @@
 "use server"
 
+import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import {
@@ -65,14 +66,16 @@ export async function createKnowledgeCredentialAction(
       plaintext: secret,
       createdByUserId: session.userId,
     })
-    void writeIamAuditEventFromNextHeaders({
-      action: BYOK_AUDIT_ACTIONS.create,
-      organizationId: session.organizationId,
-      actorUserId: session.userId,
-      actorSessionId: session.sessionId,
-      resourceType: "integration.byok",
-      resourceId: provider,
-    })
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: BYOK_AUDIT_ACTIONS.create,
+        organizationId: session.organizationId,
+        actorUserId: session.userId,
+        actorSessionId: session.sessionId,
+        resourceType: "integration.byok",
+        resourceId: provider,
+      })
+    )
     revalidatePath(integrationsPathPattern(), "page")
     return { ok: true, secretShown: secret }
   } catch (error) {
@@ -117,14 +120,16 @@ export async function rotateKnowledgeCredentialAction(
       plaintext: secret,
       createdByUserId: session.userId,
     })
-    void writeIamAuditEventFromNextHeaders({
-      action: BYOK_AUDIT_ACTIONS.rotate,
-      organizationId: session.organizationId,
-      actorUserId: session.userId,
-      actorSessionId: session.sessionId,
-      resourceType: "integration.byok",
-      resourceId: provider,
-    })
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: BYOK_AUDIT_ACTIONS.rotate,
+        organizationId: session.organizationId,
+        actorUserId: session.userId,
+        actorSessionId: session.sessionId,
+        resourceType: "integration.byok",
+        resourceId: provider,
+      })
+    )
     revalidatePath(integrationsPathPattern(), "page")
     return { ok: true, secretShown: secret }
   } catch (error) {
@@ -163,15 +168,17 @@ export async function toggleKnowledgeCredentialAction(
       enabled,
     })
     if (!updated) return { ok: false, error: "Credential not found." }
-    void writeIamAuditEventFromNextHeaders({
-      action: BYOK_AUDIT_ACTIONS.update,
-      organizationId: session.organizationId,
-      actorUserId: session.userId,
-      actorSessionId: session.sessionId,
-      resourceType: "integration.byok",
-      resourceId: provider,
-      metadata: { enabled },
-    })
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: BYOK_AUDIT_ACTIONS.update,
+        organizationId: session.organizationId,
+        actorUserId: session.userId,
+        actorSessionId: session.sessionId,
+        resourceType: "integration.byok",
+        resourceId: provider,
+        metadata: { enabled },
+      })
+    )
     revalidatePath(integrationsPathPattern(), "page")
     return { ok: true }
   } catch (error) {
@@ -206,14 +213,16 @@ export async function deleteKnowledgeCredentialAction(
       provider,
     })
     if (!deleted) return { ok: false, error: "Credential not found." }
-    void writeIamAuditEventFromNextHeaders({
-      action: BYOK_AUDIT_ACTIONS.delete,
-      organizationId: session.organizationId,
-      actorUserId: session.userId,
-      actorSessionId: session.sessionId,
-      resourceType: "integration.byok",
-      resourceId: provider,
-    })
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: BYOK_AUDIT_ACTIONS.delete,
+        organizationId: session.organizationId,
+        actorUserId: session.userId,
+        actorSessionId: session.sessionId,
+        resourceType: "integration.byok",
+        resourceId: provider,
+      })
+    )
     revalidatePath(integrationsPathPattern(), "page")
     return { ok: true }
   } catch (error) {

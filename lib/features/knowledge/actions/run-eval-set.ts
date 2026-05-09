@@ -1,5 +1,7 @@
 "use server"
 
+import { after } from "next/server"
+
 import {
   canActInOrganization,
   writeIamAuditEventFromNextHeaders,
@@ -114,15 +116,17 @@ export async function runKnowledgeEvalSetAction(
     retrievalMode,
   }
 
-  void writeIamAuditEventFromNextHeaders({
-    action: KNOWLEDGE_AUDIT_ACTIONS.EVAL_RUN,
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "knowledge.eval_set",
-    resourceId: parsed.data.evalSetId,
-    metadata: auditMetadata,
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: KNOWLEDGE_AUDIT_ACTIONS.EVAL_RUN,
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "knowledge.eval_set",
+      resourceId: parsed.data.evalSetId,
+      metadata: auditMetadata,
+    })
+  )
 
   return { ok: true, summary }
 }

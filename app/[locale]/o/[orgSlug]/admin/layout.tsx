@@ -40,17 +40,21 @@ export default async function OrgAdminWorkbenchLayout({
   await requireVerifiedEmailForAccount(resume)
 
   const orgSession = await requireOrgSession()
-  const canAdmin = await canActInOrganization(
-    orgSession.userId,
-    orgSession.user.role,
-    orgSession.organizationId,
-    "admin"
-  )
+
+  // canAdmin check and identity fetch both need the org id but are
+  // independent of each other — start them in parallel.
+  const [canAdmin, identity] = await Promise.all([
+    canActInOrganization(
+      orgSession.userId,
+      orgSession.user.role,
+      orgSession.organizationId,
+      "admin"
+    ),
+    fetchOrgWorkbenchIdentity(orgSession.organizationId),
+  ])
   if (!canAdmin) {
     redirect(toLocalePath(locale, organizationDashboardPath(orgSlug, "home")))
   }
-
-  const identity = await fetchOrgWorkbenchIdentity(orgSession.organizationId)
   if (!identity) {
     notFound()
   }

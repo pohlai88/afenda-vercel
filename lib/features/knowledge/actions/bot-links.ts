@@ -1,5 +1,6 @@
 "use server"
 
+import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import {
@@ -67,13 +68,15 @@ export async function createOrgBotLinkAction(
     createdByUserId: session.userId,
   })
 
-  void writeIamAuditEventFromNextHeaders({
-    action: "org.integration.endpoint.update",
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "integration.bot_link",
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: "org.integration.endpoint.update",
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "integration.bot_link",
+    })
+  )
 
   revalidateIntegrationsPage()
   return { ok: true }
@@ -103,14 +106,16 @@ export async function deleteOrgBotLinkAction(
   })
   if (!deleted) return { ok: false, error: "Bot link not found." }
 
-  void writeIamAuditEventFromNextHeaders({
-    action: "org.integration.endpoint.delete",
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "integration.bot_link",
-    resourceId: id,
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: "org.integration.endpoint.delete",
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "integration.bot_link",
+      resourceId: id,
+    })
+  )
 
   revalidateIntegrationsPage()
   return { ok: true }
@@ -156,14 +161,16 @@ export async function updateOrgBotLinkAction(
   })
   if (!updated) return { ok: false, error: "Bot link not found." }
 
-  void writeIamAuditEventFromNextHeaders({
-    action: "org.integration.endpoint.update",
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "integration.bot_link",
-    resourceId: id,
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: "org.integration.endpoint.update",
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "integration.bot_link",
+      resourceId: id,
+    })
+  )
 
   revalidateIntegrationsPage()
   return { ok: true }
@@ -194,15 +201,17 @@ export async function toggleOrgBotLinkEnabledAction(
   })
   if (!updated) return { ok: false, error: "Bot link not found." }
 
-  void writeIamAuditEventFromNextHeaders({
-    action: "org.integration.endpoint.update",
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "integration.bot_link",
-    resourceId: id,
-    metadata: { enabled },
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: "org.integration.endpoint.update",
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "integration.bot_link",
+      resourceId: id,
+      metadata: { enabled },
+    })
+  )
 
   revalidateIntegrationsPage()
   return { ok: true }
@@ -259,14 +268,16 @@ export async function testOrgBotLinkAction(
       status: "ok",
     })
 
-    void writeIamAuditEventFromNextHeaders({
-      action: "org.integration.endpoint.ping",
-      organizationId: session.organizationId,
-      actorUserId: session.userId,
-      actorSessionId: session.sessionId,
-      resourceType: "integration.bot_link",
-      resourceId: id,
-    })
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: "org.integration.endpoint.ping",
+        organizationId: session.organizationId,
+        actorUserId: session.userId,
+        actorSessionId: session.sessionId,
+        resourceType: "integration.bot_link",
+        resourceId: id,
+      })
+    )
     revalidateIntegrationsPage()
     return { ok: true }
   } catch (error) {

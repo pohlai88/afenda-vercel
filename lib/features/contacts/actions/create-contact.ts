@@ -1,5 +1,6 @@
 "use server"
 
+import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
@@ -47,18 +48,20 @@ export async function createContact(
       })
       .returning({ id: customers.id })
 
-    void writeIamAuditEventFromNextHeaders({
-      action: "erp.contact.record.create",
-      organizationId,
-      actorUserId: userId,
-      actorSessionId: sessionId,
-      resourceType: "contact.record",
-      resourceId: row.id,
-      metadata: {
-        name: parsed.data.name,
-        hasEmail: Boolean(email),
-      },
-    })
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: "erp.contact.record.create",
+        organizationId,
+        actorUserId: userId,
+        actorSessionId: sessionId,
+        resourceType: "contact.record",
+        resourceId: row.id,
+        metadata: {
+          name: parsed.data.name,
+          hasEmail: Boolean(email),
+        },
+      })
+    )
   } catch {
     return {
       ok: false,

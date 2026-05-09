@@ -1,6 +1,7 @@
 "use server"
 
 import { randomUUID } from "node:crypto"
+import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import {
@@ -44,15 +45,17 @@ export async function runKnowledgeSourceSyncAction(
     actorSessionId: session.sessionId,
   })
 
-  void writeIamAuditEventFromNextHeaders({
-    action: KNOWLEDGE_AUDIT_ACTIONS.SOURCE_SYNC_START,
-    organizationId: session.organizationId,
-    actorUserId: session.userId,
-    actorSessionId: session.sessionId,
-    resourceType: "knowledge.source",
-    resourceId: parsed.data.sourceId,
-    metadata: { runId, sourceId: parsed.data.sourceId },
-  })
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: KNOWLEDGE_AUDIT_ACTIONS.SOURCE_SYNC_START,
+      organizationId: session.organizationId,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "knowledge.source",
+      resourceId: parsed.data.sourceId,
+      metadata: { runId, sourceId: parsed.data.sourceId },
+    })
+  )
 
   revalidatePath(
     toLocaleOrgAdminRevalidatePattern("/knowledge/sources"),
