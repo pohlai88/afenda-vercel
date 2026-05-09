@@ -1,0 +1,18 @@
+{
+  // Type-checks tests/ in isolation so Playwright + Vitest types stay out of the
+  // main compile graph. Run with: pnpm typecheck:test
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Separate incremental cache — warm on repeated typecheck:test runs without
+    // invalidating the main tsconfig.tsbuildinfo cache.
+    "tsBuildInfoFile": "tsconfig.test.tsbuildinfo",
+    "noEmit": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "i18n/global.d.ts",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+  ],
+  "exclude": ["node_modules"]
+}

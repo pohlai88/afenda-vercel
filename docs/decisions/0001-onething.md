@@ -1,11 +1,25 @@
 # ADR-0001 — Afenda OneThing: the operational focus layer
 
-| Field          | Value                                                                                                           |
-| -------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Status**     | Accepted                                                                                                        |
-| **Date**       | 2026-05-09                                                                                                      |
-| **Supersedes** | The todo product model — OneThing replaces task-first todos as Afenda's operational focus surface               |
-| **Affects**    | `lib/features/onething/`, legacy `lib/features/todos/` migration, `lib/erp/`, dashboard OneThing routes, Lynx   |
+| Field             | Value                                                                                                                                                                       |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Status**        | Accepted (UI surface partially superseded — see banner below)                                                                                                               |
+| **Date**          | 2026-05-09                                                                                                                                                                  |
+| **Supersedes**    | The todo product model — OneThing replaces task-first todos as Afenda's operational focus surface                                                                           |
+| **Companion**     | [ADR-0002 — OneThing morph: rejected scope (the negative space)](./0002-onething-morph-rejections.md) — records what the morph intentionally did not build                  |
+| **Authoritative** | [`.cursor/rules/onething-directory.mdc`](../../.cursor/rules/onething-directory.mdc) — tracks shipped behavior; supersedes this ADR's UI sections when the two disagree     |
+| **Affects**       | `lib/features/onething/`, legacy `lib/features/todos/` migration, `lib/erp/`, dashboard OneThing routes, Lynx                                                               |
+
+---
+
+> ## Status banner (read this before §9 / §12)
+>
+> The **product model, temporal-spine framing, ranking model, state language, and product positioning** in this ADR (sections §1–§8, §10, §11, §13–§16) remain authoritative — the morph did not change *what* OneThing is, only *how* it presents itself.
+>
+> The **UI architecture (§9)** and **suggested file names under `components/` (§12)** describe an earlier five-part surface (quiet ranked queue + canvas + truth rail + action key + Lynx drawer) and the original file slugs (`onething-canvas.server.tsx`, `onething-truth-rail.server.tsx`, `onething-action-key.client.tsx`, `onething-lynx-drawer.client.tsx`). That surface was **morphed in May 2026** into the two-pane operational document model: list pane + editorial detail pane + five-control toolbar + summary-first audit footer, with no truth-rail, no Lynx drawer inside OneThing, no action-key.
+>
+> Both descriptions remain in this ADR as historical context. For the **current shipped surface contract**, read [`.cursor/rules/onething-directory.mdc`](../../.cursor/rules/onething-directory.mdc). For the **rationale of what the morph intentionally did not build**, read [ADR-0002](./0002-onething-morph-rejections.md).
+>
+> If you are evaluating whether a new UI proposal is in scope: the rule and ADR-0002 govern. This ADR's §9 / §12 are not a backlog.
 
 ---
 
@@ -585,6 +599,8 @@ Deprecated
 
 ## 9. UI architecture
 
+> **Superseded.** The five-part surface described below (quiet ranked queue + OneThing canvas + truth rail + action key + Lynx drawer) was the original 2026-05-09 model. It was replaced in the same month by the two-pane operational-document morph; the canvas, truth rail, and Lynx drawer no longer exist as separate UI parts. The action-key table at §9.4 still documents the *internal* CRUD-SAP grammar (which remains authoritative), but those labels are no longer surfaced as visible toolbar copy. Read [`.cursor/rules/onething-directory.mdc`](../../.cursor/rules/onething-directory.mdc) for the current row anatomy, toolbar contract, audit footer, and keyboard map.
+
 The product surface has five parts.
 
 ### 9.1 Quiet ranked queue
@@ -733,6 +749,8 @@ DoD:
 ---
 
 ## 12. Implementation architecture
+
+> **File names superseded.** The directory boundary `lib/features/onething/` is still authoritative, but the suggested file slugs below (`onething-canvas.server.tsx`, `onething-truth-rail.server.tsx`, `onething-action-key.client.tsx`, `onething-lynx-drawer.client.tsx`, etc.) describe the original five-part surface and are not what shipped. Read [`.cursor/rules/onething-directory.mdc` → "Component file layout"](../../.cursor/rules/onething-directory.mdc) for the actual files. The repo-shape constraint (`actions / data / components / schemas / index.ts / client.ts / server.ts`) is now governed by AGENTS.md §6 and may be tighter than this section's `audit / domain / predictions / ranking` shape.
 
 OneThing replaces the todo product/domain surface.
 

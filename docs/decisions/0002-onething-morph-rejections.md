@@ -194,9 +194,11 @@ For completeness, the morph plan items that *were* shipped against this same pri
 - Resolve-with-focus-handoff (preserves operational momentum).
 - Strict `assertOneThingTitleIsSituation` on the create path.
 - Title-as-situation contract + row anatomy contract + tutorial chrome ban encoded in [`.cursor/rules/onething-directory.mdc`](../../.cursor/rules/onething-directory.mdc).
-- Continuity-thread audit footer.
-- Distributed keyboard ownership (J / K / N / R / Esc / ⌘Enter).
-- Sign-out cleanup of composer drafts and viewed-id LRU.
+- Summary-first audit footer (`Last activity Xm ago · N events`) with on-demand expand to a quiet narrative thread (no event chips, no severity colors, no border above).
+- Distributed keyboard ownership: shell owns `J / K / ↑ / ↓`, composer owns `N / C / ⌘ Enter / Esc`, toolbar owns `R / Esc` — no central router.
+- Resolve hand-off via `onething:focus-composer` window event (focus the composer when the queue runs dry — never land on the empty state).
+- Per-device privacy: `clearOneThingClientStorage()` wipes `afenda:onething:composer:*` and `afenda:onething:viewed` on sign-out, before the auth call.
+- Pure-helper extraction: `pickNextRankedId` and `splitOneThingDraft` live as `*.shared.ts` files and are unit-tested via the public client barrel.
 - Playwright smoke coverage of keyboard nav, composer submit, and resolve hand-off.
 
 ## 5. Reading order

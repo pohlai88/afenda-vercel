@@ -23,6 +23,9 @@
     "jsx": "react-jsx",
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
+    // Assume a file change only affects files that directly import it — avoids rechecking
+    // the full transitive closure on every save in watch mode (IDE language-server + tsc --watch).
+    "assumeChangesOnlyAffectDirectDependencies": true,
     "plugins": [
       {
         "name": "next"
@@ -37,9 +40,11 @@
     "i18n/global.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    // Production typed routes only — do not include `.next/dev/types` (conflicts with `exclude` / AGENTS.md).
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    // Production typed routes only. next-env.d.ts already imports .next/dev/types/routes.d.ts
+    // via an `import` statement — do not add .next/dev/types/** here (redundant, AGENTS.md §8).
+    ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", ".next/dev"]
+  // tests/ and scripts/ have their own tsconfig (tsconfig.test.json / tsconfig.scripts.json)
+  // so they don't pull Playwright + Vitest + seed-script types into the main compile graph.
+  "exclude": ["node_modules", ".next/dev", "tests", "scripts"],
 }

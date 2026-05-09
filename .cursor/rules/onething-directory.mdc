@@ -49,7 +49,7 @@ Rule in (required):
 - Editorial detail pane: large headline, narrative byline, prose body, inline `<sup>` predictions.
 - Implicit save on capture: composer drafts persist in `localStorage`; clear only on Server Action success.
 - Five-control toolbar maximum (resolve · snooze · comment · pin · more).
-- Continuity audit footer reads as a thread, not a label grid.
+- Continuity audit footer is summary-first; events expand on demand and read as quiet narrative, never a label grid.
 
 ## Required product model
 
@@ -107,15 +107,81 @@ Row min-height: 44px. Density should feel like Things 3 / Mail compact — not L
 
 ## Toolbar contract
 
-Maximum five controls in the detail-pane toolbar: `resolve · snooze · comment · pin · more`. The decision console is folded into the inline resolve expander; there is no separate console screen. `more` hides the long tail (reopen, delete, purge, deprecate). The `pin` slot is reserved (the rule contract owns the placement so the pinned-row rail in the list pane has a place to ship into).
+Maximum five controls in the detail-pane toolbar: `resolve · snooze · comment · pin · more`. The decision console is folded into the inline resolve expander; there is no separate console screen. `more` hides the long tail (reopen, delete, purge, deprecate). The `pin` slot is reserved (the rule contract owns the placement so the pinned-row rail in the list pane has a place to ship into — see [ADR-0002 §3.9](../../docs/decisions/0002-onething-morph-rejections.md#39-pinned-at-top-with-amber-rail)).
+
+Keyboard ownership (the toolbar listens directly so the shell does not have to lift `mode` state):
+
+- `R` (no modifier, when not typing) toggles the resolve expander.
+- `Esc` closes any open expander (resolve / comment / more) without closing the detail pane.
+
+The `pin` slot is **functionally inert today**. Adding a real pin action requires its own ADR + schema decision (per-actor vs per-org, expiry, ranker override semantics).
 
 ## Composer contract
 
-- Title-only field (consequence, severity, dueAt come from the detail pane after capture).
-- Implicit save: `localStorage` key `afenda:onething:composer:<scope>:<listId>`, debounced, multi-tab synchronized via `storage` event, cleared only on Server Action success.
-- `⌘ Enter` / `Ctrl+Enter` submits. `Esc` blurs.
-- Multi-line paste is preserved (textarea auto-grows).
+- **Headline + body extraction (Notes / Mail behavioral fidelity).** The textarea is unnamed (state-driven) and split at submit time by `splitOneThingDraft`:
+  - first line → consequence headline (sent as `title`, schema-validated through `onethingSituationTitleSchema`).
+  - remaining lines → narrative body (sent as `consequence`; trimmed leading / trailing whitespace; internal blank lines preserved as paragraph breaks).
+- The split logic lives in `components/hooks/split-onething-draft.shared.ts` so it stays unit-testable. The composer never has its own copy.
+- Severity, dueAt, assignee, and other metadata are **not** captured here — they belong in the detail pane after capture (per the [§3.8 metadata-strip rejection](../../docs/decisions/0002-onething-morph-rejections.md#38-composer-one-line-meta-strip-severity--list--due-at--linkage--counterparty)).
+- Implicit save: `localStorage` key `afenda:onething:composer:<scope>:<listId>`, debounced 240 ms, multi-tab synchronized via `storage` event, cleared only on Server Action success or explicit `Discard`.
+- `⌘ Enter` / `Ctrl+Enter` submits. `Esc` blurs. `N` / `C` (when not typing in any field) focuses the textarea — the composer owns these listeners directly via `useEffect`, the shell does not lift them.
+- Textarea auto-grows so multi-line drafts are visible without modal escalation.
 - Placeholder demonstrates the title-as-situation contract by example.
+- Submission consumed downstream: `createOrgOneThing` / `createPersonalOneThing` Server Actions in `lib/features/onething/actions/`.
+
+## Audit footer contract
+
+The continuity audit footer is **summary-first**, not events-first. The default state is a single quiet line:
+
+```
+Last activity 3m ago · 4 events  ·  Show
+```
+
+Behavior:
+
+- Summary line is always rendered when events exist; auditors are never blocked by the default state — one tap on `Show` reveals the events as quiet narrative lines (newest first, capped at 6 unless expanded).
+- No section dividers above the footer (the prose body is the boundary; a `border-t` would re-establish card chrome). The pane uses `pt-2` only.
+- No event-type chips, no severity colors, no avatars, no labeled grids on the events themselves — each event renders through `describeAuditEvent7W1H` as a single sentence.
+- Empty state is one quiet italic line (`auditFooter.summaryNever`), never an empty `<ul>`.
+- Time formatting reuses `useNow()` and the same `ambientTime` thresholds as the list pane (`now / Xm / Xh / Xd`), never `tabular-nums`.
+
+## Keyboard map (distributed ownership)
+
+Each component owns its own keys via local listeners. There is no central keyboard router — the goal is that adding or removing a component cannot break global shortcuts.
+
+| Key | Owner | Behavior |
+|---|---|---|
+| `J` / `↓` | shell | Move focus to the next ranked id (`router.replace`, no history push) |
+| `K` / `↑` | shell | Move focus to the previous ranked id |
+| `N` / `C` | composer | Focus the composer textarea (when target is not already typing) |
+| `R` | toolbar | Toggle the resolve expander |
+| `Esc` | composer / toolbar | Composer: blur the textarea. Toolbar: close any open expander. |
+| `⌘ Enter` / `Ctrl Enter` | composer | Submit the capture |
+
+Cross-component intents that cannot be expressed by local keys flow through `window` events declared in `components/hooks/onething-shell-events.ts`:
+
+- `onething:focus-composer` — fired by `useResolveWithFocusHandoff` when the queue runs dry, listened to by the composer.
+- `onething:toggle-resolve` — reserved for future shell-wide `R` dispatch when focus is in a non-typing surface.
+
+`Esc` is **not** bound at the shell level on mobile; the visible "Back" button in the detail topbar is the canonical mobile affordance, and binding shell-Esc would race the toolbar's Esc listener.
+
+## Resolve hand-off (operational momentum)
+
+Resolving / deprecating / completing the focused row must never land the operator on `OneThingDetailEmpty` with no obvious next move. Selection logic is:
+
+- If there is a next ranked item, focus it (`router.replace`).
+- Else if there is a previous ranked item, focus it.
+- Else (empty queue) clear `?focus=` AND dispatch `onething:focus-composer` so the composer takes the cursor — operator's hands stay in motion.
+
+The selection lives in `components/hooks/pick-next-ranked-id.shared.ts` (pure function, unit-tested) so the invariant cannot drift behind a hook closure. The orchestrating hook is `use-resolve-with-focus-handoff.ts`.
+
+## Per-device privacy (sign-out cleanup)
+
+Composer drafts (`afenda:onething:composer:*`) and the viewed-id LRU (`afenda:onething:viewed`) live in `localStorage` only — they are never shipped to the server. On a shared device they would otherwise survive sign-out and be readable by the next operator.
+
+- `clearOneThingClientStorage()` (in `components/onething-client-storage.ts`, exported via `#features/onething/client`) wipes both keyspaces.
+- The canonical client `SignOutButton` calls it **before** `authClient.signOut()` so cleanup runs even if the network call fails.
+- Server-driven sign-out forms (e.g. `/account`) must route through `SignOutButton`, not their own server-action `auth.signOut()`, so the client cleanup runs.
 
 ## Tutorial chrome
 
@@ -133,26 +199,41 @@ Production has no keyboard help chip, no toast tutor, no first-run coach mark. D
 - Server composition and route wiring use `#features/onething` (`index.ts`).
 - Client Components under `lib/features/onething/components/` import types, pure helpers, and **Server Actions** from `#features/onething/client` (not the server barrel). `OneThingShell` binds org vs personal actions from that barrel using `scope` + `canAdmin`.
 - Server-only data layer queries / mutations re-export through `#features/onething/server`.
+- The client barrel (`#features/onething/client`) re-exports the pure helpers `pickNextRankedId`, `splitOneThingDraft`, and `clearOneThingClientStorage` so external client surfaces (notably `SignOutButton`) and tests can import them without violating the `#features/*/components/*` deep-import ban.
 - After org/personal OneThing mutations or workflows, invalidate UI via `revalidateOrgOneThingDashboard` / `revalidatePersonalOneThingSurface` from `data/onething-revalidate.server.ts` (centralizes `revalidatePath` + locale patterns).
 
 ## Component file layout
 
 ```
 lib/features/onething/components/
-  onething-shell.tsx           — two-pane container, mobile slide-over, keyboard map
-  onething-list-pane.tsx       — single-line ranked rows + composer
-  onething-detail-pane.tsx     — editorial document (headline, byline, prose, predictions)
-  onething-detail-toolbar.tsx  — five-control toolbar + folded resolve / deprecate / more
-  onething-detail-composer.tsx — implicit-save composer (sits at top of list)
-  onething-detail-empty.tsx    — quiet single-line empty state
-  onething-detail-audit-footer.tsx — collapsible continuity thread
-  onething-page.tsx            — RSC orchestrator (org)
-  personal-onething-page.tsx   — RSC orchestrator (personal)
+  onething-shell.tsx                 — two-pane container, J/K shell keyboard, mobile pane swap
+  onething-list-pane.tsx             — single-line ranked rows + composer slot
+  onething-detail-pane.tsx           — editorial document (headline, byline, prose, predictions)
+  onething-detail-toolbar.tsx        — five-control toolbar + R/Esc keyboard + folded resolve/deprecate/more
+  onething-detail-composer.tsx       — implicit-save composer (headline + body), N/C/Esc/⌘Enter ownership
+  onething-detail-empty.tsx          — quiet single-line empty state
+  onething-detail-audit-footer.tsx   — summary-first continuity footer with on-demand expand
+  onething-client-storage.ts         — `clearOneThingClientStorage()` for sign-out cleanup
+  onething-page.tsx                  — RSC orchestrator (org)
+  personal-onething-page.tsx         — RSC orchestrator (personal)
   hooks/
-    use-focus-navigation.ts            — `?focus=` history-stack discipline
-    use-resolve-with-focus-handoff.ts  — preserve momentum on resolve
-    use-onething-draft-persistence.ts  — localStorage drafts
-    use-flip.ts                        — ranker reconciliation FLIP
+    onething-shell-events.ts                — distributed-keyboard cross-component event names
+    use-focus-navigation.ts                 — `?focus=` history-stack discipline (router.replace)
+    use-resolve-with-focus-handoff.ts       — operational-momentum hand-off (focus next or composer)
+    use-onething-draft-persistence.ts       — localStorage drafts, debounced + multi-tab sync
+    use-now.ts                              — SSR-safe client time anchor (one microtask post-mount)
+    use-viewed-ids.ts                       — `useSyncExternalStore` viewed-id LRU (cap 200)
+    use-flip.ts                             — FLIP primitive (currently unused; rejection in ADR-0002 §3.3)
+    pick-next-ranked-id.shared.ts           — pure ranker-aware "next id" selector (unit-tested)
+    split-onething-draft.shared.ts          — pure headline + body splitter (unit-tested)
 ```
 
-Do not add new top-level component categories without updating this rule first.
+Do not add new top-level component categories without updating this rule first. New `*.shared.ts` files under `hooks/` are allowed when they extract a pure-logic kernel that benefits from unit testing — re-export them from `client.ts` so tests can import via `#features/onething/client`.
+
+## Doctrine cross-references
+
+- [ADR-0001 — Afenda OneThing: the operational focus layer](../../docs/decisions/0001-onething.md) — product model, temporal spine, ranking, state language. Sections §9 (UI architecture) and §12 (code structure file names) are **superseded** by the morph; they remain as historical context.
+- [ADR-0002 — OneThing morph: rejected scope (the negative space)](../../docs/decisions/0002-onething-morph-rejections.md) — the 12 plan items that were intentionally not built, each with reopen criteria.
+- [`AGENTS.md` IDE quickstart row "OneThing"](../../AGENTS.md) — points contributors at this rule + the prime directive.
+
+When this rule and an ADR disagree, this rule wins (it tracks shipped behavior). File a follow-up to update the ADR in the same change.
