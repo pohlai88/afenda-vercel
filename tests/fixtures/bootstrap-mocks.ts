@@ -36,3 +36,22 @@ export const DEMO_PUBLIC_COPY = {
   homeHeading: "Project ready!",
   signInEmailLabel: "Email",
 } as const
+
+/**
+ * Org admin audit UI — keep aligned with `messages/en.json` (`OrgAdmin.audit`).
+ * Playwright specs assert user-visible strings from here (single source in tests).
+ */
+export const ORG_ADMIN_AUDIT_E2E_COPY = {
+  pageHeading: "Organization audit",
+  /** `OrgAdmin.audit.events.viewAria` */
+  originFilterNavAria: "Audit row origin filter",
+  viewProduction: "Production",
+  viewSimulated: "Simulated",
+  viewAll: "All",
+  /** `OrgAdmin.audit.events.headerOrigin` */
+  tableHeaderOrigin: "Origin",
+} as const
+
+/** Substring of streamed org IAM audit CSV header (includes simulation provenance columns). */
+export const ORG_AUDIT_CSV_HEADER_PROVENANCE_SNIPPET =
+  "audit_origin,simulation_run_id,scenario_id,scenario_version,audit_actor_mode"

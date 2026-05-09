@@ -114,7 +114,7 @@ const configKeySet = new Set(Object.keys(parsedConfig))
 
 /** Keys only in existing .env.local (not in .env.config) — preserved across sync. */
 /** @type {Record<string, string>} */
-let preserved = {}
+const preserved = {}
 
 if (fs.existsSync(destPath)) {
   const prevRaw = fs.readFileSync(destPath, "utf8")

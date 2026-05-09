@@ -48,9 +48,12 @@ export default getRequestConfig(async ({ requestLocale }) => {
     timeZone: "UTC",
     formats,
     onError(error: { code: IntlErrorCode | (string & {}); message?: string }) {
+      // next-intl onError runs on Edge (no Pino); console is the only safe channel here.
       if (error.code === IntlErrorCode.MISSING_MESSAGE) {
+        // eslint-disable-next-line no-console
         console.warn("[next-intl] missing message:", error.message)
       } else {
+        // eslint-disable-next-line no-console
         console.error("[next-intl]", error)
       }
     },

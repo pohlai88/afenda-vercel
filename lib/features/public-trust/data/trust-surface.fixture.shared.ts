@@ -3,7 +3,12 @@
  */
 import type { Metadata } from "next"
 
-import { LEGAL_ROUTE_PREFIX } from "#features/legal-declarations"
+import {
+  LEGAL_ROUTE_PREFIX,
+  declarationDocuments,
+  formatDeclarationReviewedLabel,
+  latestLegalDeclarationReviewedAt,
+} from "#features/legal-declarations"
 import { DEFAULT_OG_IMAGE, SITE_NAME, getSiteUrl } from "#lib/site"
 
 import type {
@@ -16,7 +21,9 @@ import type {
   TrustSurfaceItem,
 } from "../types"
 
-export const trustSurfaceLastUpdatedLabel = "Updated May 9, 2026"
+export const trustSurfaceLastUpdatedLabel = formatDeclarationReviewedLabel(
+  latestLegalDeclarationReviewedAt
+)
 export const securityTxtHref = "/.well-known/security.txt" as const
 export const securityTxtExpiresAt = "2027-05-05T00:00:00.000Z"
 
@@ -45,6 +52,12 @@ export const publicTrustOwnerRoutes = {
 } as const
 
 const L = LEGAL_ROUTE_PREFIX
+
+function declarationRouteLabel(
+  slug: keyof typeof declarationDocuments
+): string {
+  return formatDeclarationReviewedLabel(declarationDocuments[slug].reviewedAt)
+}
 
 export const publicTrustIndexableRoutes = [
   "/cookies",
@@ -102,7 +115,7 @@ const trustEvidenceItems = [
       "Afenda has a live privacy notice, commercial boundary, support route, cookie notice, data processing addendum route, and subprocessor inventory. The privacy notice names the Malaysia-established operator, the customer-controlled workflow boundary, and the current cookie posture instead of hiding that detail behind sales process.",
     href: `${L}/privacy`,
     proofSource: `Backed by ${L}/privacy, ${L}/terms, ${L}/support, /cookies, /data-processing-addendum, and /subprocessors.`,
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("privacy"),
   },
   {
     id: "evidence-disclosure",
@@ -111,7 +124,7 @@ const trustEvidenceItems = [
       "Security intake is publicly named, documented, and mirrored in a machine-readable security.txt route so reporters do not need to guess where to go.",
     href: `${L}/security/disclosure`,
     proofSource: `Backed by ${L}/security/disclosure and ${securityTxtHref}.`,
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("security/disclosure"),
   },
   {
     id: "evidence-boundaries",
@@ -129,7 +142,7 @@ const trustEvidenceItems = [
       "Privacy, security, and support ownership are routed through explicit public contact paths instead of ambiguous contact language.",
     href: `${L}/support`,
     proofSource: `Backed by ${L}/support and the owner-route fields on ${L}/trust.`,
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("support"),
   },
 ] satisfies readonly TrustEvidenceItem[]
 
@@ -155,7 +168,7 @@ const trustSurfaceItems = [
       "Public privacy route covering PDPA-aligned notice, data collection, use, disclosures, transfers, cookie posture, and contact paths.",
     ownerRoute: publicTrustOwnerRoutes.privacy.value,
     proofSource: "Privacy declaration is live and indexable.",
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("privacy"),
     isPublicLink: true,
   },
   {
@@ -167,7 +180,7 @@ const trustSurfaceItems = [
       "Public commercial boundary describing service scope, responsibilities, and route usage posture.",
     ownerRoute: publicTrustOwnerRoutes.support.value,
     proofSource: "Terms declaration is live and indexable.",
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("terms"),
     isPublicLink: true,
   },
   {
@@ -179,7 +192,7 @@ const trustSurfaceItems = [
       "High-level security posture covering infrastructure boundaries, access control, and trust routing.",
     ownerRoute: publicTrustOwnerRoutes.security.value,
     proofSource: "Security declaration is live and indexable.",
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("security"),
     isPublicLink: true,
   },
   {
@@ -191,7 +204,7 @@ const trustSurfaceItems = [
       "Formal vulnerability intake with scope, safe harbor, and report expectations.",
     ownerRoute: publicTrustOwnerRoutes.security.value,
     proofSource: "Disclosure route is live and linked from security posture.",
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("security/disclosure"),
     isPublicLink: true,
   },
   {
@@ -216,7 +229,7 @@ const trustSurfaceItems = [
       "Public support and escalation route for operational follow-up and declaration ownership.",
     ownerRoute: publicTrustOwnerRoutes.support.value,
     proofSource: "Support route is live and indexable.",
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("support"),
     isPublicLink: true,
   },
   {
@@ -243,7 +256,7 @@ const trustSurfaceItems = [
     ownerRoute: publicTrustOwnerRoutes.privacy.value,
     proofSource:
       "Subprocessor route is live with vendor purpose, jurisdiction/location posture, and official source links.",
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("subprocessors"),
     isPublicLink: true,
   },
   {
@@ -256,7 +269,7 @@ const trustSurfaceItems = [
     ownerRoute: publicTrustOwnerRoutes.privacy.value,
     proofSource:
       "DPA request route is live and cites Act 709 and Act A1727 sections.",
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("data-processing-addendum"),
     isPublicLink: true,
   },
   {
@@ -268,7 +281,7 @@ const trustSurfaceItems = [
       "Public cookie notice covering the current essential/auth/session/local storage posture and the control rule for future non-essential categories.",
     ownerRoute: publicTrustOwnerRoutes.privacy.value,
     proofSource: `Cookie notice is live and cross-referenced from ${L}/privacy.`,
-    lastUpdatedLabel: trustSurfaceLastUpdatedLabel,
+    lastUpdatedLabel: declarationRouteLabel("cookies"),
     isPublicLink: true,
   },
 ] satisfies readonly TrustSurfaceItem[]

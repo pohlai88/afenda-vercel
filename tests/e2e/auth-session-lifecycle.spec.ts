@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
 
 import { DEMO_PUBLIC_COPY } from "../fixtures/bootstrap-mocks"
 
@@ -8,9 +8,7 @@ const orgSlugFromEnv = process.env.E2E_ORG_SLUG?.trim()
 
 const ORG_SLUG_RE = /\/en\/o\/([^/]+)\/(?:dashboard|admin)/
 
-async function resolveOrgSlug(
-  page: import("@playwright/test").Page
-): Promise<string | null> {
+async function resolveOrgSlug(page: Page): Promise<string | null> {
   if (orgSlugFromEnv) return orgSlugFromEnv
 
   const m = page.url().match(ORG_SLUG_RE)

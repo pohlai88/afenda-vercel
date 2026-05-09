@@ -39,7 +39,12 @@ export async function OneThingPage({
   // After the session is resolved, canAdmin check and list bootstrap are
   // both dependent on org but independent of each other — parallelize them.
   const [canAdmin, defaultListId] = await Promise.all([
-    canActInOrganization(org.userId, org.user.role, org.organizationId, "admin"),
+    canActInOrganization(
+      org.userId,
+      org.user.role,
+      org.organizationId,
+      "admin"
+    ),
     ensureDefaultOneThingListForOrg(org.organizationId),
   ])
 

@@ -1,0 +1,28 @@
+---
+description: Operational simulation substrate (scenario replay, provenance, org audit filtering)
+globs: lib/features/simulation/**,lib/erp/scenario-types.shared.ts,lib/erp/simulation-context.server.ts,lib/auth/audit-origin.shared.ts,lib/auth/audit.server.ts,lib/auth/org-audit.server.ts,scripts/simulate-*.ts
+alwaysApply: false
+---
+
+# Simulation directory boundary
+
+## Role
+
+- **`#features/simulation`** — org-scoped **operational simulation**: registered scenario graphs, replay into real `onething` + `iam_audit_event` rows, clear-by-run, Server Actions behind **`AFENDA_ENABLE_SIMULATION=1`** (`OPERATIONAL_SIMULATION_ENV`).
+- **`#lib/erp/simulation-context.server.ts`** — **`AsyncLocalStorage`** context consumed by **`writeIamAuditEvent`** and OneThing inserts so simulation provenance stamps consistently.
+- **`#lib/erp/scenario-types.shared.ts`** — **`scenarioIdSchema`** and replay input shapes (client/CLI-safe).
+
+## Imports
+
+- Routes and scripts: **`#features/simulation`**, **`#features/simulation/server`**, **`#features/simulation/client`** (client islands); do not deep-import `#features/simulation/data/...` from outside the module.
+- IAM audit provenance constants: **`#lib/auth`** (`AUDIT_ORIGIN`, `AUDIT_ACTOR_MODE`).
+
+## Forbidden
+
+- Enabling replay/clear in production without explicit env (**never default `AFENDA_ENABLE_SIMULATION`**).
+- Bypassing **`deleteOperationalSimulationRun`** predicates (`audit_origin`, `simulation_run_id`) for bulk deletes.
+- New scenario IDs that do not pass **`scenarioIdSchema`**.
+
+## Contract
+
+- New scenarios: register in **`data/scenario-registry.server.ts`**, add graph under **`data/scenario-graphs/`**, extend **`AGENTS.md`** IAM examples if new audit actions are introduced.

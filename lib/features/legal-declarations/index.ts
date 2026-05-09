@@ -13,8 +13,10 @@ export {
   declarationDocumentSlugs,
   declarationFooterIdentity,
   declarationFooterLinks,
+  declarationRouteReviewedAtByHref,
   declarationRouteHrefs,
   declarationRouteSlugs,
+  latestLegalDeclarationReviewedAt,
 } from "./data/declaration-registry.shared"
 
 export type {
@@ -30,3 +32,12 @@ export {
   subprocessorsLink,
   trustRouteLink,
 } from "./data/footer.shared"
+
+export {
+  collectDeclarationCopy,
+  declarationPlaceholderPatterns,
+  declarationStalePhrases,
+  formatDeclarationReviewedLabel,
+  isHttpSourceRef,
+  maxReviewedAt,
+} from "./review.shared"

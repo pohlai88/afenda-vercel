@@ -46,6 +46,7 @@ export {
 export { OrgAdminSidebar } from "./components/org-admin-sidebar"
 export { OrgAdminWorkbenchShell } from "./components/org-admin-workbench-shell"
 export { OrgAuditEventsView } from "./components/org-audit-events-view"
+export { OrgAdminSimulationToolbar } from "./components/org-admin-simulation-toolbar"
 export { OrganizationAdminClient } from "./components/organization-admin-client"
 export { OrganizationAuditCsvExport } from "./components/organization-audit-csv-export"
 export { IntegrationsEndpointsPanel } from "./components/integrations-endpoints-panel"

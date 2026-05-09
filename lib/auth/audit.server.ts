@@ -4,11 +4,18 @@ import { headers } from "next/headers"
 
 import { db } from "#lib/db"
 import { iamAuditEvent } from "#lib/db/schema"
+import { logUnexpectedServerError } from "#lib/logger.server"
 
 import {
   IAM_AUDIT_TELEMETRY_TAG,
   resolveIamAuditTelemetryEnabled,
 } from "./iam-audit-telemetry.shared"
+import {
+  AUDIT_ACTOR_MODE,
+  AUDIT_ORIGIN,
+  resolveAuditActorModeForInsert,
+} from "./audit-origin.shared"
+import { getSimulationContextOrNull } from "#lib/erp/simulation-context.server"
 
 export type WriteIamAuditEventInput = {
   action: string
@@ -53,6 +60,14 @@ export async function writeIamAuditEvent(
       input.metadata && Object.keys(input.metadata).length > 0
         ? JSON.stringify(input.metadata)
         : null
+    const simulation = getSimulationContextOrNull()
+    const auditOrigin = simulation
+      ? AUDIT_ORIGIN.simulation
+      : AUDIT_ORIGIN.production
+    const auditActorMode = simulation
+      ? AUDIT_ACTOR_MODE.systemSimulation
+      : resolveAuditActorModeForInsert(input.actorUserId)
+
     await db.insert(iamAuditEvent).values({
       action: input.action,
       actorUserId: input.actorUserId ?? null,
@@ -64,22 +79,30 @@ export async function writeIamAuditEvent(
       ipAddress: input.ipAddress ?? null,
       userAgent: input.userAgent ?? null,
       metadata,
+      auditOrigin,
+      simulationRunId: simulation?.simulationRunId ?? null,
+      scenarioId: simulation?.scenarioId ?? null,
+      scenarioVersion: simulation?.scenarioVersion ?? null,
+      simulationSeed: simulation?.seed ?? null,
+      auditActorMode,
     })
     if (resolveIamAuditTelemetryEnabled()) {
+      // Raw JSON stdout for Vercel log drains — bypasses Pino intentionally.
+      // Gated by AFENDA_IAM_AUDIT_LOG / VERCEL env vars (see iam-audit-telemetry.shared.ts).
+      // eslint-disable-next-line no-console
       console.info(
         JSON.stringify({
           tag: IAM_AUDIT_TELEMETRY_TAG,
           action: input.action,
           resourceType: input.resourceType ?? undefined,
           organizationScoped: Boolean(input.organizationId),
+          auditOrigin,
           t: new Date().toISOString(),
         })
       )
     }
   } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("[iam_audit_event] write failed:", err)
-    }
+    logUnexpectedServerError("iam_audit_event_write_failed", err)
   }
 }
 

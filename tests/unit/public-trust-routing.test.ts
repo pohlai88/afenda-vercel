@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest"
 
 import sitemap from "../../app/sitemap"
 import { GET as securityTxtGET } from "../../app/.well-known/security.txt/route"
-import { securityDisclosureLink } from "#features/legal-declarations"
+import {
+  declarationRouteReviewedAtByHref,
+  latestLegalDeclarationReviewedAt,
+  securityDisclosureLink,
+} from "#features/legal-declarations"
 import {
   publicTrustIndexableRoutes,
   publicTrustOwnerRoutes,
@@ -16,12 +20,27 @@ import { getSiteUrl } from "#lib/site"
 
 describe("public trust routing", () => {
   it("publishes every indexable trust/legal route in the sitemap", () => {
-    const paths = sitemap().map((entry) => new URL(entry.url).pathname)
+    const entries = sitemap()
+    const paths = entries.map((entry) => new URL(entry.url).pathname)
 
     expect(paths).toContain(toLocalePath(DEFAULT_APP_LOCALE, "/"))
     for (const route of publicTrustIndexableRoutes) {
       expect(paths).toContain(toLocalePath(DEFAULT_APP_LOCALE, route))
     }
+
+    const byPath = new Map(
+      entries.map((entry) => [new URL(entry.url).pathname, entry])
+    )
+    expect(
+      byPath.get(toLocalePath(DEFAULT_APP_LOCALE, "/cookies"))?.lastModified
+    ).toEqual(declarationRouteReviewedAtByHref["/cookies"])
+    expect(
+      byPath.get(toLocalePath(DEFAULT_APP_LOCALE, "/legal/privacy"))
+        ?.lastModified
+    ).toEqual(declarationRouteReviewedAtByHref["/legal/privacy"])
+    expect(
+      byPath.get(toLocalePath(DEFAULT_APP_LOCALE, "/"))?.lastModified
+    ).toEqual(latestLegalDeclarationReviewedAt)
   })
 
   it("serves a machine-readable security.txt for the live disclosure surface", async () => {

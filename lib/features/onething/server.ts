@@ -21,3 +21,4 @@ export {
   insertOrgOneThing,
   wakeSnoozedOneThingForOrganization,
 } from "./data/onething.mutations.server"
+export type { OneThingSimulationProvenance } from "./data/onething.mutations.server"

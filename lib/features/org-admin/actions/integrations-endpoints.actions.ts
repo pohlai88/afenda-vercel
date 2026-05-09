@@ -19,6 +19,8 @@ import {
 } from "../data/integrations-endpoints.mutations"
 import { getOrgEventEndpoint } from "../data/integrations-endpoints.queries"
 import { deliverEventNow } from "../data/integrations-delivery.server"
+import type { ZodError } from "zod"
+
 import {
   orgEventEndpointInputSchema,
   type OrgEventEndpointInput,
@@ -71,9 +73,11 @@ function parseEndpointInput(formData: FormData) {
   })
 }
 
-function fieldErrorsFromZod(
-  error: import("zod").ZodError<OrgEventEndpointInput>
-): { name?: string; url?: string; events?: string } {
+function fieldErrorsFromZod(error: ZodError<OrgEventEndpointInput>): {
+  name?: string
+  url?: string
+  events?: string
+} {
   const flat = error.flatten().fieldErrors
   return {
     name: flat.name?.[0],

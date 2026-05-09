@@ -51,6 +51,8 @@ export const onRequestError: Instrumentation.onRequestError = async (
       },
       ...reportCtx,
     })
+    // Edge runtime — Pino (Node-only) is unavailable; raw JSON stderr is the correct channel.
+    // eslint-disable-next-line no-console
     console.error(line)
 
     const Sentry = await import("@sentry/nextjs")

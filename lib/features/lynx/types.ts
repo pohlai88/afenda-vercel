@@ -1,6 +1,6 @@
 import type { SimilarChunkRow } from "#features/knowledge"
 
-import { LYNX_OPERATOR_TOOL_IDS } from "./constants"
+import type { LYNX_OPERATOR_TOOL_IDS } from "./constants"
 
 /** Serializable evidence row returned in NDJSON meta (truth search). */
 export type LynxTruthEvidenceDTO = Pick<

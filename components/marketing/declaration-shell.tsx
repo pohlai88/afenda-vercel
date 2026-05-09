@@ -59,6 +59,27 @@ function renderBreakableEmail(value: string) {
   )
 }
 
+function renderSourceRef(ref: string) {
+  if (ref.startsWith("http://") || ref.startsWith("https://")) {
+    return (
+      <a
+        href={ref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[0.82rem] leading-snug break-all text-muted-foreground underline-offset-4 hover:text-foreground"
+      >
+        {ref}
+      </a>
+    )
+  }
+
+  return (
+    <code className="text-[0.78rem] leading-snug break-all text-muted-foreground">
+      {ref}
+    </code>
+  )
+}
+
 function LegalLink({
   href,
   className,
@@ -265,6 +286,19 @@ export function DeclarationShell({
                       <span className="text-[0.82rem] leading-snug text-muted-foreground">
                         {channel.detail}
                       </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="border-t border-border pt-3.5">
+                <h2 className="text-[0.7rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                  Review sources
+                </h2>
+                <div className="mt-3 grid gap-2.5">
+                  {document.sourceRefs.map((ref) => (
+                    <div key={ref} className="min-w-0">
+                      {renderSourceRef(ref)}
                     </div>
                   ))}
                 </div>

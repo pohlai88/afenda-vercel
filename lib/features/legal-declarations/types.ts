@@ -57,6 +57,8 @@ export type DeclarationDocumentDefinition = {
   readonly sections: readonly DeclarationSection[]
   readonly relatedLinks: readonly DeclarationRelatedLink[]
   readonly contactChannels: readonly DeclarationContactChannel[]
+  readonly reviewedAt: string
+  readonly sourceRefs: readonly string[]
   readonly statusNote?: string
   readonly lastUpdatedLabel?: string
 }

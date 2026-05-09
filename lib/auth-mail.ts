@@ -14,6 +14,9 @@ function getResend(): Resend | null {
 
 function fireAndForget(p: Promise<unknown>): void {
   void p.catch((err: unknown) => {
+    // This module avoids server-only so it stays test-importable; the logger
+    // (#lib/logger.server) is Node+server-only and cannot be used here.
+    // eslint-disable-next-line no-console
     console.error("[auth-mail]", err)
   })
 }
@@ -27,6 +30,8 @@ export function sendAuthEmail(input: {
   const client = getResend()
   if (!client) {
     if (process.env.NODE_ENV !== "production") {
+      // Dev-only guidance when RESEND_API_KEY is absent; not a production log path.
+      // eslint-disable-next-line no-console
       console.info(
         "[auth-mail] (no RESEND_API_KEY)",
         input.subject,

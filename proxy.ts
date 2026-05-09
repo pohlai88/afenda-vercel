@@ -1,6 +1,6 @@
 import { hasNeonAuthSessionCookie } from "#lib/auth/neon-session-cookie.shared"
 import createIntlMiddleware from "next-intl/middleware"
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
 import {
   AFENDA_PATHNAME_HEADER,

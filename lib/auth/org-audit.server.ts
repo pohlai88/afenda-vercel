@@ -6,12 +6,38 @@ import { db } from "#lib/db"
 import { iamAuditEvent } from "#lib/db/schema"
 import { neonAuthUser } from "#lib/db/schema-neon-auth"
 
+import { AUDIT_ORIGIN } from "./audit-origin.shared"
 import { computeOrganizationIamAuditExportSignature } from "./org-audit-export-verify.server"
 import {
   ORG_AUDIT_CSV_HEADER_COLUMNS,
   type OrganizationIamAuditExportRow,
   formatOrganizationIamAuditCsvDataRow,
 } from "./org-audit-csv.shared"
+
+export type OrganizationIamAuditOriginFilter =
+  | "production"
+  | "simulation"
+  | "all"
+
+/** Maps admin audit `view` query (`simulated` | `all` | …) to list/export filters. */
+export function parseOrganizationIamAuditOriginFilterParam(
+  raw: string | undefined
+): OrganizationIamAuditOriginFilter {
+  if (raw === "simulated" || raw === "simulation") return "simulation"
+  if (raw === "all") return "all"
+  if (raw === "production") return "production"
+  return "production"
+}
+
+function auditOriginWhereClause(
+  filter: OrganizationIamAuditOriginFilter
+): ReturnType<typeof eq> | undefined {
+  if (filter === "all") return undefined
+  if (filter === "production") {
+    return eq(iamAuditEvent.auditOrigin, AUDIT_ORIGIN.production)
+  }
+  return eq(iamAuditEvent.auditOrigin, AUDIT_ORIGIN.simulation)
+}
 
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100
@@ -34,6 +60,7 @@ export type OrganizationIamAuditRow = {
   path: string | null
   /** Truncated JSON for display (no secrets — writers should keep metadata minimal). */
   metadataSummary: string | null
+  auditOrigin: string
 }
 
 function truncateMetadata(raw: string | null, max = 200): string | null {
@@ -50,6 +77,8 @@ export async function listOrganizationIamAuditEvents(input: {
   organizationId: string
   page: number
   pageSize?: number
+  /** Default `production` — simulated rows require `simulation` or `all`. */
+  auditOriginFilter?: OrganizationIamAuditOriginFilter
 }): Promise<{
   rows: OrganizationIamAuditRow[]
   page: number
@@ -66,8 +95,11 @@ export async function listOrganizationIamAuditEvents(input: {
 
   const orgScope = eq(iamAuditEvent.organizationId, input.organizationId)
   const orgActions = like(iamAuditEvent.action, "org.%")
-
-  const whereClause = and(orgScope, orgActions)
+  const originFilter = input.auditOriginFilter ?? "production"
+  const originClause = auditOriginWhereClause(originFilter)
+  const whereClause = originClause
+    ? and(orgScope, orgActions, originClause)
+    : and(orgScope, orgActions)
 
   const [countRow] = await db
     .select({ total: count() })
@@ -88,6 +120,7 @@ export async function listOrganizationIamAuditEvents(input: {
       resourceId: iamAuditEvent.resourceId,
       path: iamAuditEvent.path,
       metadata: iamAuditEvent.metadata,
+      auditOrigin: iamAuditEvent.auditOrigin,
     })
     .from(iamAuditEvent)
     .leftJoin(neonAuthUser, eq(iamAuditEvent.actorUserId, neonAuthUser.id))
@@ -111,6 +144,7 @@ export async function listOrganizationIamAuditEvents(input: {
       resourceId: r.resourceId,
       path: r.path,
       metadataSummary: truncateMetadata(r.metadata),
+      auditOrigin: r.auditOrigin,
     })),
   }
 }
@@ -122,6 +156,7 @@ export async function listOrganizationIamAuditEvents(input: {
 export async function listOrganizationIamAuditEventsForExport(input: {
   organizationId: string
   maxRows?: number
+  auditOriginFilter?: OrganizationIamAuditOriginFilter
 }): Promise<OrganizationIamAuditExportRow[]> {
   const cap = Math.min(
     Math.max(input.maxRows ?? ORG_AUDIT_EXPORT_MAX_ROWS, 1),
@@ -130,7 +165,11 @@ export async function listOrganizationIamAuditEventsForExport(input: {
 
   const orgScope = eq(iamAuditEvent.organizationId, input.organizationId)
   const orgActions = like(iamAuditEvent.action, "org.%")
-  const whereClause = and(orgScope, orgActions)
+  const originFilter = input.auditOriginFilter ?? "production"
+  const originClause = auditOriginWhereClause(originFilter)
+  const whereClause = originClause
+    ? and(orgScope, orgActions, originClause)
+    : and(orgScope, orgActions)
 
   const rows = await db
     .select({
@@ -145,6 +184,11 @@ export async function listOrganizationIamAuditEventsForExport(input: {
       metadata: iamAuditEvent.metadata,
       ipAddress: iamAuditEvent.ipAddress,
       userAgent: iamAuditEvent.userAgent,
+      auditOrigin: iamAuditEvent.auditOrigin,
+      simulationRunId: iamAuditEvent.simulationRunId,
+      scenarioId: iamAuditEvent.scenarioId,
+      scenarioVersion: iamAuditEvent.scenarioVersion,
+      auditActorMode: iamAuditEvent.auditActorMode,
     })
     .from(iamAuditEvent)
     .leftJoin(neonAuthUser, eq(iamAuditEvent.actorUserId, neonAuthUser.id))
@@ -167,6 +211,11 @@ function mapExportRow(r: {
   metadata: string | null
   ipAddress: string | null
   userAgent: string | null
+  auditOrigin: string
+  simulationRunId: string | null
+  scenarioId: string | null
+  scenarioVersion: number | null
+  auditActorMode: string
 }): OrganizationIamAuditExportRow {
   return {
     id: r.id,
@@ -180,6 +229,11 @@ function mapExportRow(r: {
     metadata: r.metadata,
     ipAddress: r.ipAddress,
     userAgent: r.userAgent,
+    auditOrigin: r.auditOrigin,
+    simulationRunId: r.simulationRunId,
+    scenarioId: r.scenarioId,
+    scenarioVersion: r.scenarioVersion,
+    auditActorMode: r.auditActorMode,
   }
 }
 
@@ -188,7 +242,8 @@ function mapExportRow(r: {
  * `ORG_AUDIT_EXPORT_HMAC_SECRET` or `BETTER_AUTH_SECRET` is set.
  */
 export function organizationIamAuditExportReadableStream(
-  organizationId: string
+  organizationId: string,
+  options?: { auditOriginFilter?: OrganizationIamAuditOriginFilter }
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder()
   const maxRows = ORG_AUDIT_STREAM_MAX_ROWS
@@ -196,7 +251,11 @@ export function organizationIamAuditExportReadableStream(
 
   const orgScope = eq(iamAuditEvent.organizationId, organizationId)
   const orgActions = like(iamAuditEvent.action, "org.%")
-  const whereClause = and(orgScope, orgActions)
+  const originFilter = options?.auditOriginFilter ?? "production"
+  const originClause = auditOriginWhereClause(originFilter)
+  const whereClause = originClause
+    ? and(orgScope, orgActions, originClause)
+    : and(orgScope, orgActions)
 
   return new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -225,6 +284,11 @@ export function organizationIamAuditExportReadableStream(
               metadata: iamAuditEvent.metadata,
               ipAddress: iamAuditEvent.ipAddress,
               userAgent: iamAuditEvent.userAgent,
+              auditOrigin: iamAuditEvent.auditOrigin,
+              simulationRunId: iamAuditEvent.simulationRunId,
+              scenarioId: iamAuditEvent.scenarioId,
+              scenarioVersion: iamAuditEvent.scenarioVersion,
+              auditActorMode: iamAuditEvent.auditActorMode,
             })
             .from(iamAuditEvent)
             .leftJoin(
@@ -306,6 +370,7 @@ export function buildOrganizationIamAuditCsv(
 }
 
 export {
+  ORG_AUDIT_CSV_HEADER_COLUMNS,
   escapeCsvCell,
   formatOrganizationIamAuditCsvDataRow,
   parseCsvFirstField,

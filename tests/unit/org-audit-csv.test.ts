@@ -2,15 +2,18 @@ import { describe, expect, it } from "vitest"
 
 import type { OrganizationIamAuditExportRow } from "#lib/auth"
 import {
+  AUDIT_ACTOR_MODE,
+  AUDIT_ORIGIN,
+  ORG_AUDIT_CSV_HEADER_COLUMNS,
   computeOrganizationIamAuditExportSignature,
   escapeCsvCell,
   formatOrganizationIamAuditCsvDataRow,
   parseCsvFirstField,
+  parseOrganizationIamAuditOriginFilterParam,
   verifyOrganizationIamAuditExportCsv,
 } from "#lib/auth"
 
-const ORG_AUDIT_CSV_HEADER =
-  "id,created_at_utc,action,actor_user_id,actor_email,resource_type,resource_id,path,metadata,ip_address,user_agent"
+const ORG_AUDIT_CSV_HEADER = ORG_AUDIT_CSV_HEADER_COLUMNS.join(",")
 
 function sampleRow(
   overrides: Partial<OrganizationIamAuditExportRow>
@@ -27,9 +30,42 @@ function sampleRow(
     metadata: null,
     ipAddress: null,
     userAgent: null,
+    auditOrigin: AUDIT_ORIGIN.production,
+    simulationRunId: null,
+    scenarioId: null,
+    scenarioVersion: null,
+    auditActorMode: AUDIT_ACTOR_MODE.user,
     ...overrides,
   }
 }
+
+describe("parseOrganizationIamAuditOriginFilterParam", () => {
+  it("defaults unknown values to production", () => {
+    expect(parseOrganizationIamAuditOriginFilterParam(undefined)).toBe(
+      "production"
+    )
+    expect(parseOrganizationIamAuditOriginFilterParam("")).toBe("production")
+    expect(parseOrganizationIamAuditOriginFilterParam("nope")).toBe(
+      "production"
+    )
+  })
+
+  it("maps simulated views", () => {
+    expect(parseOrganizationIamAuditOriginFilterParam("simulated")).toBe(
+      "simulation"
+    )
+    expect(parseOrganizationIamAuditOriginFilterParam("simulation")).toBe(
+      "simulation"
+    )
+  })
+
+  it("accepts all and production", () => {
+    expect(parseOrganizationIamAuditOriginFilterParam("all")).toBe("all")
+    expect(parseOrganizationIamAuditOriginFilterParam("production")).toBe(
+      "production"
+    )
+  })
+})
 
 describe("escapeCsvCell", () => {
   it("returns plain values unchanged when safe", () => {
@@ -62,6 +98,11 @@ describe("formatOrganizationIamAuditCsvDataRow", () => {
       metadata: null,
       ipAddress: "127.0.0.1",
       userAgent: "Mozilla",
+      auditOrigin: AUDIT_ORIGIN.production,
+      simulationRunId: null,
+      scenarioId: null,
+      scenarioVersion: null,
+      auditActorMode: AUDIT_ACTOR_MODE.user,
     })
     expect(line).toContain("2026-01-02T03:04:05.000Z")
     expect(line).toContain("org.member.invite")

@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/nextjs"
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client"
 
-import { logUnexpectedServerError } from "#lib/logger.server"
+import { logUnexpectedServerError, rootLogger } from "#lib/logger.server"
 import {
   readRequestJson,
   routeJsonError,
@@ -51,11 +51,14 @@ export async function POST(request: Request) {
             userId?: string
             organizationId?: string
           }
-          console.info("blob upload completed", {
-            url: blob.url,
-            userId: payload.userId,
-            organizationId: payload.organizationId,
-          })
+          rootLogger.info(
+            {
+              url: blob.url,
+              userId: payload.userId ?? null,
+              organizationId: payload.organizationId ?? null,
+            },
+            "blob upload completed"
+          )
         } catch {
           logUnexpectedServerError(
             "blob_upload_token_payload_parse_failed",

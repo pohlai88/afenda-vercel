@@ -2,28 +2,14 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "#components/*": [
-        "./components/*"
-      ],
-      "#lib/*": [
-        "./lib/*"
-      ],
-      "#hooks/*": [
-        "./hooks/*"
-      ],
-      "#features/*": [
-        "./lib/features/*"
-      ],
-      "#i18n/*": [
-        "./i18n/*"
-      ]
+      "#components/*": ["./components/*"],
+      "#lib/*": ["./lib/*"],
+      "#hooks/*": ["./hooks/*"],
+      "#features/*": ["./lib/features/*"],
+      "#i18n/*": ["./i18n/*"]
     },
     "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,

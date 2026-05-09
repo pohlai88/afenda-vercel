@@ -28,6 +28,12 @@ export {
 } from "./auth-status-copy"
 export { auth } from "./neon.server"
 export {
+  AUDIT_ACTOR_MODE,
+  AUDIT_ORIGIN,
+  resolveAuditActorModeForInsert,
+} from "./audit-origin.shared"
+export type { AuditActorMode, AuditOrigin } from "./audit-origin.shared"
+export {
   inferAuthMethodFromPath,
   resolveIamSessionLifecycleAudit,
   writeIamAuditEvent,
@@ -62,6 +68,7 @@ export type { OrgRoleMinimum } from "./permission.server"
 export { assertInvitationForUser } from "./invitation-guard.server"
 export type { InvitationGuardResult } from "./invitation-guard.server"
 export {
+  ORG_AUDIT_CSV_HEADER_COLUMNS,
   ORG_AUDIT_EXPORT_MAX_ROWS,
   ORG_AUDIT_STREAM_MAX_ROWS,
   buildOrganizationIamAuditCsv,
@@ -72,11 +79,13 @@ export {
   listOrganizationIamAuditEventsForExport,
   organizationIamAuditExportReadableStream,
   parseCsvFirstField,
+  parseOrganizationIamAuditOriginFilterParam,
   verifyOrganizationIamAuditExportCsv,
 } from "./org-audit.server"
 export type {
   OrganizationIamAuditCsvVerification,
   OrganizationIamAuditExportRow,
+  OrganizationIamAuditOriginFilter,
   OrganizationIamAuditRow,
 } from "./org-audit.server"
 export { assertOrgInviteRateAllowed } from "./org-invite-rate.server"

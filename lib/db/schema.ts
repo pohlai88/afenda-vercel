@@ -37,8 +37,23 @@ export const iamAuditEvent = pgTable(
     userAgent: text("userAgent"),
     /** JSON object serialized with `JSON.stringify` */
     metadata: text("metadata"),
+    /**
+     * Row provenance — `simulation` rows are authored only via operational simulation replay.
+     * Compliance exports default to `production` only.
+     */
+    auditOrigin: text("auditOrigin").notNull().default("production"),
+    simulationRunId: text("simulationRunId"),
+    scenarioId: text("scenarioId"),
+    scenarioVersion: integer("scenarioVersion"),
+    simulationSeed: text("simulationSeed"),
+    auditActorMode: text("auditActorMode").notNull().default("user"),
   },
   (t) => [
+    index("iam_audit_event_organizationId_auditOrigin_createdAt_idx").on(
+      t.organizationId,
+      t.auditOrigin,
+      t.createdAt
+    ),
     index("iam_audit_event_organizationId_createdAt_idx").on(
       t.organizationId,
       t.createdAt
@@ -304,6 +319,11 @@ export const oneThing = pgTable(
     audit7w1h: jsonb("audit7w1h"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    auditOrigin: text("auditOrigin").notNull().default("production"),
+    simulationRunId: text("simulationRunId"),
+    scenarioId: text("scenarioId"),
+    scenarioVersion: integer("scenarioVersion"),
+    simulationSeed: text("simulationSeed"),
   },
   (t) => [
     index("onething_organization_id_state_idx").on(t.organizationId, t.state),

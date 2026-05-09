@@ -4,6 +4,7 @@ import { and, count, eq, gt } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { iamAuditEvent } from "#lib/db/schema"
+import { logUnexpectedServerError } from "#lib/logger.server"
 
 const ONE_HOUR_MS = 60 * 60 * 1000
 
@@ -57,12 +58,7 @@ async function rateLimitViaUpstash(args: {
     }
     return { ok: true }
   } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      console.error(
-        "[org-invite-rate] Upstash failed; using audit fallback:",
-        err
-      )
-    }
+    logUnexpectedServerError("org_invite_rate_upstash_failed", err)
     return null
   }
 }

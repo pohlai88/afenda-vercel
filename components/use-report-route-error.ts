@@ -16,6 +16,9 @@ type ReportOpts = {
  */
 export function useReportRouteError({ segment, error }: ReportOpts): void {
   useEffect(() => {
+    // Client-side error surface — #lib/logger.server is Node+server-only and
+    // must not be imported here (see AGENTS.md §5 runtime errors).
+    // eslint-disable-next-line no-console
     console.error(`[route-error:${segment}]`, error)
     if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return
     void import("@sentry/nextjs").then((Sentry) => {

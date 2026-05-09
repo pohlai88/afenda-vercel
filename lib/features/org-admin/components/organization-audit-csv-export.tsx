@@ -24,12 +24,17 @@ function triggerCsvDownload(csv: string, filename: string): void {
 export function OrganizationAuditCsvExport() {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [includeSimulated, setIncludeSimulated] = useState(false)
 
   async function onExport() {
     setError(null)
     setPending(true)
     try {
-      const result = await exportOrganizationIamAuditCsvAction()
+      const fd = new FormData()
+      if (includeSimulated) {
+        fd.set("includeSimulated", "on")
+      }
+      const result = await exportOrganizationIamAuditCsvAction(fd)
       if (!result) return
       if (result.ok === true) {
         triggerCsvDownload(result.csv, result.filename)
@@ -41,8 +46,26 @@ export function OrganizationAuditCsvExport() {
     }
   }
 
+  const streamHref =
+    includeSimulated === true
+      ? "/api/integrations/organization-audit-csv?includeSimulated=1"
+      : "/api/integrations/organization-audit-csv"
+
   return (
     <div className="flex flex-col gap-2">
+      <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+        <input
+          type="checkbox"
+          checked={includeSimulated}
+          onChange={(e) => setIncludeSimulated(e.target.checked)}
+          className="size-3.5 rounded border-input"
+        />
+        Include simulated audit rows (logs{" "}
+        <code className="text-[10px]">
+          org.governance.export.include_simulated
+        </code>
+        )
+      </label>
       <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
@@ -62,10 +85,7 @@ export function OrganizationAuditCsvExport() {
         </Button>
         <Button asChild variant="outline" size="sm">
           {/* `next/link`: `/api/*` must stay non–locale-prefixed; do not use `#i18n/navigation` here. */}
-          <Link
-            href="/api/integrations/organization-audit-csv"
-            prefetch={false}
-          >
+          <Link href={streamHref} prefetch={false}>
             Stream export (50k)
           </Link>
         </Button>

@@ -11,6 +11,7 @@ import type {
   DeclarationRelatedLink,
   LegalDeclarationSlug,
 } from "../types"
+import { formatDeclarationReviewedLabel, maxReviewedAt } from "../review.shared"
 
 import {
   cookieNoticeLink,
@@ -74,9 +75,47 @@ export const declarationRouteHrefs = [
 
 export { declarationFooterIdentity, declarationFooterLinks }
 
-const declarationLastUpdatedLabel = "Updated May 6, 2026"
+const declarationReviewedAt = "2026-05-09T00:00:00.000Z"
+const declarationLastUpdatedLabel = formatDeclarationReviewedLabel(
+  declarationReviewedAt
+)
 const declarationStatusNote =
-  "Public declaration content reflects the current website and NexusCanon operating routes. Customer contracts or implementation-specific terms may add narrower obligations where a live deployment requires them."
+  "Public declaration content reflects the current website and current NexusCanon-operated routes. Customer contracts or implementation-specific terms may add narrower obligations where a live deployment requires them."
+
+const PDPA_ACT_URL = "https://www.pdp.gov.my/ppdpv1/en/akta/pdp-act-2010-en/"
+const PDPA_AMENDMENT_URL =
+  "https://www.pdp.gov.my/ppdpv1/en/akta/personal-data-protection-amendment-act-2024/"
+const VERCEL_DPA_URL = "https://vercel.com/legal/dpa"
+const NEON_SUBPROCESSORS_URL = "https://neon.com/subprocessors"
+const NEON_PLATFORM_TERMS_URL = "https://neon.com/platform-terms"
+const OPENAI_SUBPROCESSORS_URL =
+  "https://openai.com/policies/sub-processor-list/"
+const OPENAI_DPA_URL =
+  "https://cdn.openai.com/pdf/openai-data-processing-addendum.pdf"
+const UPSTASH_DPA_URL = "https://upstash.com/trust/dpa.pdf"
+const RESEND_DPA_URL = "https://resend.com/legal/dpa"
+const SENTRY_DPA_URL =
+  "https://sentry.zendesk.com/hc/en-us/articles/23856572755611-How-do-I-sign-your-Data-Processing-Addendum"
+const HUGGING_FACE_PRIVACY_URL = "https://huggingface.co/privacy"
+const HUGGING_FACE_SECURITY_URL =
+  "https://huggingface.co/docs/inference-endpoints/guides/security"
+const SUPABASE_DPA_URL =
+  "https://supabase.com/downloads/docs/Supabase%2BDPA%2B260317.pdf"
+const RAILWAY_DPA_URL = "https://railway.com/legal/dpa"
+const RETOOL_DPA_URL = "https://retool.com/dpa.pdf"
+const CURSOR_DPA_URL = "https://cursor.com/terms/dpa"
+const CLINE_PRIVACY_URL = "https://cline.bot/privacy"
+const POSTGRESQL_ABOUT_URL = "https://www.postgresql.org/about/"
+const PGVECTOR_URL = "https://github.com/pgvector/pgvector"
+
+const COOKIE_REPO_REFS = [
+  "lib/auth/neon-session-cookie.shared.ts",
+  "components/ui/sidebar.tsx",
+  "components/dashboard/app-sidebar.tsx",
+  "components/dashboard/inspector-context.tsx",
+  "components/dashboard/right-inspector.tsx",
+  "components/dashboard/lynx-summon.client.tsx",
+] as const
 
 const privacyChannels = [
   ownerRoutes.privacy,
@@ -207,6 +246,8 @@ export const declarationDocuments = {
     ],
     relatedLinks: buildRelatedLinks("/cookies"),
     contactChannels: privacyChannels,
+    reviewedAt: declarationReviewedAt,
+    sourceRefs: [...COOKIE_REPO_REFS],
     statusNote: declarationStatusNote,
     lastUpdatedLabel: declarationLastUpdatedLabel,
   },
@@ -230,7 +271,7 @@ export const declarationDocuments = {
         bullets: [
           "Primary intake: support@nexuscanon.com, marked as a data processing addendum request.",
           "Owner route: privacy route, with security coordination where the request concerns controls, incidents, or access governance.",
-          "Response model: Afenda reviews the request, confirms scope, and routes any negotiated terms before production processing depends on them.",
+          "Response model: Afenda reviews the request, confirms scope, and routes any negotiated terms before production processing begins.",
         ],
       },
       {
@@ -251,12 +292,12 @@ export const declarationDocuments = {
         title: "PDPA principles mapped to the service",
         body: [
           "Act 709 section 5 requires processing to comply with the seven Personal Data Protection Principles set out in sections 6, 7, 8, 9, 10, 11, and 12. Afenda maps those principles into contract and operating terms instead of treating them as generic privacy slogans.",
-          "The public baseline is: process only on a proper instruction or recognised purpose; provide notice-and-choice support where Afenda controls the route; limit disclosure; apply security controls; retain data only while needed; keep operational data reasonably accurate in context; and support access or correction requests through the appropriate customer or Afenda route.",
+          "This public baseline names the principles Afenda uses when drafting customer-facing processing terms: scoped processing, clear notices where Afenda controls the route, bounded disclosure, service-appropriate security, retention discipline, operational accuracy, and request handling through the relevant customer or Afenda route.",
         ],
         bullets: [
-          "Section 6, General Principle: processing should be tied to consent, contract necessity, legal obligation, vital interests, administration of justice, or statutory function where applicable.",
-          "Section 7, Notice and Choice Principle: relevant notices should identify purpose, source, rights, disclosure classes, and whether requested data is obligatory or voluntary where Afenda controls the notice.",
-          "Section 8, Disclosure Principle: disclosure should stay within the stated purpose, agreed service providers, legal requirements, or customer instructions.",
+          "Section 6, General Principle: processing stays tied to the documented service purpose and customer instruction set.",
+          "Section 7, Notice and Choice Principle: Afenda publishes route-level notices where Afenda controls the public collection point.",
+          "Section 8, Disclosure Principle: disclosure stays within the stated purpose, agreed service providers, legal requirements, or customer instructions.",
           "Section 9, Security Principle: Afenda applies technical, organisational, and access controls appropriate to the service boundary.",
           "Sections 10, 11, and 12: retention, integrity, and access are handled through customer instructions, support routes, audit records, and lawful request handling.",
         ],
@@ -266,33 +307,33 @@ export const declarationDocuments = {
         title: "Security, breach, and accountability",
         body: [
           "Afenda treats processor security as a contractual and operational obligation. The 2024 Amendment Act section 4 inserts section 5(1a), requiring a data processor processing on behalf of a data controller to comply with the Security Principle in Act 709 section 9.",
-          "The 2024 Amendment Act section 6 introduces accountability provisions including section 12a on data protection officers and section 12b on data breach notification. Afenda uses those provisions as the public drafting baseline for privacy/security escalation, incident triage, and customer notification routing, subject to commencement, implementing directions, and the signed customer agreement.",
+          "The 2024 Amendment Act also introduces accountability-related changes, including data protection officer and data breach notification provisions. Afenda treats those changes as part of the public review baseline for privacy escalation, security escalation, and customer notification routing.",
         ],
         bullets: [
-          "Security measures should cover access control, authentication, logging, least-privilege support, deployment discipline, and incident review.",
-          "Afenda will route suspected personal data incidents through privacy and security owners with enough context to assess customer, regulator, and data-subject notification duties.",
-          "Where a customer is the data controller for workflow data, Afenda should assist the customer with information reasonably needed for the customer's own assessment and notices.",
+          "Security measures cover access control, authentication, logging, least-privilege support, deployment discipline, and incident review.",
+          "Afenda routes suspected personal data incidents through privacy and security owners with enough context for customer and regulatory assessment.",
+          "Where a customer is the controller for workflow data, Afenda provides information reasonably needed for the customer's own assessment and notices within the agreed service boundary.",
         ],
       },
       {
         id: "subprocessors-and-transfers",
         title: "Subprocessors and cross-border transfers",
         body: [
-          "Afenda may use infrastructure, hosting, authentication, communications, security, and support providers where needed to deliver the service. Afenda should require those providers to process data under confidentiality, security, and purpose-limited obligations appropriate to their role.",
-          "Act 709 section 129 governs transfers of personal data outside Malaysia. The 2024 Amendment Act section 12 amends section 129, including the cross-border transfer test and available transfer grounds. Afenda should document transfer posture, provider purpose, and safeguards where a customer implementation depends on cross-border processing.",
+          "Afenda uses infrastructure, hosting, authentication, communications, security, and support providers to deliver the service. Those providers are documented as subprocessors only where the repository and current deployment model indicate that they may process customer or end-user personal data.",
+          "Act 709 section 129 governs transfers of personal data outside Malaysia. The 2024 Amendment Act section 12 updates that cross-border transfer framework. Customer-specific residency, transfer posture, and safeguard requirements are handled before production processing begins.",
         ],
         bullets: [
           "Subprocessor detail is published at /subprocessors and should be reviewed before production scope depends on a vendor, region, or AI-processing path.",
-          "Cross-border processing should travel with appropriate contractual, security, access, and due-diligence controls.",
-          "Customer-specific residency, transfer, or vendor-review requirements should be handled before production scope depends on them.",
+          "Cross-border processing travels with contractual, security, access, and due-diligence controls appropriate to the service boundary.",
+          "Customer-specific residency, transfer, or vendor-review requirements are handled before production processing begins.",
         ],
       },
       {
         id: "retention-return-deletion",
         title: "Retention, return, and deletion",
         body: [
-          "Customer data should be retained only for the operational purpose, legal requirement, security review, support history, auditability need, or customer instruction that justifies keeping it. This implements the retention discipline reflected in Act 709 section 10.",
-          "At the end of the relevant service or on valid written instruction, Afenda should return, export, delete, or de-identify customer data as agreed, subject to legal holds, backup limits, security logs, dispute records, and records Afenda must keep for compliance or enforcement defence.",
+          "Customer data is retained only for the operational purpose, legal requirement, security review, support history, auditability need, or customer instruction that justifies keeping it. This reflects the retention discipline named in Act 709 section 10.",
+          "At the end of the relevant service or on valid written instruction, Afenda returns, exports, deletes, or de-identifies customer data as agreed, subject to legal holds, backup limits, security logs, dispute records, and records Afenda must keep for compliance or enforcement defence.",
         ],
       },
       {
@@ -326,31 +367,38 @@ export const declarationDocuments = {
       cookieNoticeLink,
     ]),
     contactChannels: privacyChannels,
+    reviewedAt: declarationReviewedAt,
+    sourceRefs: [
+      PDPA_ACT_URL,
+      PDPA_AMENDMENT_URL,
+      "/subprocessors",
+      "lib/features/legal-declarations/data/footer.shared.ts",
+    ],
     statusNote:
       "Public DPA baseline. Customer-specific execution, procurement terms, and implementation scope require written confirmation.",
-    lastUpdatedLabel: "Updated May 9, 2026",
+    lastUpdatedLabel: declarationLastUpdatedLabel,
   },
   subprocessors: {
     slug: "subprocessors",
     routeHref: "/subprocessors",
     title: "Subprocessors",
     description:
-      "Afenda publishes a validated vendor inventory showing production and conditional subprocessors, development tools that are not production subprocessors, software components that are not legal processors, and official source links for vendor review.",
+      "Afenda publishes a reviewed vendor inventory showing which services are current or conditional subprocessors, which tools are not production processors in the present repository, and which official vendor sources were used for the review.",
     eyebrow: "Vendor inventory and processing map",
     summary:
-      "This page separates production customer-data processors from development tooling and open-source software components. It exists so customers can see which vendors may process personal data, why they are used, and which jurisdiction or processing location should be reviewed before production scope depends on them.",
+      "This page separates production customer-data processors from development tooling and software components. It exists so customers can see which vendors may process personal data on the current Afenda stack, which ones are only conditional, and which requested names were not validated as live production processors in this repository review.",
     sections: [
       {
         id: "validation-method",
         title: "Validation method",
         body: [
-          "This inventory was validated against the current repository, environment template, deployed-service configuration, and official vendor legal or trust documents available on May 9, 2026. The duplicate Vercel entry in the working list is treated as one vendor entry.",
-          "A vendor is listed as a production or conditional subprocessor only where Afenda appears to use that service for hosting, database/authentication, storage, email, observability, rate limiting, or AI processing that may receive customer or end-user personal data.",
+          "This inventory was reviewed against the current repository, environment template, public trust routes, and official vendor legal or trust pages recorded in the source references for this declaration.",
+          "A vendor is listed as production or conditional only where the current application stack, dependencies, or environment gates indicate that the service can process customer or end-user personal data.",
         ],
         bullets: [
-          "Jurisdiction means the vendor jurisdiction, stated processing location, or practical hosting/processing region that Afenda should review. It is not a customer-specific data residency promise.",
-          "Conditional means the code or environment supports the vendor, but the service only processes personal data when the corresponding feature, key, integration, or deployment path is enabled.",
-          "Development tools are kept out of the production subprocessor list unless customer data, production secrets, support exports, or customer records are deliberately sent to them.",
+          "Production means the vendor is part of the current hosted service boundary described in the repository and public declarations.",
+          "Conditional means the code or environment supports the vendor, but processing depends on the corresponding feature flag, key, or deployment path being enabled.",
+          "Development tools remain outside the production subprocessor list unless customer data or production records are deliberately sent to them.",
         ],
       },
       {
@@ -358,12 +406,12 @@ export const declarationDocuments = {
         title: "Production and conditional subprocessors",
         body: [
           "The following vendors are validated as current or conditional subprocessors for the Afenda application stack. Customer-specific contracts may narrow, remove, or add vendors for a particular deployment.",
-          "Vercel, Inc. Purpose: application hosting, serverless and edge runtime, CDN, deployment logs, cron execution, Vercel Blob uploads, Vercel OTEL, Vercel Sandbox, and Vercel AI Gateway where enabled. Jurisdiction/location: United States vendor with global cloud and edge processing. Official source: https://vercel.com/legal/dpa.",
-          "Neon, LLC / Databricks. Purpose: managed PostgreSQL, pooled database connectivity, Neon Auth, auth webhooks, user/session/organization records, and pgvector-backed knowledge data. Jurisdiction/location: Neon Platform Services with a Neon subprocessor list that provides identity, location, and role; the current app configuration points to an AWS ap-southeast-1 Neon region and should be confirmed per production branch. Official sources: https://neon.com/platform-terms and https://neon.com/subprocessors.",
-          "OpenAI, LLC. Purpose: embeddings, language generation, Lynx/knowledge retrieval, and model output where OPENAI_API_KEY or Vercel AI Gateway model routing sends prompts, chunks, or operational context to OpenAI models. Jurisdiction/location: OpenAI API processing and subprocessors as published by OpenAI, with model/infrastructure locations varying by service. Official sources: https://openai.com/policies/sub-processor-list/ and https://cdn.openai.com/pdf/openai-data-processing-addendum.pdf.",
-          "Upstash, Inc. Purpose: optional Redis-backed rate limiting for organization invitation controls when UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are configured. Jurisdiction/location: Upstash may process customer personal data globally as necessary to provide the services and uses transfer safeguards where required. Official source: https://upstash.com/trust/dpa.pdf.",
-          "Plus Five Five, Inc. / Resend. Purpose: optional transactional email delivery for authentication and service notices when RESEND_API_KEY is configured. Jurisdiction/location: United States vendor; ex-EEA transfers are addressed in the Resend DPA. Official source: https://resend.com/legal/dpa.",
-          "Functional Software, Inc. d/b/a Sentry. Purpose: optional error monitoring, exception capture, tracing, source-map assisted diagnostics, and incident review when Sentry DSNs are configured. Jurisdiction/location: United States vendor; customers should review Sentry DPA/subprocessor materials before enabling capture of customer personal data. Official source: https://sentry.zendesk.com/hc/en-us/articles/23856572755611-How-do-I-sign-your-Data-Processing-Addendum.",
+          "Vercel, Inc.: current hosting and application delivery boundary, including deployment infrastructure and Vercel-managed services referenced in the repository.",
+          "Neon, LLC / Databricks: current managed PostgreSQL and authentication boundary, including pooled database access, Neon Auth, and repository features that store workflow, identity, or knowledge data.",
+          "OpenAI, LLC: conditional AI processor when OPENAI_API_KEY or AI_GATEWAY_API_KEY routes prompts, embeddings, retrieval chunks, or generated output through OpenAI-backed models.",
+          "Upstash, Inc.: conditional rate-limiting processor when UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are configured.",
+          "Plus Five Five, Inc. / Resend: conditional transactional email processor when RESEND_API_KEY is configured.",
+          "Functional Software, Inc. d/b/a Sentry: conditional monitoring processor when Sentry DSNs are configured and error or trace data is sent to Sentry.",
         ],
       },
       {
@@ -371,22 +419,22 @@ export const declarationDocuments = {
         title: "Validation of the requested vendor list",
         body: [
           "Vercel: validated as a current production subprocessor. The duplicate Vercel entry is consolidated into one entry.",
-          "Hugging Face: not validated as a current production subprocessor in this repository. It becomes a subprocessor only if Afenda sends customer prompts, models, datasets, files, or inference payloads to Hugging Face. Hugging Face states that Inference Endpoints do not store customer payloads or tokens, stores logs for 30 days, and offers a GDPR DPA through Enterprise Hub. Official sources: https://huggingface.co/privacy and https://huggingface.co/docs/inference-endpoints/guides/security.",
-          "Supabase: not validated as a current Afenda production service. The lockfile contains a transitive Supabase package, but current app configuration uses Neon for database/auth. Supabase would become a subprocessor if Afenda adopts Supabase-hosted PostgreSQL, Auth, Storage, Edge Functions, or Realtime. Official source: https://supabase.com/downloads/docs/Supabase%2BDPA%2B260317.pdf.",
-          "Railway: not validated as a current Afenda production host. Railway would become a subprocessor if Afenda deploys app services, workers, databases, or customer-supporting infrastructure there. Railway states primary processing operations take place in the United States and offers transfer safeguards in its DPA. Official source: https://railway.com/legal/dpa.",
-          "Retool: not validated as a current Afenda production/admin processor. Retool would become a subprocessor if Afenda uses Retool Cloud to inspect, edit, support, or operate customer records. Retool's DPA points customers to a current subprocessor list with identities and country of location. Official source: https://retool.com/dpa.pdf.",
-          "Cursor: development tooling, not a production Afenda subprocessor by default. It becomes a processor for customer data only if customer data, production code containing secrets, support exports, or production records are sent through Cursor. Cursor offers a DPA and posts subprocessor changes at trust.cursor.com/subprocessors. Official source: https://cursor.com/terms/dpa.",
+          "Hugging Face: not validated as a current production subprocessor in this repository. It would become a subprocessor only if Afenda sends customer prompts, files, models, datasets, or inference payloads through Hugging Face-hosted services.",
+          "Supabase: not validated as a current Afenda production service. Current repository truth points database and authentication work to Neon instead.",
+          "Railway: not validated as a current production host in this repository review.",
+          "Retool: not validated as a current production or support processor in this repository review.",
+          "Cursor: development tooling, not a production Afenda subprocessor by default. It becomes a processor for customer data only if customer data or production records are deliberately sent through it.",
           "Codex: development tooling and OpenAI service surface, not a production Afenda subprocessor by default. If customer data or production records are sent to OpenAI/Codex for support or implementation work, classify that processing under the OpenAI entry and customer approval path.",
-          "Cline: development tooling, not a production Afenda subprocessor by default. Cline states that when users use their own API keys, user content goes directly to the third-party model provider; if Cline-provided keys are used, Cline collects/transmits user content to model providers. Official source: https://cline.bot/privacy.",
-          "pgVector and PostgreSQL: software components, not legal subprocessors. The processor is the hosting/provider entity that runs the database, currently Neon for this application. Official sources: https://www.postgresql.org/about/ and https://github.com/pgvector/pgvector.",
+          "Cline: development tooling, not a production Afenda subprocessor by default.",
+          "pgVector and PostgreSQL: software components, not legal subprocessors. The processor is the hosting or managed-service provider that operates the database boundary.",
         ],
       },
       {
         id: "ai-processing-boundary",
         title: "AI processing boundary",
         body: [
-          "Afenda's AI path should be treated separately from ordinary hosting because prompts, embeddings, retrieval chunks, generated outputs, and operator context can carry personal data or confidential business data.",
-          "The current code supports direct OpenAI use for embeddings and model calls, and Vercel AI Gateway for model routing where AI_GATEWAY_API_KEY is configured. Hugging Face, Cursor, Codex, and Cline should not be treated as production customer-data subprocessors unless customer data is intentionally submitted through those services.",
+          "Afenda's AI path is treated separately from ordinary hosting because prompts, embeddings, retrieval chunks, generated outputs, and operator context can carry personal data or confidential business data.",
+          "The current code supports direct OpenAI use for embeddings and model calls, and Vercel AI Gateway for model routing where AI_GATEWAY_API_KEY is configured. Hugging Face, Cursor, Codex, and Cline are not treated as live production customer-data subprocessors unless customer data is intentionally submitted through those services.",
         ],
         bullets: [
           "Do not send customer secrets, production credentials, personal data exports, or regulated records into development AI tools without a recorded approval path.",
@@ -398,8 +446,8 @@ export const declarationDocuments = {
         id: "change-control",
         title: "Change control and customer notice",
         body: [
-          "Afenda should review this list before enabling a new vendor, region, AI provider, storage path, monitoring tool, or customer-support platform that may receive customer personal data.",
-          "Material subprocessor changes should identify the vendor, purpose, processing location or jurisdiction, affected data categories, official legal source, and whether the change applies to all customers or only selected implementations.",
+          "Afenda reviews this list before enabling a new vendor, region, AI provider, storage path, monitoring tool, or customer-support platform that may receive customer personal data.",
+          "Material subprocessor changes identify the vendor, purpose, processing location or jurisdiction, affected data categories, official source, and whether the change applies to all customers or only selected implementations.",
         ],
       },
     ],
@@ -408,9 +456,36 @@ export const declarationDocuments = {
       trustRouteLink,
     ]),
     contactChannels: privacyChannels,
+    reviewedAt: declarationReviewedAt,
+    sourceRefs: [
+      VERCEL_DPA_URL,
+      NEON_PLATFORM_TERMS_URL,
+      NEON_SUBPROCESSORS_URL,
+      OPENAI_SUBPROCESSORS_URL,
+      OPENAI_DPA_URL,
+      UPSTASH_DPA_URL,
+      RESEND_DPA_URL,
+      SENTRY_DPA_URL,
+      HUGGING_FACE_PRIVACY_URL,
+      HUGGING_FACE_SECURITY_URL,
+      SUPABASE_DPA_URL,
+      RAILWAY_DPA_URL,
+      RETOOL_DPA_URL,
+      CURSOR_DPA_URL,
+      CLINE_PRIVACY_URL,
+      POSTGRESQL_ABOUT_URL,
+      PGVECTOR_URL,
+      "package.json",
+      "AGENTS.md",
+      "lib/features/knowledge/data/embeddings.server.ts",
+      "lib/features/knowledge/data/pipeline-embed-batch.server.ts",
+      "lib/auth/org-invite-rate.server.ts",
+      "lib/auth-mail.ts",
+      "lib/features/public-trust/data/trust-surface.fixture.shared.ts",
+    ],
     statusNote:
-      "Validated vendor inventory. Customer-specific implementation may narrow or add vendors by written agreement.",
-    lastUpdatedLabel: "Updated May 9, 2026",
+      "Reviewed vendor inventory. Customer-specific implementation may narrow or add vendors by written agreement.",
+    lastUpdatedLabel: declarationLastUpdatedLabel,
   },
   privacy: {
     slug: "privacy",
@@ -492,6 +567,14 @@ export const declarationDocuments = {
     ],
     relatedLinks: buildRelatedLinks("/legal/privacy", [cookieNoticeLink]),
     contactChannels: privacyChannels,
+    reviewedAt: declarationReviewedAt,
+    sourceRefs: [
+      PDPA_ACT_URL,
+      PDPA_AMENDMENT_URL,
+      "/cookies",
+      "/subprocessors",
+      "lib/features/legal-declarations/data/footer.shared.ts",
+    ],
     statusNote: declarationStatusNote,
     lastUpdatedLabel: declarationLastUpdatedLabel,
   },
@@ -517,7 +600,7 @@ export const declarationDocuments = {
         title: "Service scope and availability",
         body: [
           "Afenda may describe product capabilities, workflow models, or implementation approaches on public pages. Those descriptions are informational until a written commercial commitment is made.",
-          "Afenda may update, suspend, or refine public content, evaluation posture, and declaration wording to keep the public surface accurate, safe, and aligned with the underlying product. Public declarations should not be read as a promise that every future trust route, cookie surface, or data-processing artifact is already live.",
+          "Afenda may update, suspend, or refine public content, evaluation posture, and declaration wording to keep the public surface accurate, safe, and aligned with the underlying product. Public declarations should not be read as a promise that every possible trust, cookie, or data-processing surface is already live.",
         ],
       },
       {
@@ -525,7 +608,7 @@ export const declarationDocuments = {
         title: "Customer responsibilities",
         body: [
           "Customers and evaluators remain responsible for the legality, quality, and accuracy of any data, workflow description, attachment, or record they provide to Afenda during an enquiry, implementation discussion, or support exchange.",
-          "Afenda should not be used to submit malicious payloads, unauthorised third-party data, or information that the sender has no right to disclose.",
+          "Do not use Afenda to submit malicious payloads, unauthorised third-party data, or information that the sender has no right to disclose.",
         ],
         bullets: [
           "Keep credentials, shared documents, and implementation materials appropriately controlled.",
@@ -560,6 +643,11 @@ export const declarationDocuments = {
     ],
     relatedLinks: buildRelatedLinks("/legal/terms"),
     contactChannels: [supportChannels[0]!, privacyChannels[0]!],
+    reviewedAt: declarationReviewedAt,
+    sourceRefs: [
+      "lib/features/legal-declarations/data/footer.shared.ts",
+      "app/[locale]/legal/[...slug]/page.tsx",
+    ],
     statusNote: declarationStatusNote,
     lastUpdatedLabel: declarationLastUpdatedLabel,
   },
@@ -622,6 +710,13 @@ export const declarationDocuments = {
       securityDisclosureLink,
     ]),
     contactChannels: securityChannels,
+    reviewedAt: declarationReviewedAt,
+    sourceRefs: [
+      "/legal/security/disclosure",
+      "/.well-known/security.txt",
+      "app/.well-known/security.txt/route.ts",
+      "lib/features/public-trust/data/trust-surface.fixture.shared.ts",
+    ],
     statusNote: declarationStatusNote,
     lastUpdatedLabel: declarationLastUpdatedLabel,
   },
@@ -701,6 +796,12 @@ export const declarationDocuments = {
     ],
     relatedLinks: buildRelatedLinks("/legal/security/disclosure"),
     contactChannels: securityChannels,
+    reviewedAt: declarationReviewedAt,
+    sourceRefs: [
+      "/.well-known/security.txt",
+      "app/.well-known/security.txt/route.ts",
+      "lib/features/public-trust/data/trust-surface.fixture.shared.ts",
+    ],
     statusNote: declarationStatusNote,
     lastUpdatedLabel: declarationLastUpdatedLabel,
   },
@@ -734,7 +835,7 @@ export const declarationDocuments = {
         title: "Response model",
         body: [
           "This page does not promise a specific service-level agreement. Public responses depend on the nature of the request, the operational risk, and whether an existing customer relationship or incident is involved.",
-          "Afenda should acknowledge legitimate business, privacy, and security enquiries through the appropriate queue and continue the conversation in the channel best suited to the issue.",
+          "Afenda routes legitimate business, privacy, and security enquiries through the appropriate queue and continues the conversation in the channel best suited to the issue.",
         ],
       },
       {
@@ -742,7 +843,7 @@ export const declarationDocuments = {
         title: "Declaration index",
         body: [
           "The public declaration set is intentionally small and explicit. Privacy, terms, security, trust, and support are kept as separate static routes so enterprise buyers and regional stakeholders can find the right statement quickly.",
-          "If a future route such as subprocessors or a data processing addendum becomes necessary, Afenda should add it deliberately rather than overloading this page. The cookie notice already exists as its own bounded route.",
+          "The current public declaration set also includes /cookies, /subprocessors, and /data-processing-addendum as separate bounded routes rather than folding them into a generic support page.",
         ],
       },
       {
@@ -756,10 +857,32 @@ export const declarationDocuments = {
     ],
     relatedLinks: buildRelatedLinks("/legal/support", [trustRouteLink]),
     contactChannels: supportChannels,
+    reviewedAt: declarationReviewedAt,
+    sourceRefs: [
+      "/cookies",
+      "/subprocessors",
+      "/data-processing-addendum",
+      "lib/features/legal-declarations/data/footer.shared.ts",
+    ],
     statusNote: declarationStatusNote,
     lastUpdatedLabel: declarationLastUpdatedLabel,
   },
 } satisfies Record<LegalDeclarationSlug, DeclarationDocumentDefinition>
+
+export const declarationRouteReviewedAtByHref = Object.fromEntries(
+  (Object.values(declarationDocuments) as DeclarationDocumentDefinition[]).map(
+    (document) => [
+      document.routeHref ?? `/legal/${document.slug}`,
+      document.reviewedAt,
+    ]
+  )
+) as Record<string, string>
+
+export const latestLegalDeclarationReviewedAt = maxReviewedAt(
+  (Object.values(declarationDocuments) as DeclarationDocumentDefinition[]).map(
+    (document) => document.reviewedAt
+  )
+)
 
 export function buildLegalDeclarationMetadata(
   locale: string,

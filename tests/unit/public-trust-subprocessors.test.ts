@@ -74,6 +74,8 @@ describe("subprocessor public trust contract", () => {
   })
 
   it("includes official source links for vendor review", () => {
+    const sourceRefs = declarationDocuments.subprocessors.sourceRefs.join(" ")
+
     for (const source of [
       "https://vercel.com/legal/dpa",
       "https://neon.com/subprocessors",
@@ -87,7 +89,7 @@ describe("subprocessor public trust contract", () => {
       "https://www.postgresql.org/about/",
       "https://github.com/pgvector/pgvector",
     ]) {
-      expect(documentCopy).toContain(source)
+      expect(sourceRefs).toContain(source)
     }
   })
 })

@@ -1,5 +1,9 @@
 import type { MetadataRoute } from "next"
 
+import {
+  declarationRouteReviewedAtByHref,
+  latestLegalDeclarationReviewedAt,
+} from "#features/legal-declarations"
 import { publicTrustIndexableRoutes } from "#features/public-trust"
 import {
   type AppPath,
@@ -17,12 +21,15 @@ function routePriority(path: AppPath): number {
 /** Only include indexable public URLs (omit auth/app shells with noindex). */
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = getSiteUrl().replace(/\/$/, "")
-  const now = new Date()
   const publicPaths = ["/", ...publicTrustIndexableRoutes] as readonly AppPath[]
 
   return publicPaths.map((path) => ({
     url: `${base}${toLocalePath(DEFAULT_APP_LOCALE, path)}`,
-    lastModified: now,
+    lastModified:
+      path === "/"
+        ? latestLegalDeclarationReviewedAt
+        : (declarationRouteReviewedAtByHref[path] ??
+          latestLegalDeclarationReviewedAt),
     changeFrequency: path === "/" ? "weekly" : "monthly",
     priority: routePriority(path),
   }))

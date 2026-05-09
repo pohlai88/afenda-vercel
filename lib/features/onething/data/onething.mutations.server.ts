@@ -2,6 +2,11 @@ import "server-only"
 
 import { and, eq, lte, sql } from "drizzle-orm"
 
+import type {
+  TemporalNext,
+  TemporalNow,
+  TemporalPast,
+} from "#lib/erp/temporal-spine.shared"
 import { db } from "#lib/db"
 import {
   oneThing,
@@ -24,6 +29,15 @@ export type OneThingAtomSeed = {
   counterparty?: OneThingCounterparty | null
   provenance?: OneThingProvenance | null
   impact?: OneThingImpact | null
+}
+
+/** Written only by operational simulation replay — never random IDs. */
+export type OneThingSimulationProvenance = {
+  auditOrigin: "simulation"
+  simulationRunId: string
+  scenarioId: string
+  scenarioVersion: number
+  simulationSeed: string
 }
 
 export async function ensureDefaultOneThingListForOrg(
@@ -104,8 +118,15 @@ export async function insertOrgOneThing(
     dueAt: Date | null
     assigneeUserId: string | null
     recurrenceRule: string | null
+    /** Overrides default detected/owned inference (simulation + operational fixtures). */
+    state?: string
+    temporalPast?: TemporalPast
+    temporalNow?: TemporalNow
+    temporalNext?: TemporalNext
+    simulationProvenance?: OneThingSimulationProvenance | null
   } & OneThingAtomSeed
 ): Promise<{ id: string }> {
+  const derivedState = input.assigneeUserId ? "owned" : "detected"
   const [row] = await db
     .insert(oneThing)
     .values({
@@ -118,11 +139,29 @@ export async function insertOrgOneThing(
       dueAt: input.dueAt,
       assigneeUserId: input.assigneeUserId,
       recurrenceRule: input.recurrenceRule,
-      state: input.assigneeUserId ? "owned" : "detected",
+      state: input.state ?? derivedState,
       linkage: input.linkage ?? null,
       counterparty: input.counterparty ?? null,
       provenance: input.provenance ?? null,
       impact: input.impact ?? null,
+      ...(input.temporalPast !== undefined
+        ? { temporalPast: input.temporalPast }
+        : {}),
+      ...(input.temporalNow !== undefined
+        ? { temporalNow: input.temporalNow }
+        : {}),
+      ...(input.temporalNext !== undefined
+        ? { temporalNext: input.temporalNext }
+        : {}),
+      ...(input.simulationProvenance
+        ? {
+            auditOrigin: input.simulationProvenance.auditOrigin,
+            simulationRunId: input.simulationProvenance.simulationRunId,
+            scenarioId: input.simulationProvenance.scenarioId,
+            scenarioVersion: input.simulationProvenance.scenarioVersion,
+            simulationSeed: input.simulationProvenance.simulationSeed,
+          }
+        : {}),
     })
     .returning({ id: oneThing.id })
 

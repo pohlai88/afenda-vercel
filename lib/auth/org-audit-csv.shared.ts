@@ -15,6 +15,11 @@ export const ORG_AUDIT_CSV_HEADER_COLUMNS = [
   "metadata",
   "ip_address",
   "user_agent",
+  "audit_origin",
+  "simulation_run_id",
+  "scenario_id",
+  "scenario_version",
+  "audit_actor_mode",
 ] as const
 
 export type OrganizationIamAuditExportRow = {
@@ -29,6 +34,11 @@ export type OrganizationIamAuditExportRow = {
   metadata: string | null
   ipAddress: string | null
   userAgent: string | null
+  auditOrigin: string
+  simulationRunId: string | null
+  scenarioId: string | null
+  scenarioVersion: number | null
+  auditActorMode: string
 }
 
 /** RFC 4180-style CSV cell escaping for exports. */
@@ -55,6 +65,15 @@ export function formatOrganizationIamAuditCsvDataRow(
     escapeCsvCell(row.metadata),
     escapeCsvCell(row.ipAddress),
     escapeCsvCell(row.userAgent),
+    escapeCsvCell(row.auditOrigin),
+    escapeCsvCell(row.simulationRunId),
+    escapeCsvCell(row.scenarioId),
+    escapeCsvCell(
+      row.scenarioVersion === null || row.scenarioVersion === undefined
+        ? null
+        : String(row.scenarioVersion)
+    ),
+    escapeCsvCell(row.auditActorMode),
   ].join(",")
 }
 

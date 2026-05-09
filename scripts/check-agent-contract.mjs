@@ -18,6 +18,7 @@ const REQUIRED_FILES = [
   ".cursor/rules/lynx-directory.mdc",
   ".cursor/rules/erp-primitives.mdc",
   ".cursor/rules/onething-directory.mdc",
+  ".cursor/rules/simulation-directory.mdc",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
 ]
