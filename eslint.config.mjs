@@ -281,6 +281,38 @@ const eslintConfig = defineConfig([
   },
 
   // -------------------------------------------------------------------------
+  // § Nexus L1 utility rail — Tooltip import gate
+  //
+  // Icon controls on the utility bar must use centralized wrappers so
+  // TooltipContent side/offset/align stay consistent and a11y copy stays
+  // intentional. Raw `#components/ui/tooltip` is limited to the allowlisted
+  // primitives + `nexus-utility-trigger-tooltip.tsx`.
+  // -------------------------------------------------------------------------
+  {
+    name: "afenda/nexus-tooltip-import-gate",
+    files: ["components/nexus/**/*.tsx"],
+    ignores: [
+      "components/nexus/nexus-utility-round-tooltip-button.tsx",
+      "components/nexus/nexus-utility-round-tooltip-link.tsx",
+      "components/nexus/nexus-utility-trigger-tooltip.tsx",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "#components/ui/tooltip",
+              message:
+                "Use NexusUtilityRoundTooltipButton, NexusUtilityRoundTooltipLink, or NexusUtilityTriggerTooltip for L1 utility rail tooltips — keeps geometry and copy consistent.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // -------------------------------------------------------------------------
   // § Test files — relax rules that conflict with test-framework idioms
   //
   // Vitest's `importOriginal<typeof import("module")>()` and Playwright's

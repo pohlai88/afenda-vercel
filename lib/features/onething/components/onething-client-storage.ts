@@ -16,7 +16,8 @@
  *
  * Server-driven sign-out paths (e.g. `/account` form action) do not have
  * client-side context to clear localStorage; those operators are routed
- * through the topbar's `SignOutButton` whenever possible.
+ * through the dashboard `GlobalTopNavBarControlMenu` sign-out path (which
+ * invokes this helper before `authClient.signOut()`) whenever possible.
  */
 
 const COMPOSER_PREFIX = "afenda:onething:composer:"

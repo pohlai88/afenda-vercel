@@ -17,5 +17,5 @@ Applies when editing **`docs/design-system/**/*.md`**.
 ## Rules
 
 - Do not document token names, variant strings, or CSS variables that are not implemented in code.
-- When primitive APIs or tokens change, update `docs/design-system/figma-code-connect-mapping.md` in the same change when possible.
+- When primitive APIs or tokens change, update **`docs/design-system/governance.md`** (Figma anchor / notes) or **Figma Code Connect** templates colocated with primitives, in the same change when your team maintains them.
 - Prefer documenting existing contracts over introducing new terminology.

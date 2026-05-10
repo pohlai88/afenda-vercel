@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    // Internal `#…/*` aliases: mirror `package.json` → `imports` for Node + bundlers.
     "paths": {
       "#components/*": ["./components/*"],
       "#lib/*": ["./lib/*"],

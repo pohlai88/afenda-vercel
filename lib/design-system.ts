@@ -7,7 +7,9 @@ import { z } from "zod"
  * - Import these in components instead of inventing new radii in class strings.
  * - Use Zod when variant names come from JSON/CMS/API so invalid values fail at runtime.
  * - CI: `pnpm run lint` runs ESLint (import boundaries) + `scripts/check-design-contract.mjs`
- *   (banned radii / shadows / arbitrary rounded outside allowlist under app/, components/, hooks/, lib/features/).
+ *   (banned radii / shadows / arbitrary rounded / material drift: inline backdrop blur,
+ *   arbitrary Tailwind blur utilities with bracket literals, infinite animations,
+ *   legacy water tokens — outside `app/globals.css`).
  * - Preferred API: `ui.*` aliases use familiar primitive names while reusing the
  *   legacy exports below for compatibility.
  * - Spacing: `uiSurfaceSpaceKeys` / `uiSurfaceInset` mirror `app/globals.css`
@@ -102,16 +104,17 @@ export const uiTracking = {
 } as const
 
 /**
- * Vertical rhythm between stacked blocks — mirrors `:root` `--density-comfortable` / `--density-compact`
- * (`1rem` / `0.75rem`) via Tailwind `gap-density-*` utilities from `@theme inline`.
+ * Vertical rhythm between stacked blocks — mirrors `:root` density tokens in
+ * `app/globals.css` via Tailwind `gap-density-*` utilities from `@theme inline`.
  */
-export const uiDensityKeys = ["compact", "comfortable"] as const
+export const uiDensityKeys = ["compact", "comfortable", "relaxed"] as const
 
 export type UiDensity = (typeof uiDensityKeys)[number]
 
 export const uiDensity = {
   compact: "gap-density-compact",
   comfortable: "gap-density-comfortable",
+  relaxed: "gap-density-relaxed",
 } as const satisfies Record<UiDensity, string>
 
 export const uiDensitySchema = z.enum(uiDensityKeys)
@@ -202,6 +205,7 @@ export const ui = {
   gap: {
     compact: uiDensity.compact,
     comfortable: uiDensity.comfortable,
+    relaxed: uiDensity.relaxed,
   },
   elevation: {
     flat: "shadow-none",
@@ -323,4 +327,54 @@ export function parseUiSurfaceSpaceKey(value: unknown): UiSurfaceSpaceKey {
 
 export function parseUiPriority(value: unknown): UiPriority {
   return uiPrioritySchema.parse(value)
+}
+
+/* -------------------------------------------------------------------------- */
+/* Material semantics — runtime contract                                      */
+/*                                                                            */
+/* Schemas only. The CSS implementation lives in `app/globals.css` and the    */
+/* adoption contract lives in `.cursor/rules/material-semantics.mdc` +        */
+/* ADR-0001 §13. These exports exist so that components consuming `data-phase`*/
+/* / `data-lynx` from RouteEnvelope, search params, or server payloads can    */
+/* validate against the canonical state machine instead of casting.           */
+/*                                                                            */
+/* DO NOT export class strings (`.af-material-*`) here — that would invite    */
+/* class-swap usage and bypass the `data-phase` driven state machine.         */
+/* -------------------------------------------------------------------------- */
+
+/** Canonical material state machine — mirrors ADR-0001 §13.2. */
+export const uiMaterialPhaseKeys = [
+  "idle",
+  "hover",
+  "focus",
+  "typing",
+  "resolving",
+  "execution",
+  "settled",
+] as const
+
+export type UiMaterialPhase = (typeof uiMaterialPhaseKeys)[number]
+
+export const uiMaterialPhaseSchema = z.enum(uiMaterialPhaseKeys)
+
+export function parseUiMaterialPhase(value: unknown): UiMaterialPhase {
+  return uiMaterialPhaseSchema.parse(value)
+}
+
+/** Lynx material-aware vocabulary — mirrors ADR-0001 §13.3. */
+export const uiLynxStateKeys = [
+  "idle",
+  "listening",
+  "resolving",
+  "high-confidence",
+  "warning",
+  "mismatch",
+] as const
+
+export type UiLynxState = (typeof uiLynxStateKeys)[number]
+
+export const uiLynxStateSchema = z.enum(uiLynxStateKeys)
+
+export function parseUiLynxState(value: unknown): UiLynxState {
+  return uiLynxStateSchema.parse(value)
 }

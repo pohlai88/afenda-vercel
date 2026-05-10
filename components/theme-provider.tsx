@@ -28,18 +28,7 @@ function isTypingTarget(target: EventTarget | null) {
   )
 }
 
-/**
- * Some hosts / synthetic events omit `key` or expose non-strings; `code` is the
- * stable fallback for the physical D key (Layout-independent).
- */
-function isThemeToggleKey(event: KeyboardEvent): boolean {
-  const raw = event.key
-  if (typeof raw === "string") {
-    return raw.toLowerCase() === "d"
-  }
-  return event.code === "KeyD"
-}
-
+/** Matches {@link NexusUtilityShortcuts} — Mod+Shift+L toggles light/dark. */
 function ThemeHotkey() {
   const { resolvedTheme, setTheme } = useTheme()
 
@@ -49,11 +38,11 @@ function ThemeHotkey() {
         return
       }
 
-      if (event.metaKey || event.ctrlKey || event.altKey) {
+      if (!(event.metaKey || event.ctrlKey) || !event.shiftKey) {
         return
       }
 
-      if (!isThemeToggleKey(event)) {
+      if (event.key.toLowerCase() !== "l") {
         return
       }
 
@@ -61,6 +50,7 @@ function ThemeHotkey() {
         return
       }
 
+      event.preventDefault()
       setTheme(resolvedTheme === "dark" ? "light" : "dark")
     }
 

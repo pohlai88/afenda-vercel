@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl"
 import {
   useOptionalLynxSummon,
   type LynxGroundingChip,
-} from "#components/dashboard/lynx-summon-context"
+} from "#components/nexus/nexus-lynx-summon-context"
 
 import { describeTemporalSpine } from "#lib/erp/temporal-spine.shared"
 

@@ -11,7 +11,7 @@ type AuthFrameCommonLoadingKey =
   | "loadingSignUp"
   | "loadingResetPassword"
   | "loadingInvitation"
-  | "loadingOnboarding"
+  | "loadingConsole"
 
 export type AuthRouteLoadingConfig =
   | {
@@ -33,7 +33,7 @@ export type AuthRouteLoadingConfig =
     }
 
 /**
- * Shared loading UI for auth and onboarding routes.
+ * Shared loading UI for auth and IAM/bootstrap-adjacent routes.
  * Keeps translation lookup, frame selection, and spinner/card wiring consistent.
  */
 export async function AuthRouteLoading(config: AuthRouteLoadingConfig) {

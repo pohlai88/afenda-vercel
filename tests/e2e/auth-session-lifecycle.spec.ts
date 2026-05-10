@@ -49,14 +49,14 @@ test.describe("auth session lifecycle (sign-in → sign-out)", () => {
       await page.getByLabel("Password", { exact: true }).fill(orgAdminPassword!)
       await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
-      await page.waitForURL(/\/en\/(onboarding|account|o)/, {
+      await page.waitForURL(/\/en\/(console|account|o)/, {
         timeout: 30_000,
       })
 
       const slug = await resolveOrgSlug(page)
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish onboarding."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
       )
 
       await page.goto(`/en/o/${slug}/dashboard/contacts`)

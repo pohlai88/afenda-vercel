@@ -26,7 +26,7 @@ export async function rotateOneThingListShareToken(
   const session = await requireOrgSession()
   const listId = String(formData.get("listId") ?? "")
   const resumePath = String(
-    formData.get("resumePath") ?? "/o/placeholder/dashboard/onething"
+    formData.get("resumePath") ?? "/o/placeholder/dashboard/ithink"
   )
 
   const locale = await getRequestAppLocale()

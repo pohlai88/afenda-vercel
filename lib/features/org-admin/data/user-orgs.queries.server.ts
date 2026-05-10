@@ -11,10 +11,11 @@ import type { UserOrgSummary } from "../types"
 /**
  * Returns all organizations the given user is a member of,
  * including the user's role in each organization.
- * Used by the org switcher and the `/console` cross-company landing page.
+ * Used by the dashboard global top nav control menu, command palette, and the
+ * `/console` cross-company landing page.
  *
- * Wrapped in `cache` so parallel RSC slots (`OrgSwitcherSlot`, `CommandPaletteSlot`)
- * share one DB round-trip per request.
+ * Wrapped in `cache` so parallel RSC slots (`GlobalTopNavBarControlMenuSlot`,
+ * `CommandPaletteSlot`) share one DB round-trip per request.
  */
 export const listUserOrganizationsForSwitcher = cache(
   async function listUserOrganizationsForSwitcher(

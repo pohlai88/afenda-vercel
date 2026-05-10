@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#components/ui/card"
-import { ModulePageHeader } from "#components/dashboard/module-page-header"
+import { ModulePageHeader } from "#components/module-page-header"
 import { requireOrgSession } from "#lib/tenant"
 
 import { listContactsForOrganization } from "../data/contacts.queries"

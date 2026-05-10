@@ -49,14 +49,14 @@ test.describe("org admin import job workflow (optional credentials)", () => {
       await page.getByLabel("Password", { exact: true }).fill(orgAdminPassword!)
       await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
-      await page.waitForURL(/\/en\/(dashboard|onboarding|account|o)/, {
+      await page.waitForURL(/\/en\/(dashboard|console|account|o)/, {
         timeout: 30_000,
       })
 
       const slug = await resolveOrgSlug(page)
       test.skip(
         !slug,
-        "No active organization slug — set E2E_ORG_SLUG or finish onboarding."
+        "No active organization slug — set E2E_ORG_SLUG or finish setup at /console."
       )
 
       await page.goto(`/en/o/${slug}/admin/integrations`)

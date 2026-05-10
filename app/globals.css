@@ -103,6 +103,7 @@
   /* Spacing — density (stack rhythm) & surface (inset padding scale) */
   --spacing-density-comfortable: var(--density-comfortable);
   --spacing-density-compact: var(--density-compact);
+  --spacing-density-relaxed: var(--density-relaxed);
   --spacing-surface-xs: var(--space-surface-xs);
   --spacing-surface-sm: var(--space-surface-sm);
   --spacing-surface-md: var(--space-surface-md);
@@ -129,6 +130,8 @@
 
   /* Geometry */
   --radius: 0.625rem;
+  --app-font-size: 16px;
+  --app-body-line-height: 1.5;
 
   /* Surface padding scale (single source; @theme spacing-* maps here) */
   --space-surface-xs: 0.5rem;
@@ -192,6 +195,39 @@
   /* Density — stack rhythm between blocks */
   --density-comfortable: 1rem;
   --density-compact: 0.75rem;
+  --density-relaxed: 1.25rem;
+
+  /* Density — shared control, menu, table, and overlay geometry */
+  --af-control-height-xs: 1.5rem;
+  --af-control-height-sm: 2rem;
+  --af-control-height-md: 2.25rem;
+  --af-control-height-lg: 2.5rem;
+  --af-control-icon-xs: 1.5rem;
+  --af-control-icon-sm: 2rem;
+  --af-control-icon-md: 2.25rem;
+  --af-control-icon-lg: 2.5rem;
+  --af-control-gap-sm: 0.25rem;
+  --af-control-gap-md: 0.375rem;
+  --af-control-gap-lg: 0.375rem;
+  --af-control-px-xs: 0.625rem;
+  --af-control-px-sm: 0.75rem;
+  --af-control-px-md: 0.875rem;
+  --af-control-px-lg: 1.5rem;
+  --af-control-py-md: 0.5rem;
+  --af-control-py-lg: 0.5rem;
+  --af-field-height: 2.5rem;
+  --af-field-px: 0.75rem;
+  --af-field-py: 0.625rem;
+  --af-textarea-px: 0.75rem;
+  --af-textarea-py: 0.75rem;
+  --af-input-group-height: 2.25rem;
+  --af-table-head-height: 3rem;
+  --af-table-cell-px: 0.75rem;
+  --af-table-cell-py: 0.75rem;
+  --af-menu-item-px: 0.75rem;
+  --af-menu-item-py: 0.5rem;
+  --af-overlay-padding: 1.5rem;
+  --af-overlay-gap: 1.5rem;
 
   /* Motion */
   --motion-duration-fast: 120ms;
@@ -218,6 +254,160 @@
   --sidebar-accent-foreground: oklch(0.26 0.018 305);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+
+  /* ------------------------------------------------------------------------ */
+  /* Material semantics                                                        */
+  /*                                                                            */
+  /*  Public philosophy (docs / ADR / copy):                                    */
+  /*    Glass    = separation / shell / system                                  */
+  /*    Water    = truth / flow / cognition                                     */
+  /*    Depth    = operational gravity                                          */
+  /*    Ripple   = interaction causality                                        */
+  /*    Current  = active processing                                            */
+  /*                                                                            */
+  /*  Runtime token vocabulary (this file, components, design contract):        */
+  /*    cognition  = chromatic anchors of the cognition layer                   */
+  /*    resolution = surface state used during resolving / execution            */
+  /*    shell      = calm idle/settled state                                    */
+  /*                                                                            */
+  /*  Doctrine: never derive new blur values; consume the tier tokens below.    */
+  /* ------------------------------------------------------------------------ */
+
+  /* Blur budget — only these three tiers are allowed app-wide */
+  --af-blur-shell: 14px;
+  --af-blur-command: 20px;
+  --af-blur-resolution: 24px;
+
+  /* Saturation budget — locked to blur tiers */
+  --af-sat-shell: 1.06;
+  --af-sat-command: 1.14;
+  --af-sat-resolution: 1.2;
+
+  /* Directional flow — geometric angle of cognitive current */
+  --af-flow-angle: 145deg;
+
+  /* Flow velocity — how strongly cognition pushes through the material */
+  --af-flow-velocity-idle: 0;
+  --af-flow-velocity-resolving: 0.6;
+  --af-flow-velocity-confidence: 0.9;
+  --af-flow-velocity-mismatch: 0.4;
+
+  /* Motion categories — different cognition layers move differently */
+  --motion-category-shell: 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-category-command: 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-category-resolution: 720ms cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-category-pressure: 240ms cubic-bezier(0.4, 0, 0.6, 1);
+
+  /* Edges & inner light */
+  --af-material-edge: color-mix(in oklab, var(--border) 72%, white 28%);
+  --af-material-highlight: color-mix(in oklab, white 12%, transparent);
+
+  /* Glass surface (shell) */
+  --af-glass-bg: color-mix(in oklab, var(--card) 78%, transparent);
+
+  /* Cognition chromatic anchors + resolution surface */
+  --af-cognition-1: oklch(0.7 0.03 238);
+  --af-cognition-2: oklch(0.62 0.05 264);
+  --af-resolution-surface: color-mix(
+    in oklab,
+    var(--card) 72%,
+    var(--af-cognition-1) 28%
+  );
+
+  /* Depth tiers — operational gravity */
+  --af-depth-shell: 0 16px 36px color-mix(in oklab, black 14%, transparent);
+  --af-depth-transition: 0 20px 52px
+    color-mix(in oklab, var(--af-cognition-2) 12%, transparent);
+  --af-depth-resolution: 0 28px 84px
+    color-mix(in oklab, var(--af-cognition-2) 24%, transparent);
+
+  /* Ripple / Current intensity */
+  --af-ripple-strength: 8%;
+  --af-current-strength: 12%;
+}
+
+:root[data-layout-density="compact"] {
+  --app-font-size: 15px;
+  --app-body-line-height: 1.45;
+  --space-surface-xs: 0.4375rem;
+  --space-surface-sm: 0.625rem;
+  --space-surface-md: 0.875rem;
+  --space-surface-lg: 1.25rem;
+  --space-surface-xl: 1.5rem;
+  --space-surface-2xl: 2rem;
+  --density-comfortable: 0.875rem;
+  --density-compact: 0.625rem;
+  --density-relaxed: 1.125rem;
+  --af-control-height-sm: 1.875rem;
+  --af-control-height-md: 2.125rem;
+  --af-control-height-lg: 2.375rem;
+  --af-control-icon-sm: 1.875rem;
+  --af-control-icon-md: 2.125rem;
+  --af-control-icon-lg: 2.375rem;
+  --af-control-gap-sm: 0.25rem;
+  --af-control-gap-md: 0.3125rem;
+  --af-control-gap-lg: 0.3125rem;
+  --af-control-px-xs: 0.5rem;
+  --af-control-px-sm: 0.625rem;
+  --af-control-px-md: 0.75rem;
+  --af-control-px-lg: 1.25rem;
+  --af-control-py-md: 0.4375rem;
+  --af-control-py-lg: 0.4375rem;
+  --af-field-height: 2.25rem;
+  --af-field-px: 0.625rem;
+  --af-field-py: 0.5rem;
+  --af-textarea-px: 0.625rem;
+  --af-textarea-py: 0.625rem;
+  --af-input-group-height: 2.125rem;
+  --af-table-head-height: 2.5rem;
+  --af-table-cell-px: 0.625rem;
+  --af-table-cell-py: 0.5rem;
+  --af-menu-item-px: 0.625rem;
+  --af-menu-item-py: 0.4375rem;
+  --af-overlay-padding: 1.25rem;
+  --af-overlay-gap: 1.25rem;
+}
+
+:root[data-layout-density="relaxed"] {
+  --app-font-size: 17px;
+  --app-body-line-height: 1.6;
+  --space-surface-xs: 0.625rem;
+  --space-surface-sm: 0.875rem;
+  --space-surface-md: 1.125rem;
+  --space-surface-lg: 1.75rem;
+  --space-surface-xl: 2.25rem;
+  --space-surface-2xl: 3.5rem;
+  --density-comfortable: 1.125rem;
+  --density-compact: 0.875rem;
+  --density-relaxed: 1.375rem;
+  --af-control-height-sm: 2.125rem;
+  --af-control-height-md: 2.5rem;
+  --af-control-height-lg: 2.75rem;
+  --af-control-icon-sm: 2.125rem;
+  --af-control-icon-md: 2.5rem;
+  --af-control-icon-lg: 2.75rem;
+  --af-control-gap-sm: 0.3125rem;
+  --af-control-gap-md: 0.5rem;
+  --af-control-gap-lg: 0.5rem;
+  --af-control-px-xs: 0.6875rem;
+  --af-control-px-sm: 0.875rem;
+  --af-control-px-md: 1rem;
+  --af-control-px-lg: 1.75rem;
+  --af-control-py-md: 0.625rem;
+  --af-control-py-lg: 0.625rem;
+  --af-field-height: 2.75rem;
+  --af-field-px: 0.875rem;
+  --af-field-py: 0.75rem;
+  --af-textarea-px: 0.875rem;
+  --af-textarea-py: 0.875rem;
+  --af-input-group-height: 2.5rem;
+  --af-table-head-height: 3.25rem;
+  --af-table-cell-px: 0.875rem;
+  --af-table-cell-py: 0.875rem;
+  --af-menu-item-px: 0.875rem;
+  --af-menu-item-py: 0.625rem;
+  --af-overlay-padding: 1.75rem;
+  --af-overlay-gap: 1.75rem;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -290,10 +480,452 @@
   --sidebar-accent-foreground: oklch(0.9 0.006 305);
   --sidebar-border: oklch(0.255 0.011 305);
   --sidebar-ring: var(--ring);
+
+  /* Dark-mode material tuning: stronger edge, slightly denser glass + cognition */
+  --af-material-edge: color-mix(in oklab, var(--border) 86%, white 14%);
+  --af-material-highlight: color-mix(in oklab, white 16%, transparent);
+  --af-glass-bg: color-mix(in oklab, var(--card) 68%, transparent);
+  --af-resolution-surface: color-mix(
+    in oklab,
+    var(--card) 62%,
+    var(--af-cognition-1) 38%
+  );
+
+  /* Dark blur/saturation tier tuning (still constrained to the same 3 tiers) */
+  --af-blur-shell: 16px;
+  --af-blur-command: 22px;
+  --af-blur-resolution: 28px;
+  --af-sat-shell: 1.1;
+  --af-sat-command: 1.18;
+  --af-sat-resolution: 1.26;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Base                                                                         */
+/* Density controls                                                            */
+/* -------------------------------------------------------------------------- */
+
+[data-slot="button"] {
+  font-size: 0.875rem;
+}
+
+[data-slot="button"][data-size="default"] {
+  min-height: var(--af-control-height-md);
+  gap: var(--af-control-gap-md);
+  padding-inline: var(--af-control-px-md);
+  padding-block: var(--af-control-py-md);
+}
+
+[data-slot="button"][data-size="xs"] {
+  gap: var(--af-control-gap-sm);
+  padding-inline: var(--af-control-px-xs);
+}
+
+[data-slot="button"][data-size="sm"] {
+  height: var(--af-control-height-sm);
+  gap: var(--af-control-gap-sm);
+  padding-inline: var(--af-control-px-sm);
+}
+
+[data-slot="button"][data-size="lg"] {
+  min-height: var(--af-control-height-lg);
+  gap: var(--af-control-gap-lg);
+  padding-inline: var(--af-control-px-lg);
+  padding-block: var(--af-control-py-lg);
+}
+
+[data-slot="button"][data-size="icon"] {
+  width: var(--af-control-icon-md);
+  height: var(--af-control-icon-md);
+}
+
+[data-slot="button"][data-size="icon-sm"] {
+  width: var(--af-control-icon-sm);
+  height: var(--af-control-icon-sm);
+}
+
+[data-slot="button"][data-size="icon-lg"] {
+  width: var(--af-control-icon-lg);
+  height: var(--af-control-icon-lg);
+}
+
+:is(
+  [data-slot="input"],
+  [data-slot="select-trigger"],
+  [data-slot="native-select"]
+) {
+  min-height: var(--af-field-height);
+  padding-inline: var(--af-field-px);
+  padding-block: var(--af-field-py);
+  font-size: 0.875rem;
+}
+
+[data-slot="input-group"] {
+  min-height: var(--af-input-group-height);
+}
+
+[data-slot="textarea"] {
+  padding-inline: var(--af-textarea-px);
+  padding-block: var(--af-textarea-py);
+  font-size: 0.875rem;
+}
+
+:is(
+  [data-slot="dropdown-menu-item"],
+  [data-slot="dropdown-menu-checkbox-item"],
+  [data-slot="dropdown-menu-radio-item"],
+  [data-slot="dropdown-menu-sub-trigger"],
+  [data-slot="select-item"]
+) {
+  padding-inline: var(--af-menu-item-px);
+  padding-block: var(--af-menu-item-py);
+}
+
+:is(
+  [data-slot="dropdown-menu-content"],
+  [data-slot="popover-content"],
+  [data-slot="hover-card-content"],
+  [data-slot="dialog-content"],
+  [data-slot="sheet-content"],
+  [data-slot="drawer-content"]
+) {
+  gap: var(--af-overlay-gap);
+  padding: var(--af-overlay-padding);
+}
+
+[data-slot="table-head"] {
+  height: var(--af-table-head-height);
+  padding-inline: var(--af-table-cell-px);
+}
+
+[data-slot="table-cell"] {
+  padding-inline: var(--af-table-cell-px);
+  padding-block: var(--af-table-cell-py);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Material semantics                                                         */
+/*                                                                            */
+/*  State machine (canonical, runtime states reported by components):         */
+/*    idle -> hover -> focus -> typing -> resolving -> execution -> settled   */
+/*                                                                            */
+/*  Material phase model (CSS contract — only 4 phases exist):                */
+/*    shell        (idle / settled)                                            */
+/*    transition   (hover / focus / typing)                                    */
+/*    cognition    (resolving)                                                 */
+/*    cognition+   (execution / Lynx high-confidence)                          */
+/*                                                                            */
+/*  Layer governance (do not violate without ADR amendment):                  */
+/*    Utility bar       : shell only                                          */
+/*    Dock              : shell + current                                     */
+/*    Command palette   : shell -> transition -> cognition                    */
+/*    Dense tables      : opaque only (.af-material-opaque) — REQUIRED        */
+/*    ERP forms         : opaque or light shell                               */
+/*    Lynx resolution   : cognition (data-lynx="resolving")                   */
+/*    Evidence cards    : restrained cognition (no high-confidence escalation)*/
+/*    Modals            : shell or transition                                 */
+/*    Toasts            : shell only                                          */
+/*                                                                            */
+/*  Hard rule: cognition (water) is NOT a reading layer.                      */
+/*  Dense ERP grids, ledgers, audit logs, and timelines must stay opaque.     */
+/* -------------------------------------------------------------------------- */
+
+/* Shared material object — transition physics + paint containment */
+.af-material {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  contain: paint;
+  border: 1px solid var(--af-material-edge);
+  transition:
+    background var(--motion-category-shell),
+    border-color var(--motion-category-shell),
+    box-shadow var(--motion-category-resolution),
+    backdrop-filter var(--motion-category-resolution),
+    --af-flow-angle var(--motion-category-resolution),
+    transform var(--motion-category-pressure);
+}
+
+.af-material::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--af-material-highlight) 100%, transparent),
+    transparent 46%
+  );
+  opacity: 0.9;
+}
+
+/* Ripple layer becomes visible during transition / cognition states */
+.af-material::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--ripple-x, 50%) var(--ripple-y, 45%),
+    color-mix(
+      in oklab,
+      var(--af-cognition-1) var(--af-ripple-strength),
+      transparent
+    ),
+    transparent 48%
+  );
+  opacity: var(--ripple-opacity, 0);
+  transition: opacity 260ms var(--motion-ease-standard);
+}
+
+/* ---- Phase: shell (idle / settled) --------------------------------------- */
+.af-material-shell,
+.af-material-shell:is([data-phase="idle"], [data-phase="settled"]) {
+  background: var(--af-glass-bg);
+  backdrop-filter: blur(var(--af-blur-shell)) saturate(var(--af-sat-shell));
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, white 10%, transparent),
+    var(--af-depth-shell);
+}
+
+/* ---- Phase: transition (hover / focus / typing) -------------------------- */
+.af-material-transition,
+.af-material-shell:is(
+  [data-phase="hover"],
+  [data-phase="focus"],
+  [data-phase="typing"]
+) {
+  background: linear-gradient(
+    var(--af-flow-angle),
+    color-mix(in oklab, var(--af-cognition-1) 8%, var(--af-glass-bg)),
+    color-mix(in oklab, var(--af-cognition-2) 7%, var(--af-glass-bg))
+  );
+  backdrop-filter: blur(var(--af-blur-command)) saturate(var(--af-sat-command));
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, white 12%, transparent),
+    var(--af-depth-transition);
+  --ripple-opacity: 0.6;
+}
+
+/* Typing intensifies the current */
+.af-material-shell[data-phase="typing"] {
+  --af-flow-angle: 150deg;
+  --ripple-opacity: 0.75;
+}
+
+/* ---- Phase: cognition (resolving / execution) ---------------------------- */
+.af-material-cognition,
+.af-material-shell:is([data-phase="resolving"], [data-phase="execution"]) {
+  background: linear-gradient(
+    var(--af-flow-angle),
+    color-mix(
+      in oklab,
+      var(--af-cognition-1) 18%,
+      var(--af-resolution-surface)
+    ),
+    color-mix(in oklab, var(--af-cognition-2) 22%, var(--af-resolution-surface))
+  );
+  backdrop-filter: blur(var(--af-blur-resolution))
+    saturate(var(--af-sat-resolution));
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, white 16%, transparent),
+    var(--af-depth-resolution);
+  --ripple-opacity: 0.3;
+}
+
+/* Resolving / execution differ only in flow direction + ripple intensity */
+.af-material-shell[data-phase="resolving"] {
+  --af-flow-angle: 155deg;
+}
+.af-material-shell[data-phase="execution"] {
+  --af-flow-angle: 165deg;
+  --ripple-opacity: 0.4;
+}
+
+/* ---- Current: active processing pressure (additive accent) --------------- */
+.af-material[data-current="on"] {
+  background: linear-gradient(
+    var(--af-flow-angle),
+    color-mix(
+      in oklab,
+      var(--af-cognition-1) var(--af-current-strength),
+      var(--af-resolution-surface)
+    ),
+    color-mix(
+      in oklab,
+      var(--af-cognition-2) calc(var(--af-current-strength) + 2%),
+      var(--af-resolution-surface)
+    )
+  );
+}
+
+/* ---- Opaque variant — REQUIRED for dense reading surfaces ---------------- */
+/* Use for: tables, ledgers, inventory grids, audit logs, evidence timelines, */
+/* and any ERP form. Cognition / glass must NOT be applied here.              */
+.af-material-opaque {
+  background: var(--card);
+  backdrop-filter: none;
+  box-shadow: var(--shadow-elevation-1);
+  contain: layout paint;
+}
+
+/* ---- GPU isolation — scoped will-change on active phases only ------------ */
+/* Never apply will-change globally; it must be transient or the compositor   */
+/* keeps backing layers alive and GPU memory inflates across the dashboard.   */
+.af-material:is(
+  [data-phase="hover"],
+  [data-phase="focus"],
+  [data-phase="typing"],
+  [data-phase="resolving"],
+  [data-phase="execution"]
+),
+.af-material:is(
+  [data-lynx="listening"],
+  [data-lynx="resolving"],
+  [data-lynx="high-confidence"],
+  [data-lynx="warning"],
+  [data-lynx="mismatch"]
+) {
+  will-change: backdrop-filter, background, box-shadow;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Lynx — material-aware cognition state                                       */
+/* Maps Lynx state -> material behavior. Never label these as "AI mode".       */
+/*                                                                            */
+/*    idle              -> shell                                               */
+/*    listening         -> transition (refraction)                             */
+/*    resolving         -> cognition                                           */
+/*    high-confidence   -> deeper saturation                                   */
+/*    warning           -> brief pressure pulse + persistent warning outline   */
+/*    mismatch          -> brief unstable refraction + persistent skewed angle */
+/*                                                                            */
+/*  Animation discipline (Apple HIG: continuous motion must be rare):          */
+/*    Pulses fire 3 iterations on state entry, then settle.                    */
+/*    Persistent state is communicated by static styling (outline + angle).    */
+/* -------------------------------------------------------------------------- */
+
+.af-material[data-lynx="listening"] {
+  background: linear-gradient(
+    var(--af-flow-angle),
+    color-mix(in oklab, var(--af-cognition-1) 9%, var(--af-glass-bg)),
+    color-mix(in oklab, var(--af-cognition-2) 8%, var(--af-glass-bg))
+  );
+  backdrop-filter: blur(var(--af-blur-command)) saturate(var(--af-sat-command));
+  --ripple-opacity: 0.65;
+}
+
+.af-material[data-lynx="resolving"] {
+  background: linear-gradient(
+    var(--af-flow-angle),
+    color-mix(
+      in oklab,
+      var(--af-cognition-1) 20%,
+      var(--af-resolution-surface)
+    ),
+    color-mix(in oklab, var(--af-cognition-2) 24%, var(--af-resolution-surface))
+  );
+  backdrop-filter: blur(var(--af-blur-resolution))
+    saturate(var(--af-sat-resolution));
+  --af-flow-angle: 158deg;
+}
+
+.af-material[data-lynx="high-confidence"] {
+  --af-sat-resolution: 1.34;
+  background: linear-gradient(
+    var(--af-flow-angle),
+    color-mix(
+      in oklab,
+      var(--af-cognition-1) 26%,
+      var(--af-resolution-surface)
+    ),
+    color-mix(in oklab, var(--af-cognition-2) 30%, var(--af-resolution-surface))
+  );
+  backdrop-filter: blur(var(--af-blur-resolution))
+    saturate(var(--af-sat-resolution));
+}
+
+/* Warning: 3-pulse on entry, then persistent warning outline (no infinite spin) */
+.af-material[data-lynx="warning"] {
+  outline: 1px solid color-mix(in oklab, var(--warning) 60%, transparent);
+  outline-offset: -1px;
+  animation: af-pressure-pulse 2400ms var(--motion-ease-standard) 3 forwards;
+}
+
+/* Mismatch: 3 unstable cycles on entry, then persistent skewed flow angle */
+.af-material[data-lynx="mismatch"] {
+  --af-flow-angle: 165deg;
+  border-color: color-mix(
+    in oklab,
+    var(--af-cognition-2) 50%,
+    var(--af-material-edge)
+  );
+  animation: af-unstable-refraction 1800ms ease-in-out 3 forwards;
+}
+
+@keyframes af-pressure-pulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, white 12%, transparent),
+      var(--af-depth-transition);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, white 14%, transparent),
+      0 22px 64px color-mix(in oklab, var(--warning) 22%, transparent);
+  }
+}
+
+@keyframes af-unstable-refraction {
+  0%,
+  100% {
+    --af-flow-angle: 145deg;
+    backdrop-filter: blur(var(--af-blur-command))
+      saturate(var(--af-sat-command));
+  }
+  50% {
+    --af-flow-angle: 175deg;
+    backdrop-filter: blur(var(--af-blur-resolution))
+      saturate(calc(var(--af-sat-command) + 0.04));
+  }
+}
+
+/* Fallback when backdrop filters are unavailable */
+@supports not (backdrop-filter: blur(1px)) {
+  .af-material-shell {
+    background: color-mix(in oklab, var(--card) 94%, var(--background) 6%);
+  }
+
+  .af-material-transition,
+  .af-material-cognition,
+  .af-material:is(
+    [data-lynx="listening"],
+    [data-lynx="resolving"],
+    [data-lynx="high-confidence"]
+  ) {
+    background: color-mix(in oklab, var(--card) 86%, var(--af-cognition-1) 14%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .af-material {
+    transition:
+      background 140ms linear,
+      border-color 140ms linear,
+      box-shadow 140ms linear;
+  }
+
+  .af-material::after {
+    transition: none;
+  }
+
+  .af-material:is([data-lynx="warning"], [data-lynx="mismatch"]) {
+    animation: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Base                                                                       */
 /* -------------------------------------------------------------------------- */
 
 @layer base {
@@ -303,6 +935,7 @@
 
   html {
     @apply font-sans;
+    font-size: var(--app-font-size);
     text-rendering: optimizeLegibility;
     -webkit-text-size-adjust: 100%;
   }
@@ -316,7 +949,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-variant-numeric: tabular-nums;
-    line-height: 1.5;
+    line-height: var(--app-body-line-height);
   }
 
   ::selection {

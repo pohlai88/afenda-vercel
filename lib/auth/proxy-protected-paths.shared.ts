@@ -8,7 +8,6 @@
 
 const PROTECTED_PATH_PREFIXES = [
   "/o",
-  "/onboarding",
   "/account",
   "/operator",
   "/accept-invitation",

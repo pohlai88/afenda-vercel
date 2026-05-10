@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/erp-jobs",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/onething-digest",
+      "schedule": "0 8 * * *"
     }
   ],
   "headers": [
@@ -62,7 +66,7 @@
       ]
     },
     {
-      "source": "/en/onboarding",
+      "source": "/en/console",
       "headers": [
         {
           "key": "Cache-Control",

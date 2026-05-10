@@ -1,5 +1,8 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 
+import { ConsoleTopNavBar } from "#components/console/console-top-nav-bar"
+import { SkipToMain } from "#components/nexus/nexus-skip-to-main"
 import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/route-envelope.shared"
@@ -24,7 +27,8 @@ export default async function ConsoleLayout({
   const locale = ensureAppLocale(localeRaw)
 
   // Tier A — blocking authority for the console route contract (no org required).
-  await requireSignedInSession()
+  const session = await requireSignedInSession()
+  const tConsole = await getTranslations("Console")
 
   const envelope: RouteEnvelope = {
     surface: "console",
@@ -32,6 +36,18 @@ export default async function ConsoleLayout({
   }
 
   return (
-    <RouteEnvelopeProvider value={envelope}>{children}</RouteEnvelopeProvider>
+    <RouteEnvelopeProvider value={envelope}>
+      <div className="flex min-h-svh flex-col bg-background">
+        <SkipToMain label={tConsole("skipToMain")} mainId="console-main" />
+        <ConsoleTopNavBar userEmail={session.user.email} />
+        <main
+          id="console-main"
+          tabIndex={-1}
+          className="flex min-h-0 min-w-0 flex-1 flex-col outline-none"
+        >
+          {children}
+        </main>
+      </div>
+    </RouteEnvelopeProvider>
   )
 }

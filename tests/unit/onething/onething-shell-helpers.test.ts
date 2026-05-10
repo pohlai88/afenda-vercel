@@ -12,7 +12,7 @@ import {
  *
  *   - `pickNextRankedId` — drives `useResolveWithFocusHandoff`. If this
  *     drifts, the operator lands in the empty state when resolving the
- *     last item, which feels psychologically dead. ADR-0001 + 0002.
+ *     last item, which feels psychologically dead. OneThing shell doctrine (see onething-directory rule).
  *   - `splitOneThingDraft` — drives the composer's headline + body
  *     extraction. If this drifts, the body text leaks into the title
  *     (rejected by the schema) or gets dropped silently.

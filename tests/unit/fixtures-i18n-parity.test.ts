@@ -1,0 +1,138 @@
+/**
+ * Deterministic parity: `tests/fixtures/*` ↔ `messages/en.json` and canonical
+ * repo sources (seed script, auth forms, CSV header registry).
+ *
+ * Run alone: `pnpm lint:fixtures-parity`
+ */
+import { readFileSync } from "node:fs"
+import path from "node:path"
+
+import { describe, expect, it } from "vitest"
+
+import { ORG_AUDIT_CSV_HEADER_COLUMNS } from "../../lib/auth/org-audit-csv.shared"
+import en from "../../messages/en.json"
+import { AUTH_PUBLIC_SHELL_COPY } from "../fixtures/auth-public-shell"
+import {
+  BOOTSTRAP_FIXTURE,
+  DEMO_PUBLIC_COPY,
+  DEV_SIGNIN_PRESET_EMAILS,
+  ORG_ADMIN_AUDIT_E2E_COPY,
+  ORG_AUDIT_CSV_HEADER_PROVENANCE_SNIPPET,
+} from "../fixtures/bootstrap-mocks"
+import {
+  CHECK_EMAIL_PAGE_COPY,
+  PERSONAL_ONETHING_COPY,
+  SIGN_UP_PAGE_COPY,
+} from "../fixtures/individual-journey"
+
+const repoRoot = path.join(import.meta.dirname, "../..")
+
+function readRepoFile(relPath: string): string {
+  return readFileSync(path.join(repoRoot, relPath), "utf8")
+}
+
+describe("fixtures ↔ messages/en.json", () => {
+  it("DEMO_PUBLIC_COPY matches Home + Auth email label", () => {
+    expect(DEMO_PUBLIC_COPY.homeHeading).toBe(en.Home.heading)
+    expect(DEMO_PUBLIC_COPY.signInEmailLabel).toBe(en.Auth.labelEmail)
+  })
+
+  it("ORG_ADMIN_AUDIT_E2E_COPY matches OrgAdmin.audit", () => {
+    expect(ORG_ADMIN_AUDIT_E2E_COPY.pageHeading).toBe(en.OrgAdmin.audit.title)
+    expect(ORG_ADMIN_AUDIT_E2E_COPY.originFilterNavAria).toBe(
+      en.OrgAdmin.audit.events.viewAria
+    )
+    expect(ORG_ADMIN_AUDIT_E2E_COPY.viewProduction).toBe(
+      en.OrgAdmin.audit.viewProduction
+    )
+    expect(ORG_ADMIN_AUDIT_E2E_COPY.viewSimulated).toBe(
+      en.OrgAdmin.audit.viewSimulated
+    )
+    expect(ORG_ADMIN_AUDIT_E2E_COPY.viewAll).toBe(en.OrgAdmin.audit.viewAll)
+    expect(ORG_ADMIN_AUDIT_E2E_COPY.tableHeaderOrigin).toBe(
+      en.OrgAdmin.audit.events.headerOrigin
+    )
+  })
+
+  it("PERSONAL_ONETHING_COPY matches Dashboard.OneThing shell + toolbar", () => {
+    expect(PERSONAL_ONETHING_COPY.operationalQueueNav).toBe(
+      en.Dashboard.OneThing.shell.listLabel
+    )
+    expect(PERSONAL_ONETHING_COPY.composerAriaLabel).toBe(
+      en.Dashboard.OneThing.shell.composerPlaceholder
+    )
+    expect(PERSONAL_ONETHING_COPY.captureSubmit).toBe(
+      en.Dashboard.OneThing.shell.composerSubmit
+    )
+    expect(PERSONAL_ONETHING_COPY.resolve).toBe(en.Dashboard.OneThing.toolbar.resolve)
+  })
+
+  it("AUTH_PUBLIC_SHELL_COPY Auth-derived keys match Auth.*", () => {
+    expect(AUTH_PUBLIC_SHELL_COPY.signInTabSignUp).toBe(en.Auth.tabSignUp)
+    expect(AUTH_PUBLIC_SHELL_COPY.signUpNameLabel).toBe(en.Auth.labelName)
+  })
+})
+
+describe("fixtures ↔ repo sources (substring scan)", () => {
+  it("ORG_AUDIT_CSV provenance snippet matches org-audit-csv header tail", () => {
+    const tail = ORG_AUDIT_CSV_HEADER_COLUMNS.slice(-5).join(",")
+    expect(ORG_AUDIT_CSV_HEADER_PROVENANCE_SNIPPET).toBe(tail)
+  })
+
+  it("SIGN_UP_PAGE_COPY appears in sign-up-form.tsx", () => {
+    const src = readRepoFile("app/[locale]/(auth)/sign-up/sign-up-form.tsx")
+    for (const v of Object.values(SIGN_UP_PAGE_COPY)) {
+      expect(src).toContain(v)
+    }
+  })
+
+  it("CHECK_EMAIL_PAGE_COPY appears in check-email page", () => {
+    const src = readRepoFile("app/[locale]/(auth)/check-email/page.tsx")
+    for (const v of Object.values(CHECK_EMAIL_PAGE_COPY)) {
+      expect(src).toContain(v)
+    }
+  })
+
+  it("AUTH_PUBLIC_SHELL_COPY appears in auth route forms", () => {
+    const forgot = readRepoFile(
+      "app/[locale]/(auth)/forgot-password/forgot-password-form.tsx"
+    )
+    const reset = readRepoFile(
+      "app/[locale]/(auth)/reset-password/reset-password-form.tsx"
+    )
+    const verify = readRepoFile(
+      "app/[locale]/(auth)/verify-email/verify-email-form.tsx"
+    )
+    expect(forgot).toContain(AUTH_PUBLIC_SHELL_COPY.forgotPasswordTitle)
+    expect(forgot).toContain(AUTH_PUBLIC_SHELL_COPY.forgotPasswordSend)
+    expect(forgot).toContain(AUTH_PUBLIC_SHELL_COPY.forgotPasswordBackToSignIn)
+    expect(reset).toContain(AUTH_PUBLIC_SHELL_COPY.resetPasswordTitle)
+    expect(reset).toContain(AUTH_PUBLIC_SHELL_COPY.resetPasswordSubmit)
+    expect(reset).toContain(AUTH_PUBLIC_SHELL_COPY.resetMissingTokenAlert)
+    expect(verify).toContain(AUTH_PUBLIC_SHELL_COPY.verifyEmailHeading)
+    expect(verify).toContain(AUTH_PUBLIC_SHELL_COPY.verifyEmailSubmit)
+  })
+
+  it("seed-dev-users.mjs stays aligned with BOOTSTRAP_FIXTURE org + preset emails", () => {
+    const seed = readRepoFile("scripts/seed-dev-users.mjs")
+    expect(seed).toContain(BOOTSTRAP_FIXTURE.organization.id)
+    expect(seed).toContain(BOOTSTRAP_FIXTURE.organization.name)
+    expect(seed).toContain(BOOTSTRAP_FIXTURE.organization.slug)
+    expect(seed).toContain(DEV_SIGNIN_PRESET_EMAILS.owner)
+    expect(seed).toContain(DEV_SIGNIN_PRESET_EMAILS.erp)
+    // Member `userId`s in BOOTSTRAP_FIXTURE are deterministic for Vitest/Playwright;
+    // the seed script assigns Neon Auth user ids at runtime.
+    for (const m of BOOTSTRAP_FIXTURE.members) {
+      expect(seed).toContain(m.name)
+      expect(seed).toContain(m.email)
+    }
+  })
+
+  it("dev-signin-panel.tsx stays aligned with demo org + preset emails", () => {
+    const panel = readRepoFile("components/dev/dev-signin-panel.tsx")
+    expect(panel).toContain(BOOTSTRAP_FIXTURE.organization.id)
+    expect(panel).toContain(BOOTSTRAP_FIXTURE.organization.slug)
+    expect(panel).toContain(DEV_SIGNIN_PRESET_EMAILS.owner)
+    expect(panel).toContain(DEV_SIGNIN_PRESET_EMAILS.erp)
+  })
+})

@@ -33,6 +33,8 @@ describe("landing cookie consent preview", () => {
     expect(component).toContain("localStorage.setItem")
     expect(component).toContain('persistChoice("accepted")')
     expect(component).toContain('persistChoice("rejected")')
+    expect(component).toContain("useSyncExternalStore")
+    expect(component).toContain("getServerSnapshot")
   })
 
   it("ships home copy for a live essential-only cookie bar", () => {

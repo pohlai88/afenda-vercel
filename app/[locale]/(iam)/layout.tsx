@@ -8,7 +8,7 @@ import type { RouteEnvelope } from "#lib/route-envelope.shared"
 
 /**
  * Route group layout (`(iam)` is invisible in URLs): shared **private-surface** robots for
- * account and onboarding — nested layouts/pages supply `title` / `openGraph`.
+ * account — nested layouts/pages supply `title` / `openGraph`.
  */
 export async function generateMetadata({
   params: _params,

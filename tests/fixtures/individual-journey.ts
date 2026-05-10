@@ -17,10 +17,19 @@ export const CHECK_EMAIL_PAGE_COPY = {
   verifyCta: "Enter verification code",
 } as const
 
-/** Keys under `Dashboard.OneThing` in `messages/en.json` — keep aligned for assertions. */
+/**
+ * Personal OneThing (`/account/onething`) — strings from `Dashboard.OneThing` in
+ * `messages/en.json` (`shell.*`, `toolbar.resolve`). Not a separate page title;
+ * the queue is a `nav` landmark.
+ */
 export const PERSONAL_ONETHING_COPY = {
-  pageTitle: "Personal tasks",
-  addSection: "Add task",
-  titleLabel: "Title",
-  markComplete: "Mark complete",
+  /** `Dashboard.OneThing.shell.listLabel` */
+  operationalQueueNav: "Operational queue",
+  /** `Dashboard.OneThing.shell.composerPlaceholder` (composer `aria-label`) */
+  composerAriaLabel:
+    'Capture the situation. (e.g. "Vendor payment blocked for three organizations")',
+  /** `Dashboard.OneThing.shell.composerSubmit` */
+  captureSubmit: "Capture",
+  /** `Dashboard.OneThing.toolbar.resolve` — fast-resolve when severity is low */
+  resolve: "Resolve",
 } as const

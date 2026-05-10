@@ -4,6 +4,7 @@ import type { Route } from "next"
 export type OrgAdminCapabilityId =
   | "identity"
   | "governance"
+  | "feedback"
   | "integrations"
   | "organization"
   | "operations"
@@ -32,7 +33,12 @@ export type OrgAdminCapability = {
 }
 
 /** Concrete nav keys present in `OrgAdmin.nav.*` (excludes overview/aria). */
-export type OrgAdminNavKey = "members" | "audit" | "integrations" | "settings"
+export type OrgAdminNavKey =
+  | "members"
+  | "audit"
+  | "feedback"
+  | "integrations"
+  | "settings"
 
 export type OrgAdminNavItem = {
   readonly capabilityId: OrgAdminCapabilityId

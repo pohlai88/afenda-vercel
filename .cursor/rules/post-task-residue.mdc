@@ -1,0 +1,119 @@
+---
+description: After any plan or task completes, sweep for remaining work and residue. No tech debt left behind.
+alwaysApply: true
+---
+
+# Post-Task Residue Sweep
+
+Every completed task or phase **must** pass a residue sweep before being declared done.
+
+## Verification tier (always respect cost)
+
+**Do not reach for a higher-cost tier to answer a lower-cost question.**
+See `verify-pipeline.mdc` for the full tier ladder.
+
+| When | Command | Cost |
+|---|---|---|
+| After every task (non-negotiable) | `pnpm typecheck && pnpm lint` | ~30s warm |
+| Before push / PR | `pnpm verify:parallel` | ~2–3 min |
+| Pre-merge only | `pnpm verify` (includes knip) | ~4–5 min |
+
+**Never run `pnpm knip` after individual task completions.** Knip is a full static graph walk — it belongs at the pre-push Tier 2 gate, not as a per-task tool. Use `pnpm lint` for fast import and boundary checks after each task.
+
+---
+
+## Residue checklist (per task)
+
+### 1. Deleted routes and redirects
+- Any redirect targeting a deleted route → update it now.
+- Any Server Action that `redirect()`s to a removed page → fix before declaring done.
+
+```ts
+// ❌ redirect to deleted route
+redirect(toLocalePath(locale, `/o/${slug}/dashboard`))
+
+// ✅ correct target after route deletion
+redirect(toLocalePath(locale, `/o/${slug}`))
+```
+
+### 2. Stale phase comments
+- `// Phase N will do this` where Phase N **is already done** → delete the comment, do the thing.
+- `// TODO: replace with real data` where data was wired → delete.
+- `// stub` with no named future phase → delete or implement.
+
+```tsx
+// ❌ stale after Phase 2 ships
+// Phase 2 will wire real data here
+const pressure: OperationalPressureItem[] = []
+
+// ✅ named reservation that still applies
+// Reserved for Phase 4: personalized operational launcher.
+export function NexusDock() { return null }
+```
+
+### 3. Barrel hygiene
+- Deleted symbol → remove from all barrels (`index.ts`, `server.ts`, `client.ts`).
+- New symbol used only internally → do not export from the module barrel.
+- Cross-module deep import added "temporarily" → resolve before closing the task.
+
+### 4. Dead imports
+- After moving or deleting a component, scan all import sites.
+- `pnpm lint` catches ESLint-level unused imports immediately.
+
+### 5. Message catalog parity
+- New i18n key used in a component → must exist in `messages/en.json`.
+- Key removed from all components → remove from catalog (or confirm another component still uses it).
+
+### 6. Generated / ephemeral paths
+- `.next/types/**` — never import manually; Next.js generates these.
+
+---
+
+## Fast gate (run after every task — ~30s)
+
+```bash
+pnpm typecheck
+pnpm lint
+```
+
+Both must exit 0. No exceptions. This is the non-negotiable close condition.
+
+---
+
+## Pre-push gate (run before opening a PR — ~3 min)
+
+```bash
+pnpm verify:parallel
+```
+
+This includes knip, format check, all typechecks, and behavior tests. Run it once before pushing, not after every file edit.
+
+---
+
+## Nexus migration specifics
+
+After any Nexus phase work:
+
+- `organizationDashboardPath(slug, "home")` resolves to Nexus root `/o/${slug}`.
+- `switchActiveOrgAction` redirect goes to `/o/${slug}`, not `/o/${slug}/dashboard`.
+- Shell chrome extends **`components/nexus/`** only (legacy `components/dashboard-shell/` removed).
+
+```powershell
+# Phantom typecheck errors after a route deletion? Clear Next.js type cache:
+Remove-Item -Recurse -Force .next\types -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force .next\dev -ErrorAction SilentlyContinue
+pnpm typecheck
+```
+
+---
+
+## Close condition
+
+```txt
+Task is closed only when:
+  pnpm typecheck → exits 0
+  pnpm lint      → exits 0 (zero errors, zero warnings)
+  No import targets a file that does not exist on disk
+  No redirect targets a deleted route
+  All stale "Phase N" comments are resolved or renamed to a future phase
+```

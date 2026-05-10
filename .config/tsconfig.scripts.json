@@ -1,0 +1,13 @@
+{
+  // Type-checks scripts/ in isolation so seed/AI-gateway scripts and their deps
+  // stay out of the main compile graph. Run with: pnpm typecheck:scripts
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    // Separate incremental cache — warm on repeated typecheck:scripts runs without
+    // invalidating the main tsconfig.tsbuildinfo cache.
+    "tsBuildInfoFile": "../.artifacts/.tsbuildinfo/scripts",
+    "noEmit": true
+  },
+  "include": ["../scripts/**/*.ts", "drizzle.config.ts"],
+  "exclude": ["../node_modules"]
+}

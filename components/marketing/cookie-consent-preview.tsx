@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useSyncExternalStore } from "react"
 import type { Route } from "next"
 
 import { Button } from "#components/ui/button"
@@ -25,6 +25,33 @@ type CookieConsentPreviewProps = {
   readonly stateHintLabel: string
 }
 
+const sameTabListeners = new Set<() => void>()
+
+function emitCookieConsentChoiceChanged() {
+  for (const listener of sameTabListeners) {
+    listener()
+  }
+}
+
+function subscribe(onStoreChange: () => void) {
+  sameTabListeners.add(onStoreChange)
+  if (typeof window === "undefined") {
+    return () => {
+      sameTabListeners.delete(onStoreChange)
+    }
+  }
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === COOKIE_CONSENT_STORAGE_KEY || event.key === null) {
+      onStoreChange()
+    }
+  }
+  window.addEventListener("storage", onStorage)
+  return () => {
+    sameTabListeners.delete(onStoreChange)
+    window.removeEventListener("storage", onStorage)
+  }
+}
+
 function readStoredCookieConsentChoice(): CookieConsentChoice | null {
   try {
     const stored = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY)
@@ -39,6 +66,16 @@ function readStoredCookieConsentChoice(): CookieConsentChoice | null {
   return null
 }
 
+function getSnapshot(): CookieConsentChoice | null {
+  return readStoredCookieConsentChoice()
+}
+
+function getServerSnapshot(): CookieConsentChoice | null {
+  // Must match SSR output: localStorage is unavailable on the server, so we
+  // always render the banner until the client re-reads after hydration.
+  return null
+}
+
 export function CookieConsentPreview({
   eyebrow,
   title,
@@ -47,18 +84,19 @@ export function CookieConsentPreview({
   rejectLabel,
   manageLabel,
 }: CookieConsentPreviewProps) {
-  const [choice, setChoice] = useState<CookieConsentChoice | null>(
-    readStoredCookieConsentChoice
+  const choice = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
   )
 
   function persistChoice(nextChoice: CookieConsentChoice) {
-    setChoice(nextChoice)
-
     try {
       window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, nextChoice)
     } catch {
       // Keep consent UI usable when storage is unavailable.
     }
+    emitCookieConsentChoiceChanged()
   }
 
   if (choice !== null) {

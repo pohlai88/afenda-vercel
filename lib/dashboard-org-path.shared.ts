@@ -7,6 +7,7 @@ import type { AppPath } from "#lib/i18n/locales.shared"
 export const ORG_ADMIN_PATH_SEGMENTS = new Set([
   "members",
   "audit",
+  "feedback",
   "settings",
   "integrations",
 ])
@@ -18,7 +19,6 @@ function isAllowedForwardedOrgAdminSegment(segment: string): boolean {
 /** Single-segment ERP modules under `/o/{slug}/dashboard/{module}`. */
 export const ORG_DASHBOARD_MODULES = [
   "contacts",
-  "onething",
   "ithink",
   "knowledge",
   "lynx",
@@ -38,14 +38,14 @@ const MODULE_SET = new Set<string>(ORG_DASHBOARD_MODULES)
  */
 export function sanitizePathAfterOrgSlug(tailFromO: string): AppPath {
   if (!tailFromO || tailFromO === "") {
-    return "/dashboard" as AppPath
+    return "/nexus" as AppPath
   }
   if (
     tailFromO.includes("..") ||
     tailFromO.includes("//") ||
     tailFromO.includes("\\")
   ) {
-    return "/dashboard" as AppPath
+    return "/nexus" as AppPath
   }
   const parts = tailFromO.split("/").filter(Boolean)
   if (parts.length >= 1 && parts[0] === "admin") {
@@ -55,10 +55,13 @@ export function sanitizePathAfterOrgSlug(tailFromO: string): AppPath {
     if (parts.length === 2 && isAllowedForwardedOrgAdminSegment(parts[1])) {
       return `/admin/${parts[1]}` as AppPath
     }
-    return "/dashboard" as AppPath
+    return "/nexus" as AppPath
+  }
+  if (parts.length >= 1 && parts[0] === "nexus") {
+    return "/nexus" as AppPath
   }
   if (!tailFromO.startsWith("/dashboard")) {
-    return "/dashboard" as AppPath
+    return "/nexus" as AppPath
   }
   if (parts.length < 1 || parts[0] !== "dashboard") {
     return "/dashboard" as AppPath

@@ -43,7 +43,7 @@ alwaysApply: true
 
 ## Auth/IAM route groups
 
-- Locale-first routes under `app/[locale]/(auth)/**` (auth flows: sign-in, sign-up, verify-email, forgot/reset password, accept-invitation) and `app/[locale]/(iam)/**` (identity/security/org management: account, onboarding).
+- Locale-first routes under `app/[locale]/(auth)/**` (auth flows: sign-in, sign-up, verify-email, forgot/reset password, accept-invitation) and `app/[locale]/(iam)/**` (identity/security/org management: account). Post-login org bootstrap lives under **`/{locale}/console`** (`app/[locale]/console/**`), not a dedicated `(iam)/onboarding` route — see **`docs/decisions/0003-post-login-loading-bay-nexus.md`**.
 - Both route groups import **`#lib/auth`** (server) and **`#lib/auth-client`** (client) directly — no intermediary barrel.
 - Auth/account shell session guards: **`requireAuthShellSignedInSession`**, **`requireAuthShellOrgSession`**, **`requireAuthShellGlobalAdminSession`** from **`#lib/auth`** (`lib/auth/auth-shell-session.server.ts`).
 - Neon webhook receiver: `app/api/integrations/neon-auth-webhooks/route.ts` — verify with **`verifyNeonAuthWebhookSignature`** from **`#lib/auth`**.

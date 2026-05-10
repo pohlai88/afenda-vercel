@@ -16,6 +16,7 @@ import {
 import {
   toLocaleOrgAdminRevalidatePattern,
   toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgNexusRevalidatePattern,
 } from "#lib/i18n/locales.shared"
 import { requireOrgSession, requireSignedInSession } from "#lib/tenant"
 
@@ -146,6 +147,7 @@ export type UpdateOrganizationSlugState =
 function revalidateOrgRoutes() {
   revalidatePath(toLocaleOrgAdminRevalidatePattern(""), "layout")
   revalidatePath(toLocaleOrgDashboardRevalidatePattern(""), "layout")
+  revalidatePath(toLocaleOrgNexusRevalidatePattern(), "page")
 }
 
 async function requireOrgAdminActionSession() {

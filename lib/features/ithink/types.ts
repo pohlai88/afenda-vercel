@@ -7,11 +7,11 @@ export type IThinkListRow = OneThingListRow
 
 /**
  * Row shape for iThink queries — includes `parentOneThingId` omitted from OneThing's
- * default SELECT (ADR-0004a).
+ * default SELECT (ADR-0002).
  */
 export type IThinkRow = OneThingRow & { parentOneThingId: string | null }
 
-/** Phase 1 placeholder — Inbox · Today · Scheduled ship in ADR-0004a Phase 3+. */
+/** Phase 1 placeholder — Inbox · Today · Scheduled per ADR-0002 §5. */
 export type IThinkViewId = "inbox" | "today" | "scheduled"
 
 export type CreateIThinkFormState =
@@ -25,7 +25,7 @@ export type CreateIThinkFormState =
       }
     }
 
-/** NL quick-capture tokens stripped from title before submit (ADR-0004a Phase 2). */
+/** NL quick-capture tokens stripped from title before submit (ADR-0002 §4.2). */
 export type IThinkDraftParsed = {
   cleanTitle: string
   severity: "low" | "medium" | "high" | "critical" | null

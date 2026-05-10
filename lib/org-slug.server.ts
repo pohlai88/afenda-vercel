@@ -26,6 +26,17 @@ export async function getOrganizationSlugById(
   return row?.slug ?? null
 }
 
+export async function getOrganizationNameById(
+  organizationId: string
+): Promise<string | null> {
+  const [row] = await db
+    .select({ name: neonAuthOrganization.name })
+    .from(neonAuthOrganization)
+    .where(eq(neonAuthOrganization.id, organizationId))
+    .limit(1)
+  return row?.name ?? null
+}
+
 export async function getOrganizationIdBySlug(
   slug: string
 ): Promise<string | null> {

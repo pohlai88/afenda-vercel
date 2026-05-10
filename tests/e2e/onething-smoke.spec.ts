@@ -56,11 +56,11 @@ async function signIn(page: Page) {
   await page.getByLabel("Password", { exact: true }).fill(orgAdminPassword!)
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
-  await page.waitForURL(/\/en\/(onboarding|account|o)/, { timeout: 30_000 })
+  await page.waitForURL(/\/en\/(console|account|o)/, { timeout: 30_000 })
 }
 
 async function gotoOneThingDashboard(page: Page, slug: string): Promise<void> {
-  await page.goto(`/en/o/${slug}/dashboard/onething`)
+  await page.goto(`/en/o/${slug}/dashboard/ithink`)
   await expect(
     page.getByRole("navigation", { name: "Operational queue" })
   ).toBeVisible({ timeout: 15_000 })
@@ -98,7 +98,7 @@ test.describe("OneThing morph (operational document computing)", () => {
       const slug = await resolveOrgSlug(page)
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish onboarding."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
       )
 
       const title = `e2e-row-anatomy-${Date.now()}`
@@ -133,7 +133,7 @@ test.describe("OneThing morph (operational document computing)", () => {
       const slug = await resolveOrgSlug(page)
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish onboarding."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
       )
 
       const headline = `e2e-headline-${Date.now()}`
@@ -168,7 +168,7 @@ test.describe("OneThing morph (operational document computing)", () => {
       const slug = await resolveOrgSlug(page)
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish onboarding."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
       )
 
       const draft = `e2e-draft-survives-${Date.now()}`
@@ -198,7 +198,7 @@ test.describe("OneThing morph (operational document computing)", () => {
       const slug = await resolveOrgSlug(page)
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish onboarding."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
       )
 
       // Seed two captures so the queue has items to step through.
@@ -239,7 +239,7 @@ test.describe("OneThing morph (operational document computing)", () => {
       const slug = await resolveOrgSlug(page)
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish onboarding."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
       )
 
       const title = `e2e-audit-${Date.now()}`

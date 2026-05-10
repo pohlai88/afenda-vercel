@@ -5,11 +5,8 @@
     "loadingSignUp": "Loading sign-up…",
     "loadingResetPassword": "Loading reset password…",
     "loadingInvitation": "Loading invitation…",
-    "loadingOnboarding": "Loading workspace setup…",
+    "loadingConsole": "Loading console…",
     "loadingUsers": "Loading users…"
-  },
-  "Onboarding": {
-    "slugRules": "Lowercase letters, numbers, hyphens, and underscores. Leave blank to derive from the organization name."
   },
   "Home": {
     "heading": "Project ready!",
@@ -18,7 +15,7 @@
     "themeHintBefore": "Theme: menu (top right) or press",
     "themeHintAfter": "to flip light/dark.",
     "ctaSignIn": "Sign in",
-    "ctaDashboard": "Dashboard",
+    "ctaDashboard": "Open Nexus",
     "demoButton": "Button",
     "cookieConsent": {
       "eyebrow": "Cookie consent",
@@ -159,6 +156,32 @@
       "sidebarToggle": "Toggle navigation",
       "expandSidebar": "Expand sidebar",
       "collapseSidebar": "Collapse sidebar",
+      "navPanel": {
+        "brandHome": "Go to dashboard home",
+        "open": "Open dashboard navigation",
+        "title": "Workspace navigation",
+        "description": "Move through modules and governance surfaces without leaving the current workspace.",
+        "openModule": "Open module",
+        "openSection": "Open section"
+      },
+      "controlMenu": {
+        "trigger": "Open control menu",
+        "triggerTooltip": "Account and workspace — open personal settings, information, security, switch organization, open admin, customize the utility bar, or sign out.",
+        "triggerShort": "Control",
+        "utilities": "Utilities",
+        "detailsOpen": "Open details panel",
+        "detailsClose": "Close details panel",
+        "home": "Home",
+        "admin": "Admin workbench",
+        "account": "Personal settings",
+        "information": "Information",
+        "switchOrg": "Switch organization",
+        "organizations": "Organizations",
+        "current": "Current",
+        "security": "Security",
+        "signOut": "Sign out",
+        "customizeUtilityBar": "Customize utility bar"
+      },
       "orgSwitcher": {
         "trigger": "Switch organization",
         "search": "Search organizations…",
@@ -169,6 +192,180 @@
         "toggleDetails": "Details panel",
         "toggleAriaOpen": "Close details panel",
         "toggleAriaClosed": "Open details panel"
+      },
+      "utilityBar": {
+        "help": "Help",
+        "helpTooltip": "Help and product overview",
+        "insight": "Lynx",
+        "insightTooltip": "Open Lynx · Truth retrieval",
+        "integrationsTooltip": "Open external integrations",
+        "settingsTooltip": "Organization settings",
+        "console": "Organizations",
+        "consoleTooltip": "Open organization loading bay",
+        "search": "Search",
+        "searchTooltip": "Search · ⌘K",
+        "quickCreate": "Quick create",
+        "quickCreateTooltip": "Quick create · C",
+        "notifications": "Notifications",
+        "notificationsTitle": "Notifications",
+        "notificationsTooltip": "Open notifications",
+        "notificationsCount": "{count, plural, one {# item needs attention} other {# items need attention}}",
+        "notificationsViewAll": "View all in Nexus",
+        "notificationsEmpty": "You're all caught up.",
+        "connectivity": {
+          "trigger": "Connectivity",
+          "tooltipOnline": "Online",
+          "tooltipOffline": "Offline",
+          "title": "Connectivity",
+          "status": "Status",
+          "statusOnline": "Online",
+          "statusOffline": "Offline",
+          "effectiveType": "Effective type",
+          "downlink": "Downlink",
+          "rtt": "Round-trip time",
+          "saveData": "Data saver",
+          "on": "On",
+          "off": "Off"
+        },
+        "diagnosis": {
+          "trigger": "Network diagnosis",
+          "tooltip": "Run a real network diagnosis",
+          "title": "Network diagnosis",
+          "description": "Live browser-to-origin probe against this workspace.",
+          "browserStatus": "Browser status",
+          "online": "Online",
+          "offline": "Offline",
+          "effectiveType": "Effective type",
+          "idle": "Open this utility to run a live connectivity check.",
+          "pending": "Running a live probe…",
+          "httpStatus": "HTTP status",
+          "latency": "Latency",
+          "lastChecked": "Last checked",
+          "run": "Run again",
+          "errorOffline": "Browser is offline. Restore connectivity and try again.",
+          "errorGeneric": "The live probe failed."
+        },
+        "feedback": {
+          "trigger": "Share feedback",
+          "tooltip": "Send product feedback",
+          "title": "Share feedback",
+          "description": "Tell the Afenda team what you noticed.",
+          "categoryLabel": "What kind?",
+          "category": {
+            "idea": "Idea",
+            "bug": "Bug",
+            "praise": "Praise",
+            "other": "Other"
+          },
+          "severityLabel": "How urgent?",
+          "severity": {
+            "low": "Low",
+            "normal": "Normal",
+            "high": "High"
+          },
+          "messageLabel": "Details",
+          "messagePlaceholder": "What did you notice? Steps to reproduce help.",
+          "messageCounter": "{count}/{max}",
+          "submit": "Send feedback",
+          "submitting": "Sending…",
+          "success": "Thanks. Logged for the team.",
+          "sendAnother": "Send another",
+          "errorCategory": "Pick a category.",
+          "errorSeverity": "Pick a severity.",
+          "errorMin": "At least 5 characters.",
+          "errorMax": "Up to 2000 characters.",
+          "errorGeneric": "Couldn't send. Try again."
+        },
+        "shortcuts": "Keyboard shortcuts",
+        "shortcutsTitle": "Keyboard shortcuts",
+        "shortcutsTooltip": "Open keyboard shortcut reference",
+        "theme": {
+          "trigger": "Appearance",
+          "tooltip": "Theme · Light, dark, or system",
+          "light": "Light",
+          "dark": "Dark",
+          "system": "System"
+        },
+        "density": {
+          "trigger": "Layout density",
+          "tooltip": "Layout density",
+          "comfortable": "Comfortable",
+          "compact": "Compact",
+          "relaxed": "Relaxed"
+        },
+        "locale": {
+          "trigger": "Language",
+          "tooltip": "Interface language",
+          "option": {
+            "en": "English"
+          }
+        },
+        "storage": {
+          "trigger": "Storage",
+          "tooltip": "Inspect browser storage",
+          "title": "Browser storage",
+          "description": "Current browser storage availability and Afenda-facing keys on this device.",
+          "localStorage": "Local storage",
+          "sessionStorage": "Session storage",
+          "cookies": "Cookies",
+          "available": "Available",
+          "blocked": "Blocked",
+          "enabled": "Enabled",
+          "disabled": "Disabled",
+          "localKeys": "Local keys",
+          "sessionKeys": "Session keys",
+          "empty": "No app-facing keys detected."
+        },
+        "customize": {
+          "title": "Utility bar",
+          "description": "Show or hide controls on the right rail. Left rail (workspace navigation) and identity menu always stay visible.",
+          "sectionRight": "Right rail",
+          "reset": "Reset to defaults"
+        },
+        "widgets": {
+          "left": {},
+          "right": {
+            "console": "Organization loading bay",
+            "quickCreate": "Quick create",
+            "notifications": "Attention",
+            "connectivity": "Online / offline",
+            "diagnosis": "Diagnosis",
+            "searchMobile": "Search (small screens)",
+            "shortcuts": "Keyboard shortcuts",
+            "help": "Help",
+            "theme": "Theme",
+            "density": "Layout density",
+            "locale": "Language",
+            "messenger": "Messenger",
+            "feedback": "Feedback",
+            "screenshot": "Screenshot",
+            "upload": "Upload",
+            "storage": "Storage",
+            "insight": "Lynx",
+            "integrations": "External integrations",
+            "settings": "Organization settings"
+          }
+        },
+        "placeholders": {
+          "messenger": {
+            "trigger": "Messenger",
+            "tooltip": "Messenger — reserved slot",
+            "title": "Messenger",
+            "body": "Reserved for org conversations — wiring comes next."
+          },
+          "screenshot": {
+            "trigger": "Screenshot",
+            "tooltip": "Screenshot capture — reserved slot",
+            "title": "Screenshot",
+            "body": "Capture the viewport — implementation pending."
+          },
+          "upload": {
+            "trigger": "Upload",
+            "tooltip": "Quick upload — reserved slot",
+            "title": "Upload",
+            "body": "Quick upload to evidence — hook into Blob upload next."
+          }
+        }
       }
     },
     "commandPalette": {
@@ -192,7 +389,6 @@
     "nav": {
       "label": "Dashboard modules",
       "contacts": "Contacts",
-      "onething": "OneThing",
       "ithink": "iThink",
       "lynx": "Lynx",
       "knowledge": "Knowledge",
@@ -450,6 +646,7 @@
     },
     "LynxSummon": {
       "triggerAria": "Summon Lynx",
+      "triggerAriaGrounded": "Summon Lynx — grounded on {title}",
       "dragHint": "Drag to move",
       "closeAria": "Close Lynx",
       "eyebrow": "The Machine",
@@ -545,6 +742,7 @@
       "overview": "Overview",
       "members": "Members",
       "audit": "Audit log",
+      "feedback": "Feedback inbox",
       "settings": "Settings",
       "integrations": "Integrations"
     },
@@ -604,6 +802,46 @@
         "previous": "Previous",
         "next": "Next",
         "noValue": "—"
+      }
+    },
+    "feedback": {
+      "title": "Operator feedback",
+      "description": "Submissions from the utility bar in your workspace. Acknowledge, resolve, or reject each item.",
+      "filterAria": "Feedback status filter",
+      "viewAll": "All",
+      "viewNew": "New",
+      "viewAcknowledged": "Acknowledged",
+      "viewResolved": "Resolved",
+      "viewRejected": "Rejected",
+      "empty": "No feedback submissions for this filter.",
+      "headerWhen": "When",
+      "headerActor": "Submitted by",
+      "headerCategory": "Category",
+      "headerSeverity": "Severity",
+      "headerState": "State",
+      "headerMessage": "Message",
+      "headerActions": "Actions",
+      "timestampSuffix": "UTC",
+      "showingShort": "Showing {shown} of {total, plural, one {# item} other {# items}}",
+      "pageOf": "page {page} of {totalPages}",
+      "previous": "Previous",
+      "next": "Next",
+      "backToWorkbench": "← Back to admin overview",
+      "actions": {
+        "acknowledge": "Acknowledge",
+        "resolve": "Resolve",
+        "reject": "Reject",
+        "pending": "…",
+        "noteOptional": "Resolution note (optional)",
+        "terminalResolved": "Resolved",
+        "terminalRejected": "Rejected",
+        "error": {
+          "errorUnauthorized": "You need admin access.",
+          "errorNotFound": "That feedback entry is missing or was removed.",
+          "errorInvalidTransition": "That action is not allowed for the current state.",
+          "errorGeneric": "Something went wrong. Try again.",
+          "errorValidation": "Check the form and try again."
+        }
       }
     },
     "client": {
@@ -828,9 +1066,109 @@
     }
   },
   "Console": {
+    "skipToMain": "Skip to console content",
+    "topNav": {
+      "brandHome": "Go to home",
+      "surfaceLabel": "Console",
+      "menuTrigger": "Open account menu",
+      "menuTriggerTooltip": "Account — open personal settings, information, security, or sign out.",
+      "account": "Account",
+      "information": "Information",
+      "security": "Security",
+      "signOut": "Sign out"
+    },
     "subtitle": "Select a workspace to continue.",
+    "subtitleNoOrgs": "Create your first workspace or accept an invitation to continue.",
     "orgsLabel": "Your organizations",
     "noOrgs": "You are not a member of any organization yet.",
-    "open": "Open"
+    "open": "Open",
+    "bootstrap": {
+      "invites": {
+        "title": "Pending invitations",
+        "subtitle": "You were invited to join an organization. Accept on the next step (you must be signed in as {email}).",
+        "expires": "Expires {date}",
+        "review": "Review invitation"
+      },
+      "form": {
+        "title": "Create your organization",
+        "description": "Multi-tenant ERP — this becomes your active organization. You will land on the Nexus operational field after creation.",
+        "orgNameLabel": "Organization name",
+        "slugLabel": "URL slug",
+        "slugPlaceholder": "acme-corp",
+        "slugRules": "Lowercase letters, numbers, hyphens, and underscores. Leave blank to derive from the organization name.",
+        "errorTitle": "Something went wrong",
+        "createFailed": "Could not create organization",
+        "submit": "Continue to Nexus",
+        "submitPending": "Creating…",
+        "backHome": "Back to home"
+      }
+    }
+  },
+  "IThink": {
+    "module": "iThink",
+    "addPlaceholder": "Add task…",
+    "emptyState": "No active tasks. Press Q or tap + to capture.",
+    "detail": {
+      "title": "Title",
+      "consequence": "Consequence",
+      "consequencePlaceholder": "Describe what happens if this is ignored…",
+      "state": "State",
+      "severity": "Severity",
+      "due": "Due",
+      "created": "Created",
+      "resolutionNote": "Resolution note"
+    },
+    "toolbar": {
+      "complete": "Complete",
+      "snooze1h": "Snooze 1 h",
+      "reopen": "Reopen",
+      "delete": "Delete",
+      "resolve": "Resolve",
+      "deprecate": "Deprecate"
+    },
+    "states": {
+      "detected": "Detected",
+      "owned": "Owned",
+      "blocked": "Blocked",
+      "resolving": "Resolving",
+      "ready_to_release": "Ready to release",
+      "released": "Released",
+      "resolved": "Resolved",
+      "deprecated": "Deprecated"
+    },
+    "severities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "comments": {
+      "title": "Comments",
+      "empty": "No comments yet.",
+      "placeholder": "Add a comment…",
+      "post": "Post",
+      "permalink": "Open the task permalink to view comments."
+    },
+    "attachments": {
+      "title": "Attachments",
+      "empty": "No attachments yet.",
+      "uploadHint": "Upload via the API after obtaining a Blob upload URL.",
+      "permalink": "Open the task permalink to view attachments."
+    },
+    "subtasks": {
+      "title": "Sub-tasks",
+      "empty": "No sub-tasks yet.",
+      "placeholder": "Add sub-task…",
+      "add": "Add",
+      "permalink": "Open the task permalink to view sub-tasks."
+    },
+    "sidebar": {
+      "inbox": "Inbox",
+      "today": "Today",
+      "scheduled": "Scheduled",
+      "projects": "Projects",
+      "newList": "+ New list",
+      "newListPlaceholder": "List name…"
+    }
   }
 }

@@ -20,13 +20,15 @@ import {
 
 describe("design-system contract", () => {
   it("keeps one density contract for keys, schema, parser, and gap aliases", () => {
-    expect(uiDensityKeys).toEqual(["compact", "comfortable"])
+    expect(uiDensityKeys).toEqual(["compact", "comfortable", "relaxed"])
     expect(uiDensitySchema.parse("compact")).toBe("compact")
     expect(parseUiDensity("comfortable")).toBe("comfortable")
+    expect(parseUiDensity("relaxed")).toBe("relaxed")
     expect(() => parseUiDensity("roomy")).toThrow()
     expect(ui.gap).toEqual({
       compact: uiDensity.compact,
       comfortable: uiDensity.comfortable,
+      relaxed: uiDensity.relaxed,
     })
   })
 

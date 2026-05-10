@@ -31,6 +31,12 @@ export const ORG_ADMIN_CAPABILITIES = [
     nav: { navKey: "audit", order: 20, primarySegment: "audit" },
   },
   {
+    id: "feedback",
+    segments: ["feedback"] as const,
+    auditPrefix: "org.feedback",
+    nav: { navKey: "feedback", order: 25, primarySegment: "feedback" },
+  },
+  {
     id: "integrations",
     segments: ["integrations"] as const,
     auditPrefix: "org.integration",

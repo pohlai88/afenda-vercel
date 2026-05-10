@@ -1,45 +1,46 @@
 ---
-description: App shell (dashboard chrome) is operational infrastructure — not feature UI
-globs: components/dashboard/**
+description: Nexus runtime shell (org ERP chrome) is operational infrastructure — not feature UI
+globs: components/nexus/**
 alwaysApply: false
 ---
 
-# App shell directory boundary (`components/dashboard/`)
+# Nexus shell directory boundary (`components/nexus/`)
 
-Mirrors **AGENTS.md §7 → Design system** (app shell row) and **[`docs/design-system/app-shell-learnings.md`](../../docs/design-system/app-shell-learnings.md)**. If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.
+Mirrors **AGENTS.md §7 → Design system** (app shell row). **Canonical shell product doctrine:** **[`docs/decisions/0001-afenda-spatial-os-shell.md`](../../docs/decisions/0001-afenda-spatial-os-shell.md)** (Spatial OS — L1 Utility / L2 Workspace / L3 Command–Intent / L4 Dock). **Material adoption:** **[`.cursor/rules/material-semantics.mdc`](../../.cursor/rules/material-semantics.mdc)** + **`scripts/check-design-contract.mjs`**. Third-party dashboard templates and OSS shell articles are **non-authoritative** — follow ADR-0001 + this rule. If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.
+
+> URL segment **`/dashboard/`** names the **ERP workspace route tree** — it is **not** `components/dashboard/` (that folder was removed; chrome lives here under **Nexus**).
 
 ## Authority
 
-- **`components/dashboard/`** owns **ERP dashboard chrome only**: shell composition, module navigation chrome, loading affordances shared across `/o/[orgSlug]/dashboard/**`. No tenant business rules, no DB access, no Server Actions.
-- **IAM auth surfaces** (sign-in, interruption flows) use **`components/auth/`** and **`#lib/auth`** — do not fold IAM workflows into dashboard shell components.
-- **Shell component registry (current):** `dashboard-shell.tsx` (composition root), `app-sidebar.tsx` (left rail, `collapsible="icon"`, cookie `sidebar_width`), `app-topbar.tsx` (L1 + L2 two-layer header), `nav-data.ts` (registry-aligned nav items, client-safe), `breadcrumbs.tsx` (L2 breadcrumb row), `module-subnav.tsx` (L2 module tab slot), `right-inspector.tsx` + `inspector-context.tsx` (right inspector, `side="right"`, cookies `inspector_state` + `inspector_width`), `org-switcher.tsx` (L1 org-switching pill), `use-resizable-width.ts` (pointer drag hook, cookie persistence, a11y arrow-key resize), `resize-handle.tsx` (visual drag handle presenter), `command-palette.tsx` + `command-palette-context.tsx` + `command-palette-trigger.tsx` (Cmd/Ctrl+K palette — navigation-only, three groups: modules / orgs / admin).
+- **`components/nexus/`** owns **org-scoped Nexus runtime chrome**: `nexus-shell.tsx` (mounted from `app/[locale]/o/[orgSlug]/layout.tsx`), L1 utility band, command palette runtime (`nexus-command-layer.tsx`, `nexus-command-context.tsx`, `nexus-command-trigger.tsx`), L4 dock stub, **Lynx summon** UI (`nexus-lynx-summon-context.tsx`, `nexus-lynx-summon.client.tsx`), optional **`SurfaceChrome`** (`nexus-surface-chrome.tsx`), orientation / pressure / surface presentation (`nexus-surface-card.tsx`, `nexus-orientation-band.tsx`, etc.). No tenant business rules, no DB access, no Server Actions.
+- **IAM auth surfaces** (sign-in, interruption flows) use **`components/auth/`** and **`#lib/auth`** — do not fold IAM workflows into Nexus shell components.
 
 ## Shell ownership doctrine
 
-The app shell is **operational routing infrastructure**, not marketing UI or module feature UI.
+The Nexus shell is **operational spatial infrastructure** (ADR-0001), not marketing UI or module feature UI. Mental model: **intent → operational surface → execution → truth resolution**, implemented as **L1–L4** — not “portal/home → module tree.”
 
 Prioritize, in order:
 
-1. Navigation continuity and orientation  
+1. Spatial orientation and operational continuity (dock + command intent + workspace surface)  
 2. Organization context clarity (slug-bound URLs per locale-first contract)  
-3. Capability discoverability (what the user can do in this org)  
-4. Layout stability (no padding ↔ sidebar width drift)  
+3. Capability discoverability without hierarchical ERP clutter  
+4. Layout stability (no padding ↔ dock/rail width drift)  
 5. Keyboard and accessibility consistency  
 
-**Before** visual differentiation, motion novelty, or “workspace intelligence” UX.
+**Before** visual differentiation, motion novelty, or unconstrained “workspace intelligence” UX.
 
 ## Rules
 
-- **Registry-aligned navigation.** Prefer a single nav registry next to [`lib/dashboard-module-paths.ts`](../../lib/dashboard-module-paths.ts), aligned with the **registry discipline** used by org admin (`ORG_ADMIN_CAPABILITIES`). Avoid orphaned hard-coded `NAV_ITEMS` arrays that drift from path helpers.
-- **Layout coupling.** Prefer **shadcn `SidebarProvider` + `SidebarInset`** and CSS variables (`--sidebar-width`, `--sidebar-width-icon`) over hand-duplicated `padding-left` / `margin` that mirror sidebar width — that pattern diverges on resize, collapsible state, and hydration.
+- **Registry-aligned navigation.** Prefer a single nav registry next to [`lib/dashboard-module-paths.ts`](../../lib/dashboard-module-paths.ts), aligned with **registry discipline** (org admin `ORG_ADMIN_CAPABILITIES`). Avoid orphaned hard-coded `NAV_ITEMS` arrays that drift from path helpers.
+- **Layout coupling.** Prefer **shadcn `SidebarProvider` + `SidebarInset`** and CSS variables (`--sidebar-width`, `--sidebar-width-icon`) where workspace layouts use the sidebar primitive — do not hand-duplicate `padding-left` / `margin` that mirror sidebar width.
 - **Secondary rails (e.g. right inspector).** Do not nest another full `Sidebar` beside `main` inside `SidebarInset` — use an in-flow `aside` with explicit width (`0` when closed). See `.cursor/rules/frontend-quality-contract.mdc` §11 → *Secondary rails inside `SidebarInset`*.
-- **Shell boundaries.** Prefer **route groups** and layout nesting for “shell vs no-shell” — avoid pathname-regex wrappers at the locale root (fragile and hard to reason about as routes evolve).
-- **Decomposition.** Split shell files **only when ownership stabilizes**. Minimum viable decomposition is **`app-sidebar` + `nav-data`** (names illustrative — fit existing file naming). Do **not** cargo-cult OSS template granularity (`nav-group.tsx`, `nav-user.tsx`, `team-switcher.tsx`, …) unless each file has a distinct, sustained ownership boundary in this repo.
-- **Scoped enhancements.** Org switcher, command palette, breadcrumbs, and similar affordances are **separate deliverables** — do not bundle into a monolithic “shell rewrite”. Command palette must not turn into open-ended “workspace intelligence.”
+- **Shell boundaries.** Prefer **route groups** and layout nesting for “shell vs no-shell” — avoid pathname-regex wrappers at the locale root.
+- **Scoped enhancements.** Command palette, Lynx summon, dock, and utility affordances are **separate deliverables** — do not bundle into a monolithic rewrite. Command palette must not become open-ended “workspace intelligence.”
+- **L1 utility rail tooltips.** Do not import `#components/ui/tooltip` directly in `components/nexus/**` (ESLint: `afenda/nexus-tooltip-import-gate`). Use **`NexusUtilityRoundTooltipButton`**, **`NexusUtilityRoundTooltipLink`**, or **`NexusUtilityTriggerTooltip`** (`nexus-utility-trigger-tooltip.tsx`) so hover copy, `side` / `sideOffset`, and `align` stay consistent on icon-only controls and overlay triggers.
 - **Boring shell.** No animated chrome for novelty; density and calm ERP posture beat dashboard marketing energy.
 
 ## Forbidden
 
-- Tenant-scoped **ERP/domain logic** inside `components/dashboard/**`.
-- **Deep imports** into `lib/features/<module>/data/...` from dashboard shell — consume **`#features/<module>`** barrels only where a shell truly needs a typed contract, and keep imports minimal.
-- **Cross-tenant or slug-from-client** assumptions — org slug and navigation targets come from server guards + existing path builders; shell components remain dumb presenters of props passed from RSC parents where possible.
+- Tenant-scoped **ERP/domain logic** inside `components/nexus/**`.
+- **Deep imports** into `lib/features/<module>/data/...` from Nexus shell — consume **`#features/<module>`** or **`#features/<module>/client`** barrels only where the shell needs a typed contract, and keep imports minimal.
+- **Cross-tenant or slug-from-client** assumptions — org slug and navigation targets come from server guards + path builders; shell components remain dumb presenters of props from RSC parents where possible.

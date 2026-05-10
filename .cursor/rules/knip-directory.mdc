@@ -64,7 +64,7 @@ Every new `ignoreIssues` entry must be able to answer:
   - Feature module public doors: `lib/features/*/index.ts`
   - Shared client/server files: `lib/**/*.shared.ts`, `lib/auth/**/*.server.ts`
   - Design / brand surface: `lib/design-system.ts`, `lib/site.ts`, `lib/tenant.ts`
-  - UI primitives: `components/ui/**`; auth/dashboard components: `components/auth/**`, `components/dashboard/**`
+  - UI primitives: `components/ui/**`; auth / Nexus shell: `components/auth/**`, `components/nexus/**`
   - i18n entry: `i18n/navigation.tsx`
   - Test fixtures: `tests/fixtures/**`
   - Feature internals: `lib/features/**/data/`, `actions/`, `schemas/`, `components/`, `*.contract.ts`, `constants.ts` — **suppressed because they are route-discovered or module-barrel-proxied, not because they are dead**.

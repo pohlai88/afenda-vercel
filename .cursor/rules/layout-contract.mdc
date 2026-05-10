@@ -32,11 +32,12 @@ const envelope: RouteEnvelope = { surface: "dashboard", locale, orgSlug, orgId: 
 return (
   <RouteEnvelopeProvider value={envelope}>
     <DashboardShell
-      centerSlot={
-        <Suspense fallback={<OrgSwitcherSkeleton />}>
-          <OrgSwitcherSlot userId={org.userId} currentOrgId={org.organizationId} />
-        </Suspense>
-      }
+      userEmail={org.user.email}
+      orgSlug={orgSlug}
+      orgName={orgName}
+      showOrgAdminLink={showOrgAdminLink}
+      userId={org.userId}
+      currentOrgId={org.organizationId}
     >
       {children}
     </DashboardShell>
@@ -63,7 +64,7 @@ This is the canonical sentence. Every layout addition must pass this test.
 
 ### Tier B — streamable shell enrichment (dedicated Server Component + Suspense)
 
-- Org switcher content (`listUserOrganizationsForSwitcher`)
+- Global top nav control menu org list (`listUserOrganizationsForSwitcher`, streamed inside `DashboardShell`)
 - Notifications / presence / activity feeds
 - Assistant / Lynx context
 - Recent records / quick actions
@@ -79,10 +80,17 @@ const [showOrgAdminLink, identity, tNav] = await Promise.all([
   getTranslations("Dashboard.nav"),
 ])
 
-// Tier B — streams independently; shell does not wait
-const centerSlot = (
-  <Suspense fallback={<OrgSwitcherSkeleton />}>
-    <OrgSwitcherSlot userId={org.userId} currentOrgId={org.organizationId} />
+// Tier B — streams independently; shell does not wait (example: control menu slot)
+const controlPlane = (
+  <Suspense fallback={<GlobalTopNavBarControlMenuSkeleton />}>
+    <GlobalTopNavBarControlMenuSlot
+      userEmail={userEmail}
+      userId={userId}
+      orgSlug={orgSlug}
+      orgName={orgName}
+      currentOrgId={currentOrgId}
+      showOrgAdminLink={showOrgAdminLink}
+    />
   </Suspense>
 )
 ```
@@ -92,14 +100,26 @@ const centerSlot = (
 Each Tier B slot is a standalone async Server Component that owns its fetch + translations:
 
 ```tsx
-// components/dashboard/org-switcher-slot.tsx
-export async function OrgSwitcherSlot({ userId, currentOrgId }: Props) {
-  const [orgs, t] = await Promise.all([
-    listUserOrganizationsForSwitcher(userId),
-    getTranslations("Dashboard.shell"),
-  ])
-  if (orgs.length === 0) return null
-  return <OrgSwitcher orgs={orgs} currentOrgId={currentOrgId} labels={...} />
+// components/nexus/nexus-utility-bar-row.tsx
+export async function GlobalTopNavBarControlMenuSlot({
+  userEmail,
+  userId,
+  orgSlug,
+  orgName,
+  currentOrgId,
+  showOrgAdminLink,
+}: Props) {
+  const userOrgs = await listUserOrganizationsForSwitcher(userId)
+  return (
+    <GlobalTopNavBarControlMenu
+      userEmail={userEmail}
+      orgSlug={orgSlug}
+      orgName={orgName}
+      currentOrgId={currentOrgId}
+      showOrgAdminLink={showOrgAdminLink}
+      userOrgs={userOrgs}
+    />
+  )
 }
 ```
 

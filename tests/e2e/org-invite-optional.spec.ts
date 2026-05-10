@@ -29,7 +29,7 @@ test.describe("org invite UI (optional credentials)", () => {
     await page.getByLabel("Password", { exact: true }).fill(invitePassword!)
     await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
-    await page.waitForURL(/\/en\/(onboarding|account|o)/, {
+    await page.waitForURL(/\/en\/(console|account|o)/, {
       timeout: 30_000,
     })
 

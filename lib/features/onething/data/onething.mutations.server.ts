@@ -118,6 +118,8 @@ export async function insertOrgOneThing(
     dueAt: Date | null
     assigneeUserId: string | null
     recurrenceRule: string | null
+    /** Set when creating a sub-task (iThink Phase 4+). */
+    parentOneThingId?: string | null
     /** Overrides default detected/owned inference (simulation + operational fixtures). */
     state?: string
     temporalPast?: TemporalPast
@@ -139,6 +141,7 @@ export async function insertOrgOneThing(
       dueAt: input.dueAt,
       assigneeUserId: input.assigneeUserId,
       recurrenceRule: input.recurrenceRule,
+      parentOneThingId: input.parentOneThingId ?? null,
       state: input.state ?? derivedState,
       linkage: input.linkage ?? null,
       counterparty: input.counterparty ?? null,
@@ -222,6 +225,7 @@ export async function updateOneThingFields(
     consequence: string
     dueAt: Date | null
     assigneeUserId: string | null
+    severity: string
   }>
 ): Promise<void> {
   await db

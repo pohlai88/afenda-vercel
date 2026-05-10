@@ -26,7 +26,7 @@ export async function signInAsOrgAdmin(
   await page.getByLabel("Password", { exact: true }).fill(password)
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
-  await page.waitForURL(/\/en\/(onboarding|account|o)/, {
+  await page.waitForURL(/\/en\/(console|account|o)/, {
     timeout: 30_000,
   })
 }

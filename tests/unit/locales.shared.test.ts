@@ -5,6 +5,7 @@ import {
   ensureAppLocale,
   stripLeadingLocalePrefix,
   toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgNexusRevalidatePattern,
   toLocalePath,
   toLocaleRoutePattern,
 } from "#lib/i18n/locales.shared"
@@ -34,6 +35,14 @@ describe("toLocaleRoutePattern", () => {
       "/[locale]/dashboard/contacts"
     )
     expect(toLocaleRoutePattern("/")).toBe("/[locale]")
+  })
+})
+
+describe("toLocaleOrgNexusRevalidatePattern", () => {
+  it("targets the Nexus field segment", () => {
+    expect(toLocaleOrgNexusRevalidatePattern()).toBe(
+      "/[locale]/o/[orgSlug]/nexus"
+    )
   })
 })
 

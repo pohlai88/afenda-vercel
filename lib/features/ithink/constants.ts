@@ -11,7 +11,7 @@ export const ITHINK_ACTIVE_STATES = [
   "resolving",
 ] as const
 
-/** Phase-3 view ids (ADR-0004a); shell references until URL-driven views land. */
+/** Phase-3 view ids (ADR-0002 implementation); shell references until URL-driven views land. */
 export const ITHINK_VIEW_IDS: readonly IThinkViewId[] = [
   "inbox",
   "today",

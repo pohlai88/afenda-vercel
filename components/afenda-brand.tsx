@@ -63,6 +63,13 @@ type AfendaBrandIconProps = {
   size?: number
   className?: string
   priority?: boolean
+  /**
+   * Fill a `relative` parent with explicit width/height (e.g. circular chrome).
+   * Image uses `object-cover` so the bitmap covers the frame edge-to-edge.
+   */
+  fill?: boolean
+  /** Passed to `next/image` when `fill` is true (default tuned for small header marks). */
+  sizes?: string
 }
 
 /**
@@ -73,7 +80,22 @@ export function AfendaBrandIcon({
   size = 64,
   className,
   priority = false,
+  fill = false,
+  sizes: sizesProp,
 }: AfendaBrandIconProps) {
+  if (fill) {
+    return (
+      <Image
+        src={APP_ICON_512_PNG}
+        alt={SITE_NAME}
+        fill
+        sizes={sizesProp ?? "44px"}
+        className={cn("object-cover", className)}
+        priority={priority}
+      />
+    )
+  }
+
   return (
     <Image
       src={APP_ICON_512_PNG}

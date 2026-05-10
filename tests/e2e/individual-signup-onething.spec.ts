@@ -116,36 +116,39 @@ test.describe("individual personal onething (optional credentials)", () => {
       await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
       await page.waitForURL(
-        /\/en\/(account|check-email|onboarding|o|verify-email)/,
+        /\/en\/(account|check-email|console|o|verify-email)/,
         { timeout: 45_000 }
       )
 
       await page.goto("/en/account/onething")
       await expect(
-        page.getByRole("heading", {
-          name: PERSONAL_ONETHING_COPY.pageTitle,
-          exact: true,
+        page.getByRole("navigation", {
+          name: PERSONAL_ONETHING_COPY.operationalQueueNav,
         })
       ).toBeVisible({ timeout: 20_000 })
 
-      await expect(
-        page.getByRole("heading", { name: PERSONAL_ONETHING_COPY.addSection })
-      ).toBeVisible()
-
       const title = `e2e-personal-${Date.now()}`
       await page
-        .getByLabel(PERSONAL_ONETHING_COPY.titleLabel, { exact: true })
+        .getByLabel(PERSONAL_ONETHING_COPY.composerAriaLabel, { exact: true })
         .fill(title)
       await page
-        .getByRole("button", { name: PERSONAL_ONETHING_COPY.addSection })
+        .getByRole("button", {
+          name: PERSONAL_ONETHING_COPY.captureSubmit,
+          exact: true,
+        })
         .click()
 
-      const row = page.getByRole("listitem").filter({ hasText: title })
+      const row = page.getByRole("button", { name: new RegExp(title) })
       await expect(row).toBeVisible({ timeout: 20_000 })
-      await row
-        .getByRole("button", { name: PERSONAL_ONETHING_COPY.markComplete })
+      await row.click()
+
+      await page
+        .getByRole("button", {
+          name: PERSONAL_ONETHING_COPY.resolve,
+          exact: true,
+        })
         .click()
-      await expect(row.getByText("completed")).toBeVisible({ timeout: 15_000 })
+      await expect(row).not.toBeVisible({ timeout: 15_000 })
     }
   )
 })

@@ -5,7 +5,7 @@ import { AfendaBrandLockup } from "#components/afenda-brand"
  */
 export default function ConsoleLoading() {
   return (
-    <div className="flex min-h-svh flex-col items-center bg-background px-4 py-16">
+    <div className="flex flex-1 flex-col items-center px-4 py-16">
       <div className="w-full max-w-xl space-y-10">
         <div className="space-y-2">
           <AfendaBrandLockup className="h-8 w-auto opacity-80" />

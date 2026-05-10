@@ -1,12 +1,9 @@
-export {
-  organizationDashboardPath,
-  ORG_DASHBOARD_ONETHING,
-} from "#lib/dashboard-module-paths"
+export { organizationDashboardPath } from "#lib/dashboard-module-paths"
 
 /** Default list slug for org and personal inboxes. */
 export const ONETHING_DEFAULT_LIST_SLUG = "inbox" as const
 
-/** OneThing operational lifecycle — see `docs/decisions/0001-onething.md`. */
+/** OneThing operational lifecycle — see `.cursor/rules/onething-directory.mdc` + `AGENTS.md` §5 (temporal spine). */
 export const ONETHING_STATES = [
   "detected",
   "owned",

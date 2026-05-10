@@ -72,12 +72,12 @@ page.tsx     → streams real content
 ### Example skeleton pattern
 
 ```tsx
-// dashboard/loading.tsx
-export { default } from "#components/dashboard/dashboard-loading"
+// dashboard/loading.tsx  (URL segment — chrome is Nexus)
+export { default } from "#components/nexus-route-loading"
 
-// components/dashboard/dashboard-loading.tsx
+// components/nexus-route-loading.tsx
 import { SegmentRouteSpinner } from "#components/segment-route-spinner"
-export default function DashboardLoading() {
+export default function NexusRouteLoading() {
   return <SegmentRouteSpinner />
 }
 ```

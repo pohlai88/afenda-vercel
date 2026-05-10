@@ -69,6 +69,11 @@ export function toLocaleOrgDashboardRevalidatePattern(
   return `/[locale]/o/[orgSlug]/dashboard${tail}` as AppPath
 }
 
+/** `revalidatePath` pattern for the Nexus field (`/o/[orgSlug]/nexus`). */
+export function toLocaleOrgNexusRevalidatePattern(): AppPath {
+  return `/[locale]/o/[orgSlug]/nexus` as AppPath
+}
+
 /**
  * `revalidatePath` for org admin workbench routes (`/o/[orgSlug]/admin/...`).
  */

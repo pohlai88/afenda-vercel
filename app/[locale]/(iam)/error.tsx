@@ -13,7 +13,7 @@ import {
 } from "#lib/next-app-error-page-props.shared"
 
 /**
- * IAM-shell error boundary — account, identity, security, onboarding.
+ * IAM-shell error boundary — account, identity, security.
  * Keeps the user inside the locale shell with a path back to safety.
  */
 export default function IamError(props: NextAppErrorPageProps) {

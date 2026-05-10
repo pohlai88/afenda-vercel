@@ -31,9 +31,12 @@ export default async function SignInPage({
   const raw = sp.callbackUrl
   const q =
     typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : undefined
+  // Default lands at the org resolver which redirects to Nexus when an org is active.
+  // Users without an active org receive ORG_REQUIRED → primary CTA `/console` (loading bay).
+  // See AGENTS.md §5 and docs/decisions/0003-post-login-loading-bay-nexus.md.
   const postAuthPath = resolvePostAuthCallbackUrl(
     q,
-    toLocalePath(locale, "/account")
+    toLocalePath(locale, "/o")
   )
   const stepRaw = sp.stepUp
   const stepUp =

@@ -1,0 +1,167 @@
+---
+description: Material semantics adoption contract — phase model, state machine, layer governance, and forbidden patterns (TS/TSX/CSS)
+globs: "**/*.{ts,tsx,css}"
+alwaysApply: false
+---
+
+# Material semantics — adoption contract
+
+**Canonical sources of truth (in order):**
+
+1. **`app/globals.css`** — material tokens, phase classes, Lynx state classes (the engineering implementation)
+2. **`docs/decisions/0001-afenda-spatial-os-shell.md`** §12 (spatial conformance) + §13 (material semantics adoption)
+3. **`AGENTS.md` §7** — design system row
+
+This rule mirrors those sources. If they diverge, **`globals.css`** + **ADR-0001** win and this rule must be repaired in the same change.
+
+> Material semantics is **shell infrastructure**, not generic UI styling. Buttons, forms, tables, lists, and dense ERP content remain stable and readable. Cognition (water) is **not** a reading layer.
+
+---
+
+## 1. Material phase model (4 phases — the only ones that exist)
+
+| Phase | Class | When it applies |
+| ---- | ---- | ---- |
+| `shell` | `.af-material-shell` | idle, settled (default for chrome) |
+| `transition` | `.af-material-transition` *(or shell + `data-phase="hover|focus|typing"`)* | activation threshold |
+| `cognition` | `.af-material-cognition` *(or shell + `data-phase="resolving|execution"`)* | truth resolution surface |
+| `cognition+` | shell + `data-lynx="high-confidence"` | confidence-deepened cognition |
+
+Plus one read-only variant:
+
+- `.af-material-opaque` — **REQUIRED** for dense reading surfaces (tables, ledgers, audit logs, evidence timelines, ERP forms)
+
+Do not invent additional phase classes or data attribute values. Phase mutation happens via attributes; classes are stable.
+
+---
+
+## 2. Runtime state machine (the only allowed `data-phase` values)
+
+```txt
+idle -> hover -> focus -> typing -> resolving -> execution -> settled
+```
+
+`data-phase` mapping is enforced in `app/globals.css`:
+
+```tsx
+<div
+  className="af-material af-material-shell"
+  data-phase={phase}                     // idle | hover | focus | typing | resolving | execution | settled
+  data-current={isCurrent ? "on" : undefined}
+  data-lynx={lynxState}                  // idle | listening | resolving | high-confidence | warning | mismatch
+/>
+```
+
+Forbidden: ad-hoc state names (`active`, `selected`, `open`, `loading`, `processing`, `ai`, `aiActive`). Map runtime state to one of the canonical phase values; do not add more selectors.
+
+---
+
+## 3. Lynx material-aware vocabulary
+
+| `data-lynx` | Meaning |
+| ---- | ---- |
+| `idle` | shell |
+| `listening` | transition (refraction) |
+| `resolving` | cognition |
+| `high-confidence` | deeper saturation |
+| `warning` | brief pressure pulse + persistent warning outline |
+| `mismatch` | brief unstable refraction + persistent skewed flow angle |
+
+Banned user-facing labels: **AI mode**, **AI active**, **Thinking**, **Processing**, **Generating**. Use **resolving**, **listening**, **high confidence**, **warning**, **mismatch** (operational vocabulary). Mirrors `.cursor/rules/lynx-directory.mdc`.
+
+---
+
+## 4. Surface adoption table (which surface gets which material)
+
+| Surface | Allowed material |
+| ---- | ---- |
+| Utility bar (L1) | `shell` only |
+| Dock (L4) | `shell` + `current` |
+| Command palette (L3) | `shell` -> `transition` -> `cognition` |
+| Lynx resolution surfaces | `cognition` (via `data-lynx`) |
+| Modals | `shell` or `transition` |
+| Toasts | `shell` only |
+| Evidence cards | restrained `cognition` (do **not** escalate to high-confidence by default) |
+| Workspace container | `shell` only |
+| Dense tables / ledgers / inventory grids | `opaque` only |
+| ERP forms | `opaque` or light `shell` |
+| Audit logs / evidence timelines | `opaque` only |
+
+Violations require an ADR-0001 amendment in the same change.
+
+---
+
+## 5. Token vocabulary (engineering)
+
+Public philosophy still says "glass / water" in docs and ADRs. **Engineering tokens are operational:**
+
+- `--af-glass-bg` (shell surface)
+- `--af-cognition-1`, `--af-cognition-2` (chromatic anchors)
+- `--af-resolution-surface` (cognition surface)
+- `--af-blur-shell`, `--af-blur-command`, `--af-blur-resolution` (the three blur tiers)
+- `--af-sat-shell`, `--af-sat-command`, `--af-sat-resolution`
+- `--af-depth-shell`, `--af-depth-transition`, `--af-depth-resolution`
+- `--af-flow-angle`, `--af-flow-velocity-*`
+- `--motion-category-shell|command|resolution|pressure`
+- `--af-ripple-strength`, `--af-current-strength`
+
+Forbidden in TSX class strings, inline styles, and CSS modules: literal **`water`** in identifiers (`water-card`, `bg-water`, `water-mode`, etc.). Use the operational tokens above.
+
+---
+
+## 6. Forbidden patterns (enforced by `scripts/check-design-contract.mjs`)
+
+Outside `app/globals.css`, do not introduce:
+
+```ts
+// JSX inline style — bypasses material governance
+style={{ backdropFilter: "blur(20px)" }}
+style={{ willChange: "backdrop-filter" }}
+```
+
+```html
+<!-- Tailwind arbitrary blur — bypasses the 3-tier budget -->
+<div className="backdrop-blur-[18px]" />
+<div className="blur-[24px]" />
+```
+
+```css
+/* Permanent motion is GPU + cognitive fatigue (HIG: continuous motion must be rare) */
+animation: my-pulse 2s ease infinite;
+```
+
+Also forbidden: legacy renamed identifiers (drift detector):
+
+- `--af-water-*` (renamed to `--af-cognition-*` / `--af-resolution-*` / `--af-blur-resolution` / `--af-sat-resolution` / `--af-depth-resolution`)
+- `.af-material-water` (renamed to `.af-material-cognition`)
+- `.af-material-transitioning` (renamed to `.af-material-transition`)
+
+`will-change`, `backdrop-filter`, blur tier values, and infinite animations live **only** in `app/globals.css` and are scoped to active material phases there.
+
+---
+
+## 7. Animation discipline
+
+- Continuous motion is rare (Apple HIG).
+- State pulses (`af-pressure-pulse`, `af-unstable-refraction`) fire **3 iterations on entry, then settle**.
+- Persistent state must be communicated by **static styling** (`outline`, `border-color`, skewed `--af-flow-angle`), not by an infinite animation.
+- All animations respect `prefers-reduced-motion: reduce`.
+
+---
+
+## 8. Performance discipline
+
+- `.af-material` uses `contain: paint`. Do not strip it.
+- `.af-material-opaque` uses `contain: layout paint`.
+- `will-change` is scoped via `:is()` to active phases only — never apply globally, never set via JSX style.
+- Backdrop fallback under `@supports not (backdrop-filter)` is owned by `app/globals.css`.
+
+---
+
+## 9. CI gate
+
+```bash
+pnpm lint   # runs scripts/check-design-contract.mjs (material patterns + token parity)
+```
+
+The check fails on any banned pattern listed in §6 outside `app/globals.css`.

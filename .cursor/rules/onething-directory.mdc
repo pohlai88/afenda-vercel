@@ -107,7 +107,7 @@ Row min-height: 44px. Density should feel like Things 3 / Mail compact — not L
 
 ## Toolbar contract
 
-Maximum five controls in the detail-pane toolbar: `resolve · snooze · comment · pin · more`. The decision console is folded into the inline resolve expander; there is no separate console screen. `more` hides the long tail (reopen, delete, purge, deprecate). The `pin` slot is reserved (the rule contract owns the placement so the pinned-row rail in the list pane has a place to ship into — see [ADR-0002 §3.9](../../docs/decisions/0002-onething-morph-rejections.md#39-pinned-at-top-with-amber-rail)).
+Maximum five controls in the detail-pane toolbar: `resolve · snooze · comment · pin · more`. The decision console is folded into the inline resolve expander; there is no separate console screen. `more` hides the long tail (reopen, delete, purge, deprecate). The `pin` slot is reserved (the rule contract owns the placement so the pinned-row rail in the list pane has a place to ship into — morph-era negative-space decision, retired ADR ledger).
 
 Keyboard ownership (the toolbar listens directly so the shell does not have to lift `mode` state):
 
@@ -122,7 +122,7 @@ The `pin` slot is **functionally inert today**. Adding a real pin action require
   - first line → consequence headline (sent as `title`, schema-validated through `onethingSituationTitleSchema`).
   - remaining lines → narrative body (sent as `consequence`; trimmed leading / trailing whitespace; internal blank lines preserved as paragraph breaks).
 - The split logic lives in `components/hooks/split-onething-draft.shared.ts` so it stays unit-testable. The composer never has its own copy.
-- Severity, dueAt, assignee, and other metadata are **not** captured here — they belong in the detail pane after capture (per the [§3.8 metadata-strip rejection](../../docs/decisions/0002-onething-morph-rejections.md#38-composer-one-line-meta-strip-severity--list--due-at--linkage--counterparty)).
+- Severity, dueAt, assignee, and other metadata are **not** captured here — they belong in the detail pane after capture (composer stays one-line headline + body — morph-era negative-space decision, retired ADR ledger).
 - Implicit save: `localStorage` key `afenda:onething:composer:<scope>:<listId>`, debounced 240 ms, multi-tab synchronized via `storage` event, cleared only on Server Action success or explicit `Discard`.
 - `⌘ Enter` / `Ctrl+Enter` submits. `Esc` blurs. `N` / `C` (when not typing in any field) focuses the textarea — the composer owns these listeners directly via `useEffect`, the shell does not lift them.
 - Textarea auto-grows so multi-line drafts are visible without modal escalation.
@@ -223,7 +223,7 @@ lib/features/onething/components/
     use-onething-draft-persistence.ts       — localStorage drafts, debounced + multi-tab sync
     use-now.ts                              — SSR-safe client time anchor (one microtask post-mount)
     use-viewed-ids.ts                       — `useSyncExternalStore` viewed-id LRU (cap 200)
-    use-flip.ts                             — FLIP primitive (currently unused; rejection in ADR-0002 §3.3)
+    use-flip.ts                             — FLIP primitive (currently unused; morph-era rejection, retired ADR ledger)
     pick-next-ranked-id.shared.ts           — pure ranker-aware "next id" selector (unit-tested)
     split-onething-draft.shared.ts          — pure headline + body splitter (unit-tested)
 ```
@@ -232,8 +232,8 @@ Do not add new top-level component categories without updating this rule first. 
 
 ## Doctrine cross-references
 
-- [ADR-0001 — Afenda OneThing: the operational focus layer](../../docs/decisions/0001-onething.md) — product model, temporal spine, ranking, state language. Sections §9 (UI architecture) and §12 (code structure file names) are **superseded** by the morph; they remain as historical context.
-- [ADR-0002 — OneThing morph: rejected scope (the negative space)](../../docs/decisions/0002-onething-morph-rejections.md) — the 12 plan items that were intentionally not built, each with reopen criteria.
+- Historical OneThing product / morph ADRs were **removed** from `docs/decisions/` (ledger cleanup). **This rule** is the shipped OneThing chrome contract.
+- Replacement task UI surface: **[ADR-0002 — iThink](../../docs/decisions/0002-ithink.md)** (`lib/features/ithink/**`).
 - [`AGENTS.md` IDE quickstart row "OneThing"](../../AGENTS.md) — points contributors at this rule + the prime directive.
 
-When this rule and an ADR disagree, this rule wins (it tracks shipped behavior). File a follow-up to update the ADR in the same change.
+When this rule and an ADR disagree, this rule wins for OneThing chrome (it tracks shipped behavior). File a follow-up to align docs in the same change.

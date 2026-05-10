@@ -20,8 +20,15 @@ export {
   ensureDefaultOneThingListForOrg,
   ensureDefaultOneThingListForUser,
   insertOrgOneThing,
+  updateOneThingState,
+  updateOneThingFields,
+  deleteOneThingById,
+  insertOneThingComment,
+  insertOneThingAttachment,
   wakeSnoozedOneThingForOrganization,
 } from "./data/onething.mutations.server"
 
 export { emitOneThingOrgWebhook } from "./data/onething-events.server"
+
+export { appendOneThingOneThingAudit7w1h } from "./data/onething-audit.server"
 export type { OneThingSimulationProvenance } from "./data/onething.mutations.server"

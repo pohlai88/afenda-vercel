@@ -4,10 +4,14 @@ const MOBILE_BREAKPOINT = 768
 const QUERY = `(max-width: ${MOBILE_BREAKPOINT - 1}px)`
 
 function getMatches() {
+  if (typeof window === "undefined") return false
   return window.matchMedia(QUERY).matches
 }
 
 function subscribe(callback: () => void) {
+  if (typeof window === "undefined") {
+    return () => {}
+  }
   const mql = window.matchMedia(QUERY)
   mql.addEventListener("change", callback)
   return () => mql.removeEventListener("change", callback)

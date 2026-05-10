@@ -17,6 +17,8 @@
 # next.js
 /.next/
 /out/
+# SWC compiler cache (Next.js Turbopack/SWC runtime artefact — do not commit)
+/.swc/
 
 # Workflow DevKit — generated route bundles (`withWorkflow`); do not commit
 /app/.well-known/workflow/

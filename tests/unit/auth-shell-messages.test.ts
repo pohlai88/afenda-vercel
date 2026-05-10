@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { pickSignInShellMessages } from "#lib/i18n/auth-shell-messages.shared"
+import { pickSignInShellMessages } from "../../lib/i18n/auth-shell-messages.shared"
 
 describe("pickSignInShellMessages", () => {
   it("keeps Auth and AuthStatus when present", () => {

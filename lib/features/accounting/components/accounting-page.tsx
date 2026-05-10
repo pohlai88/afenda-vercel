@@ -1,4 +1,4 @@
-import { ModuleScaffold } from "#components/dashboard/module-scaffold"
+import { ModuleScaffold } from "#components/module-scaffold"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
 
 import { AccountingActionForm } from "./accounting-action-form"

@@ -62,6 +62,37 @@ function isSpacingTokenReference(value) {
   return value.includes("var(") || value.startsWith("--")
 }
 
+/* -------------------------------------------------------------------------- */
+/* Material semantics — adoption governance                                   */
+/*                                                                            */
+/* Material phases, blur tiers, will-change scoping, and infinite animations  */
+/* live ONLY in app/globals.css. Mirrors .cursor/rules/material-semantics.mdc */
+/* and ADR-0001 §12.                                                          */
+/* -------------------------------------------------------------------------- */
+
+/** JSX inline style: backdropFilter / willChange bypass material governance. */
+const FORBIDDEN_INLINE_BACKDROP = /\bbackdropFilter\s*:/g
+const FORBIDDEN_INLINE_WILL_CHANGE = /\bwillChange\s*:/g
+
+/** Tailwind arbitrary blur utilities bypass the 3-tier blur budget. */
+const FORBIDDEN_BACKDROP_BLUR_UTIL = /\bbackdrop-blur-\[/g
+const FORBIDDEN_BLUR_UTIL = /(?<![\w-])blur-\[/g
+
+/**
+ * Continuous animation is GPU + cognitive fatigue (Apple HIG: continuous motion
+ * must be rare). Pulses must fire a finite number of iterations and settle to
+ * static styling. All `infinite` animations belong in `app/globals.css`.
+ */
+const FORBIDDEN_INFINITE_ANIMATION = /animation\s*:[^;}\n]*\binfinite\b/g
+
+/**
+ * Drift detection — legacy material identifiers renamed to operational vocabulary.
+ * Public philosophy still says "water" in docs/ADRs; engineering tokens do not.
+ */
+const FORBIDDEN_LEGACY_WATER_TOKEN = /--af-water-/g
+const FORBIDDEN_LEGACY_WATER_CLASS = /\baf-material-water\b/g
+const FORBIDDEN_LEGACY_TRANSITIONING_CLASS = /\baf-material-transitioning\b/g
+
 function walk(dir) {
   const out = []
   if (!fs.existsSync(dir)) return out
@@ -220,6 +251,72 @@ for (const file of files) {
           row
         )
       }
+    }
+
+    /* Material semantics — see .cursor/rules/material-semantics.mdc §6 */
+    FORBIDDEN_INLINE_BACKDROP.lastIndex = 0
+    if (FORBIDDEN_INLINE_BACKDROP.test(row)) {
+      report(
+        "forbidden inline backdropFilter (material blur lives in app/globals.css; consume .af-material-* phase classes)",
+        lineNo,
+        row
+      )
+    }
+    FORBIDDEN_INLINE_WILL_CHANGE.lastIndex = 0
+    if (FORBIDDEN_INLINE_WILL_CHANGE.test(row)) {
+      report(
+        "forbidden inline willChange (will-change is scoped to active material phases inside app/globals.css)",
+        lineNo,
+        row
+      )
+    }
+    FORBIDDEN_BACKDROP_BLUR_UTIL.lastIndex = 0
+    if (FORBIDDEN_BACKDROP_BLUR_UTIL.test(row)) {
+      report(
+        "forbidden Tailwind backdrop-blur-[…] (use the 3-tier blur budget in app/globals.css via .af-material-* classes)",
+        lineNo,
+        row
+      )
+    }
+    FORBIDDEN_BLUR_UTIL.lastIndex = 0
+    if (FORBIDDEN_BLUR_UTIL.test(row)) {
+      report(
+        "forbidden Tailwind blur-[…] (use the 3-tier blur budget in app/globals.css via .af-material-* classes)",
+        lineNo,
+        row
+      )
+    }
+    FORBIDDEN_INFINITE_ANIMATION.lastIndex = 0
+    if (FORBIDDEN_INFINITE_ANIMATION.test(row)) {
+      report(
+        "forbidden infinite animation (continuous motion lives in app/globals.css; pulses must settle after a few iterations)",
+        lineNo,
+        row
+      )
+    }
+    FORBIDDEN_LEGACY_WATER_TOKEN.lastIndex = 0
+    if (FORBIDDEN_LEGACY_WATER_TOKEN.test(row)) {
+      report(
+        "legacy material token --af-water-* (renamed to --af-cognition-* / --af-resolution-* / --af-blur-resolution / --af-sat-resolution / --af-depth-resolution)",
+        lineNo,
+        row
+      )
+    }
+    FORBIDDEN_LEGACY_WATER_CLASS.lastIndex = 0
+    if (FORBIDDEN_LEGACY_WATER_CLASS.test(row)) {
+      report(
+        "legacy material class .af-material-water (renamed to .af-material-cognition)",
+        lineNo,
+        row
+      )
+    }
+    FORBIDDEN_LEGACY_TRANSITIONING_CLASS.lastIndex = 0
+    if (FORBIDDEN_LEGACY_TRANSITIONING_CLASS.test(row)) {
+      report(
+        "legacy material class .af-material-transitioning (renamed to .af-material-transition)",
+        lineNo,
+        row
+      )
     }
   })
 }

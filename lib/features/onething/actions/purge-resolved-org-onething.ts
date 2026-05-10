@@ -20,7 +20,7 @@ export async function purgeResolvedOrgOneThing(
 ): Promise<void> {
   const session = await requireOrgSession()
   const resumePath = String(
-    formData.get("resumePath") ?? "/o/placeholder/dashboard/onething"
+    formData.get("resumePath") ?? "/o/placeholder/dashboard/ithink"
   )
   const locale = await getRequestAppLocale()
   await requireRecentAuthStepUp({

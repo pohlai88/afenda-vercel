@@ -1,6 +1,6 @@
 ---
 description: Lynx ERP machine layer — vocabulary, knowledge substrate, lynx.contract.ts, client barrel, Phase 1 truth UX
-globs: "lib/features/lynx/**,app/api/erp/lynx/**,app/**/lynx/**,components/dashboard/**,messages/*.json"
+globs: "lib/features/lynx/**,app/api/erp/lynx/**,app/**/lynx/**,components/nexus/**,messages/*.json"
 alwaysApply: false
 ---
 
@@ -73,18 +73,18 @@ Surface **retrieved evidence** (chunks) plus streamed **Answer**, **Limitations*
 
 ## Imports (server vs client — non-negotiable)
 
-The main barrel **`lib/features/lynx/index.ts`** re-exports **Server Actions**, **`server-only`** data modules, and **async server UI** (`LynxPage`, streaming clients that sit under RSC composition). Importing **`#features/lynx`** from **`"use client"`** modules or from **dashboard chrome** (`components/dashboard/**`) can drag **`next/headers`** / IAM audit / DB-adjacent graphs into the **browser bundle** and break the build.
+The main barrel **`lib/features/lynx/index.ts`** re-exports **Server Actions**, **`server-only`** data modules, and **async server UI** (`LynxPage`, streaming clients that sit under RSC composition). Importing **`#features/lynx`** from **`"use client"`** modules or from **Nexus shell chrome** (`components/nexus/**`) can drag **`next/headers`** / IAM audit / DB-adjacent graphs into the **browser bundle** and break the build.
 
 | Consumer | Import door |
 | --- | --- |
 | `app/**` Server Components, Route Handlers, Server Actions, non-client lib | **`#features/lynx`** |
-| **`"use client"`** anywhere (including **`components/dashboard/**`**), Client Components under **`lib/features/lynx/components/`** that must stay client-pure | **`#features/lynx/client`** only |
+| **`"use client"`** anywhere (including **`components/nexus/**`**), Client Components under **`lib/features/lynx/components/`** that must stay client-pure | **`#features/lynx/client`** only |
 
 **`#features/lynx/client`** ([`client.ts`](../../lib/features/lynx/client.ts)) — intentional narrow surface: HTTP route constants (`LYNX_ERP_HTTP_ROUTES`), **`parseLynxTruthMarkdown`**, and **serializable types** needed for fetch/stream parsing (`LynxTruthEvidenceDTO`, `LynxOperatorNdjsonMeta`, etc.). Add symbols here **only** when they are **client-safe** (no `server-only`, no `next/headers`, no implicit pull of `index.ts` server graph).
 
 **Forbidden:** `import { … } from "#features/lynx"` inside **`"use client"`** files unless you have verified the entire export subgraph is client-safe (default assumption: **unsafe** — use **`client`**).
 
-**Same-module exception:** Lynx **`components/*.tsx`** may use **relative** imports to **`../lynx.contract`** or **`../schemas/*`** for constants/parsers that are already client-safe; prefer **`#features/lynx/client`** when the same symbol is needed from **`components/dashboard/**`** or other modules (respects **no deep `#features/*/schemas`** rule outside `lib/features`).
+**Same-module exception:** Lynx **`components/*.tsx`** may use **relative** imports to **`../lynx.contract`** or **`../schemas/*`** for constants/parsers that are already client-safe; prefer **`#features/lynx/client`** when the same symbol is needed from **`components/nexus/**`** or other modules (respects **no deep `#features/*/schemas`** rule outside `lib/features`).
 
 ## Contract changes
 

@@ -3,10 +3,10 @@
 import * as React from "react"
 import { ChevronRight } from "lucide-react"
 
-import { useInspector } from "#components/dashboard/inspector-context"
 import { Avatar, AvatarFallback } from "#components/ui/avatar"
 import { Badge } from "#components/ui/badge"
 import { Checkbox } from "#components/ui/checkbox"
+import { ui } from "#lib/design-system"
 import { cn } from "#lib/utils"
 
 import type { ContactRow } from "../types"
@@ -28,19 +28,14 @@ export function ContactsListPanel({ rows }: ContactsListPanelProps) {
   const [selectedIds, setSelectedIds] = React.useState<string[]>([])
   const [activeId, setActiveId] = React.useState<string | null>(null)
   const selectedIdSet = React.useMemo(() => new Set(selectedIds), [selectedIds])
-  const { openInspector, closeInspector } = useInspector()
 
-  const handleRowClick = React.useCallback(
-    (contact: ContactRow) => {
-      if (activeId === contact.id) {
-        setActiveId(null)
-        closeInspector()
-      } else {
-        setActiveId(contact.id)
-        openInspector(<ContactDetailPanel contact={contact} />)
-      }
-    },
-    [activeId, openInspector, closeInspector]
+  const handleRowClick = React.useCallback((contact: ContactRow) => {
+    setActiveId((prev) => (prev === contact.id ? null : contact.id))
+  }, [])
+
+  const activeContact = React.useMemo(
+    () => rows.find((row) => row.id === activeId) ?? null,
+    [activeId, rows]
   )
 
   const filtered = React.useMemo(() => {
@@ -197,6 +192,17 @@ export function ContactsListPanel({ rows }: ContactsListPanelProps) {
           })}
         </ul>
       )}
+      {activeContact ? (
+        <div
+          className={cn(
+            "rounded-xl border border-border bg-card p-surface-md",
+            ui.radius.card,
+            ui.elevation.card
+          )}
+        >
+          <ContactDetailPanel contact={activeContact} />
+        </div>
+      ) : null}
     </div>
   )
 }

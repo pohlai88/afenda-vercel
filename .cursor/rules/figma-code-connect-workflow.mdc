@@ -13,8 +13,8 @@ Code contracts for `components/ui/*` and `lib/design-system.ts` live in **`desig
 When changing a primitive in `components/ui/*`:
 
 1. Keep variant names identical between Figma and code — normalize code first if they diverge.
-2. Keep slot names aligned to `data-slot` anatomy (do not rename slots without updating the mapping doc).
-3. Update `docs/design-system/figma-code-connect-mapping.md` in the **same** change.
+2. Keep slot names aligned to `data-slot` anatomy (do not rename slots without updating Figma / Code Connect artifacts).
+3. Update **Figma Code Connect** templates colocated with the primitive (e.g. `*.figma.ts` next to the component) **or** record variant/slot parity in **`docs/design-system/governance.md`** in the **same** change when no Code Connect file exists yet.
 4. Update `lib/design-system.ts` schemas / parsers if new variants are added.
 
 ## Before adding a new component via Figma workflows

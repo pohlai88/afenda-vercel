@@ -65,6 +65,13 @@ uiPrimitiveSchema.parse(payload.primitive)
 parseUiSurfaceSpaceKey(payload.inset)
 ```
 
+## Material semantics (shell adoption)
+
+- **Authority:** `app/globals.css` (`.af-material-*`, blur/saturation tiers), **ADR-0001 §13**, **`.cursor/rules/material-semantics.mdc`**, mechanical drift in **`scripts/check-design-contract.mjs`**.
+- **Runtime validation:** when `data-phase` / `data-lynx` comes from JSON, query params, or CMS — use **`parseUiMaterialPhase`** / **`parseUiLynxState`** from **`#lib/design-system`** (canonical strings only; matches CSS attribute selectors).
+- **Do not** export or duplicate material class strings from TS — phases are driven by stable base classes + `data-*` attributes.
+- **Do not** use Tailwind arbitrary blur (`blur-[…]`, `backdrop-blur-[…]`) or JSX `backdropFilter` / `willChange` — CI rejects them outside `app/globals.css`.
+
 ## Anti-drift rules
 
 - Prefer existing design-system patterns over introducing new visual abstractions.
@@ -78,7 +85,7 @@ Applies when editing **`docs/design-system/**/\*.md`\*\*.
 
 - **Code is truth:** [`app/globals.css`](../../app/globals.css), [`lib/design-system.ts`](../../lib/design-system.ts), [`components/ui/`](../../components/ui/). Docs describe what code implements, never ahead of it.
 - Do not document Figma names, variant strings, or CSS variables that are **not** implemented in code and `lib/design-system.ts`.
-- When tokens or primitive APIs change, update **`docs/design-system/figma-code-connect-mapping.md`** in the **same** change as `globals.css` / primitives when possible.
+- When tokens or primitive APIs change, update **`docs/design-system/governance.md`** (Figma notes) or Code Connect templates beside primitives, in the **same** change when your team maintains them.
 - For class-level UI rules (radius, semantic colors, hover tokens), follow the sections above — same source of truth.
 
 ## CI

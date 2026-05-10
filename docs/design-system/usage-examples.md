@@ -47,7 +47,7 @@ import { Label } from "#components/ui/label"
 
 ## Density (stack rhythm)
 
-Use `ui.gap` for vertical/horizontal gaps that must track `--density-comfortable` / `--density-compact` in `app/globals.css`:
+Use `ui.gap` for vertical/horizontal gaps that must track the density tokens in `app/globals.css`:
 
 ```tsx
 import { cn } from "#lib/utils"
@@ -58,6 +58,8 @@ export function StackedFields({ compact }: { compact?: boolean }) {
   return <div className={cn("flex flex-col", density)}>{/* fields */}</div>
 }
 ```
+
+For a roomier reading surface, use `ui.gap.relaxed`.
 
 ## Surface inset scale
 
@@ -122,13 +124,13 @@ import { ui } from "#lib/design-system"
 </article>
 ```
 
-## Dashboard composition
+## Nexus runtime composition
 
-Use shared dashboard compositions rather than rebuilding shell/layout.
+Org ERP chrome lives under **`#components/nexus/*`** (`NexusShell`, command layer, Lynx summon). Do not recreate utility bar / command / dock in feature modules — compose inside the route tree mounted under [`app/[locale]/o/[orgSlug]/layout.tsx`](../../app/[locale]/o/[orgSlug]/layout.tsx).
 
 ```tsx
-import { DashboardTopBar } from "#components/dashboard/top-bar"
-import { DashboardModuleNav } from "#components/dashboard/module-nav"
+import { NexusShell } from "#components/nexus/nexus-shell"
+// Feature routes render as children; palette + Lynx summon mount inside NexusShell.
 ```
 
 ## Contacts ERP composition examples

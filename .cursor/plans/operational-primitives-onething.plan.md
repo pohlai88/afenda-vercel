@@ -1,6 +1,6 @@
 # Plan — Operational primitives + OneThing (todos)
 
-**Sources of truth:** [`AGENTS.md`](../../AGENTS.md) §5 (Operational primitives) + §6 (`lib/erp/`) · [`docs/decisions/0001-onething.md`](../../docs/decisions/0001-onething.md)
+**Sources of truth:** [`AGENTS.md`](../../AGENTS.md) §5 (Operational primitives) + §6 (`lib/erp/`) · [`.cursor/rules/onething-directory.mdc`](../../.cursor/rules/onething-directory.mdc)
 
 ## Phase A — Shared kernel (`lib/erp/`) — **done**
 

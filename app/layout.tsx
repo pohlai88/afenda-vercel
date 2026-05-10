@@ -32,6 +32,8 @@ const geistMono = Geist_Mono({
   display: "swap",
 })
 
+const LAYOUT_DENSITY_INIT_SCRIPT = `(function(){try{var key="afenda.layoutDensity";var value=localStorage.getItem(key);if(value==="compact"||value==="comfortable"||value==="relaxed"){document.documentElement.setAttribute("data-layout-density",value);}else{document.documentElement.setAttribute("data-layout-density","comfortable");}}catch(e){document.documentElement.setAttribute("data-layout-density","comfortable");}})();`
+
 /**
  * Icons and OG URLs resolve against `metadataBase`. Using the **request host** avoids
  * pointing at the wrong origin when `NEXT_PUBLIC_SITE_URL` is a custom domain but the user
@@ -163,6 +165,7 @@ export default async function RootLayout({
     <html
       lang={htmlLang}
       data-scroll-behavior="smooth"
+      data-layout-density="comfortable"
       suppressHydrationWarning
       className={cn(
         "font-sans antialiased",
@@ -170,6 +173,11 @@ export default async function RootLayout({
         geistMono.variable
       )}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{ __html: LAYOUT_DENSITY_INIT_SCRIPT }}
+        />
+      </head>
       <body className="min-h-svh">
         <ThemeProvider
           attribute="class"

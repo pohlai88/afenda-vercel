@@ -636,6 +636,47 @@ export const knowledgeChunk = pgTable(
   ]
 )
 
+/** Append-only operator product feedback per organization (L1 utility bar). */
+export const orgFeedbackEvent = pgTable(
+  "org_feedback_event",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    organizationId: text("organizationId").notNull(),
+    actorUserId: text("actorUserId").notNull(),
+    category: text("category").notNull(),
+    severity: text("severity").notNull().default("normal"),
+    message: text("message").notNull(),
+    path: text("path"),
+    userAgent: text("userAgent"),
+    metadata: text("metadata"),
+    /** Inbox lifecycle: new → acknowledged → resolved | rejected */
+    state: text("state").notNull().default("new"),
+    acknowledgedByUserId: text("acknowledgedByUserId"),
+    acknowledgedAt: timestamp("acknowledgedAt", { mode: "date" }),
+    resolvedByUserId: text("resolvedByUserId"),
+    resolvedAt: timestamp("resolvedAt", { mode: "date" }),
+    resolutionNote: text("resolutionNote"),
+  },
+  (t) => [
+    index("org_feedback_event_organizationId_createdAt_idx").on(
+      t.organizationId,
+      t.createdAt
+    ),
+    index("org_feedback_event_organizationId_state_createdAt_idx").on(
+      t.organizationId,
+      t.state,
+      t.createdAt
+    ),
+    index("org_feedback_event_actorUserId_createdAt_idx").on(
+      t.actorUserId,
+      t.createdAt
+    ),
+  ]
+)
+
 /**
  * Demo dataset for Lynx **natural language → SQL** (Vercel Labs pattern).
  * Org-scoped only; guarded execution allowlists this table in `nl-sql-demo-guard`.

@@ -20,7 +20,7 @@ describe("proxy-protected-paths.shared", () => {
     it("protects IAM and account surfaces", () => {
       expect(isProtectedLocaleInternalPath("/account/security")).toBe(true)
       expect(isProtectedLocaleInternalPath("/account")).toBe(true)
-      expect(isProtectedLocaleInternalPath("/onboarding")).toBe(true)
+      expect(isProtectedLocaleInternalPath("/console")).toBe(true)
       expect(isProtectedLocaleInternalPath("/accept-invitation")).toBe(true)
     })
 

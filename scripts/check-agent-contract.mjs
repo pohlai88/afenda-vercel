@@ -14,6 +14,7 @@ const REQUIRED_FILES = [
   ".cursor/rules/agents-md-mandatory.mdc",
   ".cursor/rules/design-system-enforcement.mdc",
   ".cursor/rules/design-system-docs-enforcement.mdc",
+  ".cursor/rules/material-semantics.mdc",
   ".cursor/rules/i18n-directory.mdc",
   ".cursor/rules/lynx-directory.mdc",
   ".cursor/rules/erp-primitives.mdc",
@@ -21,6 +22,7 @@ const REQUIRED_FILES = [
   ".cursor/rules/simulation-directory.mdc",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
+  "tests/unit/fixtures-i18n-parity.test.ts",
 ]
 
 const DUMP_DIR_NAMES = new Set([
@@ -39,9 +41,11 @@ const DUMP_DIR_NAMES = new Set([
 
 const TOP_LEVEL_DIR_ALLOWLIST = new Set([
   ".agents",
+  ".config",
   ".cursor",
   ".cursor-plugin",
   ".github",
+  ".husky",
   ".vscode",
   "app",
   "components",
@@ -76,21 +80,15 @@ const ROOT_TOOLING_FILES = new Set([
   "pnpm-lock.yaml",
   "tsconfig.json",
   "eslint.config.mjs",
-  "eslint-a11y.config.mjs",
   "prettier.config.mjs",
-  ".prettierrc",
   ".prettierignore",
   "postcss.config.mjs",
-  "drizzle.config.ts",
   "scripts/check-drizzle-journal.mjs",
-  "vitest.config.ts",
-  "vitest.setup.ts",
-  "playwright.config.ts",
-  "knip.json",
   "components.json",
   ".gitignore",
   ".node-version",
   ".nvmrc",
+  ".lintstagedrc.json",
 ])
 
 const ROOT_WORKSPACE_FILES = new Set([

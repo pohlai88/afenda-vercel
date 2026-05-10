@@ -3,6 +3,7 @@ import "server-only"
 import { headers } from "next/headers"
 
 import { AFENDA_PATHNAME_HEADER } from "#lib/auth/forwarded-path-headers.shared"
+import { organizationNexusPath } from "#features/nexus"
 import { sanitizePathAfterOrgSlug } from "#lib/dashboard-org-path.shared"
 import {
   stripLeadingLocalePrefix,
@@ -24,13 +25,16 @@ export async function localePrefixedOrgDashboardRedirect(
   if (!safeSlug) {
     return toLocalePath(locale, "/o" as AppPath)
   }
+  // Fallback target is the **Nexus root** (operational origin field), not
+  // `/dashboard` — that index was removed in Phase 1 of the Nexus runtime
+  // migration. See AGENTS.md §5 → Nexus runtime (org root).
   const pathname = (await headers()).get(AFENDA_PATHNAME_HEADER)?.trim()
   if (!pathname?.startsWith("/")) {
-    return toLocalePath(locale, `/o/${safeSlug}/dashboard` as AppPath)
+    return toLocalePath(locale, organizationNexusPath(safeSlug) as AppPath)
   }
   const stripped = stripLeadingLocalePrefix(pathname)
   if (!stripped) {
-    return toLocalePath(locale, `/o/${safeSlug}/dashboard` as AppPath)
+    return toLocalePath(locale, organizationNexusPath(safeSlug) as AppPath)
   }
   const tailFromO = stripped.pathnameWithoutLocale.replace(/^\/o\/[^/]+/, "")
   const tail = sanitizePathAfterOrgSlug(tailFromO)

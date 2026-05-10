@@ -32,12 +32,17 @@ export function organizationAdminPath(
 /**
  * Locale-internal pathname for an org-scoped dashboard URL (`localePrefix: "always"`).
  * Returns a typed {@link Route} for `Link` / `redirect` from `#i18n/navigation`.
+ *
+ * Note: `"home"` is a **deprecated alias** during Phase 1 of the Nexus runtime
+ * migration — it now resolves to the **Nexus field** (`/o/{slug}/nexus`), not
+ * `/o/{slug}/dashboard` (which no longer has a `page.tsx`). New callers should
+ * import `organizationNexusPath` from `#features/nexus`. See AGENTS.md §5 →
+ * Nexus runtime (org root).
  */
 export function organizationDashboardPath(
   orgSlug: string,
   modulePath:
     | "contacts"
-    | "onething"
     | "ithink"
     | "knowledge"
     | "lynx"
@@ -51,11 +56,10 @@ export function organizationDashboardPath(
   if (!slug) {
     throw new Error("organizationDashboardPath: invalid org slug")
   }
-  const base = `/o/${slug}/dashboard`
   if (modulePath === "home") {
-    return base as Route
+    return `/o/${slug}/nexus` as Route
   }
-  return `${base}/${modulePath}` as Route
+  return `/o/${slug}/dashboard/${modulePath}` as Route
 }
 
 /**
@@ -65,7 +69,6 @@ export function organizationDashboardPath(
  * `Dashboard.nav` in `messages/*`.
  */
 export const DASHBOARD_NAV_MODULES = [
-  "onething",
   "ithink",
   "contacts",
   "knowledge",
@@ -82,7 +85,6 @@ export type DashboardNavModule = (typeof DASHBOARD_NAV_MODULES)[number]
 
 /** Tails for `toLocaleOrgDashboardRevalidatePattern` (leading slash). */
 export const ORG_DASHBOARD_CONTACTS = "/contacts" as const
-export const ORG_DASHBOARD_ONETHING = "/onething" as const
 export const ORG_DASHBOARD_ITHINK = "/ithink" as const
 export const ORG_DASHBOARD_KNOWLEDGE = "/knowledge" as const
 export const ORG_DASHBOARD_LYNX = "/lynx" as const

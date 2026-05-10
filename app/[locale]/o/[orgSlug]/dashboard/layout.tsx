@@ -1,60 +1,29 @@
-import { Suspense } from "react"
-import { headers } from "next/headers"
 import type { Metadata } from "next"
-import { getTranslations } from "next-intl/server"
 
-import type { BreadcrumbSegment } from "#components/dashboard/breadcrumbs"
-import { DashboardShell } from "#components/dashboard/dashboard-shell"
-import { OrgSwitcherSkeleton } from "#components/dashboard/org-switcher-skeleton"
-import { OrgSwitcherSlot } from "#components/dashboard/org-switcher-slot"
 import { RouteEnvelopeProvider } from "#components/route-envelope-context"
-import { canActInOrganization } from "#lib/auth"
-import { AFENDA_PATHNAME_HEADER } from "#lib/auth/forwarded-path-headers.shared"
-import { fetchOrgWorkbenchIdentity } from "#lib/auth/org-workbench.server"
-import {
-  DASHBOARD_NAV_MODULES,
-  organizationDashboardPath,
-  type DashboardNavModule,
-} from "#lib/dashboard-module-paths"
-import {
-  ensureAppLocale,
-  stripLeadingLocalePrefix,
-} from "#lib/i18n/locales.shared"
+import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/route-envelope.shared"
 import { SITE_NAME } from "#lib/site"
 import { requireOrgSession } from "#lib/tenant"
-
-/**
- * Reads the proxy-forwarded pathname header to identify which dashboard module
- * the current request is rendering, for breadcrumb labelling. Returns `null`
- * when the header is missing, the path doesn't sit under this org's dashboard,
- * or the segment isn't a registered nav module.
- */
-function resolveCurrentDashboardModule(
-  forwardedPathname: string | null,
-  orgSlug: string
-): DashboardNavModule | null {
-  if (!forwardedPathname) return null
-  const stripped = stripLeadingLocalePrefix(forwardedPathname)
-  if (!stripped) return null
-  const dashboardPrefix = `/o/${orgSlug}/dashboard`
-  const tail = stripped.pathnameWithoutLocale
-  if (tail !== dashboardPrefix && !tail.startsWith(`${dashboardPrefix}/`)) {
-    return null
-  }
-  const after = tail.slice(dashboardPrefix.length)
-  const next = after.split("/").filter(Boolean)[0]
-  if (!next) return null
-  return (DASHBOARD_NAV_MODULES as readonly string[]).includes(next)
-    ? (next as DashboardNavModule)
-    : null
-}
 
 export const metadata: Metadata = {
   title: "Dashboard",
   openGraph: { title: `Dashboard | ${SITE_NAME}` },
 }
 
+/**
+ * Dashboard surface envelope.
+ *
+ * Phase 1 of Nexus runtime migration (AGENTS.md §5 → Nexus runtime): chrome
+ * (skip-link, Lynx summon, main wrapper) has lifted up to **`NexusShell`** at
+ * `app/[locale]/o/[orgSlug]/layout.tsx`. This layout is now a thin
+ * surface-scoped envelope — it sets `surface: "dashboard"` so error / loading
+ * boundaries can specialize, but does **not** mount its own shell.
+ *
+ * **`SurfaceChrome`** (`#components/nexus/nexus-surface-chrome`) remains available
+ * for surfaces that need skip-link / command palette / keyboard shortcuts / main / Lynx
+ * summon **without** the full `NexusShell` (no L1 utility bar or dock).
+ */
 export default async function OrgDashboardLayout({
   children,
   params,
@@ -64,36 +33,6 @@ export default async function OrgDashboardLayout({
 
   const org = await requireOrgSession()
 
-  // Tier A — minimum blocking authority required to establish the route contract.
-  // The shell cannot render without these; nothing else belongs here.
-  const [showOrgAdminLink, identity, tNav, requestHeaders] = await Promise.all([
-    canActInOrganization(
-      org.userId,
-      org.user.role,
-      org.organizationId,
-      "admin"
-    ),
-    fetchOrgWorkbenchIdentity(org.organizationId),
-    getTranslations("Dashboard.nav"),
-    headers(),
-  ])
-
-  const orgName = identity?.name ?? orgSlug
-
-  const currentModule = resolveCurrentDashboardModule(
-    requestHeaders.get(AFENDA_PATHNAME_HEADER),
-    orgSlug
-  )
-
-  const breadcrumbs: BreadcrumbSegment[] = [
-    { label: orgName, href: organizationDashboardPath(orgSlug, "home") },
-  ]
-  if (currentModule) {
-    breadcrumbs.push({ label: tNav(currentModule) })
-  } else {
-    breadcrumbs.push({ label: tNav("label") })
-  }
-
   const envelope: RouteEnvelope = {
     surface: "dashboard",
     locale,
@@ -101,28 +40,5 @@ export default async function OrgDashboardLayout({
     orgId: org.organizationId,
   }
 
-  // Tier B — org switcher is shell enrichment, not shell authority.
-  // Streams independently behind Suspense; the shell renders immediately.
-  const centerSlot = (
-    <Suspense fallback={<OrgSwitcherSkeleton />}>
-      <OrgSwitcherSlot userId={org.userId} currentOrgId={org.organizationId} />
-    </Suspense>
-  )
-
-  return (
-    <RouteEnvelopeProvider value={envelope}>
-      <DashboardShell
-        userEmail={org.user.email}
-        orgSlug={orgSlug}
-        orgName={orgName}
-        showOrgAdminLink={showOrgAdminLink}
-        breadcrumbs={breadcrumbs}
-        centerSlot={centerSlot}
-        userId={org.userId}
-        currentOrgId={org.organizationId}
-      >
-        {children}
-      </DashboardShell>
-    </RouteEnvelopeProvider>
-  )
+  return <RouteEnvelopeProvider value={envelope}>{children}</RouteEnvelopeProvider>
 }

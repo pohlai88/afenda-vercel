@@ -1,6 +1,8 @@
 import type { Metadata, Route } from "next"
 import { notFound, redirect } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 
+import { NexusShell } from "#components/nexus/nexus-shell"
 import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
 import { localePrefixedOrgDashboardRedirect } from "#lib/dashboard-org-redirect.server"
@@ -8,6 +10,7 @@ import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
 import {
   getOrganizationIdBySlug,
+  getOrganizationNameById,
   getOrganizationSlugById,
 } from "#lib/org-slug.server"
 import type { RouteEnvelope } from "#lib/route-envelope.shared"
@@ -42,7 +45,7 @@ export default async function OrgSlugLayout({
   }
 
   if (resolvedOrgId !== session.organizationId) {
-    // Cross-tenant correction is not a permanent move — the user's active org can change.
+    // Cross-tenant correction — the URL org slug doesn't match the session's active org.
     const canonicalSlug = await getOrganizationSlugById(session.organizationId)
     if (!canonicalSlug) {
       notFound()
@@ -54,6 +57,13 @@ export default async function OrgSlugLayout({
     redirect(target as Route)
   }
 
+  // Fetch org name in parallel with translation loading.
+  // Falls back to orgSlug if the org row is missing a name (shouldn't happen in practice).
+  const [orgName, tShell] = await Promise.all([
+    getOrganizationNameById(session.organizationId),
+    getTranslations("Dashboard.shell"),
+  ])
+
   const envelope: RouteEnvelope = {
     surface: "org",
     locale,
@@ -61,7 +71,22 @@ export default async function OrgSlugLayout({
     orgId: session.organizationId,
   }
 
+  // Nexus runtime mounts here so L1 utility bar, command palette, Lynx summon,
+  // and future dock slot all persist across surfaces — Spatial OS continuity.
+  // Nexus field content lives under `nexus/page.tsx` (`/o/{slug}/nexus`).
+  // See AGENTS.md §5 → Nexus runtime (org root).
   return (
-    <RouteEnvelopeProvider value={envelope}>{children}</RouteEnvelopeProvider>
+    <RouteEnvelopeProvider value={envelope}>
+      <NexusShell
+        skipToMainLabel={tShell("skipToMain")}
+        orgSlug={orgSlug}
+        orgName={orgName ?? orgSlug}
+        orgId={session.organizationId}
+        userId={session.userId}
+        userEmail={session.user.email}
+      >
+        {children}
+      </NexusShell>
+    </RouteEnvelopeProvider>
   )
 }

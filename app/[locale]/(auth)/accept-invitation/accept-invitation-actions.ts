@@ -125,7 +125,7 @@ export async function rejectOrganizationInvitationAction(
     resourceType: "invitation",
     resourceId: invitationId,
   })
-  revalidatePath(toLocaleRoutePattern("/onboarding"), "page")
+  revalidatePath(toLocaleRoutePattern("/console"), "page")
   revalidatePath(toLocaleRoutePattern("/account"), "page")
   const locale = await getRequestAppLocale()
   redirect(toLocalePath(locale, "/account") as Route)

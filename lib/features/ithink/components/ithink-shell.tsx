@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 
-import { ITHINK_VIEW_IDS } from "../constants"
 import type { IThinkListRow, IThinkRow } from "../types"
+import { IThinkDetailPanel } from "./ithink-detail-panel"
 import { IThinkFab } from "./ithink-fab"
 import { IThinkListView } from "./ithink-list-view"
 import { IThinkQuickAdd } from "./ithink-quick-add"
+import { IThinkSidebar } from "./ithink-sidebar"
 
 function isEditableTarget(el: EventTarget | null): boolean {
   if (!(el instanceof HTMLElement)) return false
@@ -20,11 +21,34 @@ type IThinkShellProps = {
   rows: IThinkRow[]
   lists: IThinkListRow[]
   defaultListId: string
+  orgSlug: string
+  inboxCount: number
+  todayCount: number
+  scheduledCount: number
+  /** Pre-selects a task when navigating directly to /ithink/[id]. */
+  initialSelectedId?: string | null
+  /**
+   * Async Server Component sections (comments, attachments, sub-tasks) passed
+   * from the `/ithink/[id]` server page via RSC composition.
+   * Not provided on the index page — sections render as empty stubs via
+   * data-slot elements inside IThinkDetailPanel.
+   */
+  contextPanel?: React.ReactNode
 }
 
-export function IThinkShell({ rows, lists, defaultListId }: IThinkShellProps) {
+export function IThinkShell({
+  rows,
+  lists,
+  defaultListId,
+  orgSlug,
+  inboxCount,
+  todayCount,
+  scheduledCount,
+  initialSelectedId,
+  contextPanel,
+}: IThinkShellProps) {
   const [selectedId, setSelectedId] = useState<string | null>(
-    rows[0]?.id ?? null
+    initialSelectedId ?? rows[0]?.id ?? null
   )
   const [quickOpen, setQuickOpen] = useState(false)
 
@@ -41,27 +65,19 @@ export function IThinkShell({ rows, lists, defaultListId }: IThinkShellProps) {
     return () => window.removeEventListener("keydown", onKey)
   }, [])
 
+  const selectedRow = rows.find((r) => r.id === selectedId) ?? null
+
   return (
     <div className="relative flex min-h-[min(70vh,720px)] flex-1 gap-0 border border-border bg-card">
-      <aside className="hidden w-[220px] shrink-0 flex-col border-r border-border bg-muted/20 p-3 lg:flex">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          Views
-        </p>
-        <p className="mt-2 text-xs text-muted-foreground">
-          {ITHINK_VIEW_IDS.map(
-            (id) => id.charAt(0).toUpperCase() + id.slice(1)
-          ).join(" · ")}{" "}
-          ship in later phases (ADR-0004a).
-        </p>
-        {lists.length > 1 ? (
-          <ul className="mt-4 space-y-1 text-xs text-muted-foreground">
-            {lists.map((list) => (
-              <li key={list.id} className="truncate">
-                {list.name}
-              </li>
-            ))}
-          </ul>
-        ) : null}
+      <aside className="hidden w-[220px] shrink-0 border-r border-border bg-muted/20 p-3 lg:flex lg:flex-col">
+        <IThinkSidebar
+          orgSlug={orgSlug}
+          lists={lists}
+          defaultListId={defaultListId}
+          inboxCount={inboxCount}
+          todayCount={todayCount}
+          scheduledCount={scheduledCount}
+        />
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col p-4">
@@ -76,25 +92,16 @@ export function IThinkShell({ rows, lists, defaultListId }: IThinkShellProps) {
 
       <aside className="hidden w-[280px] shrink-0 flex-col border-l border-border bg-muted/10 p-4 xl:flex">
         <p className="text-sm font-medium text-foreground">Details</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {selectedId
-            ? "Editing and metadata land in Phase 3."
-            : "Select a task to preview details."}
-        </p>
-        <div className="mt-6 flex min-h-0 flex-1 flex-col gap-4">
-          <div
-            data-slot="subtasks"
-            className="min-h-[48px] rounded-md border border-dashed border-border"
-          />
-          <div
-            data-slot="comments"
-            className="min-h-[48px] rounded-md border border-dashed border-border"
-          />
-          <div
-            data-slot="attachments"
-            className="min-h-[48px] rounded-md border border-dashed border-border"
-          />
-        </div>
+        {selectedRow ? (
+          <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+            <IThinkDetailPanel key={selectedRow.id} row={selectedRow} />
+            {contextPanel}
+          </div>
+        ) : (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Select a task to preview details.
+          </p>
+        )}
       </aside>
 
       <IThinkFab lists={lists} defaultListId={defaultListId} />

@@ -45,6 +45,7 @@ const nextConfig: NextConfig = {
     localPatterns: [
       { pathname: "/icons/**", search: "" },
       { pathname: "/afenda-brand/**", search: "" },
+      { pathname: "/erp-icon/**", search: "" },
     ],
   },
   experimental: {
@@ -107,6 +108,12 @@ const nextConfig: NextConfig = {
       {
         source: "/:locale/status",
         destination: `/:locale${LEGAL_DOCS_ROUTE_PREFIX}/status`,
+        permanent: true,
+      },
+      // Legacy IAM bootstrap URL → post-login loading bay (ADR-0003).
+      {
+        source: "/:locale/onboarding",
+        destination: "/:locale/console",
         permanent: true,
       },
     ]

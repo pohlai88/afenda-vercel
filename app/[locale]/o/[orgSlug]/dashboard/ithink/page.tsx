@@ -1,5 +1,8 @@
 import {
   IThinkShell,
+  countIThinkForInbox,
+  countIThinkForScheduled,
+  countIThinkForToday,
   listIThinkForList,
   listIThinkListsForOrg,
 } from "#features/ithink"
@@ -12,16 +15,31 @@ export const dynamic = "force-dynamic"
 export default async function OrgDashboardIThinkPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/dashboard/ithink">) {
-  const { locale: localeRaw } = await params
+  const { locale: localeRaw, orgSlug } = await params
   ensureAppLocale(localeRaw)
 
   const { organizationId } = await requireOrgSession()
 
-  const [defaultListId, lists] = await Promise.all([
-    ensureDefaultOneThingListForOrg(organizationId),
-    listIThinkListsForOrg(organizationId),
-  ])
-  const rows = await listIThinkForList(defaultListId, organizationId)
+  const defaultListId = await ensureDefaultOneThingListForOrg(organizationId)
 
-  return <IThinkShell rows={rows} lists={lists} defaultListId={defaultListId} />
+  const [rows, lists, todayCount, scheduledCount, inboxCount] =
+    await Promise.all([
+      listIThinkForList(defaultListId, organizationId),
+      listIThinkListsForOrg(organizationId),
+      countIThinkForToday(organizationId),
+      countIThinkForScheduled(organizationId),
+      countIThinkForInbox(defaultListId, organizationId),
+    ])
+
+  return (
+    <IThinkShell
+      rows={rows}
+      lists={lists}
+      defaultListId={defaultListId}
+      orgSlug={orgSlug}
+      inboxCount={inboxCount}
+      todayCount={todayCount}
+      scheduledCount={scheduledCount}
+    />
+  )
 }

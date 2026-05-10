@@ -167,7 +167,7 @@ export function asTemporal<T extends { temporalSpine?: TemporalSpine | null }>(
  *
  * @deprecated `temporal_past` / `temporal_now` / `temporal_next` (snake_case) —
  * migrate callers to camelCase `temporalPast` / `temporalNow` / `temporalNext`.
- * @deprecated `past_context` / `now_context` / `next_context` (ADR-0001 names) —
+ * @deprecated `past_context` / `now_context` / `next_context` (legacy column aliases) —
  * migrate callers to camelCase `temporalPast` / `temporalNow` / `temporalNext`.
  */
 export type TemporalColumnSource = {

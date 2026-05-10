@@ -1,1 +1,1 @@
-export { default } from "#components/dashboard/dashboard-loading"
+export { default } from "#components/nexus-route-loading"

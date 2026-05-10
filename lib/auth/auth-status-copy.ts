@@ -105,7 +105,7 @@ export async function resolveAuthStatusContent(
         description: t("org_required.description"),
         trustNote: t("org_required.trustNote"),
         primaryLabel: t("org_required.primary"),
-        primaryHref: toLocalePath(locale, "/onboarding"),
+        primaryHref: toLocalePath(locale, "/console"),
         secondaryLabel,
         secondaryHref,
       }

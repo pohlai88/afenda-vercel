@@ -3,6 +3,7 @@
 import { eq, and } from "drizzle-orm"
 import { redirect } from "next/navigation"
 
+import { organizationNexusPath } from "#features/nexus"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
@@ -20,7 +21,7 @@ import { neonAuthMember, neonAuthSession } from "#lib/db/schema-neon-auth"
  *
  * Audits: `iam.session.org_switch` (Tier S — tenancy change).
  *
- * After a successful switch, redirects to `/{locale}/o/{slug}/dashboard`.
+ * After a successful switch, redirects to `/{locale}/o/{slug}/nexus`.
  */
 export async function switchActiveOrgAction(
   targetOrgId: string
@@ -68,5 +69,5 @@ export async function switchActiveOrgAction(
     throw new Error("Organization slug not found after switch.")
   }
 
-  redirect(toLocalePath(locale, `/o/${slug}/dashboard`))
+  redirect(toLocalePath(locale, organizationNexusPath(slug)))
 }

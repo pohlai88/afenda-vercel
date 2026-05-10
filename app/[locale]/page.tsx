@@ -64,7 +64,6 @@ export default async function Page() {
           </div>
         </div>
       </main>
-      <div id="architecture" aria-hidden className="sr-only" />
       <LandingFooter />
       <CookieConsentPreview
         eyebrow={t("cookieConsent.eyebrow")}

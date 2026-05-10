@@ -13,7 +13,7 @@
  * Tenant bootstrap: ERP routes need `activeOrganizationId` on the session.
  * The browser Dev panel (`components/dev/dev-signin-panel.tsx`) calls
  * `organization.setActive({ organizationId: DEMO_ORG.id })` after email/password
- * sign-in — signing in manually still requires picking the org or onboarding.
+ * sign-in — signing in manually still requires picking the org or using `/console`.
  *
  * Usage:
  *   # Dev server must be running (pnpm dev) OR pass a custom AUTH_URL:

@@ -51,8 +51,11 @@ export {
 
 export { clearOneThingClientStorage } from "./components/onething-client-storage"
 
+export { OneThingDetailAuditFooter } from "./components/onething-detail-audit-footer"
+
 export { pickNextRankedId } from "./components/hooks/pick-next-ranked-id.shared"
 export { splitOneThingDraft } from "./components/hooks/split-onething-draft.shared"
+export { useNow } from "./components/hooks/use-now"
 export {
   formatAmbientTime,
   HOUR_MS,

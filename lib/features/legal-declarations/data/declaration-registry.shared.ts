@@ -103,10 +103,7 @@ const COOKIE_REPO_REFS = [
   "lib/auth/neon-session-cookie.shared.ts",
   "components/marketing/cookie-consent-preview.tsx",
   "components/ui/sidebar.tsx",
-  "components/dashboard/app-sidebar.tsx",
-  "components/dashboard/inspector-context.tsx",
-  "components/dashboard/right-inspector.tsx",
-  "components/dashboard/lynx-summon.client.tsx",
+  "components/nexus/nexus-lynx-summon.client.tsx",
 ] as const
 
 const privacyChannels = [
