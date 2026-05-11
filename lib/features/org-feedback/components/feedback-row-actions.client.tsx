@@ -76,7 +76,7 @@ export function OrgFeedbackRowActions({
   }
 
   return (
-    <div className="flex min-w-[200px] max-w-xs flex-col gap-2">
+    <div className="flex max-w-xs min-w-[200px] flex-col gap-2">
       {state === "new" ? (
         <form action={formAction} className="flex flex-col gap-1">
           <input type="hidden" name="id" value={id} readOnly />
@@ -92,7 +92,10 @@ export function OrgFeedbackRowActions({
       {state === "acknowledged" ? (
         <>
           <div className="space-y-1">
-            <Label htmlFor={`fb-note-${id}`} className="text-[10px] text-muted-foreground">
+            <Label
+              htmlFor={`fb-note-${id}`}
+              className="text-[10px] text-muted-foreground"
+            >
               {t("noteOptional")}
             </Label>
             <Textarea
@@ -108,7 +111,12 @@ export function OrgFeedbackRowActions({
             <form action={formAction} className="inline">
               <input type="hidden" name="id" value={id} readOnly />
               <input type="hidden" name="transition" value="resolve" readOnly />
-              <input type="hidden" name="resolutionNote" value={note} readOnly />
+              <input
+                type="hidden"
+                name="resolutionNote"
+                value={note}
+                readOnly
+              />
               <TransitionSubmitButton
                 label={t("resolve")}
                 pendingLabel={t("pending")}
@@ -118,7 +126,12 @@ export function OrgFeedbackRowActions({
             <form action={formAction} className="inline">
               <input type="hidden" name="id" value={id} readOnly />
               <input type="hidden" name="transition" value="reject" readOnly />
-              <input type="hidden" name="resolutionNote" value={note} readOnly />
+              <input
+                type="hidden"
+                name="resolutionNote"
+                value={note}
+                readOnly
+              />
               <TransitionSubmitButton
                 label={t("reject")}
                 pendingLabel={t("pending")}

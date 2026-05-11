@@ -7,11 +7,7 @@ import { organizationAdminPath } from "#lib/dashboard-module-paths"
 
 import { NexusUtilityRoundTooltipLink } from "./nexus-utility-round-tooltip-link"
 
-export function NexusUtilityIntegrationsLink({
-  orgSlug,
-}: {
-  orgSlug: string
-}) {
+export function NexusUtilityIntegrationsLink({ orgSlug }: { orgSlug: string }) {
   const tAdmin = useTranslations("Dashboard.commandPalette.admin")
   const tBar = useTranslations("Dashboard.shell.utilityBar")
   const href = organizationAdminPath(orgSlug, "integrations")

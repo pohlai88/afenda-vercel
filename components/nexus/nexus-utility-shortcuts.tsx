@@ -4,11 +4,7 @@ import { Keyboard } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useMemo } from "react"
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "#components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "#components/ui/popover"
 import { Separator } from "#components/ui/separator"
 import { cn } from "#lib/utils"
 
@@ -115,8 +111,8 @@ export function NexusUtilityShortcuts() {
           {shortcutSections.map((section, si) => (
             <div key={section.heading}>
               {si > 0 && <Separator className="my-2 opacity-50" />}
-              <div className="px-4 pb-1 pt-2">
-                <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
+              <div className="px-4 pt-2 pb-1">
+                <p className="mb-2 text-[10px] font-medium tracking-wider text-muted-foreground/60 uppercase">
                   {section.heading}
                 </p>
                 <div className="flex flex-col gap-2">

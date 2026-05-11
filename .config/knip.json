@@ -34,9 +34,7 @@
     "nsTypes": "warn",
     "duplicates": "warn"
   },
-  "ignoreFiles": [
-    "components/ui/**"
-  ],
+  "ignoreFiles": ["components/ui/**"],
   "ignoreDependencies": [
     "@better-auth/infra",
     "@better-auth/passkey",
@@ -138,7 +136,9 @@
     "components/afenda-brand.tsx": ["exports", "types"],
     "components/auth/**/*.tsx": ["exports", "types"],
     "components/nexus/**/*.tsx": ["exports", "types"],
+    "components/nexus/**/*.ts": ["exports", "types"],
     "components/nexus/nexus-surface-chrome.tsx": ["files"],
+    "components/nexus/nexus-utility-integrations-link.tsx": ["files"],
     "components/module-page-header.tsx": ["exports", "types"],
     "components/erp-surface-coming-soon.tsx": ["exports", "types"],
     "components/nexus-route-loading.tsx": ["exports", "types"],

@@ -57,7 +57,7 @@ export async function WorkforcePage({ orgSlug }: WorkforcePageProps) {
         </CardHeader>
         <CardContent>
           {rows.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("empty")}</p>
+            <p className="text-sm text-muted-foreground">{t("empty")}</p>
           ) : (
             <Table>
               <TableHeader>
@@ -85,7 +85,7 @@ export async function WorkforcePage({ orgSlug }: WorkforcePageProps) {
                       <div className="flex flex-col">
                         <span>{row.legalName}</span>
                         {row.preferredName ? (
-                          <span className="text-muted-foreground text-xs">
+                          <span className="text-xs text-muted-foreground">
                             {row.preferredName}
                           </span>
                         ) : null}

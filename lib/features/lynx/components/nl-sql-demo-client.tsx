@@ -54,9 +54,7 @@ export function NlSqlDemoClient() {
 
   const explanationKeys = useMemo(
     () =>
-      explanations?.length
-        ? stableNlDemoExplanationKeys(explanations)
-        : null,
+      explanations?.length ? stableNlDemoExplanationKeys(explanations) : null,
     [explanations]
   )
 

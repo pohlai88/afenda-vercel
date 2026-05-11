@@ -146,3 +146,32 @@ export type EmployeeMutationFormState =
         archivedReason?: string
       }
     }
+
+export type LeaveTypeMutationFormState =
+  | { ok: true; leaveTypeId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        leaveTypeId?: string
+        code?: string
+        accrualMethod?: string
+        tier1Days?: string
+        fixedDaysPerYear?: string
+      }
+    }
+
+export type LeavePolicyMutationFormState =
+  | { ok: true; leavePolicyId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        leaveTypeId?: string
+        effectiveFrom?: string
+      }
+    }
+
+export type SeedLeaveTypesFormState =
+  | { ok: true; seeded: string[]; skipped: string[] }
+  | { ok: false; error: string }

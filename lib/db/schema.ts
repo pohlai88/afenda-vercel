@@ -1190,6 +1190,143 @@ export const hrmEmploymentContract = pgTable(
   ]
 )
 
+/**
+ * Leave type catalog — org-scoped with Malaysia EA 2023 tier columns (Phase 2A).
+ * accrualMethod: 'annual_grant' | 'monthly_accrual' | 'fixed_grant'
+ * Three-tier EA shape: tier1Days/tier1MaxYears, tier2Days/tier2MaxYears, tier3Days.
+ * Fixed types (hospital, maternity, paternity): use fixedDaysPerYear only.
+ */
+export const hrmLeaveType = pgTable(
+  "hrm_leave_type",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    accrualMethod: text("accrualMethod").notNull().default("annual_grant"),
+    paid: boolean("paid").notNull().default(true),
+    genderRestriction: text("genderRestriction"),
+    tier1Days: integer("tier1Days"),
+    tier1MaxYears: integer("tier1MaxYears"),
+    tier2Days: integer("tier2Days"),
+    tier2MaxYears: integer("tier2MaxYears"),
+    tier3Days: integer("tier3Days"),
+    fixedDaysPerYear: integer("fixedDaysPerYear"),
+    maxCarryForwardDays: integer("maxCarryForwardDays").notNull().default(0),
+    carryForwardExpiryMonths: integer("carryForwardExpiryMonths"),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_leave_type_org_code_uidx").on(t.organizationId, t.code),
+    index("hrm_leave_type_org_archivedAt_idx").on(
+      t.organizationId,
+      t.archivedAt
+    ),
+  ]
+)
+
+/**
+ * Effective-dated policy overlay per leave type — org-scoped, admin-gated (Phase 2A).
+ * policyVersion is snapshotted onto hrm_leave_entitlement so past computations
+ * are not silently mutated when the policy changes.
+ */
+export const hrmLeavePolicy = pgTable(
+  "hrm_leave_policy",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    leaveTypeId: text("leaveTypeId")
+      .notNull()
+      .references(() => hrmLeaveType.id, { onDelete: "restrict" }),
+    effectiveFrom: date("effectiveFrom", { mode: "date" }).notNull(),
+    effectiveTo: date("effectiveTo", { mode: "date" }),
+    isActive: boolean("isActive").notNull().default(true),
+    overrideTier1Days: integer("overrideTier1Days"),
+    overrideTier2Days: integer("overrideTier2Days"),
+    overrideTier3Days: integer("overrideTier3Days"),
+    overrideFixedDays: integer("overrideFixedDays"),
+    overrideMaxCarryForward: integer("overrideMaxCarryForward"),
+    notes: text("notes"),
+    policyVersion: text("policyVersion").notNull().default("custom"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_leave_policy_org_leaveTypeId_idx").on(
+      t.organizationId,
+      t.leaveTypeId
+    ),
+    index("hrm_leave_policy_org_effectiveFrom_idx").on(
+      t.organizationId,
+      t.effectiveFrom
+    ),
+  ]
+)
+
+/**
+ * Computed annual leave entitlement per employee (Phase 2A).
+ * Written by leave-entitlement-engine; read by leave request actions (Phase 2B).
+ * Unique per (org, employee, leave type, year) so the engine can upsert safely.
+ * engineInputSnapshot preserves the computation inputs for traceability.
+ */
+export const hrmLeaveEntitlement = pgTable(
+  "hrm_leave_entitlement",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    leaveTypeId: text("leaveTypeId")
+      .notNull()
+      .references(() => hrmLeaveType.id, { onDelete: "restrict" }),
+    leavePolicyId: text("leavePolicyId").references(() => hrmLeavePolicy.id, {
+      onDelete: "set null",
+    }),
+    entitlementYear: integer("entitlementYear").notNull(),
+    daysGranted: decimal("daysGranted", { precision: 6, scale: 2 }).notNull(),
+    daysProrated: decimal("daysProrated", { precision: 6, scale: 2 }).notNull(),
+    yearsOfServiceAtGrant: decimal("yearsOfServiceAtGrant", {
+      precision: 5,
+      scale: 2,
+    }),
+    prorataNumerator: integer("prorataNumerator").notNull().default(12),
+    prorataDenominator: integer("prorataDenominator").notNull().default(12),
+    basis: text("basis").notNull(),
+    engineVersion: text("engineVersion").notNull(),
+    engineInputSnapshot: jsonb("engineInputSnapshot"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_leave_entitlement_org_employee_type_year_uidx").on(
+      t.organizationId,
+      t.employeeId,
+      t.leaveTypeId,
+      t.entitlementYear
+    ),
+    index("hrm_leave_entitlement_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_leave_entitlement_org_year_idx").on(
+      t.organizationId,
+      t.entitlementYear
+    ),
+  ]
+)
+
 /** Statutory payroll identifiers — effective-dated rows (Phase 1B). */
 export const hrmPayrollProfile = pgTable(
   "hrm_payroll_profile",

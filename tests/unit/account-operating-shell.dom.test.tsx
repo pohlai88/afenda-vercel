@@ -74,7 +74,7 @@ const baseProps = {
       matchPath: "/account/security",
     },
     {
-      id: "security" as const,
+      id: "authority" as const,
       label: "Security",
       description: "Passkeys",
       href: "/en/account/security#security",

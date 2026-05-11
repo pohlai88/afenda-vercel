@@ -1485,13 +1485,14 @@ The plan is organised so **every PR ships a vertical slice you can use end-to-en
 
 ### Phase 2 — Slice 2: **Leave truth** (3 sub-PRs, ≈ 3 weeks total)
 
-#### Phase 2A — Leave type + entitlement engine (policy first, no UI mutation)
+#### Phase 2A — Leave type + entitlement engine ✅ SHIPPED
 
-**Migration:** `0011a_hrm_leave_policy.sql` (leave_type, leave_policy, leave_entitlement).
-**Engine:** `data/leave-entitlement-engine.server.ts` — pure, deterministic, fully unit-tested. Project monthly accrual / annual grant / pro-rata for a contract.
-**Module work:** seed default Malaysia EA leave types via the rule-pack interface stub (uses `MY-EA-2023-01` data file); `actions/leave-policy.actions.ts` (create / update leave type + policy, admin-gated).
-**Tests:** **`tests/unit/hrm-leave-entitlement-malaysia.test.ts`** with all EA tier cases (annual 8/12/16, sick 14/18/22, hospital 60, maternity 98, paternity 7, prorata edges).
-**Audit:** `erp.hrm.leave_type.{create|update}`, `erp.hrm.policy.update`.
+**Migration:** `0012_hrm_leave_policy.sql` (hrm_leave_type, hrm_leave_policy, hrm_leave_entitlement).
+**Engine:** `data/leave-entitlement-engine.server.ts` — pure, deterministic, fully unit-tested. Projects annual grant / fixed grant / monthly accrual / pro-rata for a contract.
+**Module work:** Malaysia EA 2023 seed data `data/leave-rules/my-ea-2023-01.ts` (`MY_EA_2023_LEAVE_TYPES`, `MY_EA_2023_POLICY_VERSION = "MY-EA-2023-01"`); `actions/leave-policy.actions.ts` (`createLeaveTypeAction`, `updateLeaveTypeAction`, `seedMalaysiaEa2023LeaveTypesAction`, `createLeavePolicyAction` — all admin-gated).
+**Tests:** **`tests/unit/hrm-leave-entitlement-malaysia.test.ts`** — 57 cases: annual 8/12/16, sick 14/18/22, hospital 60, maternity 98, paternity 7, pro-rata edges, seed structure, provenance.
+**Audit:** `erp.hrm.leave_type.{create|update|seed}`, `erp.hrm.policy.update`.
+**Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors. All 57 unit tests green.
 
 #### Phase 2B — Leave request + single-step approval (the first approval workflow)
 

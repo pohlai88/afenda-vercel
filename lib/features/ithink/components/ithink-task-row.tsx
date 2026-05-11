@@ -65,9 +65,7 @@ export function IThinkTaskRow({
       >
         <Checkbox
           checked={row.state === "resolved"}
-          disabled={
-            row.state === "resolved" || row.state === "deprecated"
-          }
+          disabled={row.state === "resolved" || row.state === "deprecated"}
           aria-label={`Mark complete: ${row.title}`}
           onCheckedChange={() => {
             const fd = new FormData()

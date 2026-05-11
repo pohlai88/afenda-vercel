@@ -1,6 +1,10 @@
 import { Card, CardContent } from "#components/ui/card"
 
-import type { OperatorContext, OrgContext, SystemReadiness } from "./nexus.types"
+import type {
+  OperatorContext,
+  OrgContext,
+  SystemReadiness,
+} from "./nexus.types"
 
 /**
  * Orientation band — Section A of the Nexus Field.
@@ -28,7 +32,7 @@ export function NexusOrientationBand({
     <Card className="border border-border" size="sm">
       <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-1">
-          <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             Nexus
           </div>
           <div className="text-lg font-semibold text-foreground">
@@ -41,7 +45,10 @@ export function NexusOrientationBand({
         </div>
         <dl className="flex flex-wrap gap-x-6 gap-y-2 text-xs">
           <Field label="Operating day" value={operator.operatingDay} />
-          <Field label="Environment" value={formatEnvironment(org.environment)} />
+          <Field
+            label="Environment"
+            value={formatEnvironment(org.environment)}
+          />
           <Field label="Readiness" value={readinessLabel} />
           <Field label="Lynx" value={lynxLabel} />
         </dl>
@@ -53,7 +60,7 @@ export function NexusOrientationBand({
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
-      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">
+      <dt className="text-[10px] tracking-wide text-muted-foreground uppercase">
         {label}
       </dt>
       <dd className="text-sm font-medium text-foreground">{value}</dd>

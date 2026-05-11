@@ -1,6 +1,9 @@
 import { z } from "zod"
 
-import { FEEDBACK_RESOLUTION_NOTE_MAX, type FeedbackStateId } from "../constants"
+import {
+  FEEDBACK_RESOLUTION_NOTE_MAX,
+  type FeedbackStateId,
+} from "../constants"
 
 const emptyToNull = (v: unknown) => {
   if (v == null) return null

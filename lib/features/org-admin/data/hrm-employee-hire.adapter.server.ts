@@ -1,7 +1,6 @@
 import "server-only"
 
 import { createEmployeeMutation } from "#features/hrm/server"
-import { writeIamAuditEvent } from "#lib/auth"
 
 import {
   hrmEmployeeHireRowSchema,
@@ -85,24 +84,6 @@ export const hrmEmployeeHireAdapter: OrgImportAdapter<HrmEmployeeHireRow> = {
       }
       return { ok: false, code: "unknown", message: result.message }
     }
-
-    await writeIamAuditEvent({
-      action: "erp.hrm.employee.create",
-      organizationId: ctx.organizationId,
-      actorUserId: ctx.actorUserId,
-      actorSessionId: ctx.actorSessionId,
-      resourceType: "hrm_employee",
-      resourceId: result.employeeId,
-      metadata: {
-        employeeNumber: payload.employeeNumber,
-        hasEmail: Boolean(payload.email),
-        hasPreferredName: Boolean(payload.preferredName),
-        hasDepartment: Boolean(payload.departmentId),
-        hasPosition: Boolean(payload.positionId),
-        hasJobGrade: Boolean(payload.gradeId),
-        source: "csv_import",
-      },
-    })
 
     return {
       ok: true,

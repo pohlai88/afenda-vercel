@@ -42,17 +42,25 @@ export async function EmployeeDetailPhase1b({
     return null
   }
 
-  const [t, tContractTypes, tPayFrequencies, tDocumentTypes, format, contracts, payrollProfile, documents] =
-    await Promise.all([
-      getTranslations("Dashboard.Hrm.workforce"),
-      getTranslations("Dashboard.Hrm.workforce.contractTypes"),
-      getTranslations("Dashboard.Hrm.workforce.payFrequencies"),
-      getTranslations("Dashboard.Hrm.workforce.documentTypes"),
-      getFormatter(),
-      listEmploymentContractsForEmployee(organizationId, employeeId),
-      getCurrentPayrollProfileForEmployee(organizationId, employeeId),
-      listHrmDocumentsForEmployee(organizationId, employeeId),
-    ])
+  const [
+    t,
+    tContractTypes,
+    tPayFrequencies,
+    tDocumentTypes,
+    format,
+    contracts,
+    payrollProfile,
+    documents,
+  ] = await Promise.all([
+    getTranslations("Dashboard.Hrm.workforce"),
+    getTranslations("Dashboard.Hrm.workforce.contractTypes"),
+    getTranslations("Dashboard.Hrm.workforce.payFrequencies"),
+    getTranslations("Dashboard.Hrm.workforce.documentTypes"),
+    getFormatter(),
+    listEmploymentContractsForEmployee(organizationId, employeeId),
+    getCurrentPayrollProfileForEmployee(organizationId, employeeId),
+    listHrmDocumentsForEmployee(organizationId, employeeId),
+  ])
 
   const draftContracts = contracts
     .filter((c) => c.state === "draft")
@@ -62,14 +70,21 @@ export async function EmployeeDetailPhase1b({
     <>
       <Card size="sm">
         <CardHeader>
-          <CardTitle className="text-base">{t("contractSectionTitle")}</CardTitle>
+          <CardTitle className="text-base">
+            {t("contractSectionTitle")}
+          </CardTitle>
           <CardDescription>{t("contractSectionDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
-          <EmploymentContractDraftForm orgSlug={orgSlug} employeeId={employeeId} />
+          <EmploymentContractDraftForm
+            orgSlug={orgSlug}
+            employeeId={employeeId}
+          />
           <div className="flex flex-col gap-4">
             {contracts.length === 0 ? (
-              <p className="text-muted-foreground text-sm">{t("contractEmpty")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("contractEmpty")}
+              </p>
             ) : (
               contracts.map((c) => (
                 <div key={c.id} className="rounded-lg border border-border p-4">
@@ -78,7 +93,7 @@ export async function EmployeeDetailPhase1b({
                       {t("contractVersionLabel", { version: c.versionNumber })}
                     </span>
                     <Badge variant="outline">{c.state}</Badge>
-                    <span className="text-muted-foreground text-xs">
+                    <span className="text-xs text-muted-foreground">
                       {t("contractTypeLabel")}:{" "}
                       {isHrmContractType(c.contractType)
                         ? tContractTypes(c.contractType)
@@ -87,15 +102,29 @@ export async function EmployeeDetailPhase1b({
                   </div>
                   <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                     <div>
-                      <dt className="text-muted-foreground">{t("contractEffectiveFrom")}</dt>
-                      <dd>{format.dateTime(c.effectiveFrom, { dateStyle: "medium" })}</dd>
+                      <dt className="text-muted-foreground">
+                        {t("contractEffectiveFrom")}
+                      </dt>
+                      <dd>
+                        {format.dateTime(c.effectiveFrom, {
+                          dateStyle: "medium",
+                        })}
+                      </dd>
                     </div>
                     <div>
-                      <dt className="text-muted-foreground">{t("contractSignedDocLabel")}</dt>
-                      <dd>{c.signedDocumentId ? t("contractSignedYes") : t("contractSignedNo")}</dd>
+                      <dt className="text-muted-foreground">
+                        {t("contractSignedDocLabel")}
+                      </dt>
+                      <dd>
+                        {c.signedDocumentId
+                          ? t("contractSignedYes")
+                          : t("contractSignedNo")}
+                      </dd>
                     </div>
                     <div>
-                      <dt className="text-muted-foreground">{t("contractPayFrequency")}</dt>
+                      <dt className="text-muted-foreground">
+                        {t("contractPayFrequency")}
+                      </dt>
                       <dd>
                         {isHrmPayFrequency(c.payFrequency)
                           ? tPayFrequencies(c.payFrequency)
@@ -103,7 +132,9 @@ export async function EmployeeDetailPhase1b({
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-muted-foreground">{t("contractBaseSalary")}</dt>
+                      <dt className="text-muted-foreground">
+                        {t("contractBaseSalary")}
+                      </dt>
                       <dd>
                         {c.baseSalaryAmount
                           ? `${c.baseSalaryAmount} ${c.baseSalaryCurrency}`
@@ -111,7 +142,10 @@ export async function EmployeeDetailPhase1b({
                       </dd>
                     </div>
                   </dl>
-                  <EmploymentContractLifecycleForms orgSlug={orgSlug} contract={c} />
+                  <EmploymentContractLifecycleForms
+                    orgSlug={orgSlug}
+                    contract={c}
+                  />
                 </div>
               ))
             )}
@@ -123,7 +157,9 @@ export async function EmployeeDetailPhase1b({
 
       <Card size="sm">
         <CardHeader>
-          <CardTitle className="text-base">{t("payrollSectionTitle")}</CardTitle>
+          <CardTitle className="text-base">
+            {t("payrollSectionTitle")}
+          </CardTitle>
           <CardDescription>{t("payrollSectionDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -146,7 +182,9 @@ export async function EmployeeDetailPhase1b({
 
       <Card size="sm">
         <CardHeader>
-          <CardTitle className="text-base">{t("documentSectionTitle")}</CardTitle>
+          <CardTitle className="text-base">
+            {t("documentSectionTitle")}
+          </CardTitle>
           <CardDescription>{t("documentSectionDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
@@ -157,18 +195,25 @@ export async function EmployeeDetailPhase1b({
             draftContracts={draftContracts}
           />
           <div className="flex flex-col gap-3">
-            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {t("documentVaultTitle")}
             </p>
             {documents.length === 0 ? (
-              <p className="text-muted-foreground text-sm">{t("documentVaultEmpty")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("documentVaultEmpty")}
+              </p>
             ) : (
               <ul className="divide-y divide-border rounded-lg border border-border">
                 {documents.map((doc) => (
-                  <li key={doc.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                  <li
+                    key={doc.id}
+                    className="flex flex-wrap items-center justify-between gap-2 px-3 py-2"
+                  >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{doc.title}</p>
-                      <p className="text-muted-foreground text-xs">
+                      <p className="truncate text-sm font-medium">
+                        {doc.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
                         {isHrmDocumentType(doc.documentType)
                           ? tDocumentTypes(doc.documentType)
                           : doc.documentType}{" "}
@@ -183,7 +228,7 @@ export async function EmployeeDetailPhase1b({
                       href={doc.blobUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-primary shrink-0 text-sm underline-offset-4 hover:underline"
+                      className="shrink-0 text-sm text-primary underline-offset-4 hover:underline"
                     >
                       {t("documentOpen")}
                     </a>

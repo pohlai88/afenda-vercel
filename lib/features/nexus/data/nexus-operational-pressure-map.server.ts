@@ -27,9 +27,7 @@ function mapOnePressureRow(
   row: IThinkPressureRowForOperationalPressure
 ): OperationalPressureItem {
   const severity =
-    row.severity === "critical"
-      ? ("critical" as const)
-      : ("attention" as const)
+    row.severity === "critical" ? ("critical" as const) : ("attention" as const)
 
   return {
     id: row.id,

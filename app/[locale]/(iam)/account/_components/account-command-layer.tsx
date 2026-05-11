@@ -107,7 +107,12 @@ function AccountCommandGroup({
       {items.map((item) => (
         <CommandItem
           key={`${item.label}-${item.href}`}
-          value={[item.label, item.description, item.href, ...(item.keywords ?? [])]
+          value={[
+            item.label,
+            item.description,
+            item.href,
+            ...(item.keywords ?? []),
+          ]
             .filter(Boolean)
             .join(" ")}
           onSelect={() => onSelect(item.href)}

@@ -2,11 +2,7 @@
 
 import type { ReactElement } from "react"
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "#components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "#components/ui/tooltip"
 
 type NexusUtilityTriggerTooltipProps = {
   /** Hover / focus-visible description — must not be empty. */

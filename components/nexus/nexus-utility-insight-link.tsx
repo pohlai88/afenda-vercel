@@ -8,11 +8,7 @@ import { organizationDashboardPath } from "#lib/dashboard-module-paths"
 import { NexusUtilityRoundTooltipLink } from "./nexus-utility-round-tooltip-link"
 
 /** Lynx (truth / machine layer). */
-export function NexusUtilityInsightLink({
-  orgSlug,
-}: {
-  orgSlug: string
-}) {
+export function NexusUtilityInsightLink({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations("Dashboard.shell.utilityBar")
   const href = organizationDashboardPath(orgSlug, "lynx")
 

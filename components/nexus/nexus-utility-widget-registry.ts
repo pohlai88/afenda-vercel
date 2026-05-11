@@ -65,16 +65,16 @@ export function getRightUtilityCatalogEntry(
 }
 
 export function migrateUtilityWidgetPrefs(
-  prefs: UtilityWidgetVisibilityPrefs
+  prefs: Record<string, boolean | undefined>
 ): UtilityWidgetVisibilityPrefs {
-  if (!("right.integrations" in prefs)) return prefs
-  const next = { ...prefs }
+  if (!("right.integrations" in prefs)) return prefs as UtilityWidgetVisibilityPrefs
+  const next: Record<string, boolean | undefined> = { ...prefs }
   const legacy = next["right.integrations"]
   delete next["right.integrations"]
   if (typeof legacy === "boolean" && !("right.marketplace" in next)) {
     next["right.marketplace"] = legacy
   }
-  return next
+  return next as UtilityWidgetVisibilityPrefs
 }
 
 export function isWidgetVisibleInPrefs(

@@ -68,7 +68,9 @@ export async function upsertPayrollProfileMutation(
       await tx
         .update(hrmPayrollProfile)
         .set({
-          effectiveTo: isoDateOnlyToUtcDate(calendarDayBeforeIso(input.effectiveFrom)),
+          effectiveTo: isoDateOnlyToUtcDate(
+            calendarDayBeforeIso(input.effectiveFrom)
+          ),
           updatedAt: new Date(),
           updatedByUserId: input.actorUserId,
         })

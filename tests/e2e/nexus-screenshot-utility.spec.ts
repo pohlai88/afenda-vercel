@@ -65,7 +65,9 @@ test.describe("nexus screenshot utility (optional credentials)", () => {
       })
 
       await test.step("Capture workspace preview", async () => {
-        await page.getByRole("button", { name: "Screenshot", exact: true }).click()
+        await page
+          .getByRole("button", { name: "Screenshot", exact: true })
+          .click()
         await expect(
           page.getByRole("heading", { name: "Screenshot", exact: true })
         ).toBeVisible()

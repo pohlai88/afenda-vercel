@@ -80,7 +80,9 @@ export async function HrmOverviewPage({ orgSlug }: HrmOverviewProps) {
               <CardTitle className="text-base font-semibold tracking-tight">
                 {tCards(`${item.navKey}.title`)}
               </CardTitle>
-              <CardDescription>{tCards(`${item.navKey}.description`)}</CardDescription>
+              <CardDescription>
+                {tCards(`${item.navKey}.description`)}
+              </CardDescription>
             </CardHeader>
           </Card>
         </Link>

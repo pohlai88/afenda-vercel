@@ -74,16 +74,24 @@ export function EmploymentContractLifecycleForms({
         <form action={terminateAction} className="flex flex-col gap-2">
           <input type="hidden" name="orgSlug" value={orgSlug} />
           <input type="hidden" name="contractId" value={contract.id} />
-          <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {t("contractTerminateTitle")}
           </p>
-          {terminateState && !terminateState.ok && terminateState.errors.form ? (
+          {terminateState &&
+          !terminateState.ok &&
+          terminateState.errors.form ? (
             <Alert variant="destructive">
               <AlertTitle>{t("errorTitle")}</AlertTitle>
               <AlertDescription>{terminateState.errors.form}</AlertDescription>
             </Alert>
           ) : null}
-          <Field data-invalid={terminateState && !terminateState.ok && terminateState.errors.terminationDate}>
+          <Field
+            data-invalid={
+              terminateState &&
+              !terminateState.ok &&
+              terminateState.errors.terminationDate
+            }
+          >
             <FieldLabel htmlFor={`term-date-${contract.id}`}>
               {t("contractTerminationDate")}
             </FieldLabel>
@@ -93,10 +101,14 @@ export function EmploymentContractLifecycleForms({
               type="date"
               required
               aria-invalid={Boolean(
-                terminateState && !terminateState.ok && terminateState.errors.terminationDate
+                terminateState &&
+                !terminateState.ok &&
+                terminateState.errors.terminationDate
               )}
             />
-            {terminateState && !terminateState.ok && terminateState.errors.terminationDate ? (
+            {terminateState &&
+            !terminateState.ok &&
+            terminateState.errors.terminationDate ? (
               <FieldError>{terminateState.errors.terminationDate}</FieldError>
             ) : null}
           </Field>
@@ -124,7 +136,12 @@ export function EmploymentContractLifecycleForms({
               max={365}
             />
           </Field>
-          <Button type="submit" size="sm" variant="secondary" disabled={terminatePending}>
+          <Button
+            type="submit"
+            size="sm"
+            variant="secondary"
+            disabled={terminatePending}
+          >
             {terminatePending ? (
               <>
                 <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />

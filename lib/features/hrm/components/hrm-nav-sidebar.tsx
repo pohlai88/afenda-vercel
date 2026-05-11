@@ -22,7 +22,7 @@ export function HrmNavSidebar({ orgSlug }: { orgSlug: string }) {
   return (
     <nav
       aria-label={tShell("capabilityNavAria")}
-      className="flex flex-row flex-wrap gap-2 border-border pb-4 lg:flex-col lg:flex-nowrap lg:border-e lg:border-b-0 lg:pb-0 lg:pe-6"
+      className="flex flex-row flex-wrap gap-2 border-border pb-4 lg:flex-col lg:flex-nowrap lg:border-e lg:border-b-0 lg:pe-6 lg:pb-0"
     >
       <Link
         href={overviewHref}

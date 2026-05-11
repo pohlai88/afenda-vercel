@@ -4,11 +4,7 @@ import { useState } from "react"
 import { Database } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "#components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "#components/ui/popover"
 import { cn } from "#lib/utils"
 
 import { NEXUS_UTILITY_ROUND_CONTROL_CLASS } from "./nexus-utility-round-control-class"

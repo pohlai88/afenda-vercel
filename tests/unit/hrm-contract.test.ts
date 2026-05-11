@@ -78,9 +78,9 @@ describe("HRM_CAPABILITIES registry", () => {
       expect(HRM_MESSAGES.cards[capability.nav.navKey]?.description).toBeTypeOf(
         "string"
       )
-      expect(HRM_MESSAGES.placeholders[capability.nav.navKey]?.title).toBeTypeOf(
-        "string"
-      )
+      expect(
+        HRM_MESSAGES.placeholders[capability.nav.navKey]?.title
+      ).toBeTypeOf("string")
       expect(HRM_MESSAGES.placeholders[capability.nav.navKey]?.body).toBeTypeOf(
         "string"
       )

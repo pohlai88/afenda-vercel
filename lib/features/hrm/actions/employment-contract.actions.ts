@@ -11,9 +11,7 @@ import {
 } from "#lib/dashboard-module-paths"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmEmploymentContract } from "#lib/db/schema"
-import {
-  toLocaleOrgDashboardRevalidatePattern,
-} from "#lib/i18n/locales.shared"
+import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
 
 import { assertOptionalHrmPlacementFkBelongsToOrg } from "../data/hrm-org-fk.server"
@@ -47,7 +45,10 @@ export async function createDraftContractAction(
 ): Promise<ContractMutationFormState> {
   const { organizationId, userId, sessionId } = await requireOrgSession()
 
-  const tenant = await validateHrmOrgSlugMatchesSession(formData, organizationId)
+  const tenant = await validateHrmOrgSlugMatchesSession(
+    formData,
+    organizationId
+  )
   if (!tenant.ok) {
     return { ok: false, errors: { form: tenant.message } }
   }
@@ -113,7 +114,9 @@ export async function createDraftContractAction(
   if (emp.archivedAt) {
     return {
       ok: false,
-      errors: { form: "Archived employees cannot receive new draft contracts." },
+      errors: {
+        form: "Archived employees cannot receive new draft contracts.",
+      },
     }
   }
 
@@ -190,7 +193,10 @@ export async function activateContractAction(
 ): Promise<ContractMutationFormState> {
   const { organizationId, userId, sessionId } = await requireOrgSession()
 
-  const tenant = await validateHrmOrgSlugMatchesSession(formData, organizationId)
+  const tenant = await validateHrmOrgSlugMatchesSession(
+    formData,
+    organizationId
+  )
   if (!tenant.ok) {
     return { ok: false, errors: { form: tenant.message } }
   }
@@ -202,7 +208,9 @@ export async function activateContractAction(
   if (!parsed.success) {
     return {
       ok: false,
-      errors: { contractId: parsed.error.flatten().fieldErrors.contractId?.[0] },
+      errors: {
+        contractId: parsed.error.flatten().fieldErrors.contractId?.[0],
+      },
     }
   }
 
@@ -231,7 +239,10 @@ export async function activateContractAction(
       return { ok: false as const, message: "Contract not found." }
     }
     if (row.state !== "draft") {
-      return { ok: false as const, message: "Only draft contracts can be activated." }
+      return {
+        ok: false as const,
+        message: "Only draft contracts can be activated.",
+      }
     }
     if (!row.signedDocumentId) {
       return {
@@ -359,7 +370,10 @@ export async function terminateContractAction(
 ): Promise<ContractMutationFormState> {
   const { organizationId, userId, sessionId } = await requireOrgSession()
 
-  const tenant = await validateHrmOrgSlugMatchesSession(formData, organizationId)
+  const tenant = await validateHrmOrgSlugMatchesSession(
+    formData,
+    organizationId
+  )
   if (!tenant.ok) {
     return { ok: false, errors: { form: tenant.message } }
   }
@@ -382,8 +396,12 @@ export async function terminateContractAction(
     }
   }
 
-  const { contractId, terminationDate, terminationReason, terminationNoticeDays } =
-    parsed.data
+  const {
+    contractId,
+    terminationDate,
+    terminationReason,
+    terminationNoticeDays,
+  } = parsed.data
 
   const result = await db.transaction(async (tx) => {
     const [row] = await tx

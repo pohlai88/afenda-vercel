@@ -8,9 +8,7 @@ import {
   ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL,
   ORG_DASHBOARD_HRM_EMPLOYEES,
 } from "#lib/dashboard-module-paths"
-import {
-  toLocaleOrgDashboardRevalidatePattern,
-} from "#lib/i18n/locales.shared"
+import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
 
 import { upsertPayrollProfileMutation } from "../data/payroll-profile.mutations.server"
@@ -35,7 +33,10 @@ export async function upsertPayrollProfileAction(
 ): Promise<PayrollProfileMutationFormState> {
   const { organizationId, userId, sessionId } = await requireOrgSession()
 
-  const tenant = await validateHrmOrgSlugMatchesSession(formData, organizationId)
+  const tenant = await validateHrmOrgSlugMatchesSession(
+    formData,
+    organizationId
+  )
   if (!tenant.ok) {
     return { ok: false, errors: { form: tenant.message } }
   }
@@ -72,7 +73,9 @@ export async function upsertPayrollProfileAction(
 
   const d = parsed.data
   const countryCode =
-    d.countryCode && d.countryCode.trim().length > 0 ? d.countryCode.trim() : "MY"
+    d.countryCode && d.countryCode.trim().length > 0
+      ? d.countryCode.trim()
+      : "MY"
 
   const applied = await upsertPayrollProfileMutation({
     organizationId,
@@ -93,7 +96,9 @@ export async function upsertPayrollProfileAction(
     bankAccountHolderName: d.bankAccountHolderName?.trim() || null,
     paySchedule: d.paySchedule ?? "monthly",
     payCurrency:
-      d.payCurrency && d.payCurrency.trim().length > 0 ? d.payCurrency.trim() : "MYR",
+      d.payCurrency && d.payCurrency.trim().length > 0
+        ? d.payCurrency.trim()
+        : "MYR",
     payrollGroupCode: d.payrollGroupCode?.trim() || null,
   })
 

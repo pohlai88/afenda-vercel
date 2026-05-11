@@ -3,10 +3,7 @@ import "server-only"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import {
-  neonAuthMember,
-  neonAuthOrganization,
-} from "#lib/db/schema-neon-auth"
+import { neonAuthMember, neonAuthOrganization } from "#lib/db/schema-neon-auth"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
 import {
   countIThinkActiveForOrg,
@@ -51,30 +48,36 @@ export async function getNexusSnapshot(input: {
   const { session, orgSlug } = input
   const { organizationId, userId } = session
 
-  const [identityRow, roleRow, pressureRows, resolutionRows, activeCount, todayCount] =
-    await Promise.all([
-      db
-        .select({ name: neonAuthOrganization.name })
-        .from(neonAuthOrganization)
-        .where(eq(neonAuthOrganization.id, organizationId))
-        .limit(1)
-        .then((rows) => rows[0] ?? null),
-      db
-        .select({ role: neonAuthMember.role })
-        .from(neonAuthMember)
-        .where(
-          and(
-            eq(neonAuthMember.organizationId, organizationId),
-            eq(neonAuthMember.userId, userId)
-          )
+  const [
+    identityRow,
+    roleRow,
+    pressureRows,
+    resolutionRows,
+    activeCount,
+    todayCount,
+  ] = await Promise.all([
+    db
+      .select({ name: neonAuthOrganization.name })
+      .from(neonAuthOrganization)
+      .where(eq(neonAuthOrganization.id, organizationId))
+      .limit(1)
+      .then((rows) => rows[0] ?? null),
+    db
+      .select({ role: neonAuthMember.role })
+      .from(neonAuthMember)
+      .where(
+        and(
+          eq(neonAuthMember.organizationId, organizationId),
+          eq(neonAuthMember.userId, userId)
         )
-        .limit(1)
-        .then((rows) => rows[0] ?? null),
-      listIThinkHighPressureForNexus(organizationId, 5),
-      listIThinkRecentResolutionsForNexus(organizationId, 3),
-      countIThinkActiveForOrg(organizationId),
-      countIThinkForToday(organizationId),
-    ])
+      )
+      .limit(1)
+      .then((rows) => rows[0] ?? null),
+    listIThinkHighPressureForNexus(organizationId, 5),
+    listIThinkRecentResolutionsForNexus(organizationId, 3),
+    countIThinkActiveForOrg(organizationId),
+    countIThinkForToday(organizationId),
+  ])
 
   const orgRole = normalizeOrgRole(roleRow?.role ?? null)
 
@@ -195,7 +198,10 @@ function buildPriorityLanes(
  * Surface map — 7 operating domains. "Operations" surface uses the live
  * iThink active count; others remain stubbed for Phase 2.
  */
-function buildSurfaces(orgSlug: string, activeCount: number): NexusSurfaceState[] {
+function buildSurfaces(
+  orgSlug: string,
+  activeCount: number
+): NexusSurfaceState[] {
   const orgRoot = ORG_DASHBOARD_HOME_HREF(orgSlug)
   return [
     {

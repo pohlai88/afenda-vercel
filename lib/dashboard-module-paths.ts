@@ -75,7 +75,9 @@ export function organizationDashboardPath(
  * Excludes `home` (Nexus field). Keep aligned with {@link ORG_DASHBOARD_MODULES}
  * in `dashboard-org-path.shared.ts` and `Dashboard.nav` in `messages/*`.
  */
-export const DASHBOARD_NAV_MODULES = [...ORG_DASHBOARD_MODULES] as const satisfies ReadonlyArray<
+export const DASHBOARD_NAV_MODULES = [
+  ...ORG_DASHBOARD_MODULES,
+] as const satisfies ReadonlyArray<
   Exclude<Parameters<typeof organizationDashboardPath>[1], "home">
 >
 

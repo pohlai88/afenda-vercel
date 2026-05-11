@@ -60,7 +60,7 @@ function SeverityBadge({
 }) {
   return (
     <span
-      className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${SEVERITY_TONE[severity]}`}
+      className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${SEVERITY_TONE[severity]}`}
     >
       {SEVERITY_LABEL[severity]}
     </span>

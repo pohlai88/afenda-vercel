@@ -18,10 +18,18 @@ export function WorkbenchRailContext({
 
   return (
     <section className="space-y-2.5 pt-6">
-      <p className="text-[0.72rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-        {contextLabel}
-      </p>
-      <dl className="grid gap-2 text-sm">
+      {contextLabel ? (
+        <p className="text-[0.72rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+          {contextLabel}
+        </p>
+      ) : null}
+      {/*
+       * Plain <div> grid — <dl> cannot have <a> as a direct child (HTML spec:
+       * only <div>/<dt>/<dd> are valid), and <dt>/<dd> inside <a> is also
+       * invalid. Using <p> pairs inside <div>/<Link> preserves the same
+       * visual structure without violating the HTML content model.
+       */}
+      <div className="grid gap-2 text-sm">
         {context.map((item) =>
           item.href ? (
             <Link
@@ -29,8 +37,8 @@ export function WorkbenchRailContext({
               href={item.href}
               className="rounded-xl px-3 py-2 transition-colors hover:bg-muted/45"
             >
-              <dt className="text-xs text-muted-foreground">{item.label}</dt>
-              <dd
+              <p className="text-xs text-muted-foreground">{item.label}</p>
+              <p
                 className={cn(
                   "pt-0.5 text-sm font-medium",
                   item.tone === "positive" &&
@@ -41,15 +49,15 @@ export function WorkbenchRailContext({
                 )}
               >
                 {item.value}
-              </dd>
+              </p>
             </Link>
           ) : (
             <div
               key={`${item.label}-${item.value}`}
               className="rounded-xl px-3 py-2"
             >
-              <dt className="text-xs text-muted-foreground">{item.label}</dt>
-              <dd
+              <p className="text-xs text-muted-foreground">{item.label}</p>
+              <p
                 className={cn(
                   "pt-0.5 text-sm font-medium",
                   item.tone === "positive" &&
@@ -60,11 +68,11 @@ export function WorkbenchRailContext({
                 )}
               >
                 {item.value}
-              </dd>
+              </p>
             </div>
           )
         )}
-      </dl>
+      </div>
     </section>
   )
 }

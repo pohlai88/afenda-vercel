@@ -92,7 +92,10 @@ function isAllowedHrmUploadPath(orgId: string, pathname: string): boolean {
   return UUID_RE.test(parts[3] ?? "")
 }
 
-function isAllowedOrgWorkspaceUploadPath(orgId: string, pathname: string): boolean {
+function isAllowedOrgWorkspaceUploadPath(
+  orgId: string,
+  pathname: string
+): boolean {
   return (
     isAllowedNexusUploadPath(orgId, pathname) ||
     isAllowedHrmUploadPath(orgId, pathname)
@@ -124,7 +127,9 @@ export async function POST(request: Request) {
           throw new Error("Unauthorized")
         }
 
-        if (!isAllowedOrgWorkspaceUploadPath(orgSession.organizationId, pathname)) {
+        if (
+          !isAllowedOrgWorkspaceUploadPath(orgSession.organizationId, pathname)
+        ) {
           throw new Error("Upload path is not allowed for this workspace")
         }
 

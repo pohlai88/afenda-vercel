@@ -43,7 +43,9 @@ test.describe("nexus notifications broadcast center (optional credentials)", () 
         page.getByRole("heading", { name: "Notifications", exact: true })
       ).toBeVisible()
 
-      await page.getByRole("button", { name: "New notice", exact: true }).click()
+      await page
+        .getByRole("button", { name: "New notice", exact: true })
+        .click()
       await page
         .getByLabel("Title", { exact: true })
         .fill("E2E notice broadcast")
@@ -57,7 +59,9 @@ test.describe("nexus notifications broadcast center (optional credentials)", () 
       await expect(page.getByText("E2E notice broadcast")).toBeVisible()
 
       await page.getByRole("button", { name: "Mark read", exact: true }).click()
-      await expect(page.getByText("Read", { exact: true }).first()).toBeVisible()
+      await expect(
+        page.getByText("Read", { exact: true }).first()
+      ).toBeVisible()
 
       await page
         .getByRole("button", { name: "Acknowledge", exact: true })
@@ -66,7 +70,9 @@ test.describe("nexus notifications broadcast center (optional credentials)", () 
         page.getByText("Acknowledged", { exact: true }).first()
       ).toBeVisible()
 
-      await page.getByRole("button", { name: "Close notice", exact: true }).click()
+      await page
+        .getByRole("button", { name: "Close notice", exact: true })
+        .click()
       await expect(
         page.getByText("No active notices", { exact: true })
       ).toBeVisible()

@@ -4,11 +4,7 @@ import type { Route } from "next"
 import type { ReactNode } from "react"
 
 import { Link } from "#i18n/navigation"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "#components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "#components/ui/tooltip"
 import { cn } from "#lib/utils"
 
 import { NEXUS_UTILITY_ROUND_CONTROL_CLASS } from "./nexus-utility-round-control-class"

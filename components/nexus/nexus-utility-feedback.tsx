@@ -15,11 +15,7 @@ import {
 import { usePathname } from "#i18n/navigation"
 import { Button } from "#components/ui/button"
 import { Label } from "#components/ui/label"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "#components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "#components/ui/popover"
 import { Textarea } from "#components/ui/textarea"
 import { cn } from "#lib/utils"
 
@@ -62,10 +58,9 @@ function NexusUtilityFeedbackFormInner({
     () => ""
   )
 
-  const [state, formAction] = useActionState(
-    submitOrgFeedbackAction,
-    { status: "idle" } satisfies SubmitOrgFeedbackState
-  )
+  const [state, formAction] = useActionState(submitOrgFeedbackAction, {
+    status: "idle",
+  } satisfies SubmitOrgFeedbackState)
 
   const [category, setCategory] = useState<FeedbackCategoryId>("idea")
   const [bugSeverity, setBugSeverity] = useState<"low" | "normal" | "high">(
@@ -203,7 +198,10 @@ function NexusUtilityFeedbackFormInner({
         </p>
       ) : null}
 
-      <FeedbackSubmitButton label={t("submit")} pendingLabel={t("submitting")} />
+      <FeedbackSubmitButton
+        label={t("submit")}
+        pendingLabel={t("submitting")}
+      />
     </form>
   )
 }
@@ -224,7 +222,11 @@ export function NexusUtilityFeedback() {
             aria-label={t("trigger")}
             className={cn(NEXUS_UTILITY_ROUND_CONTROL_CLASS)}
           >
-            <MessageSquare className="size-[15px] shrink-0" aria-hidden strokeWidth={2} />
+            <MessageSquare
+              className="size-[15px] shrink-0"
+              aria-hidden
+              strokeWidth={2}
+            />
           </button>
         </PopoverTrigger>
       </NexusUtilityTriggerTooltip>

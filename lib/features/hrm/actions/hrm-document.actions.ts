@@ -10,14 +10,8 @@ import {
   ORG_DASHBOARD_HRM_EMPLOYEES,
 } from "#lib/dashboard-module-paths"
 import { db } from "#lib/db"
-import {
-  hrmDocument,
-  hrmEmployee,
-  hrmEmploymentContract,
-} from "#lib/db/schema"
-import {
-  toLocaleOrgDashboardRevalidatePattern,
-} from "#lib/i18n/locales.shared"
+import { hrmDocument, hrmEmployee, hrmEmploymentContract } from "#lib/db/schema"
+import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
 
 import { isoDateOnlyToUtcDate } from "../data/hrm-calendar-dates.server"
@@ -56,7 +50,10 @@ export async function attachEmployeeDocumentAction(
 ): Promise<HrmDocumentMutationFormState> {
   const { organizationId, userId, sessionId } = await requireOrgSession()
 
-  const tenant = await validateHrmOrgSlugMatchesSession(formData, organizationId)
+  const tenant = await validateHrmOrgSlugMatchesSession(
+    formData,
+    organizationId
+  )
   if (!tenant.ok) {
     return { ok: false, errors: { form: tenant.message } }
   }
@@ -93,7 +90,9 @@ export async function attachEmployeeDocumentAction(
 
   const d = parsed.data
 
-  if (!blobUrlMatchesOrgHrmEmployeePath(d.blobUrl, organizationId, d.employeeId)) {
+  if (
+    !blobUrlMatchesOrgHrmEmployeePath(d.blobUrl, organizationId, d.employeeId)
+  ) {
     return {
       ok: false,
       errors: {
@@ -187,8 +186,7 @@ export async function attachEmployeeDocumentAction(
     return {
       ok: false,
       errors: {
-        form:
-          "Could not attach this document. If you linked a draft contract, confirm it belongs to this employee and is still in draft.",
+        form: "Could not attach this document. If you linked a draft contract, confirm it belongs to this employee and is still in draft.",
       },
     }
   }

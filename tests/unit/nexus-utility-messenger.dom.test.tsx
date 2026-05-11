@@ -353,9 +353,8 @@ let NexusUtilityMessenger: ComponentType<{ orgId: string }>
 describe("NexusUtilityMessenger", { timeout: 20_000 }, () => {
   beforeAll(async () => {
     vi.resetModules()
-    ;({ NexusUtilityMessenger } = await import(
-      "#components/nexus/nexus-utility-messenger"
-    ))
+    ;({ NexusUtilityMessenger } =
+      await import("#components/nexus/nexus-utility-messenger"))
   })
 
   beforeEach(() => {

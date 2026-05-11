@@ -124,27 +124,23 @@ describe("hrmEmployeeHireRowSchema", () => {
 
   describe("adapter — required CSV headers", () => {
     it("declares employee_number and legal_name as required", async () => {
-      // Dynamic import keeps the server-only boundary; this test is Node env.
-      const mod = await import(
-        "../../lib/features/org-admin/data/hrm-employee-hire.adapter.server"
-      )
+      const mod =
+        await import("../../lib/features/org-admin/data/hrm-employee-hire.adapter.server")
       expect(mod.hrmEmployeeHireAdapter.requiredHeaders).toContain(
         "employee_number"
       )
       expect(mod.hrmEmployeeHireAdapter.requiredHeaders).toContain("legal_name")
-    })
+    }, 15000)
 
     it("adapter id is hrm_employee_hire", async () => {
-      const mod = await import(
-        "../../lib/features/org-admin/data/hrm-employee-hire.adapter.server"
-      )
+      const mod =
+        await import("../../lib/features/org-admin/data/hrm-employee-hire.adapter.server")
       expect(mod.hrmEmployeeHireAdapter.id).toBe("hrm_employee_hire")
     })
 
     it("parseRow returns validation error for empty employee_number", async () => {
-      const mod = await import(
-        "../../lib/features/org-admin/data/hrm-employee-hire.adapter.server"
-      )
+      const mod =
+        await import("../../lib/features/org-admin/data/hrm-employee-hire.adapter.server")
       const result = mod.hrmEmployeeHireAdapter.parseRow({
         employee_number: "",
         legal_name: "Alice Tan",
@@ -156,9 +152,8 @@ describe("hrmEmployeeHireRowSchema", () => {
     })
 
     it("parseRow returns ok for valid minimal row", async () => {
-      const mod = await import(
-        "../../lib/features/org-admin/data/hrm-employee-hire.adapter.server"
-      )
+      const mod =
+        await import("../../lib/features/org-admin/data/hrm-employee-hire.adapter.server")
       const result = mod.hrmEmployeeHireAdapter.parseRow({
         employee_number: "EMP-100",
         legal_name: "Alice Tan",

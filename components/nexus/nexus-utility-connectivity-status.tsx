@@ -4,11 +4,7 @@ import { useEffect, useState } from "react"
 import { Wifi, WifiLow, WifiOff } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "#components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "#components/ui/popover"
 import { cn } from "#lib/utils"
 
 import {
@@ -28,9 +24,8 @@ function formatNumber(value: number | null, digits = 0) {
 export function NexusUtilityConnectivityStatus() {
   const t = useTranslations("Dashboard.shell.utilityBar.connectivity")
   const isOnline = useBrowserOnlineStatus()
-  const [connection, setConnection] = useState<BrowserConnectionSnapshot | null>(
-    null
-  )
+  const [connection, setConnection] =
+    useState<BrowserConnectionSnapshot | null>(null)
 
   useEffect(() => {
     const sync = () => setConnection(readBrowserConnectionSnapshot())
@@ -55,8 +50,7 @@ export function NexusUtilityConnectivityStatus() {
     }
   }, [])
 
-  const slowLink =
-    isOnline === true && isBrowserConnectionSlow(connection)
+  const slowLink = isOnline === true && isBrowserConnectionSlow(connection)
 
   const Icon = isOnline === false ? WifiOff : slowLink ? WifiLow : Wifi
   const tooltip =

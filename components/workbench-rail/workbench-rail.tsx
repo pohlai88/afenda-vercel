@@ -67,10 +67,13 @@ export function WorkbenchRail({
           navLabel={labels.navLabel}
         />
 
-        {!collapsed && slots.context && slots.context.length > 0 ? (
+        {!collapsed &&
+        slots.context &&
+        slots.context.length > 0 &&
+        labels.contextLabel ? (
           <WorkbenchRailContext
             context={slots.context}
-            contextLabel={labels.contextLabel ?? ""}
+            contextLabel={labels.contextLabel}
           />
         ) : null}
       </div>

@@ -76,7 +76,7 @@ export async function EmployeeTimeline({ rows }: EmployeeTimelineProps) {
       </CardHeader>
       <CardContent>
         {rows.length === 0 ? (
-          <p className="text-muted-foreground text-sm">{t("timelineEmpty")}</p>
+          <p className="text-sm text-muted-foreground">{t("timelineEmpty")}</p>
         ) : (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {rows.map((row) => {
@@ -100,30 +100,35 @@ export async function EmployeeTimeline({ rows }: EmployeeTimelineProps) {
                       {resolveTimelineActionLabel(row.action, t)}
                     </p>
                     <time
-                      className="text-muted-foreground shrink-0 text-xs tabular-nums"
+                      className="shrink-0 text-xs text-muted-foreground tabular-nums"
                       dateTime={row.createdAt.toISOString()}
                     >
                       {when}
                     </time>
                   </div>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-xs text-muted-foreground">
                     {t("timelineActorLabel")}: {actor}
                   </p>
                   {resourceBits ? (
-                    <p className="text-muted-foreground font-mono text-[11px]">
+                    <p className="font-mono text-[11px] text-muted-foreground">
                       {t("timelineResourceLabel")}: {resourceBits}
                     </p>
                   ) : null}
                   {metaView.narrative ? (
-                    <p className="text-foreground text-sm leading-snug">
+                    <p className="text-sm leading-snug text-foreground">
                       {metaView.narrative}
                     </p>
                   ) : null}
                   {metaView.facets.length > 0 ? (
                     <dl className="grid gap-1 text-xs sm:grid-cols-2">
                       {metaView.facets.map((f) => (
-                        <div key={`${row.id}-${f.labelKey}`} className="min-w-0">
-                          <dt className="text-muted-foreground">{t(f.labelKey)}</dt>
+                        <div
+                          key={`${row.id}-${f.labelKey}`}
+                          className="min-w-0"
+                        >
+                          <dt className="text-muted-foreground">
+                            {t(f.labelKey)}
+                          </dt>
                           <dd className="font-medium wrap-break-word">
                             {formatFacetValue(f.labelKey, f.value, t)}
                           </dd>

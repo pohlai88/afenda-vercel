@@ -25,8 +25,6 @@ describe("authInterruptionHref locale propagation", () => {
       callbackPath: "/en/console",
     })
     expect(href).toContain("authStatus=session_expired")
-    expect(href).toContain(
-      `callbackUrl=${encodeURIComponent("/en/console")}`
-    )
+    expect(href).toContain(`callbackUrl=${encodeURIComponent("/en/console")}`)
   })
 })

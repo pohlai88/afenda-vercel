@@ -84,11 +84,7 @@ export function CookieConsentPreview({
   rejectLabel,
   manageLabel,
 }: CookieConsentPreviewProps) {
-  const choice = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    getServerSnapshot
-  )
+  const choice = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
   function persistChoice(nextChoice: CookieConsentChoice) {
     try {

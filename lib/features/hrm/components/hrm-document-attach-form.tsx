@@ -141,7 +141,7 @@ export function HrmDocumentAttachForm({
             <input
               type="file"
               accept={HRM_DOC_UPLOAD_ACCEPT}
-              className="text-muted-foreground max-w-[220px] text-xs file:mr-2"
+              className="max-w-[220px] text-xs text-muted-foreground file:mr-2"
               disabled={uploading}
               onChange={(event) => {
                 const next = event.target.files?.[0] ?? null
@@ -150,17 +150,17 @@ export function HrmDocumentAttachForm({
             />
           </label>
           {uploading ? (
-            <span className="text-muted-foreground inline-flex items-center gap-2 text-xs">
+            <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="size-3.5 animate-spin" aria-hidden />
               {t("documentUploading")}
             </span>
           ) : null}
         </div>
-        <p className="text-muted-foreground mt-2 text-[11px] leading-snug">
+        <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
           {t("documentUploadHint")}
         </p>
         {uploadError ? (
-          <p className="text-destructive mt-2 text-xs" role="alert">
+          <p className="mt-2 text-xs text-destructive" role="alert">
             {uploadError}
           </p>
         ) : null}
@@ -170,9 +170,17 @@ export function HrmDocumentAttachForm({
         <input type="hidden" name="orgSlug" value={orgSlug} />
         <input type="hidden" name="employeeId" value={employeeId} />
         <input type="hidden" name="blobUrl" value={payload?.blobUrl ?? ""} />
-        <input type="hidden" name="payloadHash" value={payload?.payloadHash ?? ""} />
+        <input
+          type="hidden"
+          name="payloadHash"
+          value={payload?.payloadHash ?? ""}
+        />
         <input type="hidden" name="mimeType" value={payload?.mimeType ?? ""} />
-        <input type="hidden" name="sizeBytes" value={payload?.sizeBytes ?? ""} />
+        <input
+          type="hidden"
+          name="sizeBytes"
+          value={payload?.sizeBytes ?? ""}
+        />
 
         {state && !state.ok && state.errors.form ? (
           <Alert variant="destructive">
@@ -194,7 +202,7 @@ export function HrmDocumentAttachForm({
               name="documentType"
               required
               disabled={!payload}
-              className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               defaultValue={HRM_DOCUMENT_TYPES[0]}
             >
               {HRM_DOCUMENT_TYPES.map((dt) => (
@@ -205,13 +213,15 @@ export function HrmDocumentAttachForm({
             </select>
           </Field>
           <Field>
-            <FieldLabel htmlFor="doc-class">{t("documentClassificationLabel")}</FieldLabel>
+            <FieldLabel htmlFor="doc-class">
+              {t("documentClassificationLabel")}
+            </FieldLabel>
             <select
               id="doc-class"
               name="classification"
               required
               disabled={!payload}
-              className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               defaultValue="internal"
             >
               {HRM_DOCUMENT_CLASSIFICATIONS.map((cl) => (
@@ -224,7 +234,9 @@ export function HrmDocumentAttachForm({
         </div>
 
         <Field>
-          <FieldLabel htmlFor="doc-effective">{t("documentEffectiveFrom")}</FieldLabel>
+          <FieldLabel htmlFor="doc-effective">
+            {t("documentEffectiveFrom")}
+          </FieldLabel>
           <Input
             id="doc-effective"
             name="effectiveFrom"
@@ -237,12 +249,14 @@ export function HrmDocumentAttachForm({
 
         {draftContracts.length > 0 ? (
           <Field>
-            <FieldLabel htmlFor="doc-draft-contract">{t("documentLinkDraftLabel")}</FieldLabel>
+            <FieldLabel htmlFor="doc-draft-contract">
+              {t("documentLinkDraftLabel")}
+            </FieldLabel>
             <select
               id="doc-draft-contract"
               name="draftContractId"
               disabled={!payload}
-              className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               defaultValue=""
             >
               <option value="">{t("documentLinkDraftNone")}</option>

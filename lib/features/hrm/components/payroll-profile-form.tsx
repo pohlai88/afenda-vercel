@@ -47,13 +47,13 @@ export function PayrollProfileForm({
       <input type="hidden" name="employeeId" value={employeeId} />
 
       {current && currentEffectiveLabel ? (
-        <p className="text-muted-foreground text-xs">
+        <p className="text-xs text-muted-foreground">
           {t("payrollCurrentEffectiveFrom", {
             date: currentEffectiveLabel,
           })}
         </p>
       ) : (
-        <p className="text-muted-foreground text-xs">{t("payrollNoProfile")}</p>
+        <p className="text-xs text-muted-foreground">{t("payrollNoProfile")}</p>
       )}
 
       {state && !state.ok && state.errors.form ? (
@@ -64,14 +64,18 @@ export function PayrollProfileForm({
       ) : null}
 
       <Field data-invalid={state && !state.ok && state.errors.effectiveFrom}>
-        <FieldLabel htmlFor="payroll-effective-from">{t("payrollNewEffectiveFrom")}</FieldLabel>
+        <FieldLabel htmlFor="payroll-effective-from">
+          {t("payrollNewEffectiveFrom")}
+        </FieldLabel>
         <Input
           id="payroll-effective-from"
           name="effectiveFrom"
           type="date"
           required
           defaultValue={todayIsoDate()}
-          aria-invalid={Boolean(state && !state.ok && state.errors.effectiveFrom)}
+          aria-invalid={Boolean(
+            state && !state.ok && state.errors.effectiveFrom
+          )}
         />
         {state && !state.ok && state.errors.effectiveFrom ? (
           <FieldError>{state.errors.effectiveFrom}</FieldError>
@@ -80,7 +84,9 @@ export function PayrollProfileForm({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor="payroll-country">{t("payrollCountry")}</FieldLabel>
+          <FieldLabel htmlFor="payroll-country">
+            {t("payrollCountry")}
+          </FieldLabel>
           <Input
             id="payroll-country"
             name="countryCode"
@@ -89,7 +95,9 @@ export function PayrollProfileForm({
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="payroll-tax-res">{t("payrollTaxResidency")}</FieldLabel>
+          <FieldLabel htmlFor="payroll-tax-res">
+            {t("payrollTaxResidency")}
+          </FieldLabel>
           <Input
             id="payroll-tax-res"
             name="taxResidencyCountry"
@@ -100,7 +108,9 @@ export function PayrollProfileForm({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor="payroll-tax-type">{t("payrollTaxIdentifierType")}</FieldLabel>
+          <FieldLabel htmlFor="payroll-tax-type">
+            {t("payrollTaxIdentifierType")}
+          </FieldLabel>
           <Input
             id="payroll-tax-type"
             name="taxIdentifierType"
@@ -108,7 +118,9 @@ export function PayrollProfileForm({
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="payroll-tax-num">{t("payrollTaxIdentifierNumber")}</FieldLabel>
+          <FieldLabel htmlFor="payroll-tax-num">
+            {t("payrollTaxIdentifierNumber")}
+          </FieldLabel>
           <Input
             id="payroll-tax-num"
             name="taxIdentifierNumber"
@@ -121,21 +133,39 @@ export function PayrollProfileForm({
       <div className="grid gap-3 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="payroll-epf">{t("payrollEpfNumber")}</FieldLabel>
-          <Input id="payroll-epf" name="epfNumber" defaultValue={current?.epfNumber ?? ""} />
+          <Input
+            id="payroll-epf"
+            name="epfNumber"
+            defaultValue={current?.epfNumber ?? ""}
+          />
         </Field>
         <Field>
-          <FieldLabel htmlFor="payroll-socso">{t("payrollSocsoNumber")}</FieldLabel>
-          <Input id="payroll-socso" name="socsoNumber" defaultValue={current?.socsoNumber ?? ""} />
+          <FieldLabel htmlFor="payroll-socso">
+            {t("payrollSocsoNumber")}
+          </FieldLabel>
+          <Input
+            id="payroll-socso"
+            name="socsoNumber"
+            defaultValue={current?.socsoNumber ?? ""}
+          />
         </Field>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor="payroll-pcb">{t("payrollPcbCategory")}</FieldLabel>
-          <Input id="payroll-pcb" name="pcbCategory" defaultValue={current?.pcbCategory ?? ""} />
+          <FieldLabel htmlFor="payroll-pcb">
+            {t("payrollPcbCategory")}
+          </FieldLabel>
+          <Input
+            id="payroll-pcb"
+            name="pcbCategory"
+            defaultValue={current?.pcbCategory ?? ""}
+          />
         </Field>
         <Field>
-          <FieldLabel htmlFor="payroll-group">{t("payrollGroupCode")}</FieldLabel>
+          <FieldLabel htmlFor="payroll-group">
+            {t("payrollGroupCode")}
+          </FieldLabel>
           <Input
             id="payroll-group"
             name="payrollGroupCode"
@@ -147,10 +177,16 @@ export function PayrollProfileForm({
       <div className="grid gap-3 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="payroll-bank">{t("payrollBankCode")}</FieldLabel>
-          <Input id="payroll-bank" name="bankCode" defaultValue={current?.bankCode ?? ""} />
+          <Input
+            id="payroll-bank"
+            name="bankCode"
+            defaultValue={current?.bankCode ?? ""}
+          />
         </Field>
         <Field>
-          <FieldLabel htmlFor="payroll-bank-account">{t("payrollBankAccountToken")}</FieldLabel>
+          <FieldLabel htmlFor="payroll-bank-account">
+            {t("payrollBankAccountToken")}
+          </FieldLabel>
           <Input
             id="payroll-bank-account"
             name="bankAccountTokenized"
@@ -161,7 +197,9 @@ export function PayrollProfileForm({
       </div>
 
       <Field>
-        <FieldLabel htmlFor="payroll-bank-holder">{t("payrollBankHolder")}</FieldLabel>
+        <FieldLabel htmlFor="payroll-bank-holder">
+          {t("payrollBankHolder")}
+        </FieldLabel>
         <Input
           id="payroll-bank-holder"
           name="bankAccountHolderName"
@@ -171,11 +209,13 @@ export function PayrollProfileForm({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor="payroll-sched">{t("payrollSchedule")}</FieldLabel>
+          <FieldLabel htmlFor="payroll-sched">
+            {t("payrollSchedule")}
+          </FieldLabel>
           <select
             id="payroll-sched"
             name="paySchedule"
-            className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             defaultValue={current?.paySchedule ?? HRM_PAY_SCHEDULES[0]}
           >
             {HRM_PAY_SCHEDULES.map((s) => (
@@ -187,7 +227,11 @@ export function PayrollProfileForm({
         </Field>
         <Field>
           <FieldLabel htmlFor="payroll-ccy">{t("payrollCurrency")}</FieldLabel>
-          <Input id="payroll-ccy" name="payCurrency" defaultValue={current?.payCurrency ?? "MYR"} />
+          <Input
+            id="payroll-ccy"
+            name="payCurrency"
+            defaultValue={current?.payCurrency ?? "MYR"}
+          />
         </Field>
       </div>
 

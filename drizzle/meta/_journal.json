@@ -85,6 +85,13 @@
       "when": 1778441400000,
       "tag": "0011_nexus_notifications_broadcast_center",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1747051200000,
+      "tag": "0012_hrm_leave_policy",
+      "breakpoints": true
     }
   ]
 }

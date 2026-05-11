@@ -54,14 +54,16 @@ export function NexusGlobalShortcuts({ orgSlug }: NexusGlobalShortcutsProps) {
         }
         const k = e.key.length === 1 ? e.key.toLowerCase() : ""
         clearGChord()
-        const hrefBySecond: Record<string, ReturnType<typeof organizationDashboardPath>> =
-          {
-            n: organizationDashboardPath(orgSlug, "home"),
-            i: organizationDashboardPath(orgSlug, "ithink"),
-            l: organizationDashboardPath(orgSlug, "lynx"),
-            c: organizationDashboardPath(orgSlug, "contacts"),
-            k: organizationDashboardPath(orgSlug, "knowledge"),
-          }
+        const hrefBySecond: Record<
+          string,
+          ReturnType<typeof organizationDashboardPath>
+        > = {
+          n: organizationDashboardPath(orgSlug, "home"),
+          i: organizationDashboardPath(orgSlug, "ithink"),
+          l: organizationDashboardPath(orgSlug, "lynx"),
+          c: organizationDashboardPath(orgSlug, "contacts"),
+          k: organizationDashboardPath(orgSlug, "knowledge"),
+        }
         const href = k ? hrefBySecond[k] : undefined
         if (href) {
           e.preventDefault()
@@ -76,7 +78,7 @@ export function NexusGlobalShortcuts({ orgSlug }: NexusGlobalShortcutsProps) {
         e.key.toLowerCase() === "u"
       ) {
         const bar = document.querySelector<HTMLElement>(
-          "[data-nexus-utility-bar=\"true\"]"
+          '[data-nexus-utility-bar="true"]'
         )
         const focusable = bar?.querySelector<HTMLElement>(
           "button:not([disabled]), a[href]"
@@ -88,7 +90,10 @@ export function NexusGlobalShortcuts({ orgSlug }: NexusGlobalShortcutsProps) {
         return
       }
 
-      if (!(e.metaKey || e.ctrlKey || e.altKey) && e.key.toLowerCase() === "c") {
+      if (
+        !(e.metaKey || e.ctrlKey || e.altKey) &&
+        e.key.toLowerCase() === "c"
+      ) {
         e.preventDefault()
         openCommand()
         return

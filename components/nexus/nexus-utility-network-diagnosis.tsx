@@ -5,11 +5,7 @@ import { Activity } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { Button } from "#components/ui/button"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "#components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "#components/ui/popover"
 import { cn } from "#lib/utils"
 
 import {
@@ -48,10 +44,13 @@ async function runNetworkDiagnosis(): Promise<DiagnosisState> {
 
   const started = performance.now()
   try {
-    const response = await fetch(`/favicon.ico?afenda-diagnosis=${Date.now()}`, {
-      method: "HEAD",
-      cache: "no-store",
-    })
+    const response = await fetch(
+      `/favicon.ico?afenda-diagnosis=${Date.now()}`,
+      {
+        method: "HEAD",
+        cache: "no-store",
+      }
+    )
     return {
       status: "success",
       httpStatus: response.status,
@@ -114,7 +113,11 @@ export function NexusUtilityNetworkDiagnosis() {
                 : undefined
             )}
           >
-            <Activity className="size-[15px] shrink-0" aria-hidden strokeWidth={2} />
+            <Activity
+              className="size-[15px] shrink-0"
+              aria-hidden
+              strokeWidth={2}
+            />
           </button>
         </PopoverTrigger>
       </NexusUtilityTriggerTooltip>
@@ -171,7 +174,9 @@ export function NexusUtilityNetworkDiagnosis() {
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">{t("lastChecked")}</span>
+                <span className="text-muted-foreground">
+                  {t("lastChecked")}
+                </span>
                 <span className="font-medium text-foreground">
                   {state.checkedAt}
                 </span>
@@ -182,7 +187,9 @@ export function NexusUtilityNetworkDiagnosis() {
           {state.status === "error" ? (
             <>
               <p className="text-warning-foreground">
-                {state.message === "offline" ? t("errorOffline") : t("errorGeneric")}
+                {state.message === "offline"
+                  ? t("errorOffline")
+                  : t("errorGeneric")}
               </p>
               {state.elapsedMs !== null ? (
                 <div className="flex items-center justify-between gap-3">
@@ -193,7 +200,9 @@ export function NexusUtilityNetworkDiagnosis() {
                 </div>
               ) : null}
               <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">{t("lastChecked")}</span>
+                <span className="text-muted-foreground">
+                  {t("lastChecked")}
+                </span>
                 <span className="font-medium text-foreground">
                   {state.checkedAt}
                 </span>

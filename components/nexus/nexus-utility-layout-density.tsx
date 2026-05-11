@@ -21,9 +21,7 @@ type LayoutDensity = (typeof LAYOUT_DENSITIES)[number]
 const STORAGE_KEY = "afenda.layoutDensity"
 
 function isLayoutDensity(value: string | null): value is LayoutDensity {
-  return (
-    value === "compact" || value === "comfortable" || value === "relaxed"
-  )
+  return value === "compact" || value === "comfortable" || value === "relaxed"
 }
 
 function applyLayoutDensity(next: LayoutDensity) {

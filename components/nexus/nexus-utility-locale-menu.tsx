@@ -51,7 +51,9 @@ export function NexusUtilityLocaleMenu() {
           >
             {t(`option.${loc}`)}
             {loc === active ? (
-              <span className="ml-auto text-[10px] text-muted-foreground">✓</span>
+              <span className="ml-auto text-[10px] text-muted-foreground">
+                ✓
+              </span>
             ) : null}
           </DropdownMenuItem>
         ))}

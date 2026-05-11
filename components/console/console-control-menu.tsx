@@ -54,7 +54,7 @@ export function ConsoleControlMenu({ userEmail }: ConsoleControlMenuProps) {
         sideOffset={10}
         className="w-56 bg-background/92 backdrop-blur-2xl"
       >
-        <DropdownMenuLabel className="truncate font-normal text-xs">
+        <DropdownMenuLabel className="truncate text-xs font-normal">
           {userEmail}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

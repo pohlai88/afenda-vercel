@@ -14,7 +14,9 @@ export default function AuthGroupNotFound() {
       <div className="flex flex-col gap-6 text-center">
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium text-muted-foreground">404</p>
-          <h1 className="text-lg font-medium text-foreground">Page not found</h1>
+          <h1 className="text-lg font-medium text-foreground">
+            Page not found
+          </h1>
           <p className="text-sm text-muted-foreground">
             This URL is not part of sign-in, sign-up, or password recovery.
           </p>

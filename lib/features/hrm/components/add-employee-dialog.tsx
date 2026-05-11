@@ -35,7 +35,10 @@ export function AddEmployeeDialog({ orgSlug }: { orgSlug: string }) {
           <DialogDescription>{t("dialogDescription")}</DialogDescription>
         </DialogHeader>
 
-        <EmployeeCreateForm orgSlug={orgSlug} onSuccess={() => setOpen(false)} />
+        <EmployeeCreateForm
+          orgSlug={orgSlug}
+          onSuccess={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   )

@@ -807,6 +807,67 @@
         "timelineFacetHasArchivedReason": "Archive reason provided",
         "timelineFacetHasTaxIdentifier": "Tax identifier captured",
         "timelineFacetHasBankToken": "Bank account reference captured"
+      },
+      "leavePolicy": {
+        "pageTitle": "Leave",
+        "pageDescription": "Leave types, entitlement engine, and policy configuration — governed through Server Actions and the IAM audit ledger.",
+        "leaveTypeCode": {
+          "ANNUAL": "Annual Leave",
+          "SICK": "Medical Leave",
+          "HOSPITAL": "Hospitalisation Leave",
+          "MATERNITY": "Maternity Leave",
+          "PATERNITY": "Paternity Leave"
+        },
+        "accrualMethod": {
+          "annual_grant": "Annual Grant",
+          "monthly_accrual": "Monthly Accrual",
+          "fixed_grant": "Fixed Grant"
+        },
+        "basis": {
+          "annual_grant": "Annual Grant",
+          "monthly_accrual": "Monthly Accrual",
+          "fixed_grant": "Fixed Grant",
+          "prorated_grant": "Prorated Grant",
+          "not_eligible": "Not eligible"
+        },
+        "genderRestriction": {
+          "male": "Male only",
+          "female": "Female only"
+        },
+        "fieldCode": "Leave type code",
+        "fieldAccrualMethod": "Accrual method",
+        "fieldPaid": "Paid leave",
+        "fieldGenderRestriction": "Gender restriction",
+        "fieldTier1Days": "Tier 1 — days per year",
+        "fieldTier1MaxYears": "Tier 1 — max years service (exclusive)",
+        "fieldTier2Days": "Tier 2 — days per year",
+        "fieldTier2MaxYears": "Tier 2 — max years service (exclusive)",
+        "fieldTier3Days": "Tier 3 — days per year",
+        "fieldFixedDaysPerYear": "Fixed days per year",
+        "fieldMaxCarryForwardDays": "Max carry-forward days",
+        "fieldCarryForwardExpiryMonths": "Carry-forward expiry (months)",
+        "fieldEffectiveFrom": "Effective from",
+        "fieldEffectiveTo": "Effective to",
+        "fieldNotes": "Policy notes",
+        "fieldPolicyVersion": "Policy version",
+        "createLeaveType": "Create leave type",
+        "updateLeaveType": "Update leave type",
+        "createPolicy": "Create policy overlay",
+        "seedMalaysiaEa": "Seed Malaysia EA 2023 types",
+        "seedMalaysiaEaSuccess": "Malaysia EA 2023 leave types seeded successfully.",
+        "seedMalaysiaEaSkipped": "{count, plural, one {# type} other {# types}} already existed.",
+        "createSuccess": "Leave type created.",
+        "updateSuccess": "Leave type updated.",
+        "policyCreateSuccess": "Policy overlay created.",
+        "entitlementBasis": {
+          "annual_grant": "Annual grant ({years, plural, one {# year} other {# years}} service)",
+          "fixed_grant": "Fixed grant",
+          "monthly_accrual": "Monthly accrual",
+          "prorated_grant": "Prorated ({numerator}/{denominator} months)",
+          "not_eligible": "Not eligible"
+        },
+        "entitlementDays": "{days} days",
+        "entitlementProratedDays": "{days} days ({numerator}/{denominator} pro-rata)"
       }
     },
     "surfaceComingSoon": {
@@ -1487,7 +1548,8 @@
         "adapter": {
           "member_invite": "Member invitations",
           "onething_import": "OneThing import",
-          "hrm_payroll_profile_import": "HRM payroll profile rows"
+          "hrm_payroll_profile_import": "HRM payroll profile rows",
+          "hrm_employee_hire": "HRM new hires"
         }
       },
       "endpoints": {
@@ -1638,7 +1700,6 @@
       "sectionsLabel": "Context scopes",
       "quickActionsLabel": "Quick actions",
       "recentLabel": "Recent contexts",
-      "signalsLabel": "Signals",
       "mobileTrigger": "Open personal context",
       "collapse": "Collapse personal rail",
       "expand": "Expand personal rail",

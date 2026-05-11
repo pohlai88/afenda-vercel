@@ -16,7 +16,11 @@ export function NexusUtilityHelpLink() {
       ariaLabel={t("help")}
       tooltip={t("helpTooltip")}
     >
-      <CircleHelp className="size-[15px] shrink-0" aria-hidden strokeWidth={2} />
+      <CircleHelp
+        className="size-[15px] shrink-0"
+        aria-hidden
+        strokeWidth={2}
+      />
     </NexusUtilityRoundTooltipLink>
   )
 }

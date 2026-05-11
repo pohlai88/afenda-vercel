@@ -11,6 +11,12 @@ export {
   updateEmployeeAction,
 } from "./actions/employee.actions"
 export { attachEmployeeDocumentAction } from "./actions/hrm-document.actions"
+export {
+  createLeaveTypeAction,
+  updateLeaveTypeAction,
+  seedMalaysiaEa2023LeaveTypesAction,
+  createLeavePolicyAction,
+} from "./actions/leave-policy.actions"
 export { upsertPayrollProfileAction } from "./actions/payroll-profile.actions"
 
 export {

@@ -58,7 +58,7 @@ export function NexusSurfaceCard({ surface }: NexusSurfaceCardProps) {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
-      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">
+      <dt className="text-[10px] tracking-wide text-muted-foreground uppercase">
         {label}
       </dt>
       <dd className="text-sm font-medium text-foreground">{value}</dd>
@@ -88,7 +88,7 @@ const FRESHNESS_LABEL: Record<NexusSurfaceState["freshness"], string> = {
 
 function StatusDot({ status }: { status: NexusSurfaceState["status"] }) {
   return (
-    <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+    <span className="flex items-center gap-1.5 text-[10px] tracking-wide text-muted-foreground uppercase">
       <span
         className={`size-1.5 rounded-full ${STATUS_TONE[status]}`}
         aria-hidden="true"

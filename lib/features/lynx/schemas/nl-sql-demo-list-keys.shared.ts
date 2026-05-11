@@ -12,7 +12,9 @@ export function stableNlDemoResultRowKeys(
 ): string[] {
   const seen = new Map<string, number>()
   return rows.map((row) => {
-    const fp = columns.map((col) => `${col}${SEP}${String(row[col] ?? "")}`).join(SEP)
+    const fp = columns
+      .map((col) => `${col}${SEP}${String(row[col] ?? "")}`)
+      .join(SEP)
     const n = seen.get(fp) ?? 0
     seen.set(fp, n + 1)
     return n === 0 ? fp : `${fp}${SEP}dup${n}`

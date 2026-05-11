@@ -37,10 +37,14 @@ export async function ConsoleOrgListSlot({ locale }: Props) {
         <div className="w-full max-w-xl space-y-10">
           <div className="space-y-2">
             <AfendaBrandLockup className="h-8 w-auto" />
-            <p className="text-sm text-muted-foreground">{t("subtitleNoOrgs")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("subtitleNoOrgs")}
+            </p>
           </div>
           <ConsolePendingInvites userEmail={session.user.email} />
-          <ConsoleBootstrapForm prepareSlugAction={prepareOrganizationSlugAction} />
+          <ConsoleBootstrapForm
+            prepareSlugAction={prepareOrganizationSlugAction}
+          />
         </div>
       </div>
     )

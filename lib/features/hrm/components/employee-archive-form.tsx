@@ -26,14 +26,16 @@ export function EmployeeArchiveForm({
     undefined
   )
 
-  const reasonInvalid = Boolean(state && !state.ok && state.errors.archivedReason)
+  const reasonInvalid = Boolean(
+    state && !state.ok && state.errors.archivedReason
+  )
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="orgSlug" value={orgSlug} />
       <input type="hidden" name="employeeId" value={employeeId} />
 
-      <p className="text-muted-foreground text-sm">{t("archiveDescription")}</p>
+      <p className="text-sm text-muted-foreground">{t("archiveDescription")}</p>
 
       {state && !state.ok && state.errors.form ? (
         <Alert variant="destructive">

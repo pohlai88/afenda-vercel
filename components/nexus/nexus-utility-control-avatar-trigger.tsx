@@ -21,33 +21,33 @@ export type NexusUtilityControlAvatarTriggerProps = {
 } & ComponentPropsWithoutRef<"button">
 
 /** Native control so Radix `asChild` merges onto a single `<button>` without CVA overlap. */
-export const NexusUtilityControlAvatarTrigger =
-  forwardRef<HTMLButtonElement, NexusUtilityControlAvatarTriggerProps>(
-    function NexusUtilityControlAvatarTrigger(
-      { "aria-label": ariaLabel, className, type = "button", ...props },
-      forwardedRef
-    ) {
-      return (
-        <button
-          ref={forwardedRef}
-          type={type}
-          aria-label={ariaLabel}
-          className={cn(TRIGGER_CLASS, className)}
-          {...props}
-        >
-          <Image
-            src={ERP_UTILITY_AVATAR_PNG}
-            alt=""
-            width={33}
-            height={33}
-            draggable={false}
-            className="pointer-events-none size-[33px] select-none object-contain"
-            aria-hidden
-          />
-        </button>
-      )
-    }
+export const NexusUtilityControlAvatarTrigger = forwardRef<
+  HTMLButtonElement,
+  NexusUtilityControlAvatarTriggerProps
+>(function NexusUtilityControlAvatarTrigger(
+  { "aria-label": ariaLabel, className, type = "button", ...props },
+  forwardedRef
+) {
+  return (
+    <button
+      ref={forwardedRef}
+      type={type}
+      aria-label={ariaLabel}
+      className={cn(TRIGGER_CLASS, className)}
+      {...props}
+    >
+      <Image
+        src={ERP_UTILITY_AVATAR_PNG}
+        alt=""
+        width={33}
+        height={33}
+        draggable={false}
+        className="pointer-events-none size-[33px] object-contain select-none"
+        aria-hidden
+      />
+    </button>
   )
+})
 
 NexusUtilityControlAvatarTrigger.displayName =
   "NexusUtilityControlAvatarTrigger"

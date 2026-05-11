@@ -68,7 +68,7 @@ export async function EmployeeDetailPage({
       <div className="flex flex-col gap-2">
         <Link
           href={listHref as Route}
-          className="text-muted-foreground hover:text-foreground text-sm"
+          className="text-sm text-muted-foreground hover:text-foreground"
         >
           {t("backToWorkforce")}
         </Link>
@@ -82,7 +82,9 @@ export async function EmployeeDetailPage({
       <Card size="sm">
         <CardHeader>
           <div className="flex flex-wrap items-center gap-2">
-            <CardTitle className="text-base">{employee.employeeNumber}</CardTitle>
+            <CardTitle className="text-base">
+              {employee.employeeNumber}
+            </CardTitle>
             {employee.archivedAt ? (
               <Badge variant="secondary">{t("statusArchived")}</Badge>
             ) : (
@@ -98,7 +100,9 @@ export async function EmployeeDetailPage({
               <dd className="font-medium">{employee.legalName}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">{t("fieldPreferredName")}</dt>
+              <dt className="text-muted-foreground">
+                {t("fieldPreferredName")}
+              </dt>
               <dd>{employee.preferredName ?? "—"}</dd>
             </div>
             <div>
@@ -114,24 +118,32 @@ export async function EmployeeDetailPage({
               <dd>{updatedLabel}</dd>
             </div>
             <div className="sm:col-span-2">
-              <dt className="text-muted-foreground">{t("fieldDepartmentId")}</dt>
-              <dd className="font-mono text-xs">{employee.currentDepartmentId ?? "—"}</dd>
+              <dt className="text-muted-foreground">
+                {t("fieldDepartmentId")}
+              </dt>
+              <dd className="font-mono text-xs">
+                {employee.currentDepartmentId ?? "—"}
+              </dd>
             </div>
             <div className="sm:col-span-2">
               <dt className="text-muted-foreground">{t("fieldPositionId")}</dt>
-              <dd className="font-mono text-xs">{employee.currentPositionId ?? "—"}</dd>
+              <dd className="font-mono text-xs">
+                {employee.currentPositionId ?? "—"}
+              </dd>
             </div>
             <div className="sm:col-span-2">
               <dt className="text-muted-foreground">{t("fieldJobGradeId")}</dt>
-              <dd className="font-mono text-xs">{employee.currentJobGradeId ?? "—"}</dd>
+              <dd className="font-mono text-xs">
+                {employee.currentJobGradeId ?? "—"}
+              </dd>
             </div>
           </dl>
           {employee.archivedAt && employee.archivedReason ? (
             <div className="rounded-md border border-border bg-muted/30 p-3">
-              <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 {t("detailArchiveReason")}
               </p>
-              <p className="mt-1 whitespace-pre-wrap text-sm">
+              <p className="mt-1 text-sm whitespace-pre-wrap">
                 {employee.archivedReason}
               </p>
             </div>

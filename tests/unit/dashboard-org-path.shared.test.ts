@@ -31,9 +31,7 @@ describe("sanitizePathAfterOrgSlug", () => {
     )
     const employeeDetailUuid = "550e8400-e29b-41d4-a716-446655440000"
     expect(
-      sanitizePathAfterOrgSlug(
-        `/dashboard/hrm/employees/${employeeDetailUuid}`
-      )
+      sanitizePathAfterOrgSlug(`/dashboard/hrm/employees/${employeeDetailUuid}`)
     ).toBe(`/dashboard/hrm/employees/${employeeDetailUuid}`)
     expect(
       sanitizePathAfterOrgSlug("/dashboard/hrm/employees/not-a-uuid")

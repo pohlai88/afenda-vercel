@@ -18,11 +18,7 @@ import type { LucideIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { Button } from "#components/ui/button"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "#components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "#components/ui/popover"
 import {
   Sheet,
   SheetContent,
@@ -220,7 +216,7 @@ function NavPanelBody({
           <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
             {orgName}
           </p>
-          <p className="pt-1 text-sm text-foreground font-medium">{title}</p>
+          <p className="pt-1 text-sm font-medium text-foreground">{title}</p>
         </div>
       )}
       <div className="p-3">

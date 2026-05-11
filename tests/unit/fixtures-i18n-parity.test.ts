@@ -64,7 +64,9 @@ describe("fixtures ↔ messages/en.json", () => {
     expect(PERSONAL_ONETHING_COPY.captureSubmit).toBe(
       en.Dashboard.OneThing.shell.composerSubmit
     )
-    expect(PERSONAL_ONETHING_COPY.resolve).toBe(en.Dashboard.OneThing.toolbar.resolve)
+    expect(PERSONAL_ONETHING_COPY.resolve).toBe(
+      en.Dashboard.OneThing.toolbar.resolve
+    )
   })
 
   it("AUTH_PUBLIC_SHELL_COPY Auth-derived keys match Auth.*", () => {

@@ -20,7 +20,7 @@ export function NexusTruthMap({ surfaces }: NexusTruthMapProps) {
     >
       <h2
         id="nexus-truth-map-heading"
-        className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+        className="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
       >
         Truth map
       </h2>

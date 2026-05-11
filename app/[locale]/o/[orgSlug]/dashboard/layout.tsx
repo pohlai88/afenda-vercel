@@ -40,5 +40,7 @@ export default async function OrgDashboardLayout({
     orgId: org.organizationId,
   }
 
-  return <RouteEnvelopeProvider value={envelope}>{children}</RouteEnvelopeProvider>
+  return (
+    <RouteEnvelopeProvider value={envelope}>{children}</RouteEnvelopeProvider>
+  )
 }

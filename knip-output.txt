@@ -1,0 +1,18 @@
+
+> afenda-vercel@0.0.1 knip:production C:\JackProject\afenda-vercel
+> knip --no-progress --production --config .config/knip.json
+
+Unused files (4)
+lib/client-cookie.shared.ts                          
+components/nexus/nexus-utility-integrations-link.tsx 
+lib/features/ithink/data/ithink-ordering.shared.ts   
+lib/features/onething/schemas/onething-list.schema.ts
+Unused exports (5)
+PLATFORM_ADMIN_NAV_NAMESPACE            lib/features/platform-admin/types.ts:11:14             
+ALL_NEXUS_UTILITY_WIDGET_IDS            components/nexus/nexus-utility-widget-ids.ts:24:14     
+isLeftUtilityWidgetId         function  components/nexus/nexus-utility-widget-registry.ts:36:17
+isRightUtilityWidgetId        function  components/nexus/nexus-utility-widget-registry.ts:42:17
+isUtilityWidgetCustomizable   function  components/nexus/nexus-utility-widget-registry.ts:55:17
+Tag hints (1)
+Unused tag in lib/features/simulation/types.ts: simulationProvenancePayload ÔåÆ @internal
+ÔÇëELIFECYCLEÔÇë Command failed with exit code 1.

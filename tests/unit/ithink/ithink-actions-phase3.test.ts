@@ -45,7 +45,8 @@ vi.mock("#lib/tenant", () => ({
 }))
 
 vi.mock("#features/execution", () => ({
-  enqueueOneThingRecurrenceWorkflowRun: hoisted.enqueueOneThingRecurrenceWorkflowRun,
+  enqueueOneThingRecurrenceWorkflowRun:
+    hoisted.enqueueOneThingRecurrenceWorkflowRun,
 }))
 
 vi.mock("next/cache", () => ({

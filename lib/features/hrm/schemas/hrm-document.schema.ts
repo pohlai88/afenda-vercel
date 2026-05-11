@@ -34,7 +34,11 @@ export const attachEmployeeDocumentFormSchema = z.object({
   blobUrl: z.string().url().startsWith("https://"),
   payloadHash,
   mimeType: z.string().min(3).max(128),
-  sizeBytes: z.coerce.number().int().min(1).max(80 * 1024 * 1024),
+  sizeBytes: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(80 * 1024 * 1024),
   title: z.string().min(1).max(512),
   documentType: z.enum(HRM_DOCUMENT_TYPES),
   classification: z.enum(HRM_DOCUMENT_CLASSIFICATIONS),

@@ -117,7 +117,9 @@ async function splitSheet(fileBase) {
   const w = meta.width ?? 0
   const h = meta.height ?? 0
   if (w !== 1536 || h !== 1024) {
-    console.warn(`${fileBase}: expected 1536×1024, got ${w}×${h} — using actual dimensions`)
+    console.warn(
+      `${fileBase}: expected 1536×1024, got ${w}×${h} — using actual dimensions`
+    )
   }
 
   const rows = 4
@@ -130,7 +132,9 @@ async function splitSheet(fileBase) {
     const idx = (r % 2) * cols
     const band = rowBand(h, rows, r)
     const extractHeight =
-      variant === "light" ? Math.max(1, band.height - LIGHT_ROW_BOTTOM_SHAVE_PX) : band.height
+      variant === "light"
+        ? Math.max(1, band.height - LIGHT_ROW_BOTTOM_SHAVE_PX)
+        : band.height
     for (let c = 0; c < cols; c++) {
       const label = labels[idx + c]
       const ext = paddedExtractWithinRow(w, band.top, extractHeight, c, cols)

@@ -41,7 +41,10 @@ export async function createEmployeeAction(
 ): Promise<EmployeeMutationFormState> {
   const { organizationId, userId, sessionId } = await requireOrgSession()
 
-  const tenant = await validateHrmOrgSlugMatchesSession(formData, organizationId)
+  const tenant = await validateHrmOrgSlugMatchesSession(
+    formData,
+    organizationId
+  )
   if (!tenant.ok) {
     return { ok: false, errors: { form: tenant.message } }
   }
@@ -150,7 +153,10 @@ export async function updateEmployeeAction(
 ): Promise<EmployeeMutationFormState> {
   const { organizationId, userId, sessionId } = await requireOrgSession()
 
-  const tenant = await validateHrmOrgSlugMatchesSession(formData, organizationId)
+  const tenant = await validateHrmOrgSlugMatchesSession(
+    formData,
+    organizationId
+  )
   if (!tenant.ok) {
     return { ok: false, errors: { form: tenant.message } }
   }
@@ -217,7 +223,10 @@ export async function updateEmployeeAction(
     return { ok: false, errors: { form: "Employee not found." } }
   }
   if (existing.archivedAt) {
-    return { ok: false, errors: { form: "Archived employees cannot be edited." } }
+    return {
+      ok: false,
+      errors: { form: "Archived employees cannot be edited." },
+    }
   }
 
   const nextPreferred = parsed.data.preferredName ?? null
@@ -315,7 +324,10 @@ export async function archiveEmployeeAction(
 ): Promise<EmployeeMutationFormState> {
   const { organizationId, userId, sessionId } = await requireOrgSession()
 
-  const tenant = await validateHrmOrgSlugMatchesSession(formData, organizationId)
+  const tenant = await validateHrmOrgSlugMatchesSession(
+    formData,
+    organizationId
+  )
   if (!tenant.ok) {
     return { ok: false, errors: { form: tenant.message } }
   }

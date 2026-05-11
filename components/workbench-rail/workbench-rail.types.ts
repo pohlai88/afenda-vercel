@@ -67,6 +67,10 @@ export type WorkbenchRailLabels = {
   description?: string
   navLabel: string
   actionsLabel: string
+  /**
+   * Required when `slots.context` is provided and non-empty.
+   * If absent the context strip is suppressed even when context items exist.
+   */
   contextLabel?: string
   collapseLabel: string
   expandLabel: string

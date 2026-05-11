@@ -42,7 +42,11 @@ export default async function OrgAdminFeedbackPage({
         <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
-      <OrgFeedbackList orgSlug={orgSlug} result={result} stateFilter={stateFilter} />
+      <OrgFeedbackList
+        orgSlug={orgSlug}
+        result={result}
+        stateFilter={stateFilter}
+      />
 
       <p className="text-sm text-muted-foreground">
         <Link

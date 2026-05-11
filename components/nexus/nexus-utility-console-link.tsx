@@ -16,11 +16,7 @@ export function NexusUtilityConsoleLink() {
       ariaLabel={t("console")}
       tooltip={t("consoleTooltip")}
     >
-      <Building2
-        className="size-[15px] shrink-0"
-        aria-hidden
-        strokeWidth={2}
-      />
+      <Building2 className="size-[15px] shrink-0" aria-hidden strokeWidth={2} />
     </NexusUtilityRoundTooltipLink>
   )
 }

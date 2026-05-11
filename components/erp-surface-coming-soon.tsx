@@ -23,7 +23,9 @@ export async function ErpSurfaceComingSoon({
   surface,
 }: ErpSurfaceComingSoonProps) {
   const tNav = await getTranslations("Dashboard.nav")
-  const t = await getTranslations(`Dashboard.surfaceComingSoon.surfaces.${surface}`)
+  const t = await getTranslations(
+    `Dashboard.surfaceComingSoon.surfaces.${surface}`
+  )
   const tShared = await getTranslations("Dashboard.surfaceComingSoon")
 
   const nexusHref = organizationDashboardPath(orgSlug, "home")
