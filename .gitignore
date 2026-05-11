@@ -11,6 +11,9 @@
 # testing & CI tool output (Vitest coverage, Playwright junit/traces/screenshots, etc.)
 /.artifacts/
 
+# Ad-hoc CLI output files that must never be committed
+knip-output.txt
+
 # Local Playwright MCP / browser debug captures (not product source)
 .playwright-mcp/
 
