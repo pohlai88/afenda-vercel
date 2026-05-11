@@ -1,8 +1,12 @@
+import { getTranslations } from "next-intl/server"
+
+import { Button } from "#components/ui/button"
 import {
   listDeviceSessions,
   listUserSecurityActivity,
   requireAuthShellSignedInSession,
 } from "#lib/auth"
+import { Link } from "#i18n/navigation"
 
 import {
   AccountSecurityCenterClient,
@@ -11,6 +15,7 @@ import {
   type SecuritySessionRow,
 } from "./security-center-client"
 import { auth } from "#lib/auth"
+import { AccountSurface } from "../_components/account-surface"
 
 function toIso(d: Date | string): string {
   if (d instanceof Date) return d.toISOString()
@@ -18,6 +23,8 @@ function toIso(d: Date | string): string {
 }
 
 export default async function AccountSecurityPage() {
+  const tSurface = await getTranslations("AccountSurface")
+  const t = await getTranslations("AccountSurface.security")
   const session = await requireAuthShellSignedInSession()
   const { data: rawSession } = await auth.getSession()
   const currentSessionToken = rawSession?.session?.token ?? ""
@@ -47,12 +54,45 @@ export default async function AccountSecurityPage() {
   }))
 
   return (
-    <AccountSecurityCenterClient
-      currentSessionId={session.sessionId}
-      currentSessionToken={currentSessionToken}
-      sessions={sessions}
-      passkeys={passkeys}
-      activity={activity}
-    />
+    <AccountSurface
+      breadcrumbs={[
+        { label: tSurface("breadcrumbs.personal"), href: "/account" },
+        { label: t("title") },
+      ]}
+      title={t("title")}
+      subtitle={t("subtitle")}
+      actions={
+        <>
+          <Button asChild variant="outline">
+            <Link href="/account/security#sessions">
+              {t("actions.sessions")}
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/account/security#passkeys">
+              {t("actions.passkeys")}
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/account/security#two-factor">
+              {t("actions.twoFactor")}
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/account/security#recent-activity">
+              {t("actions.recent")}
+            </Link>
+          </Button>
+        </>
+      }
+    >
+      <AccountSecurityCenterClient
+        currentSessionId={session.sessionId}
+        currentSessionToken={currentSessionToken}
+        sessions={sessions}
+        passkeys={passkeys}
+        activity={activity}
+      />
+    </AccountSurface>
   )
 }

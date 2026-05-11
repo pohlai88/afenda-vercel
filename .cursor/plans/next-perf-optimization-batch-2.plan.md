@@ -20,7 +20,7 @@ todos:
 |------|-----------|
 | Account segment loading | [`app/[locale]/account/loading.tsx`](app/[locale]/account/loading.tsx) |
 | Admin segment loading | [`app/[locale]/admin/loading.tsx`](app/[locale]/admin/loading.tsx) |
-| Dashboard module nav prefetch | [`components/dashboard/module-nav.tsx`](components/dashboard/module-nav.tsx) `prefetch={false}` |
+| Nexus module nav prefetch | [`components/nexus/nexus-nav-panel.tsx`](components/nexus/nexus-nav-panel.tsx) `prefetch={false}` |
 
 ## Goals (batch 2)
 
@@ -33,7 +33,7 @@ todos:
 **Add** [`app/[locale]/loading.tsx`](app/[locale]/loading.tsx) mirroring the existing spinner shell:
 
 - Import `Spinner` from `#components/ui/spinner`.
-- Same container classes and `aria-busy` / `aria-live="polite"` as [`app/[locale]/dashboard/loading.tsx`](app/[locale]/dashboard/loading.tsx).
+- Same container classes and `aria-busy` / `aria-live="polite"` as org dashboard loading (e.g. [`app/[locale]/o/[orgSlug]/dashboard/loading.tsx`](app/[locale]/o/[orgSlug]/dashboard/loading.tsx)).
 - Short JSDoc: immediate feedback while any direct child segment of `[locale]` suspends.
 
 **Acceptance:** Navigating between top-level locale routes (e.g. home → sign-in) shows the spinner during slow RSC resolution without layout flash regressions.
@@ -49,7 +49,7 @@ Apply **`prefetch={false}`** only where it matches batch 1 intent (many parallel
 
 **Also applied (conservative prefetch off):**
 
-- [`components/dashboard/top-bar.tsx`](components/dashboard/top-bar.tsx) — `Home` → `href="/"` with `prefetch={false}`.
+- Nexus / auth chrome — e.g. [`components/nexus/nexus-control-menu.tsx`](components/nexus/nexus-control-menu.tsx), [`components/auth/auth-page-frame.tsx`](components/auth/auth-page-frame.tsx) — outbound links use `prefetch={false}` where batch 1 applied.
 - [`components/auth/auth-page-frame.tsx`](components/auth/auth-page-frame.tsx) — brand → `/` with `prefetch={false}`.
 
 **Do not** disable prefetch on primary CTAs on the marketing page without evidence — balance TTFB vs network chatter.

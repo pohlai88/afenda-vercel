@@ -6,7 +6,7 @@ import { cn } from "#lib/utils"
  * `next/image` + `object-contain`, not `fill` + overscale.
  */
 export const NEXUS_UTILITY_CHROME_RING_BASE = cn(
-  "shrink-0 rounded-full! border border-border/60 bg-card/72 p-0! shadow-elevation-1 backdrop-blur-md transition-colors hover:bg-card/92 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+  "af-nexus-round-control-backdrop shrink-0 rounded-full! border border-border/60 bg-card/72 p-0! shadow-elevation-1 transition-colors hover:bg-card/92 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 )
 
 export const NEXUS_UTILITY_CHROME_DISC_33_CLASS = cn(

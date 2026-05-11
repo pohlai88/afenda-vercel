@@ -45,7 +45,7 @@ export async function resolveOrgOneThing(
     return { ok: false, code: "invalid_input" }
   }
 
-  const { organizationId, userId, sessionId } = await requireOrgSession()
+  const { organizationId, userId, sessionId, user } = await requireOrgSession()
   const { oneThingId, resolutionNote, resolutionProofJson } = parsed.data
 
   const row = await getOneThingScoped(oneThingId, organizationId, null)
@@ -114,8 +114,11 @@ export async function resolveOrgOneThing(
     )
 
   const whenIso = new Date().toISOString()
+  const whoRaw =
+    user.name?.trim() || user.email?.trim() || "Organization member"
+  const who = whoRaw.length > 512 ? whoRaw.slice(0, 512) : whoRaw
   const event = auditEvent7W1HSchema.parse({
-    who: "Organization member",
+    who,
     what: "Resolved the operational consequence",
     when: whenIso,
     where: "OneThing",

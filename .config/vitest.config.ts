@@ -101,6 +101,11 @@ export default defineConfig({
         // `pickNextRankedId` and `splitOneThingDraft` still contribute to
         // coverage from `tests/unit/onething/onething-shell-helpers.test.ts`.
         "lib/features/onething/components/onething-client-storage.ts",
+        // HRM workforce: Server Actions + Drizzle queries + RSC/client islands;
+        // unit tests cover schemas, path sanitizer, registry; Playwright `hrm-workforce-isolation.spec.ts`.
+        "lib/features/hrm/actions/**",
+        "lib/features/hrm/data/**",
+        "lib/features/hrm/components/**/*.tsx",
       ],
       // Ratchet global executed coverage toward 80%; keep coverage.all off until breadth grows.
       // Global floors track what Vitest currently executes from unit imports (lib/auth barrel drags many server modules).

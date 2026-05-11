@@ -103,7 +103,7 @@ export function NexusUtilityShortcuts() {
         side="bottom"
         align="end"
         sideOffset={10}
-        className="w-64 bg-background/92 p-0 backdrop-blur-2xl"
+        className="af-nexus-popover-panel w-64 bg-background/92 p-0"
       >
         <div className="border-b border-border/50 px-4 py-3">
           <p className="text-xs font-medium text-foreground">

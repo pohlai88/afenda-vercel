@@ -41,7 +41,10 @@ export function NexusShell({
   return (
     <NexusCommandProvider>
       <LynxSummonProvider>
-        <div className="flex min-h-svh flex-col bg-background">
+        <div
+          className="flex min-h-svh flex-col bg-background"
+          data-nexus-capture-root="workspace"
+        >
           <SkipToMain label={skipToMainLabel} />
 
           <NexusUtilityBar
@@ -58,6 +61,7 @@ export function NexusShell({
             id="dashboard-main"
             tabIndex={-1}
             className="min-w-0 flex-1 overflow-y-auto outline-none"
+            data-nexus-capture-root="content"
           >
             {children}
           </main>

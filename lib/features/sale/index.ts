@@ -1,5 +1,4 @@
 export { SalePage } from "#features/sale/components/sale-page"
-export { SaleActionForm } from "#features/sale/components/sale-action-form"
 export { createSaleOrder } from "#features/sale/actions/create-sale-order"
 export { listSaleOverview } from "#features/sale/data/sale.queries"
 export { saleFilterSchema } from "#features/sale/schemas/sale-filter.schema"

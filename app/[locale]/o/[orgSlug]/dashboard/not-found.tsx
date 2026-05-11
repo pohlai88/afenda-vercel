@@ -4,10 +4,11 @@ import { useParams } from "next/navigation"
 
 import { Button } from "#components/ui/button"
 import { Link } from "#i18n/navigation"
+import { organizationNexusPath } from "#features/nexus"
 
 /**
- * Dashboard-tier 404 — rendered inside DashboardShell (sidebar and top bar
- * remain mounted) when notFound() fires within the dashboard segment.
+ * ERP surface-tier 404 — rendered while `NexusShell` from `[orgSlug]/layout`
+ * stays mounted when `notFound()` fires within the `/dashboard/*` segment.
  *
  * Uses useParams() to resolve orgSlug for contextual recovery links since
  * not-found.tsx cannot receive params as props.
@@ -15,7 +16,14 @@ import { Link } from "#i18n/navigation"
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/not-found
  */
 export default function OrgDashboardNotFound() {
-  const params = useParams<{ orgSlug: string }>()
+  const params = useParams<{ orgSlug?: string | string[] }>()
+  const orgSlugParam = params?.orgSlug
+  const orgSlug =
+    typeof orgSlugParam === "string"
+      ? orgSlugParam
+      : Array.isArray(orgSlugParam)
+        ? orgSlugParam[0]
+        : undefined
 
   return (
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
@@ -23,13 +31,15 @@ export default function OrgDashboardNotFound() {
         <p className="text-sm font-medium text-muted-foreground">404</p>
         <h1 className="text-lg font-medium text-foreground">Page not found</h1>
         <p className="max-w-md text-sm text-muted-foreground">
-          The dashboard shell is still available — use the sidebar to navigate
-          to another module.
+          Nexus workspace chrome stays mounted — use the module nav to open
+          another surface.
         </p>
       </div>
-      {params?.orgSlug ? (
+      {orgSlug ? (
         <Button asChild variant="outline" size="sm">
-          <Link href={`/o/${params.orgSlug}/dashboard`}>Back to dashboard</Link>
+          <Link href={organizationNexusPath(orgSlug)} prefetch={false}>
+            Back to Nexus field
+          </Link>
         </Button>
       ) : null}
     </div>

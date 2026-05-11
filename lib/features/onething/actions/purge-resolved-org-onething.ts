@@ -11,20 +11,21 @@ import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
 import { and, eq, inArray } from "drizzle-orm"
-import type { Route } from "next"
 
 import { revalidateOrgOneThingDashboard } from "../data/onething-revalidate.server"
+import { resolveOrgOneThingAdminStepUpResumePath } from "../data/onething-step-up-resume.server"
 
 export async function purgeResolvedOrgOneThing(
   formData: FormData
 ): Promise<void> {
   const session = await requireOrgSession()
-  const resumePath = String(
-    formData.get("resumePath") ?? "/o/placeholder/dashboard/ithink"
+  const resumePath = await resolveOrgOneThingAdminStepUpResumePath(
+    formData,
+    session.organizationId
   )
   const locale = await getRequestAppLocale()
   await requireRecentAuthStepUp({
-    returnTo: toLocalePath(locale, resumePath as Route) as unknown as string,
+    returnTo: toLocalePath(locale, resumePath) as unknown as string,
   })
 
   const allowed = await canActInOrganization(

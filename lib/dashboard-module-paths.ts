@@ -1,6 +1,10 @@
 import type { Route } from "next"
 
 import { ORG_ADMIN_PATH_SEGMENTS } from "#lib/dashboard-org-path.shared"
+import {
+  ORG_DASHBOARD_MODULES,
+  type OrgDashboardModule,
+} from "#lib/dashboard-org-path.shared"
 import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
 
 /**
@@ -29,6 +33,16 @@ export function organizationAdminPath(
   return `${base}/${section}` as Route
 }
 
+/** Tail segment for org ERP dashboard HRM workspace (`revalidatePath` / tags). */
+export const ORG_DASHBOARD_HRM = "/hrm" as const
+
+/** Workforce list + employee detail routes (`revalidatePath` with {@link toLocaleOrgDashboardRevalidatePattern}). */
+export const ORG_DASHBOARD_HRM_EMPLOYEES = "/hrm/employees" as const
+
+/** Employee detail dynamic segment — invalidate all `[employeeId]` builds across locales/orgs. */
+export const ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL =
+  "/hrm/employees/[employeeId]" as const
+
 /**
  * Locale-internal pathname for an org-scoped dashboard URL (`localePrefix: "always"`).
  * Returns a typed {@link Route} for `Link` / `redirect` from `#i18n/navigation`.
@@ -38,19 +52,13 @@ export function organizationAdminPath(
  * `/o/{slug}/dashboard` (which no longer has a `page.tsx`). New callers should
  * import `organizationNexusPath` from `#features/nexus`. See AGENTS.md §5 →
  * Nexus runtime (org root).
+ *
+ * Human resources capabilities under `/dashboard/hrm/*` use
+ * {@link organizationHrmPath} from `#features/hrm` / `#features/hrm/client`.
  */
 export function organizationDashboardPath(
   orgSlug: string,
-  modulePath:
-    | "contacts"
-    | "ithink"
-    | "knowledge"
-    | "lynx"
-    | "sale"
-    | "purchase"
-    | "inventory"
-    | "accounting"
-    | "home"
+  modulePath: OrgDashboardModule | "home"
 ): Route {
   const slug = normalizeOrgSlugParam(orgSlug)
   if (!slug) {
@@ -64,20 +72,10 @@ export function organizationDashboardPath(
 
 /**
  * Single source for ERP module chrome order under `/o/{slug}/dashboard`.
- * Excludes `home` (dashboard index). Keep aligned with
- * {@link ORG_DASHBOARD_MODULES} in `dashboard-org-path.shared.ts` and
- * `Dashboard.nav` in `messages/*`.
+ * Excludes `home` (Nexus field). Keep aligned with {@link ORG_DASHBOARD_MODULES}
+ * in `dashboard-org-path.shared.ts` and `Dashboard.nav` in `messages/*`.
  */
-export const DASHBOARD_NAV_MODULES = [
-  "ithink",
-  "contacts",
-  "knowledge",
-  "lynx",
-  "sale",
-  "purchase",
-  "inventory",
-  "accounting",
-] as const satisfies ReadonlyArray<
+export const DASHBOARD_NAV_MODULES = [...ORG_DASHBOARD_MODULES] as const satisfies ReadonlyArray<
   Exclude<Parameters<typeof organizationDashboardPath>[1], "home">
 >
 

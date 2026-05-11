@@ -89,7 +89,7 @@ export function NexusControlMenu({
       <DropdownMenuContent
         align="end"
         sideOffset={10}
-        className="w-60 bg-background/92 backdrop-blur-2xl"
+        className="af-nexus-popover-panel w-60 bg-background/92"
       >
         <DropdownMenuLabel className="flex items-center gap-2 font-normal">
           <Building2 className="size-3.5 shrink-0 text-muted-foreground" />

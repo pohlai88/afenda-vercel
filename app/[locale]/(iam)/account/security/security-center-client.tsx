@@ -2,7 +2,6 @@
 
 import { useRouter } from "#i18n/navigation"
 import { useEffect, useMemo, useState, useTransition } from "react"
-import { Link } from "#i18n/navigation"
 
 import { neonAuthClient } from "#lib/auth-client-neon-compat"
 import {
@@ -221,74 +220,76 @@ export function AccountSecurityCenterClient(props: {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-8 py-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Security</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Sessions, passkeys, and two-factor authentication.
-        </p>
-      </div>
-
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium">Active sessions</h2>
-        <p className="text-sm text-muted-foreground">
-          Sign out other devices or end a single session. Your current session
-          is highlighted.
-        </p>
-        <ul className="space-y-2">
-          {props.sessions.map((s) => {
-            const isCurrent =
-              s.id === props.currentSessionId ||
-              s.token === props.currentSessionToken
-            return (
-              <li
-                key={s.id}
-                className="flex flex-col gap-2 rounded-md border p-3 text-sm"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {maskToken(s.token)}
-                    {isCurrent ? (
-                      <span className="ml-2 text-foreground">
-                        (this device)
-                      </span>
+    <div className="divide-y divide-border/45">
+      <section
+        id="sessions"
+        className="scroll-mt-24 px-surface-lg py-surface-lg md:px-surface-xl"
+      >
+        <div className="max-w-4xl space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-foreground">
+              Active sessions
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Sign out other devices or end a single session. Your current
+              session is highlighted.
+            </p>
+          </div>
+          <ul className="space-y-2">
+            {props.sessions.map((s) => {
+              const isCurrent =
+                s.id === props.currentSessionId ||
+                s.token === props.currentSessionToken
+              return (
+                <li
+                  key={s.id}
+                  className="flex flex-col gap-2 rounded-md border border-border/60 bg-background/55 p-3 text-sm"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {maskToken(s.token)}
+                      {isCurrent ? (
+                        <span className="ml-2 text-foreground">
+                          (this device)
+                        </span>
+                      ) : null}
+                    </span>
+                    {!isCurrent ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={pending}
+                        onClick={() => setRevokeSessionToken(s.token)}
+                      >
+                        Revoke
+                      </Button>
                     ) : null}
-                  </span>
-                  {!isCurrent ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={pending}
-                      onClick={() => setRevokeSessionToken(s.token)}
-                    >
-                      Revoke
-                    </Button>
-                  ) : null}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(s.createdAt).toLocaleString()}
-                  {s.ipAddress ? ` · ${s.ipAddress}` : ""}
-                </p>
-                {s.userAgent ? (
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    {summarizeUserAgent(s.userAgent)}
+                    {new Date(s.createdAt).toLocaleString()}
+                    {s.ipAddress ? ` · ${s.ipAddress}` : ""}
                   </p>
-                ) : null}
-              </li>
-            )
-          })}
-        </ul>
-        {props.sessions.length > 1 ? (
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={pending}
-            onClick={() => setRevokeAllOpen(true)}
-          >
-            Sign out all other sessions
-          </Button>
-        ) : null}
+                  {s.userAgent ? (
+                    <p className="text-xs text-muted-foreground">
+                      {summarizeUserAgent(s.userAgent)}
+                    </p>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
+          {props.sessions.length > 1 ? (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={pending}
+              onClick={() => setRevokeAllOpen(true)}
+            >
+              Sign out all other sessions
+            </Button>
+          ) : null}
+        </div>
       </section>
 
       <AlertDialog
@@ -386,174 +387,206 @@ export function AccountSecurityCenterClient(props: {
         </AlertDialogContent>
       </AlertDialog>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium">Passkeys</h2>
-        {props.passkeys.length > 0 ? (
-          <ul className="space-y-2">
-            {props.passkeys.map((p) => (
-              <li
-                key={p.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
-              >
-                <div>
-                  <p className="font-medium">{p.name ?? "Passkey"}</p>
-                  {p.createdAt ? (
-                    <p className="text-xs text-muted-foreground">
-                      Added {new Date(p.createdAt).toLocaleString()}
-                    </p>
-                  ) : null}
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={pending}
-                  onClick={() => runAction(() => deletePasskeyAction(p.id))}
-                >
-                  Remove
-                </Button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">No passkeys yet.</p>
-        )}
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => void addPasskey()}
-        >
-          Register passkey
-        </Button>
-        {passkeyErr ? (
-          <p className="text-sm text-destructive" role="alert">
-            {passkeyErr}
-          </p>
-        ) : null}
-        {passkeyMsg ? (
-          <p className="text-sm text-muted-foreground" role="status">
-            {passkeyMsg}
-          </p>
-        ) : null}
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium">Recent security activity</h2>
-        {props.activity.length > 0 ? (
-          <ul className="space-y-2 text-sm">
-            {props.activity.map((a) => (
-              <li
-                key={a.id}
-                className="flex flex-col gap-0.5 border-b border-border/60 py-2 last:border-0"
-              >
-                <span className="font-medium">{a.label}</span>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(a.createdAt).toLocaleString()}
-                  {a.path ? ` · ${a.path}` : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            No recent sign-in events recorded yet.
-          </p>
-        )}
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium">Two-factor authentication</h2>
-        <p className="text-sm text-muted-foreground">
-          Configure TOTP-based 2FA and manage backup codes.
-        </p>
-        <div className="space-y-2">
-          <Label htmlFor="security-password">Current password</Label>
-          <Input
-            id="security-password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Required for credential accounts"
-          />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => void startTwoFactorSetup()}
-          >
-            Start 2FA setup
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void disableTwoFactor()}
-          >
-            Disable 2FA
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void regenerateBackupCodes()}
-          >
-            Regenerate backup codes
-          </Button>
-        </div>
-        {totpUri ? (
-          <div className="rounded-md border p-3">
-            <p className="mb-2 text-xs font-medium">TOTP URI</p>
-            <p className="text-xs break-all text-muted-foreground">{totpUri}</p>
+      <section
+        id="passkeys"
+        className="scroll-mt-24 px-surface-lg py-surface-lg md:px-surface-xl"
+      >
+        <div className="max-w-4xl space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-foreground">
+              Passkeys
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Hardware-backed or platform-backed credentials trusted for fast
+              sign-in.
+            </p>
           </div>
-        ) : null}
-        <div className="space-y-2">
-          <Label htmlFor="totp-code">Authenticator code</Label>
-          <Input
-            id="totp-code"
-            inputMode="numeric"
-            value={totpCode}
-            onChange={(e) => setTotpCode(e.target.value)}
-            placeholder="6-digit code"
-          />
-          <Button type="button" onClick={() => void verifyTwoFactor()}>
-            Verify code
-          </Button>
-        </div>
-        {backupCodes.length > 0 ? (
-          <div className="rounded-md border p-3">
-            <p className="mb-2 text-xs font-medium">Backup codes</p>
-            <ul className="grid gap-1 text-xs text-muted-foreground">
-              {backupCodes.map((code) => (
-                <li key={code} className="font-mono">
-                  {code}
+          {props.passkeys.length > 0 ? (
+            <ul className="space-y-2">
+              {props.passkeys.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/60 bg-background/55 p-3 text-sm"
+                >
+                  <div>
+                    <p className="font-medium">{p.name ?? "Passkey"}</p>
+                    {p.createdAt ? (
+                      <p className="text-xs text-muted-foreground">
+                        Added {new Date(p.createdAt).toLocaleString()}
+                      </p>
+                    ) : null}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={pending}
+                    onClick={() => runAction(() => deletePasskeyAction(p.id))}
+                  >
+                    Remove
+                  </Button>
                 </li>
               ))}
             </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">No passkeys yet.</p>
+          )}
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => void addPasskey()}
+          >
+            Register passkey
+          </Button>
+          {passkeyErr ? (
+            <p className="text-sm text-destructive" role="alert">
+              {passkeyErr}
+            </p>
+          ) : null}
+          {passkeyMsg ? (
+            <p className="text-sm text-muted-foreground" role="status">
+              {passkeyMsg}
+            </p>
+          ) : null}
+        </div>
+      </section>
+
+      <section
+        id="recent-activity"
+        className="scroll-mt-24 px-surface-lg py-surface-lg md:px-surface-xl"
+      >
+        <div className="max-w-4xl space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-foreground">
+              Recent security activity
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Latest authentication and session evidence recorded for this user.
+            </p>
           </div>
-        ) : null}
-        {twoFactorErr ? (
-          <p className="text-sm text-destructive" role="alert">
-            {twoFactorErr}
-          </p>
-        ) : null}
-        {twoFactorMsg ? (
-          <p className="text-sm text-muted-foreground" role="status">
-            {twoFactorMsg}
-          </p>
-        ) : null}
+          {props.activity.length > 0 ? (
+            <ul className="space-y-2 text-sm">
+              {props.activity.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex flex-col gap-0.5 border-b border-border/60 py-2 last:border-0"
+                >
+                  <span className="font-medium">{a.label}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(a.createdAt).toLocaleString()}
+                    {a.path ? ` · ${a.path}` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No recent sign-in events recorded yet.
+            </p>
+          )}
+        </div>
+      </section>
+
+      <section
+        id="two-factor"
+        className="scroll-mt-24 px-surface-lg py-surface-lg md:px-surface-xl"
+      >
+        <div className="max-w-4xl space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-foreground">
+              Two-factor authentication
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Configure TOTP-based 2FA and manage backup codes.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="security-password">Current password</Label>
+            <Input
+              id="security-password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Required for credential accounts"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => void startTwoFactorSetup()}
+            >
+              Start 2FA setup
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void disableTwoFactor()}
+            >
+              Disable 2FA
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void regenerateBackupCodes()}
+            >
+              Regenerate backup codes
+            </Button>
+          </div>
+          {totpUri ? (
+            <div className="rounded-md border border-border/60 bg-background/55 p-3">
+              <p className="mb-2 text-xs font-medium">TOTP URI</p>
+              <p className="text-xs break-all text-muted-foreground">
+                {totpUri}
+              </p>
+            </div>
+          ) : null}
+          <div className="space-y-2">
+            <Label htmlFor="totp-code">Authenticator code</Label>
+            <Input
+              id="totp-code"
+              inputMode="numeric"
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value)}
+              placeholder="6-digit code"
+            />
+            <Button type="button" onClick={() => void verifyTwoFactor()}>
+              Verify code
+            </Button>
+          </div>
+          {backupCodes.length > 0 ? (
+            <div className="rounded-md border border-border/60 bg-background/55 p-3">
+              <p className="mb-2 text-xs font-medium">Backup codes</p>
+              <ul className="grid gap-1 text-xs text-muted-foreground">
+                {backupCodes.map((code) => (
+                  <li key={code} className="font-mono">
+                    {code}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {twoFactorErr ? (
+            <p className="text-sm text-destructive" role="alert">
+              {twoFactorErr}
+            </p>
+          ) : null}
+          {twoFactorMsg ? (
+            <p className="text-sm text-muted-foreground" role="status">
+              {twoFactorMsg}
+            </p>
+          ) : null}
+        </div>
       </section>
 
       {actionErr ? (
-        <p className="text-sm text-destructive" role="alert">
-          {actionErr}
-        </p>
+        <section className="px-surface-lg py-surface-lg md:px-surface-xl">
+          <p className="max-w-4xl text-sm text-destructive" role="alert">
+            {actionErr}
+          </p>
+        </section>
       ) : null}
-
-      <p className="text-sm text-muted-foreground">
-        <Link href="/account" className="underline">
-          Back to account
-        </Link>
-      </p>
     </div>
   )
 }

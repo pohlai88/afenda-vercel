@@ -1,18 +1,7 @@
-import { ModuleScaffold } from "#components/module-scaffold"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+// Phase 3: Replace with real purchase surface (requisitions, approvals, vendors).
 
-import { PurchaseActionForm } from "./purchase-action-form"
+import { ErpSurfaceComingSoon } from "#components/erp-surface-coming-soon"
 
 export async function PurchasePage({ orgSlug }: { orgSlug: string }) {
-  return (
-    <ModuleScaffold
-      title="Purchase"
-      eyebrow="Procurement"
-      route={organizationDashboardPath(orgSlug, "purchase")}
-      workspaceTitle="Purchase workspace is ready"
-      workspaceDescription="Set up purchase requests, approvals, and vendor flows in this module next."
-    >
-      <PurchaseActionForm />
-    </ModuleScaffold>
-  )
+  return <ErpSurfaceComingSoon orgSlug={orgSlug} surface="purchase" />
 }

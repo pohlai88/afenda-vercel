@@ -22,10 +22,10 @@ import {
   MessageCircle,
   MessageSquare,
   PenLine,
-  Plug,
-  Search,
   ShieldCheck,
+  Search,
   Sparkles,
+  Store,
   Sun,
   Upload,
   Wifi,
@@ -43,28 +43,36 @@ import {
   SheetTitle,
 } from "#components/ui/sheet"
 import { Switch } from "#components/ui/switch"
+import { Link } from "#i18n/navigation"
+import {
+  NEXUS_RIGHT_RAIL_VISIBLE_LIMIT,
+  type NexusRightUtilityAvailabilityContext,
+} from "#features/nexus"
+import { useIsMobile } from "#hooks/use-mobile"
 import { ui, uiRadius } from "#lib/design-system"
+import { organizationAdminPath } from "#lib/dashboard-module-paths"
 import { APP_LOCALES } from "#lib/i18n/locales.shared"
 import { cn } from "#lib/utils"
 
 import {
-  NEXUS_RIGHT_UTILITY_WIDGET_IDS,
   type NexusUtilityRightWidgetId,
   type NexusUtilityWidgetId,
 } from "./nexus-utility-widget-ids"
 import {
+  canEnableRightUtilityWidget,
   defaultUtilityWidgetVisibility,
-  isUtilityWidgetCustomizable,
+  getEligibleCustomizeRightWidgetIds,
+  getRightUtilityCatalogEntry,
+  getVisibleRightUtilityWidgetIds,
+  migrateUtilityWidgetPrefs,
+  type UtilityWidgetVisibilityPrefs,
 } from "./nexus-utility-widget-registry"
 
 const STORAGE_KEY = "afenda.nexusUtilityBar.widgets.v1"
 
-export type UtilityWidgetVisibilityPrefs = Partial<
-  Record<NexusUtilityWidgetId, boolean>
->
-
 type NexusUtilityWidgetUiValue = {
   isWidgetVisible: (id: NexusUtilityWidgetId) => boolean
+  visibleRightIds: readonly NexusUtilityRightWidgetId[]
   setWidgetVisible: (id: NexusUtilityWidgetId, visible: boolean) => void
   resetWidgetLayout: () => void
   openUtilityCustomize: () => void
@@ -80,7 +88,7 @@ function loadPrefsFromStorage(): UtilityWidgetVisibilityPrefs {
     if (!raw) return {}
     const parsed = JSON.parse(raw) as unknown
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return parsed as UtilityWidgetVisibilityPrefs
+      return migrateUtilityWidgetPrefs(parsed as UtilityWidgetVisibilityPrefs)
     }
   } catch {
     /* ignore */
@@ -89,13 +97,29 @@ function loadPrefsFromStorage(): UtilityWidgetVisibilityPrefs {
 }
 
 export function NexusUtilityWidgetPreferencesProvider({
+  orgSlug,
+  canOpenMarketplace,
+  multiOrg,
   children,
 }: {
+  orgSlug: string
+  canOpenMarketplace: boolean
+  multiOrg: boolean
   children: ReactNode
 }) {
   const [prefs, setPrefs] = useState<UtilityWidgetVisibilityPrefs>({})
   const [prefsReady, setPrefsReady] = useState(false)
   const [customizeOpen, setCustomizeOpen] = useState(false)
+  const isMobile = useIsMobile()
+  const availability = useMemo<NexusRightUtilityAvailabilityContext>(
+    () => ({
+      isAdmin: canOpenMarketplace,
+      isMobile,
+      multiLocale: APP_LOCALES.length > 1,
+      multiOrg,
+    }),
+    [canOpenMarketplace, isMobile, multiOrg]
+  )
 
   useEffect(() => {
     const apply = () => {
@@ -124,17 +148,35 @@ export function NexusUtilityWidgetPreferencesProvider({
     }
   }, [prefs, prefsReady])
 
+  const visibleRightIds = useMemo(
+    () =>
+      getVisibleRightUtilityWidgetIds({
+        prefs,
+        availability,
+      }),
+    [availability, prefs]
+  )
+
+  const visibleIds = useMemo(() => new Set(visibleRightIds), [visibleRightIds])
+
   const isWidgetVisible = useCallback(
-    (id: NexusUtilityWidgetId) => {
-      const entry = prefs[id]
-      if (typeof entry === "boolean") return entry
-      return defaultUtilityWidgetVisibility(id)
-    },
-    [prefs]
+    (id: NexusUtilityWidgetId) => visibleIds.has(id as never),
+    [visibleIds]
   )
 
   const setWidgetVisible = useCallback(
     (id: NexusUtilityWidgetId, visible: boolean) => {
+      if (
+        visible &&
+        getRightUtilityCatalogEntry(id) &&
+        !canEnableRightUtilityWidget({
+          id,
+          prefs,
+          availability,
+        })
+      ) {
+        return
+      }
       setPrefs((prev) => {
         const defaultV = defaultUtilityWidgetVisibility(id)
         if (visible === defaultV) {
@@ -146,7 +188,7 @@ export function NexusUtilityWidgetPreferencesProvider({
         return { ...prev, [id]: visible }
       })
     },
-    []
+    [availability, prefs]
   )
 
   const resetWidgetLayout = useCallback(() => {
@@ -160,11 +202,18 @@ export function NexusUtilityWidgetPreferencesProvider({
   const value = useMemo(
     () => ({
       isWidgetVisible,
+      visibleRightIds,
       setWidgetVisible,
       resetWidgetLayout,
       openUtilityCustomize,
     }),
-    [isWidgetVisible, openUtilityCustomize, resetWidgetLayout, setWidgetVisible]
+    [
+      isWidgetVisible,
+      openUtilityCustomize,
+      resetWidgetLayout,
+      setWidgetVisible,
+      visibleRightIds,
+    ]
   )
 
   return (
@@ -173,6 +222,10 @@ export function NexusUtilityWidgetPreferencesProvider({
       <NexusUtilityWidgetCustomizeSheet
         open={customizeOpen}
         onOpenChange={setCustomizeOpen}
+        orgSlug={orgSlug}
+        canOpenMarketplace={canOpenMarketplace}
+        availability={availability}
+        prefs={prefs}
         isWidgetVisible={isWidgetVisible}
         setWidgetVisible={setWidgetVisible}
         onReset={resetWidgetLayout}
@@ -186,6 +239,7 @@ export function useNexusUtilityWidgetUi(): NexusUtilityWidgetUiValue {
   if (!ctx) {
     return {
       isWidgetVisible: (id) => defaultUtilityWidgetVisibility(id),
+      visibleRightIds: [],
       setWidgetVisible: () => {},
       resetWidgetLayout: () => {},
       openUtilityCustomize: () => {},
@@ -197,6 +251,10 @@ export function useNexusUtilityWidgetUi(): NexusUtilityWidgetUiValue {
 type CustomizeSheetProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  orgSlug: string
+  canOpenMarketplace: boolean
+  availability: NexusRightUtilityAvailabilityContext
+  prefs: UtilityWidgetVisibilityPrefs
   isWidgetVisible: (id: NexusUtilityWidgetId) => boolean
   setWidgetVisible: (id: NexusUtilityWidgetId, visible: boolean) => void
   onReset: () => void
@@ -205,6 +263,10 @@ type CustomizeSheetProps = {
 function NexusUtilityWidgetCustomizeSheet({
   open,
   onOpenChange,
+  orgSlug,
+  canOpenMarketplace,
+  availability,
+  prefs,
   isWidgetVisible,
   setWidgetVisible,
   onReset,
@@ -213,21 +275,16 @@ function NexusUtilityWidgetCustomizeSheet({
   const tWidgetsRight = useTranslations(
     "Dashboard.shell.utilityBar.widgets.right"
   )
-  const multiLocale = APP_LOCALES.length > 1
-
-  const rightRows = NEXUS_RIGHT_UTILITY_WIDGET_IDS.filter((id) => {
-    if (!isUtilityWidgetCustomizable(id)) return false
-    if (id === "right.locale" && !multiLocale) return false
-    return true
-  })
+  const rightRows = getEligibleCustomizeRightWidgetIds(availability)
   const visibleRightCount = rightRows.filter((id) => isWidgetVisible(id)).length
+  const atCap = visibleRightCount >= NEXUS_RIGHT_RAIL_VISIBLE_LIMIT
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
         className={cn(
-          "flex w-full flex-col border-l border-border/60 bg-background/96 p-0 supports-[backdrop-filter]:bg-background/72 supports-[backdrop-filter]:backdrop-blur-2xl sm:max-w-lg",
+          "af-nexus-popover-panel flex w-full flex-col border-l border-border/60 bg-background/96 p-0 supports-[backdrop-filter]:bg-background/72 sm:max-w-lg",
           ui.elevation.floating
         )}
       >
@@ -249,11 +306,21 @@ function NexusUtilityWidgetCustomizeSheet({
                   "shrink-0 rounded-full border border-border/60 bg-background/72 px-surface-sm py-1 text-xs font-medium text-muted-foreground shadow-elevation-1",
                   uiRadius.chip
                 )}
-                aria-label={`${visibleRightCount}/${rightRows.length}`}
+                aria-label={t("counterAria", {
+                  count: visibleRightCount,
+                  max: NEXUS_RIGHT_RAIL_VISIBLE_LIMIT,
+                })}
               >
-                {visibleRightCount}/{rightRows.length}
+                {visibleRightCount}/{NEXUS_RIGHT_RAIL_VISIBLE_LIMIT}
               </div>
             </div>
+            {canOpenMarketplace ? (
+              <Button asChild variant="outline" size="sm" className="w-fit">
+                <Link href={organizationAdminPath(orgSlug, "integrations")}>
+                  {t("openMarketplace")}
+                </Link>
+              </Button>
+            ) : null}
           </div>
         </SheetHeader>
 
@@ -265,7 +332,7 @@ function NexusUtilityWidgetCustomizeSheet({
             )}
           >
             <div className="flex items-center justify-between gap-surface-sm border-b border-border/50 pb-surface-sm">
-              <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              <p className="text-xs font-medium tracking-[0.12em] text-muted-foreground uppercase">
                 {t("sectionRight")}
               </p>
               <div
@@ -277,6 +344,9 @@ function NexusUtilityWidgetCustomizeSheet({
                 {rightRows.length}
               </div>
             </div>
+            {atCap ? (
+              <p className="text-xs text-muted-foreground">{t("capReached")}</p>
+            ) : null}
             <div className="flex flex-col gap-surface-sm">
               {rightRows.map((id) => (
                 <WidgetToggleRow
@@ -285,6 +355,16 @@ function NexusUtilityWidgetCustomizeSheet({
                   icon={WIDGET_ICONS[id]}
                   label={tWidgetsRight(rightWidgetLabelKey(id))}
                   checked={isWidgetVisible(id)}
+                  disabled={
+                    !isWidgetVisible(id) &&
+                    !canEnableRightUtilityWidget({ id, prefs, availability })
+                  }
+                  helperText={
+                    !isWidgetVisible(id) &&
+                    !canEnableRightUtilityWidget({ id, prefs, availability })
+                      ? t("capReachedInline")
+                      : undefined
+                  }
                   onCheckedChange={(v) => setWidgetVisible(id, v)}
                 />
               ))}
@@ -308,7 +388,8 @@ function NexusUtilityWidgetCustomizeSheet({
   )
 }
 
-const WIDGET_ICONS: Record<NexusUtilityRightWidgetId, LucideIcon> = {
+const WIDGET_ICONS: Record<string, LucideIcon> = {
+  "right.marketplace": Store,
   "right.console": Building2,
   "right.quickCreate": PenLine,
   "right.notifications": Bell,
@@ -326,13 +407,13 @@ const WIDGET_ICONS: Record<NexusUtilityRightWidgetId, LucideIcon> = {
   "right.upload": Upload,
   "right.storage": Database,
   "right.insight": Sparkles,
-  "right.integrations": Plug,
   "right.settings": ShieldCheck,
 }
 
 function rightWidgetLabelKey(
-  id: NexusUtilityRightWidgetId
+  id: keyof typeof WIDGET_ICONS
 ):
+  | "marketplace"
   | "console"
   | "quickCreate"
   | "notifications"
@@ -350,9 +431,10 @@ function rightWidgetLabelKey(
   | "upload"
   | "storage"
   | "insight"
-  | "integrations"
   | "settings" {
   switch (id) {
+    case "right.marketplace":
+      return "marketplace"
     case "right.console":
       return "console"
     case "right.quickCreate":
@@ -387,11 +469,11 @@ function rightWidgetLabelKey(
       return "storage"
     case "right.insight":
       return "insight"
-    case "right.integrations":
-      return "integrations"
     case "right.settings":
       return "settings"
   }
+
+  throw new Error(`Unknown right utility widget id: ${id}`)
 }
 
 function WidgetToggleRow({
@@ -399,12 +481,16 @@ function WidgetToggleRow({
   icon: Icon,
   label,
   checked,
+  disabled = false,
+  helperText,
   onCheckedChange,
 }: {
   id: NexusUtilityWidgetId
   icon: LucideIcon
   label: string
   checked: boolean
+  disabled?: boolean
+  helperText?: string
   onCheckedChange: (v: boolean) => void
 }) {
   const switchId = `utility-widget-${id.replace(/\./g, "-")}`
@@ -434,12 +520,20 @@ function WidgetToggleRow({
         </span>
         <span className="truncate">{label}</span>
       </Label>
-      <Switch
-        id={switchId}
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        size="sm"
-      />
+      <div className="flex min-w-[5.5rem] flex-col items-end gap-1">
+        <Switch
+          id={switchId}
+          checked={checked}
+          disabled={disabled}
+          onCheckedChange={onCheckedChange}
+          size="sm"
+        />
+        {helperText ? (
+          <span className="text-[10px] leading-tight text-muted-foreground">
+            {helperText}
+          </span>
+        ) : null}
+      </div>
     </div>
   )
 }

@@ -9,9 +9,9 @@ import type { RouteEnvelope } from "#lib/route-envelope.shared"
  * client component tree — primarily so error.tsx boundaries can include
  * surface/org context in error reports without re-fetching on the client.
  *
- * Usage in layout.tsx (Server Component):
+ * Usage in layout.tsx (Server Component), e.g. org ERP routes:
  *   <RouteEnvelopeProvider value={envelope}>
- *     <DashboardShell ...>{children}</DashboardShell>
+ *     <NexusShell ...>{children}</NexusShell>
  *   </RouteEnvelopeProvider>
  *
  * Usage in error.tsx or any Client Component:

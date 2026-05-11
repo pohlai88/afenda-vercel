@@ -17,6 +17,18 @@ describe("feedbackSubmissionSchema", () => {
     expect(parsed.success).toBe(true)
   })
 
+  it("accepts optional utility marketplace request metadata", () => {
+    const parsed = feedbackSubmissionSchema.safeParse({
+      category: "idea",
+      severity: "normal",
+      message: "Please wire a reviewed custom tenant icon.",
+      source: "utility-marketplace",
+      requestKind: "rail-icon",
+      utilityId: "marketplace.customIcon",
+    })
+    expect(parsed.success).toBe(true)
+  })
+
   it("rejects short messages", () => {
     const parsed = feedbackSubmissionSchema.safeParse({
       category: "bug",

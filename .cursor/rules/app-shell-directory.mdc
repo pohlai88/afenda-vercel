@@ -8,7 +8,7 @@ alwaysApply: false
 
 Mirrors **AGENTS.md §7 → Design system** (app shell row). **Canonical shell product doctrine:** **[`docs/decisions/0001-afenda-spatial-os-shell.md`](../../docs/decisions/0001-afenda-spatial-os-shell.md)** (Spatial OS — L1 Utility / L2 Workspace / L3 Command–Intent / L4 Dock). **Material adoption:** **[`.cursor/rules/material-semantics.mdc`](../../.cursor/rules/material-semantics.mdc)** + **`scripts/check-design-contract.mjs`**. Third-party dashboard templates and OSS shell articles are **non-authoritative** — follow ADR-0001 + this rule. If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.
 
-> URL segment **`/dashboard/`** names the **ERP workspace route tree** — it is **not** `components/dashboard/` (that folder was removed; chrome lives here under **Nexus**).
+> URL segment **`/dashboard/`** (under **`app/[locale]/o/[orgSlug]/dashboard/`**) names the **ERP workspace route tree** only. **`components/dashboard/`** must not exist — org chrome is **only** here under **`components/nexus/`** (legacy **`components/dashboard-shell/`** removed). There is no second implementation of command palette, Lynx summon, org switcher, or primary module nav outside Nexus.
 
 ## Authority
 

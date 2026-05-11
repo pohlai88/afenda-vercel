@@ -16,6 +16,7 @@ import type {
   AdapterParseOk,
   OrgImportAdapter,
 } from "./import-adapter.server"
+import { hrmPayrollProfileImportAdapter } from "./hrm-payroll-profile-import.adapter.server"
 import { onethingImportAdapter } from "./onething-import.adapter.server"
 
 function invitationIdFromCreateResult(result: unknown): string | null {
@@ -120,6 +121,7 @@ export const memberInviteAdapter: OrgImportAdapter<MemberInviteRow> = {
 const ADAPTER_REGISTRY = {
   member_invite: memberInviteAdapter,
   onething_import: onethingImportAdapter,
+  hrm_payroll_profile_import: hrmPayrollProfileImportAdapter,
 } as const
 
 export type RegisteredAdapterId = keyof typeof ADAPTER_REGISTRY

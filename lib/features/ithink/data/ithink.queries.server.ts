@@ -5,6 +5,7 @@ import { cache } from "react"
 import {
   and,
   asc,
+  count,
   desc,
   eq,
   gt,
@@ -15,12 +16,13 @@ import {
 } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { oneThing } from "#lib/db/schema"
+import { oneThing, oneThingAttachment } from "#lib/db/schema"
 
 import {
   auditEvent7W1HSchema,
   type AuditEvent7W1H,
 } from "#lib/erp/audit-7w1h.shared"
+import { buildCrudSapAuditAction } from "#lib/erp/crud-sap.shared"
 
 import {
   onethingCounterpartySchema,
@@ -85,6 +87,33 @@ function parseAudit7w1hColumn(raw: unknown): AuditEvent7W1H[] {
     if (p.success) out.push(p.data)
   }
   return out
+}
+
+/** Matches resolve flows from {@link resolveIThink} and {@link resolveOrgOneThing}. */
+const RESOLVE_CONSEQUENCE_AUDIT_ACTIONS = new Set([
+  buildCrudSapAuditAction({
+    area: "erp",
+    module: "ithink",
+    object: "consequence",
+    verb: "resolve",
+  }),
+  buildCrudSapAuditAction({
+    area: "erp",
+    module: "onething",
+    object: "consequence",
+    verb: "resolve",
+  }),
+])
+
+function lastMatchingAuditEvent(
+  events: AuditEvent7W1H[],
+  actions: Set<string>
+): AuditEvent7W1H | null {
+  let last: AuditEvent7W1H | null = null
+  for (const e of events) {
+    if (actions.has(e.action)) last = e
+  }
+  return last
 }
 
 export function hydrateIThinkRow(row: RawIThinkDbRow): IThinkRow {
@@ -353,21 +382,27 @@ export const listIThinkHighPressureForNexus = cache(
   }
 )
 
-type IThinkResolutionRow = {
+export type IThinkResolutionForNexusRow = {
   id: string
   title: string
   resolvedAt: Date
   resolutionNote: string | null
+  actorName: string
+  evidenceCount: number
+  lynxAssisted: boolean
 }
 
 /**
  * Returns up to `limit` recently resolved iThink items from the last 7 days.
  * Used by the Nexus snapshot to build the Recent Resolution strip.
+ *
+ * `evidenceCount` = resolution proof items (`resolutionProof` JSON) + row count
+ * in `onething_attachment` for the same OneThing.
  */
 export async function listIThinkRecentResolutionsForNexus(
   organizationId: string,
   limit = 3
-): Promise<IThinkResolutionRow[]> {
+): Promise<IThinkResolutionForNexusRow[]> {
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   const rows = await db
     .select({
@@ -375,6 +410,8 @@ export async function listIThinkRecentResolutionsForNexus(
       title: oneThing.title,
       resolvedAt: oneThing.resolvedAt,
       resolutionNote: oneThing.resolutionNote,
+      resolutionProof: oneThing.resolutionProof,
+      audit7w1h: oneThing.audit7w1h,
     })
     .from(oneThing)
     .where(
@@ -388,5 +425,52 @@ export async function listIThinkRecentResolutionsForNexus(
     .orderBy(desc(oneThing.resolvedAt))
     .limit(limit)
 
-  return rows.filter((r): r is IThinkResolutionRow => r.resolvedAt !== null)
+  const filtered = rows.filter(
+    (r): r is typeof r & { resolvedAt: Date } => r.resolvedAt !== null
+  )
+
+  if (filtered.length === 0) return []
+
+  const ids = filtered.map((r) => r.id)
+
+  const attachmentRows = await db
+    .select({
+      oneThingId: oneThingAttachment.oneThingId,
+      attachmentCount: count(),
+    })
+    .from(oneThingAttachment)
+    .where(inArray(oneThingAttachment.oneThingId, ids))
+    .groupBy(oneThingAttachment.oneThingId)
+
+  const attachmentsByOneThingId = new Map(
+    attachmentRows.map((row) => [
+      row.oneThingId,
+      Number(row.attachmentCount ?? 0),
+    ])
+  )
+
+  return filtered.map((r) => {
+    const auditEvents = parseAudit7w1hColumn(r.audit7w1h)
+    const resolveAudit = lastMatchingAuditEvent(
+      auditEvents,
+      RESOLVE_CONSEQUENCE_AUDIT_ACTIONS
+    )
+    const proof = safeParseResolutionProof(r.resolutionProof)
+    const rawWho = resolveAudit?.who.trim()
+    const actorName =
+      rawWho && rawWho.length > 0 ? rawWho : "Organization member"
+
+    const proofCount = proof?.length ?? 0
+    const attachmentCount = attachmentsByOneThingId.get(r.id) ?? 0
+
+    return {
+      id: r.id,
+      title: r.title,
+      resolvedAt: r.resolvedAt,
+      resolutionNote: r.resolutionNote,
+      actorName,
+      evidenceCount: proofCount + attachmentCount,
+      lynxAssisted: resolveAudit?.how === "lynx-operator",
+    }
+  })
 }

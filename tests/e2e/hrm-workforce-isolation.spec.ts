@@ -1,0 +1,49 @@
+import { expect, test } from "@playwright/test"
+
+import {
+  resolveOrgSlugFromSession,
+  signInAsOrgAdmin,
+} from "./utils/org-admin-auth"
+
+const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
+const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
+const orgSlugFromEnv = process.env.E2E_ORG_SLUG?.trim()
+
+test.describe("HRM workforce tenant boundaries", () => {
+  test.skip(
+    !orgAdminEmail || !orgAdminPassword,
+    "Set E2E_ORG_ADMIN_EMAIL and E2E_ORG_ADMIN_PASSWORD for org-scoped HRM flows."
+  )
+
+  test(
+    "unknown org slug renders organization not-found while signed in",
+    { tag: "@hrm" },
+    async ({ page }) => {
+      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
+      await page.goto(
+        "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/employees"
+      )
+      await expect(
+        page.getByRole("heading", {
+          name: "Organization not available",
+          exact: true,
+        })
+      ).toBeVisible()
+    }
+  )
+
+  test(
+    "missing employee record renders dashboard not-found",
+    { tag: "@hrm" },
+    async ({ page }) => {
+      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
+      const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
+      test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
+      const fakeId = "00000000-0000-4000-8000-000000000001"
+      await page.goto(`/en/o/${slug}/dashboard/hrm/employees/${fakeId}`)
+      await expect(
+        page.getByRole("heading", { name: "Page not found", exact: true })
+      ).toBeVisible()
+    }
+  )
+})

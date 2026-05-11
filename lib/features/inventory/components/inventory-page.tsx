@@ -1,18 +1,7 @@
-import { ModuleScaffold } from "#components/module-scaffold"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+// Phase 3: Replace with real inventory surface (moves, balances, reservations).
 
-import { InventoryActionForm } from "./inventory-action-form"
+import { ErpSurfaceComingSoon } from "#components/erp-surface-coming-soon"
 
 export async function InventoryPage({ orgSlug }: { orgSlug: string }) {
-  return (
-    <ModuleScaffold
-      title="Inventory"
-      eyebrow="Stock"
-      route={organizationDashboardPath(orgSlug, "inventory")}
-      workspaceTitle="Inventory workspace is ready"
-      workspaceDescription="Add stock moves, on-hand balances, and reservation workflows in this module next."
-    >
-      <InventoryActionForm />
-    </ModuleScaffold>
-  )
+  return <ErpSurfaceComingSoon orgSlug={orgSlug} surface="inventory" />
 }

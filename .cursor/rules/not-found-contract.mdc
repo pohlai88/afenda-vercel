@@ -40,12 +40,12 @@ The shell — sidebar, topbar, org context, navigation — must remain mounted.
 `not-found.tsx` renders **inside the parent layout** — it is wrapped by the same `layout.tsx` that wraps `page.tsx`. This means:
 
 ```txt
-dashboard/not-found.tsx → rendered inside DashboardShell (sidebar intact)
+dashboard/not-found.tsx → rendered inside NexusShell (org layout — utility bar + module nav intact)
 admin/not-found.tsx     → rendered inside OrgAdminWorkbenchShell (sidebar intact)
 operator/not-found.tsx  → rendered inside PlatformAdminShell (header + sidebar intact)
 ```
 
-This is intentional. A 404 inside the dashboard should not destroy the shell — the user still has navigation, org context, and can recover. This is the GitHub-style behaviour: 404 inside operational continuity, not 404 that destroys the experience.
+This is intentional. A 404 inside ERP surfaces must not destroy org chrome — the user still has navigation, org context, and can recover. This is the GitHub-style behaviour: 404 inside operational continuity, not 404 that destroys the experience.
 
 Component hierarchy:
 ```
@@ -85,21 +85,27 @@ if (!record) notFound()
 import { useParams } from "next/navigation"
 import { Link } from "#i18n/navigation"
 import { Button } from "#components/ui/button"
+import { organizationNexusPath } from "#features/nexus"
 
 export default function OrgDashboardNotFound() {
-  const params = useParams<{ orgSlug: string }>()
+  const params = useParams<{ orgSlug?: string | string[] }>()
+  const raw = params?.orgSlug
+  const orgSlug =
+    typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : undefined
   return (
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium text-muted-foreground">404</p>
         <h1 className="text-lg font-medium text-foreground">Page not found</h1>
         <p className="max-w-md text-sm text-muted-foreground">
-          The dashboard shell is still available — use the sidebar to navigate.
+          Nexus workspace chrome stays mounted — use the module nav to open another surface.
         </p>
       </div>
-      {params?.orgSlug ? (
+      {orgSlug ? (
         <Button asChild variant="outline" size="sm">
-          <Link href={`/o/${params.orgSlug}/dashboard`}>Back to dashboard</Link>
+          <Link href={organizationNexusPath(orgSlug)} prefetch={false}>
+            Back to Nexus field
+          </Link>
         </Button>
       ) : null}
     </div>
@@ -134,7 +140,7 @@ When the route surface has a shell component:
 
 | Surface     | Shell                    | not-found.tsx wraps in... |
 | ----------- | ------------------------ | ------------------------- |
-| Dashboard   | `DashboardShell`         | Auto (layout wraps)       |
+| ERP surfaces (`/dashboard/*`) | `NexusShell` (mounted at `[orgSlug]/layout`) | Auto (parent layout wraps) |
 | Admin       | `OrgAdminWorkbenchShell` | Auto (layout wraps)       |
 | Operator    | `PlatformAdminShell`     | Must wrap explicitly      |
 

@@ -1,8 +1,7 @@
-/**
- * L1 utility bar widget identifiers — rail prefix encodes placement:
- * `left.*`  = workspace context (org / project / team switcher zone)
- * `right.*` = operational utilities + personal controls (before identity menu)
- */
+import {
+  NEXUS_RIGHT_UTILITY_WIDGET_IDS as SHARED_RIGHT_WIDGET_IDS,
+  type NexusRightUtilityWidgetId as SharedRightWidgetId,
+} from "#features/nexus"
 
 /**
  * Left rail is reserved for workspace-level switchers (org, project, team).
@@ -11,33 +10,12 @@
  */
 export const NEXUS_LEFT_UTILITY_WIDGET_IDS = [] as const
 
-export const NEXUS_RIGHT_UTILITY_WIDGET_IDS = [
-  "right.console",
-  "right.quickCreate",
-  "right.notifications",
-  "right.connectivity",
-  "right.diagnosis",
-  "right.searchMobile",
-  "right.shortcuts",
-  "right.help",
-  "right.theme",
-  "right.density",
-  "right.locale",
-  "right.messenger",
-  "right.feedback",
-  "right.screenshot",
-  "right.upload",
-  "right.storage",
-  "right.insight",
-  "right.integrations",
-  "right.settings",
-] as const
+export const NEXUS_RIGHT_UTILITY_WIDGET_IDS = SHARED_RIGHT_WIDGET_IDS
 
 export type NexusUtilityLeftWidgetId =
   (typeof NEXUS_LEFT_UTILITY_WIDGET_IDS)[number]
 
-export type NexusUtilityRightWidgetId =
-  (typeof NEXUS_RIGHT_UTILITY_WIDGET_IDS)[number]
+export type NexusUtilityRightWidgetId = SharedRightWidgetId
 
 export type NexusUtilityWidgetId =
   | NexusUtilityLeftWidgetId

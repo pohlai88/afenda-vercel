@@ -38,10 +38,30 @@ export function readBrowserConnectionSnapshot(): BrowserConnectionSnapshot | nul
   }
 }
 
-export function useBrowserOnlineStatus(): boolean {
-  const [isOnline, setIsOnline] = useState(() =>
-    typeof navigator === "undefined" ? true : navigator.onLine
-  )
+const SLOW_DOWNLINK_MBPS_THRESHOLD = 0.5
+
+/**
+ * Network Information hints at a constrained link while the browser still reports
+ * {@link Navigator.onLine}. Offline is handled separately via {@link useBrowserOnlineStatus}.
+ */
+export function isBrowserConnectionSlow(
+  snapshot: BrowserConnectionSnapshot | null
+): boolean {
+  if (!snapshot) return false
+  const effective = snapshot.effectiveType?.toLowerCase()
+  if (effective === "2g" || effective === "slow-2g") return true
+  if (
+    snapshot.downlinkMbps != null &&
+    snapshot.downlinkMbps < SLOW_DOWNLINK_MBPS_THRESHOLD
+  ) {
+    return true
+  }
+  return false
+}
+
+/** Resolves after mount (`null` first) so SSR HTML never assumes `navigator.onLine`. */
+export function useBrowserOnlineStatus(): boolean | null {
+  const [isOnline, setIsOnline] = useState<boolean | null>(null)
 
   useEffect(() => {
     const sync = () => setIsOnline(navigator.onLine)

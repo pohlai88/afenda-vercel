@@ -1,5 +1,7 @@
 import type { AppPath } from "#lib/i18n/locales.shared"
 
+import { HRM_DASHBOARD_CAPABILITY_SEGMENT_SET } from "#lib/hrm-dashboard.shared"
+
 /**
  * Admin workbench segments under `/o/{slug}/admin/{segment}`.
  * Keep in sync with `ORG_ADMIN_CAPABILITIES` in `#features/org-admin/constants`.
@@ -16,12 +18,20 @@ function isAllowedForwardedOrgAdminSegment(segment: string): boolean {
   return ORG_ADMIN_PATH_SEGMENTS.has(segment)
 }
 
+/** Narrow UUID check for sanitizing `/dashboard/hrm/employees/{id}` tails only. */
+function isLikelyDatabaseUuid(segment: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    segment
+  )
+}
+
 /** Single-segment ERP modules under `/o/{slug}/dashboard/{module}`. */
 export const ORG_DASHBOARD_MODULES = [
   "contacts",
   "ithink",
   "knowledge",
   "lynx",
+  "hrm",
   "sale",
   "purchase",
   "inventory",
@@ -68,6 +78,29 @@ export function sanitizePathAfterOrgSlug(tailFromO: string): AppPath {
   }
   if (parts.length === 1) {
     return "/dashboard" as AppPath
+  }
+  if (
+    parts.length >= 2 &&
+    parts[1] === "hrm" &&
+    tailFromO.startsWith("/dashboard/hrm")
+  ) {
+    if (parts.length === 2) {
+      return "/dashboard/hrm" as AppPath
+    }
+    if (
+      parts.length === 4 &&
+      parts[2] === "employees" &&
+      isLikelyDatabaseUuid(parts[3]!)
+    ) {
+      return `/dashboard/hrm/employees/${parts[3]}` as AppPath
+    }
+    if (
+      parts.length === 3 &&
+      HRM_DASHBOARD_CAPABILITY_SEGMENT_SET.has(parts[2]!)
+    ) {
+      return `/dashboard/hrm/${parts[2]}` as AppPath
+    }
+    return "/dashboard/hrm" as AppPath
   }
   if (parts.length === 2 && MODULE_SET.has(parts[1])) {
     return `/dashboard/${parts[1]}` as AppPath

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import {
@@ -21,6 +21,10 @@ import {
 } from "#components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs"
 
+import {
+  stableNlDemoExplanationKeys,
+  stableNlDemoResultRowKeys,
+} from "../schemas/nl-sql-demo-list-keys.shared"
 import type {
   LynxNlDemoChartConfig,
   LynxNlDemoResultRow,
@@ -42,6 +46,19 @@ export function NlSqlDemoClient() {
     null
   )
   const [explanations, setExplanations] = useState<ExplainRow[] | null>(null)
+
+  const rowKeys = useMemo(
+    () => stableNlDemoResultRowKeys(rows, columns),
+    [rows, columns]
+  )
+
+  const explanationKeys = useMemo(
+    () =>
+      explanations?.length
+        ? stableNlDemoExplanationKeys(explanations)
+        : null,
+    [explanations]
+  )
 
   const reset = useCallback(() => {
     setQuestion("")
@@ -196,12 +213,15 @@ export function NlSqlDemoClient() {
         </div>
       ) : null}
 
-      {explanations?.length ? (
+      {explanations && explanationKeys ? (
         <div className="space-y-2 border-t pt-4">
           <h3 className="text-sm font-semibold">{t("headingExplain")}</h3>
           <ul className="space-y-2 text-sm">
             {explanations.map((row, i) => (
-              <li key={i} className="rounded-lg border bg-muted/30 px-3 py-2">
+              <li
+                key={explanationKeys[i]}
+                className="rounded-lg border bg-muted/30 px-3 py-2"
+              >
                 <p className="font-mono text-xs text-muted-foreground">
                   {row.section}
                 </p>
@@ -234,7 +254,7 @@ export function NlSqlDemoClient() {
                 </TableHeader>
                 <TableBody>
                   {rows.map((row, ri) => (
-                    <TableRow key={ri}>
+                    <TableRow key={rowKeys[ri]}>
                       {columns.map((col) => (
                         <TableCell key={col}>
                           {row[col] === null || row[col] === undefined

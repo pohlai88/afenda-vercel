@@ -5,6 +5,7 @@ import { Link } from "#i18n/navigation"
 import {
   IntegrationsEndpointsPanel,
   IntegrationsImportsPanel,
+  IntegrationsUtilitiesMarketplace,
   organizationAdminPath,
 } from "#features/org-admin"
 
@@ -23,6 +24,10 @@ export default async function OrgAdminIntegrationsPage({
         <h2 className="text-2xl font-semibold tracking-tight">{t("title")}</h2>
         <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
+
+      <section className="space-y-3">
+        <IntegrationsUtilitiesMarketplace orgSlug={orgSlug} />
+      </section>
 
       <section className="space-y-3">
         <header>

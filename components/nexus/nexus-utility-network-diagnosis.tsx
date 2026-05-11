@@ -123,7 +123,7 @@ export function NexusUtilityNetworkDiagnosis() {
         side="bottom"
         align="end"
         sideOffset={10}
-        className="w-80 bg-background/92 p-0 backdrop-blur-2xl"
+        className="af-nexus-popover-panel w-80 bg-background/92 p-0"
       >
         <div className="border-b border-border/50 px-4 py-3">
           <p className="text-xs font-medium text-foreground">{t("title")}</p>
@@ -135,7 +135,11 @@ export function NexusUtilityNetworkDiagnosis() {
           <div className="flex items-center justify-between gap-3">
             <span className="text-muted-foreground">{t("browserStatus")}</span>
             <span className="font-medium text-foreground">
-              {isOnline ? t("online") : t("offline")}
+              {isOnline === null
+                ? t("checking")
+                : isOnline
+                  ? t("online")
+                  : t("offline")}
             </span>
           </div>
           <div className="flex items-center justify-between gap-3">

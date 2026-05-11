@@ -3,6 +3,7 @@ import {
   boolean,
   date,
   decimal,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -677,6 +678,172 @@ export const orgFeedbackEvent = pgTable(
   ]
 )
 
+/** Org-wide broadcast notice for the Nexus notifications center. */
+export const orgNotificationNotice = pgTable(
+  "org_notification_notice",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    source: text("source").notNull().default("admin"),
+    createdByUserId: text("createdByUserId"),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    severity: text("severity").notNull().default("info"),
+    linkedEntityType: text("linkedEntityType"),
+    linkedEntityId: text("linkedEntityId"),
+    linkedEntityLabel: text("linkedEntityLabel"),
+    linkedPath: text("linkedPath"),
+    publishedAt: timestamp("publishedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    expiresAt: timestamp("expiresAt", { mode: "date" }),
+    closedAt: timestamp("closedAt", { mode: "date" }),
+    closedByUserId: text("closedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("org_notification_notice_organization_publishedAt_idx").on(
+      t.organizationId,
+      t.publishedAt
+    ),
+    index("org_notification_notice_organization_closedAt_idx").on(
+      t.organizationId,
+      t.closedAt
+    ),
+    index("org_notification_notice_linkedEntity_idx").on(
+      t.organizationId,
+      t.linkedEntityType,
+      t.linkedEntityId
+    ),
+  ]
+)
+
+/** Per-operator read and acknowledgement state for org notifications. */
+export const orgNotificationReceipt = pgTable(
+  "org_notification_receipt",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    noticeId: text("noticeId")
+      .notNull()
+      .references(() => orgNotificationNotice.id, { onDelete: "cascade" }),
+    userId: text("userId").notNull(),
+    readAt: timestamp("readAt", { mode: "date" }),
+    acknowledgedAt: timestamp("acknowledgedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("org_notification_receipt_notice_user_uidx").on(
+      t.noticeId,
+      t.userId
+    ),
+    index("org_notification_receipt_user_createdAt_idx").on(
+      t.userId,
+      t.createdAt
+    ),
+  ]
+)
+
+/** Operational coordination context — org-scoped discussion attached to work. */
+export const orgCoordinationContext = pgTable(
+  "org_coordination_context",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    createdByUserId: text("createdByUserId").notNull(),
+    subject: text("subject"),
+    linkedEntityType: text("linkedEntityType"),
+    linkedEntityId: text("linkedEntityId"),
+    linkedEntityLabel: text("linkedEntityLabel"),
+    linkedEntityPath: text("linkedEntityPath"),
+    lastActivityAt: timestamp("lastActivityAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("org_coordination_context_organization_lastActivityAt_idx").on(
+      t.organizationId,
+      t.lastActivityAt
+    ),
+    index("org_coordination_context_createdByUserId_createdAt_idx").on(
+      t.createdByUserId,
+      t.createdAt
+    ),
+    index("org_coordination_context_linkedEntity_idx").on(
+      t.organizationId,
+      t.linkedEntityType,
+      t.linkedEntityId
+    ),
+  ]
+)
+
+/** Per-operator membership + unread/read state for an org coordination context. */
+export const orgCoordinationOperator = pgTable(
+  "org_coordination_operator",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    contextId: text("contextId")
+      .notNull()
+      .references(() => orgCoordinationContext.id, { onDelete: "cascade" }),
+    userId: text("userId").notNull(),
+    joinedAt: timestamp("joinedAt", { mode: "date" }).notNull().defaultNow(),
+    lastReadAt: timestamp("lastReadAt", { mode: "date" }),
+  },
+  (t) => [
+    uniqueIndex("org_coordination_operator_context_user_uidx").on(
+      t.contextId,
+      t.userId
+    ),
+    index("org_coordination_operator_user_joinedAt_idx").on(
+      t.userId,
+      t.joinedAt
+    ),
+  ]
+)
+
+/** Activity stream for a coordination context — comments, evidence, and status notes. */
+export const orgCoordinationActivity = pgTable(
+  "org_coordination_activity",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    contextId: text("contextId")
+      .notNull()
+      .references(() => orgCoordinationContext.id, { onDelete: "cascade" }),
+    organizationId: text("organizationId").notNull(),
+    authorUserId: text("authorUserId").notNull(),
+    kind: text("kind").notNull().default("comment"),
+    body: text("body").notNull().default(""),
+    evidence: jsonb("evidence")
+      .$type<Array<Record<string, unknown>>>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("org_coordination_activity_contextId_createdAt_idx").on(
+      t.contextId,
+      t.createdAt
+    ),
+    index("org_coordination_activity_organizationId_createdAt_idx").on(
+      t.organizationId,
+      t.createdAt
+    ),
+  ]
+)
+
 /**
  * Demo dataset for Lynx **natural language → SQL** (Vercel Labs pattern).
  * Org-scoped only; guarded execution allowlists this table in `nl-sql-demo-guard`.
@@ -699,6 +866,377 @@ export const lynxDemoUnicorn = pgTable(
     uniqueIndex("lynx_demo_unicorn_org_company_uidx").on(
       t.organizationId,
       t.company
+    ),
+  ]
+)
+
+/** Job grade ladder — Phase 1A workforce scaffolding (`erp.hrm.*` mutations ship in later slices for catalog CRUD). */
+export const hrmJobGrade = pgTable(
+  "hrm_job_grade",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    ordinal: integer("ordinal").notNull().default(0),
+    minSalaryAmount: decimal("minSalaryAmount", { precision: 15, scale: 2 }),
+    maxSalaryAmount: decimal("maxSalaryAmount", { precision: 15, scale: 2 }),
+    currency: text("currency").notNull().default("MYR"),
+    benefitTierCode: text("benefitTierCode"),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_job_grade_organizationId_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_job_grade_organizationId_archivedAt_idx").on(
+      t.organizationId,
+      t.archivedAt
+    ),
+  ]
+)
+
+/** Department tree — `headEmployeeId` intentionally has no FK until workforce graph is fully wired (avoids circular DDL). */
+export const hrmDepartment = pgTable(
+  "hrm_department",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    parentDepartmentId: text("parentDepartmentId"),
+    headEmployeeId: text("headEmployeeId"),
+    costCenterCode: text("costCenterCode"),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.parentDepartmentId],
+      foreignColumns: [t.id],
+    }).onDelete("set null"),
+    uniqueIndex("hrm_department_organizationId_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_department_organizationId_archivedAt_idx").on(
+      t.organizationId,
+      t.archivedAt
+    ),
+  ]
+)
+
+export const hrmPosition = pgTable(
+  "hrm_position",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    title: text("title").notNull(),
+    departmentId: text("departmentId")
+      .notNull()
+      .references(() => hrmDepartment.id),
+    defaultGradeId: text("defaultGradeId").references(() => hrmJobGrade.id),
+    reportsToPositionId: text("reportsToPositionId"),
+    employmentType: text("employmentType").notNull().default("permanent"),
+    headcountBudget: integer("headcountBudget"),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.reportsToPositionId],
+      foreignColumns: [t.id],
+    }).onDelete("set null"),
+    uniqueIndex("hrm_position_organizationId_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_position_organizationId_departmentId_idx").on(
+      t.organizationId,
+      t.departmentId
+    ),
+    index("hrm_position_organizationId_archivedAt_idx").on(
+      t.organizationId,
+      t.archivedAt
+    ),
+  ]
+)
+
+/**
+ * Workforce master — Phase 1A CRUD surface (contracts / payroll profile / documents ship in 1B).
+ * PII columns exist for operational truth; never copy raw identifiers into IAM audit `metadata`.
+ */
+export const hrmEmployee = pgTable(
+  "hrm_employee",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeNumber: text("employeeNumber").notNull(),
+    legalName: text("legalName").notNull(),
+    preferredName: text("preferredName"),
+    dateOfBirth: date("dateOfBirth", { mode: "date" }),
+    gender: text("gender"),
+    nationality: text("nationality"),
+    idDocumentType: text("idDocumentType"),
+    idDocumentNumber: text("idDocumentNumber"),
+    email: text("email"),
+    phone: text("phone"),
+    address: jsonb("address"),
+    countryCode: text("countryCode"),
+    workStateCode: text("workStateCode"),
+    linkedUserId: text("linkedUserId"),
+    currentDepartmentId: text("currentDepartmentId").references(
+      () => hrmDepartment.id
+    ),
+    currentPositionId: text("currentPositionId").references(
+      () => hrmPosition.id
+    ),
+    currentJobGradeId: text("currentJobGradeId").references(
+      () => hrmJobGrade.id
+    ),
+    managerEmployeeId: text("managerEmployeeId"),
+    /** Cached pointer — updated with {@link hrmEmploymentContract} activation (same transaction). No Drizzle FK (avoids circular init); enforced in SQL migration. */
+    currentEmploymentContractId: text("currentEmploymentContractId"),
+    audit7w1h: jsonb("audit7w1h"),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    archivedByUserId: text("archivedByUserId"),
+    archivedReason: text("archivedReason"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    auditOrigin: text("auditOrigin").notNull().default("production"),
+    simulationRunId: text("simulationRunId"),
+    scenarioId: text("scenarioId"),
+    scenarioVersion: integer("scenarioVersion"),
+    simulationSeed: text("simulationSeed"),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.managerEmployeeId],
+      foreignColumns: [t.id],
+    }).onDelete("set null"),
+    uniqueIndex("hrm_employee_organizationId_employeeNumber_uidx").on(
+      t.organizationId,
+      t.employeeNumber
+    ),
+    index("hrm_employee_organizationId_archivedAt_idx").on(
+      t.organizationId,
+      t.archivedAt
+    ),
+    index("hrm_employee_organizationId_email_idx").on(
+      t.organizationId,
+      t.email
+    ),
+    index("hrm_employee_organizationId_currentDepartmentId_idx").on(
+      t.organizationId,
+      t.currentDepartmentId
+    ),
+    index("hrm_employee_organizationId_managerEmployeeId_idx").on(
+      t.organizationId,
+      t.managerEmployeeId
+    ),
+  ]
+)
+
+/** HR document vault — Blob URL + payload hash (Phase 1B). */
+export const hrmDocument = pgTable(
+  "hrm_document",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId").references(() => hrmEmployee.id, {
+      onDelete: "set null",
+    }),
+    documentType: text("documentType").notNull(),
+    subjectKind: text("subjectKind"),
+    subjectId: text("subjectId"),
+    title: text("title").notNull(),
+    blobUrl: text("blobUrl").notNull(),
+    payloadHash: text("payloadHash").notNull(),
+    mimeType: text("mimeType").notNull(),
+    sizeBytes: integer("sizeBytes").notNull(),
+    classification: text("classification").notNull().default("internal"),
+    retentionPolicyCode: text("retentionPolicyCode"),
+    effectiveFrom: date("effectiveFrom", { mode: "date" }).notNull(),
+    effectiveTo: date("effectiveTo", { mode: "date" }),
+    signedByUserId: text("signedByUserId"),
+    signedAt: timestamp("signedAt", { mode: "date" }),
+    replacedByDocumentId: text("replacedByDocumentId"),
+    uploadedByUserId: text("uploadedByUserId"),
+    uploadedAt: timestamp("uploadedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.replacedByDocumentId],
+      foreignColumns: [t.id],
+    }).onDelete("set null"),
+    index("hrm_document_organizationId_employeeId_documentType_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.documentType
+    ),
+    index("hrm_document_organizationId_subjectKind_subjectId_idx").on(
+      t.organizationId,
+      t.subjectKind,
+      t.subjectId
+    ),
+    index("hrm_document_organizationId_effectiveTo_idx").on(
+      t.organizationId,
+      t.effectiveTo
+    ),
+  ]
+)
+
+/** Versioned employment relationship — Phase 1B (draft → signed doc → activate). */
+export const hrmEmploymentContract = pgTable(
+  "hrm_employment_contract",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    versionNumber: integer("versionNumber").notNull(),
+    contractType: text("contractType").notNull(),
+    state: text("state").notNull(),
+    effectiveFrom: date("effectiveFrom", { mode: "date" }).notNull(),
+    effectiveTo: date("effectiveTo", { mode: "date" }),
+    probationEndDate: date("probationEndDate", { mode: "date" }),
+    confirmationDate: date("confirmationDate", { mode: "date" }),
+    terminationDate: date("terminationDate", { mode: "date" }),
+    terminationReason: text("terminationReason"),
+    terminationNoticeDays: integer("terminationNoticeDays"),
+    positionId: text("positionId").references(() => hrmPosition.id, {
+      onDelete: "set null",
+    }),
+    departmentId: text("departmentId").references(() => hrmDepartment.id, {
+      onDelete: "set null",
+    }),
+    jobGradeId: text("jobGradeId").references(() => hrmJobGrade.id, {
+      onDelete: "set null",
+    }),
+    workingPatternId: text("workingPatternId"),
+    baseSalaryAmount: decimal("baseSalaryAmount", { precision: 15, scale: 2 }),
+    baseSalaryCurrency: text("baseSalaryCurrency").notNull().default("MYR"),
+    payFrequency: text("payFrequency").notNull().default("monthly"),
+    normalWorkingHoursPerWeek: decimal("normalWorkingHoursPerWeek", {
+      precision: 5,
+      scale: 2,
+    }),
+    signedDocumentId: text("signedDocumentId").references(
+      () => hrmDocument.id,
+      {
+        onDelete: "set null",
+      }
+    ),
+    temporalPast: jsonb("temporalPast"),
+    temporalNow: jsonb("temporalNow"),
+    temporalNext: jsonb("temporalNext"),
+    predictions: jsonb("predictions"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    auditOrigin: text("auditOrigin").notNull().default("production"),
+    simulationRunId: text("simulationRunId"),
+    scenarioId: text("scenarioId"),
+    scenarioVersion: integer("scenarioVersion"),
+    simulationSeed: text("simulationSeed"),
+  },
+  (t) => [
+    uniqueIndex(
+      "hrm_employment_contract_organizationId_employeeId_version_uidx"
+    ).on(t.organizationId, t.employeeId, t.versionNumber),
+    uniqueIndex("hrm_employment_contract_org_employee_active_uidx")
+      .on(t.organizationId, t.employeeId)
+      .where(sql`${t.state} = 'active'`),
+    index(
+      "hrm_employment_contract_organizationId_employeeId_effectiveFrom_idx"
+    ).on(t.organizationId, t.employeeId, t.effectiveFrom),
+    index("hrm_employment_contract_organizationId_state_idx").on(
+      t.organizationId,
+      t.state
+    ),
+  ]
+)
+
+/** Statutory payroll identifiers — effective-dated rows (Phase 1B). */
+export const hrmPayrollProfile = pgTable(
+  "hrm_payroll_profile",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    countryCode: text("countryCode").notNull().default("MY"),
+    taxResidencyCountry: text("taxResidencyCountry"),
+    taxIdentifierType: text("taxIdentifierType"),
+    taxIdentifierNumber: text("taxIdentifierNumber"),
+    epfNumber: text("epfNumber"),
+    socsoNumber: text("socsoNumber"),
+    eisEligible: boolean("eisEligible").notNull().default(true),
+    pcbCategory: text("pcbCategory"),
+    hrdfApplicable: boolean("hrdfApplicable").notNull().default(false),
+    bankCode: text("bankCode"),
+    bankAccountTokenized: text("bankAccountTokenized"),
+    bankAccountHolderName: text("bankAccountHolderName"),
+    paySchedule: text("paySchedule").notNull().default("monthly"),
+    payCurrency: text("payCurrency").notNull().default("MYR"),
+    payrollGroupCode: text("payrollGroupCode"),
+    effectiveFrom: date("effectiveFrom", { mode: "date" }).notNull(),
+    effectiveTo: date("effectiveTo", { mode: "date" }),
+    statutoryProfileExtras: jsonb("statutoryProfileExtras"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    auditOrigin: text("auditOrigin").notNull().default("production"),
+    simulationRunId: text("simulationRunId"),
+    scenarioId: text("scenarioId"),
+    scenarioVersion: integer("scenarioVersion"),
+    simulationSeed: text("simulationSeed"),
+  },
+  (t) => [
+    uniqueIndex("hrm_payroll_profile_org_employee_current_uidx")
+      .on(t.organizationId, t.employeeId)
+      .where(sql`${t.effectiveTo} IS NULL`),
+    index("hrm_payroll_profile_organizationId_employeeId_effectiveFrom_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.effectiveFrom
     ),
   ]
 )

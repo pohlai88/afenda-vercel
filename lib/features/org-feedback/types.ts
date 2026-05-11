@@ -1,5 +1,12 @@
 import type { FeedbackStateId } from "./constants"
 
+export type OrgFeedbackEventMetadata = {
+  messageLength?: number
+  source?: "utility-marketplace"
+  requestKind?: "rail-icon"
+  utilityId?: string
+}
+
 export type SubmitOrgFeedbackFieldErrors = {
   category?: "invalid"
   severity?: "invalid"
@@ -25,6 +32,7 @@ export type OrgFeedbackEventSummary = {
   message: string
   path: string | null
   state: FeedbackStateId
+  metadata: OrgFeedbackEventMetadata | null
   acknowledgedByUserId: string | null
   acknowledgedAt: string | null
   resolvedByUserId: string | null

@@ -50,7 +50,7 @@ export async function resolveIThink(
     return { ok: false, code: "invalid_input" }
   }
 
-  const { organizationId, userId, sessionId } = await requireOrgSession()
+  const { organizationId, userId, sessionId, user } = await requireOrgSession()
   const { oneThingId, resolutionNote, resolutionProofJson } = parsed.data
 
   const row = await getIThinkById(oneThingId, organizationId)
@@ -119,8 +119,11 @@ export async function resolveIThink(
     )
 
   const whenIso = new Date().toISOString()
+  const whoRaw =
+    user.name?.trim() || user.email?.trim() || "Organization member"
+  const who = whoRaw.length > 512 ? whoRaw.slice(0, 512) : whoRaw
   const event = auditEvent7W1HSchema.parse({
-    who: "Organization member",
+    who,
     what: "Resolved the iThink consequence",
     when: whenIso,
     where: "iThink",

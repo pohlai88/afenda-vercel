@@ -10,9 +10,9 @@ import {
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
-import type { Route } from "next"
 
 import { revalidateOrgOneThingDashboard } from "../data/onething-revalidate.server"
+import { resolveOrgOneThingAdminStepUpResumePath } from "../data/onething-step-up-resume.server"
 import { setOneThingListShareTokenHash } from "../data/onething.mutations.server"
 import { getOrgOneThingListById } from "../data/onething.queries.server"
 
@@ -25,13 +25,14 @@ export async function rotateOneThingListShareToken(
 }> {
   const session = await requireOrgSession()
   const listId = String(formData.get("listId") ?? "")
-  const resumePath = String(
-    formData.get("resumePath") ?? "/o/placeholder/dashboard/ithink"
+  const resumePath = await resolveOrgOneThingAdminStepUpResumePath(
+    formData,
+    session.organizationId
   )
 
   const locale = await getRequestAppLocale()
   await requireRecentAuthStepUp({
-    returnTo: toLocalePath(locale, resumePath as Route) as unknown as string,
+    returnTo: toLocalePath(locale, resumePath) as unknown as string,
   })
 
   const allowed = await canActInOrganization(

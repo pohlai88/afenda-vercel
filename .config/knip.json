@@ -140,7 +140,7 @@
     "components/nexus/**/*.tsx": ["exports", "types"],
     "components/nexus/nexus-surface-chrome.tsx": ["files"],
     "components/module-page-header.tsx": ["exports", "types"],
-    "components/module-scaffold.tsx": ["exports", "types"],
+    "components/erp-surface-coming-soon.tsx": ["exports", "types"],
     "components/nexus-route-loading.tsx": ["exports", "types"],
     "components/route-error-primitives.tsx": ["exports", "types"],
     "i18n/navigation.tsx": ["exports", "types"],

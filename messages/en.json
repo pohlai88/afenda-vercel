@@ -198,6 +198,7 @@
         "helpTooltip": "Help and product overview",
         "insight": "Lynx",
         "insightTooltip": "Open Lynx · Truth retrieval",
+        "marketplaceTooltip": "Open utilities marketplace",
         "integrationsTooltip": "Open external integrations",
         "settingsTooltip": "Organization settings",
         "console": "Organizations",
@@ -206,19 +207,69 @@
         "searchTooltip": "Search · ⌘K",
         "quickCreate": "Quick create",
         "quickCreateTooltip": "Quick create · C",
-        "notifications": "Notifications",
-        "notificationsTitle": "Notifications",
-        "notificationsTooltip": "Open notifications",
-        "notificationsCount": "{count, plural, one {# item needs attention} other {# items need attention}}",
-        "notificationsViewAll": "View all in Nexus",
-        "notificationsEmpty": "You're all caught up.",
+        "notifications": {
+          "trigger": "Notifications",
+          "triggerUnread": "Notifications. {count, plural, one {# unread notice} other {# unread notices}}",
+          "tooltip": "Open org notice center",
+          "title": "Notifications",
+          "description": "Organization-wide notices from admins and governed system emitters.",
+          "unreadCount": "{count, plural, one {# unread} other {# unread}}",
+          "activeNotices": "Active notices",
+          "loading": "Loading notices…",
+          "emptyTitle": "No active notices",
+          "emptyDescription": "Broadcast notices from admins and system workflows will appear here.",
+          "detailEmptyTitle": "Select a notice",
+          "detailEmptyDescription": "Choose a notice from the list to review details and take action.",
+          "publishedAt": "Published",
+          "expiresAt": "Expires",
+          "linkedRecord": "Linked record",
+          "markRead": "Mark read",
+          "acknowledge": "Acknowledge",
+          "openLinkedRecord": "Open linked record",
+          "closeNotice": "Close notice",
+          "newNotice": "New notice",
+          "createTitle": "Publish notice",
+          "createDescription": "Broadcast a governed organization notice to all current operators.",
+          "publish": "Publish notice",
+          "cancel": "Cancel",
+          "fields": {
+            "title": "Title",
+            "body": "Body",
+            "severity": "Severity",
+            "expiresAt": "Expiry (optional)",
+            "linkedLabel": "Linked record label (optional)",
+            "linkedPath": "Linked record path (optional)"
+          },
+          "severity": {
+            "info": "Info",
+            "warning": "Warning",
+            "critical": "Critical"
+          },
+          "source": {
+            "admin": "Admin",
+            "system": "System"
+          },
+          "state": {
+            "unread": "Unread",
+            "read": "Read",
+            "acknowledged": "Acknowledged"
+          },
+          "errors": {
+            "generic": "Couldn't load notices. Try again.",
+            "createFailed": "Couldn't publish the notice. Try again."
+          }
+        },
         "connectivity": {
           "trigger": "Connectivity",
+          "tooltipChecking": "Checking connectivity…",
           "tooltipOnline": "Online",
+          "tooltipSlow": "Slow connection — link may drop",
           "tooltipOffline": "Offline",
           "title": "Connectivity",
           "status": "Status",
+          "statusChecking": "Checking…",
           "statusOnline": "Online",
+          "statusSlow": "Slow connection",
           "statusOffline": "Offline",
           "effectiveType": "Effective type",
           "downlink": "Downlink",
@@ -233,6 +284,7 @@
           "title": "Network diagnosis",
           "description": "Live browser-to-origin probe against this workspace.",
           "browserStatus": "Browser status",
+          "checking": "Checking…",
           "online": "Online",
           "offline": "Offline",
           "effectiveType": "Effective type",
@@ -316,18 +368,127 @@
           "sessionKeys": "Session keys",
           "empty": "No app-facing keys detected."
         },
+        "upload": {
+          "trigger": "Upload",
+          "tooltip": "Upload a file into the current workspace",
+          "title": "Upload",
+          "description": "Send one file into the current workspace's governed blob intake.",
+          "fileInputLabel": "Choose a file to upload",
+          "emptyState": "Select one file to upload",
+          "acceptedTypes": "Accepted: JPG, PNG, WEBP, or PDF.",
+          "selectedMeta": "{size}",
+          "chooseFile": "Choose file",
+          "replaceFile": "Replace file",
+          "submit": "Upload file",
+          "uploading": "Uploading…",
+          "progressAria": "Upload progress",
+          "progressValue": "{percentage}% uploaded",
+          "successTitle": "Upload complete",
+          "successDescription": "{fileName} is now available in blob storage for this workspace.",
+          "openFile": "Open file",
+          "uploadAnother": "Upload another",
+          "errorNoFile": "Choose one file first.",
+          "errorGeneric": "Upload failed. Try again."
+        },
+        "screenshot": {
+          "trigger": "Screenshot",
+          "tooltip": "Capture the current workspace view",
+          "title": "Screenshot",
+          "description": "Capture the current workspace or content view, then upload one governed PNG.",
+          "modeLabel": "Capture",
+          "mode": {
+            "workspace": "Workspace",
+            "content": "Content"
+          },
+          "emptyState": "Capture the current view to review it before upload.",
+          "previewAlt": "Screenshot preview",
+          "previewReady": "{mode} capture ready for upload.",
+          "capture": "Capture",
+          "capturing": "Capturing…",
+          "retake": "Retake",
+          "clear": "Clear",
+          "upload": "Upload PNG",
+          "uploading": "Uploading…",
+          "openFile": "Open file",
+          "successTitle": "Screenshot uploaded",
+          "successDescription": "The PNG is now available in blob storage for this workspace.",
+          "errorTargetMissing": "The selected capture area is not available on this screen.",
+          "errorNoCapture": "Capture a screenshot first.",
+          "errorCapture": "Screenshot capture failed. Try again.",
+          "errorUpload": "Screenshot upload failed. Try again."
+        },
+        "messenger": {
+          "trigger": "Messenger",
+          "tooltip": "Open operational coordination",
+          "title": "Operational coordination",
+          "description": "Coordinate around operational work, evidence, and review trails without leaving the workspace.",
+          "newContext": "New context",
+          "contextsTitle": "Contexts",
+          "contextNoActivity": "No activity yet.",
+          "emptyContexts": "No coordination contexts yet. Start one when work needs shared review, evidence, or follow-up.",
+          "linkedRecord": "Linked record",
+          "unlinkedContext": "This context is not linked to an operational record yet.",
+          "openLinkedRecord": "Open linked record",
+          "attachEvidence": "Attach evidence",
+          "markReviewed": "Mark reviewed",
+          "activityTitle": "Activity",
+          "loading": "Loading coordination…",
+          "emptyActivity": "No activity yet. Add a coordination update or evidence to start the trail.",
+          "composerLabel": "Add coordination update",
+          "composerPlaceholder": "Summarize the situation, the decision needed, or the evidence that matters.",
+          "attachFile": "Attach file",
+          "attachScreenshot": "Attach screenshot",
+          "sendUpdate": "Send update",
+          "sending": "Sending…",
+          "evidenceTitle": "Evidence",
+          "openEvidence": "Open evidence",
+          "emptyEvidence": "No evidence attached yet.",
+          "selectContext": "Select an operational context to review coordination and evidence.",
+          "newContextTitle": "New operational context",
+          "newContextDescription": "Create a coordination context for the operators who need to review or act together.",
+          "subjectLabel": "Context title",
+          "subjectPlaceholder": "Example: Vendor payment hold",
+          "startNoteLabel": "Starting note",
+          "startNotePlaceholder": "Optional: summarize the issue, decision, or handoff needed.",
+          "operatorsLabel": "Operators",
+          "noOperators": "No operators available in this organization.",
+          "cancel": "Cancel",
+          "creating": "Creating…",
+          "createContext": "Create context",
+          "reviewedNote": "Marked reviewed.",
+          "activityKinds": {
+            "comment": "Coordination",
+            "evidence_added": "Evidence added",
+            "status_note": "Status note"
+          },
+          "evidenceKinds": {
+            "file": "File evidence",
+            "screenshot": "Screenshot evidence"
+          },
+          "errors": {
+            "generic": "Something went wrong. Try again.",
+            "captureTarget": "The workspace capture area is not available on this screen.",
+            "captureFailed": "Screenshot evidence capture failed. Try again.",
+            "sendFailed": "Couldn't send the coordination update. Try again."
+          }
+        },
         "customize": {
           "title": "Utility bar",
           "description": "Show or hide controls on the right rail. Left rail (workspace navigation) and identity menu always stay visible.",
           "sectionRight": "Right rail",
+          "openMarketplace": "Open utilities marketplace",
+          "capReached": "Maximum reached. Turn one off to show another.",
+          "capReachedInline": "Max reached",
+          "counterAria": "{count} of {max} visible before avatar",
           "reset": "Reset to defaults"
         },
         "widgets": {
           "left": {},
           "right": {
+            "marketplace": "Utilities marketplace",
             "console": "Organization loading bay",
             "quickCreate": "Quick create",
-            "notifications": "Attention",
+            "notifications": "Notifications",
             "connectivity": "Online / offline",
             "diagnosis": "Diagnosis",
             "searchMobile": "Search (small screens)",
@@ -352,18 +513,6 @@
             "tooltip": "Messenger — reserved slot",
             "title": "Messenger",
             "body": "Reserved for org conversations — wiring comes next."
-          },
-          "screenshot": {
-            "trigger": "Screenshot",
-            "tooltip": "Screenshot capture — reserved slot",
-            "title": "Screenshot",
-            "body": "Capture the viewport — implementation pending."
-          },
-          "upload": {
-            "trigger": "Upload",
-            "tooltip": "Quick upload — reserved slot",
-            "title": "Upload",
-            "body": "Quick upload to evidence — hook into Blob upload next."
           }
         }
       }
@@ -396,7 +545,295 @@
       "purchase": "Purchase",
       "inventory": "Inventory",
       "accounting": "Accounting",
+      "hrm": "Human resources",
       "admin": "Admin"
+    },
+    "Hrm": {
+      "shell": {
+        "eyebrow": "Workforce",
+        "title": "Human resources",
+        "description": "Workforce records, leave, attendance, payroll preparation, and compliance evidence — governed through Server Actions and the IAM audit ledger.",
+        "capabilityNavAria": "Human resources capabilities",
+        "overviewLink": "Overview",
+        "registryHintTitle": "Capability registry",
+        "registryHintBody": "Routes, audit prefixes, and navigation keys are driven by HRM_CAPABILITIES in code. Add or change capabilities there first, then update catalogs and contract tests."
+      },
+      "nav": {
+        "employees": "Workforce",
+        "leave": "Leave",
+        "attendance": "Attendance",
+        "payroll": "Payroll preparation",
+        "compliance": "Compliance evidence",
+        "documents": "Documents",
+        "policies": "Policies",
+        "snapshot": "HR snapshot"
+      },
+      "cards": {
+        "employees": {
+          "title": "Workforce",
+          "description": "Employee master data, employment contracts, and organization structure."
+        },
+        "leave": {
+          "title": "Leave",
+          "description": "Leave types, entitlement, requests, and approvals."
+        },
+        "attendance": {
+          "title": "Attendance",
+          "description": "Attendance events, daily aggregates, and corrections."
+        },
+        "payroll": {
+          "title": "Payroll preparation",
+          "description": "Pay periods, runs, statutory previews — evidence before disbursement."
+        },
+        "compliance": {
+          "title": "Compliance evidence",
+          "description": "Statutory packs and audit-ready exports."
+        },
+        "documents": {
+          "title": "Documents",
+          "description": "HR documents with hashed evidence trails."
+        },
+        "policies": {
+          "title": "Policies",
+          "description": "Policy versions bound to workforce execution."
+        },
+        "snapshot": {
+          "title": "HR snapshot",
+          "description": "Read-only projection of HR operational truth — ships after core workflows."
+        }
+      },
+      "placeholders": {
+        "employees": {
+          "title": "Workforce",
+          "body": "Employee master records are available under Workforce (Phase 1A). Employment contracts and payroll profiles ship in Phase 1B; the IAM audit timeline lands in Phase 1C."
+        },
+        "leave": {
+          "title": "Leave",
+          "body": "Phase 2 ships entitlement engine, requests, and manager approval."
+        },
+        "attendance": {
+          "title": "Attendance",
+          "body": "Phase 2C adds attendance events, daily aggregates, and CSV import."
+        },
+        "payroll": {
+          "title": "Payroll preparation",
+          "body": "Phase 3 delivers payroll periods, preview lines, Malaysia rule packs, and golden statutory tests."
+        },
+        "compliance": {
+          "title": "Compliance evidence",
+          "body": "Phase 3C exposes statutory packs and signed outbound delivery."
+        },
+        "documents": {
+          "title": "Documents",
+          "body": "Phase 1B attaches employment documents through governed uploads."
+        },
+        "policies": {
+          "title": "Policies",
+          "body": "Policy-bound execution expands after leave and payroll foundations land."
+        },
+        "snapshot": {
+          "title": "HR snapshot",
+          "body": "Dashboard projection builds last from real workflow metrics — not Phase 0."
+        }
+      },
+      "workforce": {
+        "pageTitle": "Workforce",
+        "pageDescription": "Create and maintain employee master records. Mutations write to the IAM audit ledger.",
+        "dialogTitle": "Add employee",
+        "dialogDescription": "Creates a workforce master record and writes an IAM audit event.",
+        "createSubmit": "Create employee",
+        "errorTitle": "Error",
+        "fieldDepartmentId": "Department ID",
+        "fieldPositionId": "Position ID",
+        "fieldJobGradeId": "Job grade ID",
+        "addEmployee": "Add employee",
+        "directoryTitle": "Directory",
+        "directoryDescription": "Open a row for details, edits, or archival.",
+        "colNumber": "Employee number",
+        "colName": "Legal name",
+        "colEmail": "Email",
+        "colStatus": "Status",
+        "statusActive": "Active",
+        "statusArchived": "Archived",
+        "empty": "No employees yet. Create your first record to get started.",
+        "detailTitle": "Employee record",
+        "detailDescription": "Workforce master data plus Phase 1B employment contracts, payroll profiles, and governed document uploads.",
+        "summarySectionDescription": "Identifiers and contact fields stored on the master row.",
+        "detailPhone": "Phone",
+        "detailUpdated": "Last updated",
+        "detailArchiveReason": "Archive reason",
+        "backToWorkforce": "Back to workforce",
+        "editTitle": "Edit employee",
+        "archiveTitle": "Archive employee",
+        "archiveDescription": "Archiving prevents further edits. The row stays for audit and timeline coverage.",
+        "archiveSubmit": "Archive",
+        "archiveReasonLabel": "Reason",
+        "archiveReasonHint": "optional",
+        "fieldLegalName": "Legal name",
+        "fieldPreferredName": "Preferred name",
+        "fieldEmployeeNumber": "Employee number",
+        "fieldEmail": "Email",
+        "optional": "optional",
+        "save": "Save changes",
+        "saving": "Saving…",
+        "archiving": "Archiving…",
+        "contractSectionTitle": "Employment contracts",
+        "contractSectionDescription": "Draft a contract, attach a signed document, then activate. Only one active row is allowed per employee.",
+        "contractDraftTitle": "Create draft contract",
+        "contractCreateDraft": "Save draft",
+        "contractCreatingDraft": "Saving draft…",
+        "contractActivate": "Activate contract",
+        "contractActivating": "Activating…",
+        "contractTerminateTitle": "Terminate active contract",
+        "contractTerminationDate": "Termination date",
+        "contractTerminationReason": "Termination reason",
+        "contractTerminationNoticeDays": "Notice period (days)",
+        "contractTerminateSubmit": "Terminate",
+        "contractTerminating": "Terminating…",
+        "contractEmpty": "No contract versions yet.",
+        "contractVersionLabel": "Version {version}",
+        "contractTypeLabel": "Contract type",
+        "contractEffectiveFrom": "Effective from",
+        "contractPayFrequency": "Pay frequency",
+        "contractBaseSalary": "Base salary",
+        "contractSignedDocLabel": "Signed document linked",
+        "contractSignedYes": "Yes",
+        "contractSignedNo": "No — attach via Documents below",
+        "contractWeeklyHours": "Normal hours / week",
+        "contractTypes": {
+          "permanent": "Permanent",
+          "fixed_term": "Fixed term",
+          "probation": "Probation",
+          "contractor": "Contractor",
+          "intern": "Intern"
+        },
+        "payFrequencies": {
+          "monthly": "Monthly",
+          "bi_weekly": "Bi-weekly",
+          "weekly": "Weekly"
+        },
+        "payrollSectionTitle": "Payroll profile",
+        "payrollSectionDescription": "Statutory identifiers and pay preferences — effective-dated rows with one open profile per employee.",
+        "payrollNoProfile": "No payroll profile yet — submit to create the first row.",
+        "payrollCurrentEffectiveFrom": "Current profile starts {date}.",
+        "payrollNewEffectiveFrom": "New effective-from",
+        "payrollCountry": "Country code",
+        "payrollTaxResidency": "Tax residency country",
+        "payrollTaxIdentifierType": "Tax identifier type",
+        "payrollTaxIdentifierNumber": "Tax identifier number",
+        "payrollEpfNumber": "EPF number",
+        "payrollSocsoNumber": "SOCSO number",
+        "payrollPcbCategory": "PCB category",
+        "payrollGroupCode": "Payroll group code",
+        "payrollBankCode": "Bank code",
+        "payrollBankAccountToken": "Bank account reference",
+        "payrollBankHolder": "Account holder name",
+        "payrollSchedule": "Pay schedule",
+        "payrollCurrency": "Pay currency",
+        "payrollEisEligible": "EIS eligible",
+        "payrollHrdfApplicable": "HRDF applicable",
+        "payrollSubmit": "Save payroll profile",
+        "payrollSaving": "Saving…",
+        "paySchedules": {
+          "monthly": "Monthly",
+          "bi_weekly": "Bi-weekly",
+          "weekly": "Weekly"
+        },
+        "documentSectionTitle": "Documents",
+        "documentSectionDescription": "Upload through governed Blob paths; SHA-256 hash is recorded with the vault row.",
+        "documentUploadHint": "PDF or images only (same limits as Nexus utility uploads). Hash is computed in the browser before upload.",
+        "documentChooseFile": "Choose file",
+        "documentUploading": "Uploading…",
+        "documentUploadFailed": "Upload failed.",
+        "documentTitleLabel": "Title",
+        "documentTypeLabel": "Document type",
+        "documentClassificationLabel": "Classification",
+        "documentEffectiveFrom": "Effective from",
+        "documentLinkDraftLabel": "Link to draft contract",
+        "documentLinkDraftNone": "Do not link",
+        "documentLinkDraftOption": "Draft version {version}",
+        "documentAttachSubmit": "Attach document record",
+        "documentAttaching": "Attaching…",
+        "documentVaultTitle": "Attached documents",
+        "documentVaultEmpty": "No documents attached yet.",
+        "documentOpen": "Open file",
+        "documentTypes": {
+          "offer_letter": "Offer letter",
+          "contract": "Contract",
+          "ic": "Identity card",
+          "passport": "Passport",
+          "certification": "Certification",
+          "medical_cert": "Medical certificate",
+          "statutory_pack": "Statutory pack",
+          "payslip": "Payslip",
+          "other": "Other"
+        },
+        "documentClassifications": {
+          "public": "Public",
+          "internal": "Internal",
+          "confidential": "Confidential",
+          "restricted": "Restricted"
+        },
+        "timelineTitle": "Operational timeline",
+        "timelineDescription": "IAM audit events for this employee (production ledger): master data, contracts, payroll profiles, and governed documents.",
+        "timelineEmpty": "No audit events recorded for this employee yet.",
+        "timelineActorUnknown": "Unknown actor",
+        "timelineActorLabel": "Actor",
+        "timelineResourceLabel": "Resource",
+        "timelineYes": "Yes",
+        "timelineNo": "No",
+        "timelineActionEmployeeCreate": "Employee created",
+        "timelineActionEmployeeUpdate": "Employee updated",
+        "timelineActionEmployeeArchive": "Employee archived",
+        "timelineActionContractCreate": "Employment contract drafted",
+        "timelineActionContractActivate": "Employment contract activated",
+        "timelineActionContractTerminate": "Employment contract terminated",
+        "timelineActionPayrollUpsert": "Payroll profile saved",
+        "timelineActionDocumentAttach": "Document attached",
+        "timelineFacetEmployeeNumber": "Employee number",
+        "timelineFacetVersionNumber": "Contract version",
+        "timelineFacetContractType": "Contract type",
+        "timelineFacetState": "State",
+        "timelineFacetDocumentType": "Document type",
+        "timelineFacetClassification": "Classification",
+        "timelineFacetPayloadHashSuffix": "Content hash (suffix)",
+        "timelineFacetLinkedDraftContractId": "Linked draft contract",
+        "timelineFacetChangedFields": "Changed fields",
+        "timelineFacetHasEmail": "Has email on record",
+        "timelineFacetHasPreferredName": "Has preferred name",
+        "timelineFacetHasDepartment": "Has department placement",
+        "timelineFacetHasPosition": "Has position placement",
+        "timelineFacetHasJobGrade": "Has job grade placement",
+        "timelineFacetHasArchivedReason": "Archive reason provided",
+        "timelineFacetHasTaxIdentifier": "Tax identifier captured",
+        "timelineFacetHasBankToken": "Bank account reference captured"
+      }
+    },
+    "surfaceComingSoon": {
+      "emptyTitle": "This surface is not available yet",
+      "backToNexus": "Return to Nexus field",
+      "surfaces": {
+        "accounting": {
+          "eyebrow": "Finance",
+          "description": "Ledger posting, reconciliation, and period controls are planned for a future release.",
+          "detail": "You can keep working in live surfaces from the Nexus field; we will ship accounting workflows when the data model and posting rules are ready."
+        },
+        "sale": {
+          "eyebrow": "Revenue",
+          "description": "Quotations, orders, and billing flows are planned for a future release.",
+          "detail": "Use iThink and Contacts for operational work today; structured sale workflows will follow in a future release."
+        },
+        "purchase": {
+          "eyebrow": "Procurement",
+          "description": "Purchase requests, approvals, and vendor flows are planned for a future release.",
+          "detail": "Procurement tooling will connect here once intake and approval semantics are finalized."
+        },
+        "inventory": {
+          "eyebrow": "Stock",
+          "description": "Stock moves, on-hand balances, and reservations are planned for a future release.",
+          "detail": "Inventory execution will land after core posting surfaces."
+        }
+      }
     },
     "Lynx": {
       "title": "Lynx",
@@ -821,6 +1258,8 @@
       "headerState": "State",
       "headerMessage": "Message",
       "headerActions": "Actions",
+      "marketplaceBadge": "Utility marketplace",
+      "marketplaceRequestBadge": "Rail icon request",
       "timestampSuffix": "UTC",
       "showingShort": "Showing {shown} of {total, plural, one {# item} other {# items}}",
       "pageOf": "page {page} of {totalPages}",
@@ -897,6 +1336,128 @@
     "integrations": {
       "title": "Integrations",
       "description": "Connect external systems and automate workflows. More surfaces will land here as the IAM and ERP roadmap progresses.",
+      "marketplace": {
+        "title": "Utilities marketplace",
+        "description": "Tenant-facing utility icons are curated here. Installed controls can be managed in Nexus. New icons are request-only in v1, and self-service is not available yet.",
+        "tabInstalled": "Installed",
+        "tabInstalledDescription": "These utilities are already available in Nexus and can be shown on the right rail when space allows.",
+        "tabAvailableByRequest": "Available by request",
+        "tabAvailableByRequestDescription": "Request a reviewed utility icon for your tenant. The Afenda team will triage it through the admin feedback inbox.",
+        "tabComingSoon": "Coming soon",
+        "tabComingSoonDescription": "Reserved slots for future utilities. They stay unavailable until product wiring lands.",
+        "emptyAvailableByRequest": "No additional reviewed utility icons are open for requests yet.",
+        "badgeRightRail": "Right rail compatible",
+        "badgeRequestOnly": "Request only",
+        "installedHint": "Open Nexus, then use the avatar menu to customize the utility bar.",
+        "requestHint": "Submit a request for Afenda to review and wire this utility for your tenant.",
+        "comingSoonHint": "Planned, but not available for tenant use yet.",
+        "actionManage": "Manage in Nexus",
+        "actionRequest": "Request icon",
+        "actionComingSoon": "Coming soon",
+        "status": {
+          "installed": "Installed",
+          "availableByRequest": "Request required",
+          "comingSoon": "Coming soon"
+        },
+        "requestTitle": "Request {utility}",
+        "requestDescription": "Self-service install is not available in v1. Submit the use case and the team will review it through the feedback inbox.",
+        "requestMessageLabel": "What should this icon do?",
+        "requestMessagePlaceholder": "Describe why {utility} is needed, who needs it, and what workflow it should support.",
+        "requestSubmit": "Send request",
+        "requestSubmitting": "Sending…",
+        "requestCancel": "Cancel",
+        "requestClose": "Close",
+        "requestOpenInbox": "Open feedback inbox",
+        "requestSuccessTitle": "Request logged",
+        "requestSuccessDescription": "The request is now in the organization feedback inbox for review.",
+        "errors": {
+          "errorMin": "At least 5 characters.",
+          "errorMax": "Up to 2000 characters.",
+          "errorGeneric": "Couldn't send. Try again."
+        },
+        "items": {
+          "marketplace": {
+            "title": "Utilities marketplace",
+            "description": "Catalog surface for reviewing installed, request-only, and upcoming tenant utilities."
+          },
+          "console": {
+            "title": "Organization loading bay",
+            "description": "Workspace switcher and multi-organization entry point for operators who work across tenants."
+          },
+          "quickCreate": {
+            "title": "Quick create",
+            "description": "Fast entry point for capture and lightweight record creation."
+          },
+          "notifications": {
+            "title": "Notifications",
+            "description": "Org-wide broadcast notice center with personal read and acknowledgement state."
+          },
+          "insight": {
+            "title": "Lynx",
+            "description": "Direct link into Afenda’s truth and machine-assist surface."
+          },
+          "connectivity": {
+            "title": "Connectivity",
+            "description": "Live browser network status with quick online and offline visibility."
+          },
+          "diagnosis": {
+            "title": "Network diagnosis",
+            "description": "Run a deeper live probe when operators need to confirm browser-to-origin health."
+          },
+          "feedback": {
+            "title": "Feedback",
+            "description": "Operator feedback handoff into the reviewed admin inbox."
+          },
+          "shortcuts": {
+            "title": "Keyboard shortcuts",
+            "description": "Reference for fast navigation and operational key commands."
+          },
+          "help": {
+            "title": "Help",
+            "description": "Product overview and support entry point for workspace operators."
+          },
+          "theme": {
+            "title": "Theme",
+            "description": "Switch the interface between light, dark, or system appearance."
+          },
+          "density": {
+            "title": "Layout density",
+            "description": "Adjust working density for compact or relaxed ERP layouts."
+          },
+          "locale": {
+            "title": "Language",
+            "description": "Choose the interface language when multiple locales are available."
+          },
+          "searchMobile": {
+            "title": "Search (small screens)",
+            "description": "Mobile-only utility slot for command/search access when screen width is constrained."
+          },
+          "storage": {
+            "title": "Storage",
+            "description": "Inspect browser storage availability and Afenda-facing keys."
+          },
+          "settings": {
+            "title": "Organization settings",
+            "description": "Direct link to the admin settings surface for governed workspace changes."
+          },
+          "messenger": {
+            "title": "Messenger",
+            "description": "Operational coordination surface for discussion, evidence, and review trails tied to workspace work."
+          },
+          "screenshot": {
+            "title": "Screenshot",
+            "description": "Capture the current workspace or main content view and send one governed PNG into blob intake."
+          },
+          "upload": {
+            "title": "Upload",
+            "description": "Quick launcher for sending one governed file into the current workspace's blob intake."
+          },
+          "customIcon": {
+            "title": "Requested utility icon",
+            "description": "A reviewed tenant-specific utility icon wired by the Afenda team after request approval."
+          }
+        }
+      },
       "sectionEndpointsTitle": "Outbound event delivery",
       "sectionEndpointsDescription": "Receive HMAC-signed POSTs when organization events occur.",
       "sectionImportsTitle": "Organizational ingestion jobs",
@@ -925,7 +1486,8 @@
         "recentFailuresTitle": "Recent failures",
         "adapter": {
           "member_invite": "Member invitations",
-          "onething_import": "OneThing import"
+          "onething_import": "OneThing import",
+          "hrm_payroll_profile_import": "HRM payroll profile rows"
         }
       },
       "endpoints": {
@@ -1063,6 +1625,104 @@
     },
     "org": {
       "title": "Organization"
+    }
+  },
+  "AccountSurface": {
+    "title": "Personal surface",
+    "breadcrumbs": {
+      "personal": "Personal"
+    },
+    "rail": {
+      "aria": "Personal context rail",
+      "description": "Persistent personal operating context for identity, sessions, security, and workspace movement.",
+      "sectionsLabel": "Context scopes",
+      "quickActionsLabel": "Quick actions",
+      "recentLabel": "Recent contexts",
+      "signalsLabel": "Signals",
+      "mobileTrigger": "Open personal context",
+      "collapse": "Collapse personal rail",
+      "expand": "Expand personal rail",
+      "identity": "Identity",
+      "identityDescription": "Canonical profile, email, and linked sign-in methods.",
+      "sessions": "Sessions",
+      "sessionsDescription": "Device access and sign-out control for active sessions.",
+      "security": "Security",
+      "securityDescription": "Passkeys, 2FA, and recent security evidence.",
+      "workspace": "Workspace",
+      "workspaceDescription": "Return to the active organization and operating surface."
+    },
+    "quickActions": {
+      "addPasskey": "Add passkey",
+      "addPasskeyDescription": "Open passkey registration in the security surface.",
+      "signOutOthers": "Sign out others",
+      "signOutOthersDescription": "Review and revoke access from other devices.",
+      "signOut": "Sign out",
+      "signOutDescription": "End this session and leave the personal surface."
+    },
+    "recent": {
+      "activeWorkspace": "Active workspace",
+      "securityChange": "Latest security change",
+      "recentEvidence": "Recent evidence"
+    },
+    "signals": {
+      "verification": "Verification",
+      "verificationReady": "Ready",
+      "verificationPending": "Needs review",
+      "sessionCount": "Session count",
+      "sessionCountValue": "{count, plural, one {# active session} other {# active sessions}}",
+      "accessHealth": "Access health",
+      "accessHealthy": "Ready",
+      "accessNeedsWorkspace": "No active workspace"
+    },
+    "overview": {
+      "title": "Personal surface",
+      "subtitle": "Trusted operator context for identity, workspace access, and security posture.",
+      "actions": {
+        "identity": "Identity",
+        "manageSessions": "Manage sessions",
+        "addPasskey": "Add passkey",
+        "openWorkspace": "Open workspace",
+        "signOut": "Sign out"
+      },
+      "nowLabel": "Now",
+      "nextLabel": "Next",
+      "recentLabel": "Recent",
+      "now": {
+        "signedInAs": "Signed in as {email}.",
+        "emailVerified": "Email verification is current.",
+        "emailPending": "Email verification still needs attention.",
+        "sessionSummary": "{count, plural, one {# active session is trusted on this account.} other {# active sessions are trusted on this account.}}",
+        "workspaceActive": "{workspace} is the current active workspace.",
+        "workspaceMissing": "No active workspace is selected for this account yet."
+      },
+      "next": {
+        "addPasskey": "Add a hardware-backed or platform-backed passkey.",
+        "reviewSessions": "Review other device sessions and revoke any that are no longer needed.",
+        "confirmSessions": "Confirm this device remains the intended trusted session.",
+        "returnWorkspace": "Return to {workspace} and continue operational work.",
+        "openWorkspace": "Open your organization loading bay and select a workspace."
+      },
+      "recentEmpty": "No recent account activity has been recorded yet."
+    },
+    "identity": {
+      "title": "Identity",
+      "subtitle": "Profile, email authority, and linked sign-in methods for this operator.",
+      "actions": {
+        "profile": "Edit profile",
+        "email": "Change email",
+        "providers": "Link provider",
+        "security": "Open security"
+      }
+    },
+    "security": {
+      "title": "Security",
+      "subtitle": "Sessions, passkeys, two-factor authentication, and recent access evidence.",
+      "actions": {
+        "sessions": "Manage sessions",
+        "passkeys": "Passkeys",
+        "twoFactor": "Two-factor",
+        "recent": "Recent evidence"
+      }
     }
   },
   "Console": {

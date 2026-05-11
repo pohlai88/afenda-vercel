@@ -99,6 +99,7 @@ Public philosophy still says "glass / water" in docs and ADRs. **Engineering tok
 - `--af-cognition-1`, `--af-cognition-2` (chromatic anchors)
 - `--af-resolution-surface` (cognition surface)
 - `--af-blur-shell`, `--af-blur-command`, `--af-blur-resolution` (the three blur tiers)
+- Nexus chrome utilities ( **`components/nexus/`** only — defined in `app/globals.css`): `.af-nexus-utility-bar-backdrop` (L1 bar → shell tier), `.af-nexus-popover-panel` (floating panels → command tier), `.af-nexus-round-control-backdrop` (icon-only round controls → shell tier). Do **not** use Tailwind `backdrop-blur-*` there — CI enforces via `scripts/check-design-contract.mjs`.
 - `--af-sat-shell`, `--af-sat-command`, `--af-sat-resolution`
 - `--af-depth-shell`, `--af-depth-transition`, `--af-depth-resolution`
 - `--af-flow-angle`, `--af-flow-velocity-*`
@@ -123,6 +124,12 @@ style={{ willChange: "backdrop-filter" }}
 <!-- Tailwind arbitrary blur — bypasses the 3-tier budget -->
 <div className="backdrop-blur-[18px]" />
 <div className="blur-[24px]" />
+```
+
+```html
+<!-- Tailwind scaled backdrop-blur-* — forbidden under components/nexus/ -->
+<div className="backdrop-blur-2xl" />
+<!-- Use .af-nexus-popover-panel | .af-nexus-utility-bar-backdrop | .af-nexus-round-control-backdrop -->
 ```
 
 ```css

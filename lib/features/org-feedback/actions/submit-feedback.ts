@@ -11,7 +11,10 @@ import { requireOrgSession } from "#lib/tenant"
 
 import { insertOrgFeedbackEvent } from "../data/feedback.mutations.server"
 import { feedbackSubmissionSchema } from "../schemas/feedback.schema"
-import type { SubmitOrgFeedbackFieldErrors, SubmitOrgFeedbackState } from "../types"
+import type {
+  SubmitOrgFeedbackFieldErrors,
+  SubmitOrgFeedbackState,
+} from "../types"
 
 function normalizeFeedbackFormData(formData: FormData) {
   const category = formData.get("category")
@@ -19,6 +22,9 @@ function normalizeFeedbackFormData(formData: FormData) {
   const message = formData.get("message")
   const path = formData.get("path")
   const userAgent = formData.get("userAgent")
+  const source = formData.get("source")
+  const requestKind = formData.get("requestKind")
+  const utilityId = formData.get("utilityId")
 
   return {
     category,
@@ -29,6 +35,9 @@ function normalizeFeedbackFormData(formData: FormData) {
     message,
     path: typeof path === "string" ? path : undefined,
     userAgent: typeof userAgent === "string" ? userAgent : undefined,
+    source: typeof source === "string" ? source : undefined,
+    requestKind: typeof requestKind === "string" ? requestKind : undefined,
+    utilityId: typeof utilityId === "string" ? utilityId : undefined,
   }
 }
 
@@ -71,6 +80,12 @@ export async function submitOrgFeedbackAction(
 
   const pathForRow = data.path ?? null
   const uaForRow = data.userAgent ?? null
+  const metadata = {
+    messageLength: data.message.length,
+    ...(data.source ? { source: data.source } : {}),
+    ...(data.requestKind ? { requestKind: data.requestKind } : {}),
+    ...(data.utilityId ? { utilityId: data.utilityId } : {}),
+  }
 
   try {
     const id = await insertOrgFeedbackEvent({
@@ -81,7 +96,7 @@ export async function submitOrgFeedbackAction(
       message: data.message,
       path: pathForRow,
       userAgent: uaForRow,
-      metadata: JSON.stringify({ messageLength: data.message.length }),
+      metadata: JSON.stringify(metadata),
     })
 
     after(() =>
@@ -96,6 +111,9 @@ export async function submitOrgFeedbackAction(
         metadata: {
           category: data.category,
           severity: data.severity,
+          ...(data.source ? { source: data.source } : {}),
+          ...(data.requestKind ? { requestKind: data.requestKind } : {}),
+          ...(data.utilityId ? { utilityId: data.utilityId } : {}),
         },
       })
     )

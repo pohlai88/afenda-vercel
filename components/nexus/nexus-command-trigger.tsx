@@ -24,7 +24,7 @@ export function NexusCommandTrigger({ className }: { className?: string }) {
       onClick={toggleCommand}
       aria-label={t("triggerLabel")}
       className={cn(
-        "size-[28px]! min-h-0! rounded-full! border-border/60 bg-card/72 p-0! text-muted-foreground shadow-elevation-1 backdrop-blur-md transition-all hover:bg-card/92 hover:text-foreground",
+        "af-nexus-round-control-backdrop size-[28px]! min-h-0! rounded-full! border-border/60 bg-card/72 p-0! text-muted-foreground shadow-elevation-1 transition-all hover:bg-card/92 hover:text-foreground",
         className
       )}
     >

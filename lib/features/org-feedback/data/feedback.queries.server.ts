@@ -6,6 +6,7 @@ import { db } from "#lib/db"
 import { orgFeedbackEvent } from "#lib/db/schema"
 
 import { FEEDBACK_INBOX_PAGE_SIZE, FEEDBACK_STATES } from "../constants"
+import { parseOrgFeedbackEventMetadata } from "./feedback-metadata.shared"
 import type {
   OrgFeedbackEventSummary,
   OrgFeedbackListResult,
@@ -16,7 +17,9 @@ function toIso(d: Date | null): string | null {
   return d ? d.toISOString() : null
 }
 
-function rowToSummary(row: typeof orgFeedbackEvent.$inferSelect): OrgFeedbackEventSummary {
+function rowToSummary(
+  row: typeof orgFeedbackEvent.$inferSelect
+): OrgFeedbackEventSummary {
   return {
     id: row.id,
     createdAt: row.createdAt.toISOString(),
@@ -26,6 +29,7 @@ function rowToSummary(row: typeof orgFeedbackEvent.$inferSelect): OrgFeedbackEve
     message: row.message,
     path: row.path,
     state: row.state as OrgFeedbackEventSummary["state"],
+    metadata: parseOrgFeedbackEventMetadata(row.metadata),
     acknowledgedByUserId: row.acknowledgedByUserId,
     acknowledgedAt: toIso(row.acknowledgedAt),
     resolvedByUserId: row.resolvedByUserId,

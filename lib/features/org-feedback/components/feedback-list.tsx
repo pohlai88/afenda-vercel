@@ -1,6 +1,7 @@
 import type { Route } from "next"
 import { getFormatter, getTranslations } from "next-intl/server"
 
+import { Badge } from "#components/ui/badge"
 import {
   Table,
   TableBody,
@@ -12,7 +13,10 @@ import {
 import { organizationAdminPath } from "#features/org-admin"
 import { Link } from "#i18n/navigation"
 
-import type { OrgFeedbackListResult, OrgFeedbackListStateFilter } from "../types"
+import type {
+  OrgFeedbackListResult,
+  OrgFeedbackListStateFilter,
+} from "../types"
 import { OrgFeedbackRowActions } from "./feedback-row-actions.client"
 
 export type OrgFeedbackListProps = {
@@ -111,14 +115,18 @@ export async function OrgFeedbackList({
               <TableHead>{t("headerCategory")}</TableHead>
               <TableHead>{t("headerSeverity")}</TableHead>
               <TableHead>{t("headerState")}</TableHead>
-              <TableHead className="min-w-[200px]">{t("headerMessage")}</TableHead>
-              <TableHead className="min-w-[220px]">{t("headerActions")}</TableHead>
+              <TableHead className="min-w-[200px]">
+                {t("headerMessage")}
+              </TableHead>
+              <TableHead className="min-w-[220px]">
+                {t("headerActions")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.map((row) => (
               <TableRow key={row.id}>
-                <TableCell className="whitespace-nowrap align-top text-xs text-muted-foreground">
+                <TableCell className="align-top text-xs whitespace-nowrap text-muted-foreground">
                   {format.dateTime(new Date(row.createdAt), {
                     dateStyle: "short",
                     timeStyle: "short",
@@ -130,12 +138,33 @@ export async function OrgFeedbackList({
                   {row.actorUserId}
                 </TableCell>
                 <TableCell className="align-top text-xs capitalize">
-                  {row.category}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span>{row.category}</span>
+                    {row.metadata?.source === "utility-marketplace" ? (
+                      <Badge variant="info">{t("marketplaceBadge")}</Badge>
+                    ) : null}
+                  </div>
                 </TableCell>
-                <TableCell className="align-top text-xs">{row.severity}</TableCell>
+                <TableCell className="align-top text-xs">
+                  {row.severity}
+                </TableCell>
                 <TableCell className="align-top text-xs">{row.state}</TableCell>
                 <TableCell className="align-top text-xs">
-                  <span className="line-clamp-4 whitespace-pre-wrap">{row.message}</span>
+                  {row.metadata?.requestKind === "rail-icon" ? (
+                    <div className="mb-1 flex flex-wrap gap-1.5">
+                      <Badge variant="secondary">
+                        {t("marketplaceRequestBadge")}
+                      </Badge>
+                      {row.metadata.utilityId ? (
+                        <Badge variant="outline">
+                          {row.metadata.utilityId}
+                        </Badge>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  <span className="line-clamp-4 whitespace-pre-wrap">
+                    {row.message}
+                  </span>
                   {row.path ? (
                     <span className="mt-1 block text-[10px] text-muted-foreground">
                       {row.path}
@@ -158,9 +187,7 @@ export async function OrgFeedbackList({
               shown: items.length,
               total: totalCount,
             })}
-            {totalPages > 1
-              ? ` · ${t("pageOf", { page, totalPages })}`
-              : null}
+            {totalPages > 1 ? ` · ${t("pageOf", { page, totalPages })}` : null}
           </span>
           <div className="flex gap-2">
             {prevHref ? (

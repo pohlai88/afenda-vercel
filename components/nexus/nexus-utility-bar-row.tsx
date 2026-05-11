@@ -1,5 +1,3 @@
-import { listIThinkHighPressureForNexus } from "#features/ithink"
-import { mapIThinkPressureRowsToOperationalPressureItems } from "#features/nexus/server"
 import { listUserOrganizationsForSwitcher } from "#features/org-admin/server"
 
 import { NexusCommandTrigger } from "./nexus-command-trigger"
@@ -26,32 +24,21 @@ export async function NexusUtilityBarRow({
   userId,
   userEmail,
 }: NexusUtilityBarRowProps) {
-  const [userOrgs, pressureRows] = await Promise.all([
-    listUserOrganizationsForSwitcher(userId),
-    listIThinkHighPressureForNexus(orgId, 5),
-  ])
-  const pressureItems = mapIThinkPressureRowsToOperationalPressureItems(
-    orgSlug,
-    pressureRows
-  )
+  const userOrgs = await listUserOrganizationsForSwitcher(userId)
   const currentOrg = userOrgs.find((o) => o.id === orgId)
   const showOrgAdminSettings =
     currentOrg?.role === "admin" || currentOrg?.role === "owner"
 
   return (
-    <NexusUtilityWidgetPreferencesProvider>
+    <NexusUtilityWidgetPreferencesProvider
+      orgSlug={orgSlug}
+      canOpenMarketplace={showOrgAdminSettings}
+      multiOrg={userOrgs.length > 1}
+    >
       <div className="grid h-12 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
-        <NexusUtilityLeftRail
-          orgSlug={orgSlug}
-          orgName={orgName}
-        />
+        <NexusUtilityLeftRail orgSlug={orgSlug} orgName={orgName} />
 
-        <div
-          className="
-            flex min-w-0 justify-center
-            px-2 sm:px-4
-          "
-        >
+        <div className="flex min-w-0 justify-center px-2 sm:px-4">
           <NexusCommandTrigger />
         </div>
 
@@ -62,7 +49,6 @@ export async function NexusUtilityBarRow({
           userEmail={userEmail}
           userOrgs={userOrgs}
           showOrgAdminSettings={showOrgAdminSettings}
-          pressureItems={pressureItems}
         />
       </div>
     </NexusUtilityWidgetPreferencesProvider>

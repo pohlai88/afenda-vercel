@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Wifi, WifiOff } from "lucide-react"
+import { Wifi, WifiLow, WifiOff } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import {
@@ -12,6 +12,7 @@ import {
 import { cn } from "#lib/utils"
 
 import {
+  isBrowserConnectionSlow,
   readBrowserConnectionSnapshot,
   useBrowserOnlineStatus,
   type BrowserConnectionSnapshot,
@@ -54,8 +55,18 @@ export function NexusUtilityConnectivityStatus() {
     }
   }, [])
 
-  const Icon = isOnline ? Wifi : WifiOff
-  const tooltip = isOnline ? t("tooltipOnline") : t("tooltipOffline")
+  const slowLink =
+    isOnline === true && isBrowserConnectionSlow(connection)
+
+  const Icon = isOnline === false ? WifiOff : slowLink ? WifiLow : Wifi
+  const tooltip =
+    isOnline === null
+      ? t("tooltipChecking")
+      : isOnline === false
+        ? t("tooltipOffline")
+        : slowLink
+          ? t("tooltipSlow")
+          : t("tooltipOnline")
 
   return (
     <Popover>
@@ -66,12 +77,26 @@ export function NexusUtilityConnectivityStatus() {
             aria-label={t("trigger")}
             className={cn(
               NEXUS_UTILITY_ROUND_CONTROL_CLASS,
-              isOnline
-                ? "text-success hover:text-success"
-                : "text-warning-foreground hover:text-warning-foreground"
+              isOnline === null &&
+                "text-muted-foreground hover:text-muted-foreground",
+              isOnline === true &&
+                slowLink &&
+                "text-warning hover:text-warning",
+              isOnline === true &&
+                !slowLink &&
+                "text-success hover:text-success",
+              isOnline === false &&
+                "text-warning-foreground hover:text-warning-foreground"
             )}
           >
-            <Icon className="size-[15px] shrink-0" aria-hidden strokeWidth={2} />
+            <Icon
+              className={cn(
+                "size-[15px] shrink-0",
+                isOnline === null && "opacity-60"
+              )}
+              aria-hidden
+              strokeWidth={2}
+            />
           </button>
         </PopoverTrigger>
       </NexusUtilityTriggerTooltip>
@@ -80,7 +105,7 @@ export function NexusUtilityConnectivityStatus() {
         side="bottom"
         align="end"
         sideOffset={10}
-        className="w-72 bg-background/92 p-0 backdrop-blur-2xl"
+        className="af-nexus-popover-panel w-72 bg-background/92 p-0"
       >
         <div className="border-b border-border/50 px-4 py-3">
           <p className="text-xs font-medium text-foreground">{t("title")}</p>
@@ -91,10 +116,19 @@ export function NexusUtilityConnectivityStatus() {
             <span
               className={cn(
                 "font-medium",
-                isOnline ? "text-success" : "text-warning-foreground"
+                isOnline === null && "text-muted-foreground",
+                isOnline === true && slowLink && "text-warning",
+                isOnline === true && !slowLink && "text-success",
+                isOnline === false && "text-warning-foreground"
               )}
             >
-              {isOnline ? t("statusOnline") : t("statusOffline")}
+              {isOnline === null
+                ? t("statusChecking")
+                : isOnline === false
+                  ? t("statusOffline")
+                  : slowLink
+                    ? t("statusSlow")
+                    : t("statusOnline")}
             </span>
           </div>
           <div className="flex items-center justify-between gap-3">

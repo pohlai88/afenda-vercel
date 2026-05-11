@@ -27,14 +27,15 @@ const buttonVariants = cva(
       },
       size: {
         default:
-          "min-h-9 gap-1.5 px-3.5 py-surface-xs has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5",
-        xs: "h-6 gap-1 px-2.5 text-xs has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-8 gap-1 px-surface-sm has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        lg: "min-h-10 gap-1.5 px-surface-lg py-surface-xs has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
-        icon: "size-9",
-        "icon-xs": "size-6 [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-8",
-        "icon-lg": "size-10",
+          "min-h-[var(--af-control-height-md)] gap-[var(--af-control-gap-md)] px-[var(--af-control-px-md)] py-[var(--af-control-py-md)] has-data-[icon=inline-end]:pr-[calc(var(--af-control-px-md)-0.25rem)] has-data-[icon=inline-start]:pl-[calc(var(--af-control-px-md)-0.25rem)]",
+        xs: "h-[var(--af-control-height-xs)] gap-[var(--af-control-gap-sm)] px-[var(--af-control-px-xs)] text-xs has-data-[icon=inline-end]:pr-[calc(var(--af-control-px-xs)-0.125rem)] has-data-[icon=inline-start]:pl-[calc(var(--af-control-px-xs)-0.125rem)] [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-[var(--af-control-height-sm)] gap-[var(--af-control-gap-sm)] px-[var(--af-control-px-sm)] has-data-[icon=inline-end]:pr-[calc(var(--af-control-px-sm)-0.125rem)] has-data-[icon=inline-start]:pl-[calc(var(--af-control-px-sm)-0.125rem)]",
+        lg: "min-h-[var(--af-control-height-lg)] gap-[var(--af-control-gap-lg)] px-[var(--af-control-px-lg)] py-[var(--af-control-py-lg)] has-data-[icon=inline-end]:pr-[calc(var(--af-control-px-lg)-0.25rem)] has-data-[icon=inline-start]:pl-[calc(var(--af-control-px-lg)-0.25rem)]",
+        icon: "size-[var(--af-control-icon-md)]",
+        "icon-xs":
+          "size-[var(--af-control-icon-xs)] [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-[var(--af-control-icon-sm)]",
+        "icon-lg": "size-[var(--af-control-icon-lg)]",
       },
     },
     defaultVariants: {

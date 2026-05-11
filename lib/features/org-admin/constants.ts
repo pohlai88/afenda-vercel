@@ -159,6 +159,7 @@ export function isImportRowState(value: string): value is OrgImportRowState {
 export const IMPORT_ADAPTERS = [
   "member_invite",
   "onething_import",
+  "hrm_payroll_profile_import",
 ] as const satisfies readonly OrgImportAdapterId[]
 
 const IMPORT_ADAPTER_SET = new Set<string>(IMPORT_ADAPTERS)

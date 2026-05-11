@@ -132,6 +132,10 @@
   --radius: 0.625rem;
   --app-font-size: 16px;
   --app-body-line-height: 1.5;
+  --nexus-topbar-height: 48px;
+  --nexus-rail-width: 296px;
+  --nexus-rail-collapsed-width: 64px;
+  --nexus-workspace-radius: 18px;
 
   /* Surface padding scale (single source; @theme spacing-* maps here) */
   --space-surface-xs: 0.5rem;
@@ -226,8 +230,6 @@
   --af-table-cell-py: 0.75rem;
   --af-menu-item-px: 0.75rem;
   --af-menu-item-py: 0.5rem;
-  --af-overlay-padding: 1.5rem;
-  --af-overlay-gap: 1.5rem;
 
   /* Motion */
   --motion-duration-fast: 120ms;
@@ -364,8 +366,6 @@
   --af-table-cell-py: 0.5rem;
   --af-menu-item-px: 0.625rem;
   --af-menu-item-py: 0.4375rem;
-  --af-overlay-padding: 1.25rem;
-  --af-overlay-gap: 1.25rem;
 }
 
 :root[data-layout-density="relaxed"] {
@@ -406,8 +406,6 @@
   --af-table-cell-py: 0.875rem;
   --af-menu-item-px: 0.875rem;
   --af-menu-item-py: 0.625rem;
-  --af-overlay-padding: 1.75rem;
-  --af-overlay-gap: 1.75rem;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -498,108 +496,6 @@
   --af-sat-shell: 1.1;
   --af-sat-command: 1.18;
   --af-sat-resolution: 1.26;
-}
-
-/* -------------------------------------------------------------------------- */
-/* Density controls                                                            */
-/* -------------------------------------------------------------------------- */
-
-[data-slot="button"] {
-  font-size: 0.875rem;
-}
-
-[data-slot="button"][data-size="default"] {
-  min-height: var(--af-control-height-md);
-  gap: var(--af-control-gap-md);
-  padding-inline: var(--af-control-px-md);
-  padding-block: var(--af-control-py-md);
-}
-
-[data-slot="button"][data-size="xs"] {
-  gap: var(--af-control-gap-sm);
-  padding-inline: var(--af-control-px-xs);
-}
-
-[data-slot="button"][data-size="sm"] {
-  height: var(--af-control-height-sm);
-  gap: var(--af-control-gap-sm);
-  padding-inline: var(--af-control-px-sm);
-}
-
-[data-slot="button"][data-size="lg"] {
-  min-height: var(--af-control-height-lg);
-  gap: var(--af-control-gap-lg);
-  padding-inline: var(--af-control-px-lg);
-  padding-block: var(--af-control-py-lg);
-}
-
-[data-slot="button"][data-size="icon"] {
-  width: var(--af-control-icon-md);
-  height: var(--af-control-icon-md);
-}
-
-[data-slot="button"][data-size="icon-sm"] {
-  width: var(--af-control-icon-sm);
-  height: var(--af-control-icon-sm);
-}
-
-[data-slot="button"][data-size="icon-lg"] {
-  width: var(--af-control-icon-lg);
-  height: var(--af-control-icon-lg);
-}
-
-:is(
-  [data-slot="input"],
-  [data-slot="select-trigger"],
-  [data-slot="native-select"]
-) {
-  min-height: var(--af-field-height);
-  padding-inline: var(--af-field-px);
-  padding-block: var(--af-field-py);
-  font-size: 0.875rem;
-}
-
-[data-slot="input-group"] {
-  min-height: var(--af-input-group-height);
-}
-
-[data-slot="textarea"] {
-  padding-inline: var(--af-textarea-px);
-  padding-block: var(--af-textarea-py);
-  font-size: 0.875rem;
-}
-
-:is(
-  [data-slot="dropdown-menu-item"],
-  [data-slot="dropdown-menu-checkbox-item"],
-  [data-slot="dropdown-menu-radio-item"],
-  [data-slot="dropdown-menu-sub-trigger"],
-  [data-slot="select-item"]
-) {
-  padding-inline: var(--af-menu-item-px);
-  padding-block: var(--af-menu-item-py);
-}
-
-:is(
-  [data-slot="dropdown-menu-content"],
-  [data-slot="popover-content"],
-  [data-slot="hover-card-content"],
-  [data-slot="dialog-content"],
-  [data-slot="sheet-content"],
-  [data-slot="drawer-content"]
-) {
-  gap: var(--af-overlay-gap);
-  padding: var(--af-overlay-padding);
-}
-
-[data-slot="table-head"] {
-  height: var(--af-table-head-height);
-  padding-inline: var(--af-table-cell-px);
-}
-
-[data-slot="table-cell"] {
-  padding-inline: var(--af-table-cell-px);
-  padding-block: var(--af-table-cell-py);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -789,6 +685,23 @@
 }
 
 /* -------------------------------------------------------------------------- */
+/* Nexus chrome — blur/saturation only via tier tokens (ADR-0001 blur budget). */
+/* Do not use Tailwind backdrop-blur-* in components/nexus — use these classes. */
+/* -------------------------------------------------------------------------- */
+
+.af-nexus-utility-bar-backdrop {
+  backdrop-filter: blur(var(--af-blur-shell)) saturate(var(--af-sat-shell));
+}
+
+.af-nexus-popover-panel {
+  backdrop-filter: blur(var(--af-blur-command)) saturate(var(--af-sat-command));
+}
+
+.af-nexus-round-control-backdrop {
+  backdrop-filter: blur(var(--af-blur-shell)) saturate(var(--af-sat-shell));
+}
+
+/* -------------------------------------------------------------------------- */
 /* Lynx — material-aware cognition state                                       */
 /* Maps Lynx state -> material behavior. Never label these as "AI mode".       */
 /*                                                                            */
@@ -904,6 +817,12 @@
     [data-lynx="high-confidence"]
   ) {
     background: color-mix(in oklab, var(--card) 86%, var(--af-cognition-1) 14%);
+  }
+
+  .af-nexus-utility-bar-backdrop,
+  .af-nexus-popover-panel,
+  .af-nexus-round-control-backdrop {
+    backdrop-filter: none;
   }
 }
 

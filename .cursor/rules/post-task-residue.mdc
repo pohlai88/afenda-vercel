@@ -96,7 +96,7 @@ After any Nexus phase work:
 
 - `organizationDashboardPath(slug, "home")` resolves to Nexus root `/o/${slug}`.
 - `switchActiveOrgAction` redirect goes to `/o/${slug}`, not `/o/${slug}/dashboard`.
-- Shell chrome extends **`components/nexus/`** only (legacy `components/dashboard-shell/` removed).
+- Shell chrome extends **`components/nexus/`** only (legacy `components/dashboard-shell/` removed; no `components/dashboard/` shell folder).
 
 ```powershell
 # Phantom typecheck errors after a route deletion? Clear Next.js type cache:

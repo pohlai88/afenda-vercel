@@ -18,6 +18,16 @@ export {
   NEXUS_PRESSURE_SEVERITIES,
   NEXUS_PRIORITY_LANE_KINDS,
 } from "./constants"
+export {
+  NEXUS_RIGHT_RAIL_VISIBLE_LIMIT,
+  NEXUS_UTILITY_CATALOG,
+  NEXUS_UTILITY_MARKETPLACE_REQUEST_KIND,
+  NEXUS_UTILITY_MARKETPLACE_SOURCE,
+  NEXUS_RIGHT_UTILITY_WIDGET_IDS,
+  getNexusUtilityCatalogEntry,
+  isInstalledNexusRightUtilityWidgetId,
+  isNexusRightUtilityAvailable,
+} from "./data/utility-catalog.shared"
 
 export type {
   LynxRuntimeState,
@@ -38,3 +48,12 @@ export type {
   SystemReadiness,
   SystemReadinessState,
 } from "./types"
+export type {
+  NexusRightUtilityAvailabilityContext,
+  NexusRightUtilityWidgetId,
+  NexusUtilityCatalogEntry,
+  NexusUtilityCatalogId,
+  NexusUtilityCatalogItemKey,
+  NexusUtilityIconKey,
+  NexusUtilityMarketplaceStatus,
+} from "./data/utility-catalog.shared"

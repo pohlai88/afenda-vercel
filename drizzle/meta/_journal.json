@@ -43,6 +43,48 @@
       "when": 1778417549141,
       "tag": "0005_fearless_mikhail_rasputin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778437146954,
+      "tag": "0006_mushy_charles_xavier",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1778437166770,
+      "tag": "0007_nexus_operational_coordination",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1778437701969,
+      "tag": "0008_nexus_operational_coordination_refresh",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1778437752980,
+      "tag": "0009_aromatic_tarantula",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1778437800000,
+      "tag": "0010_hrm_contract_payroll_document",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1778441400000,
+      "tag": "0011_nexus_notifications_broadcast_center",
+      "breakpoints": true
     }
   ]
 }

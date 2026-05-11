@@ -5,6 +5,7 @@ import { useMemo, useState } from "react"
 import {
   BarChart3,
   BookOpen,
+  Briefcase,
   ChevronRight,
   LayoutGrid,
   ShoppingBag,
@@ -54,6 +55,7 @@ const MODULE_ICONS: Record<DashboardNavModule, LucideIcon> = {
   contacts: Users,
   knowledge: BookOpen,
   lynx: Zap,
+  hrm: Briefcase,
   sale: ShoppingCart,
   purchase: ShoppingBag,
   inventory: Warehouse,
@@ -137,7 +139,7 @@ export function NexusNavPanel({ orgSlug, orgName }: NexusNavPanelProps) {
             align="start"
             sideOffset={10}
             className={cn(
-              "gap-0 bg-background/92 p-0 shadow-elevation-3 backdrop-blur-2xl",
+              "af-nexus-popover-panel gap-0 bg-background/92 p-0 shadow-elevation-3",
               ui.radius.surface
             )}
             style={{ width: NAV_PANEL_MAX_WIDTH }}
@@ -162,7 +164,7 @@ export function NexusNavPanel({ orgSlug, orgName }: NexusNavPanelProps) {
           </div>
           <SheetContent
             side="left"
-            className="w-[min(22rem,calc(100vw-1rem))] border-r border-border/60 bg-background/96 p-0 backdrop-blur-2xl"
+            className="af-nexus-popover-panel w-[min(22rem,calc(100vw-1rem))] border-r border-border/60 bg-background/96 p-0"
           >
             <SheetHeader className="border-b border-border/60 px-5 py-5 text-left">
               <SheetTitle className="text-base font-semibold text-foreground">

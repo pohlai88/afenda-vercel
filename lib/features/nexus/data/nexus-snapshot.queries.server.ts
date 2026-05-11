@@ -38,8 +38,8 @@ type SessionInput = {
  * Build a single server-shaped {@link NexusSnapshot} per request.
  *
  * Phase 2 contract: org identity + iThink pressure / resolutions are real.
- * Other ERP surfaces (accounting, inventory, sale, purchase) remain stubbed
- * until their Nexus adapters land in Phase 3+.
+ * Other ERP surfaces (accounting, inventory, sale, purchase) show a
+ * user-facing coming-soon placeholder until Phase 3 operational UIs ship.
  *
  * Do **not** turn this into a fan-out of per-widget queries. The whole field
  * must remain one server-built snapshot — see AGENTS.md §5 → Nexus runtime.
@@ -146,6 +146,9 @@ type RawResolutionRow = {
   title: string
   resolvedAt: Date
   resolutionNote: string | null
+  actorName: string
+  evidenceCount: number
+  lynxAssisted: boolean
 }
 
 function buildResolutionEvent(
@@ -157,11 +160,11 @@ function buildResolutionEvent(
     what: row.title,
     consequence: row.resolutionNote ?? "Resolution committed.",
     surface: "Operations",
-    actorName: "Team",
+    actorName: row.actorName,
     resolvedAt: row.resolvedAt.toISOString(),
-    evidenceCount: 0,
-    lynxAssisted: false,
-    href: `/o/${orgSlug}/dashboard/ithink/${row.id}`,
+    evidenceCount: row.evidenceCount,
+    lynxAssisted: row.lynxAssisted,
+    href: `${organizationDashboardPath(orgSlug, "ithink")}/${row.id}`,
   }
 }
 

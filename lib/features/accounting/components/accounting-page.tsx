@@ -1,18 +1,7 @@
-import { ModuleScaffold } from "#components/module-scaffold"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+// Phase 3: Replace with real accounting surface (ledger, posting, reconciliation).
 
-import { AccountingActionForm } from "./accounting-action-form"
+import { ErpSurfaceComingSoon } from "#components/erp-surface-coming-soon"
 
 export async function AccountingPage({ orgSlug }: { orgSlug: string }) {
-  return (
-    <ModuleScaffold
-      title="Accounting"
-      eyebrow="Finance"
-      route={organizationDashboardPath(orgSlug, "accounting")}
-      workspaceTitle="Accounting workspace is ready"
-      workspaceDescription="Add journals, posting rules, and reconciliation workflows in this module next."
-    >
-      <AccountingActionForm />
-    </ModuleScaffold>
-  )
+  return <ErpSurfaceComingSoon orgSlug={orgSlug} surface="accounting" />
 }

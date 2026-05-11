@@ -79,6 +79,13 @@ const FORBIDDEN_BACKDROP_BLUR_UTIL = /\bbackdrop-blur-\[/g
 const FORBIDDEN_BLUR_UTIL = /(?<![\w-])blur-\[/g
 
 /**
+ * Standard Tailwind backdrop-blur-* scales bypass centralized material tokens.
+ * Nexus chrome must use .af-nexus-* classes from app/globals.css only.
+ */
+const FORBIDDEN_NEXUS_TAILWIND_BACKDROP =
+  /\b(?:supports-\[backdrop-filter\]:)?backdrop-blur-(?:sm|md|lg|xl|2xl|3xl)\b/g
+
+/**
  * Continuous animation is GPU + cognitive fatigue (Apple HIG: continuous motion
  * must be rare). Pulses must fire a finite number of iterations and settle to
  * static styling. All `infinite` animations belong in `app/globals.css`.
@@ -285,6 +292,16 @@ for (const file of files) {
         lineNo,
         row
       )
+    }
+    if (rel.startsWith("components/nexus/")) {
+      FORBIDDEN_NEXUS_TAILWIND_BACKDROP.lastIndex = 0
+      if (FORBIDDEN_NEXUS_TAILWIND_BACKDROP.test(row)) {
+        report(
+          "forbidden Tailwind backdrop-blur-* in Nexus (use .af-nexus-utility-bar-backdrop | .af-nexus-popover-panel | .af-nexus-round-control-backdrop in app/globals.css)",
+          lineNo,
+          row
+        )
+      }
     }
     FORBIDDEN_INFINITE_ANIMATION.lastIndex = 0
     if (FORBIDDEN_INFINITE_ANIMATION.test(row)) {

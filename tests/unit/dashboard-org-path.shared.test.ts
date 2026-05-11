@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 
+import { getAllowedHrmDashboardSubsegments } from "#features/hrm/constants"
+
 import { sanitizePathAfterOrgSlug } from "#lib/dashboard-org-path.shared"
 
 describe("sanitizePathAfterOrgSlug", () => {
@@ -18,6 +20,24 @@ describe("sanitizePathAfterOrgSlug", () => {
     expect(sanitizePathAfterOrgSlug("/dashboard/ithink")).toBe(
       "/dashboard/ithink"
     )
+    expect(sanitizePathAfterOrgSlug("/dashboard/hrm")).toBe("/dashboard/hrm")
+    for (const segment of getAllowedHrmDashboardSubsegments()) {
+      expect(sanitizePathAfterOrgSlug(`/dashboard/hrm/${segment}`)).toBe(
+        `/dashboard/hrm/${segment}`
+      )
+    }
+    expect(sanitizePathAfterOrgSlug("/dashboard/hrm/evil")).toBe(
+      "/dashboard/hrm"
+    )
+    const employeeDetailUuid = "550e8400-e29b-41d4-a716-446655440000"
+    expect(
+      sanitizePathAfterOrgSlug(
+        `/dashboard/hrm/employees/${employeeDetailUuid}`
+      )
+    ).toBe(`/dashboard/hrm/employees/${employeeDetailUuid}`)
+    expect(
+      sanitizePathAfterOrgSlug("/dashboard/hrm/employees/not-a-uuid")
+    ).toBe("/dashboard/hrm")
     expect(sanitizePathAfterOrgSlug("/dashboard/onething")).toBe("/dashboard")
     expect(sanitizePathAfterOrgSlug("/dashboard/../contacts")).toBe("/nexus")
     expect(sanitizePathAfterOrgSlug("/account/security")).toBe("/nexus")

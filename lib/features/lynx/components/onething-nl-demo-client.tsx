@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { Button } from "#components/ui/button"
@@ -18,6 +18,7 @@ import {
   executeLynxOneThingNlDemoSqlAction,
   generateLynxOneThingNlDemoSqlAction,
 } from "../actions/onething-nl-demo.actions"
+import { stableNlDemoResultRowKeys } from "../schemas/nl-sql-demo-list-keys.shared"
 import type { LynxNlDemoResultRow } from "../schemas/nl-sql-demo.schema"
 
 export function OneThingNlDemoClient() {
@@ -28,6 +29,11 @@ export function OneThingNlDemoClient() {
   const [error, setError] = useState<string | null>(null)
   const [rows, setRows] = useState<LynxNlDemoResultRow[]>([])
   const [columns, setColumns] = useState<string[]>([])
+
+  const rowKeys = useMemo(
+    () => stableNlDemoResultRowKeys(rows, columns),
+    [rows, columns]
+  )
 
   const runPipeline = useCallback(async () => {
     const q = question.trim()
@@ -118,7 +124,7 @@ export function OneThingNlDemoClient() {
             </TableHeader>
             <TableBody>
               {rows.map((row, i) => (
-                <TableRow key={i}>
+                <TableRow key={rowKeys[i]}>
                   {columns.map((c) => (
                     <TableCell key={c}>{String(row[c] ?? "")}</TableCell>
                   ))}

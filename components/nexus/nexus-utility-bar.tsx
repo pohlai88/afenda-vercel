@@ -32,11 +32,10 @@ export function NexusUtilityBar({
       data-nexus-utility-bar="true"
       aria-label="Afenda system utility bar"
       className="
+        af-nexus-utility-bar-backdrop
         sticky top-0 z-40
-        border-b border-border/45
         bg-background/78
         shadow-[0_1px_0_rgba(255,255,255,0.04)]
-        backdrop-blur-xl
         supports-[backdrop-filter]:bg-background/64
       "
     >
@@ -55,6 +54,7 @@ export function NexusUtilityBar({
   )
 }
 
+/** Suspense fallback — pulse pauses when `prefers-reduced-motion: reduce`. */
 function UtilityBarRowSkeleton() {
   return (
     <div
@@ -63,19 +63,19 @@ function UtilityBarRowSkeleton() {
     >
       {/* Left: brand + nav trigger */}
       <div className="flex items-center gap-1.5">
-        <div className="size-[33px] animate-pulse rounded-full border border-border/50 bg-card/72" />
-        <div className="size-[28px] animate-pulse rounded-full border border-border/50 bg-card/72" />
+        <div className="size-[33px] animate-pulse motion-reduce:animate-none rounded-full border border-border/50 bg-card/72" />
+        <div className="size-[28px] animate-pulse motion-reduce:animate-none rounded-full border border-border/50 bg-card/72" />
       </div>
       <div className="flex justify-center px-2 sm:px-4">
-        <div className="h-9 max-w-md flex-1 animate-pulse rounded-lg border border-border/50 bg-card/72 sm:flex-none sm:w-72" />
+        <div className="h-9 max-w-md flex-1 animate-pulse motion-reduce:animate-none rounded-lg border border-border/50 bg-card/72 sm:flex-none sm:w-72" />
       </div>
       {/* Right: operational shortcuts + utilities + identity */}
       <div className="flex items-center justify-end gap-1.5">
-        <div className="size-[28px] animate-pulse rounded-full border border-border/50 bg-card/72" />
-        <div className="size-[28px] animate-pulse rounded-full border border-border/50 bg-card/72" />
-        <div className="size-[28px] animate-pulse rounded-full border border-border/50 bg-card/72" />
-        <div className="size-[28px] animate-pulse rounded-full border border-border/50 bg-card/72" />
-        <div className="size-[33px] animate-pulse rounded-full border border-border/50 bg-card/72" />
+        <div className="size-[28px] animate-pulse motion-reduce:animate-none rounded-full border border-border/50 bg-card/72" />
+        <div className="size-[28px] animate-pulse motion-reduce:animate-none rounded-full border border-border/50 bg-card/72" />
+        <div className="size-[28px] animate-pulse motion-reduce:animate-none rounded-full border border-border/50 bg-card/72" />
+        <div className="size-[28px] animate-pulse motion-reduce:animate-none rounded-full border border-border/50 bg-card/72" />
+        <div className="size-[33px] animate-pulse motion-reduce:animate-none rounded-full border border-border/50 bg-card/72" />
       </div>
     </div>
   )
