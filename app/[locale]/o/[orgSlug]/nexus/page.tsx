@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
-import { NexusField } from "#components/nexus/nexus-field"
+import { NexusPage } from "#components/nexus/nexus-page"
 import { getNexusSnapshot } from "#features/nexus/server"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
 import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
@@ -32,5 +32,5 @@ export default async function OrgNexusPage({
   const session = await requireOrgSession()
   const snapshot = await getNexusSnapshot({ session, orgSlug })
 
-  return <NexusField snapshot={snapshot} />
+  return <NexusPage snapshot={snapshot} />
 }

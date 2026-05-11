@@ -117,6 +117,14 @@ export const ORG_EVENT_TYPES = [
   "erp.contact.record.create",
   "erp.contact.record.update",
   "erp.knowledge.chunk.create",
+  "erp.hrm.statutory.epf.submitted",
+  "erp.hrm.statutory.socso.submitted",
+  "erp.hrm.statutory.eis.submitted",
+  "erp.hrm.statutory.pcb.submitted",
+  "erp.hrm.statutory.hrdf.submitted",
+  "erp.hrm.statutory.ea.published",
+  "erp.hrm.payroll.run.posted",
+  "erp.hrm.payroll.period.finalized",
 ] as const
 
 const EVENT_TYPE_SET = new Set<string>(ORG_EVENT_TYPES)
@@ -158,8 +166,8 @@ export function isImportRowState(value: string): value is OrgImportRowState {
 /** Registered ingestion adapters — extend in lockstep with `OrgImportAdapterId`. */
 export const IMPORT_ADAPTERS = [
   "member_invite",
-  "onething_import",
   "hrm_payroll_profile_import",
+  "hrm_attendance_import",
 ] as const satisfies readonly OrgImportAdapterId[]
 
 const IMPORT_ADAPTER_SET = new Set<string>(IMPORT_ADAPTERS)

@@ -13,7 +13,7 @@ import {
   type SecuritySessionRow,
 } from "./security-center-client"
 import { auth } from "#lib/auth"
-import { AccountSurface } from "../_components/account-surface"
+import { WorkbenchSurface } from "#components/workbench"
 
 function toIso(d: Date | string): string {
   if (d instanceof Date) return d.toISOString()
@@ -52,7 +52,7 @@ export default async function AccountSecurityPage() {
   }))
 
   return (
-    <AccountSurface
+    <WorkbenchSurface
       breadcrumbs={[
         { label: tSurface("breadcrumbs.personal"), href: "/account" },
         { label: t("title") },
@@ -67,6 +67,6 @@ export default async function AccountSecurityPage() {
         passkeys={passkeys}
         activity={activity}
       />
-    </AccountSurface>
+    </WorkbenchSurface>
   )
 }

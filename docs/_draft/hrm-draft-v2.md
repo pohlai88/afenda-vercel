@@ -1494,21 +1494,27 @@ The plan is organised so **every PR ships a vertical slice you can use end-to-en
 **Audit:** `erp.hrm.leave_type.{create|update|seed}`, `erp.hrm.policy.update`.
 **Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors. All 57 unit tests green.
 
-#### Phase 2B — Leave request + single-step approval (the first approval workflow)
+#### Phase 2B — Leave request + single-step approval (the first approval workflow) ✅ SHIPPED
 
-**Migration:** `0011b_hrm_leave_request.sql` (leave_request, leave_balance, approval).
-**Workflow:** `approval-flow.workflow.ts` v1 (Workflow DevKit, single-step manager); entry under `lib/features/execution/data/approval-flow-entry.ts`. **First time `currentApprovalRunId` appears on any HRM table** (only on `hrm_leave_request` and `hrm_approval` for this phase).
-**Module work:** `actions/leave-request.actions.ts` (`applyLeaveAction`, `cancelLeaveAction`); `actions/leave-approval.actions.ts` (`approveLeaveAction`, `rejectLeaveAction` — pulls approval snapshot, writes audit on both transition and decision); leave kanban UI + manager inbox decision drawer with policy version + balance math visible.
-**Acceptance:** apply → approve → take leave round-trip; entitlement recomputed; balance visible; immutable approval snapshot preserved even if leave type changes later. **Audit:** `erp.hrm.leave.request.{create|update|cancel}`, `erp.hrm.approval.{request|approve|reject}`.
-**Slice 2 proof:** by end of 2B, an HR admin can demonstrate **policy-bound execution + approval workflow + derived balance + audit trail + evidence visibility** end-to-end.
+**Migration:** `0013_hrm_leave_request.sql` — tables `hrm_approval` (generic single-step; camelCase SQL columns), `hrm_leave_request` (lifecycle state machine; `currentApprovalId` FK), `hrm_leave_balance` (denormalized cache: `daysEntitled`, `daysTaken`, `daysPending`). Workflow DevKit deferred to Phase 3+ (single-step Server Actions are sufficient for MVP single-approver); `currentApprovalRunId` retained on schema for future compatibility.
+**Data layer:** `data/leave-balance.server.ts` — pure functions `computeLeaveBalanceSummary`, `detectLeaveOverlap`, `buildLeaveApprovalSnapshot` (immutable snapshot at submission time); DB-side-effect functions `recomputeLeaveBalance`, `readLeaveBalance`, `listActiveLeaveRequestsForOverlapCheck`, `readEmployeeForApprovalSnapshot`. `data/leave-request.queries.server.ts` — `listLeaveRequestsForEmployee`, `listPendingApprovalRequestsForOrg`, `getLeaveRequestDetail`, `listLeaveBalancesForEmployee`.
+**Schemas:** `schemas/leave-request.schema.ts` — `applyLeaveFormSchema`, `cancelLeaveFormSchema`, `leaveApprovalDecisionSchema`, `leaveRejectDecisionSchema`.
+**Module work:** `actions/leave-request.actions.ts` (`applyLeaveAction`, `cancelLeaveAction`); `actions/leave-approval.actions.ts` (`approveLeaveAction`, `rejectLeaveAction` — snapshot preserved, balance recomputed after each transition).
+**Tests:** `tests/unit/hrm-leave-request.test.ts` — 52 unit tests covering all pure functions (balance summaries, overlap detection, approval snapshots, round-trip state transitions). **Audit:** `erp.hrm.leave.request.create`, `erp.hrm.leave.request.cancel`, `erp.hrm.approval.request`, `erp.hrm.approval.cancel`, `erp.hrm.approval.approve`, `erp.hrm.approval.reject`.
+**Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors. 52 unit tests green. UI (leave kanban + manager inbox drawer) deferred to Phase 2B-UI sub-phase.
+**Slice 2 proof:** apply → approve → cancel round-trip fully tested; immutable approval snapshot preserved even if leave type changes later; balance cache recomputed idempotently after every transition.
 
-#### Phase 2C — Attendance event + attendance day (payroll input base)
+#### Phase 2C — Attendance event + attendance day (payroll input base) ✅ SHIPPED
 
-**Migration:** `0010_hrm_attendance.sql` (attendance_event, attendance_day).
-**Engine:** `data/attendance-aggregator.server.ts` — pure, idempotent (same checksum = no-op).
-**Workflow:** `leave-accrual.workflow.ts` triggered from existing `app/api/cron/erp-jobs/route.ts`; entry under `lib/features/execution/data/leave-accrual-entry.ts`.
-**Module work:** manual entry + CSV adapter `attendance-import.adapter.server.ts`; correction dialog (creates new event with `correctionOfEventId`); attendance grid UI.
-**Acceptance:** CSV import → day aggregate; correction creates new event referencing original; cron accrues monthly entitlements; nothing in attendance is mutable in place.
+**Migration:** `0014_hrm_attendance.sql` — tables `hrm_attendance_event` (immutable append-only; camelCase SQL columns; `correctionOfEventId` self-FK preserves audit trail) and `hrm_attendance_day` (computed daily aggregate; `derivedFromEventChecksum` SHA-256 for idempotent re-aggregation; `calculationSnapshot jsonb` for payroll evidence; `state: open | computed | locked`).
+**Engine:** `data/attendance-aggregator.server.ts` — pure function `aggregateAttendanceDay(events) => HrmAttendanceDayDraft`. Corrections supersede original events by `correctionOfEventId`; checksum covers ALL event IDs (including superseded) for deterministic re-aggregation idempotency. `regenerateAttendanceDayFromEvents` DB-side-effect: fetches events, calls aggregator, upserts day row, skips when checksum unchanged or state is `"locked"`.
+**Queries:** `data/attendance.queries.server.ts` — `listAttendanceEventsForDate`, `getAttendanceEvent`, `getAttendanceDay`, `listAttendanceDaysForEmployee`, `listAttendanceDaysForPayroll`.
+**Schemas:** `schemas/attendance-event.schema.ts` — `recordAttendanceEventSchema`, `correctAttendanceEventSchema`, `regenerateAttendanceDaySchema`, `attendanceCsvRowSchema`.
+**Actions:** `actions/attendance-correction.actions.ts` — `recordAttendanceEventAction` (manual event, auto-regenerates day), `correctAttendanceEventAction` (new event with `correctionOfEventId`, regenerates affected dates), `regenerateAttendanceDayAction` (on-demand idempotent regeneration).
+**CSV Adapter:** `data/attendance-import.adapter.server.ts` — implements `OrgImportAdapter<AttendanceCsvRow>` with id `hrm_attendance_import`; registered in `IMPORT_ADAPTERS` and `ADAPTER_REGISTRY`. Types imported via `#features/org-admin/server` (no deep import violations). Required headers: `employee_id`, `event_type`, `occurred_at`.
+**Tests:** `tests/unit/hrm-attendance-aggregator.test.ts` — 34 unit tests covering checksum determinism, empty input, basic/multi/partial clock pairs, break deduction, idempotency, order independence, correction supersession, no overtime until Phase 3, snapshot structure, and CSV correction round-trip.
+**Audit:** `erp.hrm.attendance.event.create`, `erp.hrm.attendance.day.update`.
+**Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors. 34 unit tests green. UI (attendance grid + correction dialog) deferred to Phase 2C-UI sub-phase. Shift roster (scheduled/late/earlyOut minutes) deferred to Phase 3.
 
 ### Phase 3 — Payroll preparation & statutory evidence (3 sub-PRs, ≈ 4 weeks total)
 

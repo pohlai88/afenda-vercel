@@ -1,5 +1,6 @@
 export type AccountSurfaceSectionId =
   | "identity"
+  | "orbit"
   | "sessions"
   | "authority"
   | "workspace"
@@ -23,19 +24,6 @@ export type AccountRailSection = {
   matchPath?: string
   activeHash?: string | null
 }
-
-export type AccountRailQuickAction =
-  | {
-      type: "link"
-      label: string
-      description: string
-      href: string
-    }
-  | {
-      type: "signout"
-      label: string
-      description: string
-    }
 
 export type AccountRecentContext = {
   label: string

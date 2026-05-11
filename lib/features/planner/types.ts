@@ -1,0 +1,257 @@
+import type { AuditEvent7W1H } from "#lib/erp/audit-7w1h.shared"
+import type {
+  TemporalNext,
+  TemporalNow,
+  TemporalPast,
+} from "#lib/erp/temporal-spine.shared"
+export type { OrbitDashboardSurface } from "#lib/planner-dashboard.shared"
+import type { OrbitDashboardSurface } from "#lib/planner-dashboard.shared"
+
+import type {
+  PLANNER_DISPLAY_PRIORITIES,
+  PLANNER_ITEM_LIFECYCLES,
+  PLANNER_OWNERSHIP_ROLES,
+  PLANNER_SIGNAL_CLASSES,
+  PLANNER_SIGNAL_LIFECYCLES,
+  PLANNER_RELATION_TYPES,
+  PLANNER_VIEW_SORT_MODES,
+} from "./constants"
+import type { PlannerViewFilterState } from "./filters/planner-view-filter.shared"
+
+export type PlannerSignalClass = (typeof PLANNER_SIGNAL_CLASSES)[number]
+export type PlannerSignalLifecycle = (typeof PLANNER_SIGNAL_LIFECYCLES)[number]
+export type PlannerItemLifecycle = (typeof PLANNER_ITEM_LIFECYCLES)[number]
+export type PlannerOwnershipRole = (typeof PLANNER_OWNERSHIP_ROLES)[number]
+export type PlannerDisplayPriority = (typeof PLANNER_DISPLAY_PRIORITIES)[number]
+export type PlannerRelationType = (typeof PLANNER_RELATION_TYPES)[number]
+export type PlannerViewSortMode = (typeof PLANNER_VIEW_SORT_MODES)[number]
+
+export type PlannerPressureDimensions = {
+  urgency: number
+  impact: number
+  severity: number
+  confidence: number
+  effort: number
+  escalationLevel: number
+  temporalProximity: number
+  ownershipPressure: number
+}
+
+export type PlannerScopeInput =
+  | { scopeKind: "organization"; organizationId: string }
+  | { scopeKind: "personal"; ownerUserId: string }
+
+export type PlannerSurfaceRecordKind = "item" | "signal" | "session" | "link"
+
+export type PlannerItemRow = {
+  id: string
+  organizationId: string | null
+  ownerUserId: string | null
+  title: string
+  description: string | null
+  lifecycle: PlannerItemLifecycle
+  scheduleStartAt: Date | null
+  dueAt: Date | null
+  endAt: Date | null
+  resolvedAt: Date | null
+  createdAt: Date
+  updatedAt: Date
+  createdByUserId: string | null
+  updatedByUserId: string | null
+  displayPriority: PlannerDisplayPriority
+  pressureScore: number
+  pressure: PlannerPressureDimensions
+  temporalPast: TemporalPast | null
+  temporalNow: TemporalNow | null
+  temporalNext: TemporalNext | null
+  audit7w1h: AuditEvent7W1H[] | null
+}
+
+export type PlannerSignalRow = {
+  id: string
+  organizationId: string | null
+  ownerUserId: string | null
+  title: string
+  description: string | null
+  signalClass: PlannerSignalClass
+  lifecycle: PlannerSignalLifecycle
+  createdAt: Date
+  updatedAt: Date
+  detectedAt: Date
+  expiresAt: Date | null
+  promotedAt: Date | null
+  originatingSystem: string | null
+  displayPriority: PlannerDisplayPriority
+  pressureScore: number
+  pressure: PlannerPressureDimensions
+  temporalPast: TemporalPast | null
+  temporalNow: TemporalNow | null
+  temporalNext: TemporalNext | null
+  audit7w1h: AuditEvent7W1H[] | null
+}
+
+export type PlannerAssignmentRow = {
+  id: string
+  role: PlannerOwnershipRole
+  subjectUserId: string | null
+  subjectLabel: string | null
+  createdAt: Date
+}
+
+export type PlannerScheduleRow = {
+  id: string
+  itemId: string
+  scheduledStartAt: Date | null
+  scheduledEndAt: Date | null
+  snoozedUntil: Date | null
+  timeZone: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type PlannerReminderRow = {
+  id: string
+  itemId: string
+  remindAt: Date
+  status: string
+  snoozedUntil: Date | null
+  deliveredAt: Date | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type PlannerRecurrenceRow = {
+  id: string
+  itemId: string
+  rrule: string
+  timeZone: string | null
+  nextRunAt: Date | null
+  lastRunAt: Date | null
+  pausedAt: Date | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type PlannerLinkRow = {
+  id: string
+  itemId: string | null
+  signalId: string | null
+  module: string
+  entityType: string
+  entityId: string
+  displayLabel: string
+  href: string | null
+  causalityReason: string | null
+  createdAt: Date
+  itemTitle: string | null
+  signalTitle: string | null
+}
+
+export type PlannerCommentRow = {
+  id: string
+  itemId: string
+  authorUserId: string
+  body: string
+  createdAt: Date
+}
+
+export type PlannerAttachmentRow = {
+  id: string
+  itemId: string
+  url: string
+  contentSha256: string
+  mimeType: string
+  sizeBytes: number
+  createdAt: Date
+}
+
+export type PlannerActivityRow = {
+  id: string
+  itemId: string | null
+  signalId: string | null
+  activityType: string
+  body: string
+  createdAt: Date
+}
+
+export type PlannerRelationRow = {
+  id: string
+  itemId: string
+  relatedItemId: string | null
+  relatedSignalId: string | null
+  relationType: PlannerRelationType
+  createdAt: Date
+  relatedItemTitle: string | null
+  relatedSignalTitle: string | null
+  relatedSignalLifecycle: PlannerSignalLifecycle | null
+  relatedSignalClass: PlannerSignalClass | null
+}
+
+export type PlannerViewRow = {
+  id: string
+  organizationId: string | null
+  ownerUserId: string | null
+  slug: string
+  name: string
+  surface: OrbitDashboardSurface
+  filterState: PlannerViewFilterState
+  sortMode: PlannerViewSortMode | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type PlannerSessionRow = {
+  id: string
+  itemId: string | null
+  organizationId: string | null
+  ownerUserId: string | null
+  status: "active" | "paused" | "completed"
+  startedAt: Date
+  endedAt: Date | null
+  durationMinutes: number | null
+  summary: string | null
+  createdAt: Date
+  updatedAt: Date
+  itemTitle: string | null
+}
+
+export type PlannerItemDetail = PlannerItemRow & {
+  assignments: PlannerAssignmentRow[]
+  schedule: PlannerScheduleRow | null
+  reminders: PlannerReminderRow[]
+  recurrence: PlannerRecurrenceRow | null
+  relations: PlannerRelationRow[]
+  links: PlannerLinkRow[]
+  comments: PlannerCommentRow[]
+  attachments: PlannerAttachmentRow[]
+  activity: PlannerActivityRow[]
+  sessions: PlannerSessionRow[]
+}
+
+export type PlannerSignalDetail = PlannerSignalRow & {
+  relatedItems: PlannerRelationRow[]
+  links: PlannerLinkRow[]
+  activity: PlannerActivityRow[]
+}
+
+export type OrbitSummary = {
+  queueCount: number
+  todayCount: number
+  timelineCount: number
+  signalCount: number
+  sessionCount: number
+  linkCount: number
+}
+
+export type OrbitPageData = {
+  surface: OrbitDashboardSurface
+  items: PlannerItemRow[]
+  signals: PlannerSignalRow[]
+  sessions: PlannerSessionRow[]
+  links: PlannerLinkRow[]
+  summary: OrbitSummary
+  savedViews: PlannerViewRow[]
+  activeViewSlug: string | null
+  activeFilter: PlannerViewFilterState
+  activeSortMode: PlannerViewSortMode | null
+}

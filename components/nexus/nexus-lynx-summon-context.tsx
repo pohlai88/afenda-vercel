@@ -13,14 +13,14 @@ import {
  * Lightweight client context that lets feature components register the
  * "currently open" entity so the floating Lynx summon drawer can ground its feed.
  *
- * The provider lives once in the Nexus shell (`NexusShell`). Features (e.g. onething canvas)
- * call `setGrounding(...)` in an effect when they mount or the open atom
- * changes, and clear it on unmount. Outside the Nexus shell the optional
- * hook returns `null` so callers don't crash on the personal account routes.
+ * The provider lives once in the Workbench shell. Features (e.g. Orbit item
+ * detail panels) call `setGrounding(...)` in an effect when they mount or the
+ * open atom changes, and clear it on unmount. Outside the shell the optional
+ * hook returns `null` so callers don't crash on routes that do not mount it.
  */
 
 export type LynxGroundingChip = {
-  /** Short module/source tag, e.g. "ONETHING", "PO", "CONTACT". */
+  /** Short module/source tag, e.g. "PLANNER", "PO", "CONTACT". */
   module: string
   /** Human-readable label (entity name or short description). */
   label: string
@@ -30,23 +30,22 @@ export type LynxGroundingChip = {
 
 export type LynxGrounding = {
   /** Where the grounding came from — used as a hint for the drawer copy. */
-  source: "onething" | "contact" | "run" | "page"
+  source: "planner_item" | "planner_signal" | "contact" | "run" | "page"
   /** Stable identifier (entity id, or a synthetic page id when source = "page"). */
   id: string
-  /** Display title, e.g. the open onething title. */
+  /** Display title, e.g. the open planner item title. */
   title: string
   /** Optional one-line summary; falls back to chips when absent. */
   summary?: string | null
   /**
-   * OneThing `now_context.consequence` — the operational consequence statement
-   * (OneThing grounding contract). When present, the drawer can render this as the
-   * grounding's "why this matters" line instead of a generic summary.
+   * Operational consequence statement — when present, the drawer can render
+   * this as the grounding's "why this matters" line instead of a generic
+   * summary.
    */
   consequence?: string | null
   /**
-   * OneThing `next_context.failureConsequence` — what breaks if the active
-   * OneThing is ignored (same contract). When present, the drawer can render
-   * this as the grounding's "if not resolved" line.
+   * What breaks if the focused atom is ignored. When present, the drawer can
+   * render this as the grounding's "if not resolved" line.
    */
   failureConsequence?: string | null
   /** Optional linkage chips (max 3 rendered in the drawer header). */
@@ -125,9 +124,8 @@ export function useLynxSummon(): LynxSummonContextValue {
 }
 
 /**
- * Optional hook — returns `null` outside the provider. Feature components
- * (e.g. `OneThingCanvas`) use this so they keep working on routes that don't
- * mount the Nexus shell (e.g. personal account onething).
+ * Optional hook — returns `null` outside the provider. Feature components use
+ * this so they keep working on routes that don't mount the Workbench shell.
  */
 export function useOptionalLynxSummon(): LynxSummonContextValue | null {
   return useContext(LynxSummonContext)

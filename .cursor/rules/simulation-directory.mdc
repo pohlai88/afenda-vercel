@@ -8,8 +8,8 @@ alwaysApply: false
 
 ## Role
 
-- **`#features/simulation`** — org-scoped **operational simulation**: registered scenario graphs, replay into real `onething` + `iam_audit_event` rows, clear-by-run, Server Actions behind **`AFENDA_ENABLE_SIMULATION=1`** (`OPERATIONAL_SIMULATION_ENV`).
-- **`#lib/erp/simulation-context.server.ts`** — **`AsyncLocalStorage`** context consumed by **`writeIamAuditEvent`** and OneThing inserts so simulation provenance stamps consistently.
+- **`#features/simulation`** — org-scoped **operational simulation**: registered scenario graphs, replay into real `iam_audit_event` rows (and any planner-native rows scenarios choose to write), clear-by-run, Server Actions behind **`AFENDA_ENABLE_SIMULATION=1`** (`OPERATIONAL_SIMULATION_ENV`).
+- **`#lib/erp/simulation-context.server.ts`** — **`AsyncLocalStorage`** context consumed by **`writeIamAuditEvent`** (and any planner mutations that scenarios drive) so simulation provenance stamps consistently.
 - **`#lib/erp/scenario-types.shared.ts`** — **`scenarioIdSchema`** and replay input shapes (client/CLI-safe).
 
 ## Imports

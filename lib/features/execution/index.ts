@@ -1,8 +1,9 @@
 import type { ImportJobRunPayload } from "./schemas/import-job-run-payload.schema"
 import type { KnowledgeEvalRunPayload } from "./schemas/knowledge-eval-run-payload.schema"
 import type { KnowledgeSourceSyncPayload } from "./schemas/knowledge-source-sync-payload.schema"
-import type { OneThingRecurrenceRunPayload } from "./schemas/onething-recurrence-run-payload.schema"
-import type { OneThingReminderRunPayload } from "./schemas/onething-reminder-run-payload.schema"
+import type { PlannerRecurrenceRunPayload } from "./schemas/planner-recurrence-run-payload.schema"
+import type { PlannerReminderRunPayload } from "./schemas/planner-reminder-run-payload.schema"
+import type { PayrollFinalizePayload } from "./schemas/payroll-finalize-payload.schema"
 
 export {
   EXECUTION_AUDIT_ACTIONS,
@@ -22,13 +23,17 @@ export {
   type KnowledgeSourceSyncPayload,
 } from "./schemas/knowledge-source-sync-payload.schema"
 export {
-  onethingRecurrenceRunPayloadSchema,
-  type OneThingRecurrenceRunPayload,
-} from "./schemas/onething-recurrence-run-payload.schema"
+  plannerRecurrenceRunPayloadSchema,
+  type PlannerRecurrenceRunPayload,
+} from "./schemas/planner-recurrence-run-payload.schema"
 export {
-  onethingReminderRunPayloadSchema,
-  type OneThingReminderRunPayload,
-} from "./schemas/onething-reminder-run-payload.schema"
+  plannerReminderRunPayloadSchema,
+  type PlannerReminderRunPayload,
+} from "./schemas/planner-reminder-run-payload.schema"
+export {
+  payrollFinalizePayloadSchema,
+  type PayrollFinalizePayload,
+} from "./schemas/payroll-finalize-payload.schema"
 
 async function enqueueWorkflowWithOtelSpan(
   spanName: string,
@@ -73,6 +78,30 @@ export async function enqueueOrgImportJobWorkflowRun(
   )
 }
 
+/**
+ * Enqueues durable payroll preview computation for every draft run in a period.
+ * Workflow implementation: `lib/features/hrm/data/payroll-finalize.workflow.ts`.
+ */
+export async function enqueuePayrollFinalizeWorkflowRun(
+  payload: PayrollFinalizePayload
+): Promise<void> {
+  await enqueueWorkflowWithOtelSpan(
+    "execution.workflow.payroll_finalize.enqueue",
+    payload.organizationId,
+    {
+      "erp.workflow": "payroll_finalize",
+      "erp.payroll.period.id": payload.periodId,
+    },
+    async () => {
+      const [{ payrollFinalizeWorkflow }, { start }] = await Promise.all([
+        import("./data/payroll-finalize-run-entry"),
+        import("workflow/api"),
+      ])
+      await start(payrollFinalizeWorkflow, [payload])
+    }
+  )
+}
+
 export async function enqueueKnowledgeEvalWorkflowRun(
   payload: KnowledgeEvalRunPayload
 ): Promise<void> {
@@ -113,36 +142,36 @@ export async function enqueueKnowledgeSourceSyncWorkflowRun(
   )
 }
 
-export async function enqueueOneThingRecurrenceWorkflowRun(
-  payload: OneThingRecurrenceRunPayload
+export async function enqueuePlannerRecurrenceWorkflowRun(
+  payload: PlannerRecurrenceRunPayload
 ): Promise<void> {
   await enqueueWorkflowWithOtelSpan(
-    "execution.workflow.onething_recurrence.enqueue",
+    "execution.workflow.planner_recurrence.enqueue",
     payload.organizationId,
-    { "erp.workflow": "onething_recurrence" },
+    { "erp.workflow": "planner_recurrence" },
     async () => {
-      const [{ runOneThingRecurrenceWorkflow }, { start }] = await Promise.all([
-        import("./data/onething-recurrence-run-entry"),
+      const [{ runPlannerRecurrenceWorkflow }, { start }] = await Promise.all([
+        import("./data/planner-recurrence-run-entry"),
         import("workflow/api"),
       ])
-      await start(runOneThingRecurrenceWorkflow, [payload])
+      await start(runPlannerRecurrenceWorkflow, [payload])
     }
   )
 }
 
-export async function enqueueOneThingReminderWorkflowRun(
-  payload: OneThingReminderRunPayload
+export async function enqueuePlannerReminderWorkflowRun(
+  payload: PlannerReminderRunPayload
 ): Promise<void> {
   await enqueueWorkflowWithOtelSpan(
-    "execution.workflow.onething_reminder.enqueue",
+    "execution.workflow.planner_reminder.enqueue",
     payload.organizationId,
-    { "erp.workflow": "onething_reminder" },
+    { "erp.workflow": "planner_reminder" },
     async () => {
-      const [{ runOneThingReminderWorkflow }, { start }] = await Promise.all([
-        import("./data/onething-reminder-run-entry"),
+      const [{ runPlannerReminderWorkflow }, { start }] = await Promise.all([
+        import("./data/planner-reminder-run-entry"),
         import("workflow/api"),
       ])
-      await start(runOneThingReminderWorkflow, [payload])
+      await start(runPlannerReminderWorkflow, [payload])
     }
   )
 }

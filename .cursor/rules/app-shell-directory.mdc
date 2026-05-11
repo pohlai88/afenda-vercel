@@ -1,46 +1,27 @@
 ---
-description: Nexus runtime shell (org ERP chrome) is operational infrastructure — not feature UI
+description: Nexus Field product surface + Lynx summon (components/nexus/) — not shell chrome; shell is components/workbench/
 globs: components/nexus/**
 alwaysApply: false
 ---
 
-# Nexus shell directory boundary (`components/nexus/`)
+# Nexus directory boundary (`components/nexus/`)
 
-Mirrors **AGENTS.md §7 → Design system** (app shell row). **Canonical shell product doctrine:** **[`docs/decisions/0001-afenda-spatial-os-shell.md`](../../docs/decisions/0001-afenda-spatial-os-shell.md)** (Spatial OS — L1 Utility / L2 Workspace / L3 Command–Intent / L4 Dock). **Material adoption:** **[`.cursor/rules/material-semantics.mdc`](../../.cursor/rules/material-semantics.mdc)** + **`scripts/check-design-contract.mjs`**. Third-party dashboard templates and OSS shell articles are **non-authoritative** — follow ADR-0001 + this rule. If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.
+Mirrors **AGENTS.md §7 → Design system** (app shell row). **Canonical shell product doctrine:** **[`docs/decisions/0001-afenda-spatial-os-shell.md`](../../docs/decisions/0001-afenda-spatial-os-shell.md)** (Spatial OS — L1 Utility / L2 Workspace / L3 Command–Intent / L4 Dock) and **[`docs/decisions/0005-workbench-canonical-shell.md`](../../docs/decisions/0005-workbench-canonical-shell.md)**. If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.
 
-> URL segment **`/dashboard/`** (under **`app/[locale]/o/[orgSlug]/dashboard/`**) names the **ERP workspace route tree** only. **`components/dashboard/`** must not exist — org chrome is **only** here under **`components/nexus/`** (legacy **`components/dashboard-shell/`** removed). There is no second implementation of command palette, Lynx summon, org switcher, or primary module nav outside Nexus.
+> **`components/nexus/`** is no longer the shell host. Shell chrome (utility bar, command layer, rail, dock, mobile rail) lives in **`components/workbench/`** (see **`.cursor/rules/workbench-directory.mdc`**). **`components/nexus/`** retains only the **Nexus Field product surface** and **Lynx summon UI**.
 
 ## Authority
 
-- **`components/nexus/`** owns **org-scoped Nexus runtime chrome**: `nexus-shell.tsx` (mounted from `app/[locale]/o/[orgSlug]/layout.tsx`), L1 utility band, command palette runtime (`nexus-command-layer.tsx`, `nexus-command-context.tsx`, `nexus-command-trigger.tsx`), L4 dock stub, **Lynx summon** UI (`nexus-lynx-summon-context.tsx`, `nexus-lynx-summon.client.tsx`), optional **`SurfaceChrome`** (`nexus-surface-chrome.tsx`), orientation / pressure / surface presentation (`nexus-surface-card.tsx`, `nexus-orientation-band.tsx`, etc.). No tenant business rules, no DB access, no Server Actions.
-- **IAM auth surfaces** (sign-in, interruption flows) use **`components/auth/`** and **`#lib/auth`** — do not fold IAM workflows into Nexus shell components.
-
-## Shell ownership doctrine
-
-The Nexus shell is **operational spatial infrastructure** (ADR-0001), not marketing UI or module feature UI. Mental model: **intent → operational surface → execution → truth resolution**, implemented as **L1–L4** — not “portal/home → module tree.”
-
-Prioritize, in order:
-
-1. Spatial orientation and operational continuity (dock + command intent + workspace surface)  
-2. Organization context clarity (slug-bound URLs per locale-first contract)  
-3. Capability discoverability without hierarchical ERP clutter  
-4. Layout stability (no padding ↔ dock/rail width drift)  
-5. Keyboard and accessibility consistency  
-
-**Before** visual differentiation, motion novelty, or unconstrained “workspace intelligence” UX.
-
-## Rules
-
-- **Registry-aligned navigation.** Prefer a single nav registry next to [`lib/dashboard-module-paths.ts`](../../lib/dashboard-module-paths.ts), aligned with **registry discipline** (org admin `ORG_ADMIN_CAPABILITIES`). Avoid orphaned hard-coded `NAV_ITEMS` arrays that drift from path helpers.
-- **Layout coupling.** Prefer **shadcn `SidebarProvider` + `SidebarInset`** and CSS variables (`--sidebar-width`, `--sidebar-width-icon`) where workspace layouts use the sidebar primitive — do not hand-duplicate `padding-left` / `margin` that mirror sidebar width.
-- **Secondary rails (e.g. right inspector).** Do not nest another full `Sidebar` beside `main` inside `SidebarInset` — use an in-flow `aside` with explicit width (`0` when closed). See `.cursor/rules/frontend-quality-contract.mdc` §11 → *Secondary rails inside `SidebarInset`*.
-- **Shell boundaries.** Prefer **route groups** and layout nesting for “shell vs no-shell” — avoid pathname-regex wrappers at the locale root.
-- **Scoped enhancements.** Command palette, Lynx summon, dock, and utility affordances are **separate deliverables** — do not bundle into a monolithic rewrite. Command palette must not become open-ended “workspace intelligence.”
-- **L1 utility rail tooltips.** Do not import `#components/ui/tooltip` directly in `components/nexus/**` (ESLint: `afenda/nexus-tooltip-import-gate`). Use **`NexusUtilityRoundTooltipButton`**, **`NexusUtilityRoundTooltipLink`**, or **`NexusUtilityTriggerTooltip`** (`nexus-utility-trigger-tooltip.tsx`) so hover copy, `side` / `sideOffset`, and `align` stay consistent on icon-only controls and overlay triggers.
-- **Boring shell.** No animated chrome for novelty; density and calm ERP posture beat dashboard marketing energy.
+- **`components/nexus/`** retains:
+  - **Nexus Field product surface** (`nexus-page.tsx` + zone components: `nexus-orientation-band.tsx`, `nexus-operational-pressure.tsx`, `nexus-pressure-item.tsx`, `nexus-priority-lanes.tsx`, `nexus-truth-map.tsx`, `nexus-recent-resolution.tsx`, `nexus-resolution-strip.tsx`, `nexus-surface-card.tsx`, `nexus-nav-panel.tsx`)
+  - **Lynx summon UI** (`nexus-lynx-summon-context.tsx`, `nexus-lynx-summon.client.tsx`, `nexus-lynx-truth-feed.tsx`)
+  - Utility widgets not yet migrated to `components/workbench/` — move them in the same PR that touches them
+- **`components/workbench/`** owns **all post-login shell chrome** — see **`.cursor/rules/workbench-directory.mdc`**.
+- **IAM auth surfaces** (sign-in, interruption flows) use **`components/auth/`** and **`#lib/auth`**.
 
 ## Forbidden
 
+- Adding new shell-chrome to `components/nexus/` — shell chrome belongs in `components/workbench/`.
+- Re-creating `nexus-shell.tsx` or `nexus-surface-chrome.tsx` — these files have been deleted; `WorkbenchShell` is the replacement.
 - Tenant-scoped **ERP/domain logic** inside `components/nexus/**`.
-- **Deep imports** into `lib/features/<module>/data/...` from Nexus shell — consume **`#features/<module>`** or **`#features/<module>/client`** barrels only where the shell needs a typed contract, and keep imports minimal.
-- **Cross-tenant or slug-from-client** assumptions — org slug and navigation targets come from server guards + path builders; shell components remain dumb presenters of props from RSC parents where possible.
+- **Deep imports** into `lib/features/<module>/data/...` from Nexus components — consume `#features/<module>` or `#features/<module>/client` barrels only.

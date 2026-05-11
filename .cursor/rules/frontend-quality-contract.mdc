@@ -400,7 +400,7 @@ Components must live inside the shell contract; they must not renegotiate the sh
 
 | Layer | Afenda files | Owns | Must not own |
 | --- | --- | --- | --- |
-| Shell | `components/nexus/nexus-shell.tsx`, utility bar, command layer, dock | viewport flex column for org layout, `main` scroll contract | Business content width inside workspace routes, feature-level overflow |
+| Shell | `components/workbench/workbench-shell.tsx`, utility bar, command layer, dock | viewport flex column for org layout, `main` scroll contract | Business content width inside workspace routes, feature-level overflow |
 | Route layout | `app/[locale]/o/[orgSlug]/dashboard/layout.tsx`, etc. | `DashboardShell {children}` slot, Tier A session gates, `RouteEnvelope` | Any CSS applied to the `{children}` slot that resizes the shell |
 | Page | `page.tsx` leaves | `flex flex-col gap-6`, `ModulePageHeader`, card/section sequence | `h-screen`, `min-h-screen`, viewport overflow |
 | Section | Stat card grids, filter toolbars, list panels | `grid gap-3 sm:grid-cols-3`, `divide-y`, local Tailwind spacing | Shell sidebar width, parent scroll context |

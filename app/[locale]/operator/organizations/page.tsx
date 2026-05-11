@@ -2,7 +2,6 @@ import { getTranslations } from "next-intl/server"
 
 import {
   PlatformAdminOrganizationsTable,
-  PlatformAdminShell,
   listOrganizationsForPlatformAdmin,
 } from "#features/platform-admin"
 import { requireGlobalAdminSession } from "#lib/tenant"
@@ -14,7 +13,7 @@ export default async function PlatformAdminOrganizationsPage() {
   const organizations = await listOrganizationsForPlatformAdmin()
 
   return (
-    <PlatformAdminShell>
+    <div className="p-6">
       <section className="space-y-4">
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold tracking-tight">{t("title")}</h2>
@@ -27,6 +26,6 @@ export default async function PlatformAdminOrganizationsPage() {
 
         <PlatformAdminOrganizationsTable organizations={organizations} />
       </section>
-    </PlatformAdminShell>
+    </div>
   )
 }

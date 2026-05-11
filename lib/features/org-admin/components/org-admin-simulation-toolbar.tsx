@@ -35,7 +35,6 @@ export function OrgAdminSimulationToolbar() {
         setMessage(
           t("replayOk", {
             runId: result.simulationRunId,
-            oneThingId: result.oneThingId,
           })
         )
       } else {
@@ -61,7 +60,6 @@ export function OrgAdminSimulationToolbar() {
         setMessage(
           t("clearOk", {
             audit: result.deletedAudit,
-            onething: result.deletedOneThing,
           })
         )
       } else {

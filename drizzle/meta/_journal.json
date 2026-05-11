@@ -92,6 +92,55 @@
       "when": 1747051200000,
       "tag": "0012_hrm_leave_policy",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1747137600000,
+      "tag": "0013_hrm_leave_request",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1747224000000,
+      "tag": "0014_hrm_attendance",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1747310400000,
+      "tag": "0015_hrm_payroll",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1747396800000,
+      "tag": "0016_hrm_country_rule_pack",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1747483200000,
+      "tag": "0017_hrm_compliance_evidence",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1778515200000,
+      "tag": "0018_orbit_planner_substrate",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1778601600000,
+      "tag": "0019_onething_severance",
+      "breakpoints": true
     }
   ]
 }

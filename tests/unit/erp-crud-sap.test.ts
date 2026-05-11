@@ -61,11 +61,11 @@ describe("crud-sap.shared", () => {
     expect(
       buildCrudSapAuditAction({
         area: "erp",
-        module: "OneThing",
-        object: "OneThing",
+        module: "Planner",
+        object: "Item",
         verb: "resolve",
       })
-    ).toBe("erp.onething.onething.resolve")
+    ).toBe("erp.planner.item.resolve")
   })
 
   it("buildCrudSapAuditAction rejects empty segments", () => {

@@ -124,13 +124,13 @@ import { ui } from "#lib/design-system"
 </article>
 ```
 
-## Nexus runtime composition
+## Workbench runtime composition
 
-Org ERP chrome lives under **`#components/nexus/*`** (`NexusShell`, command layer, Lynx summon). Do not recreate utility bar / command / dock in feature modules — compose inside the route tree mounted under [`app/[locale]/o/[orgSlug]/layout.tsx`](../../app/[locale]/o/[orgSlug]/layout.tsx).
+Post-login org ERP chrome lives under **`#components/workbench/*`** (`WorkbenchShell`, `WorkbenchUtilityBar`, command layer, dock; Lynx summon remains under **`#components/nexus/*`**). Do not recreate utility bar / command / dock in feature modules — compose inside the route tree mounted under [`app/[locale]/o/[orgSlug]/layout.tsx`](../../app/[locale]/o/[orgSlug]/layout.tsx).
 
 ```tsx
-import { NexusShell } from "#components/nexus/nexus-shell"
-// Feature routes render as children; palette + Lynx summon mount inside NexusShell.
+import { WorkbenchShell } from "#components/workbench"
+// Feature routes render as children; utility bar + palette + Lynx mount inside WorkbenchShell.
 ```
 
 ## Contacts ERP composition examples

@@ -4,23 +4,17 @@ import { and, eq } from "drizzle-orm"
 
 import { AUDIT_ORIGIN } from "#lib/auth"
 import { db } from "#lib/db"
-import { iamAuditEvent, oneThing } from "#lib/db/schema"
+import { iamAuditEvent } from "#lib/db/schema"
 
+/**
+ * Deletes simulation-tagged IAM audit rows for a single run. Any planner-native
+ * rows the scenario inserted are responsible for their own cleanup contract;
+ * this server entry handles only the canonical audit ledger.
+ */
 export async function deleteOperationalSimulationRun(input: {
   organizationId: string
   simulationRunId: string
-}): Promise<{ deletedAudit: number; deletedOneThing: number }> {
-  const deletedThings = await db
-    .delete(oneThing)
-    .where(
-      and(
-        eq(oneThing.organizationId, input.organizationId),
-        eq(oneThing.simulationRunId, input.simulationRunId),
-        eq(oneThing.auditOrigin, AUDIT_ORIGIN.simulation)
-      )
-    )
-    .returning({ id: oneThing.id })
-
+}): Promise<{ deletedAudit: number }> {
   const deletedAudit = await db
     .delete(iamAuditEvent)
     .where(
@@ -33,7 +27,6 @@ export async function deleteOperationalSimulationRun(input: {
     .returning({ id: iamAuditEvent.id })
 
   return {
-    deletedOneThing: deletedThings.length,
     deletedAudit: deletedAudit.length,
   }
 }

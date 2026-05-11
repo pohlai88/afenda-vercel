@@ -12,10 +12,7 @@ import {
 
 import { Link } from "#i18n/navigation"
 
-import {
-  PLATFORM_ADMIN_NAV_ITEMS,
-  PlatformAdminShell,
-} from "#features/platform-admin"
+import { PLATFORM_ADMIN_NAV_ITEMS } from "#features/platform-admin"
 import { requireGlobalAdminSession } from "#lib/tenant"
 
 export default async function PlatformAdminHomePage() {
@@ -25,7 +22,7 @@ export default async function PlatformAdminHomePage() {
   const tCard = await getTranslations("PlatformAdmin.card")
 
   return (
-    <PlatformAdminShell>
+    <div className="p-6">
       <section className="space-y-4">
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold tracking-tight">
@@ -58,6 +55,6 @@ export default async function PlatformAdminHomePage() {
           ))}
         </div>
       </section>
-    </PlatformAdminShell>
+    </div>
   )
 }

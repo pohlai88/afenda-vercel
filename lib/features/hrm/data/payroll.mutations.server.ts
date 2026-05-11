@@ -1,0 +1,265 @@
+import "server-only"
+
+import { and, eq, gte, lte } from "drizzle-orm"
+
+import { db } from "#lib/db"
+import {
+  hrmAttendanceDay,
+  hrmPayrollLine,
+  hrmPayrollPeriod,
+  hrmPayrollRun,
+} from "#lib/db/schema"
+
+import type { PayrollLineInput } from "./payroll-engine.server"
+
+// ---------------------------------------------------------------------------
+// Period mutations
+// ---------------------------------------------------------------------------
+
+export type CreatePayrollPeriodInput = {
+  readonly organizationId: string
+  readonly periodStart: string
+  readonly periodEnd: string
+  readonly paymentDate: string
+  readonly currency: string
+  readonly createdByUserId: string
+}
+
+export async function createPayrollPeriodMutation(
+  input: CreatePayrollPeriodInput
+): Promise<{ id: string }> {
+  const id = crypto.randomUUID()
+  await db.insert(hrmPayrollPeriod).values({
+    id,
+    organizationId: input.organizationId,
+    periodStart: input.periodStart,
+    periodEnd: input.periodEnd,
+    paymentDate: input.paymentDate,
+    currency: input.currency,
+    state: "open",
+    createdByUserId: input.createdByUserId,
+    updatedByUserId: input.createdByUserId,
+  })
+  return { id }
+}
+
+export type UpdatePayrollPeriodInput = {
+  readonly periodStart?: string
+  readonly periodEnd?: string
+  readonly paymentDate?: string
+  readonly currency?: string
+  readonly updatedByUserId: string
+}
+
+export async function updatePayrollPeriodMutation(
+  organizationId: string,
+  periodId: string,
+  input: UpdatePayrollPeriodInput
+): Promise<void> {
+  await db
+    .update(hrmPayrollPeriod)
+    .set({
+      ...(input.periodStart !== undefined && {
+        periodStart: input.periodStart,
+      }),
+      ...(input.periodEnd !== undefined && { periodEnd: input.periodEnd }),
+      ...(input.paymentDate !== undefined && {
+        paymentDate: input.paymentDate,
+      }),
+      ...(input.currency !== undefined && { currency: input.currency }),
+      updatedByUserId: input.updatedByUserId,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(hrmPayrollPeriod.organizationId, organizationId),
+        eq(hrmPayrollPeriod.id, periodId)
+      )
+    )
+}
+
+export async function updatePayrollPeriodState(
+  organizationId: string,
+  periodId: string,
+  state: string
+): Promise<void> {
+  await db
+    .update(hrmPayrollPeriod)
+    .set({ state, updatedAt: new Date() })
+    .where(
+      and(
+        eq(hrmPayrollPeriod.organizationId, organizationId),
+        eq(hrmPayrollPeriod.id, periodId)
+      )
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Run mutations
+// ---------------------------------------------------------------------------
+
+export async function insertPayrollRun(
+  organizationId: string,
+  periodId: string,
+  employeeId: string,
+  opts?: {
+    contractId?: string | null
+    profileId?: string | null
+    createdByUserId?: string
+  }
+): Promise<{ id: string }> {
+  const id = crypto.randomUUID()
+  await db.insert(hrmPayrollRun).values({
+    id,
+    organizationId,
+    periodId,
+    employeeId,
+    contractId: opts?.contractId ?? null,
+    profileId: opts?.profileId ?? null,
+    state: "draft",
+  })
+  return { id }
+}
+
+export type UpdatePayrollRunInput = {
+  state?: string
+  grossPay?: string
+  netPay?: string
+  employerCost?: string
+  inputDigest?: string
+  validationIssues?: Array<{ code: string; message: string }>
+  computedByUserId?: string
+}
+
+export async function updatePayrollRun(
+  organizationId: string,
+  runId: string,
+  input: UpdatePayrollRunInput
+): Promise<void> {
+  await db
+    .update(hrmPayrollRun)
+    .set({
+      ...(input.state !== undefined && { state: input.state }),
+      ...(input.grossPay !== undefined && { grossPay: input.grossPay }),
+      ...(input.netPay !== undefined && { netPay: input.netPay }),
+      ...(input.employerCost !== undefined && {
+        employerCost: input.employerCost,
+      }),
+      ...(input.inputDigest !== undefined && {
+        inputDigest: input.inputDigest,
+      }),
+      ...(input.validationIssues !== undefined && {
+        validationIssues: input.validationIssues,
+      }),
+      ...(input.computedByUserId !== undefined && {
+        computedByUserId: input.computedByUserId,
+        computedAt: new Date(),
+      }),
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(hrmPayrollRun.organizationId, organizationId),
+        eq(hrmPayrollRun.id, runId)
+      )
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Line mutations
+// ---------------------------------------------------------------------------
+
+export async function insertPayrollLines(
+  organizationId: string,
+  runId: string,
+  lines: PayrollLineInput[]
+): Promise<void> {
+  if (lines.length === 0) return
+  await db.insert(hrmPayrollLine).values(
+    lines.map((l) => ({
+      id: crypto.randomUUID(),
+      organizationId,
+      runId,
+      lineKind: l.lineKind,
+      code: l.code,
+      description: l.description,
+      amount: l.amount,
+      rulePackProvenance: l.rulePackProvenance ?? null,
+      metadata: l.metadata ?? null,
+    }))
+  )
+}
+
+export async function deletePayrollLinesForRun(
+  organizationId: string,
+  runId: string
+): Promise<void> {
+  await db
+    .delete(hrmPayrollLine)
+    .where(
+      and(
+        eq(hrmPayrollLine.organizationId, organizationId),
+        eq(hrmPayrollLine.runId, runId)
+      )
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Period lock (Phase 3B) — pins rule-pack version + freezes runs + attendance days
+// ---------------------------------------------------------------------------
+
+export async function lockPayrollPeriodAndRunsMutation(opts: {
+  readonly organizationId: string
+  readonly periodId: string
+  readonly rulePackVersion: string
+  readonly lockedByUserId: string
+  readonly periodStart: string
+  readonly periodEnd: string
+}): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx
+      .update(hrmPayrollPeriod)
+      .set({
+        state: "locked",
+        rulePackVersion: opts.rulePackVersion,
+        lockedByUserId: opts.lockedByUserId,
+        lockedAt: new Date(),
+        updatedAt: new Date(),
+        updatedByUserId: opts.lockedByUserId,
+      })
+      .where(
+        and(
+          eq(hrmPayrollPeriod.organizationId, opts.organizationId),
+          eq(hrmPayrollPeriod.id, opts.periodId)
+        )
+      )
+
+    await tx
+      .update(hrmPayrollRun)
+      .set({
+        state: "locked",
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(hrmPayrollRun.organizationId, opts.organizationId),
+          eq(hrmPayrollRun.periodId, opts.periodId)
+        )
+      )
+
+    await tx
+      .update(hrmAttendanceDay)
+      .set({
+        state: "locked",
+        lockedByPayrollPeriodId: opts.periodId,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(hrmAttendanceDay.organizationId, opts.organizationId),
+          gte(hrmAttendanceDay.attendanceDate, opts.periodStart),
+          lte(hrmAttendanceDay.attendanceDate, opts.periodEnd)
+        )
+      )
+  })
+}

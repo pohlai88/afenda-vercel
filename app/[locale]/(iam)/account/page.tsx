@@ -1,12 +1,10 @@
 import { getTranslations } from "next-intl/server"
 
+import { WorkbenchSurface } from "#components/workbench"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 
+import { AccountContextBand } from "./_components/account-context-band"
 import { getAccountShellData } from "./_components/account-shell-data.server"
-import {
-  AccountContextBand,
-  AccountSurface,
-} from "./_components/account-surface"
 
 export const dynamic = "force-dynamic"
 
@@ -45,14 +43,13 @@ export default async function AccountIndexPage({
   const recentItems = shellData.securityActivity.slice(0, 3)
 
   return (
-    <AccountSurface
+    <WorkbenchSurface
       breadcrumbs={[
         { label: t("breadcrumbs.personal"), href: "/account" },
         { label: t("overview.title") },
       ]}
       title={t("overview.title")}
       subtitle={t("overview.subtitle")}
-
     >
       <AccountContextBand label={t("overview.nowLabel")}>
         <div className="space-y-2 text-sm leading-6 text-foreground">
@@ -110,6 +107,6 @@ export default async function AccountIndexPage({
           </p>
         )}
       </AccountContextBand>
-    </AccountSurface>
+    </WorkbenchSurface>
   )
 }

@@ -348,13 +348,13 @@ afterEach(() => {
 })
 
 /** Load after {@link vi.resetModules} so `#i18n/navigation` mocks win over prior test files' module cache. */
-let NexusUtilityMessenger: ComponentType<{ orgId: string }>
+let WorkbenchUtilityMessenger: ComponentType<{ orgId: string }>
 
-describe("NexusUtilityMessenger", { timeout: 20_000 }, () => {
+describe("WorkbenchUtilityMessenger", { timeout: 20_000 }, () => {
   beforeAll(async () => {
     vi.resetModules()
-    ;({ NexusUtilityMessenger } =
-      await import("#components/nexus/nexus-utility-messenger"))
+    ;({ WorkbenchUtilityMessenger } =
+      await import("#components/workbench/utility-bar/workbench-utility-messenger"))
   })
 
   beforeEach(() => {
@@ -367,8 +367,8 @@ describe("NexusUtilityMessenger", { timeout: 20_000 }, () => {
       }
     )
     document.body.innerHTML = `
-      <div data-nexus-capture-root="workspace">workspace</div>
-      <main id="dashboard-main" data-nexus-capture-root="content">content</main>
+      <div data-workbench-capture-root="workspace">workspace</div>
+      <main id="dashboard-main" data-workbench-capture-root="content">content</main>
     `
     window.history.replaceState({}, "", "/en/o/acme/dashboard/home")
     uploadMock.mockResolvedValue({
@@ -386,7 +386,7 @@ describe("NexusUtilityMessenger", { timeout: 20_000 }, () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityMessenger orgId="org-1" />
+        <WorkbenchUtilityMessenger orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -412,7 +412,7 @@ describe("NexusUtilityMessenger", { timeout: 20_000 }, () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityMessenger orgId="org-1" />
+        <WorkbenchUtilityMessenger orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -466,7 +466,7 @@ describe("NexusUtilityMessenger", { timeout: 20_000 }, () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityMessenger orgId="org-1" />
+        <WorkbenchUtilityMessenger orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -480,9 +480,7 @@ describe("NexusUtilityMessenger", { timeout: 20_000 }, () => {
     expect(await screen.findByText("Payroll anomaly")).toBeTruthy()
 
     fireEvent.click(screen.getByRole("button", { name: "Attach screenshot" }))
-    await waitFor(() => {
-      expect(screen.getByText(/screenshot-\d+\.png/i)).toBeTruthy()
-    })
+    expect(await screen.findByText(/screenshot-\d+\.png/i)).toBeTruthy()
 
     fireEvent.click(screen.getByRole("button", { name: "Send update" }))
 
@@ -504,7 +502,7 @@ describe("NexusUtilityMessenger", { timeout: 20_000 }, () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityMessenger orgId="org-1" />
+        <WorkbenchUtilityMessenger orgId="org-1" />
       </TooltipProvider>
     )
 

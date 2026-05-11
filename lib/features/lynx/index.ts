@@ -31,12 +31,10 @@ export {
 export {
   LYNX_NL_DEMO_ROW_CAP,
   LYNX_NL_DEMO_TABLE,
-  LYNX_NL_DEMO_ONETHING_TABLE,
   validateLynxNlDemoSql,
 } from "#features/lynx/data/nl-sql-demo-guard.shared"
 export { LynxPage } from "#features/lynx/components/lynx-page"
 export { NlSqlDemoClient } from "#features/lynx/components/nl-sql-demo-client"
-export { OneThingNlDemoClient } from "#features/lynx/components/onething-nl-demo-client"
 export { TruthSearchClient } from "#features/lynx/components/truth-search-client"
 export { OperatorAssistClient } from "#features/lynx/components/operator-assist-client"
 export {

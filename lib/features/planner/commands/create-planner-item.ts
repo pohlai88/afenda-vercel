@@ -1,0 +1,136 @@
+"use server"
+
+import { after } from "next/server"
+import { redirect } from "next/navigation"
+
+import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
+import { toLocalePath } from "#lib/i18n/locales.shared"
+import { requireOrgSession, requireSignedInSession } from "#lib/tenant"
+
+import { buildPlannerAuditAction } from "../audit/planner-audit.shared"
+import {
+  orbitStatusPath,
+  readPlannerActionOrgSlug,
+  readPlannerActionScopeKind,
+  readPlannerActionSurface,
+  revalidateOrbitScope,
+} from "./planner-action.shared"
+import { createPlannerItemFormSchema } from "../domain/planner.schemas"
+import { insertPlannerItem } from "../data/planner.mutations.server"
+
+export async function createPlannerItemAction(
+  formData: FormData
+): Promise<void> {
+  const scopeKind = readPlannerActionScopeKind(formData)
+  const surface = readPlannerActionSurface(formData, "queue")
+  const orgSlug = readPlannerActionOrgSlug(formData)
+  const locale = await getRequestAppLocale()
+
+  const parsed = createPlannerItemFormSchema.safeParse({
+    title: formData.get("title"),
+    description: formData.get("description") ?? undefined,
+    dueAt: formData.get("dueAt") ?? undefined,
+    pressure: {},
+  })
+
+  if (!parsed.success) {
+    redirect(
+      toLocalePath(
+        locale,
+        orbitStatusPath({
+          scopeKind,
+          orgSlug,
+          surface,
+          status: "invalidInput",
+        })
+      )
+    )
+  }
+
+  if (scopeKind === "organization") {
+    const session = await requireOrgSession()
+    const row = await insertPlannerItem({
+      scope: {
+        scopeKind: "organization",
+        organizationId: session.organizationId,
+      },
+      title: parsed.data.title,
+      description: parsed.data.description,
+      dueAt: parsed.data.dueAt,
+      actorUserId: session.userId,
+      pressure: parsed.data.pressure,
+    })
+
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: buildPlannerAuditAction("item", "create"),
+        organizationId: session.organizationId,
+        actorUserId: session.userId,
+        actorSessionId: session.sessionId,
+        resourceType: "planner_item",
+        resourceId: row.id,
+        metadata: {
+          scopeKind,
+          hasDueAt: Boolean(parsed.data.dueAt),
+        },
+      })
+    )
+
+    revalidateOrbitScope(scopeKind)
+
+    redirect(
+      toLocalePath(
+        locale,
+        orbitStatusPath({
+          scopeKind,
+          orgSlug,
+          surface,
+          status: "createdItem",
+          focusKind: "item",
+          focusId: row.id,
+        })
+      )
+    )
+  }
+
+  const session = await requireSignedInSession()
+  const row = await insertPlannerItem({
+    scope: { scopeKind: "personal", ownerUserId: session.userId },
+    title: parsed.data.title,
+    description: parsed.data.description,
+    dueAt: parsed.data.dueAt,
+    actorUserId: session.userId,
+    pressure: parsed.data.pressure,
+  })
+
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: buildPlannerAuditAction("item", "create"),
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      resourceType: "planner_item",
+      resourceId: row.id,
+      metadata: {
+        scopeKind,
+        hasDueAt: Boolean(parsed.data.dueAt),
+      },
+    })
+  )
+
+  revalidateOrbitScope(scopeKind)
+
+  redirect(
+    toLocalePath(
+      locale,
+      orbitStatusPath({
+        scopeKind,
+        orgSlug,
+        surface,
+        status: "createdItem",
+        focusKind: "item",
+        focusId: row.id,
+      })
+    )
+  )
+}

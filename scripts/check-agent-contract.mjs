@@ -18,11 +18,13 @@ const REQUIRED_FILES = [
   ".cursor/rules/i18n-directory.mdc",
   ".cursor/rules/lynx-directory.mdc",
   ".cursor/rules/erp-primitives.mdc",
-  ".cursor/rules/onething-directory.mdc",
+  ".cursor/rules/planner-directory.mdc",
   ".cursor/rules/simulation-directory.mdc",
+  ".cursor/rules/workbench-directory.mdc",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
   "tests/unit/fixtures-i18n-parity.test.ts",
+  "turbo.json",
 ]
 
 const DUMP_DIR_NAMES = new Set([
@@ -89,6 +91,7 @@ const ROOT_TOOLING_FILES = new Set([
   ".node-version",
   ".nvmrc",
   ".lintstagedrc.json",
+  "turbo.json",
 ])
 
 const ROOT_WORKSPACE_FILES = new Set([
@@ -120,13 +123,33 @@ const DEFAULT_ALLOWED_MODULE_ROOT_ENTRIES = new Set([
 
 const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
   [
-    "onething",
+    "planner",
     new Set([
-      ...DEFAULT_ALLOWED_MODULE_ROOT_ENTRIES,
-      "audit",
       "domain",
-      "predictions",
+      "data",
+      "server",
+      "server.ts",
+      "client",
+      "scheduling",
+      "recurrence",
+      "worklog",
+      "filters",
+      "views",
+      "integrations",
+      "audit",
+      "relations",
+      "commands",
+      "policies",
+      "automation",
+      "signals",
       "ranking",
+      "timeline",
+      "pressure",
+      "intelligence",
+      "constants.ts",
+      "types.ts",
+      "index.ts",
+      "README.md",
     ]),
   ],
 ])

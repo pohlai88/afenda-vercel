@@ -1,0 +1,139 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "tui",
+  "globalPassThroughEnv": [
+    "VERCEL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "VERCEL_TOKEN",
+    "TURBO_TOKEN",
+    "TURBO_TEAM",
+    "TURBO_REMOTE_CACHE_SIGNATURE_KEY",
+    "TURBO_TELEMETRY_DISABLED",
+    "CI",
+    "GITHUB_BASE_REF",
+    "PATH",
+    "HOME",
+    "NODE_ENV"
+  ],
+  "tasks": {
+    "lint:agent-contract": {
+      "inputs": [
+        "AGENTS.md",
+        ".cursor/rules/**/*.mdc",
+        "scripts/check-agent-contract.mjs",
+        "package.json",
+        "eslint.config.mjs",
+        "turbo.json"
+      ]
+    },
+    "lint:drizzle-journal": {
+      "inputs": [
+        "drizzle/*.sql",
+        "drizzle/meta/_journal.json",
+        "scripts/check-drizzle-journal.mjs"
+      ]
+    },
+    "lint:fixtures-parity": {
+      "inputs": [
+        "tests/fixtures/**",
+        "tests/unit/fixtures-i18n-parity.test.ts",
+        "messages/**",
+        "lib/auth/org-audit-csv.shared.ts",
+        "scripts/seed-dev-users.mjs",
+        "components/dev/dev-signin-panel.tsx",
+        ".config/vitest.config.ts",
+        ".config/vitest.setup.ts",
+        "scripts/with-env.mjs"
+      ]
+    },
+    "lint:eslint": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "eslint.config.mjs",
+        "tsconfig.json",
+        ".config/tsconfig.test.json",
+        ".config/tsconfig.scripts.json"
+      ],
+      "outputs": [".artifacts/.eslintcache"]
+    },
+    "lint:design-contract": {
+      "inputs": [
+        "app/**",
+        "components/**",
+        "hooks/**",
+        "lib/features/**",
+        "lib/design-system.ts",
+        "app/globals.css",
+        "scripts/check-design-contract.mjs"
+      ]
+    },
+    "typecheck": {
+      "inputs": ["$TURBO_DEFAULT$", "tsconfig.json", "i18n/global.d.ts"],
+      "outputs": [".artifacts/.tsbuildinfo/main"]
+    },
+    "typecheck:test": {
+      "inputs": [
+        "tests/**/*.{ts,tsx}",
+        ".config/tsconfig.test.json",
+        ".config/vitest.config.ts",
+        ".config/vitest.setup.ts",
+        ".config/playwright.config.ts"
+      ],
+      "outputs": [".artifacts/.tsbuildinfo/test"]
+    },
+    "typecheck:scripts": {
+      "inputs": [
+        "scripts/**/*.{ts,mjs}",
+        ".config/tsconfig.scripts.json",
+        ".config/drizzle.config.ts"
+      ],
+      "outputs": [".artifacts/.tsbuildinfo/scripts"]
+    },
+    "knip": {
+      "inputs": ["$TURBO_DEFAULT$", ".config/knip.json"]
+    },
+    "test:ci": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".config/vitest.config.ts",
+        ".config/vitest.setup.ts",
+        "messages/**",
+        "scripts/with-env.mjs"
+      ],
+      "outputs": [".artifacts/coverage/**"]
+    },
+    "format:check": {
+      "inputs": ["$TURBO_DEFAULT$", "prettier.config.mjs", ".prettierignore"],
+      "outputs": [".artifacts/.prettiercache"]
+    },
+    "build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": [
+        "NEXT_PUBLIC_APP_NAME",
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_APP_URL",
+        "NEXT_PUBLIC_STAGE",
+        "NEXT_PUBLIC_AUTH_URL",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "NEXT_PUBLIC_DEV_ERROR_PANEL",
+        "NEXT_PUBLIC_DEV_SIGNIN_PANEL",
+        "NEXT_PUBLIC_BETTER_AUTH_INFRA",
+        "NEXT_PUBLIC_BETTER_AUTH_INFRA_SENTINEL",
+        "NEXT_PUBLIC_AFENDA_NEON_AUTH_ENABLED",
+        "SENTRY_DSN",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "SENTRY_AUTH_TOKEN",
+        "OTEL_SERVICE_NAME",
+        "DATABASE_URL",
+        "DATABASE_URL_UNPOOLED"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

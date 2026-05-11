@@ -5,7 +5,6 @@ export {
 } from "./constants"
 export type {
   OperationalScenarioGraph,
-  OperationalScenarioOneThingSlice,
   ReplayOperationalScenarioResult,
   SimulationClearActionResult,
   SimulationReplayActionResult,

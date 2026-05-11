@@ -2,7 +2,11 @@ import type { Metadata, Route } from "next"
 import { notFound, redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
-import { NexusShell } from "#components/nexus/nexus-shell"
+import {
+  WorkbenchDock,
+  WorkbenchShell,
+  WorkbenchUtilityBar,
+} from "#components/workbench"
 import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
 import { localePrefixedOrgDashboardRedirect } from "#lib/dashboard-org-redirect.server"
@@ -71,22 +75,33 @@ export default async function OrgSlugLayout({
     orgId: session.organizationId,
   }
 
-  // Nexus runtime mounts here so L1 utility bar, command palette, Lynx summon,
-  // and future dock slot all persist across surfaces — Spatial OS continuity.
+  // WorkbenchShell mounts here so L1 utility bar, command palette, Lynx summon,
+  // and dock slot all persist across surfaces — Spatial OS continuity.
+  // No rail at this level: Nexus Field (org root) renders rail-less.
+  // Rail is added by sub-layouts (org-admin, HRM, etc.) when needed.
   // Nexus field content lives under `nexus/page.tsx` (`/o/{slug}/nexus`).
   // See AGENTS.md §5 → Nexus runtime (org root).
   return (
     <RouteEnvelopeProvider value={envelope}>
-      <NexusShell
+      <WorkbenchShell
         skipToMainLabel={tShell("skipToMain")}
+        utilityBar={
+          <WorkbenchUtilityBar
+            mode="org"
+            orgSlug={orgSlug}
+            orgName={orgName ?? orgSlug}
+            orgId={session.organizationId}
+            userId={session.userId}
+            userEmail={session.user.email}
+          />
+        }
+        rail={null}
+        dock={<WorkbenchDock />}
+        enableLynxSummon
         orgSlug={orgSlug}
-        orgName={orgName ?? orgSlug}
-        orgId={session.organizationId}
-        userId={session.userId}
-        userEmail={session.user.email}
       >
         {children}
-      </NexusShell>
+      </WorkbenchShell>
     </RouteEnvelopeProvider>
   )
 }

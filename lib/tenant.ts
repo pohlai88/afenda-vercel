@@ -200,3 +200,31 @@ export async function getOrgSessionFromRequest(
     },
   }
 }
+
+/**
+ * Same checks as {@link requireSignedInSession}, using the incoming request
+ * headers (for Route Handlers). Returns null instead of redirecting when invalid.
+ */
+export async function getSignedInSessionFromRequest(
+  request: Request
+): Promise<SignedInSession | null> {
+  const { data: session } = await auth.getSession({
+    fetchOptions: { headers: request.headers },
+  })
+
+  if (!session?.user?.id || !session.session?.id) {
+    return null
+  }
+
+  const user = session.user as SessionUserWithRole
+
+  return {
+    userId: user.id,
+    sessionId: session.session.id,
+    user: {
+      email: user.email,
+      name: user.name,
+      role: user.role ?? null,
+    },
+  }
+}

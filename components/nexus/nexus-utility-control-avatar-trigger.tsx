@@ -6,11 +6,11 @@ import { forwardRef, type ComponentPropsWithoutRef } from "react"
 import { ERP_UTILITY_AVATAR_PNG } from "#lib/site"
 import { cn } from "#lib/utils"
 
-import { NEXUS_UTILITY_CHROME_DISC_33_CLASS } from "./nexus-utility-round-control-class"
+import { WORKBENCH_UTILITY_CHROME_DISC_33_CLASS } from "#components/workbench/utility-bar/workbench-utility-round-control-class"
 
 /** Matches left-rail brand disc + calm open state when used as a menu trigger. */
 const TRIGGER_CLASS = cn(
-  NEXUS_UTILITY_CHROME_DISC_33_CLASS,
+  WORKBENCH_UTILITY_CHROME_DISC_33_CLASS,
   "inline-flex cursor-pointer items-center justify-center border-0 outline-none",
   "aria-expanded:bg-card/92 data-[state=open]:bg-card/92",
   "disabled:pointer-events-none disabled:opacity-50"

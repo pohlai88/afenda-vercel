@@ -175,3 +175,184 @@ export type LeavePolicyMutationFormState =
 export type SeedLeaveTypesFormState =
   | { ok: true; seeded: string[]; skipped: string[] }
   | { ok: false; error: string }
+
+export type LeaveRequestMutationFormState =
+  | { ok: true; requestId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        leaveTypeId?: string
+        startDate?: string
+        endDate?: string
+        durationDays?: string
+        requestId?: string
+      }
+    }
+
+export type CancelLeaveFormState =
+  | { ok: true; requestId: string }
+  | {
+      ok: false
+      errors: { form?: string; requestId?: string }
+    }
+
+export type LeaveApprovalFormState =
+  | { ok: true; requestId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        requestId?: string
+        rejectedReason?: string
+      }
+    }
+
+// ---------------------------------------------------------------------------
+// Phase 2C: Attendance form states
+// ---------------------------------------------------------------------------
+
+export type AttendanceRecordFormState =
+  | { ok: true; eventId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        eventType?: string
+        occurredAt?: string
+      }
+    }
+
+export type AttendanceCorrectionFormState =
+  | { ok: true; correctionEventId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        originalEventId?: string
+        eventType?: string
+        occurredAt?: string
+        correctionReason?: string
+      }
+    }
+
+export type RegenerateDayFormState =
+  | { ok: true; result: "skipped" | "updated" }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        attendanceDate?: string
+      }
+    }
+
+// ---------------------------------------------------------------------------
+// Phase 3A: Payroll form states
+// ---------------------------------------------------------------------------
+
+export type PayrollPeriodCreateFormState =
+  | { ok: true; periodId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        periodStart?: string
+        periodEnd?: string
+        paymentDate?: string
+        currency?: string
+      }
+    }
+
+export type PayrollPeriodUpdateFormState =
+  | { ok: true }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        periodStart?: string
+        periodEnd?: string
+        paymentDate?: string
+        currency?: string
+      }
+    }
+
+export type PreparePayrollRunsFormState =
+  | { ok: true; periodId: string; runCount: number }
+  | { ok: false; errors: { form?: string; periodId?: string } }
+
+export type LockPayrollPeriodFormState =
+  | { ok: true }
+  | { ok: false; errors: { form?: string; periodId?: string } }
+
+/** Payroll-period lock approval actions (`hrm_approval` rows). */
+export type PayrollLockApprovalFormState =
+  | { ok: true }
+  | {
+      ok: false
+      errors: { form?: string; approvalId?: string; rejectedReason?: string }
+    }
+
+// ---------------------------------------------------------------------------
+// Compliance action states
+// ---------------------------------------------------------------------------
+
+export type HrmComplianceErrorCode =
+  | "validation"
+  | "not_found"
+  | "rule_pack_missing"
+  | "no_runs"
+  | "period_not_locked"
+  | "permission_denied"
+  | "endpoint_missing"
+  | "evidence_drift"
+  | "rule_pack_drift"
+  | "invalid_state"
+  | "delivery_failed"
+  | "unknown"
+
+/** Single-pack generation: returns the canonical evidence row + payload. */
+export type GenerateStatutoryPackFormState =
+  | {
+      ok: true
+      bulk: false
+      evidenceId: string
+      packType: string
+      inputHash: string
+      payload?: unknown
+    }
+  | { ok: false; code: HrmComplianceErrorCode; message: string }
+
+/** Bulk pack generation: returns the count + every evidenceId produced. */
+export type GenerateAllStatutoryPacksFormState =
+  | {
+      ok: true
+      bulk: true
+      count: number
+      evidenceIds: string[]
+      rulePackVersion: string
+    }
+  | { ok: false; code: HrmComplianceErrorCode; message: string }
+
+export type MarkEvidenceSubmittedFormState =
+  | { ok: true }
+  | { ok: false; code: HrmComplianceErrorCode; message: string }
+
+/**
+ * Outbound bureau submission via `org_event_delivery` (Phase 3E).
+ *
+ * Success carries the resulting `org_event_delivery` id + receiver HTTP status
+ * so the UI can surface a "delivered (HTTP 202)" confirmation without an extra
+ * round-trip.
+ */
+export type SubmitStatutoryEvidenceFormState =
+  | {
+      ok: true
+      evidenceId: string
+      deliveryId: string
+      eventType: string
+      httpStatus: number | null
+    }
+  | { ok: false; code: HrmComplianceErrorCode; message: string }

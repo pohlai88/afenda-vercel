@@ -46,22 +46,22 @@ describe("org notifications shared helpers", () => {
     const ordered = [
       {
         id: "info-newer",
-        severity: "info",
+        severity: "info" as const,
         publishedAt: "2026-05-11T10:00:00.000Z",
       },
       {
         id: "critical-older",
-        severity: "critical",
+        severity: "critical" as const,
         publishedAt: "2026-05-11T08:00:00.000Z",
       },
       {
         id: "warning-newer",
-        severity: "warning",
+        severity: "warning" as const,
         publishedAt: "2026-05-11T09:00:00.000Z",
       },
       {
         id: "critical-newer",
-        severity: "critical",
+        severity: "critical" as const,
         publishedAt: "2026-05-11T11:00:00.000Z",
       },
     ].sort(compareOrgNotificationsForDisplay)

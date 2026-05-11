@@ -1,19 +1,18 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { eq, and } from "drizzle-orm"
+import { eq, and, inArray } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { db } from "#lib/db"
 import { hrmLeavePolicy, hrmLeaveType } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import {
   MY_EA_2023_LEAVE_TYPES,
   MY_EA_2023_POLICY_VERSION,
 } from "../data/leave-rules/my-ea-2023-01"
+import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
 import {
   createLeavePolicyFormSchema,
   createLeaveTypeFormSchema,
@@ -24,27 +23,6 @@ import type {
   LeaveTypeMutationFormState,
   SeedLeaveTypesFormState,
 } from "../types"
-
-// ---------------------------------------------------------------------------
-// Internal guard — admin role required
-// ---------------------------------------------------------------------------
-
-async function requireHrmAdmin() {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) {
-    return {
-      ok: false as const,
-      error: "Admin role required to manage leave policies.",
-    }
-  }
-  return { ok: true as const, session }
-}
 
 function revalidateLeave() {
   revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "page")
@@ -267,16 +245,20 @@ export async function seedMalaysiaEa2023LeaveTypesAction(
   const seeded: string[] = []
   const skipped: string[] = []
 
-  for (const seed of MY_EA_2023_LEAVE_TYPES) {
-    const existing = await db.query.hrmLeaveType.findFirst({
-      where: and(
-        eq(hrmLeaveType.organizationId, organizationId),
-        eq(hrmLeaveType.code, seed.code)
-      ),
-      columns: { id: true },
-    })
+  const seedCodes = MY_EA_2023_LEAVE_TYPES.map((s) => s.code)
 
-    if (existing) {
+  // Batch existence check — single query instead of N queries
+  const existingRows = await db.query.hrmLeaveType.findMany({
+    where: and(
+      eq(hrmLeaveType.organizationId, organizationId),
+      inArray(hrmLeaveType.code, seedCodes)
+    ),
+    columns: { code: true },
+  })
+  const existingCodes = new Set(existingRows.map((r) => r.code))
+
+  for (const seed of MY_EA_2023_LEAVE_TYPES) {
+    if (existingCodes.has(seed.code)) {
       skipped.push(seed.code)
       continue
     }

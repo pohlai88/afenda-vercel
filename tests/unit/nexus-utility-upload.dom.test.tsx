@@ -65,7 +65,7 @@ vi.mock("next-intl", () => ({
       ),
 }))
 
-import { NexusUtilityUpload } from "#components/nexus/nexus-utility-upload"
+import { WorkbenchUtilityUpload } from "#components/workbench/utility-bar/workbench-utility-upload"
 import { TooltipProvider } from "#components/ui/tooltip"
 
 afterEach(() => {
@@ -92,7 +92,7 @@ describe("NexusUtilityUpload", () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityUpload orgId="org-1" />
+        <WorkbenchUtilityUpload orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -130,7 +130,7 @@ describe("NexusUtilityUpload", () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityUpload orgId="org-1" />
+        <WorkbenchUtilityUpload orgId="org-1" />
       </TooltipProvider>
     )
 

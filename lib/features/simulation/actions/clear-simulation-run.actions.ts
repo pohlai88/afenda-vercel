@@ -56,16 +56,14 @@ export async function clearOrgOperationalSimulationRunAction(
     resourceId: simulationRunId,
     metadata: {
       deletedAudit: result.deletedAudit,
-      deletedOneThing: result.deletedOneThing,
     },
   })
 
   revalidatePath(toLocaleOrgAdminRevalidatePattern("/audit"), "page")
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/onething"), "page")
+  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/orbit"), "page")
 
   return {
     ok: true,
     deletedAudit: result.deletedAudit,
-    deletedOneThing: result.deletedOneThing,
   }
 }

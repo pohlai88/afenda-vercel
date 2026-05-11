@@ -437,8 +437,8 @@
   --popover: oklch(0.165 0.014 305);
   --popover-foreground: var(--foreground);
 
-  --primary: oklch(0.68 0.06 305);
-  --primary-hover: oklch(0.75 0.064 305);
+  --primary: oklch(0.7 0.1 305);
+  --primary-hover: oklch(0.76 0.11 305);
   --primary-foreground: oklch(0.13 0.018 305);
 
   --secondary: oklch(0.205 0.013 305);
@@ -468,7 +468,7 @@
 
   --border: oklch(0.255 0.011 305);
   --input: oklch(0.225 0.011 305);
-  --ring: oklch(0.58 0.06 305);
+  --ring: oklch(0.6 0.1 305);
 
   --elevation-1: 0 1px 2px color-mix(in oklab, black 45%, transparent);
   --elevation-2:
@@ -488,16 +488,14 @@
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(0.2 0.015 305);
+  --sidebar-accent: oklch(0.22 0.018 305);
   --sidebar-accent-foreground: oklch(0.9 0.006 305);
   --sidebar-border: oklch(0.255 0.011 305);
   --sidebar-ring: var(--ring);
 
-  --af-nexus-utility-bar-surface: color-mix(
-    in oklab,
-    var(--background) 88%,
-    black 12%
-  );
+  --af-nexus-utility-bar-surface: var(--sidebar);
+
+  --af-account-workbench-chrome: oklch(0.155 0.013 305);
 
   /* Dark-mode material tuning: stronger edge, slightly denser glass + cognition */
   --af-material-edge: color-mix(in oklab, var(--border) 86%, white 14%);
@@ -737,6 +735,27 @@
 
 .af-nexus-utility-bar-backdrop {
   box-shadow: 0 1px 0 color-mix(in oklab, white 4%, transparent);
+}
+
+/* Workbench surface header — sticky page header backdrop (command-tier blur). */
+/* Replace inline `bg-card/95 backdrop-blur-xl` usages with this class.          */
+.af-workbench-surface-header {
+  backdrop-filter: blur(var(--af-blur-command)) saturate(var(--af-sat-command));
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .af-workbench-surface-header {
+    background: color-mix(in oklab, var(--card) 72%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .af-workbench-surface-header {
+    backdrop-filter: none;
+    background: var(--card);
+  }
 }
 
 .dark .af-nexus-utility-bar-backdrop {

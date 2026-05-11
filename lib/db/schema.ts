@@ -242,135 +242,430 @@ export const importJobFailure = pgTable(
   ]
 )
 
-/**
- * Org or personal OneThing lists (`onething_list`).
- * Exactly one of `organizationId` / `ownerUserId` is non-null (DB CHECK).
- */
-export const oneThingList = pgTable(
-  "onething_list",
+/** Orbit attention primitive — operational pressure detected before it becomes executable work. */
+export const plannerSignal = pgTable(
+  "planner_signal",
   {
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     organizationId: text("organizationId"),
     ownerUserId: text("ownerUserId"),
-    name: text("name").notNull(),
-    slug: text("slug").notNull(),
-    archivedAt: timestamp("archivedAt", { mode: "date" }),
-    shareTokenHash: text("shareTokenHash"),
-    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-  },
-  (t) => [
-    index("onething_list_organization_id_idx").on(t.organizationId),
-    index("onething_list_owner_user_id_idx").on(t.ownerUserId),
-    uniqueIndex("onething_list_org_slug_uidx")
-      .on(t.organizationId, t.slug)
-      .where(sql`${t.organizationId} IS NOT NULL`),
-    uniqueIndex("onething_list_owner_slug_uidx")
-      .on(t.ownerUserId, t.slug)
-      .where(sql`${t.ownerUserId} IS NOT NULL`),
-  ]
-)
-
-/**
- * Org or personal OneThing rows (`onething`). The four JSONB spokes — `linkage`,
- * `counterparty`, `provenance`, `impact` — make the row an **operational
- * atom** (`0015_onething_atom.sql`); see `lib/features/onething/types.ts`.
- */
-export const oneThing = pgTable(
-  "onething",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    listId: text("listId")
-      .notNull()
-      .references(() => oneThingList.id, { onDelete: "cascade" }),
-    organizationId: text("organizationId"),
-    ownerUserId: text("ownerUserId"),
-    assigneeUserId: text("assigneeUserId"),
     title: text("title").notNull(),
-    consequence: text("consequence").notNull().default(""),
-    state: text("state").notNull().default("detected"),
-    severity: text("severity").notNull().default("medium"),
-    dueAt: timestamp("dueAt", { mode: "date" }),
-    snoozeUntil: timestamp("snoozeUntil", { mode: "date" }),
-    recurrenceRule: text("recurrenceRule"),
-    parentOneThingId: text("parentOneThingId"),
-    position: integer("position").notNull().default(0),
-    /**
-     * Operational atom — sparse JSONB spokes. The application validates shape
-     * with Zod (see `safeParseOneThingSpoke`); the DB stores raw JSON so future
-     * migrations can add subkey indexes without breaking older rows.
-     */
-    linkage: jsonb("linkage"),
-    counterparty: jsonb("counterparty"),
-    provenance: jsonb("provenance"),
-    impact: jsonb("impact"),
+    description: text("description"),
+    signalClass: text("signalClass").notNull().default("manual_capture"),
+    lifecycle: text("lifecycle").notNull().default("detected"),
+    originatingSystem: text("originatingSystem"),
+    correlationKey: text("correlationKey"),
+    correlationGroup: text("correlationGroup"),
+    urgency: integer("urgency").notNull().default(2),
+    impact: integer("impact").notNull().default(2),
+    severity: integer("severity").notNull().default(2),
+    confidence: integer("confidence").notNull().default(3),
+    effort: integer("effort").notNull().default(2),
+    escalationLevel: integer("escalationLevel").notNull().default(1),
+    temporalProximity: integer("temporalProximity").notNull().default(1),
+    ownershipPressure: integer("ownershipPressure").notNull().default(1),
     temporalPast: jsonb("temporalPast"),
     temporalNow: jsonb("temporalNow"),
     temporalNext: jsonb("temporalNext"),
-    resolvedAt: timestamp("resolvedAt", { mode: "date" }),
-    deprecatedAt: timestamp("deprecatedAt", { mode: "date" }),
-    resolutionNote: text("resolutionNote"),
-    resolutionProof: jsonb("resolutionProof"),
-    predictions: jsonb("predictions"),
-    /** Trimmed 7W1H audit cache (last N events) — validated in `lib/features/onething`. */
     audit7w1h: jsonb("audit7w1h"),
+    detectedAt: timestamp("detectedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    promotedAt: timestamp("promotedAt", { mode: "date" }),
+    expiresAt: timestamp("expiresAt", { mode: "date" }),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
     auditOrigin: text("auditOrigin").notNull().default("production"),
-    simulationRunId: text("simulationRunId"),
-    scenarioId: text("scenarioId"),
-    scenarioVersion: integer("scenarioVersion"),
-    simulationSeed: text("simulationSeed"),
   },
   (t) => [
-    index("onething_organization_id_state_idx").on(t.organizationId, t.state),
-    index("onething_owner_user_id_state_idx").on(t.ownerUserId, t.state),
-    index("onething_assignee_user_id_state_idx").on(t.assigneeUserId, t.state),
-    index("onething_due_at_idx").on(t.dueAt),
-    index("onething_list_id_idx").on(t.listId),
-    index("onething_snooze_until_idx").on(t.snoozeUntil),
+    index("planner_signal_organization_lifecycle_idx").on(
+      t.organizationId,
+      t.lifecycle
+    ),
+    index("planner_signal_owner_lifecycle_idx").on(t.ownerUserId, t.lifecycle),
+    index("planner_signal_detected_at_idx").on(t.detectedAt),
+    index("planner_signal_correlation_key_idx").on(t.correlationKey),
   ]
 )
 
-export const oneThingAttachment = pgTable(
-  "onething_attachment",
+/** Orbit execution primitive — durable operational work object. */
+export const plannerItem = pgTable(
+  "planner_item",
   {
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    oneThingId: text("oneThingId")
+    organizationId: text("organizationId"),
+    ownerUserId: text("ownerUserId"),
+    sourceSignalId: text("sourceSignalId").references(() => plannerSignal.id, {
+      onDelete: "set null",
+    }),
+    title: text("title").notNull(),
+    description: text("description"),
+    lifecycle: text("lifecycle").notNull().default("triaged"),
+    urgency: integer("urgency").notNull().default(2),
+    impact: integer("impact").notNull().default(2),
+    severity: integer("severity").notNull().default(2),
+    confidence: integer("confidence").notNull().default(3),
+    effort: integer("effort").notNull().default(2),
+    escalationLevel: integer("escalationLevel").notNull().default(1),
+    temporalProximity: integer("temporalProximity").notNull().default(1),
+    ownershipPressure: integer("ownershipPressure").notNull().default(1),
+    scheduleStartAt: timestamp("scheduleStartAt", { mode: "date" }),
+    dueAt: timestamp("dueAt", { mode: "date" }),
+    endAt: timestamp("endAt", { mode: "date" }),
+    blockedAt: timestamp("blockedAt", { mode: "date" }),
+    verifiedAt: timestamp("verifiedAt", { mode: "date" }),
+    resolvedAt: timestamp("resolvedAt", { mode: "date" }),
+    cancelledAt: timestamp("cancelledAt", { mode: "date" }),
+    deprecatedAt: timestamp("deprecatedAt", { mode: "date" }),
+    temporalPast: jsonb("temporalPast"),
+    temporalNow: jsonb("temporalNow"),
+    temporalNext: jsonb("temporalNext"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    auditOrigin: text("auditOrigin").notNull().default("production"),
+  },
+  (t) => [
+    index("planner_item_organization_lifecycle_idx").on(
+      t.organizationId,
+      t.lifecycle
+    ),
+    index("planner_item_owner_lifecycle_idx").on(t.ownerUserId, t.lifecycle),
+    index("planner_item_due_at_idx").on(t.dueAt),
+    index("planner_item_schedule_start_at_idx").on(t.scheduleStartAt),
+    index("planner_item_source_signal_id_idx").on(t.sourceSignalId),
+  ]
+)
+
+export const plannerAssignment = pgTable(
+  "planner_assignment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    itemId: text("itemId")
       .notNull()
-      .references(() => oneThing.id, { onDelete: "cascade" }),
+      .references(() => plannerItem.id, { onDelete: "cascade" }),
+    role: text("role").notNull(),
+    subjectUserId: text("subjectUserId"),
+    subjectLabel: text("subjectLabel"),
+    createdByUserId: text("createdByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("planner_assignment_item_id_idx").on(t.itemId),
+    index("planner_assignment_role_subject_idx").on(t.role, t.subjectUserId),
+  ]
+)
+
+export const plannerSchedule = pgTable(
+  "planner_schedule",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    itemId: text("itemId")
+      .notNull()
+      .references(() => plannerItem.id, { onDelete: "cascade" }),
+    scheduledStartAt: timestamp("scheduledStartAt", { mode: "date" }),
+    scheduledEndAt: timestamp("scheduledEndAt", { mode: "date" }),
+    snoozedUntil: timestamp("snoozedUntil", { mode: "date" }),
+    timeZone: text("timeZone"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("planner_schedule_item_id_idx").on(t.itemId),
+    index("planner_schedule_start_idx").on(t.scheduledStartAt),
+  ]
+)
+
+export const plannerRelation = pgTable(
+  "planner_relation",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    itemId: text("itemId")
+      .notNull()
+      .references(() => plannerItem.id, { onDelete: "cascade" }),
+    relatedItemId: text("relatedItemId").references(() => plannerItem.id, {
+      onDelete: "cascade",
+    }),
+    relatedSignalId: text("relatedSignalId").references(
+      () => plannerSignal.id,
+      {
+        onDelete: "cascade",
+      }
+    ),
+    relationType: text("relationType").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("planner_relation_item_id_idx").on(t.itemId),
+    index("planner_relation_related_item_id_idx").on(t.relatedItemId),
+    index("planner_relation_related_signal_id_idx").on(t.relatedSignalId),
+  ]
+)
+
+export const plannerLink = pgTable(
+  "planner_link",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId"),
+    ownerUserId: text("ownerUserId"),
+    itemId: text("itemId").references(() => plannerItem.id, {
+      onDelete: "cascade",
+    }),
+    signalId: text("signalId").references(() => plannerSignal.id, {
+      onDelete: "cascade",
+    }),
+    module: text("module").notNull(),
+    entityType: text("entityType").notNull(),
+    entityId: text("entityId").notNull(),
+    displayLabel: text("displayLabel").notNull(),
+    href: text("href"),
+    causalityReason: text("causalityReason"),
+    temporalContext: jsonb("temporalContext"),
+    auditContext: jsonb("auditContext"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("planner_link_organization_idx").on(t.organizationId),
+    index("planner_link_owner_idx").on(t.ownerUserId),
+    index("planner_link_item_id_idx").on(t.itemId),
+    index("planner_link_signal_id_idx").on(t.signalId),
+    index("planner_link_module_entity_idx").on(
+      t.module,
+      t.entityType,
+      t.entityId
+    ),
+  ]
+)
+
+export const plannerReminder = pgTable(
+  "planner_reminder",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    itemId: text("itemId")
+      .notNull()
+      .references(() => plannerItem.id, { onDelete: "cascade" }),
+    remindAt: timestamp("remindAt", { mode: "date" }).notNull(),
+    status: text("status").notNull().default("pending"),
+    snoozedUntil: timestamp("snoozedUntil", { mode: "date" }),
+    deliveredAt: timestamp("deliveredAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("planner_reminder_item_id_idx").on(t.itemId),
+    index("planner_reminder_status_remind_at_idx").on(t.status, t.remindAt),
+  ]
+)
+
+export const plannerRecurrence = pgTable(
+  "planner_recurrence",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    itemId: text("itemId")
+      .notNull()
+      .references(() => plannerItem.id, { onDelete: "cascade" }),
+    rrule: text("rrule").notNull(),
+    timeZone: text("timeZone"),
+    nextRunAt: timestamp("nextRunAt", { mode: "date" }),
+    lastRunAt: timestamp("lastRunAt", { mode: "date" }),
+    pausedAt: timestamp("pausedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("planner_recurrence_item_id_idx").on(t.itemId),
+    index("planner_recurrence_next_run_at_idx").on(t.nextRunAt),
+  ]
+)
+
+export const plannerSession = pgTable(
+  "planner_session",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId"),
+    ownerUserId: text("ownerUserId"),
+    itemId: text("itemId").references(() => plannerItem.id, {
+      onDelete: "set null",
+    }),
+    status: text("status").notNull().default("active"),
+    summary: text("summary"),
+    startedAt: timestamp("startedAt", { mode: "date" }).notNull().defaultNow(),
+    endedAt: timestamp("endedAt", { mode: "date" }),
+    pausedAt: timestamp("pausedAt", { mode: "date" }),
+    durationMinutes: integer("durationMinutes"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("planner_session_organization_status_idx").on(
+      t.organizationId,
+      t.status
+    ),
+    index("planner_session_owner_status_idx").on(t.ownerUserId, t.status),
+    index("planner_session_item_id_idx").on(t.itemId),
+    index("planner_session_started_at_idx").on(t.startedAt),
+  ]
+)
+
+export const plannerActivity = pgTable(
+  "planner_activity",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    itemId: text("itemId").references(() => plannerItem.id, {
+      onDelete: "cascade",
+    }),
+    signalId: text("signalId").references(() => plannerSignal.id, {
+      onDelete: "cascade",
+    }),
+    activityType: text("activityType").notNull(),
+    body: text("body").notNull(),
+    metadata: jsonb("metadata"),
+    authorUserId: text("authorUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("planner_activity_item_id_created_at_idx").on(t.itemId, t.createdAt),
+    index("planner_activity_signal_id_created_at_idx").on(
+      t.signalId,
+      t.createdAt
+    ),
+  ]
+)
+
+export const plannerComment = pgTable(
+  "planner_comment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    itemId: text("itemId")
+      .notNull()
+      .references(() => plannerItem.id, { onDelete: "cascade" }),
+    authorUserId: text("authorUserId").notNull(),
+    body: text("body").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("planner_comment_item_id_created_at_idx").on(t.itemId, t.createdAt),
+  ]
+)
+
+export const plannerAttachment = pgTable(
+  "planner_attachment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    itemId: text("itemId")
+      .notNull()
+      .references(() => plannerItem.id, { onDelete: "cascade" }),
     url: text("url").notNull(),
     contentSha256: text("contentSha256").notNull(),
     mimeType: text("mimeType").notNull(),
     sizeBytes: integer("sizeBytes").notNull(),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   },
-  (t) => [index("onething_attachment_onething_id_idx").on(t.oneThingId)]
+  (t) => [index("planner_attachment_item_id_idx").on(t.itemId)]
 )
 
-export const oneThingComment = pgTable(
-  "onething_comment",
+export const plannerView = pgTable(
+  "planner_view",
   {
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    oneThingId: text("oneThingId")
-      .notNull()
-      .references(() => oneThing.id, { onDelete: "cascade" }),
-    authorUserId: text("authorUserId").notNull(),
-    body: text("body").notNull(),
+    organizationId: text("organizationId"),
+    ownerUserId: text("ownerUserId"),
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    surface: text("surface").notNull(),
+    filterState: jsonb("filterState"),
+    sortMode: text("sortMode"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
-    index("onething_comment_onething_id_created_at_idx").on(
-      t.oneThingId,
-      t.createdAt
+    uniqueIndex("planner_view_org_slug_uidx")
+      .on(t.organizationId, t.slug)
+      .where(sql`${t.organizationId} IS NOT NULL`),
+    uniqueIndex("planner_view_owner_slug_uidx")
+      .on(t.ownerUserId, t.slug)
+      .where(sql`${t.ownerUserId} IS NOT NULL`),
+  ]
+)
+
+export const plannerRankingSnapshot = pgTable(
+  "planner_ranking_snapshot",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    itemId: text("itemId").references(() => plannerItem.id, {
+      onDelete: "cascade",
+    }),
+    signalId: text("signalId").references(() => plannerSignal.id, {
+      onDelete: "cascade",
+    }),
+    displayPriority: text("displayPriority").notNull(),
+    pressureScore: integer("pressureScore").notNull(),
+    dimensions: jsonb("dimensions"),
+    snapshotAt: timestamp("snapshotAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("planner_ranking_snapshot_item_idx").on(t.itemId, t.snapshotAt),
+    index("planner_ranking_snapshot_signal_idx").on(t.signalId, t.snapshotAt),
+  ]
+)
+
+export const plannerPressureSnapshot = pgTable(
+  "planner_pressure_snapshot",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId"),
+    ownerUserId: text("ownerUserId"),
+    summary: jsonb("summary"),
+    snapshotAt: timestamp("snapshotAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("planner_pressure_snapshot_organization_idx").on(
+      t.organizationId,
+      t.snapshotAt
+    ),
+    index("planner_pressure_snapshot_owner_idx").on(
+      t.ownerUserId,
+      t.snapshotAt
     ),
   ]
 )
@@ -1327,6 +1622,179 @@ export const hrmLeaveEntitlement = pgTable(
   ]
 )
 
+// ---------------------------------------------------------------------------
+// Phase 2B — leave request, approval, balance
+// ---------------------------------------------------------------------------
+
+/**
+ * Generic single-step HR approval record (Phase 2B).
+ * subject_kind + subject_id discriminates the domain (leave_request | claim | …).
+ * snapshot is immutable — approvers decide on what they saw, not a mutable live record.
+ * Deferred: routeCode, routeVersion, currentStep, totalSteps, currentRunId (multi-step only).
+ */
+export const hrmApproval = pgTable(
+  "hrm_approval",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    subjectKind: text("subjectKind").notNull(),
+    subjectId: text("subjectId").notNull(),
+    state: text("state").notNull().default("pending"),
+    requestedByUserId: text("requestedByUserId").notNull(),
+    requestedAt: timestamp("requestedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    currentApproverUserId: text("currentApproverUserId"),
+    decisionByUserId: text("decisionByUserId"),
+    decisionAt: timestamp("decisionAt", { mode: "date" }),
+    decisionNote: text("decisionNote"),
+    snapshot: jsonb("snapshot").notNull().default({}),
+    auditOrigin: text("auditOrigin").notNull().default("production"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_approval_org_state_approver_idx").on(
+      t.organizationId,
+      t.state,
+      t.currentApproverUserId
+    ),
+    index("hrm_approval_org_subject_idx").on(
+      t.organizationId,
+      t.subjectKind,
+      t.subjectId
+    ),
+  ]
+)
+
+/**
+ * Leave application state machine (Phase 2B).
+ * states: draft → submitted → approved | rejected; approved → taken | cancelled.
+ * current_approval_run_id: reserved for Workflow DevKit (Phase 3+) — nullable.
+ */
+export const hrmLeaveRequest = pgTable(
+  "hrm_leave_request",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    leaveTypeId: text("leaveTypeId")
+      .notNull()
+      .references(() => hrmLeaveType.id, { onDelete: "restrict" }),
+    requestedAt: timestamp("requestedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    startDate: date("startDate", { mode: "string" }).notNull(),
+    endDate: date("endDate", { mode: "string" }).notNull(),
+    durationDays: decimal("durationDays", { precision: 5, scale: 2 }).notNull(),
+    halfDay: text("halfDay").notNull().default("none"),
+    reason: text("reason"),
+    evidenceDocumentId: text("evidenceDocumentId"),
+    state: text("state").notNull().default("submitted"),
+    currentApprovalId: text("currentApprovalId").references(
+      () => hrmApproval.id,
+      { onDelete: "set null" }
+    ),
+    currentApprovalRunId: text("currentApprovalRunId"),
+    approvedByUserId: text("approvedByUserId"),
+    approvedAt: timestamp("approvedAt", { mode: "date" }),
+    rejectedReason: text("rejectedReason"),
+    policyVersion: text("policyVersion"),
+    temporalPast: jsonb("temporalPast"),
+    temporalNow: jsonb("temporalNow"),
+    temporalNext: jsonb("temporalNext"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_leave_request_org_employee_state_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.state
+    ),
+    index("hrm_leave_request_org_state_start_idx").on(
+      t.organizationId,
+      t.state,
+      t.startDate
+    ),
+    index("hrm_leave_request_org_leave_type_idx").on(
+      t.organizationId,
+      t.leaveTypeId
+    ),
+  ]
+)
+
+/**
+ * Denormalised leave balance cache per (employee, leave type, year) (Phase 2B).
+ * formula: available = opening + entitled + adjusted + carried_forward − taken − pending.
+ * Recomputed from scratch on every leave request state change — idempotent.
+ */
+export const hrmLeaveBalance = pgTable(
+  "hrm_leave_balance",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    leaveTypeId: text("leaveTypeId")
+      .notNull()
+      .references(() => hrmLeaveType.id, { onDelete: "restrict" }),
+    entitlementYear: integer("entitlementYear").notNull(),
+    daysEntitled: decimal("daysEntitled", { precision: 6, scale: 2 })
+      .notNull()
+      .default("0"),
+    daysTaken: decimal("daysTaken", { precision: 6, scale: 2 })
+      .notNull()
+      .default("0"),
+    daysPending: decimal("daysPending", { precision: 6, scale: 2 })
+      .notNull()
+      .default("0"),
+    openingDays: decimal("openingDays", { precision: 6, scale: 2 })
+      .notNull()
+      .default("0"),
+    adjustedDays: decimal("adjustedDays", { precision: 6, scale: 2 })
+      .notNull()
+      .default("0"),
+    carriedForwardDays: decimal("carriedForwardDays", {
+      precision: 6,
+      scale: 2,
+    })
+      .notNull()
+      .default("0"),
+    lastRecomputedAt: timestamp("lastRecomputedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_leave_balance_unique_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.leaveTypeId,
+      t.entitlementYear
+    ),
+    index("hrm_leave_balance_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+  ]
+)
+
 /** Statutory payroll identifiers — effective-dated rows (Phase 1B). */
 export const hrmPayrollProfile = pgTable(
   "hrm_payroll_profile",
@@ -1373,6 +1841,387 @@ export const hrmPayrollProfile = pgTable(
     index("hrm_payroll_profile_organizationId_employeeId_effectiveFrom_idx").on(
       t.organizationId,
       t.employeeId,
+      t.effectiveFrom
+    ),
+  ]
+)
+
+// ---------------------------------------------------------------------------
+// Phase 2C: Attendance event stream + daily aggregate
+// ---------------------------------------------------------------------------
+
+/** Immutable raw attendance event stream. Corrections create new rows (never update). */
+export const hrmAttendanceEvent = pgTable(
+  "hrm_attendance_event",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    /** clock_in | clock_out | break_start | break_end | correction */
+    eventType: text("eventType").notNull(),
+    occurredAt: timestamp("occurredAt", { mode: "date" }).notNull(),
+    /** manual | csv_import | mobile | device */
+    source: text("source").notNull(),
+    /** import_job_row.id or device receipt */
+    sourceRef: text("sourceRef"),
+    /** Self-FK; set when eventType = 'correction'. Never updated on the original row. */
+    correctionOfEventId: text("correctionOfEventId"),
+    correctionReason: text("correctionReason"),
+    latitude: decimal("latitude", { precision: 10, scale: 6 }),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }),
+    deviceId: text("deviceId"),
+    /** FK-style reference to import_job.id */
+    importBatchId: text("importBatchId"),
+    rawPayloadHash: text("rawPayloadHash"),
+    metadata: jsonb("metadata"),
+    createdByUserId: text("createdByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_attendance_event_org_emp_occurredAt_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.occurredAt
+    ),
+    index("hrm_attendance_event_org_source_batchId_idx").on(
+      t.organizationId,
+      t.source,
+      t.importBatchId
+    ),
+    index("hrm_attendance_event_org_correctionOf_idx").on(
+      t.organizationId,
+      t.correctionOfEventId
+    ),
+  ]
+)
+
+/** Computed daily attendance summary — rebuildable from raw events via `attendance-aggregator.server.ts`. */
+export const hrmAttendanceDay = pgTable(
+  "hrm_attendance_day",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    attendanceDate: date("attendanceDate").notNull(),
+    firstClockInAt: timestamp("firstClockInAt", { mode: "date" }),
+    lastClockOutAt: timestamp("lastClockOutAt", { mode: "date" }),
+    scheduledMinutes: integer("scheduledMinutes").notNull().default(0),
+    workedMinutes: integer("workedMinutes").notNull().default(0),
+    breakMinutes: integer("breakMinutes").notNull().default(0),
+    lateMinutes: integer("lateMinutes").notNull().default(0),
+    earlyOutMinutes: integer("earlyOutMinutes").notNull().default(0),
+    overtimeMinutes: integer("overtimeMinutes").notNull().default(0),
+    /** Absence code from the leave engine (e.g. "annual", "sick"). */
+    absenceCode: text("absenceCode"),
+    /** open | computed | locked */
+    state: text("state").notNull().default("open"),
+    /** FK-style to hrm_payroll_period — set when the day is locked for payroll. */
+    lockedByPayrollPeriodId: text("lockedByPayrollPeriodId"),
+    /** SHA-256 of sorted contributing event IDs — used for idempotent re-aggregation. */
+    derivedFromEventChecksum: text("derivedFromEventChecksum"),
+    /** Full snapshot preserved for payroll evidence. */
+    calculationSnapshot: jsonb("calculationSnapshot"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_attendance_day_org_emp_date_uidx").on(
+      t.organizationId,
+      t.employeeId,
+      t.attendanceDate
+    ),
+    index("hrm_attendance_day_org_date_state_idx").on(
+      t.organizationId,
+      t.attendanceDate,
+      t.state
+    ),
+  ]
+)
+
+// ---------------------------------------------------------------------------
+// Phase 3A — Payroll preparation
+// ---------------------------------------------------------------------------
+
+/** Monthly payroll cycle envelope. Snapshots rulePackVersion at lock so past periods
+ *  recompute identically. State machine: open → preparing → locked → finalized → posted.
+ */
+export const hrmPayrollPeriod = pgTable(
+  "hrm_payroll_period",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    /** ISO date string "YYYY-MM-DD" — first day of the pay period. */
+    periodStart: date("periodStart").notNull(),
+    /** ISO date string "YYYY-MM-DD" — last day of the pay period. */
+    periodEnd: date("periodEnd").notNull(),
+    /** ISO date string "YYYY-MM-DD" — intended payment date. */
+    paymentDate: date("paymentDate").notNull(),
+    currency: text("currency").notNull().default("MYR"),
+    /** open | preparing | locked | finalized | posted */
+    state: text("state").notNull().default("open"),
+    lockedByUserId: text("lockedByUserId"),
+    lockedAt: timestamp("lockedAt", { mode: "date" }),
+    /** Workflow DevKit run id set when finalization durable run starts. */
+    finalizedRunId: text("finalizedRunId"),
+    /** Composite rule pack version snapshot — e.g. "MY-2026-01". Null until period locks. */
+    rulePackVersion: text("rulePackVersion"),
+    temporalPast: jsonb("temporalPast"),
+    temporalNow: jsonb("temporalNow"),
+    temporalNext: jsonb("temporalNext"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_payroll_period_org_start_end_uidx").on(
+      t.organizationId,
+      t.periodStart,
+      t.periodEnd
+    ),
+    index("hrm_payroll_period_org_state_idx").on(t.organizationId, t.state),
+    index("hrm_payroll_period_org_start_idx").on(
+      t.organizationId,
+      t.periodStart
+    ),
+  ]
+)
+
+/** One payroll computation run per (period, employee). Idempotent via inputDigest.
+ *  State: draft → computed → locked. overridden = bureau import path (Phase 4+).
+ */
+export const hrmPayrollRun = pgTable(
+  "hrm_payroll_run",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    periodId: text("periodId")
+      .notNull()
+      .references(() => hrmPayrollPeriod.id, { onDelete: "restrict" }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    /** Contract version active at period end — snapshotted for re-runnable history. */
+    contractId: text("contractId").references(() => hrmEmploymentContract.id, {
+      onDelete: "restrict",
+    }),
+    /** Payroll profile active at period end — snapshotted for re-runnable history. */
+    profileId: text("profileId").references(() => hrmPayrollProfile.id, {
+      onDelete: "restrict",
+    }),
+    /** draft | computed | locked | overridden */
+    state: text("state").notNull().default("draft"),
+    grossPay: decimal("grossPay", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0"),
+    netPay: decimal("netPay", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0"),
+    employerCost: decimal("employerCost", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0"),
+    /** SHA-256 of all inputs — recompute only when digest changes. */
+    inputDigest: text("inputDigest"),
+    computedAt: timestamp("computedAt", { mode: "date" }),
+    computedByUserId: text("computedByUserId"),
+    /** True when lines were imported from an external bureau rather than computed. */
+    overriddenFromBureau: boolean("overriddenFromBureau")
+      .notNull()
+      .default(false),
+    bureauReference: text("bureauReference"),
+    /** Array of ValidationIssue objects from rule-pack validateProfile(). */
+    validationIssues: jsonb("validationIssues")
+      .$type<Array<{ code: string; message: string }>>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    temporalPast: jsonb("temporalPast"),
+    temporalNow: jsonb("temporalNow"),
+    temporalNext: jsonb("temporalNext"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_payroll_run_org_period_employee_uidx").on(
+      t.organizationId,
+      t.periodId,
+      t.employeeId
+    ),
+    index("hrm_payroll_run_org_period_state_idx").on(
+      t.organizationId,
+      t.periodId,
+      t.state
+    ),
+    index("hrm_payroll_run_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+  ]
+)
+
+/** Granular earning / deduction line for per-line rule-pack traceability.
+ *  Provenance field cites the exact composite manifest + per-statutory sub-version
+ *  that produced each line — enables byte-identical historical re-runs.
+ */
+export const hrmPayrollLine = pgTable(
+  "hrm_payroll_line",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    runId: text("runId")
+      .notNull()
+      .references(() => hrmPayrollRun.id, { onDelete: "cascade" }),
+    /** earning | employee_deduction | employer_contribution | tax | adjustment | validation_issue */
+    lineKind: text("lineKind").notNull(),
+    /** Canonical code: BASIC, EPF_EE, EPF_ER, SOCSO_EE, SOCSO_ER, EIS_EE, EIS_ER, PCB, etc. */
+    code: text("code").notNull(),
+    description: text("description").notNull(),
+    amount: decimal("amount", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0"),
+    /** Rule-pack provenance: { compositePack, subVersion, table, rowId, categoryCode }. */
+    rulePackProvenance:
+      jsonb("rulePackProvenance").$type<Record<string, unknown>>(),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_payroll_line_run_id_idx").on(t.runId),
+    index("hrm_payroll_line_org_run_kind_idx").on(
+      t.organizationId,
+      t.runId,
+      t.lineKind
+    ),
+    index("hrm_payroll_line_org_run_code_idx").on(
+      t.organizationId,
+      t.runId,
+      t.code
+    ),
+  ]
+)
+
+/** Global registry of composite payroll rule-pack versions.
+ *  No organizationId — global across all tenants.
+ *  The actual rule code lives in TypeScript files under
+ *  data/rule-packs/<country>/ (PR-reviewed, type-checked, append-only).
+ */
+/**
+ * One row per (org, period, countryCode, packType).
+ * Generated by payroll-finalize workflow; reproducible from inputHash + rulePackVersion.
+ * Tracks submission state through the statutory delivery pipeline.
+ */
+export const hrmComplianceEvidence = pgTable(
+  "hrm_compliance_evidence",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    /** FK to payroll period; null for non-period packs (e.g. annual EA). */
+    periodId: text("periodId").references(() => hrmPayrollPeriod.id, {
+      onDelete: "restrict",
+    }),
+    /** ISO-2 country code: MY, SG, ID, TH, VN, PH. */
+    countryCode: text("countryCode").notNull(),
+    /** Pack type discriminator. */
+    packType: text("packType").notNull(),
+    /** SHA-256 hex of all input run lines that produced this pack. */
+    inputHash: text("inputHash").notNull(),
+    /** SHA-256 hex of the generated payload bytes. */
+    outputHash: text("outputHash").notNull(),
+    /** FK to hrm_document where the payload blob is stored. */
+    payloadDocumentId: text("payloadDocumentId").references(
+      () => hrmDocument.id,
+      { onDelete: "set null" }
+    ),
+    /** Pinned composite rule-pack version for re-runnable history. */
+    rulePackVersion: text("rulePackVersion").notNull(),
+    generatedAt: timestamp("generatedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    generatedByUserId: text("generatedByUserId"),
+    /** Workflow DevKit run id for durable finalize runs. */
+    generatedByRunId: text("generatedByRunId"),
+    /** draft | queued | submitted | acknowledged | failed */
+    submissionState: text("submissionState").notNull().default("draft"),
+    /** FK to org_event_delivery when submitted via outbox. */
+    submissionDeliveryId: text("submissionDeliveryId"),
+    /** External bureau receipt id (e.g. KWSP acknowledgement number). */
+    externalReference: text("externalReference"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_compliance_evidence_org_period_country_type_uidx").on(
+      t.organizationId,
+      t.periodId,
+      t.countryCode,
+      t.packType
+    ),
+    index("hrm_compliance_evidence_org_state_generated_idx").on(
+      t.organizationId,
+      t.submissionState,
+      t.generatedAt
+    ),
+  ]
+)
+
+export const hrmCountryRulePack = pgTable(
+  "hrm_country_rule_pack",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    /** ISO-2 country code: MY, SG, ID, TH, VN, PH. */
+    countryCode: text("countryCode").notNull(),
+    /** Composite rule-pack version, e.g. "MY-2026-01". */
+    version: text("version").notNull(),
+    /** Calendar date from which this composite pack is effective. */
+    effectiveFrom: text("effectiveFrom").notNull(), // ISO "YYYY-MM-DD"
+    /** Calendar date until which this pack is effective (null = current). */
+    effectiveTo: text("effectiveTo"),
+    /** Per-statutory sub-versions for audit traceability. */
+    manifest: jsonb("manifest")
+      .$type<{
+        epfVersion: string
+        socsoVersion: string
+        eisVersion: string
+        pcbVersion: string
+        hrdfVersion: string | null
+        holidayVersion: string
+        eaLeaveVersion: string
+      }>()
+      .notNull(),
+    publishedByUserId: text("publishedByUserId"),
+    publishedAt: timestamp("publishedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_country_rule_pack_country_version_uidx").on(
+      t.countryCode,
+      t.version
+    ),
+    index("hrm_country_rule_pack_country_effective_from_idx").on(
+      t.countryCode,
       t.effectiveFrom
     ),
   ]

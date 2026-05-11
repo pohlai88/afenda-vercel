@@ -5,12 +5,6 @@ import { randomUUID } from "node:crypto"
 import { writeIamAuditEvent } from "#lib/auth"
 import type { ScenarioId } from "#lib/erp/scenario-types.shared"
 import { runWithSimulationContext } from "#lib/erp/simulation-context.server"
-import {
-  ensureDefaultOneThingListForOrg,
-  insertOrgOneThing,
-} from "#features/onething/server"
-
-import { simulationProvenancePayload } from "../types"
 
 import { getOperationalScenarioGraphById } from "./scenario-registry.server"
 import type { ReplayOperationalScenarioResult } from "../types"
@@ -23,8 +17,13 @@ export type ReplayOperationalScenarioServerInput = {
 }
 
 /**
- * Replays a registered scenario through real persistence surfaces:
- * `onething` insert + IAM audit rows, all stamped with simulation provenance via ALS.
+ * Replays a registered scenario through real persistence surfaces.
+ *
+ * The scenario itself is responsible for driving any planner-native (or other
+ * domain) inserts inside the simulation context. This server entry is now
+ * narrow: it allocates the run id, opens the AsyncLocalStorage context so
+ * downstream {@link writeIamAuditEvent} calls inherit simulation provenance,
+ * and writes the canonical `org.simulation.scenario.replay` audit row.
  */
 export async function replayOperationalScenarioForOrganization(
   input: ReplayOperationalScenarioServerInput
@@ -44,49 +43,6 @@ export async function replayOperationalScenarioForOrganization(
       seed: graph.seed,
     },
     async () => {
-      const listId = await ensureDefaultOneThingListForOrg(input.organizationId)
-      const ot = graph.oneThing
-
-      const provenance = simulationProvenancePayload({
-        simulationRunId,
-        scenarioId: graph.id,
-        scenarioVersion: graph.version,
-        simulationSeed: graph.seed,
-      })
-
-      const row = await insertOrgOneThing({
-        listId,
-        organizationId: input.organizationId,
-        title: ot.title,
-        consequence: ot.consequence,
-        severity: ot.severity,
-        dueAt: ot.dueAt ?? null,
-        assigneeUserId: ot.assigneeUserId ?? null,
-        recurrenceRule: null,
-        state: ot.state,
-        temporalPast: ot.temporalPast,
-        temporalNow: ot.temporalNow,
-        temporalNext: ot.temporalNext,
-        linkage: ot.linkage ?? null,
-        counterparty: ot.counterparty ?? null,
-        provenance: ot.provenance ?? null,
-        impact: ot.impact ?? null,
-        simulationProvenance: provenance,
-      })
-
-      await writeIamAuditEvent({
-        action: "erp.onething.consequence.create",
-        actorUserId: input.actorUserId,
-        actorSessionId: input.actorSessionId,
-        organizationId: input.organizationId,
-        resourceType: "onething",
-        resourceId: row.id,
-        metadata: {
-          scenarioId: graph.id,
-          simulationRunId,
-        },
-      })
-
       await writeIamAuditEvent({
         action: "org.simulation.scenario.replay",
         actorUserId: input.actorUserId,
@@ -96,12 +52,11 @@ export async function replayOperationalScenarioForOrganization(
         resourceId: simulationRunId,
         metadata: {
           scenarioId: graph.id,
-          oneThingId: row.id,
           seed: graph.seed,
         },
       })
 
-      return { simulationRunId, oneThingId: row.id }
+      return { simulationRunId }
     }
   )
 }

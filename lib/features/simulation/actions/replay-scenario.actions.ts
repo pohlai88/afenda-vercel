@@ -41,7 +41,7 @@ export async function replayOrgOperationalScenarioAction(
   }
 
   try {
-    const { simulationRunId, oneThingId } =
+    const { simulationRunId } =
       await replayOperationalScenarioForOrganization({
         organizationId: session.organizationId,
         scenarioId: parsedId.data,
@@ -50,9 +50,9 @@ export async function replayOrgOperationalScenarioAction(
       })
 
     revalidatePath(toLocaleOrgAdminRevalidatePattern("/audit"), "page")
-    revalidatePath(toLocaleOrgDashboardRevalidatePattern("/onething"), "page")
+    revalidatePath(toLocaleOrgDashboardRevalidatePattern("/orbit"), "page")
 
-    return { ok: true, simulationRunId, oneThingId }
+    return { ok: true, simulationRunId }
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Scenario replay failed."

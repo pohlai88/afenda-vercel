@@ -125,9 +125,9 @@ export type OrgImportRowState = "pending" | "applied" | "failed" | "skipped"
  */
 export type OrgImportAdapterId =
   | "member_invite"
-  | "onething_import"
   | "hrm_payroll_profile_import"
   | "hrm_employee_hire"
+  | "hrm_attendance_import"
 
 /** Public projection of an `import_job` row for UI listings. */
 export type OrgImportJobSummary = {

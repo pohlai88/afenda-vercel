@@ -85,7 +85,7 @@ export type DashboardNavModule = (typeof DASHBOARD_NAV_MODULES)[number]
 
 /** Tails for `toLocaleOrgDashboardRevalidatePattern` (leading slash). */
 export const ORG_DASHBOARD_CONTACTS = "/contacts" as const
-export const ORG_DASHBOARD_ITHINK = "/ithink" as const
+export const ORG_DASHBOARD_ORBIT = "/orbit" as const
 export const ORG_DASHBOARD_KNOWLEDGE = "/knowledge" as const
 export const ORG_DASHBOARD_LYNX = "/lynx" as const
 export const ORG_DASHBOARD_SALE = "/sale" as const

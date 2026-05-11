@@ -6,7 +6,7 @@ import {
   getEligibleCustomizeRightWidgetIds,
   getVisibleRightUtilityWidgetIds,
   migrateUtilityWidgetPrefs,
-} from "#components/nexus/nexus-utility-widget-registry"
+} from "#components/workbench/utility-bar/workbench-utility-widget-registry"
 
 const fullAvailability: NexusRightUtilityAvailabilityContext = {
   isAdmin: true,

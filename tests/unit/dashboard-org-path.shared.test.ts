@@ -17,8 +17,18 @@ describe("sanitizePathAfterOrgSlug", () => {
       "/dashboard/knowledge"
     )
     expect(sanitizePathAfterOrgSlug("/dashboard/lynx")).toBe("/dashboard/lynx")
-    expect(sanitizePathAfterOrgSlug("/dashboard/ithink")).toBe(
-      "/dashboard/ithink"
+    expect(sanitizePathAfterOrgSlug("/dashboard/orbit")).toBe(
+      "/dashboard/orbit"
+    )
+    expect(sanitizePathAfterOrgSlug("/dashboard/ithink")).toBe("/dashboard")
+    expect(sanitizePathAfterOrgSlug("/dashboard/orbit/today")).toBe(
+      "/dashboard/orbit/today"
+    )
+    expect(sanitizePathAfterOrgSlug("/dashboard/orbit/links")).toBe(
+      "/dashboard/orbit/links"
+    )
+    expect(sanitizePathAfterOrgSlug("/dashboard/orbit/evil")).toBe(
+      "/dashboard/orbit"
     )
     expect(sanitizePathAfterOrgSlug("/dashboard/hrm")).toBe("/dashboard/hrm")
     for (const segment of getAllowedHrmDashboardSubsegments()) {

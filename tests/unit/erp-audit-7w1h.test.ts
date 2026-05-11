@@ -21,11 +21,9 @@ const baseEvent = (): Omit<AuditEvent7W1H, "why" | "action"> => ({
 
 describe("audit-7w1h.shared", () => {
   it("extractTrailingAuditVerb reads last segment", () => {
-    expect(extractTrailingAuditVerb("erp.onething.onething.resolve")).toBe(
-      "resolve"
-    )
+    expect(extractTrailingAuditVerb("erp.planner.item.resolve")).toBe("resolve")
     expect(
-      extractTrailingAuditVerb("erp.onething.onething.prediction_accepted")
+      extractTrailingAuditVerb("erp.planner.signal.prediction_accepted")
     ).toBe("prediction_accepted")
   })
 
@@ -33,14 +31,14 @@ describe("audit-7w1h.shared", () => {
     const e = {
       ...baseEvent(),
       why: "",
-      action: "erp.onething.onething.resolve",
+      action: "erp.planner.item.resolve",
     }
     expect(auditEvent7W1HSchema.safeParse(e).success).toBe(false)
     expect(
       auditEvent7W1HSchema.safeParse({
         ...baseEvent(),
         why: "Period close safety",
-        action: "erp.onething.onething.resolve",
+        action: "erp.planner.item.resolve",
       }).success
     ).toBe(true)
   })
@@ -49,7 +47,7 @@ describe("audit-7w1h.shared", () => {
     const parsed = auditEvent7W1HSchema.parse({
       ...baseEvent(),
       why: "",
-      action: "erp.onething.onething.create",
+      action: "erp.planner.item.create",
     })
     expect(parsed.why).toBe("")
   })
@@ -92,7 +90,7 @@ describe("audit-7w1h.shared", () => {
       auditEvent7W1HSchema.parse({
         ...baseEvent(),
         why: "Close safety required canonical VAT.",
-        action: "erp.onething.onething.resolve",
+        action: "erp.planner.item.resolve",
       }),
       { nowMs }
     )

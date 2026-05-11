@@ -7,7 +7,4 @@
 import "server-only"
 
 export { getNexusSnapshot } from "./data/nexus-snapshot.queries.server"
-export {
-  mapIThinkPressureRowsToOperationalPressureItems,
-  type IThinkPressureRowForOperationalPressure,
-} from "./data/nexus-operational-pressure-map.server"
+export { mapPlannerPressureRowsToOperationalPressureItems } from "./data/nexus-operational-pressure-map.server"

@@ -9,7 +9,10 @@ import {
   routeJsonOk,
   routePublicErrorMessage,
 } from "#lib/route-handler-json.shared"
-import { getOrgSessionFromRequest } from "#lib/tenant"
+import {
+  getOrgSessionFromRequest,
+  getSignedInSessionFromRequest,
+} from "#lib/tenant"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -92,13 +95,35 @@ function isAllowedHrmUploadPath(orgId: string, pathname: string): boolean {
   return UUID_RE.test(parts[3] ?? "")
 }
 
+function isAllowedOrbitUploadPath(orgId: string, pathname: string): boolean {
+  const parts = pathname.split("/").filter(Boolean)
+  if (parts.length < 5) return false
+  if (parts[0] !== "orgs" || parts[1] !== orgId || parts[2] !== "orbit") {
+    return false
+  }
+  return UUID_RE.test(parts[3] ?? "")
+}
+
+function isAllowedPersonalOrbitUploadPath(
+  userId: string,
+  pathname: string
+): boolean {
+  const parts = pathname.split("/").filter(Boolean)
+  if (parts.length < 5) return false
+  if (parts[0] !== "users" || parts[1] !== userId || parts[2] !== "orbit") {
+    return false
+  }
+  return UUID_RE.test(parts[3] ?? "")
+}
+
 function isAllowedOrgWorkspaceUploadPath(
   orgId: string,
   pathname: string
 ): boolean {
   return (
     isAllowedNexusUploadPath(orgId, pathname) ||
-    isAllowedHrmUploadPath(orgId, pathname)
+    isAllowedHrmUploadPath(orgId, pathname) ||
+    isAllowedOrbitUploadPath(orgId, pathname)
   )
 }
 
@@ -111,8 +136,11 @@ export async function POST(request: Request) {
   const orgSession = isGenerateTokenEvent
     ? await getOrgSessionFromRequest(request)
     : null
+  const signedInSession = isGenerateTokenEvent
+    ? await getSignedInSessionFromRequest(request)
+    : null
 
-  if (isGenerateTokenEvent && !orgSession) {
+  if (isGenerateTokenEvent && !orgSession && !signedInSession) {
     return routeJsonError("Unauthorized", 401)
   }
 
@@ -123,13 +151,19 @@ export async function POST(request: Request) {
       body,
       request,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
-        if (!orgSession) {
+        if (!signedInSession) {
           throw new Error("Unauthorized")
         }
 
-        if (
-          !isAllowedOrgWorkspaceUploadPath(orgSession.organizationId, pathname)
-        ) {
+        const allowedForOrg =
+          orgSession != null &&
+          isAllowedOrgWorkspaceUploadPath(orgSession.organizationId, pathname)
+        const allowedForPersonal = isAllowedPersonalOrbitUploadPath(
+          signedInSession.userId,
+          pathname
+        )
+
+        if (!allowedForOrg && !allowedForPersonal) {
           throw new Error("Upload path is not allowed for this workspace")
         }
 
@@ -140,9 +174,11 @@ export async function POST(request: Request) {
           maximumSizeInBytes: NEXUS_UTILITY_UPLOAD_MAX_SIZE_BYTES,
           addRandomSuffix: true,
           tokenPayload: JSON.stringify({
-            userId: orgSession.userId,
-            sessionId: orgSession.sessionId,
-            organizationId: orgSession.organizationId,
+            userId: signedInSession.userId,
+            sessionId: signedInSession.sessionId,
+            organizationId: allowedForOrg
+              ? orgSession?.organizationId ?? null
+              : null,
             pathname,
             clientPayload: parsedClientPayload,
           }),

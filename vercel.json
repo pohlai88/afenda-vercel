@@ -6,8 +6,8 @@
       "schedule": "0 5 * * *"
     },
     {
-      "path": "/api/cron/onething-digest",
-      "schedule": "0 8 * * *"
+      "path": "/api/cron/hrm-statutory-retry",
+      "schedule": "0 * * * *"
     }
   ],
   "headers": [

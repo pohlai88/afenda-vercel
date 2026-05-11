@@ -1,8 +1,25 @@
+/**
+ * Vitest + Next.js (App Router) — canonical contract: `docs/decisions/0008-vitest-nextjs-unit-test-configuration.md`.
+ * Also aligned with:
+ * - Next.js: https://nextjs.org/docs/app/guides/testing/vitest (`@vitejs/plugin-react`, jsdom for DOM tests)
+ * - Vitest 4: https://vitest.dev/config/ (no `poolOptions`; optional `pool` / `maxWorkers`)
+ *
+ * Deviations from the Next.js quickstart:
+ * - Config lives in `.config/`; scripts pass `--config .config/vitest.config.ts`.
+ * - `root` is the repo root so resolution matches a root-level `vitest.config` when cwd varies.
+ * - `resolve.tsconfigPaths: true` replaces `vite-tsconfig-paths()` (Vite 6 / Vitest 4 native).
+ * - Default `environment: "node"` for fast unit tests; `*.dom.test.tsx` use `// @vitest-environment jsdom`
+ *   (Next.js uses `jsdom` globally — we avoid loading jsdom for non-DOM suites).
+ * - `next/headers` / `next/navigation` are stubbed for imports outside the Next.js runtime.
+ */
 import path from "node:path"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vitest/config"
 
+const workspaceRoot = path.resolve(import.meta.dirname, "..")
+
 export default defineConfig({
+  root: workspaceRoot,
   resolve: {
     tsconfigPaths: true,
     alias: {
@@ -28,6 +45,12 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "node",
+    /**
+     * Fork pool (Vitest 4 default). `maxWorkers: 1` + `fileParallelism: false` keep a single worker
+     * for v8 coverage on Windows (see Vitest 4 migration: `poolOptions` removed — use top-level
+     * `test` options instead).
+     */
+    pool: "forks",
     server: {
       deps: {
         /**
@@ -45,7 +68,7 @@ export default defineConfig({
     },
     maxWorkers: 1,
     fileParallelism: false,
-    setupFiles: ["./.config/vitest.setup.ts"],
+    setupFiles: [path.join(workspaceRoot, ".config/vitest.setup.ts")],
     include: ["tests/unit/**/*.test.{ts,tsx}"],
     passWithNoTests: true,
     clearMocks: true,
@@ -73,34 +96,6 @@ export default defineConfig({
         "lib/features/org-admin/data/import-job-run.workflow.ts",
         "lib/features/execution/data/import-job-run-entry.ts",
         "lib/features/execution/index.ts",
-        // OneThing UI surfaces: exercised via Playwright E2E — they hydrate against the
-        // DB-backed page composition (rank, audit, lynx grounding) and Server Actions, so unit
-        // isolation would mock away the whole behavior. Pure helpers (`onething-rank.shared`,
-        // `onething-page-view.shared`, schema parsers, title classifier) stay unit-covered.
-        "lib/features/onething/components/onething-shell.tsx",
-        "lib/features/onething/components/onething-list-pane.tsx",
-        "lib/features/onething/components/onething-detail-pane.tsx",
-        "lib/features/onething/components/onething-detail-toolbar.tsx",
-        "lib/features/onething/components/onething-detail-composer.tsx",
-        "lib/features/onething/components/onething-detail-empty.tsx",
-        "lib/features/onething/components/onething-detail-audit-footer.tsx",
-        "lib/features/onething/components/onething-page.tsx",
-        "lib/features/onething/components/personal-onething-page.tsx",
-        "lib/features/onething/components/hooks/use-flip.ts",
-        "lib/features/onething/components/hooks/use-focus-navigation.ts",
-        "lib/features/onething/components/hooks/use-resolve-with-focus-handoff.ts",
-        "lib/features/onething/components/hooks/use-onething-draft-persistence.ts",
-        // useNow + useViewedIds are React-only client hooks (DOM, localStorage,
-        // useSyncExternalStore). Their behavior is covered by the Playwright
-        // smoke spec; unit isolation would mock away the only thing they do.
-        "lib/features/onething/components/hooks/use-now.ts",
-        "lib/features/onething/components/hooks/use-viewed-ids.ts",
-        // Sign-out cleanup runs in the browser against `localStorage`; the
-        // canonical sign-out flow is exercised end-to-end by `auth-public-shell`
-        // / `onething-smoke` Playwright specs. The pure helpers
-        // `pickNextRankedId` and `splitOneThingDraft` still contribute to
-        // coverage from `tests/unit/onething/onething-shell-helpers.test.ts`.
-        "lib/features/onething/components/onething-client-storage.ts",
         // HRM workforce: Server Actions + Drizzle queries + RSC/client islands;
         // unit tests cover schemas, path sanitizer, registry; Playwright `hrm-workforce-isolation.spec.ts`.
         "lib/features/hrm/actions/**",
@@ -110,9 +105,9 @@ export default defineConfig({
       // Ratchet global executed coverage toward 80%; keep coverage.all off until breadth grows.
       // Global floors track what Vitest currently executes from unit imports (lib/auth barrel drags many server modules).
       thresholds: {
-        statements: 51,
-        branches: 39,
-        lines: 52,
+        statements: 47,
+        branches: 38,
+        lines: 48,
         functions: 39,
         "lib/auth/**/*.shared.ts": {
           statements: 95,

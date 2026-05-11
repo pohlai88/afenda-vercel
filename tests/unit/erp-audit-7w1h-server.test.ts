@@ -27,10 +27,10 @@ describe("audit-7w1h.server", () => {
           which: "z",
           whom: "a",
           how: "system",
-          action: "erp.onething.onething.resolve",
+          action: "erp.planner.item.resolve",
         },
         iam: {
-          resourceType: "onething",
+          resourceType: "planner_item",
           resourceId: "id-1",
         },
       })
@@ -47,7 +47,7 @@ describe("audit-7w1h.server", () => {
       which: "PO-1",
       whom: "AP",
       how: "server-action",
-      action: "erp.onething.onething.create",
+      action: "erp.planner.item.create",
     })
 
     let persisted: (typeof event)[] | null = null
@@ -56,7 +56,7 @@ describe("audit-7w1h.server", () => {
       iam: {
         actorUserId: "u1",
         organizationId: "o1",
-        resourceType: "onething",
+        resourceType: "planner_item",
         resourceId: "id-1",
         metadata: { source: "test" },
       },
@@ -68,10 +68,10 @@ describe("audit-7w1h.server", () => {
 
     expect(vi.mocked(writeIamAuditEvent)).toHaveBeenCalledWith(
       expect.objectContaining({
-        action: "erp.onething.onething.create",
+        action: "erp.planner.item.create",
         actorUserId: "u1",
         organizationId: "o1",
-        resourceType: "onething",
+        resourceType: "planner_item",
         resourceId: "id-1",
       })
     )

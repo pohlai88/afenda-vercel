@@ -5,10 +5,11 @@
 |-------|-------|
 | **Status** | Accepted |
 | **Date** | 2026-05-10 |
+| **Amended** | **2026-05-11** — With-org bay mounts **`WorkbenchShell`** (ADR-0005); **"Nexus Field"** retired — use **Nexus** for `/nexus` surface; non-goals clarify console does not mount full org shell. |
 | **Supersedes** | Prior assumption that org bootstrap lives at a dedicated `/onboarding` gate route before any operational surface. |
 | **Does not supersede** | **ADR-0001** (Spatial OS L1–L4, materials, command pipeline target). **locale-first routing**, **tenant/session authority**, **`proxy.ts` narrow gate**, **Server Actions**, **IAM audit**, **`AGENTS.md` §6 import boundaries**. |
-| **Implements in code** | `/{locale}/console` (no-org loading bay), `/{locale}/o/{orgSlug}/nexus` (with-org Nexus field), `next.config.ts` redirect `/:locale/onboarding` → `/:locale/console`, `lib/auth/callback-path.ts`, `lib/auth/auth-status-copy.ts`, `components/console/console-bootstrap-form.tsx`, `components/console/console-pending-invites.tsx` |
-| **Related rules** | `.cursor/rules/i18n-directory.mdc` · `.cursor/rules/nextjs-best-practices.mdc` §2 (Tier A/B) · ADR-0001 §3 (layer roles) |
+| **Implements in code** | `/{locale}/console` (no-org loading bay), `/{locale}/o/{orgSlug}/nexus` (with-org Nexus), `next.config.ts` redirect `/:locale/onboarding` → `/:locale/console`, `lib/auth/callback-path.ts`, `lib/auth/auth-status-copy.ts`, `components/console/console-bootstrap-form.tsx`, `components/console/console-pending-invites.tsx` |
+| **Related rules** | `.cursor/rules/i18n-directory.mdc` · `.cursor/rules/nextjs-best-practices.mdc` §2 (Tier A/B) · ADR-0001 §3 (layer roles) · ADR-0005 (Workbench shell) |
 
 ---
 
@@ -29,7 +30,7 @@ Spatial OS chrome (L1 utility bar, L4 dock target, command layer) remains mounte
 | Bay | Locale-internal URL | Authority | Purpose |
 |-----|---------------------|-----------|---------|
 | **No-org bay** | `/console` | `requireSignedInSession()` in `[locale]/console/layout.tsx` | Pending invitations, create first organization, multi-org picker |
-| **With-org bay (Nexus field)** | `/o/{orgSlug}/nexus` | `requireOrgSession()` under `[locale]/o/[orgSlug]/layout.tsx` + `NexusShell` | Orientation, pressure, truth map, lanes — decide next surface |
+| **With-org bay (Nexus)** | `/o/{orgSlug}/nexus` | `requireOrgSession()` under `[locale]/o/[orgSlug]/layout.tsx` + **`WorkbenchShell`** | Orientation, pressure, truth map, lanes — decide next surface |
 
 ### 2.2 Post-login defaults
 
@@ -43,10 +44,10 @@ Permanent redirect **`/:locale/onboarding` → `/:locale/console`** in `next.con
 
 The IAM route tree `app/[locale]/(iam)/onboarding/**` is **removed**; bootstrap UI lives under `components/console/`.
 
-### 2.4 Relationship to ADR-0001 (Nexus)
+### 2.4 Relationship to ADR-0001 (Spatial OS shell)
 
-- Nexus **field** content stays at `/o/{orgSlug}/nexus`.
-- Console is **not** L1–L4 Spatial OS; it is an authenticated **account/org bootstrap bay**. ADR-0001 L1 non-authority and dock contracts apply when `NexusShell` is mounted.
+- Nexus **page** content stays at `/o/{orgSlug}/nexus`.
+- Console is **not** L1–L4 Spatial OS; it is an authenticated **account/org bootstrap bay**. ADR-0001 L1 non-authority and dock contracts apply when **`WorkbenchShell`** is mounted on org routes (ADR-0005).
 
 ---
 
@@ -62,5 +63,5 @@ The IAM route tree `app/[locale]/(iam)/onboarding/**` is **removed**; bootstrap 
 ## 4. Non-goals
 
 - Replacing email verification or invitation acceptance flows (URLs unchanged except revalidation targets).
-- Mounting full `NexusShell` on `/console`.
+- Mounting full **`WorkbenchShell`** on `/console` (console uses lighter account/workbench chrome).
 - Renaming route slug `nexus` or audit prefixes (ADR-0001 §2 stable identifier hierarchy).

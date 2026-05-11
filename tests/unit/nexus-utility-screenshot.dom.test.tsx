@@ -78,7 +78,7 @@ vi.mock("next-intl", () => ({
       ),
 }))
 
-import { NexusUtilityScreenshot } from "#components/nexus/nexus-utility-screenshot"
+import { WorkbenchUtilityScreenshot } from "#components/workbench/utility-bar/workbench-utility-screenshot"
 import { TooltipProvider } from "#components/ui/tooltip"
 
 function createMockCanvas() {
@@ -92,12 +92,13 @@ function createMockCanvas() {
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
-  vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
 
-describe("NexusUtilityScreenshot", () => {
+describe("WorkbenchUtilityScreenshot", () => {
   beforeEach(() => {
+    html2canvasMock.mockReset()
+    html2canvasMock.mockResolvedValue(createMockCanvas())
     vi.stubGlobal(
       "ResizeObserver",
       class ResizeObserver {
@@ -107,8 +108,8 @@ describe("NexusUtilityScreenshot", () => {
       }
     )
     document.body.innerHTML = `
-      <div data-nexus-capture-root="workspace">workspace</div>
-      <main id="dashboard-main" data-nexus-capture-root="content">content</main>
+      <div data-workbench-capture-root="workspace">workspace</div>
+      <main id="dashboard-main" data-workbench-capture-root="content">content</main>
     `
     window.history.replaceState({}, "", "/en/o/acme/dashboard/home")
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:preview")
@@ -127,7 +128,7 @@ describe("NexusUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityScreenshot orgId="org-1" />
+        <WorkbenchUtilityScreenshot orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -138,7 +139,7 @@ describe("NexusUtilityScreenshot", () => {
       await screen.findByText("Workspace capture ready for upload.")
     ).toBeTruthy()
     expect(html2canvasMock).toHaveBeenCalledWith(
-      document.querySelector('[data-nexus-capture-root="workspace"]'),
+      document.querySelector('[data-workbench-capture-root="workspace"]'),
       expect.objectContaining({
         backgroundColor: null,
         logging: false,
@@ -167,7 +168,7 @@ describe("NexusUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityScreenshot orgId="org-1" />
+        <WorkbenchUtilityScreenshot orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -179,7 +180,7 @@ describe("NexusUtilityScreenshot", () => {
       await screen.findByText("Content capture ready for upload.")
     ).toBeTruthy()
     expect(html2canvasMock).toHaveBeenCalledWith(
-      document.querySelector('[data-nexus-capture-root="content"]'),
+      document.querySelector('[data-workbench-capture-root="content"]'),
       expect.any(Object)
     )
   })
@@ -189,7 +190,7 @@ describe("NexusUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityScreenshot orgId="org-1" />
+        <WorkbenchUtilityScreenshot orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -206,7 +207,7 @@ describe("NexusUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityScreenshot orgId="org-1" />
+        <WorkbenchUtilityScreenshot orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -220,9 +221,14 @@ describe("NexusUtilityScreenshot", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Capture the current view to review it before upload.")
-      ).toBeTruthy()
+        screen.queryByText("Workspace capture ready for upload.")
+      ).toBeNull()
     })
+    expect(
+      await screen.findByText(
+        "Capture the current view to review it before upload."
+      )
+    ).toBeTruthy()
   })
 
   it("shows inline upload failures", async () => {
@@ -231,7 +237,7 @@ describe("NexusUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityScreenshot orgId="org-1" />
+        <WorkbenchUtilityScreenshot orgId="org-1" />
       </TooltipProvider>
     )
 

@@ -1,6 +1,7 @@
 import type { AppPath } from "#lib/i18n/locales.shared"
 
 import { HRM_DASHBOARD_CAPABILITY_SEGMENT_SET } from "#lib/hrm-dashboard.shared"
+import { ORBIT_DASHBOARD_SURFACE_SEGMENT_SET } from "#lib/planner-dashboard.shared"
 
 /**
  * Admin workbench segments under `/o/{slug}/admin/{segment}`.
@@ -28,7 +29,7 @@ function isLikelyDatabaseUuid(segment: string): boolean {
 /** Single-segment ERP modules under `/o/{slug}/dashboard/{module}`. */
 export const ORG_DASHBOARD_MODULES = [
   "contacts",
-  "ithink",
+  "orbit",
   "knowledge",
   "lynx",
   "hrm",
@@ -101,6 +102,22 @@ export function sanitizePathAfterOrgSlug(tailFromO: string): AppPath {
       return `/dashboard/hrm/${parts[2]}` as AppPath
     }
     return "/dashboard/hrm" as AppPath
+  }
+  if (
+    parts.length >= 2 &&
+    parts[1] === "orbit" &&
+    tailFromO.startsWith("/dashboard/orbit")
+  ) {
+    if (parts.length === 2) {
+      return "/dashboard/orbit" as AppPath
+    }
+    if (
+      parts.length === 3 &&
+      ORBIT_DASHBOARD_SURFACE_SEGMENT_SET.has(parts[2]!)
+    ) {
+      return `/dashboard/orbit/${parts[2]}` as AppPath
+    }
+    return "/dashboard/orbit" as AppPath
   }
   if (parts.length === 2 && MODULE_SET.has(parts[1])) {
     return `/dashboard/${parts[1]}` as AppPath

@@ -32,7 +32,6 @@ export const RESERVED_ORG_SLUGS = new Set([
   "sign-up",
   "sitemap",
   "static",
-  "onething",
   "users",
   "verify-email",
 ])

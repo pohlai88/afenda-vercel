@@ -40,6 +40,9 @@ export {
   type PlatformAdminUserActionState,
 } from "./actions/users.actions"
 
+// Rail slots builder
+export { buildPlatformAdminRailSlots } from "./data/platform-admin-rail-slots"
+
 // UI components
 export { PlatformAdminShell } from "./components/platform-admin-shell"
 export { PlatformAdminSidebar } from "./components/platform-admin-sidebar"

@@ -18,7 +18,7 @@ import type {
 } from "./import-adapter.server"
 import { hrmPayrollProfileImportAdapter } from "./hrm-payroll-profile-import.adapter.server"
 import { hrmEmployeeHireAdapter } from "./hrm-employee-hire.adapter.server"
-import { onethingImportAdapter } from "./onething-import.adapter.server"
+import { attendanceImportAdapter } from "../../hrm/data/attendance-import.adapter.server"
 
 function invitationIdFromCreateResult(result: unknown): string | null {
   if (!result || typeof result !== "object") return null
@@ -121,9 +121,9 @@ export const memberInviteAdapter: OrgImportAdapter<MemberInviteRow> = {
 
 const ADAPTER_REGISTRY = {
   member_invite: memberInviteAdapter,
-  onething_import: onethingImportAdapter,
   hrm_payroll_profile_import: hrmPayrollProfileImportAdapter,
   hrm_employee_hire: hrmEmployeeHireAdapter,
+  hrm_attendance_import: attendanceImportAdapter,
 } as const
 
 export type RegisteredAdapterId = keyof typeof ADAPTER_REGISTRY

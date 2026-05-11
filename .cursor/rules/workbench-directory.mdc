@@ -1,0 +1,62 @@
+---
+description: Workbench canonical shell (all post-login layout chrome) — operational infrastructure, not feature UI
+globs: components/workbench/**
+alwaysApply: false
+---
+
+# Workbench directory boundary (`components/workbench/`)
+
+Mirrors **AGENTS.md §7 → Design system** (app shell row). **Canonical shell product doctrine:** **[`docs/decisions/0001-afenda-spatial-os-shell.md`](../../docs/decisions/0001-afenda-spatial-os-shell.md)** (Spatial OS — L1 Utility / L2 Workspace / L3 Command–Intent / L4 Dock) and **[`docs/decisions/0005-workbench-canonical-shell.md`](../../docs/decisions/0005-workbench-canonical-shell.md)**. **Material adoption:** **[`.cursor/rules/material-semantics.mdc`](../../.cursor/rules/material-semantics.mdc)** + **`scripts/check-design-contract.mjs`**. If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.
+
+> **`components/workbench/`** is the **single canonical shell**. No other post-login layout-wrapper component exists. `components/nexus/` retains only Lynx summon and Nexus Field (product surface) components — it is no longer the shell host.
+
+## Authority
+
+- **`components/workbench/`** owns **all post-login layout chrome**: `workbench-shell.tsx` (the single canonical mount point), `workbench-surface.tsx` (content region), `workbench-sub-layout.tsx` (nested rail surfaces), L1 utility bar (`utility-bar/workbench-utility-bar.tsx` + all `workbench-utility-*.tsx` widgets), command palette runtime (`workbench-command-layer.tsx`, `workbench-command-context.tsx`), L4 dock stub, mobile rail sheet (`workbench-mobile-rail.tsx`), skip-to-main (`workbench-skip-to-main.tsx`), and the WorkbenchRail component family (`rail/`). No tenant business rules, no DB access, no Server Actions.
+- **`components/nexus/`** owns **Nexus Field product surface** (`nexus-page.tsx` and all Nexus Field zone components — pressure, priority lanes, truth map, resolutions, orientation band) and **Lynx summon UI** (`nexus-lynx-summon-context.tsx`, `nexus-lynx-summon.client.tsx`). These are not chrome — they are product surfaces that render inside `WorkbenchShell.children`.
+- **IAM auth surfaces** (sign-in, interruption flows) use **`components/auth/`** and **`#lib/auth`** — do not fold IAM workflows into Workbench shell components.
+
+## Shell ownership doctrine
+
+The Workbench shell is **operational spatial infrastructure** (ADR-0001 + ADR-0005), not marketing UI or module feature UI. Mental model: **intent → operational surface → execution → truth resolution**, implemented as **L1–L4** — not "portal/home → module tree."
+
+Every post-login `layout.tsx` mounts **`WorkbenchShell`**. Nested surfaces that need a rail inside an already-mounted shell (org admin, HRM) use **`WorkbenchSubLayout`** — not a second `WorkbenchShell`.
+
+Prioritize, in order:
+
+1. Spatial orientation and operational continuity (dock + command intent + workspace surface)
+2. Organization context clarity (slug-bound URLs per locale-first contract)
+3. Capability discoverability without hierarchical ERP clutter
+4. Layout stability (no padding ↔ dock/rail width drift)
+5. Keyboard and accessibility consistency
+
+**Before** visual differentiation, motion novelty, or unconstrained "workspace intelligence" UX.
+
+## Component map
+
+| Component | File | Mount point |
+|---|---|---|
+| `WorkbenchShell` | `workbench-shell.tsx` | Every post-login `layout.tsx` |
+| `WorkbenchSubLayout` | `workbench-sub-layout.tsx` | Nested layouts with a rail (admin, HRM) inside an existing shell |
+| `WorkbenchSurface` | `workbench-surface.tsx` | Page-level content region (sticky header + scroll body) |
+| `WorkbenchUtilityBar` | `utility-bar/workbench-utility-bar.tsx` | L1 top bar; accepts `mode: "org" | "no-org"` |
+| `WorkbenchRail` | `rail/workbench-rail.tsx` | L2 left nav rail (collapsible, slot-driven) |
+| `WorkbenchCommandLayer` | `workbench-command-layer.tsx` | L3 command palette (route-configured via sections prop) |
+| `WorkbenchDock` | `workbench-dock.tsx` | L4 dock (stub; org surfaces only) |
+| `WorkbenchMobileRailSheet` | `workbench-mobile-rail.tsx` | Mobile nav Sheet; driven by `WorkbenchMobileRailProvider` |
+
+## Rules
+
+- **Single shell.** `WorkbenchShell` mounts once per route tree. Do **not** nest a second `WorkbenchShell` inside a child layout — use `WorkbenchSubLayout` for inner rails.
+- **Registry-aligned navigation.** Rail slots are always built from capability registries (`ORG_ADMIN_CAPABILITIES`, `HRM_CAPABILITIES`, `PLATFORM_ADMIN_CAPABILITIES`) or typed data contracts (`buildAccountRailSlotsV2`). No orphaned hard-coded `NAV_ITEMS` arrays that drift from path helpers.
+- **L1 utility bar widgets.** All utility-bar icon buttons must use `WorkbenchUtilityRoundTooltipButton` / `WorkbenchUtilityRoundTooltipLink` or `WorkbenchUtilityTriggerTooltip` for tooltip consistency. Do not import `#components/ui/tooltip` directly inside `components/workbench/**`.
+- **Boring shell.** No animated chrome for novelty; density and calm ERP posture beat dashboard marketing energy.
+- **Module-level layouts.** Two-pane and multi-pane shells (e.g. Orbit queue+detail layouts) are feature-level geometry — they live **inside** `WorkbenchSurface.children` and remain feature-owned under `lib/features/<module>/components/`. They must not be confused with `WorkbenchShell` or `WorkbenchSubLayout`.
+
+## Forbidden
+
+- Tenant-scoped **ERP/domain logic** inside `components/workbench/**`.
+- **Deep imports** into `lib/features/<module>/data/...` from Workbench shell — consume `#features/<module>` or `#features/<module>/client` barrels only where the shell needs a typed contract.
+- **Cross-tenant or slug-from-client** assumptions — org slug and navigation targets come from server guards + path builders; shell components remain presenters of props from RSC parents.
+- Adding `nexus-shell.tsx` or `nexus-surface-chrome.tsx` back — those files have been deleted; `WorkbenchShell` is the replacement.
+- Creating a parallel `components/dashboard/` shell directory — there is no second shell stack.

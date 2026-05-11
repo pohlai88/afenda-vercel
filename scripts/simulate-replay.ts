@@ -33,13 +33,12 @@ async function main() {
     process.exit(2)
   }
 
-  const { simulationRunId, oneThingId } =
-    await replayOperationalScenarioForOrganization({
-      organizationId,
-      scenarioId: parsed.data,
-      actorUserId: null,
-      actorSessionId: null,
-    })
+  const { simulationRunId } = await replayOperationalScenarioForOrganization({
+    organizationId,
+    scenarioId: parsed.data,
+    actorUserId: null,
+    actorSessionId: null,
+  })
 
   console.log(
     JSON.stringify(
@@ -48,7 +47,6 @@ async function main() {
         organizationId,
         scenarioId: parsed.data,
         simulationRunId,
-        oneThingId,
       },
       null,
       2

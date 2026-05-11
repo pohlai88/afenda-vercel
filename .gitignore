@@ -60,6 +60,9 @@ pnpm-debug.log*
 # Brand guideline source export — exceeds GitHub 100 MB limit; keep locally or use Git LFS
 public/afenda-brand/brand-guideline/afenda-figma-export-full-guideline.png
 
+# turborepo (single-package mode — `turbo run …` local cache; canonical default location)
+/.turbo/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

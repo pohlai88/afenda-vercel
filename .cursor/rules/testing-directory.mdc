@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Testing directory contract
 
-Authoritative rules live in **AGENTS.md** (section 2 commands + section 6 canonical tree + **Testing directory contract**). This rule mirrors boundaries for edits under `tests/`.
+Authoritative rules live in **AGENTS.md** (section 2 commands + section 6 canonical tree + **Testing directory contract**). Vitest vs Next.js quickstart deviations are locked in **[`ADR-0008`](../../docs/decisions/0008-vitest-nextjs-unit-test-configuration.md)**. This rule mirrors boundaries for edits under `tests/`.
 
 ## Layout
 
@@ -19,7 +19,7 @@ Authoritative rules live in **AGENTS.md** (section 2 commands + section 6 canoni
 
 - **`pnpm test:ci`** / **`pnpm test:coverage`** run Vitest with **`@vitest/coverage-v8`**. Reports: **`.artifacts/coverage/`** (`coverage-summary.json`, `lcov.info`, text).
 - Do **not** delete **`.artifacts/coverage/.tmp`** or shard files from shell/bootstrap scripts — Vitest owns that lifecycle (**AGENTS.md** testing contract).
-- **IAM-sensitive shared modules** (`lib/auth/**/*.shared.ts`, **`lib/auth/callback-path.ts`**) must meet **≥ 95%** coverage (lines, statements, branches, functions) — enforced in [`vitest.config.ts`](vitest.config.ts).
+- **IAM-sensitive shared modules** (`lib/auth/**/*.shared.ts`, **`lib/auth/callback-path.ts`**) must meet **≥ 95%** coverage (lines, statements, branches, functions) — enforced in [`.config/vitest.config.ts`](../../.config/vitest.config.ts) (**[`ADR-0008`](../../docs/decisions/0008-vitest-nextjs-unit-test-configuration.md)**).
 - **Global executed coverage** is **ratcheted** from the current baseline (~mid-60%) toward **80%**. Do **not** enable **`coverage.all: true`** until the repo has enough intentional unit breadth — untouched files must not count as 0% prematurely.
 
 ## React Testing Library

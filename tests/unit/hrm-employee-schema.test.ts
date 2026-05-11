@@ -4,7 +4,7 @@ import {
   archiveEmployeeFormSchema,
   createEmployeeFormSchema,
   updateEmployeeFormSchema,
-} from "#features/hrm"
+} from "../../lib/features/hrm/schemas/employee.schema"
 
 describe("HRM employee form schemas", () => {
   it("createEmployeeFormSchema accepts minimal valid input", () => {

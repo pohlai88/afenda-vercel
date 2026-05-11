@@ -3,16 +3,20 @@ import type { Metadata } from "next"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages, getTranslations } from "next-intl/server"
 
-import { NexusUtilityBar } from "#components/nexus/nexus-utility-bar"
+import { WorkbenchCommandLayer } from "#components/workbench"
+import { WorkbenchShell } from "#components/workbench"
+import { WorkbenchUtilityBar } from "#components/workbench"
 import { RouteEnvelopeProvider } from "#components/route-envelope-context"
+import { SignOutButton } from "#components/sign-out-button"
 import { requireAuthShellSignedInSession } from "#lib/auth"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/route-envelope.shared"
 import { SITE_NAME } from "#lib/site"
 import { organizationNexusPath } from "#features/nexus"
+import { accountOrbitPath } from "#features/planner"
 
-import { AccountOperatingShell } from "./_components/account-operating-shell"
+import { buildAccountRailSlotsV2 } from "./_components/account-rail-slots"
 import { getAccountShellData } from "./_components/account-shell-data.server"
 
 export const metadata: Metadata = {
@@ -62,6 +66,13 @@ export default async function AccountLayout({
       matchPath: "/account/identity",
     },
     {
+      id: "orbit" as const,
+      label: t("rail.orbit"),
+      description: t("rail.orbitDescription"),
+      href: toLocalePath(locale, accountOrbitPath()),
+      matchPath: "/account/orbit",
+    },
+    {
       id: "sessions" as const,
       label: t("rail.sessions"),
       description: t("rail.sessionsDescription"),
@@ -80,26 +91,6 @@ export default async function AccountLayout({
       label: t("rail.workspace"),
       description: t("rail.workspaceDescription"),
       href: activeWorkspaceHref,
-    },
-  ]
-
-  const quickActions = [
-    {
-      type: "link" as const,
-      label: t("quickActions.addPasskey"),
-      description: t("quickActions.addPasskeyDescription"),
-      href: `${toLocalePath(locale, "/account/security")}#passkeys`,
-    },
-    {
-      type: "link" as const,
-      label: t("quickActions.signOutOthers"),
-      description: t("quickActions.signOutOthersDescription"),
-      href: `${toLocalePath(locale, "/account/security")}#sessions`,
-    },
-    {
-      type: "signout" as const,
-      label: t("quickActions.signOut"),
-      description: t("quickActions.signOutDescription"),
     },
   ]
 
@@ -158,42 +149,71 @@ export default async function AccountLayout({
     },
   ]
 
+  const summary = {
+    ...shellData.summary,
+    activeOrgHref: shellData.activeOrganization ? activeWorkspaceHref : null,
+  }
+
+  const railSlots = buildAccountRailSlotsV2({
+    summary,
+    sections,
+    recentContexts,
+    signals,
+  })
+
+  const commandSections = [
+    {
+      heading: t("rail.sectionsLabel"),
+      items: sections.map((s) => ({ label: s.label, href: s.href })),
+    },
+  ]
+
   return (
     <RouteEnvelopeProvider value={envelope}>
       <NextIntlClientProvider locale={locale} messages={messages}>
-      <AccountOperatingShell
-        title={t("title")}
-        railLabel={t("rail.aria")}
-        railDescription={t("rail.description")}
-        sectionsLabel={t("rail.sectionsLabel")}
-        quickActionsLabel={t("rail.quickActionsLabel")}
-        recentLabel={t("rail.recentLabel")}
-        collapseRailLabel={t("rail.collapse")}
-        expandRailLabel={t("rail.expand")}
-        summary={{
-          ...shellData.summary,
-          activeOrgHref: shellData.activeOrganization
-            ? activeWorkspaceHref
-            : null,
-        }}
-        sections={sections}
-        quickActions={quickActions}
-        recentContexts={recentContexts}
-        signals={signals}
-        utilityBar={
-          utilityBarOrg ? (
-            <NexusUtilityBar
-              orgSlug={utilityBarOrg.slug}
-              orgName={utilityBarOrg.name}
-              orgId={utilityBarOrg.id}
-              userId={session.userId}
-              userEmail={shellData.summary.email}
+        <WorkbenchShell
+          skipToMainLabel={t("skipToMain")}
+          utilityBar={
+            utilityBarOrg ? (
+              <WorkbenchUtilityBar
+                mode="org"
+                orgSlug={utilityBarOrg.slug}
+                orgName={utilityBarOrg.name}
+                orgId={utilityBarOrg.id}
+                userId={session.userId}
+                userEmail={shellData.summary.email}
+              />
+            ) : (
+              <WorkbenchUtilityBar
+                mode="no-org"
+                userId={session.userId}
+                userEmail={shellData.summary.email}
+              />
+            )
+          }
+          rail={{
+            slots: {
+              ...railSlots,
+              footer: <SignOutButton />,
+            },
+            labels: {
+              ariaLabel: t("rail.aria"),
+              description: t("rail.description"),
+              collapseLabel: t("rail.collapse"),
+              expandLabel: t("rail.expand"),
+            },
+            storageKey: "afenda.account.rail",
+          }}
+          commandLayer={
+            <WorkbenchCommandLayer
+              title={t("title")}
+              description={t("rail.description")}
+              sections={commandSections}
             />
-          ) : null
-        }
-      >
-        {children}
-      </AccountOperatingShell>
+          }
+        >
+          {children}
+        </WorkbenchShell>
       </NextIntlClientProvider>
     </RouteEnvelopeProvider>
   )

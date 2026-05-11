@@ -538,7 +538,7 @@
     "nav": {
       "label": "Dashboard modules",
       "contacts": "Contacts",
-      "ithink": "iThink",
+      "orbit": "Orbit",
       "lynx": "Lynx",
       "knowledge": "Knowledge",
       "sale": "Sale",
@@ -547,6 +547,87 @@
       "accounting": "Accounting",
       "hrm": "Human resources",
       "admin": "Admin"
+    },
+    "Orbit": {
+      "title": "Orbit",
+      "description": "Operational execution substrate for signals, ranked work, timelines, links, and sessions.",
+      "eyebrow": "Operational execution",
+      "surfaces": {
+        "queue": {
+          "label": "Queue",
+          "title": "Orbit Queue",
+          "description": "Ranked operational work requiring execution now."
+        },
+        "today": {
+          "label": "Today",
+          "title": "Orbit Today",
+          "description": "Scheduled and active operational work for the current day."
+        },
+        "timeline": {
+          "label": "Timeline",
+          "title": "Orbit Timeline",
+          "description": "Upcoming, overdue, and scheduled pressure across the execution horizon."
+        },
+        "signals": {
+          "label": "Signals",
+          "title": "Orbit Signals",
+          "description": "Detected operational pressure awaiting triage, suppression, or promotion."
+        },
+        "sessions": {
+          "label": "Sessions",
+          "title": "Orbit Sessions",
+          "description": "Active and recent execution sessions with worklog continuity."
+        },
+        "links": {
+          "label": "Links",
+          "title": "Orbit Links",
+          "description": "ERP-linked execution objects grouped by business truth."
+        }
+      },
+      "quickCreate": {
+        "signalTitle": "Capture signal",
+        "signalPlaceholder": "Signal summary",
+        "signalButton": "Add signal",
+        "itemTitle": "Create item",
+        "itemPlaceholder": "Execution item title",
+        "itemButton": "Add item",
+        "sessionTitle": "Start session",
+        "sessionButton": "Start session"
+      },
+      "panels": {
+        "listTitle": "Execution feed",
+        "detailTitle": "Detail",
+        "emptyTitle": "No execution records yet",
+        "emptyDescription": "Orbit is ready. Capture a signal or create an execution item to start building operational continuity.",
+        "detailEmptyTitle": "Nothing selected",
+        "detailEmptyDescription": "Choose a signal, item, session, or link to inspect operational context, pressure, and temporal evidence.",
+        "summaryTitle": "Pressure overview"
+      },
+      "status": {
+        "createdSignal": "Signal captured.",
+        "createdItem": "Execution item created.",
+        "promotedSignal": "Signal promoted to execution.",
+        "updatedItem": "Execution item updated.",
+        "startedSession": "Session started.",
+        "stoppedSession": "Session stopped.",
+        "invalidInput": "Orbit could not process that request."
+      },
+      "labels": {
+        "state": "State",
+        "class": "Class",
+        "priority": "Priority",
+        "pressure": "Pressure",
+        "schedule": "Schedule",
+        "owner": "Owner",
+        "created": "Created",
+        "updated": "Updated",
+        "none": "None",
+        "activity": "Activity",
+        "links": "Links",
+        "comments": "Comments",
+        "assignments": "Assignments",
+        "sessions": "Sessions"
+      }
     },
     "Hrm": {
       "shell": {
@@ -868,6 +949,234 @@
         },
         "entitlementDays": "{days} days",
         "entitlementProratedDays": "{days} days ({numerator}/{denominator} pro-rata)"
+      },
+      "leaveRequest": {
+        "pageTitle": "Leave Requests",
+        "pageDescription": "Employee leave applications, balance tracking, and approval workflow.",
+        "halfDay": {
+          "none": "Full day",
+          "morning": "Morning half-day",
+          "afternoon": "Afternoon half-day"
+        },
+        "state": {
+          "draft": "Draft",
+          "submitted": "Pending approval",
+          "approved": "Approved",
+          "rejected": "Rejected",
+          "cancelled": "Cancelled",
+          "taken": "Taken"
+        },
+        "approvalState": {
+          "pending": "Pending",
+          "approved": "Approved",
+          "rejected": "Rejected",
+          "cancelled": "Cancelled",
+          "expired": "Expired"
+        },
+        "fieldEmployee": "Employee",
+        "fieldLeaveType": "Leave type",
+        "fieldStartDate": "Start date",
+        "fieldEndDate": "End date",
+        "fieldDurationDays": "Duration (days)",
+        "fieldHalfDay": "Half day",
+        "fieldReason": "Reason",
+        "fieldPolicyVersion": "Policy version",
+        "fieldRejectedReason": "Rejection reason",
+        "fieldDecisionNote": "Decision note",
+        "applyLeave": "Apply leave",
+        "cancelLeave": "Cancel request",
+        "approveLeave": "Approve",
+        "rejectLeave": "Reject",
+        "applySuccess": "Leave request submitted successfully.",
+        "cancelSuccess": "Leave request cancelled.",
+        "approveSuccess": "Leave request approved.",
+        "rejectSuccess": "Leave request rejected.",
+        "errorInsufficientBalance": "Insufficient leave balance.",
+        "errorOverlap": "Leave dates overlap with an existing active request.",
+        "errorArchivedEmployee": "Cannot submit leave for an archived employee.",
+        "errorArchivedLeaveType": "Leave type is archived.",
+        "balanceSummary": {
+          "entitled": "Entitled",
+          "taken": "Taken",
+          "pending": "Pending",
+          "available": "Available"
+        },
+        "approvalSnapshot": "Approval snapshot",
+        "approvalSnapshotDescription": "This is what the approver saw when the decision was made. It is preserved even if the underlying record changes."
+      },
+      "attendance": {
+        "pageTitle": "Attendance",
+        "pageDescription": "Clock events, daily summaries, and corrections.",
+        "eventType": {
+          "clock_in": "Clock in",
+          "clock_out": "Clock out",
+          "break_start": "Break start",
+          "break_end": "Break end",
+          "correction": "Correction"
+        },
+        "source": {
+          "manual": "Manual entry",
+          "csv_import": "CSV import",
+          "mobile": "Mobile",
+          "device": "Device"
+        },
+        "dayState": {
+          "open": "Open",
+          "computed": "Computed",
+          "locked": "Locked"
+        },
+        "fields": {
+          "employeeId": "Employee",
+          "eventType": "Event type",
+          "occurredAt": "Occurred at",
+          "correctionReason": "Correction reason",
+          "attendanceDate": "Date",
+          "workedMinutes": "Worked",
+          "breakMinutes": "Break",
+          "firstClockIn": "First clock-in",
+          "lastClockOut": "Last clock-out"
+        },
+        "recordEvent": {
+          "title": "Record attendance event",
+          "submit": "Record event",
+          "pending": "Saving…",
+          "success": "Attendance event recorded.",
+          "error": "Failed to record attendance event. Please try again."
+        },
+        "correctEvent": {
+          "title": "Correct attendance event",
+          "description": "A correction creates a new event that supersedes the original. The original record is preserved for audit.",
+          "submit": "Save correction",
+          "pending": "Saving…",
+          "success": "Correction recorded.",
+          "error": "Failed to save correction. Please try again."
+        },
+        "regenerateDay": {
+          "title": "Regenerate day summary",
+          "description": "Recomputes the daily aggregate from raw events. Idempotent — no changes if events are unchanged.",
+          "submit": "Regenerate",
+          "pending": "Regenerating…",
+          "successUpdated": "Day summary updated.",
+          "successSkipped": "Day summary is already up-to-date.",
+          "error": "Failed to regenerate. Please try again."
+        },
+        "csvImport": {
+          "title": "Import attendance events",
+          "description": "Upload a CSV with columns: employee_id, event_type, occurred_at. Optional: correction_of_event_id, correction_reason, device_id.",
+          "templateHeaders": "employee_id,event_type,occurred_at,correction_of_event_id,correction_reason,device_id"
+        },
+        "emptyEvents": "No attendance events for this date.",
+        "emptyDays": "No attendance records in this range."
+      },
+      "payroll": {
+        "eyebrow": "Payroll",
+        "pageTitle": "Payroll preparation",
+        "pageDescription": "Create pay periods, preview gross-to-net runs, and answer the seven traceability questions before locking.",
+        "createPeriodTitle": "Open a payroll period",
+        "createPeriodDescription": "Defines the date window and payment date for a monthly cycle. Runs compute via a durable workflow using the pinned Malaysia rule pack when the profile country is MY.",
+        "fieldPeriodStart": "Period start (YYYY-MM-DD)",
+        "fieldPeriodEnd": "Period end (YYYY-MM-DD)",
+        "fieldPaymentDate": "Payment date (YYYY-MM-DD)",
+        "fieldCurrency": "Currency",
+        "createPeriod": "Open period",
+        "creating": "Opening…",
+        "periodCreated": "Period opened.",
+        "prepareRuns": "Prepare runs",
+        "preparing": "Preparing…",
+        "runsCreated": "{count} runs staged.",
+        "noPeriods": "No payroll periods yet. Open the first period above.",
+        "noRuns": "No runs yet. Click Prepare runs to stage employee computations.",
+        "paymentDateLabel": "Payment",
+        "traceabilityTitle": "Traceability (7 questions)",
+        "runsTitle": "Preview runs",
+        "lockWorkflowHint": "When every run is computed without validation blockers and attendance days in-range are computed or locked, request lock certification. After approval, lock pins the MY rule-pack version and freezes runs plus attendance rows in this window.",
+        "requestLockApproval": "Request lock certification",
+        "requestingLockApproval": "Requesting…",
+        "lockApprovalRequested": "Certification requested — another admin can approve.",
+        "pendingLockApprovalTitle": "Pending lock certification",
+        "approveLockApproval": "Approve certification",
+        "approvingLockApproval": "Approving…",
+        "rejectLockApproval": "Reject certification",
+        "rejectingLockApproval": "Rejecting…",
+        "rejectReasonLabel": "Rejection reason",
+        "lockPeriod": "Lock payroll period",
+        "lockingPeriod": "Locking…",
+        "periodLocked": "Period locked — rule pack version pinned.",
+        "lockMyrOnly": "Period lock is enabled for MYR payroll only until additional country packs ship.",
+        "pinnedRulePackLabel": "Rule pack",
+        "hasIssues": "{count} issue(s)",
+        "colEmployee": "Employee",
+        "colState": "State",
+        "colGrossPay": "Gross pay",
+        "colNetPay": "Net pay",
+        "colEmployerCost": "Employer cost",
+        "state": {
+          "open": "Open",
+          "preparing": "Preparing",
+          "locked": "Locked",
+          "finalized": "Finalized",
+          "posted": "Posted"
+        },
+        "trace": {
+          "q1": "Who is included?",
+          "q2": "Contract snapshotted for all?",
+          "q3": "Profile snapshotted for all?",
+          "q4": "Attendance complete?",
+          "q5": "Rule pack version?",
+          "q6": "Blockers remaining?",
+          "q7": "Period approved?",
+          "complete": "Complete",
+          "missing": "Missing",
+          "pending": "Pending",
+          "notPinned": "Not pinned (pre–Phase 3B)",
+          "none": "None",
+          "blockerCount": "{count} run(s) blocked",
+          "approved": "Approved"
+        },
+        "line": {
+          "BASIC": "Basic salary",
+          "EPF_EE": "EPF — Employee contribution",
+          "EPF_ER": "EPF — Employer contribution",
+          "SOCSO_EE": "SOCSO — Employee contribution",
+          "SOCSO_ER": "SOCSO — Employer contribution",
+          "EIS_EE": "EIS — Employee contribution",
+          "EIS_ER": "EIS — Employer contribution",
+          "PCB": "Income tax (PCB/MTD)",
+          "HRDF": "HRDF/HRD Corp levy",
+          "UNPAID_LEAVE_DEDUCT": "Unpaid leave deduction",
+          "OT_HOURS": "Overtime earnings"
+        }
+      },
+      "compliance": {
+        "eyebrow": "Compliance",
+        "pageTitle": "Compliance evidence center",
+        "pageDescription": "Generate, review, and track submission of statutory packs for EPF, SOCSO, EIS, PCB, and annual EA / Borang E.",
+        "title": "Statutory evidence register",
+        "description": "Packs are generated from locked payroll runs and pinned to the active rule-pack version.",
+        "periodSelector": "Payroll period",
+        "periodSelectorDescription": "Select a period to view its statutory evidence packs.",
+        "selectPeriod": "Select a period…",
+        "generateAll": "Generate all packs",
+        "generating": "Generating…",
+        "evidenceRegister": "Evidence register",
+        "markSubmitted": "Mark submitted",
+        "saving": "Saving…",
+        "submittedConfirmed": "Marked as submitted",
+        "externalReferencePlaceholder": "Receipt / ref number",
+        "emptyNoPeriod": "Select a payroll period to view its evidence packs.",
+        "emptyFinalizePeriod": "No packs generated yet. Lock the period and generate evidence to begin.",
+        "requireLockedPeriod": "Lock the payroll period to enable statutory pack generation.",
+        "generatedSummary": "Generated {count, plural, one {# pack} other {# packs}} (rule pack {version}).",
+        "rulePackVersion": "Rule pack version",
+        "downloadJson": "Download JSON",
+        "downloadJsonAria": "Download canonical JSON for {pack}",
+        "sendToBureau": "Send to bureau",
+        "sending": "Sending…",
+        "delivered": "Delivered",
+        "deliveredWithStatus": "Delivered (HTTP {status})",
+        "httpStatus": "HTTP {status}",
+        "attempts": "{count, plural, one {# attempt} other {# attempts}}",
+        "lastAttempt": "Last attempt {when}"
       }
     },
     "surfaceComingSoon": {
@@ -882,7 +1191,7 @@
         "sale": {
           "eyebrow": "Revenue",
           "description": "Quotations, orders, and billing flows are planned for a future release.",
-          "detail": "Use iThink and Contacts for operational work today; structured sale workflows will follow in a future release."
+          "detail": "Use Orbit and Contacts for operational work today; structured sale workflows will follow in a future release."
         },
         "purchase": {
           "eyebrow": "Procurement",
@@ -943,17 +1252,6 @@
         "tabChart": "Chart",
         "chartPending": "Chart suggestion unavailable — try a broader question."
       },
-      "nlDemoOneThing": {
-        "sectionTitle": "Structured query — onething (demo)",
-        "sectionDescription": "Ask in plain English. Lynx generates read-only SQL against your organization’s `onething` rows only.",
-        "labelQuestion": "Question",
-        "placeholderQuestion": "e.g. How many tasks are still pending?",
-        "submit": "Run query",
-        "pending": "Working…",
-        "clear": "Clear",
-        "errorGeneric": "Something went wrong. Try again.",
-        "headingSql": "Generated SQL"
-      },
       "substrate": {
         "addTitle": "Knowledge substrate",
         "addDescription": "Add text chunks with embeddings so Truth retrieval has evidence to draw on.",
@@ -980,168 +1278,6 @@
       "searchEmpty": "No similar chunks found.",
       "distanceLabel": "Cosine distance: {distance}"
     },
-    "OneThing": {
-      "title": "OneThing",
-      "description": "Org-wide consequences that need a safe decision.",
-      "personalTitle": "Personal OneThing",
-      "personalDescription": "Your private consequences stay on your account. Switch to a workspace for shared operational focus.",
-      "addConsequence": "Add consequence",
-      "titleLabel": "Title",
-      "consequenceLabel": "Consequence",
-      "dueLabel": "Due",
-      "severityLabel": "Severity",
-      "assigneeLabel": "Assignee",
-      "pending": "Working…",
-      "purgeResolved": "Purge resolved",
-      "rotateShareToken": "Rotate share token",
-      "ariaConsequenceList": "OneThing list",
-      "empty": "No consequences yet.",
-      "complete": "Resolve consequence",
-      "reopen": "Reopen",
-      "snooze": "Snooze 1h",
-      "deleteConsequence": "Delete",
-      "commentPlaceholder": "Add a comment…",
-      "addComment": "Comment",
-      "addAttachment": "Attach file",
-      "whyNowLabel": "first",
-      "whyNowFocusOpened": "you opened this directly",
-      "capturePlaceholder": "What needs to happen…",
-      "captureCancel": "Cancel",
-      "captureCta": "Capture (c)",
-      "captureNewCta": "+ New",
-      "captureHeader": "Capture · linkage from your route context",
-      "captureSeedDefault": "linked to your dashboard · provenance you",
-      "captureSeedOrg": "Org {slug} · {locale} · provenance you",
-      "captureSeedOrgRun": "Run {runId} · org {slug} · {locale} · provenance you",
-      "captureSeedPersonal": "Personal · {locale} · provenance you",
-      "captureSeedPersonalRun": "Run {runId} · personal · {locale} · provenance you",
-      "externalBadge": "external",
-      "dueIn": "due in {time}",
-      "overdueBy": "overdue by {time}",
-      "impactLabel": "Impact",
-      "impactUnblocks": "consequences unblocked",
-      "impactSlipCost": "slip cost",
-      "impactSla": "SLA window",
-      "impactBlocksGate": "blocks",
-      "resolveLabel": "Resolve",
-      "resolvingLabel": "Resolving — closing the loop…",
-      "decisionConsoleCta": "Compose resolution decision",
-      "decisionConsoleClose": "Cancel",
-      "decisionConsoleSubmit": "Commit resolution",
-      "decisionConsoleNoteLabel": "Resolution note",
-      "decisionConsoleNotePlaceholder": "What was decided, and why this is now safe…",
-      "decisionConsoleRecommended": "Recommended",
-      "decisionConsoleParticipants": "Participants",
-      "decisionConsoleEvidence": "Evidence to attach",
-      "decisionConsoleProofLabel": "Evidence payload (JSON)",
-      "decisionConsoleProofPlaceholder": "[{\"type\":\"doc\",\"ref\":\"https://…\"}]",
-      "decisionConsoleProofHint": "Required for high/critical risk: at least one proof object (`type` + `ref`). Optional JSON array; max 50 items.",
-      "decisionConsoleDeprecateSummary": "Deprecate consequence",
-      "decisionConsoleDeprecateLabel": "Deprecation reason",
-      "decisionConsoleDeprecatePlaceholder": "Why this consequence no longer applies…",
-      "decisionConsoleDeprecateSubmit": "Deprecate",
-      "resolveErrorInvalidInput": "Check your inputs and try again.",
-      "resolveErrorNotFound": "This consequence is no longer available.",
-      "resolveErrorBadTransition": "This consequence cannot be resolved in its current state.",
-      "resolveErrorDodFailed": "Definition-of-done checks failed — see below.",
-      "resolveErrorGeneric": "Resolution could not be completed. Try again or refresh.",
-      "dodCheckConsequenceClosed": "Consequence closure recorded",
-      "dodCheckOwnerDecisionRecorded": "Decision note meets the bar for this severity",
-      "dodCheckEvidenceAttached": "Evidence attached (proof JSON)",
-      "dodCheckPredictionsHandled": "Open predictions cleared or accepted",
-      "deprecateErrorInvalidInput": "Enter a reason and try again.",
-      "deprecateErrorNotFound": "This consequence is no longer available.",
-      "deprecateErrorBadTransition": "This consequence cannot be deprecated in its current state.",
-      "deprecateErrorGeneric": "Deprecation could not be completed. Try again or refresh.",
-      "commentsLabel": "Comments & attachments",
-      "queueClearTitle": "Your queue is clear.",
-      "queueClearDescription": "Use + New or press c to capture the next thing, or wait for work to surface.",
-      "tailLabel": "Operational tail",
-      "tailHeading": "up next · ranked",
-      "tailEmpty": "Tail is clear.",
-      "tailLater": "{count, plural, =0 {they will surface when they matter} one {+1 later — surfaced when it matters} other {+# later — surfaced when they matter}}",
-      "tailOpenCount": "{count, plural, one {# open} other {# open}}",
-      "counterpartyUnknown": "Unknown party",
-      "temporalLabelPast": "past",
-      "temporalLabelNow": "now",
-      "temporalLabelNext": "next",
-      "temporalEmptyPast": "No origin recorded yet.",
-      "temporalEmptyNow": "Awaiting consequence.",
-      "temporalEmptyNext": "No downstream impact recorded yet.",
-      "stakesHeading": "if you skip this",
-      "stakesBlocksGate": "blocks {gate}",
-      "stakesCost": "costs {cost}",
-      "stakesUnblocks": "{count, plural, one {parks 1 downstream consequence} other {parks # downstream consequences}}",
-      "stakesPrefix": "Slipping this",
-      "promisePrefix": "Done",
-      "promiseUnblocksGate": "unblocks {gate}",
-      "promiseUnblocksCount": "{count, plural, one {releases 1 downstream consequence} other {releases # downstream consequences}}",
-      "promiseNotifies": "notifies {name}",
-      "connectedTruthHeading": "connected truth",
-      "lastHourHeading": "last hour",
-      "otherActionsHeading": "other actions",
-      "counterPartyYouOwe": "You owe this to {name}",
-      "counterPartyOwesYou": "{name} owes you",
-      "counterPartyShared": "Shared with {name}",
-      "counterPartySystem": "Owed to a process · {name}",
-      "counterPartySystemNoName": "Owed to a process",
-      "shell": {
-        "listLabel": "Operational queue",
-        "detailLabel": "Open consequence",
-        "todayLabel": "Today",
-        "backToList": "Back",
-        "composerPlaceholder": "Capture the situation. (e.g. \"Vendor payment blocked for three organizations\")",
-        "composerSubmitHint": "⌘ Enter to capture",
-        "composerSubmit": "Capture",
-        "composerCancel": "Discard",
-        "composerSavingDraft": "Draft saved",
-        "rankedIntoLater": "Moved to Later",
-        "rankedIntoLaterShow": "Show",
-        "ambientTimeJustNow": "now",
-        "ambientTimeMinutes": "{m}m",
-        "ambientTimeHours": "{h}h",
-        "ambientTimeDays": "{d}d",
-        "noFocusTitle": "Nothing open.",
-        "noFocusDescription": "Pick something from the queue, or capture a new situation.",
-        "bylineWithCounterparty": "with {counterparty} · {ago}",
-        "bylineSolo": "{ago}"
-      },
-      "toolbar": {
-        "pin": "Pin",
-        "unpin": "Unpin",
-        "snooze": "Snooze",
-        "comment": "Comment",
-        "resolve": "Resolve",
-        "more": "More",
-        "moreReopen": "Reopen",
-        "moreDelete": "Delete",
-        "morePurge": "Purge resolved",
-        "moreClose": "Close",
-        "resolveCancel": "Cancel",
-        "resolveNotePlaceholder": "What was decided, and why this is now safe…",
-        "resolveProofPlaceholder": "Optional evidence (paste link or JSON)…",
-        "resolveSubmit": "Commit resolution",
-        "deprecateOpen": "Deprecate instead",
-        "deprecateReasonPlaceholder": "Why this consequence no longer applies…",
-        "deprecateSubmit": "Deprecate",
-        "commentClose": "Close comment"
-      },
-      "title": {
-        "rephraseHint": "Lynx suggests this title reads more like a noun phrase than a situation. You can rephrase, or keep it.",
-        "rephraseDismiss": "Keep it",
-        "errorTechnicalEvent": "Reads like a technical event. Try capturing the situation it creates.",
-        "errorModuleNoun": "Leads with an internal module tag. Lead with the situation.",
-        "errorSingleToken": "Capture the full situation, not just a label."
-      },
-      "auditFooter": {
-        "heading": "Continuity",
-        "summary": "Last activity {ago} · {count, plural, one {# event} other {# events}}",
-        "summaryNever": "No activity yet",
-        "expand": "Show",
-        "collapse": "Hide",
-        "empty": "No history yet."
-      }
-    },
     "LynxSummon": {
       "triggerAria": "Summon Lynx",
       "triggerAriaGrounded": "Summon Lynx — grounded on {title}",
@@ -1152,12 +1288,12 @@
       "description": "Grounded feed for the task in focus — Truth runs automatically; open Knowledge or Lynx for deeper work.",
       "groundingLabel": "Grounded on",
       "groundingNoneLabel": "No atom in focus",
-      "groundingNoneDescription": "Open a onething or record and Lynx will ground its feed on it.",
+      "groundingNoneDescription": "Open an item or record and Lynx will ground its feed on it.",
       "truthLabel": "Truth retrieval",
       "groundedQueryLabel": "Query",
       "refreshTruth": "Refresh",
       "retrievingTruth": "Retrieving grounded truth…",
-      "truthIdleNoAtom": "Focus a onething on the canvas to retrieve grounded truth.",
+      "truthIdleNoAtom": "Focus an item on the canvas to retrieve grounded truth.",
       "pending": "Working…",
       "errorGeneric": "Something went wrong. Try again.",
       "errorStream": "Could not read the response stream.",
@@ -1173,6 +1309,7 @@
   },
   "PlatformAdmin": {
     "title": "Platform administration",
+    "skipToMain": "Skip to operator content",
     "description": "Global tools for operators with the admin role. Organization admins use the workspace Admin workbench from the ERP dashboard.",
     "overviewTitle": "Overview",
     "overviewDescription": "Cross-tenant capabilities. Tenant-scoped governance lives in the organization Admin workbench.",
@@ -1231,6 +1368,7 @@
     }
   },
   "OrgAdmin": {
+    "skipToMain": "Skip to admin content",
     "shell": {
       "kicker": "Organization admin",
       "slugLabel": "Slug: {slug}"
@@ -1279,8 +1417,8 @@
         "clearInvalid": "Enter a simulation run id (at least 8 characters).",
         "errorTitle": "Simulation action failed",
         "okTitle": "Result",
-        "replayOk": "Replayed. runId={runId} oneThingId={oneThingId}",
-        "clearOk": "Cleared. deletedAudit={audit} deletedOneThing={onething}"
+        "replayOk": "Replayed. runId={runId}",
+        "clearOk": "Cleared. deletedAudit={audit}"
       },
       "viewProduction": "Production",
       "viewSimulated": "Simulated",
@@ -1547,9 +1685,9 @@
         "recentFailuresTitle": "Recent failures",
         "adapter": {
           "member_invite": "Member invitations",
-          "onething_import": "OneThing import",
           "hrm_payroll_profile_import": "HRM payroll profile rows",
-          "hrm_employee_hire": "HRM new hires"
+          "hrm_employee_hire": "HRM new hires",
+          "hrm_attendance_import": "HRM attendance import"
         }
       },
       "endpoints": {
@@ -1600,7 +1738,7 @@
     },
     "knowledge": {
       "title": "Knowledge sources",
-      "description": "Connect repositories, onething lists, and manual chunks; run retrieval evaluation sets.",
+      "description": "Connect repositories and manual chunks; run retrieval evaluation sets.",
       "backAdmin": "← Admin overview",
       "createTitle": "New knowledge source",
       "createDescription": "Choose an adapter kind and JSON configuration. Manual sources accept ingest from the ERP dashboard.",
@@ -1691,6 +1829,7 @@
   },
   "AccountSurface": {
     "title": "Personal surface",
+    "skipToMain": "Skip to account content",
     "breadcrumbs": {
       "personal": "Personal"
     },
@@ -1705,6 +1844,8 @@
       "expand": "Expand personal rail",
       "identity": "Identity",
       "identityDescription": "Canonical profile, email, and linked sign-in methods.",
+      "orbit": "Orbit",
+      "orbitDescription": "Personal execution queue, signals, sessions, and linked operational work.",
       "sessions": "Sessions",
       "sessionsDescription": "Device access and sign-out control for active sessions.",
       "security": "Security",
@@ -1823,73 +1964,6 @@
         "submitPending": "Creating…",
         "backHome": "Back to home"
       }
-    }
-  },
-  "IThink": {
-    "module": "iThink",
-    "addPlaceholder": "Add task…",
-    "emptyState": "No active tasks. Press Q or tap + to capture.",
-    "detail": {
-      "title": "Title",
-      "consequence": "Consequence",
-      "consequencePlaceholder": "Describe what happens if this is ignored…",
-      "state": "State",
-      "severity": "Severity",
-      "due": "Due",
-      "created": "Created",
-      "resolutionNote": "Resolution note"
-    },
-    "toolbar": {
-      "complete": "Complete",
-      "snooze1h": "Snooze 1 h",
-      "reopen": "Reopen",
-      "delete": "Delete",
-      "resolve": "Resolve",
-      "deprecate": "Deprecate"
-    },
-    "states": {
-      "detected": "Detected",
-      "owned": "Owned",
-      "blocked": "Blocked",
-      "resolving": "Resolving",
-      "ready_to_release": "Ready to release",
-      "released": "Released",
-      "resolved": "Resolved",
-      "deprecated": "Deprecated"
-    },
-    "severities": {
-      "low": "Low",
-      "medium": "Medium",
-      "high": "High",
-      "critical": "Critical"
-    },
-    "comments": {
-      "title": "Comments",
-      "empty": "No comments yet.",
-      "placeholder": "Add a comment…",
-      "post": "Post",
-      "permalink": "Open the task permalink to view comments."
-    },
-    "attachments": {
-      "title": "Attachments",
-      "empty": "No attachments yet.",
-      "uploadHint": "Upload via the API after obtaining a Blob upload URL.",
-      "permalink": "Open the task permalink to view attachments."
-    },
-    "subtasks": {
-      "title": "Sub-tasks",
-      "empty": "No sub-tasks yet.",
-      "placeholder": "Add sub-task…",
-      "add": "Add",
-      "permalink": "Open the task permalink to view sub-tasks."
-    },
-    "sidebar": {
-      "inbox": "Inbox",
-      "today": "Today",
-      "scheduled": "Scheduled",
-      "projects": "Projects",
-      "newList": "+ New list",
-      "newListPlaceholder": "List name…"
     }
   }
 }

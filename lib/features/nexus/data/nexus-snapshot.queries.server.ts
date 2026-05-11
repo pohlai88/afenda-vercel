@@ -5,14 +5,15 @@ import { and, eq } from "drizzle-orm"
 import { db } from "#lib/db"
 import { neonAuthMember, neonAuthOrganization } from "#lib/db/schema-neon-auth"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { organizationOrbitPath } from "#features/planner"
 import {
-  countIThinkActiveForOrg,
-  countIThinkForToday,
-  listIThinkHighPressureForNexus,
-  listIThinkRecentResolutionsForNexus,
-} from "#features/ithink"
+  countPlannerActiveForOrg,
+  countPlannerForToday,
+  listPlannerHighPressureForNexus,
+  listPlannerRecentResolutionsForNexus,
+} from "#features/planner/server"
 
-import { mapIThinkPressureRowsToOperationalPressureItems } from "./nexus-operational-pressure-map.server"
+import { mapPlannerPressureRowsToOperationalPressureItems } from "./nexus-operational-pressure-map.server"
 
 import type {
   NexusSnapshot,
@@ -34,7 +35,7 @@ type SessionInput = {
 /**
  * Build a single server-shaped {@link NexusSnapshot} per request.
  *
- * Phase 2 contract: org identity + iThink pressure / resolutions are real.
+ * Phase 2 contract: org identity + Orbit pressure / resolutions are real.
  * Other ERP surfaces (accounting, inventory, sale, purchase) show a
  * user-facing coming-soon placeholder until Phase 3 operational UIs ship.
  *
@@ -51,10 +52,10 @@ export async function getNexusSnapshot(input: {
   const [
     identityRow,
     roleRow,
-    pressureRows,
-    resolutionRows,
-    activeCount,
-    todayCount,
+    orbitPressureRows,
+    orbitResolutionRows,
+    orbitActiveCount,
+    orbitTodayCount,
   ] = await Promise.all([
     db
       .select({ name: neonAuthOrganization.name })
@@ -73,10 +74,10 @@ export async function getNexusSnapshot(input: {
       )
       .limit(1)
       .then((rows) => rows[0] ?? null),
-    listIThinkHighPressureForNexus(organizationId, 5),
-    listIThinkRecentResolutionsForNexus(organizationId, 3),
-    countIThinkActiveForOrg(organizationId),
-    countIThinkForToday(organizationId),
+    listPlannerHighPressureForNexus(organizationId, 5),
+    listPlannerRecentResolutionsForNexus(organizationId, 3),
+    countPlannerActiveForOrg(organizationId),
+    countPlannerForToday(organizationId),
   ])
 
   const orgRole = normalizeOrgRole(roleRow?.role ?? null)
@@ -89,18 +90,19 @@ export async function getNexusSnapshot(input: {
     role: orgRole,
   }
 
-  const pressure = mapIThinkPressureRowsToOperationalPressureItems(
+  const pressure = mapPlannerPressureRowsToOperationalPressureItems(
     orgSlug,
-    pressureRows
+    orbitPressureRows
   )
+  const recentResolutions = orbitResolutionRows.map((row) =>
+    buildOrbitResolutionEvent(row, orgSlug)
+  )
+  const activeCount = orbitActiveCount
+  const todayCount = orbitTodayCount
 
   const surfaces = buildSurfaces(orgSlug, activeCount)
 
   const priorityLanes = buildPriorityLanes(orgSlug, activeCount, todayCount)
-
-  const recentResolutions = resolutionRows.map((row) =>
-    buildResolutionEvent(row, orgSlug)
-  )
 
   const state = deriveNexusState(pressure)
 
@@ -154,7 +156,7 @@ type RawResolutionRow = {
   lynxAssisted: boolean
 }
 
-function buildResolutionEvent(
+function buildOrbitResolutionEvent(
   row: RawResolutionRow,
   orgSlug: string
 ): ResolutionEvent {
@@ -167,7 +169,7 @@ function buildResolutionEvent(
     resolvedAt: row.resolvedAt.toISOString(),
     evidenceCount: row.evidenceCount,
     lynxAssisted: row.lynxAssisted,
-    href: `${organizationDashboardPath(orgSlug, "ithink")}/${row.id}`,
+    href: `${organizationOrbitPath(orgSlug)}?focusKind=item&focusId=${row.id}`,
   }
 }
 
@@ -182,12 +184,12 @@ function buildPriorityLanes(
 
   if (todayCount > 0) {
     lanes.push({
-      id: "ithink-today",
+      id: "orbit-today",
       kind: "approvals",
       label: "Due today",
-      surface: "iThink",
+      surface: "Orbit",
       count: todayCount,
-      href: organizationDashboardPath(orgSlug, "ithink"),
+      href: organizationDashboardPath(orgSlug, "orbit"),
     })
   }
 
@@ -196,7 +198,7 @@ function buildPriorityLanes(
 
 /**
  * Surface map — 7 operating domains. "Operations" surface uses the live
- * iThink active count; others remain stubbed for Phase 2.
+ * Orbit active count; others remain stubbed for Phase 2.
  */
 function buildSurfaces(
   orgSlug: string,
@@ -265,7 +267,7 @@ function buildSurfaces(
       status: activeCount > 0 ? "attention" : "stable",
       pressureCount: activeCount,
       freshness: "live",
-      href: organizationDashboardPath(orgSlug, "ithink"),
+      href: organizationDashboardPath(orgSlug, "orbit"),
     },
   ]
 }

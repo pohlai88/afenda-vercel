@@ -1,5 +1,5 @@
 /**
- * Delete persisted rows for one simulation run (audit + OneThing), then record a clear audit.
+ * Delete persisted audit rows for one simulation run, then record a clear audit.
  *
  * Usage:
  *   node scripts/with-env.mjs tsx scripts/simulate-clear.ts <organizationId> <simulationRunId>
@@ -41,7 +41,6 @@ async function main() {
     resourceId: simulationRunId,
     metadata: {
       deletedAudit: result.deletedAudit,
-      deletedOneThing: result.deletedOneThing,
     },
   })
 
@@ -52,7 +51,6 @@ async function main() {
         organizationId,
         simulationRunId,
         deletedAudit: result.deletedAudit,
-        deletedOneThing: result.deletedOneThing,
       },
       null,
       2

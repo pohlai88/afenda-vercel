@@ -1,9 +1,6 @@
 /** Allowed base table for Lynx NL→SQL demo (must match `lib/db/schema.ts`). */
 export const LYNX_NL_DEMO_TABLE = "lynx_demo_unicorn" as const
 
-/** Org-scoped onething rows — NL→SQL onething variant (`erp.onething` / `"onething"`). */
-export const LYNX_NL_DEMO_ONETHING_TABLE = "onething" as const
-
 const FORBIDDEN_SQL_PATTERN =
   /\b(delete|insert|update|drop|alter|truncate|create|grant|revoke|merge|copy|into\s+outfile)\b/i
 
@@ -22,9 +19,7 @@ function escapeRegex(s: string): string {
 export function validateLynxNlDemoSql(
   rawQuery: string,
   organizationId: string,
-  allowedTable:
-    | typeof LYNX_NL_DEMO_TABLE
-    | typeof LYNX_NL_DEMO_ONETHING_TABLE = LYNX_NL_DEMO_TABLE
+  allowedTable: typeof LYNX_NL_DEMO_TABLE = LYNX_NL_DEMO_TABLE
 ): { ok: true; sql: string } | { ok: false; error: string } {
   const trimmed = rawQuery.trim()
   if (!trimmed) {

@@ -21,7 +21,6 @@ import {
 } from "../fixtures/bootstrap-mocks"
 import {
   CHECK_EMAIL_PAGE_COPY,
-  PERSONAL_ONETHING_COPY,
   SIGN_UP_PAGE_COPY,
 } from "../fixtures/individual-journey"
 
@@ -51,21 +50,6 @@ describe("fixtures ↔ messages/en.json", () => {
     expect(ORG_ADMIN_AUDIT_E2E_COPY.viewAll).toBe(en.OrgAdmin.audit.viewAll)
     expect(ORG_ADMIN_AUDIT_E2E_COPY.tableHeaderOrigin).toBe(
       en.OrgAdmin.audit.events.headerOrigin
-    )
-  })
-
-  it("PERSONAL_ONETHING_COPY matches Dashboard.OneThing shell + toolbar", () => {
-    expect(PERSONAL_ONETHING_COPY.operationalQueueNav).toBe(
-      en.Dashboard.OneThing.shell.listLabel
-    )
-    expect(PERSONAL_ONETHING_COPY.composerAriaLabel).toBe(
-      en.Dashboard.OneThing.shell.composerPlaceholder
-    )
-    expect(PERSONAL_ONETHING_COPY.captureSubmit).toBe(
-      en.Dashboard.OneThing.shell.composerSubmit
-    )
-    expect(PERSONAL_ONETHING_COPY.resolve).toBe(
-      en.Dashboard.OneThing.toolbar.resolve
     )
   })
 

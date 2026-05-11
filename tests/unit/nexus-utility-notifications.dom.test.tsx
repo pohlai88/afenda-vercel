@@ -100,7 +100,7 @@ vi.mock("#i18n/navigation", () => ({
   ),
 }))
 
-import { NexusUtilityNotifications } from "#components/nexus/nexus-utility-notifications"
+import { WorkbenchUtilityNotifications } from "#components/workbench/utility-bar/workbench-utility-notifications"
 import { TooltipProvider } from "#components/ui/tooltip"
 
 function jsonResponse(body: unknown, status = 200) {
@@ -185,7 +185,7 @@ describe("NexusUtilityNotifications", () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityNotifications canManage={false} />
+        <WorkbenchUtilityNotifications canManage={false} />
       </TooltipProvider>
     )
 
@@ -255,7 +255,7 @@ describe("NexusUtilityNotifications", () => {
 
     render(
       <TooltipProvider>
-        <NexusUtilityNotifications canManage />
+        <WorkbenchUtilityNotifications canManage />
       </TooltipProvider>
     )
 

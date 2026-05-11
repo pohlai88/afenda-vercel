@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
-import { ConsoleTopNavBar } from "#components/console/console-top-nav-bar"
-import { SkipToMain } from "#components/nexus/nexus-skip-to-main"
+import { WorkbenchShell, WorkbenchUtilityBar } from "#components/workbench"
 import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/route-envelope.shared"
@@ -37,17 +36,19 @@ export default async function ConsoleLayout({
 
   return (
     <RouteEnvelopeProvider value={envelope}>
-      <div className="flex min-h-svh flex-col bg-background">
-        <SkipToMain label={tConsole("skipToMain")} mainId="console-main" />
-        <ConsoleTopNavBar userEmail={session.user.email} />
-        <main
-          id="console-main"
-          tabIndex={-1}
-          className="flex min-h-0 min-w-0 flex-1 flex-col outline-none"
-        >
-          {children}
-        </main>
-      </div>
+      <WorkbenchShell
+        skipToMainLabel={tConsole("skipToMain")}
+        utilityBar={
+          <WorkbenchUtilityBar
+            mode="no-org"
+            userId={session.userId}
+            userEmail={session.user.email}
+          />
+        }
+        rail={null}
+      >
+        {children}
+      </WorkbenchShell>
     </RouteEnvelopeProvider>
   )
 }

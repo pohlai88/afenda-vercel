@@ -41,7 +41,8 @@ describe("utilities marketplace catalog", () => {
     expect(
       NEXUS_UTILITY_CATALOG.filter(
         (entry) =>
-          entry.marketplaceListed && entry.marketplaceStatus === "comingSoon"
+          entry.marketplaceListed &&
+          (entry.marketplaceStatus as string) === "comingSoon"
       ).map((entry) => entry.id)
     ).toEqual([])
   })

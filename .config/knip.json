@@ -137,8 +137,8 @@
     "components/auth/**/*.tsx": ["exports", "types"],
     "components/nexus/**/*.tsx": ["exports", "types"],
     "components/nexus/**/*.ts": ["exports", "types"],
-    "components/nexus/nexus-surface-chrome.tsx": ["files"],
-    "components/nexus/nexus-utility-integrations-link.tsx": ["files"],
+    "components/workbench/**/*.tsx": ["exports", "types"],
+    "components/workbench/**/*.ts": ["exports", "types"],
     "components/module-page-header.tsx": ["exports", "types"],
     "components/erp-surface-coming-soon.tsx": ["exports", "types"],
     "components/nexus-route-loading.tsx": ["exports", "types"],
@@ -150,6 +150,16 @@
     "lib/features/**/actions/*.ts": ["exports", "types"],
     "lib/features/**/schemas/*.ts": ["exports", "types"],
     "lib/features/**/components/*.tsx": ["exports", "types"],
-    "lib/features/**/*.contract.ts": ["exports", "types"]
+    "lib/features/**/*.contract.ts": ["exports", "types"],
+    "lib/features/planner/automation/**": ["files"],
+    "lib/features/planner/client/**": ["files"],
+    "lib/features/planner/integrations/**": ["files"],
+    "lib/features/planner/filters/**": ["files"],
+    "lib/features/planner/policies/**": ["files"],
+    "lib/features/planner/recurrence/**": ["files"],
+    "lib/features/planner/relations/**": ["files"],
+    "lib/features/planner/scheduling/**": ["files"],
+    "lib/features/planner/timeline/**": ["files"],
+    "lib/features/planner/signals/**": ["files"]
   }
 }

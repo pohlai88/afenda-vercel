@@ -43,8 +43,7 @@ export {
   type UserOrgSummary,
 } from "./types"
 
-export { OrgAdminSidebar } from "./components/org-admin-sidebar"
-export { OrgAdminWorkbenchShell } from "./components/org-admin-workbench-shell"
+export { buildOrgAdminRailSlots } from "./data/org-admin-rail-slots"
 export { OrgAuditEventsView } from "./components/org-audit-events-view"
 export { OrgAdminSimulationToolbar } from "./components/org-admin-simulation-toolbar"
 export { OrganizationAdminClient } from "./components/organization-admin-client"

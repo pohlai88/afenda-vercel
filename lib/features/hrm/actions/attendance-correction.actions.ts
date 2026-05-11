@@ -1,0 +1,299 @@
+"use server"
+
+import { createHash } from "crypto"
+import { revalidatePath } from "next/cache"
+
+import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import { db } from "#lib/db"
+import { hrmAttendanceEvent } from "#lib/db/schema"
+import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+
+import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import { regenerateAttendanceDayFromEvents } from "../data/attendance-aggregator.server"
+import { getAttendanceEvent } from "../data/attendance.queries.server"
+import {
+  correctAttendanceEventSchema,
+  recordAttendanceEventSchema,
+  regenerateAttendanceDaySchema,
+} from "../schemas/attendance-event.schema"
+import type {
+  AttendanceCorrectionFormState,
+  AttendanceRecordFormState,
+  RegenerateDayFormState,
+} from "../types"
+
+function revalidateAttendance() {
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern("/hrm/attendance"),
+    "page"
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Tier B — record a manual attendance event
+// ---------------------------------------------------------------------------
+
+/**
+ * Tier B (admin-gated) — records a single manual attendance event for an employee,
+ * then triggers idempotent day re-aggregation.
+ * Audit: `erp.hrm.attendance.event.create`
+ */
+export async function recordAttendanceEventAction(
+  _prev: AttendanceRecordFormState | undefined,
+  formData: FormData
+): Promise<AttendanceRecordFormState> {
+  const gate = await requireHrmAdmin()
+  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  const { session } = gate
+
+  const organizationId = session.organizationId
+  const userId = session.userId
+  const sessionId = session.sessionId
+
+  const raw = {
+    employeeId: formData.get("employeeId"),
+    eventType: formData.get("eventType"),
+    occurredAt: formData.get("occurredAt"),
+    source: formData.get("source") ?? "manual",
+    deviceId: formData.get("deviceId") ?? undefined,
+  }
+
+  const parsed = recordAttendanceEventSchema.safeParse(raw)
+  if (!parsed.success) {
+    const flat = parsed.error.flatten().fieldErrors
+    return {
+      ok: false,
+      errors: {
+        employeeId: flat.employeeId?.[0],
+        eventType: flat.eventType?.[0],
+        occurredAt: flat.occurredAt?.[0],
+      },
+    }
+  }
+  const data = parsed.data
+
+  const occurredDate = new Date(data.occurredAt)
+  const attendanceDate = occurredDate.toISOString().slice(0, 10)
+  const rawPayloadHash = createHash("sha256")
+    .update(
+      JSON.stringify({
+        employeeId: data.employeeId,
+        eventType: data.eventType,
+        occurredAt: data.occurredAt,
+      })
+    )
+    .digest("hex")
+
+  const eventId = crypto.randomUUID()
+  await db.insert(hrmAttendanceEvent).values({
+    id: eventId,
+    organizationId,
+    employeeId: data.employeeId,
+    eventType: data.eventType,
+    occurredAt: occurredDate,
+    source: data.source,
+    deviceId: data.deviceId,
+    rawPayloadHash,
+    createdByUserId: userId,
+  })
+
+  // Re-aggregate the day after the new event
+  await regenerateAttendanceDayFromEvents({
+    organizationId,
+    employeeId: data.employeeId,
+    attendanceDate,
+    actorUserId: userId,
+  })
+
+  await writeIamAuditEventFromNextHeaders({
+    action: "erp.hrm.attendance.event.create",
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_attendance_event",
+    resourceId: eventId,
+    metadata: {
+      employeeId: data.employeeId,
+      eventType: data.eventType,
+      attendanceDate,
+    },
+  })
+
+  revalidateAttendance()
+  return { ok: true, eventId }
+}
+
+// ---------------------------------------------------------------------------
+// Tier B — correct an existing attendance event (immutable audit trail)
+// ---------------------------------------------------------------------------
+
+/**
+ * Tier B (admin-gated) — creates a new correction event pointing to the original,
+ * then triggers idempotent day re-aggregation. Original event is never mutated.
+ * Audit: `erp.hrm.attendance.event.create` with `metadata.kind = "correction"`
+ */
+export async function correctAttendanceEventAction(
+  _prev: AttendanceCorrectionFormState | undefined,
+  formData: FormData
+): Promise<AttendanceCorrectionFormState> {
+  const gate = await requireHrmAdmin()
+  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  const { session } = gate
+
+  const organizationId = session.organizationId
+  const userId = session.userId
+  const sessionId = session.sessionId
+
+  const raw = {
+    originalEventId: formData.get("originalEventId"),
+    eventType: formData.get("eventType"),
+    occurredAt: formData.get("occurredAt"),
+    correctionReason: formData.get("correctionReason"),
+  }
+
+  const parsed = correctAttendanceEventSchema.safeParse(raw)
+  if (!parsed.success) {
+    const flat = parsed.error.flatten().fieldErrors
+    return {
+      ok: false,
+      errors: {
+        originalEventId: flat.originalEventId?.[0],
+        eventType: flat.eventType?.[0],
+        occurredAt: flat.occurredAt?.[0],
+        correctionReason: flat.correctionReason?.[0],
+      },
+    }
+  }
+  const data = parsed.data
+
+  // Verify the original event belongs to this org
+  const originalEvent = await getAttendanceEvent({
+    organizationId,
+    eventId: data.originalEventId,
+  })
+  if (!originalEvent) {
+    return {
+      ok: false,
+      errors: { form: "Original event not found or access denied." },
+    }
+  }
+
+  const occurredDate = new Date(data.occurredAt)
+  const attendanceDate = occurredDate.toISOString().slice(0, 10)
+  const correctionId = crypto.randomUUID()
+
+  await db.insert(hrmAttendanceEvent).values({
+    id: correctionId,
+    organizationId,
+    employeeId: originalEvent.employeeId,
+    eventType: data.eventType,
+    occurredAt: occurredDate,
+    source: "manual",
+    correctionOfEventId: data.originalEventId,
+    correctionReason: data.correctionReason,
+    createdByUserId: userId,
+  })
+
+  // Re-aggregate the original event's date (superseded event now excluded from active set)
+  const originalDate = originalEvent.occurredAt.toISOString().slice(0, 10)
+  await regenerateAttendanceDayFromEvents({
+    organizationId,
+    employeeId: originalEvent.employeeId,
+    attendanceDate: originalDate,
+    actorUserId: userId,
+  })
+
+  // Also regenerate the correction date if it differs (e.g. crossing midnight)
+  if (attendanceDate !== originalDate) {
+    await regenerateAttendanceDayFromEvents({
+      organizationId,
+      employeeId: originalEvent.employeeId,
+      attendanceDate,
+      actorUserId: userId,
+    })
+  }
+
+  await writeIamAuditEventFromNextHeaders({
+    action: "erp.hrm.attendance.event.create",
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_attendance_event",
+    resourceId: correctionId,
+    metadata: {
+      kind: "correction",
+      originalEventId: data.originalEventId,
+      employeeId: originalEvent.employeeId,
+      attendanceDate: originalDate,
+    },
+  })
+
+  revalidateAttendance()
+  return { ok: true, correctionEventId: correctionId }
+}
+
+// ---------------------------------------------------------------------------
+// Tier B — force-regenerate a day aggregate on demand
+// ---------------------------------------------------------------------------
+
+/**
+ * Tier B (admin-gated) — explicitly regenerates the `hrm_attendance_day` aggregate
+ * for a given employee + date. Idempotent (no-op if checksum is unchanged).
+ * Audit: `erp.hrm.attendance.day.update`
+ */
+export async function regenerateAttendanceDayAction(
+  _prev: RegenerateDayFormState | undefined,
+  formData: FormData
+): Promise<RegenerateDayFormState> {
+  const gate = await requireHrmAdmin()
+  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  const { session } = gate
+
+  const organizationId = session.organizationId
+  const userId = session.userId
+  const sessionId = session.sessionId
+
+  const raw = {
+    employeeId: formData.get("employeeId"),
+    attendanceDate: formData.get("attendanceDate"),
+  }
+
+  const parsed = regenerateAttendanceDaySchema.safeParse(raw)
+  if (!parsed.success) {
+    const flat = parsed.error.flatten().fieldErrors
+    return {
+      ok: false,
+      errors: {
+        employeeId: flat.employeeId?.[0],
+        attendanceDate: flat.attendanceDate?.[0],
+      },
+    }
+  }
+  const data = parsed.data
+
+  const result = await regenerateAttendanceDayFromEvents({
+    organizationId,
+    employeeId: data.employeeId,
+    attendanceDate: data.attendanceDate,
+    actorUserId: userId,
+  })
+
+  if (result === "updated") {
+    await writeIamAuditEventFromNextHeaders({
+      action: "erp.hrm.attendance.day.update",
+      actorUserId: userId,
+      actorSessionId: sessionId,
+      organizationId,
+      resourceType: "hrm_attendance_day",
+      resourceId: `${data.employeeId}:${data.attendanceDate}`,
+      metadata: {
+        employeeId: data.employeeId,
+        attendanceDate: data.attendanceDate,
+        regeneratedBy: "manual",
+      },
+    })
+    revalidateAttendance()
+  }
+
+  return { ok: true, result }
+}

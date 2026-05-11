@@ -24,6 +24,6 @@ Forbidden:
 - Workflow or queue execution.
 - UI components.
 - Module-specific copy or product behavior.
-- OneThing-only domain decisions beyond consuming shared primitives.
+- Feature-only domain decisions (e.g. planner/Orbit-only types) beyond consuming shared primitives.
 
 If a helper knows about a module, route, table, tenant, or workflow, it belongs in a feature module, not `lib/erp`.

@@ -7,7 +7,7 @@ import {
   requireAuthShellSignedInSession,
 } from "#lib/auth"
 
-import { AccountSurface } from "../_components/account-surface"
+import { WorkbenchSurface } from "#components/workbench"
 import { AccountIdentityClient } from "./identity-client"
 
 export default async function AccountIdentityPage({
@@ -29,14 +29,13 @@ export default async function AccountIdentityPage({
   ])
 
   return (
-    <AccountSurface
+    <WorkbenchSurface
       breadcrumbs={[
         { label: tSurface("breadcrumbs.personal"), href: "/account" },
         { label: t("title") },
       ]}
       title={t("title")}
       subtitle={t("subtitle")}
-
     >
       <AccountIdentityClient
         email={session.user.email}
@@ -47,6 +46,6 @@ export default async function AccountIdentityPage({
         enabledProviders={enabledProviders}
         hasCredential={hasCredential}
       />
-    </AccountSurface>
+    </WorkbenchSurface>
   )
 }
