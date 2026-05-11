@@ -1,3 +1,15 @@
+export {
+  createEmployeeMutation,
+  updateEmployeeMutation,
+} from "./data/employee.mutations.server"
+
+export type {
+  CreateEmployeeMutationInput,
+  CreateEmployeeMutationResult,
+  UpdateEmployeeMutationInput,
+  UpdateEmployeeMutationResult,
+} from "./data/employee.mutations.server"
+
 export { upsertPayrollProfileMutation } from "./data/payroll-profile.mutations.server"
 
 export type {

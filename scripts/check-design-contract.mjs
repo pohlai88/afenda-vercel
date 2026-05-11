@@ -297,7 +297,7 @@ for (const file of files) {
       FORBIDDEN_NEXUS_TAILWIND_BACKDROP.lastIndex = 0
       if (FORBIDDEN_NEXUS_TAILWIND_BACKDROP.test(row)) {
         report(
-          "forbidden Tailwind backdrop-blur-* in Nexus (use .af-nexus-utility-bar-backdrop | .af-nexus-popover-panel | .af-nexus-round-control-backdrop in app/globals.css)",
+          "forbidden Tailwind backdrop-blur-* in Nexus (use .af-nexus-l1-chrome-backplate (+ .af-nexus-utility-bar-backdrop on L1 bar) | .af-nexus-popover-panel | .af-nexus-round-control-backdrop in app/globals.css)",
           lineNo,
           row
         )

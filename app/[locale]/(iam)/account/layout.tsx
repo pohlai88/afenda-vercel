@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 
-import { getTranslations } from "next-intl/server"
+import { NextIntlClientProvider } from "next-intl"
+import { getMessages, getTranslations } from "next-intl/server"
 
 import { NexusUtilityBar } from "#components/nexus/nexus-utility-bar"
 import { RouteEnvelopeProvider } from "#components/route-envelope-context"
@@ -37,6 +38,7 @@ export default async function AccountLayout({
   const { locale: localeRaw } = await params
   const locale = ensureAppLocale(localeRaw)
   const t = await getTranslations("AccountSurface")
+  const messages = await getMessages()
   const shellData = await getAccountShellData()
   const utilityBarOrg =
     shellData.activeOrganization ?? shellData.organizations[0] ?? null
@@ -158,6 +160,7 @@ export default async function AccountLayout({
 
   return (
     <RouteEnvelopeProvider value={envelope}>
+      <NextIntlClientProvider locale={locale} messages={messages}>
       <AccountOperatingShell
         title={t("title")}
         railLabel={t("rail.aria")}
@@ -165,7 +168,6 @@ export default async function AccountLayout({
         sectionsLabel={t("rail.sectionsLabel")}
         quickActionsLabel={t("rail.quickActionsLabel")}
         recentLabel={t("rail.recentLabel")}
-        signalsLabel={t("rail.signalsLabel")}
         collapseRailLabel={t("rail.collapse")}
         expandRailLabel={t("rail.expand")}
         summary={{
@@ -192,6 +194,7 @@ export default async function AccountLayout({
       >
         {children}
       </AccountOperatingShell>
+      </NextIntlClientProvider>
     </RouteEnvelopeProvider>
   )
 }

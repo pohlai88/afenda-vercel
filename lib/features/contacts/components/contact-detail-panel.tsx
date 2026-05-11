@@ -37,8 +37,13 @@ export function ContactDetailPanel({ contact }: ContactDetailPanelProps) {
         <div className="min-w-0 flex-1">
           <p className="truncate leading-tight font-semibold">{contact.name}</p>
         </div>
-        {/* Overflow menu stub — wired in a future action pass */}
-        <Button variant="ghost" size="icon-sm" aria-label="More actions">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="More actions"
+          title="More actions coming soon"
+          disabled
+        >
           <MoreHorizontal className="size-4" aria-hidden />
         </Button>
       </div>
@@ -85,12 +90,12 @@ export function ContactDetailPanel({ contact }: ContactDetailPanelProps) {
 
       <Separator />
 
-      {/* Action stubs — stubbed pending a full edit/delete implementation pass */}
       <div className="flex flex-col gap-2">
         <Button
           variant="outline"
           size="sm"
           className="w-full justify-start gap-2"
+          title="Edit contact — coming soon"
           disabled
         >
           <Pencil className="size-3.5" aria-hidden />
@@ -100,6 +105,7 @@ export function ContactDetailPanel({ contact }: ContactDetailPanelProps) {
           variant="outline"
           size="sm"
           className="w-full justify-start gap-2 text-destructive hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive"
+          title="Delete contact — coming soon"
           disabled
         >
           <Trash2 className="size-3.5" aria-hidden />

@@ -313,6 +313,32 @@ const eslintConfig = defineConfig([
   },
 
   // -------------------------------------------------------------------------
+  // § HRM module — PII audit-metadata guardrail
+  //
+  // PII fields must never appear as keys inside the `metadata` argument of
+  // `writeIamAuditEvent` or `writeIamAuditEventFromNextHeaders` calls within
+  // the HRM module. Use only derived booleans or anonymised signals.
+  // Phase 1B risk: taxIdentifierNumber, bankAccountNumber, nationalId,
+  // payrollBankAccount, icNumber, passportNumber.
+  // See: AGENTS.md §5 — IAM audit policy (ERP).
+  // -------------------------------------------------------------------------
+  {
+    name: "afenda/hrm-pii-audit-metadata",
+    files: ["lib/features/hrm/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "CallExpression[callee.name=/^writeIamAuditEvent/] Property[key.name=/^(taxIdentifierNumber|bankAccountNumber|nationalId|payrollBankAccount|icNumber|passportNumber)$/]",
+          message:
+            "PII must not appear in writeIamAuditEvent metadata inside lib/features/hrm. Use derived booleans (e.g. hasTaxIdentifier) or anonymised signals instead.",
+        },
+      ],
+    },
+  },
+
+  // -------------------------------------------------------------------------
   // § Test files — relax rules that conflict with test-framework idioms
   //
   // Vitest's `importOriginal<typeof import("module")>()` and Playwright's

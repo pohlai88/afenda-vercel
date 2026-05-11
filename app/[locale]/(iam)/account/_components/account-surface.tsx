@@ -14,7 +14,6 @@ export function AccountSurface({
   title,
   subtitle,
   breadcrumbs,
-  actions,
   children,
   className,
 }: {
@@ -24,7 +23,6 @@ export function AccountSurface({
     label: string
     href?: string
   }>
-  actions?: ReactNode
   children: ReactNode
   className?: string
 }) {
@@ -34,9 +32,9 @@ export function AccountSurface({
   return (
     <section className={cn("flex h-full min-h-0 flex-col", className)}>
       <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
-        <header className="sticky top-0 z-10 bg-background/94 backdrop-blur-xl">
-          <div className="px-surface-lg pt-4 pb-3 md:px-surface-xl">
-            <div className="flex min-h-9 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <header className="sticky top-0 z-10 border-b border-border/55 bg-card/95 backdrop-blur-xl">
+          <div className="flex h-11 items-center px-surface-lg md:px-surface-xl">
+            <div className="flex w-full min-h-0 flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 <button
                   type="button"
@@ -90,11 +88,6 @@ export function AccountSurface({
                 ) : null}
               </div>
 
-              {actions ? (
-                <div className="flex flex-wrap items-center gap-2 lg:max-w-[52%] lg:justify-end">
-                  {actions}
-                </div>
-              ) : null}
             </div>
           </div>
         </header>

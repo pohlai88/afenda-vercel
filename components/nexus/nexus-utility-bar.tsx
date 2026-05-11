@@ -31,13 +31,7 @@ export function NexusUtilityBar({
     <header
       data-nexus-utility-bar="true"
       aria-label="Afenda system utility bar"
-      className="
-        af-nexus-utility-bar-backdrop
-        sticky top-0 z-40
-        bg-background/78
-        shadow-[0_1px_0_rgba(255,255,255,0.04)]
-        supports-[backdrop-filter]:bg-background/64
-      "
+      className="af-nexus-l1-chrome-backplate af-nexus-utility-bar-backdrop sticky top-0 z-40"
     >
       <div className="mx-auto max-w-screen-2xl px-2.5 sm:px-4">
         <Suspense fallback={<UtilityBarRowSkeleton />}>

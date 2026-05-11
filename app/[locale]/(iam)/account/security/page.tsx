@@ -1,12 +1,10 @@
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
 import {
   listDeviceSessions,
   listUserSecurityActivity,
   requireAuthShellSignedInSession,
 } from "#lib/auth"
-import { Link } from "#i18n/navigation"
 
 import {
   AccountSecurityCenterClient,
@@ -61,30 +59,6 @@ export default async function AccountSecurityPage() {
       ]}
       title={t("title")}
       subtitle={t("subtitle")}
-      actions={
-        <>
-          <Button asChild variant="outline">
-            <Link href="/account/security#sessions">
-              {t("actions.sessions")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/account/security#passkeys">
-              {t("actions.passkeys")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/account/security#two-factor">
-              {t("actions.twoFactor")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/account/security#recent-activity">
-              {t("actions.recent")}
-            </Link>
-          </Button>
-        </>
-      }
     >
       <AccountSecurityCenterClient
         currentSessionId={session.sessionId}

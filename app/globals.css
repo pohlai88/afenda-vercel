@@ -257,6 +257,20 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
 
+  /* Nexus L1 utility chrome (full bar + left rail) — recessed vs workspace canvas */
+  --af-nexus-utility-bar-surface: color-mix(
+    in oklab,
+    var(--sidebar) 40%,
+    var(--muted) 60%
+  );
+
+  /* Account workbench chrome — flat gutter behind top bar, left rail, and corner wedge */
+  --af-account-workbench-chrome: color-mix(
+    in oklab,
+    var(--muted) 100%,
+    transparent
+  );
+
   /* ------------------------------------------------------------------------ */
   /* Material semantics                                                        */
   /*                                                                            */
@@ -479,6 +493,12 @@
   --sidebar-border: oklch(0.255 0.011 305);
   --sidebar-ring: var(--ring);
 
+  --af-nexus-utility-bar-surface: color-mix(
+    in oklab,
+    var(--background) 88%,
+    black 12%
+  );
+
   /* Dark-mode material tuning: stronger edge, slightly denser glass + cognition */
   --af-material-edge: color-mix(in oklab, var(--border) 86%, white 14%);
   --af-material-highlight: color-mix(in oklab, white 16%, transparent);
@@ -689,8 +709,38 @@
 /* Do not use Tailwind backdrop-blur-* in components/nexus — use these classes. */
 /* -------------------------------------------------------------------------- */
 
-.af-nexus-utility-bar-backdrop {
+/* Shared L1 glass (utility bar + account rail) — same blur tier + tint vs opaque fill. */
+.af-nexus-l1-chrome-backplate {
   backdrop-filter: blur(var(--af-blur-shell)) saturate(var(--af-sat-shell));
+  background: color-mix(
+    in oklab,
+    var(--af-nexus-utility-bar-surface) 78%,
+    transparent
+  );
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .af-nexus-l1-chrome-backplate {
+    background: color-mix(
+      in oklab,
+      var(--af-nexus-utility-bar-surface) 64%,
+      transparent
+    );
+  }
+}
+
+/* Horizontal edge — compose with `.af-nexus-l1-chrome-backplate` on the utility bar only. */
+/* Account workbench chrome — solid fill for shell root, left rail, and corner gutter. */
+.af-account-workbench-chrome {
+  background: var(--af-account-workbench-chrome);
+}
+
+.af-nexus-utility-bar-backdrop {
+  box-shadow: 0 1px 0 color-mix(in oklab, white 4%, transparent);
+}
+
+.dark .af-nexus-utility-bar-backdrop {
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 8%, transparent);
 }
 
 .af-nexus-popover-panel {
@@ -819,7 +869,7 @@
     background: color-mix(in oklab, var(--card) 86%, var(--af-cognition-1) 14%);
   }
 
-  .af-nexus-utility-bar-backdrop,
+  .af-nexus-l1-chrome-backplate,
   .af-nexus-popover-panel,
   .af-nexus-round-control-backdrop {
     backdrop-filter: none;

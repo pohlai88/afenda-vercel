@@ -1,10 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
-import { SignOutButton } from "#components/sign-out-button"
-import { Link } from "#i18n/navigation"
-import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
-import { organizationNexusPath } from "#features/nexus"
+import { ensureAppLocale } from "#lib/i18n/locales.shared"
 
 import { getAccountShellData } from "./_components/account-shell-data.server"
 import {
@@ -34,13 +30,6 @@ export default async function AccountIndexPage({
   const t = await getTranslations("AccountSurface")
   const shellData = await getAccountShellData()
 
-  const workspaceHref = shellData.activeOrganization
-    ? toLocalePath(
-        locale,
-        organizationNexusPath(shellData.activeOrganization.slug)
-      )
-    : toLocalePath(locale, "/o")
-
   const nextItems = [
     t("overview.next.addPasskey"),
     shellData.summary.sessionCount > 1
@@ -63,33 +52,7 @@ export default async function AccountIndexPage({
       ]}
       title={t("overview.title")}
       subtitle={t("overview.subtitle")}
-      actions={
-        <>
-          <Button asChild variant="outline">
-            <Link href="/account/identity">
-              {t("overview.actions.identity")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/account/security#sessions">
-              {t("overview.actions.manageSessions")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/account/security#passkeys">
-              {t("overview.actions.addPasskey")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href={workspaceHref}>
-              {t("overview.actions.openWorkspace")}
-            </Link>
-          </Button>
-          <SignOutButton variant="outline" size="default">
-            {t("overview.actions.signOut")}
-          </SignOutButton>
-        </>
-      }
+
     >
       <AccountContextBand label={t("overview.nowLabel")}>
         <div className="space-y-2 text-sm leading-6 text-foreground">

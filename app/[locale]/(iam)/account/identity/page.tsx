@@ -1,13 +1,11 @@
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
 import {
   getEnabledSocialProviderIds,
   hasCredentialAccount,
   listSafeLinkedAccounts,
   requireAuthShellSignedInSession,
 } from "#lib/auth"
-import { Link } from "#i18n/navigation"
 
 import { AccountSurface } from "../_components/account-surface"
 import { AccountIdentityClient } from "./identity-client"
@@ -38,26 +36,7 @@ export default async function AccountIdentityPage({
       ]}
       title={t("title")}
       subtitle={t("subtitle")}
-      actions={
-        <>
-          <Button asChild variant="outline">
-            <Link href="/account/identity#profile">{t("actions.profile")}</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/account/identity#change-email">
-              {t("actions.email")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/account/identity#linked-accounts">
-              {t("actions.providers")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/account/security">{t("actions.security")}</Link>
-          </Button>
-        </>
-      }
+
     >
       <AccountIdentityClient
         email={session.user.email}
