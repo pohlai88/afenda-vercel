@@ -18,6 +18,7 @@ import type {
   PLANNER_SIGNAL_RESOLUTION_POLICIES,
   PLANNER_VIEW_SORT_MODES,
 } from "./constants"
+import type { PlannerAutomationAttentionKind } from "./automation/planner-automation-attention.shared"
 import type { PlannerViewFilterState } from "./filters/planner-view-filter.shared"
 
 export type PlannerSignalClass = (typeof PLANNER_SIGNAL_CLASSES)[number]
@@ -50,6 +51,7 @@ export type PlannerOperationalFacts = {
   blockedByCount: number
   activeSignalCount: number
   automationFailureCount: number
+  automationKinds: PlannerAutomationAttentionKind[]
   duplicateCount: number
   assigneeCount: number
   reviewerCount: number
@@ -265,6 +267,7 @@ export type PlannerItemDetail = PlannerItemRow & {
   activity: PlannerActivityRow[]
   sessions: PlannerSessionRow[]
   notices: OrgNotificationNotice[]
+  noticeHistory: OrgNotificationNotice[]
 }
 
 export type PlannerSignalDetail = PlannerSignalRow & {

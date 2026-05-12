@@ -52,13 +52,30 @@ export {
   listPendingApprovalRequestsForOrg,
   getLeaveRequestDetail,
   listLeaveBalancesForEmployee,
+  listAllLeaveRequestsForOrg,
+  listActiveEmployeeChoicesForLeave,
+  listActiveLeaveTypesForOrg,
 } from "./data/leave-request.queries.server"
 
 export type {
   LeaveRequestRow,
   LeaveRequestDetailRow,
   LeaveBalanceRow,
+  OrgLeaveRequestRow,
+  LeaveEmployeeChoiceRow,
+  LeaveTypeChoiceRow,
 } from "./data/leave-request.queries.server"
+
+export {
+  isLeaveHalfDayOption,
+  LEAVE_HALF_DAY_OPTIONS,
+  leaveRequestStateTone,
+} from "./data/leave-display.shared"
+
+export type {
+  LeaveHalfDayOption,
+  LeaveRequestStateLabelTone,
+} from "./data/leave-display.shared"
 
 // Phase 2C: Attendance
 export {
@@ -82,12 +99,69 @@ export {
   getAttendanceDay,
   listAttendanceDaysForEmployee,
   listAttendanceDaysForPayroll,
+  listRecentAttendanceEventsForOrg,
+  listActiveEmployeeChoicesForAttendance,
 } from "./data/attendance.queries.server"
 
 export type {
   AttendanceEventRow,
   AttendanceDayRow,
+  OrgAttendanceEventRow,
+  OrgAttendanceDayRow,
+  AttendanceEmployeeChoiceRow,
 } from "./data/attendance.queries.server"
+
+export {
+  ATTENDANCE_MANUAL_EVENT_TYPES,
+  attendanceDayStateTone,
+  attendanceEventTypeTone,
+  formatMinutesAsHoursMinutes,
+  isAttendanceManualEventType,
+  isIsoDate,
+  todayIsoDate,
+} from "./data/attendance-display.shared"
+
+export type {
+  AttendanceDayStateTone,
+  AttendanceEventTypeTone,
+  AttendanceManualEventType,
+} from "./data/attendance-display.shared"
+
+// PR #3 — HR Documents Vault. Org-scoped library reads + employee
+// filter choices used by the `/dashboard/hrm/documents` page composer.
+// The per-employee `listHrmDocumentsForEmployee` continues to ship
+// from the same module but is consumed only by the employee detail
+// page; both reads scope by `organizationId` and are safe to call
+// after `requireOrgSession`.
+export {
+  listEmployeeChoicesForDocumentFilter,
+  listHrmDocumentsForEmployee,
+  listHrmDocumentsForOrg,
+} from "./data/hrm-document.queries.server"
+
+export type {
+  DocumentEmployeeChoiceRow,
+  ListHrmDocumentsForOrgOptions,
+  OrgHrmDocumentRow,
+} from "./data/hrm-document.queries.server"
+
+export {
+  HRM_DOCUMENT_CLASSIFICATIONS,
+  HRM_DOCUMENT_TYPES,
+  formatHrmDocumentSize,
+  hrmDocumentClassificationTone,
+  hrmDocumentTypeTone,
+  isHrmDocumentClassification,
+  isHrmDocumentType,
+  shortenPayloadHash,
+} from "./data/hrm-document-display.shared"
+
+export type {
+  HrmDocumentClassification,
+  HrmDocumentClassificationTone,
+  HrmDocumentType,
+  HrmDocumentTypeTone,
+} from "./data/hrm-document-display.shared"
 
 // Phase 3A: Payroll preparation
 export {
@@ -336,3 +410,64 @@ export type {
 // layout.tsx`) and any future RSC consumers share a single round trip
 // per request.
 export { getHrmRailPressureCounts } from "./data/hrm-rail-pressure.queries.server"
+
+// PR #4 — HR Policies workbench. Org-scoped reads for the leave-types
+// catalog and effective-dated overlay timeline; the per-row mutation
+// surface stays on the existing Phase 2A Server Actions. The display
+// helpers + tab enum are pure (Server- and Client-Component safe).
+export {
+  getLeaveTypeForOrg,
+  listAllLeaveTypesForOrg,
+  listLeavePoliciesForOrg,
+} from "./data/leave-policy.queries.server"
+
+export type {
+  LeavePolicyAdminRow,
+  LeaveTypeAdminRow,
+  ListLeavePoliciesForOrgOptions,
+} from "./data/leave-policy.queries.server"
+
+export {
+  HRM_LEAVE_ACCRUAL_METHODS,
+  HRM_POLICY_DEFAULT_TAB,
+  HRM_POLICY_TABS,
+  MY_EA_2023_LEAVE_TYPE_CODES,
+  hrmLeaveAccrualMethodTone,
+  hrmLeaveTypeStatusTone,
+  isHrmLeaveAccrualMethod,
+  isHrmPolicyTab,
+  isMyEa2023LeaveTypeCode,
+} from "./data/leave-policy-display.shared"
+
+export type {
+  HrmLeaveAccrualMethod,
+  HrmLeaveAccrualMethodTone,
+  HrmLeaveTypeStatusTone,
+  HrmPolicyTab,
+  MyEa2023LeaveTypeCode,
+} from "./data/leave-policy-display.shared"
+
+// Phase 4 — Claims (org-scoped reads for the kanban + drill-down +
+// admin inbox + payroll-finalize bridge + HR Nexus pressure aggregator).
+export {
+  countApprovedUnpaidClaimsForOrg,
+  countPendingClaimsForOrg,
+  findClaimApproval,
+  findOrgDocumentForClaim,
+  findOrgEmployeeForClaim,
+  getClaimDetail,
+  getClaimTypeForOrg,
+  listApprovedUnpaidClaimsForPeriod,
+  listClaimsForEmployee,
+  listClaimsForOrg,
+  listClaimTypesForOrg,
+  listPendingClaimApprovalsForOrg,
+} from "./data/claim.queries.server"
+
+export type {
+  ClaimDetailRow,
+  ClaimDocumentLite,
+  ClaimEvidenceRow,
+  ClaimRow,
+  ClaimTypeRow,
+} from "./data/claim.queries.server"

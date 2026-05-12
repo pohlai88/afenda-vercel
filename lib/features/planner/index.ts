@@ -19,6 +19,10 @@ export {
   buildPlannerReminderNotice,
 } from "./policies/planner-notification-policy.shared"
 export {
+  describePlannerAutomationAttentionKind,
+  PLANNER_AUTOMATION_ATTENTION_KINDS,
+} from "./automation/planner-automation-attention.shared"
+export {
   derivePlannerBlockedEscalationStage,
   derivePlannerBlockedState,
   derivePlannerBlockedEscalationThresholdHours,

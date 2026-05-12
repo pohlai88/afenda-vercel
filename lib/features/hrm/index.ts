@@ -18,6 +18,22 @@ export {
 } from "./schemas/leave-request.schema"
 
 export {
+  attachClaimEvidenceFormSchema,
+  cancelClaimFormSchema,
+  claimApprovalDecisionSchema,
+  claimRejectDecisionSchema,
+  submitClaimFormSchema,
+} from "./schemas/claim.schema"
+
+export type {
+  AttachClaimEvidenceFormValues,
+  CancelClaimFormValues,
+  ClaimApprovalDecisionValues,
+  ClaimRejectDecisionValues,
+  SubmitClaimFormValues,
+} from "./schemas/claim.schema"
+
+export {
   recordAttendanceEventSchema,
   correctAttendanceEventSchema,
   regenerateAttendanceDaySchema,
@@ -75,7 +91,32 @@ export type {
   PayrollPeriodCreateFormState,
   PayrollPeriodUpdateFormState,
   PreparePayrollRunsFormState,
+  AttachClaimEvidenceFormState,
+  CancelClaimFormState,
+  ClaimApprovalFormState,
+  SubmitClaimFormState,
 } from "./types"
+
+export {
+  CLAIM_EVIDENCE_TYPES,
+  CLAIM_STATES,
+  applyPerClaimLimit,
+  buildClaimApprovalSnapshot,
+  canTransitionFromApproved,
+  canTransitionFromSubmitted,
+  computeClaimsSummary,
+  isClaimCancellable,
+  isClaimDateInRange,
+  isClaimEvidenceType,
+  isClaimState,
+} from "./data/claim-helpers.shared"
+export type {
+  ClaimApprovalSnapshot,
+  ClaimEvidenceType,
+  ClaimsCountsSummary,
+  ClaimStateValue,
+  PerClaimLimitOutcome,
+} from "./data/claim-helpers.shared"
 export { HRM_NAV_NAMESPACE } from "./types"
 
 export {
@@ -111,7 +152,11 @@ export type {
   HrmRailPressureTone,
 } from "./types"
 
+export { AttendancePage } from "./components/attendance-page"
+export { DocumentsPage } from "./components/documents-page"
 export { EmployeeDetailPage } from "./components/employee-detail-page"
+export { LeavePage } from "./components/leave-page"
+export { PoliciesPage } from "./components/policies-page"
 export { WorkforcePage } from "./components/workforce-page"
 export { PayrollConsolePage } from "./components/payroll-console"
 export { CompliancePage } from "./components/compliance-page"

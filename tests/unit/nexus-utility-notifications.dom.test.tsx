@@ -125,6 +125,8 @@ function makeNotice(overrides: Partial<Record<string, unknown>> = {}) {
     linkedPath: "/en/o/acme/dashboard/vendors/vendor-1",
     publishedAt: "2026-05-11T10:00:00.000Z",
     expiresAt: null,
+    closedAt: null,
+    closedByUserId: null,
     readAt: null,
     acknowledgedAt: null,
     isRead: false,

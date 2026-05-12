@@ -41,6 +41,13 @@ export const HRM_CAPABILITIES = [
     minimumOrgRole: "member",
   },
   {
+    id: "claims",
+    segments: ["claims"] as const,
+    auditPrefix: "erp.hrm.claim",
+    nav: { navKey: "claims", order: 35, primarySegment: "claims" },
+    minimumOrgRole: "member",
+  },
+  {
     id: "payroll",
     segments: ["payroll"] as const,
     auditPrefix: "erp.hrm.payroll",

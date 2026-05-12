@@ -4,6 +4,7 @@ export {
   findActiveOrgNotification,
   listActiveOrgNotificationsForLinkedEntity,
   listActiveOrgNotificationsForUser,
+  listOrgNotificationHistoryForLinkedEntity,
 } from "./data/org-notifications.queries.server"
 export {
   acknowledgeOrgNotification,

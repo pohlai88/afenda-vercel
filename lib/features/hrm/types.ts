@@ -8,6 +8,7 @@ export type HrmCapabilityId =
   | "workforce"
   | "leave"
   | "attendance"
+  | "claims"
   | "payroll"
   | "compliance"
   | "documents"
@@ -328,6 +329,50 @@ export type PayrollLockApprovalFormState =
   | {
       ok: false
       errors: { form?: string; approvalId?: string; rejectedReason?: string }
+    }
+
+// ---------------------------------------------------------------------------
+// Phase 4: Claim form states
+// ---------------------------------------------------------------------------
+
+export type SubmitClaimFormState =
+  | { ok: true; claimId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        claimTypeId?: string
+        claimDate?: string
+        amount?: string
+        currency?: string
+      }
+    }
+
+export type CancelClaimFormState =
+  | { ok: true; claimId: string }
+  | {
+      ok: false
+      errors: { form?: string; claimId?: string; cancelledReason?: string }
+    }
+
+export type ClaimApprovalFormState =
+  | { ok: true; claimId: string }
+  | {
+      ok: false
+      errors: { form?: string; claimId?: string; rejectedReason?: string }
+    }
+
+export type AttachClaimEvidenceFormState =
+  | { ok: true; evidenceId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        claimId?: string
+        documentId?: string
+        evidenceType?: string
+      }
     }
 
 // ---------------------------------------------------------------------------

@@ -61,6 +61,8 @@ export async function getNexusSnapshot(input: {
     orbitResolutionRows,
     orbitActiveCount,
     orbitAutomationAttentionCount,
+    orbitReminderAutomationAttentionCount,
+    orbitRecurrenceAutomationAttentionCount,
     orbitBlockedCount,
     orbitAssigneeBlockedCount,
     orbitReviewerBlockedCount,
@@ -88,6 +90,11 @@ export async function getNexusSnapshot(input: {
     listPlannerRecentResolutionsForNexus(organizationId, 3),
     countPlannerActiveForOrg(organizationId),
     countPlannerAutomationAttentionForOrg(organizationId),
+    countPlannerAutomationAttentionForOrg(organizationId, "reminder_delivery"),
+    countPlannerAutomationAttentionForOrg(
+      organizationId,
+      "recurrence_processing"
+    ),
     countPlannerBlockedForOrg(organizationId),
     countPlannerAssigneeOwnedBlockedForOrg(organizationId),
     countPlannerReviewerOwnedBlockedForOrg(organizationId),
@@ -121,6 +128,8 @@ export async function getNexusSnapshot(input: {
     orgSlug,
     activeCount,
     orbitAutomationAttentionCount,
+    orbitReminderAutomationAttentionCount,
+    orbitRecurrenceAutomationAttentionCount,
     orbitBlockedCount,
     orbitAssigneeBlockedCount,
     orbitReviewerBlockedCount,
@@ -201,6 +210,8 @@ function buildPriorityLanes(
   orgSlug: string,
   activeCount: number,
   automationAttentionCount: number,
+  reminderAutomationAttentionCount: number,
+  recurrenceAutomationAttentionCount: number,
   blockedCount: number,
   assigneeBlockedCount: number,
   reviewerBlockedCount: number,
@@ -223,14 +234,60 @@ function buildPriorityLanes(
   }
 
   if (automationAttentionCount > 0) {
-    lanes.push({
-      id: "orbit-automation-attention",
-      kind: "automation_attention",
-      label: "Automation attention",
-      surface: "Orbit",
-      count: automationAttentionCount,
-      href: `${organizationOrbitPath(orgSlug, "today")}?automationState=attention`,
-    })
+    const specificAutomationCounts = [
+      {
+        id: "orbit-automation-reminder-delivery",
+        label: "Reminder delivery failures",
+        count: reminderAutomationAttentionCount,
+        href: `${organizationOrbitPath(orgSlug, "today")}?automationState=attention&automationKind=reminder_delivery`,
+      },
+      {
+        id: "orbit-automation-recurrence-processing",
+        label: "Recurrence processing failures",
+        count: recurrenceAutomationAttentionCount,
+        href: `${organizationOrbitPath(orgSlug, "today")}?automationState=attention&automationKind=recurrence_processing`,
+      },
+    ].filter((entry) => entry.count > 0)
+
+    if (specificAutomationCounts.length > 0) {
+      lanes.push(
+        ...specificAutomationCounts.map((entry) => ({
+          id: entry.id,
+          kind: "automation_attention" as const,
+          label: entry.label,
+          surface: "Orbit",
+          count: entry.count,
+          href: entry.href,
+        }))
+      )
+    }
+
+    const accountedAutomationCount =
+      reminderAutomationAttentionCount + recurrenceAutomationAttentionCount
+    const remainingAutomationCount = Math.max(
+      automationAttentionCount - accountedAutomationCount,
+      0
+    )
+
+    if (
+      specificAutomationCounts.length === 0 ||
+      remainingAutomationCount > 0
+    ) {
+      lanes.push({
+        id: "orbit-automation-attention",
+        kind: "automation_attention",
+        label:
+          remainingAutomationCount > 0
+            ? "Other automation attention"
+            : "Automation attention",
+        surface: "Orbit",
+        count:
+          remainingAutomationCount > 0
+            ? remainingAutomationCount
+            : automationAttentionCount,
+        href: `${organizationOrbitPath(orgSlug, "today")}?automationState=attention`,
+      })
+    }
   }
 
   if (blockedCount > 0) {

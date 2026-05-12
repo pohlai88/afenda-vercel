@@ -1446,7 +1446,7 @@ sequenceDiagram
 
 The plan is organised so **every PR ships a vertical slice you can use end-to-end**. Phases 1–3 are split into A/B/C sub-PRs; each sub-PR is a single reviewable, deployable unit. Two slices come first: **Slice 1 — Employee truth** (Phases 1A–1C) and **Slice 2 — Leave truth** (Phases 2A–2C). Payroll prep follows once both slices are stable.
 
-### Phase 0 — Domain model & governance contracts (1 week, no DB, no UI)
+### Phase 0 — Domain model & governance contracts (1 week, no DB, no UI) ✅ SHIPPED
 
 **Files**
 
@@ -1461,27 +1461,30 @@ The plan is organised so **every PR ships a vertical slice you can use end-to-en
 
 **No DB migrations.** **Acceptance:** `pnpm verify` green; contract test passes against empty registry shape.
 **Risk:** scope creep. **Guardrail:** PR forbids any DB / domain action / form until Phase 1A.
+**Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors. Capability registry, route shell, contract test, audit allowlist, and AGENTS.md HRM row all live.
 
 ### Phase 1 — Slice 1: **Employee truth** (3 sub-PRs, ≈ 2 weeks total)
 
-#### Phase 1A — Workforce base (employee, dept, position, grade)
+#### Phase 1A — Workforce base (employee, dept, position, grade) ✅ SHIPPED
 
-**Migration:** `0009a_hrm_workforce_base.sql` (employee, department, position, job_grade — base columns only; no contract / profile / document yet).
-**Module work:** `actions/employee.actions.ts` (`createEmployeeAction`, `updateEmployeeAction`, `archiveEmployeeAction`), `data/employee.queries.server.ts`, `schemas/employee.schema.ts`, `components/workforce-page.tsx`, `components/employee-detail-page.tsx` (read-only stub), `components/hrm-nav-sidebar.tsx` (driven by `HRM_CAPABILITIES`), route file `app/[locale]/o/[orgSlug]/dashboard/hrm/employees/page.tsx`.
-**Tests:** unit on schema validation; **`tests/e2e/hrm-cross-tenant-isolation.spec.ts`** (must be green from this PR onward — every later phase reruns it).
+**Migration (as shipped):** `0006_mushy_charles_xavier.sql` — `hrm_employee`, `hrm_department`, `hrm_position`, `hrm_job_grade` (base columns; no contract / profile / document yet).
+**Module work:** [`actions/employee.actions.ts`](lib/features/hrm/actions/employee.actions.ts) (`createEmployeeAction`, `updateEmployeeAction`, `archiveEmployeeAction`), [`data/employee.queries.server.ts`](lib/features/hrm/data/employee.queries.server.ts), [`schemas/employee.schema.ts`](lib/features/hrm/schemas/employee.schema.ts), [`components/workforce-page.tsx`](lib/features/hrm/components/workforce-page.tsx), [`components/employee-detail-page.tsx`](lib/features/hrm/components/employee-detail-page.tsx), `components/hrm-nav-sidebar.tsx` (driven by `HRM_CAPABILITIES`), route file [`app/[locale]/o/[orgSlug]/dashboard/hrm/employees/page.tsx`](app/[locale]/o/[orgSlug]/dashboard/hrm/employees/page.tsx).
+**Tests:** [`tests/unit/hrm-employee-schema.test.ts`](tests/unit/hrm-employee-schema.test.ts); **[`tests/e2e/hrm-workforce-isolation.spec.ts`](tests/e2e/hrm-workforce-isolation.spec.ts)** (`@hrm` tag — must stay green from this PR onward; every later phase reruns it).
 **Acceptance:** an HR admin can create / edit / archive employees; audit rows present for every mutation; cross-tenant E2E denies access. **Audit:** `erp.hrm.employee.{create|update|archive}`.
 
-#### Phase 1B — Employment contract + payroll profile + document attach
+#### Phase 1B — Employment contract + payroll profile + document attach ✅ SHIPPED
 
-**Migration:** `0009b_hrm_workforce_contract.sql` (employment_contract, payroll_profile, document_link tables).
-**Module work:** `employment-contract.actions.ts` (`createDraftContractAction`, `activateContractAction`, `terminateContractAction` — single active per employee invariant enforced in DB constraint + action), `payroll-profile.actions.ts` (`upsertPayrollProfileAction`), `document.actions.ts` (`attachEmployeeDocumentAction` — Vercel Blob with `payloadHash`), `employment-contract-form.tsx`, `payroll-profile-form.tsx`. CSV adapter `employee-import.adapter.server.ts`.
+**Migration (as shipped):** `0010_hrm_contract_payroll_document.sql` — `hrm_employment_contract`, `hrm_payroll_profile`, `hrm_document` + `hrm_employee.currentEmploymentContractId` cached pointer.
+**Module work:** [`actions/employment-contract.actions.ts`](lib/features/hrm/actions/employment-contract.actions.ts) (`createDraftContractAction`, `activateContractAction`, `terminateContractAction` — single active per employee invariant enforced in DB constraint + action), [`actions/payroll-profile.actions.ts`](lib/features/hrm/actions/payroll-profile.actions.ts) (`upsertPayrollProfileAction`), [`actions/hrm-document.actions.ts`](lib/features/hrm/actions/hrm-document.actions.ts) (`attachEmployeeDocumentAction` — Vercel Blob with `payloadHash`), [`components/employment-contract-draft-form.tsx`](lib/features/hrm/components/employment-contract-draft-form.tsx), [`components/employment-contract-lifecycle-forms.tsx`](lib/features/hrm/components/employment-contract-lifecycle-forms.tsx), [`components/payroll-profile-form.tsx`](lib/features/hrm/components/payroll-profile-form.tsx), [`components/hrm-document-attach-form.tsx`](lib/features/hrm/components/hrm-document-attach-form.tsx). CSV adapters `hrm_payroll_profile_import` (upsert payroll profiles) and `hrm_employee_hire` (hire new employees) registered in `IMPORT_ADAPTERS`.
 **Acceptance:** create employee → draft contract → attach document (offer letter PDF) → activate contract → confirm `currentEmploymentContractId` cached pointer is updated in the same transaction. **Audit:** `erp.hrm.contract.{create|activate|terminate}`, `erp.hrm.payroll_profile.upsert`, `erp.hrm.document.attach`.
-**Risk:** PII exposure in audit `metadata`. **Guardrail:** lint rule `no-pii-in-audit-metadata` in `eslint.config.mjs` (deny `taxIdentifierNumber|bankAccountNumber|ic|passport|nationalId|payrollBankAccount` keys in `writeIamAuditEvent` `metadata` calls within `lib/features/hrm/`).
+**Risk:** PII exposure in audit `metadata`. **Guardrail (shipped):** ESLint rule `afenda/hrm-pii-audit-metadata` in [`eslint.config.mjs`](eslint.config.mjs) blocks PII keys (`taxIdentifierNumber|bankAccountNumber|nationalId|payrollBankAccount|icNumber|passportNumber`) inside `writeIamAuditEvent*` calls within `lib/features/hrm/`.
+**Tests:** [`tests/unit/hrm-contract.test.ts`](tests/unit/hrm-contract.test.ts) — capability registry parity. **Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors.
 
-#### Phase 1C — Employee timeline (the truth-engine UX proof)
+#### Phase 1C — Employee timeline (the truth-engine UX proof) ✅ SHIPPED
 
-**Module work:** `data/employee-timeline.queries.server.ts` reads `iam_audit_event` rows for `resourceType in ('hrm_employee', 'hrm_employment_contract', 'hrm_payroll_profile', 'hrm_document_link')` and `resourceId` rolled up by employee, projecting `audit7w1h.cache` for the human-readable summary; `components/employee-timeline.tsx` renders a dense, audit-side-panel timeline. Replaces the read-only stub from 1A.
+**Module work:** [`data/employee-timeline.queries.server.ts`](lib/features/hrm/data/employee-timeline.queries.server.ts) reads `iam_audit_event` rows for `resourceType in ('hrm_employee', 'hrm_employment_contract', 'hrm_payroll_profile', 'hrm_document')` and `resourceId` rolled up by employee, projecting `audit7w1h.cache` for the human-readable summary; [`components/employee-timeline.tsx`](lib/features/hrm/components/employee-timeline.tsx) renders a dense, audit-side-panel timeline surfaced on the employee detail page ([`app/[locale]/o/[orgSlug]/dashboard/hrm/employees/[employeeId]/page.tsx`](app/[locale]/o/[orgSlug]/dashboard/hrm/employees/[employeeId]/page.tsx)). Replaces the read-only stub from 1A.
 **Acceptance:** every mutation from 1A and 1B shows up on the timeline within the same request; the timeline is the **first place** an HR admin proves Afenda is a truth engine, not a SaaS. **No new audit events** (this phase is read-only).
+**Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors.
 
 ### Phase 2 — Slice 2: **Leave truth** (3 sub-PRs, ≈ 3 weeks total)
 
@@ -1501,7 +1504,7 @@ The plan is organised so **every PR ships a vertical slice you can use end-to-en
 **Schemas:** `schemas/leave-request.schema.ts` — `applyLeaveFormSchema`, `cancelLeaveFormSchema`, `leaveApprovalDecisionSchema`, `leaveRejectDecisionSchema`.
 **Module work:** `actions/leave-request.actions.ts` (`applyLeaveAction`, `cancelLeaveAction`); `actions/leave-approval.actions.ts` (`approveLeaveAction`, `rejectLeaveAction` — snapshot preserved, balance recomputed after each transition).
 **Tests:** `tests/unit/hrm-leave-request.test.ts` — 52 unit tests covering all pure functions (balance summaries, overlap detection, approval snapshots, round-trip state transitions). **Audit:** `erp.hrm.leave.request.create`, `erp.hrm.leave.request.cancel`, `erp.hrm.approval.request`, `erp.hrm.approval.cancel`, `erp.hrm.approval.approve`, `erp.hrm.approval.reject`.
-**Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors. 52 unit tests green. UI (leave kanban + manager inbox drawer) deferred to Phase 2B-UI sub-phase.
+**Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors. 52 unit tests green. UI shipped in Phase 2B-UI: [`components/leave-page.tsx`](lib/features/hrm/components/leave-page.tsx) (kanban: pending / approved / rejected), [`components/leave-pending-inbox.tsx`](lib/features/hrm/components/leave-pending-inbox.tsx) (manager inbox), [`components/leave-apply-dialog.tsx`](lib/features/hrm/components/leave-apply-dialog.tsx) + [`components/leave-apply-form.tsx`](lib/features/hrm/components/leave-apply-form.tsx), [`components/leave-decision-form.tsx`](lib/features/hrm/components/leave-decision-form.tsx) + [`components/leave-reject-form.tsx`](lib/features/hrm/components/leave-reject-form.tsx) + [`components/leave-cancel-form.tsx`](lib/features/hrm/components/leave-cancel-form.tsx), [`components/leave-recent-table.tsx`](lib/features/hrm/components/leave-recent-table.tsx). Route: [`app/[locale]/o/[orgSlug]/dashboard/hrm/leave/page.tsx`](app/[locale]/o/[orgSlug]/dashboard/hrm/leave/page.tsx).
 **Slice 2 proof:** apply → approve → cancel round-trip fully tested; immutable approval snapshot preserved even if leave type changes later; balance cache recomputed idempotently after every transition.
 
 #### Phase 2C — Attendance event + attendance day (payroll input base) ✅ SHIPPED
@@ -1514,34 +1517,49 @@ The plan is organised so **every PR ships a vertical slice you can use end-to-en
 **CSV Adapter:** `data/attendance-import.adapter.server.ts` — implements `OrgImportAdapter<AttendanceCsvRow>` with id `hrm_attendance_import`; registered in `IMPORT_ADAPTERS` and `ADAPTER_REGISTRY`. Types imported via `#features/org-admin/server` (no deep import violations). Required headers: `employee_id`, `event_type`, `occurred_at`.
 **Tests:** `tests/unit/hrm-attendance-aggregator.test.ts` — 34 unit tests covering checksum determinism, empty input, basic/multi/partial clock pairs, break deduction, idempotency, order independence, correction supersession, no overtime until Phase 3, snapshot structure, and CSV correction round-trip.
 **Audit:** `erp.hrm.attendance.event.create`, `erp.hrm.attendance.day.update`.
-**Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors. 34 unit tests green. UI (attendance grid + correction dialog) deferred to Phase 2C-UI sub-phase. Shift roster (scheduled/late/earlyOut minutes) deferred to Phase 3.
+**Gate:** `pnpm typecheck && pnpm lint` → ✅ 0 errors. 34 unit tests green. UI shipped in Phase 2C-UI: [`components/attendance-page.tsx`](lib/features/hrm/components/attendance-page.tsx), [`components/attendance-day-selector.tsx`](lib/features/hrm/components/attendance-day-selector.tsx), [`components/attendance-day-summary.tsx`](lib/features/hrm/components/attendance-day-summary.tsx), [`components/attendance-recent-events.tsx`](lib/features/hrm/components/attendance-recent-events.tsx), [`components/attendance-record-event-dialog.tsx`](lib/features/hrm/components/attendance-record-event-dialog.tsx) + [`components/attendance-record-event-form.tsx`](lib/features/hrm/components/attendance-record-event-form.tsx), [`components/attendance-correction-dialog.tsx`](lib/features/hrm/components/attendance-correction-dialog.tsx) + [`components/attendance-correction-form.tsx`](lib/features/hrm/components/attendance-correction-form.tsx), [`components/attendance-regenerate-day-button.tsx`](lib/features/hrm/components/attendance-regenerate-day-button.tsx). Route: [`app/[locale]/o/[orgSlug]/dashboard/hrm/attendance/page.tsx`](app/[locale]/o/[orgSlug]/dashboard/hrm/attendance/page.tsx). Shift roster (scheduled/late/earlyOut minutes) deferred to Phase 3.
 
 ### Phase 3 — Payroll preparation & statutory evidence (3 sub-PRs, ≈ 4 weeks total)
 
 **Mandatory ordering:** 3B (golden tests) **must merge before** 3A's payroll preview is wired into any UI an HR admin can lock from. 3C may overlap with 3B once goldens are green.
 
-#### Phase 3A — Payroll period + payroll run + payroll line preview (no rule pack yet)
+#### Phase 3A — Payroll period + payroll run + payroll line preview ✅ SHIPPED
 
-**Migration:** `0012_hrm_payroll.sql` (payroll_period, payroll_run, payroll_line, payroll_anomaly).
-**Engine:** `data/payroll-engine.server.ts` skeleton (deterministic; consumes `PayrollRulePack`); `payroll-finalize.workflow.ts` skeleton with idempotency via `inputDigest`.
-**UI:** payroll console with the seven traceability questions (§5.3) — preview only; lock disabled until 3B is green.
-**Audit:** `erp.hrm.payroll_period.{create|update}`, `erp.hrm.payroll_run.{create|preview}`.
+**Migration (as shipped):** `0015_hrm_payroll.sql` — `hrm_payroll_period`, `hrm_payroll_run`, `hrm_payroll_line`, `hrm_payroll_anomaly`.
+**Engine:** [`data/payroll-finalize.workflow.ts`](lib/features/hrm/data/payroll-finalize.workflow.ts) (Workflow DevKit durable run — deterministic; consumes `PayrollRulePack`; idempotent via `inputDigest`); [`data/payroll.queries.server.ts`](lib/features/hrm/data/payroll.queries.server.ts), [`data/payroll.mutations.server.ts`](lib/features/hrm/data/payroll.mutations.server.ts).
+**Actions:** [`actions/payroll-period.actions.ts`](lib/features/hrm/actions/payroll-period.actions.ts), [`actions/payroll-lock-approval.actions.ts`](lib/features/hrm/actions/payroll-lock-approval.actions.ts) (Tier A — `canActInOrganization(..., "admin")`, lock approval reuses `hrm_approval`).
+**UI:** [`components/payroll-console.tsx`](lib/features/hrm/components/payroll-console.tsx) with the seven traceability questions (§5.3) — preview + lock-via-approval. Route: [`app/[locale]/o/[orgSlug]/dashboard/hrm/payroll/page.tsx`](app/[locale]/o/[orgSlug]/dashboard/hrm/payroll/page.tsx).
+**Audit:** `erp.hrm.payroll.period.lock`, `erp.execution.payroll_finalize.run.{started|completed}`.
 
-#### Phase 3B — Malaysia composite rule pack `MY-2026-01` + golden tests (the compliance gate)
+#### Phase 3B — Malaysia composite rule pack `MY-2026-01` + golden tests (the compliance gate) ✅ SHIPPED
 
-**Migration:** `0015_hrm_country_rule_pack.sql` (rule-pack registry).
-**Rule pack:** `data/rule-packs/malaysia/my-2026-01.rule-pack.ts` (composite manifest) + `epf/v2025-10.table.ts` + `socso/v2024-10.table.ts` + `eis/v2024-10.table.ts` + `pcb/v2026-01.bands.ts` + `holidays/v2026.holidays.ts` + `ea-leave/v2023-01.tiers.ts`.
-**Tests (mandatory before merge):** the full golden test set in §5.11 — EPF / SOCSO / EIS / PCB-2026 / holidays / composite manifest. Snapshot mismatches against KWSP / PERKESO / LHDN published examples block the merge.
+**Migration (as shipped):** `0016_hrm_country_rule_pack.sql` — `hrm_country_rule_pack` registry.
+**Rule pack files:** [`data/rule-packs/malaysia/epf/v2025-10.table.ts`](lib/features/hrm/data/rule-packs/malaysia/epf/v2025-10.table.ts), [`data/rule-packs/malaysia/socso/v2024-10.table.ts`](lib/features/hrm/data/rule-packs/malaysia/socso/v2024-10.table.ts), [`data/rule-packs/malaysia/eis/v2024-10.table.ts`](lib/features/hrm/data/rule-packs/malaysia/eis/v2024-10.table.ts), [`data/rule-packs/malaysia/pcb/v2026-01.bands.ts`](lib/features/hrm/data/rule-packs/malaysia/pcb/v2026-01.bands.ts), [`data/rule-packs/malaysia/holidays/v2026.holidays.ts`](lib/features/hrm/data/rule-packs/malaysia/holidays/v2026.holidays.ts), [`data/rule-packs/malaysia/ea-leave/v2023-01.tiers.ts`](lib/features/hrm/data/rule-packs/malaysia/ea-leave/v2023-01.tiers.ts).
+**Tests:** the full golden test set in §5.11 — EPF / SOCSO / EIS / PCB-2026 / holidays / composite manifest. Snapshot mismatches against KWSP / PERKESO / LHDN published examples block the merge.
 **Acceptance:** lock a real period for a 50-employee fixture org; resulting payroll lines are byte-identical to fixture; re-running an old period resolves the same composite manifest version and yields identical bytes.
 **Risk:** rule-pack drift. **Guardrail:** rule-pack sub-files marked append-only via PR template checklist; CODEOWNERS for `data/rule-packs/**` requires payroll-domain reviewer.
 
-#### Phase 3C — Compliance evidence center + statutory packs
+#### Phase 3C — Compliance evidence center + statutory packs ✅ SHIPPED
 
-**Migration:** `0014_hrm_approval_compliance.sql` (statutory_pack, statutory_pack_submission).
-**Engine:** `data/statutory-pack.server.ts` — deterministic builder per pack type (EPF monthly, SOCSO/EIS monthly, PCB monthly, EA annual, Borang E annual).
-**Outbound:** new event types registered in `ORG_EVENT_TYPES` (see §4.5) and wired through `org_event_delivery` for signed bureau handoff (when an org configures it).
-**UI:** compliance evidence center — by month, by pack type, with download (CSV/JSON), bureau push (when configured), and audit footer.
+**Migration (as shipped):** `0017_hrm_compliance_evidence.sql` — `hrm_compliance_evidence` (per-period statutory pack ledger). Subsequent extension migrations: `0020_hrm_acknowledgement_provenance.sql`, `0021_hrm_authority_payload_hash.sql`.
+**Engine:** [`data/statutory-pack.server.ts`](lib/features/hrm/data/statutory-pack.server.ts) — deterministic builder per pack type (EPF monthly, SOCSO/EIS monthly, PCB monthly, EA annual, Borang E annual). [`data/statutory-pack-csv.shared.ts`](lib/features/hrm/data/statutory-pack-csv.shared.ts) shapes CSV evidence.
+**Actions:** [`actions/statutory-submission.actions.ts`](lib/features/hrm/actions/statutory-submission.actions.ts), [`actions/statutory-acknowledgement.actions.ts`](lib/features/hrm/actions/statutory-acknowledgement.actions.ts), [`actions/compliance.actions.ts`](lib/features/hrm/actions/compliance.actions.ts).
+**Outbound:** event types registered in `ORG_EVENT_TYPES` (see §4.5) and wired through `org_event_delivery` for signed bureau handoff (when an org configures it). Acknowledgement receiver: [`app/api/integrations/hrm-statutory-acknowledgement/[deliveryId]/route.ts`](app/api/integrations/hrm-statutory-acknowledgement/[deliveryId]/route.ts).
+**UI:** [`components/compliance-page.tsx`](lib/features/hrm/components/compliance-page.tsx), [`components/compliance-evidence-detail-page.tsx`](lib/features/hrm/components/compliance-evidence-detail-page.tsx), [`components/compliance-evidence-timeline.tsx`](lib/features/hrm/components/compliance-evidence-timeline.tsx). Routes: [`app/[locale]/o/[orgSlug]/dashboard/hrm/compliance/page.tsx`](app/[locale]/o/[orgSlug]/dashboard/hrm/compliance/page.tsx) + per-evidence drill-down [`app/[locale]/o/[orgSlug]/dashboard/hrm/compliance/[evidenceId]/page.tsx`](app/[locale]/o/[orgSlug]/dashboard/hrm/compliance/[evidenceId]/page.tsx).
+**Audit:** `erp.hrm.compliance_pack.{export|regenerate}`, `erp.execution.statutory_submission.{delivery.failed|retry.attempted|retry.exhausted}`.
 **Acceptance:** statutory packs produced for the 50-employee fixture; resulting bytes match a known-good fixture (snapshot test); reverting via re-finalization is rejected (idempotency).
+
+#### Phase 3 extensions (3F / 3L / 3M / 3N / 3O / 3P / 3Q) ✅ SHIPPED
+
+Operational hardening shipped past the original 3C scope. Listed here so future agents see the canonical baseline:
+
+- **3F — Per-evidence delivery diagnostics:** [`compliance-page.tsx`](lib/features/hrm/components/compliance-page.tsx) attaches `org_event_delivery` rows for every evidence row that has been sent (single batched query, IDOR-safe via endpoint join).
+- **3L — Cross-period operational health (streamed):** [`components/compliance-operational-health.tsx`](lib/features/hrm/components/compliance-operational-health.tsx) + [`components/compliance-operational-health-skeleton.tsx`](lib/features/hrm/components/compliance-operational-health-skeleton.tsx); data via [`data/compliance-operational-health.queries.server.ts`](lib/features/hrm/data/compliance-operational-health.queries.server.ts) and [`data/compliance-operational-health.shared.ts`](lib/features/hrm/data/compliance-operational-health.shared.ts).
+- **3M — System-observed aging watch (cron):** [`data/compliance-aging-watch.server.ts`](lib/features/hrm/data/compliance-aging-watch.server.ts) + cron route [`app/api/cron/hrm-compliance-aging-watch/route.ts`](app/api/cron/hrm-compliance-aging-watch/route.ts) + scheduled in [`vercel.json`](vercel.json) at 06:00 UTC daily. Idempotent per-evidence × per-tier; emits `erp.execution.statutory_submission.aging.{detected|escalated|critical}`.
+- **3N — Per-bureau reliability:** [`components/bureau-reliability-card.tsx`](lib/features/hrm/components/bureau-reliability-card.tsx) + [`components/bureau-reliability-card-skeleton.tsx`](lib/features/hrm/components/bureau-reliability-card-skeleton.tsx); data via [`data/bureau-reliability.shared.ts`](lib/features/hrm/data/bureau-reliability.shared.ts) and [`data/bureau-reliability.queries.server.ts`](lib/features/hrm/data/bureau-reliability.queries.server.ts).
+- **3O — Aging audit emission:** matched per-tier `erp.execution.statutory_submission.aging.*` writes from `runComplianceAgingWatchTick`.
+- **3P / 3Q — Aging fanout (signed outbound deliveries):** [`data/compliance-aging-fanout.server.ts`](lib/features/hrm/data/compliance-aging-fanout.server.ts) emits one signed `org_event_delivery` per `(evidenceId, tier)` tied to `erp.hrm.compliance.aging.{detected|escalated|critical}`. Operational-facets-only payload (no payroll bytes / no PII; gated by `HRM_FANOUT_FORBIDDEN_KEYS`). Tier mapping in `HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES`.
+- **Migrations contributed:** `0020_hrm_acknowledgement_provenance.sql`, `0021_hrm_authority_payload_hash.sql`.
 
 ### Phase 4 — Claims, benefits, documents, HR Nexus pressure (≈ 2 weeks)
 

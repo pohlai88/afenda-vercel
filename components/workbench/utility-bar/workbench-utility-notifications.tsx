@@ -554,7 +554,10 @@ export function WorkbenchUtilityNotifications({
                       {selectedNotice.linkedPath &&
                       selectedNotice.linkedEntityLabel ? (
                         <Button asChild variant="secondary">
-                          <Link href={selectedNotice.linkedPath}>
+                          <Link
+                            href={selectedNotice.linkedPath}
+                            aria-label={t("openLinkedRecord")}
+                          >
                             {`${t("openLinkedRecord")} · ${selectedNotice.linkedEntityLabel}`}
                           </Link>
                         </Button>

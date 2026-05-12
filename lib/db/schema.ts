@@ -2105,6 +2105,15 @@ export const hrmPayrollLine = pgTable(
     rulePackProvenance:
       jsonb("rulePackProvenance").$type<Record<string, unknown>>(),
     metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    /**
+     * Phase 4: optional FK to the `hrm_claim` row this earning settled.
+     * Populated by `payroll-finalize.workflow.ts` when an approved unpaid
+     * claim falls inside the period — payroll-line carries the claimId so
+     * idempotent re-finalization can detect already-paid claims and skip
+     * them. Nullable because most lines (BASIC, EPF_EE, PCB, …) have no
+     * claim provenance. ON DELETE SET NULL preserves the audit ledger.
+     */
+    claimId: text("claimId"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
@@ -2118,6 +2127,233 @@ export const hrmPayrollLine = pgTable(
       t.organizationId,
       t.runId,
       t.code
+    ),
+    index("hrm_payroll_line_claim_id_idx").on(t.claimId),
+  ]
+)
+
+// ---------------------------------------------------------------------------
+// Phase 4 — Claims (reimbursable expense workflow)
+//
+// Tables:
+//   hrm_claim_type        per-org claim catalog (Travel / Medical / Phone / …)
+//   hrm_claim             one claim row per submission (state machine)
+//   hrm_claim_evidence    claim ↔ hrm_document linkage with evidence type
+//
+// State machine:
+//   draft → submitted → approved | rejected     (single-step approval reuses
+//                                                hrm_approval(subjectKind=claim))
+//   submitted → cancelled                       (employee withdraws)
+//   approved → paid                             (payroll-finalize.workflow.ts
+//                                                writes hrm_payroll_line.claimId
+//                                                + flips claim.state = paid)
+//
+// Audit grammar: erp.hrm.claim.{submit|cancel|approve|reject|attach_evidence|paid}
+// ---------------------------------------------------------------------------
+
+/** Per-org reimbursable claim catalog. Owners pin a default payroll-line code
+ *  (e.g. ALLOWANCE_TRAVEL) so payroll-finalize knows where to attach the
+ *  earnings line; rule-packs can override per country. */
+export const hrmClaimType = pgTable(
+  "hrm_claim_type",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    /** Stable internal code (UPPER_SNAKE_CASE), e.g. TRAVEL, MEDICAL_OUTPATIENT. */
+    code: text("code").notNull(),
+    /** Operator-facing label. */
+    name: text("name").notNull(),
+    description: text("description"),
+    /** Default payroll-line code emitted when this claim is paid. */
+    defaultPayrollLineCode: text("defaultPayrollLineCode")
+      .notNull()
+      .default("ALLOWANCE_CLAIM"),
+    /** ISO-4217 currency for limits + claim amounts (claim row may override). */
+    currency: text("currency").notNull().default("MYR"),
+    /** Optional per-claim cap; null = no limit. */
+    perClaimLimit: decimal("perClaimLimit", { precision: 15, scale: 2 }),
+    /** Whether claims of this type require at least one evidence document. */
+    requiresEvidence: boolean("requiresEvidence").notNull().default(true),
+    isActive: boolean("isActive").notNull().default(true),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_claim_type_org_code_uidx").on(t.organizationId, t.code),
+    index("hrm_claim_type_org_active_idx").on(t.organizationId, t.isActive),
+  ]
+)
+
+export const hrmClaim = pgTable(
+  "hrm_claim",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    claimTypeId: text("claimTypeId")
+      .notNull()
+      .references(() => hrmClaimType.id, { onDelete: "restrict" }),
+    /** Date the expense was incurred (drives payroll-period inclusion). */
+    claimDate: date("claimDate", { mode: "string" }).notNull(),
+    amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+    /** ISO-4217; may diverge from the type default for foreign expenses. */
+    currency: text("currency").notNull().default("MYR"),
+    description: text("description"),
+    /** draft | submitted | approved | rejected | cancelled | paid */
+    state: text("state").notNull().default("draft"),
+    submittedAt: timestamp("submittedAt", { mode: "date" }),
+    /** FK to hrm_approval — single-step approval reuses the generic primitive. */
+    currentApprovalId: text("currentApprovalId").references(
+      () => hrmApproval.id,
+      { onDelete: "set null" }
+    ),
+    decidedByUserId: text("decidedByUserId"),
+    decidedAt: timestamp("decidedAt", { mode: "date" }),
+    rejectedReason: text("rejectedReason"),
+    /** Set by payroll-finalize when claim is paid; FK to the earnings line. */
+    paidByPayrollLineId: text("paidByPayrollLineId"),
+    paidAt: timestamp("paidAt", { mode: "date" }),
+    cancelledAt: timestamp("cancelledAt", { mode: "date" }),
+    cancelledReason: text("cancelledReason"),
+    /** Pinned policy version (claim-type snapshot) for re-runnable audits. */
+    policyVersion: text("policyVersion"),
+    /** Operational temporal spine (Past · Now · Next). */
+    temporalPast: jsonb("temporalPast"),
+    temporalNow: jsonb("temporalNow"),
+    temporalNext: jsonb("temporalNext"),
+    audit7w1h: jsonb("audit7w1h"),
+    auditOrigin: text("auditOrigin").notNull().default("production"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_claim_org_employee_state_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.state
+    ),
+    index("hrm_claim_org_state_claim_date_idx").on(
+      t.organizationId,
+      t.state,
+      t.claimDate
+    ),
+    index("hrm_claim_org_paid_line_idx").on(
+      t.organizationId,
+      t.paidByPayrollLineId
+    ),
+  ]
+)
+
+/** Receipts / invoices / photos attached to a claim. Each row links one claim
+ *  to one hrm_document; multiple evidence rows per claim are allowed. */
+export const hrmClaimEvidence = pgTable(
+  "hrm_claim_evidence",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    claimId: text("claimId")
+      .notNull()
+      .references(() => hrmClaim.id, { onDelete: "cascade" }),
+    documentId: text("documentId")
+      .notNull()
+      .references(() => hrmDocument.id, { onDelete: "restrict" }),
+    /** receipt | invoice | photo | other */
+    evidenceType: text("evidenceType").notNull().default("receipt"),
+    notes: text("notes"),
+    uploadedByUserId: text("uploadedByUserId"),
+    uploadedAt: timestamp("uploadedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_claim_evidence_claim_document_uidx").on(
+      t.claimId,
+      t.documentId
+    ),
+    index("hrm_claim_evidence_org_claim_idx").on(t.organizationId, t.claimId),
+  ]
+)
+
+// ---------------------------------------------------------------------------
+// Phase 4 — Benefits stub (schema only; no UI / actions / runtime in Phase 4)
+//
+// Drafted now so Phase 5+ does not need a fresh migration to surface benefits.
+// `hrm_benefit` is a per-org catalog row; `hrm_benefit_enrollment` links an
+// employee to a benefit. No payroll-line wiring yet — that arrives with the
+// benefits Server Actions.
+//
+// Audit grammar (reserved): erp.hrm.benefit.{create|update|enroll|terminate}
+// ---------------------------------------------------------------------------
+
+export const hrmBenefit = pgTable(
+  "hrm_benefit",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    /** medical | dental | optical | wellness | retirement | other */
+    benefitKind: text("benefitKind").notNull().default("other"),
+    isActive: boolean("isActive").notNull().default(true),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_benefit_org_code_uidx").on(t.organizationId, t.code),
+    index("hrm_benefit_org_active_idx").on(t.organizationId, t.isActive),
+  ]
+)
+
+export const hrmBenefitEnrollment = pgTable(
+  "hrm_benefit_enrollment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    benefitId: text("benefitId")
+      .notNull()
+      .references(() => hrmBenefit.id, { onDelete: "restrict" }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    enrolledAt: timestamp("enrolledAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    terminatedAt: timestamp("terminatedAt", { mode: "date" }),
+    terminationReason: text("terminationReason"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_benefit_enrollment_org_benefit_employee_uidx").on(
+      t.organizationId,
+      t.benefitId,
+      t.employeeId
+    ),
+    index("hrm_benefit_enrollment_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
     ),
   ]
 )

@@ -105,6 +105,14 @@ export function sanitizePathAfterOrgSlug(tailFromO: string): AppPath {
     ) {
       return `/dashboard/hrm/compliance/${parts[3]}` as AppPath
     }
+    // Phase 4: per-claim drill-down (`/dashboard/hrm/claims/{claimId}`).
+    if (
+      parts.length === 4 &&
+      parts[2] === "claims" &&
+      isLikelyDatabaseUuid(parts[3]!)
+    ) {
+      return `/dashboard/hrm/claims/${parts[3]}` as AppPath
+    }
     if (
       parts.length === 3 &&
       HRM_DASHBOARD_CAPABILITY_SEGMENT_SET.has(parts[2]!)

@@ -776,6 +776,45 @@
 }
 
 /* -------------------------------------------------------------------------- */
+/* Workbench flush disc — raster controls whose PNG owns the brand surface.   */
+/*                                                                            */
+/* No chrome (no glass, no border, no shadow ring) so the artwork reads       */
+/* edge-to-edge. Subtle hover lift + press feedback + open-state damping are  */
+/* layered here so callers stay declarative and a11y-correct.                 */
+/* -------------------------------------------------------------------------- */
+
+.af-workbench-flush-disc {
+  transition:
+    transform var(--motion-category-pressure),
+    filter var(--motion-category-shell),
+    box-shadow var(--motion-category-shell);
+}
+
+.af-workbench-flush-disc:hover {
+  filter: brightness(1.06) saturate(1.04);
+  box-shadow: 0 4px 14px
+    color-mix(in oklab, var(--foreground) 14%, transparent);
+}
+
+.af-workbench-flush-disc:active {
+  transform: scale(0.96);
+}
+
+.af-workbench-flush-disc[aria-expanded="true"],
+.af-workbench-flush-disc[data-state="open"] {
+  filter: brightness(0.94);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .af-workbench-flush-disc {
+    transition: none;
+  }
+  .af-workbench-flush-disc:active {
+    transform: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* Lynx — material-aware cognition state                                       */
 /* Maps Lynx state -> material behavior. Never label these as "AI mode".       */
 /*                                                                            */

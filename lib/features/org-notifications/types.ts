@@ -15,6 +15,8 @@ export type OrgNotificationNotice = {
   linkedPath: string | null
   publishedAt: string
   expiresAt: string | null
+  closedAt: string | null
+  closedByUserId: string | null
   readAt: string | null
   acknowledgedAt: string | null
   isRead: boolean

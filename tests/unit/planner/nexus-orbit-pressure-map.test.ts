@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import { mapPlannerPressureRowsToOperationalPressureItems } from "#features/nexus/data/nexus-operational-pressure-map.shared"
+import type { PlannerPressureRowForNexus } from "#features/planner/server"
 
 describe("nexus orbit pressure mapping", () => {
   it("maps Orbit items and signals to operational pressure items", () => {
-    const rows = [
+    const rows: PlannerPressureRowForNexus[] = [
       {
         kind: "item" as const,
         id: "item-1",
@@ -32,6 +33,7 @@ describe("nexus orbit pressure mapping", () => {
           blockedByCount: 1,
           activeSignalCount: 2,
           automationFailureCount: 1,
+          automationKinds: ["recurrence_processing"],
           duplicateCount: 0,
           assigneeCount: 1,
           reviewerCount: 1,
@@ -70,7 +72,7 @@ describe("nexus orbit pressure mapping", () => {
     )
     expect(mapped[0]?.reason).toContain("Blocked by 1 dependency")
     expect(mapped[0]?.reason).toContain("Escalation overdue")
-    expect(mapped[0]?.reason).toContain("1 automation failure")
+    expect(mapped[0]?.reason).toContain("Recurrence processing")
     expect(mapped[0]?.reason).toContain("Escalation owner assigned")
     expect(mapped[0]?.evidenceCount).toBe(4)
     expect(mapped[0]?.stageBadge).toEqual({

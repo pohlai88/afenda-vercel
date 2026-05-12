@@ -38,6 +38,10 @@ export {
 } from "./data/planner.queries.server"
 
 export {
+  createPlannerSignalFromErpProducer,
+} from "./integrations/planner-producer-signal.server"
+
+export {
   appendPlannerActivity,
   assignPlannerOwnership,
   correlatePlannerSignalToExistingItem,

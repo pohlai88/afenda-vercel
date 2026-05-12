@@ -19,18 +19,33 @@ export {
   applyLeaveAction,
   cancelLeaveAction,
 } from "./actions/leave-request.actions"
+export type {
+  LeaveApprovalFormState,
+  LeaveRequestMutationFormState,
+  CancelLeaveFormState,
+} from "./types"
 export {
   createLeaveTypeAction,
   updateLeaveTypeAction,
   seedMalaysiaEa2023LeaveTypesAction,
   createLeavePolicyAction,
 } from "./actions/leave-policy.actions"
+export type {
+  LeaveTypeMutationFormState,
+  LeavePolicyMutationFormState,
+  SeedLeaveTypesFormState,
+} from "./types"
 export { upsertPayrollProfileAction } from "./actions/payroll-profile.actions"
 export {
   correctAttendanceEventAction,
   recordAttendanceEventAction,
   regenerateAttendanceDayAction,
 } from "./actions/attendance-correction.actions"
+export type {
+  AttendanceRecordFormState,
+  AttendanceCorrectionFormState,
+  RegenerateDayFormState,
+} from "./types"
 
 export {
   createPayrollPeriodAction,
@@ -104,3 +119,46 @@ export type {
   MarkEvidenceSubmittedFormState,
   SubmitStatutoryEvidenceFormState,
 } from "./types"
+
+// Phase 4 — Claims (submit / cancel / attach-evidence + admin approve / reject)
+export {
+  attachClaimEvidenceAction,
+  cancelClaimAction,
+  submitClaimAction,
+} from "./actions/claim-submission.actions"
+export {
+  approveClaimAction,
+  rejectClaimAction,
+} from "./actions/claim-approval.actions"
+export type {
+  AttachClaimEvidenceFormState,
+  CancelClaimFormState,
+  ClaimApprovalFormState,
+  SubmitClaimFormState,
+} from "./types"
+export {
+  attachClaimEvidenceFormSchema,
+  cancelClaimFormSchema,
+  claimApprovalDecisionSchema,
+  claimRejectDecisionSchema,
+  submitClaimFormSchema,
+} from "./schemas/claim.schema"
+export type {
+  AttachClaimEvidenceFormValues,
+  CancelClaimFormValues,
+  ClaimApprovalDecisionValues,
+  ClaimRejectDecisionValues,
+  SubmitClaimFormValues,
+} from "./schemas/claim.schema"
+export {
+  CLAIM_EVIDENCE_TYPES,
+  CLAIM_STATES,
+  isClaimEvidenceType,
+  isClaimState,
+} from "./data/claim-helpers.shared"
+export type {
+  ClaimApprovalSnapshot,
+  ClaimEvidenceType,
+  ClaimsCountsSummary,
+  ClaimStateValue,
+} from "./data/claim-helpers.shared"

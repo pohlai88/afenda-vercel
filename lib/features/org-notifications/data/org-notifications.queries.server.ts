@@ -29,6 +29,8 @@ export async function listActiveOrgNotificationsForUser(input: {
       linkedPath: orgNotificationNotice.linkedPath,
       publishedAt: orgNotificationNotice.publishedAt,
       expiresAt: orgNotificationNotice.expiresAt,
+      closedAt: orgNotificationNotice.closedAt,
+      closedByUserId: orgNotificationNotice.closedByUserId,
       readAt: orgNotificationReceipt.readAt,
       acknowledgedAt: orgNotificationReceipt.acknowledgedAt,
     })
@@ -71,6 +73,8 @@ export async function listActiveOrgNotificationsForUser(input: {
       linkedPath: row.linkedPath,
       publishedAt: row.publishedAt.toISOString(),
       expiresAt: row.expiresAt?.toISOString() ?? null,
+      closedAt: row.closedAt?.toISOString() ?? null,
+      closedByUserId: row.closedByUserId,
       readAt: row.readAt?.toISOString() ?? null,
       acknowledgedAt: row.acknowledgedAt?.toISOString() ?? null,
       isRead: row.readAt !== null,
@@ -101,6 +105,8 @@ export async function listActiveOrgNotificationsForLinkedEntity(input: {
       linkedPath: orgNotificationNotice.linkedPath,
       publishedAt: orgNotificationNotice.publishedAt,
       expiresAt: orgNotificationNotice.expiresAt,
+      closedAt: orgNotificationNotice.closedAt,
+      closedByUserId: orgNotificationNotice.closedByUserId,
       readAt: orgNotificationReceipt.readAt,
       acknowledgedAt: orgNotificationReceipt.acknowledgedAt,
     })
@@ -145,6 +151,8 @@ export async function listActiveOrgNotificationsForLinkedEntity(input: {
       linkedPath: row.linkedPath,
       publishedAt: row.publishedAt.toISOString(),
       expiresAt: row.expiresAt?.toISOString() ?? null,
+      closedAt: row.closedAt?.toISOString() ?? null,
+      closedByUserId: row.closedByUserId,
       readAt: row.readAt?.toISOString() ?? null,
       acknowledgedAt: row.acknowledgedAt?.toISOString() ?? null,
       isRead: row.readAt !== null,
@@ -188,4 +196,74 @@ export async function findActiveOrgNotification(input: {
     .limit(1)
 
   return row ?? null
+}
+
+export async function listOrgNotificationHistoryForLinkedEntity(input: {
+  organizationId: string
+  userId: string
+  linkedEntityType: string
+  linkedEntityId: string
+  limit?: number
+}): Promise<OrgNotificationNotice[]> {
+  const rows = await db
+    .select({
+      id: orgNotificationNotice.id,
+      title: orgNotificationNotice.title,
+      body: orgNotificationNotice.body,
+      source: orgNotificationNotice.source,
+      severity: orgNotificationNotice.severity,
+      targetUserId: orgNotificationNotice.targetUserId,
+      linkedEntityType: orgNotificationNotice.linkedEntityType,
+      linkedEntityId: orgNotificationNotice.linkedEntityId,
+      linkedEntityLabel: orgNotificationNotice.linkedEntityLabel,
+      linkedPath: orgNotificationNotice.linkedPath,
+      publishedAt: orgNotificationNotice.publishedAt,
+      expiresAt: orgNotificationNotice.expiresAt,
+      closedAt: orgNotificationNotice.closedAt,
+      closedByUserId: orgNotificationNotice.closedByUserId,
+      readAt: orgNotificationReceipt.readAt,
+      acknowledgedAt: orgNotificationReceipt.acknowledgedAt,
+    })
+    .from(orgNotificationNotice)
+    .leftJoin(
+      orgNotificationReceipt,
+      and(
+        eq(orgNotificationReceipt.noticeId, orgNotificationNotice.id),
+        eq(orgNotificationReceipt.userId, input.userId)
+      )
+    )
+    .where(
+      and(
+        eq(orgNotificationNotice.organizationId, input.organizationId),
+        eq(orgNotificationNotice.linkedEntityType, input.linkedEntityType),
+        eq(orgNotificationNotice.linkedEntityId, input.linkedEntityId),
+        or(
+          isNull(orgNotificationNotice.targetUserId),
+          eq(orgNotificationNotice.targetUserId, input.userId)
+        )
+      )
+    )
+    .orderBy(desc(orgNotificationNotice.publishedAt))
+    .limit(input.limit ?? 12)
+
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    body: row.body,
+    source: row.source as OrgNotificationNotice["source"],
+    severity: row.severity as OrgNotificationNotice["severity"],
+    targetUserId: row.targetUserId,
+    linkedEntityType: row.linkedEntityType,
+    linkedEntityId: row.linkedEntityId,
+    linkedEntityLabel: row.linkedEntityLabel,
+    linkedPath: row.linkedPath,
+    publishedAt: row.publishedAt.toISOString(),
+    expiresAt: row.expiresAt?.toISOString() ?? null,
+    closedAt: row.closedAt?.toISOString() ?? null,
+    closedByUserId: row.closedByUserId,
+    readAt: row.readAt?.toISOString() ?? null,
+    acknowledgedAt: row.acknowledgedAt?.toISOString() ?? null,
+    isRead: row.readAt !== null,
+    isAcknowledged: row.acknowledgedAt !== null,
+  }))
 }

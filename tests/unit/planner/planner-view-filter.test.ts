@@ -15,6 +15,7 @@ describe("planner saved view filters", () => {
       ownerUserIds: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
       assignmentRole: "reviewer,escalation_owner",
       automationState: "attention",
+      automationKind: "recurrence_processing",
       signalClass: ["deadline", "review"],
       displayPriority: "critical,high",
       linkedModule: "hrm,payroll",
@@ -26,6 +27,7 @@ describe("planner saved view filters", () => {
       ownerUserIds: ["4c98f55a-fdbc-4bb6-8717-c0cb6760dc73"],
       assignmentRole: ["reviewer", "escalation_owner"],
       automationState: ["attention"],
+      automationKind: ["recurrence_processing"],
       signalClass: ["deadline", "review"],
       displayPriority: ["critical", "high"],
       linkedModule: ["hrm", "payroll"],
@@ -48,11 +50,13 @@ describe("planner saved view filters", () => {
         displayPriority: ["medium"],
         assignmentRole: ["assignee"],
         automationState: ["attention"],
+        automationKind: ["reminder_delivery"],
       },
       {
         query: "vendor",
         displayPriority: ["critical"],
         assignmentRole: ["reviewer"],
+        automationKind: ["recurrence_processing"],
       }
     )
 
@@ -62,6 +66,7 @@ describe("planner saved view filters", () => {
       displayPriority: ["critical"],
       assignmentRole: ["reviewer"],
       automationState: ["attention"],
+      automationKind: ["recurrence_processing"],
     })
     expect(JSON.parse(serializePlannerViewFilterState(merged))).toEqual(merged)
   })

@@ -7,16 +7,15 @@ import { ERP_UTILITY_AVATAR_PNG } from "#lib/site"
 import { cn } from "#lib/utils"
 
 import {
-  WORKBENCH_UTILITY_CHROME_DISC_33_CLASS,
   WORKBENCH_UTILITY_DISC_33_PX,
+  WORKBENCH_UTILITY_FLUSH_DISC_CLASS,
 } from "./workbench-utility-round-control-class"
 
-/** Matches left-rail brand disc + calm open state when used as a menu trigger. */
+/** Flush 33px raster disc — avatar PNG carries its own brand surface, no glass ring. */
 const TRIGGER_CLASS = cn(
-  WORKBENCH_UTILITY_CHROME_DISC_33_CLASS,
-  "inline-flex cursor-pointer items-center justify-center border-0 outline-none",
-  "aria-expanded:bg-card/92 data-[state=open]:bg-card/92",
-  "disabled:pointer-events-none disabled:opacity-50"
+  WORKBENCH_UTILITY_FLUSH_DISC_CLASS,
+  "size-[33px]!",
+  "cursor-pointer disabled:pointer-events-none disabled:opacity-50"
 )
 
 export type NexusUtilityControlAvatarTriggerProps = {

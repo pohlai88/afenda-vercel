@@ -46,4 +46,21 @@ test.describe("HRM workforce tenant boundaries", () => {
       ).toBeVisible()
     }
   )
+
+  test(
+    "unknown org slug also denies access to the claims surface",
+    { tag: "@hrm" },
+    async ({ page }) => {
+      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
+      await page.goto(
+        "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/claims"
+      )
+      await expect(
+        page.getByRole("heading", {
+          name: "Organization not available",
+          exact: true,
+        })
+      ).toBeVisible()
+    }
+  )
 })

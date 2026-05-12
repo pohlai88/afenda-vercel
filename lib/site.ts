@@ -158,6 +158,10 @@ export const APP_ICON_APPLE_180_PNG =
 /** Nexus + Console utility-bar identity control (`public/erp-icon/erp-user-avatar.png`). */
 export const ERP_UTILITY_AVATAR_PNG = "/erp-icon/erp-user-avatar.png" as const
 
+/** Workbench L1 utility-bar apps launcher disc (`public/erp-icon/multiple-apps.png`). */
+export const ERP_UTILITY_MULTIPLE_APPS_PNG =
+  "/erp-icon/multiple-apps.png" as const
+
 /** Lynx module identity in dashboard chrome (sidebar, command palette). */
 export const LYNX_MODULE_NAV_ICON_PNG = "/icons/lynx/lynx-3d.png" as const
 

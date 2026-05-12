@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, desc, eq, inArray, isNotNull } from "drizzle-orm"
+import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -17,6 +17,7 @@ import {
   plannerSession,
   plannerSignal,
   plannerView,
+  orgNotificationNotice,
 } from "#lib/db/schema"
 
 import { normalizePlannerViewFilterState } from "../filters/planner-view-filter.shared"
@@ -343,6 +344,8 @@ export async function transitionPlannerItemLifecycle(input: {
   lifecycle: PlannerItemLifecycle
   actorUserId: string
   correlatedSignalPolicy?: PlannerSignalResolutionPolicy
+  closeActiveNotices?: boolean
+  resolutionNote?: string | null
 }): Promise<void> {
   const timestamp = new Date()
   const patch: Partial<typeof plannerItem.$inferInsert> = {
@@ -367,6 +370,7 @@ export async function transitionPlannerItemLifecycle(input: {
       .where(scopedItemWhere(input.scope, input.itemId))
 
     let resolvedSignals = 0
+    let closedNotices = 0
 
     if (
       input.lifecycle === "resolved" &&
@@ -455,12 +459,63 @@ export async function transitionPlannerItemLifecycle(input: {
       }
     }
 
+    if (
+      input.lifecycle === "resolved" &&
+      input.closeActiveNotices &&
+      input.scope.scopeKind === "organization"
+    ) {
+      const closedRows = await tx
+        .update(orgNotificationNotice)
+        .set({
+          closedAt: timestamp,
+          closedByUserId: input.actorUserId,
+          updatedAt: timestamp,
+        })
+        .where(
+          and(
+            eq(orgNotificationNotice.organizationId, input.scope.organizationId),
+            eq(orgNotificationNotice.linkedEntityType, "planner_item"),
+            eq(orgNotificationNotice.linkedEntityId, input.itemId),
+            isNull(orgNotificationNotice.closedAt)
+          )
+        )
+        .returning({ id: orgNotificationNotice.id })
+
+      closedNotices = closedRows.length
+
+      if (closedNotices > 0) {
+        await tx.insert(plannerActivity).values({
+          itemId: input.itemId,
+          activityType: "notices_closed_on_resolution",
+          body: input.resolutionNote
+            ? `Closed ${closedNotices} active notice(s) during resolution: ${input.resolutionNote}`
+            : `Closed ${closedNotices} active notice(s) during resolution.`,
+          authorUserId: input.actorUserId,
+          metadata: {
+            closedNoticeCount: closedNotices,
+            resolutionNote: trimToNull(input.resolutionNote),
+          },
+        })
+      }
+    }
+
     await tx.insert(plannerActivity).values({
       itemId: input.itemId,
       activityType: "item_lifecycle_transition",
       body:
-        input.lifecycle === "resolved" && resolvedSignals > 0
-          ? `Execution item moved to resolved and applied ${input.correlatedSignalPolicy} to ${resolvedSignals} signal(s).`
+        input.lifecycle === "resolved"
+          ? [
+              `Execution item moved to resolved.`,
+              resolvedSignals > 0
+                ? `Applied ${input.correlatedSignalPolicy} to ${resolvedSignals} signal(s).`
+                : null,
+              closedNotices > 0
+                ? `Closed ${closedNotices} active notice(s).`
+                : null,
+              trimToNull(input.resolutionNote),
+            ]
+              .filter(Boolean)
+              .join(" ")
           : `Execution item moved to ${input.lifecycle}.`,
       authorUserId: input.actorUserId,
     })

@@ -27,6 +27,7 @@ import { Link } from "#i18n/navigation"
 import { describeOrgNotificationBadge } from "#features/org-notifications"
 
 import { describePlannerActivityDisplay } from "../audit/planner-activity-display.shared"
+import { describePlannerAutomationAttentionKind } from "../automation/planner-automation-attention.shared"
 import { addPlannerCommentAction } from "../commands/add-planner-comment"
 import { acknowledgePlannerNoticeAction } from "../commands/acknowledge-planner-notice"
 import { closePlannerNoticeAction } from "../commands/close-planner-notice"
@@ -253,6 +254,7 @@ export async function OrbitPage({
           ownerUserIds: searchParams?.ownerUserIds,
           assignmentRole: searchParams?.assignmentRole,
           automationState: searchParams?.automationState,
+          automationKind: searchParams?.automationKind,
           signalClass: searchParams?.signalClass,
           displayPriority: searchParams?.displayPriority,
           linkedModule: searchParams?.linkedModule,
@@ -288,6 +290,12 @@ export async function OrbitPage({
         : surface === "links"
           ? page.links
           : page.items
+  const automationAttentionItems =
+    surface === "queue" || surface === "today"
+      ? page.items.filter(
+          (item) => (item.operationalFacts?.automationFailureCount ?? 0) > 0
+        )
+      : []
 
   const statusCopy =
     status === "createdSignal"
@@ -442,6 +450,13 @@ export async function OrbitPage({
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-surface-lg">
+            {automationAttentionItems.length > 0 ? (
+              <OrbitAutomationAttentionSection
+                basePath={basePath}
+                currentSearchParams={currentSearchParams}
+                items={automationAttentionItems}
+              />
+            ) : null}
             {listEntries.length === 0 ? (
               <Empty className="border border-dashed border-border/70 bg-muted/20">
                 <EmptyTitle>{t("panels.emptyTitle")}</EmptyTitle>
@@ -602,6 +617,7 @@ function OrbitFilterAndViewBar({
           ) : null}
           <Input
             name="q"
+            aria-label="Orbit search query"
             placeholder="Search title or context"
             defaultValue={activeFilter.query ?? ""}
           />
@@ -670,6 +686,19 @@ function OrbitFilterAndViewBar({
             >
               <option value="">All automation states</option>
               <option value="attention">Automation attention</option>
+            </select>
+          )}
+          {surface === "signals" ? null : (
+            <select
+              name="automationKind"
+              defaultValue={filterSelectValue(activeFilter.automationKind)}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs"
+            >
+              <option value="">All automation kinds</option>
+              <option value="reminder_delivery">Reminder delivery</option>
+              <option value="recurrence_processing">
+                Recurrence processing
+              </option>
             </select>
           )}
           <select
@@ -748,6 +777,7 @@ function OrbitFilterAndViewBar({
                         ownerUserIds: null,
                         assignmentRole: null,
                         automationState: null,
+                        automationKind: null,
                         signalClass: null,
                         displayPriority: null,
                         linkedModule: null,
@@ -785,12 +815,14 @@ function OrbitFilterAndViewBar({
               <input type="hidden" name="viewId" value={activeView?.id ?? ""} />
               <Input
                 name="name"
+                aria-label="Orbit saved view name"
                 placeholder="Saved view name"
                 defaultValue={activeView?.name ?? ""}
                 required
               />
               <Input
                 name="slug"
+                aria-label="Orbit saved view slug"
                 placeholder="saved-view-slug"
                 defaultValue={activeView?.slug ?? ""}
               />
@@ -827,18 +859,42 @@ function OrbitTodayAutomationPresets({
   activeFilter: PlannerViewFilterState
 }) {
   const presetSpecs = [
-    { label: "All automation attention", assignmentRole: null },
-    { label: "Assignee automation", assignmentRole: "assignee" },
-    { label: "Reviewer automation", assignmentRole: "reviewer" },
+    {
+      label: "All automation attention",
+      assignmentRole: null,
+      automationKind: null,
+    },
+    {
+      label: "Reminder delivery",
+      assignmentRole: null,
+      automationKind: "reminder_delivery",
+    },
+    {
+      label: "Recurrence processing",
+      assignmentRole: null,
+      automationKind: "recurrence_processing",
+    },
+    {
+      label: "Assignee automation",
+      assignmentRole: "assignee",
+      automationKind: null,
+    },
+    {
+      label: "Reviewer automation",
+      assignmentRole: "reviewer",
+      automationKind: null,
+    },
     {
       label: "Escalation-owner automation",
       assignmentRole: "escalation_owner",
+      automationKind: null,
     },
   ] as const
 
   const activeAutomationState =
     activeFilter.automationState?.includes("attention") ?? false
   const activeAssignmentRole = filterSelectValue(activeFilter.assignmentRole)
+  const activeAutomationKind = filterSelectValue(activeFilter.automationKind)
 
   return (
     <div className="space-y-2">
@@ -855,6 +911,9 @@ function OrbitTodayAutomationPresets({
         {presetSpecs.map((preset) => {
           const isActive =
             activeAutomationState &&
+            (preset.automationKind == null
+              ? activeAutomationKind === ""
+              : activeAutomationKind === preset.automationKind) &&
             (preset.assignmentRole == null
               ? activeAssignmentRole === ""
               : activeAssignmentRole === preset.assignmentRole)
@@ -872,6 +931,7 @@ function OrbitTodayAutomationPresets({
                   {
                     automationState: "attention",
                     assignmentRole: preset.assignmentRole,
+                    automationKind: preset.automationKind,
                     focusKind: null,
                     focusId: null,
                     status: null,
@@ -900,6 +960,82 @@ function SummaryTile({ label, value }: { label: string; value: string }) {
   )
 }
 
+function OrbitAutomationAttentionSection({
+  basePath,
+  currentSearchParams,
+  items,
+}: {
+  basePath: string
+  currentSearchParams: URLSearchParams
+  items: Awaited<ReturnType<typeof getOrbitPageData>>["items"]
+}) {
+  const groupedByKind = new Map<string, number>()
+
+  for (const item of items) {
+    const kinds = item.operationalFacts?.automationKinds ?? []
+    if (kinds.length === 0) {
+      groupedByKind.set("attention", (groupedByKind.get("attention") ?? 0) + 1)
+      continue
+    }
+    for (const kind of kinds) {
+      groupedByKind.set(kind, (groupedByKind.get(kind) ?? 0) + 1)
+    }
+  }
+
+  return (
+    <section className="mb-4 rounded-2xl border border-warning/30 bg-warning/10 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">
+            Automation attention
+          </h3>
+          <p className="pt-1 text-xs text-muted-foreground">
+            Active system-generated execution pressure linked to these items.
+          </p>
+        </div>
+        <Badge variant="warning">{items.length} open</Badge>
+      </div>
+      {groupedByKind.size > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {[...groupedByKind.entries()].map(([kind, count]) => (
+            <Badge key={kind} variant="outline">
+              {kind === "attention"
+                ? "Automation attention"
+                : describePlannerAutomationAttentionKind(
+                    kind as Parameters<
+                      typeof describePlannerAutomationAttentionKind
+                    >[0]
+                  )}{" "}
+              · {count}
+            </Badge>
+          ))}
+        </div>
+      ) : null}
+      <div className="mt-3 grid gap-2 md:grid-cols-2">
+        {items.slice(0, 4).map((item) => (
+          <Link
+            key={item.id}
+            href={focusHref(basePath, currentSearchParams, "item", item.id)}
+            className="rounded-xl border border-warning/20 bg-background/80 px-3 py-2 text-sm transition-colors hover:bg-background"
+          >
+            <span className="block font-medium">{item.title}</span>
+            <span className="block pt-1 text-xs text-muted-foreground">
+              {(item.operationalFacts?.automationKinds?.length ?? 0) > 0
+                ? item
+                    .operationalFacts!.automationKinds.map((kind) =>
+                      describePlannerAutomationAttentionKind(kind)
+                    )
+                    .join(" · ")
+                : `${item.operationalFacts?.automationFailureCount ?? 0} automation failure${(item.operationalFacts?.automationFailureCount ?? 0) === 1 ? "" : "s"}`}{" "}
+              · pressure {item.pressureScore}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function QuickSignalForm({
   scope,
   orgSlug,
@@ -914,9 +1050,15 @@ function QuickSignalForm({
       <input type="hidden" name="scopeKind" value={scope.scopeKind} />
       <input type="hidden" name="surface" value={surface} />
       <input type="hidden" name="orgSlug" value={orgSlug ?? ""} />
-      <Input name="title" placeholder="Signal summary" required />
+      <Input
+        name="title"
+        aria-label="Orbit signal title"
+        placeholder="Signal summary"
+        required
+      />
       <Textarea
         name="description"
+        aria-label="Orbit signal description"
         placeholder="Operational context (optional)"
       />
       <Button type="submit" size="sm">
@@ -940,7 +1082,12 @@ function QuickItemForm({
       <input type="hidden" name="scopeKind" value={scope.scopeKind} />
       <input type="hidden" name="surface" value={surface} />
       <input type="hidden" name="orgSlug" value={orgSlug ?? ""} />
-      <Input name="title" placeholder="Execution item title" required />
+      <Input
+        name="title"
+        aria-label="Orbit item title"
+        placeholder="Execution item title"
+        required
+      />
       <Input name="dueAt" type="datetime-local" />
       <Textarea name="description" placeholder="Execution context (optional)" />
       <Button type="submit" size="sm" variant="outline">
@@ -979,7 +1126,11 @@ function OrbitItemRow({
       ? `${operationalFacts.activeSignalCount} active signal${operationalFacts.activeSignalCount === 1 ? "" : "s"}`
       : null,
     operationalFacts?.automationFailureCount
-      ? `${operationalFacts.automationFailureCount} automation failure${operationalFacts.automationFailureCount === 1 ? "" : "s"}`
+      ? operationalFacts.automationKinds.length > 0
+        ? operationalFacts.automationKinds
+            .map((kind) => describePlannerAutomationAttentionKind(kind))
+            .join(" · ")
+        : `${operationalFacts.automationFailureCount} automation failure${operationalFacts.automationFailureCount === 1 ? "" : "s"}`
       : null,
     operationalFacts?.escalationOwnerCount ? "escalation owner assigned" : null,
   ]
@@ -1166,6 +1317,7 @@ function ItemDetailPanel({
   canManageNotices: boolean
 }) {
   if (!detail) return null
+  const supportsOrgNotices = scope.scopeKind === "organization"
 
   return (
     <div className="space-y-4">
@@ -1265,6 +1417,23 @@ function ItemDetailPanel({
         <Button type="submit" size="sm" variant="outline">
           Resolve item
         </Button>
+        {supportsOrgNotices ? (
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              name="closeActiveNotices"
+              defaultChecked
+              className="size-4 rounded border-input"
+            />
+            Close active notices
+          </label>
+        ) : null}
+        <Input
+          name="resolutionNote"
+          aria-label="Orbit resolution note"
+          placeholder="Resolution note (optional)"
+          className="min-w-64 flex-1"
+        />
       </form>
 
       <Separator />
@@ -1439,111 +1608,148 @@ function ItemDetailPanel({
           ))
         )}
       </DetailSection>
-      <DetailSection title="Active notices">
-        {detail.notices.length === 0 ? (
-          <DetailEmpty message="No active Orbit notices for this item." />
-        ) : (
-          detail.notices.map((notice) => {
-            const displayBadge = describeOrgNotificationBadge(notice)
+      {supportsOrgNotices ? (
+        <>
+          <DetailSection title="Active notices">
+            {detail.notices.length === 0 ? (
+              <DetailEmpty message="No active Orbit notices for this item." />
+            ) : (
+              detail.notices.map((notice) => {
+                const displayBadge = describeOrgNotificationBadge(notice)
 
-            return (
-              <div
-                key={notice.id}
-                className="rounded-xl border border-border/60 bg-muted/20 px-3 py-3 text-sm"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={noticeSeverityVariant(notice.severity)}>
-                    {notice.severity}
-                  </Badge>
-                  {displayBadge ? (
-                    <Badge variant={noticeSeverityVariant(displayBadge.tone)}>
-                      {displayBadge.label}
-                    </Badge>
-                  ) : null}
-                  <Badge
-                    variant={notice.targetUserId ? "outline" : "secondary"}
+                return (
+                  <div
+                    key={notice.id}
+                    className="rounded-xl border border-border/60 bg-muted/20 px-3 py-3 text-sm"
                   >
-                    {notice.targetUserId ? "Targeted" : "Broadcast"}
-                  </Badge>
-                  {notice.isAcknowledged ? (
-                    <Badge variant="success">Acknowledged</Badge>
-                  ) : notice.isRead ? (
-                    <Badge variant="outline">Read</Badge>
-                  ) : (
-                    <Badge variant="info">Unread</Badge>
-                  )}
-                </div>
-                <p className="pt-3 font-medium text-foreground">
-                  {notice.title}
-                </p>
-                <p className="pt-1 text-sm text-muted-foreground">
-                  {notice.body}
-                </p>
-                <div className="flex flex-wrap items-center gap-3 pt-3 text-xs text-muted-foreground">
-                  <span>{new Date(notice.publishedAt).toLocaleString()}</span>
-                  {notice.expiresAt ? (
-                    <span>
-                      expires {new Date(notice.expiresAt).toLocaleString()}
-                    </span>
-                  ) : null}
-                  {notice.linkedEntityLabel ? (
-                    <span>{notice.linkedEntityLabel}</span>
-                  ) : null}
-                </div>
-                <div className="flex flex-wrap gap-2 pt-3">
-                  {!notice.isRead ? (
-                    <form action={readPlannerNoticeAction}>
-                      <HiddenPlannerScopeFields
-                        scope={scope}
-                        surface={surface}
-                        orgSlug={orgSlug}
-                      />
-                      <input type="hidden" name="noticeId" value={notice.id} />
-                      <input type="hidden" name="itemId" value={detail.id} />
-                      <Button type="submit" size="sm" variant="outline">
-                        Mark read
-                      </Button>
-                    </form>
-                  ) : null}
-                  {!notice.isAcknowledged ? (
-                    <form action={acknowledgePlannerNoticeAction}>
-                      <HiddenPlannerScopeFields
-                        scope={scope}
-                        surface={surface}
-                        orgSlug={orgSlug}
-                      />
-                      <input type="hidden" name="noticeId" value={notice.id} />
-                      <input type="hidden" name="itemId" value={detail.id} />
-                      <Button type="submit" size="sm" variant="outline">
-                        Acknowledge
-                      </Button>
-                    </form>
-                  ) : null}
-                  {canManageNotices ? (
-                    <form action={closePlannerNoticeAction}>
-                      <HiddenPlannerScopeFields
-                        scope={scope}
-                        surface={surface}
-                        orgSlug={orgSlug}
-                      />
-                      <input type="hidden" name="noticeId" value={notice.id} />
-                      <input type="hidden" name="itemId" value={detail.id} />
-                      <Button type="submit" size="sm" variant="outline">
-                        Close notice
-                      </Button>
-                    </form>
-                  ) : null}
-                  {notice.linkedPath ? (
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={notice.linkedPath}>Open linked record</Link>
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            )
-          })
-        )}
-      </DetailSection>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={noticeSeverityVariant(notice.severity)}>
+                        {notice.severity}
+                      </Badge>
+                      {displayBadge ? (
+                        <Badge
+                          variant={noticeSeverityVariant(displayBadge.tone)}
+                        >
+                          {displayBadge.label}
+                        </Badge>
+                      ) : null}
+                      <Badge
+                        variant={notice.targetUserId ? "outline" : "secondary"}
+                      >
+                        {notice.targetUserId ? "Targeted" : "Broadcast"}
+                      </Badge>
+                      {notice.isAcknowledged ? (
+                        <Badge variant="success">Acknowledged</Badge>
+                      ) : notice.isRead ? (
+                        <Badge variant="outline">Read</Badge>
+                      ) : (
+                        <Badge variant="info">Unread</Badge>
+                      )}
+                    </div>
+                    <p className="pt-3 font-medium text-foreground">
+                      {notice.title}
+                    </p>
+                    <p className="pt-1 text-sm text-muted-foreground">
+                      {notice.body}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-3 pt-3 text-xs text-muted-foreground">
+                      <span>
+                        {new Date(notice.publishedAt).toLocaleString()}
+                      </span>
+                      {notice.expiresAt ? (
+                        <span>
+                          expires {new Date(notice.expiresAt).toLocaleString()}
+                        </span>
+                      ) : null}
+                      {notice.linkedEntityLabel ? (
+                        <span>{notice.linkedEntityLabel}</span>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-3">
+                      {!notice.isRead ? (
+                        <form action={readPlannerNoticeAction}>
+                          <HiddenPlannerScopeFields
+                            scope={scope}
+                            surface={surface}
+                            orgSlug={orgSlug}
+                          />
+                          <input
+                            type="hidden"
+                            name="noticeId"
+                            value={notice.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="itemId"
+                            value={detail.id}
+                          />
+                          <Button type="submit" size="sm" variant="outline">
+                            Mark read
+                          </Button>
+                        </form>
+                      ) : null}
+                      {!notice.isAcknowledged ? (
+                        <form action={acknowledgePlannerNoticeAction}>
+                          <HiddenPlannerScopeFields
+                            scope={scope}
+                            surface={surface}
+                            orgSlug={orgSlug}
+                          />
+                          <input
+                            type="hidden"
+                            name="noticeId"
+                            value={notice.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="itemId"
+                            value={detail.id}
+                          />
+                          <Button type="submit" size="sm" variant="outline">
+                            Acknowledge
+                          </Button>
+                        </form>
+                      ) : null}
+                      {canManageNotices ? (
+                        <form action={closePlannerNoticeAction}>
+                          <HiddenPlannerScopeFields
+                            scope={scope}
+                            surface={surface}
+                            orgSlug={orgSlug}
+                          />
+                          <input
+                            type="hidden"
+                            name="noticeId"
+                            value={notice.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="itemId"
+                            value={detail.id}
+                          />
+                          <Button type="submit" size="sm" variant="outline">
+                            Close notice
+                          </Button>
+                        </form>
+                      ) : null}
+                      {notice.linkedPath ? (
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={notice.linkedPath}>
+                            Open linked record
+                          </Link>
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </DetailSection>
+          <DetailSection title="Notice evidence">
+            <PlannerNoticeHistoryList notices={detail.noticeHistory} />
+          </DetailSection>
+        </>
+      ) : null}
       <DetailSection title="Relations">
         <form
           action={createPlannerRelationAction}
@@ -1629,6 +1835,7 @@ function ItemDetailPanel({
           <input type="hidden" name="itemId" value={detail.id} />
           <Textarea
             name="body"
+            aria-label="Orbit comment body"
             placeholder="Add operational context, evidence, or decision notes"
             required
           />
@@ -1911,6 +2118,68 @@ function PlannerActivityList({
         </p>
       </div>
     ))
+  )
+}
+
+function PlannerNoticeHistoryList({
+  notices,
+}: {
+  notices: NonNullable<
+    Awaited<ReturnType<typeof getPlannerItemDetail>>
+  >["noticeHistory"]
+}) {
+  if (notices.length === 0) {
+    return <DetailEmpty message="No notice evidence yet." />
+  }
+
+  return (
+    <div className="space-y-2">
+      {notices.map((notice) => {
+        const displayBadge = describeOrgNotificationBadge(notice)
+        const state = notice.closedAt
+          ? "Closed"
+          : notice.isAcknowledged
+            ? "Acknowledged"
+            : notice.isRead
+              ? "Read"
+              : "Unread"
+
+        return (
+          <div
+            key={notice.id}
+            className="rounded-xl border border-border/60 px-3 py-2 text-sm"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={noticeSeverityVariant(notice.severity)}>
+                {notice.severity}
+              </Badge>
+              {displayBadge ? (
+                <Badge variant={noticeSeverityVariant(displayBadge.tone)}>
+                  {displayBadge.label}
+                </Badge>
+              ) : null}
+              <Badge variant={notice.closedAt ? "success" : "outline"}>
+                {state}
+              </Badge>
+            </div>
+            <p className="pt-2 font-medium">{notice.title}</p>
+            <p className="pt-1 text-xs text-muted-foreground">
+              published {new Date(notice.publishedAt).toLocaleString()}
+              {notice.readAt
+                ? ` · read ${new Date(notice.readAt).toLocaleString()}`
+                : ""}
+              {notice.acknowledgedAt
+                ? ` · acknowledged ${new Date(notice.acknowledgedAt).toLocaleString()}`
+                : ""}
+              {notice.closedAt
+                ? ` · closed ${new Date(notice.closedAt).toLocaleString()}`
+                : ""}
+              {notice.closedByUserId ? ` by ${notice.closedByUserId}` : ""}
+            </p>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 

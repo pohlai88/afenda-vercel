@@ -65,6 +65,10 @@ export const transitionPlannerItemFormSchema = z.object({
   itemId: z.string().uuid(),
   lifecycle: plannerItemLifecycleSchema,
   correlatedSignalPolicy: plannerSignalResolutionPolicySchema.optional(),
+  closeActiveNotices: z
+    .preprocess((value) => value === "on" || value === "true", z.boolean())
+    .optional(),
+  resolutionNote: z.string().trim().max(1000).optional(),
 })
 
 export const promotePlannerSignalFormSchema = z.object({

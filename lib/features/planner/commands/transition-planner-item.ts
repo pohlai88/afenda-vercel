@@ -32,6 +32,8 @@ export async function transitionPlannerItemAction(
     itemId: formData.get("itemId"),
     lifecycle: formData.get("lifecycle"),
     correlatedSignalPolicy: formData.get("correlatedSignalPolicy") || undefined,
+    closeActiveNotices: formData.get("closeActiveNotices"),
+    resolutionNote: formData.get("resolutionNote") || undefined,
   })
   if (!parsed.success) {
     const href = orbitScopedPath({ scopeKind, orgSlug, surface })
@@ -49,6 +51,8 @@ export async function transitionPlannerItemAction(
       lifecycle: parsed.data.lifecycle,
       actorUserId: session.userId,
       correlatedSignalPolicy: parsed.data.correlatedSignalPolicy,
+      closeActiveNotices: parsed.data.closeActiveNotices,
+      resolutionNote: parsed.data.resolutionNote,
     })
 
     after(() =>
@@ -62,6 +66,7 @@ export async function transitionPlannerItemAction(
         metadata: {
           lifecycle: parsed.data.lifecycle,
           correlatedSignalPolicy: parsed.data.correlatedSignalPolicy ?? null,
+          closeActiveNotices: parsed.data.closeActiveNotices ?? false,
         },
       })
     )
@@ -90,6 +95,8 @@ export async function transitionPlannerItemAction(
     lifecycle: parsed.data.lifecycle,
     actorUserId: session.userId,
     correlatedSignalPolicy: parsed.data.correlatedSignalPolicy,
+    closeActiveNotices: parsed.data.closeActiveNotices,
+    resolutionNote: parsed.data.resolutionNote,
   })
 
   after(() =>
@@ -102,6 +109,7 @@ export async function transitionPlannerItemAction(
       metadata: {
         lifecycle: parsed.data.lifecycle,
         correlatedSignalPolicy: parsed.data.correlatedSignalPolicy ?? null,
+        closeActiveNotices: parsed.data.closeActiveNotices ?? false,
       },
     })
   )

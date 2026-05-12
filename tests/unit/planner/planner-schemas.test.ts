@@ -131,12 +131,20 @@ describe("planner form schemas", () => {
   })
 
   it("accepts resolution policy on item transition payloads", () => {
-    expect(
-      transitionPlannerItemFormSchema.safeParse({
-        itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
-        lifecycle: "resolved",
-        correlatedSignalPolicy: "auto_resolve",
-      }).success
-    ).toBe(true)
+    const parsed = transitionPlannerItemFormSchema.safeParse({
+      itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+      lifecycle: "resolved",
+      correlatedSignalPolicy: "auto_resolve",
+      closeActiveNotices: "on",
+      resolutionNote: "Operator verified closure evidence.",
+    })
+
+    expect(parsed.success).toBe(true)
+    expect(parsed.data).toEqual(
+      expect.objectContaining({
+        closeActiveNotices: true,
+        resolutionNote: "Operator verified closure evidence.",
+      })
+    )
   })
 })

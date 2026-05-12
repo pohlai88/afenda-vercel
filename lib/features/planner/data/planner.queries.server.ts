@@ -16,7 +16,10 @@ import {
 } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { listActiveOrgNotificationsForLinkedEntity } from "#features/org-notifications/server"
+import {
+  listActiveOrgNotificationsForLinkedEntity,
+  listOrgNotificationHistoryForLinkedEntity,
+} from "#features/org-notifications/server"
 import {
   plannerActivity,
   plannerAssignment,
@@ -47,9 +50,13 @@ import {
 import {
   PLANNER_ACTIVE_ITEM_LIFECYCLES,
   PLANNER_ACTIVE_SIGNAL_LIFECYCLES,
-  PLANNER_AUTOMATION_ATTENTION_NOTICE_TITLE_PREFIXES,
   PLANNER_VIEW_SORT_MODES,
 } from "../constants"
+import {
+  type PlannerAutomationAttentionKind,
+  parsePlannerAutomationAttentionKindFromNoticeTitle,
+  plannerAutomationAttentionNoticeTitleWhere,
+} from "../automation/planner-automation-attention.shared"
 import {
   mergePlannerViewFilterStates,
   normalizePlannerViewFilterState,
@@ -400,11 +407,7 @@ function plannerAutomationAttentionNoticeWhere(now: Date) {
     lte(orgNotificationNotice.publishedAt, now),
     isNull(orgNotificationNotice.closedAt),
     or(isNull(orgNotificationNotice.expiresAt), gt(orgNotificationNotice.expiresAt, now)),
-    or(
-      ...PLANNER_AUTOMATION_ATTENTION_NOTICE_TITLE_PREFIXES.map((prefix) =>
-        ilike(orgNotificationNotice.title, `${prefix}%`)
-      )
-    )
+    plannerAutomationAttentionNoticeTitleWhere()
   )
 }
 
@@ -471,6 +474,7 @@ async function listPlannerOperationalFactsMap(
       blockedByCount: 0,
       activeSignalCount: 0,
       automationFailureCount: 0,
+      automationKinds: [],
       duplicateCount: 0,
       assigneeCount: 0,
       reviewerCount: 0,
@@ -522,6 +526,7 @@ async function listPlannerOperationalFactsMap(
   }
 
   const automationAttentionKeys = new Set<string>()
+  const automationKindsByItem = new Map<string, Set<PlannerAutomationAttentionKind>>()
 
   for (const notice of automationFailures) {
     if (!notice.itemId) continue
@@ -530,6 +535,17 @@ async function listPlannerOperationalFactsMap(
     automationAttentionKeys.add(noticeKey)
     const facts = getFacts(notice.itemId)
     facts.automationFailureCount += 1
+    const kind = parsePlannerAutomationAttentionKindFromNoticeTitle(notice.title)
+    if (kind) {
+      const kinds = automationKindsByItem.get(notice.itemId) ?? new Set()
+      kinds.add(kind)
+      automationKindsByItem.set(notice.itemId, kinds)
+    }
+  }
+
+  for (const [itemId, kinds] of automationKindsByItem.entries()) {
+    const facts = getFacts(itemId)
+    facts.automationKinds = [...kinds]
   }
 
   return factsByItem
@@ -539,8 +555,16 @@ function matchesAutomationAttention(
   row: PlannerItemRow,
   filter: PlannerViewFilterState
 ) {
-  if (!hasFilterValues(filter.automationState)) return true
-  return (row.operationalFacts?.automationFailureCount ?? 0) > 0
+  const hasAttentionState = hasFilterValues(filter.automationState)
+  const hasAttentionKind = hasFilterValues(filter.automationKind)
+  const failureCount = row.operationalFacts?.automationFailureCount ?? 0
+  const kinds = row.operationalFacts?.automationKinds ?? []
+
+  if (!hasAttentionState && !hasAttentionKind) return true
+  if (failureCount === 0) return false
+  if (!hasAttentionKind) return true
+
+  return filter.automationKind!.some((kind) => kinds.includes(kind))
 }
 
 async function applyOperationalFactsToItems(
@@ -728,7 +752,8 @@ export async function countPlannerForToday(
 }
 
 export async function countPlannerAutomationAttentionForOrg(
-  organizationId: string
+  organizationId: string,
+  kind?: PlannerAutomationAttentionKind
 ): Promise<number> {
   const now = new Date()
   const rows = await db
@@ -739,7 +764,8 @@ export async function countPlannerAutomationAttentionForOrg(
     .where(
       and(
         eq(orgNotificationNotice.organizationId, organizationId),
-        plannerAutomationAttentionNoticeWhere(now)
+        plannerAutomationAttentionNoticeWhere(now),
+        plannerAutomationAttentionNoticeTitleWhere(kind)
       )
     )
 
@@ -1409,6 +1435,7 @@ export async function listPlannerBlockedItemsForEscalation(
         blockedByCount: 0,
         activeSignalCount: 0,
         automationFailureCount: 0,
+        automationKinds: [],
         duplicateCount: 0,
         assigneeCount: row.assigneeUserIds.length,
         reviewerCount: row.reviewerUserIds.length,
@@ -1659,6 +1686,7 @@ export async function getPlannerItemDetail(
     activity,
     sessions,
     notices,
+    noticeHistory,
   ] = await Promise.all([
     db
       .select()
@@ -1741,6 +1769,15 @@ export async function getPlannerItemDetail(
           linkedEntityId: itemId,
         })
       : Promise.resolve([]),
+    scope.scopeKind === "organization" && viewerUserId
+      ? listOrgNotificationHistoryForLinkedEntity({
+          organizationId: scope.organizationId,
+          userId: viewerUserId,
+          linkedEntityType: "planner_item",
+          linkedEntityId: itemId,
+          limit: 12,
+        })
+      : Promise.resolve([]),
   ])
 
   return {
@@ -1807,6 +1844,7 @@ export async function getPlannerItemDetail(
       itemTitle: itemTitle ?? null,
     })),
     notices,
+    noticeHistory,
   }
 }
 

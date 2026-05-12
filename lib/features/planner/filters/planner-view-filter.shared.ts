@@ -5,6 +5,7 @@ import {
   PLANNER_OWNERSHIP_ROLES,
   PLANNER_SIGNAL_CLASSES,
 } from "../constants"
+import { PLANNER_AUTOMATION_ATTENTION_KINDS } from "../automation/planner-automation-attention.shared"
 
 const plannerUuidArrayField = z.array(z.string().uuid()).max(20).optional()
 const plannerStringArrayField = z
@@ -20,6 +21,10 @@ export const plannerViewFilterStateSchema = z
     assignmentRole: z.array(z.enum(PLANNER_OWNERSHIP_ROLES)).max(20).optional(),
     automationState: z
       .array(z.enum(["attention"]))
+      .max(20)
+      .optional(),
+    automationKind: z
+      .array(z.enum(PLANNER_AUTOMATION_ATTENTION_KINDS))
       .max(20)
       .optional(),
     signalClass: z.array(z.enum(PLANNER_SIGNAL_CLASSES)).max(20).optional(),
@@ -77,6 +82,9 @@ export function normalizePlannerViewFilterState(
   if (parsed.automationState?.length) {
     next.automationState = [...parsed.automationState]
   }
+  if (parsed.automationKind?.length) {
+    next.automationKind = [...parsed.automationKind]
+  }
   if (parsed.signalClass?.length) next.signalClass = [...parsed.signalClass]
   if (parsed.displayPriority?.length) {
     next.displayPriority = [...parsed.displayPriority]
@@ -103,6 +111,9 @@ export function mergePlannerViewFilterStates(
     if (state.automationState?.length) {
       merged.automationState = [...state.automationState]
     }
+    if (state.automationKind?.length) {
+      merged.automationKind = [...state.automationKind]
+    }
     if (state.signalClass?.length) merged.signalClass = [...state.signalClass]
     if (state.displayPriority?.length) {
       merged.displayPriority = [...state.displayPriority]
@@ -120,6 +131,7 @@ export function parsePlannerViewFilterSearchParams(input: {
   ownerUserIds?: SearchParamValue
   assignmentRole?: SearchParamValue
   automationState?: SearchParamValue
+  automationKind?: SearchParamValue
   signalClass?: SearchParamValue
   displayPriority?: SearchParamValue
   linkedModule?: SearchParamValue
@@ -130,6 +142,7 @@ export function parsePlannerViewFilterSearchParams(input: {
     ownerUserIds: toArray(input.ownerUserIds),
     assignmentRole: toArray(input.assignmentRole),
     automationState: toArray(input.automationState),
+    automationKind: toArray(input.automationKind),
     signalClass: toArray(input.signalClass),
     displayPriority: toArray(input.displayPriority),
     linkedModule: toArray(input.linkedModule),

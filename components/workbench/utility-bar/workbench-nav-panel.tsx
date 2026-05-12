@@ -8,7 +8,6 @@ import {
   BookOpen,
   Briefcase,
   ChevronRight,
-  LayoutGrid,
   ShoppingBag,
   ShoppingCart,
   Users,
@@ -35,15 +34,18 @@ import {
   type DashboardNavModule,
 } from "#lib/dashboard-module-paths"
 import { ui } from "#lib/design-system"
-import { APP_ICON_512_PNG } from "#lib/site"
+import {
+  APP_ICON_512_PNG,
+  ERP_UTILITY_MULTIPLE_APPS_PNG,
+} from "#lib/site"
 import { cn } from "#lib/utils"
 
 import { organizationNexusPath } from "#features/nexus"
 
 import {
   WORKBENCH_UTILITY_CHROME_DISC_33_CLASS,
-  WORKBENCH_UTILITY_CHROME_RING_BASE,
   WORKBENCH_UTILITY_DISC_33_PX,
+  WORKBENCH_UTILITY_FLUSH_DISC_CLASS,
 } from "./workbench-utility-round-control-class"
 
 const NAV_PANEL_MAX_WIDTH = "min(34rem,calc(100vw-1rem))"
@@ -60,10 +62,7 @@ const MODULE_ICONS: Record<DashboardNavModule, LucideIcon> = {
   accounting: BarChart3,
 }
 
-const NAV_TRIGGER_CLASS = cn(
-  WORKBENCH_UTILITY_CHROME_RING_BASE,
-  "size-[28px]! min-h-0!"
-)
+const NAV_TRIGGER_CLASS = cn(WORKBENCH_UTILITY_FLUSH_DISC_CLASS, "size-[33px]!")
 
 type NexusNavPanelProps = {
   orgSlug: string
@@ -121,7 +120,15 @@ export function WorkbenchNavPanel({ orgSlug, orgName }: NexusNavPanelProps) {
       aria-label={tShell("navPanel.open")}
       className={NAV_TRIGGER_CLASS}
     >
-      <LayoutGrid className="size-3.5 text-muted-foreground" />
+      <Image
+        src={ERP_UTILITY_MULTIPLE_APPS_PNG}
+        alt=""
+        fill
+        draggable={false}
+        sizes={`${WORKBENCH_UTILITY_DISC_33_PX}px`}
+        className="pointer-events-none object-cover select-none"
+        aria-hidden
+      />
     </Button>
   )
 

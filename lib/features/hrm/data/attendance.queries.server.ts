@@ -1,9 +1,13 @@
 import "server-only"
 
-import { and, desc, eq, gte, lte } from "drizzle-orm"
+import { and, desc, eq, gte, inArray, lte } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { hrmAttendanceDay, hrmAttendanceEvent } from "#lib/db/schema"
+import {
+  hrmAttendanceDay,
+  hrmAttendanceEvent,
+  hrmEmployee,
+} from "#lib/db/schema"
 
 // ---------------------------------------------------------------------------
 // Event queries
@@ -199,6 +203,138 @@ export async function listAttendanceDaysForEmployee(opts: {
       )
     )
     .orderBy(desc(hrmAttendanceDay.attendanceDate))
+}
+
+// ---------------------------------------------------------------------------
+// Cross-employee org-scoped queries (Phase 4 — attendance UI binding)
+//
+// These queries decorate raw event / day rows with employee identity columns
+// so the manager surfaces can render in a single round-trip per concern. The
+// SQL plan stays index-friendly: the primary `hrm_attendance_event_org_emp_
+// occurredAt_idx` does the heavy work, and identity columns are joined in JS
+// via two follow-up `WHERE id IN (...)` reads (driver-portable pattern that
+// mirrors `listAllLeaveRequestsForOrg`).
+// ---------------------------------------------------------------------------
+
+/**
+ * Org-scoped attendance event row decorated with employee identity for the
+ * recent-events log on the attendance workbench. Same projection as
+ * `AttendanceEventRow` plus `employeeNumber` / `employeeFullName`, so the
+ * manager surface never has to fan out one query per row.
+ */
+export type OrgAttendanceEventRow = AttendanceEventRow & {
+  readonly employeeNumber: string | null
+  readonly employeeFullName: string | null
+}
+
+/**
+ * Org-scoped attendance day row decorated with employee identity for the
+ * day-summary surface (admin can pivot on `(employeeId, attendanceDate)`).
+ */
+export type OrgAttendanceDayRow = AttendanceDayRow & {
+  readonly employeeNumber: string | null
+  readonly employeeFullName: string | null
+}
+
+/** Lightweight identity tuple for the employee picker on the attendance page. */
+export type AttendanceEmployeeChoiceRow = {
+  readonly id: string
+  readonly employeeNumber: string
+  readonly legalName: string
+}
+
+/**
+ * Recent attendance events across the organization — newest first — with
+ * employee identity columns joined. Drives the recent-events log card.
+ *
+ * The row cap is bounded to keep the JSON payload shaped for an
+ * always-streamed Suspense card (default 50, ceiling 200).
+ */
+export async function listRecentAttendanceEventsForOrg(
+  organizationId: string,
+  options: { limit?: number } = {}
+): Promise<OrgAttendanceEventRow[]> {
+  const limit = Math.min(Math.max(options.limit ?? 50, 1), 200)
+
+  const events = await db
+    .select({
+      id: hrmAttendanceEvent.id,
+      organizationId: hrmAttendanceEvent.organizationId,
+      employeeId: hrmAttendanceEvent.employeeId,
+      eventType: hrmAttendanceEvent.eventType,
+      occurredAt: hrmAttendanceEvent.occurredAt,
+      source: hrmAttendanceEvent.source,
+      sourceRef: hrmAttendanceEvent.sourceRef,
+      correctionOfEventId: hrmAttendanceEvent.correctionOfEventId,
+      correctionReason: hrmAttendanceEvent.correctionReason,
+      deviceId: hrmAttendanceEvent.deviceId,
+      importBatchId: hrmAttendanceEvent.importBatchId,
+      createdByUserId: hrmAttendanceEvent.createdByUserId,
+      createdAt: hrmAttendanceEvent.createdAt,
+    })
+    .from(hrmAttendanceEvent)
+    .where(eq(hrmAttendanceEvent.organizationId, organizationId))
+    .orderBy(desc(hrmAttendanceEvent.occurredAt))
+    .limit(limit)
+
+  if (events.length === 0) return []
+
+  const employeeIds = [...new Set(events.map((e) => e.employeeId))]
+  const employees = await db
+    .select({
+      id: hrmEmployee.id,
+      employeeNumber: hrmEmployee.employeeNumber,
+      legalName: hrmEmployee.legalName,
+    })
+    .from(hrmEmployee)
+    .where(
+      and(
+        eq(hrmEmployee.organizationId, organizationId),
+        inArray(hrmEmployee.id, employeeIds)
+      )
+    )
+
+  const employeeMap = new Map(
+    employees.map((e) => [
+      e.id,
+      { number: e.employeeNumber, name: e.legalName },
+    ])
+  )
+
+  return events.map((e) => ({
+    ...e,
+    employeeNumber: employeeMap.get(e.employeeId)?.number ?? null,
+    employeeFullName: employeeMap.get(e.employeeId)?.name ?? null,
+  }))
+}
+
+/**
+ * Active employees scoped to one org for the attendance event picker.
+ * Excludes archived rows so admins cannot accidentally record events on a
+ * former employee. Sorted by `employeeNumber` for a stable picker — same
+ * ordering as the leave choice query.
+ */
+export async function listActiveEmployeeChoicesForAttendance(
+  organizationId: string
+): Promise<AttendanceEmployeeChoiceRow[]> {
+  const rows = await db
+    .select({
+      id: hrmEmployee.id,
+      employeeNumber: hrmEmployee.employeeNumber,
+      legalName: hrmEmployee.legalName,
+      archivedAt: hrmEmployee.archivedAt,
+    })
+    .from(hrmEmployee)
+    .where(eq(hrmEmployee.organizationId, organizationId))
+
+  return rows
+    .filter((r) => r.archivedAt === null)
+    .map((r) => ({
+      id: r.id,
+      employeeNumber: r.employeeNumber,
+      legalName: r.legalName,
+    }))
+    .sort((a, b) => a.employeeNumber.localeCompare(b.employeeNumber))
 }
 
 /** List open/computed attendance days for an org in a date range (payroll input view). */

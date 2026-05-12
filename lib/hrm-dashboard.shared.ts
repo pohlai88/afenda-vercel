@@ -8,6 +8,7 @@ export const HRM_DASHBOARD_CAPABILITY_SEGMENTS = [
   "employees",
   "leave",
   "attendance",
+  "claims",
   "payroll",
   "compliance",
   "documents",

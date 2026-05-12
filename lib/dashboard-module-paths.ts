@@ -47,6 +47,10 @@ export const ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL =
 export const ORG_DASHBOARD_HRM_COMPLIANCE_DETAIL =
   "/hrm/compliance/[evidenceId]" as const
 
+/** Phase 4: claims kanban + per-claim detail dynamic segment. */
+export const ORG_DASHBOARD_HRM_CLAIMS = "/hrm/claims" as const
+export const ORG_DASHBOARD_HRM_CLAIM_DETAIL = "/hrm/claims/[claimId]" as const
+
 /**
  * Locale-internal pathname for an org-scoped dashboard URL (`localePrefix: "always"`).
  * Returns a typed {@link Route} for `Link` / `redirect` from `#i18n/navigation`.

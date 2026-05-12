@@ -22,10 +22,17 @@ import type {
   RegenerateDayFormState,
 } from "../types"
 
+/**
+ * Revalidates at **layout** scope so any future HRM rail badge that
+ * wires attendance pressure (Phase 2 — `getHrmRailPressureCounts`)
+ * picks up after every attendance mutation. The attendance page
+ * revalidation comes along for free since it sits below the layout —
+ * mirrors the leave / compliance / payroll mutation pattern.
+ */
 function revalidateAttendance() {
   revalidatePath(
     toLocaleOrgDashboardRevalidatePattern("/hrm/attendance"),
-    "page"
+    "layout"
   )
 }
 

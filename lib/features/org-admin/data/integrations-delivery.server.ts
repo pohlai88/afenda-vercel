@@ -4,13 +4,15 @@ import { eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { orgEventDelivery } from "#lib/db/schema"
+import { createPlannerSignalFromErpProducer } from "#features/planner/server"
+import { getOrganizationSlugById } from "#lib/org-slug.server"
 
 import type {
   OrgEventDeliveryState,
   OrgEventDeliverySummary,
   OrgEventEndpointSummary,
 } from "../types"
-import { ORG_EVENT_SIGNATURE_VERSION } from "../constants"
+import { ORG_EVENT_SIGNATURE_VERSION, organizationAdminPath } from "../constants"
 
 /** Outbound delivery envelope before serialization. */
 export type OrgEventEnvelope = {
@@ -212,7 +214,54 @@ export async function deliverNow(
     })
     .where(eq(orgEventDelivery.id, handle.deliveryId))
 
+  if (result.state === "failed") {
+    await createDeliveryFailureSignal(handle, result)
+  }
+
   return result
+}
+
+async function createDeliveryFailureSignal(
+  handle: DeliveryHandle,
+  result: DeliveryResult
+): Promise<void> {
+  try {
+    const orgSlug = await getOrganizationSlugById(handle.envelope.organizationId)
+    await createPlannerSignalFromErpProducer({
+      organizationId: handle.envelope.organizationId,
+      title: `Integration delivery failed: ${handle.envelope.type}`,
+      description:
+        result.errorMessage ??
+        "Outbound integration delivery failed without a receiver response.",
+      signalClass: "alert",
+      originatingSystem: "org_admin.integrations.delivery",
+      module: "org-admin",
+      entityType: "org_event_delivery",
+      entityId: handle.deliveryId,
+      displayLabel: `Delivery ${handle.deliveryId}`,
+      href: orgSlug ? organizationAdminPath(orgSlug, "integrations") : null,
+      causalityReason: "Outbound integration event delivery failed.",
+      actorUserId: null,
+      pressure: {
+        urgency: 4,
+        impact: 4,
+        severity: result.httpStatus && result.httpStatus >= 500 ? 4 : 3,
+        confidence: 4,
+        escalationLevel: 3,
+        temporalProximity: 4,
+      },
+      auditMetadata: {
+        deliveryId: handle.deliveryId,
+        endpointId: handle.endpointId,
+        eventType: handle.envelope.type,
+        httpStatus: result.httpStatus,
+        errorMessage: result.errorMessage,
+        durationMs: result.durationMs,
+      },
+    })
+  } catch {
+    // Delivery durability is owned by org_event_delivery; Orbit signal intake is best-effort.
+  }
 }
 
 /**
