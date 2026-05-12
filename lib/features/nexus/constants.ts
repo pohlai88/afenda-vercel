@@ -49,8 +49,12 @@ export const NEXUS_PRESSURE_SEVERITIES = [
 
 export const NEXUS_PRIORITY_LANE_KINDS = [
   "approvals",
+  "automation_attention",
+  "assignee_blockers",
   "evidence_gaps",
   "vendor_blockers",
+  "review_blockers",
+  "escalation_pressure",
   "inventory_exceptions",
   "cashflow_interruptions",
   "compliance_deadlines",

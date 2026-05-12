@@ -24,13 +24,18 @@ import { Input } from "#components/ui/input"
 import { Separator } from "#components/ui/separator"
 import { Textarea } from "#components/ui/textarea"
 import { Link } from "#i18n/navigation"
+import { describeOrgNotificationBadge } from "#features/org-notifications"
 
+import { describePlannerActivityDisplay } from "../audit/planner-activity-display.shared"
 import { addPlannerCommentAction } from "../commands/add-planner-comment"
+import { acknowledgePlannerNoticeAction } from "../commands/acknowledge-planner-notice"
+import { closePlannerNoticeAction } from "../commands/close-planner-notice"
 import {
   accountOrbitPath,
   organizationOrbitPath,
   PLANNER_OWNERSHIP_ROLES,
   PLANNER_RELATION_TYPES,
+  PLANNER_SIGNAL_RESOLUTION_POLICIES,
   PLANNER_VIEW_SORT_MODES,
 } from "../constants"
 import { assignPlannerOwnershipAction } from "../commands/assign-planner-ownership"
@@ -41,6 +46,7 @@ import { createPlannerRelationAction } from "../commands/create-planner-relation
 import { createPlannerSignalAction } from "../commands/create-planner-signal"
 import { deletePlannerViewAction } from "../commands/delete-planner-view"
 import { promotePlannerSignalAction } from "../commands/promote-planner-signal"
+import { readPlannerNoticeAction } from "../commands/read-planner-notice"
 import { savePlannerViewAction } from "../commands/save-planner-view"
 import { startPlannerSessionAction } from "../commands/start-planner-session"
 import { stopPlannerSessionAction } from "../commands/stop-planner-session"
@@ -61,7 +67,9 @@ import {
 } from "../server"
 import type {
   OrbitDashboardSurface,
+  PlannerBlockedState,
   PlannerLinkRow,
+  PlannerOperationalFacts,
   PlannerRelationRow,
   PlannerScopeInput,
   PlannerSessionRow,
@@ -159,8 +167,13 @@ function filterSelectValue(values: readonly string[] | undefined) {
   return values?.[0] ?? ""
 }
 
-function isPlannerViewSortMode(value: string | null): value is PlannerViewSortMode {
-  return value != null && (PLANNER_VIEW_SORT_MODES as readonly string[]).includes(value)
+function isPlannerViewSortMode(
+  value: string | null
+): value is PlannerViewSortMode {
+  return (
+    value != null &&
+    (PLANNER_VIEW_SORT_MODES as readonly string[]).includes(value)
+  )
 }
 
 function sortModeLabel(sortMode: PlannerViewSortMode | null) {
@@ -170,6 +183,24 @@ function sortModeLabel(sortMode: PlannerViewSortMode | null) {
   if (sortMode === "updated_desc") return "Updated"
   if (sortMode === "title_asc") return "Title"
   return "Default"
+}
+
+function blockedStageLabel(stage: PlannerBlockedState["stage"]) {
+  if (stage === "critical") return "Breach"
+  if (stage === "urgent") return "Overdue"
+  return "Threshold"
+}
+
+function blockedStageVariant(stage: PlannerBlockedState["stage"]) {
+  if (stage === "critical") return "critical" as const
+  if (stage === "urgent") return "warning" as const
+  return "outline" as const
+}
+
+function noticeSeverityVariant(severity: "info" | "warning" | "critical") {
+  if (severity === "critical") return "critical" as const
+  if (severity === "warning") return "warning" as const
+  return "info" as const
 }
 
 function relationLabel(relation: PlannerRelationRow) {
@@ -188,18 +219,22 @@ export async function OrbitPage({
   surface,
   orgSlug,
   searchParams,
+  viewerUserId,
+  canManageNotices = false,
 }: {
   scope: PlannerScopeInput
   surface: OrbitDashboardSurface
   orgSlug?: string
   searchParams?: OrbitSearchParams
+  viewerUserId?: string | null
+  canManageNotices?: boolean
 }) {
   const t = await getTranslations("Dashboard.Orbit")
   const basePath = plannerBasePath({ scope, orgSlug, surface })
   const currentSearchParams = toUrlSearchParams(searchParams)
-  const focusKind = firstSearchValue(searchParams?.focusKind) as
-    | PlannerSurfaceRecordKind
-    | null
+  const focusKind = firstSearchValue(
+    searchParams?.focusKind
+  ) as PlannerSurfaceRecordKind | null
   const focusId = firstSearchValue(searchParams?.focusId)
   const status = firstSearchValue(searchParams?.status)
   const activeViewSlug = firstSearchValue(searchParams?.view)
@@ -208,11 +243,16 @@ export async function OrbitPage({
     ? requestedSortModeRaw
     : null
   const requestedFilter =
-    surface === "queue" || surface === "timeline" || surface === "signals"
+    surface === "queue" ||
+    surface === "today" ||
+    surface === "timeline" ||
+    surface === "signals"
       ? parsePlannerViewFilterSearchParams({
           q: searchParams?.q,
           lifecycle: searchParams?.lifecycle,
           ownerUserIds: searchParams?.ownerUserIds,
+          assignmentRole: searchParams?.assignmentRole,
+          automationState: searchParams?.automationState,
           signalClass: searchParams?.signalClass,
           displayPriority: searchParams?.displayPriority,
           linkedModule: searchParams?.linkedModule,
@@ -227,12 +267,13 @@ export async function OrbitPage({
   )
   const activeView =
     page.activeViewSlug != null
-      ? page.savedViews.find((view) => view.slug === page.activeViewSlug) ?? null
+      ? (page.savedViews.find((view) => view.slug === page.activeViewSlug) ??
+        null)
       : null
 
   const itemDetail =
     focusKind === "item" && focusId
-      ? await getPlannerItemDetail(scope, focusId)
+      ? await getPlannerItemDetail(scope, focusId, viewerUserId)
       : null
   const signalDetail =
     focusKind === "signal" && focusId
@@ -263,17 +304,23 @@ export async function OrbitPage({
                 ? "Comment added."
                 : status === "attachmentAdded"
                   ? "Attachment added."
-                  : status === "savedView"
-                    ? "Saved view updated."
-                    : status === "deletedView"
-                      ? "Saved view deleted."
-                      : status === "startedSession"
-                        ? t("status.startedSession")
-                        : status === "stoppedSession"
-                          ? t("status.stoppedSession")
-                          : status === "invalidInput"
-                            ? t("status.invalidInput")
-                            : null
+                  : status === "noticeRead"
+                    ? "Notice marked as read."
+                    : status === "noticeAcknowledged"
+                      ? "Notice acknowledged."
+                      : status === "noticeClosed"
+                        ? "Notice closed."
+                        : status === "savedView"
+                          ? "Saved view updated."
+                          : status === "deletedView"
+                            ? "Saved view deleted."
+                            : status === "startedSession"
+                              ? t("status.startedSession")
+                              : status === "stoppedSession"
+                                ? t("status.stoppedSession")
+                                : status === "invalidInput"
+                                  ? t("status.invalidInput")
+                                  : null
 
   const SurfaceIcon = SURFACE_META[surface].icon
 
@@ -360,7 +407,10 @@ export async function OrbitPage({
         ))}
       </div>
 
-      {surface === "queue" || surface === "timeline" || surface === "signals" ? (
+      {surface === "queue" ||
+      surface === "today" ||
+      surface === "timeline" ||
+      surface === "signals" ? (
         <OrbitFilterAndViewBar
           basePath={basePath}
           currentSearchParams={searchParams}
@@ -404,13 +454,20 @@ export async function OrbitPage({
                 {page.items.map((item) => (
                   <OrbitItemRow
                     key={item.id}
-                    href={focusHref(basePath, currentSearchParams, "item", item.id)}
+                    href={focusHref(
+                      basePath,
+                      currentSearchParams,
+                      "item",
+                      item.id
+                    )}
                     title={item.title}
                     description={item.description}
                     priority={item.displayPriority}
                     pressure={item.pressureScore}
                     state={item.lifecycle}
                     dueAt={item.dueAt}
+                    operationalFacts={item.operationalFacts}
+                    blockedState={item.blockedState}
                   />
                 ))}
                 {page.signals.map((signal) => (
@@ -444,7 +501,12 @@ export async function OrbitPage({
                 {page.links.map((link) => (
                   <OrbitLinkRow
                     key={link.id}
-                    href={focusHref(basePath, currentSearchParams, "link", link.id)}
+                    href={focusHref(
+                      basePath,
+                      currentSearchParams,
+                      "link",
+                      link.id
+                    )}
                     link={link}
                   />
                 ))}
@@ -467,6 +529,7 @@ export async function OrbitPage({
                 scope={scope}
                 surface={surface}
                 orgSlug={orgSlug}
+                canManageNotices={canManageNotices}
               />
             ) : signalDetail ? (
               <SignalDetailPanel
@@ -509,18 +572,31 @@ function OrbitFilterAndViewBar({
   activeFilter: PlannerViewFilterState
   activeSortMode: PlannerViewSortMode | null
   savedViews: Awaited<ReturnType<typeof getOrbitPageData>>["savedViews"]
-  activeView: Awaited<ReturnType<typeof getOrbitPageData>>["savedViews"][number] | null
+  activeView:
+    | Awaited<ReturnType<typeof getOrbitPageData>>["savedViews"][number]
+    | null
 }) {
+  const canPersistViews =
+    surface === "queue" || surface === "timeline" || surface === "signals"
+
   return (
     <Card>
       <CardHeader className="border-b border-border/60">
-        <CardTitle>Filters and saved views</CardTitle>
+        <CardTitle>
+          {canPersistViews ? "Filters and saved views" : "Filters"}
+        </CardTitle>
         <CardDescription>
-          Keep queue, timeline, and signals scoped to the current operational lens.
+          {canPersistViews
+            ? "Keep queue, timeline, and signals scoped to the current operational lens."
+            : "Keep the current operational surface scoped to the right execution lens."}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 pt-surface-lg">
-        <form method="GET" action={basePath} className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <form
+          method="GET"
+          action={basePath}
+          className="grid gap-3 md:grid-cols-2 xl:grid-cols-6"
+        >
           {activeView ? (
             <input type="hidden" name="view" value={activeView.slug} />
           ) : null}
@@ -574,6 +650,28 @@ function OrbitFilterAndViewBar({
               defaultValue={filterSelectValue(activeFilter.linkedModule)}
             />
           )}
+          {surface === "signals" ? null : (
+            <select
+              name="assignmentRole"
+              defaultValue={filterSelectValue(activeFilter.assignmentRole)}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs"
+            >
+              <option value="">All assignment roles</option>
+              <option value="assignee">Assignee</option>
+              <option value="reviewer">Reviewer</option>
+              <option value="escalation_owner">Escalation owner</option>
+            </select>
+          )}
+          {surface === "signals" ? null : (
+            <select
+              name="automationState"
+              defaultValue={filterSelectValue(activeFilter.automationState)}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs"
+            >
+              <option value="">All automation states</option>
+              <option value="attention">Automation attention</option>
+            </select>
+          )}
           <select
             name="displayPriority"
             defaultValue={filterSelectValue(activeFilter.displayPriority)}
@@ -610,7 +708,7 @@ function OrbitFilterAndViewBar({
               </option>
             ))}
           </select>
-          <div className="md:col-span-2 xl:col-span-5 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 md:col-span-2 xl:col-span-6">
             <Button type="submit" size="sm">
               Apply filters
             </Button>
@@ -620,81 +718,174 @@ function OrbitFilterAndViewBar({
           </div>
         </form>
 
-        <div className="flex flex-wrap gap-2">
-          {savedViews.map((view) => (
+        {surface === "today" ? (
+          <OrbitTodayAutomationPresets
+            basePath={basePath}
+            currentSearchParams={currentSearchParams}
+            activeFilter={activeFilter}
+          />
+        ) : null}
+
+        {canPersistViews ? (
+          <>
+            <div className="flex flex-wrap gap-2">
+              {savedViews.map((view) => (
+                <Button
+                  key={view.id}
+                  asChild
+                  size="sm"
+                  variant={activeView?.id === view.id ? "default" : "outline"}
+                >
+                  <Link
+                    href={buildOrbitHref(
+                      basePath,
+                      {
+                        view: view.slug,
+                        focusKind: null,
+                        focusId: null,
+                        q: null,
+                        lifecycle: null,
+                        ownerUserIds: null,
+                        assignmentRole: null,
+                        automationState: null,
+                        signalClass: null,
+                        displayPriority: null,
+                        linkedModule: null,
+                        sort: view.sortMode,
+                      },
+                      currentSearchParams
+                    )}
+                  >
+                    {view.name}
+                    {view.sortMode ? ` · ${sortModeLabel(view.sortMode)}` : ""}
+                  </Link>
+                </Button>
+              ))}
+            </div>
+
+            <form
+              action={savePlannerViewAction}
+              className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto_auto]"
+            >
+              <HiddenPlannerScopeFields
+                scope={scope}
+                surface={surface}
+                orgSlug={orgSlug}
+              />
+              <input
+                type="hidden"
+                name="filterState"
+                value={serializePlannerViewFilterState(activeFilter)}
+              />
+              <input
+                type="hidden"
+                name="sortMode"
+                value={activeSortMode ?? ""}
+              />
+              <input type="hidden" name="viewId" value={activeView?.id ?? ""} />
+              <Input
+                name="name"
+                placeholder="Saved view name"
+                defaultValue={activeView?.name ?? ""}
+                required
+              />
+              <Input
+                name="slug"
+                placeholder="saved-view-slug"
+                defaultValue={activeView?.slug ?? ""}
+              />
+              <Button type="submit" size="sm" variant="outline">
+                {activeView ? "Update view" : "Save view"}
+              </Button>
+              {activeView ? (
+                <Button
+                  formAction={deletePlannerViewAction}
+                  type="submit"
+                  size="sm"
+                  variant="ghost"
+                  name="viewId"
+                  value={activeView.id}
+                >
+                  Delete
+                </Button>
+              ) : null}
+            </form>
+          </>
+        ) : null}
+      </CardContent>
+    </Card>
+  )
+}
+
+function OrbitTodayAutomationPresets({
+  basePath,
+  currentSearchParams,
+  activeFilter,
+}: {
+  basePath: string
+  currentSearchParams?: OrbitSearchParams
+  activeFilter: PlannerViewFilterState
+}) {
+  const presetSpecs = [
+    { label: "All automation attention", assignmentRole: null },
+    { label: "Assignee automation", assignmentRole: "assignee" },
+    { label: "Reviewer automation", assignmentRole: "reviewer" },
+    {
+      label: "Escalation-owner automation",
+      assignmentRole: "escalation_owner",
+    },
+  ] as const
+
+  const activeAutomationState =
+    activeFilter.automationState?.includes("attention") ?? false
+  const activeAssignmentRole = filterSelectValue(activeFilter.assignmentRole)
+
+  return (
+    <div className="space-y-2">
+      <div>
+        <p className="text-sm font-medium text-foreground">
+          Today automation presets
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Jump directly to unresolved system-generated execution pressure by
+          operator role.
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {presetSpecs.map((preset) => {
+          const isActive =
+            activeAutomationState &&
+            (preset.assignmentRole == null
+              ? activeAssignmentRole === ""
+              : activeAssignmentRole === preset.assignmentRole)
+
+          return (
             <Button
-              key={view.id}
+              key={preset.label}
               asChild
               size="sm"
-              variant={activeView?.id === view.id ? "default" : "outline"}
+              variant={isActive ? "default" : "outline"}
             >
               <Link
                 href={buildOrbitHref(
                   basePath,
                   {
-                    view: view.slug,
+                    automationState: "attention",
+                    assignmentRole: preset.assignmentRole,
                     focusKind: null,
                     focusId: null,
-                    q: null,
-                    lifecycle: null,
-                    ownerUserIds: null,
-                    signalClass: null,
-                    displayPriority: null,
-                    linkedModule: null,
-                    sort: view.sortMode,
+                    status: null,
                   },
                   currentSearchParams
                 )}
               >
-                {view.name}
-                {view.sortMode ? ` · ${sortModeLabel(view.sortMode)}` : ""}
+                {preset.label}
               </Link>
             </Button>
-          ))}
-        </div>
-
-        <form action={savePlannerViewAction} className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto_auto]">
-          <HiddenPlannerScopeFields scope={scope} surface={surface} orgSlug={orgSlug} />
-          <input
-            type="hidden"
-            name="filterState"
-            value={serializePlannerViewFilterState(activeFilter)}
-          />
-          <input type="hidden" name="sortMode" value={activeSortMode ?? ""} />
-          <input
-            type="hidden"
-            name="viewId"
-            value={activeView?.id ?? ""}
-          />
-          <Input
-            name="name"
-            placeholder="Saved view name"
-            defaultValue={activeView?.name ?? ""}
-            required
-          />
-          <Input
-            name="slug"
-            placeholder="saved-view-slug"
-            defaultValue={activeView?.slug ?? ""}
-          />
-          <Button type="submit" size="sm" variant="outline">
-            {activeView ? "Update view" : "Save view"}
-          </Button>
-          {activeView ? (
-            <Button
-              formAction={deletePlannerViewAction}
-              type="submit"
-              size="sm"
-              variant="ghost"
-              name="viewId"
-              value={activeView.id}
-            >
-              Delete
-            </Button>
-          ) : null}
-        </form>
-      </CardContent>
-    </Card>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -767,6 +958,8 @@ function OrbitItemRow({
   pressure,
   state,
   dueAt,
+  operationalFacts,
+  blockedState,
 }: {
   href: string
   title: string
@@ -775,7 +968,24 @@ function OrbitItemRow({
   pressure: number
   state: string
   dueAt: Date | null
+  operationalFacts?: PlannerOperationalFacts
+  blockedState?: PlannerBlockedState | null
 }) {
+  const operationalSummary = [
+    operationalFacts?.blockedByCount
+      ? `blocked by ${operationalFacts.blockedByCount}`
+      : null,
+    operationalFacts?.activeSignalCount
+      ? `${operationalFacts.activeSignalCount} active signal${operationalFacts.activeSignalCount === 1 ? "" : "s"}`
+      : null,
+    operationalFacts?.automationFailureCount
+      ? `${operationalFacts.automationFailureCount} automation failure${operationalFacts.automationFailureCount === 1 ? "" : "s"}`
+      : null,
+    operationalFacts?.escalationOwnerCount ? "escalation owner assigned" : null,
+  ]
+    .filter(Boolean)
+    .join(" · ")
+
   return (
     <Link
       href={href}
@@ -788,22 +998,43 @@ function OrbitItemRow({
             <p className="pt-1 text-sm text-muted-foreground">{description}</p>
           ) : null}
         </div>
-        <Badge
-          variant={
-            priority === "critical"
-              ? "critical"
-              : priority === "high"
-                ? "warning"
-                : "secondary"
-          }
-        >
-          {priority}
-        </Badge>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {operationalFacts?.automationFailureCount ? (
+            <Badge variant="warning">Automation</Badge>
+          ) : null}
+          {blockedState ? (
+            <Badge variant={blockedStageVariant(blockedState.stage)}>
+              {blockedStageLabel(blockedState.stage)}
+            </Badge>
+          ) : null}
+          <Badge
+            variant={
+              priority === "critical"
+                ? "critical"
+                : priority === "high"
+                  ? "warning"
+                  : "secondary"
+            }
+          >
+            {priority}
+          </Badge>
+        </div>
       </div>
       <div className="pt-3 text-xs text-muted-foreground">
         {state} · pressure {pressure}
         {dueAt ? ` · due ${dueAt.toLocaleString()}` : ""}
       </div>
+      {operationalSummary ? (
+        <div className="pt-1 text-xs text-muted-foreground">
+          {operationalSummary}
+        </div>
+      ) : null}
+      {blockedState ? (
+        <div className="pt-1 text-xs text-muted-foreground">
+          blocked {blockedState.blockedHours}h · threshold{" "}
+          {blockedState.thresholdHours}h
+        </div>
+      ) : null}
     </Link>
   )
 }
@@ -926,11 +1157,13 @@ function ItemDetailPanel({
   scope,
   surface,
   orgSlug,
+  canManageNotices,
 }: {
   detail: Awaited<ReturnType<typeof getPlannerItemDetail>>
   scope: PlannerScopeInput
   surface: OrbitDashboardSurface
   orgSlug?: string
+  canManageNotices: boolean
 }) {
   if (!detail) return null
 
@@ -946,47 +1179,54 @@ function ItemDetailPanel({
               </p>
             ) : null}
           </div>
-          <Badge
-            variant={
-              detail.displayPriority === "critical"
-                ? "critical"
-                : detail.displayPriority === "high"
-                  ? "warning"
-                  : "secondary"
-            }
-          >
-            {detail.displayPriority}
-          </Badge>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {detail.blockedState ? (
+              <Badge variant={blockedStageVariant(detail.blockedState.stage)}>
+                {blockedStageLabel(detail.blockedState.stage)}
+              </Badge>
+            ) : null}
+            <Badge
+              variant={
+                detail.displayPriority === "critical"
+                  ? "critical"
+                  : detail.displayPriority === "high"
+                    ? "warning"
+                    : "secondary"
+              }
+            >
+              {detail.displayPriority}
+            </Badge>
+          </div>
         </div>
         <p className="pt-3 text-sm text-muted-foreground">
           {detail.lifecycle} · pressure {detail.pressureScore}
           {detail.dueAt ? ` · due ${detail.dueAt.toLocaleString()}` : ""}
         </p>
+        {detail.blockedState ? (
+          <p className="pt-1 text-xs text-muted-foreground">
+            blocked {detail.blockedState.blockedHours}h · threshold{" "}
+            {detail.blockedState.thresholdHours}h
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {(
-          [
-            "active",
-            "blocked",
-            "ready_for_review",
-            "verified",
-            "resolved",
-          ] as const
-        ).map((state) => (
-          <form key={state} action={transitionPlannerItemAction}>
-            <HiddenPlannerScopeFields
-              scope={scope}
-              surface={surface}
-              orgSlug={orgSlug}
-            />
-            <input type="hidden" name="itemId" value={detail.id} />
-            <input type="hidden" name="lifecycle" value={state} />
-            <Button type="submit" size="sm" variant="outline">
-              {state}
-            </Button>
-          </form>
-        ))}
+        {(["active", "blocked", "ready_for_review", "verified"] as const).map(
+          (state) => (
+            <form key={state} action={transitionPlannerItemAction}>
+              <HiddenPlannerScopeFields
+                scope={scope}
+                surface={surface}
+                orgSlug={orgSlug}
+              />
+              <input type="hidden" name="itemId" value={detail.id} />
+              <input type="hidden" name="lifecycle" value={state} />
+              <Button type="submit" size="sm" variant="outline">
+                {state}
+              </Button>
+            </form>
+          )
+        )}
         <form action={startPlannerSessionAction}>
           <HiddenPlannerScopeFields
             scope={scope}
@@ -999,6 +1239,33 @@ function ItemDetailPanel({
           </Button>
         </form>
       </div>
+
+      <form
+        action={transitionPlannerItemAction}
+        className="flex flex-wrap items-center gap-2 rounded-2xl border border-border/60 bg-muted/20 p-3"
+      >
+        <HiddenPlannerScopeFields
+          scope={scope}
+          surface={surface}
+          orgSlug={orgSlug}
+        />
+        <input type="hidden" name="itemId" value={detail.id} />
+        <input type="hidden" name="lifecycle" value="resolved" />
+        <select
+          name="correlatedSignalPolicy"
+          defaultValue="auto_resolve"
+          className="flex h-9 min-w-52 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs"
+        >
+          {PLANNER_SIGNAL_RESOLUTION_POLICIES.map((policy) => (
+            <option key={policy} value={policy}>
+              {policy}
+            </option>
+          ))}
+        </select>
+        <Button type="submit" size="sm" variant="outline">
+          Resolve item
+        </Button>
+      </form>
 
       <Separator />
       <DetailSection title="Schedule">
@@ -1172,6 +1439,111 @@ function ItemDetailPanel({
           ))
         )}
       </DetailSection>
+      <DetailSection title="Active notices">
+        {detail.notices.length === 0 ? (
+          <DetailEmpty message="No active Orbit notices for this item." />
+        ) : (
+          detail.notices.map((notice) => {
+            const displayBadge = describeOrgNotificationBadge(notice)
+
+            return (
+              <div
+                key={notice.id}
+                className="rounded-xl border border-border/60 bg-muted/20 px-3 py-3 text-sm"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={noticeSeverityVariant(notice.severity)}>
+                    {notice.severity}
+                  </Badge>
+                  {displayBadge ? (
+                    <Badge variant={noticeSeverityVariant(displayBadge.tone)}>
+                      {displayBadge.label}
+                    </Badge>
+                  ) : null}
+                  <Badge
+                    variant={notice.targetUserId ? "outline" : "secondary"}
+                  >
+                    {notice.targetUserId ? "Targeted" : "Broadcast"}
+                  </Badge>
+                  {notice.isAcknowledged ? (
+                    <Badge variant="success">Acknowledged</Badge>
+                  ) : notice.isRead ? (
+                    <Badge variant="outline">Read</Badge>
+                  ) : (
+                    <Badge variant="info">Unread</Badge>
+                  )}
+                </div>
+                <p className="pt-3 font-medium text-foreground">
+                  {notice.title}
+                </p>
+                <p className="pt-1 text-sm text-muted-foreground">
+                  {notice.body}
+                </p>
+                <div className="flex flex-wrap items-center gap-3 pt-3 text-xs text-muted-foreground">
+                  <span>{new Date(notice.publishedAt).toLocaleString()}</span>
+                  {notice.expiresAt ? (
+                    <span>
+                      expires {new Date(notice.expiresAt).toLocaleString()}
+                    </span>
+                  ) : null}
+                  {notice.linkedEntityLabel ? (
+                    <span>{notice.linkedEntityLabel}</span>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap gap-2 pt-3">
+                  {!notice.isRead ? (
+                    <form action={readPlannerNoticeAction}>
+                      <HiddenPlannerScopeFields
+                        scope={scope}
+                        surface={surface}
+                        orgSlug={orgSlug}
+                      />
+                      <input type="hidden" name="noticeId" value={notice.id} />
+                      <input type="hidden" name="itemId" value={detail.id} />
+                      <Button type="submit" size="sm" variant="outline">
+                        Mark read
+                      </Button>
+                    </form>
+                  ) : null}
+                  {!notice.isAcknowledged ? (
+                    <form action={acknowledgePlannerNoticeAction}>
+                      <HiddenPlannerScopeFields
+                        scope={scope}
+                        surface={surface}
+                        orgSlug={orgSlug}
+                      />
+                      <input type="hidden" name="noticeId" value={notice.id} />
+                      <input type="hidden" name="itemId" value={detail.id} />
+                      <Button type="submit" size="sm" variant="outline">
+                        Acknowledge
+                      </Button>
+                    </form>
+                  ) : null}
+                  {canManageNotices ? (
+                    <form action={closePlannerNoticeAction}>
+                      <HiddenPlannerScopeFields
+                        scope={scope}
+                        surface={surface}
+                        orgSlug={orgSlug}
+                      />
+                      <input type="hidden" name="noticeId" value={notice.id} />
+                      <input type="hidden" name="itemId" value={detail.id} />
+                      <Button type="submit" size="sm" variant="outline">
+                        Close notice
+                      </Button>
+                    </form>
+                  ) : null}
+                  {notice.linkedPath ? (
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={notice.linkedPath}>Open linked record</Link>
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            )
+          })
+        )}
+      </DetailSection>
       <DetailSection title="Relations">
         <form
           action={createPlannerRelationAction}
@@ -1194,14 +1566,8 @@ function ItemDetailPanel({
               </option>
             ))}
           </select>
-          <Input
-            name="relatedItemId"
-            placeholder="Related item id"
-          />
-          <Input
-            name="relatedSignalId"
-            placeholder="Related signal id"
-          />
+          <Input name="relatedItemId" placeholder="Related item id" />
+          <Input name="relatedSignalId" placeholder="Related signal id" />
           <Button type="submit" size="sm" variant="outline">
             Create relation
           </Button>
@@ -1311,7 +1677,8 @@ function ItemDetailPanel({
                   {attachment.url.split("/").at(-1) ?? "Attachment"}
                 </a>
                 <p className="pt-1 text-xs text-muted-foreground">
-                  {attachment.mimeType} · {attachment.sizeBytes.toLocaleString()} bytes
+                  {attachment.mimeType} ·{" "}
+                  {attachment.sizeBytes.toLocaleString()} bytes
                 </p>
               </div>
               <span className="text-xs text-muted-foreground">
@@ -1351,15 +1718,7 @@ function ItemDetailPanel({
         )}
       </DetailSection>
       <DetailSection title="Activity">
-        {detail.activity.length === 0 ? (
-          <DetailEmpty />
-        ) : (
-          detail.activity.map((activity) => (
-            <p key={activity.id} className="text-sm text-muted-foreground">
-              {activity.body}
-            </p>
-          ))
-        )}
+        <PlannerActivityList activity={detail.activity} />
       </DetailSection>
     </div>
   )
@@ -1449,11 +1808,7 @@ function SignalDetailPanel({
             orgSlug={orgSlug}
           />
           <input type="hidden" name="signalId" value={detail.id} />
-          <Input
-            name="itemId"
-            placeholder="Existing item id"
-            required
-          />
+          <Input name="itemId" placeholder="Existing item id" required />
           <Button type="submit" size="sm" variant="outline">
             Correlate signal
           </Button>
@@ -1480,15 +1835,7 @@ function SignalDetailPanel({
         )}
       </DetailSection>
       <DetailSection title="Activity">
-        {detail.activity.length === 0 ? (
-          <DetailEmpty />
-        ) : (
-          detail.activity.map((activity) => (
-            <p key={activity.id} className="text-sm text-muted-foreground">
-              {activity.body}
-            </p>
-          ))
-        )}
+        <PlannerActivityList activity={detail.activity} />
       </DetailSection>
     </div>
   )
@@ -1509,11 +1856,69 @@ function DetailSection({
   )
 }
 
-function DetailEmpty() {
+function plannerActivityActorLabel(activity: { authorUserId: string | null }) {
+  return activity.authorUserId ?? "system"
+}
+
+function plannerActivityBadgeVariant(
+  tone: ReturnType<typeof describePlannerActivityDisplay>["tone"]
+) {
+  switch (tone) {
+    case "info":
+      return "info" as const
+    case "warning":
+      return "warning" as const
+    case "critical":
+      return "critical" as const
+    case "outline":
+    default:
+      return "outline" as const
+  }
+}
+
+function PlannerActivityList({
+  activity,
+}: {
+  activity: {
+    id: string
+    activityType: string
+    body: string
+    createdAt: Date
+    authorUserId: string | null
+  }[]
+}) {
+  return activity.length === 0 ? (
+    <DetailEmpty />
+  ) : (
+    activity.map((entry) => (
+      <div
+        key={entry.id}
+        className="rounded-xl border border-border/60 px-3 py-2 text-sm"
+      >
+        <div className="flex items-center gap-2 pb-2">
+          <Badge
+            variant={plannerActivityBadgeVariant(
+              describePlannerActivityDisplay(entry.activityType).tone
+            )}
+          >
+            {describePlannerActivityDisplay(entry.activityType).label}
+          </Badge>
+        </div>
+        <p>{entry.body}</p>
+        <p className="pt-2 text-xs text-muted-foreground">
+          {plannerActivityActorLabel(entry)} ·{" "}
+          {entry.createdAt.toLocaleString()}
+        </p>
+      </div>
+    ))
+  )
+}
+
+function DetailEmpty({ message = "No evidence yet." }: { message?: string }) {
   return (
     <div className="flex items-center gap-2 text-sm text-muted-foreground">
       <AlertTriangle className="size-4" />
-      <span>No evidence yet.</span>
+      <span>{message}</span>
     </div>
   )
 }

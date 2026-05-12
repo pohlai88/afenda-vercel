@@ -16,8 +16,15 @@ import {
 } from "../schemas/leave-request.schema"
 import type { LeaveApprovalFormState } from "../types"
 
+/**
+ * Revalidates at **layout** scope on the leave surface so the HRM
+ * rail's `leave` pressure badge (Phase 2 —
+ * `getHrmRailPressureCounts`) refreshes after every approval / rejection.
+ * The employee-detail page still revalidates at `"page"` because it is
+ * not part of the HRM dashboard layout's data envelope.
+ */
 function revalidateLeaveRequests() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "page")
+  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "layout")
   revalidatePath(
     toLocaleOrgDashboardRevalidatePattern("/hrm/employees/[employeeId]"),
     "page"

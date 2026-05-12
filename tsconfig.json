@@ -58,6 +58,7 @@
     ".next/dev",
     "tests",
     "scripts",
+    "turbo",
     "vitest.config.ts",
     "vitest.setup.ts",
     "playwright.config.ts",

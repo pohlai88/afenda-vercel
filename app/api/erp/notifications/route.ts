@@ -67,6 +67,7 @@ export async function POST(request: Request) {
       metadata: {
         source: "admin",
         severity: parsed.data.severity,
+        targetUserId: parsed.data.targetUserId ?? null,
         linkedEntityType: parsed.data.linkedEntityType ?? null,
         linkedEntityId: parsed.data.linkedEntityId ?? null,
         expiresAt: parsed.data.expiresAt ?? null,

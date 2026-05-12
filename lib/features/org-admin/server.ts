@@ -20,8 +20,27 @@ export {
 
 export { listUserOrganizationsForSwitcher } from "./data/user-orgs.queries.server"
 
+export { getOrgAdminRailPressureCounts } from "./data/org-admin-rail-pressure.queries.server"
+export { recordOrgAdminPageVisit } from "./data/org-admin-rail-recents.server"
+export type {
+  OrgAdminRecentSegment,
+  OrgAdminRecentSessionContext,
+} from "./data/org-admin-rail-recents.server"
+
 export { deliverEventNow } from "./data/integrations-delivery.server"
 export { getOrgEventEndpointSigningKey } from "./data/integrations-endpoints.mutations"
+
+// Phase 3J: webhook receiver primitives — used by inbound integration routes
+// (e.g. bureau acknowledgement at app/api/integrations/hrm-statutory-acknowledgement).
+export {
+  resolveOrgEventDeliveryForWebhook,
+  verifyOrgEventWebhookSignature,
+} from "./data/integrations-delivery.server"
+
+export type {
+  OrgEventWebhookResolution,
+  OrgEventWebhookVerification,
+} from "./data/integrations-delivery.server"
 
 export type {
   AdapterApplyCtx,

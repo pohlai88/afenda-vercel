@@ -3,7 +3,14 @@ import {
   KNOWLEDGE_AUDIT_ACTIONS,
   type KnowledgeSourceKind,
 } from "#features/knowledge"
+import { publishOrgNotificationIfMissing } from "#features/org-notifications/server"
+import {
+  createPlannerSignalLink,
+  insertPlannerSignal,
+} from "#features/planner/server"
 import { writeIamAuditEvent } from "#lib/auth"
+import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { getOrganizationSlugById } from "#lib/org-slug.server"
 
 import { getKnowledgeSourceAdapter } from "./source-adapter-registry.server"
 import { getKnowledgeSourceForOrganization } from "./source.queries.server"
@@ -132,14 +139,73 @@ async function syncFailedStep(
   error: unknown
 ) {
   "use step"
+  const source = await getKnowledgeSourceForOrganization(
+    payload.organizationId,
+    payload.sourceId
+  )
+  const sourceLabel = source?.name ?? payload.sourceId
+  const reason = error instanceof Error ? error.message : "Sync failed"
+  const orgSlug = await getOrganizationSlugById(payload.organizationId)
   const failureMetadata: IamAuditSourceSyncMetadata = {
     runId: payload.runId,
     sourceId: payload.sourceId,
     documentsTotal: 0,
     documentsChanged: 0,
     durationMs: 0,
-    reason: error instanceof Error ? error.message : "Sync failed",
+    reason,
   }
+
+  const signal = await insertPlannerSignal({
+    scope: {
+      scopeKind: "organization",
+      organizationId: payload.organizationId,
+    },
+    title: `Knowledge sync failed: ${sourceLabel}`,
+    description: reason,
+    signalClass: "anomaly",
+    actorUserId: payload.actorUserId,
+    originatingSystem: "knowledge.sync",
+    pressure: {
+      urgency: 3,
+      impact: 3,
+      severity: 3,
+      confidence: 4,
+      effort: 2,
+      escalationLevel: 2,
+      temporalProximity: 2,
+      ownershipPressure: 2,
+    },
+  })
+
+  await createPlannerSignalLink({
+    scope: {
+      scopeKind: "organization",
+      organizationId: payload.organizationId,
+    },
+    signalId: signal.id,
+    module: "knowledge",
+    entityType: "source",
+    entityId: payload.sourceId,
+    displayLabel: sourceLabel,
+    href: orgSlug ? organizationDashboardPath(orgSlug, "knowledge") : null,
+    causalityReason: "Knowledge source sync failed.",
+    actorUserId: payload.actorUserId,
+  })
+
+  await publishOrgNotificationIfMissing({
+    organizationId: payload.organizationId,
+    targetUserId: payload.actorUserId ?? null,
+    title: `Knowledge sync failed: ${sourceLabel}`,
+    body: reason,
+    severity: "warning",
+    linkedEntityType: "knowledge_source",
+    linkedEntityId: payload.sourceId,
+    linkedEntityLabel: sourceLabel,
+    linkedPath: orgSlug
+      ? organizationDashboardPath(orgSlug, "knowledge")
+      : null,
+  })
+
   await writeIamAuditEvent({
     action: KNOWLEDGE_AUDIT_ACTIONS.SOURCE_SYNC_FAIL,
     organizationId: payload.organizationId,

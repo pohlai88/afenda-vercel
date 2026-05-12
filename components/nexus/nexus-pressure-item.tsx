@@ -17,6 +17,12 @@ export function NexusPressureItem({ item }: NexusPressureItemProps) {
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex items-center gap-2 text-xs">
           <SeverityBadge severity={item.severity} />
+          {item.stageBadge ? (
+            <StageBadge
+              label={item.stageBadge.label}
+              tone={item.stageBadge.tone}
+            />
+          ) : null}
           <span className="text-muted-foreground">{item.surface}</span>
         </div>
         <div className="truncate text-sm font-medium text-foreground">
@@ -53,6 +59,15 @@ const SEVERITY_LABEL: Record<OperationalPressureItem["severity"], string> = {
   ambient: "Ambient",
 }
 
+const STAGE_TONE: Record<
+  NonNullable<OperationalPressureItem["stageBadge"]>["tone"],
+  string
+> = {
+  critical: "bg-destructive/10 text-destructive",
+  warning: "bg-secondary text-secondary-foreground",
+  info: "bg-muted text-muted-foreground",
+}
+
 function SeverityBadge({
   severity,
 }: {
@@ -63,6 +78,19 @@ function SeverityBadge({
       className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${SEVERITY_TONE[severity]}`}
     >
       {SEVERITY_LABEL[severity]}
+    </span>
+  )
+}
+
+function StageBadge({
+  label,
+  tone,
+}: NonNullable<OperationalPressureItem["stageBadge"]>) {
+  return (
+    <span
+      className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${STAGE_TONE[tone]}`}
+    >
+      {label}
     </span>
   )
 }

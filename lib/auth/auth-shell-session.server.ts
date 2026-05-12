@@ -2,6 +2,7 @@ import "server-only"
 
 import { cache } from "react"
 import type { Route } from "next"
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { and, eq } from "drizzle-orm"
 
@@ -33,9 +34,24 @@ async function redirectSignIn(): Promise<never> {
   redirect(toLocalePath(locale, "/sign-in") as Route)
 }
 
+/**
+ * Per-request session read for the auth/account shell.
+ *
+ * Passes the incoming request `headers()` so Better Auth uses the supplied
+ * request context for cookie cache refresh; without explicit headers it falls
+ * back to `next/headers` `cookies()` and tries to mutate cookies, which Next.js
+ * 16 disallows in Server Components / layouts (cookies are read-only there).
+ */
+const readAuthShellSession = cache(async () => {
+  const { data } = await auth.getSession({
+    fetchOptions: { headers: await headers() },
+  })
+  return data ?? null
+})
+
 /** Signed-in guard for `(auth)` / `(iam)` using Neon `auth.getSession()` (flat routes). */
 export async function requireAuthShellSignedInSession(): Promise<AuthShellSignedInSession> {
-  const { data: session } = await auth.getSession()
+  const session = await readAuthShellSession()
   if (!session?.user?.id || !session.session?.id) {
     return await redirectSignIn()
   }
@@ -66,12 +82,10 @@ export async function requireAuthShellGlobalAdminSession(): Promise<AuthShellSig
 export const requireAuthShellOrgSession = cache(
   async (orgSlug?: string): Promise<AuthShellOrgSession> => {
     const signed = await requireAuthShellSignedInSession()
+    const session = await readAuthShellSession()
     let organizationId: string | null =
-      (
-        (await auth.getSession()).data?.session as {
-          activeOrganizationId?: string | null
-        }
-      )?.activeOrganizationId ?? null
+      (session?.session as { activeOrganizationId?: string | null } | null)
+        ?.activeOrganizationId ?? null
 
     if (orgSlug) {
       const [org] = await db

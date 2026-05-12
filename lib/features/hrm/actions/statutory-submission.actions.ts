@@ -6,11 +6,16 @@ import { revalidatePath } from "next/cache"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { EXECUTION_AUDIT_ACTIONS } from "#features/execution"
 import {
+  createPlannerSignalLink,
+  insertPlannerSignal,
+} from "#features/planner/server"
+import {
   deliverEventNow,
   findEnabledEndpointForEventType,
   getOrgEventEndpointSigningKey,
 } from "#features/org-admin/server"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { getOrganizationSlugById } from "#lib/org-slug.server"
 
 import { getComplianceEvidence } from "../data/compliance.queries.server"
 import { fetchRunsForStatutoryPack } from "../data/compliance.queries.server"
@@ -21,6 +26,7 @@ import type { StatutoryPackType } from "../data/payroll-rule-pack.server"
 import { buildStatutoryPackFromRuns } from "../data/statutory-pack.server"
 import { eventTypeForStatutoryPack } from "../data/statutory-event-types.shared"
 import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import { organizationHrmPath } from "../constants"
 import type { SubmitStatutoryEvidenceFormState } from "../types"
 
 const STATUTORY_PACK_TYPES = [
@@ -36,10 +42,18 @@ function isStatutoryPackType(value: string): value is StatutoryPackType {
   return (STATUTORY_PACK_TYPES as readonly string[]).includes(value)
 }
 
+/**
+ * Revalidates at **layout** scope so the HRM rail's `compliance`
+ * pressure badge (Phase 2 — `getHrmRailPressureCounts`) refreshes
+ * after every submission state transition. Outbound submission
+ * transitions are the most pressure-sensitive moments in the
+ * compliance lifecycle. The compliance page revalidation comes along
+ * for free since it sits below the layout.
+ */
 function revalidateCompliancePages(): void {
   revalidatePath(
     toLocaleOrgDashboardRevalidatePattern("/hrm/compliance"),
-    "page"
+    "layout"
   )
 }
 
@@ -142,10 +156,7 @@ export async function submitStatutoryEvidenceForDeliveryAction(
 
   let rulePack
   try {
-    rulePack = resolveRulePack(
-      evidence.countryCode,
-      new Date(period.periodEnd)
-    )
+    rulePack = resolveRulePack(evidence.countryCode, new Date(period.periodEnd))
   } catch {
     return {
       ok: false,
@@ -162,7 +173,10 @@ export async function submitStatutoryEvidenceForDeliveryAction(
     }
   }
 
-  const runs = await fetchRunsForStatutoryPack(organizationId, evidence.periodId)
+  const runs = await fetchRunsForStatutoryPack(
+    organizationId,
+    evidence.periodId
+  )
   if (runs.length === 0) {
     return {
       ok: false,
@@ -171,16 +185,18 @@ export async function submitStatutoryEvidenceForDeliveryAction(
     }
   }
 
+  // Phase 3S — replay the stored generation instant so EA / Borang E
+  // re-derive byte-identically (both embed `generatedAt` in the hashed
+  // body). Otherwise the drift check below would always fail for those
+  // annual packs.
   const { payload, inputHash, outputHash } = buildStatutoryPackFromRuns(
     rulePack,
     evidence.packType,
-    runs
+    runs,
+    { now: evidence.generatedAt }
   )
 
-  if (
-    inputHash !== evidence.inputHash ||
-    outputHash !== evidence.outputHash
-  ) {
+  if (inputHash !== evidence.inputHash || outputHash !== evidence.outputHash) {
     return {
       ok: false,
       code: "evidence_drift",
@@ -305,6 +321,40 @@ export async function submitStatutoryEvidenceForDeliveryAction(
   revalidateCompliancePages()
 
   if (!succeeded) {
+    const orgSlug = await getOrganizationSlugById(organizationId)
+    const signal = await insertPlannerSignal({
+      scope: { scopeKind: "organization", organizationId },
+      title: `Statutory delivery failed for ${evidence.packType}`,
+      description:
+        result.errorMessage ??
+        "Statutory submission delivery failed and requires operational follow-up.",
+      signalClass: "anomaly",
+      actorUserId: userId,
+      originatingSystem: "hrm.compliance",
+      pressure: {
+        urgency: 4,
+        impact: 4,
+        severity: 4,
+        confidence: 4,
+        effort: 2,
+        escalationLevel: 3,
+        temporalProximity: 4,
+        ownershipPressure: 3,
+      },
+    })
+
+    await createPlannerSignalLink({
+      scope: { scopeKind: "organization", organizationId },
+      signalId: signal.id,
+      module: "hrm",
+      entityType: "compliance_evidence",
+      entityId: evidence.id,
+      displayLabel: `${evidence.packType} evidence`,
+      href: orgSlug ? organizationHrmPath(orgSlug, "compliance") : null,
+      causalityReason: "Statutory evidence delivery failed.",
+      actorUserId: userId,
+    })
+
     return {
       ok: false,
       code: "delivery_failed",

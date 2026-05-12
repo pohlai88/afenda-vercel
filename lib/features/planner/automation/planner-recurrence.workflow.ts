@@ -3,12 +3,21 @@ import { and, eq } from "drizzle-orm"
 import { EXECUTION_AUDIT_ACTIONS } from "../../execution/execution.contract"
 import type { PlannerRecurrenceRunPayload } from "../../execution/schemas/planner-recurrence-run-payload.schema"
 import { writeIamAuditEvent } from "#lib/auth"
+import { publishOrgNotificationIfMissing } from "#features/org-notifications/server"
 import { db } from "#lib/db"
 import { plannerActivity } from "#lib/db/schema"
+import { getOrganizationSlugById } from "#lib/org-slug.server"
 
 import { markPlannerRecurrenceProcessed, insertPlannerItem } from "../server"
-import { listDuePlannerRecurrencesForOrganization } from "../server"
+import {
+  getPlannerRecurrenceAutomationContext,
+  listDuePlannerRecurrencesForOrganization,
+  listPlannerNotificationTargetsForItem,
+} from "../server"
+import { appendPlannerActivity } from "../data/planner.mutations.server"
 import { revalidateOrgOrbitAndNexus } from "../data/planner-revalidate.server"
+import { organizationOrbitPath } from "../constants"
+import { buildPlannerWorkflowFailureNotice } from "../policies/planner-notification-policy.shared"
 import { nextPlannerRunFromRecurrence } from "../recurrence/planner-recurrence.shared"
 
 export async function runPlannerRecurrenceWorkflow(
@@ -151,6 +160,105 @@ async function recurrenceFailedStep(
   err: unknown
 ) {
   "use step"
+
+  if (payload.recurrenceId) {
+    const context = await getPlannerRecurrenceAutomationContext({
+      organizationId: payload.organizationId,
+      recurrenceId: payload.recurrenceId,
+    })
+
+    if (context) {
+      const organizationSlug = await getOrganizationSlugById(
+        payload.organizationId
+      )
+      const recipients = await listPlannerNotificationTargetsForItem({
+        scope: {
+          scopeKind: "organization",
+          organizationId: payload.organizationId,
+        },
+        itemId: context.itemId,
+        roles:
+          context.urgency >= 4 || context.escalationLevel >= 4
+            ? ["assignee", "reviewer", "escalation_owner"]
+            : ["assignee", "reviewer"],
+      })
+      let noticeCount = 0
+      let createdNoticeCount = 0
+
+      if (recipients.length === 0) {
+        const notice = buildPlannerWorkflowFailureNotice({
+          role: "assignee",
+          itemTitle: context.title,
+          itemDescription: context.description,
+          workflow: "recurrence_processing",
+        })
+        const published = await publishOrgNotificationIfMissing({
+          organizationId: payload.organizationId,
+          title: notice.title,
+          body: notice.body,
+          severity: notice.severity,
+          linkedEntityType: "planner_item",
+          linkedEntityId: context.itemId,
+          linkedEntityLabel: context.title,
+          linkedPath: organizationSlug
+            ? `${organizationOrbitPath(organizationSlug, "timeline")}?focusKind=item&focusId=${context.itemId}`
+            : null,
+        })
+        noticeCount = 1
+        createdNoticeCount = published.created ? 1 : 0
+      } else {
+        for (const recipient of recipients) {
+          const notice = buildPlannerWorkflowFailureNotice({
+            role: recipient.role,
+            itemTitle: context.title,
+            itemDescription: context.description,
+            workflow: "recurrence_processing",
+          })
+          const published = await publishOrgNotificationIfMissing({
+            organizationId: payload.organizationId,
+            targetUserId: recipient.userId,
+            title: notice.title,
+            body: notice.body,
+            severity: notice.severity,
+            linkedEntityType: "planner_item",
+            linkedEntityId: context.itemId,
+            linkedEntityLabel: context.title,
+            linkedPath: organizationSlug
+              ? `${organizationOrbitPath(organizationSlug, "timeline")}?focusKind=item&focusId=${context.itemId}`
+              : null,
+          })
+          noticeCount += 1
+          if (published.created) {
+            createdNoticeCount += 1
+          }
+        }
+      }
+
+      const failureMessage = err instanceof Error ? err.message : String(err)
+      const recipientRoles =
+        recipients.length > 0
+          ? [...new Set(recipients.map((recipient) => recipient.role))]
+          : ["assignee"]
+      await appendPlannerActivity({
+        itemId: context.itemId,
+        activityType: "automation_failure_observed",
+        body:
+          createdNoticeCount > 0
+            ? `Recurrence processing automation failed and Orbit issued ${createdNoticeCount} operator notice${createdNoticeCount === 1 ? "" : "s"}.`
+            : "Recurrence processing automation failed; an active Orbit notice already covers the issue.",
+        actorUserId: null,
+        metadata: {
+          workflow: "recurrence_processing",
+          recurrenceId: payload.recurrenceId,
+          organizationId: payload.organizationId,
+          errorMessage: failureMessage,
+          noticeCount,
+          createdNoticeCount,
+          recipientRoles,
+        },
+      })
+    }
+  }
 
   await writeIamAuditEvent({
     action: EXECUTION_AUDIT_ACTIONS.PLANNER_RECURRENCE_RUN_FAILED,

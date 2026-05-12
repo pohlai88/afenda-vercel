@@ -24,7 +24,8 @@
         "scripts/check-agent-contract.mjs",
         "package.json",
         "eslint.config.mjs",
-        "turbo.json"
+        "turbo.json",
+        "turbo/generators/**"
       ]
     },
     "lint:drizzle-journal": {

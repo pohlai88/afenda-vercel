@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+vi.mock("server-only", () => ({}))
+
 const { insertValuesMock, writeIamAuditEventMock } = vi.hoisted(() => ({
   insertValuesMock: vi.fn(),
   writeIamAuditEventMock: vi.fn(),
@@ -17,7 +19,7 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-import { publishOrgNotification } from "#features/org-notifications/server"
+import { publishOrgNotification } from "#features/org-notifications/data/org-notifications.mutations.server"
 
 describe("publishOrgNotification", () => {
   beforeEach(() => {
@@ -38,6 +40,7 @@ describe("publishOrgNotification", () => {
       title: "ERP maintenance",
       body: "Search indexing is paused.",
       severity: "warning",
+      targetUserId: "user-1",
       linkedEntityType: "Workflow",
       linkedEntityId: "run-1",
     })
@@ -49,6 +52,7 @@ describe("publishOrgNotification", () => {
         source: "system",
         title: "ERP maintenance",
         severity: "warning",
+        targetUserId: "user-1",
         linkedEntityType: "Workflow",
         linkedEntityId: "run-1",
       })
@@ -61,6 +65,7 @@ describe("publishOrgNotification", () => {
         metadata: expect.objectContaining({
           source: "system",
           severity: "warning",
+          targetUserId: "user-1",
           linkedEntityType: "Workflow",
           linkedEntityId: "run-1",
         }),

@@ -8,6 +8,7 @@ import {
   OrganizationAuditCsvExport,
   organizationAdminPath,
 } from "#features/org-admin"
+import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 import { isOperationalSimulationEnabled } from "#features/simulation"
 
 import {
@@ -28,6 +29,15 @@ export default async function OrgAdminAuditPage({
   const orgSession = await requireOrgSession()
   const t = await getTranslations("OrgAdmin.audit")
   const simulationEnabled = isOperationalSimulationEnabled()
+
+  // Working Memory Rail — record this page in the operator's recents.
+  // Note: only the bare path is recorded (no query string), so paginating
+  // the audit log doesn't fan out into many recents rows.
+  await recordOrgAdminPageVisit({
+    orgSession,
+    orgSlug,
+    segment: "audit",
+  })
   const sp = await searchParams
   const page = searchParamPositiveInt(sp, "page", 1)
   const auditOriginFilter = parseOrganizationIamAuditOriginFilterParam(

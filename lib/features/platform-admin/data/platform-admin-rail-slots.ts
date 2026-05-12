@@ -1,26 +1,42 @@
-import { Building2Icon, ListIcon, UsersIcon } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
-
-import type { WorkbenchRailSlots } from "#components/workbench"
+import type {
+  WorkbenchRailNavIconId,
+  WorkbenchRailSlots,
+} from "#components/workbench"
 
 import { PLATFORM_ADMIN_NAV_ITEMS, platformAdminPath } from "../constants"
+import type {
+  PlatformAdminNavKey,
+  PlatformAdminRailPressureMap,
+} from "../types"
 
-const NAV_KEY_ICONS: Record<string, LucideIcon> = {
-  users: UsersIcon,
-  organizations: Building2Icon,
-  overview: ListIcon,
+const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
+  users: "users",
+  organizations: "building-2",
+  overview: "list",
 }
 
 /**
  * Builds WorkbenchRailSlots v2 from PLATFORM_ADMIN_CAPABILITIES.
- * Pure function — no DB calls.
+ *
+ * **Pure mapper** — no DB calls, no IO. The shell schema is the kernel;
+ * this function only maps from registry + optional pressure into the
+ * schema. Pressure is computed once per request in
+ * `platform-admin-rail-pressure.queries.server.ts` (Phase 2 doctrine —
+ * see `docs/_draft/working-memory-rail-plan.md` §3.4).
+ *
+ * @param pressure  Optional per-nav-key pressure map. Sparse by design
+ *                  — missing keys mean the corresponding nav item has
+ *                  no badge (conditional density).
  */
 export function buildPlatformAdminRailSlots({
   userName,
   userEmail,
+  pressure,
 }: {
   userName: string | null
   userEmail: string
+  /** Optional pressure map produced by `getPlatformAdminRailPressureCounts`. */
+  pressure?: PlatformAdminRailPressureMap
 }): WorkbenchRailSlots {
   const initial = (userName ?? userEmail).trim().charAt(0).toUpperCase() || "O"
 
@@ -29,14 +45,18 @@ export function buildPlatformAdminRailSlots({
       id: "overview",
       label: "Overview",
       href: platformAdminPath(),
-      icon: ListIcon,
+      icon: "list" as const,
     },
-    ...PLATFORM_ADMIN_NAV_ITEMS.map((item) => ({
-      id: item.capabilityId,
-      label: item.navKey.charAt(0).toUpperCase() + item.navKey.slice(1),
-      href: item.href,
-      icon: NAV_KEY_ICONS[item.navKey] ?? ListIcon,
-    })),
+    ...PLATFORM_ADMIN_NAV_ITEMS.map((item) => {
+      const badge = pressure?.[item.navKey as PlatformAdminNavKey]
+      return {
+        id: item.capabilityId,
+        label: item.navKey.charAt(0).toUpperCase() + item.navKey.slice(1),
+        href: item.href,
+        icon: NAV_KEY_ICONS[item.navKey] ?? "list",
+        ...(badge ? { badge } : {}),
+      }
+    }),
   ]
 
   return {
@@ -44,7 +64,6 @@ export function buildPlatformAdminRailSlots({
       initial,
       primary: userName ?? "Operator",
       secondary: userEmail,
-      pills: [{ label: "Operator", tone: "attention" }],
     },
     nav: [
       {

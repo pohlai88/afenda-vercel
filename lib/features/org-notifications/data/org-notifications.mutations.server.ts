@@ -5,6 +5,7 @@ import { and, eq, isNull, lte, or, gt } from "drizzle-orm"
 import { writeIamAuditEvent } from "#lib/auth"
 import { db } from "#lib/db"
 import { orgNotificationNotice, orgNotificationReceipt } from "#lib/db/schema"
+import { findActiveOrgNotification } from "./org-notifications.queries.server"
 
 import type {
   CreateOrgNotificationInput,
@@ -68,6 +69,7 @@ export async function createOrgNotification(input: {
       title: input.data.title.trim(),
       body: input.data.body.trim(),
       severity: input.data.severity,
+      targetUserId: normalizeTrimmed(input.data.targetUserId),
       linkedEntityType: normalizeTrimmed(input.data.linkedEntityType),
       linkedEntityId: normalizeTrimmed(input.data.linkedEntityId),
       linkedEntityLabel: normalizeTrimmed(input.data.linkedEntityLabel),
@@ -97,6 +99,7 @@ export async function publishOrgNotification(
       title: input.title.trim(),
       body: input.body.trim(),
       severity: input.severity ?? "info",
+      targetUserId: normalizeTrimmed(input.targetUserId),
       linkedEntityType: normalizeTrimmed(input.linkedEntityType),
       linkedEntityId: normalizeTrimmed(input.linkedEntityId),
       linkedEntityLabel: normalizeTrimmed(input.linkedEntityLabel),
@@ -119,12 +122,36 @@ export async function publishOrgNotification(
     metadata: {
       source: "system",
       severity: input.severity ?? "info",
+      targetUserId: normalizeTrimmed(input.targetUserId),
       linkedEntityType: normalizeTrimmed(input.linkedEntityType),
       linkedEntityId: normalizeTrimmed(input.linkedEntityId),
     },
   })
 
   return { noticeId: row.id, publishedAt: row.publishedAt }
+}
+
+export async function publishOrgNotificationIfMissing(
+  input: PublishOrgNotificationInput
+): Promise<{ noticeId: string; publishedAt: Date; created: boolean }> {
+  const existing = await findActiveOrgNotification({
+    organizationId: input.organizationId,
+    title: input.title.trim(),
+    targetUserId: input.targetUserId ?? null,
+    linkedEntityType: input.linkedEntityType ?? null,
+    linkedEntityId: input.linkedEntityId ?? null,
+  })
+
+  if (existing) {
+    return {
+      noticeId: existing.id,
+      publishedAt: new Date(0),
+      created: false,
+    }
+  }
+
+  const created = await publishOrgNotification(input)
+  return { ...created, created: true }
 }
 
 export async function markOrgNotificationRead(input: {

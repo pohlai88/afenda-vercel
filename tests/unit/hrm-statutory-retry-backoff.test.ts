@@ -123,9 +123,9 @@ describe("HRM statutory retry — shouldRetryStatutorySubmission", () => {
   it("returns true while attempts remain", () => {
     expect(shouldRetryStatutorySubmission(0)).toBe(true)
     expect(shouldRetryStatutorySubmission(1)).toBe(true)
-    expect(shouldRetryStatutorySubmission(STATUTORY_RETRY_MAX_ATTEMPTS - 1)).toBe(
-      true
-    )
+    expect(
+      shouldRetryStatutorySubmission(STATUTORY_RETRY_MAX_ATTEMPTS - 1)
+    ).toBe(true)
   })
 
   it("returns false at the cap", () => {

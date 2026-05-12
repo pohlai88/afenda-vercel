@@ -20,7 +20,11 @@ function sanitizeUploadFilename(name: string): string {
   return collapsed.length > 0 ? collapsed : "file"
 }
 
-function buildOrbitUploadPath(scope: PlannerScopeInput, itemId: string, file: File) {
+function buildOrbitUploadPath(
+  scope: PlannerScopeInput,
+  itemId: string,
+  file: File
+) {
   const safeName = sanitizeUploadFilename(file.name)
   const prefix =
     scope.scopeKind === "organization"
@@ -171,9 +175,7 @@ export function OrbitAttachmentForm({
           {pending ? "Attaching..." : "Attach file"}
         </Button>
         {payload ? (
-          <span className="text-xs text-muted-foreground">
-            Ready to attach
-          </span>
+          <span className="text-xs text-muted-foreground">Ready to attach</span>
         ) : null}
       </form>
     </div>

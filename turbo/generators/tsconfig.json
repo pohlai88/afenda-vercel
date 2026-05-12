@@ -1,0 +1,23 @@
+{
+  // Local tsconfig for Turborepo generators. `turbo gen` uses an internal TS
+  // loader that does NOT support `moduleResolution: "bundler"` (the root
+  // setting). Without this override the loader fails with
+  // `TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument ... Received undefined`
+  // and reports "No generators found." See https://github.com/vercel/turbo/issues/5249.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": false,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}

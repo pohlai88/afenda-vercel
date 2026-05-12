@@ -133,6 +133,39 @@ export function organizationHrmEmployeePath(
   return `/o/${slug}/dashboard/hrm/employees/${employeeId}` as Route
 }
 
+// ---------------------------------------------------------------------------
+// Phase 3K: per-evidence compliance lifecycle drill-down
+// ---------------------------------------------------------------------------
+
+/**
+ * Narrow UUID-ish check so the path builder rejects accidental non-id
+ * strings before they reach the route. Mirrors the regex used by the
+ * forwarded-path sanitizer — keep the two in lockstep so any allowlist
+ * change here is also surfaced cross-tenant.
+ */
+function isLikelyEvidenceId(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  )
+}
+
+/** Locale-internal compliance evidence detail URL (`/dashboard/hrm/compliance/{evidenceId}`). */
+export function organizationHrmComplianceDetailPath(
+  orgSlug: string,
+  evidenceId: string
+): Route {
+  const slug = normalizeOrgSlugParam(orgSlug)
+  if (!slug) {
+    throw new Error("organizationHrmComplianceDetailPath: invalid org slug")
+  }
+  if (!isLikelyEvidenceId(evidenceId)) {
+    throw new Error(
+      "organizationHrmComplianceDetailPath: evidenceId is not a valid UUID"
+    )
+  }
+  return `/o/${slug}/dashboard/hrm/compliance/${evidenceId}` as Route
+}
+
 export function getAllowedHrmDashboardSubsegments(): readonly HrmDashboardCapabilitySegment[] {
   return [...SEGMENT_SET].sort((a, b) => a.localeCompare(b))
 }

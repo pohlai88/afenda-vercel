@@ -345,3 +345,150 @@ describe("buildStatutoryPackFromRuns — edge cases", () => {
     expect(body.lines).toHaveLength(0)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Phase 3S — Determinism contract for EA / Borang E (the two pack types
+// whose hashed body embeds `generatedAt`).
+//
+// Pre-3S, both builders called `new Date()` internally — making
+// `outputHash` non-deterministic and breaking every re-derive code path
+// (export, retry, re-submit) for annual packs because the rebuilt hash
+// could never match the stored one.
+//
+// Phase 3S threads an explicit `now: Date` through `buildStatutoryPackFromRuns`,
+// the upsert mutation's `generatedAt` column, and every receiver-side caller
+// (`evidence.generatedAt` / `candidate.priorGeneratedAt`).
+// ---------------------------------------------------------------------------
+
+const FIXED_INSTANT_A = new Date("2026-12-31T23:59:00.000Z")
+const FIXED_INSTANT_B = new Date("2027-01-01T00:00:01.000Z")
+
+describe("Phase 3S — explicit `now` makes EA / Borang E hashes deterministic", () => {
+  it("ea_annual: same runs + same `now` → identical outputHash", () => {
+    const a = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "ea_annual",
+      [makeRun()],
+      { now: FIXED_INSTANT_A }
+    )
+    const b = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "ea_annual",
+      [makeRun()],
+      { now: FIXED_INSTANT_A }
+    )
+    expect(b.outputHash).toBe(a.outputHash)
+    expect(b.inputHash).toBe(a.inputHash)
+  })
+
+  it("ea_annual: same runs + different `now` → different outputHash (regression sentinel)", () => {
+    const a = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "ea_annual",
+      [makeRun()],
+      { now: FIXED_INSTANT_A }
+    )
+    const b = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "ea_annual",
+      [makeRun()],
+      { now: FIXED_INSTANT_B }
+    )
+    expect(b.outputHash).not.toBe(a.outputHash)
+    expect(b.inputHash).toBe(a.inputHash)
+  })
+
+  it("ea_annual: payload `generatedAt` reflects the passed `now` exactly", () => {
+    const result = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "ea_annual",
+      [makeRun()],
+      { now: FIXED_INSTANT_A }
+    )
+    const body = result.payload.body as { generatedAt: string }
+    expect(body.generatedAt).toBe(FIXED_INSTANT_A.toISOString())
+  })
+
+  it("borang_e_annual: same runs + same `now` → identical outputHash", () => {
+    const a = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "borang_e_annual",
+      [makeRun(), makeHighEarnerRun()],
+      { now: FIXED_INSTANT_A }
+    )
+    const b = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "borang_e_annual",
+      [makeRun(), makeHighEarnerRun()],
+      { now: FIXED_INSTANT_A }
+    )
+    expect(b.outputHash).toBe(a.outputHash)
+    expect(b.inputHash).toBe(a.inputHash)
+  })
+
+  it("borang_e_annual: same runs + different `now` → different outputHash (regression sentinel)", () => {
+    const a = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "borang_e_annual",
+      [makeRun()],
+      { now: FIXED_INSTANT_A }
+    )
+    const b = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "borang_e_annual",
+      [makeRun()],
+      { now: FIXED_INSTANT_B }
+    )
+    expect(b.outputHash).not.toBe(a.outputHash)
+  })
+
+  it("borang_e_annual: payload `generatedAt` reflects the passed `now` exactly", () => {
+    const result = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "borang_e_annual",
+      [makeRun()],
+      { now: FIXED_INSTANT_A }
+    )
+    const body = result.payload.body as { generatedAt: string }
+    expect(body.generatedAt).toBe(FIXED_INSTANT_A.toISOString())
+  })
+
+  it("monthly packs are unaffected by `now` (their hashed body never embedded it)", () => {
+    const withA = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "epf_monthly",
+      [makeRun()],
+      { now: FIXED_INSTANT_A }
+    )
+    const withB = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "epf_monthly",
+      [makeRun()],
+      { now: FIXED_INSTANT_B }
+    )
+    const withoutNow = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "epf_monthly",
+      [makeRun()]
+    )
+    expect(withB.outputHash).toBe(withA.outputHash)
+    expect(withoutNow.outputHash).toBe(withA.outputHash)
+  })
+
+  it("`now` defaults to `new Date()` when omitted (back-compat with pre-3S callers)", () => {
+    // Pre-3S behavior is preserved — omitting `now` still works, but EA
+    // and Borang E are non-deterministic across calls. We don't assert
+    // hash inequality here (would flake within the same millisecond);
+    // we just prove the call succeeds and produces a well-shaped result.
+    const result = buildStatutoryPackFromRuns(
+      malaysia2026_01RulePack,
+      "ea_annual",
+      [makeRun()]
+    )
+    expect(result.payload.packType).toBe("ea_annual")
+    const body = result.payload.body as { generatedAt: string }
+    expect(body.generatedAt).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/
+    )
+  })
+})

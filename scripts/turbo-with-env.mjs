@@ -22,14 +22,24 @@ if (existsSync(envLocal)) {
 
 const forwarded = process.argv.slice(2)
 if (forwarded.length === 0) {
-  console.error("[turbo-with-env] Missing turbo CLI arguments after script name.")
+  console.error(
+    "[turbo-with-env] Missing turbo CLI arguments after script name."
+  )
   process.exit(1)
 }
 
+/**
+ * Windows resolves `pnpm` as `pnpm.cmd` / `pnpm.bat`. Node's `child_process.spawn`
+ * refuses to invoke those shims without `shell: true` and returns `ENOENT`
+ * silently (status `null`, no log line). Toggle the shell flag per-platform
+ * so the wrapper behaves identically on POSIX and Windows CI runners.
+ */
+const isWindows = process.platform === "win32"
 const result = spawnSync("pnpm", ["exec", "turbo", ...forwarded], {
   cwd: root,
   env: process.env,
   stdio: "inherit",
+  shell: isWindows,
 })
 
 process.exit(result.status ?? 1)

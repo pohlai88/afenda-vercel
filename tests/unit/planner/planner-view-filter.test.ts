@@ -13,6 +13,8 @@ describe("planner saved view filters", () => {
       q: " payroll escalation ",
       lifecycle: "active,blocked",
       ownerUserIds: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+      assignmentRole: "reviewer,escalation_owner",
+      automationState: "attention",
       signalClass: ["deadline", "review"],
       displayPriority: "critical,high",
       linkedModule: "hrm,payroll",
@@ -22,6 +24,8 @@ describe("planner saved view filters", () => {
       query: "payroll escalation",
       lifecycle: ["active", "blocked"],
       ownerUserIds: ["4c98f55a-fdbc-4bb6-8717-c0cb6760dc73"],
+      assignmentRole: ["reviewer", "escalation_owner"],
+      automationState: ["attention"],
       signalClass: ["deadline", "review"],
       displayPriority: ["critical", "high"],
       linkedModule: ["hrm", "payroll"],
@@ -42,10 +46,13 @@ describe("planner saved view filters", () => {
       {
         lifecycle: ["triaged"],
         displayPriority: ["medium"],
+        assignmentRole: ["assignee"],
+        automationState: ["attention"],
       },
       {
         query: "vendor",
         displayPriority: ["critical"],
+        assignmentRole: ["reviewer"],
       }
     )
 
@@ -53,6 +60,8 @@ describe("planner saved view filters", () => {
       query: "vendor",
       lifecycle: ["triaged"],
       displayPriority: ["critical"],
+      assignmentRole: ["reviewer"],
+      automationState: ["attention"],
     })
     expect(JSON.parse(serializePlannerViewFilterState(merged))).toEqual(merged)
   })

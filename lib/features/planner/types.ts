@@ -1,4 +1,5 @@
 import type { AuditEvent7W1H } from "#lib/erp/audit-7w1h.shared"
+import type { OrgNotificationNotice } from "#features/org-notifications"
 import type {
   TemporalNext,
   TemporalNow,
@@ -14,6 +15,7 @@ import type {
   PLANNER_SIGNAL_CLASSES,
   PLANNER_SIGNAL_LIFECYCLES,
   PLANNER_RELATION_TYPES,
+  PLANNER_SIGNAL_RESOLUTION_POLICIES,
   PLANNER_VIEW_SORT_MODES,
 } from "./constants"
 import type { PlannerViewFilterState } from "./filters/planner-view-filter.shared"
@@ -22,9 +24,15 @@ export type PlannerSignalClass = (typeof PLANNER_SIGNAL_CLASSES)[number]
 export type PlannerSignalLifecycle = (typeof PLANNER_SIGNAL_LIFECYCLES)[number]
 export type PlannerItemLifecycle = (typeof PLANNER_ITEM_LIFECYCLES)[number]
 export type PlannerOwnershipRole = (typeof PLANNER_OWNERSHIP_ROLES)[number]
+export type PlannerNotificationRole = Extract<
+  PlannerOwnershipRole,
+  "assignee" | "reviewer" | "escalation_owner"
+>
 export type PlannerDisplayPriority = (typeof PLANNER_DISPLAY_PRIORITIES)[number]
 export type PlannerRelationType = (typeof PLANNER_RELATION_TYPES)[number]
 export type PlannerViewSortMode = (typeof PLANNER_VIEW_SORT_MODES)[number]
+export type PlannerSignalResolutionPolicy =
+  (typeof PLANNER_SIGNAL_RESOLUTION_POLICIES)[number]
 
 export type PlannerPressureDimensions = {
   urgency: number
@@ -35,6 +43,17 @@ export type PlannerPressureDimensions = {
   escalationLevel: number
   temporalProximity: number
   ownershipPressure: number
+}
+
+export type PlannerOperationalFacts = {
+  blockingCount: number
+  blockedByCount: number
+  activeSignalCount: number
+  automationFailureCount: number
+  duplicateCount: number
+  assigneeCount: number
+  reviewerCount: number
+  escalationOwnerCount: number
 }
 
 export type PlannerScopeInput =
@@ -51,6 +70,7 @@ export type PlannerItemRow = {
   description: string | null
   lifecycle: PlannerItemLifecycle
   scheduleStartAt: Date | null
+  blockedAt: Date | null
   dueAt: Date | null
   endAt: Date | null
   resolvedAt: Date | null
@@ -65,6 +85,8 @@ export type PlannerItemRow = {
   temporalNow: TemporalNow | null
   temporalNext: TemporalNext | null
   audit7w1h: AuditEvent7W1H[] | null
+  operationalFacts?: PlannerOperationalFacts
+  blockedState?: PlannerBlockedState | null
 }
 
 export type PlannerSignalRow = {
@@ -96,6 +118,20 @@ export type PlannerAssignmentRow = {
   subjectUserId: string | null
   subjectLabel: string | null
   createdAt: Date
+}
+
+export type PlannerNotificationTarget = {
+  userId: string
+  role: PlannerNotificationRole
+}
+
+export type PlannerBlockedEscalationStage = "threshold" | "urgent" | "critical"
+
+export type PlannerBlockedState = {
+  blockedAt: Date
+  blockedHours: number
+  thresholdHours: number
+  stage: PlannerBlockedEscalationStage
 }
 
 export type PlannerScheduleRow = {
@@ -171,6 +207,8 @@ export type PlannerActivityRow = {
   signalId: string | null
   activityType: string
   body: string
+  metadata: Record<string, unknown> | null
+  authorUserId: string | null
   createdAt: Date
 }
 
@@ -226,6 +264,7 @@ export type PlannerItemDetail = PlannerItemRow & {
   attachments: PlannerAttachmentRow[]
   activity: PlannerActivityRow[]
   sessions: PlannerSessionRow[]
+  notices: OrgNotificationNotice[]
 }
 
 export type PlannerSignalDetail = PlannerSignalRow & {

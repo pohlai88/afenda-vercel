@@ -1,5 +1,12 @@
 import type { KnowledgeEvalRunPayload } from "#features/execution"
+import { publishOrgNotificationIfMissing } from "#features/org-notifications/server"
+import {
+  createPlannerSignalLink,
+  insertPlannerSignal,
+} from "#features/planner/server"
 import { writeIamAuditEvent } from "#lib/auth"
+import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { getOrganizationSlugById } from "#lib/org-slug.server"
 
 import { KNOWLEDGE_AUDIT_ACTIONS } from "../constants"
 
@@ -20,8 +27,13 @@ export async function runKnowledgeEvalWorkflow(
 ) {
   "use workflow"
 
-  const { summary, runId, retrievalMode } = await evalRunStep(payload)
-  await auditStep(payload, summary, runId, retrievalMode)
+  try {
+    const { summary, runId, retrievalMode } = await evalRunStep(payload)
+    await auditStep(payload, summary, runId, retrievalMode)
+  } catch (error) {
+    await evalFailedStep(payload, error)
+    throw error
+  }
 }
 
 async function evalRunStep(payload: KnowledgeEvalRunPayload) {
@@ -118,5 +130,81 @@ async function auditStep(
     resourceType: "knowledge.eval_set",
     resourceId: payload.evalSetId,
     metadata,
+  })
+}
+
+async function evalFailedStep(
+  payload: KnowledgeEvalRunPayload,
+  error: unknown
+) {
+  "use step"
+
+  const reason =
+    error instanceof Error ? error.message : "Knowledge eval run failed"
+  const orgSlug = await getOrganizationSlugById(payload.organizationId)
+
+  const signal = await insertPlannerSignal({
+    scope: {
+      scopeKind: "organization",
+      organizationId: payload.organizationId,
+    },
+    title: `Knowledge eval failed: ${payload.evalSetId}`,
+    description: reason,
+    signalClass: "anomaly",
+    actorUserId: payload.actorUserId,
+    originatingSystem: "knowledge.eval",
+    pressure: {
+      urgency: 2,
+      impact: 3,
+      severity: 3,
+      confidence: 4,
+      effort: 2,
+      escalationLevel: 2,
+      temporalProximity: 2,
+      ownershipPressure: 2,
+    },
+  })
+
+  await createPlannerSignalLink({
+    scope: {
+      scopeKind: "organization",
+      organizationId: payload.organizationId,
+    },
+    signalId: signal.id,
+    module: "knowledge",
+    entityType: "eval_set",
+    entityId: payload.evalSetId,
+    displayLabel: `Eval set ${payload.evalSetId}`,
+    href: orgSlug ? organizationDashboardPath(orgSlug, "knowledge") : null,
+    causalityReason: "Knowledge evaluation workflow failed.",
+    actorUserId: payload.actorUserId,
+  })
+
+  await publishOrgNotificationIfMissing({
+    organizationId: payload.organizationId,
+    targetUserId: payload.actorUserId ?? null,
+    title: `Knowledge eval failed: ${payload.evalSetId}`,
+    body: reason,
+    severity: "warning",
+    linkedEntityType: "knowledge_eval_set",
+    linkedEntityId: payload.evalSetId,
+    linkedEntityLabel: `Eval set ${payload.evalSetId}`,
+    linkedPath: orgSlug
+      ? organizationDashboardPath(orgSlug, "knowledge")
+      : null,
+  })
+
+  await writeIamAuditEvent({
+    action: KNOWLEDGE_AUDIT_ACTIONS.EVAL_RUN_FAIL,
+    organizationId: payload.organizationId,
+    actorUserId: payload.actorUserId,
+    actorSessionId: payload.actorSessionId,
+    resourceType: "knowledge.eval_set",
+    resourceId: payload.evalSetId,
+    metadata: {
+      evalSetId: payload.evalSetId,
+      topK: payload.topK,
+      reason,
+    },
   })
 }

@@ -16,7 +16,8 @@
     "package.json",
     "scripts/**/*.{mjs,cjs,js,ts}",
     "tests/**/*.{ts,tsx}",
-    ".config/**/*.{ts,mjs}"
+    ".config/**/*.{ts,mjs}",
+    "turbo/generators/**/*.{ts,mjs,cjs,js}"
   ],
   "rules": {
     "files": "error",
@@ -160,6 +161,9 @@
     "lib/features/planner/relations/**": ["files"],
     "lib/features/planner/scheduling/**": ["files"],
     "lib/features/planner/timeline/**": ["files"],
-    "lib/features/planner/signals/**": ["files"]
+    "lib/features/planner/signals/**": ["files"],
+    "lib/features/rail-memory/client.ts": ["files"],
+    "lib/features/rail-memory/data/recent.queries.server.ts": ["files"],
+    "lib/features/rail-memory/data/recent.mutations.server.ts": ["files"]
   }
 }

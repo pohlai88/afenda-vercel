@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+
 import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#components/module-page-header"
@@ -13,7 +15,16 @@ import { listComplianceEvidenceForPeriod } from "#features/hrm/server"
 import type { ComplianceEvidenceRow } from "#features/hrm/server"
 import { listPayrollPeriodsForOrg } from "#features/hrm/server"
 import type { PayrollPeriodRow } from "#features/hrm/server"
-import { CompliancePage, STATUTORY_PACK_TO_EVENT_TYPE } from "#features/hrm/client"
+import {
+  BureauReliabilityCard,
+  BureauReliabilityCardSkeleton,
+  ComplianceOperationalHealth,
+  ComplianceOperationalHealthSkeleton,
+} from "#features/hrm"
+import {
+  CompliancePage,
+  STATUTORY_PACK_TO_EVENT_TYPE,
+} from "#features/hrm/client"
 
 export const dynamic = "force-dynamic"
 
@@ -22,12 +33,15 @@ type PageSearchParams = {
 }
 
 export default async function OrgDashboardHrmCompliancePage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string; orgSlug: string }>
   searchParams: Promise<PageSearchParams>
 }) {
   const session = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.compliance")
+  const { orgSlug } = await params
   const { periodId } = await searchParams
 
   // Tier A authority resolved by `requireOrgSession`. Parallelize the two
@@ -87,12 +101,34 @@ export default async function OrgDashboardHrmCompliancePage({
         title={t("pageTitle")}
         description={t("pageDescription")}
       />
+      {/*
+       * Phase 3L: cross-period operational health is Tier B enrichment —
+       * stream it independently so it never blocks the period selector
+       * or per-period evidence list. Geometry-matched skeleton avoids
+       * layout shift on first paint (App Router runtime doctrine).
+       */}
+      <Suspense fallback={<ComplianceOperationalHealthSkeleton />}>
+        <ComplianceOperationalHealth
+          organizationId={session.organizationId}
+          orgSlug={orgSlug}
+        />
+      </Suspense>
+      {/*
+       * Phase 3N: per-bureau reliability is independent of period selection
+       * AND of operational health — stream it as a sibling Tier B fragment
+       * so a slow KWSP/LHDN deliveries scan never blocks the rest of the
+       * page (Next.js parallel Suspense streaming).
+       */}
+      <Suspense fallback={<BureauReliabilityCardSkeleton />}>
+        <BureauReliabilityCard organizationId={session.organizationId} />
+      </Suspense>
       <CompliancePage
         period={period}
         evidenceRows={evidenceRows}
         allPeriods={allPeriods}
         packTypesWithSubscribedEndpoint={packTypesWithSubscribedEndpoint}
         deliveryById={deliveryById}
+        orgSlug={orgSlug}
       />
     </div>
   )

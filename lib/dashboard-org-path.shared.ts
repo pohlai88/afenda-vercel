@@ -95,6 +95,16 @@ export function sanitizePathAfterOrgSlug(tailFromO: string): AppPath {
     ) {
       return `/dashboard/hrm/employees/${parts[3]}` as AppPath
     }
+    // Phase 3K: per-evidence compliance lifecycle drill-down. Mirrors the
+    // employees/{id} allowlist — narrow UUID gate so headers cannot smuggle
+    // arbitrary tails through cross-tenant redirects.
+    if (
+      parts.length === 4 &&
+      parts[2] === "compliance" &&
+      isLikelyDatabaseUuid(parts[3]!)
+    ) {
+      return `/dashboard/hrm/compliance/${parts[3]}` as AppPath
+    }
     if (
       parts.length === 3 &&
       HRM_DASHBOARD_CAPABILITY_SEGMENT_SET.has(parts[2]!)

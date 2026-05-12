@@ -94,61 +94,6 @@ export default async function AccountLayout({
     },
   ]
 
-  const recentContexts = [
-    shellData.activeOrganization
-      ? {
-          label: t("recent.activeWorkspace"),
-          value: shellData.activeOrganization.name,
-          href: activeWorkspaceHref,
-        }
-      : null,
-    shellData.securityActivity[0]
-      ? {
-          label: t("recent.securityChange"),
-          value: shellData.securityActivity[0].label,
-          href:
-            shellData.securityActivity[0].path ??
-            toLocalePath(locale, "/account/security"),
-        }
-      : null,
-    shellData.securityActivity[1]
-      ? {
-          label: t("recent.recentEvidence"),
-          value: shellData.securityActivity[1].label,
-          href:
-            shellData.securityActivity[1].path ??
-            toLocalePath(locale, "/account/security"),
-        }
-      : null,
-  ].filter((item): item is NonNullable<typeof item> => item !== null)
-
-  const signals = [
-    {
-      label: t("signals.verification"),
-      value: shellData.summary.emailVerified
-        ? t("signals.verificationReady")
-        : t("signals.verificationPending"),
-      tone: shellData.summary.emailVerified
-        ? ("positive" as const)
-        : ("attention" as const),
-    },
-    {
-      label: t("signals.sessionCount"),
-      value: t("signals.sessionCountValue", {
-        count: shellData.summary.sessionCount,
-      }),
-    },
-    {
-      label: t("signals.accessHealth"),
-      value: shellData.activeOrganization
-        ? t("signals.accessHealthy")
-        : t("signals.accessNeedsWorkspace"),
-      tone: shellData.activeOrganization
-        ? ("positive" as const)
-        : ("attention" as const),
-    },
-  ]
-
   const summary = {
     ...shellData.summary,
     activeOrgHref: shellData.activeOrganization ? activeWorkspaceHref : null,
@@ -157,8 +102,6 @@ export default async function AccountLayout({
   const railSlots = buildAccountRailSlotsV2({
     summary,
     sections,
-    recentContexts,
-    signals,
   })
 
   const commandSections = [
@@ -198,7 +141,6 @@ export default async function AccountLayout({
             },
             labels: {
               ariaLabel: t("rail.aria"),
-              description: t("rail.description"),
               collapseLabel: t("rail.collapse"),
               expandLabel: t("rail.expand"),
             },
@@ -207,7 +149,7 @@ export default async function AccountLayout({
           commandLayer={
             <WorkbenchCommandLayer
               title={t("title")}
-              description={t("rail.description")}
+              description={t("overview.subtitle")}
               sections={commandSections}
             />
           }

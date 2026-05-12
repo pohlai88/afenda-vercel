@@ -12,6 +12,7 @@ import {
 import { Link } from "#i18n/navigation"
 
 import { organizationAdminPath } from "#features/org-admin"
+import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 
 import {
   fetchOrgWorkbenchMembers,
@@ -30,6 +31,14 @@ export default async function OrgAdminOverviewPage({
     fetchOrgWorkbenchMembers(orgSession.organizationId),
     fetchOrgWorkbenchPendingInvitations(orgSession.organizationId),
   ])
+
+  // Working Memory Rail — record this page in the operator's recents.
+  // Best-effort, deferred via `after()`; never blocks the page render.
+  await recordOrgAdminPageVisit({
+    orgSession,
+    orgSlug,
+    segment: "overview",
+  })
 
   return (
     <div className="space-y-6">

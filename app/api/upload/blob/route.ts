@@ -177,7 +177,7 @@ export async function POST(request: Request) {
             userId: signedInSession.userId,
             sessionId: signedInSession.sessionId,
             organizationId: allowedForOrg
-              ? orgSession?.organizationId ?? null
+              ? (orgSession?.organizationId ?? null)
               : null,
             pathname,
             clientPayload: parsedClientPayload,

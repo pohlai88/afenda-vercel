@@ -1,10 +1,17 @@
 "use client"
 
-import { useState, type ReactNode } from "react"
+import { useCallback, useMemo, useState, type ReactNode } from "react"
+
+import { cn } from "#lib/utils"
 
 import { WorkbenchRail } from "./rail/workbench-rail"
 import type { WorkbenchRailLabels, WorkbenchRailSlots } from "./rail"
 import { WorkbenchMobileRailSheet } from "./workbench-mobile-rail"
+import {
+  WORKBENCH_RAIL_NAV_DOM_ID,
+  useRegisterNestedWorkbenchRailCollapse,
+  type WorkbenchRailCollapseApi,
+} from "./workbench-rail-collapse-context"
 
 export type WorkbenchSubLayoutProps = {
   /**
@@ -53,7 +60,7 @@ export function WorkbenchSubLayout({
     }
   })
 
-  const toggleRail = () => {
+  const toggleRail = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev
       try {
@@ -63,18 +70,40 @@ export function WorkbenchSubLayout({
       }
       return next
     })
-  }
+  }, [rail.storageKey])
+
+  const nestedRailCollapseApi = useMemo((): WorkbenchRailCollapseApi => {
+    return {
+      collapsed,
+      toggleCollapse: toggleRail,
+      collapseLabel: rail.labels.collapseLabel,
+      expandLabel: rail.labels.expandLabel,
+      controlsNavId: WORKBENCH_RAIL_NAV_DOM_ID,
+    }
+  }, [
+    collapsed,
+    rail.labels.collapseLabel,
+    rail.labels.expandLabel,
+    toggleRail,
+  ])
+
+  useRegisterNestedWorkbenchRailCollapse(nestedRailCollapseApi)
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      {/*
+       * Sub-layout row container — tinted with the rail's chrome color
+       * on desktop so the surface wrapper's rounded-tl-2xl cut-out reveals
+       * `bg-sidebar` (matching the rail), not a stray page-bg triangle.
+       * Mirrors the seam treatment in `WorkbenchShell`.
+       */}
+      <div className="flex min-h-0 flex-1 overflow-hidden md:bg-sidebar">
         {/* Desktop rail */}
         <div className="hidden flex-none md:flex">
           <WorkbenchRail
             slots={rail.slots}
             labels={rail.labels}
             collapsed={collapsed}
-            onToggleCollapse={toggleRail}
           />
         </div>
 
@@ -84,13 +113,31 @@ export function WorkbenchSubLayout({
             slots={rail.slots}
             labels={rail.labels}
             collapsed={false}
-            onToggleCollapse={() => {}}
+            assignNavLandmarkId={false}
           />
         </WorkbenchMobileRailSheet>
 
-        {/* Content area */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-          {children}
+        {/*
+         * Content area.
+         *
+         * Mirrors `WorkbenchShell`'s surface chrome: a desktop curve
+         * (`md:rounded-tl-2xl`) at the inner boundary against the rail.
+         * Geometry ownership stays clean — the wrapper owns the curve and
+         * clips it via `md:overflow-hidden`; the inner node owns scroll
+         * with `overflow-y-auto`. The two never share an overflow
+         * directive on the same element. No competing border — the parent
+         * row carries `md:bg-sidebar` so the curve cut-out matches the
+         * rail without needing an extra hairline.
+         */}
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 flex-col bg-background",
+            "md:overflow-hidden md:rounded-tl-2xl"
+          )}
+        >
+          <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+            {children}
+          </div>
         </div>
       </div>
 

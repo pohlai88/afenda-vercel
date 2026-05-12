@@ -35,7 +35,7 @@ export async function WorkbenchUtilityBarRow({
       canOpenMarketplace={showOrgAdminSettings}
       multiOrg={userOrgs.length > 1}
     >
-      <div className="grid h-12 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
+      <div className="grid h-(--af-l1-height) grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
         <WorkbenchUtilityLeftRail orgSlug={orgSlug} orgName={orgName} />
 
         <div className="flex min-w-0 justify-center px-2 sm:px-4">

@@ -8,7 +8,10 @@ function nullTime(value: Date | null | undefined): number {
   return value ? value.getTime() : Number.MAX_SAFE_INTEGER
 }
 
-function comparePriorityDesc(a: { pressureScore: number }, b: { pressureScore: number }) {
+function comparePriorityDesc(
+  a: { pressureScore: number },
+  b: { pressureScore: number }
+) {
   return b.pressureScore - a.pressureScore
 }
 

@@ -43,6 +43,7 @@ import { organizationNexusPath } from "#features/nexus"
 import {
   WORKBENCH_UTILITY_CHROME_DISC_33_CLASS,
   WORKBENCH_UTILITY_CHROME_RING_BASE,
+  WORKBENCH_UTILITY_DISC_33_PX,
 } from "./workbench-utility-round-control-class"
 
 const NAV_PANEL_MAX_WIDTH = "min(34rem,calc(100vw-1rem))"
@@ -104,9 +105,9 @@ export function WorkbenchNavPanel({ orgSlug, orgName }: NexusNavPanelProps) {
         <Image
           src={APP_ICON_512_PNG}
           alt=""
-          width={33}
-          height={33}
-          className="size-[33px] object-contain"
+          fill
+          sizes={`${WORKBENCH_UTILITY_DISC_33_PX}px`}
+          className="object-cover"
           aria-hidden
         />
       </Link>

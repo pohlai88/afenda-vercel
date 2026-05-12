@@ -249,3 +249,154 @@ export async function deliverEventNow(input: {
 
 /** Public re-export for callers that need the canonical algorithm version. */
 export { ORG_EVENT_SIGNATURE_VERSION }
+
+// ---------------------------------------------------------------------------
+// Phase 3J: webhook receiver primitives
+// ---------------------------------------------------------------------------
+
+import { orgEventEndpoint } from "#lib/db/schema"
+
+/**
+ * Resolution returned by {@link resolveOrgEventDeliveryForWebhook}.
+ *
+ * Contains the org id + signing key needed to verify an inbound webhook
+ * BEFORE we trust the request to act on its claimed delivery. The
+ * `signingKeyEncoded` field is what {@link signEventPayload} uses for both
+ * outbound signing AND inbound verification — symmetric HMAC.
+ */
+export type OrgEventWebhookResolution = {
+  deliveryId: string
+  endpointId: string
+  organizationId: string
+  eventType: string
+  signatureVersion: string
+  signingKeyEncoded: string
+}
+
+/**
+ * Looks up an inbound webhook's delivery row + parent endpoint without
+ * requiring an upstream tenant guard.
+ *
+ * SECURITY MODEL: For webhook receivers, the deliveryId IS the tenant
+ * identity claim — validated by the HMAC signature against the resolved
+ * endpoint's signing key. Callers MUST verify the signature with
+ * {@link verifyOrgEventWebhookSignature} before performing ANY tenant-scoped
+ * write. Returning `null` on miss prevents enumeration via response timing
+ * differences (the route handler should also enforce a constant-ish 401 path
+ * on miss / failed verification).
+ */
+export async function resolveOrgEventDeliveryForWebhook(
+  deliveryId: string
+): Promise<OrgEventWebhookResolution | null> {
+  const [row] = await db
+    .select({
+      deliveryId: orgEventDelivery.id,
+      endpointId: orgEventEndpoint.id,
+      organizationId: orgEventEndpoint.organizationId,
+      eventType: orgEventDelivery.eventType,
+      signatureVersion: orgEventEndpoint.signatureVersion,
+      signingKeyEncoded: orgEventEndpoint.signingKeyEncoded,
+      enabled: orgEventEndpoint.enabled,
+    })
+    .from(orgEventDelivery)
+    .innerJoin(
+      orgEventEndpoint,
+      eq(orgEventDelivery.endpointId, orgEventEndpoint.id)
+    )
+    .where(eq(orgEventDelivery.id, deliveryId))
+    .limit(1)
+
+  if (!row || !row.enabled) return null
+  return {
+    deliveryId: row.deliveryId,
+    endpointId: row.endpointId,
+    organizationId: row.organizationId,
+    eventType: row.eventType,
+    signatureVersion: row.signatureVersion,
+    signingKeyEncoded: row.signingKeyEncoded,
+  }
+}
+
+/** Result of inbound HMAC verification — distinct codes for distinct failures. */
+export type OrgEventWebhookVerification =
+  | { ok: true; payloadHash: string }
+  | {
+      ok: false
+      reason:
+        | "missing_signature"
+        | "malformed_signature"
+        | "unsupported_version"
+        | "signature_mismatch"
+        | "payload_hash_mismatch"
+    }
+
+/**
+ * Constant-time hex string comparison. Plain `===` would short-circuit on the
+ * first mismatched character, leaking signature prefix information through
+ * timing. Always returns `false` on length mismatch (still O(min(a,b)) work
+ * because comparing hashes of different lengths is a definite mismatch).
+ */
+function constantTimeHexEquals(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  let diff = 0
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  }
+  return diff === 0
+}
+
+/**
+ * Verifies an inbound webhook signature against the canonical bytes of its
+ * raw body. The `rawBody` MUST be the exact bytes received (NOT
+ * re-serialized via `request.json()` then `JSON.stringify` — that would
+ * canonicalize differently and break verification).
+ *
+ * Validates four things in this order:
+ *   1. signature header is present + parseable as `<version>=<hex>`
+ *   2. version matches the endpoint's pinned `signatureVersion`
+ *   3. supplied payload hash header matches the body's actual sha-256
+ *      (defense-in-depth: catches byte-level tampering even if signature
+ *      somehow validates)
+ *   4. HMAC-sha256(signingKey, rawBody) matches the supplied signature in
+ *      constant time
+ */
+export async function verifyOrgEventWebhookSignature(input: {
+  resolution: OrgEventWebhookResolution
+  rawBody: string
+  signatureHeader: string | null
+  payloadHashHeader: string | null
+}): Promise<OrgEventWebhookVerification> {
+  if (!input.signatureHeader) {
+    return { ok: false, reason: "missing_signature" }
+  }
+  const equalsAt = input.signatureHeader.indexOf("=")
+  if (equalsAt < 0) {
+    return { ok: false, reason: "malformed_signature" }
+  }
+  const version = input.signatureHeader.slice(0, equalsAt)
+  const hex = input.signatureHeader.slice(equalsAt + 1)
+  if (!version || !/^[0-9a-f]+$/i.test(hex)) {
+    return { ok: false, reason: "malformed_signature" }
+  }
+  if (version !== input.resolution.signatureVersion) {
+    return { ok: false, reason: "unsupported_version" }
+  }
+
+  const computedPayloadHash = await computePayloadHash(input.rawBody)
+  if (
+    input.payloadHashHeader &&
+    !constantTimeHexEquals(computedPayloadHash, input.payloadHashHeader)
+  ) {
+    return { ok: false, reason: "payload_hash_mismatch" }
+  }
+
+  const expectedSignature = await signEventPayload(
+    input.resolution.signingKeyEncoded,
+    input.rawBody
+  )
+  if (!constantTimeHexEquals(expectedSignature, hex.toLowerCase())) {
+    return { ok: false, reason: "signature_mismatch" }
+  }
+
+  return { ok: true, payloadHash: computedPayloadHash }
+}

@@ -1,4 +1,4 @@
-import { OrbitPage } from "#features/planner"
+import { OrbitPage } from "#features/planner/server"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { requireSignedInSession } from "#lib/tenant"
 
@@ -8,16 +8,19 @@ export default async function AccountOrbitTimelinePage({
   params,
   searchParams,
 }: PageProps<"/[locale]/account/orbit/timeline">) {
-  const { locale: localeRaw } = await params
+  const [{ locale: localeRaw }, session, query] = await Promise.all([
+    params,
+    requireSignedInSession(),
+    searchParams,
+  ])
   ensureAppLocale(localeRaw)
-  const { userId } = await requireSignedInSession()
-  const query = await searchParams
 
   return (
     <OrbitPage
-      scope={{ scopeKind: "personal", ownerUserId: userId }}
+      scope={{ scopeKind: "personal", ownerUserId: session.userId }}
       surface="timeline"
       searchParams={query}
+      viewerUserId={session.userId}
     />
   )
 }

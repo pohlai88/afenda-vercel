@@ -13,5 +13,8 @@ export {
 
 export {
   compareOrgNotificationsForDisplay,
+  describeOrgNotificationBadge,
   isOrgNotificationActiveAt,
 } from "./data/org-notifications-display.shared"
+
+export type { OrgNotificationDisplayBadge } from "./data/org-notifications-display.shared"

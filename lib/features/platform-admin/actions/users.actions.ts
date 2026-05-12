@@ -30,6 +30,18 @@ export type PlatformAdminUserActionState =
 
 const USERS_REVALIDATE_PATTERN = toLocaleRoutePattern("/operator/users")
 
+/**
+ * Revalidates at **layout** scope so the operator workbench rail's
+ * `users` pressure badge (Phase 2 — `getPlatformAdminRailPressureCounts`)
+ * refreshes after every ban / unban / role mutation. `revalidatePath`
+ * with `"layout"` scope walks the entire route hierarchy from the
+ * matched segment up to the root, so the operator layout's parallel
+ * pressure fetch invalidates alongside the users page itself.
+ */
+function revalidateOperatorUsersLayout() {
+  revalidatePath(USERS_REVALIDATE_PATTERN, "layout")
+}
+
 function neonErr(e: { message?: string } | null): string {
   return e?.message?.trim() || "Request failed."
 }
@@ -69,7 +81,7 @@ export async function setUserRoleAction(
     metadata: { role: parsed.data.role },
   })
 
-  revalidatePath(USERS_REVALIDATE_PATTERN, "page")
+  revalidateOperatorUsersLayout()
   return { ok: true, message: "Role updated." }
 }
 
@@ -112,7 +124,7 @@ export async function banUserAction(
       : null,
   })
 
-  revalidatePath(USERS_REVALIDATE_PATTERN, "page")
+  revalidateOperatorUsersLayout()
   return { ok: true, message: "User banned." }
 }
 
@@ -145,6 +157,6 @@ export async function unbanUserAction(
     resourceId: parsed.data.userId,
   })
 
-  revalidatePath(USERS_REVALIDATE_PATTERN, "page")
+  revalidateOperatorUsersLayout()
   return { ok: true, message: "User unbanned." }
 }

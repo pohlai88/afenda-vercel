@@ -1,3 +1,4 @@
+import { headers } from "next/headers"
 import { getTranslations } from "next-intl/server"
 
 import {
@@ -24,7 +25,9 @@ export default async function AccountSecurityPage() {
   const tSurface = await getTranslations("AccountSurface")
   const t = await getTranslations("AccountSurface.security")
   const session = await requireAuthShellSignedInSession()
-  const { data: rawSession } = await auth.getSession()
+  const { data: rawSession } = await auth.getSession({
+    fetchOptions: { headers: await headers() },
+  })
   const currentSessionToken = rawSession?.session?.token ?? ""
 
   const [sessionsRaw, activityRaw] = await Promise.all([

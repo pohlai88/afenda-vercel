@@ -33,6 +33,13 @@ export type ComplianceEvidenceRow = {
   submissionState: string
   submissionDeliveryId: string | null
   externalReference: string | null
+  // Phase 3I: acknowledgement provenance (null until `acknowledged`).
+  acknowledgedAt: Date | null
+  acknowledgedByUserId: string | null
+  acknowledgementSource: string | null
+  // Phase 3J: SHA-256 hex of bureau-supplied webhook body (null when ack
+  // arrived via manual / future API path that has no hashable payload).
+  authorityPayloadHash: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -81,6 +88,38 @@ export async function getComplianceEvidence(
       and(
         eq(hrmComplianceEvidence.organizationId, organizationId),
         eq(hrmComplianceEvidence.id, evidenceId)
+      )
+    )
+    .limit(1)
+
+  return row ?? null
+}
+
+/**
+ * Phase 3J — webhook receiver lookup.
+ *
+ * Returns the evidence row attached to the given outbound delivery id,
+ * scoped to the organization that owns the delivery's endpoint. Used by the
+ * bureau-side acknowledgement webhook receiver after signature verification
+ * has resolved the trusted `organizationId` from the delivery row itself.
+ *
+ * Returns `null` when:
+ *   - no evidence row links to that delivery (orphan delivery — bureau
+ *     replaying a stale id)
+ *   - the evidence belongs to a different org (impossible if signature
+ *     verification was honest, but defense-in-depth)
+ */
+export async function findEvidenceByDeliveryId(
+  organizationId: string,
+  deliveryId: string
+): Promise<ComplianceEvidenceRow | null> {
+  const [row] = await db
+    .select()
+    .from(hrmComplianceEvidence)
+    .where(
+      and(
+        eq(hrmComplianceEvidence.organizationId, organizationId),
+        eq(hrmComplianceEvidence.submissionDeliveryId, deliveryId)
       )
     )
     .limit(1)

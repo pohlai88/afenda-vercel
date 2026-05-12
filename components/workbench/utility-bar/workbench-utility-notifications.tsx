@@ -47,6 +47,7 @@ import type {
   OrgNotificationNotice,
   OrgNotificationSeverity,
 } from "#features/org-notifications"
+import { describeOrgNotificationBadge } from "#features/org-notifications"
 import { cn } from "#lib/utils"
 
 import { WORKBENCH_UTILITY_ROUND_CONTROL_CLASS } from "./workbench-utility-round-control-class"
@@ -147,6 +148,11 @@ export function WorkbenchUtilityNotifications({
   const selectedNotice = useMemo(
     () => items.find((item) => item.id === selectedNoticeId) ?? null,
     [items, selectedNoticeId]
+  )
+  const selectedNoticeDisplayBadge = useMemo(
+    () =>
+      selectedNotice ? describeOrgNotificationBadge(selectedNotice) : null,
+    [selectedNotice]
   )
 
   const loadNotifications = useCallback(async () => {
@@ -359,59 +365,77 @@ export function WorkbenchUtilityNotifications({
                 ) : (
                   <ScrollArea className="min-h-0 flex-1">
                     <ul className="flex min-h-full flex-col gap-2 p-3">
-                      {items.map((item) => (
-                        <li key={item.id}>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedNoticeId(item.id)}
-                            className={cn(
-                              "w-full rounded-2xl border p-3 text-left transition-colors",
-                              noticeListTone({
-                                active: item.id === selectedNoticeId,
-                                unread: !item.isRead,
-                              })
-                            )}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex min-w-0 flex-col gap-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <Badge
-                                    variant={severityBadgeVariant(
-                                      item.severity
+                      {items.map((item) => {
+                        const displayBadge = describeOrgNotificationBadge(item)
+
+                        return (
+                          <li key={item.id}>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedNoticeId(item.id)}
+                              className={cn(
+                                "w-full rounded-2xl border p-3 text-left transition-colors",
+                                noticeListTone({
+                                  active: item.id === selectedNoticeId,
+                                  unread: !item.isRead,
+                                })
+                              )}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex min-w-0 flex-col gap-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <Badge
+                                      variant={severityBadgeVariant(
+                                        item.severity
+                                      )}
+                                    >
+                                      {t(`severity.${item.severity}`)}
+                                    </Badge>
+                                    {displayBadge ? (
+                                      <Badge
+                                        variant={severityBadgeVariant(
+                                          displayBadge.tone
+                                        )}
+                                      >
+                                        {displayBadge.label}
+                                      </Badge>
+                                    ) : null}
+                                    {!item.isAcknowledged ? (
+                                      <Badge variant="outline">
+                                        {item.isRead
+                                          ? t("state.read")
+                                          : t("state.unread")}
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="success">
+                                        {t("state.acknowledged")}
+                                      </Badge>
                                     )}
-                                  >
-                                    {t(`severity.${item.severity}`)}
-                                  </Badge>
-                                  {!item.isAcknowledged ? (
-                                    <Badge variant="outline">
-                                      {item.isRead
-                                        ? t("state.read")
-                                        : t("state.unread")}
-                                    </Badge>
-                                  ) : (
-                                    <Badge variant="success">
-                                      {t("state.acknowledged")}
-                                    </Badge>
-                                  )}
+                                  </div>
+                                  <p className="truncate text-sm font-medium text-foreground">
+                                    {item.title}
+                                  </p>
+                                  <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                                    {item.body}
+                                  </p>
+                                  {item.linkedEntityLabel ? (
+                                    <p className="truncate text-[11px] text-muted-foreground">
+                                      {item.linkedEntityLabel}
+                                    </p>
+                                  ) : null}
                                 </div>
-                                <p className="truncate text-sm font-medium text-foreground">
-                                  {item.title}
-                                </p>
-                                <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                                  {item.body}
-                                </p>
+                                {!item.isRead ? (
+                                  <span className="mt-1 size-2.5 shrink-0 rounded-full bg-info" />
+                                ) : null}
                               </div>
-                              {!item.isRead ? (
-                                <span className="mt-1 size-2.5 shrink-0 rounded-full bg-info" />
-                              ) : null}
-                            </div>
-                            <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
-                              <span>{t(`source.${item.source}`)}</span>
-                              <span>{formatDateTime(item.publishedAt)}</span>
-                            </div>
-                          </button>
-                        </li>
-                      ))}
+                              <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
+                                <span>{t(`source.${item.source}`)}</span>
+                                <span>{formatDateTime(item.publishedAt)}</span>
+                              </div>
+                            </button>
+                          </li>
+                        )
+                      })}
                     </ul>
                   </ScrollArea>
                 )}
@@ -431,6 +455,15 @@ export function WorkbenchUtilityNotifications({
                         >
                           {t(`severity.${selectedNotice.severity}`)}
                         </Badge>
+                        {selectedNoticeDisplayBadge ? (
+                          <Badge
+                            variant={severityBadgeVariant(
+                              selectedNoticeDisplayBadge.tone
+                            )}
+                          >
+                            {selectedNoticeDisplayBadge.label}
+                          </Badge>
+                        ) : null}
                         <Badge variant="secondary">
                           {t(`source.${selectedNotice.source}`)}
                         </Badge>
@@ -522,7 +555,7 @@ export function WorkbenchUtilityNotifications({
                       selectedNotice.linkedEntityLabel ? (
                         <Button asChild variant="secondary">
                           <Link href={selectedNotice.linkedPath}>
-                            {t("openLinkedRecord")}
+                            {`${t("openLinkedRecord")} · ${selectedNotice.linkedEntityLabel}`}
                           </Link>
                         </Button>
                       ) : null}

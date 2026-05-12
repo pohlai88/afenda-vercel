@@ -1,9 +1,12 @@
 import { cn } from "#lib/utils"
 
+/** Physical CSS size for {@link WORKBENCH_UTILITY_CHROME_DISC_33_CLASS} — keep in sync with `size-[33px]`. */
+export const WORKBENCH_UTILITY_DISC_33_PX = 33
+
 /**
  * Shared chrome for L1 utility-bar 33px discs (brand home affordance, identity control).
- * Matches brand button geometry in the Workbench rail — use fixed `width`/`height` on
- * `next/image` + `object-contain`, not `fill` + overscale.
+ * Avatar art inside these discs should use `fill` + `object-cover` so raster art fully
+ * covers the ring (no inset from `object-contain`).
  */
 const UTILITY_CHROME_RING_BASE = cn(
   "af-nexus-round-control-backdrop shrink-0 rounded-full! border border-border/60 bg-card/72 p-0! shadow-elevation-1 transition-colors hover:bg-card/92 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"

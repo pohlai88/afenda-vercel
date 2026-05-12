@@ -1,6 +1,7 @@
 import "server-only"
 
 import { cache } from "react"
+import { headers } from "next/headers"
 
 import {
   auth,
@@ -36,7 +37,7 @@ export const getAccountShellData = cache(
       deviceSessions,
       securityActivity,
     ] = await Promise.all([
-      auth.getSession(),
+      auth.getSession({ fetchOptions: { headers: await headers() } }),
       listUserOrganizationsForSwitcher(session.userId),
       listDeviceSessions(),
       listUserSecurityActivity(session.userId, 6),

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const {
   captureExceptionMock,
   getOrgSessionFromRequestMock,
+  getSignedInSessionFromRequestMock,
   handleUploadMock,
   logUnexpectedServerErrorMock,
   rootLoggerInfoMock,
@@ -10,6 +11,7 @@ const {
 } = vi.hoisted(() => ({
   captureExceptionMock: vi.fn(),
   getOrgSessionFromRequestMock: vi.fn(),
+  getSignedInSessionFromRequestMock: vi.fn(),
   handleUploadMock: vi.fn(),
   logUnexpectedServerErrorMock: vi.fn(),
   rootLoggerInfoMock: vi.fn(),
@@ -22,6 +24,7 @@ vi.mock("@vercel/blob/client", () => ({
 
 vi.mock("#lib/tenant", () => ({
   getOrgSessionFromRequest: getOrgSessionFromRequestMock,
+  getSignedInSessionFromRequest: getSignedInSessionFromRequestMock,
 }))
 
 vi.mock("#lib/auth", () => ({
@@ -48,6 +51,7 @@ describe("api/upload/blob route", () => {
 
   it("rejects generate-token requests without an org session", async () => {
     getOrgSessionFromRequestMock.mockResolvedValue(null)
+    getSignedInSessionFromRequestMock.mockResolvedValue(null)
 
     const response = await POST(
       new Request("https://app.test/api/upload/blob", {
@@ -73,6 +77,15 @@ describe("api/upload/blob route", () => {
       userId: "user-1",
       sessionId: "session-1",
       organizationId: "org-1",
+      user: {
+        email: "ops@example.com",
+        name: "Ops",
+        role: "admin",
+      },
+    })
+    getSignedInSessionFromRequestMock.mockResolvedValue({
+      userId: "user-1",
+      sessionId: "session-1",
       user: {
         email: "ops@example.com",
         name: "Ops",
@@ -151,6 +164,15 @@ describe("api/upload/blob route", () => {
         role: "admin",
       },
     })
+    getSignedInSessionFromRequestMock.mockResolvedValue({
+      userId: "user-1",
+      sessionId: "session-1",
+      user: {
+        email: "ops@example.com",
+        name: "Ops",
+        role: "admin",
+      },
+    })
 
     handleUploadMock.mockImplementation(async ({ onBeforeGenerateToken }) => {
       await onBeforeGenerateToken(
@@ -190,6 +212,15 @@ describe("api/upload/blob route", () => {
       userId: "user-1",
       sessionId: "session-1",
       organizationId: "org-1",
+      user: {
+        email: "ops@example.com",
+        name: "Ops",
+        role: "admin",
+      },
+    })
+    getSignedInSessionFromRequestMock.mockResolvedValue({
+      userId: "user-1",
+      sessionId: "session-1",
       user: {
         email: "ops@example.com",
         name: "Ops",
@@ -253,6 +284,15 @@ describe("api/upload/blob route", () => {
       userId: "user-1",
       sessionId: "session-1",
       organizationId: "org-1",
+      user: {
+        email: "ops@example.com",
+        name: "Ops",
+        role: "admin",
+      },
+    })
+    getSignedInSessionFromRequestMock.mockResolvedValue({
+      userId: "user-1",
+      sessionId: "session-1",
       user: {
         email: "ops@example.com",
         name: "Ops",

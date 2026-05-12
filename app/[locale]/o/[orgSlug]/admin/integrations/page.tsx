@@ -8,6 +8,7 @@ import {
   IntegrationsUtilitiesMarketplace,
   organizationAdminPath,
 } from "#features/org-admin"
+import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 
 import { requireOrgSession } from "#lib/tenant"
 
@@ -17,6 +18,13 @@ export default async function OrgAdminIntegrationsPage({
   const { orgSlug } = await params
   const t = await getTranslations("OrgAdmin.integrations")
   const orgSession = await requireOrgSession()
+
+  // Working Memory Rail — record this page in the operator's recents.
+  await recordOrgAdminPageVisit({
+    orgSession,
+    orgSlug,
+    segment: "integrations",
+  })
 
   return (
     <div className="space-y-8">

@@ -1,5 +1,7 @@
 import type { Route } from "next"
 
+import type { WorkbenchRailBadgeTone } from "#components/workbench"
+
 /** Stable capability identifiers for the organizational control plane. */
 export type OrgAdminCapabilityId =
   | "identity"
@@ -165,6 +167,38 @@ export type UserOrgSummary = {
   logo: string | null
   role: string
 }
+
+/**
+ * Semantic urgency carried by every org-admin rail nav badge. Re-exports
+ * the shell-level tone vocabulary so callers in `lib/features/org-admin/`
+ * never depend on a private `#components/workbench/rail` deep import.
+ *
+ * Operators read tone (color) before number — the threshold helpers in
+ * `org-admin-rail-pressure.shared.ts` are the only legitimate source of
+ * `attention` / `critical`. UI components must not invent new tones.
+ */
+export type OrgAdminRailPressureTone = WorkbenchRailBadgeTone
+
+/**
+ * Single nav badge payload. `count` is the integer surfaced in the UI when
+ * present; `tone` is the semantic urgency operators read first. A null
+ * pressure entry (in `OrgAdminRailPressureMap`) means the nav item has no
+ * pressure — the badge hides entirely (conditional density).
+ */
+export type OrgAdminRailPressureBadge = {
+  readonly count: number
+  readonly tone: OrgAdminRailPressureTone
+}
+
+/**
+ * Per-nav-key pressure map produced by `getOrgAdminRailPressureCounts`.
+ * Sparse by design — empty slots hide; `undefined` entries do not render a
+ * badge. The rail-slot builder is a pure mapper from this shape onto
+ * `WorkbenchRailNavItem.badge`.
+ */
+export type OrgAdminRailPressureMap = Partial<
+  Record<OrgAdminNavKey, OrgAdminRailPressureBadge>
+>
 
 /** Public projection of an `import_job_failure` row. */
 export type OrgImportJobFailureSummary = {

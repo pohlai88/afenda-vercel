@@ -31,6 +31,7 @@ export async function transitionPlannerItemAction(
   const parsed = transitionPlannerItemFormSchema.safeParse({
     itemId: formData.get("itemId"),
     lifecycle: formData.get("lifecycle"),
+    correlatedSignalPolicy: formData.get("correlatedSignalPolicy") || undefined,
   })
   if (!parsed.success) {
     const href = orbitScopedPath({ scopeKind, orgSlug, surface })
@@ -47,6 +48,7 @@ export async function transitionPlannerItemAction(
       itemId: parsed.data.itemId,
       lifecycle: parsed.data.lifecycle,
       actorUserId: session.userId,
+      correlatedSignalPolicy: parsed.data.correlatedSignalPolicy,
     })
 
     after(() =>
@@ -59,6 +61,7 @@ export async function transitionPlannerItemAction(
         resourceId: parsed.data.itemId,
         metadata: {
           lifecycle: parsed.data.lifecycle,
+          correlatedSignalPolicy: parsed.data.correlatedSignalPolicy ?? null,
         },
       })
     )
@@ -86,6 +89,7 @@ export async function transitionPlannerItemAction(
     itemId: parsed.data.itemId,
     lifecycle: parsed.data.lifecycle,
     actorUserId: session.userId,
+    correlatedSignalPolicy: parsed.data.correlatedSignalPolicy,
   })
 
   after(() =>
@@ -97,6 +101,7 @@ export async function transitionPlannerItemAction(
       resourceId: parsed.data.itemId,
       metadata: {
         lifecycle: parsed.data.lifecycle,
+        correlatedSignalPolicy: parsed.data.correlatedSignalPolicy ?? null,
       },
     })
   )

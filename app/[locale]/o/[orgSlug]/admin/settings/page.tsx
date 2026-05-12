@@ -14,14 +14,24 @@ import {
   OrganizationSlugSettingsForm,
   organizationAdminPath,
 } from "#features/org-admin"
+import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 
 import { Link } from "#i18n/navigation"
+import { requireOrgSession } from "#lib/tenant"
 
 export default async function OrgAdminSettingsPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/admin/settings">) {
   const { orgSlug } = await params
   const t = await getTranslations("OrgAdmin.settings")
+  const orgSession = await requireOrgSession()
+
+  // Working Memory Rail — record this page in the operator's recents.
+  await recordOrgAdminPageVisit({
+    orgSession,
+    orgSlug,
+    segment: "settings",
+  })
 
   return (
     <div className="space-y-6">

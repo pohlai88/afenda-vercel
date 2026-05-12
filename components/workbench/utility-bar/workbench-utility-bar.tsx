@@ -69,7 +69,7 @@ export function WorkbenchUtilityBar(props: WorkbenchUtilityBarProps) {
 function UtilityBarRowSkeleton({ compact }: { compact?: boolean }) {
   return (
     <div
-      className="grid h-12 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
+      className="grid h-(--af-l1-height) grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
       aria-hidden="true"
     >
       {/* Left: brand + nav trigger */}

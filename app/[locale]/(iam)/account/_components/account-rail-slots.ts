@@ -1,56 +1,34 @@
-import {
-  ActivityIcon,
-  Building2Icon,
-  KeyRoundIcon,
-  MonitorSmartphoneIcon,
-  ShieldIcon,
-  UserRoundIcon,
-} from "lucide-react"
-
 import type {
+  WorkbenchRailNavIconId,
   WorkbenchRailNavSection,
   WorkbenchRailSlots,
-} from "#components/workbench"
+} from "#components/workbench/rail"
 
 import type {
   AccountRailSection,
-  AccountRecentContext,
   AccountShellSummary,
-  AccountSignal,
 } from "./account-shell.types"
 
 /**
- * Adapts account domain data → WorkbenchRailSlots v2.
+ * Adapts account domain data → `WorkbenchRailSlots`.
  *
  * Pure server function — no browser APIs, no hooks.
+ *
+ * The Working Memory Rail migration (see
+ * `docs/_draft/working-memory-rail-plan.md`) removed the decorative
+ * `pills` and `context` slots from the rail kernel. This builder is now a
+ * straight pass-through from the account summary + nav sections; future
+ * conditional slots (Phase 3 — inbox, views, pinned, recents) plug in
+ * here once the kernel exposes them.
  */
 export function buildAccountRailSlotsV2({
   summary,
   sections,
-  recentContexts,
-  signals,
 }: {
   summary: AccountShellSummary
   sections: AccountRailSection[]
-  recentContexts: AccountRecentContext[]
-  signals: AccountSignal[]
 }): WorkbenchRailSlots {
   const initial = summary.displayName.trim().charAt(0).toUpperCase() || "A"
-
-  const identityPills: WorkbenchRailSlots["identity"]["pills"] = [
-    {
-      label: summary.emailVerified ? "Verified" : "Verification pending",
-      tone: summary.emailVerified ? "positive" : "attention",
-    },
-  ]
-  if (summary.activeOrgName) {
-    identityPills.push({
-      label:
-        summary.activeOrgName +
-        (summary.activeOrgRole ? ` · ${summary.activeOrgRole}` : ""),
-      tone: "default",
-    })
-  }
 
   const navSection: WorkbenchRailNavSection = {
     id: "account",
@@ -63,51 +41,31 @@ export function buildAccountRailSlotsV2({
     })),
   }
 
-  const contextItems = [
-    ...recentContexts
-      .filter((item) => item.value)
-      .map((item) => ({
-        label: item.label,
-        value: item.value,
-        href: item.href ?? undefined,
-        tone: "default" as const,
-      })),
-    ...signals.map((signal) => ({
-      label: signal.label,
-      value: signal.value,
-      href: undefined,
-      tone: signal.tone ?? ("default" as const),
-    })),
-  ]
-
   return {
     identity: {
       initial,
       primary: summary.displayName,
       secondary: summary.email,
-      pills: identityPills,
     },
     nav: [navSection],
-    context:
-      contextItems.length > 0
-        ? [{ id: "account-context", label: "Context", items: contextItems }]
-        : undefined,
   }
 }
 
-function iconForSectionId(id: AccountRailSection["id"]) {
+function iconForSectionId(
+  id: AccountRailSection["id"]
+): WorkbenchRailNavIconId {
   switch (id) {
     case "identity":
-      return UserRoundIcon
+      return "user-round"
     case "orbit":
-      return ActivityIcon
+      return "activity"
     case "sessions":
-      return MonitorSmartphoneIcon
+      return "monitor-smartphone"
     case "authority":
-      return ShieldIcon
+      return "shield"
     case "workspace":
-      return Building2Icon
+      return "building-2"
     default:
-      return KeyRoundIcon
+      return "key-round"
   }
 }

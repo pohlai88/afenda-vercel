@@ -3,9 +3,16 @@ import { headers } from "next/headers"
 import { FatalError } from "workflow"
 
 import { EXECUTION_AUDIT_ACTIONS } from "#features/execution"
+import {
+  createPlannerSignalLink,
+  insertPlannerSignal,
+} from "#features/planner/server"
+import { publishOrgNotificationIfMissing } from "#features/org-notifications/server"
 import { writeIamAuditEvent } from "#lib/auth"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
+import { getOrganizationSlugById } from "#lib/org-slug.server"
 
+import { organizationAdminPath } from "../constants"
 import { getImportAdapter } from "./member-invite.adapter.server"
 import {
   appendImportFailure,
@@ -178,6 +185,56 @@ async function executionImportJobFailedStep(
   "use step"
 
   const message = err instanceof Error ? err.message : "Workflow failed"
+  const signal = await insertPlannerSignal({
+    scope: {
+      scopeKind: "organization",
+      organizationId: payload.organizationId,
+    },
+    title: `Import job failed: ${payload.jobId}`,
+    description: message,
+    signalClass: "anomaly",
+    actorUserId: payload.actorUserId,
+    originatingSystem: "org_admin.import",
+    pressure: {
+      urgency: 3,
+      impact: 3,
+      severity: 3,
+      confidence: 4,
+      effort: 2,
+      escalationLevel: 2,
+      temporalProximity: 2,
+      ownershipPressure: 2,
+    },
+  })
+
+  const orgSlug = await getOrganizationSlugById(payload.organizationId)
+  await createPlannerSignalLink({
+    scope: {
+      scopeKind: "organization",
+      organizationId: payload.organizationId,
+    },
+    signalId: signal.id,
+    module: "org_admin",
+    entityType: "import_job",
+    entityId: payload.jobId,
+    displayLabel: `Import job ${payload.jobId}`,
+    href: orgSlug ? organizationAdminPath(orgSlug, "integrations") : null,
+    causalityReason: "Import workflow failed.",
+    actorUserId: payload.actorUserId,
+  })
+
+  await publishOrgNotificationIfMissing({
+    organizationId: payload.organizationId,
+    targetUserId: payload.actorUserId ?? null,
+    title: `Import workflow failed: ${payload.jobId}`,
+    body: message,
+    severity: "critical",
+    linkedEntityType: "import_job",
+    linkedEntityId: payload.jobId,
+    linkedEntityLabel: `Import job ${payload.jobId}`,
+    linkedPath: orgSlug ? organizationAdminPath(orgSlug, "integrations") : null,
+  })
+
   await writeIamAuditEvent({
     action: EXECUTION_AUDIT_ACTIONS.IMPORT_JOB_RUN_FAILED,
     actorUserId: payload.actorUserId,

@@ -24,15 +24,3 @@ export type AccountRailSection = {
   matchPath?: string
   activeHash?: string | null
 }
-
-export type AccountRecentContext = {
-  label: string
-  value: string
-  href?: string | null
-}
-
-export type AccountSignal = {
-  label: string
-  value: string
-  tone?: "default" | "positive" | "attention"
-}

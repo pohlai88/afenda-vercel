@@ -5,10 +5,16 @@ import { revalidatePath } from "next/cache"
 import { and, eq } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import {
+  createPlannerSignalLink,
+  insertPlannerSignal,
+} from "#features/planner/server"
 import { db } from "#lib/db"
 import { hrmApproval } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { getOrganizationSlugById } from "#lib/org-slug.server"
 
+import { organizationHrmPath } from "../constants"
 import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
 import { getPayrollPeriod } from "../data/payroll.queries.server"
 import {
@@ -19,8 +25,17 @@ import {
 } from "../schemas/payroll-period.schema"
 import type { PayrollLockApprovalFormState } from "../types"
 
+/**
+ * Revalidates at **layout** scope so the HRM rail's `payroll` pressure
+ * badge (Phase 2 — `getHrmRailPressureCounts`) refreshes after every
+ * payroll-lock approval / rejection. The payroll page revalidation
+ * comes along for free since it sits below the layout.
+ */
 function revalidatePayrollPages() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"), "page")
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"),
+    "layout"
+  )
 }
 
 /**
@@ -117,6 +132,45 @@ export async function requestPayrollPeriodLockApprovalAction(
     updatedByUserId: session.userId,
     createdAt: now,
     updatedAt: now,
+  })
+
+  const orgSlug = await getOrganizationSlugById(session.organizationId)
+  const signal = await insertPlannerSignal({
+    scope: {
+      scopeKind: "organization",
+      organizationId: session.organizationId,
+    },
+    title: `Payroll lock approval requested for ${period.periodEnd}`,
+    description:
+      "A second HRM administrator must review and approve payroll lock readiness.",
+    signalClass: "review",
+    actorUserId: session.userId,
+    originatingSystem: "hrm.payroll",
+    pressure: {
+      urgency: 3,
+      impact: 4,
+      severity: 3,
+      confidence: 4,
+      effort: 2,
+      escalationLevel: 2,
+      temporalProximity: 3,
+      ownershipPressure: 3,
+    },
+  })
+
+  await createPlannerSignalLink({
+    scope: {
+      scopeKind: "organization",
+      organizationId: session.organizationId,
+    },
+    signalId: signal.id,
+    module: "hrm",
+    entityType: "payroll_period",
+    entityId: period.id,
+    displayLabel: `Payroll period ${period.periodEnd}`,
+    href: orgSlug ? organizationHrmPath(orgSlug, "payroll") : null,
+    causalityReason: "Payroll period lock approval is pending.",
+    actorUserId: session.userId,
   })
 
   after(() =>

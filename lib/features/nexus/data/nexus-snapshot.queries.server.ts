@@ -8,7 +8,12 @@ import { organizationDashboardPath } from "#lib/dashboard-module-paths"
 import { organizationOrbitPath } from "#features/planner"
 import {
   countPlannerActiveForOrg,
+  countPlannerAutomationAttentionForOrg,
+  countPlannerAssigneeOwnedBlockedForOrg,
+  countPlannerBlockedForOrg,
+  countPlannerEscalationOwnedBlockedForOrg,
   countPlannerForToday,
+  countPlannerReviewerOwnedBlockedForOrg,
   listPlannerHighPressureForNexus,
   listPlannerRecentResolutionsForNexus,
 } from "#features/planner/server"
@@ -55,6 +60,11 @@ export async function getNexusSnapshot(input: {
     orbitPressureRows,
     orbitResolutionRows,
     orbitActiveCount,
+    orbitAutomationAttentionCount,
+    orbitBlockedCount,
+    orbitAssigneeBlockedCount,
+    orbitReviewerBlockedCount,
+    orbitEscalationOwnedBlockedCount,
     orbitTodayCount,
   ] = await Promise.all([
     db
@@ -77,6 +87,11 @@ export async function getNexusSnapshot(input: {
     listPlannerHighPressureForNexus(organizationId, 5),
     listPlannerRecentResolutionsForNexus(organizationId, 3),
     countPlannerActiveForOrg(organizationId),
+    countPlannerAutomationAttentionForOrg(organizationId),
+    countPlannerBlockedForOrg(organizationId),
+    countPlannerAssigneeOwnedBlockedForOrg(organizationId),
+    countPlannerReviewerOwnedBlockedForOrg(organizationId),
+    countPlannerEscalationOwnedBlockedForOrg(organizationId),
     countPlannerForToday(organizationId),
   ])
 
@@ -102,7 +117,16 @@ export async function getNexusSnapshot(input: {
 
   const surfaces = buildSurfaces(orgSlug, activeCount)
 
-  const priorityLanes = buildPriorityLanes(orgSlug, activeCount, todayCount)
+  const priorityLanes = buildPriorityLanes(
+    orgSlug,
+    activeCount,
+    orbitAutomationAttentionCount,
+    orbitBlockedCount,
+    orbitAssigneeBlockedCount,
+    orbitReviewerBlockedCount,
+    orbitEscalationOwnedBlockedCount,
+    todayCount
+  )
 
   const state = deriveNexusState(pressure)
 
@@ -176,6 +200,11 @@ function buildOrbitResolutionEvent(
 function buildPriorityLanes(
   orgSlug: string,
   activeCount: number,
+  automationAttentionCount: number,
+  blockedCount: number,
+  assigneeBlockedCount: number,
+  reviewerBlockedCount: number,
+  escalationOwnedBlockedCount: number,
   todayCount: number
 ): PriorityLane[] {
   if (activeCount === 0) return []
@@ -190,6 +219,61 @@ function buildPriorityLanes(
       surface: "Orbit",
       count: todayCount,
       href: organizationDashboardPath(orgSlug, "orbit"),
+    })
+  }
+
+  if (automationAttentionCount > 0) {
+    lanes.push({
+      id: "orbit-automation-attention",
+      kind: "automation_attention",
+      label: "Automation attention",
+      surface: "Orbit",
+      count: automationAttentionCount,
+      href: `${organizationOrbitPath(orgSlug, "today")}?automationState=attention`,
+    })
+  }
+
+  if (blockedCount > 0) {
+    lanes.push({
+      id: "orbit-blocked",
+      kind: "vendor_blockers",
+      label: "Blocked work",
+      surface: "Orbit",
+      count: blockedCount,
+      href: `${organizationDashboardPath(orgSlug, "orbit")}?lifecycle=blocked`,
+    })
+  }
+
+  if (assigneeBlockedCount > 0) {
+    lanes.push({
+      id: "orbit-assignee-blocked",
+      kind: "assignee_blockers",
+      label: "Assignee blockers",
+      surface: "Orbit",
+      count: assigneeBlockedCount,
+      href: `${organizationDashboardPath(orgSlug, "orbit")}?lifecycle=blocked&assignmentRole=assignee`,
+    })
+  }
+
+  if (reviewerBlockedCount > 0) {
+    lanes.push({
+      id: "orbit-reviewer-blocked",
+      kind: "review_blockers",
+      label: "Reviewer blockers",
+      surface: "Orbit",
+      count: reviewerBlockedCount,
+      href: `${organizationDashboardPath(orgSlug, "orbit")}?lifecycle=blocked&assignmentRole=reviewer`,
+    })
+  }
+
+  if (escalationOwnedBlockedCount > 0) {
+    lanes.push({
+      id: "orbit-escalation-owned-blocked",
+      kind: "escalation_pressure",
+      label: "Escalation-owned blockers",
+      surface: "Orbit",
+      count: escalationOwnedBlockedCount,
+      href: `${organizationDashboardPath(orgSlug, "orbit")}?lifecycle=blocked&assignmentRole=escalation_owner`,
     })
   }
 

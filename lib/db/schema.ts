@@ -986,6 +986,7 @@ export const orgNotificationNotice = pgTable(
     title: text("title").notNull(),
     body: text("body").notNull(),
     severity: text("severity").notNull().default("info"),
+    targetUserId: text("targetUserId"),
     linkedEntityType: text("linkedEntityType"),
     linkedEntityId: text("linkedEntityId"),
     linkedEntityLabel: text("linkedEntityLabel"),
@@ -1007,6 +1008,11 @@ export const orgNotificationNotice = pgTable(
     index("org_notification_notice_organization_closedAt_idx").on(
       t.organizationId,
       t.closedAt
+    ),
+    index("org_notification_notice_targetUser_publishedAt_idx").on(
+      t.organizationId,
+      t.targetUserId,
+      t.publishedAt
     ),
     index("org_notification_notice_linkedEntity_idx").on(
       t.organizationId,
@@ -2164,6 +2170,23 @@ export const hrmComplianceEvidence = pgTable(
     submissionDeliveryId: text("submissionDeliveryId"),
     /** External bureau receipt id (e.g. KWSP acknowledgement number). */
     externalReference: text("externalReference"),
+    // ----- Phase 3I: acknowledgement provenance (first-class temporal authority
+    // metadata). Populated only on the `submitted -> acknowledged` transition.
+    // Future Phase 3J webhook receiver writes the same columns with
+    // `acknowledgementSource = 'webhook'` and `acknowledgedByUserId = null`.
+    /** When the bureau receipt was recorded (null until acknowledged). */
+    acknowledgedAt: timestamp("acknowledgedAt", { mode: "date" }),
+    /** Actor who recorded the receipt; null for webhook / system. */
+    acknowledgedByUserId: text("acknowledgedByUserId"),
+    /** 'manual' | 'webhook' | 'api' | 'import'. App-level enum. */
+    acknowledgementSource: text("acknowledgementSource"),
+    /**
+     * Phase 3J: SHA-256 hex of the bureau's incoming webhook body
+     * (canonicalized exactly the way `computePayloadHash` produces it). NULL
+     * for manual / future API acknowledgements where there is no bureau-
+     * supplied payload to hash. Establishes integrity lineage for disputes.
+     */
+    authorityPayloadHash: text("authorityPayloadHash"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
     createdByUserId: text("createdByUserId"),
@@ -2223,6 +2246,134 @@ export const hrmCountryRulePack = pgTable(
     index("hrm_country_rule_pack_country_effective_from_idx").on(
       t.countryCode,
       t.effectiveFrom
+    ),
+  ]
+)
+
+// ---------------------------------------------------------------------------
+// Working Memory Rail (Phase 3a)
+//
+// Operator memory inside each workbench: pinned records, saved filtered URLs,
+// and activity-derived recents. Org-scoped + user-scoped + workbench-scoped.
+//
+// FK references to `neon_auth.organization` / `neon_auth.user` are omitted
+// per the repo convention (see `iamAuditEvent`, `plannerSignal`): cross-schema
+// CASCADE is not part of Neon Auth's contract. Application-layer cleanup
+// (Phase 3b) ensures consistency when an org or membership is removed.
+// ---------------------------------------------------------------------------
+
+/**
+ * Per-user pinned record reference shown in the rail's `pinned` slot.
+ * One row per (organization, user, workbench, resource) — enforced by
+ * `rail_pinned_item_user_resource_uidx`. `resourceType` is a free-form
+ * stable tag (e.g. `"hrm_employee"`, `"org_member"`); validation lives
+ * at the application layer.
+ */
+export const railPinnedItem = pgTable(
+  "rail_pinned_item",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    userId: text("userId").notNull(),
+    /**
+     * Stable workbench identifier (matches the Zod
+     * `WorkbenchRailIdentifier` typed union). Free-form `text` at the DB
+     * boundary so adding a new workbench is migration-free.
+     */
+    workbenchId: text("workbenchId").notNull(),
+    resourceType: text("resourceType").notNull(),
+    resourceId: text("resourceId").notNull(),
+    label: text("label").notNull(),
+    href: text("href").notNull(),
+    /** Optional `WorkbenchRailNavIconId` token (validated client-side). */
+    icon: text("icon"),
+    /** Drag-to-reorder rank (lower = higher in the list). */
+    rank: integer("rank").notNull().default(0),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("rail_pinned_item_user_resource_uidx").on(
+      t.organizationId,
+      t.userId,
+      t.workbenchId,
+      t.resourceType,
+      t.resourceId
+    ),
+    index("rail_pinned_item_lookup_idx").on(
+      t.organizationId,
+      t.userId,
+      t.workbenchId,
+      t.rank
+    ),
+  ]
+)
+
+/**
+ * Per-user saved view shown in the rail's `views` slot. The `href` is a
+ * filtered URL inside the workbench (e.g.
+ * `/o/acme/dashboard/hrm/employees?status=active&grade=L3`).
+ */
+export const railSavedView = pgTable(
+  "rail_saved_view",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    userId: text("userId").notNull(),
+    workbenchId: text("workbenchId").notNull(),
+    label: text("label").notNull(),
+    href: text("href").notNull(),
+    icon: text("icon"),
+    rank: integer("rank").notNull().default(0),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("rail_saved_view_lookup_idx").on(
+      t.organizationId,
+      t.userId,
+      t.workbenchId,
+      t.rank
+    ),
+  ]
+)
+
+/**
+ * Activity-derived recents shown in the rail's `recents` slot. Writes are
+ * high-frequency and **not** audited via `iam_audit_event` — observability
+ * is handled by OTEL counters in the `rail-memory` server module. App-side
+ * queries cap surfacing to 5; a nightly cron prunes per-(org,user,workbench)
+ * beyond 25.
+ */
+export const railRecentItem = pgTable(
+  "rail_recent_item",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    userId: text("userId").notNull(),
+    workbenchId: text("workbenchId").notNull(),
+    resourceType: text("resourceType").notNull(),
+    /** Optional — list-level surfaces (e.g. "Members") have no record id. */
+    resourceId: text("resourceId"),
+    label: text("label").notNull(),
+    href: text("href").notNull(),
+    icon: text("icon"),
+    occurredAt: timestamp("occurredAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("rail_recent_item_lookup_idx").on(
+      t.organizationId,
+      t.userId,
+      t.workbenchId,
+      t.occurredAt
     ),
   ]
 )

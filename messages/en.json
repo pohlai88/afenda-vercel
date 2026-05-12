@@ -1176,7 +1176,154 @@
         "deliveredWithStatus": "Delivered (HTTP {status})",
         "httpStatus": "HTTP {status}",
         "attempts": "{count, plural, one {# attempt} other {# attempts}}",
-        "lastAttempt": "Last attempt {when}"
+        "lastAttempt": "Last attempt {when}",
+        "markAcknowledged": "Mark acknowledged",
+        "markAcknowledgedAria": "Mark {pack} as acknowledged by the bureau",
+        "acknowledging": "Acknowledging…",
+        "acknowledgedConfirmed": "Bureau receipt recorded",
+        "acknowledgedReferencePlaceholder": "Bureau receipt # (optional)",
+        "acknowledgedLabel": "Acknowledged",
+        "acknowledgementSource": {
+          "manual": "manual",
+          "webhook": "webhook",
+          "api": "API",
+          "import": "import"
+        },
+        "acknowledgementHashLabel": "hash",
+        "acknowledgementHashTooltip": "Bureau payload hash (sha-256, first 8 of 64 hex chars)",
+        "inspectTimeline": "Inspect",
+        "inspectTimelineAria": "Inspect lifecycle timeline for {pack}",
+        "timeline": {
+          "title": "Lifecycle timeline",
+          "description": "Chronological record of generation, submission, delivery, retry, and acknowledgement events for this evidence row.",
+          "empty": "No lifecycle events recorded yet.",
+          "actorSystem": "system",
+          "actorLabel": "Actor",
+          "backToCompliance": "← Back to compliance evidence",
+          "detailTitle": "Compliance evidence",
+          "detailDescription": "Per-evidence operational chronology — generation, submission, delivery diagnostics, retries, and bureau acknowledgement.",
+          "summaryDescription": "Identity and integrity facts for this evidence row.",
+          "fieldGeneratedAt": "Generated at",
+          "fieldRulePackVersion": "Rule pack version",
+          "fieldInputHash": "Input hash",
+          "fieldOutputHash": "Output hash",
+          "fieldExternalReference": "Bureau reference",
+          "fieldAcknowledgedAt": "Acknowledged at",
+          "fieldAcknowledgementSource": "Acknowledgement source",
+          "fieldAuthorityPayloadHash": "Authority payload hash",
+          "kind": {
+            "generated": "Generated",
+            "submitted_to_bureau": "Submitted to bureau",
+            "delivery_failed": "Delivery failed",
+            "retry_attempted": "Retry attempted",
+            "retry_exhausted": "Retry exhausted",
+            "aging_detected": "Stuck — system observed",
+            "aging_escalated": "Escalated — needs management attention",
+            "aging_critical": "Critical — regulator-visible exposure",
+            "acknowledged": "Acknowledged",
+            "pack_exported": "Downloaded by operator",
+            "regenerated": "Regenerated — prior version superseded"
+          },
+          "facet": {
+            "attempts": "Attempts",
+            "httpStatus": "HTTP status",
+            "durationMs": "Duration (ms)",
+            "authority": "Authority",
+            "externalReference": "Bureau reference",
+            "authorityPayloadHash": "Authority payload hash",
+            "inputHash": "Input hash",
+            "outputHash": "Output hash",
+            "packType": "Pack type",
+            "countryCode": "Country",
+            "rulePackVersion": "Rule pack version",
+            "retryReason": "Retry reason",
+            "ageDays": "Days waiting",
+            "stuckThresholdDays": "Stuck threshold (days)",
+            "tierThresholdDays": "Tier threshold (days)",
+            "severityTier": "Severity tier",
+            "format": "Format",
+            "responseHash": "Response hash",
+            "priorInputHash": "Prior input hash",
+            "priorOutputHash": "Prior output hash",
+            "priorRulePackVersion": "Prior rule pack version",
+            "priorSubmissionState": "Prior submission state",
+            "priorExternalReference": "Prior bureau reference",
+            "priorAcknowledgedAt": "Prior acknowledged at"
+          },
+          "export": {
+            "label": "Download",
+            "json": "JSON",
+            "csv": "CSV",
+            "description": "Operator-friendly export — re-derived deterministically and audited as erp.hrm.compliance_pack.export. The response carries an X-Afenda-Pack-Hash anchor so an offline reviewer can prove the file was not modified in transit. Bureau-spec submission files (KWSP / PERKESO / LHDN column orders) ship per rule pack later."
+          }
+        },
+        "operationalHealth": {
+          "title": "Operational health",
+          "description": "What needs HR attention across all periods this week.",
+          "emptyNoRows": "No statutory evidence has been generated yet. Lock a payroll period and generate packs to begin.",
+          "allClearBadge": "All clear",
+          "allClearBody": "Every recent statutory pack is in flight or acknowledged. No HR action required.",
+          "countersAria": "Compliance evidence counts by operational state",
+          "samplesAria": "{bucket} sample evidence rows",
+          "samplesTruncated": "{remainder, plural, one {+# more not shown} other {+# more not shown}}",
+          "inspect": "Inspect",
+          "inspectTimelineAria": "Inspect lifecycle timeline for {pack}",
+          "ageToday": "today",
+          "ageDays": "{days}d",
+          "footerComputedAt": "Snapshot at {when}",
+          "footerWindowFull": "based on the full evidence history ({window} rows)",
+          "footerWindowClamped": "based on the most recent {window} evidence rows",
+          "loadingAria": "Loading operational health snapshot",
+          "bucket": {
+            "needs_attention_failing": "Failing",
+            "needs_attention_stuck": "Stuck",
+            "needs_attention_unsent": "Unsent",
+            "in_flight": "In flight",
+            "closed_recently": "Acknowledged (recent)"
+          },
+          "bucketHeading": {
+            "needs_attention_failing": "{count, plural, one {# evidence pack failing delivery} other {# evidence packs failing delivery}}",
+            "needs_attention_stuck": "{count, plural, one {# pack waiting on bureau acknowledgement} other {# packs waiting on bureau acknowledgement}}",
+            "needs_attention_unsent": "{count, plural, one {# generated pack still unsent for a locked period} other {# generated packs still unsent for locked periods}}"
+          },
+          "bucketSubtitle": {
+            "needs_attention_failing": "Outbound delivery returned a non-2xx response or auto-retry has exhausted its attempts. HR action required.",
+            "needs_attention_stuck": "Submitted to the bureau but no acknowledgement yet after {stuckDays}+ days. Follow up with the bureau.",
+            "needs_attention_unsent": "Generated against a locked period but never sent. Send to bureau now."
+          },
+          "agingTier": {
+            "detected": "Stuck",
+            "escalated": "Escalated",
+            "critical": "Critical"
+          },
+          "agingTierAria": "Severity tier: {tier}"
+        },
+        "bureauReliability": {
+          "title": "Bureau reliability",
+          "description": "Per-authority delivery and acknowledgement health over the last {windowDays} days.",
+          "emptyNoData": "No statutory submissions in the window. Generate and send packs to begin tracking bureau reliability.",
+          "footer": "Snapshot at {computedAt} — {rowsConsidered} submissions evaluated over {windowDays} days.",
+          "column": {
+            "authority": "Bureau",
+            "health": "Health",
+            "submissions": "Submissions",
+            "deliveryRate": "Delivery rate",
+            "ackRate": "Ack rate",
+            "medianLatency": "Median latency",
+            "oldestPending": "Oldest pending"
+          },
+          "metric": {
+            "none": "—",
+            "daysSuffix": "d",
+            "msSuffix": "ms"
+          },
+          "health": {
+            "healthy": "Healthy",
+            "degraded": "Degraded",
+            "critical": "Critical",
+            "no_data": "No signal"
+          }
+        }
       }
     },
     "surfaceComingSoon": {
@@ -1381,6 +1528,28 @@
       "feedback": "Feedback inbox",
       "settings": "Settings",
       "integrations": "Integrations"
+    },
+    "rail": {
+      "inboxAriaLabel": "Inbox",
+      "pinnedHeading": "Pinned",
+      "viewsHeading": "Views",
+      "recentsHeading": "Recent",
+      "collapseLabel": "Collapse admin rail",
+      "expandLabel": "Expand admin rail",
+      "inboxLabels": {
+        "members": "{count, plural, one {# pending invitation} other {# pending invitations}}",
+        "integrations": "{count, plural, one {# integration needs review} other {# integrations need review}}",
+        "audit": "{count, plural, one {# audit row to review} other {# audit rows to review}}",
+        "feedback": "{count, plural, one {# feedback item} other {# feedback items}}",
+        "settings": "{count, plural, one {# setting needs attention} other {# settings need attention}}"
+      },
+      "recentsLabels": {
+        "overview": "Admin overview",
+        "members": "Members & invitations",
+        "audit": "Audit log",
+        "integrations": "Integrations",
+        "settings": "Settings"
+      }
     },
     "overview": {
       "title": "Overview",
@@ -1835,10 +2004,8 @@
     },
     "rail": {
       "aria": "Personal context rail",
-      "description": "Persistent personal operating context for identity, sessions, security, and workspace movement.",
       "sectionsLabel": "Context scopes",
       "quickActionsLabel": "Quick actions",
-      "recentLabel": "Recent contexts",
       "mobileTrigger": "Open personal context",
       "collapse": "Collapse personal rail",
       "expand": "Expand personal rail",
@@ -1860,21 +2027,6 @@
       "signOutOthersDescription": "Review and revoke access from other devices.",
       "signOut": "Sign out",
       "signOutDescription": "End this session and leave the personal surface."
-    },
-    "recent": {
-      "activeWorkspace": "Active workspace",
-      "securityChange": "Latest security change",
-      "recentEvidence": "Recent evidence"
-    },
-    "signals": {
-      "verification": "Verification",
-      "verificationReady": "Ready",
-      "verificationPending": "Needs review",
-      "sessionCount": "Session count",
-      "sessionCountValue": "{count, plural, one {# active session} other {# active sessions}}",
-      "accessHealth": "Access health",
-      "accessHealthy": "Ready",
-      "accessNeedsWorkspace": "No active workspace"
     },
     "overview": {
       "title": "Personal surface",

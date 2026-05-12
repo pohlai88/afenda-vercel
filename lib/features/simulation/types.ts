@@ -1,12 +1,12 @@
 import type { ScenarioId } from "#lib/erp/scenario-types.shared"
 
-export type SimulationProvenance = {
-  auditOrigin: "simulation"
-  simulationRunId: string
-  scenarioId: string
-  scenarioVersion: number
-  simulationSeed: string
-}
+// Note: previously this file declared a `SimulationProvenance` type plus a
+// `simulationProvenancePayload` helper. Both were superseded by the canonical
+// `AUDIT_ORIGIN` / actor-mode primitives in `lib/auth/audit-origin.shared.ts`
+// once provenance moved to AsyncLocalStorage (`simulation-context.server.ts`),
+// leaving them with no consumers. They were removed to keep the public surface
+// honest — re-introduce only if a writer has to build provenance outside the
+// AsyncLocalStorage flow.
 
 export type OperationalScenarioGraph = {
   id: ScenarioId
@@ -26,19 +26,3 @@ export type SimulationReplayActionResult =
 export type SimulationClearActionResult =
   | { ok: true; deletedAudit: number }
   | { ok: false; error: string }
-
-/** @internal — satisfies provenance typing for simulation context wrappers. */
-export function simulationProvenancePayload(input: {
-  simulationRunId: string
-  scenarioId: string
-  scenarioVersion: number
-  simulationSeed: string
-}): SimulationProvenance {
-  return {
-    auditOrigin: "simulation",
-    simulationRunId: input.simulationRunId,
-    scenarioId: input.scenarioId,
-    scenarioVersion: input.scenarioVersion,
-    simulationSeed: input.simulationSeed,
-  }
-}

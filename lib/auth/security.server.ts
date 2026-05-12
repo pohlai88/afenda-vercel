@@ -1,6 +1,7 @@
 import "server-only"
 
 import { cache } from "react"
+import { headers } from "next/headers"
 import { desc, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
@@ -10,7 +11,9 @@ import { auth } from "./neon.server"
 
 /** Active sessions for the current user (`neon_auth.session` rows). */
 export const listDeviceSessions = cache(async () => {
-  const { data } = await auth.getSession()
+  const { data } = await auth.getSession({
+    fetchOptions: { headers: await headers() },
+  })
   const userId = data?.user?.id
   if (!userId) return []
 

@@ -6,7 +6,10 @@ import { forwardRef, type ComponentPropsWithoutRef } from "react"
 import { ERP_UTILITY_AVATAR_PNG } from "#lib/site"
 import { cn } from "#lib/utils"
 
-import { WORKBENCH_UTILITY_CHROME_DISC_33_CLASS } from "#components/workbench/utility-bar/workbench-utility-round-control-class"
+import {
+  WORKBENCH_UTILITY_CHROME_DISC_33_CLASS,
+  WORKBENCH_UTILITY_DISC_33_PX,
+} from "#components/workbench/utility-bar/workbench-utility-round-control-class"
 
 /** Matches left-rail brand disc + calm open state when used as a menu trigger. */
 const TRIGGER_CLASS = cn(
@@ -39,10 +42,10 @@ export const NexusUtilityControlAvatarTrigger = forwardRef<
       <Image
         src={ERP_UTILITY_AVATAR_PNG}
         alt=""
-        width={33}
-        height={33}
+        fill
         draggable={false}
-        className="pointer-events-none size-[33px] object-contain select-none"
+        sizes={`${WORKBENCH_UTILITY_DISC_33_PX}px`}
+        className="pointer-events-none object-cover select-none"
         aria-hidden
       />
     </button>

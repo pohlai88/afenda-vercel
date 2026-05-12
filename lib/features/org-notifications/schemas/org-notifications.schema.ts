@@ -12,6 +12,7 @@ export const createOrgNotificationSchema = z
     body: z.string().trim().min(1).max(4000),
     severity: orgNotificationSeveritySchema.default("info"),
     expiresAt: z.string().datetime().optional().nullable(),
+    targetUserId: z.string().trim().max(255).optional().nullable(),
     linkedEntityType: z.string().trim().max(80).optional().nullable(),
     linkedEntityId: z.string().trim().max(200).optional().nullable(),
     linkedEntityLabel: z.string().trim().max(200).optional().nullable(),

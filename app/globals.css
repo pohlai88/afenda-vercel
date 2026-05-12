@@ -137,6 +137,11 @@
   --nexus-rail-collapsed-width: 64px;
   --nexus-workspace-radius: 18px;
 
+  /* Shell rhythm — fixed optical heights consumed across the workbench OS.
+     L1 = utility bar tier (top chrome + sticky surface header offset).
+     One source of truth so the surface header and utility bar cannot drift. */
+  --af-l1-height: 3rem;
+
   /* Surface padding scale (single source; @theme spacing-* maps here) */
   --space-surface-xs: 0.5rem;
   --space-surface-sm: 0.75rem;

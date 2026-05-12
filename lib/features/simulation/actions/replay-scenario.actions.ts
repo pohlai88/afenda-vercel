@@ -41,13 +41,12 @@ export async function replayOrgOperationalScenarioAction(
   }
 
   try {
-    const { simulationRunId } =
-      await replayOperationalScenarioForOrganization({
-        organizationId: session.organizationId,
-        scenarioId: parsedId.data,
-        actorUserId: session.userId,
-        actorSessionId: session.sessionId,
-      })
+    const { simulationRunId } = await replayOperationalScenarioForOrganization({
+      organizationId: session.organizationId,
+      scenarioId: parsedId.data,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+    })
 
     revalidatePath(toLocaleOrgAdminRevalidatePattern("/audit"), "page")
     revalidatePath(toLocaleOrgDashboardRevalidatePattern("/orbit"), "page")

@@ -11,16 +11,50 @@ export { WorkbenchUtilityBar } from "./utility-bar/workbench-utility-bar"
 export type { WorkbenchUtilityBarProps } from "./utility-bar/workbench-utility-bar"
 
 // Rail
-export { WorkbenchRail } from "./rail/workbench-rail"
+export {
+  WorkbenchRail,
+  isWorkbenchRailNavItemActive,
+  WORKBENCH_RAIL_ACTIVE_MATCH_KEYS,
+  WORKBENCH_RAIL_BADGE_TONE_KEYS,
+  WORKBENCH_RAIL_FORBIDDEN_LABEL_NAMESPACES,
+  WORKBENCH_RAIL_NAV_ICON_IDS,
+  parseWorkbenchRailInbox,
+  parseWorkbenchRailLabels,
+  parseWorkbenchRailNavItem,
+  parseWorkbenchRailPin,
+  parseWorkbenchRailRecent,
+  parseWorkbenchRailSlotsData,
+  parseWorkbenchRailView,
+  workbenchRailActiveMatchSchema,
+  workbenchRailBadgeToneSchema,
+  workbenchRailIdentitySchema,
+  workbenchRailInboxSchema,
+  workbenchRailLabelsSchema,
+  workbenchRailNavBadgeSchema,
+  workbenchRailNavIconIdSchema,
+  workbenchRailNavItemSchema,
+  workbenchRailNavSectionSchema,
+  workbenchRailPinSchema,
+  workbenchRailRecentSchema,
+  workbenchRailSlotsDataSchema,
+  workbenchRailViewSchema,
+} from "./rail"
 export type {
-  WorkbenchRailSlots,
-  WorkbenchRailLabels,
-  WorkbenchRailNavSection,
-  WorkbenchRailNavItem,
+  WorkbenchRailActiveMatch,
+  WorkbenchRailBadgeTone,
   WorkbenchRailIdentity,
-  WorkbenchRailContextStrip,
+  WorkbenchRailInbox,
+  WorkbenchRailLabels,
+  WorkbenchRailNavBadge,
+  WorkbenchRailNavIconId,
+  WorkbenchRailNavItem,
+  WorkbenchRailNavSection,
+  WorkbenchRailPin,
   WorkbenchRailProps,
-} from "./rail/workbench-rail.types"
+  WorkbenchRailRecent,
+  WorkbenchRailSlots,
+  WorkbenchRailView,
+} from "./rail"
 
 // Command layer + context
 export { WorkbenchCommandLayer } from "./workbench-command-layer"

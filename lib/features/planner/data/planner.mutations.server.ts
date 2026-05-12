@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, desc, eq } from "drizzle-orm"
+import { and, desc, eq, inArray, isNotNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -32,6 +32,7 @@ import type {
   PlannerScopeInput,
   PlannerSignalClass,
   PlannerSignalLifecycle,
+  PlannerSignalResolutionPolicy,
   PlannerViewRow,
 } from "../types"
 
@@ -45,6 +46,28 @@ function trimToNull(value: string | null | undefined): string | null {
   if (!value) return null
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed : null
+}
+
+export async function appendPlannerActivity(input: {
+  itemId?: string | null
+  signalId?: string | null
+  activityType: string
+  body: string
+  actorUserId?: string | null
+  metadata?: Record<string, unknown> | null
+}): Promise<void> {
+  if (!input.itemId && !input.signalId) {
+    throw new Error("Planner activity requires an item or signal target")
+  }
+
+  await db.insert(plannerActivity).values({
+    itemId: input.itemId ?? null,
+    signalId: input.signalId ?? null,
+    activityType: input.activityType,
+    body: input.body,
+    metadata: input.metadata ?? null,
+    authorUserId: input.actorUserId ?? null,
+  })
 }
 
 function slugifyPlannerViewName(value: string) {
@@ -141,7 +164,7 @@ export async function insertPlannerSignal(input: {
   title: string
   description?: string
   signalClass: PlannerSignalClass
-  actorUserId: string
+  actorUserId: string | null
   originatingSystem?: string | null
   pressure?: Partial<PlannerPressureDimensions>
 }): Promise<{ id: string }> {
@@ -162,11 +185,11 @@ export async function insertPlannerSignal(input: {
     })
     .returning({ id: plannerSignal.id })
 
-  await db.insert(plannerActivity).values({
+  await appendPlannerActivity({
     signalId: row.id,
     activityType: "signal_created",
     body: "Signal captured into Orbit.",
-    authorUserId: input.actorUserId,
+    actorUserId: input.actorUserId,
   })
 
   return row
@@ -284,7 +307,12 @@ export async function transitionPlannerSignalLifecycle(input: {
 }): Promise<void> {
   const signalRow = await getScopedSignalOrThrow(input.scope, input.signalId)
 
-  if (!canTransitionPlannerSignalLifecycle(signalRow.lifecycle as PlannerSignalLifecycle, input.lifecycle)) {
+  if (
+    !canTransitionPlannerSignalLifecycle(
+      signalRow.lifecycle as PlannerSignalLifecycle,
+      input.lifecycle
+    )
+  ) {
     throw new Error("Signal lifecycle transition is not allowed")
   }
 
@@ -296,7 +324,8 @@ export async function transitionPlannerSignalLifecycle(input: {
       lifecycle: input.lifecycle,
       updatedAt: timestamp,
       updatedByUserId: input.actorUserId,
-      promotedAt: input.lifecycle === "promoted" ? timestamp : signalRow.promotedAt,
+      promotedAt:
+        input.lifecycle === "promoted" ? timestamp : signalRow.promotedAt,
     })
     .where(eq(plannerSignal.id, input.signalId))
 
@@ -313,6 +342,7 @@ export async function transitionPlannerItemLifecycle(input: {
   itemId: string
   lifecycle: PlannerItemLifecycle
   actorUserId: string
+  correlatedSignalPolicy?: PlannerSignalResolutionPolicy
 }): Promise<void> {
   const timestamp = new Date()
   const patch: Partial<typeof plannerItem.$inferInsert> = {
@@ -330,16 +360,110 @@ export async function transitionPlannerItemLifecycle(input: {
 
   await getScopedItemOrThrow(input.scope, input.itemId)
 
-  await db
-    .update(plannerItem)
-    .set(patch)
-    .where(scopedItemWhere(input.scope, input.itemId))
+  await db.transaction(async (tx) => {
+    await tx
+      .update(plannerItem)
+      .set(patch)
+      .where(scopedItemWhere(input.scope, input.itemId))
 
-  await db.insert(plannerActivity).values({
-    itemId: input.itemId,
-    activityType: "item_lifecycle_transition",
-    body: `Execution item moved to ${input.lifecycle}.`,
-    authorUserId: input.actorUserId,
+    let resolvedSignals = 0
+
+    if (
+      input.lifecycle === "resolved" &&
+      input.correlatedSignalPolicy &&
+      input.correlatedSignalPolicy !== "none"
+    ) {
+      const [source] = await tx
+        .select({ sourceSignalId: plannerItem.sourceSignalId })
+        .from(plannerItem)
+        .where(scopedItemWhere(input.scope, input.itemId))
+        .limit(1)
+
+      const relationRows = await tx
+        .select({ signalId: plannerRelation.relatedSignalId })
+        .from(plannerRelation)
+        .where(
+          and(
+            eq(plannerRelation.itemId, input.itemId),
+            isNotNull(plannerRelation.relatedSignalId)
+          )
+        )
+
+      const signalIds = [
+        ...new Set(
+          [
+            source?.sourceSignalId ?? null,
+            ...relationRows.map((row) => row.signalId),
+          ].filter((value): value is string => Boolean(value))
+        ),
+      ]
+
+      if (signalIds.length > 0) {
+        const targetLifecycle: PlannerSignalLifecycle =
+          input.correlatedSignalPolicy === "auto_resolve"
+            ? "auto_resolved"
+            : "suppressed"
+
+        const activeSignals = await tx
+          .select({
+            id: plannerSignal.id,
+            lifecycle: plannerSignal.lifecycle,
+          })
+          .from(plannerSignal)
+          .where(
+            and(
+              inArray(plannerSignal.id, signalIds),
+              input.scope.scopeKind === "organization"
+                ? eq(plannerSignal.organizationId, input.scope.organizationId)
+                : eq(plannerSignal.ownerUserId, input.scope.ownerUserId)
+            )
+          )
+
+        const applicableSignals = activeSignals.filter((signal) =>
+          canTransitionPlannerSignalLifecycle(
+            signal.lifecycle as PlannerSignalLifecycle,
+            targetLifecycle
+          )
+        )
+
+        if (applicableSignals.length > 0) {
+          await tx
+            .update(plannerSignal)
+            .set({
+              lifecycle: targetLifecycle,
+              updatedAt: timestamp,
+              updatedByUserId: input.actorUserId,
+            })
+            .where(
+              inArray(
+                plannerSignal.id,
+                applicableSignals.map((signal) => signal.id)
+              )
+            )
+
+          await tx.insert(plannerActivity).values(
+            applicableSignals.map((signal) => ({
+              signalId: signal.id,
+              activityType: "signal_resolution_applied",
+              body: `Signal ${targetLifecycle} after item ${input.itemId} resolved.`,
+              authorUserId: input.actorUserId,
+            }))
+          )
+
+          resolvedSignals = applicableSignals.length
+        }
+      }
+    }
+
+    await tx.insert(plannerActivity).values({
+      itemId: input.itemId,
+      activityType: "item_lifecycle_transition",
+      body:
+        input.lifecycle === "resolved" && resolvedSignals > 0
+          ? `Execution item moved to resolved and applied ${input.correlatedSignalPolicy} to ${resolvedSignals} signal(s).`
+          : `Execution item moved to ${input.lifecycle}.`,
+      authorUserId: input.actorUserId,
+    })
   })
 }
 
@@ -632,7 +756,7 @@ export async function createPlannerSignalLink(input: {
   displayLabel: string
   href?: string | null
   causalityReason?: string | null
-  actorUserId: string
+  actorUserId: string | null
 }): Promise<{ linkId: string }> {
   await getScopedSignalOrThrow(input.scope, input.signalId)
 
@@ -650,11 +774,11 @@ export async function createPlannerSignalLink(input: {
     })
     .returning({ linkId: plannerLink.id })
 
-  await db.insert(plannerActivity).values({
+  await appendPlannerActivity({
     signalId: input.signalId,
     activityType: "erp_link_created",
     body: `ERP link created for ${input.displayLabel}.`,
-    authorUserId: input.actorUserId,
+    actorUserId: input.actorUserId,
   })
 
   return linkRow
@@ -663,7 +787,13 @@ export async function createPlannerSignalLink(input: {
 export async function createPlannerRelation(input: {
   scope: PlannerScopeInput
   itemId: string
-  relationType: "parent" | "subtask" | "blocks" | "blocked_by" | "duplicate" | "related"
+  relationType:
+    | "parent"
+    | "subtask"
+    | "blocks"
+    | "blocked_by"
+    | "duplicate"
+    | "related"
   relatedItemId?: string | null
   relatedSignalId?: string | null
   actorUserId: string
@@ -675,7 +805,10 @@ export async function createPlannerRelation(input: {
   }
 
   if (input.relatedItemId) {
-    const relatedItem = await getScopedItemOrThrow(input.scope, input.relatedItemId)
+    const relatedItem = await getScopedItemOrThrow(
+      input.scope,
+      input.relatedItemId
+    )
 
     if (input.relatedItemId === input.itemId) {
       throw new Error("An item cannot relate to itself")
@@ -731,7 +864,10 @@ export async function createPlannerRelation(input: {
         },
       ])
 
-      if (input.relationType === "blocks" && relatedItem.lifecycle !== "blocked") {
+      if (
+        input.relationType === "blocks" &&
+        relatedItem.lifecycle !== "blocked"
+      ) {
         await tx
           .update(plannerItem)
           .set({
@@ -1013,7 +1149,9 @@ export async function upsertPlannerView(input: {
   filterState: unknown
   sortMode?: string | null
 }): Promise<{ id: string; slug: string }> {
-  const normalizedFilterState = normalizePlannerViewFilterState(input.filterState)
+  const normalizedFilterState = normalizePlannerViewFilterState(
+    input.filterState
+  )
   const scopeShape = scopeValues(input.scope)
   const now = new Date()
   const slug = slugifyPlannerViewName(input.slug ?? input.name)

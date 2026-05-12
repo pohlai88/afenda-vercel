@@ -61,13 +61,35 @@ export type StatutoryPackResult = {
  * Pure deterministic statutory pack builder.
  * Takes a resolved PayrollRulePack + pre-fetched run data.
  * No DB, no IO — fully unit-testable and idempotent.
+ *
+ * Determinism contract — the **only** non-deterministic input is `now`,
+ * which historically defaulted to `new Date()` and was embedded in the
+ * EA / Borang E payload `generatedAt` field. That made re-derivation hash
+ * verification (export, retry, re-submit) fail with `evidence_drift` for
+ * those two annual packs because the rebuilt `outputHash` could never
+ * match the stored one.
+ *
+ * Callers MUST now pass `now` explicitly:
+ *   - **Producer side** (first-time generation): pass `new Date()` here
+ *     **and** the same instant to `upsertComplianceEvidenceMutation` via
+ *     `generatedAt`, so the stored row anchors the exact instant the
+ *     hashed body captures.
+ *   - **Receiver side** (export / retry / re-submit): pass
+ *     `evidence.generatedAt` so the rebuilt body reproduces the original
+ *     bytes and `outputHash` matches.
+ *
+ * `now` defaults to `new Date()` for back-compat. Pack types whose body
+ * does not embed `now` (`epf_monthly`, `socso_monthly`, `eis_monthly`,
+ * `pcb_monthly`) are unaffected — their hashes were already deterministic.
  */
 export function buildStatutoryPackFromRuns(
   rulePack: PayrollRulePack,
   packType: StatutoryPackType,
-  runs: readonly StatutoryPackRunInput[]
+  runs: readonly StatutoryPackRunInput[],
+  options?: { readonly now?: Date }
 ): StatutoryPackResult {
   const period = runs[0]?.periodStart.slice(0, 7) ?? "unknown"
+  const now = options?.now ?? new Date()
 
   let payload: StatutoryPackPayload
 
@@ -85,10 +107,10 @@ export function buildStatutoryPackFromRuns(
       payload = buildPcbMonthlyPack(rulePack, runs, period)
       break
     case "ea_annual":
-      payload = buildEaAnnualPack(rulePack, runs, period)
+      payload = buildEaAnnualPack(rulePack, runs, period, now)
       break
     case "borang_e_annual":
-      payload = buildBorangEPack(rulePack, runs, period)
+      payload = buildBorangEPack(rulePack, runs, period, now)
       break
     default: {
       const _exhaustive: never = packType
@@ -246,7 +268,8 @@ function buildPcbMonthlyPack(
 function buildEaAnnualPack(
   rulePack: PayrollRulePack,
   runs: readonly StatutoryPackRunInput[],
-  period: string
+  period: string,
+  now: Date
 ): StatutoryPackPayload {
   const year = period.slice(0, 4)
 
@@ -314,7 +337,7 @@ function buildEaAnnualPack(
       year,
       countryCode: rulePack.countryCode,
       employees,
-      generatedAt: new Date().toISOString(),
+      generatedAt: now.toISOString(),
     },
   }
 }
@@ -322,7 +345,8 @@ function buildEaAnnualPack(
 function buildBorangEPack(
   rulePack: PayrollRulePack,
   runs: readonly StatutoryPackRunInput[],
-  period: string
+  period: string,
+  now: Date
 ): StatutoryPackPayload {
   const year = period.slice(0, 4)
   const totalGross = runs.reduce((s, r) => s + (parseFloat(r.grossPay) || 0), 0)
@@ -341,7 +365,7 @@ function buildBorangEPack(
       employeeCount,
       totalGrossRemuneration: fmt2(totalGross),
       totalIncomeTaxDeducted: fmt2(totalPcb),
-      generatedAt: new Date().toISOString(),
+      generatedAt: now.toISOString(),
     },
   }
 }

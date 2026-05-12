@@ -8,6 +8,7 @@ export type OrgNotificationNotice = {
   body: string
   source: OrgNotificationSource
   severity: OrgNotificationSeverity
+  targetUserId: string | null
   linkedEntityType: string | null
   linkedEntityId: string | null
   linkedEntityLabel: string | null
@@ -25,6 +26,7 @@ export type CreateOrgNotificationInput = {
   body: string
   severity: OrgNotificationSeverity
   expiresAt?: string | null
+  targetUserId?: string | null
   linkedEntityType?: string | null
   linkedEntityId?: string | null
   linkedEntityLabel?: string | null
@@ -37,6 +39,7 @@ export type PublishOrgNotificationInput = {
   body: string
   severity?: OrgNotificationSeverity
   expiresAt?: Date | null
+  targetUserId?: string | null
   linkedEntityType?: string | null
   linkedEntityId?: string | null
   linkedEntityLabel?: string | null

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 
 import { LynxSummon } from "#components/nexus/nexus-lynx-summon.client"
 import { LynxSummonProvider } from "#components/nexus/nexus-lynx-summon-context"
@@ -16,6 +16,11 @@ import {
 } from "./workbench-mobile-rail"
 import { WorkbenchSkipToMain } from "./workbench-skip-to-main"
 import type { WorkbenchShellProps } from "./workbench-shell.types"
+import {
+  WorkbenchRailCollapseUiProvider,
+  WORKBENCH_RAIL_NAV_DOM_ID,
+  type WorkbenchRailCollapseApi,
+} from "./workbench-rail-collapse-context"
 
 const DEFAULT_STORAGE_KEY = "afenda.workbench.rail.collapsed"
 
@@ -39,7 +44,7 @@ function WorkbenchShellInner({
     }
   })
 
-  const toggleRail = () => {
+  const toggleRail = useCallback(() => {
     setRailCollapsed((prev) => {
       const next = !prev
       try {
@@ -50,73 +55,123 @@ function WorkbenchShellInner({
       }
       return next
     })
-  }
+  }, [rail])
+
+  const shellRailCollapseApi = useMemo<WorkbenchRailCollapseApi | null>(() => {
+    if (!rail) return null
+    return {
+      collapsed: railCollapsed,
+      toggleCollapse: toggleRail,
+      collapseLabel: rail.labels.collapseLabel,
+      expandLabel: rail.labels.expandLabel,
+      controlsNavId: WORKBENCH_RAIL_NAV_DOM_ID,
+    }
+  }, [
+    rail,
+    railCollapsed,
+    toggleRail,
+  ])
 
   const shellContent = (
-    <WorkbenchMobileRailProvider>
-      <div
-        className="flex min-h-svh flex-col bg-background"
-        data-workbench-capture-root="workspace"
-      >
-        <WorkbenchSkipToMain label={skipToMainLabel} />
-
-        {/* L1 Utility Bar */}
-        {utilityBar}
-
-        {/* Org-scoped global keyboard shortcuts */}
-        {orgSlug && <WorkbenchGlobalShortcuts orgSlug={orgSlug} />}
-
-        {/* Main layout: rail (optional) + content */}
+    <WorkbenchRailCollapseUiProvider shellApi={shellRailCollapseApi}>
+      <WorkbenchMobileRailProvider>
         <div
-          className={cn(
-            "flex min-h-0 flex-1",
-            rail ? "overflow-hidden" : undefined
-          )}
+          className="flex min-h-svh flex-col bg-background"
+          data-workbench-capture-root="workspace"
         >
-          {/* Desktop rail */}
-          {rail ? (
-            <>
-              <div className="hidden flex-none md:flex">
-                <WorkbenchRail
-                  slots={rail.slots}
-                  labels={rail.labels}
-                  collapsed={railCollapsed}
-                  onToggleCollapse={toggleRail}
-                />
-              </div>
+          <WorkbenchSkipToMain label={skipToMainLabel} />
 
-              {/* Mobile rail sheet */}
-              <WorkbenchMobileRailSheet title={rail.labels.ariaLabel}>
-                <WorkbenchRail
-                  slots={rail.slots}
-                  labels={rail.labels}
-                  collapsed={false}
-                  onToggleCollapse={() => {}}
-                />
-              </WorkbenchMobileRailSheet>
-            </>
-          ) : null}
+          {/* L1 Utility Bar */}
+          {utilityBar}
 
-          {/* Surface content area */}
-          <main
-            id="dashboard-main"
-            tabIndex={-1}
+          {/* Org-scoped global keyboard shortcuts */}
+          {orgSlug && <WorkbenchGlobalShortcuts orgSlug={orgSlug} />}
+
+          {/*
+         * Main layout: rail (optional) + content.
+         *
+         * When a rail is mounted we tint the row container with the rail's
+         * chrome color (`md:bg-sidebar`). The surface wrapper below carves
+         * a rounded top-left corner out of its own `bg-background`; the
+         * curve's cut-out reveals this row container, so the empty corner
+         * reads as the rail color (chrome) rather than a stray page-bg
+         * triangle (which made the curve look broken at the seam).
+         */}
+          <div
             className={cn(
-              "flex min-w-0 flex-1 flex-col overflow-y-auto outline-none",
-              rail ? "min-h-0" : undefined
+              "flex min-h-0 flex-1",
+              rail ? "overflow-hidden md:bg-sidebar" : undefined
             )}
-            data-workbench-capture-root="content"
           >
-            {children}
-          </main>
-        </div>
+            {/* Desktop rail */}
+            {rail ? (
+              <>
+                <div className="hidden flex-none md:flex">
+                  <WorkbenchRail
+                    slots={rail.slots}
+                    labels={rail.labels}
+                    collapsed={railCollapsed}
+                  />
+                </div>
 
-        {/* Cross-cutting runtime services */}
-        {commandLayer}
-        {dock ?? <WorkbenchDock />}
-        {enableLynxSummon && <LynxSummon />}
-      </div>
-    </WorkbenchMobileRailProvider>
+                {/* Mobile rail sheet */}
+                <WorkbenchMobileRailSheet title={rail.labels.ariaLabel}>
+                  <WorkbenchRail
+                    slots={rail.slots}
+                    labels={rail.labels}
+                    collapsed={false}
+                    assignNavLandmarkId={false}
+                  />
+                </WorkbenchMobileRailSheet>
+              </>
+            ) : null}
+
+            {/*
+           * Surface content area.
+           *
+           * When a rail is mounted we soften the inner boundary against the
+           * rail with a top-left curve (desktop only). The curve is owned
+           * by a thin wrapper so `<main>` keeps its scroll contract intact:
+           *   - wrapper: `md:rounded-tl-2xl` + `md:overflow-hidden` clips
+           *     `<main>` (and its sticky surface header) into the curve.
+           *   - `<main>`: keeps `overflow-y-auto` for content scroll; the
+           *     wrapper's overflow only clips the rounded edge.
+           *   - `bg-background` on the wrapper paints the content panel;
+           *     the row container behind it carries `md:bg-sidebar` so
+           *     the curve's cut-out matches the rail chrome.
+           * No competing border-top / border-left on this wrapper — the utility
+           * bar hairline defines the horizontal seam vs L1 chrome.
+           * Without a rail the wrapper is invisible.
+           */}
+            <div
+              className={cn(
+                "flex min-w-0 flex-1 flex-col",
+                rail
+                  ? "bg-background md:overflow-hidden md:rounded-tl-2xl"
+                  : undefined
+              )}
+            >
+              <main
+                id="dashboard-main"
+                tabIndex={-1}
+                className={cn(
+                  "flex min-w-0 flex-1 flex-col overflow-y-auto outline-none",
+                  rail ? "min-h-0" : undefined
+                )}
+                data-workbench-capture-root="content"
+              >
+                {children}
+              </main>
+            </div>
+          </div>
+
+          {/* Cross-cutting runtime services */}
+          {commandLayer}
+          {dock ?? <WorkbenchDock />}
+          {enableLynxSummon && <LynxSummon />}
+        </div>
+      </WorkbenchMobileRailProvider>
+    </WorkbenchRailCollapseUiProvider>
   )
 
   if (enableLynxSummon) {

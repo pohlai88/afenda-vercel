@@ -97,6 +97,17 @@ export const PLANNER_VIEW_SORT_MODES = [
   "title_asc",
 ] as const
 
+export const PLANNER_SIGNAL_RESOLUTION_POLICIES = [
+  "none",
+  "auto_resolve",
+  "suppress",
+] as const
+
+export const PLANNER_AUTOMATION_ATTENTION_NOTICE_TITLE_PREFIXES = [
+  "Orbit reminder delivery failed:",
+  "Orbit recurrence processing failed:",
+] as const
+
 export const ORBIT_PRIMARY_SURFACES = ORBIT_DASHBOARD_SURFACES
 
 export type OrbitPrimarySurface = OrbitDashboardSurface

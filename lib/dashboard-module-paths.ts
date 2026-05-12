@@ -43,6 +43,10 @@ export const ORG_DASHBOARD_HRM_EMPLOYEES = "/hrm/employees" as const
 export const ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL =
   "/hrm/employees/[employeeId]" as const
 
+/** Phase 3K: compliance evidence detail dynamic segment — invalidate all `[evidenceId]` builds across locales/orgs. */
+export const ORG_DASHBOARD_HRM_COMPLIANCE_DETAIL =
+  "/hrm/compliance/[evidenceId]" as const
+
 /**
  * Locale-internal pathname for an org-scoped dashboard URL (`localePrefix: "always"`).
  * Returns a typed {@link Route} for `Link` / `redirect` from `#i18n/navigation`.

@@ -109,6 +109,14 @@ export type StatutoryRetryCandidate = {
   readonly priorDeliveryId: string
   readonly priorAttempts: number
   readonly priorCompletedAt: Date
+  /**
+   * Phase 3S — original generation instant from `hrm_compliance_evidence`,
+   * replayed into `buildStatutoryPackFromRuns({ now })` so EA / Borang E
+   * (both of which embed `generatedAt` in the hashed body) re-derive
+   * byte-identically. Without it, annual-pack retries would always fail
+   * the `evidence_drift` guard.
+   */
+  readonly priorGeneratedAt: Date
 }
 
 /**
@@ -154,6 +162,7 @@ export async function listStatutoryRetryCandidates(
       rulePackVersion: hrmComplianceEvidence.rulePackVersion,
       inputHash: hrmComplianceEvidence.inputHash,
       outputHash: hrmComplianceEvidence.outputHash,
+      priorGeneratedAt: hrmComplianceEvidence.generatedAt,
       priorDeliveryId: orgEventDelivery.id,
       priorAttempts: orgEventDelivery.attempts,
       priorCompletedAt: orgEventDelivery.completedAt,
@@ -210,6 +219,7 @@ export async function listStatutoryRetryCandidates(
       rulePackVersion: r.rulePackVersion,
       inputHash: r.inputHash,
       outputHash: r.outputHash,
+      priorGeneratedAt: r.priorGeneratedAt,
       priorDeliveryId: r.priorDeliveryId,
       priorAttempts: r.priorAttempts,
       priorCompletedAt: r.priorCompletedAt as Date,
@@ -313,10 +323,16 @@ export async function retryStatutorySubmissionForEvidence(
     }
   }
 
+  // Phase 3S — replay the original generation instant captured on the
+  // evidence row so EA / Borang E (both of which embed `generatedAt` in
+  // the hashed body) re-derive byte-identically. Otherwise the
+  // `evidence_drift` guard immediately below would always fail for
+  // annual-pack retries.
   const { payload, inputHash, outputHash } = buildStatutoryPackFromRuns(
     rulePack,
     candidate.packType,
-    runs
+    runs,
+    { now: candidate.priorGeneratedAt }
   )
   if (
     inputHash !== candidate.inputHash ||
@@ -493,9 +509,7 @@ export async function runStatutoryRetryTick(
             ? r.reason.message.slice(0, 256)
             : "Unexpected retry runner exception",
         attemptNumber: candidate.priorAttempts + 1,
-        exhausted: !shouldRetryStatutorySubmission(
-          candidate.priorAttempts + 1
-        ),
+        exhausted: !shouldRetryStatutorySubmission(candidate.priorAttempts + 1),
       })
       failed++
     }

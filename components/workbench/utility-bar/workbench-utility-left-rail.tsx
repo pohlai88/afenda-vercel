@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react"
 
+import { WorkbenchUtilityRailCollapse } from "./workbench-utility-rail-collapse"
 import { WorkbenchNavPanel } from "./workbench-nav-panel"
 
 type WorkbenchUtilityLeftRailProps = {
@@ -28,6 +29,7 @@ export function WorkbenchUtilityLeftRail({
 }: WorkbenchUtilityLeftRailProps) {
   return (
     <div className="flex min-w-0 items-center justify-start gap-1.5">
+      <WorkbenchUtilityRailCollapse />
       {children ?? <WorkbenchNavPanel orgSlug={orgSlug} orgName={orgName} />}
     </div>
   )

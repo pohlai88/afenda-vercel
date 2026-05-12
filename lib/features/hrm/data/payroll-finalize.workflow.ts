@@ -2,9 +2,15 @@ import { revalidatePath } from "next/cache"
 import { FatalError } from "workflow"
 
 import { EXECUTION_AUDIT_ACTIONS } from "#features/execution"
+import {
+  createPlannerSignalLink,
+  insertPlannerSignal,
+} from "#features/planner/server"
 import { writeIamAuditEvent } from "#lib/auth"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { getOrganizationSlugById } from "#lib/org-slug.server"
 
+import { organizationHrmPath } from "../constants"
 import { computePayrollRun } from "./payroll-engine.server"
 import {
   getPayrollPeriod,
@@ -170,6 +176,47 @@ async function payrollPrepareFailedStep(
   err: unknown
 ) {
   "use step"
+
+  const signal = await insertPlannerSignal({
+    scope: {
+      scopeKind: "organization",
+      organizationId: payload.organizationId,
+    },
+    title: `Payroll finalization failed for period ${payload.periodId}`,
+    description:
+      err instanceof Error
+        ? err.message
+        : "Payroll finalization workflow failed.",
+    signalClass: "anomaly",
+    actorUserId: payload.actorUserId,
+    originatingSystem: "hrm.payroll.finalize",
+    pressure: {
+      urgency: 4,
+      impact: 4,
+      severity: 4,
+      confidence: 4,
+      effort: 3,
+      escalationLevel: 3,
+      temporalProximity: 3,
+      ownershipPressure: 3,
+    },
+  })
+
+  const orgSlug = await getOrganizationSlugById(payload.organizationId)
+  await createPlannerSignalLink({
+    scope: {
+      scopeKind: "organization",
+      organizationId: payload.organizationId,
+    },
+    signalId: signal.id,
+    module: "hrm",
+    entityType: "payroll_period",
+    entityId: payload.periodId,
+    displayLabel: `Payroll period ${payload.periodId}`,
+    href: orgSlug ? organizationHrmPath(orgSlug, "payroll") : null,
+    causalityReason: "Payroll finalization workflow failed.",
+    actorUserId: payload.actorUserId,
+  })
 
   await writeIamAuditEvent({
     action: EXECUTION_AUDIT_ACTIONS.PAYROLL_FINALIZE_RUN_FAILED,

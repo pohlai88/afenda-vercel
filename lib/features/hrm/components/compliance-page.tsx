@@ -3,6 +3,7 @@
 import { useActionState } from "react"
 import { useTranslations } from "next-intl"
 
+import { Link } from "#i18n/navigation"
 import { Badge } from "#components/ui/badge"
 import { Button } from "#components/ui/button"
 import {
@@ -21,7 +22,11 @@ import {
   markEvidenceSubmittedAction,
 } from "../actions/compliance.actions"
 import { submitStatutoryEvidenceForDeliveryAction } from "../actions/statutory-submission.actions"
+import { acknowledgeStatutoryEvidenceAction } from "../actions/statutory-acknowledgement.actions"
+import { organizationHrmComplianceDetailPath } from "../constants"
+import { authorityForStatutoryPack } from "../data/statutory-event-types.shared"
 import type {
+  AcknowledgeStatutoryEvidenceFormState,
   GenerateAllStatutoryPacksFormState,
   MarkEvidenceSubmittedFormState,
   SubmitStatutoryEvidenceFormState,
@@ -40,7 +45,9 @@ const SUBMISSION_BADGE: Record<
   draft: "secondary",
   queued: "default",
   submitted: "outline",
-  acknowledged: "outline",
+  // `acknowledged` is the terminal compliance state — use the brand-primary
+  // fill so it visually separates from intermediate states in dense rows.
+  acknowledged: "default",
   failed: "destructive",
 }
 
@@ -64,6 +71,64 @@ const PACK_TYPE_LABELS: Record<string, string> = {
   pcb_monthly: "PCB / MTD Monthly",
   ea_annual: "EA Annual",
   borang_e_annual: "Borang E Annual",
+}
+
+// ---------------------------------------------------------------------------
+// Phase 3I: acknowledgement provenance display
+// ---------------------------------------------------------------------------
+
+/**
+ * Renders the temporal authority signature for an acknowledged row:
+ * "Acknowledged Mar 5 · KWSP · manual". Each segment falls back gracefully so
+ * historical rows (pre-3I, NULL provenance) still render the canonical
+ * "Acknowledged" without lying about the chronology.
+ */
+function AcknowledgementMeta({
+  acknowledgedAt,
+  acknowledgementSource,
+  authorityName,
+  authorityPayloadHash,
+}: {
+  acknowledgedAt: Date | null
+  acknowledgementSource: string | null
+  authorityName: string | null
+  authorityPayloadHash: string | null
+}) {
+  const t = useTranslations("Dashboard.Hrm.compliance")
+  const segments: string[] = [t("acknowledgedLabel")]
+  const sourceCopy: Record<string, string> = {
+    manual: t("acknowledgementSource.manual"),
+    webhook: t("acknowledgementSource.webhook"),
+    api: t("acknowledgementSource.api"),
+    import: t("acknowledgementSource.import"),
+  }
+  if (acknowledgedAt) {
+    segments.push(acknowledgedAt.toLocaleDateString())
+  }
+  if (authorityName) {
+    segments.push(authorityName)
+  }
+  if (acknowledgementSource) {
+    segments.push(sourceCopy[acknowledgementSource] ?? acknowledgementSource)
+  }
+  return (
+    <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+      <span>{segments.join(" · ")}</span>
+      {authorityPayloadHash && (
+        // Phase 3J: bureau-supplied integrity hash. Surface only the first 8
+        // hex chars in dense rows; the full hash is the title attr for copy /
+        // tooltip. NOT a click-to-copy yet — that becomes a follow-up if HR
+        // asks for it.
+        <code
+          className="rounded border border-border/60 bg-muted/40 px-1 font-mono text-[10px]"
+          title={`${t("acknowledgementHashTooltip")}: ${authorityPayloadHash}`}
+          aria-label={`${t("acknowledgementHashTooltip")}: ${authorityPayloadHash}`}
+        >
+          {t("acknowledgementHashLabel")} {authorityPayloadHash.slice(0, 8)}
+        </code>
+      )}
+    </span>
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -196,14 +261,9 @@ function DeliveryDiagnostics({
       }
     >
       {summaryLine && <span>{summaryLine}</span>}
-      <span>
-        {t("lastAttempt", { when: completedLabel })}
-      </span>
+      <span>{t("lastAttempt", { when: completedLabel })}</span>
       {delivery.errorMessage && (
-        <span
-          className="max-w-[24ch] truncate"
-          title={delivery.errorMessage}
-        >
+        <span className="max-w-[24ch] truncate" title={delivery.errorMessage}>
           {delivery.errorMessage.length > ERROR_PREVIEW_MAX_CHARS
             ? `${delivery.errorMessage.slice(0, ERROR_PREVIEW_MAX_CHARS)}\u2026`
             : delivery.errorMessage}
@@ -250,6 +310,61 @@ function SendToBureauForm({ evidenceId }: { evidenceId: string }) {
 }
 
 // ---------------------------------------------------------------------------
+// Mark acknowledged form (Phase 3H — closes the lifecycle once HR receives
+// the bureau's email receipt). Optional external reference; preserved on
+// the row for regulator inspection.
+// ---------------------------------------------------------------------------
+
+function MarkAcknowledgedForm({
+  evidenceId,
+  packLabel,
+}: {
+  evidenceId: string
+  packLabel: string
+}) {
+  const t = useTranslations("Dashboard.Hrm.compliance")
+  const initial: AcknowledgeStatutoryEvidenceFormState = {
+    ok: false,
+    code: "validation",
+    message: "",
+  }
+  const [state, dispatch, isPending] = useActionState(
+    acknowledgeStatutoryEvidenceAction,
+    initial
+  )
+
+  if (state.ok) {
+    return (
+      <span className="text-xs text-muted-foreground">
+        {t("acknowledgedConfirmed")}
+      </span>
+    )
+  }
+
+  return (
+    <form
+      action={dispatch}
+      className="inline-flex items-center gap-2"
+      aria-label={t("markAcknowledgedAria", { pack: packLabel })}
+    >
+      <input type="hidden" name="evidenceId" value={evidenceId} />
+      <input
+        name="externalReference"
+        placeholder={t("acknowledgedReferencePlaceholder")}
+        className="h-8 w-44 rounded border border-border bg-background px-2 text-sm"
+        maxLength={128}
+      />
+      <Button type="submit" size="sm" variant="outline" disabled={isPending}>
+        {isPending ? t("acknowledging") : t("markAcknowledged")}
+      </Button>
+      {!state.ok && state.message && (
+        <span className="text-xs text-destructive">{state.message}</span>
+      )}
+    </form>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Evidence table row
 // ---------------------------------------------------------------------------
 
@@ -257,10 +372,13 @@ function EvidenceRow({
   row,
   endpointAvailable,
   delivery,
+  orgSlug,
 }: {
   row: ComplianceEvidenceRow
   endpointAvailable: boolean
   delivery: OrgEventDeliverySummary | null
+  /** When provided, surfaces the Phase 3K "Inspect" drill-down link to `/hrm/compliance/{evidenceId}`. */
+  orgSlug: string | null
 }) {
   const t = useTranslations("Dashboard.Hrm.compliance")
   const label = PACK_TYPE_LABELS[row.packType] ?? row.packType
@@ -268,6 +386,10 @@ function EvidenceRow({
   const canSendToBureau =
     endpointAvailable &&
     (row.submissionState === "draft" || row.submissionState === "failed")
+  const canAcknowledge = row.submissionState === "submitted"
+  const detailHref = orgSlug
+    ? organizationHrmComplianceDetailPath(orgSlug, row.id)
+    : null
 
   return (
     <div className="flex flex-wrap items-start gap-3 py-2 text-sm">
@@ -289,9 +411,33 @@ function EvidenceRow({
           {t("downloadJson")}
         </a>
       </Button>
+      {detailHref && (
+        // Phase 3K: per-evidence lifecycle drill-down. Locale-aware via
+        // #i18n/navigation Link; not a destructive action so prefetch
+        // stays at the navigation default (off — see i18n/navigation.tsx).
+        <Button asChild size="sm" variant="ghost">
+          <Link
+            href={detailHref}
+            aria-label={t("inspectTimelineAria", { pack: label })}
+          >
+            {t("inspectTimeline")}
+          </Link>
+        </Button>
+      )}
       {canSendToBureau && <SendToBureauForm evidenceId={row.id} />}
       {row.submissionState === "draft" && (
         <MarkSubmittedForm evidenceId={row.id} />
+      )}
+      {canAcknowledge && (
+        <MarkAcknowledgedForm evidenceId={row.id} packLabel={label} />
+      )}
+      {row.submissionState === "acknowledged" && (
+        <AcknowledgementMeta
+          acknowledgedAt={row.acknowledgedAt}
+          acknowledgementSource={row.acknowledgementSource}
+          authorityName={authorityForStatutoryPack(row.packType)}
+          authorityPayloadHash={row.authorityPayloadHash}
+        />
       )}
       {row.externalReference && (
         <span className="text-xs text-muted-foreground">
@@ -322,6 +468,13 @@ export type CompliancePageProps = {
    * record so it serializes across the RSC boundary.
    */
   deliveryById?: Readonly<Record<string, OrgEventDeliverySummary>>
+  /**
+   * Phase 3K: when supplied, each row renders an "Inspect" link to
+   * `/o/{orgSlug}/dashboard/hrm/compliance/{evidenceId}` (locale-aware).
+   * Optional only so older callers compile during migration; the route
+   * page already passes it.
+   */
+  orgSlug?: string
 }
 
 export function CompliancePage({
@@ -330,6 +483,7 @@ export function CompliancePage({
   allPeriods,
   packTypesWithSubscribedEndpoint = [],
   deliveryById = {},
+  orgSlug,
 }: CompliancePageProps) {
   const subscribedPackTypeSet = new Set<string>(packTypesWithSubscribedEndpoint)
   const t = useTranslations("Dashboard.Hrm.compliance")
@@ -418,9 +572,10 @@ export function CompliancePage({
                   endpointAvailable={subscribedPackTypeSet.has(row.packType)}
                   delivery={
                     row.submissionDeliveryId
-                      ? deliveryById[row.submissionDeliveryId] ?? null
+                      ? (deliveryById[row.submissionDeliveryId] ?? null)
                       : null
                   }
+                  orgSlug={orgSlug ?? null}
                 />
               ))}
             </div>

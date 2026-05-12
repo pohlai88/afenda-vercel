@@ -1,166 +1,164 @@
 "use client"
 
-import { ChevronFirstIcon, ChevronLastIcon } from "lucide-react"
-
-import { Link, usePathname } from "#i18n/navigation"
 import { cn } from "#lib/utils"
 
-import type {
-  WorkbenchRailNavItem,
-  WorkbenchRailNavSection,
-  WorkbenchRailProps,
-} from "./workbench-rail.types"
+import { WORKBENCH_RAIL_NAV_DOM_ID } from "../workbench-rail-collapse-context"
 
-function NavItem({
-  item,
-  collapsed,
-}: {
-  item: WorkbenchRailNavItem
-  collapsed: boolean
-}) {
-  const pathname = usePathname()
-  const active =
-    item.active ??
-    (pathname === item.href || pathname.startsWith(item.href + "/"))
-  const Icon = item.icon
+import { WorkbenchRailIdentity } from "./workbench-rail-identity"
+import { WorkbenchRailInboxSection } from "./workbench-rail-inbox"
+import { WorkbenchRailPinnedSection } from "./workbench-rail-pinned-section"
+import { WorkbenchRailRecentsSection } from "./workbench-rail-recents-section"
+import { WorkbenchRailSection } from "./workbench-rail-section"
+import { WorkbenchRailViewsSection } from "./workbench-rail-views-section"
+import type { WorkbenchRailProps } from "./workbench-rail.types"
 
-  return (
-    <Link
-      href={item.href}
-      prefetch={false}
-      title={collapsed ? item.label : undefined}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "group relative flex h-9 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
-        active
-          ? "bg-primary/10 text-primary"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-        collapsed && "justify-center px-2"
-      )}
-    >
-      <span className="relative flex-none">
-        <Icon className="h-4 w-4" aria-hidden />
-        {item.badge?.count ? (
-          <span
-            className={cn(
-              "absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold tabular-nums",
-              item.badge.tone === "critical"
-                ? "text-destructive-foreground bg-destructive"
-                : item.badge.tone === "attention"
-                  ? "bg-amber-500 text-white"
-                  : item.badge.tone === "positive"
-                    ? "bg-emerald-500 text-white"
-                    : "bg-muted-foreground/20 text-muted-foreground"
-            )}
-          >
-            {item.badge.count > 99 ? "99+" : item.badge.count}
-          </span>
-        ) : null}
-      </span>
-      {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
-      {!collapsed && item.badge?.count ? (
-        <span className="sr-only"> ({item.badge.count})</span>
-      ) : null}
-    </Link>
-  )
-}
-
-function NavSection({
-  section,
-  collapsed,
-}: {
-  section: WorkbenchRailNavSection
-  collapsed: boolean
-}) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      {!collapsed && section.label ? (
-        <p className="px-3 py-1 text-[10px] font-semibold tracking-wider text-muted-foreground/60 uppercase">
-          {section.label}
-        </p>
-      ) : null}
-      {section.items.map((item) => (
-        <NavItem key={item.id} item={item} collapsed={collapsed} />
-      ))}
-    </div>
-  )
+/**
+ * Subtle linear scroll mask — fades nav top/bottom while users scroll.
+ *
+ * Inline style avoids introducing a new Tailwind utility while keeping the
+ * gradient consumable from any rail variant. Scoped to the nav scroll
+ * region only, so the chrome edges remain solid.
+ */
+const NAV_SCROLL_MASK: React.CSSProperties = {
+  maskImage:
+    "linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 16px), transparent 100%)",
+  WebkitMaskImage:
+    "linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 16px), transparent 100%)",
 }
 
 /**
- * WorkbenchRail — the canonical left-hand navigation rail for all post-login shells.
- * Domain-agnostic; callers compose content via `WorkbenchRailSlots`.
+ * Rail surface chrome — sidebar fill only (no borders, no inset linework).
+ */
+const RAIL_CHROME_CLASS = "bg-sidebar text-sidebar-foreground"
+
+/**
+ * `WorkbenchRail` — the canonical operating rail for every post-login shell.
+ *
+ * Layered as: identity → primary execution nav → optional footer slot.
+ * Domain-agnostic; callers feed slot data through `WorkbenchRailSlots` (registry-derived in
+ * admin/HRM/platform/account). No decorative status, no description filler,
+ * no permanent operational chrome — empty slots disappear so the rail
+ * mirrors operator state.
  */
 export function WorkbenchRail({
   slots,
   labels,
   collapsed,
-  onToggleCollapse,
+  assignNavLandmarkId = true,
 }: WorkbenchRailProps) {
-  const { identity, nav, footer } = slots
+  const { identity, nav, footer, inbox, pinned, views, recents } = slots
+  const totalNavItems = nav.reduce(
+    (sum, section) => sum + section.items.length,
+    0
+  )
+  const isNavEmpty = totalNavItems === 0
+  const emptyStateLabel = labels.emptyState ?? "No surfaces available."
+
+  // Working Memory Rail — Phase 3c. Conditional density is enforced
+  // here in lockstep with the kernel: arrays are non-empty by schema
+  // (PR 3a), so a present slot always carries data; an absent slot
+  // means "nothing to surface for this operator right now" and the
+  // section disappears entirely. Pinned / views / recents additionally
+  // collapse-fold (§3.6 doctrine) — only inbox survives below 72px so
+  // pressure remains visible without words.
+  const hasInbox = inbox !== undefined
+  const hasPinned = pinned !== undefined && pinned.length > 0
+  const hasViews = views !== undefined && views.length > 0
+  const hasRecents = recents !== undefined && recents.length > 0
+  const hasMemorySection = !collapsed && (hasPinned || hasViews || hasRecents)
 
   return (
     <aside
       className={cn(
-        "bg-workbench-rail flex h-full flex-col border-r transition-[width] duration-200 ease-in-out",
-        collapsed ? "w-14" : "w-56"
+        RAIL_CHROME_CLASS,
+        "flex h-full flex-col transition-[width] duration-200 ease-out",
+        collapsed ? "w-16" : "w-60"
       )}
       aria-label={labels.ariaLabel}
       data-workbench-rail="true"
+      data-collapsed={collapsed ? "true" : "false"}
     >
-      {/* Identity zone */}
-      <div
-        className={cn(
-          "flex items-center gap-3 border-b px-3 py-4",
-          collapsed && "justify-center px-2"
-        )}
+      <WorkbenchRailIdentity identity={identity} collapsed={collapsed} />
+
+      {hasInbox ? (
+        <div className="px-2">
+          <WorkbenchRailInboxSection
+            inbox={inbox}
+            collapsed={collapsed}
+            ariaLabel={labels.inboxAriaLabel}
+          />
+        </div>
+      ) : null}
+
+      <nav
+        id={assignNavLandmarkId ? WORKBENCH_RAIL_NAV_DOM_ID : undefined}
+        className="min-h-0 flex-1 overflow-y-auto px-2 py-3"
+        aria-label={labels.ariaLabel}
+        style={NAV_SCROLL_MASK}
       >
-        <span
-          className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground"
-          aria-hidden
-        >
-          {identity.initial}
-        </span>
-        {!collapsed && (
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm leading-none font-semibold">
-              {identity.primary}
+        {isNavEmpty ? (
+          collapsed ? (
+            <span
+              aria-hidden
+              data-rail-empty="true"
+              className="mx-auto my-3 block h-1 w-6 rounded-full bg-muted-foreground/25"
+              title={emptyStateLabel}
+            />
+          ) : (
+            <p
+              data-rail-empty="true"
+              className="px-3 py-3 text-xs leading-snug text-muted-foreground/80"
+              role="status"
+            >
+              {emptyStateLabel}
             </p>
-            {identity.secondary && (
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                {identity.secondary}
-              </p>
-            )}
+          )
+        ) : (
+          <div className="flex flex-col gap-3">
+            {nav.map((section) => (
+              <WorkbenchRailSection
+                key={section.id}
+                section={section}
+                collapsed={collapsed}
+              />
+            ))}
+            {hasMemorySection ? (
+              // Spacer between primary nav and operator memory sections (no hairline —
+              // `data-rail-memory-divider` remains the composition test hook).
+              <div aria-hidden data-rail-memory-divider="true" className="mx-3 my-2" />
+            ) : null}
+            {hasViews ? (
+              <WorkbenchRailViewsSection
+                views={views}
+                collapsed={collapsed}
+                heading={labels.viewsHeading}
+              />
+            ) : null}
+            {hasPinned ? (
+              <WorkbenchRailPinnedSection
+                pinned={pinned}
+                collapsed={collapsed}
+                heading={labels.pinnedHeading}
+              />
+            ) : null}
+            {hasRecents ? (
+              <WorkbenchRailRecentsSection
+                recents={recents}
+                collapsed={collapsed}
+                heading={labels.recentsHeading}
+              />
+            ) : null}
           </div>
         )}
-      </div>
-
-      {/* Navigation sections */}
-      <nav className="flex-1 space-y-4 overflow-y-auto px-2 py-3">
-        {nav.map((section) => (
-          <NavSection
-            key={section.id}
-            section={section}
-            collapsed={collapsed}
-          />
-        ))}
       </nav>
 
-      {/* Footer slot */}
-      {footer && <div className="border-t px-2 py-3">{footer}</div>}
-
-      {/* Collapse toggle */}
-      <button
-        type="button"
-        onClick={onToggleCollapse}
-        aria-label={collapsed ? labels.expandLabel : labels.collapseLabel}
-        className="flex h-10 w-full items-center justify-center border-t text-muted-foreground/60 transition-colors hover:text-foreground"
-      >
-        {collapsed ? (
-          <ChevronLastIcon className="h-4 w-4" aria-hidden />
-        ) : (
-          <ChevronFirstIcon className="h-4 w-4" aria-hidden />
-        )}
-      </button>
+      {footer ? (
+        <div
+          className={cn(collapsed ? "px-2 py-2" : "px-3 py-3")}
+        >
+          {footer}
+        </div>
+      ) : null}
     </aside>
   )
 }

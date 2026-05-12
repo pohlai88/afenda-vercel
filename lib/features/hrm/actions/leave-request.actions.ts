@@ -30,8 +30,14 @@ import type {
   CancelLeaveFormState,
 } from "../types"
 
+/**
+ * Revalidates at **layout** scope so the HRM rail's `leave` pressure
+ * badge (Phase 2 — `getHrmRailPressureCounts`) refreshes after every
+ * leave-request mutation. The leave page revalidation comes along for
+ * free since it sits below the layout.
+ */
 function revalidateLeaveRequests() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "page")
+  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "layout")
 }
 
 // ---------------------------------------------------------------------------

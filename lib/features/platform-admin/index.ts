@@ -20,6 +20,9 @@ export type {
   PlatformAdminNavItem,
   PlatformAdminNavKey,
   PlatformAdminOrganizationSummary,
+  PlatformAdminRailPressureBadge,
+  PlatformAdminRailPressureMap,
+  PlatformAdminRailPressureTone,
   PlatformAdminUserPage,
   PlatformAdminUserSummary,
 } from "./types"
@@ -31,6 +34,11 @@ export {
   type PlatformAdminUserListInput,
 } from "./data/users.queries.server"
 export { listOrganizationsForPlatformAdmin } from "./data/organizations.queries.server"
+
+// Phase 2 — Working Memory Rail pressure. Server-only query wrapped in
+// `React.cache` so the layout (`app/[locale]/operator/layout.tsx`) and
+// any future RSC consumers share a single round trip per request.
+export { getPlatformAdminRailPressureCounts } from "./data/platform-admin-rail-pressure.queries.server"
 
 // Server Actions
 export {

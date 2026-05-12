@@ -52,8 +52,19 @@ import { and, eq, isNull } from "drizzle-orm"
 // revalidation helper
 // ---------------------------------------------------------------------------
 
+/**
+ * Revalidates at **layout** scope so the HRM rail's `payroll` pressure
+ * badge (Phase 2 — `getHrmRailPressureCounts`) refreshes after every
+ * payroll-period mutation. Locking a period enqueues
+ * `payroll_period_lock` approvals; that state change is exactly what
+ * the badge surfaces. The payroll page revalidation comes along for
+ * free since it sits below the layout.
+ */
 function revalidatePayrollPages() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"), "page")
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"),
+    "layout"
+  )
 }
 
 // ---------------------------------------------------------------------------

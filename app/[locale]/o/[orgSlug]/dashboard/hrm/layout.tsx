@@ -12,6 +12,7 @@ import {
   organizationHrmPath,
   organizationHrmRootPath,
 } from "#features/hrm"
+import { getHrmRailPressureCounts } from "#features/hrm/server"
 
 export const dynamic = "force-dynamic"
 
@@ -24,10 +25,16 @@ export default async function OrgDashboardHrmLayout({
 
   const orgSession = await requireOrgSession()
 
-  const [orgName, tShell, tNav] = await Promise.all([
+  // Tier A blocking authority: identity + translations + rail pressure all
+  // sit in a single parallel envelope. `getHrmRailPressureCounts` is
+  // wrapped in `React.cache` so any downstream RSC reuse hits the same
+  // round trip. Failure isolation lives inside the query — transient DB
+  // errors degrade to "no badge" rather than crashing the layout.
+  const [orgName, tShell, tNav, railPressure] = await Promise.all([
     getOrganizationNameById(orgSession.organizationId),
     getTranslations("Dashboard.Hrm.shell"),
     getTranslations("Dashboard.Hrm.nav"),
+    getHrmRailPressureCounts(orgSession.organizationId),
   ])
 
   const navLabels: Record<string, string> = {
@@ -46,6 +53,7 @@ export default async function OrgDashboardHrmLayout({
     orgSlug,
     orgName: orgName ?? orgSlug,
     navLabels,
+    pressure: railPressure,
   })
 
   const ariaLabel = tShell("capabilityNavAria")

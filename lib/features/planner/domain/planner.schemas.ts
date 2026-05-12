@@ -6,6 +6,7 @@ import {
   PLANNER_RELATION_TYPES,
   PLANNER_SIGNAL_CLASSES,
   PLANNER_SIGNAL_LIFECYCLES,
+  PLANNER_SIGNAL_RESOLUTION_POLICIES,
   PLANNER_VIEW_SORT_MODES,
 } from "../constants"
 import { plannerViewFilterStateSchema } from "../filters/planner-view-filter.shared"
@@ -29,6 +30,9 @@ export const plannerItemLifecycleSchema = z.enum(PLANNER_ITEM_LIFECYCLES)
 export const plannerOwnershipRoleSchema = z.enum(PLANNER_OWNERSHIP_ROLES)
 export const plannerRelationTypeSchema = z.enum(PLANNER_RELATION_TYPES)
 export const plannerViewSortModeSchema = z.enum(PLANNER_VIEW_SORT_MODES)
+export const plannerSignalResolutionPolicySchema = z.enum(
+  PLANNER_SIGNAL_RESOLUTION_POLICIES
+)
 export const plannerSavedViewSurfaceSchema = z.enum([
   "queue",
   "timeline",
@@ -60,6 +64,7 @@ export const createPlannerItemFormSchema = z.object({
 export const transitionPlannerItemFormSchema = z.object({
   itemId: z.string().uuid(),
   lifecycle: plannerItemLifecycleSchema,
+  correlatedSignalPolicy: plannerSignalResolutionPolicySchema.optional(),
 })
 
 export const promotePlannerSignalFormSchema = z.object({
@@ -140,7 +145,11 @@ export const addPlannerAttachmentMetadataFormSchema = z.object({
   blobUrl: z.string().trim().url(),
   payloadHash: z.string().trim().length(64),
   mimeType: z.string().trim().min(1).max(255),
-  sizeBytes: z.coerce.number().int().min(1).max(50 * 1024 * 1024),
+  sizeBytes: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(50 * 1024 * 1024),
 })
 
 export const savePlannerViewFormSchema = z.object({

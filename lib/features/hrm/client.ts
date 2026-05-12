@@ -63,6 +63,7 @@ export {
   hrmNavLabelKey,
   HRM_CAPABILITIES,
   isAllowedHrmDashboardSubsegment,
+  organizationHrmComplianceDetailPath,
   organizationHrmEmployeePath,
   organizationHrmPath,
   organizationHrmRootPath,
@@ -80,12 +81,24 @@ export {
 export { submitStatutoryEvidenceForDeliveryAction } from "./actions/statutory-submission.actions"
 export {
   STATUTORY_PACK_TO_EVENT_TYPE,
+  STATUTORY_PACK_TO_ACK_EVENT_TYPE,
+  STATUTORY_PACK_TO_AUTHORITY,
+  ACKNOWLEDGEMENT_SOURCES,
+  ackEventTypeForStatutoryPack,
+  authorityForStatutoryPack,
   eventTypeForStatutoryPack,
+  isAcknowledgementSource,
 } from "./data/statutory-event-types.shared"
+export type { AcknowledgementSource } from "./data/statutory-event-types.shared"
+
+// Phase 3H: Manual bureau acknowledgement (submitted -> acknowledged)
+// Phase 3I: ack mutation now stamps acknowledgedAt / By / Source on the row.
+export { acknowledgeStatutoryEvidenceAction } from "./actions/statutory-acknowledgement.actions"
 
 export { CompliancePage } from "./components/compliance-page"
 
 export type {
+  AcknowledgeStatutoryEvidenceFormState,
   GenerateAllStatutoryPacksFormState,
   GenerateStatutoryPackFormState,
   MarkEvidenceSubmittedFormState,

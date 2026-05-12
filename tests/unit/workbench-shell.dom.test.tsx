@@ -51,7 +51,6 @@ vi.mock("#components/workbench/workbench-global-shortcuts.client", () => ({
 
 import { WorkbenchShell } from "#components/workbench"
 import type { WorkbenchRailSlots } from "#components/workbench"
-import { LayoutDashboardIcon } from "lucide-react"
 
 afterEach(() => {
   cleanup()
@@ -62,7 +61,6 @@ const testRailSlots: WorkbenchRailSlots = {
     initial: "T",
     primary: "Test Org",
     secondary: "test@example.com",
-    pills: [],
   },
   nav: [
     {
@@ -72,7 +70,7 @@ const testRailSlots: WorkbenchRailSlots = {
           id: "identity",
           label: "Identity",
           href: "/account/identity",
-          icon: LayoutDashboardIcon,
+          icon: "layout-dashboard",
         },
       ],
     },

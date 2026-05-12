@@ -7,7 +7,12 @@ import {
   canActInOrganization,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
+import {
+  createPlannerSignalLink,
+  insertPlannerSignal,
+} from "#features/planner/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
+import { getOrganizationSlugById } from "#lib/org-slug.server"
 import { requireOrgSession } from "#lib/tenant"
 
 import {
@@ -25,6 +30,7 @@ import {
   orgEventEndpointInputSchema,
   type OrgEventEndpointInput,
 } from "../schemas/integrations-endpoint.schema"
+import { organizationAdminPath } from "../constants"
 import type { OrgEventDeliveryState, OrgEventEndpointSummary } from "../types"
 
 export type EndpointActionState =
@@ -100,8 +106,14 @@ async function requireOrgAdmin() {
   return { ok: true as const, session }
 }
 
+/**
+ * Revalidates at **layout** scope so the org-admin rail's `integrations`
+ * pressure badge (Phase 2 — `getOrgAdminRailPressureCounts`) refreshes
+ * after every endpoint mutation. The integrations page revalidation
+ * comes along for free since it sits below the layout.
+ */
 function revalidateIntegrations() {
-  revalidatePath(toLocaleOrgAdminRevalidatePattern("/integrations"), "page")
+  revalidatePath(toLocaleOrgAdminRevalidatePattern("/integrations"), "layout")
 }
 
 /** Tier B (admin-guarded master data) — `org.integration.endpoint.create`. */
@@ -334,6 +346,47 @@ export async function pingOrgEventEndpoint(
       },
     })
   )
+
+  if (delivery.state !== "delivered") {
+    const orgSlug = await getOrganizationSlugById(session.organizationId)
+    const signal = await insertPlannerSignal({
+      scope: {
+        scopeKind: "organization",
+        organizationId: session.organizationId,
+      },
+      title: `Integration endpoint ping failed for ${endpoint.name}`,
+      description:
+        "Manual endpoint ping did not complete successfully and needs investigation.",
+      signalClass: "anomaly",
+      actorUserId: session.userId,
+      originatingSystem: "org_admin.integrations",
+      pressure: {
+        urgency: 3,
+        impact: 3,
+        severity: 3,
+        confidence: 4,
+        effort: 2,
+        escalationLevel: 2,
+        temporalProximity: 2,
+        ownershipPressure: 2,
+      },
+    })
+
+    await createPlannerSignalLink({
+      scope: {
+        scopeKind: "organization",
+        organizationId: session.organizationId,
+      },
+      signalId: signal.id,
+      module: "org_admin",
+      entityType: "integration_endpoint",
+      entityId: endpoint.id,
+      displayLabel: endpoint.name,
+      href: orgSlug ? organizationAdminPath(orgSlug, "integrations") : null,
+      causalityReason: "Endpoint ping failed.",
+      actorUserId: session.userId,
+    })
+  }
 
   revalidateIntegrations()
   return {

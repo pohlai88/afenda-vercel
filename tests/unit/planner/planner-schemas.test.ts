@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest"
 
 import {
   addPlannerAttachmentMetadataFormSchema,
+  correlatePlannerSignalFormSchema,
   createPlannerItemFormSchema,
+  createPlannerRelationFormSchema,
   createPlannerSignalFormSchema,
   savePlannerViewFormSchema,
+  transitionPlannerItemFormSchema,
 } from "#features/planner/domain/planner.schemas"
 
 describe("planner form schemas", () => {
@@ -83,8 +86,57 @@ describe("planner form schemas", () => {
         displayPriority: ["critical"],
         linkedModule: ["hrm"],
       }),
+      sortMode: "priority_desc",
     })
 
     expect(parsed.success).toBe(true)
+  })
+
+  it("accepts either related item or related signal for relation authoring", () => {
+    expect(
+      createPlannerRelationFormSchema.safeParse({
+        itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+        relationType: "blocks",
+        relatedItemId: "b5db4acc-66ad-4650-b92e-468f1787dd4e",
+      }).success
+    ).toBe(true)
+
+    expect(
+      createPlannerRelationFormSchema.safeParse({
+        itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+        relationType: "related",
+        relatedSignalId: "d0d38696-5ad2-4a1f-9a5f-2e1b657c2bdb",
+      }).success
+    ).toBe(true)
+  })
+
+  it("rejects ambiguous relation authoring payloads", () => {
+    expect(
+      createPlannerRelationFormSchema.safeParse({
+        itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+        relationType: "related",
+        relatedItemId: "b5db4acc-66ad-4650-b92e-468f1787dd4e",
+        relatedSignalId: "d0d38696-5ad2-4a1f-9a5f-2e1b657c2bdb",
+      }).success
+    ).toBe(false)
+  })
+
+  it("accepts correlation of a signal to an existing item", () => {
+    expect(
+      correlatePlannerSignalFormSchema.safeParse({
+        signalId: "d0d38696-5ad2-4a1f-9a5f-2e1b657c2bdb",
+        itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+      }).success
+    ).toBe(true)
+  })
+
+  it("accepts resolution policy on item transition payloads", () => {
+    expect(
+      transitionPlannerItemFormSchema.safeParse({
+        itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+        lifecycle: "resolved",
+        correlatedSignalPolicy: "auto_resolve",
+      }).success
+    ).toBe(true)
   })
 })

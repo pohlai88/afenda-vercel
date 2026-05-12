@@ -1,3 +1,4 @@
+import type { WorkbenchRailBadgeTone } from "#components/workbench"
 import type { HrmDashboardCapabilitySegment } from "#lib/hrm-dashboard.shared"
 
 /** Minimum org role required to open a capability route (Better Auth org roles). */
@@ -30,6 +31,40 @@ export type HrmCapability = {
 }
 
 export const HRM_NAV_NAMESPACE = "Dashboard.Hrm.nav" as const
+
+/**
+ * Semantic urgency carried by every HRM rail nav badge. Re-exports the
+ * shell-level tone vocabulary so callers in `lib/features/hrm/` never
+ * deep-import `#components/workbench/rail`.
+ *
+ * Operators read tone (color) before number — the threshold helpers in
+ * `hrm-rail-pressure.shared.ts` are the only legitimate source of
+ * `attention` / `critical`. UI components must not invent new tones.
+ */
+export type HrmRailPressureTone = WorkbenchRailBadgeTone
+
+/**
+ * Single nav badge payload. `count` is the integer surfaced in the UI
+ * when present; `tone` is the semantic urgency operators read first. A
+ * null entry in `HrmRailPressureMap` means the nav item has no pressure
+ * — the badge hides entirely (conditional density).
+ */
+export type HrmRailPressureBadge = {
+  readonly count: number
+  readonly tone: HrmRailPressureTone
+}
+
+/**
+ * Per-nav-key pressure map produced by `getHrmRailPressureCounts`.
+ * Sparse by design — empty slots hide. The rail-slot builder is a pure
+ * mapper from this shape onto `WorkbenchRailNavItem.badge`.
+ *
+ * Keyed by `HrmNavKey` (e.g. `leave`, `payroll`, `compliance`); other
+ * keys are absent unless wired in a later phase.
+ */
+export type HrmRailPressureMap = Partial<
+  Record<HrmNavKey, HrmRailPressureBadge>
+>
 
 export type EmployeeRow = {
   id: string
@@ -354,5 +389,24 @@ export type SubmitStatutoryEvidenceFormState =
       deliveryId: string
       eventType: string
       httpStatus: number | null
+    }
+  | { ok: false; code: HrmComplianceErrorCode; message: string }
+
+/**
+ * Manual bureau acknowledgement (Phase 3H) — operator records that the bureau
+ * confirmed receipt (typically via emailed receipt). Captures an optional
+ * external reference (bureau receipt number / case id). Closes the lifecycle
+ * loop: `submitted -> acknowledged`.
+ *
+ * State machine guard:
+ *   - Only `submitted` rows are eligible.
+ *   - `acknowledged` is terminal — re-acknowledgement returns `invalid_state`.
+ */
+export type AcknowledgeStatutoryEvidenceFormState =
+  | {
+      ok: true
+      evidenceId: string
+      auditAction: string
+      externalReference: string | null
     }
   | { ok: false; code: HrmComplianceErrorCode; message: string }

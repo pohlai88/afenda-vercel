@@ -49,8 +49,14 @@ async function requireOrgAdmin() {
   return { ok: true as const, session }
 }
 
+/**
+ * Revalidates at **layout** scope so the org-admin rail's `integrations`
+ * pressure badge (Phase 2 — `getOrgAdminRailPressureCounts`) refreshes
+ * after every import-job mutation. The integrations page revalidation
+ * comes along for free since it sits below the layout.
+ */
 function revalidateIntegrations() {
-  revalidatePath(toLocaleOrgAdminRevalidatePattern("/integrations"), "page")
+  revalidatePath(toLocaleOrgAdminRevalidatePattern("/integrations"), "layout")
 }
 
 /**

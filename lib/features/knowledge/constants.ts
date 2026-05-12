@@ -22,4 +22,5 @@ export const KNOWLEDGE_AUDIT_ACTIONS = {
   SOURCE_SYNC_CANCEL: "erp.knowledge.source.sync.cancel",
   SETTINGS_UPDATE: "erp.knowledge.settings.update",
   EVAL_RUN: "erp.knowledge.eval.run",
+  EVAL_RUN_FAIL: "erp.knowledge.eval.run.fail",
 } as const

@@ -25,6 +25,7 @@ const REQUIRED_FILES = [
   "scripts/check-design-contract.mjs",
   "tests/unit/fixtures-i18n-parity.test.ts",
   "turbo.json",
+  "turbo/generators/config.ts",
 ]
 
 const DUMP_DIR_NAMES = new Set([
@@ -60,6 +61,7 @@ const TOP_LEVEL_DIR_ALLOWLIST = new Set([
   "public",
   "scripts",
   "tests",
+  "turbo",
 ])
 
 const ROOT_RUNTIME_FILES = new Set([
@@ -92,6 +94,7 @@ const ROOT_TOOLING_FILES = new Set([
   ".nvmrc",
   ".lintstagedrc.json",
   "turbo.json",
+  "turbo/generators/config.ts",
 ])
 
 const ROOT_WORKSPACE_FILES = new Set([

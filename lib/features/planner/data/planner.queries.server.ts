@@ -5,6 +5,7 @@ import {
   asc,
   desc,
   eq,
+  gt,
   inArray,
   ilike,
   isNotNull,
@@ -15,6 +16,7 @@ import {
 } from "drizzle-orm"
 
 import { db } from "#lib/db"
+import { listActiveOrgNotificationsForLinkedEntity } from "#features/org-notifications/server"
 import {
   plannerActivity,
   plannerAssignment,
@@ -23,6 +25,7 @@ import {
   plannerItem,
   plannerRelation,
   plannerLink,
+  orgNotificationNotice,
   plannerRecurrence,
   plannerReminder,
   plannerSchedule,
@@ -44,6 +47,8 @@ import {
 import {
   PLANNER_ACTIVE_ITEM_LIFECYCLES,
   PLANNER_ACTIVE_SIGNAL_LIFECYCLES,
+  PLANNER_AUTOMATION_ATTENTION_NOTICE_TITLE_PREFIXES,
+  PLANNER_VIEW_SORT_MODES,
 } from "../constants"
 import {
   mergePlannerViewFilterStates,
@@ -54,17 +59,24 @@ import {
   sortPlannerItems,
   sortPlannerSignals,
 } from "../filters/planner-view-sort.shared"
+import { derivePlannerBlockedState } from "../policies/planner-escalation-policy.shared"
 import { hydratePlannerPressure } from "../pressure/planner-pressure.shared"
+import { applyPlannerRelationPressure } from "../ranking/planner-derived-pressure.shared"
 import type {
+  PlannerBlockedState,
   PlannerDisplayPriority,
   OrbitDashboardSurface,
   OrbitPageData,
+  PlannerNotificationRole,
+  PlannerNotificationTarget,
+  PlannerOperationalFacts,
   OrbitSummary,
   PlannerItemDetail,
   PlannerItemRow,
   PlannerLinkRow,
   PlannerRelationRow,
   PlannerScopeInput,
+  PlannerActivityRow,
   PlannerSessionRow,
   PlannerSignalDetail,
   PlannerSignalRow,
@@ -84,6 +96,12 @@ export type PlannerPressureRowForNexus = {
   resolvedAt: Date | null
   displayPriority: PlannerItemRow["displayPriority"]
   pressureScore: number
+  urgency: number | null
+  severity: number | null
+  impact: number | null
+  escalationLevel: number | null
+  operationalFacts: PlannerOperationalFacts | null
+  blockedState: PlannerBlockedState | null
 }
 
 export type PlannerResolutionRowForNexus = {
@@ -106,6 +124,30 @@ type PlannerRecurrenceDueRow = {
   item: typeof plannerItem.$inferSelect
 }
 
+type PlannerAutomationContextRow = {
+  itemId: string
+  title: string
+  description: string | null
+  urgency: number
+  escalationLevel: number
+}
+
+export type PlannerBlockedEscalationRow = {
+  itemId: string
+  organizationId: string
+  title: string
+  description: string | null
+  blockedAt: Date
+  urgency: number
+  impact: number
+  severity: number
+  escalationLevel: number
+  operationalFacts: PlannerOperationalFacts
+  escalationOwnerUserIds: string[]
+  assigneeUserIds: string[]
+  reviewerUserIds: string[]
+}
+
 function parseAudit7w1h(raw: unknown): AuditEvent7W1H[] | null {
   if (!Array.isArray(raw)) return null
   const events = raw
@@ -113,6 +155,15 @@ function parseAudit7w1h(raw: unknown): AuditEvent7W1H[] | null {
     .filter((entry) => entry.success)
     .map((entry) => entry.data)
   return events.length > 0 ? events : null
+}
+
+function normalizePlannerViewSortMode(
+  value: string | null | undefined
+): PlannerViewSortMode | null {
+  return value != null &&
+    (PLANNER_VIEW_SORT_MODES as readonly string[]).includes(value)
+    ? (value as PlannerViewSortMode)
+    : null
 }
 
 function itemScopeWhere(scope: PlannerScopeInput) {
@@ -197,6 +248,7 @@ function hydrateItem(row: typeof plannerItem.$inferSelect): PlannerItemRow {
     description: row.description,
     lifecycle: row.lifecycle as PlannerItemRow["lifecycle"],
     scheduleStartAt: row.scheduleStartAt,
+    blockedAt: row.blockedAt,
     dueAt: row.dueAt,
     endAt: row.endAt,
     resolvedAt: row.resolvedAt,
@@ -289,7 +341,8 @@ function hydrateRelationRow(input: {
     itemId: input.relation.itemId,
     relatedItemId: input.relation.relatedItemId,
     relatedSignalId: input.relation.relatedSignalId,
-    relationType: input.relation.relationType as PlannerRelationRow["relationType"],
+    relationType: input.relation
+      .relationType as PlannerRelationRow["relationType"],
     createdAt: input.relation.createdAt,
     relatedItemTitle: input.relatedItemTitle,
     relatedSignalTitle: input.relatedSignalTitle,
@@ -299,6 +352,24 @@ function hydrateRelationRow(input: {
     relatedSignalClass:
       (input.relatedSignalClass as PlannerRelationRow["relatedSignalClass"]) ??
       null,
+  }
+}
+
+function hydrateActivityRow(
+  row: typeof plannerActivity.$inferSelect
+): PlannerActivityRow {
+  return {
+    id: row.id,
+    itemId: row.itemId,
+    signalId: row.signalId,
+    activityType: row.activityType,
+    body: row.body,
+    metadata:
+      row.metadata && typeof row.metadata === "object"
+        ? (row.metadata as Record<string, unknown>)
+        : null,
+    authorUserId: row.authorUserId,
+    createdAt: row.createdAt,
   }
 }
 
@@ -321,6 +392,190 @@ function matchesDisplayPriority(
   return !hasFilterValues(filter.displayPriority)
     ? true
     : filter.displayPriority.includes(priority)
+}
+
+function plannerAutomationAttentionNoticeWhere(now: Date) {
+  return and(
+    eq(orgNotificationNotice.linkedEntityType, "planner_item"),
+    lte(orgNotificationNotice.publishedAt, now),
+    isNull(orgNotificationNotice.closedAt),
+    or(isNull(orgNotificationNotice.expiresAt), gt(orgNotificationNotice.expiresAt, now)),
+    or(
+      ...PLANNER_AUTOMATION_ATTENTION_NOTICE_TITLE_PREFIXES.map((prefix) =>
+        ilike(orgNotificationNotice.title, `${prefix}%`)
+      )
+    )
+  )
+}
+
+async function listPlannerOperationalFactsMap(
+  itemIds: readonly string[],
+  scope?: PlannerScopeInput
+): Promise<Map<string, PlannerOperationalFacts>> {
+  if (itemIds.length === 0) {
+    return new Map()
+  }
+
+  const now = new Date()
+  const [relations, assignments, automationFailures] = await Promise.all([
+    db
+      .select({
+        itemId: plannerRelation.itemId,
+        relationType: plannerRelation.relationType,
+        relatedItemLifecycle: plannerItem.lifecycle,
+        relatedSignalLifecycle: plannerSignal.lifecycle,
+      })
+      .from(plannerRelation)
+      .leftJoin(plannerItem, eq(plannerRelation.relatedItemId, plannerItem.id))
+      .leftJoin(
+        plannerSignal,
+        eq(plannerRelation.relatedSignalId, plannerSignal.id)
+      )
+      .where(inArray(plannerRelation.itemId, itemIds)),
+    db
+      .select({
+        itemId: plannerAssignment.itemId,
+        role: plannerAssignment.role,
+        subjectUserId: plannerAssignment.subjectUserId,
+      })
+      .from(plannerAssignment)
+      .where(inArray(plannerAssignment.itemId, itemIds)),
+    scope?.scopeKind === "organization"
+      ? db
+          .select({
+            itemId: orgNotificationNotice.linkedEntityId,
+            title: orgNotificationNotice.title,
+          })
+          .from(orgNotificationNotice)
+          .where(
+            and(
+              eq(orgNotificationNotice.organizationId, scope.organizationId),
+              inArray(
+                orgNotificationNotice.linkedEntityId,
+                itemIds as string[]
+              ),
+              plannerAutomationAttentionNoticeWhere(now)
+            )
+          )
+      : Promise.resolve([]),
+  ])
+
+  const factsByItem = new Map<string, PlannerOperationalFacts>()
+
+  function getFacts(itemId: string): PlannerOperationalFacts {
+    const existing = factsByItem.get(itemId)
+    if (existing) return existing
+
+    const created: PlannerOperationalFacts = {
+      blockingCount: 0,
+      blockedByCount: 0,
+      activeSignalCount: 0,
+      automationFailureCount: 0,
+      duplicateCount: 0,
+      assigneeCount: 0,
+      reviewerCount: 0,
+      escalationOwnerCount: 0,
+    }
+    factsByItem.set(itemId, created)
+    return created
+  }
+
+  for (const relation of relations) {
+    const facts = getFacts(relation.itemId)
+
+    if (
+      relation.relatedItemLifecycle &&
+      (PLANNER_ACTIVE_ITEM_LIFECYCLES as readonly string[]).includes(
+        relation.relatedItemLifecycle
+      )
+    ) {
+      if (relation.relationType === "blocks") {
+        facts.blockingCount += 1
+      } else if (relation.relationType === "blocked_by") {
+        facts.blockedByCount += 1
+      } else if (relation.relationType === "duplicate") {
+        facts.duplicateCount += 1
+      }
+    }
+
+    if (
+      relation.relatedSignalLifecycle &&
+      (PLANNER_ACTIVE_SIGNAL_LIFECYCLES as readonly string[]).includes(
+        relation.relatedSignalLifecycle
+      )
+    ) {
+      facts.activeSignalCount += 1
+    }
+  }
+
+  for (const assignment of assignments) {
+    if (!assignment.subjectUserId) continue
+    const facts = getFacts(assignment.itemId)
+
+    if (assignment.role === "assignee") {
+      facts.assigneeCount += 1
+    } else if (assignment.role === "reviewer") {
+      facts.reviewerCount += 1
+    } else if (assignment.role === "escalation_owner") {
+      facts.escalationOwnerCount += 1
+    }
+  }
+
+  const automationAttentionKeys = new Set<string>()
+
+  for (const notice of automationFailures) {
+    if (!notice.itemId) continue
+    const noticeKey = `${notice.itemId}:${notice.title}`
+    if (automationAttentionKeys.has(noticeKey)) continue
+    automationAttentionKeys.add(noticeKey)
+    const facts = getFacts(notice.itemId)
+    facts.automationFailureCount += 1
+  }
+
+  return factsByItem
+}
+
+function matchesAutomationAttention(
+  row: PlannerItemRow,
+  filter: PlannerViewFilterState
+) {
+  if (!hasFilterValues(filter.automationState)) return true
+  return (row.operationalFacts?.automationFailureCount ?? 0) > 0
+}
+
+async function applyOperationalFactsToItems(
+  rows: readonly PlannerItemRow[],
+  scope?: PlannerScopeInput
+): Promise<PlannerItemRow[]> {
+  if (rows.length === 0) {
+    return []
+  }
+
+  const itemIds = rows.map((row) => row.id)
+  const factsByItem = await listPlannerOperationalFactsMap(itemIds, scope)
+
+  return rows.map((row) => ({
+    ...(function () {
+      const operationalFacts = factsByItem.get(row.id)
+      const relationAwareRow = applyPlannerRelationPressure(
+        row,
+        operationalFacts
+      )
+      return {
+        ...relationAwareRow,
+        operationalFacts,
+        blockedState: derivePlannerBlockedState({
+          lifecycle: relationAwareRow.lifecycle,
+          blockedAt: relationAwareRow.blockedAt,
+          urgency: relationAwareRow.pressure.urgency,
+          impact: relationAwareRow.pressure.impact,
+          severity: relationAwareRow.pressure.severity,
+          escalationLevel: relationAwareRow.pressure.escalationLevel,
+          operationalFacts,
+        }),
+      }
+    })(),
+  }))
 }
 
 function matchesSignalFilters(
@@ -388,14 +643,27 @@ async function resolveScopedLinkedSignalIds(
 
 async function resolveScopedAssignedItemIds(
   scope: PlannerScopeInput,
-  ownerUserIds: readonly string[] | undefined
+  input: {
+    ownerUserIds: readonly string[] | undefined
+    assignmentRoles:
+      | readonly PlannerNotificationRole[]
+      | readonly string[]
+      | undefined
+  }
 ): Promise<string[] | null> {
-  if (!hasFilterValues(ownerUserIds)) return null
+  const hasOwnerFilter = hasFilterValues(input.ownerUserIds)
+  const hasRoleFilter = hasFilterValues(input.assignmentRoles)
+  const ownerUserIds = hasOwnerFilter
+    ? Array.from(input.ownerUserIds as readonly string[])
+    : null
+  const assignmentRoles = hasRoleFilter
+    ? Array.from(input.assignmentRoles as readonly string[])
+    : null
 
-  if (scope.scopeKind === "personal") {
-    return ownerUserIds.includes(scope.ownerUserId)
-      ? null
-      : []
+  if (!hasOwnerFilter && !hasRoleFilter) return null
+
+  if (scope.scopeKind === "personal" && ownerUserIds && !assignmentRoles) {
+    return ownerUserIds.includes(scope.ownerUserId) ? null : []
   }
 
   const rows = await db
@@ -405,7 +673,12 @@ async function resolveScopedAssignedItemIds(
     .where(
       and(
         itemScopeWhere(scope),
-        inArray(plannerAssignment.subjectUserId, [...ownerUserIds])
+        ownerUserIds
+          ? inArray(plannerAssignment.subjectUserId, ownerUserIds)
+          : undefined,
+        assignmentRoles
+          ? inArray(plannerAssignment.role, assignmentRoles)
+          : undefined
       )
     )
 
@@ -454,6 +727,25 @@ export async function countPlannerForToday(
   return Number(rows[0]?.count ?? 0)
 }
 
+export async function countPlannerAutomationAttentionForOrg(
+  organizationId: string
+): Promise<number> {
+  const now = new Date()
+  const rows = await db
+    .select({
+      count: sql<number>`count(distinct ${orgNotificationNotice.linkedEntityId})`,
+    })
+    .from(orgNotificationNotice)
+    .where(
+      and(
+        eq(orgNotificationNotice.organizationId, organizationId),
+        plannerAutomationAttentionNoticeWhere(now)
+      )
+    )
+
+  return Number(rows[0]?.count ?? 0)
+}
+
 export async function listPlannerHighPressureForNexus(
   organizationId: string,
   limit = 5
@@ -496,9 +788,13 @@ export async function listPlannerHighPressureForNexus(
       .limit(limit * 2),
   ])
 
+  const enrichedItems = await applyOperationalFactsToItems(
+    itemRows.map(hydrateItem),
+    { scopeKind: "organization", organizationId }
+  )
+
   const merged = [
-    ...itemRows.map((row) => {
-      const hydrated = hydrateItem(row)
+    ...enrichedItems.map((row) => {
       return {
         kind: "item" as const,
         id: row.id,
@@ -509,8 +805,14 @@ export async function listPlannerHighPressureForNexus(
         dueAt: row.dueAt ?? row.scheduleStartAt,
         createdAt: row.createdAt,
         resolvedAt: row.resolvedAt,
-        displayPriority: hydrated.displayPriority,
-        pressureScore: hydrated.pressureScore,
+        displayPriority: row.displayPriority,
+        pressureScore: row.pressureScore,
+        urgency: row.pressure.urgency,
+        severity: row.pressure.severity,
+        impact: row.pressure.impact,
+        escalationLevel: row.pressure.escalationLevel,
+        operationalFacts: row.operationalFacts ?? null,
+        blockedState: row.blockedState ?? null,
       }
     }),
     ...signalRows.map((row) => {
@@ -527,6 +829,12 @@ export async function listPlannerHighPressureForNexus(
         resolvedAt: null,
         displayPriority: hydrated.displayPriority,
         pressureScore: hydrated.pressureScore,
+        urgency: row.urgency,
+        severity: row.severity,
+        impact: row.impact,
+        escalationLevel: row.escalationLevel,
+        operationalFacts: null,
+        blockedState: null,
       }
     }),
   ]
@@ -576,7 +884,10 @@ export async function listPlannerItemsForQueue(
 ): Promise<PlannerItemRow[]> {
   const [linkedItemIds, assignedItemIds] = await Promise.all([
     resolveScopedLinkedItemIds(scope, filter.linkedModule),
-    resolveScopedAssignedItemIds(scope, filter.ownerUserIds),
+    resolveScopedAssignedItemIds(scope, {
+      ownerUserIds: filter.ownerUserIds,
+      assignmentRoles: filter.assignmentRole,
+    }),
   ])
 
   if (linkedItemIds && linkedItemIds.length === 0) return []
@@ -609,10 +920,16 @@ export async function listPlannerItemsForQueue(
       desc(plannerItem.createdAt)
     )
 
+  const hydrated = await applyOperationalFactsToItems(
+    rows.map(hydrateItem),
+    scope
+  )
   return sortPlannerItems(
-    rows
-      .map(hydrateItem)
-      .filter((row) => matchesDisplayPriority(row.displayPriority, filter)),
+    hydrated.filter(
+      (row) =>
+        matchesDisplayPriority(row.displayPriority, filter) &&
+        matchesAutomationAttention(row, filter)
+    ),
     sortMode
   )
 }
@@ -624,7 +941,10 @@ export async function listPlannerItemsForToday(
 ): Promise<PlannerItemRow[]> {
   const [linkedItemIds, assignedItemIds] = await Promise.all([
     resolveScopedLinkedItemIds(scope, filter.linkedModule),
-    resolveScopedAssignedItemIds(scope, filter.ownerUserIds),
+    resolveScopedAssignedItemIds(scope, {
+      ownerUserIds: filter.ownerUserIds,
+      assignmentRoles: filter.assignmentRole,
+    }),
   ])
 
   if (linkedItemIds && linkedItemIds.length === 0) return []
@@ -661,10 +981,16 @@ export async function listPlannerItemsForToday(
     )
     .orderBy(asc(plannerItem.dueAt), asc(plannerItem.scheduleStartAt))
 
+  const hydrated = await applyOperationalFactsToItems(
+    rows.map(hydrateItem),
+    scope
+  )
   return sortPlannerItems(
-    rows
-      .map(hydrateItem)
-      .filter((row) => matchesDisplayPriority(row.displayPriority, filter)),
+    hydrated.filter(
+      (row) =>
+        matchesDisplayPriority(row.displayPriority, filter) &&
+        matchesAutomationAttention(row, filter)
+    ),
     sortMode
   )
 }
@@ -676,7 +1002,10 @@ export async function listPlannerItemsForTimeline(
 ): Promise<PlannerItemRow[]> {
   const [linkedItemIds, assignedItemIds] = await Promise.all([
     resolveScopedLinkedItemIds(scope, filter.linkedModule),
-    resolveScopedAssignedItemIds(scope, filter.ownerUserIds),
+    resolveScopedAssignedItemIds(scope, {
+      ownerUserIds: filter.ownerUserIds,
+      assignmentRoles: filter.assignmentRole,
+    }),
   ])
 
   if (linkedItemIds && linkedItemIds.length === 0) return []
@@ -704,10 +1033,16 @@ export async function listPlannerItemsForTimeline(
     )
     .orderBy(asc(plannerItem.scheduleStartAt), asc(plannerItem.dueAt))
 
+  const hydrated = await applyOperationalFactsToItems(
+    rows.map(hydrateItem),
+    scope
+  )
   return sortPlannerItems(
-    rows
-      .map(hydrateItem)
-      .filter((row) => matchesDisplayPriority(row.displayPriority, filter)),
+    hydrated.filter(
+      (row) =>
+        matchesDisplayPriority(row.displayPriority, filter) &&
+        matchesAutomationAttention(row, filter)
+    ),
     sortMode
   )
 }
@@ -717,7 +1052,10 @@ export async function listPlannerSignals(
   filter: PlannerViewFilterState = {},
   sortMode?: PlannerViewSortMode | null
 ): Promise<PlannerSignalRow[]> {
-  const linkedSignalIds = await resolveScopedLinkedSignalIds(scope, filter.linkedModule)
+  const linkedSignalIds = await resolveScopedLinkedSignalIds(
+    scope,
+    filter.linkedModule
+  )
   if (linkedSignalIds && linkedSignalIds.length === 0) return []
 
   const rows = await db
@@ -728,7 +1066,9 @@ export async function listPlannerSignals(
         signalScopeWhere(scope),
         hasFilterValues(filter.lifecycle)
           ? inArray(plannerSignal.lifecycle, [...filter.lifecycle])
-          : inArray(plannerSignal.lifecycle, [...PLANNER_ACTIVE_SIGNAL_LIFECYCLES]),
+          : inArray(plannerSignal.lifecycle, [
+              ...PLANNER_ACTIVE_SIGNAL_LIFECYCLES,
+            ]),
         filter.query
           ? or(
               ilike(plannerSignal.title, `%${filter.query}%`),
@@ -822,7 +1162,7 @@ export async function listPlannerViews(
     name: row.name,
     surface: row.surface as PlannerViewRow["surface"],
     filterState: normalizePlannerViewFilterState(row.filterState),
-    sortMode: row.sortMode,
+    sortMode: normalizePlannerViewSortMode(row.sortMode),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }))
@@ -853,6 +1193,283 @@ export async function listDuePlannerRemindersForOrganization(
       )
     )
     .orderBy(asc(plannerReminder.remindAt))
+}
+
+export async function listPlannerNotificationRecipientsForItem(input: {
+  scope: PlannerScopeInput
+  itemId: string
+  roles?: readonly PlannerNotificationRole[]
+}): Promise<string[]> {
+  const targets = await listPlannerNotificationTargetsForItem(input)
+
+  return [...new Set(targets.map((target) => target.userId))]
+}
+
+export async function listPlannerNotificationTargetsForItem(input: {
+  scope: PlannerScopeInput
+  itemId: string
+  roles?: readonly PlannerNotificationRole[]
+}): Promise<PlannerNotificationTarget[]> {
+  const roles = input.roles ?? ["assignee", "reviewer"]
+  const rows = await db
+    .select({
+      subjectUserId: plannerAssignment.subjectUserId,
+      role: plannerAssignment.role,
+    })
+    .from(plannerAssignment)
+    .innerJoin(plannerItem, eq(plannerAssignment.itemId, plannerItem.id))
+    .where(
+      and(
+        isNotNull(plannerAssignment.subjectUserId),
+        eq(plannerAssignment.itemId, input.itemId),
+        inArray(plannerAssignment.role, [...roles]),
+        input.scope.scopeKind === "organization"
+          ? eq(plannerItem.organizationId, input.scope.organizationId)
+          : eq(plannerItem.ownerUserId, input.scope.ownerUserId)
+      )
+    )
+
+  const targets: PlannerNotificationTarget[] = rows.flatMap((row) =>
+    row.subjectUserId &&
+    (row.role === "assignee" ||
+      row.role === "reviewer" ||
+      row.role === "escalation_owner")
+      ? [
+          {
+            userId: row.subjectUserId,
+            role: row.role as PlannerNotificationRole,
+          },
+        ]
+      : []
+  )
+
+  return [
+    ...new Map(
+      targets.map((target) => [`${target.role}:${target.userId}`, target])
+    ).values(),
+  ]
+}
+
+export async function getPlannerItemNotificationContext(input: {
+  scope: PlannerScopeInput
+  itemId: string
+}): Promise<{
+  id: string
+  title: string
+  description: string | null
+  displayPriority: PlannerDisplayPriority
+} | null> {
+  const [row] = await db
+    .select()
+    .from(plannerItem)
+    .where(and(eq(plannerItem.id, input.itemId), itemScopeWhere(input.scope)))
+    .limit(1)
+
+  if (!row) return null
+
+  const hydrated = hydrateItem(row)
+  return {
+    id: hydrated.id,
+    title: hydrated.title,
+    description: hydrated.description,
+    displayPriority: hydrated.displayPriority,
+  }
+}
+
+export async function getPlannerReminderAutomationContext(input: {
+  organizationId: string
+  reminderId: string
+}): Promise<PlannerAutomationContextRow | null> {
+  const [row] = await db
+    .select({
+      itemId: plannerItem.id,
+      title: plannerItem.title,
+      description: plannerItem.description,
+      urgency: plannerItem.urgency,
+      escalationLevel: plannerItem.escalationLevel,
+    })
+    .from(plannerReminder)
+    .innerJoin(plannerItem, eq(plannerReminder.itemId, plannerItem.id))
+    .where(
+      and(
+        orgItemWhere(input.organizationId),
+        eq(plannerReminder.id, input.reminderId)
+      )
+    )
+    .limit(1)
+
+  return row ?? null
+}
+
+export async function getPlannerRecurrenceAutomationContext(input: {
+  organizationId: string
+  recurrenceId: string
+}): Promise<PlannerAutomationContextRow | null> {
+  const [row] = await db
+    .select({
+      itemId: plannerItem.id,
+      title: plannerItem.title,
+      description: plannerItem.description,
+      urgency: plannerItem.urgency,
+      escalationLevel: plannerItem.escalationLevel,
+    })
+    .from(plannerRecurrence)
+    .innerJoin(plannerItem, eq(plannerRecurrence.itemId, plannerItem.id))
+    .where(
+      and(
+        orgItemWhere(input.organizationId),
+        eq(plannerRecurrence.id, input.recurrenceId)
+      )
+    )
+    .limit(1)
+
+  return row ?? null
+}
+
+export async function listPlannerBlockedItemsForEscalation(
+  limit = 100
+): Promise<PlannerBlockedEscalationRow[]> {
+  const rows = await db
+    .select({
+      itemId: plannerItem.id,
+      organizationId: plannerItem.organizationId,
+      title: plannerItem.title,
+      description: plannerItem.description,
+      blockedAt: plannerItem.blockedAt,
+      urgency: plannerItem.urgency,
+      impact: plannerItem.impact,
+      severity: plannerItem.severity,
+      escalationLevel: plannerItem.escalationLevel,
+      role: plannerAssignment.role,
+      subjectUserId: plannerAssignment.subjectUserId,
+    })
+    .from(plannerItem)
+    .leftJoin(plannerAssignment, eq(plannerAssignment.itemId, plannerItem.id))
+    .where(
+      and(
+        isNotNull(plannerItem.organizationId),
+        eq(plannerItem.lifecycle, "blocked"),
+        isNotNull(plannerItem.blockedAt)
+      )
+    )
+    .orderBy(asc(plannerItem.blockedAt))
+    .limit(limit * 4)
+
+  const grouped = new Map<
+    string,
+    Omit<PlannerBlockedEscalationRow, "operationalFacts">
+  >()
+
+  for (const row of rows) {
+    if (!row.organizationId || !row.blockedAt) continue
+
+    const current = grouped.get(row.itemId) ?? {
+      itemId: row.itemId,
+      organizationId: row.organizationId,
+      title: row.title,
+      description: row.description,
+      blockedAt: row.blockedAt,
+      urgency: row.urgency,
+      impact: row.impact,
+      severity: row.severity,
+      escalationLevel: row.escalationLevel,
+      escalationOwnerUserIds: [],
+      assigneeUserIds: [],
+      reviewerUserIds: [],
+    }
+
+    if (row.subjectUserId && row.role === "escalation_owner") {
+      current.escalationOwnerUserIds.push(row.subjectUserId)
+    }
+    if (row.subjectUserId && row.role === "assignee") {
+      current.assigneeUserIds.push(row.subjectUserId)
+    }
+    if (row.subjectUserId && row.role === "reviewer") {
+      current.reviewerUserIds.push(row.subjectUserId)
+    }
+
+    grouped.set(row.itemId, current)
+  }
+
+  const baseRows = [...grouped.values()].map((row) => ({
+    ...row,
+    escalationOwnerUserIds: [...new Set(row.escalationOwnerUserIds)],
+    assigneeUserIds: [...new Set(row.assigneeUserIds)],
+    reviewerUserIds: [...new Set(row.reviewerUserIds)],
+  }))
+  const factsByItem = await listPlannerOperationalFactsMap(
+    baseRows.map((row) => row.itemId)
+  )
+
+  return baseRows
+    .map((row) => ({
+      ...row,
+      operationalFacts: factsByItem.get(row.itemId) ?? {
+        blockingCount: 0,
+        blockedByCount: 0,
+        activeSignalCount: 0,
+        automationFailureCount: 0,
+        duplicateCount: 0,
+        assigneeCount: row.assigneeUserIds.length,
+        reviewerCount: row.reviewerUserIds.length,
+        escalationOwnerCount: row.escalationOwnerUserIds.length,
+      },
+    }))
+    .slice(0, limit)
+}
+
+export async function countPlannerBlockedForOrg(
+  organizationId: string
+): Promise<number> {
+  const rows = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(plannerItem)
+    .where(
+      and(orgItemWhere(organizationId), eq(plannerItem.lifecycle, "blocked"))
+    )
+
+  return Number(rows[0]?.count ?? 0)
+}
+
+export async function countPlannerEscalationOwnedBlockedForOrg(
+  organizationId: string
+): Promise<number> {
+  return countPlannerBlockedByAssignmentRoleForOrg(
+    organizationId,
+    "escalation_owner"
+  )
+}
+
+export async function countPlannerReviewerOwnedBlockedForOrg(
+  organizationId: string
+): Promise<number> {
+  return countPlannerBlockedByAssignmentRoleForOrg(organizationId, "reviewer")
+}
+
+export async function countPlannerAssigneeOwnedBlockedForOrg(
+  organizationId: string
+): Promise<number> {
+  return countPlannerBlockedByAssignmentRoleForOrg(organizationId, "assignee")
+}
+
+async function countPlannerBlockedByAssignmentRoleForOrg(
+  organizationId: string,
+  role: PlannerNotificationRole
+): Promise<number> {
+  const rows = await db
+    .select({ count: sql<number>`count(distinct ${plannerItem.id})` })
+    .from(plannerItem)
+    .innerJoin(plannerAssignment, eq(plannerAssignment.itemId, plannerItem.id))
+    .where(
+      and(
+        orgItemWhere(organizationId),
+        eq(plannerItem.lifecycle, "blocked"),
+        eq(plannerAssignment.role, role),
+        isNotNull(plannerAssignment.subjectUserId)
+      )
+    )
+
+  return Number(rows[0]?.count ?? 0)
 }
 
 export async function listDuePlannerRecurrencesForOrganization(
@@ -975,9 +1592,12 @@ export async function getOrbitPageData(
       : []
   const activeView =
     activeViewSlug != null
-      ? savedViews.find((view) => view.slug === activeViewSlug) ?? null
+      ? (savedViews.find((view) => view.slug === activeViewSlug) ?? null)
       : null
-  const activeFilter = mergePlannerViewFilterStates(activeView?.filterState, filter)
+  const activeFilter = mergePlannerViewFilterStates(
+    activeView?.filterState,
+    filter
+  )
   const activeSortMode = requestedSortMode ?? activeView?.sortMode ?? null
 
   const [summary, items, signals, sessions, links] = await Promise.all([
@@ -1012,7 +1632,8 @@ export async function getOrbitPageData(
 
 export async function getPlannerItemDetail(
   scope: PlannerScopeInput,
-  itemId: string
+  itemId: string,
+  viewerUserId?: string | null
 ): Promise<PlannerItemDetail | null> {
   const [itemRow] = await db
     .select()
@@ -1021,6 +1642,10 @@ export async function getPlannerItemDetail(
     .limit(1)
 
   if (!itemRow) return null
+  const [hydratedItem] = await applyOperationalFactsToItems(
+    [hydrateItem(itemRow)],
+    scope
+  )
 
   const [
     assignments,
@@ -1033,6 +1658,7 @@ export async function getPlannerItemDetail(
     attachments,
     activity,
     sessions,
+    notices,
   ] = await Promise.all([
     db
       .select()
@@ -1107,10 +1733,18 @@ export async function getPlannerItemDetail(
       .leftJoin(plannerItem, eq(plannerSession.itemId, plannerItem.id))
       .where(eq(plannerSession.itemId, itemId))
       .orderBy(desc(plannerSession.startedAt)),
+    scope.scopeKind === "organization" && viewerUserId
+      ? listActiveOrgNotificationsForLinkedEntity({
+          organizationId: scope.organizationId,
+          userId: viewerUserId,
+          linkedEntityType: "planner_item",
+          linkedEntityId: itemId,
+        })
+      : Promise.resolve([]),
   ])
 
   return {
-    ...hydrateItem(itemRow),
+    ...hydratedItem,
     assignments: assignments.map((row) => ({
       id: row.id,
       role: row.role as PlannerItemDetail["assignments"][number]["role"],
@@ -1157,7 +1791,7 @@ export async function getPlannerItemDetail(
     links: links.map(hydrateLinkRow),
     comments,
     attachments,
-    activity,
+    activity: activity.map(hydrateActivityRow),
     sessions: sessions.map(({ session, itemTitle }) => ({
       id: session.id,
       itemId: session.itemId,
@@ -1172,6 +1806,7 @@ export async function getPlannerItemDetail(
       updatedAt: session.updatedAt,
       itemTitle: itemTitle ?? null,
     })),
+    notices,
   }
 }
 
@@ -1226,6 +1861,6 @@ export async function getPlannerSignalDetail(
     ...hydrateSignal(signalRow),
     relatedItems: relatedItems.map(hydrateRelationRow),
     links: links.map(hydrateLinkRow),
-    activity,
+    activity: activity.map(hydrateActivityRow),
   }
 }

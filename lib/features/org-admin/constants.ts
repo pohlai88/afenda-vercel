@@ -125,6 +125,33 @@ export const ORG_EVENT_TYPES = [
   "erp.hrm.statutory.ea.published",
   "erp.hrm.payroll.run.posted",
   "erp.hrm.payroll.period.finalized",
+  /**
+   * Phase 3P + 3Q — system-observed compliance aging crossings.
+   * Fired by the `hrm-compliance-aging-watch` cron each time an
+   * evidence row crosses one of three severity thresholds:
+   *
+   *   - `detected`   → STUCK_DAYS      (default  7 days)
+   *   - `escalated`  → ESCALATED_DAYS  (default 14 days)
+   *   - `critical`   → CRITICAL_DAYS   (default 30 days)
+   *
+   * Each tier is an independent subscription. Orgs typically wire
+   * the digest channel to `detected`, the on-call rotation to
+   * `escalated`, and the PagerDuty / regulator-incident workflow
+   * to `critical` — so escalation discipline matches operational
+   * severity rather than collapsing onto one event.
+   *
+   * Idempotent per evidence row × tier — exactly one delivery per
+   * organization per evidence row per tier, ever (anchored on the
+   * Phase 3O audit dedup that gates the fanout).
+   *
+   * Event payload is operational facets only (severity tier, age,
+   * pack type, period id, rule pack version) — never payroll
+   * payload bytes, never PII. Receivers are expected to page HR
+   * managers, raise a Slack incident, or open a Jira ticket.
+   */
+  "erp.hrm.compliance.aging.detected",
+  "erp.hrm.compliance.aging.escalated",
+  "erp.hrm.compliance.aging.critical",
 ] as const
 
 const EVENT_TYPE_SET = new Set<string>(ORG_EVENT_TYPES)

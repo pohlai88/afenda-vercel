@@ -48,6 +48,11 @@ export type NexusPressureSeverity =
   | "critical"
   | "emergency"
 
+export type OperationalStageBadge = {
+  label: string
+  tone: "info" | "warning" | "critical"
+}
+
 export type OperationalPressureItem = {
   id: string
   severity: NexusPressureSeverity
@@ -56,6 +61,7 @@ export type OperationalPressureItem = {
   surface: string
   reason: string
   evidenceCount: number
+  stageBadge?: OperationalStageBadge | null
   primaryAction: {
     label: string
     /** Locale-internal href the Nexus shell navigates to when the action fires. */
@@ -65,8 +71,12 @@ export type OperationalPressureItem = {
 
 export type PriorityLaneKind =
   | "approvals"
+  | "automation_attention"
+  | "assignee_blockers"
   | "evidence_gaps"
   | "vendor_blockers"
+  | "review_blockers"
+  | "escalation_pressure"
   | "inventory_exceptions"
   | "cashflow_interruptions"
   | "compliance_deadlines"

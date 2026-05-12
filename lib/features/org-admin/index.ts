@@ -31,6 +31,9 @@ export {
   type OrgAdminEventNamespace,
   type OrgAdminNavItem,
   type OrgAdminNavKey,
+  type OrgAdminRailPressureBadge,
+  type OrgAdminRailPressureMap,
+  type OrgAdminRailPressureTone,
   type OrgEventDeliveryState,
   type OrgEventDeliverySummary,
   type OrgEventEndpointSummary,
@@ -44,6 +47,12 @@ export {
 } from "./types"
 
 export { buildOrgAdminRailSlots } from "./data/org-admin-rail-slots"
+export { deriveOrgAdminInbox } from "./data/org-admin-rail-inbox.shared"
+export type {
+  OrgAdminInboxDeriverInput,
+  OrgAdminInboxHrefMap,
+  OrgAdminInboxLabelResolver,
+} from "./data/org-admin-rail-inbox.shared"
 export { OrgAuditEventsView } from "./components/org-audit-events-view"
 export { OrgAdminSimulationToolbar } from "./components/org-admin-simulation-toolbar"
 export { OrganizationAdminClient } from "./components/organization-admin-client"
