@@ -20,10 +20,17 @@
  *   Resident: standard progressive rates + reliefs apply.
  *   Non-resident: flat 30% on gross income (no reliefs). Simplified here.
  *
- * NOTE: This is a simplified implementation covering the core computerised
- * method. Full LHDN implementation includes TP1/TP3 supplementary deductions,
- * rebates, and specific category codes (K0–K15). These extensions are added as
- * the payroll module matures but the core band computation is golden-tested here.
+ * TP1 / TP3 (partial):
+ *   - `tp1AdditionalReliefMonthly` — Borang TP1-style additional reliefs,
+ *     modelled as a recurring MYR/month amount added to the annual relief pool
+ *     (annualised as monthly × remaining months including this month).
+ *   - `tp3AdditionalMonthlyDeductionFromRemuneration` — Borang TP3-style
+ *     recurring deductions from remuneration for MTD purposes only; reduces the
+ *     monthly gross used in the annual remuneration projection (does not change
+ *     EPF/SOCSO bases in the rule pack).
+ *
+ * Full LHDN fidelity still requires category codes (K0–K15), rebates, and
+ * one-off TP1/TP3 amounts; those ship incrementally with golden tests.
  */
 
 export const PCB_V2026_01_CODE = "MY-PCB-2026-01" as const
@@ -78,6 +85,16 @@ export type PcbInput = {
   readonly epfEmployeeThisMonth: number
   /** Accumulated EPF employee paid this year before this month (for annual relief). */
   readonly ytdEpfEmployee: number
+  /**
+   * MYR/month — additional TP1-style reliefs (default 0).
+   * Annualised as `value × remainingMonths` for resident MTD only.
+   */
+  readonly tp1AdditionalReliefMonthly?: number
+  /**
+   * MYR/month — additional TP3-style deduction from remuneration for PCB
+   * projection only (default 0). Applied before annualising this month's pay.
+   */
+  readonly tp3AdditionalMonthlyDeductionFromRemuneration?: number
 }
 
 /**
@@ -96,27 +113,40 @@ export function computePcbV202601(input: PcbInput): number {
     ytdEpfEmployee,
   } = input
 
+  const tp1Monthly = Math.max(0, input.tp1AdditionalReliefMonthly ?? 0)
+  const tp3Monthly = Math.max(
+    0,
+    input.tp3AdditionalMonthlyDeductionFromRemuneration ?? 0
+  )
+  const netMonthlyGross = Math.max(0, monthlyGross - tp3Monthly)
+
   const remainingMonths = 13 - month // months left including this month
 
-  // Non-resident: flat 30%, no reliefs
+  // Non-resident: flat 30%, no reliefs (TP3 reduces projected gross; TP1 N/A)
   if (residency === "non_resident") {
-    const annualGross = ytdRemuneration + monthlyGross * remainingMonths
+    const annualGross =
+      ytdRemuneration + netMonthlyGross * remainingMonths
     const annualTax = annualGross * NON_RESIDENT_FLAT_RATE
     const monthly = (annualTax - ytdPcbPaid) / remainingMonths
     return Math.max(0, Math.round(monthly * 100) / 100)
   }
 
   // Resident: progressive bands + reliefs
-  const annualGross = ytdRemuneration + monthlyGross * remainingMonths
+  const annualGross = ytdRemuneration + netMonthlyGross * remainingMonths
 
   // EPF relief: actual EPF paid this year + this month, capped at RM4,000
   const totalEpfEmployee =
     ytdEpfEmployee + epfEmployeeThisMonth * remainingMonths
   const epfRelief = Math.min(totalEpfEmployee, EPF_RELIEF_MAX_2026)
 
+  const tp1ReliefAnnualised = tp1Monthly * remainingMonths
+
   const chargeableIncome = Math.max(
     0,
-    annualGross - INDIVIDUAL_RELIEF_2026 - epfRelief
+    annualGross -
+      INDIVIDUAL_RELIEF_2026 -
+      epfRelief -
+      tp1ReliefAnnualised
   )
 
   const annualTax = computeProgressiveTax(chargeableIncome)

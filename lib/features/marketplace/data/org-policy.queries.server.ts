@@ -13,6 +13,8 @@ import type {
   PolicyState,
 } from "../types"
 
+import { isCapabilityRegistryRelationMissing } from "./capability-registry-read-fallback.shared"
+
 /**
  * Capability Registry — read path for `org_capability_policy`.
  *
@@ -49,19 +51,34 @@ function rowToDto(row: {
   }
 }
 
+type OrgPolicySelectRow = {
+  id: string
+  capabilityId: string
+  state: string
+  audience: string
+  updatedBy: string
+  updatedAt: Date
+}
+
 export const listOrgCapabilityPolicy = cache(
   async (organizationId: string): Promise<OrgCapabilityPolicyRow[]> => {
-    const rows = await db
-      .select({
-        id: orgCapabilityPolicy.id,
-        capabilityId: orgCapabilityPolicy.capabilityId,
-        state: orgCapabilityPolicy.state,
-        audience: orgCapabilityPolicy.audience,
-        updatedBy: orgCapabilityPolicy.updatedBy,
-        updatedAt: orgCapabilityPolicy.updatedAt,
-      })
-      .from(orgCapabilityPolicy)
-      .where(eq(orgCapabilityPolicy.organizationId, organizationId))
+    let rows: OrgPolicySelectRow[]
+    try {
+      rows = await db
+        .select({
+          id: orgCapabilityPolicy.id,
+          capabilityId: orgCapabilityPolicy.capabilityId,
+          state: orgCapabilityPolicy.state,
+          audience: orgCapabilityPolicy.audience,
+          updatedBy: orgCapabilityPolicy.updatedBy,
+          updatedAt: orgCapabilityPolicy.updatedAt,
+        })
+        .from(orgCapabilityPolicy)
+        .where(eq(orgCapabilityPolicy.organizationId, organizationId))
+    } catch (err) {
+      if (isCapabilityRegistryRelationMissing(err)) return []
+      throw err
+    }
 
     const out: OrgCapabilityPolicyRow[] = []
     for (const row of rows) {
@@ -82,14 +99,20 @@ export async function countOrgPoliciesByCapability(input: {
   capabilityId: string
 }): Promise<number> {
   const allowedOrMandatory: SQL = sql`${orgCapabilityPolicy.state} IN ('allowed', 'mandatory')`
-  const rows = await db
-    .selectDistinct({ organizationId: orgCapabilityPolicy.organizationId })
-    .from(orgCapabilityPolicy)
-    .where(
-      and(
-        eq(orgCapabilityPolicy.capabilityId, input.capabilityId),
-        allowedOrMandatory
+  let rows: { organizationId: string }[]
+  try {
+    rows = await db
+      .selectDistinct({ organizationId: orgCapabilityPolicy.organizationId })
+      .from(orgCapabilityPolicy)
+      .where(
+        and(
+          eq(orgCapabilityPolicy.capabilityId, input.capabilityId),
+          allowedOrMandatory
+        )
       )
-    )
+  } catch (err) {
+    if (isCapabilityRegistryRelationMissing(err)) return 0
+    throw err
+  }
   return rows.length
 }

@@ -1,6 +1,8 @@
 import "server-only"
 
+import { indonesia2026_01RulePack } from "./rule-packs/indonesia/id-2026-01.rule-pack"
 import { malaysia2026_01RulePack } from "./rule-packs/malaysia/my-2026-01.rule-pack"
+import { singapore2026_01RulePack } from "./rule-packs/singapore/sg-2026-01.rule-pack"
 
 /**
  * Per-statutory versioned tables — each has its own effective period (Malaysia:
@@ -106,6 +108,18 @@ export type PayrollComputeInput = {
    * (MYR string). Combined with this month for annual EPF relief cap.
    */
   readonly ytdEpfEmployee: string | null
+
+  /**
+   * Malaysia only — Borang TP1-style additional relief (MYR/month), persisted on
+   * `hrm_payroll_profile.statutoryProfileExtras`. Omitted treated as zero.
+   */
+  readonly pcbTp1AdditionalReliefMonthly?: string | null
+
+  /**
+   * Malaysia only — Borang TP3-style additional deduction from remuneration for
+   * PCB projection (MYR/month). Omitted treated as zero.
+   */
+  readonly pcbTp3AdditionalDeductionMonthly?: string | null
 }
 
 export type ContributionResult = {
@@ -139,6 +153,7 @@ export type StatutoryPackType =
   | "socso_monthly"
   | "eis_monthly"
   | "pcb_monthly"
+  | "hrdf_monthly"
   | "ea_annual"
   | "borang_e_annual"
 
@@ -193,9 +208,11 @@ export interface PayrollRulePack {
   ): StatutoryPackPayload
 }
 
-/** Registered packs — Malaysia MY-2026-01 registered for Phase 3B. */
+/** Registered packs — Malaysia baseline + Phase 5 SEA country packs. */
 export const RULE_PACK_REGISTRY: readonly PayrollRulePack[] = [
+  indonesia2026_01RulePack,
   malaysia2026_01RulePack,
+  singapore2026_01RulePack,
 ]
 
 export function resolveRulePack(

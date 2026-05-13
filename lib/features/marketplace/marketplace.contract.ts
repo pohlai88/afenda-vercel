@@ -1,4 +1,4 @@
-import { ORG_ADMIN_EVENT_NAMESPACES } from "#features/org-admin"
+import { ORG_ADMIN_EVENT_NAMESPACES } from "#features/org-admin/client"
 
 /**
  * Capability Registry — public audit + category contract.

@@ -6,8 +6,9 @@ import { Button } from "#components/ui/button"
 import { Link } from "#i18n/navigation"
 
 /**
- * Admin workbench 404 — rendered inside OrgAdminWorkbenchShell (sidebar
- * remains mounted) when notFound() fires within the admin segment.
+ * Admin 404 — rendered inside nested `AppSubLayout` (org admin rail)
+ * while the parent org layout keeps the workbench shell mounted when
+ * `notFound()` fires within the admin segment.
  *
  * Uses useParams() to resolve orgSlug for contextual recovery links since
  * not-found.tsx cannot receive params as props.

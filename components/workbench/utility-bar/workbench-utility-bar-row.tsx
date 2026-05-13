@@ -11,11 +11,10 @@ import {
 import { APP_LOCALES } from "#lib/i18n/locales.shared"
 
 import { WorkbenchCommandTrigger } from "./workbench-command-trigger"
-import { WorkbenchUtilityLeftRail } from "./workbench-utility-left-rail"
-import { WorkbenchUtilityRightRail } from "./workbench-utility-right-rail"
-import { WorkbenchUtilityWidgetMigrator } from "./workbench-utility-widget-migrator"
+import { WorkbenchLeftUtilityBar } from "./left-utility-bar/workbench-left-utility-bar"
+import { WorkbenchRightUtilityBar } from "./right-utility-bar/workbench-right-utility-bar"
 
-export type NexusUtilityBarRowProps = {
+export type WorkbenchUtilityBarRowProps = {
   orgSlug: string
   orgName: string
   orgId: string
@@ -31,12 +30,6 @@ export type NexusUtilityBarRowProps = {
  * own a customize sheet anymore (those now live under
  * `/{locale}/marketplace`).
  *
- * One-shot legacy migration is delegated to
- * `WorkbenchUtilityWidgetMigrator`, a hidden client island that
- * drains the old `localStorage` payload into per-user DB rows
- * exactly once and clears the key. After v1, the migrator can
- * shrink to `null` and the localStorage code path is gone.
- *
  * Wrapped in Suspense from {@link WorkbenchUtilityBar}.
  */
 export async function WorkbenchUtilityBarRow({
@@ -45,7 +38,7 @@ export async function WorkbenchUtilityBarRow({
   orgId,
   userId,
   userEmail,
-}: NexusUtilityBarRowProps) {
+}: WorkbenchUtilityBarRowProps) {
   const [userOrgs, orgPolicy, userPreferences] = await Promise.all([
     listUserOrganizationsForSwitcher(userId),
     listOrgCapabilityPolicy(orgId),
@@ -53,6 +46,7 @@ export async function WorkbenchUtilityBarRow({
   ])
 
   const currentOrg = userOrgs.find((o) => o.id === orgId)
+  const displayOrgName = currentOrg?.name?.trim() || orgName
   const showOrgAdminSettings =
     currentOrg?.role === "admin" || currentOrg?.role === "owner"
 
@@ -70,29 +64,36 @@ export async function WorkbenchUtilityBarRow({
     userPreferences,
   })
   const visibleRightIds = resolved.visibleIds.filter(
-    isInstalledNexusRightUtilityWidgetId
-  ) as NexusRightUtilityWidgetId[]
+    (id): id is NexusRightUtilityWidgetId =>
+      id !== "right.console" && isInstalledNexusRightUtilityWidgetId(id)
+  )
 
   return (
-    <>
-      <div className="grid h-(--af-l1-height) grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
-        <WorkbenchUtilityLeftRail orgSlug={orgSlug} orgName={orgName} />
-
-        <div className="flex min-w-0 justify-center px-2 sm:px-4">
-          <WorkbenchCommandTrigger />
-        </div>
-
-        <WorkbenchUtilityRightRail
+    <div className="relative flex h-(--af-l1-height) items-center justify-between gap-2">
+      <div className="flex min-w-0 flex-1 items-center justify-start">
+        <WorkbenchLeftUtilityBar
           orgSlug={orgSlug}
-          orgName={orgName}
+          orgName={displayOrgName}
+          orgId={orgId}
+          userOrgs={userOrgs}
+          showOrgLoadingBay={userOrgs.length > 1}
+        />
+      </div>
+
+      <div className="pointer-events-none absolute top-1/2 left-1/2 flex w-full -translate-x-1/2 -translate-y-1/2 justify-center px-14 sm:px-24">
+        <WorkbenchCommandTrigger className="pointer-events-auto" />
+      </div>
+
+      <div className="flex min-w-0 flex-1 items-center justify-end">
+        <WorkbenchRightUtilityBar
+          orgSlug={orgSlug}
+          orgName={displayOrgName}
           orgId={orgId}
           userEmail={userEmail}
-          userOrgs={userOrgs}
           showOrgAdminSettings={showOrgAdminSettings}
           visibleRightIds={visibleRightIds}
         />
       </div>
-      <WorkbenchUtilityWidgetMigrator />
-    </>
+    </div>
   )
 }

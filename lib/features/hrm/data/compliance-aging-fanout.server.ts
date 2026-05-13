@@ -66,15 +66,6 @@ export const HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES: Readonly<
 } as const
 
 /**
- * Phase 3P legacy alias — Phase 3P shipped critical-only. Phase 3Q
- * generalizes the API to all three tiers, but the original constant
- * is preserved so downstream code, dashboards, and tests that pinned
- * the critical-only contract continue to compile.
- */
-export const HRM_COMPLIANCE_AGING_CRITICAL_EVENT_TYPE =
-  HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES.critical
-
-/**
  * Reserved keys that MUST NEVER appear in the fanout envelope payload.
  * These are the PII / payroll byte categories the Phase 3O audit
  * doctrine already forbids in `iam_audit_event.metadata`; the gate is

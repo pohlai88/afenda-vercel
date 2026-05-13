@@ -2,6 +2,7 @@ import "server-only"
 
 import { z } from "zod"
 
+import { isLynxOperatorOrbitToolsEnabled } from "#flags"
 import {
   countContactsForOrganization,
   listRecentContactsForOrganization,
@@ -16,6 +17,7 @@ import { countActiveImportJobsForOrganization } from "#features/org-admin/server
 import { LYNX_TRUTH_TOP_K } from "../constants"
 import type { LynxOperatorEvidenceHit } from "../types"
 import type { LynxOperatorToolRegistry } from "./operator-tool-registry.server"
+import { createLynxOrbitOperatorTools } from "./operator-orbit-tools.server"
 
 function excerptBody(body: string, maxLen: number): string {
   if (body.length <= maxLen) return body
@@ -57,11 +59,13 @@ function toEvidenceHit(row: {
 
 /**
  * Tenant-bound governed registry — `organizationId` must come from the session, never from model args.
- * Tool order and ids must match `LYNX_OPERATOR_TOOL_IDS` (enforced by unit tests).
+ * When Orbit tools are enabled, order and ids must match `LYNX_OPERATOR_TOOL_IDS` (enforced by unit tests).
  */
 export function createLynxOperatorToolRegistry(
   organizationId: string
 ): LynxOperatorToolRegistry {
+  const orbitToolsEnabled = isLynxOperatorOrbitToolsEnabled()
+
   return [
     {
       id: "org_contact_count",
@@ -175,5 +179,6 @@ export function createLynxOperatorToolRegistry(
         return { activeImportJobs }
       },
     },
+    ...(orbitToolsEnabled ? createLynxOrbitOperatorTools(organizationId) : []),
   ]
 }

@@ -100,7 +100,7 @@ vi.mock("#i18n/navigation", () => ({
   ),
 }))
 
-import { WorkbenchUtilityNotifications } from "#components/workbench/utility-bar/workbench-utility-notifications"
+import { WorkbenchUtilityNotifications } from "#components/workbench/utility-bar/right-utility-bar/workbench-utility-notifications"
 import { TooltipProvider } from "#components/ui/tooltip"
 
 function jsonResponse(body: unknown, status = 200) {

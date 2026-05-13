@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest"
 
 // Bypass the `#components/workbench` barrel — see neighboring
 // `org-admin-rail-inbox.test.ts` for the rationale.
-import { parseWorkbenchRailSlotsData } from "#components/workbench/rail/workbench-rail.schema"
+import { parseWorkbenchRailSlotsData } from "#components/workbench/left-nav-rail/workbench-rail.schema"
 import type {
   WorkbenchRailInbox,
   WorkbenchRailPin,
   WorkbenchRailRecent,
   WorkbenchRailView,
-} from "#components/workbench/rail/workbench-rail.types"
+} from "#components/workbench/left-nav-rail/workbench-rail.schema"
 
 import { buildOrgAdminRailSlots } from "#features/org-admin/data/org-admin-rail-slots"
 
@@ -65,8 +65,8 @@ const INBOX: WorkbenchRailInbox = {
 describe("buildOrgAdminRailSlots — Phase 3d memory slots", () => {
   it("emits identity + nav even when no memory data is provided", () => {
     const slots = buildOrgAdminRailSlots({ orgSlug: "acme", orgName: "Acme" })
-    expect(slots.identity.primary).toBe("Acme")
-    expect(slots.identity.secondary).toBe("acme")
+    expect(slots.identity?.primary).toBe("Acme")
+    expect(slots.identity?.secondary).toBe("acme")
     expect(slots.nav).toHaveLength(1)
     expect(slots.nav[0]?.items.some((i) => i.id === "overview")).toBe(true)
     expect(slots.inbox).toBeUndefined()
@@ -146,11 +146,7 @@ describe("buildOrgAdminRailSlots — Phase 3d memory slots", () => {
       orgName: "Acme",
       pinned: ordered,
     })
-    expect(slots.pinned?.map((p) => p.id)).toEqual([
-      "pin-a",
-      "pin-b",
-      "pin-c",
-    ])
+    expect(slots.pinned?.map((p) => p.id)).toEqual(["pin-a", "pin-b", "pin-c"])
   })
 
   it("preserves nav badges from the existing `pressure` map", () => {

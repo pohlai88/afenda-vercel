@@ -44,13 +44,13 @@ CREATE TABLE IF NOT EXISTS "hrm_claim_type" (
   "createdByUserId"          text,
   "updatedByUserId"          text
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX "hrm_claim_type_org_code_uidx"
   ON "hrm_claim_type"("organizationId", "code");
-
+--> statement-breakpoint
 CREATE INDEX "hrm_claim_type_org_active_idx"
   ON "hrm_claim_type"("organizationId", "isActive");
-
+--> statement-breakpoint
 -- ---------------------------------------------------------------------------
 -- 2. hrm_claim — claim row (state machine)
 -- ---------------------------------------------------------------------------
@@ -87,16 +87,16 @@ CREATE TABLE IF NOT EXISTS "hrm_claim" (
   "createdByUserId"          text,
   "updatedByUserId"          text
 );
-
+--> statement-breakpoint
 CREATE INDEX "hrm_claim_org_employee_state_idx"
   ON "hrm_claim"("organizationId", "employeeId", "state");
-
+--> statement-breakpoint
 CREATE INDEX "hrm_claim_org_state_claim_date_idx"
   ON "hrm_claim"("organizationId", "state", "claimDate");
-
+--> statement-breakpoint
 CREATE INDEX "hrm_claim_org_paid_line_idx"
   ON "hrm_claim"("organizationId", "paidByPayrollLineId");
-
+--> statement-breakpoint
 -- ---------------------------------------------------------------------------
 -- 3. hrm_claim_evidence — claim ↔ hrm_document linkage
 -- ---------------------------------------------------------------------------
@@ -114,27 +114,27 @@ CREATE TABLE IF NOT EXISTS "hrm_claim_evidence" (
   "uploadedAt"               timestamp   NOT NULL DEFAULT now(),
   "createdAt"                timestamp   NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX "hrm_claim_evidence_claim_document_uidx"
   ON "hrm_claim_evidence"("claimId", "documentId");
-
+--> statement-breakpoint
 CREATE INDEX "hrm_claim_evidence_org_claim_idx"
   ON "hrm_claim_evidence"("organizationId", "claimId");
-
+--> statement-breakpoint
 -- ---------------------------------------------------------------------------
 -- 4. hrm_payroll_line.claimId — payroll-line ↔ claim bridge
 -- ---------------------------------------------------------------------------
 
 ALTER TABLE "hrm_payroll_line"
   ADD COLUMN IF NOT EXISTS "claimId" text;
-
+--> statement-breakpoint
 ALTER TABLE "hrm_payroll_line"
   ADD CONSTRAINT "hrm_payroll_line_claim_id_fk"
   FOREIGN KEY ("claimId") REFERENCES "hrm_claim"("id") ON DELETE SET NULL;
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "hrm_payroll_line_claim_id_idx"
   ON "hrm_payroll_line"("claimId");
-
+--> statement-breakpoint
 -- ---------------------------------------------------------------------------
 -- 5. hrm_benefit (STUB) — per-org benefit catalog
 -- ---------------------------------------------------------------------------
@@ -152,13 +152,13 @@ CREATE TABLE IF NOT EXISTS "hrm_benefit" (
   "createdByUserId"          text,
   "updatedByUserId"          text
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX "hrm_benefit_org_code_uidx"
   ON "hrm_benefit"("organizationId", "code");
-
+--> statement-breakpoint
 CREATE INDEX "hrm_benefit_org_active_idx"
   ON "hrm_benefit"("organizationId", "isActive");
-
+--> statement-breakpoint
 -- ---------------------------------------------------------------------------
 -- 6. hrm_benefit_enrollment (STUB) — employee ↔ benefit
 -- ---------------------------------------------------------------------------
@@ -178,9 +178,9 @@ CREATE TABLE IF NOT EXISTS "hrm_benefit_enrollment" (
   "createdByUserId"          text,
   "updatedByUserId"          text
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX "hrm_benefit_enrollment_org_benefit_employee_uidx"
   ON "hrm_benefit_enrollment"("organizationId", "benefitId", "employeeId");
-
+--> statement-breakpoint
 CREATE INDEX "hrm_benefit_enrollment_org_employee_idx"
   ON "hrm_benefit_enrollment"("organizationId", "employeeId");

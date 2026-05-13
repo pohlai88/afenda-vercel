@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Route } from "next"
 import { getTranslations } from "next-intl/server"
 
 import {
@@ -55,6 +55,9 @@ export default async function AccountIdentityPage({
         linkedAccounts={linkedAccounts}
         enabledProviders={enabledProviders}
         hasCredential={hasCredential}
+        identityPath={"/account/identity" as Route}
+        securityPath={"/account/security" as Route}
+        dashboardPath={"/o" as Route}
       />
     </WorkbenchSurface>
   )

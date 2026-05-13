@@ -11,8 +11,8 @@ import type { UserOrgSummary } from "../types"
 /**
  * Returns all organizations the given user is a member of,
  * including the user's role in each organization.
- * Used by the dashboard global top nav control menu, command palette, and the
- * `/console` cross-company landing page.
+ * Used by the workbench org switcher, command palette, and the `/console`
+ * cross-company landing page.
  *
  * Wrapped in `cache` so parallel RSC slots (`GlobalTopNavBarControlMenuSlot`,
  * `CommandPaletteSlot`) share one DB round-trip per request.

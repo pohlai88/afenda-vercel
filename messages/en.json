@@ -180,15 +180,20 @@
       "collapseSidebar": "Collapse sidebar",
       "navPanel": {
         "brandHome": "Go to dashboard home",
-        "open": "Open dashboard navigation",
-        "title": "Workspace navigation",
+        "open": "Open app launcher",
+        "title": "App launcher",
         "description": "Move through modules and governance surfaces without leaving the current workspace.",
+        "nexus": "Nexus",
+        "nexusDescription": "Current workspace home",
+        "organizations": "Organizations",
+        "organizationsDescription": "Switch company or workspace",
+        "modules": "Modules",
         "openModule": "Open module",
         "openSection": "Open section"
       },
       "controlMenu": {
         "trigger": "Open control menu",
-        "triggerTooltip": "Account and workspace — open personal settings, information, security, switch organization, open admin, customize the utility bar, or sign out.",
+        "triggerTooltip": "Account and workspace — open personal settings, information, security, open admin, or sign out.",
         "triggerShort": "Control",
         "utilities": "Utilities",
         "detailsOpen": "Open details panel",
@@ -197,17 +202,22 @@
         "admin": "Admin workbench",
         "account": "Personal settings",
         "information": "Information",
-        "switchOrg": "Switch organization",
-        "organizations": "Organizations",
         "current": "Current",
         "security": "Security",
         "signOut": "Sign out"
       },
       "orgSwitcher": {
         "trigger": "Switch organization",
+        "triggerTooltip": "Choose which organization you are working in. Your next action uses this organization’s data and audit scope.",
+        "menuHeading": "Your organizations",
         "search": "Search organizations…",
         "empty": "No organizations found.",
-        "open": "Open"
+        "open": "Open",
+        "role": {
+          "member": "Member",
+          "admin": "Admin",
+          "owner": "Owner"
+        }
       },
       "inspector": {
         "toggleDetails": "Details panel",
@@ -624,9 +634,19 @@
         "createdItem": "Execution item created.",
         "promotedSignal": "Signal promoted to execution.",
         "updatedItem": "Execution item updated.",
+        "updatedSignal": "Signal updated.",
+        "batchApplied": "Batch action applied.",
+        "commentAdded": "Comment added.",
+        "attachmentAdded": "Attachment added.",
+        "noticeRead": "Notice marked as read.",
+        "noticeAcknowledged": "Notice acknowledged.",
+        "noticeClosed": "Notice closed.",
+        "savedView": "Saved view updated.",
+        "deletedView": "Saved view deleted.",
         "startedSession": "Session started.",
         "stoppedSession": "Session stopped.",
-        "invalidInput": "Orbit could not process that request."
+        "invalidInput": "Orbit could not process that request.",
+        "featureDisabled": "This operator capability is disabled by feature policy."
       },
       "labels": {
         "state": "State",
@@ -643,6 +663,50 @@
         "comments": "Comments",
         "assignments": "Assignments",
         "sessions": "Sessions"
+      },
+      "commandQuickLinks": {
+        "blockedExecution": {
+          "label": "Blocked execution",
+          "description": "Focus the active queue on blocked work."
+        },
+        "automationAttention": {
+          "label": "Automation attention",
+          "description": "Review reminder and recurrence failures awaiting intervention."
+        },
+        "signalsAwaitingTriage": {
+          "label": "Signals awaiting triage",
+          "description": "Capture, suppress, or promote operational signals."
+        }
+      },
+      "shortcuts": {
+        "hint": "Keyboard: j next · k previous · Esc clear detail · / focus search · Ctrl+Enter apply batch (when a batch form is open)."
+      },
+      "queueBatch": {
+        "operationLabel": "Batch item operation",
+        "assigneeAria": "Assignee for batch assign",
+        "assigneePlaceholder": "Assignee label for assign action",
+        "apply": "Apply batch action",
+        "help": "Select item rows, then apply one atomic lifecycle or assignment action.",
+        "itemsInView": "items in this view",
+        "selectRowsFirst": "Select one or more item rows to enable batch actions.",
+        "itemsSelected": "{count, plural, one {# item selected} other {# items selected}}",
+        "ops": {
+          "activate": "Activate selected items",
+          "block": "Block selected items",
+          "review": "Move items to review",
+          "verify": "Verify selected items",
+          "assign": "Assign selected items"
+        }
+      },
+      "evidence": {
+        "groups": {
+          "erp": "ERP causality",
+          "operator": "Operator evidence",
+          "execution": "Execution record",
+          "telemetry": "Activity stream",
+          "automation": "Automation and notices"
+        },
+        "moreInGroup": "Showing first {shown} of {total} in this group."
       }
     },
     "Hrm": {
@@ -653,14 +717,38 @@
         "capabilityNavAria": "Human resources capabilities",
         "overviewLink": "Overview",
         "registryHintTitle": "Capability registry",
-        "registryHintBody": "Routes, audit prefixes, and navigation keys are driven by HRM_CAPABILITIES in code. Add or change capabilities there first, then update catalogs and contract tests."
+        "registryHintBody": "Routes, audit prefixes, and navigation keys are driven by HRM_CAPABILITIES in code. Add or change capabilities there first, then update catalogs and contract tests.",
+        "rail": {
+          "collapseLabel": "Collapse navigation",
+          "expandLabel": "Expand navigation",
+          "navSearchPlaceholder": "Filter navigation…",
+          "navSearchAriaLabel": "Filter human resources navigation",
+          "navSearchCollapsedTriggerAriaLabel": "Open navigation search",
+          "navSearchNoMatches": "No matching navigation items.",
+          "footer": {
+            "sidebarMode": "Rail layout",
+            "expanded": "Always expanded",
+            "expandedHelp": "Show labels and rail context at all times.",
+            "collapsed": "Collapsed (icons only)",
+            "collapsedHelp": "Keep the rail compact until you choose another layout.",
+            "expandOnHover": "Expand while hovering",
+            "expandOnHoverHelp": "Show labels only while pointer or keyboard focus is inside the rail.",
+            "current": "Current"
+          }
+        }
       },
       "nav": {
         "employees": "Workforce",
+        "organization": "Organization",
+        "onboarding": "Onboarding",
         "leave": "Leave",
         "attendance": "Attendance",
+        "benefits": "Benefits",
         "claims": "Claims",
         "payroll": "Payroll preparation",
+        "performance": "Performance reviews",
+        "kpi": "KPI periods",
+        "advances": "Salary advances",
         "compliance": "Compliance evidence",
         "documents": "Documents",
         "policies": "Policies",
@@ -671,6 +759,14 @@
           "title": "Workforce",
           "description": "Employee master data, employment contracts, and organization structure."
         },
+        "organization": {
+          "title": "Organization",
+          "description": "Departments, positions, and job grades — master data for placement and contracts."
+        },
+        "onboarding": {
+          "title": "Onboarding",
+          "description": "Checklist milestones on active employment contracts — audited against the IAM ledger."
+        },
         "leave": {
           "title": "Leave",
           "description": "Leave types, entitlement, requests, and approvals."
@@ -679,6 +775,10 @@
           "title": "Attendance",
           "description": "Attendance events, daily aggregates, and corrections."
         },
+        "benefits": {
+          "title": "Benefits",
+          "description": "Benefit plans, enrollments, and qualifying life events — admin-gated catalog and enrollment workflow with IAM audits."
+        },
         "claims": {
           "title": "Claims",
           "description": "Reimbursable claims with evidence — approved unpaid claims feed the next payroll period."
@@ -686,6 +786,18 @@
         "payroll": {
           "title": "Payroll preparation",
           "description": "Pay periods, runs, statutory previews — evidence before disbursement."
+        },
+        "performance": {
+          "title": "Performance reviews",
+          "description": "Review cycles and acknowledgements — governed Server Actions with IAM audits."
+        },
+        "kpi": {
+          "title": "KPI periods",
+          "description": "Org-scoped KPI periods and per-employee metric scores for operational targets."
+        },
+        "advances": {
+          "title": "Salary advances",
+          "description": "Request, approve, and repay salary advances through payroll deduction lines on period lock."
         },
         "compliance": {
           "title": "Compliance evidence",
@@ -701,13 +813,277 @@
         },
         "snapshot": {
           "title": "HR snapshot",
-          "description": "Read-only projection of HR operational truth — ships after core workflows."
+          "description": "Read-only projection of HR operational truth — counts, payroll period state, and compliance health with links into execution surfaces."
         }
+      },
+      "rulePackSg": {
+        "leaveAnnual": "Annual leave (Singapore)",
+        "leaveSick": "Outpatient sick leave (Singapore)",
+        "leaveHospital": "Hospitalization leave (Singapore)",
+        "holidayNewYear": "New Year's Day",
+        "holidayChineseNewYear": "Chinese New Year",
+        "holidayChineseNewYearSecondDay": "Chinese New Year, second day",
+        "holidayHariRayaPuasa": "Hari Raya Puasa",
+        "holidayGoodFriday": "Good Friday",
+        "holidayLabour": "Labour Day",
+        "holidayHariRayaHaji": "Hari Raya Haji",
+        "holidayVesak": "Vesak Day",
+        "holidayNational": "National Day",
+        "holidayDeepavali": "Deepavali",
+        "holidayChristmas": "Christmas Day"
+      },
+      "rulePackId": {
+        "leaveAnnual": "Annual leave (Indonesia)",
+        "leaveSick": "Sick leave (Indonesia)",
+        "leaveMaternity": "Maternity leave (Indonesia)",
+        "leavePaternity": "Paternity leave (Indonesia)",
+        "holidayNewYear": "New Year's Day",
+        "holidayIsraMiraj": "Isra and Mi'raj",
+        "holidayChineseNewYear": "Chinese New Year",
+        "holidayNyepi": "Nyepi",
+        "holidayEidFitr": "Eid al-Fitr",
+        "holidayEidFitrSecondDay": "Eid al-Fitr, second day",
+        "holidayGoodFriday": "Good Friday",
+        "holidayEaster": "Easter Sunday",
+        "holidayLabour": "International Labor Day",
+        "holidayAscension": "Ascension of Jesus Christ",
+        "holidayEidAdha": "Eid al-Adha",
+        "holidayVesak": "Vesak Day",
+        "holidayPancasila": "Pancasila Day",
+        "holidayIslamicNewYear": "Islamic New Year",
+        "holidayIndependence": "Independence Day",
+        "holidayMawlid": "Birth of Prophet Muhammad",
+        "holidayChristmas": "Christmas Day"
+      },
+      "organization": {
+        "eyebrow": "Master data",
+        "pageTitle": "Organization structure",
+        "pageDescription": "Maintain departments, job grades, and positions. Archives are blocked while workforce rows still reference a record.",
+        "memberRestrictedTitle": "Admin only",
+        "memberRestrictedBody": "Organization catalog changes require an organization administrator.",
+        "tabAria": "Organization sections",
+        "tabs": {
+          "departments": "Departments",
+          "positions": "Positions",
+          "grades": "Job grades"
+        },
+        "departments": {
+          "tableTitle": "Departments",
+          "tableDescription": "Codes are unique per organization. Optional parent builds a hierarchy.",
+          "empty": "No departments yet. Create a root department to attach positions.",
+          "colCode": "Code",
+          "colName": "Name",
+          "colStatus": "Status",
+          "colActions": "Actions",
+          "statusActive": "Active",
+          "statusArchived": "Archived",
+          "create": "Add department",
+          "createTitle": "New department",
+          "createDescription": "Creates a catalog row and writes erp.hrm.department.create to the IAM audit ledger.",
+          "fieldCode": "Code",
+          "fieldName": "Name",
+          "fieldParent": "Parent department",
+          "parentNone": "None (root)",
+          "submit": "Create department",
+          "saving": "Saving…",
+          "errorTitle": "Could not save",
+          "createSuccess": "Department created.",
+          "dialogClose": "Close",
+          "archive": "Archive",
+          "archiving": "Archiving…"
+        },
+        "grades": {
+          "tableTitle": "Job grades",
+          "tableDescription": "Grades attach to positions and employee placement.",
+          "empty": "No job grades yet.",
+          "colCode": "Code",
+          "colName": "Name",
+          "colStatus": "Status",
+          "colActions": "Actions",
+          "statusActive": "Active",
+          "statusArchived": "Archived",
+          "create": "Add job grade",
+          "createTitle": "New job grade",
+          "createDescription": "Creates a catalog row and writes erp.hrm.job_grade.create.",
+          "fieldCode": "Code",
+          "fieldName": "Name",
+          "submit": "Create job grade",
+          "saving": "Saving…",
+          "errorTitle": "Could not save",
+          "createSuccess": "Job grade created.",
+          "dialogClose": "Close",
+          "archive": "Archive",
+          "archiving": "Archiving…"
+        },
+        "positions": {
+          "tableTitle": "Positions",
+          "tableDescription": "Each position belongs to one active department.",
+          "empty": "No positions yet. Create at least one department first.",
+          "colCode": "Code",
+          "colTitle": "Title",
+          "colDepartment": "Department",
+          "colStatus": "Status",
+          "colActions": "Actions",
+          "statusActive": "Active",
+          "statusArchived": "Archived",
+          "create": "Add position",
+          "createTitle": "New position",
+          "createDescription": "Creates a catalog row and writes erp.hrm.position.create.",
+          "fieldCode": "Code",
+          "fieldTitle": "Title",
+          "fieldDepartment": "Department",
+          "fieldDefaultGrade": "Default grade",
+          "gradeNone": "None",
+          "submit": "Create position",
+          "saving": "Saving…",
+          "errorTitle": "Could not save",
+          "createSuccess": "Position created.",
+          "dialogClose": "Close",
+          "archive": "Archive",
+          "archiving": "Archiving…"
+        }
+      },
+      "snapshot": {
+        "eyebrow": "Projection",
+        "title": "HR snapshot",
+        "description": "Read-only counts and period posture compiled from the same aggregates as the HRM rail. Use deep links to resolve work — this surface does not mutate truth.",
+        "statsHeading": "Operational counts",
+        "statActiveEmployees": "Active employees",
+        "statPendingLeave": "Pending leave approvals",
+        "statPendingClaims": "Claims awaiting decision",
+        "statApprovedUnpaidClaims": "Approved unpaid claims",
+        "statPayrollLockQueue": "Payroll lock queue",
+        "statComplianceAwaiting": "Compliance awaiting acknowledgement",
+        "statComplianceFailed": "Compliance failed deliveries",
+        "payrollHeading": "Latest payroll period",
+        "latestPeriodTitle": "Most recent period",
+        "fieldState": "State",
+        "fieldCurrency": "Currency",
+        "fieldRulePack": "Rule pack",
+        "openPayroll": "Open payroll preparation",
+        "noPayrollPeriod": "No payroll periods yet",
+        "noPayrollPeriodBody": "Open payroll preparation to create the first period when you are ready to run evidence-first preparation.",
+        "complianceHealthHeading": "Cross-period compliance health",
+        "quickLinksHeading": "Quick links",
+        "linkDocuments": "Documents vault",
+        "linkPolicies": "Policies",
+        "linkAttendance": "Attendance"
+      },
+      "onboarding": {
+        "metaTitle": "Onboarding checklist",
+        "metaDescription": "Record audited onboarding milestones on active employment contracts.",
+        "eyebrow": "Lifecycle",
+        "title": "Onboarding checklist",
+        "description": "Record milestone completion on active employment contracts. Each step writes erp.hrm.onboarding.step.complete to the IAM audit ledger.",
+        "errorTitle": "Could not record step",
+        "saving": "Saving…",
+        "adminOnlyTitle": "Administrators only",
+        "adminOnlyBody": "Managing onboarding checklists requires an organization administrator.",
+        "emptyTitle": "No active contracts",
+        "emptyBody": "Activate an employment contract from the employee detail surface to start recording checklist steps here.",
+        "tableTitle": "Active contracts",
+        "tableDescription": "Enter a stable step key (for example equipment_handoff) and submit once per milestone.",
+        "colEmployee": "Employee",
+        "colCompleted": "Completed steps",
+        "colRecord": "Record a step",
+        "stepPlaceholder": "step_key",
+        "recordStep": "Record step"
+      },
+      "performance": {
+        "metaTitle": "Performance reviews",
+        "metaDescription": "Review cycles, submissions, and acknowledgements with IAM-audited lifecycle controls.",
+        "eyebrow": "People",
+        "title": "Performance reviews",
+        "description": "Review cycles and individual reviews. Creating a cycle is admin-only; submissions and acknowledgements follow IAM-audited lifecycle rules.",
+        "errorTitle": "Could not complete action",
+        "saving": "Saving…",
+        "createCycleTitle": "New review cycle",
+        "createCycleDescription": "Creates a draft cycle and audits erp.hrm.performance.cycle.create.",
+        "fieldName": "Cycle name",
+        "fieldPeriodStart": "Period start",
+        "fieldPeriodEnd": "Period end",
+        "fieldReviewPipeline": "Review pipeline",
+        "reviewPipelineSingle": "Single reviewer",
+        "reviewPipelineThreeStage": "Three-stage (self → manager → HR)",
+        "createCycleSubmit": "Create cycle",
+        "cyclesTitle": "Cycles",
+        "cyclesDescription": "Most recently created cycles first.",
+        "cyclesEmpty": "No cycles yet.",
+        "colCycleName": "Name",
+        "colPeriod": "Period",
+        "colState": "State",
+        "reviewsTitle": "Reviews",
+        "reviewsDescription": "Submit as the assigned reviewer (or an admin). Acknowledge when you are the linked employee on the reviewed row (or an admin).",
+        "reviewsEmpty": "No reviews yet.",
+        "colCycle": "Cycle",
+        "colEmployee": "Employee",
+        "colActions": "Actions",
+        "ratingPlaceholder": "Summary rating (optional)",
+        "notesPlaceholder": "Notes (optional)",
+        "submitReview": "Submit review",
+        "acknowledgeReview": "Acknowledge"
+      },
+      "kpi": {
+        "metaTitle": "KPI periods",
+        "metaDescription": "Org-scoped KPI periods and per-employee scores with admin-gated Server Actions.",
+        "eyebrow": "Targets",
+        "title": "KPI periods",
+        "description": "Define periods and record metric scores per employee. Writes emit erp.hrm.kpi.period.create and erp.hrm.kpi.score.upsert to the IAM ledger.",
+        "createPeriodTitle": "New KPI period",
+        "createPeriodDescription": "Creates a draft period (admin only).",
+        "fieldName": "Period name",
+        "fieldPeriodStart": "Period start",
+        "fieldPeriodEnd": "Period end",
+        "createPeriodSubmit": "Create period",
+        "upsertScoreTitle": "Record or update a score",
+        "upsertScoreDescription": "Scores are unique per employee, period, and metric code (admin only).",
+        "fieldEmployee": "Employee",
+        "selectEmployee": "Select employee…",
+        "fieldMetricCode": "Metric code",
+        "fieldTarget": "Target value",
+        "fieldAchieved": "Achieved value",
+        "fieldNotes": "Notes",
+        "upsertScoreSubmit": "Save score",
+        "periodsTitle": "Periods",
+        "periodsDescription": "Most recently created first.",
+        "periodsEmpty": "No KPI periods yet.",
+        "scoresTitle": "Scores (latest period)",
+        "scoresDescription": "Rows for the most recently created period.",
+        "scoreTarget": "Target",
+        "scoreAchieved": "Achieved"
+      },
+      "advances": {
+        "metaTitle": "Salary advances",
+        "metaDescription": "Request salary advances and approve or reject them with IAM-audited controls.",
+        "eyebrow": "Cash flow",
+        "title": "Salary advances",
+        "description": "Employees request advances for their linked record; org admins approve or reject. Approved amounts can deduct on payroll preview and clear when the period locks.",
+        "requestTitle": "Request an advance",
+        "requestDescription": "Amount must use up to two decimal places. Non-admins may only request for their own linked employee.",
+        "fieldEmployee": "Employee",
+        "selectEmployee": "Select employee…",
+        "fieldAmount": "Amount (MYR)",
+        "fieldReason": "Reason (optional)",
+        "requestSubmit": "Submit request",
+        "tableTitle": "Recent requests",
+        "tableDescription": "Newest first — pending rows show admin actions when you are an org administrator.",
+        "tableEmpty": "No advance requests yet.",
+        "decisionNotePlaceholder": "Optional note (visible on the decision)",
+        "approve": "Approve",
+        "reject": "Reject"
       },
       "placeholders": {
         "employees": {
           "title": "Workforce",
           "body": "Employee master records are available under Workforce (Phase 1A). Employment contracts and payroll profiles ship in Phase 1B; the IAM audit timeline lands in Phase 1C."
+        },
+        "organization": {
+          "title": "Organization",
+          "body": "Use the Organization workbench for departments, positions, and job grades — admin-gated catalog CRUD with IAM audits."
+        },
+        "onboarding": {
+          "title": "Onboarding",
+          "body": "Record checklist milestones on active contracts — each step emits erp.hrm.onboarding.step.complete."
         },
         "leave": {
           "title": "Leave",
@@ -717,6 +1093,10 @@
           "title": "Attendance",
           "body": "Phase 2C adds attendance events, daily aggregates, and CSV import."
         },
+        "benefits": {
+          "title": "Benefits",
+          "body": "Phase 5 ships benefit plan catalog, pending enrollments, activation and termination, plus qualifying life events with verification."
+        },
         "claims": {
           "title": "Claims",
           "body": "Phase 4 ships reimbursable claims — submit with evidence, single-step approval, paid through the next payroll period."
@@ -724,6 +1104,18 @@
         "payroll": {
           "title": "Payroll preparation",
           "body": "Phase 3 delivers payroll periods, preview lines, Malaysia rule packs, and golden statutory tests."
+        },
+        "performance": {
+          "title": "Performance reviews",
+          "body": "Review cycles, single-reviewer or three-stage pipelines, and acknowledgements — create cycles as an admin; reviewers and employees complete the workflow with IAM audits."
+        },
+        "kpi": {
+          "title": "KPI periods",
+          "body": "Define KPI periods and capture per-employee metric scores — admin-gated writes with erp.hrm.kpi.* audits."
+        },
+        "advances": {
+          "title": "Salary advances",
+          "body": "Employees request advances; admins approve or reject. Approved amounts deduct on the next payroll preview and mark repaid when the period locks."
         },
         "compliance": {
           "title": "Compliance evidence",
@@ -786,6 +1178,10 @@
         "contractSectionTitle": "Employment contracts",
         "contractSectionDescription": "Draft a contract, attach a signed document, then activate. Only one active row is allowed per employee.",
         "contractDraftTitle": "Create draft contract",
+        "contractSalaryRevisionTitle": "Salary change (new contract version)",
+        "contractSalaryRevisionHint": "Copies the active contract into a new draft with a new base salary and effective date. Activate after review — this preserves versioned payroll evidence.",
+        "contractNewSalary": "New base salary amount",
+        "contractSalaryRevisionSubmit": "Create salary revision draft",
         "contractCreateDraft": "Save draft",
         "contractCreatingDraft": "Saving draft…",
         "contractActivate": "Activate contract",
@@ -880,6 +1276,31 @@
           "confidential": "Confidential",
           "restricted": "Restricted"
         },
+        "dependentsSectionTitle": "Dependents",
+        "dependentsSectionDescription": "Household and tax dependents linked to this employee.",
+        "dependentsEmpty": "No active dependents.",
+        "dependentAddTitle": "Add dependent",
+        "dependentLegalNameLabel": "Legal name",
+        "dependentRelationshipLabel": "Relationship",
+        "dependentDobLabel": "Date of birth",
+        "dependentTaxLabel": "Counts as tax dependent",
+        "dependentTaxYes": "Tax dependent",
+        "dependentTaxNo": "Not a tax dependent",
+        "dependentAddSubmit": "Add dependent",
+        "dependentArchiveSubmit": "Archive",
+        "dependentRelationships": {
+          "spouse": "Spouse",
+          "child": "Child",
+          "parent": "Parent",
+          "other": "Other"
+        },
+        "changeHistoryTitle": "Master data change history",
+        "changeHistoryDescription": "Field-level updates recorded when this employee row is saved.",
+        "changeHistoryEmpty": "No change history rows yet.",
+        "changeHistoryColField": "Field",
+        "changeHistoryColOld": "Previous",
+        "changeHistoryColNew": "New",
+        "changeHistoryColWhen": "When",
         "timelineTitle": "Operational timeline",
         "timelineDescription": "IAM audit events for this employee (production ledger): master data, contracts, payroll profiles, and governed documents.",
         "timelineEmpty": "No audit events recorded for this employee yet.",
@@ -1253,6 +1674,198 @@
           "totalLabel": "Total reimbursable amount"
         }
       },
+      "benefits": {
+        "eyebrow": "Benefits",
+        "pageTitle": "Benefits administration",
+        "pageDescription": "Maintain benefit plans, process enrollments, and record qualifying life events. Mutations are org-admin gated and write erp.hrm.benefit.* rows to the IAM audit ledger.",
+        "memberRestrictedTitle": "Admin-only surface",
+        "memberRestrictedBody": "Benefit plan changes and enrollment decisions are limited to organization administrators. You can review this page, but actions are hidden until your role includes admin access.",
+        "tabAria": "Benefits sections",
+        "tabs": {
+          "plans": "Plans",
+          "enrollments": "Enrollments",
+          "life": "Life events"
+        },
+        "tabPlansTitle": "Benefit plans",
+        "tabPlansDescription": "Catalog of organization benefit programs. Codes are immutable after creation; archive a plan when it is retired.",
+        "tabEnrollmentsTitle": "Enrollments",
+        "tabEnrollmentsDescription": "Employee coverage rows. Pending enrollments require HR activation or waiver before payroll-dependent coverage is effective.",
+        "tabLifeTitle": "Qualifying life events",
+        "tabLifeDescription": "Operator-recorded life events pending verification. Approved events support mid-year coverage changes with audit evidence.",
+        "noEmployeesTitle": "No active employees",
+        "noEmployeesBody": "Add employee records under Workforce before enrolling anyone or recording a life event.",
+        "noActivePlansTitle": "No active benefit plans",
+        "noActivePlansBody": "Create at least one active benefit plan before enrolling employees.",
+        "createPlan": "Create plan",
+        "createPlanDialogTitle": "Create benefit plan",
+        "createPlanDialogDescription": "Defines a catalog row with contribution rules and allowed coverage levels. Writes erp.hrm.benefit.create on success.",
+        "editPlan": "Edit",
+        "editPlanDialogTitle": "Edit benefit plan",
+        "editPlanDialogDescription": "Updates catalog metadata and contribution rules. Plan code cannot change after creation.",
+        "archivePlan": "Archive",
+        "archiving": "Archiving…",
+        "archivePlanConfirm": "Archive plan {label}? Pending or active enrollments must be cleared first.",
+        "archiveErrorTitle": "Could not archive plan",
+        "enrollEmployee": "New enrollment",
+        "enrollDialogTitle": "Enroll an employee",
+        "enrollDialogDescription": "Creates a pending enrollment. HR must activate or waive the row before coverage is effective.",
+        "recordLifeEvent": "Record life event",
+        "lifeEventDialogTitle": "Record qualifying life event",
+        "lifeEventDialogDescription": "Captures a dated life event for verification. Optional document UUIDs can be attached as JSON for evidence cross-links.",
+        "planForm": {
+          "errorTitle": "Could not save plan",
+          "fieldCode": "Plan code",
+          "fieldCodeHint": "Lowercase letters, numbers, dot, underscore, or hyphen. Cannot be changed after the plan is created.",
+          "fieldName": "Display name",
+          "fieldDescription": "Description",
+          "fieldBenefitKind": "Benefit kind",
+          "fieldBenefitType": "Benefit subtype",
+          "fieldBenefitTypePlaceholder": "Optional label (e.g. PPO, HSA)",
+          "fieldEmployerContributionType": "Employer contribution type",
+          "fieldEmployerContributionValue": "Employer contribution value",
+          "fieldEmployeeContributionType": "Employee contribution type",
+          "fieldEmployeeContributionValue": "Employee contribution value",
+          "fieldCoverageLevels": "Allowed coverage levels",
+          "fieldCoverageLevelsHint": "Select every tier this plan can cover at enrollment time.",
+          "fieldWaitingPeriodDays": "Waiting period (days)",
+          "fieldMaxAnnualAmount": "Max annual amount (optional)",
+          "fieldEffectiveFrom": "Effective from",
+          "submitCreate": "Create plan",
+          "submitCreating": "Creating…",
+          "submitUpdate": "Save changes",
+          "submitUpdating": "Saving…",
+          "kinds": {
+            "medical": "Medical",
+            "dental": "Dental",
+            "optical": "Optical",
+            "wellness": "Wellness",
+            "retirement": "Retirement",
+            "other": "Other"
+          },
+          "contributionTypes": {
+            "flat_amount": "Flat amount",
+            "percentage": "Percentage",
+            "none": "None"
+          },
+          "coverageLevels": {
+            "employee_only": "Employee only",
+            "employee_spouse": "Employee + spouse",
+            "employee_children": "Employee + children",
+            "employee_family": "Family"
+          }
+        },
+        "enrollForm": {
+          "errorTitle": "Could not create enrollment",
+          "fieldEmployee": "Employee",
+          "selectEmployee": "Select employee…",
+          "fieldPlan": "Benefit plan",
+          "selectPlan": "Select plan…",
+          "fieldCoverage": "Coverage level",
+          "fieldEffectiveFrom": "Effective from",
+          "fieldEffectiveFromHint": "Defaults to today when left blank on the server.",
+          "fieldEmployerAmount": "Employer contribution override (optional)",
+          "fieldEmployeeAmount": "Employee contribution override (optional)",
+          "submit": "Create pending enrollment",
+          "submitting": "Submitting…",
+          "coverageLevels": {
+            "employee_only": "Employee only",
+            "employee_spouse": "Employee + spouse",
+            "employee_children": "Employee + children",
+            "employee_family": "Family"
+          }
+        },
+        "plansTable": {
+          "emptyAdmin": "No benefit plans yet. Create a plan to start enrollments.",
+          "emptyMember": "No benefit plans are configured for this organization.",
+          "colCode": "Code",
+          "colName": "Name",
+          "colKind": "Kind",
+          "colEffective": "Effective from",
+          "colStatus": "Status",
+          "colActions": "Actions",
+          "statusActive": "Active",
+          "statusInactive": "Archived"
+        },
+        "enrollmentTable": {
+          "empty": "No enrollments yet.",
+          "colEmployee": "Employee",
+          "colPlan": "Plan",
+          "colCoverage": "Coverage",
+          "colState": "State",
+          "colEffective": "Effective",
+          "colActions": "Actions",
+          "states": {
+            "pending": "Pending",
+            "active": "Active",
+            "waived": "Waived",
+            "terminated": "Terminated"
+          },
+          "coverageLevels": {
+            "employee_only": "Employee only",
+            "employee_spouse": "Employee + spouse",
+            "employee_children": "Employee + children",
+            "employee_family": "Family"
+          },
+          "activate": "Activate",
+          "activating": "Activating…",
+          "waive": "Waive",
+          "waiving": "Waiving…",
+          "waiveReasonOptional": "Waive reason (optional)",
+          "waiveReasonPlaceholder": "Visible on the enrollment record",
+          "terminate": "Terminate",
+          "terminating": "Terminating…",
+          "terminateDateOptional": "Termination date (optional)",
+          "terminateReasonOptional": "Termination reason (optional)"
+        },
+        "lifeEventForm": {
+          "errorTitle": "Could not record life event",
+          "fieldEmployee": "Employee",
+          "selectEmployee": "Select employee…",
+          "fieldEventType": "Event type",
+          "fieldEventDate": "Event date",
+          "fieldNotes": "Notes",
+          "fieldDocumentIds": "Linked document IDs",
+          "fieldDocumentIdsHint": "Optional JSON array of HRM document UUIDs, e.g. [\"…\"]. Leave as [] when none.",
+          "submit": "Record event",
+          "submitting": "Recording…",
+          "eventTypes": {
+            "marriage": "Marriage",
+            "divorce": "Divorce",
+            "birth_adoption": "Birth or adoption",
+            "death_of_dependent": "Death of dependent",
+            "loss_of_coverage": "Loss of coverage",
+            "spouse_job_loss": "Spouse job loss",
+            "change_in_employment_status": "Employment status change",
+            "other": "Other"
+          }
+        },
+        "lifeEventsTable": {
+          "empty": "No life events recorded yet.",
+          "colDate": "Event date",
+          "colEmployee": "Employee",
+          "colEvent": "Event",
+          "colStatus": "Verification",
+          "colActions": "Actions",
+          "eventTypes": {
+            "marriage": "Marriage",
+            "divorce": "Divorce",
+            "birth_adoption": "Birth or adoption",
+            "death_of_dependent": "Death of dependent",
+            "loss_of_coverage": "Loss of coverage",
+            "spouse_job_loss": "Spouse job loss",
+            "change_in_employment_status": "Employment status change",
+            "other": "Other"
+          },
+          "verification": {
+            "pending": "Pending",
+            "verified": "Verified",
+            "rejected": "Rejected"
+          },
+          "verify": "Verify",
+          "reject": "Reject",
+          "verificationNoteOptional": "Verification note (optional)"
+        }
+      },
       "leave": {
         "eyebrow": "Leave",
         "pageTitle": "Leave management",
@@ -1506,6 +2119,7 @@
           "seed": "Seed Malaysia EA 2023 defaults",
           "seedDialogTitle": "Seed Malaysia EA 2023 leave types",
           "seedDialogDescription": "Idempotently inserts the canonical Annual / Sick / Hospital / Maternity / Paternity rows from the Employment Act 2023. Existing types with the same code are skipped — re-running this is safe.",
+          "seedDialogPayrollHint": "For Malaysia payroll, keep workforce payroll profiles on country MY and capture Borang TP1/TP3 amounts on the employee payroll profile when they affect PCB/MTD.",
           "seedSubmit": "Seed defaults",
           "seedSubmitting": "Seeding…",
           "seedSummaryEmpty": "All EA 2023 default leave types are already present.",
@@ -1788,14 +2402,15 @@
       "description": "Afenda’s machine layer for resolving truth, preparing work, and recommending controlled action.",
       "operator": {
         "sectionTitle": "Operator assist (preview)",
-        "sectionDescription": "Ask about read-only org facts. Lynx can use governed tools: contact totals and recent contacts, recent knowledge chunks, semantic knowledge search, and active import job counts. Responses stream as they are produced; nothing here changes your data.",
+        "sectionDescription": "Ask about read-only org facts. Lynx can use governed tools for contacts, knowledge, active import jobs, and Orbit operational state such as high-pressure work, triage queues, blocked items, and record detail. Responses stream as they are produced; nothing here changes your data.",
         "labelMessage": "Request",
-        "placeholderMessage": "e.g. How many contacts do we have, and what is in knowledge lately?",
+        "placeholderMessage": "e.g. What is highest pressure in Orbit right now, and which blocked items need recovery first?",
         "submit": "Ask Lynx",
         "pending": "Working…",
         "errorGeneric": "Something went wrong. Try again.",
         "errorStream": "Could not read the response stream.",
-        "toolsLabel": "Tools available"
+        "toolsLabel": "Tools available",
+        "disabledDescription": "Operator assist is disabled by feature policy for this environment."
       },
       "truth": {
         "sectionTitle": "Truth retrieval",
@@ -1827,7 +2442,8 @@
         "headingExplain": "How this SQL works",
         "tabTable": "Table",
         "tabChart": "Chart",
-        "chartPending": "Chart suggestion unavailable — try a broader question."
+        "chartPending": "Chart suggestion unavailable — try a broader question.",
+        "disabledDescription": "Structured query is disabled by feature policy for this environment."
       },
       "substrate": {
         "addTitle": "Knowledge substrate",
@@ -1884,6 +2500,30 @@
       "openOperatorAssist": "Lynx console (full tools) →"
     }
   },
+  "Accounting": {
+    "foundation": {
+      "eyebrow": "Finance foundation",
+      "description": "Accounting starts with governed master data before journals, reconciliation, or statutory posting workflows ship.",
+      "backToNexus": "Return to Nexus field",
+      "steps": {
+        "chartOfAccounts": {
+          "title": "Chart of accounts",
+          "description": "Define organization-owned account codes, names, and posting eligibility.",
+          "status": "Next implementation: admin-gated setup actions with erp.accounting.account.* audit rows."
+        },
+        "fiscalPeriods": {
+          "title": "Fiscal periods",
+          "description": "Create period boundaries and future lock controls for posting discipline.",
+          "status": "Next implementation: period setup tables before any journal posting surface."
+        },
+        "taxProfile": {
+          "title": "Tax and compliance profile",
+          "description": "Capture the organization-level tax basis and compliance pack metadata.",
+          "status": "Next implementation: compliance metadata only; statutory submission workflows stay deferred."
+        }
+      }
+    }
+  },
   "PlatformAdmin": {
     "title": "Platform administration",
     "skipToMain": "Skip to operator content",
@@ -1900,6 +2540,24 @@
       "overview": "Overview",
       "users": "Users",
       "organizations": "Organizations"
+    },
+    "rail": {
+      "collapseLabel": "Collapse navigation",
+      "expandLabel": "Expand navigation",
+      "navSearchPlaceholder": "Filter navigation…",
+      "navSearchAriaLabel": "Filter operator console navigation",
+      "navSearchCollapsedTriggerAriaLabel": "Open navigation search",
+      "navSearchNoMatches": "No matching navigation items.",
+      "footer": {
+        "sidebarMode": "Rail layout",
+        "expanded": "Always expanded",
+        "expandedHelp": "Show labels and rail context at all times.",
+        "collapsed": "Collapsed (icons only)",
+        "collapsedHelp": "Keep the rail compact until you choose another layout.",
+        "expandOnHover": "Expand while hovering",
+        "expandOnHoverHelp": "Show labels only while pointer or keyboard focus is inside the rail.",
+        "current": "Current"
+      }
     },
     "card": {
       "users": {
@@ -1942,6 +2600,22 @@
       "slug": "Slug: {slug}",
       "openDashboard": "Open dashboard →",
       "openAdmin": "Open admin →"
+    },
+    "audit": {
+      "eyebrow": "Platform administration",
+      "title": "Platform audit",
+      "description": "Read-only global audit surface reserved for cross-tenant operator evidence.",
+      "backToOperator": "← Back to operator overview",
+      "cardTitle": "Audit surface reserved",
+      "cardBody": "Tenant-scoped governance remains in each organization Admin workbench. This route exists so the platform capability registry, route tree, and deep-link sanitizer stay aligned while the global audit feed is scoped."
+    },
+    "system": {
+      "eyebrow": "Platform administration",
+      "title": "System health",
+      "description": "Read-only global system surface reserved for platform telemetry and operational checks.",
+      "backToOperator": "← Back to operator overview",
+      "cardTitle": "System surface reserved",
+      "cardBody": "Production telemetry currently flows through structured logs, Sentry, OpenTelemetry, and Vercel runtime evidence. This route preserves the registered system capability until platform dashboards are promoted."
     }
   },
   "OrgAdmin": {
@@ -1966,6 +2640,20 @@
       "recentsHeading": "Recent",
       "collapseLabel": "Collapse admin rail",
       "expandLabel": "Expand admin rail",
+      "navSearchPlaceholder": "Filter navigation…",
+      "navSearchAriaLabel": "Filter organization admin navigation",
+      "navSearchCollapsedTriggerAriaLabel": "Open navigation search",
+      "navSearchNoMatches": "No matching navigation items.",
+      "footer": {
+        "sidebarMode": "Rail layout",
+        "expanded": "Always expanded",
+        "expandedHelp": "Show labels and rail context at all times.",
+        "collapsed": "Collapsed (icons only)",
+        "collapsedHelp": "Keep the rail compact until you choose another layout.",
+        "expandOnHover": "Expand while hovering",
+        "expandOnHoverHelp": "Show labels only while pointer or keyboard focus is inside the rail.",
+        "current": "Current"
+      },
       "inboxLabels": {
         "members": "{count, plural, one {# pending invitation} other {# pending invitations}}",
         "integrations": "{count, plural, one {# integration needs review} other {# integrations need review}}",
@@ -2320,6 +3008,20 @@
       "mobileTrigger": "Open personal context",
       "collapse": "Collapse personal rail",
       "expand": "Expand personal rail",
+      "navSearchPlaceholder": "Filter navigation…",
+      "navSearchAriaLabel": "Filter personal surface navigation",
+      "navSearchCollapsedTriggerAriaLabel": "Open navigation search",
+      "navSearchNoMatches": "No matching navigation items.",
+      "footer": {
+        "sidebarMode": "Rail layout",
+        "expanded": "Always expanded",
+        "expandedHelp": "Show labels and rail context at all times.",
+        "collapsed": "Collapsed (icons only)",
+        "collapsedHelp": "Keep the rail compact until you choose another layout.",
+        "expandOnHover": "Expand while hovering",
+        "expandOnHoverHelp": "Show labels only while pointer or keyboard focus is inside the rail.",
+        "current": "Current"
+      },
       "identity": "Identity",
       "identityDescription": "Canonical profile, email, and linked sign-in methods.",
       "orbit": "Orbit",
@@ -2523,7 +3225,14 @@
       "panelTitle": "Capability policy",
       "panelSubtitle": "Inherited system defaults are shown until you override them. Mandatory policies remove member opt-out.",
       "stepUpRequired": "Recent re-authentication is required for governance changes.",
-      "memberHint": "You can browse the marketplace, but governance is reserved for organization admins."
+      "memberHint": "You can browse the marketplace, but governance is reserved for organization admins.",
+      "policyGroup": "Organization policy controls",
+      "policyAllow": "Allow",
+      "policyBlock": "Block",
+      "policyMandate": "Mandate",
+      "policyReset": "Reset",
+      "policyPending": "Saving…",
+      "policyError": "Couldn't save policy. Try again."
     },
     "toggle": {
       "enable": "Enable for me",

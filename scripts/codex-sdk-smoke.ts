@@ -5,7 +5,7 @@
  *
  * Run: `pnpm codex:sdk:smoke "Summarize the current repo in one sentence."`
  */
-import { resolveCodexApiKey, startCodexThread } from "#lib/codex/codex.shared"
+import { resolveCodexApiKey, startCodexThread } from "#lib/codex/codex.server"
 
 const prompt =
   process.argv.slice(2).join(" ") ||

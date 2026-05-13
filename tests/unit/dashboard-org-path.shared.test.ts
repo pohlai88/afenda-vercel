@@ -59,7 +59,20 @@ describe("sanitizePathAfterOrgSlug", () => {
     expect(sanitizePathAfterOrgSlug("/admin/members")).toBe("/admin/members")
     expect(sanitizePathAfterOrgSlug("/admin/audit")).toBe("/admin/audit")
     expect(sanitizePathAfterOrgSlug("/admin/feedback")).toBe("/admin/feedback")
+    expect(sanitizePathAfterOrgSlug("/admin/knowledge")).toBe(
+      "/admin/knowledge"
+    )
+    expect(sanitizePathAfterOrgSlug("/admin/knowledge/sources")).toBe(
+      "/admin/knowledge/sources"
+    )
+    const evalRunUuid = "550e8400-e29b-41d4-a716-446655440000"
+    expect(
+      sanitizePathAfterOrgSlug(`/admin/knowledge/sources/runs/${evalRunUuid}`)
+    ).toBe(`/admin/knowledge/sources/runs/${evalRunUuid}`)
     expect(sanitizePathAfterOrgSlug("/admin/evil")).toBe("/nexus")
     expect(sanitizePathAfterOrgSlug("/admin/members/extra")).toBe("/nexus")
+    expect(
+      sanitizePathAfterOrgSlug("/admin/knowledge/sources/runs/not-a-uuid")
+    ).toBe("/nexus")
   })
 })

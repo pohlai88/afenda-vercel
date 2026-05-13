@@ -1,4 +1,4 @@
-import type { WorkbenchRailBadgeTone } from "#components/workbench"
+import type { WorkbenchRailBadgeTone } from "#components/workbench/left-nav-rail"
 import type { AppPath } from "#lib/i18n/locales.shared"
 
 /** Stable capability identifiers for the global platform-admin surface. */
@@ -76,7 +76,7 @@ export type PlatformAdminOrganizationSummary = {
  * Semantic urgency carried by every platform-admin rail nav badge.
  * Re-exports the shell-level tone vocabulary so callers in
  * `lib/features/platform-admin/` never deep-import
- * `#components/workbench/rail`.
+ * `#components/workbench/left-nav-rail`.
  *
  * Operators read tone (color) before number — the threshold helpers in
  * `platform-admin-rail-pressure.shared.ts` are the only legitimate

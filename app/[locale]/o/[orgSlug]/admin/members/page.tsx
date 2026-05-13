@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server"
 
 import { OrganizationAdminClient } from "#features/org-admin"
 import { recordOrgAdminPageVisit } from "#features/org-admin/server"
+import { GovernedSurface } from "#features/governed-surface"
 
 import {
   fetchOrgWorkbenchMembers,
@@ -28,16 +29,17 @@ export default async function OrgAdminMembersPage({
   })
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight">{t("title")}</h2>
-        <p className="text-sm text-muted-foreground">{t("description")}</p>
-      </div>
+    <GovernedSurface
+      header={{
+        title: t("title"),
+        description: t("description"),
+      }}
+    >
       <OrganizationAdminClient
         members={members}
         invitations={invitations}
         currentUserId={orgSession.userId}
       />
-    </div>
+    </GovernedSurface>
   )
 }

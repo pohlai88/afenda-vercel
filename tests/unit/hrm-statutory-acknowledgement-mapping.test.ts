@@ -27,6 +27,7 @@ describe("Statutory acknowledgement audit mapping", () => {
       epf_monthly: "erp.hrm.statutory.epf.acknowledged",
       socso_monthly: "erp.hrm.statutory.socso.acknowledged",
       eis_monthly: "erp.hrm.statutory.eis.acknowledged",
+      hrdf_monthly: "erp.hrm.statutory.hrdf.acknowledged",
       pcb_monthly: "erp.hrm.statutory.pcb.acknowledged",
       // EA + Borang E both surface under the EA bureau audit family,
       // matching the existing `published` mapping for these annual packs.

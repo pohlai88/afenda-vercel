@@ -2,13 +2,11 @@ import { describe, expect, it, vi, beforeEach } from "vitest"
 
 const {
   requireOrgSessionMock,
-  requireSignedInSessionMock,
   canActInOrganizationMock,
   ensureAppLocaleMock,
   orbitPageMock,
 } = vi.hoisted(() => ({
   requireOrgSessionMock: vi.fn(),
-  requireSignedInSessionMock: vi.fn(),
   canActInOrganizationMock: vi.fn(),
   ensureAppLocaleMock: vi.fn((locale: string) => locale),
   orbitPageMock: vi.fn(() => null),
@@ -16,7 +14,6 @@ const {
 
 vi.mock("#lib/tenant", () => ({
   requireOrgSession: requireOrgSessionMock,
-  requireSignedInSession: requireSignedInSessionMock,
 }))
 
 vi.mock("#lib/auth", () => ({
@@ -31,15 +28,12 @@ vi.mock("#features/planner/server", () => ({
   OrbitPage: orbitPageMock,
 }))
 
-import AccountOrbitQueuePage from "../../../app/[locale]/(iam)/account/orbit/page"
-import AccountOrbitTriagePage from "../../../app/[locale]/(iam)/account/orbit/triage/page"
 import OrbitQueuePage from "../../../app/[locale]/o/[orgSlug]/dashboard/orbit/page"
 import OrbitTriagePage from "../../../app/[locale]/o/[orgSlug]/dashboard/orbit/triage/page"
 
 describe("orbit route wrappers", () => {
   beforeEach(() => {
     requireOrgSessionMock.mockReset()
-    requireSignedInSessionMock.mockReset()
     canActInOrganizationMock.mockReset()
     ensureAppLocaleMock.mockClear()
     orbitPageMock.mockClear()
@@ -81,31 +75,6 @@ describe("orbit route wrappers", () => {
     )
   })
 
-  it("passes personal scope into the account queue page", async () => {
-    requireSignedInSessionMock.mockResolvedValue({
-      userId: "user-9",
-    })
-
-    const searchParams = { view: "ops" }
-    const element = await AccountOrbitQueuePage({
-      params: Promise.resolve({ locale: "en" }),
-      searchParams: Promise.resolve(searchParams),
-    } as never)
-
-    expect(ensureAppLocaleMock).toHaveBeenCalledWith("en")
-    expect((element as { props: Record<string, unknown> }).props).toMatchObject(
-      {
-        scope: {
-          scopeKind: "personal",
-          ownerUserId: "user-9",
-        },
-        surface: "queue",
-        searchParams,
-        viewerUserId: "user-9",
-      }
-    )
-  })
-
   it("passes organization scope into the org triage page", async () => {
     requireOrgSessionMock.mockResolvedValue({
       userId: "user-1",
@@ -131,28 +100,6 @@ describe("orbit route wrappers", () => {
         searchParams,
         viewerUserId: "user-1",
         canManageNotices: true,
-      }
-    )
-  })
-
-  it("passes personal scope into the account triage page", async () => {
-    requireSignedInSessionMock.mockResolvedValue({
-      userId: "user-9",
-    })
-
-    const element = await AccountOrbitTriagePage({
-      params: Promise.resolve({ locale: "en" }),
-      searchParams: Promise.resolve({}),
-    } as never)
-
-    expect((element as { props: Record<string, unknown> }).props).toMatchObject(
-      {
-        scope: {
-          scopeKind: "personal",
-          ownerUserId: "user-9",
-        },
-        surface: "triage",
-        viewerUserId: "user-9",
       }
     )
   })

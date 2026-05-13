@@ -13,6 +13,7 @@ export const ORG_ADMIN_PATH_SEGMENTS = new Set([
   "feedback",
   "settings",
   "integrations",
+  "knowledge",
 ])
 
 function isAllowedForwardedOrgAdminSegment(segment: string): boolean {
@@ -65,6 +66,19 @@ export function sanitizePathAfterOrgSlug(tailFromO: string): AppPath {
     }
     if (parts.length === 2 && isAllowedForwardedOrgAdminSegment(parts[1])) {
       return `/admin/${parts[1]}` as AppPath
+    }
+    if (parts[1] === "knowledge") {
+      if (parts.length === 3 && parts[2] === "sources") {
+        return "/admin/knowledge/sources" as AppPath
+      }
+      if (
+        parts.length === 5 &&
+        parts[2] === "sources" &&
+        parts[3] === "runs" &&
+        isLikelyDatabaseUuid(parts[4]!)
+      ) {
+        return `/admin/knowledge/sources/runs/${parts[4]}` as AppPath
+      }
     }
     return "/nexus" as AppPath
   }

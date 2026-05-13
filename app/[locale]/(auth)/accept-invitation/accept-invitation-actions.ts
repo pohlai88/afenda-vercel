@@ -19,9 +19,12 @@ import type { AppPath } from "#lib/i18n/locales.shared"
 import {
   toLocaleOrgAdminRevalidatePattern,
   toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgNexusRevalidatePattern,
   toLocalePath,
   toLocaleRoutePattern,
 } from "#lib/i18n/locales.shared"
+import { organizationNexusPath } from "#features/nexus"
+import { setActiveOrganizationForSession } from "#lib/tenant"
 
 const idSchema = z.string().trim().min(1).max(128)
 
@@ -49,8 +52,8 @@ async function resolveV2PostAcceptPath(
     .where(eq(neonAuthOrganization.id, organizationId))
     .limit(1)
   const slug = org?.slug?.trim()
-  if (slug) return `/o/${slug}/dashboard` as AppPath
-  return "/account"
+  if (slug) return organizationNexusPath(slug) as AppPath
+  return "/console"
 }
 
 export async function acceptOrganizationInvitationAction(
@@ -77,6 +80,12 @@ export async function acceptOrganizationInvitationAction(
     return { ok: false, error: neonAuthErrorMessage(accept.error) }
   }
 
+  await setActiveOrganizationForSession({
+    userId: session.userId,
+    sessionId: session.sessionId,
+    organizationId: guarded.organizationId,
+  })
+
   await writeIamAuditEventFromNextHeaders({
     action: "org.invitation.accept",
     actorUserId: session.userId,
@@ -87,7 +96,9 @@ export async function acceptOrganizationInvitationAction(
   })
   revalidatePath(toLocaleOrgDashboardRevalidatePattern(""), "page")
   revalidatePath(toLocaleOrgAdminRevalidatePattern(""), "layout")
+  revalidatePath(toLocaleOrgNexusRevalidatePattern(), "page")
   revalidatePath(toLocaleRoutePattern("/account"), "page")
+  revalidatePath(toLocaleRoutePattern("/console"), "page")
   const locale = await getRequestAppLocale()
   const nextPath = await resolveV2PostAcceptPath(guarded.organizationId)
   redirect(toLocalePath(locale, nextPath) as unknown as Route)
@@ -128,5 +139,5 @@ export async function rejectOrganizationInvitationAction(
   revalidatePath(toLocaleRoutePattern("/console"), "page")
   revalidatePath(toLocaleRoutePattern("/account"), "page")
   const locale = await getRequestAppLocale()
-  redirect(toLocalePath(locale, "/account") as Route)
+  redirect(toLocalePath(locale, "/console") as Route)
 }

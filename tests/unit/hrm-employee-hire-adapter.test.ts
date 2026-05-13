@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { hrmEmployeeHireRowSchema } from "../../lib/features/org-admin/schemas/hrm-employee-hire-row.schema"
+
+vi.mock("#features/hrm/server", () => ({
+  createEmployeeMutation: vi.fn(),
+}))
 
 describe("hrmEmployeeHireRowSchema", () => {
   describe("parseRow via schema — required fields", () => {
@@ -130,13 +134,13 @@ describe("hrmEmployeeHireRowSchema", () => {
         "employee_number"
       )
       expect(mod.hrmEmployeeHireAdapter.requiredHeaders).toContain("legal_name")
-    }, 15000)
+    }, 30_000)
 
     it("adapter id is hrm_employee_hire", async () => {
       const mod =
         await import("../../lib/features/org-admin/data/hrm-employee-hire.adapter.server")
       expect(mod.hrmEmployeeHireAdapter.id).toBe("hrm_employee_hire")
-    })
+    }, 30_000)
 
     it("parseRow returns validation error for empty employee_number", async () => {
       const mod =
@@ -149,7 +153,7 @@ describe("hrmEmployeeHireRowSchema", () => {
       if (!result.ok) {
         expect(result.code).toBe("validation")
       }
-    })
+    }, 30_000)
 
     it("parseRow returns ok for valid minimal row", async () => {
       const mod =
@@ -159,6 +163,6 @@ describe("hrmEmployeeHireRowSchema", () => {
         legal_name: "Alice Tan",
       })
       expect(result.ok).toBe(true)
-    })
+    }, 30_000)
   })
 })

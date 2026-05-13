@@ -3,7 +3,7 @@ import type {
   WorkbenchRailPin,
   WorkbenchRailRecent,
   WorkbenchRailView,
-} from "#components/workbench/rail/workbench-rail.types"
+} from "#components/workbench/left-nav-rail/workbench-rail.schema"
 
 import { isWorkbenchId } from "../constants"
 import type {

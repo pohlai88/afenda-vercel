@@ -23,6 +23,7 @@ import {
   payrollLockApprovalRequestSchema,
   payrollLockRejectDecisionSchema,
 } from "../schemas/payroll-period.schema"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type { PayrollLockApprovalFormState } from "../types"
 
 /**
@@ -47,17 +48,16 @@ export async function requestPayrollPeriodLockApprovalAction(
   formData: FormData
 ): Promise<PayrollLockApprovalFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
   const parsed = payrollLockApprovalRequestSchema.safeParse({
     periodId: formData.get("periodId"),
   })
   if (!parsed.success) {
-    return {
-      ok: false,
-      errors: { form: parsed.error.flatten().fieldErrors.periodId?.[0] },
-    }
+    return hrmActionFailure({
+      form: parsed.error.flatten().fieldErrors.periodId?.[0],
+    })
   }
 
   const period = await getPayrollPeriod(
@@ -65,13 +65,10 @@ export async function requestPayrollPeriodLockApprovalAction(
     parsed.data.periodId
   )
   if (!period) {
-    return { ok: false, errors: { form: "Payroll period not found." } }
+    return hrmActionFailure({ form: "Payroll period not found." })
   }
   if (period.state !== "preparing") {
-    return {
-      ok: false,
-      errors: { form: "Period must be in preparing state." },
-    }
+    return hrmActionFailure({ form: "Period must be in preparing state." })
   }
 
   const pending = await db
@@ -87,10 +84,9 @@ export async function requestPayrollPeriodLockApprovalAction(
     )
     .limit(1)
   if (pending.length > 0) {
-    return {
-      ok: false,
-      errors: { form: "A lock approval request is already pending." },
-    }
+    return hrmActionFailure({
+      form: "A lock approval request is already pending.",
+    })
   }
 
   const approved = await db
@@ -106,10 +102,9 @@ export async function requestPayrollPeriodLockApprovalAction(
     )
     .limit(1)
   if (approved.length > 0) {
-    return {
-      ok: false,
-      errors: { form: "Lock approval already recorded — lock the period." },
-    }
+    return hrmActionFailure({
+      form: "Lock approval already recorded — lock the period.",
+    })
   }
 
   const approvalId = crypto.randomUUID()
@@ -201,7 +196,7 @@ export async function approvePayrollPeriodLockApprovalAction(
   formData: FormData
 ): Promise<PayrollLockApprovalFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
   const parsed = payrollLockApprovalDecisionSchema.safeParse({
@@ -210,13 +205,10 @@ export async function approvePayrollPeriodLockApprovalAction(
   })
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        approvalId: fe.approvalId?.[0],
-        form: parsed.error.issues[0]?.message,
-      },
-    }
+    return hrmActionFailure({
+      approvalId: fe.approvalId?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const rows = await db
@@ -237,16 +229,15 @@ export async function approvePayrollPeriodLockApprovalAction(
     .limit(1)
   const row = rows[0]
   if (!row) {
-    return { ok: false, errors: { form: "Approval record not found." } }
+    return hrmActionFailure({ form: "Approval record not found." })
   }
   if (row.subjectKind !== PAYROLL_PERIOD_LOCK_SUBJECT_KIND) {
-    return { ok: false, errors: { form: "Not a payroll lock approval." } }
+    return hrmActionFailure({ form: "Not a payroll lock approval." })
   }
   if (row.state !== "pending") {
-    return {
-      ok: false,
-      errors: { form: `Approval is not pending (state: ${row.state}).` },
-    }
+    return hrmActionFailure({
+      form: `Approval is not pending (state: ${row.state}).`,
+    })
   }
 
   const now = new Date()
@@ -290,7 +281,7 @@ export async function rejectPayrollPeriodLockApprovalAction(
   formData: FormData
 ): Promise<PayrollLockApprovalFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
   const parsed = payrollLockRejectDecisionSchema.safeParse({
@@ -300,14 +291,11 @@ export async function rejectPayrollPeriodLockApprovalAction(
   })
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        approvalId: fe.approvalId?.[0],
-        rejectedReason: fe.rejectedReason?.[0],
-        form: parsed.error.issues[0]?.message,
-      },
-    }
+    return hrmActionFailure({
+      approvalId: fe.approvalId?.[0],
+      rejectedReason: fe.rejectedReason?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const rows = await db
@@ -328,16 +316,15 @@ export async function rejectPayrollPeriodLockApprovalAction(
     .limit(1)
   const row = rows[0]
   if (!row) {
-    return { ok: false, errors: { form: "Approval record not found." } }
+    return hrmActionFailure({ form: "Approval record not found." })
   }
   if (row.subjectKind !== PAYROLL_PERIOD_LOCK_SUBJECT_KIND) {
-    return { ok: false, errors: { form: "Not a payroll lock approval." } }
+    return hrmActionFailure({ form: "Not a payroll lock approval." })
   }
   if (row.state !== "pending") {
-    return {
-      ok: false,
-      errors: { form: `Approval is not pending (state: ${row.state}).` },
-    }
+    return hrmActionFailure({
+      form: `Approval is not pending (state: ${row.state}).`,
+    })
   }
 
   const now = new Date()

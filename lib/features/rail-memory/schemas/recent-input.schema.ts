@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { WORKBENCH_RAIL_FORBIDDEN_LABEL_NAMESPACES } from "#components/workbench"
+import { WORKBENCH_RAIL_FORBIDDEN_LABEL_NAMESPACES } from "#components/workbench/left-nav-rail"
 
 import { WORKBENCH_IDS } from "../constants"
 

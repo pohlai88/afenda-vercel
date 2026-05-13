@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import enMessages from "../../messages/en.json"
@@ -94,6 +97,26 @@ describe("PLATFORM_ADMIN_ALLOWED_SEGMENTS", () => {
       false
     )
     expect(isAllowedPlatformAdminSegment("")).toBe(false)
+  })
+
+  it("has a route page for every registered org-scoped operator segment", () => {
+    for (const segment of PLATFORM_ADMIN_ALLOWED_SEGMENTS) {
+      expect(
+        existsSync(
+          join(
+            process.cwd(),
+            "app",
+            "[locale]",
+            "o",
+            "[orgSlug]",
+            "operator",
+            segment,
+            "page.tsx"
+          )
+        ),
+        `missing operator route for ${segment}`
+      ).toBe(true)
+    }
   })
 })
 

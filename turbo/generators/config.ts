@@ -17,7 +17,10 @@
  * `pnpm lint:agent-contract` + `pnpm lint:eslint --fix` scoped to the
  * touched paths so output passes the contract on day one.
  *
- * Invoke via `pnpm gen <generator>` (top-level script in `package.json`).
+ * Invoke via **`pnpm gen <generator>`** (`package.json` → **`scripts/turbo-gen.mjs`**
+ * → **`pnpm exec turbo gen`**). For **`action`**, **`pnpm gen action --module <slug>`**
+ * supplies **four positional `--args`** (prompt order: slug, object, verb, tierKey);
+ * see **AGENTS.md §3**.
  *
  * @see https://turborepo.dev/docs/guides/generating-code
  */

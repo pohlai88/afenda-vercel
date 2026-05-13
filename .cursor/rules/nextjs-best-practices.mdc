@@ -5,450 +5,129 @@ alwaysApply: true
 
 # Afenda Next.js App Router — runtime contract
 
-This repository uses:
-
-- Next.js 16
-- React 19
-- App Router
-- Server Components by default
-- locale-first routing via `app/[locale]/...`
-- `proxy.ts` for narrow request gating
-- `next-intl` + `#i18n/navigation`
-
-This rule is mandatory unless an ADR explicitly overrides it.
+Stack: Next.js 16 · React 19 · App Router · Server Components default · `proxy.ts` · `next-intl` locale-first.
 
 ## Prime directive
 
-Afenda is not a SPA.
-
-Build it as a governed server-first runtime:
+Afenda is not a SPA. Build as a governed server-first runtime:
 
 ```txt
-Server Components
-→ layouts as authority boundaries
-→ Server Actions for ERP mutations
-→ Suspense for streaming enrichment
-→ narrow Client Components for interaction
+Server Components → layouts as authority boundaries → Server Actions for ERP mutations
+→ Suspense for streaming enrichment → narrow Client Components for interaction
 → route handlers only for external HTTP boundaries
 ```
 
-## 1. Server-first by default
+---
 
-Prefer Server Components.
+## 1. Server-first
 
-Use Client Components only for:
+Use **Server Components** by default. Use Client Components only for: state, effects, event handlers, browser APIs, interactive primitives, client-only context.
 
-- state
-- effects
-- event handlers
-- browser APIs
-- interactive primitives
-- client-only context
-
-Do not move route trees, shells, or data orchestration into Client Components.
-
-Preferred pattern:
-
+Forbidden in Client Components:
 ```txt
-Server Component fetches truth
-Server Component composes shell
-Client Component handles interaction only
+fetches initial ERP data · owns tenant truth · imports server-only modules · is async
 ```
 
-Forbidden:
+## 2. Layouts as runtime kernels
 
-```txt
-client component fetches initial ERP data
-client component owns tenant truth
-client component imports server-only modules
-async Client Component
-```
+`layout.tsx` owns: session gate · locale resolution · tenant/org resolution · permissions · critical shell labels · `RouteEnvelope` · shell composition.
 
-## 2. Layouts are runtime kernels
+**Tier A** (await in `Promise.all` — blocks shell): session, locale, org membership, role, permissions, translations, RouteEnvelope.
+**Tier B** (Suspense + Server Component slot — never block): org switcher, notifications, activity feeds, assistant context, recent records.
 
-`layout.tsx` is not a visual wrapper.
-
-It owns:
-
-- session gate
-- locale resolution
-- tenant/org resolution
-- permission gate
-- critical shell identity
-- RouteEnvelope construction
-- shell composition
-
-Layouts may resolve only the minimum blocking authority required to establish the route contract.
-
-### Tier A — blocking authority
-
-Allowed in layout blocking path:
-
-- `requireOrgSession()`
-- `requireGlobalAdminSession()`
-- locale validation
-- org membership
-- permissions
-- critical shell labels
-- RouteEnvelope
-
-### Tier B — streamable enrichment
-
-Must not block layout:
-
-- org switcher list
-- notifications
-- activity feed
-- recent records
-- assistant context
-- inspector content
-- command palette data
-
-Tier B must use:
-
-```txt
-Suspense
-Server Component slots
-skeleton fallbacks
-```
-
-Never put Tier B fetches inside the layout's blocking `Promise.all`.
+See `app-router-contracts.mdc` for full Tier A/B doctrine, RouteEnvelope, and special-file rules.
 
 ## 3. App Router special files
 
-Use special files as runtime contracts.
+| File | Meaning |
+|---|---|
+| `layout.tsx` | authority + shell contract |
+| `loading.tsx` | acceptable waiting state |
+| `error.tsx` | uncaught failure recovery (durable shell boundaries only) |
+| `not-found.tsx` | invalid truth boundary (preserve shell continuity) |
+| `template.tsx` | intentional remount — defer unless explicit reset is needed |
 
-| File            | Meaning                            |
-| --------------- | ---------------------------------- |
-| `layout.tsx`    | authority + shell contract         |
-| `loading.tsx`   | acceptable waiting state           |
-| `error.tsx`     | uncaught failure recovery          |
-| `not-found.tsx` | invalid truth boundary             |
-| `template.tsx`  | intentional remount/reset boundary |
-
-Do not use these files as decoration.
-
-### `template.tsx`
-
-Do not add `template.tsx` unless intentional remount behavior is required at that exact segment.
-
-Default position:
-
-```txt
-defer template.tsx
-```
+Full per-file doctrine: `app-router-contracts.mdc`.
 
 ## 4. Async request APIs
 
-Always treat request APIs as async:
-
-```ts
-await params
-await searchParams
-await cookies()
-await headers()
-```
-
-Applies to:
-
-- `page.tsx`
-- `layout.tsx`
-- `generateMetadata`
-- route handlers
-- server utilities called by route segments
-
-Never access dynamic APIs synchronously.
+Always `await`: `params`, `searchParams`, `cookies()`, `headers()` — in `page.tsx`, `layout.tsx`, `generateMetadata`, route handlers, and server utilities called from route segments.
 
 ## 5. Data fetching
 
-Prefer server-side orchestration.
-
-Rules:
-
-- parallelize independent fetches
-- avoid request waterfalls
-- keep data access close to server boundaries
-- do not fetch initial ERP data from Client Components
-- do not duplicate tenant/session checks across pages when layout owns them
-
-Good:
-
-```ts
-const [identity, permissions, labels] = await Promise.all([
-  fetchIdentity(),
-  fetchPermissions(),
-  getTranslations("Dashboard"),
-]);
-```
-
-Bad:
-
-```txt
-layout fetches everything
-page refetches same authority
-client fetches same records again
-```
+- Parallelize independent fetches: `const [a, b] = await Promise.all([fetchA(), fetchB()])`
+- Keep data access close to server boundaries
+- Do not fetch initial ERP data from Client Components
+- Do not duplicate tenant/session checks when layout already owns them
 
 ## 6. Caching and revalidation
 
-Use explicit cache intent.
-
-Use cache tags for shared server data:
-
 ```ts
-fetch(url, {
-  next: {
-    tags: ["org:123:contacts"],
-    revalidate: 300,
-  },
-});
+fetch(url, { next: { tags: ["org:123:contacts"], revalidate: 300 } })
 ```
 
-After mutations, choose the correct invalidation primitive:
-
-- `updateTag(tag)` in Server Actions when read-your-own-writes is required — immediately expires the cache entry, no stale-while-revalidate
-- `revalidateTag(tag)` when stale-while-revalidate is acceptable — works anywhere, not Server Action-exclusive
-- `revalidatePath(path)` when a concrete route must refresh
-
-`updateTag` is designed for Server Actions and immediate fresh reads. `revalidateTag` is suitable when serving stale content while refreshing in the background is acceptable.
+After mutations:
+- `updateTag(tag)` — Server Actions, immediate fresh read (no stale-while-revalidate)
+- `revalidateTag(tag)` — stale-while-revalidate acceptable
+- `revalidatePath(path)` — concrete route refresh
 
 ## 7. Mutation boundary
 
-Preferred for internal ERP/dashboard mutations:
+**Server Actions** for all internal ERP/dashboard mutations.
 
-```txt
-Server Actions
-```
+Route Handlers only for: webhooks · uploads · external integrations · public APIs · streaming · third-party HTTP callers.
 
-Use Route Handlers only for:
-
-- webhooks
-- uploads
-- external integrations
-- public APIs
-- streaming APIs
-- third-party HTTP callers
-
-Do not create internal REST endpoints just for Client Components.
-
-Server Actions must:
-
-- validate input
-- authorize tenant access
-- write audit events where required
-- invalidate cache deliberately
-- return typed expected-error results
+Server Actions must: validate input · authorize tenant access (`requireOrgSession()`) · write audit events · invalidate cache deliberately · return typed expected-error results.
 
 ## 8. Expected errors vs uncaught exceptions
 
-Expected business failures must be return values.
+Expected business failures (validation, permission denial, empty states, conflicts) **must be return values** — not thrown exceptions.
 
-Use return values for:
+Use `error.tsx` only for uncaught exceptions at approved route shell boundaries.
 
-- validation errors
-- permission denial
-- empty states
-- conflict states
-- failed form submissions
-- known external service failures
+## 9. Proxy discipline
 
-Do not throw for normal business outcomes.
+`proxy.ts` is a narrow gate — not an application layer.
 
-Use `error.tsx` only for uncaught exceptions at approved route boundaries. Next.js explicitly separates expected errors from uncaught exceptions and recommends modeling expected errors as return values.
+**Allowed:** locale normalization · session presence check · coarse route gating · redirects · rewrites.
 
-## 9. Route error boundaries
+**Forbidden:** database reads · business logic · permission matrices · tenant truth resolution · expensive fetches.
 
-Add `error.tsx` only at operational ownership boundaries:
+## 10. Locale-first routing
 
-- dashboard shell
-- org admin shell
-- operator shell
-- auth/IAM shell
-- major independent product surface
+All links must be locale-prefixed. Use:
+- Client: `Link`, `useRouter`, `usePathname` from `#i18n/navigation`
+- Server: `redirect` from `next/navigation` + `toLocalePath(locale, "/path")`
+- `revalidatePath`: `toLocaleRoutePattern` (static) or `toLocaleOrgDashboardRevalidatePattern` (ERP modules)
 
-Do not add `error.tsx` for:
+Callback URLs must be locale-prefixed and validated via `resolvePostAuthCallbackUrl`.
 
-- widgets
-- cards
-- tables
-- individual forms
-- normal module failures
+Forbidden raw strings: `/o/acme/dashboard`, `/admin`, `/sign-in`.
 
-Use instead:
+## 11. Client Component serializability
 
-- inline fallback
-- Suspense
-- `Promise.allSettled`
-- expected-error return values
-- section-level degraded UI
+Do not pass across the server→client boundary: functions (except Server Actions), class instances, DB clients, raw Error objects, non-normalized Dates, server-only symbols.
 
-## 10. Not-found boundaries
+## 12. Imports and boundaries
 
-Use `not-found.tsx` for invalid truth:
+Forbidden in Client Components: `next/headers`, `next/cache`, server queries, auth server utilities, DB modules, filesystem utilities.
 
-- missing org
-- missing module
-- missing record
-- inaccessible resource intentionally hidden
-
-For private ERP surfaces, preserve shell continuity:
-
-```txt
-sidebar remains
-topbar remains
-user gets return path
-```
-
-For public indexed routes, preserve correct 404 semantics before streaming where possible.
-
-## 11. Proxy discipline
-
-`proxy.ts` is not an application layer.
-
-Allowed:
-
-- locale normalization
-- session presence check
-- coarse protected-route gating
-- redirects
-- rewrites
-
-Forbidden:
-
-- database reads
-- business logic
-- permission matrices
-- tenant truth resolution
-- large branching workflows
-- expensive fetches
-
-Proxy decides whether the request may proceed.
-It must not resolve business truth.
-
-## 12. Locale-first routing
-
-All app links must respect locale routing.
-
-Use:
-
-```ts
-#i18n/navigation
-organizationDashboardPath()
-organizationAdminPath()
-toLocalePath()
-```
-
-Avoid raw strings like:
-
-```txt
-/o/acme/dashboard
-/admin
-/console
-```
-
-Callback URLs must be locale-prefixed.
-
-## 13. Client component serializability
-
-Server-to-client props must be serializable.
-
-Do not pass:
-
-- functions, except Server Actions intentionally passed to forms/components
-- class instances
-- database clients
-- raw Error objects
-- non-serializable Dates without normalization
-- server-only symbols
-
-Use plain data contracts.
-
-## 14. Imports and boundaries
-
-Never import server-only modules into Client Components.
-
-Forbidden in Client Components:
-
-```txt
-server actions by namespace import
-database modules
-server queries
-auth server utilities
-filesystem utilities
-next/headers
-next/cache
-```
-
-Use small server wrappers and pass data down.
-
-## 15. UI robustness
-
-Use:
-
-- `next/image`
-- meaningful `alt`
-- explicit image dimensions
-- accessible buttons/links
-- semantic headings
-- stable skeleton geometry
-- reduced-motion support for heavy motion
-
-Every serious route surface should consider:
-
-```txt
-loading.tsx
-error.tsx
-not-found.tsx
-Suspense
-```
-
-## 16. Enterprise production quality
+## 13. New route surface checklist
 
 Every new route surface must answer:
 
 ```txt
-Who owns authority?
-Where is tenant resolved?
-What can stream?
-What can fail locally?
-What failure reaches error.tsx?
-What is the not-found meaning?
-What cache tags are invalidated?
-What audit event is written?
-What remains server-only?
-What must become client-side?
+Who owns authority? · Where is tenant resolved? · What can stream?
+What can fail locally? · What failure reaches error.tsx? · What is the not-found meaning?
+What cache tags are invalidated? · What audit event is written?
+What remains server-only? · What must become client-side?
 ```
 
-If these are unclear, the implementation is not ready.
-
-## 17. Forbidden architecture
-
-Do not build:
-
-- SPA-style dashboard roots
-- client-side tenant resolution
-- route handlers for internal mutations
-- god layouts that fetch everything
-- client islands that own server truth
-- duplicated navigation registries
-- orphan `NAV_ITEMS`
-- speculative `template.tsx`
-- per-widget `error.tsx`
-- business logic in `proxy.ts`
-- broad client providers wrapping the whole app
-
-## Final rule
-
-Build Afenda as a governed App Router runtime:
+## 14. Forbidden architecture
 
 ```txt
-layout establishes authority
-page executes work
-Server Components read truth
-Server Actions mutate truth
-Suspense streams enrichment
-error.tsx recovers uncaught failure
-not-found.tsx preserves shell continuity
-proxy stays narrow
-template.tsx is deferred until reset is proven
+SPA-style dashboard roots · client-side tenant resolution · route handlers for internal mutations
+god layouts that fetch everything · client islands that own server truth
+orphan NAV_ITEMS · speculative template.tsx · per-widget error.tsx
+business logic in proxy.ts · broad client providers wrapping the whole app
 ```

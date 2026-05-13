@@ -1,7 +1,7 @@
 import type {
   WorkbenchRailNavIconId,
   WorkbenchRailSlots,
-} from "#components/workbench"
+} from "#components/workbench/left-nav-rail"
 
 import { PLATFORM_ADMIN_NAV_ITEMS, platformAdminPath } from "../constants"
 import type {
@@ -29,22 +29,18 @@ const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
  *                  no badge (conditional density).
  */
 export function buildPlatformAdminRailSlots({
-  userName,
-  userEmail,
   pressure,
+  pathForSegment = platformAdminPath,
 }: {
-  userName: string | null
-  userEmail: string
   /** Optional pressure map produced by `getPlatformAdminRailPressureCounts`. */
   pressure?: PlatformAdminRailPressureMap
+  pathForSegment?: (segment?: string) => string
 }): WorkbenchRailSlots {
-  const initial = (userName ?? userEmail).trim().charAt(0).toUpperCase() || "O"
-
   const allNavItems = [
     {
       id: "overview",
       label: "Overview",
-      href: platformAdminPath(),
+      href: pathForSegment(),
       icon: "list" as const,
     },
     ...PLATFORM_ADMIN_NAV_ITEMS.map((item) => {
@@ -52,7 +48,7 @@ export function buildPlatformAdminRailSlots({
       return {
         id: item.capabilityId,
         label: item.navKey.charAt(0).toUpperCase() + item.navKey.slice(1),
-        href: item.href,
+        href: pathForSegment(item.href.replace(/^\/operator\/?/, "")),
         icon: NAV_KEY_ICONS[item.navKey] ?? "list",
         ...(badge ? { badge } : {}),
       }
@@ -60,11 +56,6 @@ export function buildPlatformAdminRailSlots({
   ]
 
   return {
-    identity: {
-      initial,
-      primary: userName ?? "Operator",
-      secondary: userEmail,
-    },
     nav: [
       {
         id: "platform-admin",

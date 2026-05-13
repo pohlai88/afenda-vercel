@@ -75,7 +75,9 @@ export function VerifyEmailForm({
       router.refresh()
     } catch (caught: unknown) {
       const message =
-        caught instanceof Error ? caught.message : AUTH_CLIENT_ERROR_CODE.UNKNOWN
+        caught instanceof Error
+          ? caught.message
+          : AUTH_CLIENT_ERROR_CODE.UNKNOWN
       setError(normalizeAuthClientError(message).message)
     } finally {
       setPending(false)

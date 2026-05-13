@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildPlannerItemEvidenceGraph,
+  derivePlannerTriageOperatingLane,
   derivePlannerTriageLane,
   matchPlannerTriageRule,
+  summarizePlannerTriageOperatingLanes,
 } from "#features/planner"
 import type { PlannerItemDetail } from "#features/planner"
 
@@ -54,6 +56,68 @@ describe("planner triage strategy", () => {
     ).toBe("erp_linked")
     expect(derivePlannerTriageLane({ pressureScore: 75 })).toBe("high_pressure")
     expect(derivePlannerTriageLane({ pressureScore: 15 })).toBe("manual_triage")
+  })
+
+  it("summarizes operating lanes for batch triage work", () => {
+    expect(
+      derivePlannerTriageOperatingLane({
+        kind: "item",
+        pressureScore: 25,
+        automationKinds: ["reminder_delivery"],
+      })
+    ).toBe("automation_attention")
+    expect(
+      derivePlannerTriageOperatingLane({
+        kind: "item",
+        pressureScore: 25,
+        blockedState: {
+          blockedAt: new Date("2026-05-12T08:00:00.000Z"),
+          blockedHours: 10,
+          thresholdHours: 4,
+          stage: "urgent",
+        },
+      })
+    ).toBe("blocked_recovery")
+    expect(
+      derivePlannerTriageOperatingLane({
+        kind: "signal",
+        pressureScore: 82,
+      })
+    ).toBe("high_pressure")
+
+    expect(
+      summarizePlannerTriageOperatingLanes([
+        {
+          kind: "item",
+          pressureScore: 25,
+          automationKinds: ["reminder_delivery"],
+        },
+        {
+          kind: "item",
+          pressureScore: 25,
+          blockedState: {
+            blockedAt: new Date("2026-05-12T08:00:00.000Z"),
+            blockedHours: 10,
+            thresholdHours: 4,
+            stage: "urgent",
+          },
+        },
+        {
+          kind: "signal",
+          pressureScore: 82,
+        },
+        {
+          kind: "signal",
+          pressureScore: 10,
+        },
+      ])
+    ).toEqual({
+      automationAttentionCount: 1,
+      blockedRecoveryCount: 1,
+      highPressureCount: 1,
+      signalIntakeCount: 1,
+      manualFollowUpCount: 0,
+    })
   })
 })
 

@@ -1,0 +1,63 @@
+---
+description: Brand assets, favicons, next/image — public/, lib/site.ts, next.config.ts
+globs: "public/**,lib/site.ts,app/layout.tsx,app/manifest.ts,next.config.ts,**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Assets contract
+
+**Replaces:** `brand-assets.mdc`, `images.mdc`
+
+---
+
+## `next/image` defaults
+
+- Use `next/image` for raster images. Provide meaningful `alt` + explicit `width`/`height` (or static import for auto-inference).
+- **Local assets** (`public/`): only paths allowed by `images.localPatterns` in `next.config.ts` (currently: `/icons/**`, `afenda-brand/**` with `search: ""`). New subtrees → extend `localPatterns`.
+- **Remote URLs**: must match `images.remotePatterns` (`https`, `*.public.blob.vercel-storage.com`). New hosts → explicit entry; do not widen.
+- **SVG**: `next/image` treats `.svg` as unoptimized (security). Do not enable `dangerouslyAllowSVG` without CSP + disposition config.
+
+---
+
+## Brand asset taxonomy
+
+| Constant | Purpose | Used in |
+|---|---|---|
+| `APP_ICON_192/512_PNG` | Transparent tab icon (both themes) | `metadata.icons` with `media: "(prefers-color-scheme: light\|dark)"` |
+| `APP_ICON_MASKABLE_512_PNG` | PWA manifest only (`purpose: "maskable"`) | `app/manifest.ts` — do not use in UI art |
+| `BRAND_COMBINED_LOCKUP_PNG` / `_DARK_PNG` | Full brand lockup, theme-aware | Auth flows, dashboard shell, account/admin layouts |
+| `BRAND_TYPOGRAPHY_LOCKUP_SVG` / `BRAND_WORDMARK_MONO_SVG` | Text-first wordmark | Text-forward surfaces |
+| `DEFAULT_OG_IMAGE` | Default OG/Twitter card | `metadata.openGraph.images` |
+
+**Import constants from `lib/site.ts` — never string literals.**
+
+---
+
+## Tab icons and metadata
+
+- `metadata.icons` in `app/layout.tsx`: typed `url`/`sizes`/`type` with `media: "(prefers-color-scheme: light|dark)"`.
+- `/favicon.ico` lives in both `public/` and `app/` (App Router convention). Regenerate via `pnpm icons:favicon` when `APP_ICON_512_PNG` changes.
+- Root `generateMetadata` uses **request host** for `metadataBase` so icon URLs resolve on `*.vercel.app` + custom domains.
+- `vercel.json` attaches CDN `Cache-Control` to `/favicon.ico` and `/icons/*` — bump filenames when replacing in-place.
+
+---
+
+## Composition rules
+
+- Do not substitute Lucide or generic icons for product identity surfaces (nav brand, auth header).
+- Prefer small focused components (`BrandMark` / `BrandLockup`) over boolean-flag monoliths.
+
+## OG and PWA
+
+- `openGraph.images`: include `width`, `height`, and `alt` matching real asset dimensions.
+- PWA manifest: `purpose: "any"` vs `"maskable"` per asset — do not mix.
+
+---
+
+## Checklist (new files under `public/afenda-brand/` or `public/icons/`)
+
+1. Add path constant to `lib/site.ts`.
+2. Update `app/layout.tsx` `metadata.icons` if tab art changes.
+3. Run `pnpm icons:favicon` if 512 source changed.
+4. Extend `images.localPatterns` in `next.config.ts` if new subtree uses `next/image`.
+5. Add note under **Brand assets / Images** in `AGENTS.md`.

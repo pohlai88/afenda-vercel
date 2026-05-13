@@ -58,6 +58,13 @@ export const HRM_RAIL_PRESSURE_THRESHOLDS = {
    * `hrm-compliance-aging-watch` cron's `STUCK_DAYS` doctrine.
    */
   complianceSubmittedCriticalAgeDays: 7,
+  /**
+   * Pending benefit enrollments awaiting HR activation or waiver. When
+   * the backlog crosses this count the rail escalates to `critical` so
+   * open enrollment periods do not silently stall payroll-dependent
+   * coverage changes.
+   */
+  benefitsPendingCriticalCount: 15,
 } as const
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -104,6 +111,11 @@ export type CompliancePressureInput = {
    * never silent.
    */
   readonly failedCount: number
+}
+
+export type BenefitsPressureInput = {
+  /** Count of `hrm_benefit_enrollment` rows in `pending` state. */
+  readonly pendingEnrollmentCount: number
 }
 
 /**
@@ -199,4 +211,29 @@ export function deriveHrmCompliancePressure(
     count: totalCount,
     tone: isCritical ? "critical" : "attention",
   }
+}
+
+/**
+ * Derives the `benefits` nav badge from pending enrollment backlog.
+ *
+ *   - `null` when there are no pending enrollments (conditional density).
+ *   - `attention` when at least one enrollment awaits HR action but the
+ *     backlog is below the critical threshold.
+ *   - `critical` when pending count meets or exceeds
+ *     `benefitsPendingCriticalCount`.
+ */
+export function deriveHrmBenefitsPressure(
+  input: BenefitsPressureInput
+): HrmRailPressureBadge | null {
+  if (input.pendingEnrollmentCount <= 0) {
+    return null
+  }
+
+  const tone: HrmRailPressureTone =
+    input.pendingEnrollmentCount >=
+    HRM_RAIL_PRESSURE_THRESHOLDS.benefitsPendingCriticalCount
+      ? "critical"
+      : "attention"
+
+  return { count: input.pendingEnrollmentCount, tone }
 }

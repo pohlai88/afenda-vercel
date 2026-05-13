@@ -28,6 +28,7 @@ const REQUIRED_COOKIE_FACTS = [
   "inspector_state",
   "inspector_width",
   "afenda:lynx-summon-fab-pos",
+  "afenda:dev-signin-panel-pos",
   "afenda:cookie-consent-choice",
 ] as const
 

@@ -1,3 +1,5 @@
+import type { ComponentProps, ReactNode } from "react"
+
 import { Badge } from "#components/ui/badge"
 import {
   Card,
@@ -14,6 +16,8 @@ import {
   type CapabilityToggleButtonProps,
 } from "./capability-toggle-button.client"
 import { CapabilityIcon } from "./capability-icon-map.shared"
+import { cn } from "#lib/utils"
+import type { ResolvedEffectiveState } from "../types"
 
 export type CapabilityCardCopy = {
   title: string
@@ -30,6 +34,7 @@ export type CapabilityCardCopy = {
 export type CapabilityCardProps = {
   capability: ResolvedCapability
   copy: CapabilityCardCopy
+  actionSlot?: ReactNode
 }
 
 /**
@@ -40,15 +45,32 @@ export type CapabilityCardProps = {
  * mirrors the calm "icon + title + description + meta" lockup used by
  * the previous admin marketplace so the visual rhythm carries forward.
  */
-export function CapabilityCard({ capability, copy }: CapabilityCardProps) {
+export function CapabilityCard({
+  capability,
+  copy,
+  actionSlot,
+}: CapabilityCardProps) {
+  const tone = capabilityStateTone(capability.effective)
+
   return (
-    <Card size="sm" className="border border-border/60 bg-background/80">
+    <Card
+      size="sm"
+      className={cn(
+        "min-h-[13.5rem] rounded-lg border bg-background/90 shadow-none transition-colors hover:border-foreground/20",
+        tone.card
+      )}
+    >
       <CardHeader className="gap-3">
         <div className="flex items-start gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-muted/35">
+          <div
+            className={cn(
+              "flex size-10 shrink-0 items-center justify-center rounded-md border",
+              tone.icon
+            )}
+          >
             <CapabilityIcon
               iconKey={capability.definition.iconKey}
-              className="size-5 text-foreground/80"
+              className="size-5"
             />
           </div>
           <div className="flex min-w-0 flex-col gap-1">
@@ -58,18 +80,57 @@ export function CapabilityCard({ capability, copy }: CapabilityCardProps) {
         </div>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2 pt-0">
-        <Badge variant="outline">{copy.stateBadge}</Badge>
-        <Badge variant="secondary">{copy.sourceBadge}</Badge>
+        <Badge variant={tone.badge}>{copy.stateBadge}</Badge>
+        <Badge variant="outline" className="text-muted-foreground">
+          {copy.sourceBadge}
+        </Badge>
       </CardContent>
-      <CardFooter className="justify-between gap-3 border-t border-border/50 pt-surface-md">
-        <p className="text-xs text-muted-foreground">{copy.stateHint}</p>
-        <CapabilityToggleButton
-          capabilityId={capability.definition.id}
-          effective={capability.effective}
-          customizable={capability.definition.customizable}
-          labels={copy.toggle}
-        />
+      <CardFooter className="mt-auto flex-col items-start justify-between gap-3 border-t border-border/50 pt-surface-md sm:flex-row sm:items-center">
+        <p className="max-w-[18rem] text-xs leading-relaxed text-muted-foreground">
+          {copy.stateHint}
+        </p>
+        {actionSlot ?? (
+          <CapabilityToggleButton
+            capabilityId={capability.definition.id}
+            effective={capability.effective}
+            customizable={capability.definition.customizable}
+            labels={copy.toggle}
+          />
+        )}
       </CardFooter>
     </Card>
   )
+}
+
+function capabilityStateTone(state: ResolvedEffectiveState): {
+  card: string
+  icon: string
+  badge: ComponentProps<typeof Badge>["variant"]
+} {
+  switch (state) {
+    case "mandatory":
+      return {
+        card: "border-l-4 border-l-warning",
+        icon: "border-warning/40 bg-warning/15 text-warning-foreground dark:bg-warning/25",
+        badge: "warning",
+      }
+    case "visible":
+      return {
+        card: "border-l-4 border-l-success",
+        icon: "border-success/35 bg-success/10 text-success dark:bg-success/20",
+        badge: "success",
+      }
+    case "hidden":
+      return {
+        card: "border-l-4 border-l-data-neutral",
+        icon: "border-border/70 bg-muted/45 text-muted-foreground dark:bg-muted/35",
+        badge: "secondary",
+      }
+    case "unavailable":
+      return {
+        card: "border-l-4 border-l-critical",
+        icon: "border-critical/35 bg-critical/10 text-critical dark:bg-critical/20",
+        badge: "critical",
+      }
+  }
 }

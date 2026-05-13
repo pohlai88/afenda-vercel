@@ -1436,6 +1436,8 @@ export const hrmEmploymentContract = pgTable(
     terminationDate: date("terminationDate", { mode: "date" }),
     terminationReason: text("terminationReason"),
     terminationNoticeDays: integer("terminationNoticeDays"),
+    /** Optional checklist progress for onboarding/offboarding milestones (JSON). */
+    onboardingChecklist: jsonb("onboardingChecklist"),
     positionId: text("positionId").references(() => hrmPosition.id, {
       onDelete: "set null",
     }),
@@ -1488,6 +1490,223 @@ export const hrmEmploymentContract = pgTable(
       t.organizationId,
       t.state
     ),
+  ]
+)
+
+/** Performance review cycle (org-scoped). */
+export const hrmReviewCycle = pgTable(
+  "hrm_review_cycle",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    name: text("name").notNull(),
+    periodStart: date("periodStart", { mode: "date" }).notNull(),
+    periodEnd: date("periodEnd", { mode: "date" }).notNull(),
+    state: text("state").notNull().default("draft"),
+    /** `single` = one reviewer submit; `three_stage` = self → manager → HR before final submit. */
+    reviewPipeline: text("reviewPipeline").notNull().default("single"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [index("hrm_review_cycle_organizationId_idx").on(t.organizationId)]
+)
+
+/** Individual performance review row within a cycle. */
+export const hrmReview = pgTable(
+  "hrm_review",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    cycleId: text("cycleId")
+      .notNull()
+      .references(() => hrmReviewCycle.id, { onDelete: "cascade" }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    reviewerId: text("reviewerId").notNull(),
+    state: text("state").notNull().default("pending"),
+    rating: text("rating"),
+    notes: text("notes"),
+    selfRating: text("selfRating"),
+    selfNotes: text("selfNotes"),
+    selfSubmittedAt: timestamp("selfSubmittedAt", { mode: "date" }),
+    managerRating: text("managerRating"),
+    managerNotes: text("managerNotes"),
+    managerSubmittedAt: timestamp("managerSubmittedAt", { mode: "date" }),
+    hrRating: text("hrRating"),
+    hrNotes: text("hrNotes"),
+    hrSubmittedAt: timestamp("hrSubmittedAt", { mode: "date" }),
+    /** e.g. text | stars_5 — governs UI copy for staged reviews. */
+    ratingScale: text("ratingScale").notNull().default("text"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_review_cycleId_employeeId_uidx").on(
+      t.cycleId,
+      t.employeeId
+    ),
+    index("hrm_review_organizationId_cycleId_idx").on(
+      t.organizationId,
+      t.cycleId
+    ),
+  ]
+)
+
+/** Employee dependents — payroll tax context + HR records (Viet-ERP parity slice). */
+export const hrmDependent = pgTable(
+  "hrm_dependent",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    legalName: text("legalName").notNull(),
+    relationship: text("relationship").notNull(),
+    dateOfBirth: date("dateOfBirth", { mode: "date" }),
+    taxDependent: boolean("taxDependent").notNull().default(false),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_dependent_organizationId_employeeId_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_dependent_organizationId_archivedAt_idx").on(
+      t.organizationId,
+      t.archivedAt
+    ),
+  ]
+)
+
+/** Field-level employee edits — complements IAM audit (structured diff). */
+export const hrmEmployeeChangeHistory = pgTable(
+  "hrm_employee_change_history",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "cascade" }),
+    fieldName: text("fieldName").notNull(),
+    oldValue: jsonb("oldValue"),
+    newValue: jsonb("newValue"),
+    changedByUserId: text("changedByUserId").notNull(),
+    changedAt: timestamp("changedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_employee_change_history_org_employee_changedAt_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.changedAt
+    ),
+  ]
+)
+
+/** KPI planning period (org-scoped). */
+export const hrmKpiPeriod = pgTable(
+  "hrm_kpi_period",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    name: text("name").notNull(),
+    periodStart: date("periodStart", { mode: "date" }).notNull(),
+    periodEnd: date("periodEnd", { mode: "date" }).notNull(),
+    state: text("state").notNull().default("draft"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [index("hrm_kpi_period_organizationId_idx").on(t.organizationId)]
+)
+
+/** KPI score per employee + metric within a period. */
+export const hrmKpiScore = pgTable(
+  "hrm_kpi_score",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    periodId: text("periodId")
+      .notNull()
+      .references(() => hrmKpiPeriod.id, { onDelete: "cascade" }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    metricCode: text("metricCode").notNull(),
+    targetValue: text("targetValue"),
+    achievedValue: text("achievedValue"),
+    notes: text("notes"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_kpi_score_org_period_employee_metric_uidx").on(
+      t.organizationId,
+      t.periodId,
+      t.employeeId,
+      t.metricCode
+    ),
+    index("hrm_kpi_score_organizationId_periodId_idx").on(
+      t.organizationId,
+      t.periodId
+    ),
+  ]
+)
+
+/** Salary advance — repaid via payroll deduction line on period lock. */
+export const hrmSalaryAdvance = pgTable(
+  "hrm_salary_advance",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+    currency: text("currency").notNull().default("MYR"),
+    reason: text("reason"),
+    state: text("state").notNull().default("pending"),
+    requestedByUserId: text("requestedByUserId").notNull(),
+    requestedAt: timestamp("requestedAt", { mode: "date" }).notNull().defaultNow(),
+    decidedByUserId: text("decidedByUserId"),
+    decidedAt: timestamp("decidedAt", { mode: "date" }),
+    decisionNote: text("decisionNote"),
+    repaidAt: timestamp("repaidAt", { mode: "date" }),
+    repaidByPayrollLineId: text("repaidByPayrollLineId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_salary_advance_org_employee_state_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.state
+    ),
+    index("hrm_salary_advance_org_state_idx").on(t.organizationId, t.state),
   ]
 )
 
@@ -2114,6 +2333,11 @@ export const hrmPayrollLine = pgTable(
      * claim provenance. ON DELETE SET NULL preserves the audit ledger.
      */
     claimId: text("claimId"),
+    /** Optional FK when this deduction line repays an approved salary advance. */
+    salaryAdvanceId: text("salaryAdvanceId").references(
+      () => hrmSalaryAdvance.id,
+      { onDelete: "set null" }
+    ),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
@@ -2129,6 +2353,7 @@ export const hrmPayrollLine = pgTable(
       t.code
     ),
     index("hrm_payroll_line_claim_id_idx").on(t.claimId),
+    index("hrm_payroll_line_salary_advance_id_idx").on(t.salaryAdvanceId),
   ]
 )
 
@@ -2288,14 +2513,15 @@ export const hrmClaimEvidence = pgTable(
 )
 
 // ---------------------------------------------------------------------------
-// Phase 4 — Benefits stub (schema only; no UI / actions / runtime in Phase 4)
+// Phase 4–5 — Benefits catalog + enrollment + qualifying life events
 //
-// Drafted now so Phase 5+ does not need a fresh migration to surface benefits.
 // `hrm_benefit` is a per-org catalog row; `hrm_benefit_enrollment` links an
-// employee to a benefit. No payroll-line wiring yet — that arrives with the
-// benefits Server Actions.
+// employee to a benefit. Payroll-line wiring for benefit deductions remains
+// a follow-up once payroll preview absorbs recurring benefit costs.
 //
-// Audit grammar (reserved): erp.hrm.benefit.{create|update|enroll|terminate}
+// Audit grammar: erp.hrm.benefit.{create|update|archive|enroll} +
+// erp.hrm.benefit.enrollment.{activate|waive|terminate} +
+// erp.hrm.benefit.life_event.{record|verify}
 // ---------------------------------------------------------------------------
 
 export const hrmBenefit = pgTable(
@@ -2310,6 +2536,30 @@ export const hrmBenefit = pgTable(
     description: text("description"),
     /** medical | dental | optical | wellness | retirement | other */
     benefitKind: text("benefitKind").notNull().default("other"),
+    /** Optional granular subtype (e.g. health_insurance, meal_allowance). */
+    benefitType: text("benefitType"),
+    employerContributionType: text("employerContributionType")
+      .notNull()
+      .default("none"),
+    employerContributionValue: decimal("employerContributionValue", {
+      precision: 15,
+      scale: 4,
+    }),
+    employeeContributionType: text("employeeContributionType")
+      .notNull()
+      .default("none"),
+    employeeContributionValue: decimal("employeeContributionValue", {
+      precision: 15,
+      scale: 4,
+    }),
+    /** Allowed coverage levels for enrollments (subset of BENEFIT_COVERAGE_LEVELS). */
+    coverageLevels: jsonb("coverageLevels").$type<string[]>(),
+    waitingPeriodDays: integer("waitingPeriodDays").notNull().default(0),
+    maxAnnualAmount: decimal("maxAnnualAmount", {
+      precision: 15,
+      scale: 2,
+    }),
+    effectiveFrom: timestamp("effectiveFrom", { mode: "date" }),
     isActive: boolean("isActive").notNull().default(true),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
@@ -2335,6 +2585,19 @@ export const hrmBenefitEnrollment = pgTable(
     employeeId: text("employeeId")
       .notNull()
       .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    /** pending | active | waived | terminated */
+    state: text("state").notNull().default("pending"),
+    coverageLevel: text("coverageLevel"),
+    effectiveFrom: timestamp("effectiveFrom", { mode: "date" }),
+    employerContributionAmount: decimal("employerContributionAmount", {
+      precision: 15,
+      scale: 2,
+    }),
+    employeeContributionAmount: decimal("employeeContributionAmount", {
+      precision: 15,
+      scale: 2,
+    }),
+    waivedReason: text("waivedReason"),
     enrolledAt: timestamp("enrolledAt", { mode: "date" })
       .notNull()
       .defaultNow(),
@@ -2354,6 +2617,46 @@ export const hrmBenefitEnrollment = pgTable(
     index("hrm_benefit_enrollment_org_employee_idx").on(
       t.organizationId,
       t.employeeId
+    ),
+    index("hrm_benefit_enrollment_org_state_idx").on(
+      t.organizationId,
+      t.state
+    ),
+  ]
+)
+
+export const hrmBenefitLifeEvent = pgTable(
+  "hrm_benefit_life_event",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    eventType: text("eventType").notNull(),
+    eventDate: timestamp("eventDate", { mode: "date" }).notNull(),
+    notes: text("notes"),
+    /** pending | verified | rejected */
+    verificationStatus: text("verificationStatus").notNull().default("pending"),
+    verifiedByUserId: text("verifiedByUserId"),
+    verifiedAt: timestamp("verifiedAt", { mode: "date" }),
+    verificationNote: text("verificationNote"),
+    documentIds: jsonb("documentIds").$type<string[]>().notNull().default([]),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_benefit_life_event_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_benefit_life_event_org_type_idx").on(
+      t.organizationId,
+      t.eventType
     ),
   ]
 )

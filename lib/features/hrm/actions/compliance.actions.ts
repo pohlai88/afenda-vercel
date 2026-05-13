@@ -18,10 +18,14 @@ import {
 import type { EvidenceRegenerationSnapshot } from "../data/compliance.mutations.server"
 import { STATUTORY_PACK_REGENERATE_AUDIT_ACTION } from "../data/compliance-timeline.shared"
 import { buildStatutoryPackFromRuns } from "../data/statutory-pack.server"
-import { getPayrollPeriod } from "../data/payroll.queries.server"
+import {
+  getPayrollPeriod,
+  getPayrollPeriodPrimaryCountryCode,
+} from "../data/payroll.queries.server"
 import { resolveRulePack } from "../data/payroll-rule-pack.server"
 import type { StatutoryPackType } from "../data/payroll-rule-pack.server"
 import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import { hrmCodedActionFailure } from "../schemas/hrm-action-result.shared"
 import type {
   GenerateAllStatutoryPacksFormState,
   GenerateStatutoryPackFormState,
@@ -111,7 +115,7 @@ export async function generateStatutoryPackAction(
 ): Promise<GenerateStatutoryPackFormState> {
   const gate = await requireHrmAdmin()
   if (!gate.ok) {
-    return { ok: false, code: "permission_denied", message: gate.error }
+    return hrmCodedActionFailure("permission_denied", gate.error)
   }
   const { organizationId, userId, sessionId } = gate.session
 
@@ -121,51 +125,45 @@ export async function generateStatutoryPackAction(
     | undefined
 
   if (!periodId) {
-    return { ok: false, code: "validation", message: "periodId is required." }
+    return hrmCodedActionFailure("validation", "periodId is required.")
   }
   if (!packType) {
-    return { ok: false, code: "validation", message: "packType is required." }
+    return hrmCodedActionFailure("validation", "packType is required.")
   }
 
   const period = await getPayrollPeriod(organizationId, periodId)
   if (!period) {
-    return {
-      ok: false,
-      code: "not_found",
-      message: "Payroll period not found.",
-    }
+    return hrmCodedActionFailure("not_found", "Payroll period not found.")
   }
   if (period.state !== "locked") {
-    return {
-      ok: false,
-      code: "period_not_locked",
-      message:
-        "Lock the payroll period before generating statutory evidence — only locked rule-pack snapshots are audit-trustworthy.",
-    }
+    return hrmCodedActionFailure(
+      "period_not_locked",
+      "Lock the payroll period before generating statutory evidence — only locked rule-pack snapshots are audit-trustworthy."
+    )
   }
 
   const periodEndDate = new Date(period.periodEnd)
-  const countryCode = "MY"
+  const countryCode = await getPayrollPeriodPrimaryCountryCode(
+    organizationId,
+    periodId
+  )
 
   let rulePack
   try {
     rulePack = resolveRulePack(countryCode, periodEndDate)
   } catch {
-    return {
-      ok: false,
-      code: "rule_pack_missing",
-      message: `No rule pack for ${countryCode} at ${period.periodEnd}.`,
-    }
+    return hrmCodedActionFailure(
+      "rule_pack_missing",
+      `No rule pack for ${countryCode} at ${period.periodEnd}.`
+    )
   }
 
   const runs = await fetchRunsForStatutoryPack(organizationId, periodId)
   if (runs.length === 0) {
-    return {
-      ok: false,
-      code: "no_runs",
-      message:
-        "No payroll runs found for this period. Prepare payroll runs first.",
-    }
+    return hrmCodedActionFailure(
+      "no_runs",
+      "No payroll runs found for this period. Prepare payroll runs first."
+    )
   }
 
   // Phase 3S — single-source the generation instant so the hashed body and
@@ -263,55 +261,50 @@ export async function generateAllStatutoryPacksAction(
 ): Promise<GenerateAllStatutoryPacksFormState> {
   const gate = await requireHrmAdmin()
   if (!gate.ok) {
-    return { ok: false, code: "permission_denied", message: gate.error }
+    return hrmCodedActionFailure("permission_denied", gate.error)
   }
   const { organizationId, userId, sessionId } = gate.session
 
   const periodId = formData.get("periodId")?.toString()
   if (!periodId) {
-    return { ok: false, code: "validation", message: "periodId is required." }
+    return hrmCodedActionFailure("validation", "periodId is required.")
   }
 
   const period = await getPayrollPeriod(organizationId, periodId)
   if (!period) {
-    return {
-      ok: false,
-      code: "not_found",
-      message: "Payroll period not found.",
-    }
+    return hrmCodedActionFailure("not_found", "Payroll period not found.")
   }
   if (period.state !== "locked") {
-    return {
-      ok: false,
-      code: "period_not_locked",
-      message:
-        "Lock the payroll period before generating statutory evidence — only locked rule-pack snapshots are audit-trustworthy.",
-    }
+    return hrmCodedActionFailure(
+      "period_not_locked",
+      "Lock the payroll period before generating statutory evidence — only locked rule-pack snapshots are audit-trustworthy."
+    )
   }
 
   const periodEndDate = new Date(period.periodEnd)
-  const countryCode = "MY"
+  const countryCode = await getPayrollPeriodPrimaryCountryCode(
+    organizationId,
+    periodId
+  )
 
   let rulePack
   try {
     rulePack = resolveRulePack(countryCode, periodEndDate)
   } catch {
-    return {
-      ok: false,
-      code: "rule_pack_missing",
-      message: `No rule pack for ${countryCode} at ${period.periodEnd}.`,
-    }
+    return hrmCodedActionFailure(
+      "rule_pack_missing",
+      `No rule pack for ${countryCode} at ${period.periodEnd}.`
+    )
   }
 
   const packTypes = rulePack.defaultStatutoryPackTypes()
   const runs = await fetchRunsForStatutoryPack(organizationId, periodId)
 
   if (runs.length === 0) {
-    return {
-      ok: false,
-      code: "no_runs",
-      message: "No payroll runs found for this period.",
-    }
+    return hrmCodedActionFailure(
+      "no_runs",
+      "No payroll runs found for this period."
+    )
   }
 
   // Phase 3S — share one `generatedAt` across the whole bulk run so every
@@ -428,7 +421,7 @@ export async function markEvidenceSubmittedAction(
 ): Promise<MarkEvidenceSubmittedFormState> {
   const gate = await requireHrmAdmin()
   if (!gate.ok) {
-    return { ok: false, code: "permission_denied", message: gate.error }
+    return hrmCodedActionFailure("permission_denied", gate.error)
   }
   const { organizationId, userId, sessionId } = gate.session
 
@@ -436,7 +429,7 @@ export async function markEvidenceSubmittedAction(
   const externalReference = formData.get("externalReference")?.toString()
 
   if (!evidenceId) {
-    return { ok: false, code: "validation", message: "evidenceId is required." }
+    return hrmCodedActionFailure("validation", "evidenceId is required.")
   }
 
   await updateComplianceSubmissionStateMutation(

@@ -110,7 +110,7 @@
     },
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"],
+      "outputs": [".next/**", "!.next/cache/**", "app/.well-known/workflow/**"],
       "env": [
         "NEXT_PUBLIC_APP_NAME",
         "NEXT_PUBLIC_SITE_URL",

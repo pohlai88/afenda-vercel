@@ -1,0 +1,24 @@
+import {
+  requireRecentAuthStepUp,
+  requireVerifiedEmailForAccount,
+} from "#lib/auth"
+import { organizationAccountPath } from "#lib/dashboard-module-paths"
+import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+
+export default async function OrganizationAccountSecurityLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ locale: string; orgSlug: string }>
+}) {
+  const { locale: localeRaw, orgSlug } = await params
+  const locale = ensureAppLocale(localeRaw)
+  const securityReturn = toLocalePath(
+    locale,
+    organizationAccountPath(orgSlug, "security")
+  )
+  await requireRecentAuthStepUp({ returnTo: securityReturn })
+  await requireVerifiedEmailForAccount(securityReturn)
+  return children
+}

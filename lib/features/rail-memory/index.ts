@@ -5,7 +5,7 @@
  * Doctrinal anchor:
  *
  *   - Plan: `docs/_draft/working-memory-rail-plan.md` §§ 6, 8, 10
- *   - Kernel: `components/workbench/rail/workbench-rail.schema.ts` (Phase 3a)
+ *   - Kernel: `components/workbench/left-nav-rail/workbench-rail.schema.ts` (Phase 3a)
  *   - IAM audit policy: `AGENTS.md §5`
  *
  * This barrel is import-safe from Server Components. Client islands

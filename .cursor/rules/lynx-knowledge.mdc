@@ -1,0 +1,95 @@
+---
+description: Lynx machine layer + Knowledge substrate — boundaries, import doors, contract files
+globs: "lib/features/lynx/**,lib/features/knowledge/**,app/api/erp/lynx/**,app/**/lynx/**,app/**/knowledge/**,messages/*.json"
+alwaysApply: false
+---
+
+# Lynx + Knowledge directory contract
+
+**Replaces:** `lynx-directory.mdc`, `knowledge-directory.mdc`
+
+---
+
+## Boundary split
+
+| Module | Role | Public door |
+|---|---|---|
+| **`#features/knowledge`** | Substrate — pgvector, `knowledge_chunk`, embeddings, chunk CRUD | `#features/knowledge` |
+| **`#features/lynx`** | Product — Truth Retrieval UI, streaming truth, Operator Assist, NL→SQL, Operating Briefs | `#features/lynx` (server), `#features/lynx/client` (client) |
+
+`#features/lynx` composes `#features/knowledge` via barrel only — no deep imports.
+
+---
+
+## Lynx — machine layer doctrine
+
+```txt
+Lynx is Afenda's machine layer for resolving truth, preparing work, and recommending controlled action.
+```
+
+- **Single product home** for all machine-assisted modalities (retrieval, structured generation, NL→SQL, chart inference, future layers). Do not introduce parallel "AI" / "assistant" modules.
+- **Providers** (OpenAI, AI SDK, embeddings) are implementation details — not user-facing brands.
+- **Lynx ≠ Workflow DevKit.** Lynx stays inference/advisory. Durable execution (retries, multi-step pipelines) is `#features/execution`.
+
+### Banned user-facing vocabulary
+
+Do not use in product copy, nav, or `messages/*`: **AI assistant**, **chatbot**, **copilot**, **AI mode**, **AI active**, **Thinking**, **Processing**, **Generating**.
+Use: **Lynx**, **The Machine**, **resolving**, **listening**, **high confidence**.
+
+### Canonical contract
+
+`lib/features/lynx/lynx.contract.ts` — `LYNX_MODULE_ID`, `LYNX_LAYERS`, `LYNX_AUDIT_ACTIONS`. Derive audits, tests, and guards from here.
+
+### Four product layers
+
+1. Truth Retrieval
+2. Operating Briefs
+3. Canonical Intake (`structured` slug until refactored)
+4. Decision Operator
+
+### Import boundary (non-negotiable)
+
+| Consumer | Import |
+|---|---|
+| `app/**` RSC, Route Handlers, Server Actions, non-client lib | `#features/lynx` |
+| Any `"use client"` file, `components/nexus/**`, client islands | **`#features/lynx/client` only** |
+
+`#features/lynx/client` exports: `LYNX_ERP_HTTP_ROUTES`, `parseLynxTruthMarkdown`, serializable DTOs. Add symbols here **only** when client-safe (no `server-only`, no `next/headers`).
+
+Forbidden: `import { … } from "#features/lynx"` inside `"use client"` files (default assumption: **unsafe**).
+
+### HTTP
+
+- `app/api/erp/lynx/*` only for Lynx streaming HTTP. Handlers thin; logic in `#features/lynx`.
+
+---
+
+## Knowledge — substrate invariants
+
+### Invariant A — adapter purity
+
+`KnowledgeSourceAdapter.listDocuments` returns plain `RawKnowledgeDocument` items only.
+Adapters must **not**: write DB rows, call embedding functions, choose chunking strategy, influence ranking.
+Only `pipeline-commit-document.server.ts` may write `knowledge_document` or `knowledge_chunk`.
+
+### Invariant B — retrieval is source-blind
+
+Retrieval and reranking must not branch on `knowledge_source.kind`. Do not join source metadata for ranking heuristics. Allowed inputs: tenant id, query, optional explicit document allowlists.
+
+### Execution boundary
+
+- Long-running sync/eval runs → durable workflows (`"use workflow"` / `"use step"`).
+- Cron/Server Actions enqueue workflows and return quickly.
+- Never run embedding/chunking loops inline in Route Handlers.
+- JSONB metadata writes use typed contracts from `data/metadata-contracts.shared.ts`.
+- BYOK crypto is centralized in `data/credential-cipher.server.ts` (`encryptCredential` / `decryptCredential` only).
+
+### Imports
+
+- Cross-module: `#features/knowledge` only. No deep imports into `lib/features/knowledge/data/*`.
+
+---
+
+## Contract changes
+
+Update `AGENTS.md` and this rule together when Lynx or Knowledge boundaries change.

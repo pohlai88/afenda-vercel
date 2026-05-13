@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 
 import { getTranslations } from "next-intl/server"
 
-import { WorkbenchCommandLayer } from "#components/workbench"
+import { WorkbenchCommandLayer } from "#components/workbench/workbench-command"
 import { organizationOrbitPath } from "#features/planner"
 
 export default async function OrgDashboardOrbitLayout({
@@ -66,21 +66,25 @@ export default async function OrgDashboardOrbitLayout({
             heading: t("eyebrow"),
             items: [
               {
-                label: "Blocked execution",
+                label: t("commandQuickLinks.blockedExecution.label"),
                 href: `${organizationOrbitPath(orgSlug)}?lifecycle=blocked`,
-                description: "Focus the active queue on blocked work.",
+                description: t(
+                  "commandQuickLinks.blockedExecution.description"
+                ),
               },
               {
-                label: "Automation attention",
+                label: t("commandQuickLinks.automationAttention.label"),
                 href: `${organizationOrbitPath(orgSlug, "triage")}?automationState=attention`,
-                description:
-                  "Review reminder and recurrence failures awaiting intervention.",
+                description: t(
+                  "commandQuickLinks.automationAttention.description"
+                ),
               },
               {
-                label: "Signals awaiting triage",
+                label: t("commandQuickLinks.signalsAwaitingTriage.label"),
                 href: organizationOrbitPath(orgSlug, "triage"),
-                description:
-                  "Capture, suppress, or promote operational signals.",
+                description: t(
+                  "commandQuickLinks.signalsAwaitingTriage.description"
+                ),
               },
             ],
           },

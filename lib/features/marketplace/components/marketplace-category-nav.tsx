@@ -38,8 +38,11 @@ export function MarketplaceCategoryNav({
   items,
 }: MarketplaceCategoryNavProps) {
   return (
-    <nav aria-label={ariaLabel}>
-      <ul className="flex flex-wrap gap-2">
+    <nav
+      aria-label={ariaLabel}
+      className="rounded-lg border border-border/60 bg-card/70 p-1.5 shadow-elevation-1"
+    >
+      <ul className="flex gap-1.5 overflow-x-auto sm:flex-wrap sm:overflow-visible">
         {items.map((item) => {
           const isActive =
             activePath === item.href ||
@@ -52,10 +55,10 @@ export function MarketplaceCategoryNav({
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors",
+                  "inline-flex h-9 shrink-0 items-center gap-2 rounded-md border px-2.5 text-sm transition-colors",
                   isActive
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border/60 bg-background/80 text-foreground hover:border-foreground/40 hover:bg-muted/40",
+                    ? "border-foreground bg-foreground text-background shadow-elevation-1"
+                    : "border-transparent bg-transparent text-foreground hover:border-border/70 hover:bg-background/80",
                   isAdmin && !isActive
                     ? "border-dashed text-muted-foreground hover:text-foreground"
                     : null

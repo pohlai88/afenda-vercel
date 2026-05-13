@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 // barrel which pulls the entire client `WorkbenchShell` graph and a
 // transitive `next-intl/server` dependency that breaks Vitest 4 + pnpm
 // module hoisting under Next 16).
-import { parseWorkbenchRailInbox } from "#components/workbench/rail/workbench-rail.schema"
+import { parseWorkbenchRailInbox } from "#components/workbench/left-nav-rail/workbench-rail.schema"
 
 import { deriveOrgAdminInbox } from "#features/org-admin/data/org-admin-rail-inbox.shared"
 import type {

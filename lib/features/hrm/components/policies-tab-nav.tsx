@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl"
 
 import { Link } from "#i18n/navigation"
+import { organizationHrmPath } from "#features/hrm/client"
 
 import {
   HRM_POLICY_TABS,
@@ -47,7 +48,8 @@ export function PoliciesTabNav({
         const params = new URLSearchParams()
         params.set("tab", tab)
         if (includeArchived) params.set("includeArchived", "true")
-        const href = `/o/${orgSlug}/dashboard/hrm/policies?${params.toString()}`
+        const base = organizationHrmPath(orgSlug, "policies")
+        const href = params.toString() ? `${base}?${params.toString()}` : base
         const isActive = tab === activeTab
 
         return (

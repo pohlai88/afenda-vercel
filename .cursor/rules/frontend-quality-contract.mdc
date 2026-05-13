@@ -103,7 +103,7 @@ setArr(prev => prev.map((x, idx) => idx === i ? val : x));
 
 Client Components may only import:
 
-- Client-safe UI primitives (`#components/ui/*`, `#components/nexus/*`)
+- Client-safe UI primitives (**`#components/ui/*`** only for the design-system shelf — never a filesystem-relative path into `components/ui`; **`#components/nexus/*`** for Nexus chrome)
 - Client-safe hooks (`#hooks/*`)
 - Shared types and constants (no `server-only` transitive imports)
 - Designated client barrels: `#features/<module>/client`
@@ -436,9 +436,9 @@ If any answer is yes, move the CSS up to the owning layout or down into a smalle
 
 ### Cross-references
 
-- Runtime kernel (data) ownership → `.cursor/rules/layout-contract.mdc`
-- Shell composition primitives → `.cursor/rules/app-shell-directory.mdc` (`SidebarProvider`, `--sidebar-width`)
-- Design token geometry (`rounded-*`, `shadow-*`) → `.cursor/rules/design-system-enforcement.mdc`
+- Runtime kernel (data) ownership → `.cursor/rules/app-router-contracts.mdc`
+- Shell composition primitives → `.cursor/rules/shell-directory.mdc`
+- Design token geometry (`rounded-*`, `shadow-*`) → `.cursor/rules/design-system.mdc`
 
 ### Final rule
 

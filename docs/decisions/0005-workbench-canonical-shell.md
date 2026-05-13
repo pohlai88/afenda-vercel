@@ -7,7 +7,7 @@
 | **Supersedes** | The implicit naming convention in **ADR-0001 §3** that placed every layer of operational chrome under `components/nexus/` and labelled the org-root surface "Nexus Field." This ADR does **not** revoke ADR-0001's L1–L4 spatial model — only the directory and naming convention used to implement it. |
 | **Does not supersede** | **ADR-0001 §3** four-layer model (L1 utility / L2 workspace / L3 command / L4 dock). **ADR-0001 §13** material semantics. **ADR-0003** post-login loading bay (`/console`) and `/o/{orgSlug}/nexus` URL stability. **AGENTS.md** stable-identifier rule (§2): route slugs, audit prefixes, i18n namespace keys are immutable here. |
 | **Implements in code** | `components/workbench/` (canonical shell), `components/nexus/` (narrowed to one product surface), rename of `nexus-utility-*`, `nexus-dock`, `nexus-command-*`, `nexus-skip-to-main`, `nexus-global-shortcuts*` files, deletion of `nexus-shell.tsx`, `nexus-surface-chrome.tsx`, `account-operating-shell.tsx`, `account-surface.tsx`, and per-feature shell wrappers. |
-| **Related rules** | `.cursor/rules/workbench-directory.mdc` (canonical shell) · `.cursor/rules/app-shell-directory.mdc` (Nexus product surface + Lynx in `components/nexus/**`) · Updated: `AGENTS.md` quickstart + Nexus runtime section, `frontend-quality-contract.mdc` §11 (geometry ownership). |
+| **Related rules** | `.cursor/rules/shell-directory.mdc` (Workbench shell + Nexus product surface in `components/workbench/**`, `components/nexus/**`) · Updated: `AGENTS.md` quickstart + Nexus runtime section, `frontend-quality-contract.mdc` §11 (geometry ownership). |
 
 ---
 
@@ -108,7 +108,7 @@ A single PR ("Workbench Layout Canonical Shell") performs:
 
 - **Move + rename** `components/nexus/nexus-utility-*.tsx` → `components/workbench/utility-bar/workbench-utility-*.tsx`
 - **Move + rename** `nexus-dock`, `nexus-command-layer`, `nexus-command-context`, `nexus-skip-to-main`, `nexus-global-shortcuts.client` → `components/workbench/workbench-*`
-- **Move + redesign** `components/workbench-rail/` → `components/workbench/rail/` (slot contract v2: nav sections, polymorphic identity, badges, open `LucideIcon` props, footer ReactNode)
+- **Move + redesign** `components/workbench-rail/` → `components/workbench/left-nav-rail/` (slot contract v2: nav sections, polymorphic identity, badges, open `LucideIcon` props, footer ReactNode)
 - **Delete** `nexus-shell.tsx`, `nexus-surface-chrome.tsx`, `account-operating-shell.tsx`, `account-surface.tsx`, `account-command-layer.tsx`, `console-top-nav-bar.tsx`, `org-admin-workbench-shell.tsx`, `org-admin-sidebar.tsx`, `hrm-shell.tsx`, `hrm-nav-sidebar.tsx`, `platform-admin-shell.tsx`, `platform-admin-sidebar.tsx`
 - **New** `components/workbench/workbench-shell.tsx`, `workbench-surface.tsx`, `workbench-mobile-rail.tsx`
 - **Migrate** every post-login `layout.tsx` to mount `WorkbenchShell`: account, console, operator, org root, org admin, dashboard envelope, HRM
@@ -125,7 +125,7 @@ Migration PR action: rename `NexusField` → `NexusPage` in `components/nexus/ne
 - **AGENTS.md** quickstart `Nexus runtime` row → `Workbench runtime` row; section header "Nexus runtime (org root)" remains because it describes the org-root *experience*, but the runtime ownership sentence reads `Workbench owns the OS.`
 - **ADR-0001** receives an amendment note at the top: "Implementation directory renamed `components/nexus/` → `components/workbench/` per ADR-0005. Layer names L1–L4 unchanged."
 - **ADR-0003** receives an amendment note: "Nexus Field" terminology retired; the surface is now simply "the Nexus" or `/o/{slug}/nexus`.
-- **`.cursor/rules/app-shell-directory.mdc`** is replaced by **`.cursor/rules/workbench-directory.mdc`** (same enforcement intent, new directory glob).
+- **`.cursor/rules/app-shell-directory.mdc`** and **`.cursor/rules/workbench-directory.mdc`** are merged into **`.cursor/rules/shell-directory.mdc`** (same enforcement intent, combined directory globs).
 
 ### 3.4 Product copy
 
@@ -140,7 +140,7 @@ User-facing strings already say things like "Open the Nexus" — these stay corr
 
 - `tests/unit/account-operating-shell.dom.test.tsx` → `tests/unit/workbench-shell.dom.test.tsx`
 - `tests/e2e/nexus-screenshot-utility.spec.ts` and similar files keep their names where they target the Nexus product page; spec descriptions and selectors update to match new component names where they target chrome
-- `.cursor/rules/app-shell-directory.mdc` → `.cursor/rules/workbench-directory.mdc`
+- `.cursor/rules/app-shell-directory.mdc` / `.cursor/rules/workbench-directory.mdc` → `.cursor/rules/shell-directory.mdc`
 - `scripts/check-agent-contract.mjs` REQUIRED_FILES updated
 - `knip.json` ignore globs updated
 
@@ -195,7 +195,7 @@ A PR claiming to implement this ADR must:
 3. Leave only the Nexus product surface (and its data adapters) in `components/nexus/`
 4. Migrate every post-login `layout.tsx` to mount `WorkbenchShell`
 5. Delete every shell wrapper listed in §3.1
-6. Replace `.cursor/rules/app-shell-directory.mdc` with `.cursor/rules/workbench-directory.mdc`
+6. Ship `.cursor/rules/shell-directory.mdc` (successor to `app-shell-directory.mdc` + `workbench-directory.mdc`)
 7. Add the ADR-0001 and ADR-0003 amendment notes per §3.3
 8. Pass `pnpm verify` (lint, typecheck, knip, test:ci, format) and `pnpm test:e2e`
 9. Result in zero `nexus-utility-`, `nexus-dock`, `nexus-command-`, `nexus-shell`, `nexus-surface-chrome`, or `nexus-skip-to-main` references in `app/`, `components/`, `lib/`, `tests/`, or `.cursor/rules/`

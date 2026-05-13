@@ -1,7 +1,7 @@
 import type {
   WorkbenchRailNavIconId,
   WorkbenchRailSlots,
-} from "#components/workbench"
+} from "#components/workbench/left-nav-rail"
 
 import {
   HRM_CAPABILITIES,
@@ -12,9 +12,16 @@ import type { HrmNavKey, HrmRailPressureMap } from "../types"
 
 const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
   employees: "users",
+  organization: "building-2",
+  onboarding: "list",
   leave: "calendar",
   attendance: "clock",
+  benefits: "shield",
+  claims: "file-text",
   payroll: "shopping-bag",
+  performance: "activity",
+  kpi: "monitor-smartphone",
+  advances: "key-round",
   compliance: "shield-check",
   documents: "file-text",
   policies: "briefcase",
@@ -41,19 +48,15 @@ const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
  */
 export function buildHrmRailSlots({
   orgSlug,
-  orgName,
   navLabels,
   pressure,
 }: {
   orgSlug: string
-  orgName: string
   /** Translated nav labels keyed by HRM nav key (e.g. employees, leave, etc.) */
   navLabels: Record<string, string>
   /** Optional pressure map produced by `getHrmRailPressureCounts`. */
   pressure?: HrmRailPressureMap
 }): WorkbenchRailSlots {
-  const initial = orgName.trim().charAt(0).toUpperCase() || "H"
-
   const overviewItem = {
     id: "hrm-overview",
     label: navLabels["overview"] ?? "Overview",
@@ -77,11 +80,6 @@ export function buildHrmRailSlots({
   })
 
   return {
-    identity: {
-      initial,
-      primary: orgName,
-      secondary: "Human Resources",
-    },
     nav: [
       {
         id: "hrm",

@@ -15,6 +15,7 @@ import {
   organizationAdminPath,
 } from "#features/org-admin"
 import { recordOrgAdminPageVisit } from "#features/org-admin/server"
+import { GovernedSurface } from "#features/governed-surface"
 
 import { Link } from "#i18n/navigation"
 import { requireOrgSession } from "#lib/tenant"
@@ -34,12 +35,12 @@ export default async function OrgAdminSettingsPage({
   })
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight">{t("title")}</h2>
-        <p className="text-sm text-muted-foreground">{t("description")}</p>
-      </div>
-
+    <GovernedSurface
+      header={{
+        title: t("title"),
+        description: t("description"),
+      }}
+    >
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -84,6 +85,6 @@ export default async function OrgAdminSettingsPage({
           {t("backAdmin")}
         </Link>
       </p>
-    </div>
+    </GovernedSurface>
   )
 }

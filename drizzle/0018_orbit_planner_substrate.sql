@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS "planner_signal" (
   "updatedAt"         timestamp NOT NULL DEFAULT now(),
   "auditOrigin"       text      NOT NULL DEFAULT 'production'
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_item" (
   "id"                text      PRIMARY KEY,
   "organizationId"    text,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS "planner_item" (
   "updatedAt"         timestamp NOT NULL DEFAULT now(),
   "auditOrigin"       text      NOT NULL DEFAULT 'production'
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_assignment" (
   "id"              text      PRIMARY KEY,
   "itemId"          text      NOT NULL REFERENCES "planner_item"("id") ON DELETE CASCADE,
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS "planner_assignment" (
   "createdByUserId" text,
   "createdAt"       timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_schedule" (
   "id"               text      PRIMARY KEY,
   "itemId"           text      NOT NULL REFERENCES "planner_item"("id") ON DELETE CASCADE,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS "planner_schedule" (
   "createdAt"        timestamp NOT NULL DEFAULT now(),
   "updatedAt"        timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_relation" (
   "id"              text      PRIMARY KEY,
   "itemId"          text      NOT NULL REFERENCES "planner_item"("id") ON DELETE CASCADE,
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS "planner_relation" (
   "relationType"    text      NOT NULL,
   "createdAt"       timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_link" (
   "id"              text      PRIMARY KEY,
   "organizationId"  text,
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS "planner_link" (
   "auditContext"    jsonb,
   "createdAt"       timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_reminder" (
   "id"           text      PRIMARY KEY,
   "itemId"       text      NOT NULL REFERENCES "planner_item"("id") ON DELETE CASCADE,
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS "planner_reminder" (
   "createdAt"    timestamp NOT NULL DEFAULT now(),
   "updatedAt"    timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_recurrence" (
   "id"         text      PRIMARY KEY,
   "itemId"     text      NOT NULL REFERENCES "planner_item"("id") ON DELETE CASCADE,
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS "planner_recurrence" (
   "createdAt"  timestamp NOT NULL DEFAULT now(),
   "updatedAt"  timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_session" (
   "id"              text      PRIMARY KEY,
   "organizationId"  text,
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS "planner_session" (
   "createdAt"       timestamp NOT NULL DEFAULT now(),
   "updatedAt"       timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_activity" (
   "id"           text      PRIMARY KEY,
   "itemId"       text      REFERENCES "planner_item"("id") ON DELETE CASCADE,
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS "planner_activity" (
   "authorUserId" text,
   "createdAt"    timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_comment" (
   "id"           text      PRIMARY KEY,
   "itemId"       text      NOT NULL REFERENCES "planner_item"("id") ON DELETE CASCADE,
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS "planner_comment" (
   "body"         text      NOT NULL,
   "createdAt"    timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_attachment" (
   "id"            text      PRIMARY KEY,
   "itemId"        text      NOT NULL REFERENCES "planner_item"("id") ON DELETE CASCADE,
@@ -185,7 +185,7 @@ CREATE TABLE IF NOT EXISTS "planner_attachment" (
   "sizeBytes"     integer   NOT NULL,
   "createdAt"     timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_view" (
   "id"             text      PRIMARY KEY,
   "organizationId" text,
@@ -198,7 +198,7 @@ CREATE TABLE IF NOT EXISTS "planner_view" (
   "createdAt"      timestamp NOT NULL DEFAULT now(),
   "updatedAt"      timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_ranking_snapshot" (
   "id"              text      PRIMARY KEY,
   "itemId"          text      REFERENCES "planner_item"("id") ON DELETE CASCADE,
@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS "planner_ranking_snapshot" (
   "dimensions"      jsonb,
   "snapshotAt"      timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "planner_pressure_snapshot" (
   "id"             text      PRIMARY KEY,
   "organizationId" text,
@@ -216,98 +216,122 @@ CREATE TABLE IF NOT EXISTS "planner_pressure_snapshot" (
   "summary"        jsonb,
   "snapshotAt"     timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE INDEX "planner_signal_organization_lifecycle_idx"
   ON "planner_signal"("organizationId", "lifecycle");
+--> statement-breakpoint
 CREATE INDEX "planner_signal_owner_lifecycle_idx"
   ON "planner_signal"("ownerUserId", "lifecycle");
+--> statement-breakpoint
 CREATE INDEX "planner_signal_detected_at_idx"
   ON "planner_signal"("detectedAt");
+--> statement-breakpoint
 CREATE INDEX "planner_signal_correlation_key_idx"
   ON "planner_signal"("correlationKey");
-
+--> statement-breakpoint
 CREATE INDEX "planner_item_organization_lifecycle_idx"
   ON "planner_item"("organizationId", "lifecycle");
+--> statement-breakpoint
 CREATE INDEX "planner_item_owner_lifecycle_idx"
   ON "planner_item"("ownerUserId", "lifecycle");
+--> statement-breakpoint
 CREATE INDEX "planner_item_due_at_idx"
   ON "planner_item"("dueAt");
+--> statement-breakpoint
 CREATE INDEX "planner_item_schedule_start_at_idx"
   ON "planner_item"("scheduleStartAt");
+--> statement-breakpoint
 CREATE INDEX "planner_item_source_signal_id_idx"
   ON "planner_item"("sourceSignalId");
-
+--> statement-breakpoint
 CREATE INDEX "planner_assignment_item_id_idx"
   ON "planner_assignment"("itemId");
+--> statement-breakpoint
 CREATE INDEX "planner_assignment_role_subject_idx"
   ON "planner_assignment"("role", "subjectUserId");
-
+--> statement-breakpoint
 CREATE INDEX "planner_schedule_item_id_idx"
   ON "planner_schedule"("itemId");
+--> statement-breakpoint
 CREATE INDEX "planner_schedule_start_idx"
   ON "planner_schedule"("scheduledStartAt");
-
+--> statement-breakpoint
 CREATE INDEX "planner_relation_item_id_idx"
   ON "planner_relation"("itemId");
+--> statement-breakpoint
 CREATE INDEX "planner_relation_related_item_id_idx"
   ON "planner_relation"("relatedItemId");
+--> statement-breakpoint
 CREATE INDEX "planner_relation_related_signal_id_idx"
   ON "planner_relation"("relatedSignalId");
-
+--> statement-breakpoint
 CREATE INDEX "planner_link_organization_idx"
   ON "planner_link"("organizationId");
+--> statement-breakpoint
 CREATE INDEX "planner_link_owner_idx"
   ON "planner_link"("ownerUserId");
+--> statement-breakpoint
 CREATE INDEX "planner_link_item_id_idx"
   ON "planner_link"("itemId");
+--> statement-breakpoint
 CREATE INDEX "planner_link_signal_id_idx"
   ON "planner_link"("signalId");
+--> statement-breakpoint
 CREATE INDEX "planner_link_module_entity_idx"
   ON "planner_link"("module", "entityType", "entityId");
-
+--> statement-breakpoint
 CREATE INDEX "planner_reminder_item_id_idx"
   ON "planner_reminder"("itemId");
+--> statement-breakpoint
 CREATE INDEX "planner_reminder_status_remind_at_idx"
   ON "planner_reminder"("status", "remindAt");
-
+--> statement-breakpoint
 CREATE INDEX "planner_recurrence_item_id_idx"
   ON "planner_recurrence"("itemId");
+--> statement-breakpoint
 CREATE INDEX "planner_recurrence_next_run_at_idx"
   ON "planner_recurrence"("nextRunAt");
-
+--> statement-breakpoint
 CREATE INDEX "planner_session_organization_status_idx"
   ON "planner_session"("organizationId", "status");
+--> statement-breakpoint
 CREATE INDEX "planner_session_owner_status_idx"
   ON "planner_session"("ownerUserId", "status");
+--> statement-breakpoint
 CREATE INDEX "planner_session_item_id_idx"
   ON "planner_session"("itemId");
+--> statement-breakpoint
 CREATE INDEX "planner_session_started_at_idx"
   ON "planner_session"("startedAt");
-
+--> statement-breakpoint
 CREATE INDEX "planner_activity_item_id_created_at_idx"
   ON "planner_activity"("itemId", "createdAt");
+--> statement-breakpoint
 CREATE INDEX "planner_activity_signal_id_created_at_idx"
   ON "planner_activity"("signalId", "createdAt");
-
+--> statement-breakpoint
 CREATE INDEX "planner_comment_item_id_created_at_idx"
   ON "planner_comment"("itemId", "createdAt");
-
+--> statement-breakpoint
 CREATE INDEX "planner_attachment_item_id_idx"
   ON "planner_attachment"("itemId");
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX "planner_view_org_slug_uidx"
   ON "planner_view"("organizationId", "slug")
   WHERE "organizationId" IS NOT NULL;
+--> statement-breakpoint
 CREATE UNIQUE INDEX "planner_view_owner_slug_uidx"
   ON "planner_view"("ownerUserId", "slug")
   WHERE "ownerUserId" IS NOT NULL;
-
+--> statement-breakpoint
 CREATE INDEX "planner_ranking_snapshot_item_idx"
   ON "planner_ranking_snapshot"("itemId", "snapshotAt");
+--> statement-breakpoint
 CREATE INDEX "planner_ranking_snapshot_signal_idx"
   ON "planner_ranking_snapshot"("signalId", "snapshotAt");
-
+--> statement-breakpoint
 CREATE INDEX "planner_pressure_snapshot_organization_idx"
   ON "planner_pressure_snapshot"("organizationId", "snapshotAt");
+--> statement-breakpoint
 CREATE INDEX "planner_pressure_snapshot_owner_idx"
   ON "planner_pressure_snapshot"("ownerUserId", "snapshotAt");

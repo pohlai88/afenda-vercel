@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import enMessages from "../../messages/en.json"
@@ -107,8 +110,8 @@ describe("registry-derived path helpers", () => {
     for (const capability of ORG_ADMIN_CAPABILITIES) {
       expect(getCapabilityById(capability.id)?.id).toBe(capability.id)
     }
-    // String ids not in the registry (including removed placeholders) return null.
-    expect(getCapabilityById("operations")).toBeNull()
+    // String ids not in the registry return null.
+    expect(getCapabilityById("not-registered" as never)).toBeNull()
   })
 
   it("orgAdminNavLabelKey produces the canonical OrgAdmin.nav.<key>", () => {
@@ -128,6 +131,26 @@ describe("registry-derived path helpers", () => {
       expect(sanitizePathAfterOrgSlug(`/admin/${segment}`)).toBe(
         `/admin/${segment}`
       )
+    }
+  })
+
+  it("has a route page for every registered admin segment", () => {
+    for (const segment of getAllowedAdminSegments()) {
+      expect(
+        existsSync(
+          join(
+            process.cwd(),
+            "app",
+            "[locale]",
+            "o",
+            "[orgSlug]",
+            "admin",
+            segment,
+            "page.tsx"
+          )
+        ),
+        `missing org-admin route for ${segment}`
+      ).toBe(true)
     }
   })
 })

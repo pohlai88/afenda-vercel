@@ -1,13 +1,20 @@
-import type { ReactNode } from "react"
+import { Fragment, type ReactNode } from "react"
 
 import { Link } from "#i18n/navigation"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "#components/ui/breadcrumb"
 import { cn } from "#lib/utils"
 
-/** Shared horizontal gutter + max readable width for surface chrome and body. */
-const SURFACE_CONTENT_COLUMN =
-  "mx-auto w-full max-w-4xl px-4 sm:px-6"
+/** Shared horizontal gutter + max readable width for surface chrome and body (symmetric L/R). */
+const SURFACE_CONTENT_COLUMN = "w-full max-w-4xl px-4 sm:px-6"
 
-type Breadcrumb = {
+type SurfaceBreadcrumb = {
   label: string
   href?: string
 }
@@ -15,7 +22,7 @@ type Breadcrumb = {
 export type WorkbenchSurfaceProps = {
   title?: string
   subtitle?: string
-  breadcrumbs?: Breadcrumb[]
+  breadcrumbs?: SurfaceBreadcrumb[]
   /** Right-aligned slot in the sticky header (actions, filters, secondary CTAs). */
   headerActions?: ReactNode
   children: ReactNode
@@ -26,13 +33,15 @@ export type WorkbenchSurfaceProps = {
  * WorkbenchSurface — right content area of the workbench.
  *
  * Three optical tiers, separated by intent:
- *   • Utility tier (L1 chrome above)        — ultra compact   `h-(--af-l1-height)`
- *   • Surface chrome (sticky breadcrumb bar) — calm + precise  `h-(--af-l1-height)`, `text-[11px]`
+ *   • Utility tier (L1 chrome above `<main>`) — ultra compact   `h-(--af-l1-height)`
+ *   • Surface chrome (sticky breadcrumb bar inside main) — calm + precise  `h-(--af-l1-height)`, `text-[11px]`
  *   • Execution body (intro + children)      — breathable      `pt-5 pb-5`, `pb-6 sm:pb-8`
  *
- * The sticky band shares the `--af-l1-height` token with the utility bar, so
- * height + offset cannot drift. Title and subtitle live in the scrollable body
- * (not the chrome) — editorial precision over marketing boldness.
+ * The sticky band sits at the top of the surface column; when breadcrumbs or
+ * header actions exist, scrolling is delegated to an inner region so the
+ * vertical scrollbar does not run beside that chrome (L1 utility remains
+ * outside `<main>` from the shell). Title and subtitle live in the scrollable
+ * body — editorial precision over marketing boldness.
  *
  * Replaces the old `AccountSurface` pattern.
  *
@@ -46,8 +55,7 @@ export function WorkbenchSurface({
   children,
   className,
 }: WorkbenchSurfaceProps) {
-  const hasStickyChrome =
-    Boolean(breadcrumbs?.length) || Boolean(headerActions)
+  const hasStickyChrome = Boolean(breadcrumbs?.length) || Boolean(headerActions)
   const hasIntro = Boolean(title) || Boolean(subtitle)
 
   const scrollBodyPadTop =
@@ -58,47 +66,49 @@ export function WorkbenchSurface({
         : undefined
 
   return (
-    <div className={cn("flex min-h-0 flex-1 flex-col", className)}>
+    <div
+      className={cn(
+        "flex min-h-0 flex-1 flex-col",
+        hasStickyChrome && "overflow-hidden",
+        className
+      )}
+    >
       {hasStickyChrome ? (
-        <div className="af-workbench-surface-header sticky top-(--af-l1-height) z-30">
+        <div className="af-workbench-surface-header sticky top-0 z-30 shrink-0">
           <div
             className={cn(
               SURFACE_CONTENT_COLUMN,
-              "flex h-(--af-l1-height) min-w-0 items-center justify-between gap-4",
+              "flex h-(--af-l1-height) min-w-0 items-center justify-between gap-4"
             )}
           >
             <div className="min-w-0 flex-1">
               {breadcrumbs && breadcrumbs.length > 0 ? (
-                <nav aria-label="Breadcrumb">
-                  <ol className="flex flex-wrap items-center gap-1.5 text-[11px] tracking-[0.01em] text-muted-foreground">
-                    {breadcrumbs.map((crumb, i) => (
-                      <li
-                        key={`${crumb.label}-${i}`}
-                        className="flex items-center gap-1.5"
-                      >
-                        {i > 0 && <span aria-hidden>/</span>}
-                        {crumb.href ? (
-                          <Link
-                            href={crumb.href}
-                            className="transition-colors hover:text-foreground"
-                          >
-                            {crumb.label}
-                          </Link>
-                        ) : (
-                          <span
-                            className={
-                              i === breadcrumbs.length - 1
-                                ? "text-foreground"
-                                : undefined
-                            }
-                          >
-                            {crumb.label}
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                </nav>
+                <Breadcrumb>
+                  <BreadcrumbList className="gap-1.5 text-[11px] tracking-[0.01em] sm:gap-1.5">
+                    {breadcrumbs.map((crumb, index) => {
+                      const isLast = index === breadcrumbs.length - 1
+
+                      return (
+                        <Fragment key={`${crumb.label}-${index}`}>
+                          {index > 0 ? (
+                            <BreadcrumbSeparator className="[&>svg]:size-3" />
+                          ) : null}
+                          <BreadcrumbItem>
+                            {crumb.href && !isLast ? (
+                              <BreadcrumbLink asChild>
+                                <Link href={crumb.href}>{crumb.label}</Link>
+                              </BreadcrumbLink>
+                            ) : isLast ? (
+                              <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                            ) : (
+                              <span>{crumb.label}</span>
+                            )}
+                          </BreadcrumbItem>
+                        </Fragment>
+                      )
+                    })}
+                  </BreadcrumbList>
+                </Breadcrumb>
               ) : null}
             </div>
             {headerActions ? (
@@ -110,12 +120,19 @@ export function WorkbenchSurface({
         </div>
       ) : null}
 
-      <div className="min-h-0 flex-1">
+      <div
+        className={cn(
+          "min-h-0 flex-1",
+          hasStickyChrome &&
+            "af-workbench-surface-scroll overflow-y-auto overscroll-y-contain"
+        )}
+        data-workbench-surface-scrollport={hasStickyChrome ? "true" : undefined}
+      >
         <div
           className={cn(
             SURFACE_CONTENT_COLUMN,
             "pb-6 sm:pb-8",
-            scrollBodyPadTop,
+            scrollBodyPadTop
           )}
         >
           {hasIntro ? (

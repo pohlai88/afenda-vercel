@@ -12,13 +12,13 @@ CREATE TABLE "hrm_country_rule_pack" (
   "publishedByUserId" text,
   "publishedAt"       timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX "hrm_country_rule_pack_country_version_uidx"
   ON "hrm_country_rule_pack" ("countryCode", "version");
-
+--> statement-breakpoint
 CREATE INDEX "hrm_country_rule_pack_country_effective_from_idx"
   ON "hrm_country_rule_pack" ("countryCode", "effectiveFrom");
-
+--> statement-breakpoint
 -- Seed MY-2026-01 as the baseline pack so the registry is never empty on deploy.
 INSERT INTO "hrm_country_rule_pack"
   ("id", "countryCode", "version", "effectiveFrom", "effectiveTo", "manifest", "publishedAt")

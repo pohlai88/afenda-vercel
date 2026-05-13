@@ -23,4 +23,14 @@ export type AccountRailSection = {
   href: string
   matchPath?: string
   activeHash?: string | null
+  children?: AccountRailChildSection[]
+}
+
+export type AccountRailChildSection = {
+  id: string
+  label: string
+  description?: string
+  href: string
+  match?: "exact" | "prefix"
+  matchPath?: string
 }

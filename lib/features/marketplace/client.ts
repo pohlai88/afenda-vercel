@@ -44,6 +44,7 @@ export {
   isMarketplaceRoute,
   marketplacePath,
   marketplaceRoute,
+  organizationMarketplacePath,
   MARKETPLACE_RAIL_VISIBLE_LIMIT,
 } from "./constants"
 export type { CapabilityCategory, MarketplaceRoute } from "./constants"

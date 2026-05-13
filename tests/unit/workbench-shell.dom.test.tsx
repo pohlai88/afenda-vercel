@@ -23,13 +23,18 @@ vi.mock("next-intl", () => ({
     children,
 }))
 
-vi.mock("#components/workbench/workbench-command-context", () => ({
+vi.mock("server-only", () => ({}))
+
+vi.mock("#components/workbench/workbench-command", () => ({
   WorkbenchCommandProvider: ({ children }: { children: React.ReactNode }) =>
     children,
   useWorkbenchCommand: () => ({
-    isOpen: false,
-    toggle: vi.fn(),
-    close: vi.fn(),
+    open: false,
+    query: "",
+    setQuery: vi.fn(),
+    openCommand: vi.fn(),
+    closeCommand: vi.fn(),
+    toggleCommand: vi.fn(),
   }),
 }))
 
@@ -49,19 +54,19 @@ vi.mock("#components/workbench/workbench-global-shortcuts.client", () => ({
   WorkbenchGlobalShortcuts: () => null,
 }))
 
-import { WorkbenchShell } from "#components/workbench"
-import type { WorkbenchRailSlots } from "#components/workbench"
+vi.mock("#components/workbench/utility-bar/workbench-utility-bar", () => ({
+  WorkbenchUtilityBar: () => <div data-testid="workbench-utility-bar" />,
+}))
+
+import { AppShell, WorkbenchShell } from "#components/workbench"
+import type { WorkbenchRailSlots } from "#components/workbench/left-nav-rail"
+import type { RouteEnvelope } from "#lib/route-envelope.shared"
 
 afterEach(() => {
   cleanup()
 })
 
 const testRailSlots: WorkbenchRailSlots = {
-  identity: {
-    initial: "T",
-    primary: "Test Org",
-    secondary: "test@example.com",
-  },
   nav: [
     {
       id: "main",
@@ -77,12 +82,31 @@ const testRailSlots: WorkbenchRailSlots = {
   ],
 }
 
-describe("WorkbenchShell", () => {
+const testEnvelope: RouteEnvelope = {
+  surface: "org",
+  locale: "en",
+  orgId: "org_test",
+  orgSlug: "acme",
+}
+
+describe("AppShell", () => {
+  it("is the same component reference as WorkbenchShell (zero-facade cost)", () => {
+    expect(AppShell).toBe(WorkbenchShell)
+  })
+
   it("renders skip-to-main link with provided label", () => {
     render(
-      <WorkbenchShell
+      <AppShell
+        envelope={testEnvelope}
         skipToMainLabel="Skip to main content"
-        utilityBar={<div>utility bar</div>}
+        utilityBar={{
+          mode: "org",
+          orgSlug: "acme",
+          orgName: "Acme",
+          orgId: "org_test",
+          userId: "user_test",
+          userEmail: "user@example.com",
+        }}
         rail={{
           slots: testRailSlots,
           labels: {
@@ -94,7 +118,7 @@ describe("WorkbenchShell", () => {
         }}
       >
         <div>Main content</div>
-      </WorkbenchShell>
+      </AppShell>
     )
 
     expect(
@@ -104,13 +128,17 @@ describe("WorkbenchShell", () => {
 
   it("renders children inside the main content area", () => {
     render(
-      <WorkbenchShell
+      <AppShell
+        envelope={testEnvelope}
         skipToMainLabel="Skip to main"
-        utilityBar={null}
+        utilityBar={{
+          mode: "no-org",
+          userEmail: "user@example.com",
+        }}
         rail={null}
       >
         <div data-testid="child-content">Hello Workbench</div>
-      </WorkbenchShell>
+      </AppShell>
     )
 
     expect(screen.getByTestId("child-content")).toBeDefined()
@@ -118,9 +146,17 @@ describe("WorkbenchShell", () => {
 
   it("renders nav item link for the active route", () => {
     render(
-      <WorkbenchShell
+      <AppShell
+        envelope={testEnvelope}
         skipToMainLabel="Skip"
-        utilityBar={null}
+        utilityBar={{
+          mode: "org",
+          orgSlug: "acme",
+          orgName: "Acme",
+          orgId: "org_test",
+          userId: "user_test",
+          userEmail: "user@example.com",
+        }}
         rail={{
           slots: testRailSlots,
           labels: {
@@ -132,7 +168,7 @@ describe("WorkbenchShell", () => {
         }}
       >
         <div>content</div>
-      </WorkbenchShell>
+      </AppShell>
     )
 
     const identityLink = screen.queryByRole("link", { name: /Identity/i })

@@ -10,7 +10,7 @@
 | **Does not supersede** | **ADR-0001** Spatial OS shell architecture, **ADR-0003** post-login loading bay/Nexus routing, or **ADR-0005** Workbench canonical shell naming. Orbit renders inside Workbench; it does not redefine Workbench/Nexus shell doctrine. |
 | **Implements in code** | `lib/features/planner/**`, Orbit routes, planner Drizzle tables, planner server APIs, Orbit UI surfaces, planner directory rules, AGENTS updates, and i18n updates. **No migration adapter from OneThing/iThink is planned** — legacy data is archived once outside the repo (see `docs/_draft/ithink_draft_v1_deprecated.md`) and the destructive drop ships in the same change as schema retirement. |
 | **Subordinate doctrines** | [ADR-0007a — Orbit signal and ranking doctrine](0007a-orbit-signal-and-ranking-doctrine.md) · [ADR-0007b — Orbit lifecycle and verification doctrine](0007b-orbit-lifecycle-and-verification-doctrine.md) · [ADR-0007c — Orbit ERP attachment doctrine](0007c-orbit-erp-attachment-doctrine.md) · [ADR-0007d — Orbit temporal coordination doctrine](0007d-orbit-temporal-coordination-doctrine.md) |
-| **Related rules** | [`.cursor/rules/planner-directory.mdc`](../../.cursor/rules/planner-directory.mdc) · [`.cursor/rules/workbench-directory.mdc`](../../.cursor/rules/workbench-directory.mdc) · [`.cursor/rules/erp-primitives.mdc`](../../.cursor/rules/erp-primitives.mdc) |
+| **Related rules** | [`.cursor/rules/planner-directory.mdc`](../../.cursor/rules/planner-directory.mdc) · [`.cursor/rules/shell-directory.mdc`](../../.cursor/rules/shell-directory.mdc) · [`.cursor/rules/erp-primitives.mdc`](../../.cursor/rules/erp-primitives.mdc) |
 
 ---
 

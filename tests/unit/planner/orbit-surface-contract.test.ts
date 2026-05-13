@@ -116,7 +116,7 @@ describe("orbit surface contract", () => {
     expect(content).toContain("WorkbenchCommandLayer")
     expect(content).toContain('organizationOrbitPath(orgSlug, "triage")')
     expect(content).toContain('organizationOrbitPath(orgSlug, "sessions")')
-    expect(content).toContain("Automation attention")
+    expect(content).toContain("commandQuickLinks.automationAttention.label")
   })
 
   it("renders session and link detail branches in OrbitPage", () => {

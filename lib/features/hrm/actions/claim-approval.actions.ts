@@ -13,6 +13,7 @@ import {
   claimApprovalDecisionSchema,
   claimRejectDecisionSchema,
 } from "../schemas/claim.schema"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type { ClaimApprovalFormState } from "../types"
 
 function revalidateClaims() {
@@ -39,7 +40,7 @@ export async function approveClaimAction(
   formData: FormData
 ): Promise<ClaimApprovalFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -49,10 +50,9 @@ export async function approveClaimAction(
   })
 
   if (!parsed.success) {
-    return {
-      ok: false,
-      errors: { claimId: parsed.error.issues[0]?.message },
-    }
+    return hrmActionFailure({
+      claimId: parsed.error.issues[0]?.message,
+    })
   }
 
   const { claimId, decisionNote } = parsed.data
@@ -71,16 +71,13 @@ export async function approveClaimAction(
   })
 
   if (!claim) {
-    return { ok: false, errors: { claimId: "Claim not found." } }
+    return hrmActionFailure({ claimId: "Claim not found." })
   }
 
   if (claim.state !== "submitted") {
-    return {
-      ok: false,
-      errors: {
-        claimId: `Cannot approve a claim with state "${claim.state}". Expected "submitted".`,
-      },
-    }
+    return hrmActionFailure({
+      claimId: `Cannot approve a claim with state "${claim.state}". Expected "submitted".`,
+    })
   }
 
   const now = new Date()
@@ -146,7 +143,7 @@ export async function rejectClaimAction(
   formData: FormData
 ): Promise<ClaimApprovalFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -158,14 +155,11 @@ export async function rejectClaimAction(
 
   if (!parsed.success) {
     const errs = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        claimId: errs.claimId?.[0],
-        rejectedReason: errs.rejectedReason?.[0],
-        form: parsed.error.issues[0]?.message,
-      },
-    }
+    return hrmActionFailure({
+      claimId: errs.claimId?.[0],
+      rejectedReason: errs.rejectedReason?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const { claimId, rejectedReason, decisionNote } = parsed.data
@@ -184,16 +178,13 @@ export async function rejectClaimAction(
   })
 
   if (!claim) {
-    return { ok: false, errors: { claimId: "Claim not found." } }
+    return hrmActionFailure({ claimId: "Claim not found." })
   }
 
   if (claim.state !== "submitted") {
-    return {
-      ok: false,
-      errors: {
-        claimId: `Cannot reject a claim with state "${claim.state}". Expected "submitted".`,
-      },
-    }
+    return hrmActionFailure({
+      claimId: `Cannot reject a claim with state "${claim.state}". Expected "submitted".`,
+    })
   }
 
   const now = new Date()

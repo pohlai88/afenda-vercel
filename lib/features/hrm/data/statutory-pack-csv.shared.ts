@@ -63,6 +63,8 @@ export function serializeStatutoryPackToCsv(
       return serializeEisMonthly(payload)
     case "pcb_monthly":
       return serializePcbMonthly(payload)
+    case "hrdf_monthly":
+      return serializeHrdfMonthly(payload)
     case "ea_annual":
       return serializeEaAnnual(payload)
     case "borang_e_annual":
@@ -338,6 +340,57 @@ function serializePcbMonthly(
     NUMERIC_BLANK,
     totals.grossWages ?? NUMERIC_BLANK,
     totals.pcb ?? NUMERIC_BLANK,
+  ])
+
+  return buildCsv(headers, rows)
+}
+
+type HrdfMonthlyLine = {
+  employeeId: string
+  employeeNumber: string
+  employeeName: string
+  grossWages: string
+  levy?: string
+  sdl?: string
+}
+
+type HrdfMonthlyTotals = {
+  levy?: string
+  sdl?: string
+  grossWages: string
+}
+
+function serializeHrdfMonthly(
+  payload: StatutoryPackPayload
+): StatutoryPackCsvResult {
+  const body = payload.body as {
+    lines?: readonly HrdfMonthlyLine[]
+    totals?: Partial<HrdfMonthlyTotals>
+  }
+  const headers = [
+    "employeeId",
+    "employeeNumber",
+    "employeeName",
+    "grossWages",
+    "levy",
+  ] as const
+
+  const lines = body.lines ?? []
+  const rows = lines.map((line) => [
+    line.employeeId,
+    line.employeeNumber,
+    line.employeeName,
+    line.grossWages,
+    line.levy ?? line.sdl ?? NUMERIC_BLANK,
+  ])
+
+  const totals = body.totals ?? {}
+  rows.push([
+    "TOTAL",
+    NUMERIC_BLANK,
+    NUMERIC_BLANK,
+    totals.grossWages ?? NUMERIC_BLANK,
+    totals.levy ?? totals.sdl ?? NUMERIC_BLANK,
   ])
 
   return buildCsv(headers, rows)

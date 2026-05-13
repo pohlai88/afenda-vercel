@@ -6,8 +6,8 @@ import { Button } from "#components/ui/button"
 import { Link } from "#i18n/navigation"
 
 /**
- * Eval run 404 — rendered inside OrgAdminWorkbenchShell when notFound() fires
- * for a missing runId. Shell continuity (sidebar) is preserved via parent layout.
+ * Eval run 404 — rendered inside nested `AppSubLayout` when `notFound()`
+ * fires for a missing runId. Parent org layout preserves shell continuity.
  *
  * Uses useParams() since not-found.tsx receives no props.
  */

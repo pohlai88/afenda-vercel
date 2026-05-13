@@ -5,13 +5,19 @@
  * registry parity tests against {@link HRM_CAPABILITIES} in `#features/hrm/constants`.
  */
 export const HRM_DASHBOARD_CAPABILITY_SEGMENTS = [
-  "employees",
-  "leave",
+  "advances",
   "attendance",
+  "benefits",
   "claims",
-  "payroll",
   "compliance",
   "documents",
+  "employees",
+  "kpi",
+  "leave",
+  "onboarding",
+  "organization",
+  "payroll",
+  "performance",
   "policies",
   "snapshot",
 ] as const

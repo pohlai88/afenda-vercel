@@ -22,9 +22,15 @@ import {
 
 import { normalizePlannerViewFilterState } from "../filters/planner-view-filter.shared"
 import { normalizePlannerPressure } from "../pressure/planner-pressure.shared"
-import { nextPlannerRunFromRecurrence } from "../recurrence/planner-recurrence.shared"
+import {
+  nextPlannerRunFromRecurrence,
+  normalizePlannerRRule,
+} from "../recurrence/planner-recurrence.shared"
 import { inversePlannerRelation } from "../relations/planner-relation.shared"
-import { canTransitionPlannerSignalLifecycle } from "../signals/planner-signal.shared"
+import {
+  canPromotePlannerSignal,
+  canTransitionPlannerSignalLifecycle,
+} from "../signals/planner-signal.shared"
 import { calculatePlannerSessionMinutes } from "../worklog/planner-session.shared"
 import type {
   PlannerItemLifecycle,
@@ -231,6 +237,86 @@ export async function insertPlannerItem(input: {
   return row
 }
 
+export async function insertPlannerCapturedItem(input: {
+  scope: PlannerScopeInput
+  title: string
+  dueAt: Date | null
+  reminder?: { remindAt: Date } | null
+  recurrence?: { rrule: string; nextRunAt: Date | null } | null
+  timeZone?: string | null
+  actorUserId: string
+  pressure?: Partial<PlannerPressureDimensions>
+}): Promise<{ id: string }> {
+  const pressure = normalizePlannerPressure(input.pressure)
+  const now = new Date()
+  const timeZone = trimToNull(input.timeZone)
+  const recurrenceRule = normalizePlannerRRule(input.recurrence?.rrule)
+
+  if (input.recurrence && !recurrenceRule) {
+    throw new Error("Invalid planner recurrence rule")
+  }
+
+  return db.transaction(async (tx) => {
+    const [row] = await tx
+      .insert(plannerItem)
+      .values({
+        ...scopeValues(input.scope),
+        title: input.title,
+        lifecycle: "triaged",
+        dueAt: input.dueAt,
+        createdByUserId: input.actorUserId,
+        updatedByUserId: input.actorUserId,
+        ...pressure,
+      })
+      .returning({ id: plannerItem.id })
+
+    if (input.dueAt || timeZone) {
+      await tx.insert(plannerSchedule).values({
+        itemId: row.id,
+        scheduledStartAt: null,
+        scheduledEndAt: null,
+        snoozedUntil: null,
+        timeZone,
+      })
+    }
+
+    if (input.reminder) {
+      await tx.insert(plannerReminder).values({
+        itemId: row.id,
+        remindAt: input.reminder.remindAt,
+        snoozedUntil: null,
+      })
+    }
+
+    if (input.recurrence && recurrenceRule) {
+      await tx.insert(plannerRecurrence).values({
+        itemId: row.id,
+        rrule: recurrenceRule,
+        timeZone,
+        nextRunAt:
+          input.recurrence.nextRunAt ??
+          nextPlannerRunFromRecurrence(recurrenceRule, input.dueAt ?? now),
+      })
+    }
+
+    await tx.insert(plannerActivity).values({
+      itemId: row.id,
+      activityType: "item_created",
+      body: "Execution item captured into Orbit.",
+      authorUserId: input.actorUserId,
+      metadata: {
+        capture: {
+          hasDueAt: Boolean(input.dueAt),
+          hasReminder: Boolean(input.reminder),
+          hasRecurrence: Boolean(input.recurrence),
+        },
+      },
+    })
+
+    return row
+  })
+}
+
 export async function promotePlannerSignalToItem(input: {
   scope: PlannerScopeInput
   signalId: string
@@ -335,6 +421,167 @@ export async function transitionPlannerSignalLifecycle(input: {
     activityType: "signal_lifecycle_transition",
     body: `Signal moved to ${input.lifecycle}.`,
     authorUserId: input.actorUserId,
+  })
+}
+
+export async function batchPromotePlannerSignalsToItems(input: {
+  scope: PlannerScopeInput
+  signalIds: readonly string[]
+  actorUserId: string
+}): Promise<{ itemIds: string[] }> {
+  const signalIds = [...new Set(input.signalIds)]
+  if (signalIds.length === 0) {
+    throw new Error("At least one signal is required")
+  }
+
+  return db.transaction(async (tx) => {
+    const signalRows = await tx
+      .select()
+      .from(plannerSignal)
+      .where(
+        and(
+          inArray(plannerSignal.id, signalIds),
+          input.scope.scopeKind === "organization"
+            ? eq(plannerSignal.organizationId, input.scope.organizationId)
+            : eq(plannerSignal.ownerUserId, input.scope.ownerUserId)
+        )
+      )
+
+    if (signalRows.length !== signalIds.length) {
+      throw new Error("One or more signals are unavailable in this scope")
+    }
+
+    for (const signalRow of signalRows) {
+      if (
+        !canPromotePlannerSignal(signalRow.lifecycle as PlannerSignalLifecycle)
+      ) {
+        throw new Error("Signal promotion batch contains an invalid lifecycle")
+      }
+    }
+
+    const timestamp = new Date()
+    const itemIds: string[] = []
+    const activityRows: Array<typeof plannerActivity.$inferInsert> = []
+
+    for (const signalRow of signalRows) {
+      const [itemRow] = await tx
+        .insert(plannerItem)
+        .values({
+          ...scopeValues(input.scope),
+          title: signalRow.title,
+          description: signalRow.description,
+          lifecycle: "triaged",
+          createdByUserId: input.actorUserId,
+          updatedByUserId: input.actorUserId,
+          sourceSignalId: signalRow.id,
+          urgency: signalRow.urgency,
+          impact: signalRow.impact,
+          severity: signalRow.severity,
+          confidence: signalRow.confidence,
+          effort: signalRow.effort,
+          escalationLevel: signalRow.escalationLevel,
+          temporalProximity: signalRow.temporalProximity,
+          ownershipPressure: signalRow.ownershipPressure,
+          temporalPast: signalRow.temporalPast,
+          temporalNow: signalRow.temporalNow,
+          temporalNext: signalRow.temporalNext,
+        })
+        .returning({ id: plannerItem.id })
+
+      itemIds.push(itemRow.id)
+      activityRows.push(
+        {
+          signalId: signalRow.id,
+          activityType: "signal_promoted",
+          body: `Signal promoted to item ${itemRow.id}.`,
+          authorUserId: input.actorUserId,
+        },
+        {
+          itemId: itemRow.id,
+          activityType: "item_promoted_from_signal",
+          body: `Execution item promoted from signal ${signalRow.id}.`,
+          authorUserId: input.actorUserId,
+        }
+      )
+    }
+
+    await tx
+      .update(plannerSignal)
+      .set({
+        lifecycle: "promoted",
+        promotedAt: timestamp,
+        updatedByUserId: input.actorUserId,
+        updatedAt: timestamp,
+      })
+      .where(inArray(plannerSignal.id, signalIds))
+
+    await tx.insert(plannerActivity).values(activityRows)
+
+    return { itemIds }
+  })
+}
+
+export async function batchTransitionPlannerSignalsLifecycle(input: {
+  scope: PlannerScopeInput
+  signalIds: readonly string[]
+  lifecycle: PlannerSignalLifecycle
+  actorUserId: string
+}): Promise<void> {
+  const signalIds = [...new Set(input.signalIds)]
+  if (signalIds.length === 0) {
+    throw new Error("At least one signal is required")
+  }
+
+  const signalRows = await db
+    .select({
+      id: plannerSignal.id,
+      lifecycle: plannerSignal.lifecycle,
+    })
+    .from(plannerSignal)
+    .where(
+      and(
+        inArray(plannerSignal.id, signalIds),
+        input.scope.scopeKind === "organization"
+          ? eq(plannerSignal.organizationId, input.scope.organizationId)
+          : eq(plannerSignal.ownerUserId, input.scope.ownerUserId)
+      )
+    )
+
+  if (signalRows.length !== signalIds.length) {
+    throw new Error("One or more signals are unavailable in this scope")
+  }
+
+  for (const signalRow of signalRows) {
+    if (
+      !canTransitionPlannerSignalLifecycle(
+        signalRow.lifecycle as PlannerSignalLifecycle,
+        input.lifecycle
+      )
+    ) {
+      throw new Error("Signal transition batch contains an invalid lifecycle")
+    }
+  }
+
+  const timestamp = new Date()
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(plannerSignal)
+      .set({
+        lifecycle: input.lifecycle,
+        updatedAt: timestamp,
+        updatedByUserId: input.actorUserId,
+      })
+      .where(inArray(plannerSignal.id, signalIds))
+
+    await tx.insert(plannerActivity).values(
+      signalIds.map((signalId) => ({
+        signalId,
+        activityType: "signal_lifecycle_transition",
+        body: `Signal moved to ${input.lifecycle}.`,
+        authorUserId: input.actorUserId,
+      }))
+    )
   })
 }
 
@@ -525,6 +772,63 @@ export async function transitionPlannerItemLifecycle(input: {
   })
 }
 
+export async function batchTransitionPlannerItemsLifecycle(input: {
+  scope: PlannerScopeInput
+  itemIds: readonly string[]
+  lifecycle: Extract<
+    PlannerItemLifecycle,
+    "active" | "blocked" | "ready_for_review" | "verified"
+  >
+  actorUserId: string
+}): Promise<void> {
+  const itemIds = [...new Set(input.itemIds)]
+  if (itemIds.length === 0) {
+    throw new Error("At least one item is required")
+  }
+
+  const itemRows = await db
+    .select({ id: plannerItem.id })
+    .from(plannerItem)
+    .where(
+      and(
+        inArray(plannerItem.id, itemIds),
+        input.scope.scopeKind === "organization"
+          ? eq(plannerItem.organizationId, input.scope.organizationId)
+          : eq(plannerItem.ownerUserId, input.scope.ownerUserId)
+      )
+    )
+
+  if (itemRows.length !== itemIds.length) {
+    throw new Error("One or more items are unavailable in this scope")
+  }
+
+  const timestamp = new Date()
+  const patch: Partial<typeof plannerItem.$inferInsert> = {
+    lifecycle: input.lifecycle,
+    updatedByUserId: input.actorUserId,
+    updatedAt: timestamp,
+  }
+
+  if (input.lifecycle === "blocked") patch.blockedAt = timestamp
+  if (input.lifecycle === "verified") patch.verifiedAt = timestamp
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(plannerItem)
+      .set(patch)
+      .where(inArray(plannerItem.id, itemIds))
+
+    await tx.insert(plannerActivity).values(
+      itemIds.map((itemId) => ({
+        itemId,
+        activityType: "item_lifecycle_transition",
+        body: `Execution item moved to ${input.lifecycle}.`,
+        authorUserId: input.actorUserId,
+      }))
+    )
+  })
+}
+
 export async function schedulePlannerItem(input: {
   scope: PlannerScopeInput
   itemId: string
@@ -665,9 +969,13 @@ export async function upsertPlannerRecurrence(input: {
 }): Promise<{ recurrenceId: string }> {
   const itemRow = await getScopedItemOrThrow(input.scope, input.itemId)
   const now = new Date()
+  const recurrenceRule = normalizePlannerRRule(input.rrule)
+  if (!recurrenceRule) {
+    throw new Error("Invalid planner recurrence rule")
+  }
   const nextRunAt =
     input.nextRunAt ??
-    nextPlannerRunFromRecurrence(input.rrule, itemRow.dueAt ?? now)
+    nextPlannerRunFromRecurrence(recurrenceRule, itemRow.dueAt ?? now)
   const timeZone = trimToNull(input.timeZone)
 
   return db.transaction(async (tx) => {
@@ -681,7 +989,7 @@ export async function upsertPlannerRecurrence(input: {
       const [updated] = await tx
         .update(plannerRecurrence)
         .set({
-          rrule: input.rrule,
+          rrule: recurrenceRule,
           timeZone,
           nextRunAt,
           updatedAt: now,
@@ -703,7 +1011,7 @@ export async function upsertPlannerRecurrence(input: {
       .insert(plannerRecurrence)
       .values({
         itemId: input.itemId,
-        rrule: input.rrule,
+        rrule: recurrenceRule,
         timeZone,
         nextRunAt,
       })
@@ -765,6 +1073,94 @@ export async function assignPlannerOwnership(input: {
       body: `${input.role} assignment updated.`,
       authorUserId: input.actorUserId,
     })
+  })
+}
+
+export async function batchAssignPlannerOwnership(input: {
+  scope: PlannerScopeInput
+  itemIds: readonly string[]
+  role: PlannerOwnershipRole
+  subjectUserId?: string | null
+  subjectLabel?: string | null
+  actorUserId: string
+}): Promise<void> {
+  const itemIds = [...new Set(input.itemIds)]
+  if (itemIds.length === 0) {
+    throw new Error("At least one item is required")
+  }
+
+  const normalizedSubjectUserId = trimToNull(input.subjectUserId)
+  const normalizedSubjectLabel = trimToNull(input.subjectLabel)
+
+  if (!normalizedSubjectUserId && !normalizedSubjectLabel) {
+    throw new Error("An assignee reference is required")
+  }
+
+  const itemRows = await db
+    .select({
+      id: plannerItem.id,
+      lifecycle: plannerItem.lifecycle,
+    })
+    .from(plannerItem)
+    .where(
+      and(
+        inArray(plannerItem.id, itemIds),
+        input.scope.scopeKind === "organization"
+          ? eq(plannerItem.organizationId, input.scope.organizationId)
+          : eq(plannerItem.ownerUserId, input.scope.ownerUserId)
+      )
+    )
+
+  if (itemRows.length !== itemIds.length) {
+    throw new Error("One or more items are unavailable in this scope")
+  }
+
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(plannerAssignment)
+      .where(
+        and(
+          inArray(plannerAssignment.itemId, itemIds),
+          eq(plannerAssignment.role, input.role)
+        )
+      )
+
+    await tx.insert(plannerAssignment).values(
+      itemIds.map((itemId) => ({
+        itemId,
+        role: input.role,
+        subjectUserId: normalizedSubjectUserId,
+        subjectLabel: normalizedSubjectLabel,
+        createdByUserId: input.actorUserId,
+      }))
+    )
+
+    const triagedItemIds =
+      input.role === "assignee"
+        ? itemRows
+            .filter((itemRow) => itemRow.lifecycle === "triaged")
+            .map((itemRow) => itemRow.id)
+        : []
+
+    if (triagedItemIds.length > 0) {
+      await tx
+        .update(plannerItem)
+        .set({
+          lifecycle: "assigned",
+          updatedAt: new Date(),
+          updatedByUserId: input.actorUserId,
+        })
+        .where(inArray(plannerItem.id, triagedItemIds))
+    }
+
+    await tx.insert(plannerActivity).values(
+      itemIds.map((itemId) => ({
+        itemId,
+        activityType: "assignment_updated",
+        body: `${input.role} assignment updated.`,
+        authorUserId: input.actorUserId,
+      }))
+    )
   })
 }
 

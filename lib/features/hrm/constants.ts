@@ -27,6 +27,20 @@ export const HRM_CAPABILITIES = [
     minimumOrgRole: "member",
   },
   {
+    id: "organization",
+    segments: ["organization"] as const,
+    auditPrefix: "erp.hrm.organization",
+    nav: { navKey: "organization", order: 15, primarySegment: "organization" },
+    minimumOrgRole: "admin",
+  },
+  {
+    id: "onboarding",
+    segments: ["onboarding"] as const,
+    auditPrefix: "erp.hrm.onboarding",
+    nav: { navKey: "onboarding", order: 16, primarySegment: "onboarding" },
+    minimumOrgRole: "admin",
+  },
+  {
     id: "leave",
     segments: ["leave"] as const,
     auditPrefix: "erp.hrm.leave",
@@ -41,6 +55,13 @@ export const HRM_CAPABILITIES = [
     minimumOrgRole: "member",
   },
   {
+    id: "benefits",
+    segments: ["benefits"] as const,
+    auditPrefix: "erp.hrm.benefit",
+    nav: { navKey: "benefits", order: 38, primarySegment: "benefits" },
+    minimumOrgRole: "admin",
+  },
+  {
     id: "claims",
     segments: ["claims"] as const,
     auditPrefix: "erp.hrm.claim",
@@ -53,6 +74,27 @@ export const HRM_CAPABILITIES = [
     auditPrefix: "erp.hrm.payroll",
     nav: { navKey: "payroll", order: 40, primarySegment: "payroll" },
     minimumOrgRole: "admin",
+  },
+  {
+    id: "performance",
+    segments: ["performance"] as const,
+    auditPrefix: "erp.hrm.performance",
+    nav: { navKey: "performance", order: 45, primarySegment: "performance" },
+    minimumOrgRole: "member",
+  },
+  {
+    id: "kpi",
+    segments: ["kpi"] as const,
+    auditPrefix: "erp.hrm.kpi",
+    nav: { navKey: "kpi", order: 46, primarySegment: "kpi" },
+    minimumOrgRole: "admin",
+  },
+  {
+    id: "advances",
+    segments: ["advances"] as const,
+    auditPrefix: "erp.hrm.salary_advance",
+    nav: { navKey: "advances", order: 47, primarySegment: "advances" },
+    minimumOrgRole: "member",
   },
   {
     id: "compliance",

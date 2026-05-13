@@ -1,1 +1,1 @@
-pnpm exec lint-staged --max-arg-length 7000
+pnpm exec lint-staged --max-arg-length 7000 --concurrent false

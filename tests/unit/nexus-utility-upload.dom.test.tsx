@@ -65,7 +65,7 @@ vi.mock("next-intl", () => ({
       ),
 }))
 
-import { WorkbenchUtilityUpload } from "#components/workbench/utility-bar/workbench-utility-upload"
+import { WorkbenchUtilityUpload } from "#components/workbench/utility-bar/right-utility-bar/workbench-utility-upload"
 import { TooltipProvider } from "#components/ui/tooltip"
 
 afterEach(() => {
@@ -73,7 +73,7 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-describe("NexusUtilityUpload", () => {
+describe("WorkbenchUtilityUpload", () => {
   beforeEach(() => {
     window.history.replaceState({}, "", "/en/o/acme/dashboard/home")
   })

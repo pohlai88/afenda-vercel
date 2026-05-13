@@ -9,6 +9,8 @@ import { userCapabilityPreference } from "#lib/db/schema"
 
 import type { PreferenceState, UserCapabilityPreferenceRow } from "../types"
 
+import { isCapabilityRegistryRelationMissing } from "./capability-registry-read-fallback.shared"
+
 /**
  * Capability Registry — read path for `user_capability_preference`.
  *
@@ -23,30 +25,44 @@ import type { PreferenceState, UserCapabilityPreferenceRow } from "../types"
 
 const PREFERENCE_STATES = new Set<PreferenceState>(["visible", "hidden"])
 
+type UserPrefSelectRow = {
+  id: string
+  capabilityId: string
+  state: string
+  displayOrder: number
+  updatedAt: Date
+}
+
 export const listUserCapabilityPreferences = cache(
   async (input: {
     organizationId: string
     userId: string
   }): Promise<UserCapabilityPreferenceRow[]> => {
-    const rows = await db
-      .select({
-        id: userCapabilityPreference.id,
-        capabilityId: userCapabilityPreference.capabilityId,
-        state: userCapabilityPreference.state,
-        displayOrder: userCapabilityPreference.displayOrder,
-        updatedAt: userCapabilityPreference.updatedAt,
-      })
-      .from(userCapabilityPreference)
-      .where(
-        and(
-          eq(userCapabilityPreference.organizationId, input.organizationId),
-          eq(userCapabilityPreference.userId, input.userId)
+    let rows: UserPrefSelectRow[]
+    try {
+      rows = await db
+        .select({
+          id: userCapabilityPreference.id,
+          capabilityId: userCapabilityPreference.capabilityId,
+          state: userCapabilityPreference.state,
+          displayOrder: userCapabilityPreference.displayOrder,
+          updatedAt: userCapabilityPreference.updatedAt,
+        })
+        .from(userCapabilityPreference)
+        .where(
+          and(
+            eq(userCapabilityPreference.organizationId, input.organizationId),
+            eq(userCapabilityPreference.userId, input.userId)
+          )
         )
-      )
-      .orderBy(
-        asc(userCapabilityPreference.displayOrder),
-        asc(userCapabilityPreference.id)
-      )
+        .orderBy(
+          asc(userCapabilityPreference.displayOrder),
+          asc(userCapabilityPreference.id)
+        )
+    } catch (err) {
+      if (isCapabilityRegistryRelationMissing(err)) return []
+      throw err
+    }
 
     const out: UserCapabilityPreferenceRow[] = []
     for (const row of rows) {
@@ -71,15 +87,21 @@ export async function countUserPreferencesByCapability(input: {
   capabilityId: string
   state: PreferenceState
 }): Promise<number> {
-  const rows = await db
-    .selectDistinct({ userId: userCapabilityPreference.userId })
-    .from(userCapabilityPreference)
-    .where(
-      and(
-        eq(userCapabilityPreference.capabilityId, input.capabilityId),
-        eq(userCapabilityPreference.state, input.state)
+  let rows: { userId: string }[]
+  try {
+    rows = await db
+      .selectDistinct({ userId: userCapabilityPreference.userId })
+      .from(userCapabilityPreference)
+      .where(
+        and(
+          eq(userCapabilityPreference.capabilityId, input.capabilityId),
+          eq(userCapabilityPreference.state, input.state)
+        )
       )
-    )
+  } catch (err) {
+    if (isCapabilityRegistryRelationMissing(err)) return 0
+    throw err
+  }
   return rows.length
 }
 
@@ -92,16 +114,22 @@ export async function countUserPreferencesByCapability(input: {
 export async function countOrgsAdoptingCapability(input: {
   capabilityId: string
 }): Promise<number> {
-  const rows = await db
-    .selectDistinct({
-      organizationId: userCapabilityPreference.organizationId,
-    })
-    .from(userCapabilityPreference)
-    .where(
-      and(
-        eq(userCapabilityPreference.capabilityId, input.capabilityId),
-        eq(userCapabilityPreference.state, "visible")
+  let rows: { organizationId: string }[]
+  try {
+    rows = await db
+      .selectDistinct({
+        organizationId: userCapabilityPreference.organizationId,
+      })
+      .from(userCapabilityPreference)
+      .where(
+        and(
+          eq(userCapabilityPreference.capabilityId, input.capabilityId),
+          eq(userCapabilityPreference.state, "visible")
+        )
       )
-    )
+  } catch (err) {
+    if (isCapabilityRegistryRelationMissing(err)) return 0
+    throw err
+  }
   return rows.length
 }

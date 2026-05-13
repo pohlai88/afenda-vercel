@@ -16,6 +16,7 @@ import {
   recordAttendanceEventSchema,
   regenerateAttendanceDaySchema,
 } from "../schemas/attendance-event.schema"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type {
   AttendanceCorrectionFormState,
   AttendanceRecordFormState,
@@ -50,7 +51,7 @@ export async function recordAttendanceEventAction(
   formData: FormData
 ): Promise<AttendanceRecordFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
   const organizationId = session.organizationId
@@ -68,14 +69,11 @@ export async function recordAttendanceEventAction(
   const parsed = recordAttendanceEventSchema.safeParse(raw)
   if (!parsed.success) {
     const flat = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        employeeId: flat.employeeId?.[0],
-        eventType: flat.eventType?.[0],
-        occurredAt: flat.occurredAt?.[0],
-      },
-    }
+    return hrmActionFailure({
+      employeeId: flat.employeeId?.[0],
+      eventType: flat.eventType?.[0],
+      occurredAt: flat.occurredAt?.[0],
+    })
   }
   const data = parsed.data
 
@@ -144,7 +142,7 @@ export async function correctAttendanceEventAction(
   formData: FormData
 ): Promise<AttendanceCorrectionFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
   const organizationId = session.organizationId
@@ -161,15 +159,12 @@ export async function correctAttendanceEventAction(
   const parsed = correctAttendanceEventSchema.safeParse(raw)
   if (!parsed.success) {
     const flat = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        originalEventId: flat.originalEventId?.[0],
-        eventType: flat.eventType?.[0],
-        occurredAt: flat.occurredAt?.[0],
-        correctionReason: flat.correctionReason?.[0],
-      },
-    }
+    return hrmActionFailure({
+      originalEventId: flat.originalEventId?.[0],
+      eventType: flat.eventType?.[0],
+      occurredAt: flat.occurredAt?.[0],
+      correctionReason: flat.correctionReason?.[0],
+    })
   }
   const data = parsed.data
 
@@ -179,10 +174,9 @@ export async function correctAttendanceEventAction(
     eventId: data.originalEventId,
   })
   if (!originalEvent) {
-    return {
-      ok: false,
-      errors: { form: "Original event not found or access denied." },
-    }
+    return hrmActionFailure({
+      form: "Original event not found or access denied.",
+    })
   }
 
   const occurredDate = new Date(data.occurredAt)
@@ -253,7 +247,7 @@ export async function regenerateAttendanceDayAction(
   formData: FormData
 ): Promise<RegenerateDayFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
   const organizationId = session.organizationId
@@ -268,13 +262,10 @@ export async function regenerateAttendanceDayAction(
   const parsed = regenerateAttendanceDaySchema.safeParse(raw)
   if (!parsed.success) {
     const flat = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        employeeId: flat.employeeId?.[0],
-        attendanceDate: flat.attendanceDate?.[0],
-      },
-    }
+    return hrmActionFailure({
+      employeeId: flat.employeeId?.[0],
+      attendanceDate: flat.attendanceDate?.[0],
+    })
   }
   const data = parsed.data
 

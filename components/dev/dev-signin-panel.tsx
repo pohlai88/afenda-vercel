@@ -4,7 +4,9 @@ import type { Route } from "next"
 import { ChevronDown, ChevronUp, Code2, Loader2 } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { useLocale } from "next-intl"
-import { useState } from "react"
+import { useCallback, useLayoutEffect, useRef, useState } from "react"
+
+import { useDevSignInPanelDrag } from "./dev-signin-panel-drag"
 
 import { neonAuthClient } from "#lib/auth-client-neon-compat"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
@@ -99,7 +101,7 @@ const DEV_SIGNIN_PRESETS: ReadonlyArray<{
 ]
 
 const shell =
-  "fixed bottom-4 left-4 z-50 max-w-xs backdrop-blur-sm border bg-card text-card-foreground " +
+  "max-w-xs backdrop-blur-sm border bg-card text-card-foreground " +
   `${uiRadius.control} ${uiSurfaceElevation.raised} border-border`
 
 export function DevSignInPanel() {
@@ -108,6 +110,22 @@ export function DevSignInPanel() {
   const [error, setError] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const locale = ensureAppLocale(useLocale())
+  const panelRef = useRef<HTMLDivElement>(null)
+  const expandPanel = useCallback(() => setCollapsed(false), [])
+  const {
+    panelPosition,
+    isDraggingPanel,
+    dragPointerDown,
+    dragClick,
+    clampPanelToViewport,
+  } = useDevSignInPanelDrag(panelRef, collapsed ? expandPanel : undefined)
+
+  useLayoutEffect(() => {
+    const id = requestAnimationFrame(() => {
+      clampPanelToViewport()
+    })
+    return () => cancelAnimationFrame(id)
+  }, [collapsed, clampPanelToViewport])
 
   async function signInAs(email: string) {
     if (pending) return
@@ -157,117 +175,160 @@ export function DevSignInPanel() {
     }
   }
 
+  const panelMotion = isDraggingPanel
+    ? "motion-safe:transition-none motion-reduce:transition-none"
+    : "motion-safe:transition-[left,bottom] motion-safe:duration-150 motion-reduce:transition-none"
+
   if (collapsed) {
     return (
-      <button
-        type="button"
-        onClick={() => setCollapsed(false)}
-        className={cn(
-          shell,
-          "inline-flex items-center gap-2 px-surface-md py-surface-sm text-sm font-medium transition-colors hover:bg-accent"
-        )}
-        aria-label="Open development sign-in shortcuts"
+      <div
+        ref={panelRef}
+        style={{
+          left: panelPosition.left,
+          bottom: panelPosition.bottom,
+        }}
+        className={cn("fixed z-50 w-max", panelMotion)}
       >
-        <Code2 className="size-4 shrink-0 text-warning" aria-hidden />
-        <span>Dev sign-in</span>
-        <ChevronUp
-          className="size-4 shrink-0 rotate-180 text-muted-foreground"
-          aria-hidden
-        />
-      </button>
+        <button
+          type="button"
+          onPointerDown={dragPointerDown}
+          onClick={dragClick}
+          onDragStart={(e) => {
+            e.preventDefault()
+          }}
+          className={cn(
+            "touch-none select-none",
+            shell,
+            "inline-flex items-center gap-2 px-surface-md py-surface-sm text-sm font-medium transition-colors hover:bg-accent",
+            isDraggingPanel
+              ? "cursor-grabbing"
+              : "cursor-grab focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+          )}
+          aria-label="Open development sign-in shortcuts (drag to move)"
+        >
+          <Code2 className="size-4 shrink-0 text-warning" aria-hidden />
+          <span>Dev sign-in</span>
+          <ChevronUp
+            className="size-4 shrink-0 rotate-180 text-muted-foreground"
+            aria-hidden
+          />
+        </button>
+      </div>
     )
   }
 
   return (
-    <div className={cn(shell, "p-surface-md")}>
-      <div className="mb-surface-sm flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Code2 className="size-4 shrink-0 text-warning" aria-hidden />
-          <p className="text-sm font-semibold text-card-foreground">
-            Development
-          </p>
+    <div
+      ref={panelRef}
+      style={{
+        left: panelPosition.left,
+        bottom: panelPosition.bottom,
+      }}
+      className={cn("fixed z-50 w-max", panelMotion)}
+    >
+      <div className={cn(shell, "p-surface-md")}>
+        <div className="mb-surface-sm flex items-center justify-between gap-2">
+          <div
+            className={cn(
+              "flex min-w-0 flex-1 touch-none items-center gap-2 select-none",
+              isDraggingPanel ? "cursor-grabbing" : "cursor-grab"
+            )}
+            onPointerDown={dragPointerDown}
+            onClick={dragClick}
+            onDragStart={(e) => {
+              e.preventDefault()
+            }}
+            role="group"
+            aria-label="Drag to move development shortcuts"
+          >
+            <Code2 className="size-4 shrink-0 text-warning" aria-hidden />
+            <p className="text-sm font-semibold text-card-foreground">
+              Development
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCollapsed(true)}
+            className={cn(
+              "shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+              uiRadius.control
+            )}
+            aria-label="Minimize development sign-in shortcuts"
+          >
+            <ChevronDown className="size-4" aria-hidden />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setCollapsed(true)}
-          className={cn(
-            "rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
-            uiRadius.control
-          )}
-          aria-label="Minimize development sign-in shortcuts"
-        >
-          <ChevronDown className="size-4" aria-hidden />
-        </button>
-      </div>
-      <p className="mb-surface-sm text-xs text-muted-foreground">
-        One-click sign-in: activates demo org + lands on dashboard (local only).
-      </p>
-      <ul className="flex flex-col gap-2">
-        {DEV_SIGNIN_PRESETS.map((preset) => {
-          const busy = pending === preset.email
-          return (
-            <li key={preset.email} className="text-xs">
-              <button
-                type="button"
-                disabled={pending !== null}
-                onClick={() => void signInAs(preset.email)}
-                className={cn(
-                  "-mx-2 w-[calc(100%+1rem)] border border-transparent p-surface-sm text-left transition-colors",
-                  "hover:border-border hover:bg-accent disabled:pointer-events-none disabled:opacity-60",
-                  uiRadius.control
-                )}
-                aria-label={`Sign in as ${preset.label} (${preset.email})`}
-                aria-busy={busy}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "shrink-0 px-1.5 py-0.5 text-[0.625rem] font-medium",
-                      uiRadius.chip,
-                      uiStatusToneClasses[preset.tone]
-                    )}
-                  >
-                    {preset.role}
-                  </span>
-                  <span className="truncate font-medium text-card-foreground">
-                    {preset.label}
-                  </span>
-                  {busy ? (
-                    <Loader2
-                      className="ml-auto size-3 shrink-0 animate-spin text-muted-foreground"
-                      aria-hidden
-                    />
-                  ) : null}
-                </div>
-                <p className="mt-0.5 pl-12 text-muted-foreground">
-                  {preset.description}
-                </p>
-                <code className="mt-0.5 block truncate pl-12 font-mono text-[0.625rem] text-muted-foreground">
-                  {preset.email}
-                </code>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-      {error ? (
-        <p
-          role="alert"
-          className="mt-surface-sm text-[0.625rem] leading-snug text-destructive"
-        >
-          {error}
+        <p className="mb-surface-sm text-xs text-muted-foreground">
+          One-click sign-in: activates demo org + lands on dashboard (local
+          only). Drag the title bar to move this panel.
         </p>
-      ) : null}
-      <p className="mt-surface-md border-t border-border pt-surface-sm text-[0.625rem] leading-snug text-muted-foreground">
-        First-time setup: run{" "}
-        <code className="rounded bg-muted px-1 py-px font-mono">
-          pnpm env:sync && pnpm dev:seed
-        </code>{" "}
-        to create accounts, org{" "}
-        <code className="font-mono text-[0.625rem]">{DEMO_ORG_SLUG}</code>, and
-        memberships in{" "}
-        <code className="font-mono text-[0.625rem]">neon_auth</code>.
-      </p>
+        <ul className="flex flex-col gap-2">
+          {DEV_SIGNIN_PRESETS.map((preset) => {
+            const busy = pending === preset.email
+            return (
+              <li key={preset.email} className="text-xs">
+                <button
+                  type="button"
+                  disabled={pending !== null}
+                  onClick={() => void signInAs(preset.email)}
+                  className={cn(
+                    "-mx-2 w-[calc(100%+1rem)] border border-transparent p-surface-sm text-left transition-colors",
+                    "hover:border-border hover:bg-accent disabled:pointer-events-none disabled:opacity-60",
+                    uiRadius.control
+                  )}
+                  aria-label={`Sign in as ${preset.label} (${preset.email})`}
+                  aria-busy={busy}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "shrink-0 px-1.5 py-0.5 text-[0.625rem] font-medium",
+                        uiRadius.chip,
+                        uiStatusToneClasses[preset.tone]
+                      )}
+                    >
+                      {preset.role}
+                    </span>
+                    <span className="truncate font-medium text-card-foreground">
+                      {preset.label}
+                    </span>
+                    {busy ? (
+                      <Loader2
+                        className="ml-auto size-3 shrink-0 animate-spin text-muted-foreground"
+                        aria-hidden
+                      />
+                    ) : null}
+                  </div>
+                  <p className="mt-0.5 pl-12 text-muted-foreground">
+                    {preset.description}
+                  </p>
+                  <code className="mt-0.5 block truncate pl-12 font-mono text-[0.625rem] text-muted-foreground">
+                    {preset.email}
+                  </code>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+        {error ? (
+          <p
+            role="alert"
+            className="mt-surface-sm text-[0.625rem] leading-snug text-destructive"
+          >
+            {error}
+          </p>
+        ) : null}
+        <p className="mt-surface-md border-t border-border pt-surface-sm text-[0.625rem] leading-snug text-muted-foreground">
+          First-time setup: run{" "}
+          <code className="rounded bg-muted px-1 py-px font-mono">
+            pnpm env:sync && pnpm dev:seed
+          </code>{" "}
+          to create accounts, org{" "}
+          <code className="font-mono text-[0.625rem]">{DEMO_ORG_SLUG}</code>,
+          and memberships in{" "}
+          <code className="font-mono text-[0.625rem]">neon_auth</code>.
+        </p>
+      </div>
     </div>
   )
 }

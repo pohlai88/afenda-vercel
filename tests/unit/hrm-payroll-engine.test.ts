@@ -18,7 +18,7 @@ const PERIOD_END_2026 = "2026-03-31"
 
 function baseInput(
   overrides: Partial<Parameters<typeof computePayrollRun>[0]> = {}
-) {
+): Parameters<typeof computePayrollRun>[0] {
   return {
     organizationId: "org-test-001",
     periodId: "period-test-001",
@@ -44,6 +44,10 @@ function baseInput(
     ytdRemuneration: "10000.00",
     ytdPcbPaid: "260.00",
     ytdEpfEmployee: "1100.00",
+    pcbTp1AdditionalReliefMonthly: "0.00",
+    pcbTp3AdditionalDeductionMonthly: "0.00",
+    approvedUnpaidClaims: [],
+    approvedSalaryAdvances: [],
     ...overrides,
   }
 }
@@ -112,6 +116,16 @@ describe("Payroll engine — MY-2026-01 integration", () => {
       // EIS = 0.2% of 5000 = 10 each
       expect(parseFloat(eisEe!.amount)).toBe(-10)
       expect(parseFloat(eisEr!.amount)).toBe(10)
+    })
+
+    it("feeds computed EPF employee contribution into PCB relief", async () => {
+      const pack = resolveRulePack("MY", new Date(PERIOD_END_2026))
+      const result = await computePayrollRun(baseInput(), pack)
+
+      const pcb = result.lines.find((l) => l.code === "PCB")
+      expect(pcb).toBeDefined()
+      expect(pcb?.lineKind).toBe("tax")
+      expect(pcb?.amount).toBe("-130.00")
     })
 
     it("net pay = gross - EE deductions", async () => {

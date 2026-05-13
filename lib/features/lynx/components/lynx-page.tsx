@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#components/module-page-header"
+import { isLynxOperatorEnabled, isLynxStructuredQueryDemoEnabled } from "#flags"
 import { requireOrgSession } from "#lib/tenant"
 
 import {
@@ -16,11 +17,14 @@ import { TruthSearchClient } from "./truth-search-client"
 export async function LynxPage() {
   // Start all independent fetches in parallel — translations and session auth
   // are fully independent; the chunk list is the only one that needs org.organizationId.
-  const [t, ts, org] = await Promise.all([
-    getTranslations("Dashboard.Lynx"),
-    getTranslations("Dashboard.Lynx.substrate"),
-    requireOrgSession(),
-  ])
+  const [t, ts, org, operatorEnabled, structuredQueryDemoEnabled] =
+    await Promise.all([
+      getTranslations("Dashboard.Lynx"),
+      getTranslations("Dashboard.Lynx.substrate"),
+      requireOrgSession(),
+      isLynxOperatorEnabled(),
+      isLynxStructuredQueryDemoEnabled(),
+    ])
   const recent = await listRecentKnowledgeChunks(org.organizationId, 12)
 
   return (
@@ -33,9 +37,23 @@ export async function LynxPage() {
 
       <TruthSearchClient />
 
-      <OperatorAssistClient />
+      {operatorEnabled ? (
+        <OperatorAssistClient />
+      ) : (
+        <FeaturePolicyNotice
+          title={t("operator.sectionTitle")}
+          description={t("operator.disabledDescription")}
+        />
+      )}
 
-      <NlSqlDemoClient />
+      {structuredQueryDemoEnabled ? (
+        <NlSqlDemoClient />
+      ) : (
+        <FeaturePolicyNotice
+          title={t("nlDemo.sectionTitle")}
+          description={t("nlDemo.disabledDescription")}
+        />
+      )}
 
       <section className="flex flex-col gap-4 rounded-2xl border bg-card p-4">
         <h2 className="font-medium">{ts("addTitle")}</h2>
@@ -67,5 +85,20 @@ export async function LynxPage() {
         )}
       </section>
     </div>
+  )
+}
+
+function FeaturePolicyNotice({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  return (
+    <section className="flex flex-col gap-2 rounded-2xl border border-dashed bg-muted/20 p-4">
+      <h2 className="font-medium">{title}</h2>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </section>
   )
 }

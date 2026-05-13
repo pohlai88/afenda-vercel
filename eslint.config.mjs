@@ -26,6 +26,20 @@ const radixRestrictedPatterns = [
 ]
 
 /**
+ * UI shelf lives under `components/ui/**` on disk; every consumer must import
+ * through the package alias `#components/ui/*` (see `package.json` `imports`
+ * and AGENTS.md §7). Filesystem-relative specifiers into `components/ui` break
+ * when files move and bypass the single import door.
+ */
+const uiShelfFilesystemImportPatterns = [
+  {
+    group: ["**/components/ui", "**/components/ui/*"],
+    message:
+      "Import UI primitives only via #components/ui/* — not filesystem-relative paths into components/ui (AGENTS.md §7).",
+  },
+]
+
+/**
  * Cross-module deep-import patterns.
  * `app/`, `components/`, `hooks/`, and all `lib/` outside the same module must
  * use only the public doors: #features/<module>, #features/<module>/client,
@@ -229,7 +243,15 @@ const eslintConfig = defineConfig([
     name: "afenda/erp-module-imports",
     files: ["lib/features/**/*.{js,jsx,ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: radixRestrictedPatterns }],
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            ...radixRestrictedPatterns,
+            ...uiShelfFilesystemImportPatterns,
+          ],
+        },
+      ],
     },
   },
 
@@ -238,7 +260,8 @@ const eslintConfig = defineConfig([
   //
   // All source outside components/ui and lib/features must respect:
   //   1. Radix / Base UI confinement
-  //   2. No deep cross-module feature imports
+  //   2. UI shelf import door (#components/ui/* only; no **/components/ui paths)
+  //   3. No deep cross-module feature imports
   //
   // hooks/** additionally enforces the server-only client boundary — hooks
   // execute in the browser and must never pull next/headers, next/cache,
@@ -257,7 +280,11 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": [
         "error",
         {
-          patterns: [...radixRestrictedPatterns, ...deepFeatureImportPatterns],
+          patterns: [
+            ...radixRestrictedPatterns,
+            ...uiShelfFilesystemImportPatterns,
+            ...deepFeatureImportPatterns,
+          ],
         },
       ],
     },
@@ -272,6 +299,7 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             ...radixRestrictedPatterns,
+            ...uiShelfFilesystemImportPatterns,
             ...deepFeatureImportPatterns,
             ...serverOnlyPatterns,
           ],
@@ -281,21 +309,14 @@ const eslintConfig = defineConfig([
   },
 
   // -------------------------------------------------------------------------
-  // § Nexus L1 utility rail — Tooltip import gate
+  // § Nexus field — Tooltip import gate
   //
-  // Icon controls on the utility bar must use centralized wrappers so
-  // TooltipContent side/offset/align stay consistent and a11y copy stays
-  // intentional. Raw `#components/ui/tooltip` is limited to the allowlisted
-  // primitives + `nexus-utility-trigger-tooltip.tsx`.
+  // Nexus product surface must not import raw Tooltip ad hoc; L1 discs live
+  // under `components/workbench/utility-bar/` (WorkbenchUtility* wrappers).
   // -------------------------------------------------------------------------
   {
     name: "afenda/nexus-tooltip-import-gate",
     files: ["components/nexus/**/*.tsx"],
-    ignores: [
-      "components/nexus/nexus-utility-round-tooltip-button.tsx",
-      "components/nexus/nexus-utility-round-tooltip-link.tsx",
-      "components/nexus/nexus-utility-trigger-tooltip.tsx",
-    ],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -304,7 +325,7 @@ const eslintConfig = defineConfig([
             {
               name: "#components/ui/tooltip",
               message:
-                "Use NexusUtilityRoundTooltipButton, NexusUtilityRoundTooltipLink, or NexusUtilityTriggerTooltip for L1 utility rail tooltips — keeps geometry and copy consistent.",
+                "Use WorkbenchUtilityRoundTooltipButton, WorkbenchUtilityRoundTooltipLink, or WorkbenchUtilityTriggerTooltip from `components/workbench/utility-bar/` for L1-style tooltips — or add a Nexus-local primitive with an ESLint ignore and ADR note.",
             },
           ],
         },

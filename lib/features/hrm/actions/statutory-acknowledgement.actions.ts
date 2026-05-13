@@ -7,6 +7,7 @@ import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { acknowledgeEvidenceTransition } from "../data/compliance-acknowledgement.server"
 import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import { hrmCodedActionFailure } from "../schemas/hrm-action-result.shared"
 import type { AcknowledgeStatutoryEvidenceFormState } from "../types"
 
 const EXTERNAL_REFERENCE_MAX_LENGTH = 128
@@ -54,13 +55,13 @@ export async function acknowledgeStatutoryEvidenceAction(
 ): Promise<AcknowledgeStatutoryEvidenceFormState> {
   const gate = await requireHrmAdmin()
   if (!gate.ok) {
-    return { ok: false, code: "permission_denied", message: gate.error }
+    return hrmCodedActionFailure("permission_denied", gate.error)
   }
   const { organizationId, userId, sessionId } = gate.session
 
   const evidenceId = formData.get("evidenceId")?.toString()
   if (!evidenceId) {
-    return { ok: false, code: "validation", message: "evidenceId is required." }
+    return hrmCodedActionFailure("validation", "evidenceId is required.")
   }
 
   // Reference normalization at the boundary; trim once, treat empty-after-trim
@@ -68,11 +69,10 @@ export async function acknowledgeStatutoryEvidenceAction(
   const rawReference = formData.get("externalReference")?.toString() ?? ""
   const trimmedReference = rawReference.trim()
   if (trimmedReference.length > EXTERNAL_REFERENCE_MAX_LENGTH) {
-    return {
-      ok: false,
-      code: "validation",
-      message: `External reference exceeds ${EXTERNAL_REFERENCE_MAX_LENGTH} characters.`,
-    }
+    return hrmCodedActionFailure(
+      "validation",
+      `External reference exceeds ${EXTERNAL_REFERENCE_MAX_LENGTH} characters.`
+    )
   }
   const externalReference =
     trimmedReference.length > 0 ? trimmedReference : null
@@ -98,28 +98,25 @@ export async function acknowledgeStatutoryEvidenceAction(
   })
 
   if (result.status === "not_found") {
-    return { ok: false, code: "not_found", message: "Evidence not found." }
+    return hrmCodedActionFailure("not_found", "Evidence not found.")
   }
   if (result.status === "already_acknowledged") {
-    return {
-      ok: false,
-      code: "invalid_state",
-      message: 'Evidence is already in state "acknowledged".',
-    }
+    return hrmCodedActionFailure(
+      "invalid_state",
+      'Evidence is already in state "acknowledged".'
+    )
   }
   if (result.status === "invalid_state") {
-    return {
-      ok: false,
-      code: "invalid_state",
-      message: `Evidence is in state "${result.currentState}"; acknowledgement is only allowed from "submitted".`,
-    }
+    return hrmCodedActionFailure(
+      "invalid_state",
+      `Evidence is in state "${result.currentState}"; acknowledgement is only allowed from "submitted".`
+    )
   }
   if (result.status === "no_audit_action") {
-    return {
-      ok: false,
-      code: "validation",
-      message: `No acknowledgement audit action registered for pack "${result.packType}".`,
-    }
+    return hrmCodedActionFailure(
+      "validation",
+      `No acknowledgement audit action registered for pack "${result.packType}".`
+    )
   }
 
   revalidateCompliancePages()

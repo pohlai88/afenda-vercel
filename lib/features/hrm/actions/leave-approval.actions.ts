@@ -14,6 +14,7 @@ import {
   leaveApprovalDecisionSchema,
   leaveRejectDecisionSchema,
 } from "../schemas/leave-request.schema"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type { LeaveApprovalFormState } from "../types"
 
 /**
@@ -46,7 +47,7 @@ export async function approveLeaveAction(
   formData: FormData
 ): Promise<LeaveApprovalFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -56,10 +57,9 @@ export async function approveLeaveAction(
   })
 
   if (!parsed.success) {
-    return {
-      ok: false,
-      errors: { requestId: parsed.error.issues[0]?.message },
-    }
+    return hrmActionFailure({
+      requestId: parsed.error.issues[0]?.message,
+    })
   }
 
   const { requestId, decisionNote } = parsed.data
@@ -81,16 +81,13 @@ export async function approveLeaveAction(
   })
 
   if (!req) {
-    return { ok: false, errors: { requestId: "Leave request not found." } }
+    return hrmActionFailure({ requestId: "Leave request not found." })
   }
 
   if (req.state !== "submitted") {
-    return {
-      ok: false,
-      errors: {
-        requestId: `Cannot approve a leave request with state "${req.state}". Expected "submitted".`,
-      },
-    }
+    return hrmActionFailure({
+      requestId: `Cannot approve a leave request with state "${req.state}". Expected "submitted".`,
+    })
   }
 
   const now = new Date()
@@ -164,7 +161,7 @@ export async function rejectLeaveAction(
   formData: FormData
 ): Promise<LeaveApprovalFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -176,14 +173,11 @@ export async function rejectLeaveAction(
 
   if (!parsed.success) {
     const errs = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        requestId: errs.requestId?.[0],
-        rejectedReason: errs.rejectedReason?.[0],
-        form: parsed.error.issues[0]?.message,
-      },
-    }
+    return hrmActionFailure({
+      requestId: errs.requestId?.[0],
+      rejectedReason: errs.rejectedReason?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const { requestId, rejectedReason, decisionNote } = parsed.data
@@ -204,16 +198,13 @@ export async function rejectLeaveAction(
   })
 
   if (!req) {
-    return { ok: false, errors: { requestId: "Leave request not found." } }
+    return hrmActionFailure({ requestId: "Leave request not found." })
   }
 
   if (req.state !== "submitted") {
-    return {
-      ok: false,
-      errors: {
-        requestId: `Cannot reject a leave request with state "${req.state}". Expected "submitted".`,
-      },
-    }
+    return hrmActionFailure({
+      requestId: `Cannot reject a leave request with state "${req.state}". Expected "submitted".`,
+    })
   }
 
   const now = new Date()

@@ -9,11 +9,11 @@ import {
   ORG_DASHBOARD_HRM_EMPLOYEES,
 } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
+import { requireHrmOrgTenantFromForm } from "../data/hrm-action-guard.server"
 import { upsertPayrollProfileMutation } from "../data/payroll-profile.mutations.server"
-import { validateHrmOrgSlugMatchesSession } from "../data/hrm-tenant-form.server"
 import { upsertPayrollProfileFormSchema } from "../schemas/payroll-profile.schema"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type { PayrollProfileMutationFormState } from "../types"
 
 function revalidateHrmEmployeeSurfaces() {
@@ -31,15 +31,10 @@ export async function upsertPayrollProfileAction(
   _prev: PayrollProfileMutationFormState | undefined,
   formData: FormData
 ): Promise<PayrollProfileMutationFormState> {
-  const { organizationId, userId, sessionId } = await requireOrgSession()
-
-  const tenant = await validateHrmOrgSlugMatchesSession(
-    formData,
-    organizationId
-  )
-  if (!tenant.ok) {
-    return { ok: false, errors: { form: tenant.message } }
-  }
+  const gate = await requireHrmOrgTenantFromForm(formData)
+  if (!gate.ok) return gate.response
+  const { session } = gate
+  const { organizationId, userId, sessionId } = session
 
   const parsed = upsertPayrollProfileFormSchema.safeParse({
     orgSlug: formData.get("orgSlug"),
@@ -62,13 +57,10 @@ export async function upsertPayrollProfileAction(
 
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        effectiveFrom: fe.effectiveFrom?.[0],
-        form: fe.employeeId?.[0] ?? fe.countryCode?.[0],
-      },
-    }
+    return hrmActionFailure({
+      effectiveFrom: fe.effectiveFrom?.[0],
+      form: fe.employeeId?.[0] ?? fe.countryCode?.[0],
+    })
   }
 
   const d = parsed.data
@@ -103,7 +95,7 @@ export async function upsertPayrollProfileAction(
   })
 
   if (!applied.ok) {
-    return { ok: false, errors: { form: applied.message } }
+    return hrmActionFailure({ form: applied.message })
   }
 
   after(() =>

@@ -7,6 +7,8 @@ import {
 } from "#lib/dashboard-org-path.shared"
 import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
 
+const ACCOUNT_PATH_SEGMENTS = new Set(["identity", "security"])
+
 /**
  * Locale-internal pathname for the org admin workbench (`localePrefix: "always"`).
  * Returns a typed {@link Route} for `Link` / `redirect` from `#i18n/navigation` and
@@ -33,6 +35,32 @@ export function organizationAdminPath(
   return `${base}/${section}` as Route
 }
 
+/**
+ * Locale-internal pathname for the org-scoped account surface.
+ *
+ * Account remains an authenticated operator surface, but it now lives under
+ * the active organization shell so post-login navigation stays org-aware.
+ */
+export function organizationAccountPath(
+  orgSlug: string,
+  section: "overview" | "identity" | "security" | string = "overview"
+): Route {
+  const slug = normalizeOrgSlugParam(orgSlug)
+  if (!slug) {
+    throw new Error("organizationAccountPath: invalid org slug")
+  }
+  const base = `/o/${slug}/account`
+  if (section === "overview") {
+    return base as Route
+  }
+  if (!ACCOUNT_PATH_SEGMENTS.has(section)) {
+    throw new Error(
+      `organizationAccountPath: unknown account segment "${section}"`
+    )
+  }
+  return `${base}/${section}` as Route
+}
+
 /** Tail segment for org ERP dashboard HRM workspace (`revalidatePath` / tags). */
 export const ORG_DASHBOARD_HRM = "/hrm" as const
 
@@ -50,6 +78,21 @@ export const ORG_DASHBOARD_HRM_COMPLIANCE_DETAIL =
 /** Phase 4: claims kanban + per-claim detail dynamic segment. */
 export const ORG_DASHBOARD_HRM_CLAIMS = "/hrm/claims" as const
 export const ORG_DASHBOARD_HRM_CLAIM_DETAIL = "/hrm/claims/[claimId]" as const
+
+/** Org structure (departments, positions, job grades) — admin catalog surface. */
+export const ORG_DASHBOARD_HRM_ORGANIZATION = "/hrm/organization" as const
+
+/** Contract onboarding checklist — admin surface. */
+export const ORG_DASHBOARD_HRM_ONBOARDING = "/hrm/onboarding" as const
+
+/** Performance review cycles and reviews. */
+export const ORG_DASHBOARD_HRM_PERFORMANCE = "/hrm/performance" as const
+
+/** KPI periods and per-employee metric scores. */
+export const ORG_DASHBOARD_HRM_KPI = "/hrm/kpi" as const
+
+/** Salary advance requests and repayment via payroll. */
+export const ORG_DASHBOARD_HRM_ADVANCES = "/hrm/advances" as const
 
 /**
  * Locale-internal pathname for an org-scoped dashboard URL (`localePrefix: "always"`).

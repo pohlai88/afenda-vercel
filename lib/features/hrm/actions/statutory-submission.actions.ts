@@ -27,6 +27,7 @@ import { buildStatutoryPackFromRuns } from "../data/statutory-pack.server"
 import { eventTypeForStatutoryPack } from "../data/statutory-event-types.shared"
 import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
 import { organizationHrmPath } from "../constants"
+import { hrmCodedActionFailure } from "../schemas/hrm-action-result.shared"
 import type { SubmitStatutoryEvidenceFormState } from "../types"
 
 const STATUTORY_PACK_TYPES = [
@@ -34,6 +35,7 @@ const STATUTORY_PACK_TYPES = [
   "socso_monthly",
   "eis_monthly",
   "pcb_monthly",
+  "hrdf_monthly",
   "ea_annual",
   "borang_e_annual",
 ] as const
@@ -90,87 +92,77 @@ export async function submitStatutoryEvidenceForDeliveryAction(
 ): Promise<SubmitStatutoryEvidenceFormState> {
   const gate = await requireHrmAdmin()
   if (!gate.ok) {
-    return { ok: false, code: "permission_denied", message: gate.error }
+    return hrmCodedActionFailure("permission_denied", gate.error)
   }
   const { organizationId, userId, sessionId } = gate.session
 
   const evidenceId = formData.get("evidenceId")?.toString()
   if (!evidenceId) {
-    return { ok: false, code: "validation", message: "evidenceId is required." }
+    return hrmCodedActionFailure("validation", "evidenceId is required.")
   }
 
   const evidence = await getComplianceEvidence(organizationId, evidenceId)
   if (!evidence) {
-    return { ok: false, code: "not_found", message: "Evidence not found." }
+    return hrmCodedActionFailure("not_found", "Evidence not found.")
   }
   if (
     evidence.submissionState !== "draft" &&
     evidence.submissionState !== "failed"
   ) {
-    return {
-      ok: false,
-      code: "invalid_state",
-      message: `Evidence is already in state "${evidence.submissionState}"; submission is only allowed from "draft" or "failed".`,
-    }
+    return hrmCodedActionFailure(
+      "invalid_state",
+      `Evidence is already in state "${evidence.submissionState}"; submission is only allowed from "draft" or "failed".`
+    )
   }
   if (!evidence.periodId) {
-    return {
-      ok: false,
-      code: "validation",
-      message: "Evidence is not bound to a payroll period.",
-    }
+    return hrmCodedActionFailure(
+      "validation",
+      "Evidence is not bound to a payroll period."
+    )
   }
   if (!isStatutoryPackType(evidence.packType)) {
-    return {
-      ok: false,
-      code: "validation",
-      message: `Unsupported pack type "${evidence.packType}".`,
-    }
+    return hrmCodedActionFailure(
+      "validation",
+      `Unsupported pack type "${evidence.packType}".`
+    )
   }
 
   const eventType = eventTypeForStatutoryPack(evidence.packType)
   if (!eventType) {
-    return {
-      ok: false,
-      code: "validation",
-      message: `No outbound event type registered for pack "${evidence.packType}".`,
-    }
+    return hrmCodedActionFailure(
+      "validation",
+      `No outbound event type registered for pack "${evidence.packType}".`
+    )
   }
 
   const period = await getPayrollPeriod(organizationId, evidence.periodId)
   if (!period) {
-    return {
-      ok: false,
-      code: "not_found",
-      message: "Payroll period for this evidence has been removed.",
-    }
+    return hrmCodedActionFailure(
+      "not_found",
+      "Payroll period for this evidence has been removed."
+    )
   }
   if (period.state !== "locked") {
-    return {
-      ok: false,
-      code: "period_not_locked",
-      message:
-        "Lock the payroll period before submitting statutory evidence — only locked rule-pack snapshots are audit-trustworthy.",
-    }
+    return hrmCodedActionFailure(
+      "period_not_locked",
+      "Lock the payroll period before submitting statutory evidence — only locked rule-pack snapshots are audit-trustworthy."
+    )
   }
 
   let rulePack
   try {
     rulePack = resolveRulePack(evidence.countryCode, new Date(period.periodEnd))
   } catch {
-    return {
-      ok: false,
-      code: "rule_pack_missing",
-      message: `No rule pack registered for ${evidence.countryCode} at ${period.periodEnd}.`,
-    }
+    return hrmCodedActionFailure(
+      "rule_pack_missing",
+      `No rule pack registered for ${evidence.countryCode} at ${period.periodEnd}.`
+    )
   }
   if (rulePack.version !== evidence.rulePackVersion) {
-    return {
-      ok: false,
-      code: "rule_pack_drift",
-      message:
-        "Rule-pack version drift since evidence was generated. Regenerate evidence first.",
-    }
+    return hrmCodedActionFailure(
+      "rule_pack_drift",
+      "Rule-pack version drift since evidence was generated. Regenerate evidence first."
+    )
   }
 
   const runs = await fetchRunsForStatutoryPack(
@@ -178,11 +170,10 @@ export async function submitStatutoryEvidenceForDeliveryAction(
     evidence.periodId
   )
   if (runs.length === 0) {
-    return {
-      ok: false,
-      code: "no_runs",
-      message: "No payroll runs available for this period.",
-    }
+    return hrmCodedActionFailure(
+      "no_runs",
+      "No payroll runs available for this period."
+    )
   }
 
   // Phase 3S — replay the stored generation instant so EA / Borang E
@@ -197,12 +188,10 @@ export async function submitStatutoryEvidenceForDeliveryAction(
   )
 
   if (inputHash !== evidence.inputHash || outputHash !== evidence.outputHash) {
-    return {
-      ok: false,
-      code: "evidence_drift",
-      message:
-        "Underlying payroll data changed since evidence was generated. Regenerate evidence before submitting.",
-    }
+    return hrmCodedActionFailure(
+      "evidence_drift",
+      "Underlying payroll data changed since evidence was generated. Regenerate evidence before submitting."
+    )
   }
 
   const endpoint = await findEnabledEndpointForEventType(
@@ -210,11 +199,10 @@ export async function submitStatutoryEvidenceForDeliveryAction(
     eventType
   )
   if (!endpoint) {
-    return {
-      ok: false,
-      code: "endpoint_missing",
-      message: `Configure an enabled endpoint subscribed to "${eventType}" in Admin → Integrations before submitting.`,
-    }
+    return hrmCodedActionFailure(
+      "endpoint_missing",
+      `Configure an enabled endpoint subscribed to "${eventType}" in Admin → Integrations before submitting.`
+    )
   }
 
   const signingKey = await getOrgEventEndpointSigningKey({
@@ -222,12 +210,10 @@ export async function submitStatutoryEvidenceForDeliveryAction(
     endpointId: endpoint.id,
   })
   if (!signingKey) {
-    return {
-      ok: false,
-      code: "endpoint_missing",
-      message:
-        "Endpoint signing key is missing — rotate the secret in Admin → Integrations.",
-    }
+    return hrmCodedActionFailure(
+      "endpoint_missing",
+      "Endpoint signing key is missing — rotate the secret in Admin → Integrations."
+    )
   }
 
   const envelope = {
@@ -355,12 +341,10 @@ export async function submitStatutoryEvidenceForDeliveryAction(
       actorUserId: userId,
     })
 
-    return {
-      ok: false,
-      code: "delivery_failed",
-      message:
-        result.errorMessage ?? "Delivery failed without a receiver response.",
-    }
+    return hrmCodedActionFailure(
+      "delivery_failed",
+      result.errorMessage ?? "Delivery failed without a receiver response."
+    )
   }
 
   return {

@@ -9,6 +9,7 @@ import {
   orgEventDelivery,
   orgEventEndpoint,
 } from "#lib/db/schema"
+import type { CronTickScannedSummary } from "#lib/erp/cron-tick.shared"
 import {
   deliverEventNow,
   findEnabledEndpointForEventType,
@@ -89,6 +90,7 @@ const STATUTORY_PACK_TYPES = [
   "socso_monthly",
   "eis_monthly",
   "pcb_monthly",
+  "hrdf_monthly",
   "ea_annual",
   "borang_e_annual",
 ] as const
@@ -453,8 +455,7 @@ export async function retryStatutorySubmissionForEvidence(
 // Per-tick aggregate runner
 // ---------------------------------------------------------------------------
 
-export type StatutoryRetryTickSummary = {
-  readonly scanned: number
+export type StatutoryRetryTickSummary = CronTickScannedSummary & {
   readonly delivered: number
   readonly failed: number
   readonly skipped: number

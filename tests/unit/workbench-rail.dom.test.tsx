@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 let currentPathname = "/account/identity"
@@ -50,6 +50,22 @@ vi.mock("#components/ui/tooltip", () => ({
   ),
 }))
 
+vi.mock("#components/ui/popover", () => ({
+  Popover: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  PopoverTrigger: ({
+    asChild,
+    children,
+  }: {
+    asChild?: boolean
+    children: React.ReactNode
+  }) => (asChild ? (children as React.ReactElement) : <div>{children}</div>),
+  PopoverContent: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="popover-nav-search">{children}</div>
+  ),
+}))
+
 // Stable next-intl stubs — the recents section uses `useNow` /
 // `useFormatter().relativeTime`. Tests pin "now" to a known date so
 // the produced relative-time strings are deterministic and the
@@ -75,19 +91,26 @@ vi.mock("next-intl", () => ({
 
 import {
   WorkbenchRail,
+  WorkbenchRailFooter,
   isWorkbenchRailNavItemActive,
   parseWorkbenchRailInbox,
   parseWorkbenchRailLabels,
+  parseWorkbenchRailNavChildItem,
   parseWorkbenchRailNavItem,
   parseWorkbenchRailPin,
   parseWorkbenchRailRecent,
   parseWorkbenchRailSlotsData,
   parseWorkbenchRailView,
-} from "#components/workbench/rail"
+} from "#components/workbench/left-nav-rail"
+import {
+  WorkbenchRailCollapseUiProvider,
+  WORKBENCH_RAIL_NAV_DOM_ID,
+  type WorkbenchRailCollapseApi,
+} from "#components/workbench/workbench-rail-collapse-context"
 import type {
   WorkbenchRailLabels,
   WorkbenchRailSlots,
-} from "#components/workbench/rail"
+} from "#components/workbench/left-nav-rail"
 
 afterEach(() => {
   cleanup()
@@ -104,11 +127,6 @@ const baseLabels: WorkbenchRailLabels = {
 }
 
 const baseSlots: WorkbenchRailSlots = {
-  identity: {
-    initial: "AF",
-    primary: "Afenda Demo Org",
-    secondary: "Operator Console",
-  },
   nav: [
     {
       id: "primary",
@@ -139,10 +157,12 @@ const baseSlots: WorkbenchRailSlots = {
 
 function renderRail({
   collapsed = false,
+  interactionMode,
   slots = baseSlots,
   labels = baseLabels,
 }: {
   collapsed?: boolean
+  interactionMode?: "expanded" | "collapsed" | "hover"
   slots?: WorkbenchRailSlots
   labels?: WorkbenchRailLabels
 } = {}) {
@@ -151,6 +171,7 @@ function renderRail({
       slots={slots}
       labels={labels}
       collapsed={collapsed}
+      interactionMode={interactionMode}
     />
   )
 }
@@ -220,6 +241,24 @@ describe("isWorkbenchRailNavItemActive", () => {
       )
     ).toBe(false)
   })
+
+  it("never infers active state from query-string targets", () => {
+    expect(
+      isWorkbenchRailNavItemActive(
+        { href: "/orbit?lifecycle=blocked" },
+        "/orbit"
+      )
+    ).toBe(false)
+  })
+
+  it("never infers active state from hash targets", () => {
+    expect(
+      isWorkbenchRailNavItemActive(
+        { href: "/account/security#sessions" },
+        "/account/security"
+      )
+    ).toBe(false)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -236,6 +275,25 @@ describe("workbench-rail.schema", () => {
     })
     expect(parsed.icon).toBe("user-round")
     expect(parsed.match).toBeUndefined()
+  })
+
+  it("accepts strict child nav items for nested menus", () => {
+    const parsed = parseWorkbenchRailNavChildItem({
+      id: "orbit-today",
+      label: "Today",
+      href: "/account/orbit/today",
+      match: "exact",
+    })
+
+    expect(parsed.match).toBe("exact")
+    expect(() =>
+      parseWorkbenchRailNavChildItem({
+        id: "orbit-today",
+        label: "Today",
+        href: "/account/orbit/today",
+        icon: "activity",
+      })
+    ).toThrow()
   })
 
   it("rejects an unknown icon id at runtime", () => {
@@ -260,13 +318,15 @@ describe("workbench-rail.schema", () => {
     ).toThrow()
   })
 
-  it("validates the full slots data shape", () => {
-    const parsed = parseWorkbenchRailSlotsData({
+  it("validates the full slots data shape (identity optional)", () => {
+    const legacy = parseWorkbenchRailSlotsData({
       identity: { initial: "A", primary: "Org" },
       nav: [],
     })
-    expect(parsed.identity.primary).toBe("Org")
-    expect(parsed.nav).toEqual([])
+    expect(legacy.identity?.primary).toBe("Org")
+
+    const slim = parseWorkbenchRailSlotsData({ nav: [] })
+    expect(slim.identity).toBeUndefined()
   })
 
   it("rejects retired decorative slots — pills / context / labels.description", () => {
@@ -571,7 +631,6 @@ describe("workbench-rail.schema (Working Memory Rail)", () => {
 
   it("slots: accepts a fully populated Working Memory Rail payload", () => {
     const parsed = parseWorkbenchRailSlotsData({
-      identity: { initial: "A", primary: "Acme HRM" },
       nav: [],
       inbox: {
         label: "Open approvals",
@@ -618,21 +677,18 @@ describe("workbench-rail.schema (Working Memory Rail)", () => {
     // hollow "Pinned (0)" frame can never render.
     expect(() =>
       parseWorkbenchRailSlotsData({
-        identity: { initial: "A", primary: "Acme" },
         nav: [],
         pinned: [],
       })
     ).toThrow()
     expect(() =>
       parseWorkbenchRailSlotsData({
-        identity: { initial: "A", primary: "Acme" },
         nav: [],
         views: [],
       })
     ).toThrow()
     expect(() =>
       parseWorkbenchRailSlotsData({
-        identity: { initial: "A", primary: "Acme" },
         nav: [],
         recents: [],
       })
@@ -649,7 +705,6 @@ describe("workbench-rail.schema (Working Memory Rail)", () => {
     })
     expect(() =>
       parseWorkbenchRailSlotsData({
-        identity: { initial: "A", primary: "Acme" },
         nav: [],
         recents: [
           oneRecent("r1"),
@@ -669,15 +724,86 @@ describe("workbench-rail.schema (Working Memory Rail)", () => {
 // ---------------------------------------------------------------------------
 
 describe("WorkbenchRail (expanded)", () => {
-  it("renders identity primary + secondary", () => {
+  it("renders nav search chrome and primary nav links", () => {
     renderRail()
 
-    expect(screen.getByText("Afenda Demo Org")).toBeDefined()
-    expect(screen.getByText("Operator Console")).toBeDefined()
+    expect(screen.getByRole("search")).toBeDefined()
+    expect(screen.getByRole("searchbox")).toBeDefined()
+    expect(screen.getByRole("link", { name: /identity/i })).toBeDefined()
+    expect(screen.getByRole("link", { name: /orbit/i })).toBeDefined()
+    expect(screen.getByRole("navigation").className).toContain(
+      "af-workbench-rail-scroll"
+    )
+    expect(screen.getByRole("navigation").className).not.toContain(
+      "no-scrollbar"
+    )
+  })
+
+  it("renders nested nav children behind an item-level menu trigger", () => {
+    currentPathname = "/account/orbit/today"
+    renderRail({
+      slots: {
+        nav: [
+          {
+            id: "primary",
+            items: [
+              {
+                id: "orbit",
+                label: "Orbit",
+                href: "/account/orbit",
+                icon: "activity",
+                items: [
+                  {
+                    id: "orbit-queue",
+                    label: "Queue",
+                    href: "/account/orbit",
+                    match: "exact",
+                  },
+                  {
+                    id: "orbit-today",
+                    label: "Today",
+                    href: "/account/orbit/today",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    })
+
+    const orbitLink = screen.getByRole("link", { name: /orbit/i })
+    const todayLink = screen.getByRole("link", { name: /^today$/i })
+
+    expect(
+      screen.getByRole("button", { name: /toggle orbit menu/i })
+    ).toBeDefined()
+    expect(orbitLink.getAttribute("data-active")).toBe("true")
+    expect(orbitLink.getAttribute("aria-current")).toBeNull()
+    expect(todayLink.getAttribute("aria-current")).toBe("page")
+  })
+
+  it("filters primary nav when the search query is typed", () => {
+    renderRail()
+    const input = screen.getByRole("searchbox")
+    fireEvent.change(input, { target: { value: "orbit" } })
+
+    expect(screen.queryByRole("link", { name: /identity/i })).toBeNull()
+    expect(screen.getByRole("link", { name: /orbit/i })).toBeDefined()
+  })
+
+  it("shows no-matches status when the filter excludes every nav item", () => {
+    renderRail()
+    fireEvent.change(screen.getByRole("searchbox"), {
+      target: { value: "zzz" },
+    })
+
+    const status = screen.getByRole("status")
+    expect(status.textContent).toMatch(/no links match/i)
   })
 
   it("does not render decorative pills, context strip, or status footer", () => {
-    // Phase 1: the rail is identity → nav → optional caller footer →
+    // The rail is nav filter → primary execution nav → optional caller footer →
     // collapse. There is no built-in pill list, context strip, or
     // hardcoded "Online / secure session" footer block.
     renderRail()
@@ -722,34 +848,24 @@ describe("WorkbenchRail (expanded)", () => {
 // Rendering — collapsed
 // ---------------------------------------------------------------------------
 
-function visibleNodes(text: string | RegExp): HTMLElement[] {
-  return screen
-    .queryAllByText(text)
-    .filter((node) => !node.closest("[data-tooltip-content='true']"))
-}
-
 describe("WorkbenchRail (collapsed)", () => {
-  it("hides identity text outside tooltip content", () => {
+  it("renders a compact nav search trigger with an accessible label", () => {
     renderRail({ collapsed: true })
 
-    // The identity primary/secondary text should only exist inside the
-    // tooltip portal — never visible in the rail body.
-    expect(visibleNodes("Afenda Demo Org")).toHaveLength(0)
-    expect(visibleNodes("Operator Console")).toHaveLength(0)
+    expect(
+      screen.getByRole("button", { name: /open navigation filter/i })
+    ).toBeDefined()
   })
 
-  it("exposes the identity and nav-item tooltips via TooltipContent", () => {
+  it("exposes collapsed rail icon tooltips via TooltipContent", () => {
     renderRail({ collapsed: true })
 
     const tooltips = screen.getAllByRole("tooltip")
-    // 1 identity monogram + 3 nav items = 4 tooltip surfaces
+    // Search trigger + 3 nav items.
     expect(tooltips.length).toBe(4)
-    // Identity tooltip surfaces both the primary and secondary text.
-    const identityTooltip = tooltips.find((node) =>
-      node.textContent?.includes("Afenda Demo Org")
+    expect(tooltips.map((node) => node.textContent).join(" ")).toContain(
+      "Open navigation filter"
     )
-    expect(identityTooltip).toBeDefined()
-    expect(identityTooltip?.textContent).toContain("Operator Console")
   })
 
   it("composes the badge count into the link's accessible name", () => {
@@ -757,6 +873,36 @@ describe("WorkbenchRail (collapsed)", () => {
 
     const orbitLink = screen.getByRole("link", { name: /orbit/i })
     expect(orbitLink.getAttribute("aria-label")).toMatch(/4 items/i)
+  })
+
+  it("centers collapsed nav icons on the rail icon column", () => {
+    renderRail({ collapsed: true })
+
+    const identityLink = screen.getByRole("link", { name: /identity/i })
+    expect(identityLink.className).toContain("mx-auto")
+    expect(identityLink.className).toContain("size-8")
+  })
+
+  it("temporarily expands in hover interaction mode", () => {
+    const { container } = renderRail({
+      collapsed: true,
+      interactionMode: "hover",
+    })
+    const rail = container.querySelector("[data-workbench-rail='true']")
+
+    expect(rail?.getAttribute("data-collapsed")).toBe("true")
+    expect(
+      screen.getByRole("button", { name: /open navigation filter/i })
+    ).toBeDefined()
+
+    fireEvent.pointerEnter(rail!)
+
+    expect(rail?.getAttribute("data-collapsed")).toBe("false")
+    expect(screen.getByRole("searchbox")).toBeDefined()
+
+    fireEvent.pointerLeave(rail!)
+
+    expect(rail?.getAttribute("data-collapsed")).toBe("true")
   })
 })
 
@@ -773,6 +919,65 @@ describe("WorkbenchRail footer slot", () => {
       },
     })
     expect(screen.getByRole("button", { name: /sign out/i })).toBeDefined()
+  })
+
+  it("WorkbenchRailFooter tracks hover-expanded visual width for identity labels", () => {
+    const shellApi: WorkbenchRailCollapseApi = {
+      collapsed: true,
+      setCollapsed: vi.fn(),
+      mode: "hover",
+      setMode: vi.fn(),
+      toggleCollapse: vi.fn(),
+      collapseLabel: "Collapse",
+      expandLabel: "Expand",
+      controlsNavId: WORKBENCH_RAIL_NAV_DOM_ID,
+    }
+    const { container } = render(
+      <WorkbenchRailCollapseUiProvider shellApi={shellApi}>
+        <WorkbenchRail
+          slots={{
+            ...baseSlots,
+            footer: (
+              <WorkbenchRailFooter
+                avatarLabel="Alex Operator"
+                primaryLabel="Alex Operator"
+                secondaryLabel="alex@example.com"
+                labels={{
+                  sidebarControl: "Rail layout",
+                  expanded: "Always expanded",
+                  expandedHelp: "Use the full-width rail.",
+                  collapsed: "Collapsed",
+                  collapsedHelp: "Use the compact rail.",
+                  expandOnHover: "Hover expand",
+                  expandOnHoverHelp: "Expand the rail while hovering.",
+                  current: "Current",
+                }}
+              />
+            ),
+          }}
+          labels={baseLabels}
+          collapsed={true}
+          interactionMode="hover"
+        />
+      </WorkbenchRailCollapseUiProvider>
+    )
+    const primary = screen
+      .getAllByText("Alex Operator")
+      .find((node) => node.tagName.toLowerCase() === "p")
+    const tooltipText = screen
+      .getAllByRole("tooltip")
+      .map((node) => node.textContent)
+      .join(" ")
+    expect(primary).toBeDefined()
+    expect(tooltipText).toContain("Alex Operator")
+    expect(tooltipText).toContain("alex@example.com")
+    const primaryElement = primary!
+    expect(primaryElement.closest(".sr-only")).not.toBeNull()
+    const rail = container.querySelector("[data-workbench-rail='true']")
+    fireEvent.pointerEnter(rail!)
+    expect(primaryElement.closest(".sr-only")).toBeNull()
+    fireEvent.pointerLeave(rail!)
+    expect(primaryElement.closest(".sr-only")).not.toBeNull()
   })
 
   it("renders nothing in place of the footer when omitted (no hardcoded status block)", () => {
@@ -852,7 +1057,6 @@ const HRM_NAV: WorkbenchRailSlots["nav"] = [
 ]
 
 const FULL_MEMORY_SLOTS: WorkbenchRailSlots = {
-  identity: { initial: "AC", primary: "Acme HRM", secondary: "Operator" },
   nav: HRM_NAV,
   inbox: {
     label: "Open approvals",

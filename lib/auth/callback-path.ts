@@ -7,7 +7,7 @@ import {
 
 /** Default post-login destination for a locale (`localePrefix: "always"`). */
 export function defaultPostAuthPath(locale: AppLocale) {
-  return toLocalePath(locale, "/console")
+  return toLocalePath(locale, "/o")
 }
 
 /**

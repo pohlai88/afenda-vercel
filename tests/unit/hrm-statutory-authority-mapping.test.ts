@@ -33,6 +33,7 @@ describe("Statutory pack -> external authority mapping", () => {
       epf_monthly: "KWSP",
       socso_monthly: "PERKESO",
       eis_monthly: "PERKESO",
+      hrdf_monthly: "HRD_CORP",
       pcb_monthly: "LHDN",
       ea_annual: "LHDN",
       borang_e_annual: "LHDN",

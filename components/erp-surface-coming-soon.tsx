@@ -1,14 +1,12 @@
-import { Link } from "#i18n/navigation"
-import type { Route } from "next"
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
-import { Empty, EmptyDescription, EmptyTitle } from "#components/ui/empty"
+import {
+  GovernedEmpty,
+  GovernedSurface,
+  parseEmptyStateData,
+  parsePageHeaderData,
+} from "#features/governed-surface"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
-import { ui } from "#lib/design-system"
-import { cn } from "#lib/utils"
-
-import { ModulePageHeader } from "./module-page-header"
 
 /** ERP dashboard segments reserved for Phase 3 operational surfaces (see AGENTS.md Nexus roadmap). */
 export type Phase3ErpSurface = "accounting" | "sale" | "purchase" | "inventory"
@@ -30,26 +28,29 @@ export async function ErpSurfaceComingSoon({
 
   const nexusHref = organizationDashboardPath(orgSlug, "home")
 
+  const headerParsed = parsePageHeaderData({
+    title: tNav(surface),
+    eyebrow: t("eyebrow"),
+    description: t("description"),
+    backHref: nexusHref,
+    backLabel: tShared("backToNexus"),
+  })
+  if (!headerParsed.success) {
+    throw new Error("ErpSurfaceComingSoon: invalid governed page header payload")
+  }
+
+  const emptyParsed = parseEmptyStateData({
+    variant: "muted",
+    title: tShared("emptyTitle"),
+    description: t("detail"),
+  })
+  if (!emptyParsed.success) {
+    throw new Error("ErpSurfaceComingSoon: invalid governed empty-state payload")
+  }
+
   return (
-    <div className="space-y-surface-lg">
-      <ModulePageHeader
-        title={tNav(surface)}
-        eyebrow={t("eyebrow")}
-        description={t("description")}
-      />
-      <Empty
-        className={cn(
-          "border-solid border-border bg-card",
-          ui.radius.card,
-          ui.elevation.card
-        )}
-      >
-        <EmptyTitle>{tShared("emptyTitle")}</EmptyTitle>
-        <EmptyDescription>{t("detail")}</EmptyDescription>
-        <Button variant="secondary" size="sm" asChild>
-          <Link href={nexusHref as Route}>{tShared("backToNexus")}</Link>
-        </Button>
-      </Empty>
-    </div>
+    <GovernedSurface header={headerParsed.data}>
+      <GovernedEmpty model={emptyParsed.data} />
+    </GovernedSurface>
   )
 }

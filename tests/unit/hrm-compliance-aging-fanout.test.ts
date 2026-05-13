@@ -32,7 +32,6 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  HRM_COMPLIANCE_AGING_CRITICAL_EVENT_TYPE,
   HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES,
   HRM_FANOUT_FORBIDDEN_KEYS,
   buildAgingCriticalEventEnvelopeData,
@@ -91,22 +90,21 @@ function collectAllKeys(value: unknown): string[] {
 }
 
 describe("Phase 3P — fanout doctrine: event type allowlist", () => {
-  it("HRM_COMPLIANCE_AGING_CRITICAL_EVENT_TYPE is registered in ORG_EVENT_TYPES", () => {
+  it("critical tier event type is registered in ORG_EVENT_TYPES", () => {
     // The fanout cannot deliver an event type the schema gate rejects.
     // This makes the one-source-of-truth contract obvious.
-    expect(ORG_EVENT_TYPES).toContain(HRM_COMPLIANCE_AGING_CRITICAL_EVENT_TYPE)
+    expect(ORG_EVENT_TYPES).toContain(
+      HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES.critical
+    )
   })
 
-  it("HRM_COMPLIANCE_AGING_CRITICAL_EVENT_TYPE uses the HRM domain namespace", () => {
+  it("critical tier event type uses the HRM domain namespace", () => {
     // The audit action lives under `erp.execution.*` (lifecycle namespace);
     // the event type lives under `erp.hrm.*` (product/subscription
     // namespace). Receivers subscribe to the product topic.
-    expect(HRM_COMPLIANCE_AGING_CRITICAL_EVENT_TYPE).toMatch(
-      /^erp\.hrm\.compliance\./
-    )
-    expect(HRM_COMPLIANCE_AGING_CRITICAL_EVENT_TYPE).not.toMatch(
-      /^erp\.execution\./
-    )
+    const criticalType = HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES.critical
+    expect(criticalType).toMatch(/^erp\.hrm\.compliance\./)
+    expect(criticalType).not.toMatch(/^erp\.execution\./)
   })
 })
 
@@ -343,12 +341,6 @@ describe("Phase 3Q — tier-aware event-type map", () => {
       const eventType = HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES[tier]
       expect(eventType).toBe(`erp.hrm.compliance.aging.${tier}`)
     }
-  })
-
-  it("Phase 3P critical alias matches the tier map's critical entry", () => {
-    expect(HRM_COMPLIANCE_AGING_CRITICAL_EVENT_TYPE).toBe(
-      HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES.critical
-    )
   })
 })
 

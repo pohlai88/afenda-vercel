@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
-import { WorkbenchShell, WorkbenchUtilityBar } from "#components/workbench"
-import { RouteEnvelopeProvider } from "#components/route-envelope-context"
+import { AppShell } from "#components/workbench"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/route-envelope.shared"
 import { SITE_NAME } from "#lib/site"
@@ -35,20 +34,16 @@ export default async function ConsoleLayout({
   }
 
   return (
-    <RouteEnvelopeProvider value={envelope}>
-      <WorkbenchShell
-        skipToMainLabel={tConsole("skipToMain")}
-        utilityBar={
-          <WorkbenchUtilityBar
-            mode="no-org"
-            userId={session.userId}
-            userEmail={session.user.email}
-          />
-        }
-        rail={null}
-      >
-        {children}
-      </WorkbenchShell>
-    </RouteEnvelopeProvider>
+    <AppShell
+      envelope={envelope}
+      skipToMainLabel={tConsole("skipToMain")}
+      utilityBar={{
+        mode: "no-org",
+        userEmail: session.user.email,
+      }}
+      rail={null}
+    >
+      {children}
+    </AppShell>
   )
 }

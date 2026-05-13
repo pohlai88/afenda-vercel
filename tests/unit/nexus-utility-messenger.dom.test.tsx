@@ -354,7 +354,7 @@ describe("WorkbenchUtilityMessenger", { timeout: 20_000 }, () => {
   beforeAll(async () => {
     vi.resetModules()
     ;({ WorkbenchUtilityMessenger } =
-      await import("#components/workbench/utility-bar/workbench-utility-messenger"))
+      await import("#components/workbench/utility-bar/right-utility-bar/workbench-utility-messenger"))
   })
 
   beforeEach(() => {
@@ -478,6 +478,8 @@ describe("WorkbenchUtilityMessenger", { timeout: 20_000 }, () => {
     fireEvent.click(screen.getByRole("button", { name: /Finance/i }))
     fireEvent.click(screen.getByRole("button", { name: "Create context" }))
     expect(await screen.findByText("Payroll anomaly")).toBeTruthy()
+
+    await screen.findByLabelText("Add coordination update")
 
     fireEvent.click(screen.getByRole("button", { name: "Attach screenshot" }))
     expect(await screen.findByText(/screenshot-\d+\.png/i)).toBeTruthy()

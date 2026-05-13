@@ -41,7 +41,8 @@ import {
 } from "./socso/v2024-10.table"
 import { EIS_V2024_10_CODE, computeEisV202410 } from "./eis/v2024-10.table"
 import { PCB_V2026_01_CODE, computePcbV202601 } from "./pcb/v2026-01.bands"
-import { HOLIDAYS_2026_CODE, getHolidaysV2026 } from "./holidays/v2026.holidays"
+import { HOLIDAYS_2026_CODE } from "./holidays/v2026.holidays"
+import { resolveMalaysiaPublicHolidayDates } from "./holidays/resolve-malaysia-public-holidays"
 import {
   EA_LEAVE_V2023_01_CODE,
   EA_LEAVE_TYPES_2023,
@@ -163,6 +164,8 @@ const malaysia2026_01: PayrollRulePack = {
     const gross = parseFloat(input.monthlyGrossWages)
     const epfEmployee = parseFloat(input.epfEmployeeThisMonth ?? "0")
     const ytdEpf = parseFloat(input.ytdEpfEmployee ?? "0")
+    const tp1 = parseFloat(input.pcbTp1AdditionalReliefMonthly ?? "0")
+    const tp3 = parseFloat(input.pcbTp3AdditionalDeductionMonthly ?? "0")
 
     const pcb = computePcbV202601({
       monthlyGross: gross,
@@ -173,6 +176,10 @@ const malaysia2026_01: PayrollRulePack = {
       ytdPcbPaid: parseFloat(input.ytdPcbPaid ?? "0"),
       epfEmployeeThisMonth: epfEmployee,
       ytdEpfEmployee: ytdEpf,
+      tp1AdditionalReliefMonthly: Number.isFinite(tp1) ? tp1 : 0,
+      tp3AdditionalMonthlyDeductionFromRemuneration: Number.isFinite(tp3)
+        ? tp3
+        : 0,
     })
 
     return {
@@ -220,7 +227,7 @@ const malaysia2026_01: PayrollRulePack = {
   },
 
   publicHolidays(year: number, stateCodes: string[]): HrmHolidaySeed[] {
-    const dates = getHolidaysV2026(year, stateCodes)
+    const { dates } = resolveMalaysiaPublicHolidayDates(year, stateCodes)
     return dates.map((date) => ({
       date,
       nameKey: `hrm.holiday.MY.${date}`,

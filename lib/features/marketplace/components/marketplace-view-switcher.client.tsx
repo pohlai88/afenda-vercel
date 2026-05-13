@@ -59,7 +59,7 @@ export function MarketplaceViewSwitcher({
     <div
       role="group"
       aria-label={ariaLabel}
-      className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background/80 p-0.5"
+      className="inline-flex items-center gap-1 rounded-lg border border-border/60 bg-card/80 p-1 shadow-elevation-1"
     >
       <Button
         type="button"
@@ -68,7 +68,7 @@ export function MarketplaceViewSwitcher({
         onClick={() => swap("card")}
         aria-pressed={active === "card"}
         className={cn(
-          "h-7 rounded-full px-2.5 text-xs",
+          "h-7 rounded-md px-2.5 text-xs",
           active === "card" ? "bg-foreground text-background" : null
         )}
       >
@@ -82,7 +82,7 @@ export function MarketplaceViewSwitcher({
         onClick={() => swap("table")}
         aria-pressed={active === "table"}
         className={cn(
-          "h-7 rounded-full px-2.5 text-xs",
+          "h-7 rounded-md px-2.5 text-xs",
           active === "table" ? "bg-foreground text-background" : null
         )}
       >

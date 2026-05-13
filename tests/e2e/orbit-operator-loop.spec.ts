@@ -40,11 +40,27 @@ test.describe("orbit operator loop (optional credentials)", () => {
       const linkLabel = `E2E linked record ${unique}`
       const linkReason = `Operational causality ${unique}`
       const resolutionNote = `Resolved during E2E orbit flow ${unique}`
+      const capturedTitle = `E2E Orbit captured item ${unique}`
+      const capturedText = `${capturedTitle} tomorrow 9am every week`
 
       await page.goto(`/en/o/${slug}/dashboard/orbit/triage`)
       await expect(
         page.getByRole("heading", { name: /Orbit/i }).first()
       ).toBeVisible({ timeout: 15_000 })
+
+      await page
+        .getByLabel("Orbit item capture", { exact: true })
+        .fill(capturedText)
+      await expect(page.getByText(`Title: ${capturedTitle}`)).toBeVisible()
+      await expect(page.getByText(/Repeats: FREQ=WEEKLY/)).toBeVisible()
+      await page.getByRole("button", { name: "Add item", exact: true }).click()
+      await expect(page).toHaveURL(/focusKind=item&focusId=/)
+      await expect(
+        page.getByRole("heading", { name: capturedTitle, exact: true })
+      ).toBeVisible()
+      await expect(page.getByText("FREQ=WEEKLY;INTERVAL=1")).toBeVisible()
+
+      await page.goto(`/en/o/${slug}/dashboard/orbit/triage`)
 
       await page
         .getByLabel("Orbit signal title", { exact: true })
@@ -60,7 +76,9 @@ test.describe("orbit operator loop (optional credentials)", () => {
       await expect(
         page.getByRole("heading", { name: signalTitle, exact: true })
       ).toBeVisible()
-      await expect(page.getByText("Evidence graph", { exact: true })).toBeVisible()
+      await expect(
+        page.getByText("Evidence graph", { exact: true })
+      ).toBeVisible()
 
       await page
         .getByRole("button", { name: "Promote to item", exact: true })
@@ -112,7 +130,9 @@ test.describe("orbit operator loop (optional credentials)", () => {
       await page
         .getByRole("button", { name: "Start session", exact: true })
         .click()
-      await expect(page).toHaveURL(/dashboard\/orbit\/sessions\?status=startedSession/)
+      await expect(page).toHaveURL(
+        /dashboard\/orbit\/sessions\?status=startedSession/
+      )
       await expect(page.getByText(signalTitle, { exact: true })).toBeVisible()
 
       await page.goto(itemFocusUrl)
@@ -141,7 +161,10 @@ test.describe("orbit operator loop (optional credentials)", () => {
         page.getByRole("link", { name: new RegExp(viewName) })
       ).toBeVisible()
 
-      await page.getByRole("link", { name: new RegExp(signalTitle) }).first().click()
+      await page
+        .getByRole("link", { name: new RegExp(signalTitle) })
+        .first()
+        .click()
 
       await page
         .getByLabel("Orbit resolution note", { exact: true })

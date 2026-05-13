@@ -1,11 +1,75 @@
 import type {
   PlannerEvidenceGraph,
   PlannerEvidenceGraphNode,
+  PlannerEvidenceNodeKind,
   PlannerItemDetail,
   PlannerLinkDetail,
   PlannerSessionDetail,
   PlannerSignalDetail,
 } from "../types"
+
+export const PLANNER_EVIDENCE_LANES = [
+  "erp",
+  "operator",
+  "execution",
+  "telemetry",
+  "automation",
+] as const
+
+export type PlannerEvidenceLane = (typeof PLANNER_EVIDENCE_LANES)[number]
+
+export type PlannerEvidenceGroupedSection = {
+  lane: PlannerEvidenceLane
+  nodes: PlannerEvidenceGraphNode[]
+}
+
+function evidenceLaneForKind(
+  kind: PlannerEvidenceNodeKind
+): PlannerEvidenceLane {
+  switch (kind) {
+    case "erp_link":
+    case "relation":
+    case "item":
+    case "signal":
+      return "erp"
+    case "comment":
+    case "attachment":
+      return "operator"
+    case "session":
+      return "execution"
+    case "activity":
+      return "telemetry"
+    case "notice":
+      return "automation"
+  }
+  return "automation"
+}
+
+function sortEvidenceNodesByTime(nodes: PlannerEvidenceGraphNode[]) {
+  return [...nodes].sort((left, right) => {
+    const leftTime = left.occurredAt?.getTime() ?? 0
+    const rightTime = right.occurredAt?.getTime() ?? 0
+    return rightTime - leftTime
+  })
+}
+
+/** Groups evidence nodes by causal lane for operator-first scanning (Orbit detail panels). */
+export function groupPlannerEvidenceGraphForDisplay(
+  graph: PlannerEvidenceGraph
+): PlannerEvidenceGroupedSection[] {
+  const byLane = new Map<PlannerEvidenceLane, PlannerEvidenceGraphNode[]>()
+  for (const lane of PLANNER_EVIDENCE_LANES) {
+    byLane.set(lane, [])
+  }
+  for (const node of graph.nodes) {
+    const lane = evidenceLaneForKind(node.kind)
+    byLane.get(lane)!.push(node)
+  }
+  return PLANNER_EVIDENCE_LANES.map((lane) => ({
+    lane,
+    nodes: sortEvidenceNodesByTime(byLane.get(lane) ?? []),
+  })).filter((section) => section.nodes.length > 0)
+}
 
 type ItemEvidenceInput = Omit<PlannerItemDetail, "evidenceGraph">
 type SignalEvidenceInput = Omit<PlannerSignalDetail, "evidenceGraph">

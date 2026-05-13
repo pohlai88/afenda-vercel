@@ -53,17 +53,21 @@ export function MarketplaceMetricsStrip({
             <li key={item.capabilityId}>
               <Card
                 size="sm"
-                className="border border-border/60 bg-background/80"
+                className="rounded-lg border border-border/60 bg-background/90 shadow-none"
               >
-                <CardContent className="flex flex-col gap-1.5">
+                <CardContent className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                  <span
+                    aria-hidden
+                    className="mt-1 size-2 rounded-full bg-info"
+                  />
                   <p className="text-xs font-medium tracking-tight text-foreground">
                     {item.displayName}
                   </p>
-                  <p className="text-sm text-foreground">
+                  <p className="col-start-2 text-sm text-foreground">
                     {item.primaryLabel ?? "—"}
                   </p>
                   {item.secondaryLabel ? (
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="col-start-2 text-[11px] text-muted-foreground">
                       {item.secondaryLabel}
                     </p>
                   ) : null}

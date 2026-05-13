@@ -13,7 +13,7 @@ import { requireOrgSession } from "#lib/tenant"
  * Org URL root (`/o/[orgSlug]`) redirects here so bookmarks and `/o` resolver
  * land on the same surface.
  *
- * Authority + chrome: `[orgSlug]/layout.tsx` (`NexusShell`).
+ * Authority + chrome: `[orgSlug]/layout.tsx` (`AppShell`).
  */
 export const metadata: Metadata = {
   title: "Nexus",

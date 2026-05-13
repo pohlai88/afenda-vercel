@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, desc, eq } from "drizzle-orm"
+import { and, desc, eq, isNotNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -15,7 +15,9 @@ import {
 
 import { listAttendanceDaysForPayroll } from "./attendance.queries.server"
 import { listApprovedUnpaidClaimsForPeriod } from "./claim.queries.server"
+import { listApprovedSalaryAdvancesForEmployeePayroll } from "./salary-advance.queries.server"
 import { PAYROLL_PERIOD_LOCK_SUBJECT_KIND } from "../schemas/payroll-period.schema"
+import { parseMalaysiaPcbStatutoryExtras } from "../schemas/malaysia-pcb-statutory-extras.shared"
 
 import type { PayrollEngineInput } from "./payroll-engine.server"
 
@@ -259,6 +261,18 @@ export async function getPayrollRunInputSnapshot(
   const period = periodRow[0]
   if (!period) return null
 
+  const periodEndIso =
+    typeof period.periodEnd === "string"
+      ? String(period.periodEnd).slice(0, 10)
+      : (period.periodEnd as Date).toISOString().slice(0, 10)
+
+  const ymd = periodEndIso.slice(0, 10).split("-")
+  const yRaw = Number.parseInt(ymd[0] ?? "2026", 10)
+  const mRaw = Number.parseInt(ymd[1] ?? "1", 10)
+  const yearNumber = Number.isFinite(yRaw) ? yRaw : 2026
+  const monthNumber =
+    Number.isFinite(mRaw) && mRaw >= 1 && mRaw <= 12 ? mRaw : 1
+
   // Phase 4 — Approved-but-not-yet-paid claims for this employee whose
   // `claimDate` falls inside the period window. Pre-fetched here so the
   // engine remains IO-free; emitted as one earning line per claim with
@@ -297,17 +311,27 @@ export async function getPayrollRunInputSnapshot(
     }
   }
 
-  // Fetch payroll profile (for country code)
+  // Fetch payroll profile (for country code + Malaysia PCB TP1/TP3 extras)
   let countryCode = "MY"
+  let pcbTp1AdditionalReliefMonthly = "0.00"
+  let pcbTp3AdditionalDeductionMonthly = "0.00"
   if (run.profileId) {
     const profileRow = await db
-      .select({ countryCode: hrmPayrollProfile.countryCode })
+      .select({
+        countryCode: hrmPayrollProfile.countryCode,
+        statutoryProfileExtras: hrmPayrollProfile.statutoryProfileExtras,
+      })
       .from(hrmPayrollProfile)
       .where(eq(hrmPayrollProfile.id, run.profileId))
       .limit(1)
     const profile = profileRow[0]
     if (profile) {
       countryCode = profile.countryCode
+      const pcb = parseMalaysiaPcbStatutoryExtras(
+        profile.statutoryProfileExtras
+      )
+      pcbTp1AdditionalReliefMonthly = pcb.pcbTp1AdditionalReliefMonthly
+      pcbTp3AdditionalDeductionMonthly = pcb.pcbTp3AdditionalDeductionMonthly
     }
   }
 
@@ -320,8 +344,8 @@ export async function getPayrollRunInputSnapshot(
     countryCode,
     basicSalaryAmount: baseSalaryAmount,
     basicSalaryCurrency: baseSalaryCurrency,
-    periodEnd: period.periodEnd,
-    // Phase 3A: leave/overtime integration deferred; attendance lock is Phase 3B
+    periodEnd: periodEndIso,
+    // Leave and overtime minute feeds remain reserved; payroll readiness is checked separately.
     unpaidLeaveMinutes: 0,
     scheduledMinutes: 8 * 60 * 22, // 22 working days × 8 hours — default until attendance wiring
     overtimeMinutes: 0,
@@ -332,12 +356,20 @@ export async function getPayrollRunInputSnapshot(
     eisEligible: true,
     hrdfApplicable: false,
     taxResidency: null,
-    monthNumber: null,
-    yearNumber: null,
+    monthNumber,
+    yearNumber,
     ytdRemuneration: null,
     ytdPcbPaid: null,
     ytdEpfEmployee: null,
+    pcbTp1AdditionalReliefMonthly,
+    pcbTp3AdditionalDeductionMonthly,
     approvedUnpaidClaims,
+    approvedSalaryAdvances:
+      await listApprovedSalaryAdvancesForEmployeePayroll({
+        organizationId,
+        employeeId: run.employeeId,
+        periodEndIso,
+      }),
   }
 }
 
@@ -392,4 +424,47 @@ export async function getPendingPayrollPeriodLockApprovalId(
     )
     .limit(1)
   return rows[0]?.id ?? null
+}
+
+/**
+ * Majority country code among payroll runs in a period that snapshot a
+ * payroll profile (null profiles ignored). Defaults to **MY** when no
+ * profile-linked runs exist — matches Malaysia-first payroll defaults.
+ */
+export async function getPayrollPeriodPrimaryCountryCode(
+  organizationId: string,
+  periodId: string
+): Promise<string> {
+  const rows = await db
+    .select({ countryCode: hrmPayrollProfile.countryCode })
+    .from(hrmPayrollRun)
+    .innerJoin(
+      hrmPayrollProfile,
+      eq(hrmPayrollRun.profileId, hrmPayrollProfile.id)
+    )
+    .where(
+      and(
+        eq(hrmPayrollRun.organizationId, organizationId),
+        eq(hrmPayrollRun.periodId, periodId),
+        isNotNull(hrmPayrollRun.profileId)
+      )
+    )
+
+  if (rows.length === 0) return "MY"
+
+  const counts = new Map<string, number>()
+  for (const r of rows) {
+    const cc = r.countryCode?.trim() || "MY"
+    counts.set(cc, (counts.get(cc) ?? 0) + 1)
+  }
+
+  let bestCode = "MY"
+  let bestCount = -1
+  for (const [code, count] of counts) {
+    if (count > bestCount || (count === bestCount && code === "MY")) {
+      bestCode = code
+      bestCount = count
+    }
+  }
+  return bestCode
 }

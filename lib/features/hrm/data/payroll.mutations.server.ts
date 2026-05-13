@@ -9,6 +9,7 @@ import {
   hrmPayrollLine,
   hrmPayrollPeriod,
   hrmPayrollRun,
+  hrmSalaryAdvance,
 } from "#lib/db/schema"
 
 import type { PayrollLineInput } from "./payroll-engine.server"
@@ -188,6 +189,7 @@ export async function insertPayrollLines(
       rulePackProvenance: l.rulePackProvenance ?? null,
       metadata: l.metadata ?? null,
       claimId: l.claimId ?? null,
+      salaryAdvanceId: l.salaryAdvanceId ?? null,
     }))
   )
 }
@@ -328,6 +330,41 @@ export async function lockPayrollPeriodAndRunsMutation(opts: {
           )
         )
     }
+  }
+
+  const advanceRows = await db
+    .select({
+      lineId: hrmPayrollLine.id,
+      advanceId: hrmPayrollLine.salaryAdvanceId,
+    })
+    .from(hrmPayrollLine)
+    .innerJoin(hrmPayrollRun, eq(hrmPayrollRun.id, hrmPayrollLine.runId))
+    .where(
+      and(
+        eq(hrmPayrollLine.organizationId, opts.organizationId),
+        eq(hrmPayrollRun.periodId, opts.periodId),
+        isNotNull(hrmPayrollLine.salaryAdvanceId)
+      )
+    )
+
+  const repaidAt = new Date()
+  for (const row of advanceRows) {
+    if (!row.advanceId) continue
+    await db
+      .update(hrmSalaryAdvance)
+      .set({
+        state: "repaid",
+        repaidAt,
+        repaidByPayrollLineId: row.lineId,
+        updatedAt: repaidAt,
+      })
+      .where(
+        and(
+          eq(hrmSalaryAdvance.organizationId, opts.organizationId),
+          eq(hrmSalaryAdvance.id, row.advanceId),
+          eq(hrmSalaryAdvance.state, "approved")
+        )
+      )
   }
 
   return { paidClaims }

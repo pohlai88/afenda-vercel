@@ -9,6 +9,7 @@ export {
   PLATFORM_ADMIN_USERS_SEARCH_MAX_LENGTH,
   getPlatformAdminCapabilityById,
   isAllowedPlatformAdminSegment,
+  organizationOperatorPath,
   platformAdminPath,
 } from "./constants"
 export type { RegisteredPlatformAdminCapability } from "./constants"
@@ -27,6 +28,14 @@ export type {
   PlatformAdminUserSummary,
 } from "./types"
 export { PLATFORM_ADMIN_NAV_NAMESPACE } from "./types"
+
+// URL state (nuqs) — org-scoped operator user directory
+export {
+  loadPlatformOperatorUsersSearchParams,
+  sanitizePlatformOperatorUsersSearchParams,
+  serializePlatformOperatorUsersSearchParams,
+  type PlatformOperatorUsersSearchParamsLoaded,
+} from "./schemas/platform-operator-users.search-params"
 
 // Data (server-only)
 export {
@@ -52,8 +61,6 @@ export {
 export { buildPlatformAdminRailSlots } from "./data/platform-admin-rail-slots"
 
 // UI components
-export { PlatformAdminShell } from "./components/platform-admin-shell"
-export { PlatformAdminSidebar } from "./components/platform-admin-sidebar"
 export { PlatformAdminUsersSearch } from "./components/platform-admin-users-search"
 export { PlatformAdminUsersTable } from "./components/platform-admin-users-table"
 export { PlatformAdminOrganizationsTable } from "./components/platform-admin-organizations-table"

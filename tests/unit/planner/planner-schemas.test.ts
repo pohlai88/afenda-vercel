@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest"
 
 import {
   addPlannerAttachmentMetadataFormSchema,
+  batchPlannerQueueItemsActionFormSchema,
+  batchPlannerTriageActionFormSchema,
+  capturePlannerItemFormSchema,
   correlatePlannerSignalFormSchema,
   createPlannerLinkFormSchema,
   createPlannerItemFormSchema,
@@ -9,6 +12,7 @@ import {
   createPlannerSignalFormSchema,
   savePlannerViewFormSchema,
   transitionPlannerItemFormSchema,
+  upsertPlannerRecurrenceFormSchema,
 } from "#features/planner/domain/planner.schemas"
 
 describe("planner form schemas", () => {
@@ -51,6 +55,38 @@ describe("planner form schemas", () => {
       expect(parsed.data.dueAt).toBeNull()
       expect(parsed.data.pressure.urgency).toBe(4)
     }
+  })
+
+  it("accepts plain-language Orbit capture payloads", () => {
+    const parsed = capturePlannerItemFormSchema.safeParse({
+      rawText: "review payroll variance tomorrow 9am",
+      scopeKind: "organization",
+      surface: "queue",
+      orgSlug: "acme",
+      timeZone: "UTC",
+    })
+
+    expect(parsed.success).toBe(true)
+    if (parsed.success) {
+      expect(parsed.data.rawText).toBe("review payroll variance tomorrow 9am")
+      expect(parsed.data.timeZone).toBe("UTC")
+    }
+  })
+
+  it("rejects invalid recurrence rules", () => {
+    expect(
+      upsertPlannerRecurrenceFormSchema.safeParse({
+        itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+        rrule: "FREQ=WEEKLY;BYDAY=FR",
+      }).success
+    ).toBe(true)
+
+    expect(
+      upsertPlannerRecurrenceFormSchema.safeParse({
+        itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+        rrule: "FREQ=BOGUS",
+      }).success
+    ).toBe(false)
   })
 
   it("rejects invalid planner item dates", () => {
@@ -193,5 +229,58 @@ describe("planner form schemas", () => {
         resolutionNote: "Operator verified closure evidence.",
       })
     )
+  })
+
+  it("accepts batch signal promotion payloads", () => {
+    const parsed = batchPlannerTriageActionFormSchema.safeParse({
+      operation: "promote_signals",
+      signalIds: [
+        "d0d38696-5ad2-4a1f-9a5f-2e1b657c2bdb",
+        "a0d38696-5ad2-4a1f-9a5f-2e1b657c2bdc",
+      ],
+      itemIds: [],
+    })
+
+    expect(parsed.success).toBe(true)
+  })
+
+  it("requires an assignee reference for batch item assignment", () => {
+    expect(
+      batchPlannerTriageActionFormSchema.safeParse({
+        operation: "assign_items",
+        itemIds: ["4c98f55a-fdbc-4bb6-8717-c0cb6760dc73"],
+        signalIds: [],
+      }).success
+    ).toBe(false)
+
+    expect(
+      batchPlannerTriageActionFormSchema.safeParse({
+        operation: "assign_items",
+        itemIds: ["4c98f55a-fdbc-4bb6-8717-c0cb6760dc73"],
+        signalIds: [],
+        subjectLabel: "Payroll reviewer",
+      }).success
+    ).toBe(true)
+  })
+
+  it("accepts queue batch payloads for queue surfaces", () => {
+    const parsed = batchPlannerQueueItemsActionFormSchema.safeParse({
+      surface: "queue",
+      operation: "assign_items",
+      itemIds: ["4c98f55a-fdbc-4bb6-8717-c0cb6760dc73"],
+      subjectLabel: "Ops lead",
+    })
+    expect(parsed.success).toBe(true)
+  })
+
+  it("rejects queue batch on triage surface", () => {
+    expect(
+      batchPlannerQueueItemsActionFormSchema.safeParse({
+        surface: "triage",
+        operation: "assign_items",
+        itemIds: ["4c98f55a-fdbc-4bb6-8717-c0cb6760dc73"],
+        subjectLabel: "Ops lead",
+      }).success
+    ).toBe(false)
   })
 })

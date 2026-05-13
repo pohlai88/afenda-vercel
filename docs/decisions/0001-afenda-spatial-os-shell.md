@@ -8,8 +8,8 @@
 | **Amended**            | 2026-05-10 — tightened reference hierarchy, stable-identifier rule, L1 non-authority, L3 module location (`lib/features/command/`), L4 dock-order stability + token contract, layer rendering contract, conformance criteria (§12) · **Renumbered ADR-0005 → ADR-0001** (decisions ledger cleanup) · **2026-05-10** — added §13 *Material semantics — adoption layer* (4-phase model, runtime state machine, surface adoption table, Lynx state vocabulary) + extended §12 conformance criteria #11 · **2026-05-11** — **ADR-0005**: canonical post-login chrome implements in **`components/workbench/`** (`WorkbenchShell`, etc.); **`components/nexus/`** narrows to Nexus page surface + Lynx summon |
 | **Supersedes**         | Prior **product semantics** for dashboard chrome: “sidebar ERP”, “module website”, “dashboard portal”, and “SaaS admin panel” as the defining metaphor. Prior OSS-oriented shell guidance is **demoted** to non-authoritative synthesis where this ADR conflicts (see §11).                        |
 | **Does not supersede** | **§ Locale-first routing**, **tenant/session authority**, `**proxy.ts` narrow gate**, **Server Actions mutation boundary**, **IAM audit policy**, or **module import boundaries** in `**AGENTS.md`** — this ADR governs **shell UX architecture and composition intent**, not stack security.      |
-| **Implements in code** | **`components/workbench/`** (Workbench shell — L1/L3/L4 wiring), **`components/nexus/`** (Nexus page at `/o/{slug}/nexus` + Lynx summon), dashboard **route** layouts under `app/[locale]/o/[orgSlug]/dashboard/**`, nav registries adjacent to **`lib/dashboard-module-paths.ts`**, `workbench-command-layer.tsx`, and (target) **`lib/features/command/`** for the L3 registry + intent pipeline                         |
-| **Related rules**      | `**.cursor/rules/workbench-directory.mdc`** (canonical shell — `components/workbench/**`) · `**.cursor/rules/app-shell-directory.mdc`** (Nexus surface + Lynx — `components/nexus/**`) · `**.cursor/rules/layout-contract.mdc**` · `**.cursor/rules/frontend-quality-contract.mdc**` §11 (geometry ownership)                                                                                |
+| **Implements in code** | **`components/workbench/`** (Workbench shell — L1/L3/L4 wiring), **`components/nexus/`** (Nexus page at `/o/{slug}/nexus` + Lynx summon), dashboard **route** layouts under `app/[locale]/o/[orgSlug]/dashboard/**`, nav registries adjacent to **`lib/dashboard-module-paths.ts`**, `workbench-command.tsx`, and (target) **`lib/features/command/`** for the L3 registry + intent pipeline                         |
+| **Related rules**      | `**.cursor/rules/shell-directory.mdc**` (Workbench shell `components/workbench/**` + Nexus product surface `components/nexus/**`) · `**.cursor/rules/frontend-quality-contract.mdc**` §11 (geometry ownership)                                                                                |
 
 
 ---
@@ -174,7 +174,7 @@ Input
 
 No parallel “truth search” implementation may exist in `components/nexus/**`.
 
-**Phased rollout note:** today’s `command-palette.tsx` ships as **navigation-only** (modules / orgs / admin per `app-shell-directory.mdc`). The pipeline above is the **target shape**; intermediate increments must add capabilities in pipeline order — they may not bypass intent classification, permission validation, or audit once those steps exist.
+**Phased rollout note:** today’s `command-palette.tsx` ships as **navigation-only** (modules / orgs / admin per `shell-directory.mdc`). The pipeline above is the **target shape**; intermediate increments must add capabilities in pipeline order — they may not bypass intent classification, permission validation, or audit once those steps exist.
 
 ### 3.4 L4 — Spatial Dock
 
@@ -326,7 +326,7 @@ Recommended animation tooling (**Framer Motion** or CSS-first motion) must stay 
 
 ## 9. Consequences for implementation
 
-1. `**components/nexus/**`** must be composed so that **L1–L4** can be identified in code (split across files as ownership stabilizes — `**.cursor/rules/app-shell-directory.mdc`**).
+1. `**components/nexus/**`** must be composed so that **L1–L4** can be identified in code (split across files as ownership stabilizes — `**.cursor/rules/shell-directory.mdc`**).
 2. **Primary navigation** migrates from “expand tree → module” to **dock anchors + command intent + workspace surface**; **registry data** (`nav-data`, `**lib/dashboard-module-paths.ts`**) encodes **primary vs secondary** dock tiers and stable route targets.
 3. **L3 module** lives at `**lib/features/command/`** (per `AGENTS.md` §6); palette UI in `components/nexus/` is a thin client island only and must not duplicate registry data.
 4. **Stable identifier hierarchy** (route slug > audit prefix > i18n key > label, §2) is enforced by review; renaming work touches the user-visible label layer only.
@@ -353,7 +353,7 @@ Recommended animation tooling (**Framer Motion** or CSS-first motion) must stay 
 
 - Public dashboard templates and OSS write-ups (including generic shadcn admin shells) may illustrate composition tactics — they are **not** the product metaphor for Afenda.
 - Where external patterns imply “dashboard portal” or “sidebar ERP” as the **defining metaphor**, **ADR-0001 wins**.
-- `**.cursor/rules/app-shell-directory.mdc`** remains the **technical directory boundary** (what may live in `components/nexus/`, forbidden imports, registry discipline).
+- `**.cursor/rules/shell-directory.mdc`** remains the **technical directory boundary** for `components/nexus/**` (forbidden imports, registry discipline) alongside Workbench shell ownership.
 
 ---
 

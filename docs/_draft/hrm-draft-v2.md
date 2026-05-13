@@ -2,6 +2,12 @@
 
 > **v2 reconciles `hrm-draft-v1.md` (truth-engine framing, domain ontology, statutory citations, dense ERP UX, end-to-end workflow tables) with the architecture plan grounded in Afenda's actual codebase (single `lib/features/hrm/` module, capability registry, `iam_audit_event`, Workflow DevKit, `org_event_delivery`, Orbit / Nexus operational pressure, locale-first routing). v1's tRPC/`services`/`pgEnum`/`tenant_id`/RLS-by-default patterns are replaced with Afenda's Server Actions, `data/*.server.ts` files, `text` columns + Zod, `organizationId`, and app-level guards — but every conceptual asset is preserved.**
 
+### v2.2 Codebase + doc alignment (2026-05-13)
+
+- Status ledger §8 refreshed against `lib/db/schema.ts`, `lib/features/hrm/**`, and `package.json` (Next 16.2.x).
+- Removed implied **`hrm_holiday`** deployment: holidays remain in rule-pack modules until an org-calendar table ships.
+- Added **Next.js DevTools MCP** doc path map for enterprise-quality HRM follow-ups (`nextjs_docs` + `nextjs-docs://llms-index`).
+
 ### v2.1 Reviewer revisions absorbed (2026-05-11)
 
 This document was tightened after expert review before any code lands. **Six concrete revisions** apply throughout:
@@ -85,7 +91,7 @@ The flagship value is **audit-ready workforce truth**, not "employee profile pag
 | **Workforce Master** | Employee identity, employee number, status, manager, lifecycle state | `hrm_employee` |
 | **Organisation Structure** | Departments, positions, grades, reporting hierarchy | `hrm_department`, `hrm_position`, `hrm_job_grade` |
 | **Employment Lifecycle** | Hiring, contracts, probation, confirmation, salary changes, transfers, resignation, termination | `hrm_employment_contract` (versioned) |
-| **Leave & Absence** | Entitlement, accrual, requests, approvals, balance evidence | `hrm_leave_type`, `hrm_leave_entitlement`, `hrm_leave_request`, `hrm_holiday` |
+| **Leave & Absence** | Entitlement, accrual, requests, approvals, balance evidence | `hrm_leave_type`, `hrm_leave_entitlement`, `hrm_leave_request`, `hrm_leave_balance` (cache). **Public holidays:** versioned data in each `PayrollRulePack` (`publicHolidays` / `data/rule-packs/<cc>/…/holidays/*`) — there is **no** `hrm_holiday` table in schema yet; §3.2 J remains a **future** org-calendar override, not current storage. |
 | **Attendance & Time** | Raw clock events, daily summaries, corrections | `hrm_attendance_event` (immutable), `hrm_attendance_day` (computed) |
 | **Payroll Preparation** | Statutory profile, pay inputs, gross-to-net runs, statutory evidence | `hrm_payroll_profile`, `hrm_payroll_period`, `hrm_payroll_run`, `hrm_payroll_line` |
 | **Claims & Benefits** | Reimbursement evidence, benefits eligibility | `hrm_claim_type`, `hrm_claim` (Phase 4: `hrm_benefit`, `hrm_benefit_enrollment`) |
@@ -103,7 +109,7 @@ The flagship value is **audit-ready workforce truth**, not "employee profile pag
 | **Evidence** | Medical certificate attached | `hrm_document` (Vercel Blob + `payloadHash`) |
 | **Derived fact** | Annual leave balance | `hrm_leave_entitlement` snapshot, recomputed from base + accrual + usage |
 | **External compliance fact** | EPF contribution evidence for payroll month | `hrm_compliance_evidence` + outbound delivery row |
-| **Projection** | HR Nexus pressure list | Computed in `nexus-pressure.queries.server.ts`, never persisted as truth |
+| **Projection** | HR Nexus pressure list | Computed in [`hrm-nexus-pressure.queries.server.ts`](lib/features/hrm/data/hrm-nexus-pressure.queries.server.ts) (`listHrmHighPressureForNexus`), merged in Nexus snapshot — never persisted as truth |
 
 **Rule:** Only canonical facts, decisions, evidence, and external compliance facts are durable truth. Dashboards are projections — rebuildable from the four truths above.
 
@@ -280,7 +286,7 @@ lib/features/hrm/
     payroll.queries.server.ts
     claim.queries.server.ts
     document.queries.server.ts
-    nexus-pressure.queries.server.ts    -- listHrmHighPressureForNexus
+    hrm-nexus-pressure.queries.server.ts -- listHrmHighPressureForNexus
     permission.server.ts                -- requireHrmAdmin / requireHrmOwnerWithStepUp (compose primitives)
     payroll-engine.server.ts            -- pure functions: gross-to-net (deterministic, no IO)
     payroll-rule-pack.server.ts         -- PayrollRulePack interface + RULE_PACK_REGISTRY + resolveRulePack()
@@ -312,8 +318,8 @@ lib/features/hrm/
     leave-accrual.workflow.ts           -- Workflow DevKit entry (cron-triggered)
     confirmation-due.workflow.ts        -- Workflow DevKit entry (cron sweep -> Orbit signal)
     document-expiry.workflow.ts         -- Workflow DevKit entry (cron sweep -> Orbit signal)
-    employee-import.adapter.server.ts   -- OrgImportAdapter for bulk employee CSV
-    attendance-import.adapter.server.ts -- OrgImportAdapter for attendance CSV
+    (Org-admin module) hrm-employee-hire.adapter.server.ts -- `hrm_employee_hire` OrgImportAdapter (bulk hire CSV)
+    attendance-import.adapter.server.ts -- `hrm_attendance_import` under `lib/features/hrm/data/`; registered from org-admin `IMPORT_ADAPTERS`
 
   schemas/
     employee.schema.ts
@@ -503,9 +509,9 @@ For HRM specifically, accidental cross-tenant leakage is catastrophic (salary, i
 - **Indexes:** `(organizationId, employeeId, state)`; `(organizationId, state, startDate)`; `(organizationId, leaveTypeId)`.
 - **Audit/compliance:** Approved leave generates audit + `hrm_leave_entitlement` recomputation. Cancellations write reversal events.
 
-#### J. `hrm_holiday` — country/state holiday calendar
+#### J. `hrm_holiday` — country/state holiday calendar (**not in `lib/db/schema.ts` as of 2026-05 — deferred**)
 
-- **Purpose:** Used by leave calculation, attendance, and payroll.
+- **Purpose (target state):** Used by leave calculation, attendance, and payroll when org-specific calendar overrides outgrow rule-pack files.
 - **Key fields:** `id`, `organizationId text` nullable (NULL for global packs imported from rule pack), `countryCode`, `stateCodes jsonb` (array of e.g. `["MY-SGR", "MY-KUL"]`), `holidayDate date`, `name`, `holidayType` (`federal`/`state`/`org_custom`), `recurring boolean`, `source text`, `sourceVersion text`, `isWorkingDayOverride boolean default false`.
 - **Indexes:** `(organizationId, countryCode, holidayDate)`; `(countryCode, holidayDate)` for global queries.
 - **Audit/compliance:** Imported from rule pack with source version. Never silently rewrite past calendars — new entries with new `sourceVersion`.
@@ -589,6 +595,7 @@ For HRM specifically, accidental cross-tenant leakage is catastrophic (salary, i
 Add these in order, each with a SQL file under [`drizzle/`](drizzle) and a journal entry per [`.cursor/rules/drizzle-migration-ledger.mdc`](.cursor/rules/drizzle-migration-ledger.mdc):
 
 ```text
+# Illustrative ordering only — the real journal is under drizzle/meta/_journal.json (e.g. 0006 workforce, 0010 contract/profile/document, 0012 leave, 0014 attendance, 0015 payroll, …).
 0009_hrm_workforce.sql           -- employee, employment_contract, department, position, job_grade, payroll_profile
 0010_hrm_attendance.sql          -- attendance_event, attendance_day
 0011_hrm_leave.sql               -- leave_type, leave_entitlement, leave_request, holiday
@@ -666,7 +673,7 @@ HRD Corp: employers with 10 or more Malaysian employees are compulsory to regist
 
 Malaysia public holidays are state-aware (Federal + per-state e.g. KUL, SGR, JHR).
 
-**Architecture implication:** Holiday input includes `countryCode = MY`, `jurisdictionCode = MY-SGR / MY-JHR / MY-KUL / ...`, work-location state, holiday source version, date. → `public-holidays.shared.ts` returns `(year, stateCodes[]) → date[]`; persisted into `hrm_holiday` with `sourceVersion`.
+**Architecture implication:** Holiday input includes `countryCode = MY`, `jurisdictionCode = MY-SGR / MY-JHR / MY-KUL / ...`, work-location state, holiday source version, date. **As shipped:** `PayrollRulePack.publicHolidays(year, stateCodes)` + versioned modules under `data/rule-packs/<country>/…/holidays/` supply holidays for payroll/leave engines; **optional future** persistence into `hrm_holiday` only when product needs per-org calendar edits audited separately from pack releases.
 
 #### Employment Act leave and coverage
 
@@ -727,11 +734,11 @@ export interface PayrollRulePack {
   buildStatutoryPack(packType: StatutoryPackType, runs: PayrollRun[]): StatutoryPackPayload
 }
 
-export const RULE_PACK_REGISTRY: ReadonlyArray<PayrollRulePack> = [
-  malaysia_2026_01,
-  // malaysia_2025_10,    // prior composite for re-runnable history
-  // singapore_2026_01,   // Phase 5
-] as const
+export const RULE_PACK_REGISTRY: readonly PayrollRulePack[] = [
+  indonesia2026_01RulePack,
+  malaysia2026_01RulePack,
+  singapore2026_01RulePack,
+]
 
 export function resolveRulePack(countryCode: string, atDate: Date): PayrollRulePack {
   const candidate = RULE_PACK_REGISTRY
@@ -777,7 +784,7 @@ Composite manifest located at `lib/features/hrm/data/rule-packs/malaysia/my-2026
 | Problem | Bad approach | Afenda approach |
 |---|---|---|
 | EPF rates | `if country === "MY" salary * 0.11` | Versioned EPF rule pack + wage band table + employee category lookup |
-| Public holidays | Hardcoded dates in app | Import official calendar into `hrm_holiday` with `sourceVersion`; rule pack declares per-year per-state |
+| Public holidays | Hardcoded dates in app | **Shipped:** versioned holiday modules in each rule pack (`holidays/vYYYY.holidays.ts`). **Future:** import overrides into `hrm_holiday` with `sourceVersion` when org-edited calendars are required |
 | Leave rules | Constants in module code | `defaultLeaveTypes()` from rule pack; `hrm_leave_type` rows seeded per tenant on bootstrap |
 | PCB | App-level formula only | Versioned `pcb-bands.shared.ts` with official spec version + golden test cases |
 | HRDF | One global boolean | Org-level toggle on payroll profile + rule-pack eligibility check by employee count |
@@ -1011,7 +1018,7 @@ For HRM, the evidence pack is materialised as:
   └── iam_audit_event rows (decision metadata)
 ```
 
-Document upload flow: client → existing [`/api/upload/blob`](app/api/upload/blob/route.ts) → returns `{ url, payloadHash, mimeType, sizeBytes }` → `attachHrmDocumentAction` writes `hrm_document` row + audit. Replacement creates a new row; old row's `replacedByDocumentId` points forward.
+Document upload flow: client → existing [`/api/upload/blob`](app/api/upload/blob/route.ts) → returns `{ url, payloadHash, mimeType, sizeBytes }` → `attachEmployeeDocumentAction` ([`hrm-document.actions.ts`](lib/features/hrm/actions/hrm-document.actions.ts)) writes `hrm_document` row + audit. Replacement creates a new row; old row's `replacedByDocumentId` points forward.
 
 ### 5.8 Audit writing pattern (consistent across HRM)
 
@@ -1427,7 +1434,7 @@ sequenceDiagram
 | Aspect | Design |
 |---|---|
 | Actor | Employee (future Portals) or HR |
-| Trigger | Upload via [`/api/upload/blob`](app/api/upload/blob/route.ts) → `attachHrmDocumentAction` |
+| Trigger | Upload via [`/api/upload/blob`](app/api/upload/blob/route.ts) → `attachEmployeeDocumentAction` |
 | Data touched | `hrm_document` (new row); old row gets `replacedByDocumentId`; optional `hrm_compliance_evidence` link |
 | Approval path | Optional HR verification |
 | Audit events | `erp.hrm.document.create`, `erp.hrm.document.replace`, `erp.hrm.document.sign` (when signed) |
@@ -1440,9 +1447,11 @@ sequenceDiagram
 
 The plan is organised so **every PR ships a vertical slice you can use end-to-end**. Phases 1–3 are split into A/B/C sub-PRs; each sub-PR is a single reviewable, deployable unit. Two slices come first: **Slice 1 — Employee truth** (Phases 1A–1C) and **Slice 2 — Leave truth** (Phases 2A–2C). Payroll prep follows once both slices are stable.
 
-### Current implementation status (2026-05-13)
+### Current implementation status (2026-05-13, codebase sync)
 
 This document is now both the original HRM architecture proposal and the live status ledger. Treat the rows below as the canonical "what remains" view before opening another HRM implementation PR.
+
+**Codebase sync (this edit):** Reconciled §1.1 / §3.2 J / §4.4 with `lib/db/schema.ts` — **`hrm_holiday` is not deployed**; holidays ship via `PayrollRulePack` + `data/rule-packs/**/holidays/*`. Corrected doc-only drift: Nexus pressure query file is [`hrm-nexus-pressure.queries.server.ts`](lib/features/hrm/data/hrm-nexus-pressure.queries.server.ts); document attach action is **`attachEmployeeDocumentAction`**; bulk hire CSV adapter lives under **`#features/org-admin`** (`hrm_employee_hire`); `RULE_PACK_REGISTRY` order matches code (`indonesia2026_01RulePack`, `malaysia2026_01RulePack`, `singapore2026_01RulePack`). App ships **Next.js 16.2.x** App Router (see `package.json`); use the **Next.js DevTools MCP** `nextjs_docs` tool (resource `nextjs-docs://llms-index`) before changing caching, Server Actions security, or special files.
 
 **Latest closed slices:** SG manifest parity is complete. `drizzle/0026_hrm_sg_rule_pack_registry_seed.sql` now matches `singapore2026_01RulePack.manifest`, and `tests/unit/hrm-rule-pack-singapore-manifest.test.ts` guards the seed-to-TypeScript contract. Payroll workflow verification now covers preview idempotency in `tests/unit/hrm-payroll-finalize-workflow.test.ts`: computed reruns do not duplicate lines, draft recompute replaces existing lines before insert, and non-preparing periods stop without line mutation. SG statutory-pack depth is complete in `tests/unit/hrm-statutory-pack-singapore.test.ts`: CPF, SDL, and IRAS no-monthly-withholding payloads now have country-shaped evidence and deterministic hashes. Payroll UI smoke is covered by `tests/e2e/hrm-payroll-flow.spec.ts`: the route renders under the org shell, exposes period creation affordances, and preserves unknown-org not-found behavior. Indonesia baseline is now registered as `ID-2026-01`: the pack includes BPJS/JHT-style contribution calculations, 2026 national holidays, employment leave seeds, a matching registry seed in `drizzle/0027_hrm_id_rule_pack_registry_seed.sql`, and manifest/computation coverage in `tests/unit/hrm-rule-pack-indonesia-manifest.test.ts`. Payroll full-flow E2E is now closed: `tests/e2e/utils/hrm-payroll-fixtures.ts` seeds one deterministic employee, active contract, and MY payroll profile, and `tests/e2e/hrm-payroll-flow.spec.ts` drives create → prepare → certify → lock through the browser. That slice also fixed the lock mutation for the Neon HTTP Drizzle driver by replacing the unsupported `db.transaction` call in `lockPayrollPeriodAndRunsMutation` with ordered tenant-guarded updates.
 
@@ -1454,8 +1463,30 @@ This document is now both the original HRM architecture proposal and the live st
 | Phase 3 payroll / MY rule pack / compliance | Shipped | Payroll preview/lock, `MY-2026-01`, payroll-finalize workflow idempotency tests, payroll UI smoke, full browser create → prepare → certify → lock E2E, statutory evidence, compliance drill-down, retry, aging watch, bureau reliability, fanout | Keep additional payroll browser coverage scoped to real regressions; the current deterministic fixture covers the core happy path. |
 | Phase 4 claims / documents / Nexus pressure | Shipped | Claims lifecycle, claim payroll settlement bridge, document expiry watch, HR Nexus pressure aggregation | Benefits tables are schema stubs only; no `HRM_CAPABILITIES` benefits surface should be added until a real customer pull exists. |
 | Phase 5 Singapore | Shipped baseline | `SG-2026-01` is registered with CPF, SDL, 2026 holidays, Employment Act leave seeds, a matching rule-pack registry seed, CPF/SDL/IRAS statutory evidence payloads, and unit tests | Defer further SG depth to customer-triggered needs such as age-tier CPF categories, IR8A/AIS exports, or additional payroll profile fields. |
-| Phase 5 SEA expansion | Started | `ID-2026-01` is registered with BPJS/JHT-style contributions, 2026 national holidays, employment leave seeds, matching registry seed parity, and unit tests. `PayrollRulePack.countryCode` still reserves `TH`, `VN`, `PH`. | Add one remaining country at a time; keep further country work inside versioned rule-pack folders, registry seed SQL, tests, and message catalogs unless the existing `PayrollRulePack` contract proves insufficient. |
+| Phase 5 SEA expansion | In progress | `ID-2026-01` is registered with BPJS/JHT-style contributions, 2026 national holidays, employment leave seeds, matching registry seed parity, and unit tests. `PayrollRulePack.countryCode` still reserves `TH`, `VN`, `PH`. | **Next:** first of TH / VN / PH only when justified; deepen ID only on customer pull (BPJS tiers, regional rules). |
 | Phase 5+ enterprise upgrades | Deferred | Explicit non-goals in §1.5 and §8 Phase 5+ | Portals, bank files, GL export, multi-legal-entity, RLS, biometric attendance, multi-stage approvals, and full benefits stay out until customer-triggered. |
+
+### Pending HRM work × Next.js 16 production patterns (verify with MCP `nextjs_docs`)
+
+When implementing the backlog below, pull the exact doc path from the MCP index first (do not guess URLs). High-signal paths for this module:
+
+| Topic | Official path (MCP `nextjs_docs`) | HRM application |
+|---|---|---|
+| Production checklist | `/docs/app/guides/production-checklist` | Layouts + `loading.tsx` + Suspense for heavy HRM pages; `Link` from `#i18n/navigation`; bundle boundaries for client islands. |
+| Data security / Server Actions | `/docs/app/guides/data-security` | Every HRM action already re-checks `requireOrgSession` + tenant; keep mutations thin, DTOs minimal on return; never trust `organizationId` from FormData alone. |
+| Forms + Server Actions | `/docs/app/guides/forms` | Prefer progressive enhancement; keep `useActionState` / submit buttons in child components per React 19 rules. |
+| Mutating data | `/docs/app/getting-started/mutating-data` | Align `revalidatePath` with `toLocaleOrgDashboardRevalidatePattern` (all locales + org slug pattern). |
+| Error handling | `/docs/app/getting-started/error-handling` | Expected HR validation → typed return values; uncaught → route `error.tsx` only at shell boundaries per Afenda rules. |
+| Multi-tenant | `/docs/app/guides/multi-tenant` | Org slug in URL is not authority — always scope queries with `requireOrgSession().organizationId`. |
+
+**Product / domain backlog (not yet code):**
+
+1. **`hrm_holiday` table + import pipeline** — only when org-edited calendars must diverge from rule-pack files with audited `sourceVersion`.
+2. **Manual leave opening-balance CSV / action** — deferred until migration onboarding demands it (status row unchanged).
+3. **Typed shared expected-error surface for HRM actions** — optional cleanup when duplication is proven (see §8 "Remaining to apply").
+4. **Employee detail / snapshot UX** — tabbed vs dense scroll (product decision).
+5. **TH / VN / PH rule packs** — follow ID/SG folder + seed + manifest test pattern.
+6. **Enterprise items** — Portals, bank files, GL, RLS, multi-stage approvals, full benefits (explicit non-goals until pull).
 
 #### Remaining to apply before the next major HRM slice
 
@@ -1480,7 +1511,7 @@ This document is now both the original HRM architecture proposal and the live st
 2. Extract a narrow type alias or helper only where it removes meaningful duplication across two or more actions.
 3. Avoid a generic action framework; this is cleanup, not a new architecture category.
 
-**Acceptance:** targeted type checks and lint pass, no HRM action behavior changes except type narrowing, existing payroll full-flow E2E remains green with configured credentials, and the Next.js dev server reports no MCP errors.
+**Acceptance:** targeted type checks and lint pass, no HRM action behavior changes except type narrowing, existing payroll full-flow E2E remains green with configured credentials, and no new regressions appear in `pnpm lint` / `pnpm typecheck`.
 
 ### Phase 0 — Domain model & governance contracts (1 week, no DB, no UI) ✅ SHIPPED
 
@@ -1488,8 +1519,8 @@ This document is now both the original HRM architecture proposal and the live st
 
 - `lib/features/hrm/index.ts`, `server.ts`, `client.ts`, `constants.ts`, `types.ts` (empty barrels)
 - `lib/features/hrm/constants.ts` — `HRM_CAPABILITIES` registry (id / segments / nav key / audit prefix / required role / contract-test snapshot fields)
-- `lib/features/hrm/data/payroll-rule-pack.server.ts` (interface only — no country impls yet)
-- `lib/dashboard-module-paths.ts` — add `hrmDashboardPath(orgSlug, capability)` helper
+- `lib/features/hrm/data/payroll-rule-pack.server.ts` — `PayrollRulePack` interface + `RULE_PACK_REGISTRY` (MY / SG / ID packs registered; add new countries here + seeds + tests)
+- `lib/dashboard-module-paths.ts` — `organizationDashboardPath(orgSlug, "hrm")`; HRM tails use `organizationHrmPath` / `organizationHrmRootPath` from [`lib/features/hrm/constants.ts`](lib/features/hrm/constants.ts) (not a separate `hrmDashboardPath` symbol)
 - Audit prefix allowlist: extend `ORG_ADMIN_EVENT_NAMESPACES` (or a new HRM-scoped allowlist) in [`lib/features/org-admin/constants.ts`](lib/features/org-admin/constants.ts) to cover `erp.hrm.*`
 - Capability registry test: `tests/unit/hrm-contract.test.ts` (parity HRM_CAPABILITIES ↔ nav i18n keys ↔ allowed segments ↔ audit prefixes ↔ barrel exports)
 - Route shell: `app/[locale]/o/[orgSlug]/dashboard/hrm/layout.tsx` + `page.tsx` (renders capability cards from registry; no real data)

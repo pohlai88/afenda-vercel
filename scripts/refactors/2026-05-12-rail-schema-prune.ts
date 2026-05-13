@@ -6,7 +6,7 @@
  * `description`) from the four rail-slot builders and the account layout,
  * plus the dead `recentContexts` / `signals` properties from the
  * `buildAccountRailSlotsV2` call site. The `WorkbenchRail` shell schema in
- * `components/workbench/rail/workbench-rail.schema.ts` is the governance
+ * `components/workbench/left-nav-rail/workbench-rail.schema.ts` is the governance
  * kernel — builders are pure mappers, so any property they emit that the
  * kernel no longer accepts is dead surface to be removed mechanically.
  *

@@ -3,13 +3,40 @@ export type { HrmCapability, HrmCapabilityId, HrmNavKey } from "./types"
 export {
   activateContractAction,
   createDraftContractAction,
+  createSalaryRevisionDraftAction,
   terminateContractAction,
 } from "./actions/employment-contract.actions"
+export { completeOnboardingStepAction } from "./actions/onboarding.actions"
+export {
+  acknowledgeReviewAction,
+  createReviewCycleAction,
+  submitReviewAction,
+} from "./actions/performance.actions"
+export {
+  createKpiPeriodAction,
+  upsertKpiScoreAction,
+} from "./actions/kpi.actions"
+export {
+  decideSalaryAdvanceAction,
+  requestSalaryAdvanceAction,
+} from "./actions/salary-advance.actions"
+export {
+  archiveDependentAction,
+  createDependentAction,
+} from "./actions/dependent.actions"
 export {
   archiveEmployeeAction,
   createEmployeeAction,
   updateEmployeeAction,
 } from "./actions/employee.actions"
+export {
+  archiveDepartmentAction,
+  archiveJobGradeAction,
+  archivePositionAction,
+  createDepartmentAction,
+  createJobGradeAction,
+  createPositionAction,
+} from "./actions/org-structure.actions"
 export { attachEmployeeDocumentAction } from "./actions/hrm-document.actions"
 export {
   approveLeaveAction,
@@ -33,6 +60,7 @@ export {
 export type {
   LeaveTypeMutationFormState,
   LeavePolicyMutationFormState,
+  OrgStructureFormState,
   SeedLeaveTypesFormState,
 } from "./types"
 export { upsertPayrollProfileAction } from "./actions/payroll-profile.actions"
@@ -85,14 +113,14 @@ export {
   ORG_DASHBOARD_HRM,
 } from "./constants"
 
-// Phase 3C: Compliance
+/** Compliance statutory pack generation + evidence state actions. */
 export {
   generateAllStatutoryPacksAction,
   generateStatutoryPackAction,
   markEvidenceSubmittedAction,
 } from "./actions/compliance.actions"
 
-// Phase 3E: Outbound statutory submission via org_event_delivery outbox
+/** Outbound statutory submission via org event delivery. */
 export { submitStatutoryEvidenceForDeliveryAction } from "./actions/statutory-submission.actions"
 export {
   STATUTORY_PACK_TO_EVENT_TYPE,
@@ -106,13 +134,31 @@ export {
 } from "./data/statutory-event-types.shared"
 export type { AcknowledgementSource } from "./data/statutory-event-types.shared"
 
-// Phase 3H: Manual bureau acknowledgement (submitted -> acknowledged)
-// Phase 3I: ack mutation now stamps acknowledgedAt / By / Source on the row.
+/** Manual bureau acknowledgement (`submitted` → `acknowledged`, stamps actor metadata). */
 export { acknowledgeStatutoryEvidenceAction } from "./actions/statutory-acknowledgement.actions"
 
 export { CompliancePage } from "./components/compliance-page"
 
+/** Benefits administration (Phase 5) — plan catalog + enrollments + life events. */
+export {
+  createBenefitPlanAction,
+  updateBenefitPlanAction,
+  archiveBenefitPlanAction,
+} from "./actions/benefit-plan.actions"
+export {
+  enrollBenefitAction,
+  activateBenefitEnrollmentAction,
+  waiveBenefitEnrollmentAction,
+  terminateBenefitEnrollmentAction,
+} from "./actions/benefit-enrollment.actions"
+export { recordLifeEventAction, verifyLifeEventAction } from "./actions/benefit-life-event.actions"
 export type {
+  BenefitPlanMutationFormState,
+  BenefitArchiveFormState,
+  BenefitEnrollFormState,
+  BenefitEnrollmentTransitionFormState,
+  RecordLifeEventFormState,
+  VerifyLifeEventFormState,
   AcknowledgeStatutoryEvidenceFormState,
   GenerateAllStatutoryPacksFormState,
   GenerateStatutoryPackFormState,
@@ -120,7 +166,7 @@ export type {
   SubmitStatutoryEvidenceFormState,
 } from "./types"
 
-// Phase 4 — Claims (submit / cancel / attach-evidence + admin approve / reject)
+/** Claims submission + admin decision actions. */
 export {
   attachClaimEvidenceAction,
   cancelClaimAction,

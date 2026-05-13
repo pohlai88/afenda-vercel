@@ -81,6 +81,8 @@ ranking/
 timeline/
 pressure/
 intelligence/
+evidence/
+triage/
 constants.ts
 types.ts
 index.ts

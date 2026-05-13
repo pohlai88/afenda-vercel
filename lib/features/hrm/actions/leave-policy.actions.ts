@@ -18,6 +18,7 @@ import {
   createLeaveTypeFormSchema,
   updateLeaveTypeFormSchema,
 } from "../schemas/leave-policy.schema"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type {
   LeavePolicyMutationFormState,
   LeaveTypeMutationFormState,
@@ -42,7 +43,7 @@ export async function createLeaveTypeAction(
   formData: FormData
 ): Promise<LeaveTypeMutationFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -63,16 +64,13 @@ export async function createLeaveTypeAction(
 
   if (!parsed.success) {
     const errs = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        code: errs.code?.[0],
-        accrualMethod: errs.accrualMethod?.[0],
-        fixedDaysPerYear: errs.fixedDaysPerYear?.[0],
-        tier1Days: errs.tier1Days?.[0],
-        form: parsed.error.issues[0]?.message,
-      },
-    }
+    return hrmActionFailure({
+      code: errs.code?.[0],
+      accrualMethod: errs.accrualMethod?.[0],
+      fixedDaysPerYear: errs.fixedDaysPerYear?.[0],
+      tier1Days: errs.tier1Days?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const { data } = parsed
@@ -104,12 +102,11 @@ export async function createLeaveTypeAction(
       "code" in err &&
       (err as { code?: string }).code === "23505"
     if (isUniqueViolation) {
-      return {
-        ok: false,
-        errors: { code: `Leave type with code "${data.code}" already exists.` },
-      }
+      return hrmActionFailure({
+        code: `Leave type with code "${data.code}" already exists.`,
+      })
     }
-    return { ok: false, errors: { form: "Could not create leave type." } }
+    return hrmActionFailure({ form: "Could not create leave type." })
   }
 
   await writeIamAuditEventFromNextHeaders({
@@ -139,7 +136,7 @@ export async function updateLeaveTypeAction(
   formData: FormData
 ): Promise<LeaveTypeMutationFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -161,14 +158,11 @@ export async function updateLeaveTypeAction(
 
   if (!parsed.success) {
     const errs = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        leaveTypeId: errs.leaveTypeId?.[0],
-        code: errs.code?.[0],
-        form: parsed.error.issues[0]?.message,
-      },
-    }
+    return hrmActionFailure({
+      leaveTypeId: errs.leaveTypeId?.[0],
+      code: errs.code?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const { data } = parsed
@@ -182,7 +176,7 @@ export async function updateLeaveTypeAction(
   })
 
   if (!existing) {
-    return { ok: false, errors: { leaveTypeId: "Leave type not found." } }
+    return hrmActionFailure({ leaveTypeId: "Leave type not found." })
   }
 
   await db
@@ -238,7 +232,7 @@ export async function seedMalaysiaEa2023LeaveTypesAction(
   _formData: FormData
 ): Promise<SeedLeaveTypesFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, error: gate.error }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -318,7 +312,7 @@ export async function createLeavePolicyAction(
   formData: FormData
 ): Promise<LeavePolicyMutationFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -338,14 +332,11 @@ export async function createLeavePolicyAction(
 
   if (!parsed.success) {
     const errs = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        leaveTypeId: errs.leaveTypeId?.[0],
-        effectiveFrom: errs.effectiveFrom?.[0],
-        form: parsed.error.issues[0]?.message,
-      },
-    }
+    return hrmActionFailure({
+      leaveTypeId: errs.leaveTypeId?.[0],
+      effectiveFrom: errs.effectiveFrom?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const { data } = parsed
@@ -359,7 +350,7 @@ export async function createLeavePolicyAction(
   })
 
   if (!leaveTypeExists) {
-    return { ok: false, errors: { leaveTypeId: "Leave type not found." } }
+    return hrmActionFailure({ leaveTypeId: "Leave type not found." })
   }
 
   const id = crypto.randomUUID()

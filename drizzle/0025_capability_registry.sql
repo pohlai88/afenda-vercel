@@ -26,15 +26,15 @@ CREATE TABLE IF NOT EXISTS "org_capability_policy" (
   "createdAt"      timestamp NOT NULL DEFAULT now(),
   "updatedAt"      timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "org_capability_policy_org_capability_audience_uidx"
   ON "org_capability_policy"
   ("organizationId", "capabilityId", "audience");
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "org_capability_policy_org_idx"
   ON "org_capability_policy"
   ("organizationId");
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "user_capability_preference" (
   "id"             text      PRIMARY KEY,
   "organizationId" text      NOT NULL,
@@ -45,11 +45,11 @@ CREATE TABLE IF NOT EXISTS "user_capability_preference" (
   "createdAt"      timestamp NOT NULL DEFAULT now(),
   "updatedAt"      timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "user_capability_preference_org_user_capability_uidx"
   ON "user_capability_preference"
   ("organizationId", "userId", "capabilityId");
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "user_capability_preference_org_user_idx"
   ON "user_capability_preference"
   ("organizationId", "userId");

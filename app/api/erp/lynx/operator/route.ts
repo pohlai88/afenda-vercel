@@ -14,6 +14,7 @@ import {
 } from "#features/lynx"
 import * as Sentry from "@sentry/nextjs"
 
+import { isLynxOperatorEnabled } from "#flags"
 import { writeIamAuditEventFromHeaders } from "#lib/auth"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import {
@@ -48,6 +49,13 @@ export async function POST(request: Request) {
   const org = await getOrgSessionFromRequest(request)
   if (!org) {
     return routeJsonError("Unauthorized", 401)
+  }
+
+  if (!(await isLynxOperatorEnabled())) {
+    return routeJsonError(
+      "Lynx operator assist is disabled by feature policy.",
+      403
+    )
   }
 
   const parsedBody = await readRequestJson(request)

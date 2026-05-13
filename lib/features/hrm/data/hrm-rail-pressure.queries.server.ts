@@ -10,7 +10,9 @@ import { logUnexpectedServerError } from "#lib/logger.server"
 import type { HrmRailPressureMap } from "../types"
 import { PAYROLL_PERIOD_LOCK_SUBJECT_KIND } from "../schemas/payroll-period.schema"
 
+import { countPendingBenefitEnrollmentsForOrganization } from "./benefit.queries.server"
 import {
+  deriveHrmBenefitsPressure,
   deriveHrmCompliancePressure,
   deriveHrmLeavePressure,
   deriveHrmPayrollPressure,
@@ -29,7 +31,7 @@ const COMPLIANCE_FAILED_STATE = "failed" as const
 /**
  * Read-side of Phase 2 rail pressure for the HRM workbench.
  *
- * Composes three index-friendly aggregates in a single `Promise.all`:
+ * Composes four index-friendly aggregates in a single `Promise.all`:
  *
  *   1. Pending leave-decision approvals (`hrm_approval` rows with
  *      `subjectKind = 'leave_request'`).
@@ -37,6 +39,8 @@ const COMPLIANCE_FAILED_STATE = "failed" as const
  *      `subjectKind = 'payroll_period_lock'`).
  *   3. Statutory evidence rows awaiting bureau acknowledgement or in
  *      a failed delivery state (`hrm_compliance_evidence`).
+ *   4. Pending benefit enrollments (`hrm_benefit_enrollment.state =
+ *      'pending'`) for the Benefits workbench backlog badge.
  *
  * The query layer is **the only place** that reads the wall clock; it
  * snapshots `now` once and passes derived durations to the pure
@@ -58,11 +62,13 @@ export const getHrmRailPressureCounts = cache(
   async (organizationId: string): Promise<HrmRailPressureMap> => {
     const now = new Date()
 
-    const [leaveStats, payrollStats, complianceStats] = await Promise.all([
-      queryLeavePressure(organizationId, now),
-      queryPayrollPressure(organizationId, now),
-      queryCompliancePressure(organizationId, now),
-    ])
+    const [leaveStats, payrollStats, complianceStats, benefitsPending] =
+      await Promise.all([
+        queryLeavePressure(organizationId, now),
+        queryPayrollPressure(organizationId, now),
+        queryCompliancePressure(organizationId, now),
+        queryBenefitsPressure(organizationId),
+      ])
 
     const map: HrmRailPressureMap = {}
 
@@ -79,6 +85,13 @@ export const getHrmRailPressureCounts = cache(
     const compliance = deriveHrmCompliancePressure(complianceStats)
     if (compliance !== null) {
       map.compliance = compliance
+    }
+
+    const benefits = deriveHrmBenefitsPressure({
+      pendingEnrollmentCount: benefitsPending,
+    })
+    if (benefits !== null) {
+      map.benefits = benefits
     }
 
     return map
@@ -166,15 +179,33 @@ async function queryPayrollPressure(
 }
 
 /**
- * Single round-trip for the `compliance` nav badge. Aggregates the
- * waiting-for-acknowledgement set and the failed-delivery set with two
- * parallel aggregates so a single `Promise.all` covers both signals
- * without two over-fetched rows.
+ * Raw statutory-evidence aggregates for dashboards that need submitted vs
+ * failed separately (rail badge combines them into one count).
  *
  * Submitted-but-not-acknowledged rows surface from `submissionState =
  * 'submitted'` AND `acknowledgedAt IS NULL` so the rail badge mirrors
  * the same gating the existing `hrm-compliance-aging-watch` cron uses.
  */
+export async function getCompliancePressureAggregateForOrg(
+  organizationId: string
+): Promise<CompliancePressureInput> {
+  const now = new Date()
+  return queryCompliancePressure(organizationId, now)
+}
+
+async function queryBenefitsPressure(organizationId: string): Promise<number> {
+  try {
+    return await countPendingBenefitEnrollmentsForOrganization(organizationId)
+  } catch (err) {
+    logUnexpectedServerError(
+      "hrm-rail-pressure: benefits pending enrollment query failed",
+      err,
+      { organizationId }
+    )
+    return 0
+  }
+}
+
 async function queryCompliancePressure(
   organizationId: string,
   now: Date

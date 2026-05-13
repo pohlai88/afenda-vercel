@@ -25,6 +25,7 @@ import {
   applyLeaveFormSchema,
   cancelLeaveFormSchema,
 } from "../schemas/leave-request.schema"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type {
   LeaveRequestMutationFormState,
   CancelLeaveFormState,
@@ -55,7 +56,7 @@ export async function applyLeaveAction(
   formData: FormData
 ): Promise<LeaveRequestMutationFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -73,17 +74,14 @@ export async function applyLeaveAction(
 
   if (!parsed.success) {
     const errs = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        employeeId: errs.employeeId?.[0],
-        leaveTypeId: errs.leaveTypeId?.[0],
-        startDate: errs.startDate?.[0],
-        endDate: errs.endDate?.[0],
-        durationDays: errs.durationDays?.[0],
-        form: parsed.error.issues[0]?.message,
-      },
-    }
+    return hrmActionFailure({
+      employeeId: errs.employeeId?.[0],
+      leaveTypeId: errs.leaveTypeId?.[0],
+      startDate: errs.startDate?.[0],
+      endDate: errs.endDate?.[0],
+      durationDays: errs.durationDays?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const { data } = parsed
@@ -112,19 +110,18 @@ export async function applyLeaveAction(
   ])
 
   if (!employee) {
-    return { ok: false, errors: { employeeId: "Employee not found." } }
+    return hrmActionFailure({ employeeId: "Employee not found." })
   }
   if (employee.archivedAt) {
-    return {
-      ok: false,
-      errors: { employeeId: "Cannot submit leave for an archived employee." },
-    }
+    return hrmActionFailure({
+      employeeId: "Cannot submit leave for an archived employee.",
+    })
   }
   if (!leaveType) {
-    return { ok: false, errors: { leaveTypeId: "Leave type not found." } }
+    return hrmActionFailure({ leaveTypeId: "Leave type not found." })
   }
   if (leaveType.archivedAt) {
-    return { ok: false, errors: { leaveTypeId: "Leave type is archived." } }
+    return hrmActionFailure({ leaveTypeId: "Leave type is archived." })
   }
 
   // Derive entitlement year from start date
@@ -140,12 +137,9 @@ export async function applyLeaveAction(
 
   // Sufficiency guard — available must cover this request
   if (currentBalance.daysAvailable < data.durationDays) {
-    return {
-      ok: false,
-      errors: {
-        durationDays: `Insufficient balance. Available: ${currentBalance.daysAvailable.toFixed(2)} days.`,
-      },
-    }
+    return hrmActionFailure({
+      durationDays: `Insufficient balance. Available: ${currentBalance.daysAvailable.toFixed(2)} days.`,
+    })
   }
 
   // Overlap guard — check for conflicting active requests
@@ -162,12 +156,9 @@ export async function applyLeaveAction(
   )
 
   if (hasOverlap) {
-    return {
-      ok: false,
-      errors: {
-        startDate: "Leave dates overlap with an existing active request.",
-      },
-    }
+    return hrmActionFailure({
+      startDate: "Leave dates overlap with an existing active request.",
+    })
   }
 
   // Build immutable approval snapshot
@@ -271,7 +262,7 @@ export async function cancelLeaveAction(
   formData: FormData
 ): Promise<CancelLeaveFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -280,10 +271,9 @@ export async function cancelLeaveAction(
   })
 
   if (!parsed.success) {
-    return {
-      ok: false,
-      errors: { requestId: parsed.error.issues[0]?.message },
-    }
+    return hrmActionFailure({
+      requestId: parsed.error.issues[0]?.message,
+    })
   }
 
   const { requestId } = parsed.data
@@ -304,17 +294,14 @@ export async function cancelLeaveAction(
   })
 
   if (!req) {
-    return { ok: false, errors: { requestId: "Leave request not found." } }
+    return hrmActionFailure({ requestId: "Leave request not found." })
   }
 
   const CANCELLABLE_STATES = ["submitted", "approved"]
   if (!CANCELLABLE_STATES.includes(req.state)) {
-    return {
-      ok: false,
-      errors: {
-        requestId: `Cannot cancel a leave request with state "${req.state}".`,
-      },
-    }
+    return hrmActionFailure({
+      requestId: `Cannot cancel a leave request with state "${req.state}".`,
+    })
   }
 
   const now = new Date()

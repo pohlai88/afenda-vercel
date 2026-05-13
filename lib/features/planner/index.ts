@@ -12,6 +12,7 @@ export {
   PLANNER_SIGNAL_LIFECYCLES,
   PLANNER_SIGNAL_RESOLUTION_POLICIES,
 } from "./constants"
+export { buildOrbitKeyboardNavList } from "./domain/orbit-keyboard-nav.shared"
 export {
   buildPlannerAssignmentNotice,
   buildPlannerBlockedEscalationNotice,
@@ -33,12 +34,21 @@ export {
   buildPlannerLinkEvidenceGraph,
   buildPlannerSessionEvidenceGraph,
   buildPlannerSignalEvidenceGraph,
+  groupPlannerEvidenceGraphForDisplay,
+  PLANNER_EVIDENCE_LANES,
 } from "./evidence/planner-evidence-graph.shared"
 export {
+  derivePlannerTriageOperatingLane,
   derivePlannerTriageLane,
   matchPlannerTriageRule,
+  summarizePlannerTriageOperatingLanes,
 } from "./triage/planner-triage-rule.shared"
 
+export type { OrbitKeyboardNavEntry } from "./domain/orbit-keyboard-nav.shared"
+export type {
+  PlannerEvidenceGroupedSection,
+  PlannerEvidenceLane,
+} from "./evidence/planner-evidence-graph.shared"
 export type {
   PlannerEvidenceGraph,
   PlannerEvidenceGraphNode,
@@ -76,6 +86,9 @@ export type {
   PlannerViewSortMode,
 } from "./types"
 export type {
+  PlannerTriageOperatingLane,
+  PlannerTriageOperatingRecord,
+  PlannerTriageOperatingSummary,
   PlannerTriageLane,
   PlannerTriageRule,
   PlannerTriageSubject,
@@ -85,6 +98,9 @@ export {
   addPlannerAttachmentMetadataFormSchema,
   addPlannerCommentFormSchema,
   assignPlannerOwnershipFormSchema,
+  batchPlannerTriageActionFormSchema,
+  batchPlannerQueueItemsActionFormSchema,
+  capturePlannerItemFormSchema,
   correlatePlannerSignalFormSchema,
   createPlannerLinkFormSchema,
   createPlannerItemFormSchema,
@@ -94,6 +110,8 @@ export {
   parsePlannerViewFilterJson,
   plannerItemLifecycleSchema,
   plannerOwnershipRoleSchema,
+  plannerBatchTriageOperationSchema,
+  plannerBatchQueueItemOperationSchema,
   plannerPressureDimensionsSchema,
   plannerRelationTypeSchema,
   plannerSignalClassSchema,

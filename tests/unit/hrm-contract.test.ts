@@ -26,8 +26,16 @@ import {
   organizationDashboardPath,
 } from "#lib/dashboard-module-paths"
 
+import {
+  HRM_REVIEW_CYCLE_STATES,
+  HRM_REVIEW_ROW_STATE,
+  HRM_REVIEW_ROW_STATES,
+  hrmReviewCycleStateSchema,
+  hrmReviewRowStateSchema,
+} from "../../lib/features/hrm/schemas/performance.schema"
+
 const HRM_MESSAGES = (
-  enMessages as {
+  enMessages as unknown as {
     Dashboard: {
       Hrm: {
         nav: Record<string, string>
@@ -85,6 +93,12 @@ describe("HRM_CAPABILITIES registry", () => {
         "string"
       )
     }
+  })
+
+  it("registers onboarding and performance audit prefixes", () => {
+    const prefixes = getHrmAuditPrefixes()
+    expect(prefixes).toContain("erp.hrm.onboarding")
+    expect(prefixes).toContain("erp.hrm.performance")
   })
 
   it("HRM_NAV_NAMESPACE matches Dashboard.Hrm.nav", () => {
@@ -152,5 +166,28 @@ describe("HRM path helpers", () => {
 describe("Dashboard nav registry parity", () => {
   it("includes hrm in DASHBOARD_NAV_MODULES", () => {
     expect(DASHBOARD_NAV_MODULES.includes("hrm")).toBe(true)
+  })
+})
+
+describe("HRM performance state registry", () => {
+  it("accepts only canonical cycle states", () => {
+    for (const s of HRM_REVIEW_CYCLE_STATES) {
+      expect(hrmReviewCycleStateSchema.safeParse(s).success).toBe(true)
+    }
+    expect(hrmReviewCycleStateSchema.safeParse("bogus").success).toBe(false)
+  })
+
+  it("accepts only canonical review row states", () => {
+    for (const s of HRM_REVIEW_ROW_STATES) {
+      expect(hrmReviewRowStateSchema.safeParse(s).success).toBe(true)
+    }
+    expect(hrmReviewRowStateSchema.safeParse("").success).toBe(false)
+  })
+
+  it("exposes stable row state object values on the tuple", () => {
+    const values = new Set(HRM_REVIEW_ROW_STATES)
+    expect(values.has(HRM_REVIEW_ROW_STATE.pending)).toBe(true)
+    expect(values.has(HRM_REVIEW_ROW_STATE.submitted)).toBe(true)
+    expect(values.has(HRM_REVIEW_ROW_STATE.acknowledged)).toBe(true)
   })
 })

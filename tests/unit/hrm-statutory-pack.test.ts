@@ -92,6 +92,9 @@ describe("buildStatutoryPackFromRuns — epf_monthly", () => {
     expect(body.lines[0]!.epfEmployee).toBe("550.00")
     expect(body.lines[0]!.epfEmployer).toBe("650.00")
     expect(body.lines[0]!.grossWages).toBe("5000.00")
+    expect(
+      (result.payload.body as { authority?: string }).authority
+    ).toBe("KWSP")
 
     // Totals
     expect(body.totals.epfEmployee).toBe("550.00")
@@ -234,6 +237,9 @@ describe("buildStatutoryPackFromRuns — pcb_monthly", () => {
     }
     expect(body.lines[0]!.pcb).toBe("148.00")
     expect(body.totals.pcb).toBe("148.00")
+    expect(
+      (result.payload.body as { authority?: string }).authority
+    ).toBe("LHDN")
   })
 })
 
@@ -267,6 +273,9 @@ describe("buildStatutoryPackFromRuns — ea_annual", () => {
     expect(body.employees).toHaveLength(1)
     expect(body.employees[0]!.grossIncome).toBe("10000.00") // 5000 * 2
     expect(body.employees[0]!.epfEmployee).toBe("1100.00") // 550 * 2
+    expect(
+      (result.payload.body as { authority?: string }).authority
+    ).toBe("LHDN")
   })
 
   it("handles multiple distinct employees", () => {
@@ -309,6 +318,9 @@ describe("buildStatutoryPackFromRuns — borang_e_annual", () => {
     expect(body.employeeCount).toBe(2)
     expect(body.totalGrossRemuneration).toBe("13000.00") // 5000 + 8000
     expect(body.totalIncomeTaxDeducted).toBe("468.00") // 148 + 320
+    expect(
+      (result.payload.body as { authority?: string }).authority
+    ).toBe("LHDN")
   })
 })
 

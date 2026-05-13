@@ -22,6 +22,7 @@ export { listUserOrganizationsForSwitcher } from "./data/user-orgs.queries.serve
 
 export { getOrgAdminRailPressureCounts } from "./data/org-admin-rail-pressure.queries.server"
 export { recordOrgAdminPageVisit } from "./data/org-admin-rail-recents.server"
+export { resolveOrgAdminAuditSearchParams } from "./data/org-admin-audit-search-params.server"
 export type {
   OrgAdminRecentSegment,
   OrgAdminRecentSessionContext,

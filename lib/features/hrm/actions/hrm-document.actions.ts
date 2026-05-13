@@ -12,11 +12,11 @@ import {
 import { db } from "#lib/db"
 import { hrmDocument, hrmEmployee, hrmEmploymentContract } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
+import { requireHrmOrgTenantFromForm } from "../data/hrm-action-guard.server"
 import { isoDateOnlyToUtcDate } from "../data/hrm-calendar-dates.server"
-import { validateHrmOrgSlugMatchesSession } from "../data/hrm-tenant-form.server"
 import { attachEmployeeDocumentFormSchema } from "../schemas/hrm-document.schema"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type { HrmDocumentMutationFormState } from "../types"
 
 function revalidateHrmEmployeeSurfaces() {
@@ -48,15 +48,10 @@ export async function attachEmployeeDocumentAction(
   _prev: HrmDocumentMutationFormState | undefined,
   formData: FormData
 ): Promise<HrmDocumentMutationFormState> {
-  const { organizationId, userId, sessionId } = await requireOrgSession()
-
-  const tenant = await validateHrmOrgSlugMatchesSession(
-    formData,
-    organizationId
-  )
-  if (!tenant.ok) {
-    return { ok: false, errors: { form: tenant.message } }
-  }
+  const gate = await requireHrmOrgTenantFromForm(formData)
+  if (!gate.ok) return gate.response
+  const { session } = gate
+  const { organizationId, userId, sessionId } = session
 
   const parsed = attachEmployeeDocumentFormSchema.safeParse({
     orgSlug: formData.get("orgSlug"),
@@ -74,18 +69,15 @@ export async function attachEmployeeDocumentAction(
 
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        form:
-          fe.blobUrl?.[0] ??
-          fe.payloadHash?.[0] ??
-          fe.title?.[0] ??
-          fe.documentType?.[0],
-        blobUrl: fe.blobUrl?.[0],
-        payloadHash: fe.payloadHash?.[0],
-      },
-    }
+    return hrmActionFailure({
+      form:
+        fe.blobUrl?.[0] ??
+        fe.payloadHash?.[0] ??
+        fe.title?.[0] ??
+        fe.documentType?.[0],
+      blobUrl: fe.blobUrl?.[0],
+      payloadHash: fe.payloadHash?.[0],
+    })
   }
 
   const d = parsed.data
@@ -93,12 +85,9 @@ export async function attachEmployeeDocumentAction(
   if (
     !blobUrlMatchesOrgHrmEmployeePath(d.blobUrl, organizationId, d.employeeId)
   ) {
-    return {
-      ok: false,
-      errors: {
-        form: "Upload did not use the governed HRM path for this employee.",
-      },
-    }
+    return hrmActionFailure({
+      form: "Upload did not use the governed HRM path for this employee.",
+    })
   }
 
   const [emp] = await db
@@ -113,13 +102,12 @@ export async function attachEmployeeDocumentAction(
     .limit(1)
 
   if (!emp) {
-    return { ok: false, errors: { form: "Employee not found." } }
+    return hrmActionFailure({ form: "Employee not found." })
   }
   if (emp.archivedAt) {
-    return {
-      ok: false,
-      errors: { form: "Cannot attach documents to an archived employee." },
-    }
+    return hrmActionFailure({
+      form: "Cannot attach documents to an archived employee.",
+    })
   }
 
   let documentId: string | null = null
@@ -183,12 +171,9 @@ export async function attachEmployeeDocumentAction(
   }
 
   if (!documentId) {
-    return {
-      ok: false,
-      errors: {
-        form: "Could not attach this document. If you linked a draft contract, confirm it belongs to this employee and is still in draft.",
-      },
-    }
+    return hrmActionFailure({
+      form: "Could not attach this document. If you linked a draft contract, confirm it belongs to this employee and is still in draft.",
+    })
   }
 
   after(() =>

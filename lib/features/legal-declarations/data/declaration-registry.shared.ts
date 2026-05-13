@@ -104,6 +104,8 @@ const COOKIE_REPO_REFS = [
   "components/marketing/cookie-consent-preview.tsx",
   "components/ui/sidebar.tsx",
   "components/nexus/nexus-lynx-summon.client.tsx",
+  "components/dev/dev-signin-panel.tsx",
+  "components/dev/dev-signin-panel-drag.ts",
 ] as const
 
 const privacyChannels = [
@@ -199,7 +201,7 @@ export const declarationDocuments = {
         title: "Current first-party storage",
         body: [
           "The current first-party storage set is limited to authentication/session handling, locale continuity, and product interface preferences. Preference cookies are short-lived and scoped to the Afenda site.",
-          "Known product preference storage includes dashboard sidebar and inspector state, dashboard panel widths, and the Lynx floating control position. These values preserve the user interface the user selected and are not used for advertising, retargeting, or cross-site profiling.",
+          "Known product preference storage includes dashboard sidebar and inspector state, dashboard panel widths, the Lynx floating control position, and (in local development only) the position of the development sign-in shortcuts panel. These values preserve the user interface the user selected and are not used for advertising, retargeting, or cross-site profiling.",
           "The landing-page cookie banner stores the visitor's current consent review choice in localStorage so the same browser can remember whether the notice was accepted or rejected while the site remains essential-only.",
         ],
         bullets: [
@@ -207,6 +209,7 @@ export const declarationDocuments = {
           "NEXT_LOCALE for locale-aware route continuity.",
           "sidebar_state, sidebar_width, inspector_state, and inspector_width for dashboard layout preferences.",
           "afenda:lynx-summon-fab-pos in localStorage for the Lynx floating control position.",
+          "afenda:dev-signin-panel-pos in localStorage for the development sign-in shortcuts panel position (local development builds only).",
           "afenda:cookie-consent-choice in localStorage for the current cookie-notice review choice.",
         ],
       },

@@ -42,3 +42,7 @@ export const WORKBENCH_UTILITY_ROUND_CONTROL_CLASS = cn(
   "hover:bg-muted/55 hover:text-foreground active:bg-muted/75",
   "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 focus-visible:outline-none"
 )
+
+/** Content pane inset chrome — used by WorkbenchShell and WorkbenchSubLayout. */
+export const WORKBENCH_CONTENT_PANE_INSET_CLASS =
+  "md:overflow-hidden md:rounded-tl-2xl md:border-t md:border-l md:border-border/60"

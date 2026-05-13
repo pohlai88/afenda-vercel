@@ -1,4 +1,4 @@
-import type { WorkbenchRailNavIconId } from "#components/workbench/rail/workbench-rail.types"
+import type { WorkbenchRailNavIconId } from "#components/workbench/left-nav-rail/workbench-rail.schema"
 
 import type { WorkbenchId } from "./constants"
 
@@ -134,16 +134,3 @@ export type UpdateViewResult =
       readonly changed: ReadonlyArray<"label" | "href" | "icon">
     })
   | RailMemoryActionFailure
-
-// ---------------------------------------------------------------------------
-// Convenience re-exports — callers should import *only* from this barrel
-// when wiring rail-slot builders, never the kernel rail schemas
-// directly. Keeps the dependency arrow pointed `feature → kernel` and
-// makes a future rename of the kernel cosmetic at the call site.
-// ---------------------------------------------------------------------------
-
-export type {
-  WorkbenchRailPin,
-  WorkbenchRailView,
-  WorkbenchRailRecent,
-} from "#components/workbench/rail/workbench-rail.types"

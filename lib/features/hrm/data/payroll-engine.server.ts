@@ -50,6 +50,16 @@ export type PayrollEngineInput = {
   readonly ytdPcbPaid: string | null
   readonly ytdEpfEmployee: string | null
   /**
+   * Malaysia — Borang TP1-style additional relief (MYR/month), from profile
+   * `statutoryProfileExtras`. Passed as fixed-2 string for digest stability.
+   */
+  readonly pcbTp1AdditionalReliefMonthly: string
+  /**
+   * Malaysia — Borang TP3-style deduction from remuneration for PCB only
+   * (MYR/month), from profile extras.
+   */
+  readonly pcbTp3AdditionalDeductionMonthly: string
+  /**
    * Phase 4 — Approved-but-not-yet-paid claims for this employee whose
    * `claimDate` falls inside `[periodStart, periodEnd]`. Pre-fetched by
    * the snapshot so the engine stays IO-free; emitted as one earning
@@ -57,6 +67,16 @@ export type PayrollEngineInput = {
    * each linked claim to `paid` atomically.
    */
   readonly approvedUnpaidClaims: ReadonlyArray<PayrollClaimInput>
+  /**
+   * Approved salary advances not yet repaid whose `requestedAt` is on or
+   * before `periodEnd` — emitted as deduction lines with `salaryAdvanceId`
+   * so period lock can mark each advance repaid.
+   */
+  readonly approvedSalaryAdvances: ReadonlyArray<{
+    readonly id: string
+    readonly amount: string
+    readonly currency: string
+  }>
 }
 
 /**
@@ -92,6 +112,7 @@ export type PayrollLineInput = {
    * transaction, then writes one `erp.hrm.claim.paid` audit per row.
    */
   readonly claimId?: string | null
+  readonly salaryAdvanceId?: string | null
 }
 
 export type PayrollEngineResult = {
@@ -238,17 +259,7 @@ export async function computePayrollRun(
 
   // 4. Statutory contributions via rule pack
   if (pack) {
-    // Capture EPF employee amount for PCB relief calculation (computed above
-    // when we do the EE contribution pass — placeholder until we have it in hand).
-    // We compute EPF first, then pass it to PCB.
-    const epfEmployeeThisMonth = (() => {
-      if (!input.epfMemberCategory && !input.employeeAgeBand) return "0.00"
-      // Rough pre-computation for PCB relief — the exact amount comes from
-      // computeEmployeeContributions, which the rule pack calls internally too.
-      return "0.00"
-    })()
-
-    const rulePackInput: PayrollComputeInput = {
+    const baseRulePackInput: PayrollComputeInput = {
       organizationId: input.organizationId,
       countryCode: input.countryCode,
       payrollPeriodId: input.periodId,
@@ -264,8 +275,10 @@ export async function computePayrollRun(
       yearNumber: input.yearNumber,
       ytdRemuneration: input.ytdRemuneration,
       ytdPcbPaid: input.ytdPcbPaid,
-      epfEmployeeThisMonth,
+      epfEmployeeThisMonth: "0.00",
       ytdEpfEmployee: input.ytdEpfEmployee,
+      pcbTp1AdditionalReliefMonthly: input.pcbTp1AdditionalReliefMonthly,
+      pcbTp3AdditionalDeductionMonthly: input.pcbTp3AdditionalDeductionMonthly,
     }
 
     try {
@@ -274,7 +287,17 @@ export async function computePayrollRun(
       validationIssues.push(...profileIssues)
 
       if (profileIssues.length === 0) {
-        const eeCont = pack.computeEmployeeContributions(rulePackInput)
+        const eeCont = pack.computeEmployeeContributions(baseRulePackInput)
+        const epfEmployeeThisMonth = eeCont
+          .filter((c) => c.code === "EPF_EE")
+          .reduce((sum, c) => sum + parseAmount(c.employeeAmount), 0)
+        const rulePackInput: PayrollComputeInput = {
+          ...baseRulePackInput,
+          epfEmployeeThisMonth: formatAmount(epfEmployeeThisMonth),
+          pcbTp1AdditionalReliefMonthly: input.pcbTp1AdditionalReliefMonthly,
+          pcbTp3AdditionalDeductionMonthly: input.pcbTp3AdditionalDeductionMonthly,
+        }
+
         for (const c of eeCont) {
           const eeAmt = parseAmount(c.employeeAmount)
           if (eeAmt === 0) continue
@@ -317,6 +340,19 @@ export async function computePayrollRun(
         message: "Rule pack computation failed — see system logs.",
       })
     }
+  }
+
+  for (const adv of input.approvedSalaryAdvances ?? []) {
+    const amt = parseAmount(adv.amount)
+    if (amt <= 0) continue
+    lines.push({
+      lineKind: "employee_deduction",
+      code: "SALARY_ADVANCE_REPAY",
+      description: "Salary advance repayment",
+      amount: formatAmount(-amt),
+      salaryAdvanceId: adv.id,
+      metadata: { salaryAdvanceId: adv.id, currency: adv.currency },
+    })
   }
 
   // 5. Net pay = BASIC + earnings + employee deductions only (employer_contribution excluded)

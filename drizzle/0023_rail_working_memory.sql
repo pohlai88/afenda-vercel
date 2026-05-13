@@ -1,7 +1,7 @@
 -- Migration 0023: rail_working_memory
 -- Working Memory Rail (Phase 3a) — per-user, per-workbench operator memory.
 -- Three tables back the four new rail slots declared in
--- `components/workbench/rail/workbench-rail.schema.ts`:
+-- `components/workbench/left-nav-rail/workbench-rail.schema.ts`:
 --
 --   rail_pinned_item   → operator-pinned records (`pinned[]`)
 --   rail_saved_view    → operator-saved filtered URLs (`views[]`)
@@ -33,15 +33,15 @@ CREATE TABLE IF NOT EXISTS "rail_pinned_item" (
   "createdAt"      timestamp NOT NULL DEFAULT now(),
   "updatedAt"      timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "rail_pinned_item_user_resource_uidx"
   ON "rail_pinned_item"
   ("organizationId", "userId", "workbenchId", "resourceType", "resourceId");
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "rail_pinned_item_lookup_idx"
   ON "rail_pinned_item"
   ("organizationId", "userId", "workbenchId", "rank");
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "rail_saved_view" (
   "id"             text      PRIMARY KEY,
   "organizationId" text      NOT NULL,
@@ -54,11 +54,11 @@ CREATE TABLE IF NOT EXISTS "rail_saved_view" (
   "createdAt"      timestamp NOT NULL DEFAULT now(),
   "updatedAt"      timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "rail_saved_view_lookup_idx"
   ON "rail_saved_view"
   ("organizationId", "userId", "workbenchId", "rank");
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "rail_recent_item" (
   "id"             text      PRIMARY KEY,
   "organizationId" text      NOT NULL,
@@ -71,11 +71,11 @@ CREATE TABLE IF NOT EXISTS "rail_recent_item" (
   "icon"           text,
   "occurredAt"    timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "rail_recent_item_lookup_idx"
   ON "rail_recent_item"
   ("organizationId", "userId", "workbenchId", "occurredAt");
-
+--> statement-breakpoint
 -- App-side policy: list-pinned queries surface ≤ 8 entries; list-views ≤ 8;
 -- list-recents ≤ 5. A nightly cron (added in Phase 3b) prunes recents beyond
 -- 25 per (org, user, workbench) so DB growth stays linear in operator count.

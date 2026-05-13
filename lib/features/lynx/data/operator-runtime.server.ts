@@ -2,11 +2,14 @@ import "server-only"
 
 import { ToolLoopAgent, stepCountIs } from "ai"
 
-import { LYNX_OPERATOR_MAX_STEPS, LYNX_OPERATOR_TOOL_IDS } from "../constants"
+import { LYNX_OPERATOR_MAX_STEPS } from "../constants"
 import type { LynxOperatorToolId } from "../types"
 import { buildLynxOperatorSystemPrompt } from "./operator-prompt.server"
 import { createLynxOperatorToolRegistry } from "./operator-tools.server"
-import { registryToAiSdkTools } from "./operator-tool-registry.server"
+import {
+  registryToAiSdkTools,
+  registryToolIds,
+} from "./operator-tool-registry.server"
 import {
   resolveLynxTruthStreamModel,
   resolveLynxTruthStreamProviderOptions,
@@ -58,7 +61,7 @@ export function createLynxOperatorRuntime(args: {
           : {}),
       })
     },
-    toolIds: LYNX_OPERATOR_TOOL_IDS,
+    toolIds: registryToolIds(registry) as readonly LynxOperatorToolId[],
     providerOptions,
     executionMode: args.executionMode ?? "interactive",
   }

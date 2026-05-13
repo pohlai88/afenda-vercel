@@ -8,22 +8,22 @@ import { and, eq } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { ORG_DASHBOARD_HRM_EMPLOYEES } from "#lib/dashboard-module-paths"
 import { db } from "#lib/db"
-import { hrmEmployee } from "#lib/db/schema"
+import { hrmEmployee, hrmEmployeeChangeHistory } from "#lib/db/schema"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import {
   toLocaleOrgDashboardRevalidatePattern,
   toLocalePath,
 } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import { organizationHrmEmployeePath } from "../constants"
+import { requireHrmOrgTenantFromForm } from "../data/hrm-action-guard.server"
 import { assertOptionalHrmPlacementFkBelongsToOrg } from "../data/hrm-org-fk.server"
-import { validateHrmOrgSlugMatchesSession } from "../data/hrm-tenant-form.server"
 import {
   archiveEmployeeFormSchema,
   createEmployeeFormSchema,
   updateEmployeeFormSchema,
 } from "../schemas/employee.schema"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type { EmployeeMutationFormState } from "../types"
 
 function isUniqueViolation(err: unknown): boolean {
@@ -39,15 +39,10 @@ export async function createEmployeeAction(
   _prev: EmployeeMutationFormState | undefined,
   formData: FormData
 ): Promise<EmployeeMutationFormState> {
-  const { organizationId, userId, sessionId } = await requireOrgSession()
-
-  const tenant = await validateHrmOrgSlugMatchesSession(
-    formData,
-    organizationId
-  )
-  if (!tenant.ok) {
-    return { ok: false, errors: { form: tenant.message } }
-  }
+  const gate = await requireHrmOrgTenantFromForm(formData)
+  if (!gate.ok) return gate.response
+  const { session, orgSlug } = gate
+  const { organizationId, userId, sessionId } = session
 
   const parsed = createEmployeeFormSchema.safeParse({
     employeeNumber: formData.get("employeeNumber"),
@@ -61,18 +56,15 @@ export async function createEmployeeAction(
 
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        employeeNumber: fe.employeeNumber?.[0],
-        legalName: fe.legalName?.[0],
-        email: fe.email?.[0],
-        form:
-          fe.currentDepartmentId?.[0] ??
-          fe.currentPositionId?.[0] ??
-          fe.currentJobGradeId?.[0],
-      },
-    }
+    return hrmActionFailure({
+      employeeNumber: fe.employeeNumber?.[0],
+      legalName: fe.legalName?.[0],
+      email: fe.email?.[0],
+      form:
+        fe.currentDepartmentId?.[0] ??
+        fe.currentPositionId?.[0] ??
+        fe.currentJobGradeId?.[0],
+    })
   }
 
   const fk = await assertOptionalHrmPlacementFkBelongsToOrg(organizationId, {
@@ -81,7 +73,7 @@ export async function createEmployeeAction(
     gradeId: parsed.data.currentJobGradeId,
   })
   if (!fk.ok) {
-    return { ok: false, errors: { form: fk.message } }
+    return hrmActionFailure({ form: fk.message })
   }
 
   let row: { id: string }
@@ -103,18 +95,11 @@ export async function createEmployeeAction(
       .returning({ id: hrmEmployee.id })
   } catch (err) {
     if (isUniqueViolation(err)) {
-      return {
-        ok: false,
-        errors: {
-          employeeNumber:
-            "Employee number already exists for this organization.",
-        },
-      }
+      return hrmActionFailure({
+        employeeNumber: "Employee number already exists for this organization.",
+      })
     }
-    return {
-      ok: false,
-      errors: { form: "Could not create employee. Try again." },
-    }
+    return hrmActionFailure({ form: "Could not create employee. Try again." })
   }
 
   after(() =>
@@ -142,24 +127,17 @@ export async function createEmployeeAction(
   )
 
   const locale = await getRequestAppLocale()
-  redirect(
-    toLocalePath(locale, organizationHrmEmployeePath(tenant.orgSlug, row.id))
-  )
+  redirect(toLocalePath(locale, organizationHrmEmployeePath(orgSlug, row.id)))
 }
 
 export async function updateEmployeeAction(
   _prev: EmployeeMutationFormState | undefined,
   formData: FormData
 ): Promise<EmployeeMutationFormState> {
-  const { organizationId, userId, sessionId } = await requireOrgSession()
-
-  const tenant = await validateHrmOrgSlugMatchesSession(
-    formData,
-    organizationId
-  )
-  if (!tenant.ok) {
-    return { ok: false, errors: { form: tenant.message } }
-  }
+  const gate = await requireHrmOrgTenantFromForm(formData)
+  if (!gate.ok) return gate.response
+  const { session, orgSlug } = gate
+  const { organizationId, userId, sessionId } = session
 
   const parsed = updateEmployeeFormSchema.safeParse({
     employeeId: formData.get("employeeId"),
@@ -174,19 +152,16 @@ export async function updateEmployeeAction(
 
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        employeeId: fe.employeeId?.[0],
-        employeeNumber: fe.employeeNumber?.[0],
-        legalName: fe.legalName?.[0],
-        email: fe.email?.[0],
-        form:
-          fe.currentDepartmentId?.[0] ??
-          fe.currentPositionId?.[0] ??
-          fe.currentJobGradeId?.[0],
-      },
-    }
+    return hrmActionFailure({
+      employeeId: fe.employeeId?.[0],
+      employeeNumber: fe.employeeNumber?.[0],
+      legalName: fe.legalName?.[0],
+      email: fe.email?.[0],
+      form:
+        fe.currentDepartmentId?.[0] ??
+        fe.currentPositionId?.[0] ??
+        fe.currentJobGradeId?.[0],
+    })
   }
 
   const fk = await assertOptionalHrmPlacementFkBelongsToOrg(organizationId, {
@@ -195,7 +170,7 @@ export async function updateEmployeeAction(
     gradeId: parsed.data.currentJobGradeId,
   })
   if (!fk.ok) {
-    return { ok: false, errors: { form: fk.message } }
+    return hrmActionFailure({ form: fk.message })
   }
 
   const [existing] = await db
@@ -220,13 +195,10 @@ export async function updateEmployeeAction(
     .limit(1)
 
   if (!existing) {
-    return { ok: false, errors: { form: "Employee not found." } }
+    return hrmActionFailure({ form: "Employee not found." })
   }
   if (existing.archivedAt) {
-    return {
-      ok: false,
-      errors: { form: "Archived employees cannot be edited." },
-    }
+    return hrmActionFailure({ form: "Archived employees cannot be edited." })
   }
 
   const nextPreferred = parsed.data.preferredName ?? null
@@ -272,20 +244,79 @@ export async function updateEmployeeAction(
         updatedByUserId: userId,
       })
       .where(eq(hrmEmployee.id, parsed.data.employeeId))
+
+    const historyRows: {
+      fieldName: string
+      oldValue: unknown
+      newValue: unknown
+    }[] = []
+    if (existing.employeeNumber !== parsed.data.employeeNumber) {
+      historyRows.push({
+        fieldName: "employeeNumber",
+        oldValue: existing.employeeNumber,
+        newValue: parsed.data.employeeNumber,
+      })
+    }
+    if (existing.legalName !== parsed.data.legalName) {
+      historyRows.push({
+        fieldName: "legalName",
+        oldValue: existing.legalName,
+        newValue: parsed.data.legalName,
+      })
+    }
+    if ((existing.preferredName ?? null) !== nextPreferred) {
+      historyRows.push({
+        fieldName: "preferredName",
+        oldValue: existing.preferredName,
+        newValue: nextPreferred,
+      })
+    }
+    if ((existing.email ?? null) !== nextEmail) {
+      historyRows.push({
+        fieldName: "email",
+        oldValue: existing.email,
+        newValue: nextEmail,
+      })
+    }
+    if ((existing.currentDepartmentId ?? null) !== nextDept) {
+      historyRows.push({
+        fieldName: "currentDepartmentId",
+        oldValue: existing.currentDepartmentId,
+        newValue: nextDept,
+      })
+    }
+    if ((existing.currentPositionId ?? null) !== nextPos) {
+      historyRows.push({
+        fieldName: "currentPositionId",
+        oldValue: existing.currentPositionId,
+        newValue: nextPos,
+      })
+    }
+    if ((existing.currentJobGradeId ?? null) !== nextGrade) {
+      historyRows.push({
+        fieldName: "currentJobGradeId",
+        oldValue: existing.currentJobGradeId,
+        newValue: nextGrade,
+      })
+    }
+    for (const h of historyRows) {
+      await db.insert(hrmEmployeeChangeHistory).values({
+        id: crypto.randomUUID(),
+        organizationId,
+        employeeId: parsed.data.employeeId,
+        fieldName: h.fieldName,
+        oldValue: h.oldValue === undefined ? null : h.oldValue,
+        newValue: h.newValue === undefined ? null : h.newValue,
+        changedByUserId: userId,
+      })
+    }
   } catch (err) {
     if (isUniqueViolation(err)) {
-      return {
-        ok: false,
-        errors: {
-          employeeNumber:
-            "Employee number already exists for this organization.",
-        },
-      }
+      return hrmActionFailure({
+        employeeNumber: "Employee number already exists for this organization.",
+      })
     }
-    return {
-      ok: false,
-      errors: { form: "Could not update employee. Try again." },
-    }
+    return hrmActionFailure({ form: "Could not update employee. Try again." })
   }
 
   after(() =>
@@ -313,7 +344,7 @@ export async function updateEmployeeAction(
   redirect(
     toLocalePath(
       locale,
-      organizationHrmEmployeePath(tenant.orgSlug, parsed.data.employeeId)
+      organizationHrmEmployeePath(orgSlug, parsed.data.employeeId)
     )
   )
 }
@@ -322,15 +353,10 @@ export async function archiveEmployeeAction(
   _prev: EmployeeMutationFormState | undefined,
   formData: FormData
 ): Promise<EmployeeMutationFormState> {
-  const { organizationId, userId, sessionId } = await requireOrgSession()
-
-  const tenant = await validateHrmOrgSlugMatchesSession(
-    formData,
-    organizationId
-  )
-  if (!tenant.ok) {
-    return { ok: false, errors: { form: tenant.message } }
-  }
+  const gate = await requireHrmOrgTenantFromForm(formData)
+  if (!gate.ok) return gate.response
+  const { session, orgSlug } = gate
+  const { organizationId, userId, sessionId } = session
 
   const parsed = archiveEmployeeFormSchema.safeParse({
     employeeId: formData.get("employeeId"),
@@ -339,13 +365,10 @@ export async function archiveEmployeeAction(
 
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        employeeId: fe.employeeId?.[0],
-        archivedReason: fe.archivedReason?.[0],
-      },
-    }
+    return hrmActionFailure({
+      employeeId: fe.employeeId?.[0],
+      archivedReason: fe.archivedReason?.[0],
+    })
   }
 
   const [existing] = await db
@@ -364,10 +387,10 @@ export async function archiveEmployeeAction(
     .limit(1)
 
   if (!existing) {
-    return { ok: false, errors: { form: "Employee not found." } }
+    return hrmActionFailure({ form: "Employee not found." })
   }
   if (existing.archivedAt) {
-    return { ok: false, errors: { form: "Employee is already archived." } }
+    return hrmActionFailure({ form: "Employee is already archived." })
   }
 
   const archivedAt = new Date()
@@ -383,10 +406,7 @@ export async function archiveEmployeeAction(
       })
       .where(eq(hrmEmployee.id, parsed.data.employeeId))
   } catch {
-    return {
-      ok: false,
-      errors: { form: "Could not archive employee. Try again." },
-    }
+    return hrmActionFailure({ form: "Could not archive employee. Try again." })
   }
 
   after(() =>
@@ -413,7 +433,7 @@ export async function archiveEmployeeAction(
   redirect(
     toLocalePath(
       locale,
-      organizationHrmEmployeePath(tenant.orgSlug, parsed.data.employeeId)
+      organizationHrmEmployeePath(orgSlug, parsed.data.employeeId)
     )
   )
 }

@@ -65,11 +65,10 @@ export function hrmLeaveTypeStatusTone(
 }
 
 /**
- * URL-driven tabs on the Policies workbench. `leave_types` ships in
- * Phase 2A; the remaining tabs surface placeholder cards until the
- * Phase 4 holiday / working-pattern / rule-pack inspector lands. A
- * single canonical enum here keeps the tab navigator, route param
- * sanitizer, and contract test in lockstep.
+ * URL-driven tabs on the Policies workbench. `leave_types` is the shipped
+ * mutation surface; the remaining tabs are reserved for future calendar,
+ * working-pattern, and rule-pack inspectors. A single canonical enum here
+ * keeps the tab navigator, route param sanitizer, and contract test in lockstep.
  */
 export const HRM_POLICY_TABS = [
   "leave_types",

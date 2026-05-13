@@ -80,6 +80,22 @@ function preferenceRow(
 }
 
 describe("resolveCapabilitiesForViewer — runtime gates (fail closed)", () => {
+  it("keeps marketplace visible for a non-admin member", () => {
+    const definition = defineCapability({
+      id: "right.marketplace",
+      defaultVisible: true,
+    })
+    const result = resolveCapabilitiesForViewer({
+      viewer: member,
+      orgPolicy: noPolicy,
+      userPreferences: noPreferences,
+      definitions: [definition],
+    })
+    expect(result.resolved[0]!.effective).toBe("visible")
+    expect(result.resolved[0]!.source).toBe("system-default")
+    expect(result.visibleIds).toEqual([definition.id])
+  })
+
   it("returns 'unavailable' for an admin-only capability when viewer is not admin", () => {
     const definition = defineCapability({
       id: "right.adminThing",

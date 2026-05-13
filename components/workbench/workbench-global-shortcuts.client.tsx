@@ -5,19 +5,10 @@ import { useEffect, useRef } from "react"
 import { useRouter } from "#i18n/navigation"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
 
-import { useWorkbenchCommand } from "./workbench-command-context"
+import { useWorkbenchCommand } from "./workbench-command"
+import { isTypingTarget } from "./workbench-keyboard-utils"
 
 const G_CHORD_MS = 900
-
-function isTypingTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  return (
-    target.isContentEditable ||
-    target.tagName === "INPUT" ||
-    target.tagName === "TEXTAREA" ||
-    target.tagName === "SELECT"
-  )
-}
 
 type WorkbenchGlobalShortcutsProps = {
   orgSlug: string

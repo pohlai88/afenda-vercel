@@ -28,7 +28,7 @@ function isTypingTarget(target: EventTarget | null) {
   )
 }
 
-/** Matches {@link NexusUtilityShortcuts} — Mod+Shift+L toggles light/dark. */
+/** Matches {@link WorkbenchUtilityShortcuts} — Mod+Shift+L toggles light/dark. */
 function ThemeHotkey() {
   const { resolvedTheme, setTheme } = useTheme()
 

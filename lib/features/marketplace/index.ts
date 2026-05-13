@@ -25,6 +25,7 @@ export {
   isMarketplaceRoute,
   marketplacePath,
   marketplaceRoute,
+  organizationMarketplacePath,
   MARKETPLACE_METRICS_K_ANONYMITY_THRESHOLD,
   MARKETPLACE_METRICS_REVALIDATE_SECONDS,
   MARKETPLACE_RAIL_VISIBLE_LIMIT,
@@ -154,6 +155,11 @@ export type {
 } from "./components/capability-detail-dialog.client"
 export { CapabilityToggleButton } from "./components/capability-toggle-button.client"
 export type { CapabilityToggleButtonProps } from "./components/capability-toggle-button.client"
+export { CapabilityPolicyControls } from "./components/capability-policy-controls.client"
+export type {
+  CapabilityPolicyControlLabels,
+  CapabilityPolicyControlsProps,
+} from "./components/capability-policy-controls.client"
 export {
   MARKETPLACE_VIEW_PARAM,
   MarketplaceViewSwitcher,

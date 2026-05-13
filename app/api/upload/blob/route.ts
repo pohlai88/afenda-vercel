@@ -9,28 +9,25 @@ import {
   routeJsonOk,
   routePublicErrorMessage,
 } from "#lib/route-handler-json.shared"
-import {
-  getOrgSessionFromRequest,
-  getSignedInSessionFromRequest,
-} from "#lib/tenant"
+import { getOrgSessionFromRequest } from "#lib/tenant"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
-const NEXUS_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES = [
+const WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
   "application/pdf",
 ] as const
-const NEXUS_UTILITY_UPLOAD_MAX_SIZE_BYTES = 50 * 1024 * 1024
+const WORKBENCH_UTILITY_UPLOAD_MAX_SIZE_BYTES = 50 * 1024 * 1024
 const NEXUS_ALLOWED_UPLOAD_PREFIXES = [
   "nexus-utility",
   "nexus-screenshot",
   "nexus-coordination",
 ] as const
 
-type NexusUtilityUploadClientPayload = {
+type WorkbenchUtilityUploadClientPayload = {
   source?: string | null
   captureMode?: "workspace" | "content" | null
   contextId?: string | null
@@ -46,20 +43,20 @@ type NexusUtilityUploadClientPayload = {
   hrmEmployeeId?: string | null
 }
 
-type NexusUtilityUploadTokenPayload = {
+type WorkbenchUtilityUploadTokenPayload = {
   userId?: string
   sessionId?: string
   organizationId?: string
   pathname?: string
-  clientPayload?: NexusUtilityUploadClientPayload | null
+  clientPayload?: WorkbenchUtilityUploadClientPayload | null
 }
 
 function parseClientPayload(
   raw: string | null
-): NexusUtilityUploadClientPayload | null {
+): WorkbenchUtilityUploadClientPayload | null {
   if (!raw) return null
   try {
-    const parsed = JSON.parse(raw) as NexusUtilityUploadClientPayload
+    const parsed = JSON.parse(raw) as WorkbenchUtilityUploadClientPayload
     return parsed && typeof parsed === "object" ? parsed : null
   } catch {
     return null
@@ -69,7 +66,7 @@ function parseClientPayload(
 function parseTokenPayload(raw: string | null | undefined) {
   if (!raw) return null
   try {
-    const parsed = JSON.parse(raw) as NexusUtilityUploadTokenPayload
+    const parsed = JSON.parse(raw) as WorkbenchUtilityUploadTokenPayload
     return parsed && typeof parsed === "object" ? parsed : null
   } catch {
     return null
@@ -104,18 +101,6 @@ function isAllowedOrbitUploadPath(orgId: string, pathname: string): boolean {
   return UUID_RE.test(parts[3] ?? "")
 }
 
-function isAllowedPersonalOrbitUploadPath(
-  userId: string,
-  pathname: string
-): boolean {
-  const parts = pathname.split("/").filter(Boolean)
-  if (parts.length < 5) return false
-  if (parts[0] !== "users" || parts[1] !== userId || parts[2] !== "orbit") {
-    return false
-  }
-  return UUID_RE.test(parts[3] ?? "")
-}
-
 function isAllowedOrgWorkspaceUploadPath(
   orgId: string,
   pathname: string
@@ -136,11 +121,8 @@ export async function POST(request: Request) {
   const orgSession = isGenerateTokenEvent
     ? await getOrgSessionFromRequest(request)
     : null
-  const signedInSession = isGenerateTokenEvent
-    ? await getSignedInSessionFromRequest(request)
-    : null
 
-  if (isGenerateTokenEvent && !orgSession && !signedInSession) {
+  if (isGenerateTokenEvent && !orgSession) {
     return routeJsonError("Unauthorized", 401)
   }
 
@@ -151,34 +133,29 @@ export async function POST(request: Request) {
       body,
       request,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
-        if (!signedInSession) {
+        if (!orgSession) {
           throw new Error("Unauthorized")
         }
 
-        const allowedForOrg =
-          orgSession != null &&
-          isAllowedOrgWorkspaceUploadPath(orgSession.organizationId, pathname)
-        const allowedForPersonal = isAllowedPersonalOrbitUploadPath(
-          signedInSession.userId,
+        const allowedForOrg = isAllowedOrgWorkspaceUploadPath(
+          orgSession.organizationId,
           pathname
         )
 
-        if (!allowedForOrg && !allowedForPersonal) {
+        if (!allowedForOrg) {
           throw new Error("Upload path is not allowed for this workspace")
         }
 
         const parsedClientPayload = parseClientPayload(clientPayload)
 
         return {
-          allowedContentTypes: [...NEXUS_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES],
-          maximumSizeInBytes: NEXUS_UTILITY_UPLOAD_MAX_SIZE_BYTES,
+          allowedContentTypes: [...WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES],
+          maximumSizeInBytes: WORKBENCH_UTILITY_UPLOAD_MAX_SIZE_BYTES,
           addRandomSuffix: true,
           tokenPayload: JSON.stringify({
-            userId: signedInSession.userId,
-            sessionId: signedInSession.sessionId,
-            organizationId: allowedForOrg
-              ? (orgSession?.organizationId ?? null)
-              : null,
+            userId: orgSession.userId,
+            sessionId: orgSession.sessionId,
+            organizationId: orgSession.organizationId,
             pathname,
             clientPayload: parsedClientPayload,
           }),

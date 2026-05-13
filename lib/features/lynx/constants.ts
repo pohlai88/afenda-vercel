@@ -22,4 +22,9 @@ export const LYNX_OPERATOR_TOOL_IDS = [
   "org_recent_knowledge_chunks",
   "org_search_knowledge",
   "org_active_import_jobs",
+  "org_orbit_high_pressure",
+  "org_orbit_triage_snapshot",
+  "org_orbit_blocked_items",
+  "org_orbit_item_detail",
+  "org_orbit_signal_detail",
 ] as const

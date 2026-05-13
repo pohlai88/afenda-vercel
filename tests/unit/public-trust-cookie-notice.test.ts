@@ -57,6 +57,7 @@ describe("cookie notice public trust contract", () => {
     expect(storageCopy).toContain("inspector_state")
     expect(storageCopy).toContain("inspector_width")
     expect(storageCopy).toContain("afenda:lynx-summon-fab-pos")
+    expect(storageCopy).toContain("afenda:dev-signin-panel-pos")
     expect(storageCopy).toContain("not used for advertising")
   })
 })

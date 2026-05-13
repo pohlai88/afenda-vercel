@@ -52,6 +52,12 @@ export const ORG_ADMIN_CAPABILITIES = [
     auditPrefix: "org.profile",
     nav: { navKey: "settings", order: 40, primarySegment: "settings" },
   },
+  {
+    id: "operations",
+    segments: ["knowledge"] as const,
+    auditPrefix: "org.operations",
+    nav: null,
+  },
 ] as const satisfies readonly OrgAdminCapability[]
 
 /** i18n key for the workbench overview entry (no segment). */
@@ -194,6 +200,7 @@ export function isImportRowState(value: string): value is OrgImportRowState {
 export const IMPORT_ADAPTERS = [
   "member_invite",
   "hrm_payroll_profile_import",
+  "hrm_employee_hire",
   "hrm_attendance_import",
 ] as const satisfies readonly OrgImportAdapterId[]
 

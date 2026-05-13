@@ -5,6 +5,10 @@ import { and, eq, inArray, isNotNull, lte } from "drizzle-orm"
 import { writeIamAuditEvent } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmDocument, iamAuditEvent } from "#lib/db/schema"
+import type {
+  CronTickInput,
+  CronTickScannedEmittedSummary,
+} from "#lib/erp/cron-tick.shared"
 
 import {
   buildDocumentExpiryAuditMetadata,
@@ -42,10 +46,7 @@ import {
  * live in the `.shared.ts` sibling so unit tests lock the math without
  * a database round-trip.
  */
-export type DocumentExpiryWatchTickSummary = {
-  readonly scanned: number
-  /** Total audit rows written this tick (sum across tiers). */
-  readonly emitted: number
+export type DocumentExpiryWatchTickSummary = CronTickScannedEmittedSummary & {
   /** Per-tier audit counts — sums to `emitted`. */
   readonly emittedByTier: Readonly<Record<DocumentExpiryTier, number>>
   /** Candidates whose every qualified tier was already audited. */
@@ -163,10 +164,9 @@ async function loadAlreadyEmittedActionsByDocumentId(
  * Audit failures never crash the tick — the summary still reports
  * per-tier outcomes so the operator response body is meaningful.
  */
-export async function runDocumentExpiryWatchTick(input?: {
-  now?: Date
-  batchLimit?: number
-}): Promise<DocumentExpiryWatchTickSummary> {
+export async function runDocumentExpiryWatchTick(
+  input?: CronTickInput
+): Promise<DocumentExpiryWatchTickSummary> {
   const now = input?.now ?? new Date()
   const candidates = await listDocumentExpiryCandidates({
     now,

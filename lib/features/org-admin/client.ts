@@ -6,4 +6,8 @@
 export type { UserOrgSummary } from "./types"
 export type { PrepareOrgSlugState } from "./actions/organization-slug.actions"
 export { switchActiveOrgAction } from "./actions/org-switch.actions"
-export { organizationAdminPath } from "./constants"
+export {
+  ORG_ADMIN_EVENT_NAMESPACES,
+  isAllowedAuditAction,
+  organizationAdminPath,
+} from "./constants"

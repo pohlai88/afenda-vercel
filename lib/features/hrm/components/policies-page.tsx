@@ -43,10 +43,10 @@ import { LeaveTypeCreateDialog } from "./policies-leave-type-create-dialog"
  * read-only "admin-only" panel — no create / seed affordances are
  * rendered because the underlying actions would refuse anyway.
  *
- * Holidays / working pattern / statutory rates ship in Phase 4 / 3B —
- * those tabs render a calm "coming soon" panel today so operators can
- * see where the surface is heading without being misled into thinking
- * the editor is missing.
+ * Holidays / working pattern / statutory rates are reserved inspectors.
+ * They render a calm "coming soon" panel today so operators can see
+ * where the surface is heading without being misled into thinking the
+ * editor is missing.
  */
 type PoliciesPageProps = {
   orgSlug: string

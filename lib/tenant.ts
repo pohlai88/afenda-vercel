@@ -14,7 +14,7 @@ import { getAuthSession } from "#lib/session-cache"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { neonAuthMember } from "#lib/db/schema-neon-auth"
+import { neonAuthMember, neonAuthSession } from "#lib/db/schema-neon-auth"
 
 export type OrgSession = {
   userId: string
@@ -151,6 +151,41 @@ export const requireOrgSession = cache(
  * in feature data layers (same per-request cache).
  */
 export const getOrgTenantContext = requireOrgSession
+
+/**
+ * Set the active organization for the current authenticated session after
+ * verifying the user is still a member of that organization.
+ */
+export async function setActiveOrganizationForSession(input: {
+  userId: string
+  sessionId: string
+  organizationId: string
+}): Promise<void> {
+  const [member] = await db
+    .select({ id: neonAuthMember.id })
+    .from(neonAuthMember)
+    .where(
+      and(
+        eq(neonAuthMember.userId, input.userId),
+        eq(neonAuthMember.organizationId, input.organizationId)
+      )
+    )
+    .limit(1)
+
+  if (!member) {
+    throw new Error("Not a member of the requested organization.")
+  }
+
+  await db
+    .update(neonAuthSession)
+    .set({ activeOrganizationId: input.organizationId })
+    .where(
+      and(
+        eq(neonAuthSession.id, input.sessionId),
+        eq(neonAuthSession.userId, input.userId)
+      )
+    )
+}
 
 /**
  * Same checks as {@link requireOrgSession}, using the incoming request headers

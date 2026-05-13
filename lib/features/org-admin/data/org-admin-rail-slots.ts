@@ -5,7 +5,7 @@ import type {
   WorkbenchRailRecent,
   WorkbenchRailSlots,
   WorkbenchRailView,
-} from "#components/workbench"
+} from "#components/workbench/left-nav-rail"
 
 import { ORG_ADMIN_CAPABILITIES, organizationAdminPath } from "../constants"
 import type { OrgAdminNavKey, OrgAdminRailPressureMap } from "../types"
@@ -23,10 +23,9 @@ const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
  *
  * Pure function — no DB, no headers, no clock reads. Accepts:
  *
- *   1. Identity (org name + slug) for the rail header pill.
- *   2. Optional **pressure** badges resolved by
+ *   1. Optional **pressure** badges resolved by
  *      `getOrgAdminRailPressureCounts(organizationId)` (Phase 2).
- *   3. Optional **memory** slots resolved by `#features/rail-memory`
+ *   2. Optional **memory** slots resolved by `#features/rail-memory`
  *      (Phase 3d): a single `inbox` summary, plus `pinned` / `views` /
  *      `recents` arrays already mapped to kernel slot shape.
  *
@@ -95,8 +94,6 @@ export function buildOrgAdminRailSlots({
    */
   recents?: ReadonlyArray<WorkbenchRailRecent>
 }): WorkbenchRailSlots {
-  const initial = orgName.trim().charAt(0).toUpperCase() || "O"
-
   const navItems = ORG_ADMIN_CAPABILITIES.filter((c) => c.nav != null).map(
     (capability) => {
       const nav = capability.nav!
@@ -130,7 +127,7 @@ export function buildOrgAdminRailSlots({
 
   return {
     identity: {
-      initial,
+      initial: orgName.trim().slice(0, 1).toUpperCase() || "O",
       primary: orgName,
       secondary: orgSlug,
     },

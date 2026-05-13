@@ -1,4 +1,5 @@
 import type { AppPath } from "#lib/i18n/locales.shared"
+import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
 
 import type {
   PlatformAdminCapability,
@@ -75,6 +76,22 @@ export function platformAdminPath(segment?: string): AppPath {
   }
   const trimmed = segment.replace(/^\/+/, "")
   return `/operator/${trimmed}` as AppPath
+}
+
+/** Canonical org-scoped platform admin path under the active org shell. */
+export function organizationOperatorPath(
+  orgSlug: string,
+  segment?: string
+): AppPath {
+  const slug = normalizeOrgSlugParam(orgSlug)
+  if (!slug) {
+    throw new Error("organizationOperatorPath: invalid org slug")
+  }
+  if (!segment) {
+    return `/o/${slug}/operator` as AppPath
+  }
+  const trimmed = segment.replace(/^\/+/, "")
+  return `/o/${slug}/operator/${trimmed}` as AppPath
 }
 
 /** Sidebar nav items derived from {@link PLATFORM_ADMIN_CAPABILITIES}. */

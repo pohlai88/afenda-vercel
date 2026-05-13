@@ -15,6 +15,7 @@ export const STATUTORY_PACK_TO_EVENT_TYPE: Record<StatutoryPackType, string> = {
   socso_monthly: "erp.hrm.statutory.socso.submitted",
   eis_monthly: "erp.hrm.statutory.eis.submitted",
   pcb_monthly: "erp.hrm.statutory.pcb.submitted",
+  hrdf_monthly: "erp.hrm.statutory.hrdf.submitted",
   ea_annual: "erp.hrm.statutory.ea.published",
   borang_e_annual: "erp.hrm.statutory.ea.published",
 }
@@ -45,6 +46,7 @@ export const STATUTORY_PACK_TO_ACK_EVENT_TYPE: Record<
   socso_monthly: "erp.hrm.statutory.socso.acknowledged",
   eis_monthly: "erp.hrm.statutory.eis.acknowledged",
   pcb_monthly: "erp.hrm.statutory.pcb.acknowledged",
+  hrdf_monthly: "erp.hrm.statutory.hrdf.acknowledged",
   ea_annual: "erp.hrm.statutory.ea.acknowledged",
   borang_e_annual: "erp.hrm.statutory.ea.acknowledged",
 }
@@ -83,6 +85,7 @@ export const STATUTORY_PACK_TO_AUTHORITY: Record<StatutoryPackType, string> = {
   socso_monthly: "PERKESO",
   eis_monthly: "PERKESO",
   pcb_monthly: "LHDN",
+  hrdf_monthly: "HRD_CORP",
   ea_annual: "LHDN",
   borang_e_annual: "LHDN",
 }

@@ -15,6 +15,13 @@ import {
   hrmLeaveType,
 } from "#lib/db/schema"
 
+import {
+  parseHrmApprovalState,
+  parseHrmLeaveRequestState,
+  type HrmApprovalState,
+  type HrmLeaveRequestState,
+} from "../schemas/hrm-workflow-state.shared"
+
 // ---------------------------------------------------------------------------
 // Leave request queries
 // ---------------------------------------------------------------------------
@@ -30,7 +37,7 @@ export type LeaveRequestRow = {
   durationDays: string
   halfDay: string
   reason: string | null
-  state: string
+  state: HrmLeaveRequestState
   currentApprovalId: string | null
   approvedByUserId: string | null
   approvedAt: Date | null
@@ -70,7 +77,7 @@ export type LeaveRequestDetailRow = LeaveRequestRow & {
   employeeFullName: string | null
   approval: {
     id: string
-    state: string
+    state: HrmApprovalState
     currentApproverUserId: string | null
     decisionByUserId: string | null
     decisionAt: Date | null
@@ -123,6 +130,7 @@ export async function listLeaveRequestsForEmployee(
 
   return rows.map((r) => ({
     ...r,
+    state: parseHrmLeaveRequestState(r.state),
     leaveTypeCode: leaveTypeMap.get(r.leaveTypeId) ?? null,
   }))
 }
@@ -169,6 +177,7 @@ export async function listPendingApprovalRequestsForOrg(
 
   return rows.map((r) => ({
     ...r,
+    state: parseHrmLeaveRequestState(r.state),
     leaveTypeCode: leaveTypeMap.get(r.leaveTypeId) ?? null,
   }))
 }
@@ -233,10 +242,16 @@ export async function getLeaveRequestDetail(
 
   return {
     ...req,
+    state: parseHrmLeaveRequestState(req.state),
     leaveTypeCode: leaveType?.code ?? null,
     employeeNumber: employee?.employeeNumber ?? null,
     employeeFullName: employee?.legalName ?? null,
-    approval: approval ?? null,
+    approval: approval
+      ? {
+          ...approval,
+          state: parseHrmApprovalState(approval.state),
+        }
+      : null,
   }
 }
 
@@ -341,6 +356,7 @@ export async function listAllLeaveRequestsForOrg(
 
   return requests.map((r) => ({
     ...r,
+    state: parseHrmLeaveRequestState(r.state),
     leaveTypeCode: leaveTypeMap.get(r.leaveTypeId) ?? null,
     employeeNumber: employeeMap.get(r.employeeId)?.number ?? null,
     employeeFullName: employeeMap.get(r.employeeId)?.name ?? null,

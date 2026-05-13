@@ -7,6 +7,10 @@ import { db } from "#lib/db"
 import { hrmComplianceEvidence, iamAuditEvent } from "#lib/db/schema"
 import { EXECUTION_AUDIT_ACTIONS } from "#features/execution"
 import { getOrganizationSlugById } from "#lib/org-slug.server"
+import type {
+  CronTickInput,
+  CronTickScannedEmittedSummary,
+} from "#lib/erp/cron-tick.shared"
 
 import {
   ageInDays,
@@ -130,16 +134,13 @@ export type AgingTierEmission = {
   readonly candidate: AgingWatchCandidate
 }
 
-export type AgingWatchTickSummary = {
-  readonly scanned: number
-  /** Total audit rows written this tick (sum across tiers). */
-  readonly emitted: number
+export type AgingWatchTickSummary = CronTickScannedEmittedSummary & {
   /** Per-tier audit row counts — sums to `emitted`. */
   readonly emittedByTier: Readonly<Record<ComplianceAgingTier, number>>
   /** Candidates where every qualified tier was already audited. */
   readonly fullyAudited: number
   /**
-   * Phase 3P + 3Q — outbound fanout counters per tier. Always present
+   * Outbound fanout counters per tier. Always present
    * (zeros on early-return paths) so the cron route response shape is
    * stable.
    *
@@ -351,10 +352,9 @@ async function loadAlreadyEmittedActionsByEvidenceId(
  * Audit failures never crash the tick — the summary still reports
  * per-tier outcomes so the operator response body is meaningful.
  */
-export async function runComplianceAgingWatchTick(input?: {
-  now?: Date
-  batchLimit?: number
-}): Promise<AgingWatchTickSummary> {
+export async function runComplianceAgingWatchTick(
+  input?: CronTickInput
+): Promise<AgingWatchTickSummary> {
   const now = input?.now ?? new Date()
   const candidates = await listAgingWatchCandidates({
     now,

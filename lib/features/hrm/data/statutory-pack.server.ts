@@ -106,6 +106,9 @@ export function buildStatutoryPackFromRuns(
     case "pcb_monthly":
       payload = buildPcbMonthlyPack(rulePack, runs, period)
       break
+    case "hrdf_monthly":
+      payload = buildHrdfMonthlyPack(rulePack, runs, period)
+      break
     case "ea_annual":
       payload = buildEaAnnualPack(rulePack, runs, period, now)
       break
@@ -137,6 +140,10 @@ function buildEpfMonthlyPack(
   runs: readonly StatutoryPackRunInput[],
   period: string
 ): StatutoryPackPayload {
+  if (rulePack.countryCode === "SG") {
+    return buildSingaporeCpfMonthlyPack(rulePack, runs, period)
+  }
+
   const lines = [...runs]
     .sort((a, b) => a.employeeId.localeCompare(b.employeeId))
     .map((r) => {
@@ -163,7 +170,56 @@ function buildEpfMonthlyPack(
   return {
     packType: "epf_monthly",
     formatVersion: rulePack.manifest.epfVersion,
-    body: { period, countryCode: rulePack.countryCode, lines, totals },
+    body: {
+      period,
+      countryCode: rulePack.countryCode,
+      authority: "KWSP",
+      contributionScheme: "EPF_THIRD_SCHEDULE",
+      lines,
+      totals,
+    },
+  }
+}
+
+function buildSingaporeCpfMonthlyPack(
+  rulePack: PayrollRulePack,
+  runs: readonly StatutoryPackRunInput[],
+  period: string
+): StatutoryPackPayload {
+  const lines = [...runs]
+    .sort((a, b) => a.employeeId.localeCompare(b.employeeId))
+    .map((r) => {
+      const cpfEe = findLineAmount(r.lines, "CPF_EE")
+      const cpfEr = findLineAmount(r.lines, "CPF_ER")
+      return {
+        employeeId: r.employeeId,
+        employeeNumber: r.employeeNumber,
+        employeeName: r.employeeName,
+        ordinaryWages: r.grossPay,
+        cpfEmployee: cpfEe,
+        cpfEmployer: cpfEr,
+        cpfTotal: addAmounts(cpfEe, cpfEr),
+      }
+    })
+
+  const totals = {
+    cpfEmployee: sumColumn(lines, "cpfEmployee"),
+    cpfEmployer: sumColumn(lines, "cpfEmployer"),
+    cpfTotal: sumColumn(lines, "cpfTotal"),
+    ordinaryWages: sumColumn(lines, "ordinaryWages"),
+  }
+
+  return {
+    packType: "epf_monthly",
+    formatVersion: rulePack.manifest.epfVersion,
+    body: {
+      period,
+      countryCode: rulePack.countryCode,
+      authority: "CPF_BOARD",
+      contributionScheme: "CPF_ORDINARY_WAGES",
+      lines,
+      totals,
+    },
   }
 }
 
@@ -172,6 +228,10 @@ function buildSocsoMonthlyPack(
   runs: readonly StatutoryPackRunInput[],
   period: string
 ): StatutoryPackPayload {
+  if (rulePack.countryCode === "SG") {
+    return buildNotApplicablePack(rulePack, "socso_monthly", period)
+  }
+
   const lines = [...runs]
     .sort((a, b) => a.employeeId.localeCompare(b.employeeId))
     .map((r) => {
@@ -197,7 +257,14 @@ function buildSocsoMonthlyPack(
   return {
     packType: "socso_monthly",
     formatVersion: rulePack.manifest.socsoVersion,
-    body: { period, countryCode: rulePack.countryCode, lines, totals },
+    body: {
+      period,
+      countryCode: rulePack.countryCode,
+      authority: "PERKESO",
+      scheme: "SOCSO",
+      lines,
+      totals,
+    },
   }
 }
 
@@ -206,6 +273,10 @@ function buildEisMonthlyPack(
   runs: readonly StatutoryPackRunInput[],
   period: string
 ): StatutoryPackPayload {
+  if (rulePack.countryCode === "SG") {
+    return buildNotApplicablePack(rulePack, "eis_monthly", period)
+  }
+
   const lines = [...runs]
     .sort((a, b) => a.employeeId.localeCompare(b.employeeId))
     .map((r) => {
@@ -231,7 +302,14 @@ function buildEisMonthlyPack(
   return {
     packType: "eis_monthly",
     formatVersion: rulePack.manifest.eisVersion,
-    body: { period, countryCode: rulePack.countryCode, lines, totals },
+    body: {
+      period,
+      countryCode: rulePack.countryCode,
+      authority: "PERKESO",
+      scheme: "EIS",
+      lines,
+      totals,
+    },
   }
 }
 
@@ -240,6 +318,10 @@ function buildPcbMonthlyPack(
   runs: readonly StatutoryPackRunInput[],
   period: string
 ): StatutoryPackPayload {
+  if (rulePack.countryCode === "SG") {
+    return buildSingaporeIrasNoMonthlyWithholdingPack(rulePack, runs, period)
+  }
+
   const lines = [...runs]
     .sort((a, b) => a.employeeId.localeCompare(b.employeeId))
     .map((r) => {
@@ -261,7 +343,123 @@ function buildPcbMonthlyPack(
   return {
     packType: "pcb_monthly",
     formatVersion: rulePack.manifest.pcbVersion,
-    body: { period, countryCode: rulePack.countryCode, lines, totals },
+    body: {
+      period,
+      countryCode: rulePack.countryCode,
+      authority: "LHDN",
+      mtdComputerisedVersion: rulePack.manifest.pcbVersion,
+      lines,
+      totals,
+    },
+  }
+}
+
+function buildHrdfMonthlyPack(
+  rulePack: PayrollRulePack,
+  runs: readonly StatutoryPackRunInput[],
+  period: string
+): StatutoryPackPayload {
+  if (rulePack.countryCode === "SG") {
+    return buildSingaporeSdlMonthlyPack(rulePack, runs, period)
+  }
+
+  const lines = [...runs]
+    .sort((a, b) => a.employeeId.localeCompare(b.employeeId))
+    .map((r) => {
+      const levy = findLineAmount(r.lines, "HRDF")
+      return {
+        employeeId: r.employeeId,
+        employeeNumber: r.employeeNumber,
+        employeeName: r.employeeName,
+        grossWages: r.grossPay,
+        levy,
+      }
+    })
+
+  const totals = {
+    levy: sumColumn(lines, "levy"),
+    grossWages: sumColumn(lines, "grossWages"),
+  }
+
+  return {
+    packType: "hrdf_monthly",
+    formatVersion: rulePack.manifest.hrdfVersion ?? "N-A",
+    body: {
+      period,
+      countryCode: rulePack.countryCode,
+      authority: "HRD_CORP",
+      lines,
+      totals,
+    },
+  }
+}
+
+function buildSingaporeSdlMonthlyPack(
+  rulePack: PayrollRulePack,
+  runs: readonly StatutoryPackRunInput[],
+  period: string
+): StatutoryPackPayload {
+  const lines = [...runs]
+    .sort((a, b) => a.employeeId.localeCompare(b.employeeId))
+    .map((r) => {
+      const sdl = findLineAmount(r.lines, "SDL_ER")
+      return {
+        employeeId: r.employeeId,
+        employeeNumber: r.employeeNumber,
+        employeeName: r.employeeName,
+        grossWages: r.grossPay,
+        sdl,
+      }
+    })
+
+  const totals = {
+    sdl: sumColumn(lines, "sdl"),
+    grossWages: sumColumn(lines, "grossWages"),
+  }
+
+  return {
+    packType: "hrdf_monthly",
+    formatVersion: rulePack.manifest.hrdfVersion ?? "SG-SDL-UNKNOWN",
+    body: {
+      period,
+      countryCode: rulePack.countryCode,
+      authority: "SKILLSFUTURE_SINGAPORE",
+      levyScheme: "SDL",
+      lines,
+      totals,
+    },
+  }
+}
+
+function buildSingaporeIrasNoMonthlyWithholdingPack(
+  rulePack: PayrollRulePack,
+  runs: readonly StatutoryPackRunInput[],
+  period: string
+): StatutoryPackPayload {
+  const lines = [...runs]
+    .sort((a, b) => a.employeeId.localeCompare(b.employeeId))
+    .map((r) => ({
+      employeeId: r.employeeId,
+      employeeNumber: r.employeeNumber,
+      employeeName: r.employeeName,
+      grossWages: r.grossPay,
+      withholding: "0.00",
+    }))
+
+  return {
+    packType: "pcb_monthly",
+    formatVersion: rulePack.manifest.pcbVersion,
+    body: {
+      period,
+      countryCode: rulePack.countryCode,
+      authority: "IRAS",
+      status: "no_monthly_withholding",
+      lines,
+      totals: {
+        withholding: "0.00",
+        grossWages: sumColumn(lines, "grossWages"),
+      },
+    },
   }
 }
 
@@ -271,6 +469,10 @@ function buildEaAnnualPack(
   period: string,
   now: Date
 ): StatutoryPackPayload {
+  if (rulePack.countryCode === "SG") {
+    return buildNotApplicablePack(rulePack, "ea_annual", period, now)
+  }
+
   const year = period.slice(0, 4)
 
   // Group runs by employee — for EA annual we need yearly totals
@@ -336,6 +538,9 @@ function buildEaAnnualPack(
     body: {
       year,
       countryCode: rulePack.countryCode,
+      authority: "LHDN",
+      formReference: "Form EA (Section 83, Income Tax Act 1967)",
+      schemaHint: "internal_aggregate_only",
       employees,
       generatedAt: now.toISOString(),
     },
@@ -348,6 +553,10 @@ function buildBorangEPack(
   period: string,
   now: Date
 ): StatutoryPackPayload {
+  if (rulePack.countryCode === "SG") {
+    return buildNotApplicablePack(rulePack, "borang_e_annual", period, now)
+  }
+
   const year = period.slice(0, 4)
   const totalGross = runs.reduce((s, r) => s + (parseFloat(r.grossPay) || 0), 0)
   const totalPcb = runs.reduce(
@@ -362,10 +571,37 @@ function buildBorangEPack(
     body: {
       year,
       countryCode: rulePack.countryCode,
+      authority: "LHDN",
+      formReference: "CP8D / Borang E (Monthly Tax Deduction annual return)",
+      schemaHint: "internal_aggregate_only",
       employeeCount,
       totalGrossRemuneration: fmt2(totalGross),
       totalIncomeTaxDeducted: fmt2(totalPcb),
       generatedAt: now.toISOString(),
+    },
+  }
+}
+
+function buildNotApplicablePack(
+  rulePack: PayrollRulePack,
+  packType: StatutoryPackType,
+  period: string,
+  now?: Date
+): StatutoryPackPayload {
+  return {
+    packType,
+    formatVersion: formatVersionForPackType(rulePack, packType),
+    body: {
+      period,
+      countryCode: rulePack.countryCode,
+      status: "not_applicable",
+      generatedAt: now?.toISOString(),
+      issues: [
+        {
+          code: "STATUTORY_PACK_NOT_APPLICABLE",
+          message: `${packType} is not applicable for ${rulePack.countryCode}.`,
+        },
+      ],
     },
   }
 }
@@ -398,6 +634,32 @@ function sumColumn(
 
 function fmt2(n: number): string {
   return n.toFixed(2)
+}
+
+function formatVersionForPackType(
+  rulePack: PayrollRulePack,
+  packType: StatutoryPackType
+): string {
+  switch (packType) {
+    case "epf_monthly":
+      return rulePack.manifest.epfVersion
+    case "socso_monthly":
+      return rulePack.manifest.socsoVersion
+    case "eis_monthly":
+      return rulePack.manifest.eisVersion
+    case "pcb_monthly":
+      return rulePack.manifest.pcbVersion
+    case "hrdf_monthly":
+      return rulePack.manifest.hrdfVersion ?? "N-A"
+    case "ea_annual":
+      return rulePack.manifest.eaLeaveVersion
+    case "borang_e_annual":
+      return rulePack.manifest.pcbVersion
+    default: {
+      const _exhaustive: never = packType
+      return _exhaustive
+    }
+  }
 }
 
 function sha256(input: string): string {

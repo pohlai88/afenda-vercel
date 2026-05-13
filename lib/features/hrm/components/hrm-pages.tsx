@@ -79,7 +79,7 @@ export async function HrmOverviewPage({ orgSlug }: HrmOverviewProps) {
   )
 }
 
-/** Capability placeholder until the vertical slice ships (Phase 1+). */
+/** Fallback for registered capability segments that do not yet own a route file. */
 export async function HrmCapabilityPlaceholderPage({
   segment,
 }: {

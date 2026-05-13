@@ -6,15 +6,10 @@ import type {
   MarketplaceResourceType,
 } from "./marketplace.contract"
 import type {
-  orgPolicyDeleteInputSchema,
-  orgPolicyInputSchema,
   policyAudienceSchema,
   policyStateSchema,
 } from "./schemas/org-policy.schema"
-import type {
-  preferenceStateSchema,
-  userPreferenceInputSchema,
-} from "./schemas/user-preference.schema"
+import type { preferenceStateSchema } from "./schemas/user-preference.schema"
 
 /**
  * Capability Registry — application-layer DTOs and result unions.
@@ -218,11 +213,3 @@ export type {
   OrgPolicyInput,
 } from "./schemas/org-policy.schema"
 export type { UserPreferenceInput } from "./schemas/user-preference.schema"
-
-// Inline-usage types so consumers can `z.infer<typeof userPreferenceInputSchema>`
-// without re-importing the schema module directly.
-export type _RawUserPreferenceInput = z.infer<typeof userPreferenceInputSchema>
-export type _RawOrgPolicyInput = z.infer<typeof orgPolicyInputSchema>
-export type _RawOrgPolicyDeleteInput = z.infer<
-  typeof orgPolicyDeleteInputSchema
->

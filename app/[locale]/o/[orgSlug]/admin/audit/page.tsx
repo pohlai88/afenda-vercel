@@ -7,18 +7,15 @@ import {
   OrgAuditEventsView,
   OrganizationAuditCsvExport,
   organizationAdminPath,
+  serializeOrgAdminAuditSearchParams,
 } from "#features/org-admin"
-import { recordOrgAdminPageVisit } from "#features/org-admin/server"
+import {
+  recordOrgAdminPageVisit,
+  resolveOrgAdminAuditSearchParams,
+} from "#features/org-admin/server"
 import { isOperationalSimulationEnabled } from "#features/simulation"
 
-import {
-  searchParamFirst,
-  searchParamPositiveInt,
-} from "#lib/app-search-params.shared"
-import {
-  listOrganizationIamAuditEvents,
-  parseOrganizationIamAuditOriginFilterParam,
-} from "#lib/auth"
+import { listOrganizationIamAuditEvents } from "#lib/auth"
 import { requireOrgSession } from "#lib/tenant"
 
 export default async function OrgAdminAuditPage({
@@ -38,11 +35,9 @@ export default async function OrgAdminAuditPage({
     orgSlug,
     segment: "audit",
   })
-  const sp = await searchParams
-  const page = searchParamPositiveInt(sp, "page", 1)
-  const auditOriginFilter = parseOrganizationIamAuditOriginFilterParam(
-    searchParamFirst(sp, "view")
-  )
+
+  const { page, auditOriginFilter } =
+    await resolveOrgAdminAuditSearchParams(searchParams)
 
   const result = await listOrganizationIamAuditEvents({
     organizationId: orgSession.organizationId,
@@ -53,12 +48,16 @@ export default async function OrgAdminAuditPage({
   const auditBase = organizationAdminPath(orgSlug, "audit")
 
   function auditListingHref(targetPage: number): Route {
-    const params = new URLSearchParams()
-    if (targetPage > 1) params.set("page", String(targetPage))
-    if (auditOriginFilter === "simulation") params.set("view", "simulated")
-    else if (auditOriginFilter === "all") params.set("view", "all")
-    const q = params.toString()
-    return (q.length > 0 ? `${auditBase}?${q}` : auditBase) as Route
+    const href = serializeOrgAdminAuditSearchParams(auditBase, {
+      page: targetPage <= 1 ? null : targetPage,
+      view:
+        auditOriginFilter === "simulation"
+          ? "simulated"
+          : auditOriginFilter === "all"
+            ? "all"
+            : null,
+    })
+    return href as Route
   }
 
   const prevHref = page > 1 ? auditListingHref(page - 1) : null
@@ -70,17 +69,26 @@ export default async function OrgAdminAuditPage({
   const viewLinks = [
     {
       label: t("viewProduction"),
-      href: auditBase,
+      href: serializeOrgAdminAuditSearchParams(auditBase, {
+        page: null,
+        view: null,
+      }) as Route,
       isActive: auditOriginFilter === "production",
     },
     {
       label: t("viewSimulated"),
-      href: `${auditBase}?view=simulated` as Route,
+      href: serializeOrgAdminAuditSearchParams(auditBase, {
+        page: null,
+        view: "simulated",
+      }) as Route,
       isActive: auditOriginFilter === "simulation",
     },
     {
       label: t("viewAll"),
-      href: `${auditBase}?view=all` as Route,
+      href: serializeOrgAdminAuditSearchParams(auditBase, {
+        page: null,
+        view: "all",
+      }) as Route,
       isActive: auditOriginFilter === "all",
     },
   ] as const

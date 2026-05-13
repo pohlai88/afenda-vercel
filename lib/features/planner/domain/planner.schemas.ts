@@ -10,6 +10,7 @@ import {
   PLANNER_VIEW_SORT_MODES,
 } from "../constants"
 import { plannerViewFilterStateSchema } from "../filters/planner-view-filter.shared"
+import { isPlannerRRuleValid } from "../recurrence/planner-recurrence.shared"
 
 const plannerDimensionSchema = z.coerce.number().int().min(0).max(5)
 
@@ -65,6 +66,14 @@ export const createPlannerItemFormSchema = z.object({
   pressure: plannerPressureDimensionsSchema.partial().default({}),
 })
 
+export const capturePlannerItemFormSchema = z.object({
+  rawText: z.string().trim().min(1).max(500),
+  scopeKind: z.enum(["organization", "personal"]).default("organization"),
+  surface: plannerSavedViewSurfaceSchema.default("queue"),
+  orgSlug: z.string().trim().max(255).optional(),
+  timeZone: z.string().trim().max(100).default("Asia/Kuala_Lumpur"),
+})
+
 export const transitionPlannerItemFormSchema = z.object({
   itemId: z.string().uuid(),
   lifecycle: plannerItemLifecycleSchema,
@@ -83,6 +92,118 @@ export const transitionPlannerSignalFormSchema = z.object({
   signalId: z.string().uuid(),
   lifecycle: plannerSignalLifecycleSchema,
 })
+
+export const plannerBatchTriageOperationSchema = z.enum([
+  "promote_signals",
+  "defer_signals",
+  "suppress_signals",
+  "activate_items",
+  "block_items",
+  "ready_items",
+  "verify_items",
+  "assign_items",
+])
+
+/** Item-only batch transitions for queue / today / timeline (no signal operations). */
+export const plannerBatchQueueItemOperationSchema = z.enum([
+  "activate_items",
+  "block_items",
+  "ready_items",
+  "verify_items",
+  "assign_items",
+])
+
+export type PlannerBatchQueueItemOperation = z.infer<
+  typeof plannerBatchQueueItemOperationSchema
+>
+
+export const batchPlannerQueueItemsActionFormSchema = z
+  .object({
+    operation: plannerBatchQueueItemOperationSchema,
+    itemIds: z.array(z.string().uuid()).max(50).default([]),
+    subjectUserId: z.string().trim().max(255).optional(),
+    subjectLabel: z.string().trim().max(255).optional(),
+    surface: z.enum(["queue", "today", "timeline"]),
+  })
+  .superRefine((value, ctx) => {
+    if (value.itemIds.length === 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["itemIds"],
+        message: "Choose at least one item.",
+      })
+    }
+    if (
+      value.operation === "assign_items" &&
+      !value.subjectUserId &&
+      !value.subjectLabel
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["subjectLabel"],
+        message: "An assignee reference is required.",
+      })
+    }
+  })
+
+export const batchPlannerTriageActionFormSchema = z
+  .object({
+    operation: plannerBatchTriageOperationSchema,
+    signalIds: z.array(z.string().uuid()).max(50).default([]),
+    itemIds: z.array(z.string().uuid()).max(50).default([]),
+    subjectUserId: z.string().trim().max(255).optional(),
+    subjectLabel: z.string().trim().max(255).optional(),
+  })
+  .superRefine((value, ctx) => {
+    const signalOperation =
+      value.operation === "promote_signals" ||
+      value.operation === "defer_signals" ||
+      value.operation === "suppress_signals"
+
+    if (signalOperation) {
+      if (value.signalIds.length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["signalIds"],
+          message: "Choose at least one signal.",
+        })
+      }
+      if (value.itemIds.length > 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["itemIds"],
+          message: "Signal operations cannot target items.",
+        })
+      }
+      return
+    }
+
+    if (value.itemIds.length === 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["itemIds"],
+        message: "Choose at least one item.",
+      })
+    }
+    if (value.signalIds.length > 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["signalIds"],
+        message: "Item operations cannot target signals.",
+      })
+    }
+    if (
+      value.operation === "assign_items" &&
+      !value.subjectUserId &&
+      !value.subjectLabel
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["subjectLabel"],
+        message: "An assignee reference is required.",
+      })
+    }
+  })
 
 export const startPlannerSessionFormSchema = z.object({
   itemId: z.string().uuid().optional(),
@@ -111,7 +232,14 @@ export const upsertPlannerReminderFormSchema = z.object({
 
 export const upsertPlannerRecurrenceFormSchema = z.object({
   itemId: z.string().uuid(),
-  rrule: z.string().trim().min(1).max(255),
+  rrule: z
+    .string()
+    .trim()
+    .min(1)
+    .max(255)
+    .refine((value) => isPlannerRRuleValid(value), {
+      message: "Invalid recurrence rule",
+    }),
   timeZone: z.string().trim().max(100).optional(),
   nextRunAt: optionalDateTimeField,
 })

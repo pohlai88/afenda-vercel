@@ -77,7 +77,7 @@ export type {
   LeaveRequestStateLabelTone,
 } from "./data/leave-display.shared"
 
-// Phase 2C: Attendance
+/** Attendance aggregation + queries (events, day rollups). */
 export {
   aggregateAttendanceDay,
   computeEventChecksum,
@@ -127,12 +127,7 @@ export type {
   AttendanceManualEventType,
 } from "./data/attendance-display.shared"
 
-// PR #3 — HR Documents Vault. Org-scoped library reads + employee
-// filter choices used by the `/dashboard/hrm/documents` page composer.
-// The per-employee `listHrmDocumentsForEmployee` continues to ship
-// from the same module but is consumed only by the employee detail
-// page; both reads scope by `organizationId` and are safe to call
-// after `requireOrgSession`.
+/** HR documents vault reads (org library + employee filter choices). */
 export {
   listEmployeeChoicesForDocumentFilter,
   listHrmDocumentsForEmployee,
@@ -163,7 +158,7 @@ export type {
   HrmDocumentTypeTone,
 } from "./data/hrm-document-display.shared"
 
-// Phase 3A: Payroll preparation
+/** Payroll preparation engine + period/run reads. */
 export {
   computePayrollRun,
   derivePayrollTraceability,
@@ -193,20 +188,18 @@ export type {
   PayrollLineRow,
 } from "./data/payroll.queries.server"
 
-// Phase 3C: Compliance evidence
+/** Compliance evidence reads (period/org scope, delivery lookup). */
 export {
   listComplianceEvidenceForPeriod,
   listComplianceEvidenceForOrg,
   getComplianceEvidence,
   fetchRunsForStatutoryPack,
-  // Phase 3J: webhook receiver lookup
   findEvidenceByDeliveryId,
 } from "./data/compliance.queries.server"
 
 export type { ComplianceEvidenceRow } from "./data/compliance.queries.server"
 
-// Phase 3J: shared `submitted -> acknowledged` transition used by both the
-// manual HR Server Action and the bureau webhook receiver.
+/** Shared `submitted` → `acknowledged` transition (manual action + bureau webhook). */
 export { acknowledgeEvidenceTransition } from "./data/compliance-acknowledgement.server"
 
 export type {
@@ -214,11 +207,7 @@ export type {
   AcknowledgeEvidenceTransitionResult,
 } from "./data/compliance-acknowledgement.server"
 
-// Phase 3K: per-evidence lifecycle timeline composer + shared types.
-// `listComplianceEvidenceTimeline` is the single read used by the
-// `/dashboard/hrm/compliance/[evidenceId]` surface; the shared mapping +
-// kind types are re-exported so client islands and tests can consume them
-// without pulling the server-only composer in.
+/** Per-evidence compliance timeline read + shared kind mapping (client-safe re-exports). */
 export { listComplianceEvidenceTimeline } from "./data/compliance-timeline.queries.server"
 
 export {
@@ -236,12 +225,7 @@ export type {
   ComplianceTimelineKind,
 } from "./data/compliance-timeline.shared"
 
-// Phase 3L: cross-period operational health snapshot + classifier. The
-// snapshot composer is the single read used by the Suspense-streamed
-// operational health card on the compliance index. The pure classifier
-// + bucket constants are re-exported so unit tests, future Nexus
-// pressure projections, and cron alerters can reuse them without
-// pulling the server-only composer.
+/** Cross-period compliance operational health snapshot + pure classifiers. */
 export { getComplianceOperationalHealthSnapshot } from "./data/compliance-operational-health.queries.server"
 
 export type {
@@ -303,8 +287,7 @@ export {
 } from "./data/statutory-event-types.shared"
 export type { AcknowledgementSource } from "./data/statutory-event-types.shared"
 
-// Phase 3G: Auto-retry of failed statutory submissions (cron-driven).
-// `runStatutoryRetryTick` is invoked by `app/api/cron/hrm-statutory-retry`.
+/** Auto-retry of failed statutory submissions (`app/api/cron/hrm-statutory-retry`). */
 export {
   STATUTORY_RETRY_BASE_DELAY_MS,
   STATUTORY_RETRY_MAX_ATTEMPTS,
@@ -324,10 +307,7 @@ export type {
   StatutoryRetryTickSummary,
 } from "./data/statutory-retry.server"
 
-// Phase 3N: Per-bureau operational reliability projection. Pure
-// composer + classifier are exported alongside the snapshot so unit
-// tests, future Nexus pressure projections, and dashboards can reuse
-// the math without pulling the server-only query in.
+/** Per-bureau reliability snapshot + pure classifier (HTTP delivery signals). */
 export {
   BUREAU_RELIABILITY_AUTHORITIES,
   BUREAU_RELIABILITY_CRITICAL_THRESHOLD,
@@ -351,11 +331,7 @@ export type {
 
 export { getBureauReliabilitySnapshot } from "./data/bureau-reliability.queries.server"
 
-// Phase 3M / 3O: System-observed aging watch (cron-driven). Records
-// when `submitted` evidence rows cross each operational severity
-// threshold so the per-evidence Phase 3K timeline reflects active
-// monitoring at the right severity, rather than only human + bureau
-// actions. Invoked by `app/api/cron/hrm-compliance-aging-watch`.
+/** System-observed compliance aging watch (`app/api/cron/hrm-compliance-aging-watch`). */
 export {
   STATUTORY_AGING_WATCH_AUDIT_ACTION,
   STATUTORY_AGING_WATCH_AUDIT_ACTIONS,
@@ -374,15 +350,8 @@ export type {
   AgingWatchTickSummary,
 } from "./data/compliance-aging-watch.server"
 
-// Phase 3P + 3Q: Compliance aging tier fanout. Best-effort signed
-// outbound delivery on `org_event_delivery` triggered by the watch
-// cron after each successful tier audit write. Orgs subscribe per
-// tier (digest / on-call / pager). Pure helpers are exported so
-// contract tests can lock the envelope shape and outcome-counter
-// math without a database round-trip. Phase 3P critical-only names
-// are preserved as aliases for back-compat.
+/** Compliance aging tier fanout — signed outbound delivery after tier audit writes. */
 export {
-  HRM_COMPLIANCE_AGING_CRITICAL_EVENT_TYPE,
   HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES,
   HRM_FANOUT_FORBIDDEN_KEYS,
   buildAgingCriticalEventEnvelopeData,
@@ -405,16 +374,16 @@ export type {
   AgingTierFanoutOutcome,
 } from "./data/compliance-aging-fanout.server"
 
-// Phase 2 — Working Memory Rail pressure. Server-only query wrapped in
-// `React.cache` so the layout (`app/[locale]/o/[orgSlug]/dashboard/hrm/
-// layout.tsx`) and any future RSC consumers share a single round trip
-// per request.
-export { getHrmRailPressureCounts } from "./data/hrm-rail-pressure.queries.server"
+/** HRM rail pressure counts (`React.cache` in layout). */
+export {
+  getCompliancePressureAggregateForOrg,
+  getHrmRailPressureCounts,
+} from "./data/hrm-rail-pressure.queries.server"
 
-// PR #4 — HR Policies workbench. Org-scoped reads for the leave-types
-// catalog and effective-dated overlay timeline; the per-row mutation
-// surface stays on the existing Phase 2A Server Actions. The display
-// helpers + tab enum are pure (Server- and Client-Component safe).
+export { getHrmSnapshotBoard } from "./data/hrm-snapshot.queries.server"
+export type { HrmSnapshotBoard } from "./data/hrm-snapshot.queries.server"
+
+/** Leave policy + leave type catalog reads (admin policies workbench). */
 export {
   getLeaveTypeForOrg,
   listAllLeaveTypesForOrg,
@@ -447,8 +416,7 @@ export type {
   MyEa2023LeaveTypeCode,
 } from "./data/leave-policy-display.shared"
 
-// Phase 4 — Claims (org-scoped reads for the kanban + drill-down +
-// admin inbox + payroll-finalize bridge + HR Nexus pressure aggregator).
+/** Claims reads (org scope, approvals, payroll bridge). */
 export {
   countApprovedUnpaidClaimsForOrg,
   countPendingClaimsForOrg,
@@ -464,6 +432,26 @@ export {
   listPendingClaimApprovalsForOrg,
 } from "./data/claim.queries.server"
 
+/** Benefits administration reads (plans, enrollments, life events). */
+export {
+  countPendingBenefitEnrollmentsForOrganization,
+  getBenefitEnrollmentForOrganization,
+  getBenefitLifeEventForOrganization,
+  getBenefitPlanForOrganization,
+  listBenefitEnrollmentsForOrganization,
+  listBenefitPlansForOrganization,
+  listEnrollmentsForEmployee,
+  listEnrollmentsForPlan,
+  listLifeEventsForEmployee,
+  listLifeEventsForOrganization,
+} from "./data/benefit.queries.server"
+
+export type {
+  BenefitEnrollmentListRow,
+  BenefitLifeEventRow,
+  BenefitPlanRow,
+} from "./data/benefit-model.shared"
+
 export type {
   ClaimDetailRow,
   ClaimDocumentLite,
@@ -472,10 +460,7 @@ export type {
   ClaimTypeRow,
 } from "./data/claim.queries.server"
 
-// Phase 4 — Document expiry watch (cron-driven; mirrors compliance
-// aging watch pattern). Pure helpers + tier audit actions are
-// re-exported so unit tests + future Nexus pressure projections can
-// reuse the math without pulling the server-only tick driver in.
+/** Document expiry watch pure helpers + cron tick summary types. */
 export {
   buildDocumentExpiryAuditMetadata,
   computeDocumentExpiryCutoff,
@@ -502,11 +487,22 @@ export {
 
 export type { DocumentExpiryWatchTickSummary } from "./data/document-expiry-watch.server"
 
-// Phase 4 — HR Nexus pressure aggregator. Composed by `getNexusSnapshot`
-// alongside the Orbit pressure rows and merged into a single severity-
-// sorted list before reaching the Nexus Field. Pure helpers + the row
-// type are exported from the `.shared` module so the Nexus mapper +
-// unit tests can reuse them without dragging the server-only query in.
+export {
+  PROBATION_REVIEW_DUE_AUDIT_ACTION,
+  PROBATION_WATCH_BATCH_LIMIT,
+  probationReviewWindowBounds,
+} from "./data/probation-watch.shared"
+
+export type { ProbationReviewCandidate } from "./data/probation-watch.shared"
+
+export {
+  listProbationReviewCandidates,
+  runProbationWatchTick,
+} from "./data/probation-watch.server"
+
+export type { ProbationWatchTickSummary } from "./data/probation-watch.server"
+
+/** HR pressure rows merged into Nexus snapshot (pure rank helpers + server read). */
 export {
   claimPriorityForAge,
   documentPriorityForTier,

@@ -6,7 +6,7 @@
 | **Date**               | 2026-05-12                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | **Supersedes**         | Hand-authored module scaffolds, copy-paste-from-`contacts` workflows, and ad-hoc ADR numbering by hand.                                                                                                                                                                                                                                                                                                                                                            |
 | **Does not supersede** | **AGENTS.md §6** ERP clean directory contract (the rules generators emit *into*). **ADR-0007** Turborepo task graph (`pnpm verify` cache). **ADR-0008** Vitest configuration (`tests/unit/*-org-scope.test.ts` produced by the `capability` generator runs through that pipeline). The IAM audit policy in **AGENTS.md §5** still governs what a generated Server Action may write — generators emit stubs, not finished code.                                      |
-| **Implements in code** | [`turbo/generators/config.ts`](../../turbo/generators/config.ts) · [`turbo/generators/lib/*`](../../turbo/generators/lib/) · [`turbo/generators/templates/*`](../../turbo/generators/templates/) · `pnpm gen` script in [`package.json`](../../package.json) · `turbo/generators/**` listed under `lint:agent-contract.inputs` in [`turbo.json`](../../turbo.json) · `turbo/generators/config.ts` registered in [`scripts/check-agent-contract.mjs`](../../scripts/check-agent-contract.mjs) `REQUIRED_FILES` / `ROOT_TOOLING_FILES`. |
+| **Implements in code** | [`turbo/generators/config.ts`](../../turbo/generators/config.ts) · [`turbo/generators/lib/*`](../../turbo/generators/lib/) · [`turbo/generators/templates/*`](../../turbo/generators/templates/) · [`scripts/turbo-gen.mjs`](../../scripts/turbo-gen.mjs) (`pnpm gen` entry → `pnpm exec turbo gen`) · `pnpm gen` script in [`package.json`](../../package.json) · `turbo/generators/**` listed under `lint:agent-contract.inputs` in [`turbo.json`](../../turbo.json) · `turbo/generators/config.ts` registered in [`scripts/check-agent-contract.mjs`](../../scripts/check-agent-contract.mjs) `REQUIRED_FILES` / `ROOT_TOOLING_FILES`. |
 | **Related docs**       | [Turborepo · Generating code](https://turborepo.dev/docs/guides/generating-code) · [`@turbo/gen`](https://www.npmjs.com/package/@turbo/gen) · [Plop](https://plopjs.com/documentation/) · [`lib/erp/crud-sap.shared.ts`](../../lib/erp/crud-sap.shared.ts) — CRUD-SAP verb enum + audit-action builders                                                                                                                                                              |
 
 ---
@@ -37,7 +37,7 @@ This ADR codifies a single mechanism — **Turborepo generators via `@turbo/gen`
 
 ### 2.1 Five Phase-1 generators
 
-Each invoked via `pnpm gen <name>` (top-level script in `package.json`):
+Each invoked via `pnpm gen <name>` (`package.json` → [`scripts/turbo-gen.mjs`](../../scripts/turbo-gen.mjs) → `pnpm exec turbo gen`). For **`action`**, `pnpm gen action --module <slug>` supplies Turborepo’s **positional** `--args` answers (`slug`, `object`, `verb`, `tierKey`); optional `--object`, `--verb`, `--tier` override defaults (`record`, `create`, `B`). Raw `turbo gen … --module` is invalid — Turbo does not accept that flag.
 
 | Generator        | What it emits                                                                                                                                                                                                                                                                       | Cancels which manual ritual                                                       |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
@@ -99,7 +99,7 @@ Generated Server Actions deliberately **do not** include the DB write or the aud
 
 ## 4. Compliance
 
-- **AGENTS.md §3 Toolchain** documents the generators as part of the toolchain, with the public command `pnpm gen <name>`.
+- **AGENTS.md §3 Toolchain** documents the generators as part of the toolchain, with the public command `pnpm gen <name>` and the **`scripts/turbo-gen.mjs`** wrapper for **`action --module`** → positional **`--args`**.
 - **AGENTS.md §4.2 Required files** lists `turbo/generators/config.ts` — removing it fails `scripts/check-agent-contract.mjs`.
 - **AGENTS.md §6** marks `pnpm gen capability` as the canonical birth mechanism for new ERP modules and `pnpm gen action` as the canonical mechanism for new Server Actions in existing modules. Opt-out (hand-authored) is permitted only when explicitly documented in the PR description.
 - **`turbo.json`** lists `turbo/generators/**` under `lint:agent-contract.inputs` so cache invalidation is automatic when generators change.
@@ -111,4 +111,5 @@ Generated Server Actions deliberately **do not** include the DB write or the aud
 
 | Date       | Change                                                                                                                                                                |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-13 | Document `scripts/turbo-gen.mjs` — `pnpm gen action --module <slug>` maps to positional `--args`; align with **AGENTS.md §3**. |
 | 2026-05-12 | Initial acceptance — codifies five Phase-1 generators (`capability`, `action`, `adr`, `audit-contract`, `workflow-job`), post-gen lint, and the contract-binding rules |

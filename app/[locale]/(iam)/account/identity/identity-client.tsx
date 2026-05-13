@@ -1,5 +1,6 @@
 "use client"
 
+import type { Route } from "next"
 import { useLocale } from "next-intl"
 import { useState } from "react"
 
@@ -25,6 +26,9 @@ export function AccountIdentityClient(props: {
   linkedAccounts: SafeLinkedAccount[]
   enabledProviders: string[]
   hasCredential: boolean
+  identityPath?: Route
+  securityPath?: Route
+  dashboardPath?: Route
 }) {
   const locale = ensureAppLocale(useLocale())
   const router = useRouter()
@@ -36,6 +40,10 @@ export function AccountIdentityClient(props: {
   const linkedProviderSet = new Set(
     props.linkedAccounts.map((a) => a.providerId)
   )
+
+  const identityPath = props.identityPath ?? "/account/identity"
+  const securityPath = props.securityPath ?? "/account/security"
+  const dashboardPath = props.dashboardPath ?? "/o"
 
   async function saveProfile() {
     setErr(null)
@@ -61,7 +69,7 @@ export function AccountIdentityClient(props: {
     }
     const { error } = await authClient.changeEmail({
       newEmail: trimmed,
-      callbackURL: toLocalePath(locale, "/account/identity"),
+      callbackURL: toLocalePath(locale, identityPath as never),
     })
     if (error) {
       setErr(error.message ?? "Could not start email change")
@@ -76,7 +84,7 @@ export function AccountIdentityClient(props: {
     setMsg(null)
     const { error } = await authClient.linkSocial({
       provider,
-      callbackURL: toLocalePath(locale, "/account/identity"),
+      callbackURL: toLocalePath(locale, identityPath as never),
     })
     if (error) {
       setErr(error.message ?? "Could not link provider")
@@ -268,11 +276,11 @@ export function AccountIdentityClient(props: {
               </p>
             ) : null}
             <p className="text-sm text-muted-foreground">
-              <Link href="/account/security" className="underline">
+              <Link href={securityPath} className="underline">
                 Security settings
               </Link>
               {" · "}
-              <Link href="/o" className="underline">
+              <Link href={dashboardPath} className="underline">
                 Dashboard
               </Link>
             </p>

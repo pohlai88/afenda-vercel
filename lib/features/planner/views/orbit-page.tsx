@@ -10,6 +10,7 @@ import {
 import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#components/module-page-header"
+import { isOrbitAdvancedOperatorControlsEnabled } from "#flags"
 import { Badge } from "#components/ui/badge"
 import { Button } from "#components/ui/button"
 import {
@@ -30,6 +31,8 @@ import { describePlannerActivityDisplay } from "../audit/planner-activity-displa
 import { describePlannerAutomationAttentionKind } from "../automation/planner-automation-attention.shared"
 import { addPlannerCommentAction } from "../commands/add-planner-comment"
 import { acknowledgePlannerNoticeAction } from "../commands/acknowledge-planner-notice"
+import { batchPlannerQueueItemsAction } from "../commands/batch-planner-queue-items"
+import { batchPlannerTriageAction } from "../commands/batch-planner-triage"
 import { closePlannerNoticeAction } from "../commands/close-planner-notice"
 import {
   accountOrbitPath,
@@ -40,8 +43,8 @@ import {
   PLANNER_VIEW_SORT_MODES,
 } from "../constants"
 import { assignPlannerOwnershipAction } from "../commands/assign-planner-ownership"
+import { capturePlannerItemAction } from "../commands/capture-planner-item"
 import { correlatePlannerSignalAction } from "../commands/correlate-planner-signal"
-import { createPlannerItemAction } from "../commands/create-planner-item"
 import { createPlannerLinkAction } from "../commands/create-planner-link"
 import { createPlannerRelationAction } from "../commands/create-planner-relation"
 import { createPlannerSignalAction } from "../commands/create-planner-signal"
@@ -61,6 +64,16 @@ import {
   serializePlannerViewFilterState,
   type PlannerViewFilterState,
 } from "../filters/planner-view-filter.shared"
+import { buildOrbitKeyboardNavList } from "../domain/orbit-keyboard-nav.shared"
+import {
+  derivePlannerTriageOperatingLane,
+  summarizePlannerTriageOperatingLanes,
+  type PlannerTriageOperatingLane,
+} from "../triage/planner-triage-rule.shared"
+import {
+  groupPlannerEvidenceGraphForDisplay,
+  type PlannerEvidenceLane,
+} from "../evidence/planner-evidence-graph.shared"
 import {
   getOrbitPageData,
   getPlannerItemDetail,
@@ -81,6 +94,10 @@ import type {
   PlannerViewSortMode,
 } from "../types"
 import { OrbitAttachmentForm } from "./orbit-attachment-form.client"
+import { OrbitCaptureInput } from "./orbit-capture-input.client"
+import { OrbitQueueBatchControls } from "./orbit-queue-batch-controls.client"
+import { OrbitTriageBatchControls } from "./orbit-triage-batch-controls.client"
+import { OrbitOperatorHotkeys } from "./orbit-operator-hotkeys.client"
 
 const SURFACE_META = {
   queue: { icon: Activity },
@@ -208,6 +225,14 @@ function noticeSeverityVariant(severity: "info" | "warning" | "critical") {
   return "info" as const
 }
 
+function triageOperatingLaneLabel(lane: PlannerTriageOperatingLane) {
+  if (lane === "automation_attention") return "Automation attention"
+  if (lane === "blocked_recovery") return "Blocked recovery"
+  if (lane === "high_pressure") return "High pressure"
+  if (lane === "signal_intake") return "Signal intake"
+  return "Manual follow-up"
+}
+
 function relationLabel(relation: PlannerRelationRow) {
   const target =
     relation.relatedItemTitle ??
@@ -234,7 +259,10 @@ export async function OrbitPage({
   viewerUserId?: string | null
   canManageNotices?: boolean
 }) {
-  const t = await getTranslations("Dashboard.Orbit")
+  const [t, advancedOperatorControlsEnabled] = await Promise.all([
+    getTranslations("Dashboard.Orbit"),
+    isOrbitAdvancedOperatorControlsEnabled(),
+  ])
   const basePath = plannerBasePath({ scope, orgSlug, surface })
   const currentSearchParams = toUrlSearchParams(searchParams)
   const focusKind = firstSearchValue(
@@ -312,6 +340,36 @@ export async function OrbitPage({
           (item) => (item.operationalFacts?.automationFailureCount ?? 0) > 0
         )
       : []
+  const triageOperatingSummary =
+    surface === "triage"
+      ? summarizePlannerTriageOperatingLanes([
+          ...page.items.map((item) => ({
+            kind: "item" as const,
+            pressureScore: item.pressureScore,
+            displayPriority: item.displayPriority,
+            blockedState: item.blockedState,
+            automationKinds: item.operationalFacts?.automationKinds ?? [],
+          })),
+          ...page.signals.map((signal) => ({
+            kind: "signal" as const,
+            pressureScore: signal.pressureScore,
+            displayPriority: signal.displayPriority,
+            signalClass: signal.signalClass,
+          })),
+        ])
+      : null
+
+  const listNav = buildOrbitKeyboardNavList(surface, page)
+  const evidenceGroupTitles: Record<PlannerEvidenceLane, string> = {
+    erp: t("evidence.groups.erp"),
+    operator: t("evidence.groups.operator"),
+    execution: t("evidence.groups.execution"),
+    telemetry: t("evidence.groups.telemetry"),
+    automation: t("evidence.groups.automation"),
+  }
+  const supportsQueueBatch =
+    surface === "queue" || surface === "today" || surface === "timeline"
+  const queueBatchActive = supportsQueueBatch && page.items.length > 0
 
   const statusCopy =
     status === "createdSignal"
@@ -323,28 +381,32 @@ export async function OrbitPage({
           : status === "updatedItem"
             ? t("status.updatedItem")
             : status === "updatedSignal"
-              ? "Signal updated."
-              : status === "commentAdded"
-                ? "Comment added."
-                : status === "attachmentAdded"
-                  ? "Attachment added."
-                  : status === "noticeRead"
-                    ? "Notice marked as read."
-                    : status === "noticeAcknowledged"
-                      ? "Notice acknowledged."
-                      : status === "noticeClosed"
-                        ? "Notice closed."
-                        : status === "savedView"
-                          ? "Saved view updated."
-                          : status === "deletedView"
-                            ? "Saved view deleted."
-                            : status === "startedSession"
-                              ? t("status.startedSession")
-                              : status === "stoppedSession"
-                                ? t("status.stoppedSession")
-                                : status === "invalidInput"
-                                  ? t("status.invalidInput")
-                                  : null
+              ? t("status.updatedSignal")
+              : status === "batchUpdated"
+                ? t("status.batchApplied")
+                : status === "commentAdded"
+                  ? t("status.commentAdded")
+                  : status === "attachmentAdded"
+                    ? t("status.attachmentAdded")
+                    : status === "noticeRead"
+                      ? t("status.noticeRead")
+                      : status === "noticeAcknowledged"
+                        ? t("status.noticeAcknowledged")
+                        : status === "noticeClosed"
+                          ? t("status.noticeClosed")
+                          : status === "savedView"
+                            ? t("status.savedView")
+                            : status === "deletedView"
+                              ? t("status.deletedView")
+                              : status === "startedSession"
+                                ? t("status.startedSession")
+                                : status === "stoppedSession"
+                                  ? t("status.stoppedSession")
+                                  : status === "invalidInput"
+                                    ? t("status.invalidInput")
+                                    : status === "featureDisabled"
+                                      ? t("status.featureDisabled")
+                                      : null
 
   const SurfaceIcon = SURFACE_META[surface].icon
 
@@ -460,6 +522,10 @@ export async function OrbitPage({
         </div>
       ) : null}
 
+      {advancedOperatorControlsEnabled ? (
+        <OrbitOperatorHotkeys basePath={basePath} listNav={listNav} />
+      ) : null}
+
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(22rem,0.9fr)]">
         <Card className="min-h-[28rem]">
           <CardHeader className="border-b border-border/60">
@@ -472,82 +538,279 @@ export async function OrbitPage({
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-surface-lg">
-            {automationAttentionItems.length > 0 ? (
-              <OrbitAutomationAttentionSection
-                basePath={basePath}
-                currentSearchParams={currentSearchParams}
-                items={automationAttentionItems}
-              />
-            ) : null}
-            {listEntries.length === 0 ? (
-              <Empty className="border border-dashed border-border/70 bg-muted/20">
-                <EmptyTitle>{t("panels.emptyTitle")}</EmptyTitle>
-                <EmptyDescription>
-                  {t("panels.emptyDescription")}
-                </EmptyDescription>
-              </Empty>
+            {surface === "triage" && advancedOperatorControlsEnabled ? (
+              <form
+                action={batchPlannerTriageAction}
+                className="space-y-4"
+                data-orbit-triage-batch
+              >
+                <HiddenPlannerScopeFields
+                  scope={scope}
+                  surface={surface}
+                  orgSlug={orgSlug}
+                />
+                {triageOperatingSummary ? (
+                  <OrbitTriageBatchControls
+                    automationAttentionCount={
+                      triageOperatingSummary.automationAttentionCount
+                    }
+                    blockedRecoveryCount={
+                      triageOperatingSummary.blockedRecoveryCount
+                    }
+                    highPressureCount={triageOperatingSummary.highPressureCount}
+                    signalIntakeCount={triageOperatingSummary.signalIntakeCount}
+                    manualFollowUpCount={
+                      triageOperatingSummary.manualFollowUpCount
+                    }
+                    itemCount={page.items.length}
+                    signalCount={page.signals.length}
+                  />
+                ) : null}
+                {automationAttentionItems.length > 0 ? (
+                  <OrbitAutomationAttentionSection
+                    basePath={basePath}
+                    currentSearchParams={currentSearchParams}
+                    items={automationAttentionItems}
+                  />
+                ) : null}
+                {listEntries.length === 0 ? (
+                  <Empty className="border border-dashed border-border/70 bg-muted/20">
+                    <EmptyTitle>{t("panels.emptyTitle")}</EmptyTitle>
+                    <EmptyDescription>
+                      {t("panels.emptyDescription")}
+                    </EmptyDescription>
+                  </Empty>
+                ) : (
+                  <div className="space-y-3">
+                    {page.items.map((item) => (
+                      <OrbitItemRow
+                        key={item.id}
+                        href={focusHref(
+                          basePath,
+                          currentSearchParams,
+                          "item",
+                          item.id
+                        )}
+                        title={item.title}
+                        description={item.description}
+                        priority={item.displayPriority}
+                        pressure={item.pressureScore}
+                        state={item.lifecycle}
+                        dueAt={item.dueAt}
+                        operationalFacts={item.operationalFacts}
+                        blockedState={item.blockedState}
+                        selectionName="itemIds"
+                        selectionValue={item.id}
+                        triageLane={derivePlannerTriageOperatingLane({
+                          kind: "item",
+                          pressureScore: item.pressureScore,
+                          displayPriority: item.displayPriority,
+                          blockedState: item.blockedState,
+                          automationKinds:
+                            item.operationalFacts?.automationKinds ?? [],
+                        })}
+                      />
+                    ))}
+                    {page.signals.map((signal) => (
+                      <OrbitSignalRow
+                        key={signal.id}
+                        href={focusHref(
+                          basePath,
+                          currentSearchParams,
+                          "signal",
+                          signal.id
+                        )}
+                        title={signal.title}
+                        description={signal.description}
+                        signalClass={signal.signalClass}
+                        lifecycle={signal.lifecycle}
+                        pressure={signal.pressureScore}
+                        selectionName="signalIds"
+                        selectionValue={signal.id}
+                        triageLane={derivePlannerTriageOperatingLane({
+                          kind: "signal",
+                          pressureScore: signal.pressureScore,
+                          displayPriority: signal.displayPriority,
+                          signalClass: signal.signalClass,
+                        })}
+                      />
+                    ))}
+                  </div>
+                )}
+              </form>
+            ) : queueBatchActive && advancedOperatorControlsEnabled ? (
+              <form
+                action={batchPlannerQueueItemsAction}
+                className="space-y-4"
+                data-orbit-queue-batch
+              >
+                <HiddenPlannerScopeFields
+                  scope={scope}
+                  surface={surface}
+                  orgSlug={orgSlug}
+                />
+                <input type="hidden" name="surface" value={surface} />
+                <OrbitQueueBatchControls itemCount={page.items.length} />
+                {automationAttentionItems.length > 0 ? (
+                  <OrbitAutomationAttentionSection
+                    basePath={basePath}
+                    currentSearchParams={currentSearchParams}
+                    items={automationAttentionItems}
+                  />
+                ) : null}
+                {listEntries.length === 0 ? (
+                  <Empty className="border border-dashed border-border/70 bg-muted/20">
+                    <EmptyTitle>{t("panels.emptyTitle")}</EmptyTitle>
+                    <EmptyDescription>
+                      {t("panels.emptyDescription")}
+                    </EmptyDescription>
+                  </Empty>
+                ) : (
+                  <div className="space-y-3">
+                    {page.items.map((item) => (
+                      <OrbitItemRow
+                        key={item.id}
+                        href={focusHref(
+                          basePath,
+                          currentSearchParams,
+                          "item",
+                          item.id
+                        )}
+                        title={item.title}
+                        description={item.description}
+                        priority={item.displayPriority}
+                        pressure={item.pressureScore}
+                        state={item.lifecycle}
+                        dueAt={item.dueAt}
+                        operationalFacts={item.operationalFacts}
+                        blockedState={item.blockedState}
+                        selectionName="itemIds"
+                        selectionValue={item.id}
+                      />
+                    ))}
+                    {page.signals.map((signal) => (
+                      <OrbitSignalRow
+                        key={signal.id}
+                        href={focusHref(
+                          basePath,
+                          currentSearchParams,
+                          "signal",
+                          signal.id
+                        )}
+                        title={signal.title}
+                        description={signal.description}
+                        signalClass={signal.signalClass}
+                        lifecycle={signal.lifecycle}
+                        pressure={signal.pressureScore}
+                      />
+                    ))}
+                    {page.sessions.map((session) => (
+                      <OrbitSessionRow
+                        key={session.id}
+                        href={focusHref(
+                          basePath,
+                          currentSearchParams,
+                          "session",
+                          session.id
+                        )}
+                        session={session}
+                      />
+                    ))}
+                    {page.links.map((link) => (
+                      <OrbitLinkRow
+                        key={link.id}
+                        href={focusHref(
+                          basePath,
+                          currentSearchParams,
+                          "link",
+                          link.id
+                        )}
+                        link={link}
+                      />
+                    ))}
+                  </div>
+                )}
+              </form>
             ) : (
-              <div className="space-y-3">
-                {page.items.map((item) => (
-                  <OrbitItemRow
-                    key={item.id}
-                    href={focusHref(
-                      basePath,
-                      currentSearchParams,
-                      "item",
-                      item.id
-                    )}
-                    title={item.title}
-                    description={item.description}
-                    priority={item.displayPriority}
-                    pressure={item.pressureScore}
-                    state={item.lifecycle}
-                    dueAt={item.dueAt}
-                    operationalFacts={item.operationalFacts}
-                    blockedState={item.blockedState}
+              <>
+                {automationAttentionItems.length > 0 ? (
+                  <OrbitAutomationAttentionSection
+                    basePath={basePath}
+                    currentSearchParams={currentSearchParams}
+                    items={automationAttentionItems}
                   />
-                ))}
-                {page.signals.map((signal) => (
-                  <OrbitSignalRow
-                    key={signal.id}
-                    href={focusHref(
-                      basePath,
-                      currentSearchParams,
-                      "signal",
-                      signal.id
-                    )}
-                    title={signal.title}
-                    description={signal.description}
-                    signalClass={signal.signalClass}
-                    lifecycle={signal.lifecycle}
-                    pressure={signal.pressureScore}
-                  />
-                ))}
-                {page.sessions.map((session) => (
-                  <OrbitSessionRow
-                    key={session.id}
-                    href={focusHref(
-                      basePath,
-                      currentSearchParams,
-                      "session",
-                      session.id
-                    )}
-                    session={session}
-                  />
-                ))}
-                {page.links.map((link) => (
-                  <OrbitLinkRow
-                    key={link.id}
-                    href={focusHref(
-                      basePath,
-                      currentSearchParams,
-                      "link",
-                      link.id
-                    )}
-                    link={link}
-                  />
-                ))}
-              </div>
+                ) : null}
+                {listEntries.length === 0 ? (
+                  <Empty className="border border-dashed border-border/70 bg-muted/20">
+                    <EmptyTitle>{t("panels.emptyTitle")}</EmptyTitle>
+                    <EmptyDescription>
+                      {t("panels.emptyDescription")}
+                    </EmptyDescription>
+                  </Empty>
+                ) : (
+                  <div className="space-y-3">
+                    {page.items.map((item) => (
+                      <OrbitItemRow
+                        key={item.id}
+                        href={focusHref(
+                          basePath,
+                          currentSearchParams,
+                          "item",
+                          item.id
+                        )}
+                        title={item.title}
+                        description={item.description}
+                        priority={item.displayPriority}
+                        pressure={item.pressureScore}
+                        state={item.lifecycle}
+                        dueAt={item.dueAt}
+                        operationalFacts={item.operationalFacts}
+                        blockedState={item.blockedState}
+                      />
+                    ))}
+                    {page.signals.map((signal) => (
+                      <OrbitSignalRow
+                        key={signal.id}
+                        href={focusHref(
+                          basePath,
+                          currentSearchParams,
+                          "signal",
+                          signal.id
+                        )}
+                        title={signal.title}
+                        description={signal.description}
+                        signalClass={signal.signalClass}
+                        lifecycle={signal.lifecycle}
+                        pressure={signal.pressureScore}
+                      />
+                    ))}
+                    {page.sessions.map((session) => (
+                      <OrbitSessionRow
+                        key={session.id}
+                        href={focusHref(
+                          basePath,
+                          currentSearchParams,
+                          "session",
+                          session.id
+                        )}
+                        session={session}
+                      />
+                    ))}
+                    {page.links.map((link) => (
+                      <OrbitLinkRow
+                        key={link.id}
+                        href={focusHref(
+                          basePath,
+                          currentSearchParams,
+                          "link",
+                          link.id
+                        )}
+                        link={link}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -567,6 +830,10 @@ export async function OrbitPage({
                 surface={surface}
                 orgSlug={orgSlug}
                 canManageNotices={canManageNotices}
+                evidenceGroupTitles={evidenceGroupTitles}
+                formatEvidenceMoreInGroup={(shown, total) =>
+                  t("evidence.moreInGroup", { shown, total })
+                }
               />
             ) : signalDetail ? (
               <SignalDetailPanel
@@ -574,6 +841,10 @@ export async function OrbitPage({
                 scope={scope}
                 surface={surface}
                 orgSlug={orgSlug}
+                evidenceGroupTitles={evidenceGroupTitles}
+                formatEvidenceMoreInGroup={(shown, total) =>
+                  t("evidence.moreInGroup", { shown, total })
+                }
               />
             ) : sessionDetail ? (
               <SessionDetailPanel
@@ -581,9 +852,19 @@ export async function OrbitPage({
                 scope={scope}
                 surface={surface}
                 orgSlug={orgSlug}
+                evidenceGroupTitles={evidenceGroupTitles}
+                formatEvidenceMoreInGroup={(shown, total) =>
+                  t("evidence.moreInGroup", { shown, total })
+                }
               />
             ) : linkDetail ? (
-              <LinkDetailPanel detail={linkDetail} />
+              <LinkDetailPanel
+                detail={linkDetail}
+                evidenceGroupTitles={evidenceGroupTitles}
+                formatEvidenceMoreInGroup={(shown, total) =>
+                  t("evidence.moreInGroup", { shown, total })
+                }
+              />
             ) : hasFocusedRecord ? (
               <Empty className="border border-dashed border-border/70 bg-muted/20">
                 <EmptyTitle>Record unavailable</EmptyTitle>
@@ -1121,18 +1402,11 @@ function QuickItemForm({
   surface: OrbitDashboardSurface
 }) {
   return (
-    <form action={createPlannerItemAction} className="space-y-3">
+    <form action={capturePlannerItemAction} className="space-y-3">
       <input type="hidden" name="scopeKind" value={scope.scopeKind} />
       <input type="hidden" name="surface" value={surface} />
       <input type="hidden" name="orgSlug" value={orgSlug ?? ""} />
-      <Input
-        name="title"
-        aria-label="Orbit item title"
-        placeholder="Execution item title"
-        required
-      />
-      <Input name="dueAt" type="datetime-local" />
-      <Textarea name="description" placeholder="Execution context (optional)" />
+      <OrbitCaptureInput />
       <Button type="submit" size="sm" variant="outline">
         Add item
       </Button>
@@ -1150,6 +1424,9 @@ function OrbitItemRow({
   dueAt,
   operationalFacts,
   blockedState,
+  selectionName,
+  selectionValue,
+  triageLane,
 }: {
   href: string
   title: string
@@ -1160,6 +1437,9 @@ function OrbitItemRow({
   dueAt: Date | null
   operationalFacts?: PlannerOperationalFacts
   blockedState?: PlannerBlockedState | null
+  selectionName?: string
+  selectionValue?: string
+  triageLane?: PlannerTriageOperatingLane
 }) {
   const operationalSummary = [
     operationalFacts?.blockedByCount
@@ -1181,55 +1461,73 @@ function OrbitItemRow({
     .join(" · ")
 
   return (
-    <Link
-      href={href}
-      className="block rounded-2xl border border-border/60 bg-background px-4 py-3 transition-colors hover:bg-muted/30"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-medium">{title}</p>
-          {description ? (
-            <p className="pt-1 text-sm text-muted-foreground">{description}</p>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          {operationalFacts?.automationFailureCount ? (
-            <Badge variant="warning">Automation</Badge>
-          ) : null}
-          {blockedState ? (
-            <Badge variant={blockedStageVariant(blockedState.stage)}>
-              {blockedStageLabel(blockedState.stage)}
+    <div className="flex items-start gap-3">
+      {selectionName && selectionValue ? (
+        <input
+          type="checkbox"
+          name={selectionName}
+          value={selectionValue}
+          aria-label={`Select ${title}`}
+          className="mt-4 size-4 rounded border-input"
+        />
+      ) : null}
+      <Link
+        href={href}
+        className="block flex-1 rounded-2xl border border-border/60 bg-background px-4 py-3 transition-colors hover:bg-muted/30"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-medium">{title}</p>
+            {description ? (
+              <p className="pt-1 text-sm text-muted-foreground">
+                {description}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {triageLane ? (
+              <Badge variant="outline">
+                {triageOperatingLaneLabel(triageLane)}
+              </Badge>
+            ) : null}
+            {operationalFacts?.automationFailureCount ? (
+              <Badge variant="warning">Automation</Badge>
+            ) : null}
+            {blockedState ? (
+              <Badge variant={blockedStageVariant(blockedState.stage)}>
+                {blockedStageLabel(blockedState.stage)}
+              </Badge>
+            ) : null}
+            <Badge
+              variant={
+                priority === "critical"
+                  ? "critical"
+                  : priority === "high"
+                    ? "warning"
+                    : "secondary"
+              }
+            >
+              {priority}
             </Badge>
-          ) : null}
-          <Badge
-            variant={
-              priority === "critical"
-                ? "critical"
-                : priority === "high"
-                  ? "warning"
-                  : "secondary"
-            }
-          >
-            {priority}
-          </Badge>
+          </div>
         </div>
-      </div>
-      <div className="pt-3 text-xs text-muted-foreground">
-        {state} · pressure {pressure}
-        {dueAt ? ` · due ${dueAt.toLocaleString()}` : ""}
-      </div>
-      {operationalSummary ? (
-        <div className="pt-1 text-xs text-muted-foreground">
-          {operationalSummary}
+        <div className="pt-3 text-xs text-muted-foreground">
+          {state} · pressure {pressure}
+          {dueAt ? ` · due ${dueAt.toLocaleString()}` : ""}
         </div>
-      ) : null}
-      {blockedState ? (
-        <div className="pt-1 text-xs text-muted-foreground">
-          blocked {blockedState.blockedHours}h · threshold{" "}
-          {blockedState.thresholdHours}h
-        </div>
-      ) : null}
-    </Link>
+        {operationalSummary ? (
+          <div className="pt-1 text-xs text-muted-foreground">
+            {operationalSummary}
+          </div>
+        ) : null}
+        {blockedState ? (
+          <div className="pt-1 text-xs text-muted-foreground">
+            blocked {blockedState.blockedHours}h · threshold{" "}
+            {blockedState.thresholdHours}h
+          </div>
+        ) : null}
+      </Link>
+    </div>
   )
 }
 
@@ -1240,6 +1538,9 @@ function OrbitSignalRow({
   signalClass,
   lifecycle,
   pressure,
+  selectionName,
+  selectionValue,
+  triageLane,
 }: {
   href: string
   title: string
@@ -1247,25 +1548,48 @@ function OrbitSignalRow({
   signalClass: string
   lifecycle: string
   pressure: number
+  selectionName?: string
+  selectionValue?: string
+  triageLane?: PlannerTriageOperatingLane
 }) {
   return (
-    <Link
-      href={href}
-      className="block rounded-2xl border border-border/60 bg-background px-4 py-3 transition-colors hover:bg-muted/30"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-medium">{title}</p>
-          {description ? (
-            <p className="pt-1 text-sm text-muted-foreground">{description}</p>
-          ) : null}
+    <div className="flex items-start gap-3">
+      {selectionName && selectionValue ? (
+        <input
+          type="checkbox"
+          name={selectionName}
+          value={selectionValue}
+          aria-label={`Select ${title}`}
+          className="mt-4 size-4 rounded border-input"
+        />
+      ) : null}
+      <Link
+        href={href}
+        className="block flex-1 rounded-2xl border border-border/60 bg-background px-4 py-3 transition-colors hover:bg-muted/30"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-medium">{title}</p>
+            {description ? (
+              <p className="pt-1 text-sm text-muted-foreground">
+                {description}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {triageLane ? (
+              <Badge variant="outline">
+                {triageOperatingLaneLabel(triageLane)}
+              </Badge>
+            ) : null}
+            <Badge variant="outline">{signalClass}</Badge>
+          </div>
         </div>
-        <Badge variant="outline">{signalClass}</Badge>
-      </div>
-      <div className="pt-3 text-xs text-muted-foreground">
-        {lifecycle} · pressure {pressure}
-      </div>
-    </Link>
+        <div className="pt-3 text-xs text-muted-foreground">
+          {lifecycle} · pressure {pressure}
+        </div>
+      </Link>
+    </div>
   )
 }
 
@@ -1352,12 +1676,16 @@ function ItemDetailPanel({
   surface,
   orgSlug,
   canManageNotices,
+  evidenceGroupTitles,
+  formatEvidenceMoreInGroup,
 }: {
   detail: Awaited<ReturnType<typeof getPlannerItemDetail>>
   scope: PlannerScopeInput
   surface: OrbitDashboardSurface
   orgSlug?: string
   canManageNotices: boolean
+  evidenceGroupTitles: Record<PlannerEvidenceLane, string>
+  formatEvidenceMoreInGroup: (shown: number, total: number) => string
 }) {
   if (!detail) return null
   const supportsOrgNotices = scope.scopeKind === "organization"
@@ -1481,7 +1809,11 @@ function ItemDetailPanel({
 
       <Separator />
       <DetailSection title="Evidence graph">
-        <PlannerEvidenceGraphList graph={detail.evidenceGraph} />
+        <PlannerEvidenceGraphList
+          graph={detail.evidenceGraph}
+          evidenceGroupTitles={evidenceGroupTitles}
+          formatEvidenceMoreInGroup={formatEvidenceMoreInGroup}
+        />
       </DetailSection>
       <DetailSection title="Schedule">
         <form
@@ -2016,11 +2348,15 @@ function SignalDetailPanel({
   scope,
   surface,
   orgSlug,
+  evidenceGroupTitles,
+  formatEvidenceMoreInGroup,
 }: {
   detail: Awaited<ReturnType<typeof getPlannerSignalDetail>>
   scope: PlannerScopeInput
   surface: OrbitDashboardSurface
   orgSlug?: string
+  evidenceGroupTitles: Record<PlannerEvidenceLane, string>
+  formatEvidenceMoreInGroup: (shown: number, total: number) => string
 }) {
   if (!detail) return null
 
@@ -2122,7 +2458,11 @@ function SignalDetailPanel({
         )}
       </DetailSection>
       <DetailSection title="Evidence graph">
-        <PlannerEvidenceGraphList graph={detail.evidenceGraph} />
+        <PlannerEvidenceGraphList
+          graph={detail.evidenceGraph}
+          evidenceGroupTitles={evidenceGroupTitles}
+          formatEvidenceMoreInGroup={formatEvidenceMoreInGroup}
+        />
       </DetailSection>
       <DetailSection title="Activity">
         <PlannerActivityList activity={detail.activity} />
@@ -2136,11 +2476,15 @@ function SessionDetailPanel({
   scope,
   surface,
   orgSlug,
+  evidenceGroupTitles,
+  formatEvidenceMoreInGroup,
 }: {
   detail: Awaited<ReturnType<typeof getPlannerSessionDetail>>
   scope: PlannerScopeInput
   surface: OrbitDashboardSurface
   orgSlug?: string
+  evidenceGroupTitles: Record<PlannerEvidenceLane, string>
+  formatEvidenceMoreInGroup: (shown: number, total: number) => string
 }) {
   if (!detail) return null
 
@@ -2173,7 +2517,9 @@ function SessionDetailPanel({
         <p className="pt-3 text-sm text-muted-foreground">
           started {detail.startedAt.toLocaleString()}
           {detail.endedAt ? ` · ended ${detail.endedAt.toLocaleString()}` : ""}
-          {detail.pausedAt ? ` · paused ${detail.pausedAt.toLocaleString()}` : ""}
+          {detail.pausedAt
+            ? ` · paused ${detail.pausedAt.toLocaleString()}`
+            : ""}
         </p>
         {(detail.createdByUserId || detail.updatedByUserId) && (
           <p className="pt-1 text-xs text-muted-foreground">
@@ -2265,7 +2611,11 @@ function SessionDetailPanel({
       </DetailSection>
 
       <DetailSection title="Evidence graph">
-        <PlannerEvidenceGraphList graph={detail.evidenceGraph} />
+        <PlannerEvidenceGraphList
+          graph={detail.evidenceGraph}
+          evidenceGroupTitles={evidenceGroupTitles}
+          formatEvidenceMoreInGroup={formatEvidenceMoreInGroup}
+        />
       </DetailSection>
 
       <DetailSection title="Recent activity">
@@ -2277,8 +2627,12 @@ function SessionDetailPanel({
 
 function LinkDetailPanel({
   detail,
+  evidenceGroupTitles,
+  formatEvidenceMoreInGroup,
 }: {
   detail: Awaited<ReturnType<typeof getPlannerLinkDetail>>
+  evidenceGroupTitles: Record<PlannerEvidenceLane, string>
+  formatEvidenceMoreInGroup: (shown: number, total: number) => string
 }) {
   if (!detail) return null
 
@@ -2389,7 +2743,11 @@ function LinkDetailPanel({
       ) : null}
 
       <DetailSection title="Evidence graph">
-        <PlannerEvidenceGraphList graph={detail.evidenceGraph} />
+        <PlannerEvidenceGraphList
+          graph={detail.evidenceGraph}
+          evidenceGroupTitles={evidenceGroupTitles}
+          formatEvidenceMoreInGroup={formatEvidenceMoreInGroup}
+        />
       </DetailSection>
 
       <DetailSection title="Activity">
@@ -2434,16 +2792,29 @@ function plannerActivityBadgeVariant(
   }
 }
 
-function PlannerEvidenceGraphList({ graph }: { graph: PlannerEvidenceGraph }) {
+function PlannerEvidenceGraphList({
+  graph,
+  evidenceGroupTitles,
+  formatEvidenceMoreInGroup,
+}: {
+  graph: PlannerEvidenceGraph
+  evidenceGroupTitles: Record<PlannerEvidenceLane, string>
+  formatEvidenceMoreInGroup: (shown: number, total: number) => string
+}) {
   if (graph.nodes.length === 0) {
     return <DetailEmpty message="No evidence graph nodes yet." />
   }
+
+  const sections = groupPlannerEvidenceGraphForDisplay(graph)
+  const maxPerSection = 10
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2 text-xs">
         <Badge variant="secondary">{graph.summary.linkCount} ERP links</Badge>
-        <Badge variant="secondary">{graph.summary.relationCount} relations</Badge>
+        <Badge variant="secondary">
+          {graph.summary.relationCount} relations
+        </Badge>
         <Badge variant="secondary">{graph.summary.activityCount} events</Badge>
         <Badge variant="secondary">{graph.summary.sessionCount} sessions</Badge>
         <Badge variant="secondary">
@@ -2451,41 +2822,64 @@ function PlannerEvidenceGraphList({ graph }: { graph: PlannerEvidenceGraph }) {
         </Badge>
         <Badge variant="secondary">{graph.summary.noticeCount} notices</Badge>
       </div>
-      <div className="space-y-2">
-        {graph.nodes.slice(0, 10).map((node) => (
-          <div
-            key={node.id}
-            className="rounded-xl border border-border/60 px-3 py-2 text-sm"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <Badge variant="outline">{node.kind}</Badge>
-                {node.href ? (
-                  <a
-                    href={node.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-medium text-primary hover:underline"
+      <div className="space-y-6">
+        {sections.map((section) => {
+          const shown = section.nodes.slice(0, maxPerSection)
+          const overflow = section.nodes.length - shown.length
+          return (
+            <div key={section.lane} className="space-y-2">
+              <h5 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {evidenceGroupTitles[section.lane]}
+              </h5>
+              <div className="space-y-2">
+                {shown.map((node) => (
+                  <div
+                    key={node.id}
+                    className="rounded-xl border border-border/60 px-3 py-2 text-sm"
                   >
-                    {node.label}
-                  </a>
-                ) : (
-                  <span className="font-medium text-foreground">
-                    {node.label}
-                  </span>
-                )}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <Badge variant="outline">{node.kind}</Badge>
+                        {node.href ? (
+                          <a
+                            href={node.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-medium text-primary hover:underline"
+                          >
+                            {node.label}
+                          </a>
+                        ) : (
+                          <span className="font-medium text-foreground">
+                            {node.label}
+                          </span>
+                        )}
+                      </div>
+                      {node.occurredAt ? (
+                        <span className="text-xs text-muted-foreground">
+                          {node.occurredAt.toLocaleString()}
+                        </span>
+                      ) : null}
+                    </div>
+                    {node.description ? (
+                      <p className="pt-2 text-muted-foreground">
+                        {node.description}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
               </div>
-              {node.occurredAt ? (
-                <span className="text-xs text-muted-foreground">
-                  {node.occurredAt.toLocaleString()}
-                </span>
+              {overflow > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {formatEvidenceMoreInGroup(
+                    shown.length,
+                    section.nodes.length
+                  )}
+                </p>
               ) : null}
             </div>
-            {node.description ? (
-              <p className="pt-2 text-muted-foreground">{node.description}</p>
-            ) : null}
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

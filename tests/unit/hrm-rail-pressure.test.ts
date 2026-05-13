@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest"
 
 import {
   HRM_RAIL_PRESSURE_THRESHOLDS,
+  deriveHrmBenefitsPressure,
   deriveHrmCompliancePressure,
   deriveHrmLeavePressure,
   deriveHrmPayrollPressure,
+  type BenefitsPressureInput,
   type CompliancePressureInput,
   type LeavePressureInput,
   type PayrollPressureInput,
@@ -64,6 +66,15 @@ function complianceInput(
     submittedAwaitingCount: 0,
     oldestSubmittedAgeMs: null,
     failedCount: 0,
+    ...overrides,
+  }
+}
+
+function benefitsInput(
+  overrides: Partial<BenefitsPressureInput> = {}
+): BenefitsPressureInput {
+  return {
+    pendingEnrollmentCount: 0,
     ...overrides,
   }
 }
@@ -185,5 +196,39 @@ describe("deriveHrmCompliancePressure", () => {
         })
       )
     ).toEqual({ count: 5, tone: "critical" })
+  })
+})
+
+describe("deriveHrmBenefitsPressure", () => {
+  it("returns null when there are no pending enrollments", () => {
+    expect(deriveHrmBenefitsPressure(benefitsInput())).toBeNull()
+  })
+
+  it("returns attention below the critical backlog threshold", () => {
+    expect(
+      deriveHrmBenefitsPressure(
+        benefitsInput({
+          pendingEnrollmentCount:
+            HRM_RAIL_PRESSURE_THRESHOLDS.benefitsPendingCriticalCount - 1,
+        })
+      )
+    ).toEqual({
+      count: HRM_RAIL_PRESSURE_THRESHOLDS.benefitsPendingCriticalCount - 1,
+      tone: "attention",
+    })
+  })
+
+  it("escalates to critical at the configured backlog threshold", () => {
+    expect(
+      deriveHrmBenefitsPressure(
+        benefitsInput({
+          pendingEnrollmentCount:
+            HRM_RAIL_PRESSURE_THRESHOLDS.benefitsPendingCriticalCount,
+        })
+      )
+    ).toEqual({
+      count: HRM_RAIL_PRESSURE_THRESHOLDS.benefitsPendingCriticalCount,
+      tone: "critical",
+    })
   })
 })

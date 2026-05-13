@@ -183,6 +183,41 @@
       "when": 1778595616836,
       "tag": "0025_capability_registry",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1779120000000,
+      "tag": "0026_hrm_sg_rule_pack_registry_seed",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1779206400000,
+      "tag": "0027_hrm_id_rule_pack_registry_seed",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1778688348931,
+      "tag": "0028_hrm_onboarding_performance",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1779292800000,
+      "tag": "0029_hrm_dependent_kpi_advance_uplift",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1778697157258,
+      "tag": "0030_hrm_benefits_phase5",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,46 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
+
+vi.mock("server-only", () => ({}))
+vi.mock("#lib/auth/neon.server", () => ({
+  auth: {
+    organization: {
+      inviteMember: vi.fn(),
+    },
+  },
+}))
+vi.mock("#lib/auth", () => ({
+  assertOrgInviteRateAllowed: vi.fn(async () => ({ ok: true })),
+}))
+vi.mock(
+  "../../lib/features/org-admin/data/hrm-payroll-profile-import.adapter.server",
+  () => ({
+    hrmPayrollProfileImportAdapter: {
+      id: "hrm_payroll_profile_import",
+      requiredHeaders: [],
+      parseRow: vi.fn(),
+      applyRow: vi.fn(),
+    },
+  })
+)
+vi.mock(
+  "../../lib/features/org-admin/data/hrm-employee-hire.adapter.server",
+  () => ({
+    hrmEmployeeHireAdapter: {
+      id: "hrm_employee_hire",
+      requiredHeaders: [],
+      parseRow: vi.fn(),
+      applyRow: vi.fn(),
+    },
+  })
+)
+vi.mock("../../lib/features/hrm/data/attendance-import.adapter.server", () => ({
+  attendanceImportAdapter: {
+    id: "hrm_attendance_import",
+    requiredHeaders: [],
+    parseRow: vi.fn(),
+    applyRow: vi.fn(),
+  },
+}))
 
 import {
   IMPORT_ADAPTERS,
@@ -33,8 +75,13 @@ describe("ingestion-job constants", () => {
     ])
   })
 
-  it("IMPORT_ADAPTERS includes member_invite", () => {
-    expect(IMPORT_ADAPTERS).toContain("member_invite")
+  it("IMPORT_ADAPTERS exposes every registered public adapter", () => {
+    expect(IMPORT_ADAPTERS).toEqual([
+      "member_invite",
+      "hrm_payroll_profile_import",
+      "hrm_employee_hire",
+      "hrm_attendance_import",
+    ])
   })
 
   it("type guards reject unknown values", () => {

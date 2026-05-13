@@ -58,8 +58,11 @@ export function PoliciesSeedMyEa2023Dialog() {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("leaveTypes.seedDialogTitle")}</DialogTitle>
-          <DialogDescription>
-            {t("leaveTypes.seedDialogDescription")}
+          <DialogDescription className="space-y-2">
+            <p>{t("leaveTypes.seedDialogDescription")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("leaveTypes.seedDialogPayrollHint")}
+            </p>
           </DialogDescription>
         </DialogHeader>
 
@@ -88,7 +91,7 @@ export function PoliciesSeedMyEa2023Dialog() {
         {state && !state.ok ? (
           <Alert variant="destructive">
             <AlertTitle>{t("leaveTypes.seedFailed")}</AlertTitle>
-            <AlertDescription>{state.error}</AlertDescription>
+            <AlertDescription>{state.errors.form}</AlertDescription>
           </Alert>
         ) : null}
 

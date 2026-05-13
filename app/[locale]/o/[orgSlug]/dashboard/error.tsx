@@ -1,8 +1,13 @@
 "use client"
 
-import { useRouteEnvelope } from "#components/route-envelope-context"
 import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
+import {
+  RouteErrorActions,
+  RouteErrorDigest,
+  RouteErrorShell,
+} from "#components/route-error-primitives"
 import { RouteErrorRetryButton } from "#components/route-error-retry-button"
+import { useRouteEnvelope } from "#components/route-envelope-context"
 import { useReportRouteError } from "#components/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
@@ -10,11 +15,12 @@ import {
 } from "#lib/next-app-error-page-props.shared"
 
 /**
- * Dashboard-tier error boundary — keeps the org dashboard shell (top bar, module nav)
- * mounted while the page content recovers.
+ * Dashboard-tier error boundary — keeps the org dashboard shell (utility bar, module
+ * chrome) mounted while the page content recovers.
  *
- * Reads RouteEnvelope from context (set by dashboard/layout.tsx) to include
- * org-scoped segment info in error reports for better observability.
+ * Reads RouteEnvelope from context (set by dashboard/layout.tsx) for observability.
+ *
+ * @see https://nextjs.org/docs/app/api-reference/file-conventions/error
  */
 export default function OrgDashboardError(props: NextAppErrorPageProps) {
   const { error } = props
@@ -26,26 +32,24 @@ export default function OrgDashboardError(props: NextAppErrorPageProps) {
   useReportRouteError({ segment, error })
 
   return (
-    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-lg font-medium text-foreground">
+    <RouteErrorShell variant="embedded">
+      <h1 className="text-2xl font-semibold text-foreground">
         This page could not load
       </h1>
       <p className="max-w-md text-sm text-muted-foreground">
-        The dashboard shell is still available — try reloading the panel or
-        navigate to another module from the sidebar.
+        The dashboard shell is still available — try reloading the panel or navigate
+        to another module from the rail.
       </p>
-      {error.digest ? (
-        <p className="font-mono text-xs text-muted-foreground">
-          Reference: {error.digest}
-        </p>
-      ) : null}
-      <RouteErrorRetryButton
-        retryAction={retryAction}
-        resetAction={resetAction}
-      >
-        Try again
-      </RouteErrorRetryButton>
+      <RouteErrorDigest digest={error.digest} />
+      <RouteErrorActions>
+        <RouteErrorRetryButton
+          retryAction={retryAction}
+          resetAction={resetAction}
+        >
+          Try again
+        </RouteErrorRetryButton>
+      </RouteErrorActions>
       <RouteErrorDebugPanel segment={segment} error={error} />
-    </div>
+    </RouteErrorShell>
   )
 }

@@ -1,0 +1,91 @@
+---
+description: Workbench canonical shell (components/workbench/) and Nexus product surface (components/nexus/) — boundaries, schema kernel, forbidden patterns
+globs: "components/workbench/**,components/nexus/**"
+alwaysApply: false
+---
+
+# Shell directory contract
+
+**Replaces:** `workbench-directory.mdc`, `app-shell-directory.mdc`
+**Doctrine:** ADR-0001 (Spatial OS), ADR-0005 (shell unification). If this rule and `AGENTS.md` diverge, follow `AGENTS.md`.
+
+---
+
+## Route layout facade (`AppShell` / `AppSubLayout`)
+
+- **`app/**/layout.tsx`** should import **`AppShell`** and **`AppSubLayout`** from **`#components/workbench`** — they are **re-exports** of `WorkbenchShell` / `WorkbenchSubLayout` in [`app-shell.ts`](../../components/workbench/app-shell.ts) with **no wrapper component** (same function reference).
+- **Filesystem and implementation** stay under `workbench-*.tsx`; **`WorkbenchShell` / `WorkbenchSubLayout` remain exported** from the workbench barrel for compatibility and tests.
+
+---
+
+## Boundary split
+
+| Directory | Owns | Does NOT own |
+|---|---|---|
+| **`components/workbench/`** | All post-login layout chrome: `WorkbenchShell`, `WorkbenchSubLayout`, `WorkbenchSurface`, utility bar, `WorkbenchRail`, command layer, dock, mobile rail, skip-to-main | Product surfaces, ERP logic, DB access, Server Actions |
+| **`components/nexus/`** | Nexus Field product surface (`nexus-page.tsx` + zone components) and Lynx summon UI (`nexus-lynx-summon*.tsx`) | Shell chrome (belongs in `components/workbench/`) |
+| **`components/auth/`** | IAM surfaces (sign-in, interruption flows) | — |
+
+> `components/nexus/` is no longer the shell host. **`AppShell`** (alias of `WorkbenchShell`) is the single canonical post-login mount from `app/**/layout.tsx`.
+
+---
+
+## Component map (`components/workbench/`)
+
+| Component | File | Mount point |
+|---|---|---|
+| `AppShell` | `app-shell.ts` (re-export) | **`app/**/layout.tsx`** — preferred import name |
+| `WorkbenchShell` | `workbench-shell.tsx` | Same component as `AppShell`; implementation symbol |
+| `AppSubLayout` | `app-shell.ts` (re-export) | Nested `layout.tsx` (admin, HRM, dashboard envelope) — preferred import |
+| `WorkbenchSubLayout` | `workbench-sub-layout.tsx` | Same component as `AppSubLayout` |
+| `WorkbenchSurface` | `workbench-surface.tsx` | Page-level content region |
+| `WorkbenchUtilityBar` | `utility-bar/workbench-utility-bar.tsx` | L1 top bar |
+| `WorkbenchRail` | `left-nav-rail/workbench-rail.tsx` | L2 left nav rail |
+| `WorkbenchCommandLayer` | `workbench-command.tsx` | L3 command palette |
+
+---
+
+## Rules
+
+- **Single shell.** **`AppShell`** mounts once per org (or other post-login root). Use **`AppSubLayout`** for inner rails (admin, HRM) — never nest a second full shell.
+- **Registry-aligned nav.** Rail slots built from capability registries (`ORG_ADMIN_CAPABILITIES`, `HRM_CAPABILITIES`, `PLATFORM_ADMIN_CAPABILITIES`) or typed data contracts. No orphaned `NAV_ITEMS` arrays.
+- **L1 widgets.** Use `WorkbenchUtilityRoundTooltipButton` / `WorkbenchUtilityRoundTooltipLink` / `WorkbenchUtilityTriggerTooltip`. Do not import `#components/ui/tooltip` directly inside `components/workbench/**`.
+- **Boring shell.** No animated chrome for novelty. Density and calm ERP posture beat marketing energy.
+- **Feature two-pane layouts** (Orbit queue+detail) live **inside** `WorkbenchSurface.children` under `lib/features/<module>/components/` — not confused with shell components.
+
+## Forbidden
+
+- Tenant/ERP/domain logic inside `components/workbench/**`.
+- Deep imports into `lib/features/<module>/data/...` from shell — use `#features/<module>` or `#features/<module>/client`.
+- Cross-tenant or slug-from-client assumptions — org slug comes from server guards + path builders.
+- Reviving `nexus-shell.tsx` / `nexus-surface-chrome.tsx` (deleted — `WorkbenchShell` replaced them).
+- New shell chrome inside `components/nexus/` — shell belongs in `components/workbench/`.
+- Creating `components/dashboard/` shell directory — there is no second shell stack.
+
+---
+
+## Governance kernel — schema-first rail and governed surfaces
+
+Shell surfaces accepting structured slot data follow the **kernel-first** discipline:
+
+> _The shell Zod schema is the kernel. Per-workbench builders are pure mappers. Structural changes use ts-morph codemods, not hand-edits._
+
+### Rules
+
+1. **Single source of truth.** Rail contract lives in `components/workbench/left-nav-rail/workbench-rail.schema.ts`. TypeScript types in `*.types.ts` are derived via `z.infer<>` — never hand-extended with fields the schema does not declare.
+
+2. **Builders are pure mappers.** `buildAccountRailSlotsV2`, `buildHrmRailSlots`, `buildOrgAdminRailSlots`, `buildPlatformAdminRailSlots` map domain inputs to kernel shape only. They must not synthesize undeclared fields.
+
+3. **Cross-cutting changes use codemods.** When a kernel field changes, propagate via `scripts/refactors/<date>-<slug>.ts` (idempotent, `--dry-run` default + `--apply`).
+
+4. **Governed page chrome follows the same rule.** `lib/features/governed-surface/` is the sibling kernel for repeated post-login page chrome (`GovernedSurface`, `GovernedSection`, `ActionFormErrors`). Renderers compose approved primitives only; they must not fetch domain data, own business logic, or render arbitrary JSON/JSX trees. Doctrine: `docs/decisions/0011-governed-surface-metadata-kernel.md`. Listing URLs that mix **nuqs** loaders in `schemas/` with **server-only** IAM or tenant normalization must resolve the server side in `data/*` and export from `#features/<module>/server` only (see ADR-0011 *URL state* boundary).
+
+### Anti-pattern guardrails (permanent)
+
+- **No decorative status pills.** "Verified", "Live" — disconnected from action. Pressure belongs on nav badges with required `tone`; healthy values must suppress themselves.
+- **No ambient context strips.** "Active workspace = Demo Organization" duplicates the utility bar.
+- **No rail description filler.** Rail is operator chrome — it does not describe itself.
+- **No hardcoded "online" footer.** Footer slot is optional and caller-supplied; empty → renders nothing.
+- **`badge.tone` is required** for pressure counts — integers without semantic tone are meaningless.
+
+If a builder is tempted to break these rules, update the kernel schema first (with ADR), then propagate via codemod.

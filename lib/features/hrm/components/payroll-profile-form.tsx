@@ -12,6 +12,7 @@ import { Input } from "#components/ui/input"
 import { upsertPayrollProfileAction } from "#features/hrm/client"
 
 import { HRM_PAY_SCHEDULES } from "../schemas/payroll-profile.schema"
+import { parseMalaysiaPcbStatutoryExtras } from "../schemas/malaysia-pcb-statutory-extras.shared"
 import type { PayrollProfileCurrentRow } from "../types"
 
 type PayrollProfileFormProps = {
@@ -40,6 +41,11 @@ export function PayrollProfileForm({
     upsertPayrollProfileAction,
     undefined
   )
+
+  const pcbExtras = parseMalaysiaPcbStatutoryExtras(
+    current?.statutoryProfileExtras ?? null
+  )
+  const showMyPcbExtras = (current?.countryCode ?? "MY") === "MY"
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -173,6 +179,55 @@ export function PayrollProfileForm({
           />
         </Field>
       </div>
+
+      {showMyPcbExtras ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field data-invalid={state && !state.ok && state.errors.pcbTp1}>
+            <FieldLabel htmlFor="payroll-pcb-tp1">
+              {t("payrollPcbTp1Label")}
+            </FieldLabel>
+            <p className="mb-1 text-xs text-muted-foreground">
+              {t("payrollPcbTp1Hint")}
+            </p>
+            <Input
+              id="payroll-pcb-tp1"
+              name="pcbTp1AdditionalReliefMonthlyMyr"
+              inputMode="decimal"
+              defaultValue={
+                pcbExtras.pcbTp1AdditionalReliefMonthly === "0.00"
+                  ? ""
+                  : pcbExtras.pcbTp1AdditionalReliefMonthly
+              }
+              aria-invalid={Boolean(state && !state.ok && state.errors.pcbTp1)}
+            />
+            {state && !state.ok && state.errors.pcbTp1 ? (
+              <FieldError>{state.errors.pcbTp1}</FieldError>
+            ) : null}
+          </Field>
+          <Field data-invalid={state && !state.ok && state.errors.pcbTp3}>
+            <FieldLabel htmlFor="payroll-pcb-tp3">
+              {t("payrollPcbTp3Label")}
+            </FieldLabel>
+            <p className="mb-1 text-xs text-muted-foreground">
+              {t("payrollPcbTp3Hint")}
+            </p>
+            <Input
+              id="payroll-pcb-tp3"
+              name="pcbTp3AdditionalDeductionMonthlyMyr"
+              inputMode="decimal"
+              defaultValue={
+                pcbExtras.pcbTp3AdditionalDeductionMonthly === "0.00"
+                  ? ""
+                  : pcbExtras.pcbTp3AdditionalDeductionMonthly
+              }
+              aria-invalid={Boolean(state && !state.ok && state.errors.pcbTp3)}
+            />
+            {state && !state.ok && state.errors.pcbTp3 ? (
+              <FieldError>{state.errors.pcbTp3}</FieldError>
+            ) : null}
+          </Field>
+        </div>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Field>

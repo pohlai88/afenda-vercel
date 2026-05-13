@@ -1,4 +1,4 @@
-import type { WorkbenchRailBadgeTone } from "#components/workbench"
+import type { WorkbenchRailBadgeTone } from "#components/workbench/left-nav-rail"
 import type { HrmDashboardCapabilitySegment } from "#lib/hrm-dashboard.shared"
 
 /** Minimum org role required to open a capability route (Better Auth org roles). */
@@ -6,10 +6,16 @@ export type HrmMinimumOrgRole = "member" | "admin" | "owner"
 
 export type HrmCapabilityId =
   | "workforce"
+  | "organization"
+  | "onboarding"
   | "leave"
   | "attendance"
+  | "benefits"
   | "claims"
   | "payroll"
+  | "performance"
+  | "kpi"
+  | "advances"
   | "compliance"
   | "documents"
   | "policies"
@@ -36,7 +42,7 @@ export const HRM_NAV_NAMESPACE = "Dashboard.Hrm.nav" as const
 /**
  * Semantic urgency carried by every HRM rail nav badge. Re-exports the
  * shell-level tone vocabulary so callers in `lib/features/hrm/` never
- * deep-import `#components/workbench/rail`.
+ * deep-import `#components/workbench/left-nav-rail`.
  *
  * Operators read tone (color) before number — the threshold helpers in
  * `hrm-rail-pressure.shared.ts` are the only legitimate source of
@@ -141,6 +147,8 @@ export type PayrollProfileCurrentRow = {
   payCurrency: string
   payrollGroupCode: string | null
   effectiveFrom: Date
+  /** Malaysia PCB TP1/TP3 and future statutory JSON extensions. */
+  statutoryProfileExtras: unknown | null
 }
 
 export type ContractMutationFormState =
@@ -159,7 +167,12 @@ export type PayrollProfileMutationFormState =
   | { ok: true }
   | {
       ok: false
-      errors: { form?: string; effectiveFrom?: string }
+      errors: {
+        form?: string
+        effectiveFrom?: string
+        pcbTp1?: string
+        pcbTp3?: string
+      }
     }
 
 export type HrmDocumentMutationFormState =
@@ -210,7 +223,20 @@ export type LeavePolicyMutationFormState =
 
 export type SeedLeaveTypesFormState =
   | { ok: true; seeded: string[]; skipped: string[] }
-  | { ok: false; error: string }
+  | { ok: false; errors: { form?: string } }
+
+export type OrgStructureFormState =
+  | { ok: true }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        code?: string
+        name?: string
+        title?: string
+        departmentId?: string
+      }
+    }
 
 export type LeaveRequestMutationFormState =
   | { ok: true; requestId: string }
@@ -376,6 +402,82 @@ export type AttachClaimEvidenceFormState =
     }
 
 // ---------------------------------------------------------------------------
+// Phase 5: Benefits administration
+// ---------------------------------------------------------------------------
+
+export type BenefitPlanMutationFormState =
+  | { ok: true; planId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        code?: string
+        name?: string
+        benefitKind?: string
+        planId?: string
+        benefitType?: string
+        effectiveFrom?: string
+        waitingPeriodDays?: string
+        employerContributionType?: string
+        employeeContributionType?: string
+      }
+    }
+
+export type BenefitArchiveFormState =
+  | { ok: true }
+  | { ok: false; errors: { form?: string; planId?: string } }
+
+export type BenefitEnrollFormState =
+  | { ok: true; enrollmentId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        planId?: string
+        coverageLevel?: string
+        effectiveFrom?: string
+      }
+    }
+
+export type BenefitEnrollmentTransitionFormState =
+  | { ok: true }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        enrollmentId?: string
+        waivedReason?: string
+        terminationReason?: string
+        terminatedAt?: string
+      }
+    }
+
+export type RecordLifeEventFormState =
+  | { ok: true; lifeEventId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        eventType?: string
+        eventDate?: string
+        notes?: string
+      }
+    }
+
+export type VerifyLifeEventFormState =
+  | { ok: true }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        lifeEventId?: string
+        verificationStatus?: string
+      }
+    }
+
+// ---------------------------------------------------------------------------
 // Compliance action states
 // ---------------------------------------------------------------------------
 
@@ -393,6 +495,13 @@ export type HrmComplianceErrorCode =
   | "delivery_failed"
   | "unknown"
 
+/** Shared failure branch for compliance Server Actions (`hrmCodedActionFailure`). */
+export type HrmCodedFailureFormState = {
+  ok: false
+  code: HrmComplianceErrorCode
+  message: string
+}
+
 /** Single-pack generation: returns the canonical evidence row + payload. */
 export type GenerateStatutoryPackFormState =
   | {
@@ -403,7 +512,7 @@ export type GenerateStatutoryPackFormState =
       inputHash: string
       payload?: unknown
     }
-  | { ok: false; code: HrmComplianceErrorCode; message: string }
+  | HrmCodedFailureFormState
 
 /** Bulk pack generation: returns the count + every evidenceId produced. */
 export type GenerateAllStatutoryPacksFormState =
@@ -414,14 +523,14 @@ export type GenerateAllStatutoryPacksFormState =
       evidenceIds: string[]
       rulePackVersion: string
     }
-  | { ok: false; code: HrmComplianceErrorCode; message: string }
+  | HrmCodedFailureFormState
 
 export type MarkEvidenceSubmittedFormState =
   | { ok: true }
-  | { ok: false; code: HrmComplianceErrorCode; message: string }
+  | HrmCodedFailureFormState
 
 /**
- * Outbound bureau submission via `org_event_delivery` (Phase 3E).
+ * Outbound bureau submission via `org_event_delivery`.
  *
  * Success carries the resulting `org_event_delivery` id + receiver HTTP status
  * so the UI can surface a "delivered (HTTP 202)" confirmation without an extra
@@ -435,17 +544,11 @@ export type SubmitStatutoryEvidenceFormState =
       eventType: string
       httpStatus: number | null
     }
-  | { ok: false; code: HrmComplianceErrorCode; message: string }
+  | HrmCodedFailureFormState
 
 /**
- * Manual bureau acknowledgement (Phase 3H) — operator records that the bureau
- * confirmed receipt (typically via emailed receipt). Captures an optional
- * external reference (bureau receipt number / case id). Closes the lifecycle
- * loop: `submitted -> acknowledged`.
- *
- * State machine guard:
- *   - Only `submitted` rows are eligible.
- *   - `acknowledged` is terminal — re-acknowledgement returns `invalid_state`.
+ * Manual bureau acknowledgement — operator records bureau receipt; optional
+ * external reference. Transitions `submitted` → `acknowledged` (terminal).
  */
 export type AcknowledgeStatutoryEvidenceFormState =
   | {
@@ -454,4 +557,4 @@ export type AcknowledgeStatutoryEvidenceFormState =
       auditAction: string
       externalReference: string | null
     }
-  | { ok: false; code: HrmComplianceErrorCode; message: string }
+  | HrmCodedFailureFormState

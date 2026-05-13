@@ -83,7 +83,6 @@ export const NEXUS_UTILITY_CATALOG = [
       customizable: true,
       defaultVisible: true,
       priority: 0,
-      adminOnly: true,
     },
   },
   {

@@ -1,0 +1,143 @@
+---
+description: Design system tokens, primitives, materials, Figma parity — enforced via check-design-contract.mjs
+globs: "**/*.{ts,tsx,css},docs/design-system/**/*.md"
+alwaysApply: false
+---
+
+# Design system — enforcement contract
+
+**Replaces:** `design-system-enforcement.mdc`, `design-system-docs-enforcement.mdc`, `material-semantics.mdc`, `figma-code-connect-workflow.mdc`
+**CI:** `pnpm lint` → `scripts/check-design-contract.mjs`
+
+---
+
+## Token contract
+
+- Import aliases from **`#lib/design-system`**: `ui.radius`, `ui.padding`, `ui.gap`, `ui.elevation`, `ui.tone`, `ui.priority`, `uiRadius`, `uiSurfaceElevation`, `uiDensity`, `uiSurfaceInset`, `buttonVariantSchema`, `badgeVariantSchema`, etc.
+- **Forbidden geometry:** `rounded-3xl`, `rounded-4xl`, `shadow-2xl`, arbitrary `rounded-[…]`.
+- **Spacing:** Tailwind scale, `p-surface-*`, `gap-surface-*`, `gap-density-*`. Forbidden: arbitrary literals (`p-[12px]`, `gap-[7px]`). CSS-variable refs (`var(--…)`) remain allowed.
+- **`@theme inline` in `app/globals.css`** must only reference `var(--*)` names that exist under `:root`/`.dark` (enforced by `check-design-contract.mjs`).
+
+## Semantic color contract
+
+- Consume: `bg-primary`, `text-muted-foreground`, `border-border`, etc.
+- **Primitive hovers:** use `bg-primary-hover` / `bg-secondary-hover` — **not** `hover:bg-primary/…` or `hover:bg-secondary/…`.
+- No hardcoded hex values in components.
+
+## Primitive import contract
+
+- UI shelf: **`components/ui/**`** on disk.
+- **All consumers** (`app/**`, `components/**` except the shelf, `hooks/**`, `lib/**`) import via **`#components/ui/<primitive>`** only.
+- Forbidden outside `components/ui` (ESLint):
+  - `@radix-ui/*`, `radix-ui`, `@base-ui/react`
+  - filesystem-relative `**/components/ui` import specifiers
+
+## Runtime validation
+
+When variants/sizes come from external sources (CMS, query params, API), parse with schemas:
+
+```ts
+import { buttonVariantSchema, uiPrimitiveSchema, parseUiSurfaceSpaceKey } from "#lib/design-system"
+buttonVariantSchema.parse(value)
+```
+
+---
+
+## Material semantics (shell infrastructure)
+
+Authority order: `app/globals.css` → ADR-0001 §13 → AGENTS §7. If they diverge, `globals.css` + ADR win — fix this rule in the same change.
+
+> Material is **shell infrastructure** — not generic UI styling. Buttons, forms, tables, ERP content stay `opaque`. Cognition is **not** a reading layer.
+
+### Four phases (only these exist)
+
+| Phase | Class | When |
+|---|---|---|
+| `shell` | `.af-material-shell` | Idle, settled — default for chrome |
+| `transition` | `.af-material-transition` | Activation threshold |
+| `cognition` | `.af-material-cognition` | Truth resolution (Lynx active) |
+| `cognition+` | shell + `data-lynx="high-confidence"` | Confidence-deepened cognition |
+| opaque | `.af-material-opaque` | Dense reading surfaces — **required** for tables, ledgers, audit logs, ERP forms |
+
+### `data-phase` state machine (canonical values only)
+
+```
+idle → hover → focus → typing → resolving → execution → settled
+```
+
+Forbidden ad-hoc names: `active`, `selected`, `open`, `loading`, `processing`, `ai`, `aiActive`.
+
+### `data-lynx` vocabulary
+
+| Value | Meaning |
+|---|---|
+| `idle` | shell |
+| `listening` | transition |
+| `resolving` | cognition |
+| `high-confidence` | deeper saturation |
+| `warning` / `mismatch` | pressure pulse / unstable refraction |
+
+Banned user-facing labels: **AI mode**, **AI active**, **Thinking**, **Processing**, **Generating**. Use: `resolving`, `listening`, `high confidence`, `warning`, `mismatch`.
+
+### Surface adoption matrix
+
+| Surface | Allowed material |
+|---|---|
+| Utility bar (L1) | `shell` only |
+| Dock (L4) | `shell` + `current` |
+| Command palette (L3) | `shell → transition → cognition` |
+| Lynx resolution surfaces | `cognition` (via `data-lynx`) |
+| Modals, toasts | `shell` or `transition` |
+| Dense tables / ledgers / audit logs | `opaque` only |
+| ERP forms | `opaque` or light `shell` |
+
+### Forbidden patterns (CI-enforced outside `app/globals.css`)
+
+```ts
+// ❌ inline style — bypasses material governance
+style={{ backdropFilter: "blur(20px)" }}
+style={{ willChange: "backdrop-filter" }}
+```
+```html
+<!-- ❌ arbitrary blur — bypasses 3-tier budget -->
+<div className="backdrop-blur-[18px]" />
+<div className="blur-[24px]" />
+<!-- ❌ scaled backdrop-blur under components/nexus/ -->
+<div className="backdrop-blur-2xl" />
+```
+```css
+/* ❌ permanent motion — cognitive fatigue */
+animation: pulse 2s ease infinite;
+```
+
+Also forbidden (renamed identifiers — drift detector):
+- `--af-water-*` → use `--af-cognition-*` / `--af-resolution-*`
+- `.af-material-water` → `.af-material-cognition`
+- `.af-material-transitioning` → `.af-material-transition`
+
+### Nexus chrome utilities (`components/nexus/` only)
+
+Use these CSS helpers — do **not** use Tailwind `backdrop-blur-*`:
+- `.af-nexus-l1-chrome-backplate` (L1 shell-tier glass tint + blur; pair `.af-nexus-utility-bar-backdrop` on bar)
+- `.af-nexus-popover-panel` (floating panels → command tier)
+- `.af-nexus-round-control-backdrop` (icon-only round controls)
+
+### Animation discipline
+
+- State pulses fire **3 iterations on entry, then settle**.
+- Persistent state: communicate via **static styling** (`outline`, `border-color`), never infinite animation.
+- All animations respect `prefers-reduced-motion: reduce`.
+
+---
+
+## Documentation sync (`docs/design-system/**/*.md`)
+
+- **Code is truth:** `app/globals.css`, `lib/design-system.ts`, `components/ui/`. Docs describe what code implements.
+- Do not document tokens, variant strings, or APIs not yet in code.
+- When token/primitive APIs change, update `docs/design-system/governance.md` and Code Connect templates in the same change.
+
+## Figma Code Connect
+
+- Run `pnpm design:check` before adding new primitives to verify Figma variant parity.
+- Do not add semantic tokens to Figma without implementing them in `app/globals.css` first.
+- Primitive: `data-slot` attributes must match Code Connect variant mapping.

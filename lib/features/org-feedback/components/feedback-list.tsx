@@ -1,23 +1,16 @@
 import type { Route } from "next"
-import { getFormatter, getTranslations } from "next-intl/server"
+import { getTranslations } from "next-intl/server"
 
-import { Badge } from "#components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components/ui/table"
 import { organizationAdminPath } from "#features/org-admin"
 import { Link } from "#i18n/navigation"
 
+import { serializeOrgFeedbackInboxSearchParams } from "../schemas/org-feedback-inbox.search-params"
 import type {
   OrgFeedbackListResult,
   OrgFeedbackListStateFilter,
 } from "../types"
-import { OrgFeedbackRowActions } from "./feedback-row-actions.client"
+
+import { FeedbackInboxTableClient } from "./feedback-inbox-table.client"
 
 export type OrgFeedbackListProps = {
   orgSlug: string
@@ -31,11 +24,10 @@ function listingHref(
   stateFilter: OrgFeedbackListStateFilter
 ): Route {
   const base = organizationAdminPath(orgSlug, "feedback")
-  const params = new URLSearchParams()
-  if (targetPage > 1) params.set("page", String(targetPage))
-  if (stateFilter !== "all") params.set("state", stateFilter)
-  const q = params.toString()
-  return (q.length > 0 ? `${base}?${q}` : base) as Route
+  return serializeOrgFeedbackInboxSearchParams(base, {
+    page: targetPage <= 1 ? null : targetPage,
+    state: stateFilter === "all" ? null : stateFilter,
+  }) as Route
 }
 
 export async function OrgFeedbackList({
@@ -44,7 +36,6 @@ export async function OrgFeedbackList({
   stateFilter,
 }: OrgFeedbackListProps) {
   const t = await getTranslations("OrgAdmin.feedback")
-  const format = await getFormatter()
 
   const { items, page, totalPages, totalCount } = result
 
@@ -107,77 +98,9 @@ export async function OrgFeedbackList({
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[140px]">{t("headerWhen")}</TableHead>
-              <TableHead>{t("headerActor")}</TableHead>
-              <TableHead>{t("headerCategory")}</TableHead>
-              <TableHead>{t("headerSeverity")}</TableHead>
-              <TableHead>{t("headerState")}</TableHead>
-              <TableHead className="min-w-[200px]">
-                {t("headerMessage")}
-              </TableHead>
-              <TableHead className="min-w-[220px]">
-                {t("headerActions")}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell className="align-top text-xs whitespace-nowrap text-muted-foreground">
-                  {format.dateTime(new Date(row.createdAt), {
-                    dateStyle: "short",
-                    timeStyle: "short",
-                    timeZone: "UTC",
-                  })}{" "}
-                  {t("timestampSuffix")}
-                </TableCell>
-                <TableCell className="align-top font-mono text-xs">
-                  {row.actorUserId}
-                </TableCell>
-                <TableCell className="align-top text-xs capitalize">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span>{row.category}</span>
-                    {row.metadata?.source === "utility-marketplace" ? (
-                      <Badge variant="info">{t("marketplaceBadge")}</Badge>
-                    ) : null}
-                  </div>
-                </TableCell>
-                <TableCell className="align-top text-xs">
-                  {row.severity}
-                </TableCell>
-                <TableCell className="align-top text-xs">{row.state}</TableCell>
-                <TableCell className="align-top text-xs">
-                  {row.metadata?.requestKind === "rail-icon" ? (
-                    <div className="mb-1 flex flex-wrap gap-1.5">
-                      <Badge variant="secondary">
-                        {t("marketplaceRequestBadge")}
-                      </Badge>
-                      {row.metadata.utilityId ? (
-                        <Badge variant="outline">
-                          {row.metadata.utilityId}
-                        </Badge>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  <span className="line-clamp-4 whitespace-pre-wrap">
-                    {row.message}
-                  </span>
-                  {row.path ? (
-                    <span className="mt-1 block text-[10px] text-muted-foreground">
-                      {row.path}
-                    </span>
-                  ) : null}
-                </TableCell>
-                <TableCell className="align-top">
-                  <OrgFeedbackRowActions id={row.id} state={row.state} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="overflow-x-auto rounded-md border border-border">
+          <FeedbackInboxTableClient rows={items} />
+        </div>
       )}
 
       {totalCount > 0 ? (

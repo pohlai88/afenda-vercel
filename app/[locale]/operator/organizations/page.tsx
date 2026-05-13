@@ -1,31 +1,15 @@
-import { getTranslations } from "next-intl/server"
+import { redirectLegacyAuthenticatedSurfaceAlias } from "#lib/auth/legacy-authenticated-route-alias.server"
+import { ensureAppLocale } from "#lib/i18n/locales.shared"
 
-import {
-  PlatformAdminOrganizationsTable,
-  listOrganizationsForPlatformAdmin,
-} from "#features/platform-admin"
-import { requireGlobalAdminSession } from "#lib/tenant"
-
-export default async function PlatformAdminOrganizationsPage() {
-  await requireGlobalAdminSession()
-
-  const t = await getTranslations("PlatformAdmin.organizations")
-  const organizations = await listOrganizationsForPlatformAdmin()
-
-  return (
-    <div className="p-6">
-      <section className="space-y-4">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold tracking-tight">{t("title")}</h2>
-          <p className="text-sm text-muted-foreground">{t("description")}</p>
-        </div>
-
-        <p className="text-xs text-muted-foreground" aria-live="polite">
-          {t("countLabel", { count: organizations.length })}
-        </p>
-
-        <PlatformAdminOrganizationsTable organizations={organizations} />
-      </section>
-    </div>
-  )
+export default async function PlatformAdminOrganizationsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale: localeRaw } = await params
+  const locale = ensureAppLocale(localeRaw)
+  await redirectLegacyAuthenticatedSurfaceAlias({
+    locale,
+    surface: "operator",
+  })
 }

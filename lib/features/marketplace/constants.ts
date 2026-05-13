@@ -1,6 +1,7 @@
 import type { Route } from "next"
 
 import type { AppPath } from "#lib/i18n/locales.shared"
+import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
 
 import {
   CAPABILITY_CATEGORIES,
@@ -59,6 +60,22 @@ export function isMarketplaceRoute(value: string): value is MarketplaceRoute {
 export function marketplacePath(target?: MarketplaceRoute): AppPath {
   if (!target) return "/marketplace" as AppPath
   return `/marketplace/${target}` as AppPath
+}
+
+/**
+ * Canonical org-scoped marketplace path under the authenticated workbench.
+ */
+export function organizationMarketplacePath(
+  orgSlug: string,
+  target?: MarketplaceRoute
+): Route {
+  const slug = normalizeOrgSlugParam(orgSlug)
+  if (!slug) {
+    throw new Error("organizationMarketplacePath: invalid org slug")
+  }
+  const base = `/o/${slug}/marketplace`
+  if (!target) return base as Route
+  return `${base}/${target}` as Route
 }
 
 /**

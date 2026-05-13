@@ -21,15 +21,17 @@ CREATE TABLE "hrm_attendance_event" (
   "createdByUserId"      text,
   "createdAt"            timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE INDEX "hrm_attendance_event_org_emp_occurredAt_idx"
   ON "hrm_attendance_event" ("organizationId", "employeeId", "occurredAt" DESC);
+--> statement-breakpoint
 CREATE INDEX "hrm_attendance_event_org_source_batchId_idx"
   ON "hrm_attendance_event" ("organizationId", "source", "importBatchId");
+--> statement-breakpoint
 CREATE INDEX "hrm_attendance_event_org_correctionOf_idx"
   ON "hrm_attendance_event" ("organizationId", "correctionOfEventId")
   WHERE "correctionOfEventId" IS NOT NULL;
-
+--> statement-breakpoint
 -- F. hrm_attendance_day — computed daily aggregate (rebuildable from events)
 CREATE TABLE "hrm_attendance_day" (
   "id"                         text PRIMARY KEY DEFAULT gen_random_uuid()::text NOT NULL,
@@ -54,8 +56,9 @@ CREATE TABLE "hrm_attendance_day" (
   "createdAt"                  timestamp NOT NULL DEFAULT now(),
   "updatedAt"                  timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX "hrm_attendance_day_org_emp_date_uidx"
   ON "hrm_attendance_day" ("organizationId", "employeeId", "attendanceDate");
+--> statement-breakpoint
 CREATE INDEX "hrm_attendance_day_org_date_state_idx"
   ON "hrm_attendance_day" ("organizationId", "attendanceDate", "state");

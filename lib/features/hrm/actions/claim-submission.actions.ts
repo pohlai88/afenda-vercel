@@ -29,6 +29,7 @@ import {
   cancelClaimFormSchema,
   submitClaimFormSchema,
 } from "../schemas/claim.schema"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type {
   AttachClaimEvidenceFormState,
   CancelClaimFormState,
@@ -62,7 +63,7 @@ export async function submitClaimAction(
   formData: FormData
 ): Promise<SubmitClaimFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -78,17 +79,14 @@ export async function submitClaimAction(
 
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        employeeId: fieldErrors.employeeId?.[0],
-        claimTypeId: fieldErrors.claimTypeId?.[0],
-        claimDate: fieldErrors.claimDate?.[0],
-        amount: fieldErrors.amount?.[0],
-        currency: fieldErrors.currency?.[0],
-        form: parsed.error.issues[0]?.message,
-      },
-    }
+    return hrmActionFailure({
+      employeeId: fieldErrors.employeeId?.[0],
+      claimTypeId: fieldErrors.claimTypeId?.[0],
+      claimDate: fieldErrors.claimDate?.[0],
+      amount: fieldErrors.amount?.[0],
+      currency: fieldErrors.currency?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const { data } = parsed
@@ -113,56 +111,45 @@ export async function submitClaimAction(
   ])
 
   if (!employee) {
-    return { ok: false, errors: { employeeId: "Employee not found." } }
+    return hrmActionFailure({ employeeId: "Employee not found." })
   }
   if (employee.archivedAt) {
-    return {
-      ok: false,
-      errors: {
-        employeeId: "Cannot submit a claim for an archived employee.",
-      },
-    }
+    return hrmActionFailure({
+      employeeId: "Cannot submit a claim for an archived employee.",
+    })
   }
   if (!claimType) {
-    return { ok: false, errors: { claimTypeId: "Claim type not found." } }
+    return hrmActionFailure({ claimTypeId: "Claim type not found." })
   }
   if (!claimType.isActive) {
-    return {
-      ok: false,
-      errors: { claimTypeId: "Claim type is not active." },
-    }
+    return hrmActionFailure({
+      claimTypeId: "Claim type is not active.",
+    })
   }
 
   const currency = (data.currency ?? claimType.currency).toUpperCase()
   if (currency !== claimType.currency.toUpperCase()) {
-    return {
-      ok: false,
-      errors: {
-        currency: `Currency must match the claim type (${claimType.currency}).`,
-      },
-    }
+    return hrmActionFailure({
+      currency: `Currency must match the claim type (${claimType.currency}).`,
+    })
   }
 
   if (!isClaimDateInRange(data.claimDate, todayIso())) {
-    return {
-      ok: false,
-      errors: { claimDate: "Claim date must be on or before today." },
-    }
+    return hrmActionFailure({
+      claimDate: "Claim date must be on or before today.",
+    })
   }
 
   const limit =
     claimType.perClaimLimit != null ? Number(claimType.perClaimLimit) : null
   const limitOutcome = applyPerClaimLimit(data.amount, limit)
   if (!limitOutcome.ok) {
-    return {
-      ok: false,
-      errors: {
-        amount:
-          limitOutcome.limit > 0
-            ? `Amount exceeds the per-claim limit of ${limitOutcome.limit.toFixed(2)} ${currency}.`
-            : "Amount must be greater than 0.",
-      },
-    }
+    return hrmActionFailure({
+      amount:
+        limitOutcome.limit > 0
+          ? `Amount exceeds the per-claim limit of ${limitOutcome.limit.toFixed(2)} ${currency}.`
+          : "Amount must be greater than 0.",
+    })
   }
 
   const claimId = crypto.randomUUID()
@@ -262,7 +249,7 @@ export async function cancelClaimAction(
   formData: FormData
 ): Promise<CancelClaimFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -272,7 +259,9 @@ export async function cancelClaimAction(
   })
 
   if (!parsed.success) {
-    return { ok: false, errors: { claimId: parsed.error.issues[0]?.message } }
+    return hrmActionFailure({
+      claimId: parsed.error.issues[0]?.message,
+    })
   }
 
   const { claimId, cancelledReason } = parsed.data
@@ -291,16 +280,13 @@ export async function cancelClaimAction(
   })
 
   if (!claim) {
-    return { ok: false, errors: { claimId: "Claim not found." } }
+    return hrmActionFailure({ claimId: "Claim not found." })
   }
 
   if (!isClaimCancellable(claim.state)) {
-    return {
-      ok: false,
-      errors: {
-        claimId: `Cannot cancel a claim with state "${claim.state}".`,
-      },
-    }
+    return hrmActionFailure({
+      claimId: `Cannot cancel a claim with state "${claim.state}".`,
+    })
   }
 
   const now = new Date()
@@ -385,7 +371,7 @@ export async function attachClaimEvidenceAction(
   formData: FormData
 ): Promise<AttachClaimEvidenceFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -398,15 +384,12 @@ export async function attachClaimEvidenceAction(
 
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        claimId: fieldErrors.claimId?.[0],
-        documentId: fieldErrors.documentId?.[0],
-        evidenceType: fieldErrors.evidenceType?.[0],
-        form: parsed.error.issues[0]?.message,
-      },
-    }
+    return hrmActionFailure({
+      claimId: fieldErrors.claimId?.[0],
+      documentId: fieldErrors.documentId?.[0],
+      evidenceType: fieldErrors.evidenceType?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const { claimId, documentId, evidenceType, notes } = parsed.data
@@ -420,33 +403,27 @@ export async function attachClaimEvidenceAction(
   })
 
   if (!claim) {
-    return { ok: false, errors: { claimId: "Claim not found." } }
+    return hrmActionFailure({ claimId: "Claim not found." })
   }
   if (
     claim.state === "paid" ||
     claim.state === "rejected" ||
     claim.state === "cancelled"
   ) {
-    return {
-      ok: false,
-      errors: {
-        claimId: `Cannot attach evidence to a ${claim.state} claim.`,
-      },
-    }
+    return hrmActionFailure({
+      claimId: `Cannot attach evidence to a ${claim.state} claim.`,
+    })
   }
 
   const document = await findOrgDocumentForClaim(organizationId, documentId)
   if (!document) {
-    return { ok: false, errors: { documentId: "Document not found." } }
+    return hrmActionFailure({ documentId: "Document not found." })
   }
   if (document.employeeId && document.employeeId !== claim.employeeId) {
-    return {
-      ok: false,
-      errors: {
-        documentId:
-          "Document is attached to a different employee — re-upload against the claimant.",
-      },
-    }
+    return hrmActionFailure({
+      documentId:
+        "Document is attached to a different employee — re-upload against the claimant.",
+    })
   }
 
   const evidenceId = crypto.randomUUID()
@@ -460,10 +437,9 @@ export async function attachClaimEvidenceAction(
     columns: { id: true },
   })
   if (existing) {
-    return {
-      ok: false,
-      errors: { documentId: "This document is already attached to the claim." },
-    }
+    return hrmActionFailure({
+      documentId: "This document is already attached to the claim.",
+    })
   }
 
   await db.insert(hrmClaimEvidence).values({

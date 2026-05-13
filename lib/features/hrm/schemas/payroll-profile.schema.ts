@@ -4,6 +4,15 @@ export const HRM_PAY_SCHEDULES = ["monthly", "bi_weekly", "weekly"] as const
 
 const uuid = z.string().uuid()
 
+/** FormData → optional non-empty MYR decimal (TP1 / TP3). */
+function optionalFormDecimalMyr(key: string) {
+  return z.preprocess((raw) => {
+    if (raw === null || raw === undefined) return undefined
+    const s = String(raw).trim()
+    return s === "" ? undefined : s
+  }, z.string().regex(/^\d+(\.\d{1,2})?$/, `${key}: invalid amount`).max(20).optional())
+}
+
 export const upsertPayrollProfileFormSchema = z.object({
   orgSlug: z.string().min(1),
   employeeId: uuid,
@@ -15,6 +24,8 @@ export const upsertPayrollProfileFormSchema = z.object({
   epfNumber: z.string().max(64).optional(),
   socsoNumber: z.string().max(64).optional(),
   pcbCategory: z.string().max(32).optional(),
+  pcbTp1AdditionalReliefMonthlyMyr: optionalFormDecimalMyr("pcbTp1"),
+  pcbTp3AdditionalDeductionMonthlyMyr: optionalFormDecimalMyr("pcbTp3"),
   bankCode: z.string().max(32).optional(),
   bankAccountTokenized: z.string().max(512).optional(),
   bankAccountHolderName: z.string().max(256).optional(),

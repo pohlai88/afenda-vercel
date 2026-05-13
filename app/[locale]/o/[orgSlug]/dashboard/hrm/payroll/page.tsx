@@ -53,10 +53,7 @@ export default async function OrgDashboardHrmPayrollPage() {
           periodStart: period.periodStart,
           periodEnd: period.periodEnd,
         }),
-        hasApprovedPayrollPeriodLockApproval(
-          session.organizationId,
-          period.id
-        ),
+        hasApprovedPayrollPeriodLockApproval(session.organizationId, period.id),
         getPendingPayrollPeriodLockApprovalId(
           session.organizationId,
           period.id

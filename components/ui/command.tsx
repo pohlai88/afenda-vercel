@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
+import { CheckIcon, SearchIcon } from "lucide-react"
 
 import { cn } from "#lib/utils"
 import {
@@ -12,7 +13,6 @@ import {
   DialogTitle,
 } from "#components/ui/dialog"
 import { InputGroup, InputGroupAddon } from "#components/ui/input-group"
-import { SearchIcon, CheckIcon } from "lucide-react"
 
 function Command({
   className,
@@ -45,10 +45,6 @@ function CommandDialog({
 }) {
   return (
     <Dialog {...props}>
-      <DialogHeader className="sr-only">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
-      </DialogHeader>
       <DialogContent
         className={cn(
           "top-1/3 translate-y-0 overflow-hidden rounded-2xl! p-0",
@@ -56,6 +52,10 @@ function CommandDialog({
         )}
         showCloseButton={showCloseButton}
       >
+        <DialogHeader className="sr-only">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
         {children}
       </DialogContent>
     </Dialog>
@@ -93,7 +93,7 @@ function CommandList({
     <CommandPrimitive.List
       data-slot="command-list"
       className={cn(
-        "no-scrollbar max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto outline-none",
+        "no-scrollbar max-h-[min(24rem,60vh)] scroll-py-1 overflow-x-hidden overflow-y-auto outline-none",
         className
       )}
       {...props}
@@ -122,7 +122,7 @@ function CommandGroup({
     <CommandPrimitive.Group
       data-slot="command-group"
       className={cn(
-        "overflow-hidden p-1.5 text-foreground **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground",
+        "overflow-hidden p-1.5 text-foreground [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
         className
       )}
       {...props}

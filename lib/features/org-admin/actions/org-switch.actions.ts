@@ -1,6 +1,5 @@
 "use server"
 
-import { eq, and } from "drizzle-orm"
 import { redirect } from "next/navigation"
 
 import { organizationNexusPath } from "#features/nexus"
@@ -8,9 +7,10 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 import { getOrganizationSlugById } from "#lib/org-slug.server"
-import { requireSignedInSession } from "#lib/tenant"
-import { db } from "#lib/db"
-import { neonAuthMember, neonAuthSession } from "#lib/db/schema-neon-auth"
+import {
+  requireSignedInSession,
+  setActiveOrganizationForSession,
+} from "#lib/tenant"
 
 /**
  * Server Action: switch the active organization for the signed-in user.
@@ -27,28 +27,11 @@ export async function switchActiveOrgAction(
   targetOrgId: string
 ): Promise<never> {
   const session = await requireSignedInSession()
-
-  // Verify user is actually a member of the target org.
-  const [member] = await db
-    .select({ id: neonAuthMember.id })
-    .from(neonAuthMember)
-    .where(
-      and(
-        eq(neonAuthMember.userId, session.userId),
-        eq(neonAuthMember.organizationId, targetOrgId)
-      )
-    )
-    .limit(1)
-
-  if (!member) {
-    throw new Error("Not a member of the requested organization.")
-  }
-
-  // Update activeOrganizationId directly on the session row.
-  await db
-    .update(neonAuthSession)
-    .set({ activeOrganizationId: targetOrgId })
-    .where(eq(neonAuthSession.id, session.sessionId))
+  await setActiveOrganizationForSession({
+    userId: session.userId,
+    sessionId: session.sessionId,
+    organizationId: targetOrgId,
+  })
 
   await writeIamAuditEventFromNextHeaders({
     actorUserId: session.userId,

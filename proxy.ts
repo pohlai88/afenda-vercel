@@ -107,5 +107,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|_vercel|\\.well-known/workflow|.*\\..*).*)"],
+  matcher: ["/((?!api|_next|_vercel|\\.well-known|.*\\..*).*)"],
 }

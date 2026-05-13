@@ -1,6 +1,6 @@
 import type { Route } from "next"
 
-import type { WorkbenchRailBadgeTone } from "#components/workbench"
+import type { WorkbenchRailBadgeTone } from "#components/workbench/left-nav-rail"
 
 /** Stable capability identifiers for the organizational control plane. */
 export type OrgAdminCapabilityId =
@@ -171,7 +171,7 @@ export type UserOrgSummary = {
 /**
  * Semantic urgency carried by every org-admin rail nav badge. Re-exports
  * the shell-level tone vocabulary so callers in `lib/features/org-admin/`
- * never depend on a private `#components/workbench/rail` deep import.
+ * never depend on a private `#components/workbench/left-nav-rail` deep import.
  *
  * Operators read tone (color) before number — the threshold helpers in
  * `org-admin-rail-pressure.shared.ts` are the only legitimate source of

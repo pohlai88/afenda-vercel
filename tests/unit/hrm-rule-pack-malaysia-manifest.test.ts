@@ -5,7 +5,7 @@
  *   1. Composite manifest sub-versions match the expected per-statutory codes.
  *   2. RULE_PACK_REGISTRY contains MY-2026-01 with correct ordering.
  *   3. resolveRulePack() returns the correct composite for a date in 2026.
- *   4. Cross-country isolation: non-MY country throws.
+ *   4. Cross-country isolation: unknown country codes still throw.
  */
 import { describe, expect, it } from "vitest"
 
@@ -86,8 +86,14 @@ describe("MY-2026-01 composite rule pack manifest", () => {
       expect(pack.version).toBe("MY-2026-01")
     })
 
+    it("resolves SG pack for a date in 2026", () => {
+      const pack = resolveRulePack("SG", new Date("2026-06-15"))
+      expect(pack.version).toBe("SG-2026-01")
+      expect(pack.countryCode).toBe("SG")
+    })
+
     it("throws for unsupported country code", () => {
-      expect(() => resolveRulePack("SG", new Date("2026-06-15"))).toThrow()
+      expect(() => resolveRulePack("XX", new Date("2026-06-15"))).toThrow()
     })
   })
 

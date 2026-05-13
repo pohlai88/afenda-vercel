@@ -172,9 +172,7 @@ function parseAudit7w1h(raw: unknown): AuditEvent7W1H[] | null {
   return events.length > 0 ? events : null
 }
 
-function parseRecordContext(
-  raw: unknown
-): Record<string, unknown> | null {
+function parseRecordContext(raw: unknown): Record<string, unknown> | null {
   return raw && typeof raw === "object" && !Array.isArray(raw)
     ? (raw as Record<string, unknown>)
     : null
@@ -1744,7 +1742,7 @@ export async function getOrbitPageData(
       ? listPlannerSignals(scope, activeFilter, activeSortMode)
       : surface === "triage"
         ? listPlannerSignalsForTriage(scope, activeFilter, activeSortMode)
-      : Promise.resolve([]),
+        : Promise.resolve([]),
     surface === "sessions" ? listPlannerSessions(scope) : Promise.resolve([]),
     surface === "links" ? listPlannerLinks(scope) : Promise.resolve([]),
   ])
@@ -1971,7 +1969,10 @@ export async function getPlannerSessionDetail(
           .leftJoin(plannerItem, eq(plannerLink.itemId, plannerItem.id))
           .leftJoin(plannerSignal, eq(plannerLink.signalId, plannerSignal.id))
           .where(
-            and(linkScopeWhere(scope), eq(plannerLink.itemId, sessionRow.itemId))
+            and(
+              linkScopeWhere(scope),
+              eq(plannerLink.itemId, sessionRow.itemId)
+            )
           )
           .orderBy(desc(plannerLink.createdAt))
       : Promise.resolve([]),

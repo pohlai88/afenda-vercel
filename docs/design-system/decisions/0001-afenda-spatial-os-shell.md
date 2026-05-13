@@ -6,4 +6,4 @@ The authoritative ADR is **[`docs/decisions/0001-afenda-spatial-os-shell.md`](..
 
 This stub exists so paths under `docs/design-system/**` can reference shell architecture without maintaining a second copy. Duplicate ADRs drift (conflicting amended dates, missing §13); **one source of truth only.**
 
-**Related:** `.cursor/rules/app-shell-directory.mdc` · `.cursor/rules/material-semantics.mdc` · `app/globals.css` · `lib/design-system.ts` (`parseUiMaterialPhase`, `parseUiLynxState`).
+**Related:** `.cursor/rules/shell-directory.mdc` · `.cursor/rules/material-semantics.mdc` · `app/globals.css` · `lib/design-system.ts` (`parseUiMaterialPhase`, `parseUiLynxState`).

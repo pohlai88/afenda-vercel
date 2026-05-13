@@ -31,7 +31,10 @@
  * UI section also short-circuits when `inbox` is omitted.
  */
 
-import type { WorkbenchRailBadgeTone, WorkbenchRailInbox } from "#components/workbench"
+import type {
+  WorkbenchRailBadgeTone,
+  WorkbenchRailInbox,
+} from "#components/workbench/left-nav-rail"
 
 import type { OrgAdminNavKey, OrgAdminRailPressureMap } from "../types"
 

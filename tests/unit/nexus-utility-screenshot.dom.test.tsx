@@ -78,7 +78,7 @@ vi.mock("next-intl", () => ({
       ),
 }))
 
-import { WorkbenchUtilityScreenshot } from "#components/workbench/utility-bar/workbench-utility-screenshot"
+import { WorkbenchUtilityScreenshot } from "#components/workbench/utility-bar/right-utility-bar/workbench-utility-screenshot"
 import { TooltipProvider } from "#components/ui/tooltip"
 
 function createMockCanvas() {

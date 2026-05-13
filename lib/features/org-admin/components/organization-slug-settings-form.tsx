@@ -3,12 +3,12 @@
 import { useActionState, useEffect, useId } from "react"
 import { useTranslations } from "next-intl"
 
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"
 import { Input } from "#components/ui/input"
 import { Label } from "#components/ui/label"
 import { Spinner } from "#components/ui/spinner"
 import { useRouter } from "#i18n/navigation"
+import { ActionFormErrors } from "#features/governed-surface"
 
 import {
   updateOrganizationSlugAction,
@@ -61,12 +61,12 @@ export function OrganizationSlugSettingsForm({
           aria-describedby={state?.ok === false ? errId : undefined}
         />
       </div>
-      {state?.ok === false ? (
-        <Alert variant="destructive" id={errId}>
-          <AlertTitle>{t("errorTitle")}</AlertTitle>
-          <AlertDescription>{state.error}</AlertDescription>
-        </Alert>
-      ) : null}
+      <div id={errId}>
+        <ActionFormErrors
+          title={t("errorTitle")}
+          result={state?.ok === false ? { ok: false, error: state.error } : null}
+        />
+      </div>
       {state?.ok && state.newSlug === orgSlug ? (
         <p className="text-sm text-muted-foreground" role="status">
           {t("unchanged")}

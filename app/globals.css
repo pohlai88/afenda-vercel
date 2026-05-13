@@ -763,6 +763,49 @@
   }
 }
 
+/*
+ * Workbench scrollbars — `main` and WorkbenchSurface inner scrollport.
+ * Thumb uses ~45% muted-foreground in oklab (~1.5× a typical 30% hint track).
+ */
+.af-workbench-main-scroll,
+.af-workbench-surface-scroll,
+.af-workbench-rail-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--muted-foreground) 45%, transparent)
+    transparent;
+}
+
+.af-workbench-main-scroll::-webkit-scrollbar,
+.af-workbench-surface-scroll::-webkit-scrollbar,
+.af-workbench-rail-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.af-workbench-main-scroll::-webkit-scrollbar-track,
+.af-workbench-surface-scroll::-webkit-scrollbar-track,
+.af-workbench-rail-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.af-workbench-main-scroll::-webkit-scrollbar-thumb,
+.af-workbench-surface-scroll::-webkit-scrollbar-thumb,
+.af-workbench-rail-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--muted-foreground) 45%, transparent);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.af-workbench-main-scroll::-webkit-scrollbar-thumb:hover,
+.af-workbench-surface-scroll::-webkit-scrollbar-thumb:hover,
+.af-workbench-rail-scroll::-webkit-scrollbar-thumb:hover {
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--muted-foreground) 58%, transparent);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
 .dark .af-nexus-utility-bar-backdrop {
   box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 8%, transparent);
 }

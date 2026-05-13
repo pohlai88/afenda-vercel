@@ -53,6 +53,19 @@ export const terminateContractFormSchema = z.object({
   terminationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   terminationReason: z.string().max(2000).optional(),
   terminationNoticeDays: z.coerce.number().int().min(0).max(365).optional(),
+  offboardingStepKey: z.preprocess(
+    (v) =>
+      typeof v === "string" && v.trim().length > 0 ? v.trim() : undefined,
+    z.string().min(1).max(128).optional()
+  ),
+})
+
+/** New draft version from the active contract — salary change governance (§7.8). */
+export const salaryRevisionDraftFormSchema = z.object({
+  orgSlug: z.string().min(1),
+  employeeId: uuid,
+  newBaseSalaryAmount: z.string().regex(/^\d+(\.\d{1,2})?$/),
+  effectiveFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 })
 
 export type CreateDraftContractFormInput = z.infer<
@@ -63,4 +76,7 @@ export type ActivateContractFormInput = z.infer<
 >
 export type TerminateContractFormInput = z.infer<
   typeof terminateContractFormSchema
+>
+export type SalaryRevisionDraftFormInput = z.infer<
+  typeof salaryRevisionDraftFormSchema
 >

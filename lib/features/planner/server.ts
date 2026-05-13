@@ -51,6 +51,7 @@ export {
   createPlannerLink,
   createPlannerRelation,
   createPlannerSignalLink,
+  insertPlannerCapturedItem,
   insertPlannerComment,
   insertPlannerAttachment,
   insertPlannerItem,

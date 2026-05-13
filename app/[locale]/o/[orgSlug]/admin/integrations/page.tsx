@@ -1,7 +1,13 @@
 import { Store } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "#components/ui/card"
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "#components/ui/card"
 import { Button } from "#components/ui/button"
 import {
   IntegrationsEndpointsPanel,
@@ -39,7 +45,11 @@ export default async function OrgAdminIntegrationsPage({
           <CardHeader>
             <div className="flex items-start gap-3">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-muted/35">
-                <Store className="size-5 text-foreground/80" aria-hidden strokeWidth={2} />
+                <Store
+                  className="size-5 text-foreground/80"
+                  aria-hidden
+                  strokeWidth={2}
+                />
               </div>
               <div className="flex min-w-0 flex-col gap-1">
                 <CardTitle>{t("marketplaceLinkTitle")}</CardTitle>

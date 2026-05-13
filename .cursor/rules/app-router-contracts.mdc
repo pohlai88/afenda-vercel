@@ -1,0 +1,157 @@
+---
+description: App Router special-file contracts — layout kernel, loading skeleton, error boundary, not-found truth, template reset
+globs: app/**/*.tsx
+alwaysApply: false
+---
+
+# App Router contracts (special files)
+
+**Replaces:** `layout-contract.mdc`, `loading-contract.mdc`, `error-boundaries.mdc`, `not-found-contract.mdc`, `template-contract.mdc`
+
+Each file is a **runtime contract**, not a UI convenience.
+
+| File | Meaning | Add when |
+|---|---|---|
+| `layout.tsx` | Authority kernel — session, tenant, shell | Every segment owning a session gate or shell |
+| `loading.tsx` | Acceptable waiting state | `page.tsx` has async fetches; shell must appear instantly |
+| `error.tsx` | Recoverable failure boundary | Approved durable shell boundaries only (see below) |
+| `not-found.tsx` | Invalid truth boundary | Layout/page calls `notFound()` and needs shell continuity |
+| `template.tsx` | Intentional remount/reset | Client Component state must reset on this exact segment change |
+
+Component render order: `layout → template → error → [loading wraps] → not-found / page`
+
+---
+
+## `layout.tsx` — runtime kernel
+
+Owns **only** what the shell needs before first render:
+
+**Tier A (await in layout `Promise.all` — blocks shell)**
+- Session gate (`requireOrgSession()` / `requireGlobalAdminSession()` / `requireRecentAuthStepUp()`)
+- Tenant resolution (`organizationId`, `orgSlug`, role, permissions)
+- Critical shell labels + translations
+- `RouteEnvelope` construction → `RouteEnvelopeProvider`
+
+**Tier B (Suspense + dedicated Server Component — never block)**
+- Org switcher list, notifications, activity feeds, Lynx context, recent records
+
+```tsx
+// Tier A — blocks; Tier B — streams
+const [adminLink, identity, t] = await Promise.all([
+  canActInOrganization(org.userId, org.user.role, org.organizationId, "admin"),
+  fetchOrgWorkbenchIdentity(org.organizationId),
+  getTranslations("Dashboard.nav"),
+])
+// Tier B example:
+const controlPlane = (
+  <Suspense fallback={<GlobalTopNavBarControlMenuSkeleton />}>
+    <GlobalTopNavBarControlMenuSlot {...props} />
+  </Suspense>
+)
+```
+
+**Forbidden:** Tier B fetches in the layout `Promise.all`; domain data fetches (contacts, chunks) in `layout.tsx`; business logic.
+
+---
+
+## `RouteEnvelope` — server→client surface context
+
+Bridge layout-resolved authority to client `error.tsx` boundaries:
+
+```ts
+// lib/route-envelope.shared.ts
+export interface RouteEnvelope { surface: RouteSurface; locale: string; orgSlug?: string; orgId?: string }
+```
+
+Every approved shell `error.tsx` must call `useRouteEnvelope()` + `useReportRouteError()`. Add fields to `RouteEnvelope` only when a concrete consumer ships — never speculate.
+
+---
+
+## `loading.tsx` — streaming contract
+
+Wraps both `page.tsx` **and** `not-found.tsx` in a Suspense boundary. Layout renders instantly; skeleton shows until page resolves.
+
+```tsx
+// Simplest canonical pattern
+export { default } from "#components/nexus-route-loading"
+```
+
+**Do not use** to hide a layout that fetches too much — fix the Tier A/B split instead.
+
+---
+
+## `error.tsx` — uncaught failure boundary
+
+Add **only** at durable operational shells:
+- `/o/[orgSlug]` · `/o/[orgSlug]/dashboard` · admin / operator workbench · auth/IAM shell
+
+**Never add** for widgets, cards, tables, forms, or expected data failures. Use `Suspense`, `Promise.allSettled`, `unstable_catchError`, or Server Action return values instead.
+
+Before adding, answer all four:
+1. Is this an operational ownership boundary with its own recovery UX?
+2. Is it a durable shell — not a widget?
+3. Would `Suspense` / inline fallback solve it?
+4. Would this file hide a build error, typecheck failure, or weak contract?
+
+If #4 is yes → **fix the root cause**, not the boundary.
+
+```tsx
+"use client"
+import { useRouteEnvelope } from "#components/route-envelope-context"
+import { useReportRouteError } from "#components/use-report-route-error"
+import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
+import { resolveErrorBoundaryRetryCallbacks } from "#lib/next-app-error-page-props.shared"
+
+export default function OrgDashboardError(props: NextAppErrorPageProps) {
+  const { error } = props
+  const { retryAction } = resolveErrorBoundaryRetryCallbacks(props)
+  const envelope = useRouteEnvelope()
+  useReportRouteError({ segment: envelope?.orgSlug ? `dashboard/${envelope.orgSlug}` : "dashboard", error })
+  // render RouteErrorShell + RouteErrorRetryButton
+}
+```
+
+`global-error.tsx` — minimal last resort: `"use client"`, own `<html><body>`, no `next-intl`, no feature modules, no auth state. Link via `DEFAULT_LOCALE_HOME_PATH`.
+
+---
+
+## `not-found.tsx` — shell-continuity 404
+
+Renders **inside the parent layout** — shell stays mounted. Use a Client Component when recovery links need `orgSlug`:
+
+```tsx
+"use client"
+import { useParams } from "next/navigation"
+import { Link } from "#i18n/navigation"
+
+export default function OrgDashboardNotFound() {
+  const { orgSlug } = useParams<{ orgSlug?: string }>()
+  return (
+    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
+      <p className="text-sm text-muted-foreground">404 — Page not found</p>
+      {orgSlug ? <Link href={`/o/${orgSlug}/nexus`} prefetch={false}>Back to Nexus</Link> : null}
+    </div>
+  )
+}
+```
+
+**HTTP status:** `notFound()` in a layout = true 404. `notFound()` in a page behind `loading.tsx` = 200 (streaming). For public SEO routes: call `notFound()` before any `await`/`Suspense`.
+
+**When NOT to add:** nested segments speculatively; empty states; rare missing-record cases where the parent segment's not-found suffices.
+
+---
+
+## `template.tsx` — intentional remount
+
+Use **only** when Client Component state or `useEffect` must reset on this exact segment's param change. **Defer unless the reset requirement is explicit.**
+
+Remounts on segment param change; **does not** remount on inner-segment navigation (e.g. `dashboard/contacts → dashboard/sale` does NOT remount `dashboard/template.tsx`).
+
+```tsx
+// Transparent — adds no markup; unique key causes remount
+export default function Template({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}
+```
+
+**Never use** for visual layout, breadcrumbs, data refresh, or as a layout substitute.

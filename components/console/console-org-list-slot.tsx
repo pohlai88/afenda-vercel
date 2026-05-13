@@ -1,4 +1,5 @@
 import type { Route } from "next"
+import { headers } from "next/headers"
 import { getTranslations } from "next-intl/server"
 import { redirect } from "next/navigation"
 
@@ -9,6 +10,7 @@ import { Button } from "#components/ui/button"
 import { organizationNexusPath } from "#features/nexus"
 import { prepareOrganizationSlugAction } from "#features/org-admin"
 import { listUserOrganizationsForSwitcher } from "#features/org-admin/server"
+import { auth } from "#lib/auth"
 import type { AppLocale } from "#lib/i18n/locales.shared"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 import { requireSignedInSession } from "#lib/tenant"
@@ -22,7 +24,28 @@ type Props = { locale: AppLocale }
  */
 export async function ConsoleOrgListSlot({ locale }: Props) {
   const session = await requireSignedInSession()
-  const orgs = await listUserOrganizationsForSwitcher(session.userId)
+  const [orgs, authSession] = await Promise.all([
+    listUserOrganizationsForSwitcher(session.userId),
+    auth.getSession({ fetchOptions: { headers: await headers() } }),
+  ])
+
+  const activeOrganizationId =
+    (
+      authSession.data?.session as {
+        activeOrganizationId?: string | null
+      } | null
+    )?.activeOrganizationId ?? null
+  const activeOrganization =
+    orgs.find((org) => org.id === activeOrganizationId) ?? null
+
+  if (activeOrganization) {
+    redirect(
+      toLocalePath(
+        locale,
+        organizationNexusPath(activeOrganization.slug)
+      ) as Route
+    )
+  }
 
   if (orgs.length === 1 && orgs[0]) {
     // Single-org shortcut → Nexus root (operational origin field, not /dashboard).

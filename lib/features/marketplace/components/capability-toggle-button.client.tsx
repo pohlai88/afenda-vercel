@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 
-import { CheckCircle2, Loader2, XCircle } from "lucide-react"
+import { CheckCircle2, Eye, EyeOff, Loader2, XCircle } from "lucide-react"
 
 import { Button } from "#components/ui/button"
 
@@ -48,7 +48,13 @@ export function CapabilityToggleButton({
 
   if (effective === "mandatory") {
     return (
-      <Button type="button" size="sm" variant="outline" disabled>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled
+        className="w-full justify-center sm:w-auto"
+      >
         <CheckCircle2 className="size-3.5" aria-hidden />
         {labels.mandatory}
       </Button>
@@ -56,7 +62,13 @@ export function CapabilityToggleButton({
   }
   if (effective === "unavailable") {
     return (
-      <Button type="button" size="sm" variant="outline" disabled>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled
+        className="w-full justify-center sm:w-auto"
+      >
         <XCircle className="size-3.5" aria-hidden />
         {labels.unavailable}
       </Button>
@@ -64,7 +76,13 @@ export function CapabilityToggleButton({
   }
   if (!customizable) {
     return (
-      <Button type="button" size="sm" variant="outline" disabled>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled
+        className="w-full justify-center sm:w-auto"
+      >
         {labels.notCustomizable}
       </Button>
     )
@@ -91,7 +109,7 @@ export function CapabilityToggleButton({
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex w-full flex-col items-stretch gap-1 sm:w-auto sm:items-end">
       <Button
         type="button"
         size="sm"
@@ -99,10 +117,15 @@ export function CapabilityToggleButton({
         onClick={flip}
         disabled={pending}
         aria-pressed={currentVisible}
+        className="justify-center"
       >
         {pending ? (
           <Loader2 className="size-3.5 animate-spin" aria-hidden />
-        ) : null}
+        ) : currentVisible ? (
+          <EyeOff className="size-3.5" aria-hidden />
+        ) : (
+          <Eye className="size-3.5" aria-hidden />
+        )}
         <span>{pending ? labels.pending : idleLabel}</span>
       </Button>
       {error ? (

@@ -14,11 +14,14 @@ import { db } from "#lib/db"
 import { orgCapabilityPolicy } from "#lib/db/schema"
 import {
   toLocaleMarketplaceRevalidatePattern,
+  toLocalePath,
   toLocaleRoutePattern,
 } from "#lib/i18n/locales.shared"
+import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { requireOrgSession } from "#lib/tenant"
 
 import { isKnownCapabilityId } from "../data/capability-catalog.shared"
+import { marketplacePath } from "../constants"
 import { capabilityMetricsTag } from "../data/marketplace-metrics.server"
 import {
   MARKETPLACE_AUDIT_ACTIONS,
@@ -74,7 +77,10 @@ async function requireAdminWithStepUp(): Promise<{
     // delegate by returning a sentinel from the action layer.
     throw new MarketplacePermissionDeniedError()
   }
-  await requireRecentAuthStepUp({ returnTo: "/marketplace/admin" })
+  const locale = await getRequestAppLocale()
+  await requireRecentAuthStepUp({
+    returnTo: toLocalePath(locale, marketplacePath("admin")),
+  })
   return {
     organizationId: session.organizationId,
     userId: session.userId,

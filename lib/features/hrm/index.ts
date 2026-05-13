@@ -52,6 +52,22 @@ export type {
   PreparePayrollRunsFormValues,
 } from "./schemas/payroll-period.schema"
 
+export {
+  HRM_REVIEW_CYCLE_STATES,
+  HRM_REVIEW_CYCLE_INITIAL_STATE,
+  hrmReviewCycleStateSchema,
+  HRM_REVIEW_PIPELINES,
+  hrmReviewPipelineSchema,
+  HRM_REVIEW_ROW_STATES,
+  HRM_REVIEW_ROW_STATE,
+  hrmReviewRowStateSchema,
+} from "./schemas/performance.schema"
+export type {
+  HrmReviewCycleState,
+  HrmReviewPipeline,
+  HrmReviewRowState,
+} from "./schemas/performance.schema"
+
 export type {
   LeaveAccrualMethodValue,
   CreateLeaveTypeFormValues,
@@ -95,6 +111,7 @@ export type {
   CancelClaimFormState,
   ClaimApprovalFormState,
   SubmitClaimFormState,
+  OrgStructureFormState,
 } from "./types"
 
 export {
@@ -142,10 +159,7 @@ export {
 
 export { buildHrmRailSlots } from "./data/hrm-rail-slots"
 
-// Phase 2 — Working Memory Rail pressure types. The server-side query
-// `getHrmRailPressureCounts` is exported from `#features/hrm/server` to
-// keep this barrel client-safe; consumers like Client Components that
-// need to read the badge shape import these types only.
+/** Rail pressure badge types (`getHrmRailPressureCounts` lives in `#features/hrm/server`). */
 export type {
   HrmRailPressureBadge,
   HrmRailPressureMap,
@@ -158,15 +172,22 @@ export { DocumentsPage } from "./components/documents-page"
 export { EmployeeDetailPage } from "./components/employee-detail-page"
 export { LeavePage } from "./components/leave-page"
 export { PoliciesPage } from "./components/policies-page"
+export { OrganizationPage } from "./components/organization-page"
+export { HrmOnboardingPage } from "./components/hrm-onboarding-page"
+export { HrmPerformancePage } from "./components/hrm-performance-page"
+export { HrmKpiPage } from "./components/hrm-kpi-page"
+export { HrmAdvancesPage } from "./components/hrm-advances-page"
 export { WorkforcePage } from "./components/workforce-page"
 export { PayrollConsolePage } from "./components/payroll-console"
+export { HrmSnapshotPage } from "./components/hrm-snapshot-page"
 export { CompliancePage } from "./components/compliance-page"
-// Phase 3K: per-evidence lifecycle drill-down (regulator-ready artifact).
+/** Compliance evidence detail route surface. */
 export { ComplianceEvidenceDetailPage } from "./components/compliance-evidence-detail-page"
-// Phase 3L: Tier B Suspense-streamed cross-period operational health card.
+export { BenefitsPage } from "./components/benefits-page"
+/** Cross-period compliance operational health (Suspense-streamed). */
 export { ComplianceOperationalHealth } from "./components/compliance-operational-health"
 export { ComplianceOperationalHealthSkeleton } from "./components/compliance-operational-health-skeleton"
 
-// Phase 3N: Tier B Suspense-streamed per-bureau reliability card.
+/** Per-bureau delivery reliability card (Suspense-streamed). */
 export { BureauReliabilityCard } from "./components/bureau-reliability-card"
 export { BureauReliabilityCardSkeleton } from "./components/bureau-reliability-card-skeleton"

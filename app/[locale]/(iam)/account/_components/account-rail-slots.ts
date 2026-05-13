@@ -2,12 +2,9 @@ import type {
   WorkbenchRailNavIconId,
   WorkbenchRailNavSection,
   WorkbenchRailSlots,
-} from "#components/workbench/rail"
+} from "#components/workbench/left-nav-rail"
 
-import type {
-  AccountRailSection,
-  AccountShellSummary,
-} from "./account-shell.types"
+import type { AccountRailSection } from "./account-shell.types"
 
 /**
  * Adapts account domain data → `WorkbenchRailSlots`.
@@ -17,19 +14,14 @@ import type {
  * The Working Memory Rail migration (see
  * `docs/_draft/working-memory-rail-plan.md`) removed the decorative
  * `pills` and `context` slots from the rail kernel. This builder is now a
- * straight pass-through from the account summary + nav sections; future
- * conditional slots (Phase 3 — inbox, views, pinned, recents) plug in
- * here once the kernel exposes them.
+ * straight pass-through from nav sections; future conditional slots (Phase 3 —
+ * inbox, views, pinned, recents) plug in here once the kernel exposes them.
  */
 export function buildAccountRailSlotsV2({
-  summary,
   sections,
 }: {
-  summary: AccountShellSummary
   sections: AccountRailSection[]
 }): WorkbenchRailSlots {
-  const initial = summary.displayName.trim().charAt(0).toUpperCase() || "A"
-
   const navSection: WorkbenchRailNavSection = {
     id: "account",
     items: sections.map((section) => ({
@@ -38,17 +30,36 @@ export function buildAccountRailSlotsV2({
       description: section.description,
       href: section.href,
       icon: iconForSectionId(section.id),
+      activePatterns: resolveAccountRailSectionActivePatterns(section),
+      items: section.children?.map((child) => ({
+        id: child.id,
+        label: child.label,
+        description: child.description,
+        href: child.href,
+        match: child.match,
+        activePatterns: child.matchPath ? [child.matchPath] : undefined,
+      })),
     })),
   }
 
   return {
-    identity: {
-      initial,
-      primary: summary.displayName,
-      secondary: summary.email,
-    },
     nav: [navSection],
   }
+}
+
+function resolveAccountRailSectionActivePatterns(
+  section: AccountRailSection
+): string[] | undefined {
+  if (!section.matchPath) return undefined
+  if (!section.activeHash) return [section.matchPath]
+
+  if (!section.href.includes(`#${section.activeHash}`)) {
+    throw new Error(
+      `buildAccountRailSlotsV2: section "${section.id}" declares activeHash "${section.activeHash}" but href "${section.href}" does not include it`
+    )
+  }
+
+  return undefined
 }
 
 function iconForSectionId(

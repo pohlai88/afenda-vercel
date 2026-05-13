@@ -1,0 +1,99 @@
+---
+description: Testing layout (Vitest/Playwright/coverage), Knip dead-code verdict, verify pipeline tier ladder
+globs: "tests/**/*,knip.json,package.json,scripts/**/*.mjs"
+alwaysApply: false
+---
+
+# Testing + Knip + Verify pipeline
+
+**Replaces:** `testing-directory.mdc`, `knip-directory.mdc`, `verify-pipeline.mdc`
+
+---
+
+## Testing layout
+
+| Directory | Purpose | Rules |
+|---|---|---|
+| `tests/fixtures/` | Deterministic IDs, emails, copy strings, static factories | No Playwright/browser APIs; no ERP workflows; parity enforced by `pnpm lint:fixtures-parity` |
+| `tests/unit/` | Vitest — Node by default | Use `// @vitest-environment jsdom` only for DOM/RTL tests; name DOM specs `*.dom.test.tsx`; no Vitest `projects` until DOM suites justify split |
+| `tests/e2e/` | Playwright `*.spec.ts` | Explicit `goto`/`getByRole`/`getByLabel`; tag stable gates `@smoke`; App Router routes validated here |
+| `tests/e2e/utils/` | Browser helpers | Import from `tests/fixtures`; no duplicate magic strings; avoid deep `test.extend` pyramids |
+
+**Playwright base URL:** `http://127.0.0.1:3001` (`next start`) — keeps `pnpm dev` on 3000. Override with `PLAYWRIGHT_BASE_URL`.
+
+## Coverage (V8)
+
+- `pnpm test:ci` / `pnpm test:coverage` → `@vitest/coverage-v8` → `.artifacts/coverage/`.
+- **IAM-sensitive** (`lib/auth/**/*.shared.ts`, `lib/auth/callback-path.ts`) → **≥ 95%** coverage enforced.
+- **Global executed coverage** ratcheted toward **80%**. Do not enable `coverage.all: true` prematurely.
+- Artifacts under `.artifacts/` only (gitignored). Do not commit reports.
+
+---
+
+## Knip — dead-surface verdict
+
+> Knip is not a cleanup helper. It is the repo's unused-surface verdict.
+
+Knip failures are architecture drift. Default fix order — **do not skip ahead**:
+
+1. Delete the unused file / export / dependency
+2. Fix the import path or missing dependency declaration
+3. Route through an existing `index.ts` barrel
+4. Add a narrow `ignoreIssues` entry only when the export is intentional API surface
+
+### Suppression doctrine
+
+Only allowed for:
+- **Public surface** — exported from a module barrel and allowed for cross-module consumption
+- **Framework-discovered** — Next.js pages/layouts/routes, Playwright/Vitest entries (covered by `entry` globs in `knip.json`)
+- **Feature internals** (`data/`, `actions/`, `schemas/`) — suppressed because route-discovered or barrel-proxied, **not because dead** — genuinely unused files there must be **deleted**
+
+Every `ignoreIssues` entry must answer: *Why intentionally kept? Who consumes it? Can it be deleted instead?*
+
+**`knip.json` is a required governance file** (`scripts/check-agent-contract.mjs`). Do not delete or rename without updating the script.
+
+---
+
+## Verify pipeline — tier ladder
+
+| Tier | Moment | Command | Cost |
+|---|---|---|---|
+| 0 | every `git commit` | lint-staged (auto) | changed files |
+| 1 | after focused edit | `pnpm typecheck && pnpm lint` | ~30s warm |
+| 2 | before push | `pnpm verify:parallel` | ~2–3 min |
+| 3 | before significant merge | `pnpm verify:artifact` (`next build`) | ~5 min |
+| 4 | CI gate | `pnpm verify` (sequential, includes coverage) | CI |
+| 5 | operational | `pnpm test:e2e:ci` | runtime |
+
+**Use the lowest sufficient tier.** Never run `pnpm knip` after individual task completions.
+
+### What each gate validates
+
+- **`pnpm lint`** → ESLint (import boundaries, forbidden patterns, Radix confinement) + governance scripts (agent-contract, drizzle-journal, design-contract, fixtures-parity)
+- **`pnpm typecheck`** → main app type graph
+- **`pnpm verify:parallel`** → all of the above + knip + format:check + behavior tests
+- **`pnpm verify:artifact`** → `next build` — RSC boundaries, bundle shape, route graph, server/client partitioning, metadata, typed routes
+- **`pnpm verify`** → sequential CI chain with coverage thresholds
+
+### CI is sequential — do not parallelize it
+
+`&&` chains: deterministic · fail-fast · single failure identity · coverage included as governance gate.
+
+### Caches (`.artifacts/` — gitignored, acceleration only)
+
+| Tool | Cache |
+|---|---|
+| ESLint | `.artifacts/.eslintcache` |
+| Prettier | `.artifacts/.prettiercache` |
+| TS main | `.artifacts/.tsbuildinfo/main` |
+| TS test | `.artifacts/.tsbuildinfo/test` |
+| TS scripts | `.artifacts/.tsbuildinfo/scripts` |
+
+Phantom TS errors after rebase → nuke: `Remove-Item -Recurse -Force .artifacts/.tsbuildinfo -ErrorAction SilentlyContinue`
+
+### lint-staged (pre-commit, `.lintstagedrc.json`)
+
+- `*.{ts,tsx,mjs}` → ESLint `--fix` then Prettier
+- `*.{css,json}` → Prettier only
+
+Do **not** add whole-repo tools (knip, agent-contract, design-contract, drizzle-journal) to lint-staged — they need the full file graph.

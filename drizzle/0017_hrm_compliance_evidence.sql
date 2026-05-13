@@ -23,11 +23,11 @@ CREATE TABLE IF NOT EXISTS "hrm_compliance_evidence" (
   "createdByUserId"      text,
   "updatedByUserId"      text
 );
-
+--> statement-breakpoint
 -- Unique: one pack per org × period × country × type
 CREATE UNIQUE INDEX "hrm_compliance_evidence_org_period_country_type_uidx"
   ON "hrm_compliance_evidence"("organizationId", "periodId", "countryCode", "packType");
-
+--> statement-breakpoint
 -- Fast lookup: compliance inbox by state
 CREATE INDEX "hrm_compliance_evidence_org_state_generated_idx"
   ON "hrm_compliance_evidence"("organizationId", "submissionState", "generatedAt" DESC);

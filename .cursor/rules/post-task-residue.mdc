@@ -90,13 +90,13 @@ This includes knip, format check, all typechecks, and behavior tests. Run it onc
 
 ---
 
-## Nexus migration specifics
+## Shell migration specifics
 
-After any Nexus phase work:
+After any Workbench/Nexus phase work:
 
 - `organizationDashboardPath(slug, "home")` resolves to Nexus root `/o/${slug}`.
 - `switchActiveOrgAction` redirect goes to `/o/${slug}`, not `/o/${slug}/dashboard`.
-- Shell chrome extends **`components/nexus/`** only (legacy `components/dashboard-shell/` removed; no `components/dashboard/` shell folder).
+- Shell chrome is **`components/workbench/`** (canonical). `components/nexus/` = Nexus Field + Lynx summon only. No `components/dashboard/` shell folder.
 
 ```powershell
 # Phantom typecheck errors after a route deletion? Clear Next.js type cache:

@@ -34,6 +34,7 @@ import {
 } from "../data/payroll.queries.server"
 import { resolveRulePack } from "../data/payroll-rule-pack.server"
 import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type {
   PayrollPeriodCreateFormState,
   PayrollPeriodUpdateFormState,
@@ -83,7 +84,7 @@ export async function createPayrollPeriodAction(
     "admin"
   )
   if (!allowed) {
-    return { ok: false, errors: { form: "Admin role required." } }
+    return hrmActionFailure({ form: "Admin role required." })
   }
 
   const parsed = createPayrollPeriodFormSchema.safeParse({
@@ -94,15 +95,12 @@ export async function createPayrollPeriodAction(
   })
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        periodStart: fe.periodStart?.[0],
-        periodEnd: fe.periodEnd?.[0],
-        paymentDate: fe.paymentDate?.[0],
-        currency: fe.currency?.[0],
-      },
-    }
+    return hrmActionFailure({
+      periodStart: fe.periodStart?.[0],
+      periodEnd: fe.periodEnd?.[0],
+      paymentDate: fe.paymentDate?.[0],
+      currency: fe.currency?.[0],
+    })
   }
 
   const { organizationId, userId } = session
@@ -122,7 +120,7 @@ export async function createPayrollPeriodAction(
       err instanceof Error && err.message.includes("unique")
         ? "A payroll period with these dates already exists."
         : "Failed to create payroll period."
-    return { ok: false, errors: { form: message } }
+    return hrmActionFailure({ form: message })
   }
 
   after(() =>
@@ -165,7 +163,7 @@ export async function updatePayrollPeriodAction(
     "admin"
   )
   if (!allowed) {
-    return { ok: false, errors: { form: "Admin role required." } }
+    return hrmActionFailure({ form: "Admin role required." })
   }
 
   const parsed = updatePayrollPeriodFormSchema.safeParse({
@@ -177,27 +175,21 @@ export async function updatePayrollPeriodAction(
   })
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors
-    return {
-      ok: false,
-      errors: {
-        periodStart: fe.periodStart?.[0],
-        periodEnd: fe.periodEnd?.[0],
-        paymentDate: fe.paymentDate?.[0],
-        currency: fe.currency?.[0],
-      },
-    }
+    return hrmActionFailure({
+      periodStart: fe.periodStart?.[0],
+      periodEnd: fe.periodEnd?.[0],
+      paymentDate: fe.paymentDate?.[0],
+      currency: fe.currency?.[0],
+    })
   }
 
   const { organizationId, userId } = session
   const period = await getPayrollPeriod(organizationId, parsed.data.periodId)
   if (!period) {
-    return { ok: false, errors: { form: "Payroll period not found." } }
+    return hrmActionFailure({ form: "Payroll period not found." })
   }
   if (period.state !== "open") {
-    return {
-      ok: false,
-      errors: { form: "Only open periods can be edited." },
-    }
+    return hrmActionFailure({ form: "Only open periods can be edited." })
   }
 
   await updatePayrollPeriodMutation(organizationId, parsed.data.periodId, {
@@ -233,7 +225,7 @@ export async function updatePayrollPeriodAction(
 // ---------------------------------------------------------------------------
 
 /**
- * Transitions a period from `open` → `preparing`, creates stub run rows
+ * Transitions a period from `open` → `preparing`, creates draft run rows
  * for all active employees with a payroll profile, and enqueues durable computation.
  */
 export async function preparePayrollRunsAction(
@@ -241,29 +233,27 @@ export async function preparePayrollRunsAction(
   formData: FormData
 ): Promise<PreparePayrollRunsFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
   const parsed = preparePayrollRunsFormSchema.safeParse({
     periodId: formData.get("periodId"),
   })
   if (!parsed.success) {
-    return {
-      ok: false,
-      errors: { periodId: parsed.error.flatten().fieldErrors.periodId?.[0] },
-    }
+    return hrmActionFailure({
+      periodId: parsed.error.flatten().fieldErrors.periodId?.[0],
+    })
   }
 
   const { organizationId, userId, sessionId } = session
   const period = await getPayrollPeriod(organizationId, parsed.data.periodId)
   if (!period) {
-    return { ok: false, errors: { form: "Payroll period not found." } }
+    return hrmActionFailure({ form: "Payroll period not found." })
   }
   if (period.state !== "open") {
-    return {
-      ok: false,
-      errors: { form: "Period must be in open state to start preparation." },
-    }
+    return hrmActionFailure({
+      form: "Period must be in open state to start preparation.",
+    })
   }
 
   await updatePayrollPeriodState(
@@ -356,37 +346,30 @@ export async function lockPayrollPeriodAction(
   formData: FormData
 ): Promise<LockPayrollPeriodFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return { ok: false, errors: { form: gate.error } }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
   const parsed = lockPayrollPeriodFormSchema.safeParse({
     periodId: formData.get("periodId"),
   })
   if (!parsed.success) {
-    return {
-      ok: false,
-      errors: { periodId: parsed.error.flatten().fieldErrors.periodId?.[0] },
-    }
+    return hrmActionFailure({
+      periodId: parsed.error.flatten().fieldErrors.periodId?.[0],
+    })
   }
 
   const { organizationId, userId, sessionId } = session
   const period = await getPayrollPeriod(organizationId, parsed.data.periodId)
   if (!period) {
-    return { ok: false, errors: { form: "Payroll period not found." } }
+    return hrmActionFailure({ form: "Payroll period not found." })
   }
   if (period.state !== "preparing") {
-    return {
-      ok: false,
-      errors: { form: "Period must be preparing to lock." },
-    }
+    return hrmActionFailure({ form: "Period must be preparing to lock." })
   }
   if (period.currency !== "MYR") {
-    return {
-      ok: false,
-      errors: {
-        form: "MYR payroll periods only — extend rule packs before locking other currencies.",
-      },
-    }
+    return hrmActionFailure({
+      form: "MYR payroll periods only — extend rule packs before locking other currencies.",
+    })
   }
 
   const runs = await listPayrollRunsForPeriod(
@@ -394,24 +377,19 @@ export async function lockPayrollPeriodAction(
     parsed.data.periodId
   )
   if (runs.length === 0) {
-    return {
-      ok: false,
-      errors: { form: "No payroll runs — prepare the period first." },
-    }
+    return hrmActionFailure({
+      form: "No payroll runs — prepare the period first.",
+    })
   }
   if (!runs.every((r) => r.state === "computed")) {
-    return {
-      ok: false,
-      errors: { form: "All runs must finish computing before lock." },
-    }
+    return hrmActionFailure({
+      form: "All runs must finish computing before lock.",
+    })
   }
   if (!runs.every((r) => r.validationIssues.length === 0)) {
-    return {
-      ok: false,
-      errors: {
-        form: "Resolve validation issues on every run before locking.",
-      },
-    }
+    return hrmActionFailure({
+      form: "Resolve validation issues on every run before locking.",
+    })
   }
 
   const attendanceOk = await isAttendancePayrollReadyForPeriod({
@@ -420,12 +398,9 @@ export async function lockPayrollPeriodAction(
     periodEnd: period.periodEnd,
   })
   if (!attendanceOk) {
-    return {
-      ok: false,
-      errors: {
-        form: "Attendance days in this window must be computed or locked before payroll lock.",
-      },
-    }
+    return hrmActionFailure({
+      form: "Attendance days in this window must be computed or locked before payroll lock.",
+    })
   }
 
   if (
@@ -434,12 +409,9 @@ export async function lockPayrollPeriodAction(
       parsed.data.periodId
     ))
   ) {
-    return {
-      ok: false,
-      errors: {
-        form: "Request and obtain approved lock certification before locking.",
-      },
-    }
+    return hrmActionFailure({
+      form: "Request and obtain approved lock certification before locking.",
+    })
   }
 
   let rulePackVersion: string
@@ -447,12 +419,9 @@ export async function lockPayrollPeriodAction(
     const periodEnd = new Date(`${period.periodEnd}T00:00:00.000Z`)
     rulePackVersion = resolveRulePack("MY", periodEnd).version
   } catch {
-    return {
-      ok: false,
-      errors: {
-        form: "No Malaysia rule pack is registered for this period end date.",
-      },
-    }
+    return hrmActionFailure({
+      form: "No Malaysia rule pack is registered for this period end date.",
+    })
   }
 
   const lockResult = await lockPayrollPeriodAndRunsMutation({
@@ -505,9 +474,6 @@ export async function lockPayrollPeriodAction(
   revalidatePayrollPages()
   // Refresh the claims surface so kanban / inbox / recents reflect the
   // newly-paid claims. Use the dashboard pattern so all locales rebuild.
-  revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/claims"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/claims"), "layout")
   return { ok: true }
 }
