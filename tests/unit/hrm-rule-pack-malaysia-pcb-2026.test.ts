@@ -140,5 +140,59 @@ describe("PCB v2026-01 — LHDN MTD 2026 golden tests", () => {
       })
       expect(pcb).toBeGreaterThanOrEqual(0)
     })
+
+    it("TP3 monthly deduction lowers PCB vs same gross without TP3", () => {
+      const base = computePcbV202601({
+        monthlyGross: 5000,
+        residency: "resident",
+        month: 1,
+        year: 2026,
+        ytdRemuneration: 0,
+        ytdPcbPaid: 0,
+        epfEmployeeThisMonth: 550,
+        ytdEpfEmployee: 0,
+        tp3AdditionalMonthlyDeductionFromRemuneration: 0,
+      })
+      const withTp3 = computePcbV202601({
+        monthlyGross: 5000,
+        residency: "resident",
+        month: 1,
+        year: 2026,
+        ytdRemuneration: 0,
+        ytdPcbPaid: 0,
+        epfEmployeeThisMonth: 550,
+        ytdEpfEmployee: 0,
+        tp3AdditionalMonthlyDeductionFromRemuneration: 2000,
+      })
+      expect(withTp3).toBeLessThan(base)
+      expect(withTp3).toBeGreaterThanOrEqual(0)
+    })
+
+    it("TP1 additional relief lowers PCB for a mid-year month", () => {
+      const base = computePcbV202601({
+        monthlyGross: 8000,
+        residency: "resident",
+        month: 6,
+        year: 2026,
+        ytdRemuneration: 40_000,
+        ytdPcbPaid: 600,
+        epfEmployeeThisMonth: 880,
+        ytdEpfEmployee: 4400,
+        tp1AdditionalReliefMonthly: 0,
+      })
+      const withTp1 = computePcbV202601({
+        monthlyGross: 8000,
+        residency: "resident",
+        month: 6,
+        year: 2026,
+        ytdRemuneration: 40_000,
+        ytdPcbPaid: 600,
+        epfEmployeeThisMonth: 880,
+        ytdEpfEmployee: 4400,
+        tp1AdditionalReliefMonthly: 500,
+      })
+      expect(withTp1).toBeLessThan(base)
+      expect(withTp1).toBeGreaterThanOrEqual(0)
+    })
   })
 })

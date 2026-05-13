@@ -24,9 +24,7 @@ export default function OrgAccountWorkbenchError(props: NextAppErrorPageProps) {
   const { error } = props
   const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
   const envelope = useRouteEnvelope()
-  const segment = envelope?.orgSlug
-    ? `account/${envelope.orgSlug}`
-    : "account"
+  const segment = envelope?.orgSlug ? `account/${envelope.orgSlug}` : "account"
   useReportRouteError({ segment, error })
 
   return (
@@ -35,8 +33,8 @@ export default function OrgAccountWorkbenchError(props: NextAppErrorPageProps) {
         Account settings could not load
       </h1>
       <p className="text-sm text-muted-foreground">
-        Something went wrong while rendering this account area. The rail and shell
-        remain available — try again or navigate from the sidebar.
+        Something went wrong while rendering this account area. The rail and
+        shell remain available — try again or navigate from the sidebar.
       </p>
       <RouteErrorDigest digest={error.digest} />
       <RouteErrorActions>

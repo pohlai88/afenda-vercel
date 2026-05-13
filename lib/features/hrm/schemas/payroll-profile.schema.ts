@@ -5,12 +5,12 @@ export const HRM_PAY_SCHEDULES = ["monthly", "bi_weekly", "weekly"] as const
 const uuid = z.string().uuid()
 
 /** FormData → optional non-empty MYR decimal (TP1 / TP3). */
-function optionalFormDecimalMyr(key: string) {
+function optionalFormDecimalMyr(field: string) {
   return z.preprocess((raw) => {
     if (raw === null || raw === undefined) return undefined
     const s = String(raw).trim()
     return s === "" ? undefined : s
-  }, z.string().regex(/^\d+(\.\d{1,2})?$/, `${key}: invalid amount`).max(20).optional())
+  }, z.union([z.undefined(), z.string().regex(/^\d+(\.\d{1,2})?$/, `${field}: invalid amount`).max(20)]))
 }
 
 export const upsertPayrollProfileFormSchema = z.object({

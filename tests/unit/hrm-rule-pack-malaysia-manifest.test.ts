@@ -154,4 +154,23 @@ describe("MY-2026-01 composite rule pack manifest", () => {
       expect(payload.body).toBeDefined()
     })
   })
+
+  describe("publicHolidays()", () => {
+    const pack = RULE_PACK_REGISTRY.find((p) => p.version === "MY-2026-01")!
+
+    it("emits locale-backed nameKey for resolved 2026 dates", () => {
+      const seeds = pack.publicHolidays(2026, ["MY-KUL"])
+      const labour = seeds.find((s) => s.date === "2026-05-01")
+      expect(labour?.nameKey).toBe("hrm.holiday.MY.2026-05-01")
+    })
+
+    it("resolves 2027 dates including Labour Day", () => {
+      const seeds = pack.publicHolidays(2027, ["MY-KUL"])
+      expect(seeds.map((s) => s.date)).toContain("2027-05-01")
+    })
+
+    it("throws for unsupported calendar year", () => {
+      expect(() => pack.publicHolidays(2030, ["MY-KUL"])).toThrow(/2030/)
+    })
+  })
 })

@@ -11,7 +11,9 @@ const ORG_FEEDBACK_INBOX_STATE_VALUES = ["all", ...FEEDBACK_STATES] as const
 
 export const orgFeedbackInboxSearchParams = {
   page: parseAsInteger.withDefault(1),
-  state: parseAsStringLiteral(ORG_FEEDBACK_INBOX_STATE_VALUES).withDefault("all"),
+  state: parseAsStringLiteral(ORG_FEEDBACK_INBOX_STATE_VALUES).withDefault(
+    "all"
+  ),
 }
 
 export const loadOrgFeedbackInboxSearchParams = createLoader(

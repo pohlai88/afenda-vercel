@@ -15,7 +15,7 @@ export async function requireHrmOrgTenantFromForm(formData: FormData): Promise<
   | { ok: true; session: HrmOrgSession; orgSlug: string }
   | {
       ok: false
-      response: ReturnType<typeof hrmActionFailure<{ form?: string }>>
+      response: { ok: false; errors: Record<string, string | undefined> }
     }
 > {
   const session = await requireOrgSession()

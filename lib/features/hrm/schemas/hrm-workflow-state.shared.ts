@@ -12,9 +12,7 @@ export const HRM_LEAVE_REQUEST_STATES = [
 export type HrmLeaveRequestState = (typeof HRM_LEAVE_REQUEST_STATES)[number]
 export const hrmLeaveRequestStateSchema = z.enum(HRM_LEAVE_REQUEST_STATES)
 
-export function parseHrmLeaveRequestState(
-  raw: string
-): HrmLeaveRequestState {
+export function parseHrmLeaveRequestState(raw: string): HrmLeaveRequestState {
   const r = hrmLeaveRequestStateSchema.safeParse(raw)
   if (r.success) return r.data
   return "submitted"

@@ -10,7 +10,8 @@ export async function resolveOrgFeedbackInboxSearchParams(
   searchParams: Promise<SearchParams>
 ) {
   const loaded = await loadOrgFeedbackInboxSearchParams(searchParams)
-  const page = Number.isFinite(loaded.page) && loaded.page >= 1 ? loaded.page : 1
+  const page =
+    Number.isFinite(loaded.page) && loaded.page >= 1 ? loaded.page : 1
   const stateFilter = parseOrgFeedbackListStateFilter(
     loaded.state === "all" ? undefined : loaded.state
   )

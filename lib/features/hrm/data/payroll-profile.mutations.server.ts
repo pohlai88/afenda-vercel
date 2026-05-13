@@ -9,6 +9,7 @@ import {
   calendarDayBeforeIso,
   isoDateOnlyToUtcDate,
 } from "./hrm-calendar-dates.server"
+import { mergeMalaysiaPcbIntoStatutoryProfileExtras } from "../schemas/malaysia-pcb-statutory-extras.shared"
 
 export type UpsertPayrollProfileMutationInput = {
   organizationId: string
@@ -30,6 +31,9 @@ export type UpsertPayrollProfileMutationInput = {
   paySchedule: string
   payCurrency: string
   payrollGroupCode?: string | null
+  /** MY LHDN TP1/TP3 (MYR/month); ignored unless `countryCode === "MY"`. */
+  pcbTp1AdditionalReliefMonthlyMyr?: string | undefined
+  pcbTp3AdditionalDeductionMonthlyMyr?: string | undefined
 }
 
 export async function upsertPayrollProfileMutation(
@@ -45,6 +49,7 @@ export async function upsertPayrollProfileMutation(
       .select({
         id: hrmPayrollProfile.id,
         effectiveFrom: hrmPayrollProfile.effectiveFrom,
+        statutoryProfileExtras: hrmPayrollProfile.statutoryProfileExtras,
       })
       .from(hrmPayrollProfile)
       .where(
@@ -77,6 +82,26 @@ export async function upsertPayrollProfileMutation(
         .where(eq(hrmPayrollProfile.id, current.id))
     }
 
+    const priorExtras = current?.statutoryProfileExtras ?? null
+    const pcbPatch =
+      input.countryCode === "MY"
+        ? {
+            pcbTp1AdditionalReliefMonthlyMyr:
+              input.pcbTp1AdditionalReliefMonthlyMyr ?? null,
+            pcbTp3AdditionalDeductionMonthlyMyr:
+              input.pcbTp3AdditionalDeductionMonthlyMyr ?? null,
+          }
+        : {
+            pcbTp1AdditionalReliefMonthlyMyr: null,
+            pcbTp3AdditionalDeductionMonthlyMyr: null,
+          }
+    const mergedExtrasRecord =
+      mergeMalaysiaPcbIntoStatutoryProfileExtras(priorExtras, pcbPatch)
+    const statutoryProfileExtras =
+      Object.keys(mergedExtrasRecord).length === 0
+        ? null
+        : mergedExtrasRecord
+
     const id = crypto.randomUUID()
     await tx.insert(hrmPayrollProfile).values({
       id,
@@ -97,6 +122,7 @@ export async function upsertPayrollProfileMutation(
       paySchedule: input.paySchedule,
       payCurrency: input.payCurrency,
       payrollGroupCode: input.payrollGroupCode ?? null,
+      statutoryProfileExtras,
       effectiveFrom: nextEffective,
       effectiveTo: null,
       createdByUserId: input.actorUserId,

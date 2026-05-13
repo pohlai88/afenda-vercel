@@ -252,7 +252,10 @@ function findRecurrenceMatch(text: string): RecurrenceMatch | null {
   return null
 }
 
-function hasUnsupportedRecurrence(text: string, recurrence: RecurrenceMatch | null) {
+function hasUnsupportedRecurrence(
+  text: string,
+  recurrence: RecurrenceMatch | null
+) {
   return recurrence === null && /\bevery\s+\S+/i.test(text)
 }
 
@@ -333,9 +336,13 @@ export function parsePlannerCaptureInput(
     ranges.push(recurrenceMatch)
   }
 
-  const parsedDates = chrono.parse(reminderMasked, toParsingReference(options), {
-    forwardDate: true,
-  })
+  const parsedDates = chrono.parse(
+    reminderMasked,
+    toParsingReference(options),
+    {
+      forwardDate: true,
+    }
+  )
   const dueDateResult = chooseDueDateResult(parsedDates, recurrenceMatch)
   const dueAt = dueDateResult?.date() ?? null
 

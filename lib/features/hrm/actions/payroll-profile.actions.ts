@@ -47,6 +47,12 @@ export async function upsertPayrollProfileAction(
     epfNumber: formData.get("epfNumber"),
     socsoNumber: formData.get("socsoNumber"),
     pcbCategory: formData.get("pcbCategory"),
+    pcbTp1AdditionalReliefMonthlyMyr: formData.get(
+      "pcbTp1AdditionalReliefMonthlyMyr"
+    ),
+    pcbTp3AdditionalDeductionMonthlyMyr: formData.get(
+      "pcbTp3AdditionalDeductionMonthlyMyr"
+    ),
     bankCode: formData.get("bankCode"),
     bankAccountTokenized: formData.get("bankAccountTokenized"),
     bankAccountHolderName: formData.get("bankAccountHolderName"),
@@ -59,6 +65,8 @@ export async function upsertPayrollProfileAction(
     const fe = parsed.error.flatten().fieldErrors
     return hrmActionFailure({
       effectiveFrom: fe.effectiveFrom?.[0],
+      pcbTp1: fe.pcbTp1AdditionalReliefMonthlyMyr?.[0],
+      pcbTp3: fe.pcbTp3AdditionalDeductionMonthlyMyr?.[0],
       form: fe.employeeId?.[0] ?? fe.countryCode?.[0],
     })
   }
@@ -92,6 +100,8 @@ export async function upsertPayrollProfileAction(
         ? d.payCurrency.trim()
         : "MYR",
     payrollGroupCode: d.payrollGroupCode?.trim() || null,
+    pcbTp1AdditionalReliefMonthlyMyr: d.pcbTp1AdditionalReliefMonthlyMyr,
+    pcbTp3AdditionalDeductionMonthlyMyr: d.pcbTp3AdditionalDeductionMonthlyMyr,
   })
 
   if (!applied.ok) {

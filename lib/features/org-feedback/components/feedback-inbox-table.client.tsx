@@ -15,7 +15,9 @@ type FeedbackInboxTableClientProps = {
   rows: readonly OrgFeedbackEventSummary[]
 }
 
-export function FeedbackInboxTableClient({ rows }: FeedbackInboxTableClientProps) {
+export function FeedbackInboxTableClient({
+  rows,
+}: FeedbackInboxTableClientProps) {
   const t = useTranslations("OrgAdmin.feedback")
   const format = useFormatter()
 
@@ -75,9 +77,13 @@ export function FeedbackInboxTableClient({ rows }: FeedbackInboxTableClientProps
           <div className="text-xs">
             {row.original.metadata?.requestKind === "rail-icon" ? (
               <div className="mb-1 flex flex-wrap gap-1.5">
-                <Badge variant="secondary">{t("marketplaceRequestBadge")}</Badge>
+                <Badge variant="secondary">
+                  {t("marketplaceRequestBadge")}
+                </Badge>
                 {row.original.metadata.utilityId ? (
-                  <Badge variant="outline">{row.original.metadata.utilityId}</Badge>
+                  <Badge variant="outline">
+                    {row.original.metadata.utilityId}
+                  </Badge>
                 ) : null}
               </div>
             ) : null}
@@ -96,7 +102,10 @@ export function FeedbackInboxTableClient({ rows }: FeedbackInboxTableClientProps
         id: "actions",
         header: t("headerActions"),
         cell: ({ row }) => (
-          <OrgFeedbackRowActions id={row.original.id} state={row.original.state} />
+          <OrgFeedbackRowActions
+            id={row.original.id}
+            state={row.original.state}
+          />
         ),
       },
     ],

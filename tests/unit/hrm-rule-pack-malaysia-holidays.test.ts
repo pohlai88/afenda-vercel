@@ -13,6 +13,12 @@ import {
   HOLIDAYS_2026_CODE,
   MALAYSIA_HOLIDAYS_2026,
 } from "../../lib/features/hrm/data/rule-packs/malaysia/holidays/v2026.holidays"
+import {
+  getHolidaysV2027,
+  countHolidaysV2027,
+  HOLIDAYS_2027_CODE,
+} from "../../lib/features/hrm/data/rule-packs/malaysia/holidays/v2027.holidays"
+import { resolveMalaysiaPublicHolidayDates } from "../../lib/features/hrm/data/rule-packs/malaysia/holidays/resolve-malaysia-public-holidays"
 
 describe("Malaysia Holidays 2026 — golden tests", () => {
   it("exports correct version code", () => {
@@ -90,6 +96,46 @@ describe("Malaysia Holidays 2026 — golden tests", () => {
     it("throws for year != 2026", () => {
       expect(() => getHolidaysV2026(2025, ["MY-KUL"])).toThrow()
       expect(() => getHolidaysV2026(2027, ["MY-KUL"])).toThrow()
+    })
+  })
+
+  describe("Malaysia Holidays 2027", () => {
+    it("exports correct version code", () => {
+      expect(HOLIDAYS_2027_CODE).toBe("MY-HOLIDAY-2027")
+    })
+
+    it("includes Labour Day for KUL", () => {
+      expect(getHolidaysV2027(2027, ["MY-KUL"])).toContain("2027-05-01")
+    })
+
+    it("year guard rejects non-2027", () => {
+      expect(() => getHolidaysV2027(2026, ["MY-KUL"])).toThrow()
+    })
+
+    it("KUL has at least as many rows as Johor (baseline density)", () => {
+      expect(countHolidaysV2027(["MY-KUL"])).toBeGreaterThanOrEqual(
+        countHolidaysV2027(["MY-JHR"])
+      )
+    })
+  })
+
+  describe("resolveMalaysiaPublicHolidayDates", () => {
+    it("dispatches 2026 table", () => {
+      const r = resolveMalaysiaPublicHolidayDates(2026, ["MY-KUL"])
+      expect(r.tableCode).toBe(HOLIDAYS_2026_CODE)
+      expect(r.dates).toContain("2026-05-01")
+    })
+
+    it("dispatches 2027 table", () => {
+      const r = resolveMalaysiaPublicHolidayDates(2027, ["MY-KUL"])
+      expect(r.tableCode).toBe(HOLIDAYS_2027_CODE)
+      expect(r.dates).toContain("2027-05-01")
+    })
+
+    it("throws for unsupported calendar year", () => {
+      expect(() => resolveMalaysiaPublicHolidayDates(2030, ["MY-KUL"])).toThrow(
+        /2030/
+      )
     })
   })
 

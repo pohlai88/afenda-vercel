@@ -31,15 +31,9 @@ export const createBenefitPlanFormSchema = z.object({
     .max(64, "Code must be at most 64 characters")
     .regex(/^[a-z0-9][a-z0-9._-]*$/i, "Code must start with alphanumeric"),
   name: z.string().min(1, "Name is required").max(256),
-  description: z.preprocess(
-    emptyToUndefined,
-    z.string().max(4000).optional()
-  ),
+  description: z.preprocess(emptyToUndefined, z.string().max(4000).optional()),
   benefitKind: z.enum(BENEFIT_KINDS),
-  benefitType: z.preprocess(
-    emptyToUndefined,
-    z.string().max(128).optional()
-  ),
+  benefitType: z.preprocess(emptyToUndefined, z.string().max(128).optional()),
   employerContributionType: contributionTypeSchema.default("none"),
   employerContributionValue: optionalNonNegativeDecimal,
   employeeContributionType: contributionTypeSchema.default("none"),
@@ -85,10 +79,7 @@ export type EnrollBenefitFormValues = z.infer<typeof enrollBenefitFormSchema>
 
 export const waiveBenefitEnrollmentFormSchema = z.object({
   enrollmentId: z.string().uuid("Enrollment ID must be a valid UUID"),
-  waivedReason: z.preprocess(
-    emptyToUndefined,
-    z.string().max(2000).optional()
-  ),
+  waivedReason: z.preprocess(emptyToUndefined, z.string().max(2000).optional()),
 })
 
 export const terminateBenefitEnrollmentFormSchema = z.object({
@@ -115,7 +106,9 @@ export const recordLifeEventFormSchema = z.object({
   documentIds: z.array(z.string().uuid()).max(20).optional().default([]),
 })
 
-export type RecordLifeEventFormValues = z.infer<typeof recordLifeEventFormSchema>
+export type RecordLifeEventFormValues = z.infer<
+  typeof recordLifeEventFormSchema
+>
 
 export const verifyLifeEventFormSchema = z.object({
   lifeEventId: z.string().uuid("Life event ID must be a valid UUID"),
@@ -126,4 +119,6 @@ export const verifyLifeEventFormSchema = z.object({
   ),
 })
 
-export type VerifyLifeEventFormValues = z.infer<typeof verifyLifeEventFormSchema>
+export type VerifyLifeEventFormValues = z.infer<
+  typeof verifyLifeEventFormSchema
+>

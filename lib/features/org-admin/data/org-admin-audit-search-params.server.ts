@@ -11,7 +11,8 @@ export async function resolveOrgAdminAuditSearchParams(
   searchParams: Promise<SearchParams>
 ) {
   const loaded = await loadOrgAdminAuditSearchParams(searchParams)
-  const page = Number.isFinite(loaded.page) && loaded.page >= 1 ? loaded.page : 1
+  const page =
+    Number.isFinite(loaded.page) && loaded.page >= 1 ? loaded.page : 1
   const auditOriginFilter: OrganizationIamAuditOriginFilter =
     parseOrganizationIamAuditOriginFilterParam(loaded.view ?? undefined)
   return { page, auditOriginFilter, loaded }

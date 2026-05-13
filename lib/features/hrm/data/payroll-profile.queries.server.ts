@@ -30,6 +30,7 @@ export async function getCurrentPayrollProfileForEmployee(
       payCurrency: hrmPayrollProfile.payCurrency,
       payrollGroupCode: hrmPayrollProfile.payrollGroupCode,
       effectiveFrom: hrmPayrollProfile.effectiveFrom,
+      statutoryProfileExtras: hrmPayrollProfile.statutoryProfileExtras,
     })
     .from(hrmPayrollProfile)
     .where(

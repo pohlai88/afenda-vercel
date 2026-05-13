@@ -44,25 +44,27 @@ export async function OrgAdminDeferredWorkbench({
   orgSession,
   identity,
 }: OrgAdminDeferredWorkbenchProps) {
-  const [railPressure, pinnedDtos, viewDtos, recentDtos, t] = await Promise.all([
-    getOrgAdminRailPressureCounts(orgSession.organizationId),
-    listPinnedForUser({
-      organizationId: orgSession.organizationId,
-      userId: orgSession.userId,
-      workbenchId: "org-admin",
-    }),
-    listSavedViewsForUser({
-      organizationId: orgSession.organizationId,
-      userId: orgSession.userId,
-      workbenchId: "org-admin",
-    }),
-    listRecentsForUser({
-      organizationId: orgSession.organizationId,
-      userId: orgSession.userId,
-      workbenchId: "org-admin",
-    }),
-    getTranslations("OrgAdmin"),
-  ])
+  const [railPressure, pinnedDtos, viewDtos, recentDtos, t] = await Promise.all(
+    [
+      getOrgAdminRailPressureCounts(orgSession.organizationId),
+      listPinnedForUser({
+        organizationId: orgSession.organizationId,
+        userId: orgSession.userId,
+        workbenchId: "org-admin",
+      }),
+      listSavedViewsForUser({
+        organizationId: orgSession.organizationId,
+        userId: orgSession.userId,
+        workbenchId: "org-admin",
+      }),
+      listRecentsForUser({
+        organizationId: orgSession.organizationId,
+        userId: orgSession.userId,
+        workbenchId: "org-admin",
+      }),
+      getTranslations("OrgAdmin"),
+    ]
+  )
 
   const inboxHrefByKey: OrgAdminInboxHrefMap = {
     members: organizationAdminPath(orgSlug, "members"),

@@ -14,7 +14,9 @@ export const orgAdminAuditSearchParams = {
   view: parseAsStringLiteral(["simulated", "all"] as const),
 }
 
-export const loadOrgAdminAuditSearchParams = createLoader(orgAdminAuditSearchParams)
+export const loadOrgAdminAuditSearchParams = createLoader(
+  orgAdminAuditSearchParams
+)
 
 export const serializeOrgAdminAuditSearchParams = createSerializer(
   orgAdminAuditSearchParams
