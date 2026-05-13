@@ -1,6 +1,6 @@
 # Afenda HRM — Senior Engineering Architecture Proposal (v2)
 
-> **v2 reconciles `hrm-draft-v1.md` (truth-engine framing, domain ontology, statutory citations, dense ERP UX, end-to-end workflow tables) with the architecture plan grounded in Afenda's actual codebase (single `lib/features/hrm/` module, capability registry, `iam_audit_event`, Workflow DevKit, `org_event_delivery`, OneThing pressure, locale-first routing). v1's tRPC/`services`/`pgEnum`/`tenant_id`/RLS-by-default patterns are replaced with Afenda's Server Actions, `data/*.server.ts` files, `text` columns + Zod, `organizationId`, and app-level guards — but every conceptual asset is preserved.**
+> **v2 reconciles `hrm-draft-v1.md` (truth-engine framing, domain ontology, statutory citations, dense ERP UX, end-to-end workflow tables) with the architecture plan grounded in Afenda's actual codebase (single `lib/features/hrm/` module, capability registry, `iam_audit_event`, Workflow DevKit, `org_event_delivery`, Orbit / Nexus operational pressure, locale-first routing). v1's tRPC/`services`/`pgEnum`/`tenant_id`/RLS-by-default patterns are replaced with Afenda's Server Actions, `data/*.server.ts` files, `text` columns + Zod, `organizationId`, and app-level guards — but every conceptual asset is preserved.**
 
 ### v2.1 Reviewer revisions absorbed (2026-05-11)
 
@@ -67,10 +67,10 @@ Treat HRM as a **standard ERP feature module** under [`lib/features/hrm/`](lib/f
 | **IAM audit ledger** ([`lib/auth/audit.server.ts`](lib/auth/audit.server.ts)) | All HR mutations write `iam_audit_event` rows after successful commit (single source of truth — no parallel `hr_audit_events` table) |
 | **Workflow DevKit** (existing pattern in [`import-job-run.workflow.ts`](lib/features/org-admin/data/import-job-run.workflow.ts)) | Durable runs for payroll finalization, leave accrual, approval flows; entries re-exported via `lib/features/execution/data/<run>-entry.ts` |
 | **Outbound delivery** ([`integrations-delivery.server.ts`](lib/features/org-admin/data/integrations-delivery.server.ts)) | **The ERP outbox pattern.** Reused for signed statutory submissions (LHDN PCB, KWSP EPF, PERKESO SOCSO/EIS) — no parallel delivery layer |
-| **CSV ingestion** ([`OrgImportAdapter`](lib/features/org-admin/data/import-adapter.server.ts)) | New adapters: `hrm_employee_import`, `hrm_attendance_import`, `hrm_opening_balance_import` |
+| **CSV ingestion** ([`OrgImportAdapter`](lib/features/org-admin/data/import-adapter.server.ts)) | Shipped adapters: `hrm_employee_hire`, `hrm_payroll_profile_import`, `hrm_attendance_import`. Deferred: `hrm_opening_balance_import` when manual balance migration needs a CSV path. |
 | **Locale-first routing** ([`.cursor/rules/i18n-directory.mdc`](.cursor/rules/i18n-directory.mdc)) | All UI under `/[locale]/o/[orgSlug]/dashboard/hrm/{capability}`; revalidate via `toLocaleOrgDashboardRevalidatePattern("/hrm")` |
-| **Nexus snapshot** ([`nexus-snapshot.queries.server.ts`](lib/features/nexus/data/nexus-snapshot.queries.server.ts)) | HRM exports `listHrmHighPressureForNexus(organizationId, limit)`; consumed in same shape as `listIThinkHighPressureForNexus` |
-| **OneThing pressure** | Critical HR consequences (statutory deadline, contract expiring, leave overdraft) become `onething` rows with `linkage = { module: "hrm", entity, id }` so they ride the existing operational pressure surface |
+| **Nexus snapshot** ([`nexus-snapshot.queries.server.ts`](lib/features/nexus/data/nexus-snapshot.queries.server.ts)) | HRM exports `listHrmHighPressureForNexus(organizationId, limit)`; consumed by the Nexus Field pressure merge alongside other module producers |
+| **Orbit / planner pressure** | Critical HR consequences (statutory deadline, contract expiring, leave backlog, probation window) surface as **`planner_signal`** rows with ERP links (`createPlannerSignalFromErpProducer`, `createPlannerSignalLink`) so they ride the governed Orbit queue — not a parallel “HR inbox” product |
 
 ---
 
@@ -171,7 +171,7 @@ Attendance manual entry + CSV import + daily aggregate
 Payroll preparation preview (MY rule pack v2026-01)
 Malaysia statutory evidence preview (EPF / SOCSO / EIS / PCB)
 Audit timeline (powered by iam_audit_event)
-OneThing HR pressure (probation / leave backlog / payroll cutoff / document expiry)
+Orbit HR pressure (probation / leave backlog / payroll cutoff / document expiry)
 ```
 
 **MVP does NOT include** (explicitly deferred to keep Afenda from drifting into a generic HRMS):
@@ -206,46 +206,40 @@ The line between included and excluded is the difference between **proving Afend
 | Benefits | (Phase 4 stub: `hrm_benefit`, `hrm_benefit_enrollment`) | Insurance, medical, allowance plans, eligibility rules, vendor integration |
 | Compliance | EA form, EPF/SOCSO/EIS/PCB monthly evidence pack, statutory pack delivery via outbox | HRDF levy, IRBM e-Filing API, e-PCB submission, retention policies, auditor export |
 | Documents | Upload to Vercel Blob, link to employee, expiry tracking | E-signature workflow, retention policy, access redaction, document templates |
-| Policies | Per-org leave type config, holiday calendar, statutory rates view | Visual rule editor, what-if simulator, custom approval routes |
+| Policies | Per-org leave type config; holiday calendar and statutory-rate inspectors remain reserved panels | Visual rule editor, what-if simulator, custom approval routes |
 | Security | App-level `requireOrgSession` + `canActInOrganization` + `requireRecentAuthStepUp` for Tier S | Field-level permissions, salary privacy projections, optional Postgres RLS |
 
 ### 1.6 Capability registry (sub-screens, drives sidebar + audit prefixes + contract test)
 
-Mirror the [`ORG_ADMIN_CAPABILITIES`](lib/features/org-admin/constants.ts) pattern. In `lib/features/hrm/constants.ts`:
+Mirror the [`ORG_ADMIN_CAPABILITIES`](lib/features/org-admin/constants.ts) pattern. **Authoritative shipped registry:** [`HRM_CAPABILITIES`](lib/features/hrm/constants.ts) — excerpt below (add `minimumOrgRole` in code; keep `#lib/hrm-dashboard.shared` segment allowlist in lockstep):
 
 ```ts
 export const HRM_CAPABILITIES = [
-  { id: "workforce",  segments: ["employees", "departments", "positions"] as const,
-    auditPrefix: "erp.hrm.employee",   nav: { navKey: "workforce",  order: 10, primarySegment: "employees" } },
-  { id: "leave",      segments: ["leave"]      as const,
-    auditPrefix: "erp.hrm.leave",      nav: { navKey: "leave",      order: 20, primarySegment: "leave" } },
-  { id: "attendance", segments: ["attendance"] as const,
-    auditPrefix: "erp.hrm.attendance", nav: { navKey: "attendance", order: 30, primarySegment: "attendance" } },
-  { id: "payroll",    segments: ["payroll"]    as const,
-    auditPrefix: "erp.hrm.payroll",    nav: { navKey: "payroll",    order: 40, primarySegment: "payroll" } },
-  { id: "claims",     segments: ["claims"]     as const,
-    auditPrefix: "erp.hrm.claim",      nav: { navKey: "claims",     order: 50, primarySegment: "claims" } },
-  { id: "compliance", segments: ["compliance"] as const,
-    auditPrefix: "erp.hrm.compliance", nav: { navKey: "compliance", order: 60, primarySegment: "compliance" } },
-  { id: "documents",  segments: ["documents"]  as const,
-    auditPrefix: "erp.hrm.document",   nav: { navKey: "documents",  order: 70, primarySegment: "documents" } },
-  { id: "policies",   segments: ["policies"]   as const,
-    auditPrefix: "erp.hrm.policy",     nav: { navKey: "policies",   order: 80, primarySegment: "policies" } },
+  { id: "workforce", segments: ["employees"], auditPrefix: "erp.hrm.employee", nav: { navKey: "employees", order: 10, primarySegment: "employees" }, minimumOrgRole: "member" },
+  { id: "organization", segments: ["organization"], auditPrefix: "erp.hrm.organization", nav: { navKey: "organization", order: 15, primarySegment: "organization" }, minimumOrgRole: "admin" },
+  { id: "leave", segments: ["leave"], auditPrefix: "erp.hrm.leave", nav: { navKey: "leave", order: 20, primarySegment: "leave" }, minimumOrgRole: "member" },
+  { id: "attendance", segments: ["attendance"], auditPrefix: "erp.hrm.attendance", nav: { navKey: "attendance", order: 30, primarySegment: "attendance" }, minimumOrgRole: "member" },
+  { id: "claims", segments: ["claims"], auditPrefix: "erp.hrm.claim", nav: { navKey: "claims", order: 35, primarySegment: "claims" }, minimumOrgRole: "member" },
+  { id: "payroll", segments: ["payroll"], auditPrefix: "erp.hrm.payroll", nav: { navKey: "payroll", order: 40, primarySegment: "payroll" }, minimumOrgRole: "admin" },
+  { id: "compliance", segments: ["compliance"], auditPrefix: "erp.hrm.compliance", nav: { navKey: "compliance", order: 50, primarySegment: "compliance" }, minimumOrgRole: "admin" },
+  { id: "documents", segments: ["documents"], auditPrefix: "erp.hrm.document", nav: { navKey: "documents", order: 60, primarySegment: "documents" }, minimumOrgRole: "member" },
+  { id: "policies", segments: ["policies"], auditPrefix: "erp.hrm.policy", nav: { navKey: "policies", order: 70, primarySegment: "policies" }, minimumOrgRole: "admin" },
+  { id: "snapshot", segments: ["snapshot"], auditPrefix: "erp.hrm.snapshot", nav: { navKey: "snapshot", order: 80, primarySegment: "snapshot" }, minimumOrgRole: "member" },
 ] as const satisfies readonly HrmCapability[]
 ```
 
 Adding a sub-screen = registering one capability + creating one component file + one test snapshot. `tests/unit/hrm-contract.test.ts` enforces parity for capability ↔ nav i18n key ↔ allowed segments ↔ audit prefix ↔ path-builder, mirroring [`tests/unit/org-admin-contract.test.ts`](tests/unit/org-admin-contract.test.ts).
 
-### 1.7 Truth-engine fit (HRM facts vs OneThing operational consequences)
+### 1.7 Truth-engine fit (HRM facts vs Orbit operational consequences)
 
-HRM owns the **fact** tables. OneThing owns the **operational consequence** surface. This is the same split used today by `iThink` (operational lens on top of `onething` storage).
+HRM owns the **fact** tables. **Orbit** (`lib/features/planner/`) owns the **operational consequence** surface (`planner_signal` / `planner_item`) with ERP-grounded links — see [ADR-0006](docs/decisions/0006-orbit-operational-execution-substrate.md).
 
 | HR situation | Stored as | Surfaced via |
 |---|---|---|
-| Probation expiring in 14 days | `hrm_employment_contract` row + cron-inserted `onething` row with `linkage` | Nexus pressure band |
-| Statutory deadline approaching | computed by cron sweep | `onething` + Compliance UI banner |
+| Probation ending within 14 days (unconfirmed) | `hrm_employment_contract` + IAM `erp.hrm.contract.probation_review_due` | Orbit signal (`hrm.probation_watch` producer) + Nexus pressure |
+| Statutory deadline approaching | compliance evidence + IAM aging audits | Orbit signal on critical tier + Compliance UI |
 | Leave overdraft attempt | rejected at action layer (`{ ok: false, code: "overdraft" }`) | Inline form error |
-| Payroll cutoff | period state + `onething` row when 3 days remain | Nexus pressure + Payroll console banner |
+| Payroll cutoff | payroll period state + execution audits | Nexus HR pressure + Payroll console |
 
 ---
 
@@ -316,8 +310,8 @@ lib/features/hrm/
     approval-flow.workflow.ts           -- Workflow DevKit entry; re-exported from #features/execution
     payroll-finalize.workflow.ts        -- Workflow DevKit entry
     leave-accrual.workflow.ts           -- Workflow DevKit entry (cron-triggered)
-    confirmation-due.workflow.ts        -- Workflow DevKit entry (cron sweep -> OneThing)
-    document-expiry.workflow.ts         -- Workflow DevKit entry (cron sweep -> OneThing)
+    confirmation-due.workflow.ts        -- Workflow DevKit entry (cron sweep -> Orbit signal)
+    document-expiry.workflow.ts         -- Workflow DevKit entry (cron sweep -> Orbit signal)
     employee-import.adapter.server.ts   -- OrgImportAdapter for bulk employee CSV
     attendance-import.adapter.server.ts -- OrgImportAdapter for attendance CSV
 
@@ -403,7 +397,7 @@ A small server-only module `lib/features/hrm/data/permission.server.ts` exposes 
 
 ### 2.4 Multi-tenant safety
 
-Every HRM table includes `organizationId text not null` (matches [`customers`](lib/db/schema.ts), [`onething`](lib/db/schema.ts), [`import_job`](lib/db/schema.ts) convention). Every query and mutation filters by `organizationId` resolved from `requireOrgSession()` — **never trusted from `FormData` or query string**.
+Every HRM table includes `organizationId text not null` (matches [`customers`](lib/db/schema.ts), [`planner_signal`](lib/db/schema.ts), [`import_job`](lib/db/schema.ts) convention). Every query and mutation filters by `organizationId` resolved from `requireOrgSession()` — **never trusted from `FormData` or query string**.
 
 **Postgres RLS** is **not** enabled at MVP (matching current Afenda code). It remains an opt-in defense layer per [AGENTS.md §5 — *Postgres row-level security (RLS) — optional compliance layer*](AGENTS.md). When a regulated customer requires it, RLS is added via a SQL migration on `hrm_*` tables with policies keyed on `current_setting('app.organization_id')`, set at request start in the same connection that runs the query.
 
@@ -434,7 +428,7 @@ For HRM specifically, accidental cross-tenant leakage is catastrophic (salary, i
 | Audit | All mutations write to existing `iam_audit_event` — no parallel `hr_audit_events` table |
 | **Actor columns** (standard on every HRM row) | `createdAt`, `createdByUserId text` (nullable), `updatedAt`, `updatedByUserId text` (nullable), `archivedAt`, `archivedByUserId text` (nullable) when the table is soft-deletable. Even though `iam_audit_event` is the real ledger, these inline actor columns make dense ERP tables and timeline drawers readable without a join. |
 | **Workflow run pointers (conditional)** | `currentApprovalId text` (FK → `hrm_approval`) is the cross-domain MVP norm. `currentApprovalRunId text` (Workflow DevKit run id) is added **only on tables whose actions actually enqueue a workflow in that phase** (Phase 2: leave / claim approval; Phase 3: payroll finalize). Do **not** preemptively add it everywhere. |
-| Simulation | Reuse `auditOrigin`, `simulationRunId`, `scenarioId`, `scenarioVersion`, `simulationSeed` columns on long-lived rows that can participate in operational simulation (matches `onething` pattern) |
+| Simulation | Reuse `auditOrigin`, `simulationRunId`, `scenarioId`, `scenarioVersion`, `simulationSeed` columns on long-lived rows that can participate in operational simulation (matches planner-native rows pattern) |
 | Indexes | Composite indexes match read paths; first column always `organizationId` for tenant-scoped tables |
 
 ### 3.2 Production tables
@@ -1043,7 +1037,7 @@ after(() =>
 )
 ```
 
-For heavy operational events (payroll finalize, termination, salary change, probation outcome), use `writeAuditEvent7W1H` with `audit7w1h` row cache via the same closure pattern as [`appendOneThingOneThingAudit7w1h`](lib/features/onething/data/onething-audit.server.ts).
+For heavy operational events (payroll finalize, termination, salary change, probation outcome), use `writeAuditEvent7W1H` with `audit7w1h` row cache via the same closure pattern as other ERP modules (see `lib/erp/audit-7w1h.server.ts` and HRM contract writers).
 
 ### 5.9 Revalidation strategy
 
@@ -1316,12 +1310,12 @@ sequenceDiagram
 | Aspect | Design |
 |---|---|
 | Actor | Manager or HR |
-| Trigger | `confirmation-due.workflow.ts` cron sweep finds `probationEndDate ≤ today + 14d`, inserts a `onething` row (linkage `{ module: "hrm", entity: "contract", id }`); appears in Nexus pressure |
-| Data touched | `hrm_employment_contract`, `hrm_approval`, `hrm_document` (confirmation letter), `iam_audit_event`, `onething` (resolved) |
+| Trigger | `hrm-probation-watch` cron finds contracts with `probationEndDate` in the 14-day UTC window and no `confirmationDate`; emits `erp.hrm.contract.probation_review_due` + Orbit `planner_signal` via `createPlannerSignalFromErpProducer` |
+| Data touched | `hrm_employment_contract`, `hrm_approval`, `hrm_document` (confirmation letter), `iam_audit_event`, `planner_signal` / `planner_link` |
 | Approval path | Manager → HR |
-| Audit events | `erp.hrm.contract.update {transition: "confirm"}` (writes 7W1H to `audit7w1h` cache); `erp.onething.consequence.resolve` |
+| Audit events | `erp.hrm.contract.update {transition: "confirm"}` (writes 7W1H to `audit7w1h` cache); `erp.planner.signal.*` lifecycle from Orbit |
 | Evidence | Confirmation letter, approval snapshot, probation review notes |
-| Failure states | Confirmation skipped past `probationEndDate + rulePack.gracePeriod` → OneThing severity escalates to `critical` |
+| Failure states | Confirmation skipped past `probationEndDate + rulePack.gracePeriod` → Orbit signal severity escalates to `critical` |
 
 ### 7.3 Apply and approve leave
 
@@ -1413,7 +1407,7 @@ sequenceDiagram
 | Audit events | `erp.hrm.contract.create` with `metadata: { transition: "salary_change", deltaPct }`; 7W1H written to `audit7w1h` cache on contract row |
 | Evidence | Salary change letter, approval snapshot, effective-date record |
 | Failure states | Effective date overlaps locked payroll period → `payroll_period_locked`; salary outside grade band → `validation`; duplicate active contract → exclusion constraint rejects |
-| Side effect | Inserts OneThing if next payroll variance > 20% (pressure surface) |
+| Side effect | Inserts Orbit `planner_signal` if next payroll variance > 20% (pressure surface) |
 
 ### 7.9 Resignation / termination
 
@@ -1445,6 +1439,48 @@ sequenceDiagram
 ## 8. Engineering delivery plan — vertical slices over horizontal layers
 
 The plan is organised so **every PR ships a vertical slice you can use end-to-end**. Phases 1–3 are split into A/B/C sub-PRs; each sub-PR is a single reviewable, deployable unit. Two slices come first: **Slice 1 — Employee truth** (Phases 1A–1C) and **Slice 2 — Leave truth** (Phases 2A–2C). Payroll prep follows once both slices are stable.
+
+### Current implementation status (2026-05-13)
+
+This document is now both the original HRM architecture proposal and the live status ledger. Treat the rows below as the canonical "what remains" view before opening another HRM implementation PR.
+
+**Latest closed slices:** SG manifest parity is complete. `drizzle/0026_hrm_sg_rule_pack_registry_seed.sql` now matches `singapore2026_01RulePack.manifest`, and `tests/unit/hrm-rule-pack-singapore-manifest.test.ts` guards the seed-to-TypeScript contract. Payroll workflow verification now covers preview idempotency in `tests/unit/hrm-payroll-finalize-workflow.test.ts`: computed reruns do not duplicate lines, draft recompute replaces existing lines before insert, and non-preparing periods stop without line mutation. SG statutory-pack depth is complete in `tests/unit/hrm-statutory-pack-singapore.test.ts`: CPF, SDL, and IRAS no-monthly-withholding payloads now have country-shaped evidence and deterministic hashes. Payroll UI smoke is covered by `tests/e2e/hrm-payroll-flow.spec.ts`: the route renders under the org shell, exposes period creation affordances, and preserves unknown-org not-found behavior. Indonesia baseline is now registered as `ID-2026-01`: the pack includes BPJS/JHT-style contribution calculations, 2026 national holidays, employment leave seeds, a matching registry seed in `drizzle/0027_hrm_id_rule_pack_registry_seed.sql`, and manifest/computation coverage in `tests/unit/hrm-rule-pack-indonesia-manifest.test.ts`. Payroll full-flow E2E is now closed: `tests/e2e/utils/hrm-payroll-fixtures.ts` seeds one deterministic employee, active contract, and MY payroll profile, and `tests/e2e/hrm-payroll-flow.spec.ts` drives create → prepare → certify → lock through the browser. That slice also fixed the lock mutation for the Neon HTTP Drizzle driver by replacing the unsupported `db.transaction` call in `lockPayrollPeriodAndRunsMutation` with ordered tenant-guarded updates.
+
+| Area | Status | Evidence | Remaining to apply |
+|---|---|---|---|
+| Phase 0 governance | Shipped | `HRM_CAPABILITIES`, path helpers, barrels, route shell, contract tests | Keep registry, allowed segments, nav i18n, and audit prefixes in lockstep for any new surface. |
+| Phase 1 employee truth | Shipped | Workforce CRUD, contract lifecycle, payroll profile, documents, employee timeline, org structure routes | Decide separately whether employee detail should grow into the full tabbed surface from §6.4; current implementation is a dense single-scroll page. |
+| Phase 2 leave / approval / attendance | Shipped | Leave policy/actions, single-step approvals, balance recompute, attendance event/day aggregation, CSV attendance import | Manual opening-balance adjustment/import remains unimplemented; add only when migration onboarding needs a CSV path. |
+| Phase 3 payroll / MY rule pack / compliance | Shipped | Payroll preview/lock, `MY-2026-01`, payroll-finalize workflow idempotency tests, payroll UI smoke, full browser create → prepare → certify → lock E2E, statutory evidence, compliance drill-down, retry, aging watch, bureau reliability, fanout | Keep additional payroll browser coverage scoped to real regressions; the current deterministic fixture covers the core happy path. |
+| Phase 4 claims / documents / Nexus pressure | Shipped | Claims lifecycle, claim payroll settlement bridge, document expiry watch, HR Nexus pressure aggregation | Benefits tables are schema stubs only; no `HRM_CAPABILITIES` benefits surface should be added until a real customer pull exists. |
+| Phase 5 Singapore | Shipped baseline | `SG-2026-01` is registered with CPF, SDL, 2026 holidays, Employment Act leave seeds, a matching rule-pack registry seed, CPF/SDL/IRAS statutory evidence payloads, and unit tests | Defer further SG depth to customer-triggered needs such as age-tier CPF categories, IR8A/AIS exports, or additional payroll profile fields. |
+| Phase 5 SEA expansion | Started | `ID-2026-01` is registered with BPJS/JHT-style contributions, 2026 national holidays, employment leave seeds, matching registry seed parity, and unit tests. `PayrollRulePack.countryCode` still reserves `TH`, `VN`, `PH`. | Add one remaining country at a time; keep further country work inside versioned rule-pack folders, registry seed SQL, tests, and message catalogs unless the existing `PayrollRulePack` contract proves insufficient. |
+| Phase 5+ enterprise upgrades | Deferred | Explicit non-goals in §1.5 and §8 Phase 5+ | Portals, bank files, GL export, multi-legal-entity, RLS, biometric attendance, multi-stage approvals, and full benefits stay out until customer-triggered. |
+
+#### Remaining to apply before the next major HRM slice
+
+1. **Typed action result cleanup:** consider a shared HRM expected-error union only if it reduces real duplication across actions; do not introduce a broad framework. Current actions use local `{ ok: false, ... }` return shapes.
+2. **UI-depth decision:** choose whether `employee-detail-page.tsx` and `hrm-snapshot-page.tsx` should remain compact operational surfaces or move toward the richer §6.2 / §6.4 designs. Treat this as product scope, not residue.
+3. **Country expansion discipline:** for ID / TH / VN / PH, follow the SG pattern and keep changes inside `data/rule-packs/<country>/`, registry seed SQL, tests, and message catalogs. Do not touch actions, routes, or components for a new country unless the existing `PayrollRulePack` contract proves insufficient.
+
+#### Next recommended HRM PRs
+
+1. **PR C — Typed action result cleanup:** consider a shared expected-error union only if the next HRM action slice creates real duplication pressure.
+2. **PR D — Next country after Indonesia:** choose TH / VN / PH only when a customer or demo need justifies the next pack; follow the SG/ID folder/test/seed pattern.
+
+#### Proposed next development slice
+
+**Build next:** PR C — Typed action result cleanup.
+
+**Why this is next:** The highest payroll browser verification gap is now closed. The next low-risk cleanup is to look for actual duplication pressure in HRM expected-error action results, without introducing a broad framework prematurely.
+
+**Suggested implementation shape:**
+
+1. Audit HRM Server Action return types and identify only repeated `{ ok: false, errors: ... }` shapes with shared semantics.
+2. Extract a narrow type alias or helper only where it removes meaningful duplication across two or more actions.
+3. Avoid a generic action framework; this is cleanup, not a new architecture category.
+
+**Acceptance:** targeted type checks and lint pass, no HRM action behavior changes except type narrowing, existing payroll full-flow E2E remains green with configured credentials, and the Next.js dev server reports no MCP errors.
 
 ### Phase 0 — Domain model & governance contracts (1 week, no DB, no UI) ✅ SHIPPED
 
@@ -1636,7 +1672,7 @@ Operational hardening shipped past the original 3C scope. Listed here so future 
 
 | Rule | How HRM honours it |
 |---|---|
-| **DRY** | Reuses `iam_audit_event`, `org_event_delivery`, `import_job` adapter, Workflow DevKit, `OneThing` for pressure, Vercel Blob for files, `canActInOrganization`, `requireOrgSession`, `toLocaleOrgDashboardRevalidatePattern`, capability registry. **No parallel approval / audit / delivery / RBAC layers.** Every HR mutation calls one of three IAM helpers (`writeIamAuditEvent[FromHeaders]`, `writeAuditEvent7W1H`). |
+| **DRY** | Reuses `iam_audit_event`, `org_event_delivery`, `import_job` adapter, Workflow DevKit, **Orbit** for operational pressure, Vercel Blob for files, `canActInOrganization`, `requireOrgSession`, `toLocaleOrgDashboardRevalidatePattern`, capability registry. **No parallel approval / audit / delivery / RBAC layers.** Every HR mutation calls one of three IAM helpers (`writeIamAuditEvent[FromHeaders]`, `writeAuditEvent7W1H`). |
 | **KISS** | One `lib/features/hrm/` module; sub-domain via filename prefix (no nested folders beyond `data/rule-packs/<country>/`); pure engines; expected errors as return values. Single generic `hrm_approval` table for all HR approvals (no per-domain duplication). |
 | **Server-first App Router** | All pages async RSCs; client islands only for forms / drawers / dialogs / row selection; no SPA shell. Two-line route files. |
 | **ERP-first product thinking** | Dense tables, opaque material, evidence-first — not card sprawl. Past payroll runs are immutable history. Every important screen surfaces status / effective date / approval state / evidence / audit / period-lock impact. |

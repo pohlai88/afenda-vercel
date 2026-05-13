@@ -1,13 +1,35 @@
 import { expect, type Page } from "@playwright/test"
+import { neon } from "@neondatabase/serverless"
 
-import { DEMO_PUBLIC_COPY } from "../../fixtures/bootstrap-mocks"
+import { BOOTSTRAP_FIXTURE } from "../../fixtures/bootstrap-mocks"
 
 /** Matches active-org dashboard or admin URLs after sign-in. */
 export const ORG_SLUG_FROM_SESSION_URL_RE =
   /\/en\/o\/([^/]+)\/(?:dashboard|admin)/
 
+let sql: ReturnType<typeof neon> | null = null
+
+async function activateDemoOrgForUser(email: string): Promise<void> {
+  const databaseUrl = process.env.DATABASE_URL
+  if (!databaseUrl) return
+
+  sql ??= neon(databaseUrl)
+  await sql`
+    UPDATE neon_auth.session
+    SET "activeOrganizationId" = ${BOOTSTRAP_FIXTURE.organization.id}
+    WHERE "userId" = (
+      SELECT id FROM neon_auth.user WHERE email = ${email} LIMIT 1
+    )
+  `
+}
+
 /**
- * Sign in as org admin test user — role-based locators, shared post-sign-in URL wait.
+ * Sign in as org admin test user through the auth API and activate the demo org.
+ *
+ * Org-scoped E2E is not responsible for retesting the public sign-in form.
+ * API sign-in keeps these specs focused on the protected route behavior and
+ * avoids local-only dev overlays influencing form click coordinates.
+ *
  * Pair with {@link resolveOrgSlugFromSession}.
  */
 export async function signInAsOrgAdmin(
@@ -15,17 +37,36 @@ export async function signInAsOrgAdmin(
   email: string,
   password: string
 ): Promise<void> {
-  await page.goto("/en/sign-in")
-  await expect(
-    page.getByLabel(DEMO_PUBLIC_COPY.signInEmailLabel, { exact: true })
-  ).toBeVisible()
+  let response = await page.request.post("/api/auth/sign-in/email", {
+    data: {
+      email,
+      password,
+      callbackURL: `/en/o/${BOOTSTRAP_FIXTURE.organization.slug}/nexus`,
+    },
+  })
+  for (let attempt = 1; !response.ok() && attempt < 3; attempt++) {
+    await page.waitForTimeout(1_000 * attempt)
+    response = await page.request.post("/api/auth/sign-in/email", {
+      data: {
+        email,
+        password,
+        callbackURL: `/en/o/${BOOTSTRAP_FIXTURE.organization.slug}/nexus`,
+      },
+    })
+  }
 
-  await page
-    .getByLabel(DEMO_PUBLIC_COPY.signInEmailLabel, { exact: true })
-    .fill(email)
-  await page.getByLabel("Password", { exact: true }).fill(password)
-  await page.getByRole("button", { name: "Sign in", exact: true }).click()
+  expect(response.ok(), await response.text()).toBe(true)
+  await activateDemoOrgForUser(email)
+  await page.context().clearCookies({
+    name: "__Secure-neon-auth.local.session_data",
+  })
 
+  await page.goto(`/en/o/${BOOTSTRAP_FIXTURE.organization.slug}/nexus`, {
+    waitUntil: "domcontentloaded",
+  })
+  if (ORG_SLUG_FROM_SESSION_URL_RE.test(page.url())) {
+    return
+  }
   await page.waitForURL(/\/en\/(console|account|o)/, {
     timeout: 30_000,
   })

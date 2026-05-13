@@ -219,6 +219,9 @@ export async function deletePayrollLinesForRun(
  * `erp.hrm.claim.paid` audit per row from a request-scoped context
  * (`writeIamAuditEventFromNextHeaders`); audits stay inside Server
  * Actions so this mutation remains free of `next/headers` imports.
+ *
+ * Drizzle's Neon HTTP driver does not support `db.transaction`, so these
+ * updates are ordered and tenant-guarded rather than wrapped in a transaction.
  */
 export async function lockPayrollPeriodAndRunsMutation(opts: {
   readonly organizationId: string
@@ -233,105 +236,99 @@ export async function lockPayrollPeriodAndRunsMutation(opts: {
     readonly payrollLineId: string
   }>
 }> {
-  return await db.transaction(async (tx) => {
-    await tx
-      .update(hrmPayrollPeriod)
-      .set({
-        state: "locked",
-        rulePackVersion: opts.rulePackVersion,
-        lockedByUserId: opts.lockedByUserId,
-        lockedAt: new Date(),
-        updatedAt: new Date(),
-        updatedByUserId: opts.lockedByUserId,
-      })
-      .where(
-        and(
-          eq(hrmPayrollPeriod.organizationId, opts.organizationId),
-          eq(hrmPayrollPeriod.id, opts.periodId)
-        )
-      )
+  const now = new Date()
 
-    await tx
-      .update(hrmPayrollRun)
-      .set({
-        state: "locked",
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(hrmPayrollRun.organizationId, opts.organizationId),
-          eq(hrmPayrollRun.periodId, opts.periodId)
-        )
+  await db
+    .update(hrmPayrollPeriod)
+    .set({
+      state: "locked",
+      rulePackVersion: opts.rulePackVersion,
+      lockedByUserId: opts.lockedByUserId,
+      lockedAt: now,
+      updatedAt: now,
+      updatedByUserId: opts.lockedByUserId,
+    })
+    .where(
+      and(
+        eq(hrmPayrollPeriod.organizationId, opts.organizationId),
+        eq(hrmPayrollPeriod.id, opts.periodId)
       )
+    )
 
-    await tx
-      .update(hrmAttendanceDay)
-      .set({
-        state: "locked",
-        lockedByPayrollPeriodId: opts.periodId,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(hrmAttendanceDay.organizationId, opts.organizationId),
-          gte(hrmAttendanceDay.attendanceDate, opts.periodStart),
-          lte(hrmAttendanceDay.attendanceDate, opts.periodEnd)
-        )
+  await db
+    .update(hrmPayrollRun)
+    .set({
+      state: "locked",
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(hrmPayrollRun.organizationId, opts.organizationId),
+        eq(hrmPayrollRun.periodId, opts.periodId)
       )
+    )
 
-    // Phase 4 — flip claims linked through `hrm_payroll_line.claimId` to
-    // `paid` inside the same lock transaction so a partial commit cannot
-    // leave a "locked" period with claims still marked `approved`. We
-    // collect the unique claimIds (one row per claim — first matching
-    // line wins for `paidByPayrollLineId`) so the caller can audit.
-    const linkedRows = await tx
-      .select({
-        lineId: hrmPayrollLine.id,
-        claimId: hrmPayrollLine.claimId,
-      })
-      .from(hrmPayrollLine)
-      .innerJoin(
-        hrmPayrollRun,
-        eq(hrmPayrollRun.id, hrmPayrollLine.runId)
+  await db
+    .update(hrmAttendanceDay)
+    .set({
+      state: "locked",
+      lockedByPayrollPeriodId: opts.periodId,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(hrmAttendanceDay.organizationId, opts.organizationId),
+        gte(hrmAttendanceDay.attendanceDate, opts.periodStart),
+        lte(hrmAttendanceDay.attendanceDate, opts.periodEnd)
       )
-      .where(
-        and(
-          eq(hrmPayrollLine.organizationId, opts.organizationId),
-          eq(hrmPayrollRun.periodId, opts.periodId),
-          isNotNull(hrmPayrollLine.claimId)
-        )
+    )
+
+  // Neon HTTP does not support Drizzle transactions. Keep the lock path
+  // serverless-compatible by using guarded, idempotent statements in order.
+  const linkedRows = await db
+    .select({
+      lineId: hrmPayrollLine.id,
+      claimId: hrmPayrollLine.claimId,
+    })
+    .from(hrmPayrollLine)
+    .innerJoin(hrmPayrollRun, eq(hrmPayrollRun.id, hrmPayrollLine.runId))
+    .where(
+      and(
+        eq(hrmPayrollLine.organizationId, opts.organizationId),
+        eq(hrmPayrollRun.periodId, opts.periodId),
+        isNotNull(hrmPayrollLine.claimId)
       )
+    )
 
-    const seen = new Set<string>()
-    const paidClaims: { claimId: string; payrollLineId: string }[] = []
-    for (const row of linkedRows) {
-      if (!row.claimId || seen.has(row.claimId)) continue
-      seen.add(row.claimId)
-      paidClaims.push({ claimId: row.claimId, payrollLineId: row.lineId })
-    }
+  const seen = new Set<string>()
+  const paidClaims: { claimId: string; payrollLineId: string }[] = []
+  for (const row of linkedRows) {
+    if (!row.claimId || seen.has(row.claimId)) continue
+    seen.add(row.claimId)
+    paidClaims.push({ claimId: row.claimId, payrollLineId: row.lineId })
+  }
 
-    if (paidClaims.length > 0) {
-      const paidAt = new Date()
-      for (const entry of paidClaims) {
-        await tx
-          .update(hrmClaim)
-          .set({
-            state: "paid",
-            paidByPayrollLineId: entry.payrollLineId,
-            paidAt,
-            updatedAt: paidAt,
-            updatedByUserId: opts.lockedByUserId,
-          })
-          .where(
-            and(
-              eq(hrmClaim.organizationId, opts.organizationId),
-              eq(hrmClaim.id, entry.claimId),
-              eq(hrmClaim.state, "approved")
-            )
+  if (paidClaims.length > 0) {
+    const paidAt = new Date()
+    for (const entry of paidClaims) {
+      await db
+        .update(hrmClaim)
+        .set({
+          state: "paid",
+          paidByPayrollLineId: entry.payrollLineId,
+          paidAt,
+          updatedAt: paidAt,
+          updatedByUserId: opts.lockedByUserId,
+        })
+        .where(
+          and(
+            eq(hrmClaim.organizationId, opts.organizationId),
+            eq(hrmClaim.id, entry.claimId),
+            eq(hrmClaim.state, "approved")
           )
-      }
+        )
     }
+  }
 
-    return { paidClaims }
-  })
+  return { paidClaims }
 }
