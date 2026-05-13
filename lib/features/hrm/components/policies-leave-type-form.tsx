@@ -119,9 +119,7 @@ export function LeaveTypeForm({ row, onSuccess }: LeaveTypeFormProps) {
           aria-invalid={Boolean(fieldErrors?.code)}
         />
         <FieldDescription>{t("leaveType.fieldCodeHint")}</FieldDescription>
-        {fieldErrors?.code ? (
-          <FieldError>{fieldErrors.code}</FieldError>
-        ) : null}
+        {fieldErrors?.code ? <FieldError>{fieldErrors.code}</FieldError> : null}
       </Field>
 
       <Field data-invalid={fieldErrors?.accrualMethod ? true : undefined}>

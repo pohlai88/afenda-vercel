@@ -116,10 +116,14 @@ describe("isClaimDateInRange", () => {
 
   it("respects optional notBefore window", () => {
     expect(
-      isClaimDateInRange("2026-04-30", "2026-05-12", { notBefore: "2026-05-01" })
+      isClaimDateInRange("2026-04-30", "2026-05-12", {
+        notBefore: "2026-05-01",
+      })
     ).toBe(false)
     expect(
-      isClaimDateInRange("2026-05-01", "2026-05-12", { notBefore: "2026-05-01" })
+      isClaimDateInRange("2026-05-01", "2026-05-12", {
+        notBefore: "2026-05-01",
+      })
     ).toBe(true)
   })
 

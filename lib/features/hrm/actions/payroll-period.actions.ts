@@ -455,7 +455,7 @@ export async function lockPayrollPeriodAction(
     }
   }
 
-  await lockPayrollPeriodAndRunsMutation({
+  const lockResult = await lockPayrollPeriodAndRunsMutation({
     organizationId,
     periodId: parsed.data.periodId,
     rulePackVersion,
@@ -475,10 +475,39 @@ export async function lockPayrollPeriodAction(
       metadata: {
         periodId: parsed.data.periodId,
         rulePackVersion,
+        paidClaimCount: lockResult.paidClaims.length,
       },
     })
   )
 
+  // Phase 4 — one `erp.hrm.claim.paid` audit per claim that this lock
+  // settled. Written via `after` so the response is not blocked by a
+  // potentially long audit fan-out, and emitted in a stable order so
+  // downstream readers see deterministic causality.
+  for (const entry of lockResult.paidClaims) {
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: "erp.hrm.claim.paid",
+        actorUserId: userId,
+        actorSessionId: sessionId,
+        organizationId,
+        resourceType: "hrm_claim",
+        resourceId: entry.claimId,
+        metadata: {
+          claimId: entry.claimId,
+          payrollPeriodId: parsed.data.periodId,
+          payrollLineId: entry.payrollLineId,
+        },
+      })
+    )
+  }
+
   revalidatePayrollPages()
+  // Refresh the claims surface so kanban / inbox / recents reflect the
+  // newly-paid claims. Use the dashboard pattern so all locales rebuild.
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern("/hrm/claims"),
+    "layout"
+  )
   return { ok: true }
 }

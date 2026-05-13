@@ -12,10 +12,7 @@ import {
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/tenant"
 
-import {
-  type OrgLeaveRequestRow,
-  listAllLeaveRequestsForOrg,
-} from "../server"
+import { type OrgLeaveRequestRow, listAllLeaveRequestsForOrg } from "../server"
 
 import { LeaveDecisionForms } from "./leave-decision-form"
 
@@ -26,11 +23,7 @@ import { LeaveDecisionForms } from "./leave-decision-form"
  * inline notice; we never throw out of this section so the rest of the
  * leave page keeps rendering.
  */
-export async function LeavePendingInbox({
-  isAdmin,
-}: {
-  isAdmin: boolean
-}) {
+export async function LeavePendingInbox({ isAdmin }: { isAdmin: boolean }) {
   const orgSession = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.leave")
 
@@ -41,11 +34,9 @@ export async function LeavePendingInbox({
       limit: 100,
     })
   } catch (err) {
-    logUnexpectedServerError(
-      "leave-pending-inbox: query failed",
-      err,
-      { organizationId: orgSession.organizationId }
-    )
+    logUnexpectedServerError("leave-pending-inbox: query failed", err, {
+      organizationId: orgSession.organizationId,
+    })
     return (
       <p className="text-sm text-destructive" role="status" aria-live="polite">
         {t("inboxLoadFailed")}
@@ -129,11 +120,7 @@ function DateRange({
 }) {
   const isSameDay = startDate === endDate
   const halfTag =
-    halfDay === "morning"
-      ? " · AM"
-      : halfDay === "afternoon"
-        ? " · PM"
-        : ""
+    halfDay === "morning" ? " · AM" : halfDay === "afternoon" ? " · PM" : ""
 
   if (isSameDay) {
     return (

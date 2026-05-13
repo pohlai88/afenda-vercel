@@ -227,7 +227,7 @@ export function LeaveApplyForm({
           rows={3}
           maxLength={1000}
           placeholder={t("fieldReasonPlaceholder")}
-          className="min-h-[72px] w-full rounded border border-border bg-background px-2 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="min-h-[72px] w-full rounded border border-border bg-background px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
         />
       </Field>
 

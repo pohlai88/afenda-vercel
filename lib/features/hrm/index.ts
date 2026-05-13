@@ -153,6 +153,7 @@ export type {
 } from "./types"
 
 export { AttendancePage } from "./components/attendance-page"
+export { ClaimsPage } from "./components/claims-page"
 export { DocumentsPage } from "./components/documents-page"
 export { EmployeeDetailPage } from "./components/employee-detail-page"
 export { LeavePage } from "./components/leave-page"

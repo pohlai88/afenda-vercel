@@ -64,11 +64,14 @@ import {
 import {
   getOrbitPageData,
   getPlannerItemDetail,
+  getPlannerLinkDetail,
+  getPlannerSessionDetail,
   getPlannerSignalDetail,
 } from "../server"
 import type {
   OrbitDashboardSurface,
   PlannerBlockedState,
+  PlannerEvidenceGraph,
   PlannerLinkRow,
   PlannerOperationalFacts,
   PlannerRelationRow,
@@ -81,6 +84,7 @@ import { OrbitAttachmentForm } from "./orbit-attachment-form.client"
 
 const SURFACE_META = {
   queue: { icon: Activity },
+  triage: { icon: AlertTriangle },
   today: { icon: CalendarClock },
   timeline: { icon: CalendarClock },
   signals: { icon: Radar },
@@ -245,6 +249,7 @@ export async function OrbitPage({
     : null
   const requestedFilter =
     surface === "queue" ||
+    surface === "triage" ||
     surface === "today" ||
     surface === "timeline" ||
     surface === "signals"
@@ -281,6 +286,15 @@ export async function OrbitPage({
     focusKind === "signal" && focusId
       ? await getPlannerSignalDetail(scope, focusId)
       : null
+  const sessionDetail =
+    focusKind === "session" && focusId
+      ? await getPlannerSessionDetail(scope, focusId)
+      : null
+  const linkDetail =
+    focusKind === "link" && focusId
+      ? await getPlannerLinkDetail(scope, focusId)
+      : null
+  const hasFocusedRecord = Boolean(focusKind && focusId)
 
   const listEntries =
     surface === "signals"
@@ -289,9 +303,11 @@ export async function OrbitPage({
         ? page.sessions
         : surface === "links"
           ? page.links
-          : page.items
+          : surface === "triage"
+            ? [...page.items, ...page.signals]
+            : page.items
   const automationAttentionItems =
-    surface === "queue" || surface === "today"
+    surface === "queue" || surface === "triage" || surface === "today"
       ? page.items.filter(
           (item) => (item.operationalFacts?.automationFailureCount ?? 0) > 0
         )
@@ -346,10 +362,14 @@ export async function OrbitPage({
             <CardTitle>{t("panels.summaryTitle")}</CardTitle>
             <CardDescription>{t("description")}</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-3 pt-surface-lg md:grid-cols-3 xl:grid-cols-6">
+          <CardContent className="grid gap-3 pt-surface-lg md:grid-cols-3 xl:grid-cols-7">
             <SummaryTile
               label={t("surfaces.queue.label")}
               value={summaryValue(page.summary.queueCount)}
+            />
+            <SummaryTile
+              label={t("surfaces.triage.label")}
+              value={summaryValue(page.summary.triageCount)}
             />
             <SummaryTile
               label={t("surfaces.today.label")}
@@ -395,6 +415,7 @@ export async function OrbitPage({
         {(
           [
             "queue",
+            "triage",
             "today",
             "timeline",
             "signals",
@@ -416,6 +437,7 @@ export async function OrbitPage({
       </div>
 
       {surface === "queue" ||
+      surface === "triage" ||
       surface === "today" ||
       surface === "timeline" ||
       surface === "signals" ? (
@@ -553,6 +575,23 @@ export async function OrbitPage({
                 surface={surface}
                 orgSlug={orgSlug}
               />
+            ) : sessionDetail ? (
+              <SessionDetailPanel
+                detail={sessionDetail}
+                scope={scope}
+                surface={surface}
+                orgSlug={orgSlug}
+              />
+            ) : linkDetail ? (
+              <LinkDetailPanel detail={linkDetail} />
+            ) : hasFocusedRecord ? (
+              <Empty className="border border-dashed border-border/70 bg-muted/20">
+                <EmptyTitle>Record unavailable</EmptyTitle>
+                <EmptyDescription>
+                  The selected Orbit record is unavailable or outside your
+                  current scope.
+                </EmptyDescription>
+              </Empty>
             ) : (
               <Empty className="border border-dashed border-border/70 bg-muted/20">
                 <EmptyTitle>{t("panels.detailEmptyTitle")}</EmptyTitle>
@@ -592,7 +631,11 @@ function OrbitFilterAndViewBar({
     | null
 }) {
   const canPersistViews =
-    surface === "queue" || surface === "timeline" || surface === "signals"
+    surface === "queue" ||
+    surface === "triage" ||
+    surface === "today" ||
+    surface === "timeline" ||
+    surface === "signals"
 
   return (
     <Card>
@@ -602,7 +645,7 @@ function OrbitFilterAndViewBar({
         </CardTitle>
         <CardDescription>
           {canPersistViews
-            ? "Keep queue, timeline, and signals scoped to the current operational lens."
+            ? "Keep operator execution surfaces scoped to the current operational lens."
             : "Keep the current operational surface scoped to the right execution lens."}
         </CardDescription>
       </CardHeader>
@@ -1437,6 +1480,9 @@ function ItemDetailPanel({
       </form>
 
       <Separator />
+      <DetailSection title="Evidence graph">
+        <PlannerEvidenceGraphList graph={detail.evidenceGraph} />
+      </DetailSection>
       <DetailSection title="Schedule">
         <form
           action={upsertPlannerScheduleAction}
@@ -1772,8 +1818,16 @@ function ItemDetailPanel({
               </option>
             ))}
           </select>
-          <Input name="relatedItemId" placeholder="Related item id" />
-          <Input name="relatedSignalId" placeholder="Related signal id" />
+          <Input
+            name="relatedItemId"
+            aria-label="Orbit related item id"
+            placeholder="Related item id"
+          />
+          <Input
+            name="relatedSignalId"
+            aria-label="Orbit related signal id"
+            placeholder="Related signal id"
+          />
           <Button type="submit" size="sm" variant="outline">
             Create relation
           </Button>
@@ -1799,14 +1853,40 @@ function ItemDetailPanel({
             orgSlug={orgSlug}
           />
           <input type="hidden" name="itemId" value={detail.id} />
-          <Input name="module" placeholder="ERP module" required />
-          <Input name="entityType" placeholder="Entity type" required />
-          <Input name="entityId" placeholder="Entity id" required />
-          <Input name="displayLabel" placeholder="Display label" required />
-          <Input name="href" placeholder="https://..." />
+          <Input
+            name="module"
+            aria-label="Orbit link module"
+            placeholder="ERP module"
+            required
+          />
+          <Input
+            name="entityType"
+            aria-label="Orbit link entity type"
+            placeholder="Entity type"
+            required
+          />
+          <Input
+            name="entityId"
+            aria-label="Orbit link entity id"
+            placeholder="Entity id"
+            required
+          />
+          <Input
+            name="displayLabel"
+            aria-label="Orbit link display label"
+            placeholder="Display label"
+            required
+          />
+          <Input
+            name="href"
+            aria-label="Orbit link href"
+            placeholder="https://..."
+          />
           <Textarea
             name="causalityReason"
+            aria-label="Orbit link causality reason"
             placeholder="Why this item links to the ERP object"
+            required
           />
           <Button type="submit" size="sm" variant="outline">
             Create ERP link
@@ -2041,6 +2121,277 @@ function SignalDetailPanel({
           ))
         )}
       </DetailSection>
+      <DetailSection title="Evidence graph">
+        <PlannerEvidenceGraphList graph={detail.evidenceGraph} />
+      </DetailSection>
+      <DetailSection title="Activity">
+        <PlannerActivityList activity={detail.activity} />
+      </DetailSection>
+    </div>
+  )
+}
+
+function SessionDetailPanel({
+  detail,
+  scope,
+  surface,
+  orgSlug,
+}: {
+  detail: Awaited<ReturnType<typeof getPlannerSessionDetail>>
+  scope: PlannerScopeInput
+  surface: OrbitDashboardSurface
+  orgSlug?: string
+}) {
+  if (!detail) return null
+
+  const statusVariant =
+    detail.status === "active"
+      ? "success"
+      : detail.status === "paused"
+        ? "warning"
+        : "outline"
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold">
+              {detail.itemTitle ?? "Orbit session"}
+            </h3>
+            <p className="pt-1 text-sm text-muted-foreground">
+              {detail.summary ?? "Execution continuity and worklog session."}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Badge variant={statusVariant}>{detail.status}</Badge>
+            {detail.durationMinutes != null ? (
+              <Badge variant="outline">{detail.durationMinutes} min</Badge>
+            ) : null}
+          </div>
+        </div>
+        <p className="pt-3 text-sm text-muted-foreground">
+          started {detail.startedAt.toLocaleString()}
+          {detail.endedAt ? ` · ended ${detail.endedAt.toLocaleString()}` : ""}
+          {detail.pausedAt ? ` · paused ${detail.pausedAt.toLocaleString()}` : ""}
+        </p>
+        {(detail.createdByUserId || detail.updatedByUserId) && (
+          <p className="pt-1 text-xs text-muted-foreground">
+            {detail.createdByUserId
+              ? `created by ${detail.createdByUserId}`
+              : "created by system"}
+            {detail.updatedByUserId
+              ? ` · updated by ${detail.updatedByUserId}`
+              : ""}
+          </p>
+        )}
+      </div>
+
+      {detail.status === "active" ? (
+        <form action={stopPlannerSessionAction}>
+          <HiddenPlannerScopeFields
+            scope={scope}
+            surface={surface}
+            orgSlug={orgSlug}
+          />
+          <input type="hidden" name="sessionId" value={detail.id} />
+          <Button type="submit" size="sm">
+            Stop session
+          </Button>
+        </form>
+      ) : null}
+
+      <DetailSection title="Linked item">
+        {detail.item ? (
+          <div className="rounded-2xl border border-border/60 bg-muted/20 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium text-foreground">{detail.item.title}</p>
+              <Badge variant="outline">{detail.item.lifecycle}</Badge>
+              <Badge
+                variant={
+                  detail.item.displayPriority === "critical"
+                    ? "critical"
+                    : detail.item.displayPriority === "high"
+                      ? "warning"
+                      : "secondary"
+                }
+              >
+                {detail.item.displayPriority}
+              </Badge>
+            </div>
+            {detail.item.description ? (
+              <p className="pt-2 text-sm text-muted-foreground">
+                {detail.item.description}
+              </p>
+            ) : null}
+            <p className="pt-2 text-xs text-muted-foreground">
+              pressure {detail.item.pressureScore}
+              {detail.item.dueAt
+                ? ` · due ${detail.item.dueAt.toLocaleString()}`
+                : ""}
+              {detail.item.scheduleStartAt
+                ? ` · scheduled ${detail.item.scheduleStartAt.toLocaleString()}`
+                : ""}
+            </p>
+          </div>
+        ) : (
+          <DetailEmpty message="No item linked to this session." />
+        )}
+      </DetailSection>
+
+      <DetailSection title="ERP links">
+        {detail.links.length === 0 ? (
+          <DetailEmpty />
+        ) : (
+          detail.links.map((link) => (
+            <div
+              key={link.id}
+              className="rounded-xl border border-border/60 px-3 py-2 text-sm"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-medium">{link.displayLabel}</span>
+                <Badge variant="outline">
+                  {link.module}/{link.entityType}
+                </Badge>
+              </div>
+              {link.causalityReason ? (
+                <p className="pt-2 text-muted-foreground">
+                  {link.causalityReason}
+                </p>
+              ) : null}
+            </div>
+          ))
+        )}
+      </DetailSection>
+
+      <DetailSection title="Evidence graph">
+        <PlannerEvidenceGraphList graph={detail.evidenceGraph} />
+      </DetailSection>
+
+      <DetailSection title="Recent activity">
+        <PlannerActivityList activity={detail.activity} />
+      </DetailSection>
+    </div>
+  )
+}
+
+function LinkDetailPanel({
+  detail,
+}: {
+  detail: Awaited<ReturnType<typeof getPlannerLinkDetail>>
+}) {
+  if (!detail) return null
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold">{detail.displayLabel}</h3>
+            <p className="pt-1 text-sm text-muted-foreground">
+              {detail.module} · {detail.entityType}
+            </p>
+          </div>
+          <Badge variant="outline">{detail.entityId}</Badge>
+        </div>
+        {detail.causalityReason ? (
+          <p className="pt-3 text-sm text-muted-foreground">
+            {detail.causalityReason}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {detail.href ? (
+          <Button asChild size="sm" variant="outline">
+            <a href={detail.href} target="_blank" rel="noreferrer">
+              Open ERP record
+            </a>
+          </Button>
+        ) : null}
+        <Badge variant="secondary">
+          attached {detail.createdAt.toLocaleString()}
+        </Badge>
+      </div>
+
+      <DetailSection title="Linked item">
+        {detail.item ? (
+          <div className="rounded-2xl border border-border/60 bg-muted/20 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium text-foreground">{detail.item.title}</p>
+              <Badge variant="outline">{detail.item.lifecycle}</Badge>
+            </div>
+            {detail.item.description ? (
+              <p className="pt-2 text-sm text-muted-foreground">
+                {detail.item.description}
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <DetailEmpty message="No Orbit item is attached to this ERP link." />
+        )}
+      </DetailSection>
+
+      <DetailSection title="Linked signal">
+        {detail.signal ? (
+          <div className="rounded-2xl border border-border/60 bg-muted/20 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium text-foreground">
+                {detail.signal.title}
+              </p>
+              <Badge variant="outline">{detail.signal.signalClass}</Badge>
+              <Badge variant="outline">{detail.signal.lifecycle}</Badge>
+            </div>
+            {detail.signal.description ? (
+              <p className="pt-2 text-sm text-muted-foreground">
+                {detail.signal.description}
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <DetailEmpty message="No Orbit signal is attached to this ERP link." />
+        )}
+      </DetailSection>
+
+      <DetailSection title="Sessions">
+        {detail.sessions.length === 0 ? (
+          <DetailEmpty message="No execution sessions reference this linked item." />
+        ) : (
+          detail.sessions.map((session) => (
+            <div
+              key={session.id}
+              className="flex items-center justify-between gap-3 rounded-xl border border-border/60 px-3 py-2 text-sm"
+            >
+              <span>
+                {session.status} · {session.startedAt.toLocaleString()}
+              </span>
+              {session.durationMinutes != null ? (
+                <Badge variant="outline">{session.durationMinutes} min</Badge>
+              ) : null}
+            </div>
+          ))
+        )}
+      </DetailSection>
+
+      {detail.temporalContext || detail.auditContext ? (
+        <DetailSection title="Structured context">
+          {detail.temporalContext ? (
+            <pre className="overflow-x-auto rounded-xl border border-border/60 bg-muted/20 p-3 text-xs text-muted-foreground">
+              {JSON.stringify(detail.temporalContext, null, 2)}
+            </pre>
+          ) : null}
+          {detail.auditContext ? (
+            <pre className="overflow-x-auto rounded-xl border border-border/60 bg-muted/20 p-3 text-xs text-muted-foreground">
+              {JSON.stringify(detail.auditContext, null, 2)}
+            </pre>
+          ) : null}
+        </DetailSection>
+      ) : null}
+
+      <DetailSection title="Evidence graph">
+        <PlannerEvidenceGraphList graph={detail.evidenceGraph} />
+      </DetailSection>
+
       <DetailSection title="Activity">
         <PlannerActivityList activity={detail.activity} />
       </DetailSection>
@@ -2081,6 +2432,63 @@ function plannerActivityBadgeVariant(
     default:
       return "outline" as const
   }
+}
+
+function PlannerEvidenceGraphList({ graph }: { graph: PlannerEvidenceGraph }) {
+  if (graph.nodes.length === 0) {
+    return <DetailEmpty message="No evidence graph nodes yet." />
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2 text-xs">
+        <Badge variant="secondary">{graph.summary.linkCount} ERP links</Badge>
+        <Badge variant="secondary">{graph.summary.relationCount} relations</Badge>
+        <Badge variant="secondary">{graph.summary.activityCount} events</Badge>
+        <Badge variant="secondary">{graph.summary.sessionCount} sessions</Badge>
+        <Badge variant="secondary">
+          {graph.summary.attachmentCount} attachments
+        </Badge>
+        <Badge variant="secondary">{graph.summary.noticeCount} notices</Badge>
+      </div>
+      <div className="space-y-2">
+        {graph.nodes.slice(0, 10).map((node) => (
+          <div
+            key={node.id}
+            className="rounded-xl border border-border/60 px-3 py-2 text-sm"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <Badge variant="outline">{node.kind}</Badge>
+                {node.href ? (
+                  <a
+                    href={node.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    {node.label}
+                  </a>
+                ) : (
+                  <span className="font-medium text-foreground">
+                    {node.label}
+                  </span>
+                )}
+              </div>
+              {node.occurredAt ? (
+                <span className="text-xs text-muted-foreground">
+                  {node.occurredAt.toLocaleString()}
+                </span>
+              ) : null}
+            </div>
+            {node.description ? (
+              <p className="pt-2 text-muted-foreground">{node.description}</p>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function PlannerActivityList({

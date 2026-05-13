@@ -473,7 +473,10 @@ export async function transitionPlannerItemLifecycle(input: {
         })
         .where(
           and(
-            eq(orgNotificationNotice.organizationId, input.scope.organizationId),
+            eq(
+              orgNotificationNotice.organizationId,
+              input.scope.organizationId
+            ),
             eq(orgNotificationNotice.linkedEntityType, "planner_item"),
             eq(orgNotificationNotice.linkedEntityId, input.itemId),
             isNull(orgNotificationNotice.closedAt)

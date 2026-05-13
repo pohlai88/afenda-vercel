@@ -107,6 +107,7 @@ export { authInterruptionHref } from "./auth-interruption-url.shared"
 export { redirectToAuthInterruption } from "./interruption-redirect.server"
 export { verifyNeonAuthWebhookSignature } from "./webhook-verify.server"
 export {
+  getAuthShellSignedInSessionOrNull,
   requireAuthShellGlobalAdminSession,
   requireAuthShellOrgSession,
   requireAuthShellSignedInSession,

@@ -83,15 +83,11 @@ export async function AttendanceDaySummary({
     row = day
     employeeName = employee[0]?.legalName ?? null
   } catch (err) {
-    logUnexpectedServerError(
-      "attendance-day-summary: query failed",
-      err,
-      {
-        organizationId: orgSession.organizationId,
-        employeeId,
-        attendanceDate,
-      }
-    )
+    logUnexpectedServerError("attendance-day-summary: query failed", err, {
+      organizationId: orgSession.organizationId,
+      employeeId,
+      attendanceDate,
+    })
     return (
       <p className="text-sm text-destructive" role="status" aria-live="polite">
         {t("daySummaryLoadFailed")}
@@ -206,7 +202,7 @@ export async function AttendanceDaySummary({
 function SummaryStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+      <dt className="text-xs tracking-wide text-muted-foreground uppercase">
         {label}
       </dt>
       <dd className="font-medium">{value}</dd>

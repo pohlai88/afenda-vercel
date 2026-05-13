@@ -2,16 +2,17 @@ import type { Route } from "next"
 
 import { AuthPageFrame } from "#components/auth/auth-page-frame"
 import { AuthResult } from "#components/auth/auth-result"
+import { getAuthShellSignedInSessionOrNull } from "#lib/auth"
+import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 
 import { AcceptInvitationClient } from "./accept-invitation-client"
 
-type Search = Promise<{ invitationId?: string | string[] }>
-
 export default async function AcceptInvitationPage({
+  params,
   searchParams,
-}: {
-  searchParams: Search
-}) {
+}: PageProps<"/[locale]/accept-invitation">) {
+  const { locale: localeRaw } = await params
+  const locale = ensureAppLocale(localeRaw)
   const sp = await searchParams
   const raw = sp.invitationId
   const invitationId = Array.isArray(raw) ? raw[0] : raw
@@ -25,6 +26,30 @@ export default async function AcceptInvitationPage({
           primaryAction={{
             label: "Back to sign in",
             href: "/sign-in" as Route,
+          }}
+        />
+      </AuthPageFrame>
+    )
+  }
+
+  const session = await getAuthShellSignedInSessionOrNull()
+  if (!session) {
+    const inviteHref = `${toLocalePath(locale, "/accept-invitation")}?invitationId=${encodeURIComponent(invitationId.trim())}`
+    const signInHref = `${toLocalePath(locale, "/sign-in")}?callbackUrl=${encodeURIComponent(inviteHref)}`
+
+    return (
+      <AuthPageFrame>
+        <AuthResult
+          variant="neutral"
+          title="Sign in to review invitation"
+          description="Use the invited account first. After sign-in, you will return here to accept or reject the organization invitation."
+          primaryAction={{
+            label: "Sign in",
+            href: signInHref as Route,
+          }}
+          secondaryAction={{
+            label: "Go home",
+            href: "/" as Route,
           }}
         />
       </AuthPageFrame>

@@ -7,10 +7,7 @@ import {
   createPlannerSignalLink,
   insertPlannerSignal,
 } from "../data/planner.mutations.server"
-import type {
-  PlannerPressureDimensions,
-  PlannerSignalClass,
-} from "../types"
+import type { PlannerPressureDimensions, PlannerSignalClass } from "../types"
 
 export async function createPlannerSignalFromErpProducer(input: {
   organizationId: string

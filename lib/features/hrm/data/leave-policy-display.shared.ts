@@ -20,8 +20,7 @@ export const HRM_LEAVE_ACCRUAL_METHODS = [
   "fixed_grant",
 ] as const
 
-export type HrmLeaveAccrualMethod =
-  (typeof HRM_LEAVE_ACCRUAL_METHODS)[number]
+export type HrmLeaveAccrualMethod = (typeof HRM_LEAVE_ACCRUAL_METHODS)[number]
 
 export function isHrmLeaveAccrualMethod(
   value: string
@@ -30,7 +29,11 @@ export function isHrmLeaveAccrualMethod(
 }
 
 /** Tone vocabulary mirrored from the leave / attendance display modules. */
-export type HrmLeaveAccrualMethodTone = "info" | "muted" | "neutral" | "positive"
+export type HrmLeaveAccrualMethodTone =
+  | "info"
+  | "muted"
+  | "neutral"
+  | "positive"
 
 /**
  * Pure mapping from a raw `accrualMethod` to a UI tone. Anything

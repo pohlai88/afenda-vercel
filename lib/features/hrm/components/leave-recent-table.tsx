@@ -13,19 +13,11 @@ import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/tenant"
 
 import { leaveRequestStateTone } from "../data/leave-display.shared"
-import {
-  type OrgLeaveRequestRow,
-  listAllLeaveRequestsForOrg,
-} from "../server"
+import { type OrgLeaveRequestRow, listAllLeaveRequestsForOrg } from "../server"
 
 import { LeaveCancelButton } from "./leave-cancel-button"
 
-const RECENT_STATES = [
-  "approved",
-  "rejected",
-  "cancelled",
-  "taken",
-] as const
+const RECENT_STATES = ["approved", "rejected", "cancelled", "taken"] as const
 
 type RecentState = (typeof RECENT_STATES)[number]
 
@@ -56,11 +48,7 @@ function isRecentState(value: string): value is RecentState {
  * Streamed behind Suspense; failures degrade locally so the inbox
  * card above keeps rendering.
  */
-export async function LeaveRecentTable({
-  isAdmin,
-}: {
-  isAdmin: boolean
-}) {
+export async function LeaveRecentTable({ isAdmin }: { isAdmin: boolean }) {
   const orgSession = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.leave")
 
@@ -71,11 +59,9 @@ export async function LeaveRecentTable({
       limit: 50,
     })
   } catch (err) {
-    logUnexpectedServerError(
-      "leave-recent-table: query failed",
-      err,
-      { organizationId: orgSession.organizationId }
-    )
+    logUnexpectedServerError("leave-recent-table: query failed", err, {
+      organizationId: orgSession.organizationId,
+    })
     return (
       <p className="text-sm text-destructive" role="status" aria-live="polite">
         {t("recentLoadFailed")}
@@ -96,7 +82,9 @@ export async function LeaveRecentTable({
           <TableHead>{t("colDates")}</TableHead>
           <TableHead>{t("colState")}</TableHead>
           <TableHead>{t("colUpdated")}</TableHead>
-          {isAdmin ? <TableHead className="text-right">{t("colActions")}</TableHead> : null}
+          {isAdmin ? (
+            <TableHead className="text-right">{t("colActions")}</TableHead>
+          ) : null}
         </TableRow>
       </TableHeader>
       <TableBody>

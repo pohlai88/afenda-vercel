@@ -49,6 +49,27 @@ export type PayrollEngineInput = {
   readonly ytdRemuneration: string | null
   readonly ytdPcbPaid: string | null
   readonly ytdEpfEmployee: string | null
+  /**
+   * Phase 4 — Approved-but-not-yet-paid claims for this employee whose
+   * `claimDate` falls inside `[periodStart, periodEnd]`. Pre-fetched by
+   * the snapshot so the engine stays IO-free; emitted as one earning
+   * line per claim with `claimId` populated so the period lock can flip
+   * each linked claim to `paid` atomically.
+   */
+  readonly approvedUnpaidClaims: ReadonlyArray<PayrollClaimInput>
+}
+
+/**
+ * Snapshot of one approved-unpaid claim consumed by the payroll engine.
+ * `payrollLineCode` resolves to the claim type's `defaultPayrollLineCode`
+ * so policy stays in `hrm_claim_type` and the engine remains pure.
+ */
+export type PayrollClaimInput = {
+  readonly claimId: string
+  readonly payrollLineCode: string
+  readonly description: string
+  readonly amount: string
+  readonly currency: string
 }
 
 export type PayrollLineInput = {
@@ -64,6 +85,13 @@ export type PayrollLineInput = {
   readonly amount: string
   readonly rulePackProvenance?: Record<string, unknown>
   readonly metadata?: Record<string, unknown>
+  /**
+   * Phase 4 — Set to the `hrm_claim.id` when this line was emitted from
+   * an approved-unpaid claim. The period lock walks all lines with a
+   * non-null `claimId` and flips each linked claim to `paid` in the same
+   * transaction, then writes one `erp.hrm.claim.paid` audit per row.
+   */
+  readonly claimId?: string | null
 }
 
 export type PayrollEngineResult = {
@@ -182,8 +210,30 @@ export async function computePayrollRun(
     })
   }
 
-  // 3. Gross pay = BASIC + any positive adjustments (before deductions)
-  const grossPay = basicAmount
+  // 2b. Approved-unpaid claim earnings (Phase 4) — one earning line per
+  // claim, with `claimId` populated so the period lock can flip each
+  // linked claim to `paid` atomically. Emitted before statutory pass so
+  // the additional earning is part of `grossPay`.
+  let claimsTotal = 0
+  for (const claim of input.approvedUnpaidClaims ?? []) {
+    const amount = parseAmount(claim.amount)
+    if (amount <= 0) continue
+    claimsTotal += amount
+    lines.push({
+      lineKind: "earning",
+      code: claim.payrollLineCode,
+      description: claim.description,
+      amount: formatAmount(amount),
+      claimId: claim.claimId,
+      metadata: {
+        currency: claim.currency,
+        sourceClaimId: claim.claimId,
+      },
+    })
+  }
+
+  // 3. Gross pay = BASIC + claim earnings (before deductions)
+  const grossPay = basicAmount + claimsTotal
   const grossPayFormatted = formatAmount(grossPay)
 
   // 4. Statutory contributions via rule pack
@@ -298,7 +348,7 @@ export async function computePayrollRun(
 // Payroll period traceability (the 7 questions answered at preview time)
 // ---------------------------------------------------------------------------
 
-/** The seven traceability signals that any payroll preview must surface.
+/** The eight traceability signals that any payroll preview must surface.
  *  Evaluated from run + line data without touching the rule pack again.
  */
 export type PayrollPeriodTraceability = {
@@ -316,6 +366,14 @@ export type PayrollPeriodTraceability = {
   readonly runsWithBlockers: number
   /** Q7 — whether a payroll-finalize approval exists for this period. */
   readonly approvalExists: boolean
+  /**
+   * Q8 — Phase 4: count of approved-but-not-yet-paid claims that fall
+   * inside this period's date window, organization-scoped (counts every
+   * employee). Surfaces on the payroll console so admins can see how
+   * many claims will be settled by the next lock without leaving the
+   * page.
+   */
+  readonly approvedUnpaidClaimCount: number
 }
 
 /** Derive traceability signals from already-loaded data.
@@ -330,6 +388,7 @@ export function derivePayrollTraceability(params: {
   attendanceComplete: boolean
   rulePackVersion: string | null
   approvalExists: boolean
+  approvedUnpaidClaimCount: number
 }): PayrollPeriodTraceability {
   return {
     employeeCount: params.runs.length,
@@ -340,5 +399,6 @@ export function derivePayrollTraceability(params: {
     runsWithBlockers: params.runs.filter((r) => r.validationIssues.length > 0)
       .length,
     approvalExists: params.approvalExists,
+    approvedUnpaidClaimCount: params.approvedUnpaidClaimCount,
   }
 }

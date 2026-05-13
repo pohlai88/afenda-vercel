@@ -80,12 +80,10 @@ test.describe("HRM documents vault UI surface", () => {
       // The page composer re-validates the URL filters against the
       // canonical enums. If the chip rehydrates with the deep-link
       // value, the contract round-trip is wired correctly.
-      await expect(
-        page.getByLabel("Document type")
-      ).toHaveValue("contract")
-      await expect(
-        page.getByLabel("Classification")
-      ).toHaveValue("confidential")
+      await expect(page.getByLabel("Document type")).toHaveValue("contract")
+      await expect(page.getByLabel("Classification")).toHaveValue(
+        "confidential"
+      )
     }
   )
 

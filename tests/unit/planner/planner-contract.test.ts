@@ -30,12 +30,14 @@ describe("planner contract", () => {
       "/o/acme/dashboard/orbit/signals"
     )
     expect(accountOrbitPath()).toBe("/account/orbit")
+    expect(accountOrbitPath("triage")).toBe("/account/orbit/triage")
     expect(accountOrbitPath("today")).toBe("/account/orbit/today")
   })
 
   it("keeps queue as a base route and other surfaces as explicit tails", () => {
     expect(ORBIT_PRIMARY_SURFACES).toEqual([
       "queue",
+      "triage",
       "today",
       "timeline",
       "signals",
@@ -43,6 +45,7 @@ describe("planner contract", () => {
       "links",
     ])
     expect(isOrbitDashboardSurfaceSegment("queue")).toBe(false)
+    expect(isOrbitDashboardSurfaceSegment("triage")).toBe(true)
     expect(isOrbitDashboardSurfaceSegment("signals")).toBe(true)
     expect(ORBIT_DASHBOARD_SURFACE_SEGMENT_SET.has("links")).toBe(true)
   })

@@ -75,11 +75,9 @@ export async function AttendanceRecentEvents({
       limit: 50,
     })
   } catch (err) {
-    logUnexpectedServerError(
-      "attendance-recent-events: query failed",
-      err,
-      { organizationId: orgSession.organizationId }
-    )
+    logUnexpectedServerError("attendance-recent-events: query failed", err, {
+      organizationId: orgSession.organizationId,
+    })
     return (
       <p className="text-sm text-destructive" role="status" aria-live="polite">
         {t("recentLoadFailed")}

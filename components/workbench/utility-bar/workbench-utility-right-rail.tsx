@@ -1,5 +1,3 @@
-"use client"
-
 import type { UserOrgSummary } from "#features/org-admin/client"
 
 import { WorkbenchControlMenu } from "./workbench-control-menu"
@@ -22,7 +20,6 @@ import { WorkbenchUtilityScreenshot } from "./workbench-utility-screenshot"
 import { WorkbenchUtilityStorage } from "./workbench-utility-storage"
 import { WorkbenchUtilityThemeMenu } from "./workbench-utility-theme-menu"
 import { WorkbenchUtilityUpload } from "./workbench-utility-upload"
-import { useWorkbenchUtilityWidgetUi } from "./workbench-utility-widget-preferences"
 import type { NexusUtilityRightWidgetId } from "./workbench-utility-widget-ids"
 
 type NexusUtilityRightRailProps = {
@@ -32,9 +29,25 @@ type NexusUtilityRightRailProps = {
   userEmail: string
   userOrgs: UserOrgSummary[]
   showOrgAdminSettings: boolean
+  /**
+   * Resolved by the marketplace capability resolver in
+   * {@link WorkbenchUtilityBarRow}. Already capped to the rail
+   * limit and ordered by priority — this component is purely a
+   * dispatcher.
+   */
+  visibleRightIds: readonly NexusUtilityRightWidgetId[]
 }
 
-/** Personal / identity rail — operational shortcuts + customisable utilities before the control menu. */
+/**
+ * Personal / identity rail — operational shortcuts + utility icons
+ * resolved server-side by the marketplace, followed by the always-on
+ * identity menu.
+ *
+ * No client preference state lives here anymore. The composition
+ * arrives from {@link WorkbenchUtilityBarRow} and the only client
+ * concerns left are the per-widget interactions (notifications,
+ * theme menu, etc.) that ship inside each widget component.
+ */
 export function WorkbenchUtilityRightRail({
   orgSlug,
   orgName,
@@ -42,9 +55,8 @@ export function WorkbenchUtilityRightRail({
   userEmail,
   userOrgs,
   showOrgAdminSettings,
+  visibleRightIds,
 }: NexusUtilityRightRailProps) {
-  const { visibleRightIds } = useWorkbenchUtilityWidgetUi()
-
   return (
     <div className="flex min-w-0 items-center justify-end gap-1.5">
       {visibleRightIds.map((id) => (
@@ -82,9 +94,9 @@ function RightRailWidget({
 }) {
   switch (id) {
     case "right.marketplace":
-      return showOrgAdminSettings ? (
-        <WorkbenchUtilityMarketplaceLink orgSlug={orgSlug} />
-      ) : null
+      // Visible to every member — the marketplace itself is now
+      // a personal preferences surface, not an admin-only panel.
+      return <WorkbenchUtilityMarketplaceLink />
     case "right.console":
       return <WorkbenchUtilityConsoleLink />
     case "right.quickCreate":

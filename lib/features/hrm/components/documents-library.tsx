@@ -80,17 +80,11 @@ export async function DocumentsLibrary({
       employeeId: employeeId ?? undefined,
     })
   } catch (err) {
-    logUnexpectedServerError(
-      "documents-library: query failed",
-      err,
-      { organizationId: orgSession.organizationId }
-    )
+    logUnexpectedServerError("documents-library: query failed", err, {
+      organizationId: orgSession.organizationId,
+    })
     return (
-      <p
-        className="text-sm text-destructive"
-        role="status"
-        aria-live="polite"
-      >
+      <p className="text-sm text-destructive" role="status" aria-live="polite">
         {t("libraryLoadFailed")}
       </p>
     )

@@ -17,8 +17,12 @@ import {
   listPlannerHighPressureForNexus,
   listPlannerRecentResolutionsForNexus,
 } from "#features/planner/server"
+import { listHrmHighPressureForNexus } from "#features/hrm/server"
 
-import { mapPlannerPressureRowsToOperationalPressureItems } from "./nexus-operational-pressure-map.server"
+import {
+  mapHrmPressureRowsToOperationalPressureItems,
+  mapPlannerPressureRowsToOperationalPressureItems,
+} from "./nexus-operational-pressure-map.server"
 
 import type {
   NexusSnapshot,
@@ -29,7 +33,6 @@ import type {
   PriorityLane,
   ResolutionEvent,
 } from "../types"
-import { ORG_DASHBOARD_HOME_HREF } from "../constants"
 
 type SessionInput = {
   userId: string
@@ -68,6 +71,7 @@ export async function getNexusSnapshot(input: {
     orbitReviewerBlockedCount,
     orbitEscalationOwnedBlockedCount,
     orbitTodayCount,
+    hrmPressureRows,
   ] = await Promise.all([
     db
       .select({ name: neonAuthOrganization.name })
@@ -100,6 +104,7 @@ export async function getNexusSnapshot(input: {
     countPlannerReviewerOwnedBlockedForOrg(organizationId),
     countPlannerEscalationOwnedBlockedForOrg(organizationId),
     countPlannerForToday(organizationId),
+    listHrmHighPressureForNexus(organizationId, 5),
   ])
 
   const orgRole = normalizeOrgRole(roleRow?.role ?? null)
@@ -112,17 +117,22 @@ export async function getNexusSnapshot(input: {
     role: orgRole,
   }
 
-  const pressure = mapPlannerPressureRowsToOperationalPressureItems(
+  const orbitPressure = mapPlannerPressureRowsToOperationalPressureItems(
     orgSlug,
     orbitPressureRows
   )
+  const hrmPressure = mapHrmPressureRowsToOperationalPressureItems(
+    orgSlug,
+    hrmPressureRows
+  )
+  const pressure = mergeNexusPressureItems(orbitPressure, hrmPressure)
   const recentResolutions = orbitResolutionRows.map((row) =>
     buildOrbitResolutionEvent(row, orgSlug)
   )
   const activeCount = orbitActiveCount
   const todayCount = orbitTodayCount
 
-  const surfaces = buildSurfaces(orgSlug, activeCount)
+  const surfaces = buildSurfaces(orgSlug, activeCount, hrmPressure.length)
 
   const priorityLanes = buildPriorityLanes(
     orgSlug,
@@ -269,10 +279,7 @@ function buildPriorityLanes(
       0
     )
 
-    if (
-      specificAutomationCounts.length === 0 ||
-      remainingAutomationCount > 0
-    ) {
+    if (specificAutomationCounts.length === 0 || remainingAutomationCount > 0) {
       lanes.push({
         id: "orbit-automation-attention",
         kind: "automation_attention",
@@ -338,14 +345,48 @@ function buildPriorityLanes(
 }
 
 /**
+ * Pure: orders the merged Nexus pressure list by severity then trims so
+ * downstream Nexus surfaces never have to think about sort order. The
+ * sort is stable within a severity bucket — items keep the producer's
+ * insertion order, so Orbit + HRM concerns interleave deterministically.
+ *
+ * Limit matches the Phase 2 contract (up to 6 visible cards on the
+ * field) plus a little headroom for tied severities; the Nexus Field
+ * is responsible for any further visual prioritization.
+ */
+const NEXUS_PRESSURE_DISPLAY_LIMIT = 8
+const PRESSURE_SEVERITY_RANK: Record<
+  OperationalPressureItem["severity"],
+  number
+> = {
+  emergency: 0,
+  critical: 1,
+  attention: 2,
+  ambient: 3,
+}
+
+function mergeNexusPressureItems(
+  orbit: OperationalPressureItem[],
+  hrm: OperationalPressureItem[]
+): OperationalPressureItem[] {
+  return [...orbit, ...hrm]
+    .sort(
+      (a, b) =>
+        PRESSURE_SEVERITY_RANK[a.severity] - PRESSURE_SEVERITY_RANK[b.severity]
+    )
+    .slice(0, NEXUS_PRESSURE_DISPLAY_LIMIT)
+}
+
+/**
  * Surface map — 7 operating domains. "Operations" surface uses the live
- * Orbit active count; others remain stubbed for Phase 2.
+ * Orbit active count; "Workforce" uses the live HRM pressure count
+ * (Phase 4); others remain stubbed for future phases.
  */
 function buildSurfaces(
   orgSlug: string,
-  activeCount: number
+  activeCount: number,
+  hrmPressureCount: number
 ): NexusSurfaceState[] {
-  const orgRoot = ORG_DASHBOARD_HOME_HREF(orgSlug)
   return [
     {
       id: "cashflow",
@@ -378,10 +419,10 @@ function buildSurfaces(
       id: "workforce",
       label: "Workforce",
       surface: "workforce",
-      status: "stable",
-      pressureCount: 0,
-      freshness: "stale",
-      href: orgRoot,
+      status: hrmPressureCount > 0 ? "attention" : "stable",
+      pressureCount: hrmPressureCount,
+      freshness: "live",
+      href: organizationDashboardPath(orgSlug, "hrm"),
     },
     {
       id: "procurement",

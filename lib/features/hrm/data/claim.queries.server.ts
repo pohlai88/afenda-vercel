@@ -150,7 +150,11 @@ export async function getClaimTypeForOrg(
 
 async function fetchClaimsBase(
   organizationId: string,
-  filter: { ids?: readonly string[]; states?: readonly ClaimStateValue[]; employeeId?: string }
+  filter: {
+    ids?: readonly string[]
+    states?: readonly ClaimStateValue[]
+    employeeId?: string
+  }
 ): Promise<ClaimRow[]> {
   const orgPredicate = eq(hrmClaim.organizationId, organizationId)
   const idPred =

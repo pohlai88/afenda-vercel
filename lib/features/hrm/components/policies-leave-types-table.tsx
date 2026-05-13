@@ -80,11 +80,7 @@ export async function PoliciesLeaveTypesTable({
       organizationId: orgSession.organizationId,
     })
     return (
-      <p
-        className="text-destructive text-sm"
-        role="status"
-        aria-live="polite"
-      >
+      <p className="text-sm text-destructive" role="status" aria-live="polite">
         {t("leaveTypes.noTypesTitle")}
       </p>
     )
@@ -99,7 +95,7 @@ export async function PoliciesLeaveTypesTable({
       <div className="flex flex-col gap-3 py-6 text-center">
         <div>
           <p className="text-sm font-medium">{t("leaveTypes.noTypesTitle")}</p>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             {t("leaveTypes.noTypesBody")}
           </p>
         </div>
@@ -117,7 +113,7 @@ export async function PoliciesLeaveTypesTable({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-muted-foreground text-xs" aria-live="polite">
+        <p className="text-xs text-muted-foreground" aria-live="polite">
           {t("leaveTypes.totalCount", { count: visibleRows.length })}
         </p>
         <ArchiveToggleLink
@@ -177,11 +173,9 @@ export async function PoliciesLeaveTypesTable({
                   <Badge variant={accrualVariant}>{accrualLabel}</Badge>
                 </TableCell>
                 <TableCell className="text-sm">
-                  {row.paid
-                    ? t("leaveType.paidYes")
-                    : t("leaveType.paidNo")}
+                  {row.paid ? t("leaveType.paidYes") : t("leaveType.paidNo")}
                 </TableCell>
-                <TableCell className="text-muted-foreground text-xs">
+                <TableCell className="text-xs text-muted-foreground">
                   <EntitlementSummary
                     row={row}
                     tierTemplate={(years, days) =>
@@ -192,7 +186,7 @@ export async function PoliciesLeaveTypesTable({
                     }
                   />
                 </TableCell>
-                <TableCell className="text-muted-foreground text-xs">
+                <TableCell className="text-xs text-muted-foreground">
                   <CarryForwardSummary
                     row={row}
                     daysTemplate={(days) =>

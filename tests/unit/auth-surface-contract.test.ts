@@ -40,12 +40,12 @@ function readComponent(...segments: string[]): string {
 const PAGE_FRAME_SURFACES: [label: string, ...path: string[]][] = [
   // page.tsx applies AuthPageFrame, wrapping the form component
   ["sign-in page", "sign-in", "page.tsx"],
+  ["sign-up page", "sign-up", "page.tsx"],
   ["forgot-password page", "forgot-password", "page.tsx"],
   ["reset-password page", "reset-password", "page.tsx"],
   ["session-expired page", "session-expired", "page.tsx"],
-  // form/client component owns AuthPageFrame directly
-  ["sign-up form", "sign-up", "sign-up-form.tsx"],
   ["check-email page", "check-email", "page.tsx"],
+  // form/client component owns AuthPageFrame directly
   ["verify-email form", "verify-email", "verify-email-form.tsx"],
   [
     "accept-invitation client",
@@ -95,7 +95,7 @@ describe("Interruption state contract", () => {
 // ---------------------------------------------------------------------------
 
 const FOOTER_LINK_SURFACES: [label: string, ...path: string[]][] = [
-  ["check-email page", "check-email", "page.tsx"],
+  ["check-email client", "check-email", "check-email-client.tsx"],
   ["verify-email form", "verify-email", "verify-email-form.tsx"],
   ["forgot-password form", "forgot-password", "forgot-password-form.tsx"],
   ["reset-password form", "reset-password", "reset-password-form.tsx"],
@@ -108,7 +108,7 @@ describe("Legal consent footer contract", () => {
   })
 
   it("sign-up form renders AuthLegalConsent", () => {
-    const content = readAuth("sign-up", "sign-up-form.tsx")
+    const content = readAuth("sign-in", "sign-in-form.tsx")
     expect(content).toContain("AuthLegalConsent")
   })
 })
@@ -140,7 +140,7 @@ describe("Password toggle contract", () => {
   })
 
   it('sign-up password toggle has type="button"', () => {
-    const content = readAuth("sign-up", "sign-up-form.tsx")
+    const content = readAuth("sign-in", "sign-in-form.tsx")
     expect(content).toContain('type="button"')
     expect(content).toContain("aria-pressed")
   })

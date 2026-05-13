@@ -65,21 +65,20 @@ test.describe("pre-sign-in auth shell", () => {
     "check-email and verify-email pages render primary content",
     { tag: "@smoke" },
     async ({ page }) => {
-      await page.goto("/en/check-email")
+      await page.goto("/en/check-email?email=owner%40afenda.com")
       await expect(
-        page.getByRole("heading", {
-          name: CHECK_EMAIL_PAGE_COPY.heading,
-          exact: true,
-        })
+        page.getByText(CHECK_EMAIL_PAGE_COPY.heading, { exact: true })
       ).toBeVisible()
       await expect(
         page.getByRole("link", { name: CHECK_EMAIL_PAGE_COPY.verifyCta })
       ).toBeVisible()
+      await expect(
+        page.getByRole("button", { name: "Resend code" })
+      ).toBeVisible()
 
       await page.goto("/en/verify-email")
       await expect(
-        page.getByRole("heading", {
-          name: AUTH_PUBLIC_SHELL_COPY.verifyEmailHeading,
+        page.getByText(AUTH_PUBLIC_SHELL_COPY.verifyEmailHeading, {
           exact: true,
         })
       ).toBeVisible()
@@ -107,6 +106,41 @@ test.describe("pre-sign-in auth shell", () => {
           exact: true,
         })
       ).toBeVisible()
+    }
+  )
+
+  test(
+    "dedicated sign-up route defaults to account creation mode",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      await page.goto("/en/sign-up")
+      await expect(
+        page.getByText(AUTH_PUBLIC_SHELL_COPY.signInTabSignUp, {
+          exact: true,
+        })
+      ).toBeVisible()
+      await expect(
+        page.getByLabel(AUTH_PUBLIC_SHELL_COPY.signUpNameLabel, {
+          exact: true,
+        })
+      ).toBeVisible()
+    }
+  )
+
+  test(
+    "accept-invitation asks signed-out users to sign in first",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      await page.goto("/en/accept-invitation?invitationId=test-invite")
+      await expect(
+        page.getByText("Sign in to review invitation", { exact: true })
+      ).toBeVisible()
+      await expect(
+        page.getByRole("link", { name: "Sign in", exact: true })
+      ).toHaveAttribute(
+        "href",
+        /\/en\/sign-in\?callbackUrl=.*accept-invitation/
+      )
     }
   )
 })

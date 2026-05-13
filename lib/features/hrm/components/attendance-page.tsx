@@ -76,8 +76,7 @@ export async function AttendancePage({
     employeeIdParam && employees.some((e) => e.id === employeeIdParam)
       ? employeeIdParam
       : null
-  const validDate =
-    dateParam && isIsoDate(dateParam) ? dateParam : null
+  const validDate = dateParam && isIsoDate(dateParam) ? dateParam : null
 
   return (
     <div className="flex flex-col gap-6 p-6">

@@ -12,13 +12,13 @@ import {
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/tenant"
 
-import {
-  type ClaimRow,
-  listClaimsForOrg,
-} from "../data/claim.queries.server"
+import { type ClaimRow, listClaimsForOrg } from "../data/claim.queries.server"
 import type { ClaimStateValue } from "../data/claim-helpers.shared"
 
-const STATE_TONE: Record<ClaimStateValue, "default" | "outline" | "destructive" | "secondary"> = {
+const STATE_TONE: Record<
+  ClaimStateValue,
+  "default" | "outline" | "destructive" | "secondary"
+> = {
   draft: "outline",
   submitted: "outline",
   approved: "default",

@@ -35,8 +35,12 @@ export const plannerSignalResolutionPolicySchema = z.enum(
 )
 export const plannerSavedViewSurfaceSchema = z.enum([
   "queue",
+  "triage",
+  "today",
   "timeline",
   "signals",
+  "sessions",
+  "links",
 ])
 
 const optionalDateTimeField = z
@@ -136,7 +140,7 @@ export const createPlannerLinkFormSchema = z.object({
   entityId: z.string().trim().min(1).max(255),
   displayLabel: z.string().trim().min(1).max(255),
   href: z.string().trim().url().optional().or(z.literal("")),
-  causalityReason: z.string().trim().max(1000).optional(),
+  causalityReason: z.string().trim().min(1).max(1000),
 })
 
 export const addPlannerCommentFormSchema = z.object({

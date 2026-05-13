@@ -32,7 +32,10 @@ type ClaimDecisionFormsProps = {
  * `LeaveDecisionForms` in shape so the workbench reads consistently
  * across HRM surfaces.
  */
-export function ClaimDecisionForms({ claimId, label }: ClaimDecisionFormsProps) {
+export function ClaimDecisionForms({
+  claimId,
+  label,
+}: ClaimDecisionFormsProps) {
   return (
     <div className="flex items-center gap-2">
       <ApproveClaimButton claimId={claimId} label={label} />
@@ -113,10 +116,7 @@ function RejectClaimDialog({
           <DialogTitle>{t("reject")}</DialogTitle>
           <DialogDescription>{label}</DialogDescription>
         </DialogHeader>
-        <ClaimRejectForm
-          claimId={claimId}
-          onSuccess={() => setOpen(false)}
-        />
+        <ClaimRejectForm claimId={claimId} onSuccess={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   )

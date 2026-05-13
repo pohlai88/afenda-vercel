@@ -1,0 +1,128 @@
+import type { Metadata } from "next"
+
+import { getTranslations } from "next-intl/server"
+import { notFound } from "next/navigation"
+
+import { Button } from "#components/ui/button"
+import {
+  CAPABILITY_CATEGORIES,
+  getCapabilityDefinitions,
+  isCapabilityCategory,
+  marketplacePath,
+  MarketplaceEmptyState,
+  MarketplaceShell,
+  type CapabilityCategory,
+  type MarketplaceCategoryNavItem,
+} from "#features/marketplace"
+import { Link } from "#i18n/navigation"
+import { SITE_NAME } from "#lib/site"
+import { requireOrgSession } from "#lib/tenant"
+import { canActInOrganization } from "#lib/auth"
+
+export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Marketplace · Category",
+  openGraph: { title: `Marketplace | ${SITE_NAME}` },
+  robots: { index: false, follow: false },
+}
+
+/**
+ * Dynamic placeholder for any registered category whose static
+ * page does not yet exist (everything except `utilities` in v1).
+ *
+ * Renders a calm `MarketplaceEmptyState` with the category copy
+ * mined from `Marketplace.categoryDescriptions.*`. Keeps the
+ * navigation structure and breadcrumbs identical to the real
+ * utilities page so the registry contract is legible to operators
+ * and admins long before the underlying module ships.
+ *
+ * Static segments (`utilities`, `admin`) shadow this dynamic
+ * route because Next.js prefers explicit paths over `[category]`.
+ */
+export default async function MarketplaceCategoryPage(
+  props: PageProps<"/[locale]/marketplace/[category]">
+) {
+  const { category: rawCategory } = await props.params
+  if (!isCapabilityCategory(rawCategory)) {
+    notFound()
+  }
+  const category: CapabilityCategory = rawCategory
+
+  // Live tenant guard so we audit the segment as a real navigation
+  // event for the working-memory rail.
+  const session = await requireOrgSession()
+  const [t, isAdmin] = await Promise.all([
+    getTranslations("Marketplace"),
+    canActInOrganization(
+      session.userId,
+      session.user.role,
+      session.organizationId,
+      "admin"
+    ),
+  ])
+
+  const definitions = getCapabilityDefinitions()
+  const counts = new Map<string, number>()
+  for (const def of definitions) {
+    counts.set(def.category, (counts.get(def.category) ?? 0) + 1)
+  }
+  const navItems: MarketplaceCategoryNavItem[] = [
+    {
+      id: "overview",
+      label: t("shell.breadcrumbs.marketplace"),
+      href: marketplacePath(),
+      variant: "available",
+    },
+    ...CAPABILITY_CATEGORIES.filter(
+      isCapabilityCategory
+    ).map<MarketplaceCategoryNavItem>((cat) => ({
+      id: cat,
+      label: t(`categories.${cat}`),
+      href: marketplacePath(cat),
+      variant: cat === "utilities" ? "available" : "placeholder",
+      ...(cat === "utilities" ? { count: counts.get(cat) ?? 0 } : {}),
+    })),
+    ...(isAdmin
+      ? [
+          {
+            id: "admin" as const,
+            label: t("shell.breadcrumbs.admin"),
+            href: marketplacePath("admin"),
+            variant: "admin" as const,
+          },
+        ]
+      : []),
+  ]
+
+  return (
+    <MarketplaceShell
+      title={t("category.title", { category: t(`categories.${category}`) })}
+      subtitle={t("category.subtitlePlaceholder", {
+        category: t(`categories.${category}`),
+      })}
+      breadcrumbs={[
+        {
+          label: t("shell.breadcrumbs.marketplace"),
+          href: marketplacePath(),
+        },
+        { label: t(`shell.breadcrumbs.${category}`) },
+      ]}
+      nav={{
+        ariaLabel: t("shell.navAriaLabel"),
+        activePath: marketplacePath(category),
+        comingSoonLabel: t("shell.comingSoonBadge"),
+        items: navItems,
+      }}
+    >
+      <MarketplaceEmptyState
+        title={t("category.emptyTitle")}
+        description={t("category.emptyDescription")}
+      >
+        <Button asChild variant="outline">
+          <Link href={marketplacePath()}>{t("category.backToOverview")}</Link>
+        </Button>
+      </MarketplaceEmptyState>
+    </MarketplaceShell>
+  )
+}

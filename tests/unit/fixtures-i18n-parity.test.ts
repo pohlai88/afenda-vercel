@@ -57,26 +57,33 @@ describe("fixtures ↔ messages/en.json", () => {
     expect(AUTH_PUBLIC_SHELL_COPY.signInTabSignUp).toBe(en.Auth.tabSignUp)
     expect(AUTH_PUBLIC_SHELL_COPY.signUpNameLabel).toBe(en.Auth.labelName)
   })
+
+  it("SIGN_UP_PAGE_COPY matches Auth.*", () => {
+    expect(SIGN_UP_PAGE_COPY.heading).toBe(en.Auth.titleSignUp)
+    expect(SIGN_UP_PAGE_COPY.nameLabel).toBe(en.Auth.labelName)
+    expect(SIGN_UP_PAGE_COPY.emailLabel).toBe(en.Auth.labelEmail)
+    expect(SIGN_UP_PAGE_COPY.passwordLabel).toBe(en.Auth.labelPassword)
+    expect(SIGN_UP_PAGE_COPY.submitIdle).toBe(en.Auth.submitCreateAccount)
+    expect(SIGN_UP_PAGE_COPY.submitPending).toBe(en.Auth.pleaseWait)
+    expect(SIGN_UP_PAGE_COPY.signInLink).toBe(en.Auth.tabSignIn)
+  })
+
+  it("CHECK_EMAIL_PAGE_COPY matches CheckEmail.*", () => {
+    expect(CHECK_EMAIL_PAGE_COPY.heading).toBe(en.CheckEmail.title)
+    expect(CHECK_EMAIL_PAGE_COPY.verifyCta).toBe(en.CheckEmail.ctaVerify)
+  })
+
+  it("AUTH_PUBLIC_SHELL_COPY verify-email keys match VerifyEmail.*", () => {
+    expect(AUTH_PUBLIC_SHELL_COPY.verifyEmailHeading).toBe(en.VerifyEmail.title)
+    expect(AUTH_PUBLIC_SHELL_COPY.verifyEmailSubmit).toBe(en.VerifyEmail.submit)
+    expect(AUTH_PUBLIC_SHELL_COPY.verifyEmailResend).toBe(en.VerifyEmail.resend)
+  })
 })
 
 describe("fixtures ↔ repo sources (substring scan)", () => {
   it("ORG_AUDIT_CSV provenance snippet matches org-audit-csv header tail", () => {
     const tail = ORG_AUDIT_CSV_HEADER_COLUMNS.slice(-5).join(",")
     expect(ORG_AUDIT_CSV_HEADER_PROVENANCE_SNIPPET).toBe(tail)
-  })
-
-  it("SIGN_UP_PAGE_COPY appears in sign-up-form.tsx", () => {
-    const src = readRepoFile("app/[locale]/(auth)/sign-up/sign-up-form.tsx")
-    for (const v of Object.values(SIGN_UP_PAGE_COPY)) {
-      expect(src).toContain(v)
-    }
-  })
-
-  it("CHECK_EMAIL_PAGE_COPY appears in check-email page", () => {
-    const src = readRepoFile("app/[locale]/(auth)/check-email/page.tsx")
-    for (const v of Object.values(CHECK_EMAIL_PAGE_COPY)) {
-      expect(src).toContain(v)
-    }
   })
 
   it("AUTH_PUBLIC_SHELL_COPY appears in auth route forms", () => {
@@ -95,8 +102,7 @@ describe("fixtures ↔ repo sources (substring scan)", () => {
     expect(reset).toContain(AUTH_PUBLIC_SHELL_COPY.resetPasswordTitle)
     expect(reset).toContain(AUTH_PUBLIC_SHELL_COPY.resetPasswordSubmit)
     expect(reset).toContain(AUTH_PUBLIC_SHELL_COPY.resetMissingTokenAlert)
-    expect(verify).toContain(AUTH_PUBLIC_SHELL_COPY.verifyEmailHeading)
-    expect(verify).toContain(AUTH_PUBLIC_SHELL_COPY.verifyEmailSubmit)
+    expect(verify).toContain('useTranslations("VerifyEmail")')
   })
 
   it("seed-dev-users.mjs stays aligned with BOOTSTRAP_FIXTURE org + preset emails", () => {

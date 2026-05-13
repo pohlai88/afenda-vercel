@@ -8,7 +8,6 @@ import {
   LogOut,
   Shield,
   ShieldCheck,
-  SlidersHorizontal,
   UserRound,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -29,7 +28,6 @@ import { switchActiveOrgAction } from "#features/org-admin/client"
 import type { UserOrgSummary } from "#features/org-admin/client"
 
 import { WorkbenchUtilityTriggerTooltip } from "./workbench-utility-trigger-tooltip"
-import { useWorkbenchUtilityWidgetUi } from "./workbench-utility-widget-preferences"
 
 type NexusControlMenuProps = {
   userEmail: string
@@ -52,7 +50,6 @@ export function WorkbenchControlMenu({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const tShell = useTranslations("Dashboard.shell")
-  const { openUtilityCustomize } = useWorkbenchUtilityWidgetUi()
 
   const currentOrg = currentOrgId
     ? userOrgs.find((o) => o.id === currentOrgId)
@@ -175,17 +172,6 @@ export function WorkbenchControlMenu({
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={() => openUtilityCustomize()}
-          className="flex items-center gap-2 text-sm"
-        >
-          <SlidersHorizontal
-            className="size-3.5 shrink-0 text-muted-foreground"
-            aria-hidden
-            strokeWidth={2}
-          />
-          <span>{tShell("controlMenu.customizeUtilityBar")}</span>
-        </DropdownMenuItem>
         <DropdownMenuItem
           onSelect={handleSignOut}
           disabled={isPending}

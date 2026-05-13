@@ -34,10 +34,7 @@ import {
   type DashboardNavModule,
 } from "#lib/dashboard-module-paths"
 import { ui } from "#lib/design-system"
-import {
-  APP_ICON_512_PNG,
-  ERP_UTILITY_MULTIPLE_APPS_PNG,
-} from "#lib/site"
+import { APP_ICON_512_PNG, ERP_UTILITY_MULTIPLE_APPS_PNG } from "#lib/site"
 import { cn } from "#lib/utils"
 
 import { organizationNexusPath } from "#features/nexus"

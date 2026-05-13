@@ -57,9 +57,7 @@ export function DocumentsLibraryFilters({
       className="flex flex-wrap items-end gap-3"
     >
       <Field className="min-w-[14rem] flex-1">
-        <FieldLabel htmlFor={documentTypeId}>
-          {t("filterTypeLabel")}
-        </FieldLabel>
+        <FieldLabel htmlFor={documentTypeId}>{t("filterTypeLabel")}</FieldLabel>
         <select
           id={documentTypeId}
           name="documentType"

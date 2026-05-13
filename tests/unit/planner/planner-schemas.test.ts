@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   addPlannerAttachmentMetadataFormSchema,
   correlatePlannerSignalFormSchema,
+  createPlannerLinkFormSchema,
   createPlannerItemFormSchema,
   createPlannerRelationFormSchema,
   createPlannerSignalFormSchema,
@@ -92,6 +93,26 @@ describe("planner form schemas", () => {
     expect(parsed.success).toBe(true)
   })
 
+  it("accepts saved views across Orbit operator surfaces", () => {
+    for (const surface of [
+      "triage",
+      "today",
+      "timeline",
+      "signals",
+      "sessions",
+      "links",
+    ]) {
+      expect(
+        savePlannerViewFormSchema.safeParse({
+          name: `${surface} lens`,
+          surface,
+          filterState: JSON.stringify({}),
+          sortMode: "updated_desc",
+        }).success
+      ).toBe(true)
+    }
+  })
+
   it("accepts either related item or related signal for relation authoring", () => {
     expect(
       createPlannerRelationFormSchema.safeParse({
@@ -106,6 +127,32 @@ describe("planner form schemas", () => {
         itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
         relationType: "related",
         relatedSignalId: "d0d38696-5ad2-4a1f-9a5f-2e1b657c2bdb",
+      }).success
+    ).toBe(true)
+  })
+
+  it("requires a non-empty causality reason for planner links", () => {
+    expect(
+      createPlannerLinkFormSchema.safeParse({
+        itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+        module: "hrm",
+        entityType: "employee",
+        entityId: "emp-1",
+        displayLabel: "Employee profile",
+        href: "https://example.com/hrm/employees/emp-1",
+        causalityReason: "   ",
+      }).success
+    ).toBe(false)
+
+    expect(
+      createPlannerLinkFormSchema.safeParse({
+        itemId: "4c98f55a-fdbc-4bb6-8717-c0cb6760dc73",
+        module: "hrm",
+        entityType: "employee",
+        entityId: "emp-1",
+        displayLabel: "Employee profile",
+        href: "https://example.com/hrm/employees/emp-1",
+        causalityReason: "Payroll discrepancy detected during finalize.",
       }).success
     ).toBe(true)
   })

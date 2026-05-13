@@ -1,3 +1,6 @@
 import "server-only"
 
-export { mapPlannerPressureRowsToOperationalPressureItems } from "./nexus-operational-pressure-map.shared"
+export {
+  mapHrmPressureRowsToOperationalPressureItems,
+  mapPlannerPressureRowsToOperationalPressureItems,
+} from "./nexus-operational-pressure-map.shared"

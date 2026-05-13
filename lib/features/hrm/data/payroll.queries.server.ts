@@ -14,6 +14,7 @@ import {
 } from "#lib/db/schema"
 
 import { listAttendanceDaysForPayroll } from "./attendance.queries.server"
+import { listApprovedUnpaidClaimsForPeriod } from "./claim.queries.server"
 import { PAYROLL_PERIOD_LOCK_SUBJECT_KIND } from "../schemas/payroll-period.schema"
 
 import type { PayrollEngineInput } from "./payroll-engine.server"
@@ -243,6 +244,7 @@ export async function getPayrollRunInputSnapshot(
   // Fetch period
   const periodRow = await db
     .select({
+      periodStart: hrmPayrollPeriod.periodStart,
       periodEnd: hrmPayrollPeriod.periodEnd,
     })
     .from(hrmPayrollPeriod)
@@ -256,6 +258,25 @@ export async function getPayrollRunInputSnapshot(
 
   const period = periodRow[0]
   if (!period) return null
+
+  // Phase 4 — Approved-but-not-yet-paid claims for this employee whose
+  // `claimDate` falls inside the period window. Pre-fetched here so the
+  // engine remains IO-free; emitted as one earning line per claim with
+  // `claimId` populated so the period lock can flip the claim to `paid`.
+  const allApprovedUnpaid = await listApprovedUnpaidClaimsForPeriod(
+    organizationId,
+    period.periodStart,
+    period.periodEnd
+  )
+  const approvedUnpaidClaims = allApprovedUnpaid
+    .filter((row) => row.employeeId === run.employeeId)
+    .map((row) => ({
+      claimId: row.id,
+      payrollLineCode: row.claimTypeCode || "ALLOWANCE_CLAIM",
+      description: row.description ?? `${row.claimTypeName} (${row.claimDate})`,
+      amount: row.amount,
+      currency: row.currency,
+    }))
 
   // Fetch active contract (for salary)
   let baseSalaryAmount = "0"
@@ -316,6 +337,7 @@ export async function getPayrollRunInputSnapshot(
     ytdRemuneration: null,
     ytdPcbPaid: null,
     ytdEpfEmployee: null,
+    approvedUnpaidClaims,
   }
 }
 

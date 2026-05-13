@@ -1,7 +1,14 @@
 "use client"
 
-import { useActionState, useId } from "react"
+import { useId, useState } from "react"
+import { useTranslations } from "next-intl"
+import { useRouter } from "#i18n/navigation"
 
+import {
+  AUTH_CLIENT_ERROR_CODE,
+  normalizeAuthClientError,
+} from "#lib/auth-client"
+import { neonAuthClient } from "#lib/auth-client-neon-compat"
 import {
   AuthFooterLink,
   AuthFooterLinks,
@@ -22,43 +29,84 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "#components/ui/input-otp"
 import { Label } from "#components/ui/label"
 import { Spinner } from "#components/ui/spinner"
 
-import { verifyEmailOtp } from "./actions"
+import {
+  authResponseHasSessionToken,
+  buildCheckEmailHref,
+  localeAwarePathToClientRoute,
+} from "../auth-flow.shared"
 
-type VerifyEmailState = { error: string } | null
+type VerifyEmailFormProps = {
+  initialEmail?: string
+  postAuthPath: string
+}
 
-export function VerifyEmailForm({ locale }: { locale: string }) {
-  const boundAction = verifyEmailOtp.bind(null, locale)
-  const [state, formAction, pending] = useActionState<
-    VerifyEmailState,
-    FormData
-  >(boundAction, null)
+export function VerifyEmailForm({
+  initialEmail,
+  postAuthPath,
+}: VerifyEmailFormProps) {
+  const t = useTranslations("VerifyEmail")
+  const router = useRouter()
   const errorId = useId()
+  const [email, setEmail] = useState(initialEmail ?? "")
+  const [otp, setOtp] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setPending(true)
+    try {
+      const verify = await neonAuthClient.emailOtp.verifyEmail({ email, otp })
+      if (verify.error) {
+        setError(normalizeAuthClientError(verify.error.message).message)
+        return
+      }
+
+      if (!authResponseHasSessionToken(verify)) {
+        const signIn = await neonAuthClient.signIn.emailOtp({ email, otp })
+        if (signIn.error) {
+          setError(normalizeAuthClientError(signIn.error.message).message)
+          return
+        }
+      }
+
+      router.push(localeAwarePathToClientRoute(postAuthPath))
+      router.refresh()
+    } catch (caught: unknown) {
+      const message =
+        caught instanceof Error ? caught.message : AUTH_CLIENT_ERROR_CODE.UNKNOWN
+      setError(normalizeAuthClientError(message).message)
+    } finally {
+      setPending(false)
+    }
+  }
 
   return (
     <AuthPageFrame>
       <Card className="w-full border-border/80 shadow-elevation-1">
         <CardHeader className="space-y-1 pb-4">
-          <CardTitle className="text-xl tracking-tight">Verify email</CardTitle>
-          <CardDescription>
-            Enter your email and the 6-digit code we sent to your inbox.
-          </CardDescription>
+          <CardTitle className="text-xl tracking-tight">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="verify-email">Email</Label>
+              <Label htmlFor="verify-email">{t("emailLabel")}</Label>
               <Input
                 id="verify-email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                placeholder="you@example.com"
-                aria-invalid={Boolean(state?.error)}
+                placeholder={t("emailPlaceholder")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={Boolean(error)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="verify-otp">Verification code</Label>
+              <Label htmlFor="verify-otp">{t("otpLabel")}</Label>
               <InputOTP
                 id="verify-otp"
                 name="otp"
@@ -66,40 +114,47 @@ export function VerifyEmailForm({ locale }: { locale: string }) {
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 containerClassName="justify-center sm:justify-start"
-                aria-invalid={Boolean(state?.error)}
-                aria-describedby={state?.error ? errorId : undefined}
+                value={otp}
+                onChange={setOtp}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? errorId : undefined}
               >
                 <InputOTPGroup
                   className="gap-1.5"
-                  aria-label="Verification code"
+                  aria-label={t("otpGroupAria")}
                 >
                   {Array.from({ length: 6 }).map((_, i) => (
                     <InputOTPSlot key={i} index={i} />
                   ))}
                 </InputOTPGroup>
               </InputOTP>
-              <p className="text-xs text-muted-foreground">
-                Check your inbox — the code expires soon.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("otpHint")}</p>
             </div>
-            {state?.error ? (
+            {error ? (
               <Alert variant="destructive" role="alert" aria-live="assertive">
-                <AlertTitle>Verification failed</AlertTitle>
-                <AlertDescription id={errorId}>{state.error}</AlertDescription>
+                <AlertTitle>{t("errorTitle")}</AlertTitle>
+                <AlertDescription id={errorId}>{error}</AlertDescription>
               </Alert>
             ) : null}
             <Button type="submit" className="w-full" disabled={pending}>
               <span className="inline-flex items-center justify-center gap-2">
                 {pending ? <Spinner className="size-4" /> : null}
-                {pending ? "Verifying…" : "Verify and continue"}
+                {pending ? t("submitPending") : t("submit")}
               </span>
             </Button>
           </form>
         </CardContent>
         <CardFooter className="border-t pt-6">
           <AuthFooterLinks>
-            <AuthFooterLink href="/check-email">Resend code</AuthFooterLink>
-            <AuthFooterLink href="/sign-in">Back to sign in</AuthFooterLink>
+            <AuthFooterLink
+              href={buildCheckEmailHref({
+                email,
+                callbackUrl: postAuthPath,
+              })}
+            >
+              {t("resend")}
+            </AuthFooterLink>
+            <AuthFooterLink href="/sign-in">{t("backToSignIn")}</AuthFooterLink>
           </AuthFooterLinks>
         </CardFooter>
       </Card>

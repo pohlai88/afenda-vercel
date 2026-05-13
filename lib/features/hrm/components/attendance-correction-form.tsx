@@ -1,23 +1,13 @@
 "use client"
 
-import {
-  useActionState,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-} from "react"
+import { useActionState, useEffect, useId, useMemo, useRef } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"
 import { DialogFooter } from "#components/ui/dialog"
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from "#components/ui/field"
+import { Field, FieldError, FieldLabel } from "#components/ui/field"
 import { Input } from "#components/ui/input"
 
 import {
@@ -161,7 +151,7 @@ export function AttendanceCorrectionForm({
           required
           placeholder={t("fieldCorrectionReasonPlaceholder")}
           aria-invalid={Boolean(fieldErrors?.correctionReason)}
-          className="min-h-[72px] w-full rounded border border-border bg-background px-2 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="min-h-[72px] w-full rounded border border-border bg-background px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
         />
         {fieldErrors?.correctionReason ? (
           <FieldError>{fieldErrors.correctionReason}</FieldError>

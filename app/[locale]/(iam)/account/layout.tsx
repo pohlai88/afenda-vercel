@@ -12,17 +12,20 @@ import { requireAuthShellSignedInSession } from "#lib/auth"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/route-envelope.shared"
-import { SITE_NAME } from "#lib/site"
 import { organizationNexusPath } from "#features/nexus"
 import { accountOrbitPath } from "#features/planner"
 
 import { buildAccountRailSlotsV2 } from "./_components/account-rail-slots"
 import { getAccountShellData } from "./_components/account-shell-data.server"
+import { generateAccountOverviewMetadata } from "./account-metadata"
 
-export const metadata: Metadata = {
-  title: "Account",
-  robots: PRIVATE_SURFACE_ROBOTS,
-  openGraph: { title: `Account | ${SITE_NAME}` },
+export async function generateMetadata({
+  params,
+}: Pick<LayoutProps<"/[locale]/account">, "params">): Promise<Metadata> {
+  return {
+    ...(await generateAccountOverviewMetadata(params)),
+    robots: PRIVATE_SURFACE_ROBOTS,
+  }
 }
 
 export const dynamic = "force-dynamic"

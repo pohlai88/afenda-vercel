@@ -1,10 +1,11 @@
 import "server-only"
 
-import { and, eq, gte, lte } from "drizzle-orm"
+import { and, eq, gte, isNotNull, lte } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
   hrmAttendanceDay,
+  hrmClaim,
   hrmPayrollLine,
   hrmPayrollPeriod,
   hrmPayrollRun,
@@ -186,6 +187,7 @@ export async function insertPayrollLines(
       amount: l.amount,
       rulePackProvenance: l.rulePackProvenance ?? null,
       metadata: l.metadata ?? null,
+      claimId: l.claimId ?? null,
     }))
   )
 }
@@ -208,6 +210,16 @@ export async function deletePayrollLinesForRun(
 // Period lock (Phase 3B) — pins rule-pack version + freezes runs + attendance days
 // ---------------------------------------------------------------------------
 
+/**
+ * Lock a payroll period — pins the rule-pack version, flips runs and
+ * attendance-day rows to `locked`, and (Phase 4) flips approved claims
+ * linked through `hrm_payroll_line.claimId` to `paid`.
+ *
+ * Returns the list of `paidClaims` so the caller can write one
+ * `erp.hrm.claim.paid` audit per row from a request-scoped context
+ * (`writeIamAuditEventFromNextHeaders`); audits stay inside Server
+ * Actions so this mutation remains free of `next/headers` imports.
+ */
 export async function lockPayrollPeriodAndRunsMutation(opts: {
   readonly organizationId: string
   readonly periodId: string
@@ -215,8 +227,13 @@ export async function lockPayrollPeriodAndRunsMutation(opts: {
   readonly lockedByUserId: string
   readonly periodStart: string
   readonly periodEnd: string
-}): Promise<void> {
-  await db.transaction(async (tx) => {
+}): Promise<{
+  readonly paidClaims: ReadonlyArray<{
+    readonly claimId: string
+    readonly payrollLineId: string
+  }>
+}> {
+  return await db.transaction(async (tx) => {
     await tx
       .update(hrmPayrollPeriod)
       .set({
@@ -261,5 +278,60 @@ export async function lockPayrollPeriodAndRunsMutation(opts: {
           lte(hrmAttendanceDay.attendanceDate, opts.periodEnd)
         )
       )
+
+    // Phase 4 — flip claims linked through `hrm_payroll_line.claimId` to
+    // `paid` inside the same lock transaction so a partial commit cannot
+    // leave a "locked" period with claims still marked `approved`. We
+    // collect the unique claimIds (one row per claim — first matching
+    // line wins for `paidByPayrollLineId`) so the caller can audit.
+    const linkedRows = await tx
+      .select({
+        lineId: hrmPayrollLine.id,
+        claimId: hrmPayrollLine.claimId,
+      })
+      .from(hrmPayrollLine)
+      .innerJoin(
+        hrmPayrollRun,
+        eq(hrmPayrollRun.id, hrmPayrollLine.runId)
+      )
+      .where(
+        and(
+          eq(hrmPayrollLine.organizationId, opts.organizationId),
+          eq(hrmPayrollRun.periodId, opts.periodId),
+          isNotNull(hrmPayrollLine.claimId)
+        )
+      )
+
+    const seen = new Set<string>()
+    const paidClaims: { claimId: string; payrollLineId: string }[] = []
+    for (const row of linkedRows) {
+      if (!row.claimId || seen.has(row.claimId)) continue
+      seen.add(row.claimId)
+      paidClaims.push({ claimId: row.claimId, payrollLineId: row.lineId })
+    }
+
+    if (paidClaims.length > 0) {
+      const paidAt = new Date()
+      for (const entry of paidClaims) {
+        await tx
+          .update(hrmClaim)
+          .set({
+            state: "paid",
+            paidByPayrollLineId: entry.payrollLineId,
+            paidAt,
+            updatedAt: paidAt,
+            updatedByUserId: opts.lockedByUserId,
+          })
+          .where(
+            and(
+              eq(hrmClaim.organizationId, opts.organizationId),
+              eq(hrmClaim.id, entry.claimId),
+              eq(hrmClaim.state, "approved")
+            )
+          )
+      }
+    }
+
+    return { paidClaims }
   })
 }

@@ -59,7 +59,6 @@ export { OrganizationAdminClient } from "./components/organization-admin-client"
 export { OrganizationAuditCsvExport } from "./components/organization-audit-csv-export"
 export { IntegrationsEndpointsPanel } from "./components/integrations-endpoints-panel"
 export { IntegrationsImportsPanel } from "./components/integrations-imports-panel"
-export { IntegrationsUtilitiesMarketplace } from "./components/integrations-utilities-marketplace"
 export { OrganizationSlugSettingsForm } from "./components/organization-slug-settings-form"
 
 export {

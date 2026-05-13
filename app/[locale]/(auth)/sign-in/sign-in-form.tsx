@@ -30,8 +30,12 @@ import { Separator } from "#components/ui/separator"
 import { Spinner } from "#components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "#components/ui/toggle-group"
-import { stripLeadingLocalePrefix } from "#lib/i18n/locales.shared"
 import { cn } from "#lib/utils"
+
+import {
+  localeAwarePathToClientRoute,
+  resolvePostSignUpPath,
+} from "../auth-flow.shared"
 
 function GoogleIcon() {
   return (
@@ -77,21 +81,6 @@ function GitHubIcon() {
   )
 }
 
-/** next-intl `useRouter` expects locale-internal `href`; server gives locale-prefixed paths. */
-function postAuthPathForClientRouter(
-  localeAwarePathWithOptionalQuery: string
-): Route {
-  const raw = localeAwarePathWithOptionalQuery.trim()
-  const qIdx = raw.indexOf("?")
-  const pathOnly = qIdx >= 0 ? raw.slice(0, qIdx) : raw
-  const query = qIdx >= 0 ? raw.slice(qIdx) : ""
-  const stripped = stripLeadingLocalePrefix(pathOnly)
-  const pathnameWithoutLocale =
-    stripped?.pathnameWithoutLocale ??
-    (pathOnly.startsWith("/") ? pathOnly : `/${pathOnly}`)
-  return `${pathnameWithoutLocale}${query}` as Route
-}
-
 type Mode = "sign-in" | "sign-up"
 type AuthKind = "password" | "otp"
 
@@ -121,12 +110,14 @@ export function SignInForm({
   stepUp = false,
   initialEmail,
   enabledSocialProviders,
+  initialMode = "sign-in",
 }: {
   postAuthPath: string
   stepUp?: boolean
   /** Optional sign-in page `?email=` prefill (e.g. dev shortcuts). */
   initialEmail?: string
   enabledSocialProviders: string[]
+  initialMode?: Mode
 }) {
   const t = useTranslations("Auth")
   const router = useRouter()
@@ -136,7 +127,7 @@ export function SignInForm({
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [otp, setOtp] = useState("")
-  const [mode, setMode] = useState<Mode>("sign-in")
+  const [mode, setMode] = useState<Mode>(initialMode)
   const [kind, setKind] = useState<AuthKind>("password")
   const [authError, setAuthError] = useState<NormalizedAuthClientError | null>(
     null
@@ -157,7 +148,7 @@ export function SignInForm({
   }
 
   function goPostAuth() {
-    router.push(postAuthPathForClientRouter(postAuthPath))
+    router.push(localeAwarePathToClientRoute(postAuthPath) as Route)
     router.refresh()
   }
 
@@ -168,25 +159,23 @@ export function SignInForm({
     setPending("form")
     try {
       if (kind === "otp") {
+        if (mode !== "sign-in") {
+          setAuthError({
+            code: AUTH_CLIENT_ERROR_CODE.UNKNOWN,
+            message:
+              "Email-code account creation is not available here. Use password sign-up instead.",
+            fieldHint: "general",
+          })
+          return
+        }
         if (otp.trim()) {
-          if (mode === "sign-up") {
-            const { error: err } = await neonAuthClient.signIn.emailOtp({
-              email,
-              otp: otp.trim(),
-            })
-            if (err) {
-              setAuthError(normalizeAuthClientError(err.message))
-              return
-            }
-          } else {
-            const { error: err } = await neonAuthClient.signIn.emailOtp({
-              email,
-              otp: otp.trim(),
-            })
-            if (err) {
-              setAuthError(normalizeAuthClientError(err.message))
-              return
-            }
+          const { error: err } = await neonAuthClient.signIn.emailOtp({
+            email,
+            otp: otp.trim(),
+          })
+          if (err) {
+            setAuthError(normalizeAuthClientError(err.message))
+            return
           }
           goPostAuth()
           return
@@ -204,16 +193,27 @@ export function SignInForm({
         return
       }
       if (mode === "sign-up") {
-        const { error: err } = await neonAuthClient.signUp.email({
+        const result = await neonAuthClient.signUp.email({
           email,
           password,
           name,
           callbackURL: postAuthPath,
         })
+        const err = result.error
         if (err) {
           setAuthError(normalizeAuthClientError(err.message))
           return
         }
+        router.push(
+          localeAwarePathToClientRoute(
+            resolvePostSignUpPath(result, {
+              email,
+              postAuthPath,
+            })
+          ) as Route
+        )
+        router.refresh()
+        return
       } else {
         const { error: err } = await neonAuthClient.signIn.email({
           email,
@@ -277,6 +277,9 @@ export function SignInForm({
             if (busy) return
             const nextMode = v as Mode
             setMode(nextMode)
+            if (nextMode === "sign-up") {
+              setKind("password")
+            }
             setAuthError(null)
             setInfo(null)
             setOtp("")
@@ -320,7 +323,7 @@ export function SignInForm({
           </TabsContent>
           <TabsContent value="sign-up" className="mt-4 space-y-6 outline-none">
             <AuthMethodPanels
-              kind={kind}
+              kind="password"
               setKind={(next) => {
                 setKind(next)
                 setOtp("")
@@ -412,6 +415,7 @@ function AuthMethodPanels({
 }) {
   const tm = useTranslations("Auth")
   const hasSocial = enabledSocialProviders.length > 0
+  const allowOtp = mode === "sign-in"
   const passwordReqsId = `${useId()}-password-reqs`
   const [showPassword, setShowPassword] = useState(false)
   const [capsWarning, setCapsWarning] = useState(false)
@@ -486,50 +490,52 @@ function AuthMethodPanels({
         </section>
       ) : null}
 
-      <section aria-label={tm("ariaEmailSection")} className="space-y-3">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          {tm("emailMethod")}
-        </p>
-        <div
-          className={cn(
-            "rounded-2xl transition-opacity",
-            busy && "pointer-events-none opacity-60"
-          )}
-        >
-          <ToggleGroup
-            type="single"
-            value={kind}
-            onValueChange={(v) => {
-              if (v && !busy) {
-                const next = v as AuthKind
-                setKind(next)
-                if (next !== "password") {
-                  setShowPassword(false)
-                  setCapsWarning(false)
-                }
-              }
-            }}
-            variant="outline"
-            spacing={0}
-            className="flex w-full"
+      {allowOtp ? (
+        <section aria-label={tm("ariaEmailSection")} className="space-y-3">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            {tm("emailMethod")}
+          </p>
+          <div
+            className={cn(
+              "rounded-2xl transition-opacity",
+              busy && "pointer-events-none opacity-60"
+            )}
           >
-            <ToggleGroupItem
-              value="password"
-              aria-label={tm("ariaPassword")}
-              className="min-w-0 flex-1 px-2 text-xs sm:text-sm"
+            <ToggleGroup
+              type="single"
+              value={kind}
+              onValueChange={(v) => {
+                if (v && !busy) {
+                  const next = v as AuthKind
+                  setKind(next)
+                  if (next !== "password") {
+                    setShowPassword(false)
+                    setCapsWarning(false)
+                  }
+                }
+              }}
+              variant="outline"
+              spacing={0}
+              className="flex w-full"
             >
-              {tm("togglePassword")}
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="otp"
-              aria-label={tm("ariaOtp")}
-              className="min-w-0 flex-1 px-2 text-xs sm:text-sm"
-            >
-              {tm("toggleOtp")}
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-      </section>
+              <ToggleGroupItem
+                value="password"
+                aria-label={tm("ariaPassword")}
+                className="min-w-0 flex-1 px-2 text-xs sm:text-sm"
+              >
+                {tm("togglePassword")}
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="otp"
+                aria-label={tm("ariaOtp")}
+                className="min-w-0 flex-1 px-2 text-xs sm:text-sm"
+              >
+                {tm("toggleOtp")}
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        </section>
+      ) : null}
 
       <form onSubmit={onSubmit} className="space-y-4">
         {mode === "sign-up" && kind === "password" ? (

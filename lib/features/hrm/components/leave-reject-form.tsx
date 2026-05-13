@@ -28,7 +28,10 @@ type LeaveRejectFormProps = {
  * `onSuccess` callback (parent dialog close) reads as a normal function
  * to ESLint, mirroring `LeaveApplyForm` / `EmployeeCreateForm`.
  */
-export function LeaveRejectForm({ requestId, onSuccess }: LeaveRejectFormProps) {
+export function LeaveRejectForm({
+  requestId,
+  onSuccess,
+}: LeaveRejectFormProps) {
   const t = useTranslations("Dashboard.Hrm.leave")
   const [state, formAction, pending] = useActionState<
     LeaveApprovalFormState | undefined,
@@ -70,7 +73,7 @@ export function LeaveRejectForm({ requestId, onSuccess }: LeaveRejectFormProps) 
           maxLength={1000}
           required
           placeholder={t("rejectReasonPlaceholder")}
-          className="min-h-[72px] w-full rounded border border-border bg-background px-2 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="min-h-[72px] w-full rounded border border-border bg-background px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
           aria-invalid={Boolean(error?.rejectedReason)}
         />
         {error?.rejectedReason ? (
@@ -86,7 +89,7 @@ export function LeaveRejectForm({ requestId, onSuccess }: LeaveRejectFormProps) 
           rows={2}
           maxLength={1000}
           placeholder={t("decisionNotePlaceholder")}
-          className="min-h-[60px] w-full rounded border border-border bg-background px-2 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="min-h-[60px] w-full rounded border border-border bg-background px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
         />
         <FieldDescription>{t("decisionNotePlaceholder")}</FieldDescription>
       </Field>

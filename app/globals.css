@@ -792,8 +792,7 @@
 
 .af-workbench-flush-disc:hover {
   filter: brightness(1.06) saturate(1.04);
-  box-shadow: 0 4px 14px
-    color-mix(in oklab, var(--foreground) 14%, transparent);
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--foreground) 14%, transparent);
 }
 
 .af-workbench-flush-disc:active {

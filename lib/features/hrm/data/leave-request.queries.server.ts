@@ -365,9 +365,7 @@ export async function listActiveEmployeeChoicesForLeave(
     .from(hrmEmployee)
     .where(eq(hrmEmployee.organizationId, organizationId))
 
-  return rows.sort((a, b) =>
-    a.employeeNumber.localeCompare(b.employeeNumber)
-  )
+  return rows.sort((a, b) => a.employeeNumber.localeCompare(b.employeeNumber))
 }
 
 /**

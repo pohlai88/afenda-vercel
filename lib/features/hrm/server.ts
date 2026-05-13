@@ -471,3 +471,49 @@ export type {
   ClaimRow,
   ClaimTypeRow,
 } from "./data/claim.queries.server"
+
+// Phase 4 — Document expiry watch (cron-driven; mirrors compliance
+// aging watch pattern). Pure helpers + tier audit actions are
+// re-exported so unit tests + future Nexus pressure projections can
+// reuse the math without pulling the server-only tick driver in.
+export {
+  buildDocumentExpiryAuditMetadata,
+  computeDocumentExpiryCutoff,
+  daysToExpiry,
+  DOCUMENT_EXPIRY_LOOKAHEAD_DAYS,
+  DOCUMENT_EXPIRY_TIERS,
+  DOCUMENT_EXPIRY_TIER_AUDIT_ACTIONS,
+  DOCUMENT_EXPIRY_TIER_THRESHOLD_DAYS,
+  DOCUMENT_EXPIRY_WATCH_BATCH_LIMIT,
+  documentExpiryTiersCrossed,
+  partitionDocumentExpiryEmissions,
+} from "./data/document-expiry-watch.shared"
+
+export type {
+  DocumentExpiryCandidate,
+  DocumentExpiryTier,
+  DocumentExpiryTierEmission,
+} from "./data/document-expiry-watch.shared"
+
+export {
+  listDocumentExpiryCandidates,
+  runDocumentExpiryWatchTick,
+} from "./data/document-expiry-watch.server"
+
+export type { DocumentExpiryWatchTickSummary } from "./data/document-expiry-watch.server"
+
+// Phase 4 — HR Nexus pressure aggregator. Composed by `getNexusSnapshot`
+// alongside the Orbit pressure rows and merged into a single severity-
+// sorted list before reaching the Nexus Field. Pure helpers + the row
+// type are exported from the `.shared` module so the Nexus mapper +
+// unit tests can reuse them without dragging the server-only query in.
+export {
+  claimPriorityForAge,
+  documentPriorityForTier,
+  leavePriorityForAge,
+  mergeAndTrimPressureRows,
+} from "./data/hrm-nexus-pressure.shared"
+
+export type { HrmPressureRowForNexus } from "./data/hrm-nexus-pressure.shared"
+
+export { listHrmHighPressureForNexus } from "./data/hrm-nexus-pressure.queries.server"

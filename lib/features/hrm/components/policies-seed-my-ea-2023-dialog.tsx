@@ -77,7 +77,7 @@ export function PoliciesSeedMyEa2023Dialog() {
                 {t("leaveTypes.seedSummarySkipped", {
                   skipped: state.skipped.length,
                 })}{" "}
-                <span className="text-muted-foreground font-mono text-xs">
+                <span className="font-mono text-xs text-muted-foreground">
                   ({state.skipped.join(", ")})
                 </span>
               </AlertDescription>

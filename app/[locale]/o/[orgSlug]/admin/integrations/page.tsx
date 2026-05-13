@@ -1,15 +1,16 @@
+import { Store } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
-import { Link } from "#i18n/navigation"
-
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "#components/ui/card"
+import { Button } from "#components/ui/button"
 import {
   IntegrationsEndpointsPanel,
   IntegrationsImportsPanel,
-  IntegrationsUtilitiesMarketplace,
   organizationAdminPath,
 } from "#features/org-admin"
 import { recordOrgAdminPageVisit } from "#features/org-admin/server"
-
+import { marketplacePath } from "#features/marketplace"
+import { Link } from "#i18n/navigation"
 import { requireOrgSession } from "#lib/tenant"
 
 export default async function OrgAdminIntegrationsPage({
@@ -34,7 +35,28 @@ export default async function OrgAdminIntegrationsPage({
       </div>
 
       <section className="space-y-3">
-        <IntegrationsUtilitiesMarketplace orgSlug={orgSlug} />
+        <Card>
+          <CardHeader>
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-muted/35">
+                <Store className="size-5 text-foreground/80" aria-hidden strokeWidth={2} />
+              </div>
+              <div className="flex min-w-0 flex-col gap-1">
+                <CardTitle>{t("marketplaceLinkTitle")}</CardTitle>
+                <CardDescription>
+                  {t("marketplaceLinkDescription")}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardFooter className="border-t border-border/50 pt-surface-md">
+            <Button asChild variant="outline" size="sm">
+              <Link href={marketplacePath("admin")}>
+                {t("marketplaceLinkAction")}
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
       </section>
 
       <section className="space-y-3">

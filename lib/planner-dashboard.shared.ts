@@ -1,5 +1,6 @@
 export const ORBIT_DASHBOARD_SURFACES = [
   "queue",
+  "triage",
   "today",
   "timeline",
   "signals",
@@ -10,6 +11,7 @@ export const ORBIT_DASHBOARD_SURFACES = [
 export type OrbitDashboardSurface = (typeof ORBIT_DASHBOARD_SURFACES)[number]
 
 export const ORBIT_DASHBOARD_SURFACE_SEGMENTS = [
+  "triage",
   "today",
   "timeline",
   "signals",

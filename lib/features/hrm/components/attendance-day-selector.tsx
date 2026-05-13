@@ -4,10 +4,7 @@ import { useId } from "react"
 import { useTranslations } from "next-intl"
 
 import { Button } from "#components/ui/button"
-import {
-  Field,
-  FieldLabel,
-} from "#components/ui/field"
+import { Field, FieldLabel } from "#components/ui/field"
 import { Input } from "#components/ui/input"
 
 import type { AttendanceEmployeeChoiceRow } from "../data/attendance.queries.server"

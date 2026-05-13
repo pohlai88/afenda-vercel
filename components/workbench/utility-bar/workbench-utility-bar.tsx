@@ -32,7 +32,7 @@ export type WorkbenchUtilityBarProps =
  * - `no-org`: universal-only bar for console / operator / non-org surfaces
  *
  * **Rails:** left = org / module / operational shortcuts; right = personal utilities
- * (customisable via control menu → "Customize utility bar").
+ * (governed by the Marketplace at `/marketplace`).
  */
 export function WorkbenchUtilityBar(props: WorkbenchUtilityBarProps) {
   return (

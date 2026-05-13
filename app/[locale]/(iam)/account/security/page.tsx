@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { headers } from "next/headers"
 import { getTranslations } from "next-intl/server"
 
@@ -15,6 +16,15 @@ import {
 } from "./security-center-client"
 import { auth } from "#lib/auth"
 import { WorkbenchSurface } from "#components/workbench"
+import { generateAccountSecurityMetadata } from "../account-metadata"
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  return generateAccountSecurityMetadata(params)
+}
 
 function toIso(d: Date | string): string {
   if (d instanceof Date) return d.toISOString()

@@ -1561,12 +1561,49 @@ Operational hardening shipped past the original 3C scope. Listed here so future 
 - **3P / 3Q — Aging fanout (signed outbound deliveries):** [`data/compliance-aging-fanout.server.ts`](lib/features/hrm/data/compliance-aging-fanout.server.ts) emits one signed `org_event_delivery` per `(evidenceId, tier)` tied to `erp.hrm.compliance.aging.{detected|escalated|critical}`. Operational-facets-only payload (no payroll bytes / no PII; gated by `HRM_FANOUT_FORBIDDEN_KEYS`). Tier mapping in `HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES`.
 - **Migrations contributed:** `0020_hrm_acknowledgement_provenance.sql`, `0021_hrm_authority_payload_hash.sql`.
 
-### Phase 4 — Claims, benefits, documents, HR Nexus pressure (≈ 2 weeks)
+### Phase 4 — Claims, benefits stubs, document expiry, HR Nexus pressure ✅ SHIPPED
 
-**Migration:** `0013_hrm_claim_doc.sql` (claim, claim_evidence, document_expiry).
-**Module work:** `claim.actions.ts` (apply / approve via reused `approval-flow.workflow.ts`); `document-expiry.workflow.ts` cron sweep feeding HR Nexus pressure (probation expiring, document expiring, statutory deadline approaching, leave backlog, payroll cutoff).
-**Acceptance:** claim → approve → linked into next payroll line via `paidByPayrollRunId`; document upload + expiry alert appears in the existing Nexus Field pressure band.
-**Stub:** `hrm_benefit` and `hrm_benefit_enrollment` schemas drafted but not used in UI; full benefits module deferred.
+**Migration (as shipped):** `0024_hrm_claims_benefits_stub.sql` — `hrm_claim_type`, `hrm_claim`, `hrm_claim_evidence`, `hrm_benefit` (stub), `hrm_benefit_enrollment` (stub), and `hrm_payroll_line.claimId` nullable FK (`ON DELETE SET NULL` for audit integrity). Document expiry reuses existing `hrm_document.effectiveTo`; alert dedupe runs through `iam_audit_event` (no new column).
+
+**Schemas + helpers:**
+
+- [`schemas/claim.schema.ts`](lib/features/hrm/schemas/claim.schema.ts) — `submitClaimFormSchema`, `cancelClaimFormSchema`, `attachClaimEvidenceFormSchema`, `claimApprovalDecisionSchema`, `claimRejectDecisionSchema`.
+- [`data/claim-helpers.shared.ts`](lib/features/hrm/data/claim-helpers.shared.ts) — pure: `CLAIM_STATES`, `CLAIM_EVIDENCE_TYPES`, `isClaimState`, `isClaimEvidenceType`, types (`ClaimStateValue`, `ClaimEvidenceType`, `ClaimApprovalSnapshot`, `ClaimsCountsSummary`).
+- [`data/claim.queries.server.ts`](lib/features/hrm/data/claim.queries.server.ts) — `listClaimsForOrg`, `listPendingClaimApprovalsForOrg`, `listClaimTypesForOrg`, `listApprovedUnpaidClaimsForPeriod`.
+
+**Server Actions (Tier B `requireOrgSession` + `canActInOrganization` admin-gates on decisions):**
+
+- [`actions/claim-submission.actions.ts`](lib/features/hrm/actions/claim-submission.actions.ts) — `submitClaimAction`, `cancelClaimAction`, `attachClaimEvidenceAction`. Reuses `hrm_approval(subjectKind="claim")` so the same approval primitive carries leave + claims; submit-time snapshot preserved on `hrm_approval.subjectSnapshot`.
+- [`actions/claim-approval.actions.ts`](lib/features/hrm/actions/claim-approval.actions.ts) — `approveClaimAction`, `rejectClaimAction`. Audit chain: `erp.hrm.claim.submit` → `erp.hrm.claim.approve|reject` → (on payroll lock) `erp.hrm.claim.paid`. `cancelClaimAction` writes `erp.hrm.claim.cancel`; evidence attachment writes `erp.hrm.claim.evidence_attach`.
+
+**UI:** [`components/claims-page.tsx`](lib/features/hrm/components/claims-page.tsx) (RSC composes header + admin-only submit + Suspense `ClaimPendingInbox` + Suspense `ClaimRecentTable`); [`components/claim-pending-inbox.tsx`](lib/features/hrm/components/claim-pending-inbox.tsx); [`components/claim-recent-table.tsx`](lib/features/hrm/components/claim-recent-table.tsx); [`components/claim-submit-dialog.tsx`](lib/features/hrm/components/claim-submit-dialog.tsx) + [`components/claim-submit-form.tsx`](lib/features/hrm/components/claim-submit-form.tsx); [`components/claim-decision-form.tsx`](lib/features/hrm/components/claim-decision-form.tsx) + reject form + cancel form. Routes: [`app/[locale]/o/[orgSlug]/dashboard/hrm/claims/page.tsx`](app/[locale]/o/[orgSlug]/dashboard/hrm/claims/page.tsx) and [`.../hrm/claims/loading.tsx`](app/[locale]/o/[orgSlug]/dashboard/hrm/claims/loading.tsx).
+
+**Payroll integration:**
+
+- [`data/payroll-engine.server.ts`](lib/features/hrm/data/payroll-engine.server.ts) — `PayrollEngineInput.approvedUnpaidClaims: ReadonlyArray<PayrollClaimInput>`; `PayrollLineInput.claimId?: string | null`; `computePayrollRun` emits an earning line per approved unpaid claim with `claimId` populated (contributes to `grossPay`).
+- [`data/payroll.queries.server.ts`](lib/features/hrm/data/payroll.queries.server.ts) — `getPayrollRunInputSnapshot` calls `listApprovedUnpaidClaimsForPeriod(period.periodStart, period.periodEnd)` and filters per employee.
+- [`data/payroll.mutations.server.ts`](lib/features/hrm/data/payroll.mutations.server.ts) — `lockPayrollPeriodAndRunsMutation` runs the existing locking transaction, then collects every `claimId` referenced by locked-period payroll lines and transitions those `hrm_claim` rows to `state="paid"` with `paidByPayrollLineId`/`paidAt`. Returns the list so the action layer can audit.
+- [`actions/payroll-period.actions.ts`](lib/features/hrm/actions/payroll-period.actions.ts) — `lockPayrollPeriodAction` includes `paidClaimCount` in the period-lock audit row, then emits one `erp.hrm.claim.paid` per affected claim via `after()`. Revalidates `toLocaleOrgDashboardRevalidatePattern("/hrm/claims")` so the claims page picks up the state transitions immediately.
+- **Q8 traceability:** [`components/payroll-console.tsx`](lib/features/hrm/components/payroll-console.tsx) renders **"Approved unpaid claims in window?"** alongside the existing seven questions; `PayrollPeriodTraceability.approvedUnpaidClaimCount` derives from the same `listApprovedUnpaidClaimsForPeriod` call.
+
+**Document expiry watch (cron):**
+
+- [`data/document-expiry-watch.shared.ts`](lib/features/hrm/data/document-expiry-watch.shared.ts) — pure tier model: `DOCUMENT_EXPIRY_TIERS = ["warning_30d", "warning_14d", "critical_7d"]`, threshold map (`30 / 14 / 7` days), `DOCUMENT_EXPIRY_TIER_AUDIT_ACTIONS` (`erp.hrm.document.expiry_warning_30d|expiry_warning_14d|expiry_critical_7d`), `DOCUMENT_EXPIRY_LOOKAHEAD_DAYS = 30`, `DOCUMENT_EXPIRY_WATCH_BATCH_LIMIT = 50`, `computeDocumentExpiryCutoff`, `daysToExpiry`, `documentExpiryTiersCrossed`, `partitionDocumentExpiryEmissions`, `buildDocumentExpiryAuditMetadata`.
+- [`data/document-expiry-watch.server.ts`](lib/features/hrm/data/document-expiry-watch.server.ts) — `runDocumentExpiryWatchTick`: scans `hrm_document` rows where `effectiveTo` falls in the next 30 days, dedupes against existing `iam_audit_event` rows by `(resourceType="hrm_document", resourceId, action)`, emits one row per crossed tier per document. Idempotent — re-running on the same day produces zero new audit rows once tiers are emitted.
+- [`app/api/cron/hrm-document-expiry-watch/route.ts`](app/api/cron/hrm-document-expiry-watch/route.ts) — Bearer-token-gated cron handler wrapped in `runWithNodeOtelSpan`; scheduled in [`vercel.json`](vercel.json) at 07:00 UTC daily.
+
+**HR Nexus pressure aggregation:**
+
+- [`data/hrm-nexus-pressure.shared.ts`](lib/features/hrm/data/hrm-nexus-pressure.shared.ts) — pure: `HrmPressureRowForNexus` (discriminated union of `claim_pending`, `leave_pending_approval`, `document_expiring`, `compliance_failed`), `claimPriorityForAge`, `documentPriorityForTier`, `leavePriorityForAge`, `mergeAndTrimPressureRows`.
+- [`data/hrm-nexus-pressure.queries.server.ts`](lib/features/hrm/data/hrm-nexus-pressure.queries.server.ts) — `listHrmHighPressureForNexus(organizationId, limit)` runs four parallel sub-queries (each `where(organizationId)`-scoped, each degrades to `[]` on transient failure) and returns the merged top-N pressure rows.
+- [`lib/features/nexus/data/nexus-operational-pressure-map.shared.ts`](lib/features/nexus/data/nexus-operational-pressure-map.shared.ts) — `mapHrmPressureRowsToOperationalPressureItems` projects each HRM kind onto the Nexus `OperationalPressureItem` shape with namespaced ids (`hrm-claim-*`, `hrm-leave-*`, `hrm-doc-*`, `hrm-compliance-*`), routes deep-linking into `/dashboard/hrm/{claims|leave|documents|compliance}`, and stage badges (`Urgent / Action soon / Upcoming` for documents; `Failed` for compliance).
+- [`lib/features/nexus/data/nexus-snapshot.queries.server.ts`](lib/features/nexus/data/nexus-snapshot.queries.server.ts) — `getNexusSnapshot` adds `listHrmHighPressureForNexus` to the same `Promise.all` as Orbit pressure, severity-merges the two lists (top 8), and updates the **Workforce** surface card status / count from the HRM pressure tally.
+
+**Audit additions:** `erp.hrm.claim.{submit|cancel|approve|reject|paid|evidence_attach}`, `erp.hrm.document.{expiry_warning_30d|expiry_warning_14d|expiry_critical_7d}`. All routed through `isAllowedAuditAction` via the `erp.hrm.*` prefix; benefits prefix `erp.hrm.benefit.*` reserved but unused (UI deferred).
+
+**Tests:** [`tests/unit/hrm-document-expiry-watch.test.ts`](tests/unit/hrm-document-expiry-watch.test.ts) (14 tests — tier wiring, threshold monotonicity, cutoff computation, partition idempotency, audit-metadata facets); [`tests/unit/hrm-nexus-pressure-mapper.test.ts`](tests/unit/hrm-nexus-pressure-mapper.test.ts) (11 tests — priority bucketing, severity ranking, namespaced ids, surface routing, stage badges, days-remaining humanization).
+
+**Stub status:** `hrm_benefit` + `hrm_benefit_enrollment` tables shipped without UI / Server Actions — `HRM_CAPABILITIES` does **not** register a benefits capability yet (would prematurely surface an empty page in the rail). Full benefits module deferred to Phase 5+.
 
 ### Phase 5 — SEA country expansion (per country: 1–2 weeks each)
 

@@ -484,6 +484,17 @@ export function PayrollTraceabilityPanel({
           traceability.approvalExists ? t("trace.approved") : t("trace.pending")
         }
       />
+      <TraceabilityRow
+        label={t("trace.q8")}
+        ok={traceability.approvedUnpaidClaimCount === 0}
+        value={
+          traceability.approvedUnpaidClaimCount === 0
+            ? t("trace.noUnpaidClaims")
+            : t("trace.unpaidClaimsCount", {
+                count: traceability.approvedUnpaidClaimCount,
+              })
+        }
+      />
     </div>
   )
 }
@@ -738,6 +749,7 @@ export function PayrollConsolePage({
               rulePackVersion: null,
               runsWithBlockers: 0,
               approvalExists: false,
+              approvedUnpaidClaimCount: 0,
             }
           }
           pendingLockApprovalId={

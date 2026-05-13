@@ -20,7 +20,9 @@ export type LeaveRequestStateLabelTone =
  * Unknown values fall back to `neutral` so a future migration that adds
  * a state cannot crash the row renderer.
  */
-export function leaveRequestStateTone(state: string): LeaveRequestStateLabelTone {
+export function leaveRequestStateTone(
+  state: string
+): LeaveRequestStateLabelTone {
   switch (state) {
     case "submitted":
       return "info"
@@ -46,6 +48,8 @@ export function leaveRequestStateTone(state: string): LeaveRequestStateLabelTone
 export const LEAVE_HALF_DAY_OPTIONS = ["none", "morning", "afternoon"] as const
 export type LeaveHalfDayOption = (typeof LEAVE_HALF_DAY_OPTIONS)[number]
 
-export function isLeaveHalfDayOption(value: string): value is LeaveHalfDayOption {
+export function isLeaveHalfDayOption(
+  value: string
+): value is LeaveHalfDayOption {
   return (LEAVE_HALF_DAY_OPTIONS as readonly string[]).includes(value)
 }

@@ -28,8 +28,21 @@ export {
   derivePlannerBlockedEscalationThresholdHours,
   shouldEscalatePlannerBlockedItem,
 } from "./policies/planner-escalation-policy.shared"
+export {
+  buildPlannerItemEvidenceGraph,
+  buildPlannerLinkEvidenceGraph,
+  buildPlannerSessionEvidenceGraph,
+  buildPlannerSignalEvidenceGraph,
+} from "./evidence/planner-evidence-graph.shared"
+export {
+  derivePlannerTriageLane,
+  matchPlannerTriageRule,
+} from "./triage/planner-triage-rule.shared"
 
 export type {
+  PlannerEvidenceGraph,
+  PlannerEvidenceGraphNode,
+  PlannerEvidenceNodeKind,
   PlannerBlockedState,
   PlannerBlockedEscalationStage,
   OrbitPageData,
@@ -51,7 +64,10 @@ export type {
   PlannerPressureDimensions,
   PlannerScheduleRow,
   PlannerScopeInput,
+  PlannerLinkDetail,
   PlannerSessionRow,
+  PlannerSessionDetail,
+  PlannerSessionStatus,
   PlannerSignalClass,
   PlannerSignalDetail,
   PlannerSignalLifecycle,
@@ -59,6 +75,11 @@ export type {
   PlannerViewRow,
   PlannerViewSortMode,
 } from "./types"
+export type {
+  PlannerTriageLane,
+  PlannerTriageRule,
+  PlannerTriageSubject,
+} from "./triage/planner-triage-rule.shared"
 
 export {
   addPlannerAttachmentMetadataFormSchema,

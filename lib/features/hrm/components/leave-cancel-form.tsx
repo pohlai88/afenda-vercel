@@ -23,7 +23,10 @@ type LeaveCancelFormProps = {
  * `onSuccess` callback (parent dialog close) reads as a normal function
  * to ESLint, mirroring the other leave dialogs.
  */
-export function LeaveCancelForm({ requestId, onSuccess }: LeaveCancelFormProps) {
+export function LeaveCancelForm({
+  requestId,
+  onSuccess,
+}: LeaveCancelFormProps) {
   const t = useTranslations("Dashboard.Hrm.leave")
   const [state, formAction, pending] = useActionState<
     CancelLeaveFormState | undefined,
@@ -49,9 +52,7 @@ export function LeaveCancelForm({ requestId, onSuccess }: LeaveCancelFormProps) 
 
       {error?.form || error?.requestId ? (
         <Alert variant="destructive">
-          <AlertDescription>
-            {error.form ?? error.requestId}
-          </AlertDescription>
+          <AlertDescription>{error.form ?? error.requestId}</AlertDescription>
         </Alert>
       ) : null}
 

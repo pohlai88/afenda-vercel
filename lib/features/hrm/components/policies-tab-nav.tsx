@@ -41,7 +41,7 @@ export function PoliciesTabNav({
     <nav
       role="tablist"
       aria-label={t("tabAria")}
-      className="border-border flex flex-wrap items-center gap-1 border-b"
+      className="flex flex-wrap items-center gap-1 border-b border-border"
     >
       {HRM_POLICY_TABS.map((tab) => {
         const params = new URLSearchParams()
@@ -59,8 +59,8 @@ export function PoliciesTabNav({
             data-active={isActive ? "true" : undefined}
             className={
               isActive
-                ? "border-primary text-foreground -mb-px border-b-2 px-3 py-2 text-sm font-medium"
-                : "text-muted-foreground hover:text-foreground -mb-px border-b-2 border-transparent px-3 py-2 text-sm font-medium"
+                ? "-mb-px border-b-2 border-primary px-3 py-2 text-sm font-medium text-foreground"
+                : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
             }
           >
             {t(`tabs.${tab}`)}

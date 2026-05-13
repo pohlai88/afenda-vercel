@@ -64,6 +64,40 @@ export type PlannerScopeInput =
 
 export type PlannerSurfaceRecordKind = "item" | "signal" | "session" | "link"
 
+export type PlannerSessionStatus = "active" | "paused" | "completed"
+
+export type PlannerEvidenceNodeKind =
+  | "erp_link"
+  | "relation"
+  | "comment"
+  | "attachment"
+  | "session"
+  | "activity"
+  | "notice"
+  | "item"
+  | "signal"
+
+export type PlannerEvidenceGraphNode = {
+  id: string
+  kind: PlannerEvidenceNodeKind
+  label: string
+  description: string | null
+  occurredAt: Date | null
+  href: string | null
+}
+
+export type PlannerEvidenceGraph = {
+  nodes: PlannerEvidenceGraphNode[]
+  summary: {
+    linkCount: number
+    relationCount: number
+    activityCount: number
+    attachmentCount: number
+    sessionCount: number
+    noticeCount: number
+  }
+}
+
 export type PlannerItemRow = {
   id: string
   organizationId: string | null
@@ -245,7 +279,7 @@ export type PlannerSessionRow = {
   itemId: string | null
   organizationId: string | null
   ownerUserId: string | null
-  status: "active" | "paused" | "completed"
+  status: PlannerSessionStatus
   startedAt: Date
   endedAt: Date | null
   durationMinutes: number | null
@@ -253,6 +287,26 @@ export type PlannerSessionRow = {
   createdAt: Date
   updatedAt: Date
   itemTitle: string | null
+}
+
+export type PlannerSessionDetail = PlannerSessionRow & {
+  pausedAt: Date | null
+  createdByUserId: string | null
+  updatedByUserId: string | null
+  item: PlannerItemRow | null
+  links: PlannerLinkRow[]
+  activity: PlannerActivityRow[]
+  evidenceGraph: PlannerEvidenceGraph
+}
+
+export type PlannerLinkDetail = PlannerLinkRow & {
+  temporalContext: Record<string, unknown> | null
+  auditContext: Record<string, unknown> | null
+  item: PlannerItemRow | null
+  signal: PlannerSignalRow | null
+  sessions: PlannerSessionRow[]
+  activity: PlannerActivityRow[]
+  evidenceGraph: PlannerEvidenceGraph
 }
 
 export type PlannerItemDetail = PlannerItemRow & {
@@ -268,16 +322,19 @@ export type PlannerItemDetail = PlannerItemRow & {
   sessions: PlannerSessionRow[]
   notices: OrgNotificationNotice[]
   noticeHistory: OrgNotificationNotice[]
+  evidenceGraph: PlannerEvidenceGraph
 }
 
 export type PlannerSignalDetail = PlannerSignalRow & {
   relatedItems: PlannerRelationRow[]
   links: PlannerLinkRow[]
   activity: PlannerActivityRow[]
+  evidenceGraph: PlannerEvidenceGraph
 }
 
 export type OrbitSummary = {
   queueCount: number
+  triageCount: number
   todayCount: number
   timelineCount: number
   signalCount: number

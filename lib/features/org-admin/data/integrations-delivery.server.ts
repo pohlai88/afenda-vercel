@@ -12,7 +12,10 @@ import type {
   OrgEventDeliverySummary,
   OrgEventEndpointSummary,
 } from "../types"
-import { ORG_EVENT_SIGNATURE_VERSION, organizationAdminPath } from "../constants"
+import {
+  ORG_EVENT_SIGNATURE_VERSION,
+  organizationAdminPath,
+} from "../constants"
 
 /** Outbound delivery envelope before serialization. */
 export type OrgEventEnvelope = {
@@ -226,7 +229,9 @@ async function createDeliveryFailureSignal(
   result: DeliveryResult
 ): Promise<void> {
   try {
-    const orgSlug = await getOrganizationSlugById(handle.envelope.organizationId)
+    const orgSlug = await getOrganizationSlugById(
+      handle.envelope.organizationId
+    )
     await createPlannerSignalFromErpProducer({
       organizationId: handle.envelope.organizationId,
       title: `Integration delivery failed: ${handle.envelope.type}`,

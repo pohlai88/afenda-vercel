@@ -2613,3 +2613,80 @@ export const railRecentItem = pgTable(
     ),
   ]
 )
+
+/**
+ * Per-org capability policy — Capability Registry governance layer.
+ * One row per (organization, capability, audience). `state` is one of
+ * `allowed | blocked | mandatory`; `mandatory` and `blocked` are terminal in
+ * `resolveCapabilitiesForViewer`. `audience` collapses the role-policy layer:
+ * `all` applies to every member, `admin` only to admins/owners, `member` only
+ * to non-admins. `capabilityId` is free-form `text` so the catalog can grow
+ * without migrations; the application layer validates against the live
+ * `CAPABILITY_DEFINITIONS` registry at write time.
+ *
+ * IDs are FK-less to neon_auth.* for the same reason as `iam_audit_event`.
+ */
+export const orgCapabilityPolicy = pgTable(
+  "org_capability_policy",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    capabilityId: text("capabilityId").notNull(),
+    /** `allowed | blocked | mandatory` — validated by Zod at the action boundary. */
+    state: text("state").notNull(),
+    /** `all | admin | member` — collapses role policy into a single audience filter. */
+    audience: text("audience").notNull().default("all"),
+    /** User who last set the policy (audit lineage; FK-less per repo convention). */
+    updatedBy: text("updatedBy").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("org_capability_policy_org_capability_audience_uidx").on(
+      t.organizationId,
+      t.capabilityId,
+      t.audience
+    ),
+    index("org_capability_policy_org_idx").on(t.organizationId),
+  ]
+)
+
+/**
+ * Per-(org, user) capability preference — replaces the previous
+ * `localStorage`-only utility-bar visibility persistence with a DB-backed
+ * source of truth resolved server-side. `state` is `visible | hidden`;
+ * absence means "follow system default". `displayOrder` is reserved for
+ * future drag-to-reorder UI (v1 only ships visibility toggles).
+ *
+ * Unique on (organization, user, capability). IDs are FK-less to neon_auth.*
+ * per the same convention as `iam_audit_event` and `rail_pinned_item`.
+ */
+export const userCapabilityPreference = pgTable(
+  "user_capability_preference",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    userId: text("userId").notNull(),
+    capabilityId: text("capabilityId").notNull(),
+    /** `visible | hidden` — validated by Zod at the action boundary. */
+    state: text("state").notNull(),
+    displayOrder: integer("displayOrder").notNull().default(0),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("user_capability_preference_org_user_capability_uidx").on(
+      t.organizationId,
+      t.userId,
+      t.capabilityId
+    ),
+    index("user_capability_preference_org_user_idx").on(
+      t.organizationId,
+      t.userId
+    ),
+  ]
+)

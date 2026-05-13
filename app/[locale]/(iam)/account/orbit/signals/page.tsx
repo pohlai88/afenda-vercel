@@ -1,8 +1,18 @@
+import type { Metadata } from "next"
 import { OrbitPage } from "#features/planner/server"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { requireSignedInSession } from "#lib/tenant"
+import { generateAccountOrbitMetadata } from "../../account-metadata"
 
 export const dynamic = "force-dynamic"
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  return generateAccountOrbitMetadata(params, "signals")
+}
 
 export default async function AccountOrbitSignalsPage({
   params,

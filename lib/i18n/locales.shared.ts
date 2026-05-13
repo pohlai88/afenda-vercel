@@ -87,6 +87,23 @@ export function toLocaleOrgAdminRevalidatePattern(adminTail: string): AppPath {
   return `/[locale]/o/[orgSlug]/admin${tail}` as AppPath
 }
 
+/**
+ * `revalidatePath` for the Capability Registry surface (`/{locale}/marketplace/...`).
+ * Marketplace is session-relative (active org resolved from the user's session) and
+ * therefore not under `/o/[orgSlug]/...` — it has its own root pattern.
+ */
+export function toLocaleMarketplaceRevalidatePattern(
+  marketplaceTail: string = ""
+): AppPath {
+  const tail =
+    marketplaceTail === "" || marketplaceTail === "/"
+      ? ""
+      : marketplaceTail.startsWith("/")
+        ? marketplaceTail
+        : `/${marketplaceTail}`
+  return `/[locale]/marketplace${tail}` as AppPath
+}
+
 export type StrippedLocalePath = {
   locale: AppLocale
   /** Pathname without the leading `/{locale}` (e.g. `/dashboard` or `/`). */

@@ -66,6 +66,12 @@ import {
   sortPlannerItems,
   sortPlannerSignals,
 } from "../filters/planner-view-sort.shared"
+import {
+  buildPlannerItemEvidenceGraph,
+  buildPlannerLinkEvidenceGraph,
+  buildPlannerSessionEvidenceGraph,
+  buildPlannerSignalEvidenceGraph,
+} from "../evidence/planner-evidence-graph.shared"
 import { derivePlannerBlockedState } from "../policies/planner-escalation-policy.shared"
 import { hydratePlannerPressure } from "../pressure/planner-pressure.shared"
 import { applyPlannerRelationPressure } from "../ranking/planner-derived-pressure.shared"
@@ -80,10 +86,12 @@ import type {
   OrbitSummary,
   PlannerItemDetail,
   PlannerItemRow,
+  PlannerLinkDetail,
   PlannerLinkRow,
   PlannerRelationRow,
   PlannerScopeInput,
   PlannerActivityRow,
+  PlannerSessionDetail,
   PlannerSessionRow,
   PlannerSignalDetail,
   PlannerSignalRow,
@@ -164,6 +172,14 @@ function parseAudit7w1h(raw: unknown): AuditEvent7W1H[] | null {
   return events.length > 0 ? events : null
 }
 
+function parseRecordContext(
+  raw: unknown
+): Record<string, unknown> | null {
+  return raw && typeof raw === "object" && !Array.isArray(raw)
+    ? (raw as Record<string, unknown>)
+    : null
+}
+
 function normalizePlannerViewSortMode(
   value: string | null | undefined
 ): PlannerViewSortMode | null {
@@ -206,6 +222,18 @@ function sessionScopeWhere(scope: PlannerScopeInput) {
     : and(
         eq(plannerSession.ownerUserId, scope.ownerUserId),
         sql`${plannerSession.organizationId} IS NULL`
+      )
+}
+
+function linkScopeWhere(scope: PlannerScopeInput) {
+  return scope.scopeKind === "organization"
+    ? and(
+        eq(plannerLink.organizationId, scope.organizationId),
+        sql`${plannerLink.ownerUserId} IS NULL`
+      )
+    : and(
+        eq(plannerLink.ownerUserId, scope.ownerUserId),
+        sql`${plannerLink.organizationId} IS NULL`
       )
 }
 
@@ -380,6 +408,65 @@ function hydrateActivityRow(
   }
 }
 
+function hydrateSessionRow(input: {
+  session: typeof plannerSession.$inferSelect
+  itemTitle: string | null
+}): PlannerSessionRow {
+  const { session, itemTitle } = input
+
+  return {
+    id: session.id,
+    itemId: session.itemId,
+    organizationId: session.organizationId,
+    ownerUserId: session.ownerUserId,
+    status: session.status as PlannerSessionRow["status"],
+    startedAt: session.startedAt,
+    endedAt: session.endedAt,
+    durationMinutes: session.durationMinutes,
+    summary: session.summary,
+    createdAt: session.createdAt,
+    updatedAt: session.updatedAt,
+    itemTitle: itemTitle ?? null,
+  }
+}
+
+async function getScopedPlannerItemRow(
+  scope: PlannerScopeInput,
+  itemId: string | null | undefined
+): Promise<PlannerItemRow | null> {
+  if (!itemId) return null
+
+  const [itemRow] = await db
+    .select()
+    .from(plannerItem)
+    .where(and(eq(plannerItem.id, itemId), itemScopeWhere(scope)))
+    .limit(1)
+
+  if (!itemRow) return null
+
+  const [hydratedItem] = await applyOperationalFactsToItems(
+    [hydrateItem(itemRow)],
+    scope
+  )
+
+  return hydratedItem ?? null
+}
+
+async function getScopedPlannerSignalRow(
+  scope: PlannerScopeInput,
+  signalId: string | null | undefined
+): Promise<PlannerSignalRow | null> {
+  if (!signalId) return null
+
+  const [signalRow] = await db
+    .select()
+    .from(plannerSignal)
+    .where(and(eq(plannerSignal.id, signalId), signalScopeWhere(scope)))
+    .limit(1)
+
+  return signalRow ? hydrateSignal(signalRow) : null
+}
+
 function endOfToday(): Date {
   const d = new Date()
   d.setHours(23, 59, 59, 999)
@@ -406,7 +493,10 @@ function plannerAutomationAttentionNoticeWhere(now: Date) {
     eq(orgNotificationNotice.linkedEntityType, "planner_item"),
     lte(orgNotificationNotice.publishedAt, now),
     isNull(orgNotificationNotice.closedAt),
-    or(isNull(orgNotificationNotice.expiresAt), gt(orgNotificationNotice.expiresAt, now)),
+    or(
+      isNull(orgNotificationNotice.expiresAt),
+      gt(orgNotificationNotice.expiresAt, now)
+    ),
     plannerAutomationAttentionNoticeTitleWhere()
   )
 }
@@ -526,7 +616,10 @@ async function listPlannerOperationalFactsMap(
   }
 
   const automationAttentionKeys = new Set<string>()
-  const automationKindsByItem = new Map<string, Set<PlannerAutomationAttentionKind>>()
+  const automationKindsByItem = new Map<
+    string,
+    Set<PlannerAutomationAttentionKind>
+  >()
 
   for (const notice of automationFailures) {
     if (!notice.itemId) continue
@@ -535,7 +628,9 @@ async function listPlannerOperationalFactsMap(
     automationAttentionKeys.add(noticeKey)
     const facts = getFacts(notice.itemId)
     facts.automationFailureCount += 1
-    const kind = parsePlannerAutomationAttentionKindFromNoticeTitle(notice.title)
+    const kind = parsePlannerAutomationAttentionKindFromNoticeTitle(
+      notice.title
+    )
     if (kind) {
       const kinds = automationKindsByItem.get(notice.itemId) ?? new Set()
       kinds.add(kind)
@@ -632,9 +727,7 @@ async function resolveScopedLinkedItemIds(
     .from(plannerLink)
     .where(
       and(
-        scope.scopeKind === "organization"
-          ? eq(plannerLink.organizationId, scope.organizationId)
-          : eq(plannerLink.ownerUserId, scope.ownerUserId),
+        linkScopeWhere(scope),
         isNotNull(plannerLink.itemId),
         inArray(plannerLink.module, [...linkedModules])
       )
@@ -654,9 +747,7 @@ async function resolveScopedLinkedSignalIds(
     .from(plannerLink)
     .where(
       and(
-        scope.scopeKind === "organization"
-          ? eq(plannerLink.organizationId, scope.organizationId)
-          : eq(plannerLink.ownerUserId, scope.ownerUserId),
+        linkScopeWhere(scope),
         isNotNull(plannerLink.signalId),
         inArray(plannerLink.module, [...linkedModules])
       )
@@ -960,6 +1051,23 @@ export async function listPlannerItemsForQueue(
   )
 }
 
+export async function listPlannerItemsForTriage(
+  scope: PlannerScopeInput,
+  filter: PlannerViewFilterState = {},
+  sortMode?: PlannerViewSortMode | null
+): Promise<PlannerItemRow[]> {
+  const rows = await listPlannerItemsForQueue(scope, filter, sortMode)
+
+  return rows.filter((row) => {
+    const facts = row.operationalFacts
+    return (
+      (facts?.automationFailureCount ?? 0) > 0 ||
+      (facts?.activeSignalCount ?? 0) > 0 ||
+      row.blockedState != null
+    )
+  })
+}
+
 export async function listPlannerItemsForToday(
   scope: PlannerScopeInput,
   filter: PlannerViewFilterState = {},
@@ -1119,6 +1227,23 @@ export async function listPlannerSignals(
   )
 }
 
+export async function listPlannerSignalsForTriage(
+  scope: PlannerScopeInput,
+  filter: PlannerViewFilterState = {},
+  sortMode?: PlannerViewSortMode | null
+): Promise<PlannerSignalRow[]> {
+  return listPlannerSignals(
+    scope,
+    mergePlannerViewFilterStates(
+      {
+        lifecycle: ["detected", "correlated", "deferred"],
+      },
+      filter
+    ),
+    sortMode
+  )
+}
+
 export async function listPlannerSessions(
   scope: PlannerScopeInput
 ): Promise<PlannerSessionRow[]> {
@@ -1132,20 +1257,7 @@ export async function listPlannerSessions(
     .where(sessionScopeWhere(scope))
     .orderBy(desc(plannerSession.startedAt))
 
-  return rows.map(({ session, itemTitle }) => ({
-    id: session.id,
-    itemId: session.itemId,
-    organizationId: session.organizationId,
-    ownerUserId: session.ownerUserId,
-    status: session.status as PlannerSessionRow["status"],
-    startedAt: session.startedAt,
-    endedAt: session.endedAt,
-    durationMinutes: session.durationMinutes,
-    summary: session.summary,
-    createdAt: session.createdAt,
-    updatedAt: session.updatedAt,
-    itemTitle: itemTitle ?? null,
-  }))
+  return rows.map(hydrateSessionRow)
 }
 
 export async function listPlannerLinks(
@@ -1160,11 +1272,7 @@ export async function listPlannerLinks(
     .from(plannerLink)
     .leftJoin(plannerItem, eq(plannerLink.itemId, plannerItem.id))
     .leftJoin(plannerSignal, eq(plannerLink.signalId, plannerSignal.id))
-    .where(
-      scope.scopeKind === "organization"
-        ? eq(plannerLink.organizationId, scope.organizationId)
-        : eq(plannerLink.ownerUserId, scope.ownerUserId)
-    )
+    .where(linkScopeWhere(scope))
     .orderBy(desc(plannerLink.createdAt))
 
   return rows.map(hydrateLinkRow)
@@ -1589,15 +1697,12 @@ async function summarize(scope: PlannerScopeInput): Promise<OrbitSummary> {
     db
       .select({ count: sql<number>`count(*)` })
       .from(plannerLink)
-      .where(
-        scope.scopeKind === "organization"
-          ? eq(plannerLink.organizationId, scope.organizationId)
-          : eq(plannerLink.ownerUserId, scope.ownerUserId)
-      ),
+      .where(linkScopeWhere(scope)),
   ])
 
   return {
     queueCount: Number(queueCount[0]?.count ?? 0),
+    triageCount: Number(signalCount[0]?.count ?? 0),
     todayCount: Number(todayCount[0]?.count ?? 0),
     timelineCount: Number(timelineCount[0]?.count ?? 0),
     signalCount: Number(signalCount[0]?.count ?? 0),
@@ -1613,10 +1718,7 @@ export async function getOrbitPageData(
   activeViewSlug?: string | null,
   requestedSortMode?: PlannerViewSortMode | null
 ): Promise<OrbitPageData> {
-  const savedViews =
-    surface === "queue" || surface === "timeline" || surface === "signals"
-      ? await listPlannerViews(scope, surface)
-      : []
+  const savedViews = await listPlannerViews(scope, surface)
   const activeView =
     activeViewSlug != null
       ? (savedViews.find((view) => view.slug === activeViewSlug) ?? null)
@@ -1631,13 +1733,17 @@ export async function getOrbitPageData(
     summarize(scope),
     surface === "queue"
       ? listPlannerItemsForQueue(scope, activeFilter, activeSortMode)
-      : surface === "today"
-        ? listPlannerItemsForToday(scope, activeFilter, activeSortMode)
-        : surface === "timeline"
-          ? listPlannerItemsForTimeline(scope, activeFilter, activeSortMode)
-          : Promise.resolve([]),
+      : surface === "triage"
+        ? listPlannerItemsForTriage(scope, activeFilter, activeSortMode)
+        : surface === "today"
+          ? listPlannerItemsForToday(scope, activeFilter, activeSortMode)
+          : surface === "timeline"
+            ? listPlannerItemsForTimeline(scope, activeFilter, activeSortMode)
+            : Promise.resolve([]),
     surface === "signals"
       ? listPlannerSignals(scope, activeFilter, activeSortMode)
+      : surface === "triage"
+        ? listPlannerSignalsForTriage(scope, activeFilter, activeSortMode)
       : Promise.resolve([]),
     surface === "sessions" ? listPlannerSessions(scope) : Promise.resolve([]),
     surface === "links" ? listPlannerLinks(scope) : Promise.resolve([]),
@@ -1780,7 +1886,7 @@ export async function getPlannerItemDetail(
       : Promise.resolve([]),
   ])
 
-  return {
+  const detail: Omit<PlannerItemDetail, "evidenceGraph"> = {
     ...hydratedItem,
     assignments: assignments.map((row) => ({
       id: row.id,
@@ -1829,22 +1935,71 @@ export async function getPlannerItemDetail(
     comments,
     attachments,
     activity: activity.map(hydrateActivityRow),
-    sessions: sessions.map(({ session, itemTitle }) => ({
-      id: session.id,
-      itemId: session.itemId,
-      organizationId: session.organizationId,
-      ownerUserId: session.ownerUserId,
-      status: session.status as PlannerSessionRow["status"],
-      startedAt: session.startedAt,
-      endedAt: session.endedAt,
-      durationMinutes: session.durationMinutes,
-      summary: session.summary,
-      createdAt: session.createdAt,
-      updatedAt: session.updatedAt,
-      itemTitle: itemTitle ?? null,
-    })),
+    sessions: sessions.map(hydrateSessionRow),
     notices,
     noticeHistory,
+  }
+
+  return {
+    ...detail,
+    evidenceGraph: buildPlannerItemEvidenceGraph(detail),
+  }
+}
+
+export async function getPlannerSessionDetail(
+  scope: PlannerScopeInput,
+  sessionId: string
+): Promise<PlannerSessionDetail | null> {
+  const [sessionRow] = await db
+    .select()
+    .from(plannerSession)
+    .where(and(eq(plannerSession.id, sessionId), sessionScopeWhere(scope)))
+    .limit(1)
+
+  if (!sessionRow) return null
+
+  const [item, links, activity] = await Promise.all([
+    getScopedPlannerItemRow(scope, sessionRow.itemId),
+    sessionRow.itemId
+      ? db
+          .select({
+            link: plannerLink,
+            itemTitle: plannerItem.title,
+            signalTitle: plannerSignal.title,
+          })
+          .from(plannerLink)
+          .leftJoin(plannerItem, eq(plannerLink.itemId, plannerItem.id))
+          .leftJoin(plannerSignal, eq(plannerLink.signalId, plannerSignal.id))
+          .where(
+            and(linkScopeWhere(scope), eq(plannerLink.itemId, sessionRow.itemId))
+          )
+          .orderBy(desc(plannerLink.createdAt))
+      : Promise.resolve([]),
+    sessionRow.itemId
+      ? db
+          .select()
+          .from(plannerActivity)
+          .where(eq(plannerActivity.itemId, sessionRow.itemId))
+          .orderBy(desc(plannerActivity.createdAt))
+      : Promise.resolve([]),
+  ])
+
+  const detail: Omit<PlannerSessionDetail, "evidenceGraph"> = {
+    ...hydrateSessionRow({
+      session: sessionRow,
+      itemTitle: item?.title ?? null,
+    }),
+    pausedAt: sessionRow.pausedAt,
+    createdByUserId: sessionRow.createdByUserId,
+    updatedByUserId: sessionRow.updatedByUserId,
+    item,
+    links: links.map(hydrateLinkRow),
+    activity: activity.map(hydrateActivityRow),
+  }
+
+  return {
+    ...detail,
+    evidenceGraph: buildPlannerSessionEvidenceGraph(detail),
   }
 }
 
@@ -1895,10 +2050,89 @@ export async function getPlannerSignalDetail(
       .orderBy(desc(plannerActivity.createdAt)),
   ])
 
-  return {
+  const detail: Omit<PlannerSignalDetail, "evidenceGraph"> = {
     ...hydrateSignal(signalRow),
     relatedItems: relatedItems.map(hydrateRelationRow),
     links: links.map(hydrateLinkRow),
     activity: activity.map(hydrateActivityRow),
+  }
+
+  return {
+    ...detail,
+    evidenceGraph: buildPlannerSignalEvidenceGraph(detail),
+  }
+}
+
+export async function getPlannerLinkDetail(
+  scope: PlannerScopeInput,
+  linkId: string
+): Promise<PlannerLinkDetail | null> {
+  const [row] = await db
+    .select({
+      link: plannerLink,
+      itemTitle: plannerItem.title,
+      signalTitle: plannerSignal.title,
+    })
+    .from(plannerLink)
+    .leftJoin(plannerItem, eq(plannerLink.itemId, plannerItem.id))
+    .leftJoin(plannerSignal, eq(plannerLink.signalId, plannerSignal.id))
+    .where(and(eq(plannerLink.id, linkId), linkScopeWhere(scope)))
+    .limit(1)
+
+  if (!row) return null
+
+  const [item, signal, sessions, itemActivity, signalActivity] =
+    await Promise.all([
+      getScopedPlannerItemRow(scope, row.link.itemId),
+      getScopedPlannerSignalRow(scope, row.link.signalId),
+      row.link.itemId
+        ? db
+            .select({
+              session: plannerSession,
+              itemTitle: plannerItem.title,
+            })
+            .from(plannerSession)
+            .leftJoin(plannerItem, eq(plannerSession.itemId, plannerItem.id))
+            .where(
+              and(
+                sessionScopeWhere(scope),
+                eq(plannerSession.itemId, row.link.itemId)
+              )
+            )
+            .orderBy(desc(plannerSession.startedAt))
+        : Promise.resolve([]),
+      row.link.itemId
+        ? db
+            .select()
+            .from(plannerActivity)
+            .where(eq(plannerActivity.itemId, row.link.itemId))
+            .orderBy(desc(plannerActivity.createdAt))
+        : Promise.resolve([]),
+      row.link.signalId
+        ? db
+            .select()
+            .from(plannerActivity)
+            .where(eq(plannerActivity.signalId, row.link.signalId))
+            .orderBy(desc(plannerActivity.createdAt))
+        : Promise.resolve([]),
+    ])
+
+  const activity = [...itemActivity, ...signalActivity]
+    .map(hydrateActivityRow)
+    .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+
+  const detail: Omit<PlannerLinkDetail, "evidenceGraph"> = {
+    ...hydrateLinkRow(row),
+    temporalContext: parseRecordContext(row.link.temporalContext),
+    auditContext: parseRecordContext(row.link.auditContext),
+    item,
+    signal,
+    sessions: sessions.map(hydrateSessionRow),
+    activity,
+  }
+
+  return {
+    ...detail,
+    evidenceGraph: buildPlannerLinkEvidenceGraph(detail),
   }
 }

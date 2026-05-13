@@ -20,6 +20,8 @@ export type RouteSurface =
   | "console"
   /** Tenant slug segment (`/{locale}/o/{orgSlug}`) before dashboard/admin shells. */
   | "org"
+  /** Capability registry (`/{locale}/marketplace`) — top-level, org-scoped. */
+  | "marketplace"
 
 export interface RouteEnvelope {
   surface: RouteSurface

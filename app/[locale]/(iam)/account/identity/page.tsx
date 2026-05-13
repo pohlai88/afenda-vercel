@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import {
@@ -9,6 +10,15 @@ import {
 
 import { WorkbenchSurface } from "#components/workbench"
 import { AccountIdentityClient } from "./identity-client"
+import { generateAccountIdentityMetadata } from "../account-metadata"
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  return generateAccountIdentityMetadata(params)
+}
 
 export default async function AccountIdentityPage({
   searchParams,
@@ -19,7 +29,7 @@ export default async function AccountIdentityPage({
   const t = await getTranslations("AccountSurface.identity")
   const session = await requireAuthShellSignedInSession()
 
-  const sp = searchParams ? await searchParams : {}
+  const sp = (await searchParams) ?? {}
   const notice = typeof sp.notice === "string" ? sp.notice : undefined
 
   const [linkedAccounts, hasCredential, enabledProviders] = await Promise.all([

@@ -6,5 +6,5 @@ export const plannerLinkShapeSchema = z.object({
   entityId: z.string().trim().min(1).max(256),
   displayLabel: z.string().trim().min(1).max(256),
   href: z.string().trim().max(1024).nullable().optional(),
-  causalityReason: z.string().trim().max(2000).nullable().optional(),
+  causalityReason: z.string().trim().min(1).max(2000),
 })

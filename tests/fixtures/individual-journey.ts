@@ -1,14 +1,14 @@
 /**
  * Copy and env contract for individual sign-up journeys (Playwright + docs).
- * Sign-up UI strings match `app/[locale]/(auth)/sign-up/sign-up-form.tsx` (hardcoded English).
+ * Sign-up UI strings align with `messages/en.json` (`Auth.*` / `CheckEmail.*`).
  */
 export const SIGN_UP_PAGE_COPY = {
   heading: "Create account",
-  nameLabel: "Your name",
+  nameLabel: "Name",
   emailLabel: "Email",
   passwordLabel: "Password",
   submitIdle: "Create account",
-  submitPending: "Creating…",
+  submitPending: "Please wait…",
   signInLink: "Sign in",
 } as const
 

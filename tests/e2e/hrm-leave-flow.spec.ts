@@ -60,9 +60,7 @@ test.describe("HRM leave UI surface", () => {
     { tag: "@hrm" },
     async ({ page }) => {
       await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
-      await page.goto(
-        "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/leave"
-      )
+      await page.goto("/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/leave")
       await expect(
         page.getByRole("heading", {
           name: "Organization not available",

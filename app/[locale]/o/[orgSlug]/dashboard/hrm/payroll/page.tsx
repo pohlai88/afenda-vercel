@@ -8,6 +8,7 @@ import {
   getPendingPayrollPeriodLockApprovalId,
   hasApprovedPayrollPeriodLockApproval,
   isAttendancePayrollReadyForPeriod,
+  listApprovedUnpaidClaimsForPeriod,
   listPayrollPeriodsForOrg,
   listPayrollRunsForPeriod,
 } from "#features/hrm/server"
@@ -41,22 +42,31 @@ export default async function OrgDashboardHrmPayrollPage() {
       )
       periodRuns.set(period.id, runs)
 
-      const [attendanceComplete, approvalExists, pendingLockApprovalId] =
-        await Promise.all([
-          isAttendancePayrollReadyForPeriod({
-            organizationId: session.organizationId,
-            periodStart: period.periodStart,
-            periodEnd: period.periodEnd,
-          }),
-          hasApprovedPayrollPeriodLockApproval(
-            session.organizationId,
-            period.id
-          ),
-          getPendingPayrollPeriodLockApprovalId(
-            session.organizationId,
-            period.id
-          ),
-        ])
+      const [
+        attendanceComplete,
+        approvalExists,
+        pendingLockApprovalId,
+        approvedUnpaidClaims,
+      ] = await Promise.all([
+        isAttendancePayrollReadyForPeriod({
+          organizationId: session.organizationId,
+          periodStart: period.periodStart,
+          periodEnd: period.periodEnd,
+        }),
+        hasApprovedPayrollPeriodLockApproval(
+          session.organizationId,
+          period.id
+        ),
+        getPendingPayrollPeriodLockApprovalId(
+          session.organizationId,
+          period.id
+        ),
+        listApprovedUnpaidClaimsForPeriod(
+          session.organizationId,
+          period.periodStart,
+          period.periodEnd
+        ),
+      ])
 
       periodPendingLockApprovalIds.set(period.id, pendingLockApprovalId)
 
@@ -67,6 +77,7 @@ export default async function OrgDashboardHrmPayrollPage() {
           attendanceComplete,
           rulePackVersion: period.rulePackVersion,
           approvalExists,
+          approvedUnpaidClaimCount: approvedUnpaidClaims.length,
         })
       )
     })

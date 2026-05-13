@@ -145,10 +145,32 @@
       "unknown_failure": "Something went wrong"
     },
     "titleDefault": "Verify email",
-    "titleContinueSignIn": "Continue sign-in"
+    "titleContinueSignIn": "Continue sign-in",
+    "title": "Verify email",
+    "description": "Enter your email and the 6-digit code we sent to your inbox.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "otpLabel": "Verification code",
+    "otpGroupAria": "Verification code",
+    "otpHint": "Check your inbox — the code expires soon.",
+    "errorTitle": "Verification failed",
+    "submit": "Verify and continue",
+    "submitPending": "Verifying…",
+    "resend": "Resend code",
+    "backToSignIn": "Back to sign in"
   },
   "CheckEmail": {
-    "note": "Redirecting to verify email…"
+    "note": "Redirecting to verify email…",
+    "title": "Check your email",
+    "description": "We sent a verification code or link to your inbox. It may take a minute to arrive.",
+    "descriptionWithEmail": "We sent a verification code or link to {email}. It may take a minute to arrive.",
+    "ctaVerify": "Enter verification code",
+    "ctaResend": "Resend code",
+    "ctaResending": "Resending…",
+    "errorTitle": "Could not resend code",
+    "resendTitle": "Code sent",
+    "resendSuccess": "We sent another code to {email}.",
+    "backToSignIn": "Back to sign in"
   },
   "Dashboard": {
     "shell": {
@@ -179,8 +201,7 @@
         "organizations": "Organizations",
         "current": "Current",
         "security": "Security",
-        "signOut": "Sign out",
-        "customizeUtilityBar": "Customize utility bar"
+        "signOut": "Sign out"
       },
       "orgSwitcher": {
         "trigger": "Switch organization",
@@ -472,16 +493,6 @@
             "sendFailed": "Couldn't send the coordination update. Try again."
           }
         },
-        "customize": {
-          "title": "Utility bar",
-          "description": "Show or hide controls on the right rail. Left rail (workspace navigation) and identity menu always stay visible.",
-          "sectionRight": "Right rail",
-          "openMarketplace": "Open utilities marketplace",
-          "capReached": "Maximum reached. Turn one off to show another.",
-          "capReachedInline": "Max reached",
-          "counterAria": "{count} of {max} visible before avatar",
-          "reset": "Reset to defaults"
-        },
         "widgets": {
           "left": {},
           "right": {
@@ -557,6 +568,11 @@
           "label": "Queue",
           "title": "Orbit Queue",
           "description": "Ranked operational work requiring execution now."
+        },
+        "triage": {
+          "label": "Triage",
+          "title": "Orbit Triage",
+          "description": "Unprocessed signals, automation failures, and imported pressure awaiting operator routing."
         },
         "today": {
           "label": "Today",
@@ -1134,13 +1150,16 @@
           "q5": "Rule pack version?",
           "q6": "Blockers remaining?",
           "q7": "Period approved?",
+          "q8": "Approved unpaid claims in window?",
           "complete": "Complete",
           "missing": "Missing",
           "pending": "Pending",
           "notPinned": "Not pinned (pre–Phase 3B)",
           "none": "None",
           "blockerCount": "{count} run(s) blocked",
-          "approved": "Approved"
+          "approved": "Approved",
+          "noUnpaidClaims": "None — all claims settled",
+          "unpaidClaimsCount": "{count, plural, one {# claim awaiting next lock} other {# claims awaiting next lock}}"
         },
         "line": {
           "BASIC": "Basic salary",
@@ -2115,128 +2134,9 @@
     "integrations": {
       "title": "Integrations",
       "description": "Connect external systems and automate workflows. More surfaces will land here as the IAM and ERP roadmap progresses.",
-      "marketplace": {
-        "title": "Utilities marketplace",
-        "description": "Tenant-facing utility icons are curated here. Installed controls can be managed in Nexus. New icons are request-only in v1, and self-service is not available yet.",
-        "tabInstalled": "Installed",
-        "tabInstalledDescription": "These utilities are already available in Nexus and can be shown on the right rail when space allows.",
-        "tabAvailableByRequest": "Available by request",
-        "tabAvailableByRequestDescription": "Request a reviewed utility icon for your tenant. The Afenda team will triage it through the admin feedback inbox.",
-        "tabComingSoon": "Coming soon",
-        "tabComingSoonDescription": "Reserved slots for future utilities. They stay unavailable until product wiring lands.",
-        "emptyAvailableByRequest": "No additional reviewed utility icons are open for requests yet.",
-        "badgeRightRail": "Right rail compatible",
-        "badgeRequestOnly": "Request only",
-        "installedHint": "Open Nexus, then use the avatar menu to customize the utility bar.",
-        "requestHint": "Submit a request for Afenda to review and wire this utility for your tenant.",
-        "comingSoonHint": "Planned, but not available for tenant use yet.",
-        "actionManage": "Manage in Nexus",
-        "actionRequest": "Request icon",
-        "actionComingSoon": "Coming soon",
-        "status": {
-          "installed": "Installed",
-          "availableByRequest": "Request required",
-          "comingSoon": "Coming soon"
-        },
-        "requestTitle": "Request {utility}",
-        "requestDescription": "Self-service install is not available in v1. Submit the use case and the team will review it through the feedback inbox.",
-        "requestMessageLabel": "What should this icon do?",
-        "requestMessagePlaceholder": "Describe why {utility} is needed, who needs it, and what workflow it should support.",
-        "requestSubmit": "Send request",
-        "requestSubmitting": "Sending…",
-        "requestCancel": "Cancel",
-        "requestClose": "Close",
-        "requestOpenInbox": "Open feedback inbox",
-        "requestSuccessTitle": "Request logged",
-        "requestSuccessDescription": "The request is now in the organization feedback inbox for review.",
-        "errors": {
-          "errorMin": "At least 5 characters.",
-          "errorMax": "Up to 2000 characters.",
-          "errorGeneric": "Couldn't send. Try again."
-        },
-        "items": {
-          "marketplace": {
-            "title": "Utilities marketplace",
-            "description": "Catalog surface for reviewing installed, request-only, and upcoming tenant utilities."
-          },
-          "console": {
-            "title": "Organization loading bay",
-            "description": "Workspace switcher and multi-organization entry point for operators who work across tenants."
-          },
-          "quickCreate": {
-            "title": "Quick create",
-            "description": "Fast entry point for capture and lightweight record creation."
-          },
-          "notifications": {
-            "title": "Notifications",
-            "description": "Org-wide broadcast notice center with personal read and acknowledgement state."
-          },
-          "insight": {
-            "title": "Lynx",
-            "description": "Direct link into Afenda’s truth and machine-assist surface."
-          },
-          "connectivity": {
-            "title": "Connectivity",
-            "description": "Live browser network status with quick online and offline visibility."
-          },
-          "diagnosis": {
-            "title": "Network diagnosis",
-            "description": "Run a deeper live probe when operators need to confirm browser-to-origin health."
-          },
-          "feedback": {
-            "title": "Feedback",
-            "description": "Operator feedback handoff into the reviewed admin inbox."
-          },
-          "shortcuts": {
-            "title": "Keyboard shortcuts",
-            "description": "Reference for fast navigation and operational key commands."
-          },
-          "help": {
-            "title": "Help",
-            "description": "Product overview and support entry point for workspace operators."
-          },
-          "theme": {
-            "title": "Theme",
-            "description": "Switch the interface between light, dark, or system appearance."
-          },
-          "density": {
-            "title": "Layout density",
-            "description": "Adjust working density for compact or relaxed ERP layouts."
-          },
-          "locale": {
-            "title": "Language",
-            "description": "Choose the interface language when multiple locales are available."
-          },
-          "searchMobile": {
-            "title": "Search (small screens)",
-            "description": "Mobile-only utility slot for command/search access when screen width is constrained."
-          },
-          "storage": {
-            "title": "Storage",
-            "description": "Inspect browser storage availability and Afenda-facing keys."
-          },
-          "settings": {
-            "title": "Organization settings",
-            "description": "Direct link to the admin settings surface for governed workspace changes."
-          },
-          "messenger": {
-            "title": "Messenger",
-            "description": "Operational coordination surface for discussion, evidence, and review trails tied to workspace work."
-          },
-          "screenshot": {
-            "title": "Screenshot",
-            "description": "Capture the current workspace or main content view and send one governed PNG into blob intake."
-          },
-          "upload": {
-            "title": "Upload",
-            "description": "Quick launcher for sending one governed file into the current workspace's blob intake."
-          },
-          "customIcon": {
-            "title": "Requested utility icon",
-            "description": "A reviewed tenant-specific utility icon wired by the Afenda team after request approval."
-          }
-        }
-      },
+      "marketplaceLinkTitle": "Marketplace · Admin",
+      "marketplaceLinkDescription": "Govern which capabilities your organization allows, blocks, or mandates. The marketplace is the new home for utility-bar visibility, plugins, MCP, integrations, and operator surfaces.",
+      "marketplaceLinkAction": "Open marketplace admin",
       "sectionEndpointsTitle": "Outbound event delivery",
       "sectionEndpointsDescription": "Receive HMAC-signed POSTs when organization events occur.",
       "sectionImportsTitle": "Organizational ingestion jobs",
@@ -2526,6 +2426,205 @@
         "submit": "Continue to Nexus",
         "submitPending": "Creating…",
         "backHome": "Back to home"
+      }
+    }
+  },
+  "Marketplace": {
+    "shell": {
+      "skipToMain": "Skip to marketplace content",
+      "navAriaLabel": "Marketplace categories",
+      "comingSoonBadge": "Coming soon",
+      "viewSwitcherAriaLabel": "Display style",
+      "viewSwitcherCard": "Cards",
+      "viewSwitcherTable": "Table",
+      "metaSourceBadge": {
+        "system-default": "System default",
+        "user-preference": "Your preference",
+        "org-policy": "Org policy",
+        "runtime": "Runtime"
+      },
+      "metaStateBadge": {
+        "mandatory": "Mandatory",
+        "visible": "Visible",
+        "hidden": "Hidden",
+        "unavailable": "Unavailable"
+      },
+      "stateHint": {
+        "mandatory": "Pinned for everyone in this organization.",
+        "visible": "Showing in your utility bar.",
+        "hidden": "Hidden from your utility bar.",
+        "unavailable": "Not available in this context."
+      },
+      "breadcrumbs": {
+        "marketplace": "Marketplace",
+        "utilities": "Utilities",
+        "plugins": "Plugins",
+        "mcp": "MCP",
+        "integrations": "Integrations",
+        "automations": "Automations",
+        "operators": "Operators",
+        "surfaces": "Surfaces",
+        "admin": "Admin"
+      }
+    },
+    "categories": {
+      "utilities": "Utilities",
+      "plugins": "Plugins",
+      "mcp": "MCP servers",
+      "integrations": "Integrations",
+      "automations": "Automations",
+      "operators": "Operators",
+      "surfaces": "Surfaces"
+    },
+    "categoryDescriptions": {
+      "utilities": "Right-rail controls and quick capture surfaces.",
+      "plugins": "Reviewed extensions that compose into existing modules.",
+      "mcp": "Model Context Protocol servers that extend Lynx and admin assistants.",
+      "integrations": "External system bridges and outbound event endpoints.",
+      "automations": "Durable workflows and scheduled operational runs.",
+      "operators": "Specialized operator surfaces and workflow consoles.",
+      "surfaces": "First-class workspace surfaces beyond the core ERP modules."
+    },
+    "overview": {
+      "title": "Marketplace",
+      "subtitle": "Discover and govern the capabilities your operators see across the Afenda chain. Personal preferences live here; organization policy lives in Admin.",
+      "sectionFeaturedTitle": "Featured in your utility bar",
+      "sectionFeaturedSubtitle": "Currently visible to you on the L1 right rail. Toggle anything to manage your own preferences.",
+      "sectionMoreTitle": "Browse all utilities",
+      "sectionMoreSubtitle": "Adopted across organizations. Showing aggregated counts only when at least {threshold} operators are involved.",
+      "sectionCategoriesTitle": "Other categories",
+      "sectionCategoriesSubtitle": "Architectural visibility for the registry. Implementation arrives module-by-module.",
+      "exploreCategoryAction": "Explore {category}",
+      "openAdminAction": "Open admin",
+      "metricsTitle": "Adopted across Afenda",
+      "metricsEmpty": "Adoption is below the privacy threshold for every utility right now.",
+      "metricsAdoptingUsers": "{count, plural, one {# operator} other {# operators}}",
+      "metricsAdoptingOrgs": "{count, plural, one {# org} other {# orgs}}",
+      "metricsAllowingOrgs": "{count, plural, one {# org allowing} other {# orgs allowing}}",
+      "metricsBelowThreshold": "Below privacy threshold."
+    },
+    "category": {
+      "title": "{category}",
+      "subtitleUtilities": "Personal preferences for utility-bar controls. Toggle anything customizable to manage your own visibility — admin policy still wins.",
+      "subtitlePlaceholder": "{category} are part of the capability registry. Implementation arrives in a future phase.",
+      "emptyTitle": "Nothing here yet",
+      "emptyDescription": "This category is reserved in the registry. The first capabilities arrive in a future phase — check back as new modules ship.",
+      "backToOverview": "Back to overview",
+      "tableCaption": "Capabilities in {category}",
+      "tableHeaderCapability": "Capability",
+      "tableHeaderState": "State",
+      "tableHeaderSource": "Source",
+      "tableHeaderActions": "Actions"
+    },
+    "admin": {
+      "title": "Marketplace · Admin",
+      "subtitle": "Govern which capabilities your organization allows, blocks, or mandates. Changes affect all members in this organization and write an audit trail.",
+      "backToOverview": "Back to marketplace",
+      "panelTitle": "Capability policy",
+      "panelSubtitle": "Inherited system defaults are shown until you override them. Mandatory policies remove member opt-out.",
+      "stepUpRequired": "Recent re-authentication is required for governance changes.",
+      "memberHint": "You can browse the marketplace, but governance is reserved for organization admins."
+    },
+    "toggle": {
+      "enable": "Enable for me",
+      "disable": "Hide for me",
+      "pending": "Saving…",
+      "mandatory": "Always shown",
+      "blocked": "Blocked by org",
+      "unavailable": "Not available",
+      "notCustomizable": "Not customizable",
+      "error": "Couldn't save. Try again."
+    },
+    "detail": {
+      "trigger": "Details",
+      "close": "Close",
+      "metaTitle": "Capability metadata",
+      "metaSourceLabel": "Source",
+      "metaStateLabel": "State",
+      "metaCustomizableLabel": "Customizable",
+      "metaCustomizableYes": "Yes",
+      "metaCustomizableNo": "No"
+    },
+    "items": {
+      "marketplace": {
+        "title": "Marketplace",
+        "description": "Direct entry into the capability registry from any workspace surface."
+      },
+      "console": {
+        "title": "Organization loading bay",
+        "description": "Workspace switcher and multi-organization entry point for operators who work across tenants."
+      },
+      "quickCreate": {
+        "title": "Quick create",
+        "description": "Fast entry point for capture and lightweight record creation."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Org-wide broadcast notice center with personal read and acknowledgement state."
+      },
+      "insight": {
+        "title": "Lynx",
+        "description": "Direct link into Afenda's truth and machine-assist surface."
+      },
+      "connectivity": {
+        "title": "Connectivity",
+        "description": "Live browser network status with quick online and offline visibility."
+      },
+      "diagnosis": {
+        "title": "Network diagnosis",
+        "description": "Run a deeper live probe when operators need to confirm browser-to-origin health."
+      },
+      "feedback": {
+        "title": "Feedback",
+        "description": "Operator feedback handoff into the reviewed admin inbox."
+      },
+      "shortcuts": {
+        "title": "Keyboard shortcuts",
+        "description": "Reference for fast navigation and operational key commands."
+      },
+      "help": {
+        "title": "Help",
+        "description": "Product overview and support entry point for workspace operators."
+      },
+      "theme": {
+        "title": "Theme",
+        "description": "Switch the interface between light, dark, or system appearance."
+      },
+      "density": {
+        "title": "Layout density",
+        "description": "Adjust working density for compact or relaxed ERP layouts."
+      },
+      "locale": {
+        "title": "Language",
+        "description": "Switch the interface language. Available when more than one locale is enabled."
+      },
+      "messenger": {
+        "title": "Messenger",
+        "description": "Reserved slot for org conversations — wiring lands in a future phase."
+      },
+      "screenshot": {
+        "title": "Screenshot",
+        "description": "Capture the current workspace area and attach it to evidence or feedback."
+      },
+      "upload": {
+        "title": "Upload",
+        "description": "Quick file upload entry point for evidence and document workflows."
+      },
+      "storage": {
+        "title": "Storage",
+        "description": "Live storage status for the organization's evidence and document allocation."
+      },
+      "settings": {
+        "title": "Organization settings",
+        "description": "Direct entry into the admin workbench for tenant-wide settings."
+      },
+      "searchMobile": {
+        "title": "Search (small screens)",
+        "description": "Compact command-palette trigger surfaced on touch and small-viewport devices."
+      },
+      "customIcon": {
+        "title": "Request a utility",
+        "description": "Submit a request for the Afenda team to review a new utility for your tenant."
       }
     }
   }

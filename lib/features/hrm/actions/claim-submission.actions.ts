@@ -422,7 +422,11 @@ export async function attachClaimEvidenceAction(
   if (!claim) {
     return { ok: false, errors: { claimId: "Claim not found." } }
   }
-  if (claim.state === "paid" || claim.state === "rejected" || claim.state === "cancelled") {
+  if (
+    claim.state === "paid" ||
+    claim.state === "rejected" ||
+    claim.state === "cancelled"
+  ) {
     return {
       ok: false,
       errors: {

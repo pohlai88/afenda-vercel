@@ -60,8 +60,7 @@ export async function LeavePage({ orgSlug }: LeavePageProps) {
     listActiveLeaveTypesForOrg(orgSession.organizationId),
   ])
 
-  const canApply =
-    isAdmin && employees.length > 0 && leaveTypes.length > 0
+  const canApply = isAdmin && employees.length > 0 && leaveTypes.length > 0
 
   return (
     <div className="flex flex-col gap-6 p-6">

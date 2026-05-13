@@ -50,24 +50,36 @@ const readAuthShellSession = cache(async () => {
 })
 
 /** Signed-in guard for `(auth)` / `(iam)` using Neon `auth.getSession()` (flat routes). */
+export const getAuthShellSignedInSessionOrNull = cache(
+  async (): Promise<AuthShellSignedInSession | null> => {
+    const session = await readAuthShellSession()
+    if (!session?.user?.id || !session.session?.id) {
+      return null
+    }
+
+    return {
+      userId: session.user.id,
+      sessionId: session.session.id,
+      user: {
+        email: session.user.email,
+        name: session.user.name ?? null,
+        role: (session.user as { role?: string | null }).role ?? null,
+        emailVerified: Boolean(
+          (session.user as { emailVerified?: boolean }).emailVerified
+        ),
+      },
+    }
+  }
+)
+
+/** Signed-in guard for `(auth)` / `(iam)` using Neon `auth.getSession()` (flat routes). */
 export async function requireAuthShellSignedInSession(): Promise<AuthShellSignedInSession> {
-  const session = await readAuthShellSession()
-  if (!session?.user?.id || !session.session?.id) {
+  const session = await getAuthShellSignedInSessionOrNull()
+  if (!session) {
     return await redirectSignIn()
   }
 
-  return {
-    userId: session.user.id,
-    sessionId: session.session.id,
-    user: {
-      email: session.user.email,
-      name: session.user.name ?? null,
-      role: (session.user as { role?: string | null }).role ?? null,
-      emailVerified: Boolean(
-        (session.user as { emailVerified?: boolean }).emailVerified
-      ),
-    },
-  }
+  return session
 }
 
 export async function requireAuthShellGlobalAdminSession(): Promise<AuthShellSignedInSession> {
