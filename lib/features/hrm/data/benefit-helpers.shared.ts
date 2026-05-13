@@ -52,7 +52,8 @@ export const BENEFIT_CONTRIBUTION_TYPES = [
   "none",
 ] as const
 
-export type BenefitContributionType = (typeof BENEFIT_CONTRIBUTION_TYPES)[number]
+export type BenefitContributionType =
+  (typeof BENEFIT_CONTRIBUTION_TYPES)[number]
 
 export const BENEFIT_LIFE_EVENT_VERIFICATION_STATUSES = [
   "pending",
@@ -94,7 +95,7 @@ export function isBenefitContributionType(
 export function isBenefitLifeEventVerificationStatus(
   value: string
 ): value is BenefitLifeEventVerificationStatus {
-  return (BENEFIT_LIFE_EVENT_VERIFICATION_STATUSES as readonly string[]).includes(
-    value
-  )
+  return (
+    BENEFIT_LIFE_EVENT_VERIFICATION_STATUSES as readonly string[]
+  ).includes(value)
 }

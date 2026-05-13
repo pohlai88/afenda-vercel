@@ -19,7 +19,9 @@ type CreateReviewCycleFormProps = {
   orgSlug: string
 }
 
-export function HrmCreateReviewCycleForm({ orgSlug }: CreateReviewCycleFormProps) {
+export function HrmCreateReviewCycleForm({
+  orgSlug,
+}: CreateReviewCycleFormProps) {
   const t = useTranslations("Dashboard.Hrm.performance")
   const baseId = useId()
   const [state, formAction, pending] = useActionState(
@@ -28,10 +30,7 @@ export function HrmCreateReviewCycleForm({ orgSlug }: CreateReviewCycleFormProps
   )
 
   return (
-    <form
-      action={formAction}
-      className="grid max-w-xl gap-3 sm:grid-cols-2"
-    >
+    <form action={formAction} className="grid max-w-xl gap-3 sm:grid-cols-2">
       <input type="hidden" name="orgSlug" value={orgSlug} />
 
       {state && !state.ok && state.errors.form ? (
@@ -45,7 +44,7 @@ export function HrmCreateReviewCycleForm({ orgSlug }: CreateReviewCycleFormProps
 
       <div className="sm:col-span-2">
         <label
-          className="text-muted-foreground text-sm"
+          className="text-sm text-muted-foreground"
           htmlFor={`${baseId}-name`}
         >
           {t("fieldName")}
@@ -60,7 +59,7 @@ export function HrmCreateReviewCycleForm({ orgSlug }: CreateReviewCycleFormProps
       </div>
       <div>
         <label
-          className="text-muted-foreground text-sm"
+          className="text-sm text-muted-foreground"
           htmlFor={`${baseId}-start`}
         >
           {t("fieldPeriodStart")}
@@ -76,7 +75,7 @@ export function HrmCreateReviewCycleForm({ orgSlug }: CreateReviewCycleFormProps
       </div>
       <div>
         <label
-          className="text-muted-foreground text-sm"
+          className="text-sm text-muted-foreground"
           htmlFor={`${baseId}-end`}
         >
           {t("fieldPeriodEnd")}
@@ -92,7 +91,7 @@ export function HrmCreateReviewCycleForm({ orgSlug }: CreateReviewCycleFormProps
       </div>
       <div className="sm:col-span-2">
         <label
-          className="text-muted-foreground text-sm"
+          className="text-sm text-muted-foreground"
           htmlFor={`${baseId}-pipeline`}
         >
           {t("fieldReviewPipeline")}
@@ -101,7 +100,7 @@ export function HrmCreateReviewCycleForm({ orgSlug }: CreateReviewCycleFormProps
           id={`${baseId}-pipeline`}
           name="reviewPipeline"
           defaultValue="single"
-          className="border-input bg-background mt-1 flex h-9 w-full rounded-md border px-3 text-sm"
+          className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           disabled={pending}
         >
           <option value="single">{t("reviewPipelineSingle")}</option>

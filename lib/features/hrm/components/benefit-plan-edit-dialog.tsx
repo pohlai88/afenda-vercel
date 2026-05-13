@@ -35,9 +35,15 @@ export function BenefitPlanEditDialog({ plan }: BenefitPlanEditDialogProps) {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("editPlanDialogTitle")}</DialogTitle>
-          <DialogDescription>{t("editPlanDialogDescription")}</DialogDescription>
+          <DialogDescription>
+            {t("editPlanDialogDescription")}
+          </DialogDescription>
         </DialogHeader>
-        <BenefitPlanForm mode="edit" plan={plan} onSuccess={() => setOpen(false)} />
+        <BenefitPlanForm
+          mode="edit"
+          plan={plan}
+          onSuccess={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   )

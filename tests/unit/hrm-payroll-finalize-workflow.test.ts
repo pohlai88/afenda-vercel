@@ -122,6 +122,8 @@ const SNAPSHOT = {
   ytdRemuneration: "10000.00",
   ytdPcbPaid: "260.00",
   ytdEpfEmployee: "1100.00",
+  pcbTp1AdditionalReliefMonthly: "0.00",
+  pcbTp3AdditionalDeductionMonthly: "0.00",
   approvedUnpaidClaims: [],
   approvedSalaryAdvances: [],
 } as const

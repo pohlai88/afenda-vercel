@@ -16,14 +16,20 @@ import {
 
 import type { LeaveEmployeeChoiceRow } from "../data/leave-request.queries.server"
 
-import { BenefitEnrollmentForm, type BenefitPlanChoiceRow } from "./benefit-enrollment-form"
+import {
+  BenefitEnrollmentForm,
+  type BenefitPlanChoiceRow,
+} from "./benefit-enrollment-form"
 
 type BenefitEnrollmentDialogProps = {
   employees: ReadonlyArray<LeaveEmployeeChoiceRow>
   plans: ReadonlyArray<BenefitPlanChoiceRow>
 }
 
-export function BenefitEnrollmentDialog({ employees, plans }: BenefitEnrollmentDialogProps) {
+export function BenefitEnrollmentDialog({
+  employees,
+  plans,
+}: BenefitEnrollmentDialogProps) {
   const t = useTranslations("Dashboard.Hrm.benefits")
   const [open, setOpen] = useState(false)
 

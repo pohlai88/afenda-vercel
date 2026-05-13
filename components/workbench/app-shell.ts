@@ -8,10 +8,7 @@ import "server-only"
  * server/client boundary — see Server and Client Components guide).
  */
 
-export {
-  WorkbenchShell,
-  WorkbenchShell as AppShell,
-} from "./workbench-shell"
+export { WorkbenchShell, WorkbenchShell as AppShell } from "./workbench-shell"
 export {
   WorkbenchSubLayout,
   WorkbenchSubLayout as AppSubLayout,

@@ -30,7 +30,8 @@ export async function postEntry(
 
   return {
     ok: false,
-    error: "Accounting posting is not available until the foundation tables ship.",
+    error:
+      "Accounting posting is not available until the foundation tables ship.",
     code: "accounting_foundation_only",
   }
 }

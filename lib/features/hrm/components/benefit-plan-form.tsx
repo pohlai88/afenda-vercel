@@ -47,9 +47,14 @@ type BenefitPlanFormProps = {
   onSuccess?: () => void
 }
 
-export function BenefitPlanForm({ mode, plan, onSuccess }: BenefitPlanFormProps) {
+export function BenefitPlanForm({
+  mode,
+  plan,
+  onSuccess,
+}: BenefitPlanFormProps) {
   const t = useTranslations("Dashboard.Hrm.benefits.planForm")
-  const action = mode === "create" ? createBenefitPlanAction : updateBenefitPlanAction
+  const action =
+    mode === "create" ? createBenefitPlanAction : updateBenefitPlanAction
   const [state, formAction, pending] = useActionState<
     BenefitPlanMutationFormState | undefined,
     FormData
@@ -85,13 +90,17 @@ export function BenefitPlanForm({ mode, plan, onSuccess }: BenefitPlanFormProps)
   }, [state])
 
   const selectedLevels = new Set(
-    plan?.coverageLevels?.filter((x): x is (typeof BENEFIT_COVERAGE_LEVELS)[number] =>
-      (BENEFIT_COVERAGE_LEVELS as readonly string[]).includes(x)
+    plan?.coverageLevels?.filter(
+      (x): x is (typeof BENEFIT_COVERAGE_LEVELS)[number] =>
+        (BENEFIT_COVERAGE_LEVELS as readonly string[]).includes(x)
     ) ?? []
   )
 
   return (
-    <form action={formAction} className="flex max-h-[min(70vh,640px)] flex-col gap-4 overflow-y-auto pr-1">
+    <form
+      action={formAction}
+      className="flex max-h-[min(70vh,640px)] flex-col gap-4 overflow-y-auto pr-1"
+    >
       {mode === "edit" && plan ? (
         <input type="hidden" name="planId" value={plan.id} />
       ) : null}
@@ -134,7 +143,12 @@ export function BenefitPlanForm({ mode, plan, onSuccess }: BenefitPlanFormProps)
 
       <Field>
         <FieldLabel htmlFor={descId}>{t("fieldDescription")}</FieldLabel>
-        <Textarea id={descId} name="description" rows={3} defaultValue={plan?.description ?? ""} />
+        <Textarea
+          id={descId}
+          name="description"
+          rows={3}
+          defaultValue={plan?.description ?? ""}
+        />
       </Field>
 
       <Field>
@@ -173,7 +187,9 @@ export function BenefitPlanForm({ mode, plan, onSuccess }: BenefitPlanFormProps)
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor={erTypeId}>{t("fieldEmployerContributionType")}</FieldLabel>
+          <FieldLabel htmlFor={erTypeId}>
+            {t("fieldEmployerContributionType")}
+          </FieldLabel>
           <select
             id={erTypeId}
             name="employerContributionType"
@@ -191,21 +207,27 @@ export function BenefitPlanForm({ mode, plan, onSuccess }: BenefitPlanFormProps)
           ) : null}
         </Field>
         <Field>
-          <FieldLabel htmlFor={erValId}>{t("fieldEmployerContributionValue")}</FieldLabel>
+          <FieldLabel htmlFor={erValId}>
+            {t("fieldEmployerContributionValue")}
+          </FieldLabel>
           <Input
             id={erValId}
             name="employerContributionValue"
             type="number"
             min={0}
             step="0.0001"
-            defaultValue={parseOptionalNumber(plan?.employerContributionValue ?? undefined)}
+            defaultValue={parseOptionalNumber(
+              plan?.employerContributionValue ?? undefined
+            )}
           />
         </Field>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor={empTypeId}>{t("fieldEmployeeContributionType")}</FieldLabel>
+          <FieldLabel htmlFor={empTypeId}>
+            {t("fieldEmployeeContributionType")}
+          </FieldLabel>
           <select
             id={empTypeId}
             name="employeeContributionType"
@@ -223,14 +245,18 @@ export function BenefitPlanForm({ mode, plan, onSuccess }: BenefitPlanFormProps)
           ) : null}
         </Field>
         <Field>
-          <FieldLabel htmlFor={empValId}>{t("fieldEmployeeContributionValue")}</FieldLabel>
+          <FieldLabel htmlFor={empValId}>
+            {t("fieldEmployeeContributionValue")}
+          </FieldLabel>
           <Input
             id={empValId}
             name="employeeContributionValue"
             type="number"
             min={0}
             step="0.0001"
-            defaultValue={parseOptionalNumber(plan?.employeeContributionValue ?? undefined)}
+            defaultValue={parseOptionalNumber(
+              plan?.employeeContributionValue ?? undefined
+            )}
           />
         </Field>
       </div>
@@ -259,7 +285,9 @@ export function BenefitPlanForm({ mode, plan, onSuccess }: BenefitPlanFormProps)
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor={waitId}>{t("fieldWaitingPeriodDays")}</FieldLabel>
+          <FieldLabel htmlFor={waitId}>
+            {t("fieldWaitingPeriodDays")}
+          </FieldLabel>
           <Input
             id={waitId}
             name="waitingPeriodDays"
@@ -280,7 +308,9 @@ export function BenefitPlanForm({ mode, plan, onSuccess }: BenefitPlanFormProps)
             type="number"
             min={0}
             step="0.01"
-            defaultValue={parseOptionalNumber(plan?.maxAnnualAmount ?? undefined)}
+            defaultValue={parseOptionalNumber(
+              plan?.maxAnnualAmount ?? undefined
+            )}
           />
         </Field>
       </div>
@@ -301,7 +331,11 @@ export function BenefitPlanForm({ mode, plan, onSuccess }: BenefitPlanFormProps)
       <Button type="submit" disabled={pending} className="self-start">
         {pending ? (
           <>
-            <Loader2 className="size-4 animate-spin" data-icon="inline-start" aria-hidden />
+            <Loader2
+              className="size-4 animate-spin"
+              data-icon="inline-start"
+              aria-hidden
+            />
             {mode === "create" ? t("submitCreating") : t("submitUpdating")}
           </>
         ) : mode === "create" ? (

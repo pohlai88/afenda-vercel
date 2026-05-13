@@ -64,7 +64,9 @@ export function OrganizationSlugSettingsForm({
       <div id={errId}>
         <ActionFormErrors
           title={t("errorTitle")}
-          result={state?.ok === false ? { ok: false, error: state.error } : null}
+          result={
+            state?.ok === false ? { ok: false, error: state.error } : null
+          }
         />
       </div>
       {state?.ok && state.newSlug === orgSlug ? (

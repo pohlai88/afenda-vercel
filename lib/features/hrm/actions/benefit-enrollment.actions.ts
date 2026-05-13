@@ -34,7 +34,10 @@ function isUniqueViolation(err: unknown): boolean {
 }
 
 function revalidateBenefits() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/benefits"), "layout")
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern("/hrm/benefits"),
+    "layout"
+  )
 }
 
 function parseIsoDateStart(iso: string | undefined): Date {
@@ -106,7 +109,9 @@ export async function enrollBenefitAction(
     return hrmActionFailure({ planId: "Benefit plan not found." })
   }
   if (!plan.isActive) {
-    return hrmActionFailure({ planId: "Cannot enroll into an inactive benefit plan." })
+    return hrmActionFailure({
+      planId: "Cannot enroll into an inactive benefit plan.",
+    })
   }
   if (!employee) {
     return hrmActionFailure({ employeeId: "Employee not found." })

@@ -1,5 +1,1 @@
-export type SchemaStability =
-  | "experimental"
-  | "beta"
-  | "stable"
-  | "deprecated"
+export type SchemaStability = "experimental" | "beta" | "stable" | "deprecated"

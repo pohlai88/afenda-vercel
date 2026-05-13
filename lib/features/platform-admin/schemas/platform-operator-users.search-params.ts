@@ -28,6 +28,7 @@ export function sanitizePlatformOperatorUsersSearchParams(
   loaded: PlatformOperatorUsersSearchParamsLoaded
 ) {
   const q = loaded.q.trim().slice(0, PLATFORM_ADMIN_USERS_SEARCH_MAX_LENGTH)
-  const page = Number.isFinite(loaded.page) && loaded.page >= 1 ? loaded.page : 1
+  const page =
+    Number.isFinite(loaded.page) && loaded.page >= 1 ? loaded.page : 1
   return { q, page }
 }

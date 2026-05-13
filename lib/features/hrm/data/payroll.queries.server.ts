@@ -364,12 +364,11 @@ export async function getPayrollRunInputSnapshot(
     pcbTp1AdditionalReliefMonthly,
     pcbTp3AdditionalDeductionMonthly,
     approvedUnpaidClaims,
-    approvedSalaryAdvances:
-      await listApprovedSalaryAdvancesForEmployeePayroll({
-        organizationId,
-        employeeId: run.employeeId,
-        periodEndIso,
-      }),
+    approvedSalaryAdvances: await listApprovedSalaryAdvancesForEmployeePayroll({
+      organizationId,
+      employeeId: run.employeeId,
+      periodEndIso,
+    }),
   }
 }
 

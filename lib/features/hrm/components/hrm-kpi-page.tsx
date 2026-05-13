@@ -58,21 +58,32 @@ export async function HrmKpiPage({ orgSlug }: HrmKpiPageProps) {
       {isHrmAdmin ? (
         <Card size="sm">
           <CardHeader>
-            <CardTitle className="text-base">{t("createPeriodTitle")}</CardTitle>
+            <CardTitle className="text-base">
+              {t("createPeriodTitle")}
+            </CardTitle>
             <CardDescription>{t("createPeriodDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={submitCreateKpiPeriod} className="grid max-w-xl gap-3">
+            <form
+              action={submitCreateKpiPeriod}
+              className="grid max-w-xl gap-3"
+            >
               <input type="hidden" name="orgSlug" value={orgSlug} />
               <div>
-                <label className="text-muted-foreground text-sm" htmlFor="kpi-name">
+                <label
+                  className="text-sm text-muted-foreground"
+                  htmlFor="kpi-name"
+                >
                   {t("fieldName")}
                 </label>
                 <Input id="kpi-name" name="name" required className="mt-1" />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="text-muted-foreground text-sm" htmlFor="kpi-start">
+                  <label
+                    className="text-sm text-muted-foreground"
+                    htmlFor="kpi-start"
+                  >
                     {t("fieldPeriodStart")}
                   </label>
                   <Input
@@ -84,7 +95,10 @@ export async function HrmKpiPage({ orgSlug }: HrmKpiPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="text-muted-foreground text-sm" htmlFor="kpi-end">
+                  <label
+                    className="text-sm text-muted-foreground"
+                    htmlFor="kpi-end"
+                  >
                     {t("fieldPeriodEnd")}
                   </label>
                   <Input
@@ -115,14 +129,17 @@ export async function HrmKpiPage({ orgSlug }: HrmKpiPageProps) {
               <input type="hidden" name="orgSlug" value={orgSlug} />
               <input type="hidden" name="periodId" value={firstPeriodId} />
               <div>
-                <label className="text-muted-foreground text-sm" htmlFor="kpi-emp">
+                <label
+                  className="text-sm text-muted-foreground"
+                  htmlFor="kpi-emp"
+                >
                   {t("fieldEmployee")}
                 </label>
                 <select
                   id="kpi-emp"
                   name="employeeId"
                   required
-                  className="border-input bg-background mt-1 flex h-9 w-full rounded-md border px-3 text-sm"
+                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
                 >
                   <option value="">{t("selectEmployee")}</option>
                   {employees.map((e) => (
@@ -133,27 +150,48 @@ export async function HrmKpiPage({ orgSlug }: HrmKpiPageProps) {
                 </select>
               </div>
               <div>
-                <label className="text-muted-foreground text-sm" htmlFor="kpi-metric">
+                <label
+                  className="text-sm text-muted-foreground"
+                  htmlFor="kpi-metric"
+                >
                   {t("fieldMetricCode")}
                 </label>
-                <Input id="kpi-metric" name="metricCode" required className="mt-1" />
+                <Input
+                  id="kpi-metric"
+                  name="metricCode"
+                  required
+                  className="mt-1"
+                />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="text-muted-foreground text-sm" htmlFor="kpi-target">
+                  <label
+                    className="text-sm text-muted-foreground"
+                    htmlFor="kpi-target"
+                  >
                     {t("fieldTarget")}
                   </label>
                   <Input id="kpi-target" name="targetValue" className="mt-1" />
                 </div>
                 <div>
-                  <label className="text-muted-foreground text-sm" htmlFor="kpi-achieved">
+                  <label
+                    className="text-sm text-muted-foreground"
+                    htmlFor="kpi-achieved"
+                  >
                     {t("fieldAchieved")}
                   </label>
-                  <Input id="kpi-achieved" name="achievedValue" className="mt-1" />
+                  <Input
+                    id="kpi-achieved"
+                    name="achievedValue"
+                    className="mt-1"
+                  />
                 </div>
               </div>
               <div>
-                <label className="text-muted-foreground text-sm" htmlFor="kpi-notes">
+                <label
+                  className="text-sm text-muted-foreground"
+                  htmlFor="kpi-notes"
+                >
                   {t("fieldNotes")}
                 </label>
                 <Input id="kpi-notes" name="notes" className="mt-1" />
@@ -177,7 +215,10 @@ export async function HrmKpiPage({ orgSlug }: HrmKpiPageProps) {
           ) : (
             <ul className="divide-y divide-border rounded-md border border-border text-sm">
               {periods.map((p) => (
-                <li key={p.id} className="flex flex-wrap justify-between gap-2 px-3 py-2">
+                <li
+                  key={p.id}
+                  className="flex flex-wrap justify-between gap-2 px-3 py-2"
+                >
                   <span className="font-medium">{p.name}</span>
                   <span className="text-muted-foreground">
                     {p.periodStart.toISOString().slice(0, 10)} —{" "}
@@ -204,8 +245,8 @@ export async function HrmKpiPage({ orgSlug }: HrmKpiPageProps) {
                     {s.employeeLegalName} · {s.metricCode}
                   </span>
                   <span className="text-muted-foreground">
-                    {t("scoreTarget")}: {s.targetValue ?? "—"} · {t("scoreAchieved")}:{" "}
-                    {s.achievedValue ?? "—"}
+                    {t("scoreTarget")}: {s.targetValue ?? "—"} ·{" "}
+                    {t("scoreAchieved")}: {s.achievedValue ?? "—"}
                   </span>
                 </li>
               ))}

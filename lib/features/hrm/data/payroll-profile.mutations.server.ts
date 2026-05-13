@@ -95,12 +95,12 @@ export async function upsertPayrollProfileMutation(
             pcbTp1AdditionalReliefMonthlyMyr: null,
             pcbTp3AdditionalDeductionMonthlyMyr: null,
           }
-    const mergedExtrasRecord =
-      mergeMalaysiaPcbIntoStatutoryProfileExtras(priorExtras, pcbPatch)
+    const mergedExtrasRecord = mergeMalaysiaPcbIntoStatutoryProfileExtras(
+      priorExtras,
+      pcbPatch
+    )
     const statutoryProfileExtras =
-      Object.keys(mergedExtrasRecord).length === 0
-        ? null
-        : mergedExtrasRecord
+      Object.keys(mergedExtrasRecord).length === 0 ? null : mergedExtrasRecord
 
     const id = crypto.randomUUID()
     await tx.insert(hrmPayrollProfile).values({

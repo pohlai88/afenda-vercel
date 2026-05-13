@@ -99,7 +99,10 @@ export async function getBenefitPlanForOrganization(
     })
     .from(hrmBenefit)
     .where(
-      and(eq(hrmBenefit.organizationId, organizationId), eq(hrmBenefit.id, planId))
+      and(
+        eq(hrmBenefit.organizationId, organizationId),
+        eq(hrmBenefit.id, planId)
+      )
     )
     .limit(1)
 
@@ -301,7 +304,12 @@ export async function countPendingBenefitEnrollmentsForOrganization(
 export async function getBenefitEnrollmentForOrganization(
   organizationId: string,
   enrollmentId: string
-): Promise<{ id: string; state: string; benefitId: string; employeeId: string } | null> {
+): Promise<{
+  id: string
+  state: string
+  benefitId: string
+  employeeId: string
+} | null> {
   const [row] = await db
     .select({
       id: hrmBenefitEnrollment.id,

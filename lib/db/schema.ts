@@ -1691,7 +1691,9 @@ export const hrmSalaryAdvance = pgTable(
     reason: text("reason"),
     state: text("state").notNull().default("pending"),
     requestedByUserId: text("requestedByUserId").notNull(),
-    requestedAt: timestamp("requestedAt", { mode: "date" }).notNull().defaultNow(),
+    requestedAt: timestamp("requestedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
     decidedByUserId: text("decidedByUserId"),
     decidedAt: timestamp("decidedAt", { mode: "date" }),
     decisionNote: text("decisionNote"),
@@ -2618,10 +2620,7 @@ export const hrmBenefitEnrollment = pgTable(
       t.organizationId,
       t.employeeId
     ),
-    index("hrm_benefit_enrollment_org_state_idx").on(
-      t.organizationId,
-      t.state
-    ),
+    index("hrm_benefit_enrollment_org_state_idx").on(t.organizationId, t.state),
   ]
 )
 

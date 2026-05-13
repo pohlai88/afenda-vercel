@@ -34,8 +34,8 @@ export default function OrgOperatorError(props: NextAppErrorPageProps) {
         Operator console could not load
       </h1>
       <p className="text-sm text-muted-foreground">
-        Something went wrong while rendering this operator surface. Try again or use
-        the rail to open another section.
+        Something went wrong while rendering this operator surface. Try again or
+        use the rail to open another section.
       </p>
       <RouteErrorDigest digest={error.digest} />
       <RouteErrorActions>

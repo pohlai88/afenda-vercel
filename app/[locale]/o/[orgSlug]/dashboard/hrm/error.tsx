@@ -35,8 +35,8 @@ export default function OrgDashboardHrmError(props: NextAppErrorPageProps) {
         Human resources could not load
       </h1>
       <p className="text-sm text-muted-foreground">
-        Something went wrong while rendering this HRM surface. The workbench shell
-        stays mounted — try again or open another module from the rail.
+        Something went wrong while rendering this HRM surface. The workbench
+        shell stays mounted — try again or open another module from the rail.
       </p>
       <RouteErrorDigest digest={error.digest} />
       <RouteErrorActions>

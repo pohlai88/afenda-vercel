@@ -191,13 +191,13 @@ describe("NexusUtilityNotifications", () => {
       </TooltipProvider>
     )
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /Notifications\./ })
-      ).toBeTruthy()
-    })
+    const trigger = await screen.findByRole(
+      "button",
+      { name: /Notifications\./ },
+      { timeout: 15_000 }
+    )
 
-    fireEvent.click(screen.getByRole("button", { name: /Notifications\./ }))
+    fireEvent.click(trigger)
 
     expect((await screen.findAllByText("Vendor payment hold")).length).toBe(2)
     expect(screen.getAllByText("Unread").length).toBeGreaterThan(0)

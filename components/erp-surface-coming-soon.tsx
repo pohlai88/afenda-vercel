@@ -36,7 +36,9 @@ export async function ErpSurfaceComingSoon({
     backLabel: tShared("backToNexus"),
   })
   if (!headerParsed.success) {
-    throw new Error("ErpSurfaceComingSoon: invalid governed page header payload")
+    throw new Error(
+      "ErpSurfaceComingSoon: invalid governed page header payload"
+    )
   }
 
   const emptyParsed = parseEmptyStateData({
@@ -45,7 +47,9 @@ export async function ErpSurfaceComingSoon({
     description: t("detail"),
   })
   if (!emptyParsed.success) {
-    throw new Error("ErpSurfaceComingSoon: invalid governed empty-state payload")
+    throw new Error(
+      "ErpSurfaceComingSoon: invalid governed empty-state payload"
+    )
   }
 
   return (

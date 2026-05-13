@@ -42,14 +42,26 @@ export {
   isActionResultSuccess,
 } from "./schemas/action-result.shared"
 
-export { GovernedSurface, type GovernedSurfaceProps } from "./components/governed-surface"
-export { GovernedSection, type GovernedSectionProps } from "./components/governed-section"
-export { GovernedEmpty, type GovernedEmptyProps } from "./components/governed-empty"
+export {
+  GovernedSurface,
+  type GovernedSurfaceProps,
+} from "./components/governed-surface"
+export {
+  GovernedSection,
+  type GovernedSectionProps,
+} from "./components/governed-section"
+export {
+  GovernedEmpty,
+  type GovernedEmptyProps,
+} from "./components/governed-empty"
 export {
   GovernedListSurface,
   type GovernedListSurfaceProps,
 } from "./components/governed-list-surface"
-export { ActionFormErrors, type ActionFormErrorsProps } from "./components/action-form-errors"
+export {
+  ActionFormErrors,
+  type ActionFormErrorsProps,
+} from "./components/action-form-errors"
 export {
   GovernedAuditPanel,
   type GovernedAuditPanelProps,

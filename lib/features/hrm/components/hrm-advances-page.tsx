@@ -61,14 +61,17 @@ export async function HrmAdvancesPage({ orgSlug }: HrmAdvancesPageProps) {
           >
             <input type="hidden" name="orgSlug" value={orgSlug} />
             <div>
-              <label className="text-muted-foreground text-sm" htmlFor="adv-emp">
+              <label
+                className="text-sm text-muted-foreground"
+                htmlFor="adv-emp"
+              >
                 {t("fieldEmployee")}
               </label>
               <select
                 id="adv-emp"
                 name="employeeId"
                 required
-                className="border-input bg-background mt-1 flex h-9 w-full rounded-md border px-3 text-sm"
+                className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               >
                 <option value="">{t("selectEmployee")}</option>
                 {employees.map((e) => (
@@ -79,7 +82,10 @@ export async function HrmAdvancesPage({ orgSlug }: HrmAdvancesPageProps) {
               </select>
             </div>
             <div>
-              <label className="text-muted-foreground text-sm" htmlFor="adv-amt">
+              <label
+                className="text-sm text-muted-foreground"
+                htmlFor="adv-amt"
+              >
                 {t("fieldAmount")}
               </label>
               <Input
@@ -92,10 +98,18 @@ export async function HrmAdvancesPage({ orgSlug }: HrmAdvancesPageProps) {
               />
             </div>
             <div>
-              <label className="text-muted-foreground text-sm" htmlFor="adv-reason">
+              <label
+                className="text-sm text-muted-foreground"
+                htmlFor="adv-reason"
+              >
                 {t("fieldReason")}
               </label>
-              <Textarea id="adv-reason" name="reason" rows={3} className="mt-1" />
+              <Textarea
+                id="adv-reason"
+                name="reason"
+                rows={3}
+                className="mt-1"
+              />
             </div>
             <Button type="submit" variant="secondary" className="max-w-xs">
               {t("requestSubmit")}
@@ -111,7 +125,7 @@ export async function HrmAdvancesPage({ orgSlug }: HrmAdvancesPageProps) {
         </CardHeader>
         <CardContent>
           {advances.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("tableEmpty")}</p>
+            <p className="text-sm text-muted-foreground">{t("tableEmpty")}</p>
           ) : (
             <ul className="divide-y divide-border rounded-md border border-border text-sm">
               {advances.map((a) => (
@@ -122,14 +136,14 @@ export async function HrmAdvancesPage({ orgSlug }: HrmAdvancesPageProps) {
                       {a.amount} {a.currency} · {a.state}
                     </span>
                   </div>
-                  <span className="text-muted-foreground text-xs">
+                  <span className="text-xs text-muted-foreground">
                     {format.dateTime(a.requestedAt, {
                       dateStyle: "medium",
                       timeStyle: "short",
                     })}
                   </span>
                   {a.reason ? (
-                    <p className="text-muted-foreground text-xs whitespace-pre-wrap">
+                    <p className="text-xs whitespace-pre-wrap text-muted-foreground">
                       {a.reason}
                     </p>
                   ) : null}
@@ -148,7 +162,12 @@ export async function HrmAdvancesPage({ orgSlug }: HrmAdvancesPageProps) {
                           placeholder={t("decisionNotePlaceholder")}
                           className="text-xs"
                         />
-                        <Button type="submit" variant="secondary" size="sm" className="w-fit">
+                        <Button
+                          type="submit"
+                          variant="secondary"
+                          size="sm"
+                          className="w-fit"
+                        >
                           {t("approve")}
                         </Button>
                       </form>
@@ -165,7 +184,12 @@ export async function HrmAdvancesPage({ orgSlug }: HrmAdvancesPageProps) {
                           placeholder={t("decisionNotePlaceholder")}
                           className="text-xs"
                         />
-                        <Button type="submit" variant="outline" size="sm" className="w-fit">
+                        <Button
+                          type="submit"
+                          variant="outline"
+                          size="sm"
+                          className="w-fit"
+                        >
                           {t("reject")}
                         </Button>
                       </form>

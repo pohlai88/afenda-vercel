@@ -16,10 +16,15 @@ type BenefitLifeEventVerifyActionsProps = {
   lifeEventId: string
 }
 
-export function BenefitLifeEventVerifyActions({ lifeEventId }: BenefitLifeEventVerifyActionsProps) {
+export function BenefitLifeEventVerifyActions({
+  lifeEventId,
+}: BenefitLifeEventVerifyActionsProps) {
   const t = useTranslations("Dashboard.Hrm.benefits.lifeEventsTable")
   const noteId = useId()
-  const [state, formAction, pending] = useActionState(verifyLifeEventAction, undefined)
+  const [state, formAction, pending] = useActionState(
+    verifyLifeEventAction,
+    undefined
+  )
   const router = useRouter()
   const did = useRef(false)
   useEffect(() => {
@@ -32,7 +37,10 @@ export function BenefitLifeEventVerifyActions({ lifeEventId }: BenefitLifeEventV
   const err = state && !state.ok ? state.errors.form : null
 
   return (
-    <form action={formAction} className="flex w-full max-w-xs flex-col items-end gap-2">
+    <form
+      action={formAction}
+      className="flex w-full max-w-xs flex-col items-end gap-2"
+    >
       <input type="hidden" name="lifeEventId" value={lifeEventId} />
       {err ? (
         <Alert variant="destructive" className="py-2">
@@ -46,8 +54,18 @@ export function BenefitLifeEventVerifyActions({ lifeEventId }: BenefitLifeEventV
         <Input id={noteId} name="verificationNote" maxLength={2000} />
       </Field>
       <div className="flex flex-wrap justify-end gap-2">
-        <Button size="sm" type="submit" name="verificationStatus" value="verified" disabled={pending}>
-          {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : t("verify")}
+        <Button
+          size="sm"
+          type="submit"
+          name="verificationStatus"
+          value="verified"
+          disabled={pending}
+        >
+          {pending ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+          ) : (
+            t("verify")
+          )}
         </Button>
         <Button
           size="sm"

@@ -31,11 +31,7 @@ export function GovernedListSurface({
       />
       <Card size="default">
         <CardContent className="pt-6">
-          {rowCount === 0 ? (
-            <GovernedEmpty model={model.empty} />
-          ) : (
-            children
-          )}
+          {rowCount === 0 ? <GovernedEmpty model={model.empty} /> : children}
         </CardContent>
       </Card>
     </div>

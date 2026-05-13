@@ -11,12 +11,30 @@
  * - Default `environment: "node"` for fast unit tests; `*.dom.test.tsx` use `// @vitest-environment jsdom`
  *   (Next.js uses `jsdom` globally — we avoid loading jsdom for non-DOM suites).
  * - `next/headers` / `next/navigation` are stubbed for imports outside the Next.js runtime.
+ * - Parallelism: **`--coverage`** → **`forks`** + **`maxWorkers: 1`** + **`fileParallelism: false`**
+ *   (v8 / Windows). Otherwise **`forks`** + Vitest defaults (parallel files + workers).
+ * - **`dir` + `include`**: discovery scoped to `tests/unit` (Vitest “Improving performance” — less root scanning).
+ * - **`experimental.fsModuleCache`**: persists transform cache between watch sessions (no effect on one-shot `vitest run`).
  */
 import path from "node:path"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vitest/config"
 
 const workspaceRoot = path.resolve(import.meta.dirname, "..")
+
+/**
+ * v8 coverage merge + Windows stability: with **`--coverage`**, use **`forks`** +
+ * **`maxWorkers: 1`** + **`fileParallelism: false`**. Without **`--coverage`**, use
+ * **`forks`** with Vitest defaults (parallel test files + CPU-scaled workers) so
+ * DOM suites stay process-isolated while **`pnpm test`** / **`test:fast`** speed up.
+ */
+function vitestArgvCollectsCoverage(): boolean {
+  return process.argv.some(
+    (arg) => arg === "--coverage" || arg.startsWith("--coverage=")
+  )
+}
+
+const collectCoverage = vitestArgvCollectsCoverage()
 
 export default defineConfig({
   root: workspaceRoot,
@@ -45,12 +63,22 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "node",
-    /**
-     * Fork pool (Vitest 4 default). `maxWorkers: 1` + `fileParallelism: false` keep a single worker
-     * for v8 coverage on Windows (see Vitest 4 migration: `poolOptions` removed — use top-level
-     * `test` options instead).
-     */
-    pool: "forks",
+    /** Discovery root — `include` globs are relative to this directory. */
+    dir: path.join(workspaceRoot, "tests/unit"),
+    include: ["**/*.test.{ts,tsx}"],
+    experimental: {
+      /** Speeds up `pnpm test` (watch) reruns; see Vitest “Improving performance”. */
+      fsModuleCache: true,
+    },
+    ...(collectCoverage
+      ? {
+          pool: "forks" as const,
+          maxWorkers: 1,
+          fileParallelism: false,
+        }
+      : {
+          pool: "forks" as const,
+        }),
     server: {
       deps: {
         /**
@@ -66,10 +94,7 @@ export default defineConfig({
         ],
       },
     },
-    maxWorkers: 1,
-    fileParallelism: false,
     setupFiles: [path.join(workspaceRoot, ".config/vitest.setup.ts")],
-    include: ["tests/unit/**/*.test.{ts,tsx}"],
     passWithNoTests: true,
     clearMocks: true,
     restoreMocks: true,
@@ -101,9 +126,18 @@ export default defineConfig({
         "lib/features/hrm/actions/**",
         "lib/features/hrm/data/**",
         "lib/features/hrm/components/**/*.tsx",
+        // Planner: Server Actions + modules under `commands/` + IO-heavy `data/` (ADR-0006 / ADR-0008).
+        // Same doctrine as HRM `actions/**` + `data/**`: mutation + DB graphs are Playwright / runtime gates;
+        // Vitest still runs `tests/unit/planner/planner-capture-parser.test.ts` for capture parsing behavior.
+        "lib/features/planner/commands/**",
+        "lib/features/planner/data/**",
+        // Orbit surface UI + client islands — Playwright / RSC routes; unit tests mock `#features/planner/server`.
+        "lib/features/planner/views/**",
+        // Governed ERP list/detail shells — Playwright / runtime.
+        "lib/features/governed-surface/**",
       ],
       // Ratchet global executed coverage toward 80%; keep coverage.all off until breadth grows.
-      // Global floors track what Vitest currently executes from unit imports (lib/auth barrel drags many server modules).
+      // Global floors track what Vitest executes from unit imports after the excludes above (ADR-0008).
       thresholds: {
         statements: 47,
         branches: 38,

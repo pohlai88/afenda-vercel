@@ -15,7 +15,10 @@ import {
 import { Input } from "#components/ui/input"
 import { Textarea } from "#components/ui/textarea"
 
-import { recordLifeEventAction, type RecordLifeEventFormState } from "#features/hrm/client"
+import {
+  recordLifeEventAction,
+  type RecordLifeEventFormState,
+} from "#features/hrm/client"
 
 import { BENEFIT_LIFE_EVENT_TYPES } from "../data/benefit-helpers.shared"
 import type { LeaveEmployeeChoiceRow } from "../data/leave-request.queries.server"
@@ -79,31 +82,45 @@ export function BenefitLifeEventRecordForm({
             </option>
           ))}
         </select>
-        {fieldErrors?.employeeId ? <FieldError>{fieldErrors.employeeId}</FieldError> : null}
+        {fieldErrors?.employeeId ? (
+          <FieldError>{fieldErrors.employeeId}</FieldError>
+        ) : null}
       </Field>
 
       <Field>
         <FieldLabel htmlFor={typeId}>{t("fieldEventType")}</FieldLabel>
-        <select id={typeId} name="eventType" className={SELECT_CLASS} required defaultValue="other">
+        <select
+          id={typeId}
+          name="eventType"
+          className={SELECT_CLASS}
+          required
+          defaultValue="other"
+        >
           {BENEFIT_LIFE_EVENT_TYPES.map((k) => (
             <option key={k} value={k}>
               {t(`eventTypes.${k}`)}
             </option>
           ))}
         </select>
-        {fieldErrors?.eventType ? <FieldError>{fieldErrors.eventType}</FieldError> : null}
+        {fieldErrors?.eventType ? (
+          <FieldError>{fieldErrors.eventType}</FieldError>
+        ) : null}
       </Field>
 
       <Field>
         <FieldLabel htmlFor={dateId}>{t("fieldEventDate")}</FieldLabel>
         <Input id={dateId} name="eventDate" type="date" required />
-        {fieldErrors?.eventDate ? <FieldError>{fieldErrors.eventDate}</FieldError> : null}
+        {fieldErrors?.eventDate ? (
+          <FieldError>{fieldErrors.eventDate}</FieldError>
+        ) : null}
       </Field>
 
       <Field>
         <FieldLabel htmlFor={notesId}>{t("fieldNotes")}</FieldLabel>
         <Textarea id={notesId} name="notes" rows={3} maxLength={4000} />
-        {fieldErrors?.notes ? <FieldError>{fieldErrors.notes}</FieldError> : null}
+        {fieldErrors?.notes ? (
+          <FieldError>{fieldErrors.notes}</FieldError>
+        ) : null}
       </Field>
 
       <Field>
@@ -122,7 +139,11 @@ export function BenefitLifeEventRecordForm({
       <Button type="submit" disabled={pending} className="self-start">
         {pending ? (
           <>
-            <Loader2 className="size-4 animate-spin" data-icon="inline-start" aria-hidden />
+            <Loader2
+              className="size-4 animate-spin"
+              data-icon="inline-start"
+              aria-hidden
+            />
             {t("submitting")}
           </>
         ) : (

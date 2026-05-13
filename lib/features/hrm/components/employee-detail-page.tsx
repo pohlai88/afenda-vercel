@@ -57,18 +57,20 @@ export async function EmployeeDetailPage({
   }
 
   const { organizationId } = await requireOrgSession()
-  const [employee, timelineRows, dependents, changeHistory] = await Promise.all([
-    getEmployeeForOrganization(organizationId, idParsed.data),
-    listEmployeeIamAuditTimeline({
-      organizationId,
-      employeeId: idParsed.data,
-    }),
-    listDependentsForEmployee(organizationId, idParsed.data),
-    listEmployeeChangeHistory({
-      organizationId,
-      employeeId: idParsed.data,
-    }),
-  ])
+  const [employee, timelineRows, dependents, changeHistory] = await Promise.all(
+    [
+      getEmployeeForOrganization(organizationId, idParsed.data),
+      listEmployeeIamAuditTimeline({
+        organizationId,
+        employeeId: idParsed.data,
+      }),
+      listDependentsForEmployee(organizationId, idParsed.data),
+      listEmployeeChangeHistory({
+        organizationId,
+        employeeId: idParsed.data,
+      }),
+    ]
+  )
   if (!employee) {
     notFound()
   }
@@ -181,12 +183,16 @@ export async function EmployeeDetailPage({
 
       <Card size="sm">
         <CardHeader>
-          <CardTitle className="text-base">{t("dependentsSectionTitle")}</CardTitle>
+          <CardTitle className="text-base">
+            {t("dependentsSectionTitle")}
+          </CardTitle>
           <CardDescription>{t("dependentsSectionDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {dependents.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("dependentsEmpty")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("dependentsEmpty")}
+            </p>
           ) : (
             <ul className="divide-y divide-border rounded-md border border-border text-sm">
               {dependents.map((d) => (
@@ -196,14 +202,22 @@ export async function EmployeeDetailPage({
                 >
                   <div>
                     <p className="font-medium">{d.legalName}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {t(DEPENDENT_RELATIONSHIP_MESSAGE_KEY[relationshipKey(d.relationship)])}{" "}
+                    <p className="text-xs text-muted-foreground">
+                      {t(
+                        DEPENDENT_RELATIONSHIP_MESSAGE_KEY[
+                          relationshipKey(d.relationship)
+                        ]
+                      )}{" "}
                       ·{" "}
                       {d.dateOfBirth
-                        ? format.dateTime(d.dateOfBirth, { dateStyle: "medium" })
+                        ? format.dateTime(d.dateOfBirth, {
+                            dateStyle: "medium",
+                          })
                         : "—"}{" "}
                       ·{" "}
-                      {d.taxDependent ? t("dependentTaxYes") : t("dependentTaxNo")}
+                      {d.taxDependent
+                        ? t("dependentTaxYes")
+                        : t("dependentTaxNo")}
                     </p>
                   </div>
                   {!employee.archivedAt ? (
@@ -222,7 +236,9 @@ export async function EmployeeDetailPage({
 
           {!employee.archivedAt ? (
             <div className="border-t border-border pt-4">
-              <p className="mb-3 text-sm font-medium">{t("dependentAddTitle")}</p>
+              <p className="mb-3 text-sm font-medium">
+                {t("dependentAddTitle")}
+              </p>
               <form
                 action={submitCreateDependent}
                 className="grid max-w-xl gap-3 sm:grid-cols-2"
@@ -230,20 +246,31 @@ export async function EmployeeDetailPage({
                 <input type="hidden" name="orgSlug" value={orgSlug} />
                 <input type="hidden" name="employeeId" value={employee.id} />
                 <div className="sm:col-span-2">
-                  <label className="text-muted-foreground text-sm" htmlFor="dep-name">
+                  <label
+                    className="text-sm text-muted-foreground"
+                    htmlFor="dep-name"
+                  >
                     {t("dependentLegalNameLabel")}
                   </label>
-                  <Input id="dep-name" name="legalName" required className="mt-1" />
+                  <Input
+                    id="dep-name"
+                    name="legalName"
+                    required
+                    className="mt-1"
+                  />
                 </div>
                 <div>
-                  <label className="text-muted-foreground text-sm" htmlFor="dep-rel">
+                  <label
+                    className="text-sm text-muted-foreground"
+                    htmlFor="dep-rel"
+                  >
                     {t("dependentRelationshipLabel")}
                   </label>
                   <select
                     id="dep-rel"
                     name="relationship"
                     required
-                    className="border-input bg-background mt-1 flex h-9 w-full rounded-md border px-3 text-sm"
+                    className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
                   >
                     {HRM_DEPENDENT_RELATIONSHIPS.map((rel) => (
                       <option key={rel} value={rel}>
@@ -253,14 +280,17 @@ export async function EmployeeDetailPage({
                   </select>
                 </div>
                 <div>
-                  <label className="text-muted-foreground text-sm" htmlFor="dep-dob">
+                  <label
+                    className="text-sm text-muted-foreground"
+                    htmlFor="dep-dob"
+                  >
                     {t("dependentDobLabel")}
                   </label>
                   <input
                     id="dep-dob"
                     name="dateOfBirth"
                     type="date"
-                    className="border-input bg-background mt-1 flex h-9 w-full rounded-md border px-3 text-sm"
+                    className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
                   />
                 </div>
                 <div className="flex items-center gap-2 sm:col-span-2">
@@ -292,29 +322,44 @@ export async function EmployeeDetailPage({
         </CardHeader>
         <CardContent>
           {changeHistory.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("changeHistoryEmpty")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("changeHistoryEmpty")}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[32rem] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-border text-muted-foreground text-xs uppercase tracking-wide">
-                    <th className="py-2 pr-3 font-medium">{t("changeHistoryColField")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("changeHistoryColOld")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("changeHistoryColNew")}</th>
-                    <th className="py-2 font-medium">{t("changeHistoryColWhen")}</th>
+                  <tr className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
+                    <th className="py-2 pr-3 font-medium">
+                      {t("changeHistoryColField")}
+                    </th>
+                    <th className="py-2 pr-3 font-medium">
+                      {t("changeHistoryColOld")}
+                    </th>
+                    <th className="py-2 pr-3 font-medium">
+                      {t("changeHistoryColNew")}
+                    </th>
+                    <th className="py-2 font-medium">
+                      {t("changeHistoryColWhen")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {changeHistory.map((row) => (
-                    <tr key={row.id} className="border-b border-border last:border-0">
-                      <td className="py-2 pr-3 font-mono text-xs">{row.fieldName}</td>
+                    <tr
+                      key={row.id}
+                      className="border-b border-border last:border-0"
+                    >
+                      <td className="py-2 pr-3 font-mono text-xs">
+                        {row.fieldName}
+                      </td>
                       <td className="max-w-[10rem] truncate py-2 pr-3 font-mono text-xs">
                         {serializeChangeValue(row.oldValue)}
                       </td>
                       <td className="max-w-[10rem] truncate py-2 pr-3 font-mono text-xs">
                         {serializeChangeValue(row.newValue)}
                       </td>
-                      <td className="py-2 text-muted-foreground text-xs whitespace-nowrap">
+                      <td className="py-2 text-xs whitespace-nowrap text-muted-foreground">
                         {format.dateTime(row.changedAt, {
                           dateStyle: "medium",
                           timeStyle: "short",
@@ -378,7 +423,12 @@ function serializeChangeValue(value: unknown): string {
 function relationshipKey(
   value: string
 ): keyof typeof DEPENDENT_RELATIONSHIP_MESSAGE_KEY {
-  if (value === "spouse" || value === "child" || value === "parent" || value === "other") {
+  if (
+    value === "spouse" ||
+    value === "child" ||
+    value === "parent" ||
+    value === "other"
+  ) {
     return value
   }
   return "other"

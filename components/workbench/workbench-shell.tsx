@@ -67,7 +67,9 @@ export function WorkbenchShell(props: WorkbenchShellProps) {
   } = props
 
   const skipToMain =
-    "skipToMain" in props ? props.skipToMain : (
+    "skipToMain" in props ? (
+      props.skipToMain
+    ) : (
       <WorkbenchSkipToMain label={props.skipToMainLabel} />
     )
 

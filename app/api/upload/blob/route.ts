@@ -149,7 +149,9 @@ export async function POST(request: Request) {
         const parsedClientPayload = parseClientPayload(clientPayload)
 
         return {
-          allowedContentTypes: [...WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES],
+          allowedContentTypes: [
+            ...WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES,
+          ],
           maximumSizeInBytes: WORKBENCH_UTILITY_UPLOAD_MAX_SIZE_BYTES,
           addRandomSuffix: true,
           tokenPayload: JSON.stringify({

@@ -124,8 +124,7 @@ export function computePcbV202601(input: PcbInput): number {
 
   // Non-resident: flat 30%, no reliefs (TP3 reduces projected gross; TP1 N/A)
   if (residency === "non_resident") {
-    const annualGross =
-      ytdRemuneration + netMonthlyGross * remainingMonths
+    const annualGross = ytdRemuneration + netMonthlyGross * remainingMonths
     const annualTax = annualGross * NON_RESIDENT_FLAT_RATE
     const monthly = (annualTax - ytdPcbPaid) / remainingMonths
     return Math.max(0, Math.round(monthly * 100) / 100)
@@ -143,10 +142,7 @@ export function computePcbV202601(input: PcbInput): number {
 
   const chargeableIncome = Math.max(
     0,
-    annualGross -
-      INDIVIDUAL_RELIEF_2026 -
-      epfRelief -
-      tp1ReliefAnnualised
+    annualGross - INDIVIDUAL_RELIEF_2026 - epfRelief - tp1ReliefAnnualised
   )
 
   const annualTax = computeProgressiveTax(chargeableIncome)

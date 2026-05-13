@@ -36,6 +36,8 @@
     "test": "vitest --config .config/vitest.config.ts",
     "test:fast": "node scripts/with-env.mjs vitest run --config .config/vitest.config.ts",
     "test:coverage": "node scripts/with-env.mjs vitest run --config .config/vitest.config.ts --coverage",
+    "test:analyze:imports": "node scripts/with-env.mjs vitest run --config .config/vitest.config.ts --experimental.importDurations.print=true --experimental.importDurations.limit=30",
+    "test:analyze:imports:warn": "node scripts/with-env.mjs vitest run --config .config/vitest.config.ts --experimental.importDurations.print=on-warn --experimental.importDurations.limit=30",
     "test:ci": "node scripts/with-env.mjs vitest run --config .config/vitest.config.ts --coverage",
     "test:e2e": "pnpm build && node scripts/with-env.mjs playwright test --config .config/playwright.config.ts",
     "test:e2e:smoke": "pnpm build && node scripts/with-env.mjs playwright test --config .config/playwright.config.ts --grep @smoke",

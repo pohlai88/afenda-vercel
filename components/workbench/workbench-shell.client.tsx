@@ -90,7 +90,9 @@ function WorkbenchShellClientInner({
             <div
               className={cn(
                 "flex min-w-0 flex-1 flex-col",
-                rail ? cn("bg-background", WORKBENCH_CONTENT_PANE_INSET_CLASS) : undefined
+                rail
+                  ? cn("bg-background", WORKBENCH_CONTENT_PANE_INSET_CLASS)
+                  : undefined
               )}
             >
               <main

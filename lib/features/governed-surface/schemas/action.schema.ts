@@ -18,13 +18,7 @@ export const actionDescriptorSchema = z
     id: z.string().min(1),
     label: z.string().min(1),
     intent: z
-      .enum([
-        "default",
-        "destructive",
-        "approval",
-        "financial",
-        "compliance",
-      ])
+      .enum(["default", "destructive", "approval", "financial", "compliance"])
       .default("default"),
     minRole: z.enum(["member", "admin", "owner"]).optional(),
     requiresStepUp: z.boolean().optional(),

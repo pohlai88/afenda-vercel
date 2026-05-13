@@ -36,7 +36,11 @@ export default async function OrganizationAccountLayout({
         <WorkbenchSubLayoutShellSkeleton statusLabel="Loading account settings" />
       }
     >
-      <OrgAccountDeferredWorkbench locale={locale} orgSlug={orgSlug} orgSession={session}>
+      <OrgAccountDeferredWorkbench
+        locale={locale}
+        orgSlug={orgSlug}
+        orgSession={session}
+      >
         {children}
       </OrgAccountDeferredWorkbench>
     </Suspense>

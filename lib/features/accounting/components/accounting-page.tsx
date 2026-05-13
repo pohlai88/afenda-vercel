@@ -1,6 +1,10 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedSection, GovernedSurface, parsePageHeaderData } from "#features/governed-surface"
+import {
+  GovernedSection,
+  GovernedSurface,
+  parsePageHeaderData,
+} from "#features/governed-surface"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
 
 const ACCOUNTING_FOUNDATION_STEPS = [

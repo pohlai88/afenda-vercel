@@ -295,7 +295,8 @@ export async function computePayrollRun(
           ...baseRulePackInput,
           epfEmployeeThisMonth: formatAmount(epfEmployeeThisMonth),
           pcbTp1AdditionalReliefMonthly: input.pcbTp1AdditionalReliefMonthly,
-          pcbTp3AdditionalDeductionMonthly: input.pcbTp3AdditionalDeductionMonthly,
+          pcbTp3AdditionalDeductionMonthly:
+            input.pcbTp3AdditionalDeductionMonthly,
         }
 
         for (const c of eeCont) {

@@ -31,7 +31,9 @@ export function BenefitPlanCreateDialog() {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("createPlanDialogTitle")}</DialogTitle>
-          <DialogDescription>{t("createPlanDialogDescription")}</DialogDescription>
+          <DialogDescription>
+            {t("createPlanDialogDescription")}
+          </DialogDescription>
         </DialogHeader>
         <BenefitPlanForm mode="create" onSuccess={() => setOpen(false)} />
       </DialogContent>

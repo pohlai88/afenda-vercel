@@ -34,8 +34,8 @@ export default function OrgMarketplaceError(props: NextAppErrorPageProps) {
         Marketplace could not load
       </h1>
       <p className="text-sm text-muted-foreground">
-        Something went wrong while rendering the marketplace. Try again or return
-        to your organization home from the utility bar.
+        Something went wrong while rendering the marketplace. Try again or
+        return to your organization home from the utility bar.
       </p>
       <RouteErrorDigest digest={error.digest} />
       <RouteErrorActions>

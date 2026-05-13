@@ -47,22 +47,31 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
   const activeTab =
     tabParam && isHrmBenefitsTab(tabParam) ? tabParam : HRM_BENEFITS_DEFAULT_TAB
 
-  const [t, isAdmin, employees, plans, enrollments, lifeEvents] = await Promise.all([
-    getTranslations("Dashboard.Hrm.benefits"),
-    canActInOrganization(
-      orgSession.userId,
-      orgSession.user.role,
-      orgSession.organizationId,
-      "admin"
-    ),
-    listActiveEmployeeChoicesForLeave(orgSession.organizationId),
-    listBenefitPlansForOrganization(orgSession.organizationId, { limit: 200 }),
-    listBenefitEnrollmentsForOrganization(orgSession.organizationId, { limit: 500 }),
-    listLifeEventsForOrganization(orgSession.organizationId, { limit: 300 }),
-  ])
+  const [t, isAdmin, employees, plans, enrollments, lifeEvents] =
+    await Promise.all([
+      getTranslations("Dashboard.Hrm.benefits"),
+      canActInOrganization(
+        orgSession.userId,
+        orgSession.user.role,
+        orgSession.organizationId,
+        "admin"
+      ),
+      listActiveEmployeeChoicesForLeave(orgSession.organizationId),
+      listBenefitPlansForOrganization(orgSession.organizationId, {
+        limit: 200,
+      }),
+      listBenefitEnrollmentsForOrganization(orgSession.organizationId, {
+        limit: 500,
+      }),
+      listLifeEventsForOrganization(orgSession.organizationId, { limit: 300 }),
+    ])
 
   const activePlans = plans.filter((p) => p.isActive)
-  const planChoices = activePlans.map((p) => ({ id: p.id, code: p.code, name: p.name }))
+  const planChoices = activePlans.map((p) => ({
+    id: p.id,
+    code: p.code,
+    name: p.name,
+  }))
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -102,7 +111,10 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
             <CardDescription>{t("tabEnrollmentsDescription")}</CardDescription>
             {isAdmin && employees.length > 0 && activePlans.length > 0 ? (
               <div className="pt-2">
-                <BenefitEnrollmentDialog employees={employees} plans={planChoices} />
+                <BenefitEnrollmentDialog
+                  employees={employees}
+                  plans={planChoices}
+                />
               </div>
             ) : null}
           </CardHeader>

@@ -26,7 +26,10 @@ function formatDate(value: Date | null): string {
   return value.toISOString().slice(0, 10)
 }
 
-export async function BenefitPlansTable({ isAdmin, plans }: BenefitPlansTableProps) {
+export async function BenefitPlansTable({
+  isAdmin,
+  plans,
+}: BenefitPlansTableProps) {
   const t = await getTranslations("Dashboard.Hrm.benefits.plansTable")
 
   if (plans.length === 0) {
@@ -59,7 +62,9 @@ export async function BenefitPlansTable({ isAdmin, plans }: BenefitPlansTablePro
             <TableHead>{t("colKind")}</TableHead>
             <TableHead>{t("colEffective")}</TableHead>
             <TableHead>{t("colStatus")}</TableHead>
-            {isAdmin ? <TableHead className="text-end">{t("colActions")}</TableHead> : null}
+            {isAdmin ? (
+              <TableHead className="text-end">{t("colActions")}</TableHead>
+            ) : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -68,7 +73,9 @@ export async function BenefitPlansTable({ isAdmin, plans }: BenefitPlansTablePro
               <TableCell className="font-mono text-sm">{plan.code}</TableCell>
               <TableCell>{plan.name}</TableCell>
               <TableCell>
-                <span className="text-sm capitalize">{plan.benefitKind.replaceAll("_", " ")}</span>
+                <span className="text-sm capitalize">
+                  {plan.benefitKind.replaceAll("_", " ")}
+                </span>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {formatDate(plan.effectiveFrom)}
@@ -83,7 +90,10 @@ export async function BenefitPlansTable({ isAdmin, plans }: BenefitPlansTablePro
                   <div className="flex flex-wrap justify-end gap-2">
                     <BenefitPlanEditDialog plan={plan} />
                     {plan.isActive ? (
-                      <BenefitArchivePlanForm planId={plan.id} planLabel={plan.name} />
+                      <BenefitArchivePlanForm
+                        planId={plan.id}
+                        planLabel={plan.name}
+                      />
                     ) : null}
                   </div>
                 </TableCell>

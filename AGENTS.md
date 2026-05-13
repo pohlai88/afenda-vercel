@@ -1,34 +1,53 @@
 # Agent guide — afenda-vercel
 
-Instructions for AI agents working in this repository. Stack: **Next.js 16** (App Router), **React 19**, **TypeScript**, **Tailwind CSS v4**, **shadcn/ui**-style components.
+**Stack:** Next.js 16 · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui · Neon Postgres · Drizzle ORM
 
-**Read first:** [§4 Enforcement & governance artifacts](#4-enforcement--governance-artifacts), [§5 ERP stack + locale-first application surface](#5-erp--full-stack-stack-this-repo) (including [locale-first routing](#locale-first-application-surface)), and [§6 ERP clean directory contract](#6-erp-clean-directory-engineer-contract-required). They define tooling gates, product routing behavior, and non‑negotiable boundaries.
+**Read before every task:** §4 (enforcement gates), §5 (ERP + routing), §6 (directory contract).
 
-### IDE & AI quickstart (vibe coding)
+---
 
-Use this block for fast orientation; deep rules stay in the numbered sections below.
+## Non-negotiable boundaries
 
-| Goal                     | Where to look / what to do                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Jump to a topic          | [Contents](#contents) — anchor links to every §                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Workbench runtime        | **`components/workbench/`** + **`components/nexus/`** — **Workbench owns the OS** (utility bar / dock / command / material runtime), **Nexus** is the org-root product surface, and **Surfaces execute work** under `/dashboard/*`. Mounted at **`app/[locale]/o/[orgSlug]/layout.tsx`**; the **org root** **`app/[locale]/o/[orgSlug]/page.tsx`** resolves into the Nexus surface. See **§5** — [Nexus runtime (org root)](#nexus-runtime-org-root).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ERP feature work         | `lib/features/<module>/` · public imports `#features/<module>` only · no cross-module deep imports (**§6**, **§4.1**)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Orbit                    | **The only operational execution surface in active runtime (implementation under `lib/features/planner/`)** — Afenda's operational execution substrate: **signals + execution pressure + ERP causality + timelines + sessions**. Public product name: **Orbit**; internal domain: **Planner**; core primitives: **`PlannerSignal`** and **`PlannerItem`**. Authoritative doctrine: [`ADR-0006 — Orbit`](docs/decisions/0006-orbit-operational-execution-substrate.md) · reserved module boundary: [`.cursor/rules/planner-directory.mdc`](.cursor/rules/planner-directory.mdc) · OneThing / iThink are retired (see Retired surfaces row). **Surface UI:** [`lib/features/planner/views/orbit-page.tsx`](lib/features/planner/views/orbit-page.tsx) · **i18n** `Dashboard.Orbit` in [`messages/en.json`](messages/en.json) · **hotkeys** [`orbit-operator-hotkeys.client.tsx`](lib/features/planner/views/orbit-operator-hotkeys.client.tsx) · **queue batch** [`batchPlannerQueueItemsAction`](lib/features/planner/commands/batch-planner-queue-items.ts) · **evidence lanes** [`groupPlannerEvidenceGraphForDisplay`](lib/features/planner/evidence/planner-evidence-graph.shared.ts) · **draft backlog:** [`docs/_draft/orbit-draft-v1.md`](docs/_draft/orbit-draft-v1.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Retired surfaces         | OneThing and iThink were severed in the 2026-05-12 amendment to ADR-0006 — **do not reintroduce**. Mined narrative archive: [`docs/_draft/ithink_draft_v1_deprecated.md`](docs/_draft/ithink_draft_v1_deprecated.md). Historical `erp.onething.*` / `erp.ithink.*` audit rows remain renderable via [`lib/erp/historical-erp-execution-audit-actions.shared.ts`](lib/erp/historical-erp-execution-audit-actions.shared.ts) (read-only constants); no runtime code emits them. Orbit subordinate doctrines: [`ADR-0007a`](docs/decisions/0007a-orbit-signal-and-ranking-doctrine.md) · [`ADR-0007b`](docs/decisions/0007b-orbit-lifecycle-and-verification-doctrine.md) · [`ADR-0007c`](docs/decisions/0007c-orbit-erp-attachment-doctrine.md) · [`ADR-0007d`](docs/decisions/0007d-orbit-temporal-coordination-doctrine.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Operational primitives   | **`#lib/erp/*.shared.ts`** + **`#lib/erp/audit-7w1h.server.ts`** — Past · Now · Next temporal spine, CRUD-SAP audit grammar, 7W1H + IAM composition (**§5** — [Operational primitives](#operational-primitives-past--now--next-crud-sap-7w1h))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| Operational execution    | **`#features/execution`** contract + enqueue API · Workflow DevKit wiring (**§5** — _Operational execution_) · import pilot: [`enqueueOrgImportJobWorkflowRun`](lib/features/execution/index.ts) + [`import-job-run.workflow.ts`](lib/features/org-admin/data/import-job-run.workflow.ts)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Operational simulation   | **`#features/simulation`** — AsyncLocalStorage provenance + scenario replay into `iam_audit_event` (and any planner-native rows scenarios choose to write) (**§5** — _Operational simulation_) · gated by **`AFENDA_ENABLE_SIMULATION=1`** · CLI **`pnpm simulate:replay`** / **`pnpm simulate:clear`** (**§2**) · rule [`.cursor/rules/simulation-directory.mdc`](.cursor/rules/simulation-directory.mdc)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Org admin workbench      | [`/o/[orgSlug]/admin`](app/[locale]/o/[orgSlug]/admin/) · capability registry **`ORG_ADMIN_CAPABILITIES`** in [`#features/org-admin`](lib/features/org-admin/index.ts) drives sidebar / sanitizer / paths / audit prefixes · event taxonomy **`ORG_ADMIN_EVENT_NAMESPACES`** (`iam.* · org.* · erp.* · governance.* · integration.* · workflow.* · system.*`) · narrative in [Organizational control plane](#organizational-control-plane-oorgslugadmin) (§5) · rule [`.cursor/rules/org-admin-directory.mdc`](.cursor/rules/org-admin-directory.mdc)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Human resources (HRM)    | **`lib/features/hrm/`** · capability registry **`HRM_CAPABILITIES`** · routes **`/{locale}/o/{orgSlug}/dashboard/hrm`**, **`.../dashboard/hrm/employees`**, **`.../dashboard/hrm/employees/[employeeId]`**, and **`.../dashboard/hrm/{segment}`** (placeholders) · path helpers **`organizationHrmPath`** / **`organizationHrmRootPath`** / **`organizationHrmEmployeePath`** · **`#features/hrm/client`** re-exports workforce **Server Actions** (`createEmployeeAction`, `updateEmployeeAction`, `archiveEmployeeAction`, `createDraftContractAction`, `activateContractAction`, `terminateContractAction`, `upsertPayrollProfileAction`, `attachEmployeeDocumentAction`, `createLeaveTypeAction`, `updateLeaveTypeAction`, `seedMalaysiaEa2023LeaveTypesAction`, `createLeavePolicyAction`, `applyLeaveAction`, `cancelLeaveAction`, `approveLeaveAction`, `rejectLeaveAction`, `recordAttendanceEventAction`, `correctAttendanceEventAction`, `regenerateAttendanceDayAction`, `completeOnboardingStepAction`, `createReviewCycleAction`, `submitReviewAction`, `acknowledgeReviewAction`) · payroll rule-pack types (**`#features/hrm/server`**, Phase 3+) · Phase **1A** tables **`hrm_job_grade`**, **`hrm_department`**, **`hrm_position`**, **`hrm_employee`** (**`0006_mushy_charles_xavier`**) · Phase **1B** tables **`hrm_employment_contract`**, **`hrm_payroll_profile`**, **`hrm_document`** + **`hrm_employee.currentEmploymentContractId`** (**`0010_hrm_contract_payroll_document`**) · IAM audits \*\*`erp.hrm.employee.{create | update | archive}`**, **`erp.hrm.contract.{create | activate | terminate}`**, **`erp.hrm.payroll_profile.upsert`**, **`erp.hrm.document.attach`** · tests **`tests/unit/hrm-contract.test.ts`**, **`tests/unit/hrm-employee-schema.test.ts`**, **`tests/e2e/hrm-workforce-isolation.spec.ts`** (`@hrm`) |
-| Dashboard UI             | `#components/ui/*` · **`#components/workbench/*`** (canonical Workbench shell — **`AppShell`** / **`AppSubLayout`** in `app/**/layout.tsx` are aliases of **`WorkbenchShell`** / **`WorkbenchSubLayout`**; **`WorkbenchSurface`**, **`WorkbenchRail`**, **`WorkbenchUtilityBar`**, command layer, dock, mobile rail; **doctrine:** [`ADR-0001 — Spatial OS`](docs/decisions/0001-afenda-spatial-os-shell.md) + **`.cursor/rules/shell-directory.mdc`**) · **`#components/nexus/*`** (Nexus Field product surface + Lynx summon only — no longer the shell host) · **`#components/nexus-route-loading`** (segment `loading.tsx` re-export) · **`#components/dev/*`** (dev-only overlays; gated — **§9**) · `#lib/design-system` · tokens `app/globals.css` (**§7**)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| i18n & locale-first UX   | [Locale-first application surface](#locale-first-application-surface) in **§5** · **`next-intl`** · `localePrefix: "always"` (e.g. `/en/...`) · [`i18n/routing.ts`](i18n/routing.ts) + [`i18n/request.ts`](i18n/request.ts) · [`messages/<locale>.json`](messages/en.json) · **`Link` / `useRouter` / `usePathname` from `#i18n/navigation`** · **Server `redirect`:** `next/navigation` + [`toLocalePath(locale, "/path")`](lib/i18n/locales.shared.ts) (`locale` from `params` or [`getRequestAppLocale`](lib/i18n/request-locale.server.ts)) · **`revalidatePath`:** [`toLocaleRoutePattern`](lib/i18n/locales.shared.ts) for static locale routes; **[`toLocaleOrgDashboardRevalidatePattern`](lib/i18n/locales.shared.ts)** for ERP dashboard modules under `/o/[orgSlug]/dashboard/...` · locales in [`lib/i18n/locales.shared.ts`](lib/i18n/locales.shared.ts) · **[`proxy.ts`](proxy.ts)** forwards locale for `<html lang>` · **`.cursor/rules/i18n-directory.mdc`**                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Next / RSC               | Server Components default · async `cookies` / `headers` / `params` · thin `proxy.ts` — also `.cursor/rules/nextjs-best-practices.mdc` (always on)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Green CI                 | **[`.github/workflows/ci.yml`](.github/workflows/ci.yml)** runs **`pnpm verify:ci`** (Turborepo + optional Remote Cache secrets), then **`pnpm build`**, then Playwright. Locally **`pnpm verify`** matches the task graph with developer-friendly logs; **`./.turbo/`** task cache and CI **`actions/cache`** on **`.turbo`**. See §2 bullets under **Before merge** for GitHub secrets. **`pnpm smoke`** before a big push; optional `pnpm lint:a11y`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Tests / E2E              | **§2** commands + **Testing directory contract** below; Vitest (Node-first `tests/unit`); Playwright (`tests/e2e`); default **`http://127.0.0.1:3001`** + **`next start`** so **`pnpm dev`** can stay on **3000** · `.cursor/rules/testing.mdc`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Local editor / Cursor    | `.editorconfig` + `.gitattributes` (LF / UTF-8 / 2-space) · `.vscode/settings.json` (workspace TS, Prettier + ESLint on save, Tailwind v4 = `app/globals.css`) · `.vscode/extensions.json` + `.vscode/tasks.json` · `.cursorignore` trims index noise                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Neon / Vercel MCP        | [§5 Validating with Neon and Vercel MCP](#validating-with-neon-and-vercel-mcp) · configure servers in [`.cursor/mcp.json`](.cursor/mcp.json) (`neon`, `vercel`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| DB / Drizzle migrations  | **`lib/db/schema.ts`** (public tables only — no `neon_auth.*` DDL) · **`pnpm db:migrate:local`** / **`pnpm db:migrate:vercel`** per branch (each runs **`pnpm lint:fixtures-parity`** after migrate — fixture/message parity, not schema) · **`pnpm lint:drizzle-journal`** (journal ↔ SQL) · **`pnpm db:generate`** in a **TTY** when diffing schema · rule [`.cursor/rules/drizzle-migration-ledger.mdc`](.cursor/rules/drizzle-migration-ledger.mdc) · [Drizzle migrations (journal + SQL)](#drizzle-migrations-journal--sql) in **§4**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Scaffold new surface     | **`pnpm gen [capability\|action\|adr\|audit-contract\|workflow-job]`** — canonical birth mechanism for new ERP modules, Server Actions, ADRs, module audit contracts (`<module>.contract.ts`), and Workflow DevKit jobs. **`package.json`** runs **`node scripts/turbo-gen.mjs`** (then **`pnpm exec turbo gen`**). For **`action`**, **`pnpm gen action --module <slug>`** expands to Turbo’s **positional** **`--args`** (prompt order: slug → object → verb → tier); optional **`--object`**, **`--verb`**, **`--tier`** (defaults **`record`** / **`create`** / **`B`**). Generators live at **`turbo/generators/`** (TypeScript + `@turbo/gen`). Each generator runs **`pnpm lint:agent-contract`** + **`pnpm lint:eslint --fix`** scoped to touched paths so output passes the contract on day one. Doctrine: [`ADR-0009`](docs/decisions/0009-capability-generators-canonical-birth-mechanism.md). Details: **§3** (Turborepo generators).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Boundary | Rule |
+|---|---|
+| Module public door | `lib/features/<module>/index.ts` only — no cross-module deep imports |
+| ERP business logic | `lib/features/<module>/` only — never in `app/`, `proxy.ts`, or `lib/erp/` |
+| `app/` layer | Routing, composition, page wiring only |
+| Mutations | Server Actions by default; Route Handlers only for `auth`, `cron`, `upload`, `webhooks`, `integrations`, `api/erp/<module>` |
+| `proxy.ts` | Session/locale gate only — no DB, no business logic |
+| Banned categories | `services`, `utils`, `helpers`, `repositories`, `controllers` — forbidden unless AGENTS.md updated first |
+| Root cleanliness | No dump dirs at repo or module root |
+| UI primitives | Import only via `#components/ui/*` — never filesystem-relative. `radix-ui`/`@base-ui/react` stay inside `components/ui` |
+| Design tokens | `@theme inline var(--)` must resolve to `:root`/`.dark` definitions |
+| Change governance | New architectural category → update **this file first**, then implement |
+
+---
+
+## Quickstart
+
+| Goal | Where |
+|---|---|
+| Jump to topic | [Contents](#contents) |
+| Workbench shell | `#components/workbench/*` (`AppShell`/`AppSubLayout` = `WorkbenchShell`/`WorkbenchSubLayout`). Rule: `.cursor/rules/shell-directory.mdc` |
+| Nexus (org root) | `app/[locale]/o/[orgSlug]/nexus/` · `#features/nexus` · redirected from `/{locale}/o/{orgSlug}`. See §5 |
+| ERP feature | `lib/features/<module>/` · `#features/<module>` only · no deep imports · see §6 |
+| Orbit / Planner | `lib/features/planner/` · product name Orbit · see ADR-0006 · rule `.cursor/rules/planner-directory.mdc` |
+| HRM | `lib/features/hrm/` · `HRM_CAPABILITIES` registry · `#features/hrm/client` for forms · `#features/hrm/server` for rule-pack |
+| Lynx / Knowledge | `lib/features/lynx/` · `#features/lynx/client` for client islands · rule `.cursor/rules/lynx-knowledge.mdc` |
+| Org admin | `lib/features/org-admin/` · `ORG_ADMIN_CAPABILITIES` registry · `/o/{orgSlug}/admin/*` · rule `.cursor/rules/org-admin-directory.mdc` |
+| Platform admin | `lib/features/platform-admin/` · `PLATFORM_ADMIN_CAPABILITIES` · `/operator/*` |
+| Operational primitives | `#lib/erp/temporal-spine.shared` · `#lib/erp/crud-sap.shared` · `#lib/erp/audit-7w1h.{shared,server}` |
+| Workflow DevKit | `#features/execution` contract · `enqueueOrgImportJobWorkflowRun` · [useworkflow.dev](https://useworkflow.dev/) |
+| Operational simulation | `#features/simulation` · `AFENDA_ENABLE_SIMULATION=1` · rule `.cursor/rules/simulation-directory.mdc` |
+| Working Memory Rail | `#features/rail-memory` · `WorkbenchRail` slots · `iam.workbench.*` audits |
+| i18n | `#i18n/navigation` (client) · `toLocalePath` (server) · `localePrefix: "always"` · rule `.cursor/rules/i18n-directory.mdc` |
+| DB / Drizzle | `lib/db/schema.ts` · `pnpm db:migrate:local` · `pnpm db:generate` in TTY · rule `.cursor/rules/drizzle-migration-ledger.mdc` |
+| Auth / IAM | `#lib/auth` (server-only) · `#lib/auth-client` (browser) · rule `.cursor/rules/iam-directory.mdc` |
+| Scaffold | `pnpm gen [capability\|action\|adr\|audit-contract\|workflow-job]` — see §3 |
+| UI / design | `#components/ui/*` · `#lib/design-system` · `app/globals.css` tokens · rule `.cursor/rules/design-system.mdc` |
+| Tests | `pnpm test:fast` (unit) · `pnpm test:e2e` (Playwright port 3001) · rule `.cursor/rules/testing.mdc` |
+| Green CI | `pnpm typecheck && pnpm lint` after each task · `pnpm verify:parallel` before push |
+| Neon / Vercel MCP | Configure in `.cursor/mcp.json` · see §5 [MCP validation](#validating-with-neon-and-vercel-mcp) |
 
 ## Contents
 
@@ -36,955 +55,558 @@ Use this block for fast orientation; deep rules stay in the numbered sections be
 2. [Commands & quality gates](#2-commands--quality-gates)
 3. [Toolchain](#3-toolchain)
 4. [Enforcement & governance artifacts](#4-enforcement--governance-artifacts)
-5. [ERP / full-stack stack](#5-erp--full-stack-stack-this-repo) — [Neon + Vercel + pgvector (checklist)](#neon--vercel--pgvector-checklist) · [Validating with Neon and Vercel MCP](#validating-with-neon-and-vercel-mcp) · [locale-first application surface](#locale-first-application-surface) · [Operational primitives](#operational-primitives-past--now--next-crud-sap-7w1h)
-6. [ERP clean directory engineer contract](#6-erp-clean-directory-engineer-contract-required)
+5. [ERP / full-stack stack](#5-erp--full-stack-stack)
+6. [Directory contract](#6-directory-contract)
 7. [Design system](#7-design-system)
-8. [Critical Next.js practices (App Router)](#8-critical-nextjs-practices-app-router)
-9. [Repo-specific rules](#9-repo-specific-rules)
-10. [Decision protocol when constraints conflict](#10-decision-protocol-when-constraints-conflict)
-11. [Documentation refresh](#11-documentation-refresh)
+8. [Decision protocol](#8-decision-protocol)
+9. [Documentation refresh](#9-documentation-refresh)
 
 ---
 
 ## 1. How to use this document
 
-| Role                          | Source                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Single operating contract** | This file (`AGENTS.md`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| **Always-on Cursor rules**    | `.cursor/rules/agents-md-mandatory.mdc` (preload + edit-boundary checks) · `.cursor/rules/nextjs-best-practices.mdc` (runtime contract — RSC, routing, caching, proxy) · `.cursor/rules/frontend-quality-contract.mdc` (React/TS quality — anti-patterns, composition, ERP interface rules, layout geometry ownership)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| **Design / UI edits (globs)** | `.cursor/rules/design-system.mdc` (`*.{ts,tsx,css},docs/design-system/**/*.md`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **Other focused rules**       | `i18n-directory.mdc` · `iam-directory.mdc` · `lynx-knowledge.mdc` (globs: `lib/features/lynx/**`, `lib/features/knowledge/**`, `components/nexus/**`, Lynx routes/API, `messages`) · `erp-primitives.mdc` (globs: `lib/erp/**`) · `planner-directory.mdc` (globs: `lib/features/planner/**`, `app/**/orbit/**`, planner/orbit tests) · `simulation-directory.mdc` (globs: `lib/features/simulation/**`, provenance/audit/scripts) · `drizzle-migration-ledger.mdc` (globs: `drizzle/**`, `lib/db/schema.ts`, `drizzle.config.ts`) · `assets.mdc` (globs: `public/**`, `lib/site.ts`, `next.config.ts`) · `org-admin-directory.mdc` (globs: admin routes) · `shell-directory.mdc` (globs: `components/workbench/**`, `components/nexus/**`) · `app-shell-directory.mdc` → merged into `shell-directory.mdc` · **App Router runtime doctrine:** `app-router-contracts.mdc` (globs: `app/**/*.tsx`) · `error-boundaries.mdc` → merged · `loading-contract.mdc` → merged · `not-found-contract.mdc` → merged · `template-contract.mdc` → merged · `layout-contract.mdc` → merged · `testing.mdc` (globs: `tests/**/*`, `knip.json`) · `dev-directory.mdc` (globs: `components/dev/**`) · `knip-directory.mdc` → merged into `testing.mdc` · `verify-pipeline.mdc` → merged into `testing.mdc`d + Lynx summon only) · `material-semantics.mdc` (globs: `**/*.{ts,tsx,css}` — shell material phases, `data-phase` / `data-lynx`; CI: `check-design-contract.mjs`) · `dev-directory.mdc` (globs: `components/dev/**`) · `testing-directory.mdc` (globs: `tests/**`) · `knip-directory.mdc` (globs: `knip.json`, `package.json`, `scripts/**`) · `design-system-enforcement.mdc` (globs: `**/*.{ts,tsx,css}`, `docs/design-system/**`) · `figma-code-connect-workflow.mdc` (globs: `components/ui/**`, `lib/design-system.ts`) · **App Router runtime doctrine:** `layout-contract.mdc` (runtime kernel, Tier A/B, `layout.tsx`) · `error-boundaries.mdc` (recovery boundary, RouteEnvelope bridge, `error.tsx`) · `loading-contract.mdc` (waiting contract, streaming, `loading.tsx`) · `not-found-contract.mdc` (invalid truth boundary, shell continuity, `not-found.tsx`) · `template-contract.mdc` (reset boundary, remount semantics, `template.tsx`) |
+**Single operating contract** — this file. Cursor rules mirror it; if they diverge, follow AGENTS.md and fix the rule.
 
-**Change order:** If a task needs a new architectural category, API family, or folder vocabulary, **update this file first** in the same change, then implementation. Keep `.cursor/rules/*` aligned when they mirror this contract (they must not contradict it).
+**Always-on rules** (loaded for every task):
+- `.cursor/rules/agents-md-mandatory.mdc` — preload + boundary checks
+- `.cursor/rules/nextjs-best-practices.mdc` — RSC, routing, caching, proxy
+- `.cursor/rules/frontend-quality-contract.mdc` — React/TS quality, layout geometry
 
-**Mechanical alignment:** `scripts/check-agent-contract.mjs` declares `REQUIRED_FILES` (this doc + `agents-md-mandatory.mdc` + `design-system.mdc` + `i18n-directory.mdc` + `lynx-knowledge.mdc` + `erp-primitives.mdc` + `planner-directory.mdc` + `simulation-directory.mdc` + `shell-directory.mdc` + `eslint.config.mjs` + `check-design-contract.mjs` + `tests/unit/fixtures-i18n-parity.test.ts` + `turbo.json`) and root-tooling allowlisting (includes `scripts/check-drizzle-journal.mjs` + `turbo.json`). Do not remove or weaken those paths without updating the script and this section.
+**Focused rules** (auto-loaded by glob):
+- `i18n-directory.mdc` · `iam-directory.mdc` · `shell-directory.mdc`
+- `design-system.mdc` · `erp-primitives.mdc` · `planner-directory.mdc`
+- `lynx-knowledge.mdc` · `simulation-directory.mdc` · `org-admin-directory.mdc`
+- `drizzle-migration-ledger.mdc` · `app-router-contracts.mdc` · `testing.mdc`
+- `dev-directory.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
 
 ---
 
 ## 2. Commands & quality gates
 
-| Command                               | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                            | Dev server (Turbopack)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `pnpm build` / `pnpm start`           | Production build / serve                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `pnpm exec turbo run …`               | **Turborepo single-package mode** ([`turbo.json`](turbo.json)). **`pnpm lint`** / **`pnpm verify`** / **`pnpm verify:ci`** invoke Turbo via **`node scripts/turbo-with-env.mjs`** so **`.env.local`** applies **`TURBO_*`** locally (`override: false` — CI/GitHub env wins). Content-hash cache at **`./.turbo/`**; **`turbo.json`** required by [`scripts/check-agent-contract.mjs`](scripts/check-agent-contract.mjs). **Remote Cache:** Vercel token + team slug ([login + link](https://turborepo.dev/docs/guides/single-package-workspaces)); CI wires secrets per §2 below.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `pnpm lint`                           | `node scripts/turbo-with-env.mjs run lint:agent-contract lint:drizzle-journal lint:fixtures-parity lint:eslint lint:design-contract --output-logs=new-only` (atomic cacheable steps; same enforcement order as before — see §4.3)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `pnpm lint:eslint`                    | `eslint . --max-warnings 0 --report-unused-disable-directives --cache --cache-location .artifacts/.eslintcache` — wrapped by Turborepo task `lint:eslint`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `pnpm lint:drizzle-journal`           | `node scripts/check-drizzle-journal.mjs` — **`drizzle/*.sql`** tags must match **`drizzle/meta/_journal.json`** in order (see [Drizzle migrations](#drizzle-migrations-journal--sql))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `pnpm lint:fixtures-parity`           | Vitest **`tests/unit/fixtures-i18n-parity.test.ts`** — `tests/fixtures/*` ↔ **`messages/en.json`**, auth form sources, **`scripts/seed-dev-users.mjs`**, dev sign-in panel, org audit CSV header tail (**no DB**)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `pnpm lint:a11y`                      | ESLint with `eslint-plugin-jsx-a11y` recommended rules (`eslint-a11y.config.mjs`) — separate from default `lint` until baseline is clean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `pnpm typecheck`                      | `tsc --noEmit` — app code only (`tests/` and `scripts/` excluded for speed; each has its own split tsconfig)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `pnpm typecheck:test`                 | `tsc --noEmit -p tsconfig.test.json` — type-checks `tests/` in isolation (Playwright + Vitest types kept out of the main graph)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `pnpm typecheck:scripts`              | `tsc --noEmit -p tsconfig.scripts.json` — type-checks `scripts/` in isolation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `pnpm format` / `pnpm format:check`   | Prettier (Tailwind class sorting via `prettier.config.mjs`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `pnpm knip` / `pnpm knip:production`  | Dead code & dependency graph ([Knip](https://knip.dev)) — **the repo's unused-surface verdict**, not a cleanup helper. Strict (`knip.json`: unused files/deps/imports/exports/types as errors). Default fix order: **delete → fix import → barrel → narrow `ignoreIssues`**. Suppressions only for intentional public, framework-discovered, or shelf surface — never as a blanket escape hatch. Feature internals (`data/`, `actions/`, `schemas/`) are suppressed because they are route-discovered or barrel-proxied, not because they are dead; genuinely unused files there must be deleted. `knip:production` = ship-only dependency view. Full doctrine: **`.cursor/rules/testing.mdc`**. |
-| `pnpm verify`                         | **Turborepo:** `node scripts/turbo-with-env.mjs run lint:agent-contract lint:drizzle-journal lint:fixtures-parity lint:eslint lint:design-contract typecheck typecheck:test typecheck:scripts knip test:ci format:check --output-logs=new-only` — full pre-merge gate in parallel with content-hash caching; only failed/changed tasks re-run.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `pnpm verify:ci`                      | Same graph as `verify` with `--concurrency=8 --output-logs=errors-only` — intended for CI (also safe locally). Uses **`turbo-with-env.mjs`** like **`pnpm lint`** / **`pnpm verify`**.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `pnpm verify:parallel`                | Identical to `pnpm verify` (Turborepo is parallel-by-default; `concurrently` no longer needed). Kept as a stable script name during the rollout window.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `pnpm test`                           | Vitest watch mode (`tests/unit`, Node by default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `pnpm test:ci`                        | `node scripts/with-env.mjs` + Vitest single run **with v8 coverage** (`.artifacts/coverage/`; config [`.config/vitest.config.ts`](.config/vitest.config.ts) — doctrine [**ADR-0008**](docs/decisions/0008-vitest-nextjs-unit-test-configuration.md))                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `pnpm test:coverage`                  | Same env merge as `test:ci` — discoverability for coverage runs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `pnpm test:e2e`                       | `pnpm build` then Playwright (`tests/e2e`; `with-env.mjs` loads `.env.local`; Playwright `webServer` uses `next start` on **3001** when no external base URL)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `pnpm test:e2e:ci`                    | Same as `test:e2e` — prod-shaped E2E                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `pnpm env:sync`                       | `.env.config` → `.env.local` (see `.env.config.example`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `pnpm db:migrate:local`               | `drizzle-kit migrate` with **`.env.local`**, then **`pnpm lint:fixtures-parity`** (deterministic fixture/message parity after migrate — no schema coupling, catches stale demo copy)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `pnpm db:migrate:vercel`              | Same after **`pnpm env:pull-vercel`** → `.env.vercel`, then **`pnpm lint:fixtures-parity`**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `pnpm db:generate`                    | `drizzle-kit generate` — diff **`lib/db/schema.ts`** → new SQL under `drizzle/` + updates to `drizzle/meta/`; requires an **interactive TTY** when Drizzle prompts for renames/conflicts ([Drizzle migrations](https://orm.drizzle.team/docs/migrations))                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `pnpm db:push:local` / `pnpm db:push` | Apply schema directly to the DB (**prototyping / throwaway branches**); not a substitute for versioned SQL on shared branches ([push vs migrate](https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions))                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `pnpm verify:upstash`                 | PING Upstash Redis when `UPSTASH_REDIS_REST_*` are in `.env.local` ([redis-js](https://github.com/upstash/redis-js))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `pnpm simulate:replay`                | `node scripts/with-env.mjs tsx scripts/simulate-replay.ts` — replay a registered scenario for an org (**requires `AFENDA_ENABLE_SIMULATION=1`**; args: `organizationId`, `scenarioId`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `pnpm simulate:clear`                 | `node scripts/with-env.mjs tsx scripts/simulate-clear.ts` — delete simulation rows for a run + write **`org.simulation.scenario.clear`** (**requires `AFENDA_ENABLE_SIMULATION=1`**; args: `organizationId`, `simulationRunId`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Command | Purpose |
+|---|---|
+| `pnpm dev` | Dev server (Turbopack, port 3000) |
+| `pnpm build` / `pnpm start` | Production build / serve |
+| `pnpm lint` | Turborepo: `lint:agent-contract → lint:drizzle-journal → lint:fixtures-parity → lint:eslint → lint:design-contract` |
+| `pnpm lint:eslint` | ESLint — zero warnings, unused disables reported |
+| `pnpm lint:drizzle-journal` | `drizzle/*.sql` ↔ `_journal.json` parity |
+| `pnpm lint:fixtures-parity` | `tests/fixtures/*` ↔ `messages/en.json` + auth surfaces + seed script |
+| `pnpm lint:a11y` | `eslint-plugin-jsx-a11y` — optional gate until folded into `lint` |
+| `pnpm typecheck` | `tsc --noEmit` (app only — tests/scripts have split tsconfigs) |
+| `pnpm typecheck:test` | `tsc -p tsconfig.test.json` |
+| `pnpm typecheck:scripts` | `tsc -p tsconfig.scripts.json` |
+| `pnpm format` / `pnpm format:check` | Prettier + Tailwind class sorting |
+| `pnpm knip` | Dead-code verdict — run before push, not after each edit |
+| `pnpm verify` | Full pre-merge graph (lint + typecheck + knip + test:ci + format:check) |
+| `pnpm verify:ci` | Same with `--concurrency=8 --output-logs=errors-only` for CI |
+| `pnpm verify:parallel` | Alias for `pnpm verify` (stable name) |
+| `pnpm test` | Vitest watch — `tests/unit/` (ADR-0008) |
+| `pnpm test:fast` | `vitest run` without coverage |
+| `pnpm test:ci` | `vitest run --coverage` → `.artifacts/coverage/` |
+| `pnpm test:e2e` | `pnpm build` → Playwright on port 3001 |
+| `pnpm env:sync` | `.env.config` → `.env.local` |
+| `pnpm db:migrate:local` | Drizzle migrate with `.env.local`, then `lint:fixtures-parity` |
+| `pnpm db:migrate:vercel` | Same after `pnpm env:pull-vercel` |
+| `pnpm db:generate` | `drizzle-kit generate` — **requires interactive TTY** |
+| `pnpm db:push:local` | Schema push for throwaway branches only |
+| `pnpm simulate:replay` | Replay scenario (`AFENDA_ENABLE_SIMULATION=1` required) |
+| `pnpm simulate:clear` | Delete simulation rows for a run |
 
-**Before merge** (boundaries, modules, routing, APIs, or design tokens):
+**Post-task gate (non-negotiable):**
+```bash
+pnpm typecheck && pnpm lint
+# Both must exit 0.
+```
 
-- `pnpm verify` (or individually: `pnpm lint`, `pnpm typecheck`, `pnpm knip`, `pnpm test:ci`, `pnpm format:check`)
-- `pnpm lint:a11y` when touching interactive UI (optional gate until folded into `lint`)
-- **GitHub Actions:** the **`verify`** job runs **`pnpm verify:ci`** (after `pnpm install`), then restores **`actions/cache`** for **`.next/cache`**, then **`pnpm build`**, then Playwright (when browsers are installed on the runner). Set **`TURBO_TELEMETRY_DISABLED=1`** on the job (already in workflow). Optional Remote Cache — add repository secrets **`TURBO_TOKEN`** (Vercel bearer token after **`pnpm turbo login`**), **`TURBO_TEAM`** (team **slug**, e.g. `jacks-projects-7b3cfe94`), and optionally **`TURBO_REMOTE_CACHE_SIGNATURE_KEY`** ([artifact signing](https://turborepo.com/docs/core-concepts/remote-caching#artifact-integrity-and-authenticity-verification)). Unset secrets → Turbo uses local + **`actions/cache`** for **`.turbo`** only.
+**Pre-push gate:**
+```bash
+pnpm verify:parallel
+```
 
-Do not mark work complete if these fail for reasons introduced by the change.
-
-Path aliases (see `package.json`): `#components/*`, `#lib/*`, `#hooks/*`, `#features/*`.
+**Path aliases** (`package.json`): `#components/*` · `#lib/*` · `#hooks/*` · `#features/*`
 
 ### Testing directory contract
 
-- **`tests/fixtures/`** — Canonical **deterministic data**: UUIDs, emails, slugs, user-visible **copy** for assertions, small static factories. Consumed by Vitest and Playwright. **`tests/unit/fixtures-i18n-parity.test.ts`** (**`pnpm lint:fixtures-parity`**) asserts parity vs **`messages/en.json`** and related sources; **`pnpm db:migrate`** / **`db:migrate:*`** run the same check after migrations (no DB connection — catches stale demo/assertion copy). **Forbidden:** Playwright/browser imports, ERP business workflows, hidden mega user journeys.
-- **`tests/unit/`** — Vitest is **Node-first** by default. Use `// @vitest-environment jsdom` only for small DOM/React Testing Library tests, preferably named **`*.dom.test.tsx`**. Do not introduce Vitest **`projects`** until DOM suites become large enough to justify the split.
-- **Coverage** — Uses **V8** (`pnpm test:ci`). **`lib/auth/**/\*.shared.ts`** and **`lib/auth/callback-path.ts`** require **≥ 95%** coverage (identity-sensitive, deterministic). **Global** executed coverage is **ratcheted** from the current baseline toward **80%**; do **not** enable **`coverage.all`** until the repo has enough intentional unit breadth. Config: [`.config/vitest.config.ts`](.config/vitest.config.ts) — Lynx dashboard/client islands that pair with DB + AI (`nl-sql-demo\*.tsx`, truth streaming UI, etc.), **Workflow DevKit** entrypoints (`import-job-run.workflow.ts`, `enqueueOrgImportJobWorkflowRun`), and **HRM Phase 1A** workforce actions/queries + UI islands (`lib/features/hrm/actions/employee.actions.ts`, `employee.queries.server.ts`, `components/**/\*.tsx`) are listed under **`coverage.exclude`\*\* so Vitest gates stay meaningful; prefer Playwright / runtime for those flows.
-- **Next.js + Vitest** — Async Server Components are not unit-tested in isolation; use **E2E** for async routes and full flows. See [Next.js: Vitest](https://nextjs.org/docs/app/guides/testing/vitest). Canonical unit-test config and intentional deviations from the quickstart: [**ADR-0008**](docs/decisions/0008-vitest-nextjs-unit-test-configuration.md).
-- **`tests/e2e/`** — Playwright specs (`*.spec.ts`). Prefer **explicit** steps (`goto`, `getByRole`, `getByLabel`). Tag stable gates (e.g. **`@smoke`**). Credential-heavy org-admin flows may use **`@orgAdmin`** for targeted runs (`playwright test --grep @orgAdmin`). **App Router** surfaces are validated with Playwright for now — do not treat **`app/**`** as a Vitest coverage gate until the strategy changes. Default base URL is **`http://127.0.0.1:3001`**: Playwright starts **`next start -p 3001`** (after **`pnpm build`** via **`pnpm test:e2e`**) so **`pnpm dev`** on **3000** is unchanged. Set **`PLAYWRIGHT_BASE_URL`** or **`BASE_URL`** to point at another server and skip the built-in **`webServer`**. **CI** runs **`pnpm build`** then **`playwright test`**; keep port **3001\*\* free (or override the base URL). Optional **`E2E_ORG_ADMIN_EMAIL`** / **`E2E_ORG_ADMIN_PASSWORD`** (and **`E2E_ORG_SLUG`** if slug detection fails) enable org-admin flows including **`org-admin-import-job-workflow.spec.ts`** (stages a one-row CSV, runs **`enqueueOrgImportJobWorkflowRun`**, polls until **`state: completed`**). Optional **`E2E_SIGNUP_EMAIL`** / **`E2E_SIGNUP_PASSWORD`** / **`E2E_SIGNUP_NAME`** enable **`individual-signup.spec.ts`** sign-up → **`/check-email`** (plus-address friendly **`E2E_SIGNUP_EMAIL`**). Pre-sign-in routes (**`/sign-up`**, **`/forgot-password`**, **`/reset-password`**, **`/check-email`**, **`/verify-email`**) use **`@smoke`** coverage in [`tests/e2e/auth-public-shell.spec.ts`](tests/e2e/auth-public-shell.spec.ts); a **full** password-reset journey (real emailed **`token`**) is **not** automated in CI without a mail sink or provider test hook — document env when adding one.
-- **`tests/e2e/utils/`** — Optional **browser helpers** (navigation, auth helpers). **Import** IDs/copy from `tests/fixtures`; do not duplicate canonical strings. Avoid deep **`test.extend`** chains; keep specs readable.
+| Directory | Purpose | Key rules |
+|---|---|---|
+| `tests/fixtures/` | Canonical deterministic data (UUIDs, copy strings, factories) | No Playwright imports; parity enforced by `pnpm lint:fixtures-parity` |
+| `tests/unit/` | Vitest, Node-first | `// @vitest-environment jsdom` only for DOM tests (`*.dom.test.tsx`) |
+| `tests/e2e/` | Playwright `*.spec.ts` | Explicit steps; tag `@smoke`; base URL `http://127.0.0.1:3001` |
+| `tests/e2e/utils/` | Browser helpers | Import copy from `tests/fixtures`; no magic strings |
 
-**Transient tool output** (gitignored **`.artifacts/`** only — keeps the repo root minimal): Vitest coverage → **`.artifacts/coverage/`**; Playwright JUnit (CI) → **`.artifacts/playwright-junit.xml`**; Playwright traces/screenshots/videos → **`.artifacts/playwright/test-results/`**. Do not commit reports under `tests/` or ad hoc root folders. Delete any legacy root **`coverage/`**, **`test-results/`**, or **`playwright-report/`** trees left over from older configs so ESLint and searches stay clean.
+**Coverage (V8):** `lib/auth/**/*.shared.ts` + `lib/auth/callback-path.ts` → **≥ 95%**. Global ratcheted toward **80%**. Artifacts → `.artifacts/` only (gitignored).
+
+**Transient output:** Vitest coverage → `.artifacts/coverage/` · Playwright JUnit → `.artifacts/playwright-junit.xml` · traces → `.artifacts/playwright/test-results/`
 
 ---
 
-## 3. Toolchain (aligned with Next.js / Vercel defaults)
+## 3. Toolchain
 
-- **Node:** `.node-version` / `.nvmrc` → **24** (matches Vercel project default **24.x** and CI); `package.json` **`engines.node`** `>=24.0.0`.
-- **pnpm:** **`packageManager`** `pnpm@10.21.0` (lockfile v9); use Corepack or match CI pin.
-- **TypeScript:** `tsconfig` — **`target` ES2022**, **`lib` ES2022 + DOM**, **`forceConsistentCasingInFileNames`**, Next `plugins`, **`typedRoutes`** via **`.next/types` only** — **`exclude`** **`.next/dev`** so dev and prod typed-route validators do not merge; **`pnpm build`** may suggest adding **`.next/dev/types`** — drop that include if it reappears (keep **`exclude`**).
-- **Next config:** typed **`next.config.ts`** (`NextConfig` from `next`).
-- **Drizzle Kit:** `strict` + `verbose` in [`drizzle.config.ts`](drizzle.config.ts). **`drizzle-kit generate`** emits SQL under `drizzle/` and updates `drizzle/meta/` (`_journal.json` + snapshots per [Drizzle migrations](https://orm.drizzle.team/docs/migrations)); **`drizzle-kit migrate`** applies **only** migrations listed in the journal. Governance: [Drizzle migrations (journal + SQL)](#drizzle-migrations-journal--sql) in **§4** and **`.cursor/rules/drizzle-migration-ledger.mdc`**.
-- **Turborepo (single-package mode):** [`turbo.json`](turbo.json) at repo root mirrors the canonical [`vercel/turborepo/examples/non-monorepo`](https://github.com/vercel/turborepo/tree/859c629bc401f239ac7980a132746ca90478e17c/examples/non-monorepo) shape (`ui: "tui"`, default `./.turbo/` cache, no `globalDependencies`). **`pnpm lint`** / **`pnpm verify`** / **`pnpm verify:ci`** invoke Turbo via [`scripts/turbo-with-env.mjs`](scripts/turbo-with-env.mjs) so **`.env.local`** can supply **`TURBO_*`** without exporting manually (`override: false` — CI wins). Wraps every **`pnpm verify`** step so unchanged inputs replay cached stdout/outputs. **Phase 1** = local **`./.turbo/`** cache (+ CI **`actions/cache`** restore). **Phase 2** = Vercel Remote Cache (`pnpm turbo login` + `pnpm turbo link`, optional GitHub secrets — team slug `jacks-projects-7b3cfe94`). **Phase 3** = wrap **`next build`** in the primary deploy path with declared outputs (`[".next/**", "!.next/cache/**", "app/.well-known/workflow/**"]`) per Vercel/Turborepo + Workflow SDK guidance. Vercel's framework Build Cache (`.next/cache`, `node_modules`) coexists safely with Turborepo's task cache. Workflow DevKit route bundles remain **gitignored generated route artifacts** under `app/.well-known/workflow/**`; cache them as build outputs, do not move them to `.artifacts` or workflows will not register on cache hits. Env hygiene: tokens (`TURBO_TOKEN` / `TURBO_TEAM` / `CI`) live under `globalPassThroughEnv` so rotation does not invalidate hashes; `build.env` lists every var that affects compiled output (`NEXT_PUBLIC_*`, Sentry source-map upload, OTEL service name, DB URLs). Optional **`TURBO_REMOTE_CACHE_SIGNATURE_KEY`** enables HMAC artifact signing — strongly recommended for enterprise per [Remote Cache integrity](https://turborepo.com/docs/core-concepts/remote-caching#artifact-integrity-and-authenticity-verification). Architectural decision record: [`ADR-0007`](docs/decisions/0007-turborepo-single-package-verify-cache.md).
-- **Turborepo generators (`pnpm gen` → `turbo gen`):** [`turbo/generators/`](turbo/generators/) is the canonical **birth mechanism** for new architectural surfaces — Phase 1 generators: **`capability`** (full ERP module slice), **`action`** (Server Action in existing module), **`adr`** (auto-incremented `docs/decisions/NNNN-*.md`), **`audit-contract`** (`<module>.contract.ts` with stable `buildCrudSapAuditAction` strings), **`workflow-job`** (Workflow DevKit durable run matching [`import-job-run.workflow.ts`](lib/features/org-admin/data/import-job-run.workflow.ts)). **`pnpm gen`** is implemented by [`scripts/turbo-gen.mjs`](scripts/turbo-gen.mjs), which forwards to **`pnpm exec turbo gen`**; other generators pass through unchanged. For **`action`**, Turborepo accepts **positional** **`--args`** in Plop prompt order (`slug`, `object`, `verb`, `tierKey`) — not `slug=hrm` style. Use **`pnpm gen action --module <slug>`** (optional **`--object`**, **`--verb`**, **`--tier`**) or call **`pnpm exec turbo gen action --args …`** with four values. Do not pass **`--module`** directly to **`turbo gen`** (Turbo rejects unknown flags). Uses `@turbo/gen` for TypeScript types. Each generator finishes with a post-gen custom action that runs **`pnpm lint:agent-contract`** + **`pnpm lint:eslint --fix`** scoped to the touched paths so generated code passes the contract on day one. CRUD-SAP verb enum imported directly from [`lib/erp/crud-sap.shared.ts`](lib/erp/crud-sap.shared.ts) — never duplicated. **Doctrine:** [`ADR-0009`](docs/decisions/0009-capability-generators-canonical-birth-mechanism.md). **Reference:** [Turborepo · Generating code](https://turborepo.dev/docs/guides/generating-code).
+| Tool | Config | Notes |
+|---|---|---|
+| Node | `.node-version` / `.nvmrc` → **24** | `engines.node >=24.0.0` |
+| pnpm | `pnpm@10.21.0` (lockfile v9) | Use Corepack or match CI pin |
+| TypeScript | `tsconfig.json` — `target ES2022`, `lib ES2022+DOM` | `typedRoutes` via `.next/types` only; keep `.next/dev` excluded |
+| Drizzle Kit | `drizzle.config.ts` — `strict` + `verbose` | `generate` emits SQL + updates `drizzle/meta/`; `migrate` applies journal only |
+| Turborepo | Single-package mode `turbo.json` | `pnpm lint/verify/verify:ci` → `node scripts/turbo-with-env.mjs` so `.env.local` applies `TURBO_*` |
+| Generators | `turbo/generators/` (`@turbo/gen`) | `pnpm gen` → `scripts/turbo-gen.mjs` → `turbo gen` |
+
+**Turborepo generators** (`pnpm gen`):
+
+| Generator | What it scaffolds |
+|---|---|
+| `capability` | Full ERP module slice (actions, data, components, schemas, index, contract) |
+| `action` | Server Action in existing module — `pnpm gen action --module <slug> [--object] [--verb] [--tier B\|A\|S]` |
+| `adr` | Auto-incremented `docs/decisions/NNNN-*.md` |
+| `audit-contract` | `<module>.contract.ts` with `buildCrudSapAuditAction` strings |
+| `workflow-job` | Workflow DevKit durable run |
+
+Each generator runs `pnpm lint:agent-contract + pnpm lint:eslint --fix` on touched paths on day one. See ADR-0009.
+
+### Drizzle migrations
+
+- `lib/db/schema.ts` = schema source of truth (no `neon_auth.*` DDL — use `lib/db/schema-neon-auth.ts` for query-only mirrors).
+- `drizzle-kit generate` → SQL + `drizzle/meta/` (run in a **real TTY** for ambiguous renames).
+- `drizzle-kit migrate` applies **only** SQL registered in `_journal.json` — orphan `.sql` files are silently skipped.
+- `pnpm db:push*` = throwaway local branches only.
+- Never delete `drizzle/meta/` while legacy migrations exist — Drizzle will baseline the whole schema.
 
 ---
 
 ## 4. Enforcement & governance artifacts
 
-Boundaries are enforced by **scripts + ESLint**, not by this markdown alone.
+All boundaries are enforced mechanically by scripts + ESLint, not this markdown alone.
 
 ### 4.1 Contract scripts
 
-| Script                                                                   | What it enforces                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`scripts/check-agent-contract.mjs`](scripts/check-agent-contract.mjs)   | Required governance files (see §4.2); rule strength (mandatory agent rules stay `alwaysApply: true`; ESLint must restrict `#features/*/*`); forbidden dump dirs; top-level allowlist on **new** paths in git diff; `lib/features/<module>/` shape (`index.ts` + allowed root entries); **deep `#features/a/b` imports** only when same-module or from outside `lib/features` per script logic                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| [`scripts/check-design-contract.mjs`](scripts/check-design-contract.mjs) | Under `app/`, `components/`, `hooks/`, `lib/features/`, and **`lib/design-system.ts`**: forbidden pill radii / `shadow-2xl` / palette utilities in `components/ui` / arbitrary `rounded-[` (allowlist) / **`hover:bg-primary/` …** on filled brand hovers in primitives; **`@theme inline` `var(--*)` ↔ `:root` / `.dark` definitions** in [`app/globals.css`](app/globals.css); **material adoption drift** (inline `backdropFilter` / `willChange`, Tailwind `blur-[…]` / `backdrop-blur-[…]`, `animation … infinite`, legacy `--af-water-*` / `.af-material-water` / `.af-material-transitioning` outside `app/globals.css`) — see **ADR-0001 §13** + **`.cursor/rules/design-system.mdc`**                                                                                                                                                   |
-| [`scripts/check-drizzle-journal.mjs`](scripts/check-drizzle-journal.mjs) | Every top-level `drizzle/NNNN_*.sql` file has a matching `tag` in [`drizzle/meta/_journal.json`](drizzle/meta/_journal.json) in the same order with contiguous `idx` (so `drizzle-kit migrate` applies all shipped SQL). See [Drizzle migrations (journal + SQL)](#drizzle-migrations-journal--sql).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| **`pnpm lint:fixtures-parity`** (Vitest)                                 | [`tests/unit/fixtures-i18n-parity.test.ts`](tests/unit/fixtures-i18n-parity.test.ts) — deterministic parity for **`tests/fixtures/*`** vs **`messages/en.json`**, canonical auth surfaces, **`lib/auth/org-audit-csv.shared.ts`** CSV tail, **`scripts/seed-dev-users.mjs`**, and **`components/dev/dev-signin-panel.tsx`**. Runs under **`pnpm lint`** and after **`pnpm db:migrate` / `db:migrate:*`**.                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| [`turbo.json`](turbo.json) (single-package)                              | Declares the cacheable **`pnpm verify`** task graph (`lint:agent-contract`, `lint:drizzle-journal`, `lint:fixtures-parity`, `lint:eslint`, `lint:design-contract`, `typecheck`, `typecheck:test`, `typecheck:scripts`, `knip`, `test:ci`, `format:check`, plus `build` / `dev`). Per-task **`inputs`** narrow the cache hash; **`outputs`** restore artifacts (`.artifacts/coverage/**`, `.artifacts/.tsbuildinfo/**`, `.artifacts/.eslintcache`, `.artifacts/.prettiercache`). Only **passing** tasks are cached; failures always re-run. **`globalPassThroughEnv`** keeps `TURBO_TOKEN` / `TURBO_TEAM` / `CI` / `PATH` outside the cache hash. **`turbo.json` is listed under `lint:agent-contract.inputs`** so cache-graph edits immediately rerun the contract script. The script enforces presence in `REQUIRED_FILES` and `ROOT_TOOLING_FILES`. |
+| Script | Enforces |
+|---|---|
+| `scripts/check-agent-contract.mjs` | Required files; `alwaysApply: true` on mandatory rules; ESLint restricts `#features/*/*`; no dump dirs; module root shape (`index.ts` required; allowed entries only); no cross-module deep imports |
+| `scripts/check-design-contract.mjs` | `@theme inline var(--)` ↔ `:root`/`.dark`; forbidden radii/palette/shadow; material adoption drift |
+| `scripts/check-drizzle-journal.mjs` | `drizzle/*.sql` ↔ `_journal.json` tag + order parity |
+| `pnpm lint:fixtures-parity` | `tests/fixtures/*` ↔ `messages/en.json`, auth surfaces, seed script, dev sign-in panel, org audit CSV |
+| `turbo.json` | Cacheable verify task graph; `inputs` include `turbo.json` itself so cache-graph edits rerun the contract |
 
-### Drizzle migrations (journal + SQL)
+### 4.2 Required files (CI gate)
 
-Authoritative flow follows [Drizzle Kit migrations](https://orm.drizzle.team/docs/migrations) (Context7 library **`/websites/orm_drizzle_team`**):
+```
+AGENTS.md
+.cursor/rules/agents-md-mandatory.mdc
+.cursor/rules/design-system.mdc
+.cursor/rules/i18n-directory.mdc
+.cursor/rules/lynx-knowledge.mdc
+.cursor/rules/erp-primitives.mdc
+.cursor/rules/planner-directory.mdc
+.cursor/rules/simulation-directory.mdc
+.cursor/rules/shell-directory.mdc
+eslint.config.mjs
+scripts/check-design-contract.mjs
+tests/unit/fixtures-i18n-parity.test.ts
+turbo.json
+turbo/generators/config.ts
+```
 
-- **`lib/db/schema.ts`** is the schema source of truth for **public** Drizzle-owned tables. Do not add **`neon_auth.*`** DDL here (Neon manages that schema — [`lib/db/schema-neon-auth.ts`](lib/db/schema-neon-auth.ts) is query-only).
-- **`drizzle-kit generate`** produces SQL files and updates **`drizzle/meta/`** (`_journal.json` and snapshot JSON used for the next diff). Run it from a **real terminal** when Drizzle prompts for ambiguous renames (`isTTY` required in CI/agent shells).
-- **`drizzle-kit migrate`** applies migrations **registered in `_journal.json` only** — orphan `drizzle/*.sql` files that are not listed will never run on a fresh database.
-- **Hand-written SQL:** `pnpm exec drizzle-kit generate --custom --name=<slug>` then edit the file; still commit **`_journal.json`** changes together with the SQL.
-- **`pnpm db:push` / `pnpm db:push:local`:** acceptable for **throwaway** local branches only ([push vs migrate](https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions)); shared environments rely on **`pnpm db:migrate:*`** after merge.
-- **`pnpm db:migrate` / `pnpm db:migrate:local` / `pnpm db:migrate:vercel`:** after **`drizzle-kit migrate`** succeeds, runs **`pnpm lint:fixtures-parity`** (Vitest — deterministic **`tests/fixtures/*`** vs catalogs and seed/dev sources). This does **not** validate schema against the DB; it hooks migrate completion so local “DB refresh” workflows also refresh assertion drift checks.
-- **Do not** delete all of `drizzle/meta/` and run `generate` while legacy numbered SQL migrations still exist — Drizzle treats the folder as empty and emits a **new baseline** migration that duplicates the whole schema.
-- **Snapshot debt:** if `drizzle-kit generate` prompts or fails in non-interactive environments, resolve by running `generate` locally until `drizzle/meta/*_snapshot.json` catches up to the journal; **`pnpm lint:drizzle-journal`** enforces SQL ↔ journal parity only (not snapshot completeness).
+### 4.3 Gate schedule
 
-### 4.2 Required files (install / CI gate)
+| Moment | Gate |
+|---|---|
+| `preinstall` | `check-agent-contract.mjs` |
+| `pnpm lint` | `lint:agent-contract → lint:drizzle-journal → lint:fixtures-parity → lint:eslint → lint:design-contract` (Turborepo, cached) |
+| `pnpm verify` / `pnpm verify:ci` | Full graph — lint + typecheck + knip + test:ci + format:check |
+| CI (`.github/workflows/ci.yml`) | `check-agent-contract` → `pnpm install` → cache `.turbo` → `pnpm verify:ci` → cache `.next/cache` → `pnpm build` → Playwright |
 
-The agent-contract script fails if any of these are missing (must match `REQUIRED_FILES` in [`scripts/check-agent-contract.mjs`](scripts/check-agent-contract.mjs)):
+**CI Remote Cache** (optional): set `TURBO_TOKEN` + `TURBO_TEAM` (`jacks-projects-7b3cfe94`) + `TURBO_REMOTE_CACHE_SIGNATURE_KEY` as GitHub secrets.
 
-- `AGENTS.md`
-- `.cursor/rules/agents-md-mandatory.mdc`
-- `.cursor/rules/design-system.mdc`
-- `.cursor/rules/i18n-directory.mdc`
-- `.cursor/rules/lynx-knowledge.mdc`
-- `.cursor/rules/erp-primitives.mdc`
-- `.cursor/rules/planner-directory.mdc`
-- `.cursor/rules/simulation-directory.mdc`
-- `.cursor/rules/shell-directory.mdc`
-- `eslint.config.mjs`
-- `scripts/check-design-contract.mjs`
-- `tests/unit/fixtures-i18n-parity.test.ts`
-- `turbo.json`
-- `turbo/generators/config.ts`
+### 4.4 Fail-fast triggers
 
-### 4.3 When checks run
-
-- **preinstall:** `check-agent-contract.mjs`
-- **`pnpm lint`:** **`node scripts/turbo-with-env.mjs`** → Turborepo task graph (`lint:agent-contract` → **`lint:drizzle-journal`** → **`lint:fixtures-parity`** → **`lint:eslint`** → `lint:design-contract`). ESLint task = **zero warnings**, unused `eslint-disable` reported; includes **radix / base-ui** ban on `lib/features/**`; **`#components/ui/*` import door** (no `**/components/ui` filesystem import specifiers outside the shelf); deep `#features/*/*` ban on `app/`, `components/`, `hooks/`, `lib/**` except `components/ui` and `lib/features`. Tasks run in dependency order with content-hash cache; unchanged inputs replay cached stdout.
-- **`pnpm verify` / `pnpm verify:ci`:** same wrapper → full graph (`lint:*`, `typecheck*`, `knip`, `test:ci`, `format:check`). Only **passing** tasks are cached; failures always re-run.
-- **CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):** `check-agent-contract.mjs` → `pnpm install` → **`actions/cache`** on **`.turbo`** → **`pnpm verify:ci`** (telemetry disabled via job env) → **`actions/cache`** on **`.next/cache`** → **`pnpm build`** → Playwright. Optional **`TURBO_TOKEN`** / **`TURBO_TEAM`** / **`TURBO_REMOTE_CACHE_SIGNATURE_KEY`** secrets enable Remote Cache; otherwise CI relies on **`.turbo`** filesystem cache restored by **`actions/cache`** only.
-
-### 4.4 Fail-fast summary
-
-- Weakened or missing files in §4.2 (now includes **`turbo.json`** — required for the cacheable verify pipeline)
-- Forbidden root entropy or module-root vocabulary drift
-- Cross-module (or invalid) deep feature imports
-- Design-contract violations (geometry, palette in primitives, theme variable drift, banned hovers, material drift per `check-design-contract.mjs`)
-- **`drizzle/*.sql` ↔ `_journal.json` drift** (missing journal row for a shipped migration, or tag / order mismatch — see **`pnpm lint:drizzle-journal`**)
-- **Fixture / catalog drift** — `tests/fixtures/*` out of sync with **`messages/en.json`**, auth shells, seed script, dev sign-in panel, or org audit CSV columns (see **`pnpm lint:fixtures-parity`**)
-- **Turborepo cache-graph drift** — editing `turbo.json` reruns `lint:agent-contract` because it is listed under that task's `inputs`; missing `turbo.json` fails `check-agent-contract.mjs` outright
+- Missing / weakened files in §4.2
+- Forbidden dump dirs or unapproved top-level dirs/files
+- Cross-module deep feature imports
+- Design-contract violations (geometry, palette, material drift)
+- `drizzle/*.sql` ↔ `_journal.json` drift
+- Fixture / catalog drift
+- `turbo.json` missing
 
 ---
 
-## 5. ERP / full-stack stack (this repo)
+## 5. ERP / full-stack stack
 
-- **DB:** Neon Postgres + **Drizzle** — schema in [`lib/db/schema.ts`](lib/db/schema.ts); client in [`lib/db/index.ts`](lib/db/index.ts) (`@neondatabase/serverless` HTTP + **`drizzle-orm/neon-http`**, `fetchOptions.cache: 'no-store'` so Next.js does not cache DB `fetch` round-trips). **Pool vs direct:** use Neon’s **pooled** `DATABASE_URL` (`-pooler` host) at runtime on Vercel/serverless; optional **`DATABASE_URL_UNPOOLED`** (direct endpoint) is preferred by **`drizzle.config.ts`** for migrations when set ([Neon pooling](https://neon.tech/docs/connect/connection-pooling)). **pgvector:** enable with migration `CREATE EXTENSION IF NOT EXISTS vector` (see `drizzle/0004_knowledge_chunk_vector.sql`); org-scoped **`knowledge_chunk`** table + HNSW index for cosine similarity; embeddings via **`lib/features/knowledge`** using **`ai`** + **`@ai-sdk/openai`** (`OPENAI_API_KEY`, optional **`EMBEDDING_MODEL`** — defaults to `text-embedding-3-small` at **1536** dimensions). Prefer Vercel Marketplace Neon + pooled `DATABASE_URL`; run migrations locally with **`pnpm db:migrate:local`** (loads `.env.local`) or **`pnpm db:migrate:vercel`** after **`pnpm env:pull-vercel`**.
-- **Auth / IAM:** **Neon Auth** (Better Auth–compatible HTTP API) + **organization** plugin (multi-tenant `activeOrganizationId`). Optional env: **`BETTER_AUTH_REQUIRE_EMAIL_VERIFICATION_ON_INVITATION=1`**; **`ORG_INVITE_MAX_PER_HOUR`** (default **30**, **`0`** = unlimited). **Invite rate limits:** with **`UPSTASH_REDIS_REST_URL`** + **`UPSTASH_REDIS_REST_TOKEN`** (Upstash / Vercel Marketplace) use **@upstash/ratelimit**; otherwise rolling counts on **`iam_audit_event`** — [`org-invite-rate.server.ts`](lib/auth/org-invite-rate.server.ts). **Control plane** lives under [`lib/auth/`](lib/auth/) ([`index.ts`](lib/auth/index.ts) is the public import door for server-side `auth` (starts with **`server-only`** so Client Components must not import **`#lib/auth`** — use **`#lib/auth-client`** and **`#lib/auth/*.shared`** for client-safe symbols); [`neon.server.ts`](lib/auth/neon.server.ts) configures hosted **Neon Auth** via `createNeonAuth`; HTTP surface is `/api/auth/[...path]` (`auth.handler()`). Browser client: [`lib/auth-client.ts`](lib/auth-client.ts) (`@neondatabase/auth/next`). Env: **`NEON_AUTH_BASE_URL`**, **`NEON_AUTH_COOKIE_SECRET`**, **`NEXT_PUBLIC_AUTH_URL`** (full URL ending in `/api/auth`) — [`.env.config.example`](.env.config.example). **Auth interruption semantics:** canonical codes in [`lib/auth/auth-status.shared.ts`](lib/auth/auth-status.shared.ts) (query param `authStatus`), href builder [`lib/auth/auth-interruption-url.shared.ts`](lib/auth/auth-interruption-url.shared.ts), server redirect [`lib/auth/interruption-redirect.server.ts`](lib/auth/interruption-redirect.server.ts), request path capture for RSC guards [`lib/auth/forwarded-path-headers.shared.ts`](lib/auth/forwarded-path-headers.shared.ts) + [`lib/auth/intended-path.server.ts`](lib/auth/intended-path.server.ts), copy resolver [`lib/auth/auth-status-copy.ts`](lib/auth/auth-status-copy.ts), client sign-in error normalization [`lib/auth/auth-client-error.shared.ts`](lib/auth/auth-client-error.shared.ts), UI primitive [`components/auth/auth-result.tsx`](components/auth/auth-result.tsx); locale-scoped examples under **`app/[locale]/…`** (session-expired, verify-email, check-email). **HTTP:** `/api/auth/*`. **Locale-internal pathnames** for links and after locale strip: `/sign-in`, `/account`, `/operator`, `/dashboard`, `/console`, `/accept-invitation`, etc. **Next.js 16** [`proxy.ts`](proxy.ts) applies a **presence-only session cookie** check on those prefixes after intl (see [locale-first application surface](#locale-first-application-surface)); real session and org membership are enforced in RSC / Server Actions. **Session freshness** follows Better Auth [`freshAge`](https://www.better-auth.com/docs/concepts/session-management#session-freshness) (shared constant [`AUTH_SESSION_FRESH_AGE_SECONDS`](lib/auth/session-policy.server.ts)). **Step-up:** [`requireRecentAuthStepUp`](lib/auth/stepup.server.ts) uses `getSession` with `disableCookieCache: true` (see [session management](https://www.better-auth.com/docs/concepts/session-management)) so cookie cache cannot bypass re-auth; missing session → [`AUTH_STATUS.SESSION_EXPIRED`](lib/auth/auth-status.shared.ts), stale session → [`AUTH_STATUS.STEP_UP_REQUIRED`](lib/auth/auth-status.shared.ts), both via [`redirectToAuthInterruption`](lib/auth/interruption-redirect.server.ts) to **`/[locale]/session-expired`** (`app/[locale]/session-expired/page.tsx`; sign-in CTA adds `stepUp=1` for step-up). Sensitive layouts (`/operator`, `/account/security`) call it after role/session guards. **IAM audit:** table [`iamAuditEvent`](lib/db/schema.ts) (`iam_audit_event`); writers in [`lib/auth/audit.server.ts`](lib/auth/audit.server.ts); Better Auth [`hooks`](https://www.better-auth.com/docs/concepts/hooks) for session lifecycle; ERP mutations use `writeIamAuditEvent` per [**IAM audit policy (ERP)**](#iam-audit-policy-erp) below. Apply migrations with `pnpm db:migrate` or `pnpm db:push`. **IAM spine (contract):** identity and session are authoritative in `lib/auth/`; `app/` renders UI only. **Permissions:** org/global checks live in [`lib/auth/permission.server.ts`](lib/auth/permission.server.ts) (`isGlobalAdminUser`, `getOrgMemberRole`, `orgRoleAtLeast`, `canActInOrganization`); [`lib/tenant.ts`](lib/tenant.ts) reuses `isGlobalAdminUser` for `requireGlobalAdminSession`. Session payloads include `user.role` (Better Auth user role) for passing into predicates (see `.cursor/rules/iam-directory.mdc`). **Files / evidence:** **Vercel Blob** is the supported upload path today ([`app/api/upload/blob`](app/api/upload/blob/route.ts)). **S3-compatible (e.g. Cloudflare R2)** is reserved for **archive / long-lived evidence** once IAM audit semantics are stable — do not duplicate Blob for the same use case; see `.env.config.example` section F (S3-compatible placeholders).
-- **Tenant guard:** [`lib/tenant.ts`](lib/tenant.ts) — `requireSignedInSession()` for **`/console`** and **`/account`** (validated session, not cookie-only); **`requireOrgSession()`** / **`getOrgTenantContext()`** for ERP (**`activeOrganizationId`** on the session plus a **`neon_auth.member`** row). **`requireOrgSession`** is wrapped in **`React.cache`** (same request dedupe). Route handlers use **`getOrgSessionFromRequest(request)`** (same membership semantics, no redirect). **`requireGlobalAdminSession()`** for **`/operator`**. Session reads use [`lib/session-cache.ts`](lib/session-cache.ts) (`React.cache`).
-- **Tenant ID and IDOR:** Treat **`organizationId`** as authoritative **only** when it comes from **`requireOrgSession`**, **`getOrgTenantContext`**, or **`getOrgSessionFromRequest`** — never trust `organizationId` (or org slug) from untrusted **`FormData`**, JSON bodies, or query strings alone. Scope every tenant read/write with that ID. See Next.js [Data Security](https://nextjs.org/docs/app/guides/data-security) (auth inside Server Actions / Route Handlers; Proxy is not sufficient). **`[orgSlug]` params** are validated with **`normalizeOrgSlugParam`** ([`lib/org-slug.shared.ts`](lib/org-slug.shared.ts)) before DB resolution; forwarded pathname tails for cross-tenant redirects are sanitized ([`lib/dashboard-org-path.shared.ts`](lib/dashboard-org-path.shared.ts)).
-- **Dashboard paths:** [`lib/dashboard-module-paths.ts`](lib/dashboard-module-paths.ts) — canonical **locale-internal** ERP URLs are **`/o/{orgSlug}/dashboard/...`** (organization slug from the DB; URL-bound tenant check in **`app/[locale]/o/[orgSlug]/layout.tsx`**). Use **`organizationDashboardPath(orgSlug, module)`** with **`Link` / `redirect` from `#i18n/navigation`**. Multi-segment **HRM** URLs under **`/dashboard/hrm/{segment}`** use **`organizationHrmPath`** from **`#features/hrm`** / **`#features/hrm/client`**; forwarded-path sanitization allowlists those segments via **`#lib/hrm-dashboard.shared`** (keep aligned with **`HRM_CAPABILITIES`** — **`tests/unit/hrm-contract.test.ts`**). Legacy **`/dashboard/...`** redirects to the active org’s slug route via **`app/[locale]/dashboard/[[...segments]]/page.tsx`**. Client shell (module nav) imports **`#lib/dashboard-module-paths`** (not feature barrels) to avoid pulling **`server-only`** into the client graph. Server Actions that revalidate ERP modules must call **`revalidatePath(toLocaleOrgDashboardRevalidatePattern("/contacts"), "page")`** (or **`"/knowledge"`**, **`"/lynx"`**, **`"/hrm"`**, **`"/hrm/employees"`**, etc.) so all **`/[locale]/o/[orgSlug]/...`** builds refresh. Non-ERP paths still use **`toLocaleRoutePattern`**. **`callbackUrl`** / post-auth returns stay **locale-prefixed** (`/en/...`); validate with [`resolvePostAuthCallbackUrl`](lib/auth/callback-path.ts).
-- **Lynx (machine layer):** [`lib/features/lynx/`](lib/features/lynx/) — ERP **product module** for grounded **Truth Retrieval** (Phase 1) and future Operating Briefs, **Canonical Intake**, and Decision Operator. **NL→SQL demo (org-scoped):** migration **`drizzle/0008_lynx_demo_unicorn.sql`** adds **`lynx_demo_unicorn`**; seed demo rows with **`pnpm lynx:seed-demo <organizationId>`** after migrate. Server Actions (`generateObject` + guarded **`SELECT`** execution + optional Recharts config) implement the Vercel Labs **natural-language-postgres** pattern inside Lynx; audit **`erp.lynx.nl_demo.query`**. **Additional inference modalities** (different SDK/provider patterns: retrieval, structured generation, codegen, visualization helpers, etc.) remain **Lynx** when implemented under **`#features/lynx`** / **`app/api/erp/lynx/*`** with **`erp.lynx.*`** audits—they are **modalities** of one machine layer, not separate “AI” products (see **`\.cursor/rules/lynx-knowledge\.mdc`** — _Umbrella_). **`#features/knowledge`** remains the **substrate** (pgvector, `knowledge_chunk`, embeddings); Lynx **composes** it via **`#features/knowledge`** barrel imports only where grounding uses chunks. Streaming HTTP lives under **`app/api/erp/lynx/*`**. **Client Components** and **Nexus / workspace chrome** (`components/nexus/**`, Lynx-owned **`"use client"`** islands under **`lib/features/lynx/components/`**) must not import the main **`#features/lynx`** barrel when doing so would pull **server-only** graphs (`next/headers`, IAM audit writers, RSC-only panels). Import **`#features/lynx/client`** instead — narrow re-exports only (`LYNX_ERP_HTTP_ROUTES`, truth markdown parsing, serializable DTO types). Server composition and routes keep using **`#features/lynx`**. Product lockup **Lynx** + **The Machine**; **Vercel AI SDK** is implementation-only. Stable audit strings and layer ids: **`lynx.contract.ts`** (`erp.lynx.*`). Rule: **`\.cursor/rules/lynx-knowledge\.mdc`**. Knowledge substrate rule: **`\.cursor/rules/lynx-knowledge\.mdc``lib/features/hrm/`](lib/features/hrm/) — workforce truth module (**Server Actions**, **`organizationId`** guards, **`iam_audit_event`** only — no parallel HR audit table). **Capability registry** **`HRM_CAPABILITIES`** drives **`/dashboard/hrm/{segment}`** routes, nav metadata, and canonical **`erp.hrm.*`** audit prefixes (validated by **`tests/unit/hrm-contract.test.ts`** + **`isAllowedAuditAction`**). **Phase 1A (workforce base):** Drizzle tables **`hrm_job_grade`**, **`hrm_department`**, **`hrm_position`**, **`hrm_employee`** in [`lib/db/schema.ts`](lib/db/schema.ts) (shipped in **`drizzle/0006_mushy_charles_xavier.sql`**); employee CRUD Server Actions write **`erp.hrm.employee.create`**, **`erp.hrm.employee.update`**, **`erp.hrm.employee.archive`** after successful commits; **Phase 1B** adds **`hrm_employment_contract`**, **`hrm_payroll_profile`**, **`hrm_document`**, and **`hrm_employee.currentEmploymentContractId`** (**`drizzle/0010_hrm_contract_payroll_document.sql`**) with audits **`erp.hrm.contract.{create|activate|terminate}`**, **`erp.hrm.payroll_profile.upsert`**, **`erp.hrm.document.attach`**, governed Blob prefixes **`orgs/{organizationId}/hrm/{employeeId}/`** on **`app/api/upload/blob`**, and ingestion adapters **`hrm_payroll_profile_import`** (CSV → upsert payroll profiles for existing employees) and **`hrm_employee_hire`** (CSV → hire new employees, emits `erp.hrm.employee.create` per row; required headers `employee_number`, `legal_name`; optional `preferred_name`, `email`, `department_id`, `position_id`, `grade_id`); Phase 1B also adds ESLint rule **`afenda/hrm-pii-audit-metadata`** (`eslint.config.mjs`) blocking PII keys (`taxIdentifierNumber|bankAccountNumber|nationalId|payrollBankAccount|icNumber|passportNumber`) inside `writeIamAuditEvent*` calls within `lib/features/hrm/`; **Phase 1C** surfaces **`EmployeeTimeline`** on the employee detail page via **`listEmployeeIamAuditTimeline`** (production **`iam_audit_event`** rows for `hrm_employee`, contracts, payroll profiles, and documents — read-only; optional **`audit7w1h`** narrative when metadata includes it). UI routes **`app/[locale]/o/[orgSlug]/dashboard/hrm/employees/page.tsx`** (directory) and **`.../employees/[employeeId]/page.tsx`** (detail); static **`employees/`** tree takes precedence over **`hrm/[segment]`** for the workforce capability; use **`revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/employees"), "page")`** and **`revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/employees/[employeeId]"), "page")`** from workforce mutations ([`ORG_DASHBOARD_HRM_EMPLOYEES`](lib/dashboard-module-paths.ts), [`ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL`](lib/dashboard-module-paths.ts)). **Paths:** module root **`organizationDashboardPath(orgSlug, "hrm")`** or **`organizationHrmRootPath`**; capability tails **`organizationHrmPath(orgSlug, segment)`**; employee detail **`organizationHrmEmployeePath(orgSlug, employeeId)`**. **Forwarded-path sanitization:** **`sanitizePathAfterOrgSlug`** preserves **`/dashboard/hrm/employees/{uuid}`** when the id matches a narrow UUID regex — registry parity for segments remains mandatory via **`#lib/hrm-dashboard.shared`**. **Org structure (admin):** **`/dashboard/hrm/organization`** with Server Actions for **`hrm_department`**, **`hrm_position`**, **`hrm_job_grade`** and audits **`erp.hrm.department.{create|archive}`**, **`erp.hrm.position.{create|archive}`**, **`erp.hrm.job_grade.{create|archive}`**. **Public holidays:** there is no **`hrm_holiday`** table yet — jurisdiction public holidays are supplied by the active **`PayrollRulePack`** until org-specific calendar overrides ship. **Rule-pack seam:** composable **`PayrollRulePack`** types and **`resolveRulePack`** live under **`#features/hrm/server`** (`data/payroll-rule-pack.server.ts`); implementations ship with payroll phases — **`RULE_PACK_REGISTRY`** starts empty in Phase 0. **Barrels:** **`#features/hrm`** (RSC pages + registry + shell + Zod schemas for tests), **`#features/hrm/client`** (path helpers + **`HRM_CAPABILITIES`** constants + workforce Server Actions for forms), **`#features/hrm/server`** (rule-pack graph + `createEmployeeMutation` / `updateEmployeeMutation` / `upsertPayrollProfileMutation` for cross-module adapters). **Product narrative:** [`docs/_draft/hrm-draft-v2.md`](docs/_draft/hrm-draft-v2.md) (engineering draft — tighten there before expanding scope).
-- **Vercel (canonical):** Deploy from team **Jack's projects** (`jacks-projects-7b3cfe94`), project name **`afenda-vercel`**. Link with `vercel link --scope jacks-projects-7b3cfe94` (do not rely on hardcoded `prj_*` IDs in docs — use the dashboard or CLI). Do not use duplicate hobby-team projects for production secrets. Optional **Vercel Agent** (dashboard **Settings → AI**) can run automated PR review on security-sensitive diffs (platform feature; no npm package).
-- **Files / cron:** Vercel Blob upload [`app/api/upload/blob/route.ts`](app/api/upload/blob/route.ts); daily ERP cron (DB ping + hook for batch work) [`app/api/cron/erp-jobs/route.ts`](app/api/cron/erp-jobs/route.ts) + [`vercel.json`](vercel.json) (crons + favicon/icon CDN `Cache-Control` headers).
-- **Env:** Maintainer copy [`.env.config.example`](.env.config.example) → **`.env.config`** (gitignored), fill secrets, run **`pnpm env:sync`** → **`.env.local`** (generated for Next.js + Drizzle; gitignored). Optional: **`pnpm env:pull-vercel`** → `.env.vercel` (gitignored) to diff against Vercel. See [Vercel env CLI](https://vercel.com/docs/cli/env).
-- **Observability (five-layer doctrine):** **`lib/logger.server.ts`** is the canonical **structured evidence** log (Pino JSON by default; optional **`LOG_PRETTY=1`** for `pino-pretty` in dev — avoids Turbopack/worker surprises when unset). **`next.config.ts`** sets **`serverExternalPackages`** for **`pino`** / **`pino-pretty`** (matches Next’s recommended externals list). The module is **Node-only** (throws if imported when **`NEXT_RUNTIME === "edge"`**); **`instrumentation.ts`** **`register()`** loads **`instrumentation.node.ts`** on Node only (Next guidance: colocate runtime-specific side effects behind **`NEXT_RUNTIME === "nodejs"`**). **`instrumentation.node.ts`** preloads Pino, **`@vercel/otel`**, and server **Sentry** (`sentry.server.config.ts`). **`instrumentation.ts`** still exports **`onRequestError`** — Node emits Pino + Sentry; Edge loads **`sentry.edge.config`** only and emits one-line JSON + Sentry; use **`error.digest`** to correlate with React-processed server failures. **Sentry** (`@sentry/nextjs`, optional **`instrumentation-client.ts`**) is the **incident inbox** (grouping, releases when source maps upload); **`withSentryConfig`** in `next.config.ts` uploads source maps only when **`SENTRY_AUTH_TOKEN`**, **`SENTRY_ORG`**, and **`SENTRY_PROJECT`** are set. **OpenTelemetry** is the **execution map** — default export from `@vercel/otel` plus **custom spans** via **`lib/otel-span.server.ts`** on **Node only** (custom spans do not run on Edge). **IAM audit** remains the **business truth ledger** — do not replace technical logs or Sentry with `iam_audit_event`. **Operational backstop:** Vercel Runtime Logs / `vercel logs` (e.g. `--level error`, `--status-code 5xx`, deployment compare); cron [`app/api/cron/erp-jobs/route.ts`](app/api/cron/erp-jobs/route.ts) includes a **`observabilityProbe`** field for synthetic DB reachability. Env: **`OTEL_SERVICE_NAME`**, optional **`LOG_LEVEL`**, **`SENTRY_DSN`** / **`NEXT_PUBLIC_SENTRY_DSN`**, sampling vars — see `.env.config.example` §E. Successful **`iam_audit_event`** inserts optionally emit one JSON line per row (`tag`: **`IAM_AUDIT_TELEMETRY_TAG`** in [`lib/auth/iam-audit-telemetry.shared.ts`](lib/auth/iam-audit-telemetry.shared.ts)) — gated by **`AFENDA_IAM_AUDIT_LOG`** / **`VERCEL`**.
-- **Runtime errors (Next.js vs Node Pino):** Align with Next.js [error handling](https://nextjs.org/docs/app/getting-started/error-handling): **expected** outcomes (validation, permission denials, routine “not found”) are **return values** or UI state — **do not** spam **`logger.error`** on those paths. **Uncaught** server exceptions are primarily **`instrumentation.ts`** **[`onRequestError`](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation)** (already Pino + Sentry on Node). **Caught** abnormal failures on Node (e.g. Route Handler `catch` after swallowing, or selective Server Actions where external IO fails and the stack would otherwise be lost) should call **`logUnexpectedServerError`** from **`#lib/logger.server`** — merge-object shape **`{ err, ...safeFields }, shortMessage`** so Pino’s **`err`** serializer emits **type / message / stack**. **Edge** bundles and **client** **`error.tsx`** / **`global-error.tsx`** must **not** import **`#lib/logger.server`**; use Edge stderr patterns / Sentry client there.
+### DB
 
-### Neon + Vercel + pgvector checklist
+- **Neon Postgres** + Drizzle — schema `lib/db/schema.ts`, client `lib/db/index.ts` (`@neondatabase/serverless` HTTP, `fetchOptions.cache: 'no-store'`).
+- **Pool vs direct:** pooled `DATABASE_URL` at runtime; `DATABASE_URL_UNPOOLED` for migrations (drizzle.config.ts uses it automatically).
+- **pgvector:** `CREATE EXTENSION vector` in `drizzle/0004_knowledge_chunk_vector.sql`; `knowledge_chunk` table with HNSW index; embeddings via `#features/knowledge` + `@ai-sdk/openai` (`text-embedding-3-small`, 1536 dims).
 
-End-to-end wiring for **Neon** (Postgres + extensions via migrations) and **Knowledge** (`pgvector`) on **Vercel**:
+### Auth / IAM
 
-1. **Link CLI (optional):** `vercel link --scope jacks-projects-7b3cfe94` so `vercel env pull` / integration commands target **`afenda-vercel`**.
-2. **Provision Neon:** Vercel **Marketplace** → Neon, or **`vercel integration add neon`** ([docs](https://vercel.com/docs/cli/integration)); attach the integration resource to this project so **`DATABASE_URL`** is created for **Production** / **Preview** as needed. Prefer the **pooled** connection string for serverless ([Neon pooling](https://neon.tech/docs/connect/connection-pooling)).
-3. **Migrate each database branch** that serves traffic (production Neon branch, and preview branch if previews use a real DB): run **`pnpm db:migrate:local`** with `.env.local` pointing at that branch’s URL, or **`pnpm env:pull-vercel`** then **`pnpm db:migrate:vercel`**. This applies **`CREATE EXTENSION vector`** and **`knowledge_chunk`** (`drizzle/0004_*`), plus **`lynx_demo_unicorn`** when **`drizzle/0008_lynx_demo_unicorn.sql`** is present. For DDL reliability, set **`DATABASE_URL_UNPOOLED`** to Neon’s **direct** (non-pooler) connection string in `.env.local` / Vercel — **`drizzle.config.ts`** uses it automatically when present ([Neon: pooled vs direct](https://neon.tech/docs/connect/connection-pooling)). **Neon Auth V2:** each branch that backs **`DATABASE_URL`** while Auth V2 is on must also have **Neon Auth enabled in the Neon Console** for that branch (creates the **`neon_auth`** schema managed by Neon — not Drizzle). Preview branches created for Vercel may lack **`neon_auth`** and **`vector`** until Auth is enabled and migrations are applied; misaligned branches break **`/api/auth`** and Knowledge embeddings.
-4. **Embeddings env on Vercel:** add **`OPENAI_API_KEY`** (and optional **`EMBEDDING_MODEL`**) for **Production** and **Preview** — **`vercel env add`** or dashboard **Settings → Environment Variables** ([Vercel env CLI](https://vercel.com/docs/cli/env)).
-5. **Redeploy** so new env vars are visible to builds and serverless functions.
-6. **Smoke test:** sign in → **`/{locale}/o/{orgSlug}/dashboard/lynx`** (Truth Retrieval + NL→SQL demo) and **`…/dashboard/knowledge`** (chunk substrate / redirect target) → add chunks → run truth search → migrate + **`pnpm lynx:seed-demo <organizationId>`** → run a structured NL→SQL question on Lynx. **`vercel env run -e production -- next build`** can validate a prod-shaped build with pulled secrets locally ([docs](https://vercel.com/docs/cli/env)).
+- **Neon Auth** (Better Auth–compatible) + organization plugin (multi-tenant `activeOrganizationId`).
+- **Server door:** `#lib/auth` (`server-only`) — `auth`, `requireRecentAuthStepUp`, all guards.
+- **Browser door:** `#lib/auth-client` (`lib/auth-client.ts`).
+- **HTTP:** `/api/auth/[...path]`. Neon webhooks: `app/api/integrations/neon-auth-webhooks/`.
+- **Session guards** (use in layouts): `requireSignedInSession()` for `/console`/`/account`; `requireOrgSession()` + `getOrgTenantContext()` for ERP; `requireGlobalAdminSession()` for `/operator`.
+- **IDOR:** `organizationId` is authoritative **only** from `requireOrgSession` / `getOrgTenantContext` / `getOrgSessionFromRequest` — never trust it from `FormData`, JSON, or query strings.
+- **Step-up:** `requireRecentAuthStepUp` with `disableCookieCache: true` → `AUTH_STATUS.SESSION_EXPIRED` or `AUTH_STATUS.STEP_UP_REQUIRED`.
+- **Invites:** `ORG_INVITE_MAX_PER_HOUR` (default 30); Upstash Redis ratelimit when env set, otherwise `iam_audit_event` rolling counts.
+- **Files:** Vercel Blob (`app/api/upload/blob/`). S3-compatible reserved for archive/long-lived evidence.
+- **Rule:** `.cursor/rules/iam-directory.mdc`
 
-### Validating with Neon and Vercel MCP
+### Tenant routing
 
-Use Cursor MCP servers declared in [`.cursor/mcp.json`](.cursor/mcp.json) (`neon` → Neon HTTP MCP, `vercel` → Vercel MCP). No secrets belong in repo docs; pass **`projectId`** / **`teamId`** from Neon Console / [`.vercel/project.json`](.vercel/project.json) only inside local MCP sessions.
+- **Canonical URLs:** `/{locale}/o/{orgSlug}/dashboard/...`
+- **Path builders:** `organizationDashboardPath`, `organizationNexusPath`, `organizationHrmPath`, `organizationAdminPath`, `platformAdminPath` — use these, never hard-code paths.
+- **revalidatePath:** `toLocaleOrgDashboardRevalidatePattern("/contacts")` for ERP; `toLocaleRoutePattern("/path")` for static locale routes. Never revalidate a single locale.
+- **Slug param:** validate with `normalizeOrgSlugParam` before DB resolution.
+- **Client shell** imports `#lib/dashboard-module-paths` (not feature barrels) to avoid pulling `server-only` into the client bundle.
 
-**Neon MCP (examples):**
+### Locale-first routing
 
-- **`describe_project`** — lists branches and IDs for the Neon project tied to this product.
-- **`describe_branch`** — shows schema tree per branch; sanity-check **`neon_auth`** vs **`public`** for Auth V2 vs Better Auth.
-- **`compare_database_schema`** — pass the **child** branch id (e.g. Vercel preview DB branch) + **`databaseName`** `neondb`; review `diff` for missing extensions (`vector`), Drizzle-owned tables (e.g. **`knowledge_chunk`**, org ingest / integrations tables), and columns present only on the parent (e.g. **`user.lastActiveAt`** after migration `0007`).
-- **`run_sql`** — read-only checks such as `SELECT extname FROM pg_extension WHERE extname = 'vector'` and `SELECT nspname FROM pg_catalog.pg_namespace WHERE nspname = 'neon_auth'`.
-
-**Vercel MCP (examples):**
-
-- **`get_project`** — confirm linked **`afenda-vercel`** metadata (`teamId` / `projectId` from [`.vercel/project.json`](.vercel/project.json)): framework, Node version, domains, latest deployment readiness.
-- **`search_vercel_documentation`** — e.g. topic **`postgres-url-non-pooling`** or **`Neon Marketplace`** for how **pooled** vs **direct** Postgres URLs map to env vars during integration connect ([REST env schema overview](https://vercel.com/docs/rest-api/projects/retrieve-the-environment-variables-of-a-project-by-id-or-name)).
-
-If MCP shows preview branches **without** `vector` / full `public` migrations / **`neon_auth`**, fix operationally: **`pnpm db:migrate:*`** against that branch’s URLs and enable **Neon Auth** on that branch in the Neon Console — not via ad hoc DDL in application migrations.
-
-### Locale-first application surface
-
-Single narrative for **how users move through the app** (URLs, edge entry, navigation, auth surfaces, resilience):
-
-- **Public URLs** always include the locale segment (`localePrefix: "always"`, e.g. `/en/o/{orgSlug}/dashboard`). Product pages live under **`app/[locale]/…`**. Root [`app/layout.tsx`](app/layout.tsx) reads the forwarded locale header for `<html lang>`.
-- **Edge entry:** [`proxy.ts`](proxy.ts) runs **`createIntlMiddleware(routing)`** first, then a **presence-only** Neon Auth session cookie check on **locale-stripped** paths: product prefixes (**`/o`** (org resolver + all tenant paths), `/account`, `/operator`, `/accept-invitation`, `/console`). Legacy **`/{locale}/onboarding`** redirects to **`/{locale}/console`** via **`next.config.ts`** (evaluated before `proxy.ts`). Unauthenticated hits redirect to locale-prefixed **`/sign-in`** with a **`callbackUrl`** that preserves the full path (including locale). Authenticated hits on those paths forward pathname/query headers for RSC interruption redirects. Matcher excludes **`api`**, **`_next`**, **`_vercel`**, **`.well-known`** machine endpoints (Vercel Flags, `security.txt`, Workflow DevKit internals), and static assets. Pure pathname logic lives in [`lib/auth/proxy-protected-paths.shared.ts`](lib/auth/proxy-protected-paths.shared.ts).
-- **`/{locale}/console`** — **post-login loading bay** when the user has **no active org context** or **multiple orgs** ([`ADR-0003`](docs/decisions/0003-post-login-loading-bay-nexus.md)): pending invitations, create-first-org bootstrap (when membership is empty), and multi-org picker with an "Open" link to Nexus. Single-org users are redirected immediately to **`/{locale}/o/{slug}/nexus`**. Protected by the session cookie gate in `proxy.ts`; full RSC guard is **`requireSignedInSession()`** in the layout. Org-switch is audited as **`iam.session.org_switch`**.
-- **Navigation:** client islands use **`#i18n/navigation`** with **locale-internal** `href` values (no leading `/{locale}` in code). [`i18n/navigation.tsx`](i18n/navigation.tsx) wraps next-intl’s `Link` with **`prefetch` defaulting to `false`** (less eager prefetch for dynamic RSC segments); pass **`prefetch={true}`** to opt in. Server Components use **`redirect` from `next/navigation`** with [`toLocalePath`](lib/i18n/locales.shared.ts) / [`ensureAppLocale`](lib/i18n/locales.shared.ts). Never emit bare `/o` or `/sign-in` from server redirects, emails, or `callbackUrl` — validate with [`resolvePostAuthCallbackUrl`](lib/auth/callback-path.ts). **Root `app/not-found` / `app/error` / `app/global-error`:** use [`DEFAULT_LOCALE_HOME_PATH`](lib/i18n/root-default-locale-href.shared.ts) with **`next/link`** and **`prefetch={false}`** (outside `[locale]`, `#i18n/navigation` is not mounted). **Path builders and anti-patterns:** **`.cursor/rules/i18n-directory.mdc`**.
-- **Auth / marketing UI:** shared framing in [`components/auth/`](components/auth/) (e.g. `auth-page-frame`, `auth-result`). Interruption flows use canonical `authStatus` codes and [`authInterruptionHref`](lib/auth/auth-interruption-url.shared.ts) with an explicit **`AppLocale`**. IAM import boundaries: **`.cursor/rules/iam-directory.mdc`**.
-- **Route resilience:** add **`loading.tsx`**, **`error.tsx`**, **`not-found.tsx`**, or **Suspense** where a segment benefits from streaming or graceful failure (checklist: **`.cursor/rules/nextjs-best-practices.mdc`**).
+- `localePrefix: "always"` — all public URLs include `/{locale}/`.
+- **Edge entry:** `proxy.ts` runs `createIntlMiddleware` then presence-only cookie check for `/o`, `/account`, `/operator`, `/accept-invitation`, `/console`. Matcher excludes `api`, `_next`, `_vercel`, `.well-known`, static assets.
+- **Never emit bare `/sign-in` or `/o` from server** — use `toLocalePath(locale, "/sign-in")`.
+- **Post-login:** `/{locale}/console` is the loading bay (single-org → redirect to nexus immediately).
+- **`callbackUrl`** must be locale-prefixed + validated via `resolvePostAuthCallbackUrl`.
+- **Rule:** `.cursor/rules/i18n-directory.mdc`
 
 ### Nexus runtime (org root)
 
-**Authoritative principles** (future agents must not misunderstand):
-
-```txt
-Nexus owns the OS.
-Surfaces execute work.
-Dashboard chrome is being demoted.
-Materials are governed.
-Dense ERP remains opaque.
+```
+Nexus owns the OS.  Surfaces execute work.  Materials are governed.
 ```
 
-- **Definition.** **Nexus** is Afenda's **operational origin field** — the locked HOME of the organization. It is **not** a dashboard, cockpit, or widget board. It answers five questions only: _Where am I? · What context is active? · What matters now? · What requires attention? · Where should I move next?_ Customization belongs to the Dock, Utility Bar preferences, and Command shortcuts — **never** to Nexus.
-- **Hierarchy.** `Organization` → **`AppShell`** (same component as `WorkbenchShell`; operating environment — `components/workbench/`) → `WorkbenchSurface` (content region) → `Surface` (actual work). Visually: **L1 Utility Bar → Nexus Field (Orientation Band · Operational Pressure · Truth Map · Priority Lanes · Recent Resolution) → L4 Dock**.
-- **Routing.** `/{locale}/o/{orgSlug}` redirects to **`/{locale}/o/{orgSlug}/nexus`** ([`app/[locale]/o/[orgSlug]/page.tsx`](app/[locale]/o/[orgSlug]/page.tsx)); the **Nexus Field** renders at [`app/[locale]/o/[orgSlug]/nexus/page.tsx`](app/[locale]/o/[orgSlug]/nexus/page.tsx). `/{locale}/o/{orgSlug}/dashboard/*` **= Surfaces** (existing ERP modules: `orbit`, `contacts`, `lynx`, …). The bare `/dashboard` index is removed; surfaces are reached only by direct URL or via the Nexus Field / Command. **`AppShell` mounts at [`app/[locale]/o/[orgSlug]/layout.tsx`](app/[locale]/o/[orgSlug]/layout.tsx)** (not `/dashboard/layout.tsx`) so utility / dock / command / Lynx summon **persist across surfaces** without remount — Spatial OS continuity.
-- **Module shape.** **`components/workbench/`** owns the canonical shell (`workbench-shell.tsx`, utility bar, rail, command layer, dock, mobile rail, skip-to-main) — chrome only, no DB, no Server Actions, no tenant business logic. **`components/nexus/`** retains **only** the Nexus Field product surface (`nexus-page.tsx` + zone components) and Lynx summon (`nexus-lynx-summon*.tsx`). **`lib/features/nexus/`** owns the data layer (one server-shaped **`NexusSnapshot`** per request — not per-widget fetching). Public doors: **`#features/nexus`** (RSC + composition), **`#features/nexus/server`** (`server-only` query graph). Client islands that need types or actions import from **`#features/nexus/client`**.
-- **`/dashboard/` route tree vs `components/dashboard/`.** URL segment **`/o/{orgSlug}/dashboard/...`** is only the **App Router tree** for ERP surfaces (`app/[locale]/o/[orgSlug]/dashboard/**`). There is **no** **`components/dashboard/`** directory for org chrome — legacy **`components/dashboard-shell/`** removed in the Nexus migration. Command palette, Lynx summon, utility bar, dock, and module navigation are **not** duplicated elsewhere; they live **only** under **`components/workbench/`**. Shared surface headers use **`components/module-page-header.tsx`** (and module-owned layouts), not a second shell stack.
-- **Material contract.** Nexus is calm by default — `shell` and `opaque` materials carry it. **`cognition`** appears **only when truth is actively resolving** (Lynx assist, critical interruption). Dense ERP lists, tables, and forms remain `opaque`. Material adoption is centralized in [`app/globals.css`](app/globals.css) per [`design-system.mdc`](.cursor/rules/design-system.mdc) — Workbench and Nexus components must not introduce inline blur / arbitrary `backdrop-blur-[…]` or duplicated material variables.
-- **Layout authority.** Workbench shell owns: **utility bar · dock · command runtime · material runtime · operator presence · Lynx summon**. Nested rail surfaces (org admin, HRM) use **`AppSubLayout`** inside the parent **`AppShell`** — not a second full shell. Product-owned execution chrome (breadcrumbs, surface actions, filters, tabs) still belongs to the surface layout owner when introduced. Layout geometry rule: **CSS that crosses ownership layers belongs to the nearest layout owner — not the leaf component** ([`frontend-quality-contract.mdc`](.cursor/rules/frontend-quality-contract.mdc) §11).
-- **Snapshot contract.** A single server-built **`NexusSnapshot`** carries `org`, `operator`, `readiness`, `surfaces`, `pressure`, `priorityLanes`, `recentResolutions`. **Do not** let Nexus widgets fetch independently — that path leads to dashboard rot at the data layer. Compose ERP truth into the snapshot via **`#features/<module>`** barrels only.
-- **Forbidden vocabulary** in product copy / nav / `messages/*`: **dashboard** (as a noun for the org root), **widget**, **module** (user-facing — internal "feature module" stays), **AI mode**, **notification center**, **cockpit**, **home** (as a noun for the org root). Prefer: **Nexus**, **Surface**, **Pressure**, **Resolution**, **Evidence**, **Command**, **Dock**.
-- **Shell is shipped (ADR-0005 accepted).** **`AppShell`** / **`AppSubLayout`** (implementation exports: `WorkbenchShell` / `WorkbenchSubLayout`) + `WorkbenchSurface` are the canonical post-login shell. There are no further migration phases — do not reintroduce `nexus-shell.tsx`, `nexus-surface-chrome.tsx`, `account-operating-shell.tsx`, `org-admin-workbench-shell.tsx`, `hrm-shell.tsx`, or any legacy shell wrapper.
-- **Path builder.** Locale-internal pathname for the Nexus field is **`organizationNexusPath(orgSlug)`** (returns `/o/{slug}/nexus`); the legacy **`organizationDashboardPath(orgSlug, "home")`** alias resolves to the same Nexus URL.
+- **Org root:** `/{locale}/o/{orgSlug}` → `/{locale}/o/{orgSlug}/nexus`.
+- **Shell mounts at:** `app/[locale]/o/[orgSlug]/layout.tsx` (not dashboard layout) — ensures utility bar / dock / command persist across surfaces.
+- **Components/workbench/** owns all shell chrome. **Components/nexus/** owns Nexus Field + Lynx summon only. No `components/dashboard/`.
+- **NexusSnapshot:** one server-built snapshot per request — no per-widget fetching.
+- **Forbidden vocabulary:** dashboard (as org root noun), widget, cockpit, home (as org root noun), AI mode, notification center.
+- **Shell is final (ADR-0005):** do not reintroduce legacy shell wrappers.
 
-### Auth/IAM route groups (`(auth)` / `(iam)`)
+### Workbench chrome (shell)
 
-- **`lib/auth/`** owns the **canonical** IAM implementation (Neon `auth`, audit, permissions, org audit, client error normalization, etc.). Locale-first auth/account routes live under `app/[locale]/(auth)/**` (auth flows) and `app/[locale]/(iam)/**` (identity/security/org management); both import **`#lib/auth`** (server) and **`#lib/auth-client`** (client) directly. Auth shell session guards: **`requireAuthShellSignedInSession`**, **`requireAuthShellOrgSession`**, **`requireAuthShellGlobalAdminSession`** (`lib/auth/auth-shell-session.server.ts`). Neon webhook receiver: **`verifyNeonAuthWebhookSignature`** from **`#lib/auth`** (`lib/auth/webhook-verify.server.ts`). User-facing URLs are flat (`/{locale}/sign-in`, `/{locale}/account/*`, `/{locale}/console`, etc.; legacy `/{locale}/onboarding` redirects to `/console`).
-- Public doors: **`#lib/auth`** (server, `server-only`) and **`#lib/auth-client`** (client, `"use client"`).
-- HTTP: canonical auth proxy is **`/api/auth/[...path]`** (single handler). **`app/api/integrations/neon-auth-webhooks`** receives Neon webhooks.
-- Neon-managed schema mirrors belong in **`lib/db/schema-neon-auth.ts`** (`pgSchema("neon_auth")`) for querying only; do not add `neon_auth.*` DDL to Drizzle migrations.
-- Do not add duplicate IAM modules anywhere outside `lib/auth/`.
+- `AppShell` / `AppSubLayout` = `WorkbenchShell` / `WorkbenchSubLayout` — import from `#components/workbench/*`.
+- Nested rail surfaces (org admin, HRM) use `AppSubLayout` inside the parent `AppShell`.
+- Shell schema kernel: `workbench-rail.schema.ts` is the single source of truth for rail slots. Builders are pure mappers. Cross-cutting structural changes → `ts-morph` codemod under `scripts/refactors/`.
 
-### Operational execution (Workflow DevKit)
+### Working Memory Rail
 
-- **Role:** [**Workflow DevKit**](https://useworkflow.dev/) (`workflow` package, `withWorkflow` in [`next.config.ts`](next.config.ts)) provides **durable execution only**: retries, batched steps, resumption. It is **not** a product “automation studio,” not a visual builder, and **not** where ERP business rules live.
-- **Authority:** **`lib/features/<module>/actions/*`** (Server Actions) remain the **mutation boundary** for ERP and org-admin. **`#features/lynx`** stays **reasoning / advisory** — it does not own durable operational runs or authoritative ledger writes. **`#features/execution`** holds the **cross-cutting contract** ([`execution.contract.ts`](lib/features/execution/execution.contract.ts), stable **`erp.execution.*`** audit strings) and **`enqueueOrgImportJobWorkflowRun`**; workflow entrypoints that must sit beside domain code (e.g. import ingestion) live under the owning module (`lib/features/org-admin/data/import-job-run.workflow.ts`) and are reached via [`import-job-run-entry.ts`](lib/features/execution/data/import-job-run-entry.ts) so **`#features/org-admin`** stays safe for client imports.
-- **Triggers:** Runs start from **Server Actions**, **route handlers** (`app/api/*` families per **§6**), **cron**, **webhooks**, or **integrations** — not from arbitrary client-driven graphs. Keep **[`proxy.ts`](proxy.ts)** narrow (session/locale only); do not add workflow business logic there.
-- **Tenancy:** Workflow arguments must use **`organizationId`** (and related IDs) **only** from trusted server context after **`requireOrgSession`** / role gates — never from unvalidated client JSON.
-- **Audit:** Emit **`erp.execution.*`** lifecycle rows via **`iam_audit_event`** (`metadata` carries **`jobId`** etc.) after successful commits where applicable; align with [**IAM audit policy (ERP)**](#iam-audit-policy-erp). Org-ingestion completion continues to audit **`org.import.job.complete`** from the workflow finalize step.
-- **Naming / UX bans:** Avoid **workflow builder**, **AI flows**, **automation studio** in nav and user-facing copy; prefer **runs**, **pipelines**, **execution**, **operational processing**.
-- **Explicit backlog — no builder port (early phases):** Do **not** port [**workflow-builder-template**](https://github.com/vercel-labs/workflow-builder-template) (React Flow canvas, plugin graph, “automation studio” UX). **Phase 4–5** criteria from product governance apply before any constrained visual orchestration is reconsidered.
+- Module: `lib/features/rail-memory/` — pins, saved views, recent visits per `(org, user, workbench)`.
+- Audit: `iam.workbench.pin.{create|delete|reorder}` · `iam.workbench.view.{create|update|delete}`.
+- Recents: `recordRecentVisit` via `after()` in RSC pages (not Server Actions). Rate-limited 30s per resource.
+- Limits: `RAIL_PIN_LIMIT_PER_WORKBENCH = 30`, `RAIL_VIEW_LIMIT_PER_WORKBENCH = 30`, `RAIL_RECENT_SURFACE_LIMIT = 5`.
 
-### Operational simulation (scenario replay)
+### Operational primitives (Past · Now · Next / CRUD-SAP / 7W1H)
 
-- **Role:** deterministic **operational what-if** runs that persist **real** **`iam_audit_event`** rows (and any planner-native rows scenarios choose to write) stamped with **`audit_origin = simulation`** (plus `simulation_run_id`, `scenario_id`, `scenario_version`, `simulation_seed`) via **`AsyncLocalStorage`** ([`lib/erp/simulation-context.server.ts`](lib/erp/simulation-context.server.ts)). [`writeIamAuditEvent`](lib/auth/audit.server.ts) merges simulation context automatically; org audit listing/export filter **`production` | `simulation` | `all`** ([`listOrganizationIamAuditEvents`](lib/auth/org-audit.server.ts)).
-- **Module:** [`lib/features/simulation/`](lib/features/simulation/) — public **`#features/simulation`**, server composition **`#features/simulation/server`**, constants **`#features/simulation/constants`**. Scenario ids validated by [`scenarioIdSchema`](lib/erp/scenario-types.shared.ts).
-- **Gate:** **`AFENDA_ENABLE_SIMULATION=1`** ([`.env.config.example`](.env.config.example)); Server Actions **`replayOrgOperationalScenarioAction`** / **`clearOrgOperationalSimulationRunAction`** and CLI **`pnpm simulate:replay`** / **`pnpm simulate:clear`** refuse otherwise.
-- **Audit:** **`org.simulation.scenario.replay`**, **`org.simulation.scenario.clear`**, CSV/stream export toggle audits **`org.governance.export.include_simulated`** (see [**IAM audit policy (ERP)**](#iam-audit-policy-erp)). Admin audit UI uses `?view=simulated|all` against [`parseOrganizationIamAuditOriginFilterParam`](lib/auth/org-audit.server.ts).
-- **Rule:** [`.cursor/rules/simulation-directory.mdc`](.cursor/rules/simulation-directory.mdc).
-
-### Operational primitives (Past · Now · Next, CRUD-SAP, 7W1H)
-
-Afenda's **operational ontology** — shared kernels under `lib/erp/` that every feature module composes (`#lib/erp/temporal-spine.shared`, `#lib/erp/crud-sap.shared`, `#lib/erp/audit-7w1h.shared`, `#lib/erp/audit-7w1h.server`). **Do not invert** the layers below: users experience the product surface; developers compose the temporal spine; architecture enforces internal grammar. `lib/erp/` is primitive-only: no DB schema imports, feature imports, routes, workflows, UI components, or module-specific Orbit / planner behavior.
-
-**Three-layer hierarchy (do not invert)**
-
-```txt
+```
 Orbit               — forward operational execution substrate (product)
 Past · Now · Next   — composition primitive (developers)
 CRUD-SAP + 7W1H     — internal operating grammar + audit shape (architecture)
 ```
 
-**Pinned doctrine**
+- **`lib/erp/` is primitive-only** — no DB schema imports, no feature imports, no UI, no module-specific behavior.
+- **Temporal spine:** `lib/erp/temporal-spine.shared.ts` — `TemporalPast`, `TemporalNow`, `TemporalNext`, `asTemporal`, `asTemporalFromColumns`.
+- **CRUD-SAP verbs** (audit/ranker only — never user labels): `create | resolve | update | deprecate | search | audit | predict`. Use `buildCrudSapAuditAction` for new strings; legacy verbs via `buildErpAuditAction`.
+- **7W1H:** `lib/erp/audit-7w1h.shared.ts` (shape + `describeAuditEvent7W1H`) + `lib/erp/audit-7w1h.server.ts` (`writeAuditEvent7W1H`).
 
-```txt
-Kernel:    Orbit = signal + pressure + owner + evidence + timing + next-safe-action
-Benchmark: An operator can see what deserves attention now and route execution safely.
-Lens:      Orbit is the execution substrate. Sales, accounting, HR, CRM, support,
-           inventory, governance, and projects surface Orbit signals/items by
-           composing #lib/erp/* — never by re-implementing the temporal spine.
-Retired:   OneThing and iThink are removed from the runtime. Their narrative archive
-           is `docs/_draft/ithink_draft_v1_deprecated.md`; do not reintroduce them.
-```
-
-**Past · Now · Next — runtime contract**
-
-- Types + Zod: [`lib/erp/temporal-spine.shared.ts`](lib/erp/temporal-spine.shared.ts) — `TemporalPast`, `TemporalNow`, `TemporalNext`, `TemporalSpine`, `describeTemporalSpine`, `safeParseTemporal`.
-- Runtime: `TemporalObject` with `getPast()` / `getNow()` / `getNext()` plus adapters `asTemporal` and `asTemporalFromColumns` so Lynx, rankers, dashboards, and AI summarisation consume one interface.
-- Column convention (when persisting): JSONB facets for Past / Now / Next — prefer camelCase **`temporalPast` / `temporalNow` / `temporalNext`** on Drizzle models (or snake_case **`temporal_past` / `temporal_now` / `temporal_next`** on new tables if the migration uses that shape). [`asTemporalFromColumns`](lib/erp/temporal-spine.shared.ts) accepts both, plus legacy ADR **`past_context` / `now_context` / `next_context`** keys for one-off reads.
-
-**CRUD-SAP — invisible operating grammar**
-
-- Canonical verbs (audit / ranker / developer composition only — **never** user-visible labels, nav items, or i18n keys at `*.button` / `*.title` / `*.tab`): `create | resolve | update | deprecate | search | audit | predict`. Use product-domain copy instead (“Resolve”, “Show history”, “What breaks if I approve this?”).
-- Strict builder: [`buildCrudSapAuditAction`](lib/erp/crud-sap.shared.ts) for new `erp.<module>.<object>.<verb>` strings. Legacy verbs (`post`, `approve`, `reverse`, `query`, …) stay valid via [`buildErpAuditAction`](lib/erp/crud-sap.shared.ts).
-
-**7W1H — structured audit, natural UI**
-
-- Shape + Zod + natural sentence: [`lib/erp/audit-7w1h.shared.ts`](lib/erp/audit-7w1h.shared.ts) — `AuditEvent7W1H`, `auditEvent7W1HSchema`, `describeAuditEvent7W1H` (sanctioned operator-facing sentence; no `WHO:` / `WHEN:` label grids), `trimAuditCache`.
-- IAM composition (server-only): [`lib/erp/audit-7w1h.server.ts`](lib/erp/audit-7w1h.server.ts) — `writeAuditEvent7W1H` wraps [`writeIamAuditEvent`](lib/auth/audit.server.ts) and optional JSONB cache persistence via caller-supplied `cacheUpdater` (the writer does not import `lib/db`).
-
-**Composition recipe (Server Action)**
-
+**Composition recipe (Server Action):**
 ```ts
 import { buildCrudSapAuditAction } from "#lib/erp/crud-sap.shared"
 import { writeAuditEvent7W1H } from "#lib/erp/audit-7w1h.server"
-import type { AuditEvent7W1H } from "#lib/erp/audit-7w1h.shared"
 
-// After tenant guard + validation: build `event: AuditEvent7W1H`, then:
 await writeAuditEvent7W1H({
-  event: {
-    /* … */ action: buildCrudSapAuditAction({
-      area: "erp",
-      module: "planner",
-      object: "item",
-      verb: "resolve",
-    }),
-  },
-  iam: {
-    actorUserId,
-    organizationId,
-    resourceType: "planner_item",
-    resourceId,
-    metadata: {},
-  },
+  event: { action: buildCrudSapAuditAction({ area: "erp", module: "planner", object: "item", verb: "resolve" }) },
+  iam: { actorUserId, organizationId, resourceType: "planner_item", resourceId, metadata: {} },
   existingCache: row.audit7w1h,
-  cacheUpdater: async (trimmed) => {
-    /* tx.update(…).set({ audit7w1h: trimmed }) */
-  },
+  cacheUpdater: async (trimmed) => { /* tx.update(…).set({ audit7w1h: trimmed }) */ },
 })
 ```
 
-### Organizational control plane (`/o/{orgSlug}/admin`)
+### Orbit / Planner
 
-Authoritative narrative for **org-scoped administration** — the workbench is a **capability registry**, not a sidebar app. Routes are derived from the registry; no parallel constants.
+- Public product: **Orbit**. Internal domain: **Planner** (`lib/features/planner/`).
+- Core primitives: `PlannerSignal`, `PlannerItem`. ADR-0006 + sub-ADRs 0007a-d.
+- **Retired:** OneThing and iThink — do not reintroduce. Historical audit strings in `lib/erp/historical-erp-execution-audit-actions.shared.ts` (read-only).
+- Rule: `.cursor/rules/planner-directory.mdc`
 
-- **URL surface:** **`/{locale}/o/{orgSlug}/admin/{section}`** under [`app/[locale]/o/[orgSlug]/admin/`](app/[locale]/o/[orgSlug]/admin/) (overview, members, audit, settings, integrations). Workbench guards (org admin role + step-up + verified email) live in [`app/[locale]/o/[orgSlug]/admin/layout.tsx`](app/[locale]/o/[orgSlug]/admin/layout.tsx). Legacy account-scoped panes (e.g. **`/{locale}/account/organization/audit`**) remain reachable for non-admins; the workbench is the canonical home.
-- **Workspace URL slug (`/{locale}/o/{orgSlug}/…`):** Hybrid policy — default slug is derived from the organization name (`lib/org-slug-generate.shared.ts`, validated by `normalizeOrgSlugParam`); users may suggest a slug on onboarding; **`allocateUniqueOrganizationSlug`** in `lib/org-slug.server.ts` enforces reserved tokens + global uniqueness against `neon_auth.organization.slug`. Org admins may rename the slug from **Admin → Settings** (Server Actions `prepareOrganizationSlugAction` / `updateOrganizationSlugAction`, IAM audit **`org.profile.slug.update`**).
-- **Module:** [`lib/features/org-admin/`](lib/features/org-admin/) — public door **`#features/org-admin`** ([`index.ts`](lib/features/org-admin/index.ts)). Capabilities are encoded as **filename prefixes** (e.g. **`actions/identity-members.actions.ts`**, **`data/governance-audit.queries.ts`**), never as new sub-folders. Module shape is constrained by **AGENTS §6** + [`scripts/check-agent-contract.mjs`](scripts/check-agent-contract.mjs).
-- **Capability registry (single source of truth):** **`ORG_ADMIN_CAPABILITIES`** in [`lib/features/org-admin/constants.ts`](lib/features/org-admin/constants.ts) drives **all** of: allowed segments ([`isAllowedOrgAdminSegment`](lib/features/org-admin/constants.ts) → [`sanitizePathAfterOrgSlug`](lib/dashboard-org-path.shared.ts)), path builder ([`organizationAdminPath`](lib/features/org-admin/constants.ts)), sidebar items ([`buildOrgAdminNav`](lib/features/org-admin/constants.ts) consumed by [`OrgAdminSidebar`](lib/features/org-admin/components/org-admin-sidebar.tsx)), audit prefix per capability, and contract test snapshots ([`tests/unit/org-admin-contract.test.ts`](tests/unit/org-admin-contract.test.ts)). Adding a section means **registering the capability**, then routes/sidebar/sanitizer derive automatically; do **not** duplicate segment lists.
-- **Cache invalidation:** Server Actions touching admin surfaces revalidate via **[`toLocaleOrgAdminRevalidatePattern`](lib/i18n/locales.shared.ts)** so all `/[locale]/o/[orgSlug]/admin/...` builds refresh.
-- **i18n:** all workbench copy lives under **`OrgAdmin.*`** in [`messages/<locale>.json`](messages/en.json) (`shell`, `nav`, `overview`, `members`, `invite`, `pending`, `memberList`, `audit`, `audit.events`, `client`). Sidebar nav labels resolve via **`OrgAdmin.nav.<navKey>`** with `navKey` enforced by `OrgAdminNavKey` ([`types.ts`](lib/features/org-admin/types.ts)). User-facing copy stays familiar (e.g. **Audit**, **Integrations**) until the post-MVP rebrand listed under **§ Out of scope (rebrand)** in plans.
-- **Event taxonomy (canonical prefixes):** **`ORG_ADMIN_EVENT_NAMESPACES`** in [`lib/features/org-admin/constants.ts`](lib/features/org-admin/constants.ts) declares the only allowed prefixes for new audit / outbound delivery / automation event names: **`iam.* | org.* | erp.* | governance.* | integration.* | workflow.* | system.*`**. Existing **`iam.*`**, **`org.*`**, **`erp.*`** stay; new actions must pick one of these and pass [`isAllowedAuditAction`](lib/features/org-admin/constants.ts). Capability ↔ default audit prefix mapping (current registry):
+### Lynx / Knowledge
 
-  | Capability id  | Segments       | Audit prefix        |
-  | -------------- | -------------- | ------------------- |
-  | `identity`     | `members`      | `org.member.*`      |
-  | `governance`   | `audit`        | `org.governance.*`  |
-  | `integrations` | `integrations` | `org.integration.*` |
-  | `organization` | `settings`     | `org.profile.*`     |
-  | `operations`   | _(reserved)_   | `org.operations.*`  |
+- **Lynx** (`lib/features/lynx/`): ERP machine layer for Truth Retrieval, Operating Briefs, NL→SQL.
+- **Knowledge** (`lib/features/knowledge/`): pgvector substrate. Lynx composes it via `#features/knowledge` barrel.
+- Client islands import `#features/lynx/client` (not the main barrel) to avoid pulling `server-only`.
+- Streaming HTTP: `app/api/erp/lynx/*`. Audit strings: `lynx.contract.ts` (`erp.lynx.*`).
+- Rule: `.cursor/rules/lynx-knowledge.mdc`
 
-- **Operational ontology (internal language):** code modules / audit names / docs use **identity / governance / integrations / operations / organization** language; user-facing labels stay product-friendly until rebrand.
-- **Forbidden:** parallel constants for admin segments outside the registry; deep imports into `lib/features/org-admin/*` from outside the module (use **`#features/org-admin`**); placing admin business logic in `app/[locale]/o/[orgSlug]/admin/*` route files (compose only).
+### HRM
 
-#### Outbound event delivery (`integrations` capability)
+- Module: `lib/features/hrm/` — `HRM_CAPABILITIES` registry drives routes, nav, audit prefixes, sanitizer.
+- Barrels: `#features/hrm` (RSC + registry) · `#features/hrm/client` (path helpers + Server Actions for forms) · `#features/hrm/server` (payroll rule-pack).
+- Routes: `/dashboard/hrm/employees`, `/dashboard/hrm/employees/[employeeId]`, `/dashboard/hrm/[segment]`.
+- **ESLint rule `afenda/hrm-pii-audit-metadata`**: blocks PII keys inside `writeIamAuditEvent*` calls within `lib/features/hrm/`.
+- Narrative: `docs/_draft/hrm-draft-v2.md`.
 
-- **Tables:** **`org_event_endpoint`** (per-org config — name, url, base64 signing key, JSONB events list, signatureVersion, enabled flag) and **`org_event_delivery`** (one row per attempt — `eventType`, `payloadHash`, `signatureVersion`, lifecycle `state`, attempts, `httpStatus`, `errorMessage`, `durationMs`, `nextAttemptAt`, `completedAt`). Schema: [`lib/db/schema.ts`](lib/db/schema.ts); migration: [`drizzle/0005_org_event_delivery.sql`](drizzle/0005_org_event_delivery.sql).
-- **Lifecycle (canonical states):** **`queued | sending | delivered | failed | expired | disabled`** — exposed as **`EVENT_DELIVERY_STATES`** + **`isEventDeliveryState`** in [`lib/features/org-admin/constants.ts`](lib/features/org-admin/constants.ts). Synchronous deliveries still pass through `queued -> sending -> delivered|failed` so future queue/cron implementations can swap behind the same interface.
-- **Queue-compatible interface:** [`lib/features/org-admin/data/integrations-delivery.server.ts`](lib/features/org-admin/data/integrations-delivery.server.ts) exports **`enqueueDelivery({ endpoint, signingKey, envelope })`** → `DeliveryHandle` and **`deliverNow(handle)`** → `DeliveryResult`. Today both run in-process; tomorrow `enqueueDelivery` writes to a queue and a worker calls `deliverNow`. Synchronous helper: **`deliverEventNow`** for Server Actions (used by **`pingOrgEventEndpoint`**).
-- **Canonical envelope + signing:** **`canonicalJsonStringify`** sorts object keys at every level so **`computePayloadHash`** (sha-256 hex) is reproducible across producers/receivers. Outbound POSTs send headers **`x-afenda-event`**, **`x-afenda-delivery`**, **`x-afenda-payload-hash`**, and **`x-afenda-signature: <signatureVersion>=<hex-hmac-sha256>`** signed with the endpoint's signing key. Current algorithm: **`v1`** = HMAC-SHA256 over the canonical JSON body — bump **`ORG_EVENT_SIGNATURE_VERSION`** when rotating algorithms.
-- **Signing-key storage:** column **`signingKeyEncoded`** holds base64url of 32 random bytes. The plaintext is shown **once** in the UI on create/rotate (Server Action returns it; the column is never read by Server Actions other than the delivery pipeline). KMS-backed encryption-at-rest is a follow-up.
-- **Event-type allowlist:** **`ORG_EVENT_TYPES`** in [`lib/features/org-admin/constants.ts`](lib/features/org-admin/constants.ts) is the reviewed set of subscribable types. Schema gates: **`eventTypeSchema`** + **`subscribedEventsSchema`** ([`schemas/integrations-event-type.schema.ts`](lib/features/org-admin/schemas/integrations-event-type.schema.ts)) reject anything outside the canonical taxonomy and the registered allowlist; the endpoint form uses checkboxes against this list — no free-text events.
-- **Server Actions (Tier B, admin-gated):** [`actions/integrations-endpoints.actions.ts`](lib/features/org-admin/actions/integrations-endpoints.actions.ts) exposes **`createOrgEventEndpoint`**, **`updateOrgEventEndpoint`**, **`deleteOrgEventEndpoint`**, **`rotateOrgEventEndpointSecret`**, **`pingOrgEventEndpoint`**. All five guard with **`requireOrgSession` + `canActInOrganization(..., "admin")`**, write IAM audit events on success, and revalidate via **`toLocaleOrgAdminRevalidatePattern("/integrations")`**. Audit action names: **`org.integration.endpoint.create | update | delete | rotate_secret | ping`**.
-- **System producers (cron-driven):** Phase 3P + 3Q fire **`erp.hrm.compliance.aging.{detected|escalated|critical}`** as signed outbound deliveries from the **`hrm-compliance-aging-watch`** cron — one per tier per evidence row, anchored on the matching Phase 3O **`erp.execution.statutory_submission.aging.{detected|escalated|critical}`** audit write. Orgs subscribe per tier (typical pattern: digest channel ← `detected` (7d) · on-call ← `escalated` (14d) · pager ← `critical` (30d)). Producer code: [`lib/features/hrm/data/compliance-aging-fanout.server.ts`](lib/features/hrm/data/compliance-aging-fanout.server.ts) — best-effort, one delivery per evidence row × tier ever (anchored on the audit dedup), operational facets only (no payroll bytes / no PII; gated by **`HRM_FANOUT_FORBIDDEN_KEYS`**). Tier mapping is the source-of-truth constant **`HRM_COMPLIANCE_AGING_TIER_EVENT_TYPES`**.
+### Org admin (`/o/{orgSlug}/admin`)
 
-#### Organizational ingestion jobs (`integrations` capability)
+- Module: `lib/features/org-admin/` — `ORG_ADMIN_CAPABILITIES` drives sidebar, path builder, sanitizer, audit prefixes.
+- URL: `/{locale}/o/{orgSlug}/admin/{section}`.
+- Cache: `toLocaleOrgAdminRevalidatePattern` for Server Actions.
+- Event namespaces: `iam.* | org.* | erp.* | governance.* | integration.* | workflow.* | system.*`
+- Rule: `.cursor/rules/org-admin-directory.mdc`
 
-- **Mental model:** **CSV imports are not "bulk invites" — they are organizational ingestion jobs.** The same primitive will later stage vendors, SKUs, contracts, and policies; member invites are simply the first registered adapter.
-- **Tables:** **`import_job`** (per-org job — adapter id, lifecycle `state`, totals, `inputDigest`, `metadata`), **`import_job_row`** (staged input row with parsed `payload`, per-row `state`, optional downstream `resourceType` / `resourceId`), **`import_job_failure`** (per-row or job-level error with `code`, `message`, optional `field`). Schema: [`lib/db/schema.ts`](lib/db/schema.ts); migration: [`drizzle/0006_org_import_jobs.sql`](drizzle/0006_org_import_jobs.sql).
-- **Lifecycle (canonical states):** job — **`uploaded | running | completed | failed | cancelled`**; row — **`pending | applied | failed | skipped`**. Synchronous adapters still pass through `uploaded -> running -> completed`; async/queue-backed adapters can park jobs in `uploaded` until a worker picks them up. Constants: **`IMPORT_JOB_STATES`** + **`IMPORT_ROW_STATES`** + **`isImportJobState`** / **`isImportRowState`** ([`constants.ts`](lib/features/org-admin/constants.ts)).
-- **Adapter contract:** [`data/import-adapter.server.ts`](lib/features/org-admin/data/import-adapter.server.ts) declares **`OrgImportAdapter<TRow>`** with `id`, `requiredHeaders`, `parseRow(record)` (validation only), and `applyRow(ctx, payload)` (downstream effect). Failure codes: **`validation | rate_limit | duplicate | external_api | permission | unknown`**. Registry: [`data/member-invite.adapter.server.ts`](lib/features/org-admin/data/member-invite.adapter.server.ts) — **`getImportAdapter(id)`** is the lookup. Adding a new adapter requires extending **`OrgImportAdapterId`**, registering in **`IMPORT_ADAPTERS`**, providing a row Zod schema, and (today) wiring the registry inside `getImportAdapter`.
-- **First adapter — `member_invite`:** wraps the same Better Auth **`auth.api.createInvitation`** primitive as **`inviteMemberAction`**, including **`assertOrgInviteRateAllowed`** per row. Quotas therefore apply inside ingestion runs too (over-quota rows surface as `code: "rate_limit"` in `import_job_failure`).
-- **CSV parser:** [`data/csv-parser.shared.ts`](lib/features/org-admin/data/csv-parser.shared.ts) is dependency-free, supports CRLF/LF, quoted fields, and `""` escapes. Header keys are lower-cased + trimmed; data rows are projected to `Record<string, string>`. Hard limits: **`IMPORT_MAX_CSV_BYTES = 256 KB`**, **`IMPORT_MAX_ROWS_PER_JOB = 500`**. **`digestCsv`** returns the sha-256 hex of the canonical body for **`inputDigest`** idempotency.
-- **Server Actions (admin-gated):** [`actions/import-jobs.actions.ts`](lib/features/org-admin/actions/import-jobs.actions.ts) exposes **`createOrgImportJob`** (Tier B — parses CSV, stages rows + validation failures, never applies anything), **`runOrgImportJob`** (Tier A — transitions to **`running`**, audits **`org.import.job.run`**, enqueues [**Workflow DevKit**](https://useworkflow.dev/) apply via **`enqueueOrgImportJobWorkflowRun`**; durable batches in [`import-job-run.workflow.ts`](lib/features/org-admin/data/import-job-run.workflow.ts) transition to **`completed`** and audit **`org.import.job.complete`**), **`cancelOrgImportJob`** (Tier B). All three guard with **`requireOrgSession` + `canActInOrganization(..., "admin")`**, write IAM audit events on success, and revalidate via **`toLocaleOrgAdminRevalidatePattern("/integrations")`**. Audit action names: **`org.import.job.create | run | complete | cancel`**.
+**Org admin capability registry:**
+| Capability | Segment | Audit prefix |
+|---|---|---|
+| `identity` | `members` | `org.member.*` |
+| `governance` | `audit` | `org.governance.*` |
+| `integrations` | `integrations` | `org.integration.*` |
+| `organization` | `settings` | `org.profile.*` |
+| `operations` | _(reserved)_ | `org.operations.*` |
 
-Mirror rule: [`.cursor/rules/org-admin-directory.mdc`](.cursor/rules/org-admin-directory.mdc) (globs: `app/[locale]/o/[orgSlug]/admin/**`, `lib/features/org-admin/**`, `messages/*.json`).
+### Platform admin (`/operator`)
 
-### Platform admin surface (`/operator`)
+- Module: `lib/features/platform-admin/` — `PLATFORM_ADMIN_CAPABILITIES` drives nav + sanitizer.
+- Guards: `requireGlobalAdminSession()` + `requireRecentAuthStepUp` in layout.
+- Capability registry:
 
-**Mental model:** the global **`/{locale}/operator/*`** surface is a registry-driven sibling of the organization workbench, not a marketing page with a single user list. It is the operator console for cross-tenant identity and platform telemetry. Tenant-scoped governance still lives under **`/o/{orgSlug}/admin`**.
+| Capability | Segment | Audit prefix |
+|---|---|---|
+| `directory` | `users` | `iam.user.*` |
+| `organizations` | `organizations` | `iam.organization.*` |
+| `audit` | `audit` | `iam.audit.*` |
+| `system` | `system` | `iam.system.*` |
 
-- **URL surface:** **`/{locale}/operator/{section}`** under [`app/[locale]/operator/`](app/[locale]/operator/) (overview, users, organizations). Layout [`app/[locale]/operator/layout.tsx`](app/[locale]/operator/layout.tsx) enforces **`requireGlobalAdminSession()`** + **`requireRecentAuthStepUp`** before rendering.
-- **Module:** [`lib/features/platform-admin/`](lib/features/platform-admin/) — public door **`#features/platform-admin`** ([`index.ts`](lib/features/platform-admin/index.ts)). Same shape as `org-admin` (capability filename prefixes, `actions` / `data` / `components` / `schemas` only); cross-tenant logic lives here, never in `app/[locale]/operator/*` route files.
-- **Capability registry (single source of truth):** **`PLATFORM_ADMIN_CAPABILITIES`** in [`lib/features/platform-admin/constants.ts`](lib/features/platform-admin/constants.ts) drives nav items ([`PLATFORM_ADMIN_NAV_ITEMS`](lib/features/platform-admin/constants.ts) consumed by [`PlatformAdminSidebar`](lib/features/platform-admin/components/platform-admin-sidebar.tsx)), allowed segments ([`isAllowedPlatformAdminSegment`](lib/features/platform-admin/constants.ts)), path builder ([`platformAdminPath`](lib/features/platform-admin/constants.ts)), audit prefix per capability, and contract test snapshots ([`tests/unit/platform-admin-contract.test.ts`](tests/unit/platform-admin-contract.test.ts)). Adding a section means **registering the capability**, then sidebar/cards/sanitizer derive automatically.
-- **Capability ↔ default audit prefix mapping (current registry):**
+### Operational execution (Workflow DevKit)
 
-  | Capability id   | Segments        | Audit prefix         |
-  | --------------- | --------------- | -------------------- |
-  | `directory`     | `users`         | `iam.user.*`         |
-  | `organizations` | `organizations` | `iam.organization.*` |
-  | `audit`         | `audit`         | `iam.audit.*`        |
-  | `system`        | `system`        | `iam.system.*`       |
+- **Role:** durable execution only (retries, batches, resumption) — not ERP business rules.
+- **Authority:** Server Actions remain the mutation boundary. `#features/execution` holds the cross-cutting contract + `enqueueOrgImportJobWorkflowRun`.
+- **Triggers:** Server Actions → `app/api/*` → cron/webhooks — not client-driven graphs.
+- **Tenancy:** `organizationId` only from trusted server context after `requireOrgSession`.
+- **UX ban:** workflow builder, AI flows, automation studio — prefer runs, pipelines, execution.
 
-- **Users (Tier S, global-admin-gated):** [`actions/users.actions.ts`](lib/features/platform-admin/actions/users.actions.ts) exposes **`setUserRoleAction`**, **`banUserAction`**, **`unbanUserAction`**. Each guards with **`requireGlobalAdminSession()`**, calls Better Auth's admin plugin server API (**`auth.api.setRole | banUser | unbanUser`**), audits as **`iam.user.role.update | iam.user.ban | iam.user.unban`** (no `organizationId`), and revalidates **`toLocaleRoutePattern("/operator/users")`**. Self-targeted ban / role demotion is rejected client-side **and** server-side. Listing uses [`listUsersForPlatformAdmin`](lib/features/platform-admin/data/users.queries.server.ts) which forwards `searchValue` / pagination to Better Auth and projects to a sanitized **`PlatformAdminUserSummary`**.
-- **Organizations:** [`listOrganizationsForPlatformAdmin`](lib/features/platform-admin/data/organizations.queries.server.ts) joins **`organization`** + **`member`** for cross-tenant member counts. The page is read-only — destructive org actions remain inside the per-org workbench under tenant-scoped guards.
-- **i18n:** all platform-admin copy lives under **`PlatformAdmin.*`** in [`messages/<locale>.json`](messages/en.json) (`shell`, `nav`, `card`, `users`, `organizations`). Sidebar nav labels resolve via **`PlatformAdmin.nav.<navKey>`** with `navKey` enforced by `PlatformAdminNavKey` ([`types.ts`](lib/features/platform-admin/types.ts)).
-- **Forbidden:** parallel constants for admin segments outside the registry; deep imports into `lib/features/platform-admin/*` from outside the module (use **`#features/platform-admin`**); cross-tenant mutations in route files (compose only); placing org-scoped actions inside `platform-admin` (those belong in `org-admin`).
+### Operational simulation
 
-### IAM audit policy (ERP)
+- **Role:** deterministic what-if runs persisting real `iam_audit_event` rows stamped `audit_origin = simulation`.
+- **Module:** `lib/features/simulation/` — `#features/simulation` / `#features/simulation/server`.
+- **Gate:** `AFENDA_ENABLE_SIMULATION=1`.
+- **Rule:** `.cursor/rules/simulation-directory.mdc`
 
-**Doctrine:** audit **authority changes**, **durable business state changes**, and **irreversible ERP decisions** — not UI-only validation, stubs without DB writes, or noise.
+### Observability
 
-**Rules:**
+| Layer | What it covers |
+|---|---|
+| Pino (`lib/logger.server.ts`) | Structured evidence log (Node only). `LOG_PRETTY=1` for dev. |
+| OpenTelemetry (`@vercel/otel`) | Execution map — custom spans via `lib/otel-span.server.ts` (Node only) |
+| Sentry (`@sentry/nextjs`) | Incident inbox (grouping, source maps) |
+| `iam_audit_event` | Business truth ledger — do not replace with technical logs |
+| Vercel Runtime Logs | Operational backstop |
 
-```txt
-No DB write → no iam_audit_event row.
-DB write → classify Tier A or Tier B (below).
-Security / org membership / IAM changes → always audit when implemented.
-```
+- **Expected failures** (validation, permission denial) → return values, not `logger.error`.
+- **Caught abnormal failures** on Node → `logUnexpectedServerError` from `#lib/logger.server`.
+- **Edge/client** `error.tsx` / `global-error.tsx` must not import `#lib/logger.server`.
+
+### Neon + Vercel setup checklist
+
+1. `vercel link --scope jacks-projects-7b3cfe94`
+2. Provision Neon via Vercel Marketplace → get pooled `DATABASE_URL`.
+3. Set `DATABASE_URL_UNPOOLED` (direct endpoint) for migrations.
+4. Run `pnpm db:migrate:local` (or `:vercel`) for every Neon branch that serves traffic.
+5. Enable **Neon Auth** in Neon Console for each branch (creates `neon_auth` schema).
+6. Add `OPENAI_API_KEY` (+ optional `EMBEDDING_MODEL`) to Vercel env vars.
+7. Redeploy.
+
+### Validating with Neon and Vercel MCP
+
+Configure MCP servers in `.cursor/mcp.json` (`neon`, `vercel`). Never put secrets in docs.
+
+**Neon MCP:** `describe_project` · `describe_branch` · `compare_database_schema` (check for `vector` ext, missing tables) · `run_sql` (read-only checks).
+
+**Vercel MCP:** `get_project` (confirm `afenda-vercel` metadata) · `search_vercel_documentation` (pooled vs direct Postgres, Neon Marketplace).
+
+### IAM audit policy
+
+**Doctrine:** audit authority changes, durable business state changes, irreversible decisions. No DB write → no `iam_audit_event` row.
 
 **Tiers:**
+- **Tier S** — Security/tenancy (org existence, ownership, destructive org actions)
+- **Tier A** — Irreversible/compliance-sensitive (posting, finalizing, reversing)
+- **Tier B** — Standard durable CRUD (`requireOrgSession` default)
 
-- **Tier S** — Security / tenancy (low volume): org existence, ownership transfers, destructive org actions; often paired with `canActInOrganization(..., "owner")` or global admin flows.
-- **Tier A** — Irreversible or compliance-sensitive: posting / finalizing / reversing accounting, period close, irreversible approvals; use **`canActInOrganization(..., "admin")`** (or **`"owner"`** when policy requires) unless product explicitly allows members.
-- **Tier B** — Standard durable CRUD and guarded master data: default **`requireOrgSession`**; add **`"admin"`** when master data is admin-guarded.
+**Mutation gate matrix:**
+| Mutation type | Gate | Tier |
+|---|---|---|
+| Read-only / validation | `requireOrgSession` if private route | No audit |
+| Standard CRUD | `requireOrgSession` | B |
+| Admin master data | `requireOrgSession` + `canActInOrganization(..., "admin")` | B |
+| Posting / reversing | `requireOrgSession` + `canActInOrganization(..., "admin")` | A |
+| Destructive org action | `requireOrgSession` + `canActInOrganization(..., "owner")` | S/A |
 
-**Mutation matrix (default gates + audit):**
-
-| Mutation type                      | Gate                                                                                       | Audit      |
-| ---------------------------------- | ------------------------------------------------------------------------------------------ | ---------- |
-| Read-only / validation-only        | `requireOrgSession` if route is private                                                    | No         |
-| Standard CRUD                      | `requireOrgSession`                                                                        | Tier B     |
-| Master data (admin-guarded)        | `requireOrgSession` + `canActInOrganization(..., "admin")`                                 | Tier B     |
-| Posting / reversing / finalizing   | `requireOrgSession` + `canActInOrganization(..., "admin")`                                 | Tier A     |
-| Ownership / destructive org action | `requireOrgSession` + `canActInOrganization(..., "owner")` (or global admin via predicate) | Tier S / A |
-
-**Action naming (stable strings for reporting):**
-
-```txt
-erp.<module>.<object>.<verb>
-org.<object>.<verb>
-iam.<area>.<verb>
+**Audit action naming:**
+```
+erp.<module>.<object>.<verb>   →  erp.contact.record.create
+org.<object>.<verb>            →  org.member.invite
+iam.<area>.<verb>              →  iam.session.org_switch
 ```
 
-Examples: `erp.contact.record.create`, `erp.knowledge.chunk.create`, `erp.execution.import_job.run.started`, `erp.execution.import_job.run.completed`, `erp.execution.import_job.run.failed`, `erp.execution.statutory_submission.delivery.failed`, `erp.execution.statutory_submission.retry.attempted`, `erp.execution.statutory_submission.retry.exhausted`, `erp.execution.statutory_submission.aging.detected`, `erp.execution.statutory_submission.aging.escalated`, `erp.execution.statutory_submission.aging.critical`, `erp.execution.planner_recurrence.run.started`, `erp.execution.planner_recurrence.run.completed`, `erp.execution.planner_recurrence.run.skipped`, `erp.execution.planner_recurrence.run.failed`, `erp.execution.planner_reminder.run.started`, `erp.execution.planner_reminder.run.completed`, `erp.execution.planner_reminder.run.failed`, `erp.lynx.truth.query`, `erp.lynx.nl_demo.query`, `erp.lynx.operator.recommend`, `erp.planner.signal.create`, `erp.planner.signal.promote`, `erp.planner.item.create`, `erp.planner.item.update`, `erp.planner.item.resolve`, `erp.planner.item.deprecate`, `erp.planner.session.start`, `erp.planner.session.stop`, `erp.hrm.employee.create`, `erp.hrm.employee.update`, `erp.hrm.employee.archive`, `erp.hrm.dependent.create`, `erp.hrm.dependent.archive`, `erp.hrm.department.create`, `erp.hrm.department.archive`, `erp.hrm.position.create`, `erp.hrm.position.archive`, `erp.hrm.job_grade.create`, `erp.hrm.job_grade.archive`, `erp.hrm.contract.create`, `erp.hrm.contract.activate`, `erp.hrm.contract.terminate`, `erp.hrm.contract.probation_review_due`, `erp.hrm.payroll_profile.upsert`, `erp.hrm.document.attach`, `erp.hrm.onboarding.step.complete`, `erp.hrm.onboarding.offboarding.step.complete`, `erp.hrm.performance.cycle.create`, `erp.hrm.performance.review.submit`, `erp.hrm.performance.review.acknowledge`, `erp.hrm.kpi.period.create`, `erp.hrm.kpi.score.upsert`, `erp.hrm.salary_advance.request`, `erp.hrm.salary_advance.approve`, `erp.hrm.salary_advance.reject`, `erp.hrm.leave_type.create`, `erp.hrm.leave_type.update`, `erp.hrm.leave_type.seed`, `erp.hrm.policy.update`, `erp.hrm.leave.request.create`, `erp.hrm.leave.request.cancel`, `erp.hrm.approval.request`, `erp.hrm.approval.cancel`, `erp.hrm.approval.approve`, `erp.hrm.approval.reject`, `erp.hrm.attendance.event.create`, `erp.hrm.attendance.day.update`, `erp.hrm.payroll.period.lock`, `erp.hrm.compliance_pack.export`, `erp.hrm.compliance_pack.regenerate`, `erp.hrm.claim.submit`, `erp.hrm.claim.cancel`, `erp.hrm.claim.approve`, `erp.hrm.claim.reject`, `erp.hrm.claim.paid`, `erp.hrm.claim.evidence_attach`, `erp.hrm.benefit.create`, `erp.hrm.benefit.update`, `erp.hrm.benefit.archive`, `erp.hrm.benefit.enroll`, `erp.hrm.benefit.enrollment.activate`, `erp.hrm.benefit.enrollment.waive`, `erp.hrm.benefit.enrollment.terminate`, `erp.hrm.benefit.life_event.record`, `erp.hrm.benefit.life_event.verify`, `erp.hrm.document.expiry_warning_30d`, `erp.hrm.document.expiry_warning_14d`, `erp.hrm.document.expiry_critical_7d`, `erp.sale.order.post`, `erp.purchase.order.approve`, `erp.inventory.stock.reserve`, `erp.accounting.entry.post`, `erp.accounting.entry.reverse`, `org.member.invite`, `org.member.remove`, `org.member.role.update`, `org.invitation.cancel`, `org.invitation.accept`, `org.invitation.reject`, `org.integration.endpoint.create`, `org.integration.endpoint.update`, `org.integration.endpoint.delete`, `org.integration.endpoint.rotate_secret`, `org.integration.endpoint.ping`, `org.import.job.create`, `org.import.job.run`, `org.import.job.complete`, `org.import.job.cancel`, `org.feedback.submit`, `org.feedback.acknowledge`, `org.feedback.resolve`, `org.feedback.reject`, `org.simulation.scenario.replay`, `org.simulation.scenario.clear`, `org.governance.export.include_simulated`, `iam.user.role.update`, `iam.user.ban`, `iam.user.unban`, `iam.session.revoke`, `iam.session.revoke_other`, `iam.session.org_switch`, `iam.passkey.remove`, `iam.workbench.pin.create`, `iam.workbench.pin.delete`, `iam.workbench.pin.reorder`, `iam.workbench.view.create`, `iam.workbench.view.update`, `iam.workbench.view.delete`. Session lifecycle remains `iam.session.*` from Better Auth hooks; platform-admin user actions write `iam.user.*` with no `organizationId`. Full **Lynx** audit keys: [`lib/features/lynx/lynx.contract.ts`](lib/features/lynx/lynx.contract.ts). **Historical only (no runtime emitter):** `erp.onething.*`, `erp.ithink.*`, and `erp.execution.onething_*` strings remain in legacy `iam_audit_event` rows and stay renderable via the read-only constants in [`lib/erp/historical-erp-execution-audit-actions.shared.ts`](lib/erp/historical-erp-execution-audit-actions.shared.ts); no active code path emits them (the OneThing / iThink runtime was severed in the 2026-05-12 amendment to ADR-0006).
+**Canonical audit strings** live in each module's `<module>.contract.ts`. Reference files:
+- `lib/features/lynx/lynx.contract.ts` (`erp.lynx.*`)
+- `lib/features/execution/execution.contract.ts` (`erp.execution.*`)
+- `lib/features/rail-memory/constants.ts` (`iam.workbench.*`)
 
-**Server Action checklist** (aligned with [Next.js Server Actions — auth inside the action](https://github.com/vercel/next.js/blob/v16.1.6/docs/01-app/02-guides/authentication.mdx)):
+**Server Action checklist:**
+1. Perform a real DB mutation (stubs → no audit).
+2. Classify Tier A/B/S, apply minimum gate.
+3. `requireOrgSession()` (or stricter) at action start.
+4. `writeIamAuditEvent` **only after successful commit**; include `actorSessionId`, `organizationId`, `resourceType`, `resourceId`; no secrets/bulk PII in `metadata`.
 
-1. Perform real **DB mutation** (stubs that only revalidate: **no** audit).
-2. Classify **Tier A / B / S** and choose **`canActInOrganization`** minimum if not member-default.
-3. **`requireOrgSession()`** (or stricter) at the start of the action.
-4. Call **`writeIamAuditEvent` only after a successful commit**; include `actorSessionId`, `organizationId`, `resourceType`, `resourceId`; keep `metadata` minimal (no secrets / bulk PII).
-
-Implement writers only in `lib/features/<module>/actions/*` via [`writeIamAuditEvent`](lib/auth/audit.server.ts) from [`#lib/auth`](lib/auth/index.ts).
-
-### Postgres row-level security (RLS) — optional compliance layer
-
-When regulatory or threat models require **defense against a forgotten `WHERE organizationId = …`**, add **Postgres RLS** on tenant-scoped tables (e.g. `customers`, **`knowledge_chunk`**, future ERP facts) plus a per-request **`SET LOCAL`** (or transaction-scoped) session variable holding the tenant id, set from the same **`requireOrgSession`** / pool entry path that already gates the app. **Drizzle:** keep schema as today; policies live in SQL migrations alongside Drizzle **`db:push` / `db:migrate`**. **Neon / serverless:** ensure the variable is set on the same connection that runs queries (pool/session pooling patterns — verify with Neon docs for your driver). **Operational note:** RLS complements app-layer guards; it does **not** replace **`requireOrgSession`** or membership checks. Treat RLS rollout as a dedicated migration + performance review (policy predicates on **`organization_id`** indexes).
+**Historical-only strings** (no runtime emitter): `erp.onething.*`, `erp.ithink.*` — renderable via `lib/erp/historical-erp-execution-audit-actions.shared.ts` (read-only).
 
 ---
 
-## 6. ERP clean directory engineer contract (required)
+## 6. Directory contract
 
-### Core philosophy
+### Golden rule
 
-Build the most complete **reference module** with the smallest stable structure, then force all future modules to follow it.
-
-This prevents:
-
-- Spaghetti architecture
-- Random folders
-- Architecture drift
-- Helper/service/utils explosion
-
-### Golden rule (non-negotiable)
-
-```txt
-app/ = routes only
-lib/features/ = ERP modules
-lib/auth/ = IAM control plane (Better Auth config + shared auth helpers)
-lib/db/ = database
-lib/erp/ = tiny shared primitives (e.g. temporal-spine.shared, crud-sap.shared, audit-7w1h.{shared,server}, money, pagination)
+```
+app/          → routes only
+lib/features/ → ERP modules
+lib/auth/     → IAM control plane
+lib/db/       → database schema + client
+lib/erp/      → shared primitives only (temporal-spine, crud-sap, audit-7w1h, money, pagination)
 ```
 
-### Repo hygiene objective (mandatory)
+### Module vocabulary (allowed root entries)
 
-This repository is intentionally strict to prevent boundary drift.
-
-- Every change must either:
-  - follow the current contract, or
-  - update the contract first in this file, then implement.
-- "Works locally" is insufficient if boundaries are violated.
-- Architectural debt should be paid down continuously: prefer deleting accidental structure over preserving it.
-
-### Canonical birth mechanism (mandatory)
-
-New ERP modules **MUST** be scaffolded via **`pnpm gen capability`** ([`turbo/generators/`](turbo/generators/), [`ADR-0009`](docs/decisions/0009-capability-generators-canonical-birth-mechanism.md)). The generator produces the minimum-compliant module shape (`actions/`, `data/`, `components/`, `schemas/`, `constants.ts`, `types.ts`, `index.ts`) with a tier-correct Server Action, `server-only` queries, a Zod schema, a tenant-isolation test, locale-prefixed route page, i18n keys, and a `<module>.contract.ts` audit-action namespace built via [`buildCrudSapAuditAction`](lib/erp/crud-sap.shared.ts).
-
-New Server Actions in existing modules **SHOULD** be scaffolded via **`pnpm gen action`** (prefer **`pnpm gen action --module <slug> [--object …] [--verb …] [--tier B|A|S]`** for scripted slug prefill — see **§3**) so they match the canonical tier-correct shape (Tier B = `requireOrgSession`; Tier A = `canActInOrganization(..., "admin")`; Tier S = owner / global-admin), use **`writeIamAuditEventFromNextHeaders`** with **`buildCrudSapAuditAction`** action strings, and append the new action constant to the module's `<module>.contract.ts`.
-
-Each generator runs **`pnpm lint:agent-contract`** + **`pnpm lint:eslint --fix`** on the touched paths as its final action — generator output passes the contract on day one. Opt-out (hand-authored module / action) is permitted only when explicitly documented in the PR description.
-
-### Root cleanliness policy (mandatory)
-
-Keep repository roots and module roots intentionally clean.
-
-- Do not create generic dumping directories (for example: `tmp/`, `misc/`, `stuff/`, `new/`, `test2/`, `backup/`).
-- At repo root, only add new top-level directories when required by framework/platform conventions or this contract.
-- At module root (`lib/features/<module>/`), only use approved vocabulary (`actions`, `data`, `components`, `schemas`, `constants.ts`, `types.ts`, `index.ts`).
-- If uncertain where a file belongs, place it in the smallest valid existing boundary instead of creating a new folder.
-
-### Canonical directory shape
-
-```txt
-app/
-  [locale]/
-    layout.tsx
-    page.tsx
-    dashboard/
-      [[...segments]]/
-        page.tsx
-    o/
-      [orgSlug]/
-        layout.tsx
-        page.tsx
-        nexus/
-          page.tsx
-          loading.tsx
-        admin/
-          layout.tsx
-          page.tsx
-          members/
-            page.tsx
-          audit/
-            page.tsx
-          settings/
-            page.tsx
-          integrations/
-            page.tsx
-        dashboard/
-          layout.tsx
-          page.tsx
-          contacts/
-            page.tsx
-          hrm/
-            layout.tsx
-            page.tsx
-            employees/
-              page.tsx
-              [employeeId]/
-                page.tsx
-            [segment]/
-              page.tsx
-          sale/
-            page.tsx
-          purchase/
-            page.tsx
-    sign-in/
-    account/
-    admin/
-    console/
-  api/
-    auth/
-    cron/
-    upload/
-    webhooks/
-    integrations/
-lib/
-  auth/
-    index.ts
-    neon.server.ts
-    callback-path.ts
-    session-policy.server.ts
-    stepup.server.ts
-    audit.server.ts
-    org-audit.server.ts
-    org-audit-csv.shared.ts
-    org-audit-export-verify.server.ts
-    permission.server.ts
-  dashboard-module-paths.ts
-  features/
-    contacts/
-      actions/
-      data/
-      components/
-      schemas/
-      types.ts
-      index.ts
-    hrm/
-      actions/
-        employee.actions.ts
-      data/
-        employee.queries.server.ts
-        payroll-rule-pack.server.ts
-      schemas/
-        employee.schema.ts
-      components/
-        add-employee-dialog.tsx
-        employee-archive-form.tsx
-        employee-create-form.tsx
-        employee-detail-page.tsx
-        employee-edit-form.tsx
-        hrm-nav-sidebar.tsx
-        hrm-shell.tsx
-        workforce-page.tsx
-      constants.ts
-      types.ts
-      index.ts
-      server.ts
-      client.ts
-    lynx/
-      lynx.contract.ts
-      actions/
-      data/
-      components/
-      schemas/
-      constants.ts
-      types.ts
-      index.ts
-      client.ts
-    execution/
-      execution.contract.ts
-      data/
-      schemas/
-      index.ts
-    simulation/
-      constants.ts
-      types.ts
-      actions/
-      data/
-      index.ts
-      server.ts
-      client.ts
-    org-admin/
-      actions/
-      data/
-      components/
-      schemas/
-      constants.ts
-      types.ts
-      index.ts
-      server.ts
-      client.ts
-    governed-surface/
-      components/
-      schemas/
-      index.ts
-      client.ts
-  erp/
-    money.ts
-    pagination.ts
-    tenant.ts
-  db/
-    index.ts
-    schema.ts
-tests/
-  fixtures/
-  e2e/
-    utils/
-  unit/
+```
+actions/    → "use server" Server Actions (validation, tenant guard, revalidation)
+data/       → server-only DB access (no React/UI/client imports)
+components/ → ERP module UI only
+schemas/    → Zod validation contracts
+constants.ts · types.ts · index.ts · server.ts (optional) · client.ts (optional)
+*.contract.ts
 ```
 
-Root tooling (not under `app/` or `lib/`): `.config/vitest.config.ts`, `.config/vitest.setup.ts`, `.config/playwright.config.ts`.
+**`index.ts` is required.** Do not add categories not in this list without updating AGENTS.md first.
 
-### Contacts is the reference ceiling module
+**Barrels:**
+- `index.ts` — primary door for Server Components (constants, schemas, async server UI, Server Actions). Do not import from Client Components if the module re-exports async server panels.
+- `client.ts` — types + Server Actions only, for Client Components.
+- `server.ts` — `server-only` re-exports for layouts/shells that need server-only query graphs.
 
-`contacts` defines the maximum ERP module structure.
+### Import boundary (enforced by ESLint + `check-agent-contract.mjs`)
 
-Other modules may use fewer files/folders, but must not introduce new architectural categories unless this `AGENTS.md` contract is updated first.
+```ts
+// ✅ Allowed
+import { listContactsForOrganization } from "#features/contacts"
+import { archiveContactAction } from "#features/contacts/client"
+import { listOrgImportJobs } from "#features/org-admin/server"
 
-Exceptions:
-
-- `planner` / Orbit is the single approved feature-module exception to the default ceiling. Its forward directory contract lives in [`ADR-0006`](docs/decisions/0006-orbit-operational-execution-substrate.md) and [`.cursor/rules/planner-directory.mdc`](.cursor/rules/planner-directory.mdc). When `lib/features/planner/` lands, its reserved categories are governed there and in `scripts/check-agent-contract.mjs`.
-- `governed-surface` is a shared metadata kernel for repeated post-login page chrome. Its doctrine lives in [`ADR-0011`](docs/decisions/0011-governed-surface-metadata-kernel.md). It may contain only `components/`, `schemas/`, `index.ts`, and optional `client.ts` for narrow interactive renderers (for example TanStack Table shells). It must not fetch domain data, own business logic, or render arbitrary JSON/JSX trees.
-
-### Required module vocabulary
-
-Each ERP module must follow the approved module vocabulary.
-
-Allowed module categories:
-
-- `actions/`
-- `data/`
-- `components/`
-- `schemas/`
-- `types.ts`
-- `index.ts`
-- `constants.ts`
-- `server.ts` (optional; see folder semantics)
-- `client.ts` (optional; see folder semantics)
-
-`index.ts` is required.
-
-Other folders/files are created only when the module actually uses that category.
-
-`contacts` may contain the full ceiling structure. Smaller modules may contain fewer categories, but must not invent new categories.
-
-Orbit / `planner` is the only pre-approved exception. Its additional categories are reserved by ADR-0006 and must not be copied into other feature modules.
-
-Folder semantics:
-
-- `actions/`: Server Actions only (`"use server"`), validation, tenant/org guard, revalidation.
-- `data/`: `server-only` DB access, no React/UI/client imports.
-- `components/`: ERP module UI only.
-- `schemas/`: validation contracts (forms, filters, search).
-- `types.ts`: module-local types only.
-- `constants.ts`: module-local constants only.
-- `index.ts`: primary public import door for Server Components (constants, schemas, async server UI, Server Actions). Do **not** import `index.ts` from Client Components if the module also exports async server panels — use `#features/<module>/client` for narrow types + actions instead. Omit `server-only` query re-exports from `index.ts`; compose those via `#features/<module>/server`.
-- `server.ts`: optional **server-only** re-export barrel when `index.ts` must stay client-importable (e.g. org-admin workbench + dashboard shell). Import from Server Components / `server-only` modules only.
-- `client.ts`: optional narrow barrel (**types + Server Actions only**) for Client Components that must not import the full `index.ts` graph (which may re-export async server UI).
-
-#### Mandatory import boundary
-
-- Cross-module imports must go through `#features/<module>`, `#features/<module>/client`, or `#features/<module>/server` (never `#features/<module>/data/...`, etc.).
-- Deep imports into another module are forbidden except the dedicated `#features/<module>/server` and `#features/<module>/client` surfaces.
-- Inside the same module, relative imports are allowed.
-
-Public import rule:
-
-- Allowed: `import { listContactsForOrganization } from "#features/contacts"`
-- Allowed (server composition): `import { listOrgImportJobs } from "#features/org-admin/server"`
-- Allowed (client islands): `import { switchActiveOrgAction } from "#features/org-admin/client"`
-- Forbidden: `import { listContactsForOrganization } from "#features/contacts/data/contacts.queries"`
-
-Enforcement intent:
-
-- If a symbol is needed externally, export it from that module's `index.ts`.
-- If not exported intentionally, it is private by design.
-
-Contacts ceiling reference (maximum expected module complexity):
-
-```txt
-lib/features/contacts/
-  actions/
-    create-contact.ts
-    update-contact.ts
-    archive-contact.ts
-    restore-contact.ts
-    merge-contacts.ts
-    approve-contact.ts
-    reject-contact.ts
-    import-contacts.ts
-    export-contacts.ts
-  data/
-    contacts.queries.ts
-    contacts.mutations.ts
-    contacts.selectors.ts
-    contacts.cache.ts
-  components/
-    contacts-page.tsx
-    contacts-table.tsx
-    contacts-toolbar.tsx
-    contacts-filters.tsx
-    contact-form.tsx
-    contact-detail-panel.tsx
-    contact-audit-timeline.tsx
-    contact-merge-dialog.tsx
-    contact-status-badge.tsx
-  schemas/
-    contact.schema.ts
-    contact-filter.schema.ts
-    contact-import.schema.ts
-    contact-merge.schema.ts
-  constants.ts
-  types.ts
-  index.ts
+// ❌ Forbidden
+import { listContactsForOrganization } from "#features/contacts/data/contacts.queries"
 ```
 
-### Forbidden architecture categories (default ban)
+### Banned categories
 
-These categories are banned unless this contract is explicitly changed:
-
-```txt
-services
-managers
-helpers
-utils
-repositories
-controllers
-hooks
-adapters
-processors
-engines
-builders
-factories
-```
-
-Additional banned patterns:
-
-- `lib/shared/<module-name>/*` as a hidden module mirror
-- `app/dashboard/<module>/utils/*` for domain logic
-- cross-module "temporary" utility files
+`services` · `managers` · `helpers` · `utils` · `repositories` · `controllers` · `hooks` · `adapters` · `processors` · `engines` · `builders` · `factories`
 
 ### API governance
 
-Default: ERP dashboard CRUD uses **Server Actions**, not REST APIs.
+**Default:** ERP dashboard mutations use **Server Actions**, not REST.
 
-Allowed API families only:
-
-```txt
+**Allowed Route Handler families:**
+```
 app/api/auth/*
 app/api/cron/*
 app/api/upload/*
 app/api/webhooks/*
 app/api/integrations/*
-app/api/erp/<module>/*
+app/api/erp/<module>/*   ← mobile/external/streaming/webhook contracts only
 ```
 
-`app/api/erp/<module>/*` is allowed only for mobile/external/public API/streaming/webhook callback contracts.
+### Canonical directory shape
 
-`app/api/integrations/*` may host authenticated streaming or integration-shaped endpoints that are not ERP modules (for example, organization IAM audit CSV export) when Server Actions are a poor fit for large binary responses.
+```
+app/
+  [locale]/
+    (auth)/**     ← sign-in, sign-up, verify-email, forgot/reset password, accept-invitation
+    (iam)/**      ← account, security
+    console/      ← post-login loading bay
+    operator/     ← platform admin surface
+    o/[orgSlug]/
+      layout.tsx  ← AppShell mounts here
+      page.tsx    ← redirect to nexus
+      nexus/
+      admin/      ← org admin workbench
+      dashboard/
+        contacts/ · hrm/ · orbit/ · lynx/ · …
+  api/auth/ · cron/ · upload/ · webhooks/ · integrations/ · erp/<module>/
 
-Forbidden examples:
+lib/
+  auth/           ← IAM control plane (index.ts = public door)
+  db/             ← schema.ts + index.ts
+  erp/            ← shared primitives only
+  features/
+    contacts/     ← ceiling reference module
+    hrm/          ← workforce module
+    lynx/         ← machine layer
+    knowledge/    ← pgvector substrate
+    nexus/        ← org-root data layer
+    planner/      ← Orbit execution substrate (extended vocabulary — see ADR-0006)
+    execution/    ← cross-cutting durable execution contract
+    simulation/   ← scenario replay
+    org-admin/    ← org control plane
+    platform-admin/ ← global admin
+    rail-memory/  ← working memory rail
+    governed-surface/ ← shared post-login page chrome metadata
 
-```txt
-app/api/customers/*
-app/api/internal/*
-app/api/dashboard/*
-app/api/foo/*
+tests/
+  fixtures/   ← deterministic data
+  unit/       ← Vitest
+  e2e/        ← Playwright
+    utils/
 ```
 
-Mutation policy:
+### Module exception: Planner / Orbit
 
-- ERP dashboard mutations: Server Actions first.
-- Introducing a new route handler for dashboard CRUD requires explicit justification in PR notes (consumer cannot use Server Actions, or external/public contract is required).
+`lib/features/planner/` has an extended vocabulary approved by ADR-0006. See `.cursor/rules/planner-directory.mdc`.
 
-### Shared kernel and DB boundary
+### Module exception: governed-surface
 
-- `lib/erp/` must stay tiny and only contain true shared primitives: money, pagination, tenant helpers, audit metadata, shared enums, **Past · Now · Next** ([`lib/erp/temporal-spine.shared.ts`](lib/erp/temporal-spine.shared.ts)), **CRUD-SAP** + **7W1H** ([`lib/erp/crud-sap.shared.ts`](lib/erp/crud-sap.shared.ts), [`lib/erp/audit-7w1h.shared.ts`](lib/erp/audit-7w1h.shared.ts), [`lib/erp/audit-7w1h.server.ts`](lib/erp/audit-7w1h.server.ts)).
-- Do not move module workflows into `lib/erp/`.
-- Keep DB root in [`lib/db`](lib/db), and only split to `lib/db/schema/<module>.ts` when schema growth justifies it.
-
-Hard rule:
-
-- `lib/erp/` is not a fallback bucket. If code is module-specific, it belongs in that module.
-
-### Anti-spaghetti principle
-
-Stable ERP boundaries are allowed early (`actions`, `data`, `components`, `schemas`), but speculative layers are not.
-
-### Agent checklist before adding ERP features
-
-1. Choose module slug (`contacts`, `sale`, `purchase`, etc.).
-2. Place code only inside `lib/features/<module>/...` with the required shape.
-3. Export through `index.ts`; never deep-import another module internals.
-4. Prefer Server Actions for dashboard mutations.
-5. If HTTP is required, stay inside allowed `app/api` families.
-6. Apply tenant guard and cache revalidation consistently.
+May contain only `components/`, `schemas/`, `index.ts`, `client.ts`. Must not fetch domain data or own business logic. See ADR-0011.
 
 ---
 
 ## 7. Design system
 
-| Layer                             | Location                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Notes                                                                                                                                                                                        |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Semantic tokens**               | [`app/globals.css`](app/globals.css) (`:root`, `.dark`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | OKLCH palette, elevation, motion, density, surface spacing, `color-scheme`                                                                                                                   |
-| **Tailwind bridge**               | [`app/globals.css`](app/globals.css) (`@theme inline`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Every `var(--*)` here must resolve to variables under `:root` / `.dark` (see §4.1)                                                                                                           |
-| **Primitive contracts**           | [`lib/design-system.ts`](lib/design-system.ts)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Preferred `ui.*` primitive aliases, allowlisted radii, elevations, density/surface classes, Zod parsers                                                                                      |
-| **Primitives**                    | `components/ui/**` (on-disk shelf; **import only** via `#components/ui/*` — see Rules below)                                                                                                                                                                                                                                                                                                                                                                                                                                                     | CVA, `data-slot`, semantic tokens only (no raw palette utilities)                                                                                                                            |
-| **Dev overlays**                  | [`components/dev/`](components/dev/)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Gated local tooling UI; semantic Tailwind + **`#lib/design-system`** only — **do not** patch [`app/globals.css`](app/globals.css) for these                                                  |
-| **Policy & Figma handoff**        | [`docs/design-system/governance.md`](docs/design-system/governance.md), [`.cursor/rules/figma-code-connect-workflow.mdc`](.cursor/rules/figma-code-connect-workflow.mdc) (Code Connect + primitive parity when editing `components/ui` / `lib/design-system.ts`)                                                                                                                                                                                                                                                                                 | Code leads; Figma mirrors code                                                                                                                                                               |
-| **App shell (Workbench runtime)** | [`docs/decisions/0001-afenda-spatial-os-shell.md`](docs/decisions/0001-afenda-spatial-os-shell.md) (Spatial OS — L1–L4 doctrine) + [`docs/decisions/0005-workbench-canonical-shell.md`](docs/decisions/0005-workbench-canonical-shell.md) (shell unification), [`.cursor/rules/shell-directory.mdc`](.cursor/rules/shell-directory.mdc) (Workbench + Nexus boundaries) | Canonical post-login shell (`AppShell` / `AppSubLayout` in `app/**/layout.tsx`; same components as `WorkbenchShell` / `WorkbenchSubLayout`; plus `WorkbenchSurface`, `WorkbenchRail`, `WorkbenchUtilityBar`); dock + command intent; calm L1 utility band; not feature UI |
+| Layer | Location | Notes |
+|---|---|---|
+| Semantic tokens | `app/globals.css` (`:root`, `.dark`) | OKLCH palette, elevation, motion, density |
+| Tailwind bridge | `app/globals.css` (`@theme inline`) | Every `var(--)` must resolve to `:root`/`.dark` |
+| Primitive contracts | `lib/design-system.ts` | Preferred `ui.*` aliases, allowlisted radii, Zod parsers |
+| Primitives shelf | `components/ui/**` | Import only via `#components/ui/*` — never filesystem-relative |
+| Dev overlays | `components/dev/` | Gated (`NODE_ENV === "development"`); use existing token utilities only |
+| Policy | `docs/design-system/governance.md` | Code leads; Figma mirrors code |
 
 **Rules:**
-
-- **Official UI shelf:** primitives live under **`components/ui/**`**. **All routes, shells, hooks, and feature code** must import them with the package alias **`#components/ui/<file>`** (declared in [`package.json`](package.json) `imports`). Do **not** use filesystem-relative import specifiers that walk into `components/ui` (for example `../../components/ui/button`) — ESLint rejects them alongside the radix/base-ui boundary on **`app/`**, **`components/`** (except the shelf), **`hooks/`**, **`lib/features/**`**, and the rest of **`lib/**`**.
-- **`radix-ui` / `@radix-ui/*` / `@base-ui/react`** are confined to **`components/ui`** (same ESLint blocks).
-- Use **`#lib/design-system`** for preferred `ui.*` primitive aliases, allowlisted geometry, elevation, density/surface helpers, and runtime parsers for untrusted variant payloads. Naming doctrine: **Primitive + intent + state**.
-- On filled primary/secondary controls in primitives, use **`bg-primary-hover` / `bg-secondary-hover`**, not **`hover:bg-primary/…`** / **`hover:bg-secondary/…`** (design-contract).
-- **Dev-only UI** under [`components/dev/`](components/dev/): ship **only** with explicit gates (`NODE_ENV === "development"` and/or `NEXT_PUBLIC_*` — see `.env.config.example` §H). Style with **existing** token utilities (`bg-card`, `border-border`, `shadow-elevation-*`, etc.) and **`#lib/design-system`** — **do not** add dev-only blocks to [`app/globals.css`](app/globals.css).
-- Code / CSS detail: `.cursor/rules/design-system.mdc` · dev overlay boundary: `.cursor/rules/dev-directory.mdc`.
-
-**Shell schema kernel — every shell surface is schema-governed.** Shell composition surfaces that accept structured slot data (today `WorkbenchRail`; tomorrow inbox / views / pinned / recents and any future Nexus or utility-bar zone with typed contracts) follow a **kernel-first** discipline:
-
-```txt
-Shell Zod schema is the kernel.
-Per-workbench builders are pure mappers.
-Cross-cutting structural changes use ts-morph codemods, not hand-edits.
-```
-
-- **Single source of truth.** Each shell surface declares its contract in **one** Zod schema (today: [`components/workbench/left-nav-rail/workbench-rail.schema.ts`](components/workbench/left-nav-rail/workbench-rail.schema.ts)). TypeScript types in the matching `*.types.ts` are derived via `z.infer<>`, never hand-extended to add fields the schema does not declare.
-- **Builders are pure mappers.** Rail-slot builders (`buildAccountRailSlotsV2`, `buildHrmRailSlots`, `buildOrgAdminRailSlots`, `buildPlatformAdminRailSlots`) map domain inputs to the kernel-declared shape and nothing else. Decorative pills, ambient context strips, rail-level "description" filler, and hardcoded "Online · secure session" footers are banned outputs — pressure belongs on nav badges with required `tone`; healthy / steady-state values must suppress themselves rather than render "Ready".
-- **Cross-cutting structural changes use codemods.** When a kernel field is added, removed, or renamed, propagate it via a **`ts-morph` codemod** under `scripts/refactors/<date>-<slug>.ts` (idempotent, `--dry-run` default + `--apply`) rather than editing each call site by hand. Reference implementation: [`scripts/refactors/2026-05-12-rail-schema-prune.ts`](scripts/refactors/2026-05-12-rail-schema-prune.ts). Builder fan-out is exactly the drift surface this discipline exists to prevent.
-- **Doctrine boundary.** Detail rule: [`.cursor/rules/shell-directory.mdc`](.cursor/rules/shell-directory.mdc) (_Governance kernel_ section). Anti-pattern guardrails for the Working Memory Rail migration live in [`docs/_draft/working-memory-rail-plan.md`](docs/_draft/working-memory-rail-plan.md); promote to an ADR once the reference implementation ships.
-
-**Working Memory Rail — `lib/features/rail-memory/` (PR 3b reference implementation).** The cross-workbench server module that owns per-(org, user, workbench) **pinned records**, **saved views**, and **recent visits**. Public door: **`#features/rail-memory`** ([`lib/features/rail-memory/index.ts`](lib/features/rail-memory/index.ts)).
-
-- **Typed `WorkbenchId` union** — `"account" | "org-admin" | "hrm" | "platform-admin"` (single source of truth: [`lib/features/rail-memory/constants.ts`](lib/features/rail-memory/constants.ts)). DB columns stay `text` for migration ergonomics; `isWorkbenchId` narrows every reader and writer.
-- **Server Actions** — `pinRecordAction`, `unpinRecordAction`, `reorderPinsAction`, `saveViewAction`, `deleteViewAction`, `updateViewAction`. All Tier B (`requireOrgSession`); ownership-scoped reads before any DELETE / UPDATE prevent cross-tenant IDOR; `RAIL_PIN_LIMIT_PER_WORKBENCH` and `RAIL_VIEW_LIMIT_PER_WORKBENCH` (= 30 each) cap the rail surface so it stays scannable.
-- **Audit grammar** — `iam.workbench.pin.create | delete | reorder` and `iam.workbench.view.create | update | delete`. **`iam.workbench.*`** is the canonical namespace for personal operator state on shell surfaces (`rail_pinned_item`, `rail_saved_view` resource types). New audit strings under this namespace must extend `RAIL_MEMORY_AUDIT_ACTIONS`, not be hand-typed.
-- **Recent visits — throughput, not authority change.** `recordRecentVisit` is a server-only function (NOT a Server Action) called from RSC pages. Per-`(org, user, workbench, resourceType, resourceId)` rate-limited at `RAIL_RECENT_RATE_LIMIT_SECONDS = 30s`; surfacing query reads `RAIL_RECENT_QUERY_LIMIT = 50` rows then dedupes in JS to `RAIL_RECENT_SURFACE_LIMIT = 5` (most-recent visit per resource wins). **Not audited** — high frequency would dwarf legitimate IAM events; observability is reserved for OTEL counters.
-- **Module shape (PR 3b ceiling).** `actions/` (pin + view), `data/` (queries + recent writer + DTO mappers), `schemas/` (Zod input parsers). UI section renderers ship in `components/workbench/left-nav-rail/` (PR 3c — see below); per-workbench wiring (`buildHrmRailSlots`, `buildOrgAdminRailSlots`) consumes `listPinnedForUser` / `listSavedViewsForUser` / `listRecentsForUser` + `pinDtoToSlot` / `viewDtoToSlot` / `recentDtoToSlot` mappers in PR 3d/3e.
-- **Forbidden:** deep imports into `lib/features/rail-memory/data/...` from outside the module (use the `#features/rail-memory` barrel); reshaping `WorkbenchRailPin` / `WorkbenchRailView` / `WorkbenchRailRecent` payloads anywhere outside the published mappers; emitting `iam.workbench.*` strings from any module other than `rail-memory` (cross-workbench audit grammar belongs to a single owner).
-
-**Working Memory Rail UI sections — `components/workbench/left-nav-rail/` (PR 3c).** Four conditional renderers compose the operator-memory zone of `WorkbenchRail`. All four are domain-agnostic chrome — they consume kernel-validated slot data only and live alongside `workbench-rail-section.tsx` (the primary nav section); none are exported from the rail barrel because consumers always go through `WorkbenchRail` itself.
-
-- **`workbench-rail-inbox.tsx`** — single linkable pressure summary ("3 pending"). Sits **above the nav** between identity and primary execution items. Survives collapse with an icon-only badge (the only memory affordance that does — pressure must remain visible below 72px). Tone classes mirror nav-item badges so operators read the same urgency cues across the rail.
-- **`workbench-rail-pinned-section.tsx`** — operator-authored persistence ("Which records am I currently working with?"). Active state uses `match: "exact"` so a pin to `/employees/123` lights up only on that exact record, not on `/employees/123/edit`.
-- **`workbench-rail-views-section.tsx`** — saved filtered URLs ("What queries do I run repeatedly?"). **Active state intentionally not applied**: view URLs almost always carry query strings (`?status=active&grade=L3`), and the active matcher strips `?…` to compute pathname equality — lighting them up on the bare index would mislead. Mirrors Linear's behavior.
-- **`workbench-rail-recents-section.tsx`** — activity-derived continuity ("Where was I just at?"). Locale-aware relative time via **`useNow({ updateInterval: 60_000 })`** + **`useFormatter().relativeTime(date, now)`** from `next-intl` — hydration-safe by construction (server / client share `now` on first paint, client ticks per minute). Renders `<time dateTime={…} suppressHydrationWarning>` for crawler / a11y.
-- **Conditional density doctrine.** `WorkbenchRail` uses `slot !== undefined` checks (`hasInbox` / `hasPinned` / `hasViews` / `hasRecents`) to gate each section. Pinned / views / recents additionally hide entirely in collapsed mode (§3.6 of `working-memory-rail-plan.md`). A `data-rail-memory-divider` hairline appears above the views section only when at least one memory section is present — never as standalone chrome. The order under the nav is **views → pinned → recents** (matches the wireframe in §3.4).
-- **Section labels.** `workbenchRailLabelsSchema` (Phase 3c) adds four optional keys — `inboxAriaLabel`, `pinnedHeading`, `viewsHeading`, `recentsHeading`. The kernel keeps them optional with permanent English fallbacks (`Inbox` / `Pinned` / `Views` / `Recent`) so a builder regression cannot leave a heading-less section in production. Per-workbench callers MUST supply localized values from their own catalogs once they wire slot data (PR 3d onward).
-
-**Working Memory Rail — org-admin reference workbench (PR 3d-1).** First half of the org-admin reference implementation: data + recents wiring with no new operator affordances yet. The rail visibly reacts to admin navigation as soon as 3d-1 ships; pin / save-view buttons + Playwright assertions ship in 3d-2.
-
-- **Inbox derivation — `lib/features/org-admin/data/org-admin-rail-inbox.shared.ts`.** Pure function `deriveOrgAdminInbox` picks the **single** highest-priority pressure entry from the existing `OrgAdminRailPressureMap` and returns either a kernel-shaped `WorkbenchRailInbox` or `null`. Priority order: `critical > attention > default`, ties broken by count, then insertion order; `positive` tones are intentionally never surfaced (the inbox answers *"what needs me right now,"* not *"everything is fine"*). Caller-supplied `resolveLabel(key, count)` keeps i18n out of the deriver — the layout binds it to the `OrgAdmin.rail.inboxLabels.*` ICU plural catalog.
-- **Slot builder extension — `lib/features/org-admin/data/org-admin-rail-slots.ts`.** `buildOrgAdminRailSlots` accepts optional `inbox` / `pinned` / `views` / `recents` parameters. Empty memory arrays collapse to `undefined` so the kernel's strict `workbenchRailSlotsDataSchema` never sees a `pinned: []` (it would reject one); callers can pass `[]` without crashing. Pure mapper — no DB, no `server-only`.
-- **Layout wiring — `app/[locale]/o/[orgSlug]/admin/layout.tsx`.** A single `Promise.all` fans out **seven** authority/memory reads in parallel: `canActInOrganization` (admin gate), `fetchOrgWorkbenchIdentity`, `getOrgAdminRailPressureCounts`, `listPinnedForUser`, `listSavedViewsForUser`, `listRecentsForUser`, `getTranslations("OrgAdmin")`. The layout then derives the inbox from the pressure map (no second DB query) and passes the four localized labels (`inboxAriaLabel` / `pinnedHeading` / `viewsHeading` / `recentsHeading`) to `AppSubLayout`. Memory queries are `React.cache`-wrapped on `(organizationId, userId, workbenchId)`, so a future page that re-reads the same slot inside the request shares this round trip.
-- **Recents recording — `lib/features/org-admin/data/org-admin-rail-recents.server.ts`.** `recordOrgAdminPageVisit({orgSession, orgSlug, segment})` is a thin server-only helper wired into all five admin pages (overview / members / audit / integrations / settings). Resolves the localized recent label from `OrgAdmin.rail.recentsLabels.*`, computes the canonical `org_admin_<segment>` `resourceType`, and defers `recordRecentVisit` via **`after()`** so the page response streams without waiting on the recents `INSERT`. The audit page records only the bare path (no `?page` query) so paginating the audit log does not fan out into many recents rows. **Best-effort.** Recents writes are not audited (high frequency would dwarf legitimate `iam_audit_event` rows; OTEL counters are a follow-up). The DB-side rate limiter (30s per `(org, user, workbench, resourceType, resourceId)`) keeps a navigation burst to a single row.
-- **Catalog additions.** `OrgAdmin.rail.inboxLabels.*` carries ICU plural strings keyed by `OrgAdminNavKey` (`{count, plural, one {# pending invitation} other {# pending invitations}}`); `OrgAdmin.rail.recentsLabels.*` carries the human label per admin page (`Members & invitations`, `Audit log`, …). Both blocks are flat strings — no rich text — so the next-intl ICU runtime can resolve them without a `t.rich` boundary.
-- **Forbidden:** writing the recents `INSERT` from a Server Action (recents are RSC-only — see `lib/features/rail-memory/data/recent.mutations.server.ts`); inventing a parallel inbox-derivation helper outside `lib/features/org-admin/data/org-admin-rail-inbox.shared.ts` (the rail must converge on one priority policy per workbench); duplicating the `org_admin_<segment>` resource-type taxonomy outside `org-admin-rail-recents.server.ts`.
+- `radix-ui` / `@radix-ui/*` / `@base-ui/react` confined to `components/ui`.
+- On filled primary/secondary controls: use `bg-primary-hover` / `bg-secondary-hover`, not `hover:bg-primary/…`.
+- Dev overlays: **do not** patch `app/globals.css` for dev-only styles.
+- Rule: `.cursor/rules/design-system.mdc`
 
 ---
 
-## 8. Critical Next.js practices (App Router)
+## 8. Decision protocol
 
-**Canonical checklists (always-on in-editor):** **`.cursor/rules/nextjs-best-practices.mdc`** — Server vs client boundaries, async `cookies` / `headers` / `params` / `searchParams`, caching, Server Actions vs Route Handlers, forbidden client patterns, loading/error/Suspense defaults. **`.cursor/rules/frontend-quality-contract.mdc`** — `useEffect` anti-patterns, client import boundaries, ERP state handling, component composition, performance, TypeScript standards, layout geometry ownership (layer doctrine).
-
-**App Router Runtime Doctrine — five dedicated rules (use App Router special files as runtime contracts, not UI conveniences):**
-
-| File            | Afenda meaning         | Rule                                                                                                 |
-| --------------- | ---------------------- | ---------------------------------------------------------------------------------------------------- |
-| `layout.tsx`    | Runtime kernel         | Establish authority, tenant, shell, envelope · **`.cursor/rules/app-router-contracts.mdc`**          |
-| `error.tsx`     | Recovery boundary      | Recover uncaught render/runtime failure · **`.cursor/rules/app-router-contracts.mdc`**               |
-| `loading.tsx`   | Waiting contract       | Keep shell visible while page streams · **`.cursor/rules/app-router-contracts.mdc`**                 |
-| `not-found.tsx` | Invalid truth boundary | Show missing org/module/record without destroying shell · **`.cursor/rules/app-router-contracts.mdc`** |
-| `template.tsx`  | Reset boundary         | Defer unless intentional remount is required · **`.cursor/rules/app-router-contracts.mdc`**          |
-
-**Repo deltas (read with §5 [locale-first surface](#locale-first-application-surface)):**
-
-- **`proxy.ts`** composes **next-intl** + **Better Auth cookie presence**; keep it narrow (no DB, no session body validation). Post-login **`callbackUrl`** must be **locale-prefixed** and validated as same-origin relative paths only ([`resolvePostAuthCallbackUrl`](lib/auth/callback-path.ts)).
-- **Product routes** default under **`app/[locale]/…`**; use **`#i18n/navigation`** on the client and **`toLocalePath`** / **`toLocaleRoutePattern`** on the server for redirects and `revalidatePath`.
-
-When framework or platform behavior is uncertain, prefer **Context7** (`/vercel/next.js`) or **Vercel MCP** over stale training data (see [§11](#11-documentation-refresh)).
-
----
-
-## 9. Repo-specific rules
-
-- **UI / registry:** When editing mirrored registry trees, follow `.cursor/rules/registry-bases-parity.mdc` (if those paths exist in your branch).
-- **Images / brand assets:** `next/image`, `localPatterns`/`remotePatterns`, SVG, OG, PWA, favicon workflow: [`.cursor/rules/assets.mdc`](.cursor/rules/assets.mdc) · constants in [`lib/site.ts`](lib/site.ts).
-- **Developer overlays:** [`components/dev/`](components/dev/) holds **gated** local tooling UI only (not product, not ERP). Server entry components must return **`null`** outside development unless explicitly enabled. Route-error diagnostics: client `error.tsx` reports via `useReportRouteError`; dev-only `RouteErrorDebugPanel` (`components/dev/route-error-debug-panel.tsx`) renders segment + stack + copy-JSON; gated by `NODE_ENV === "development"` + optional `NEXT_PUBLIC_DEV_ERROR_PANEL`. Rule: [`.cursor/rules/dev-directory.mdc`](.cursor/rules/dev-directory.mdc).
-
----
-
-## 10. Decision protocol when constraints conflict
-
-If speed and architecture safety conflict:
+When speed and architecture safety conflict:
 
 1. Keep boundaries intact.
 2. Choose the smallest compliant implementation.
 3. Document the trade-off in the PR/commit message.
 4. Do not introduce speculative abstractions.
+5. New architectural category → update **AGENTS.md first**, then implement.
 
 ---
 
-## 11. Documentation refresh
+## 9. Documentation refresh
 
-When Next.js or platform behavior is uncertain, prefer **Context7** (`/vercel/next.js`) or **Vercel MCP** `search_vercel_documentation` over stale training data.
+When Next.js or platform behavior is uncertain, prefer **Context7** (`/vercel/next.js`) or **Vercel MCP** `search_vercel_documentation` over training data.
+
+For Drizzle: Context7 `/websites/orm_drizzle_team`.
+
+For next-intl: Context7 `/amannn/next-intl`.

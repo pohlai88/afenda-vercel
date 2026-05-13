@@ -22,7 +22,9 @@ type BenefitLifeEventRecordDialogProps = {
   employees: ReadonlyArray<LeaveEmployeeChoiceRow>
 }
 
-export function BenefitLifeEventRecordDialog({ employees }: BenefitLifeEventRecordDialogProps) {
+export function BenefitLifeEventRecordDialog({
+  employees,
+}: BenefitLifeEventRecordDialogProps) {
   const t = useTranslations("Dashboard.Hrm.benefits")
   const [open, setOpen] = useState(false)
 
@@ -37,9 +39,14 @@ export function BenefitLifeEventRecordDialog({ employees }: BenefitLifeEventReco
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("lifeEventDialogTitle")}</DialogTitle>
-          <DialogDescription>{t("lifeEventDialogDescription")}</DialogDescription>
+          <DialogDescription>
+            {t("lifeEventDialogDescription")}
+          </DialogDescription>
         </DialogHeader>
-        <BenefitLifeEventRecordForm employees={employees} onSuccess={() => setOpen(false)} />
+        <BenefitLifeEventRecordForm
+          employees={employees}
+          onSuccess={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   )

@@ -30,7 +30,10 @@ function statusVariant(
   return "secondary"
 }
 
-export async function BenefitLifeEventsTable({ isAdmin, rows }: BenefitLifeEventsTableProps) {
+export async function BenefitLifeEventsTable({
+  isAdmin,
+  rows,
+}: BenefitLifeEventsTableProps) {
   const t = await getTranslations("Dashboard.Hrm.benefits.lifeEventsTable")
 
   function eventTypeLabel(eventType: BenefitLifeEventType): string {
@@ -77,19 +80,31 @@ export async function BenefitLifeEventsTable({ isAdmin, rows }: BenefitLifeEvent
         <thead className="border-b border-border bg-muted/40">
           <tr>
             <th className="px-3 py-2 text-start font-medium">{t("colDate")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("colEmployee")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("colEvent")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("colStatus")}</th>
+            <th className="px-3 py-2 text-start font-medium">
+              {t("colEmployee")}
+            </th>
+            <th className="px-3 py-2 text-start font-medium">
+              {t("colEvent")}
+            </th>
+            <th className="px-3 py-2 text-start font-medium">
+              {t("colStatus")}
+            </th>
             {isAdmin ? (
-              <th className="px-3 py-2 text-end font-medium">{t("colActions")}</th>
+              <th className="px-3 py-2 text-end font-medium">
+                {t("colActions")}
+              </th>
             ) : null}
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
             <tr key={row.id} className="border-b border-border last:border-0">
-              <td className="px-3 py-2 align-top text-muted-foreground">{isoDay(row.eventDate)}</td>
-              <td className="px-3 py-2 align-top font-medium">{row.employeeLegalName}</td>
+              <td className="px-3 py-2 align-top text-muted-foreground">
+                {isoDay(row.eventDate)}
+              </td>
+              <td className="px-3 py-2 align-top font-medium">
+                {row.employeeLegalName}
+              </td>
               <td className="px-3 py-2 align-top">
                 <div>
                   {isBenefitLifeEventType(row.eventType)
@@ -97,7 +112,9 @@ export async function BenefitLifeEventsTable({ isAdmin, rows }: BenefitLifeEvent
                     : row.eventType}
                 </div>
                 {row.notes ? (
-                  <div className="mt-1 max-w-md text-xs text-muted-foreground">{row.notes}</div>
+                  <div className="mt-1 max-w-md text-xs text-muted-foreground">
+                    {row.notes}
+                  </div>
                 ) : null}
               </td>
               <td className="px-3 py-2 align-top">
@@ -108,7 +125,7 @@ export async function BenefitLifeEventsTable({ isAdmin, rows }: BenefitLifeEvent
                 </Badge>
               </td>
               {isAdmin ? (
-                <td className="px-3 py-2 align-top text-end">
+                <td className="px-3 py-2 text-end align-top">
                   {row.verificationStatus === "pending" ? (
                     <BenefitLifeEventVerifyActions lifeEventId={row.id} />
                   ) : (

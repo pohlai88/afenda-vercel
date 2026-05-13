@@ -45,7 +45,10 @@ function isoDay(value: Date | null): string {
   return value.toISOString().slice(0, 10)
 }
 
-export function BenefitEnrollmentTable({ isAdmin, rows }: BenefitEnrollmentTableProps) {
+export function BenefitEnrollmentTable({
+  isAdmin,
+  rows,
+}: BenefitEnrollmentTableProps) {
   const t = useTranslations("Dashboard.Hrm.benefits.enrollmentTable")
 
   function coverageLabel(coverageLevel: BenefitCoverageLevel): string {
@@ -83,31 +86,48 @@ export function BenefitEnrollmentTable({ isAdmin, rows }: BenefitEnrollmentTable
       <table className="w-full min-w-[720px] caption-bottom text-sm">
         <thead className="border-b border-border bg-muted/40">
           <tr>
-            <th className="px-3 py-2 text-start font-medium">{t("colEmployee")}</th>
+            <th className="px-3 py-2 text-start font-medium">
+              {t("colEmployee")}
+            </th>
             <th className="px-3 py-2 text-start font-medium">{t("colPlan")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("colCoverage")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("colState")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("colEffective")}</th>
+            <th className="px-3 py-2 text-start font-medium">
+              {t("colCoverage")}
+            </th>
+            <th className="px-3 py-2 text-start font-medium">
+              {t("colState")}
+            </th>
+            <th className="px-3 py-2 text-start font-medium">
+              {t("colEffective")}
+            </th>
             {isAdmin ? (
-              <th className="px-3 py-2 text-end font-medium">{t("colActions")}</th>
+              <th className="px-3 py-2 text-end font-medium">
+                {t("colActions")}
+              </th>
             ) : null}
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.enrollmentId} className="border-b border-border last:border-0">
+            <tr
+              key={row.enrollmentId}
+              className="border-b border-border last:border-0"
+            >
               <td className="px-3 py-2 align-top">
                 <div className="font-medium">{row.employeeLegalName}</div>
-                <div className="text-xs text-muted-foreground">{row.employeeNumber}</div>
+                <div className="text-xs text-muted-foreground">
+                  {row.employeeNumber}
+                </div>
               </td>
               <td className="px-3 py-2 align-top">
                 <div>{row.benefitName}</div>
-                <div className="font-mono text-xs text-muted-foreground">{row.benefitCode}</div>
+                <div className="font-mono text-xs text-muted-foreground">
+                  {row.benefitCode}
+                </div>
               </td>
               <td className="px-3 py-2 align-top text-muted-foreground">
                 {row.coverageLevel && isBenefitCoverageLevel(row.coverageLevel)
                   ? coverageLabel(row.coverageLevel)
-                  : row.coverageLevel ?? "—"}
+                  : (row.coverageLevel ?? "—")}
               </td>
               <td className="px-3 py-2 align-top">
                 <Badge variant={stateVariant(row.state)}>
@@ -120,7 +140,7 @@ export function BenefitEnrollmentTable({ isAdmin, rows }: BenefitEnrollmentTable
                 {isoDay(row.effectiveFrom)}
               </td>
               {isAdmin ? (
-                <td className="px-3 py-2 align-top text-end">
+                <td className="px-3 py-2 text-end align-top">
                   <BenefitEnrollmentRowActions row={row} />
                 </td>
               ) : null}
@@ -132,7 +152,11 @@ export function BenefitEnrollmentTable({ isAdmin, rows }: BenefitEnrollmentTable
   )
 }
 
-function BenefitEnrollmentRowActions({ row }: { row: BenefitEnrollmentListRow }) {
+function BenefitEnrollmentRowActions({
+  row,
+}: {
+  row: BenefitEnrollmentListRow
+}) {
   if (row.state === "pending") {
     return (
       <div className="flex flex-col items-end gap-3">
@@ -149,7 +173,10 @@ function BenefitEnrollmentRowActions({ row }: { row: BenefitEnrollmentListRow })
 
 function ActivateEnrollmentButton({ enrollmentId }: { enrollmentId: string }) {
   const t = useTranslations("Dashboard.Hrm.benefits.enrollmentTable")
-  const [state, formAction, pending] = useActionState(activateBenefitEnrollmentAction, undefined)
+  const [state, formAction, pending] = useActionState(
+    activateBenefitEnrollmentAction,
+    undefined
+  )
   const router = useRouter()
   const did = useRef(false)
   useEffect(() => {
@@ -170,7 +197,11 @@ function ActivateEnrollmentButton({ enrollmentId }: { enrollmentId: string }) {
       <Button size="sm" type="submit" disabled={pending}>
         {pending ? (
           <>
-            <Loader2 className="size-4 animate-spin" data-icon="inline-start" aria-hidden />
+            <Loader2
+              className="size-4 animate-spin"
+              data-icon="inline-start"
+              aria-hidden
+            />
             {t("activating")}
           </>
         ) : (
@@ -184,7 +215,10 @@ function ActivateEnrollmentButton({ enrollmentId }: { enrollmentId: string }) {
 function WaiveEnrollmentForm({ enrollmentId }: { enrollmentId: string }) {
   const t = useTranslations("Dashboard.Hrm.benefits.enrollmentTable")
   const reasonId = useId()
-  const [state, formAction, pending] = useActionState(waiveBenefitEnrollmentAction, undefined)
+  const [state, formAction, pending] = useActionState(
+    waiveBenefitEnrollmentAction,
+    undefined
+  )
   const router = useRouter()
   const did = useRef(false)
   useEffect(() => {
@@ -195,7 +229,10 @@ function WaiveEnrollmentForm({ enrollmentId }: { enrollmentId: string }) {
   }, [state, router])
   const err = state && !state.ok ? state.errors.form : null
   return (
-    <form action={formAction} className="flex w-full max-w-xs flex-col items-end gap-2">
+    <form
+      action={formAction}
+      className="flex w-full max-w-xs flex-col items-end gap-2"
+    >
       <input type="hidden" name="enrollmentId" value={enrollmentId} />
       {err ? (
         <Alert variant="destructive" className="py-2">
@@ -216,7 +253,11 @@ function WaiveEnrollmentForm({ enrollmentId }: { enrollmentId: string }) {
       <Button size="sm" type="submit" variant="outline" disabled={pending}>
         {pending ? (
           <>
-            <Loader2 className="size-4 animate-spin" data-icon="inline-start" aria-hidden />
+            <Loader2
+              className="size-4 animate-spin"
+              data-icon="inline-start"
+              aria-hidden
+            />
             {t("waiving")}
           </>
         ) : (
@@ -231,7 +272,10 @@ function TerminateEnrollmentForm({ enrollmentId }: { enrollmentId: string }) {
   const t = useTranslations("Dashboard.Hrm.benefits.enrollmentTable")
   const reasonId = useId()
   const dateId = useId()
-  const [state, formAction, pending] = useActionState(terminateBenefitEnrollmentAction, undefined)
+  const [state, formAction, pending] = useActionState(
+    terminateBenefitEnrollmentAction,
+    undefined
+  )
   const router = useRouter()
   const did = useRef(false)
   useEffect(() => {
@@ -242,7 +286,10 @@ function TerminateEnrollmentForm({ enrollmentId }: { enrollmentId: string }) {
   }, [state, router])
   const err = state && !state.ok ? state.errors.form : null
   return (
-    <form action={formAction} className="flex w-full max-w-xs flex-col items-end gap-2">
+    <form
+      action={formAction}
+      className="flex w-full max-w-xs flex-col items-end gap-2"
+    >
       <input type="hidden" name="enrollmentId" value={enrollmentId} />
       {err ? (
         <Alert variant="destructive" className="py-2">
@@ -264,7 +311,11 @@ function TerminateEnrollmentForm({ enrollmentId }: { enrollmentId: string }) {
       <Button size="sm" type="submit" variant="destructive" disabled={pending}>
         {pending ? (
           <>
-            <Loader2 className="size-4 animate-spin" data-icon="inline-start" aria-hidden />
+            <Loader2
+              className="size-4 animate-spin"
+              data-icon="inline-start"
+              aria-hidden
+            />
             {t("terminating")}
           </>
         ) : (

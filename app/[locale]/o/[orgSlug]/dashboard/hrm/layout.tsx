@@ -23,7 +23,11 @@ export default async function OrgDashboardHrmLayout({
         <WorkbenchSubLayoutShellSkeleton statusLabel="Loading human resources" />
       }
     >
-      <OrgHrmDeferredWorkbench locale={locale} orgSlug={orgSlug} orgSession={orgSession}>
+      <OrgHrmDeferredWorkbench
+        locale={locale}
+        orgSlug={orgSlug}
+        orgSession={orgSession}
+      >
         {children}
       </OrgHrmDeferredWorkbench>
     </Suspense>

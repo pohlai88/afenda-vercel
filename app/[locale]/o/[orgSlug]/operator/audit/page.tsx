@@ -1,6 +1,10 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedSection, GovernedSurface, parsePageHeaderData } from "#features/governed-surface"
+import {
+  GovernedSection,
+  GovernedSurface,
+  parsePageHeaderData,
+} from "#features/governed-surface"
 import { organizationOperatorPath } from "#features/platform-admin"
 import { requireGlobalAdminSession } from "#lib/tenant"
 
@@ -22,7 +26,9 @@ export default async function OrganizationPlatformAdminAuditPage({
     backLabel: t("backToOperator"),
   })
   if (!headerParsed.success) {
-    throw new Error("OrganizationPlatformAdminAuditPage: invalid governed page header payload")
+    throw new Error(
+      "OrganizationPlatformAdminAuditPage: invalid governed page header payload"
+    )
   }
 
   return (

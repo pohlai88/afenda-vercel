@@ -19,7 +19,10 @@ type BenefitArchivePlanFormProps = {
   planLabel: string
 }
 
-export function BenefitArchivePlanForm({ planId, planLabel }: BenefitArchivePlanFormProps) {
+export function BenefitArchivePlanForm({
+  planId,
+  planLabel,
+}: BenefitArchivePlanFormProps) {
   const t = useTranslations("Dashboard.Hrm.benefits")
   const router = useRouter()
   const formId = useId()
@@ -42,7 +45,11 @@ export function BenefitArchivePlanForm({ planId, planLabel }: BenefitArchivePlan
   }, [state, router])
 
   return (
-    <form id={formId} action={formAction} className="inline-flex flex-col items-start gap-1">
+    <form
+      id={formId}
+      action={formAction}
+      className="inline-flex flex-col items-start gap-1"
+    >
       <input type="hidden" name="planId" value={planId} />
       {fieldErrors?.form ? (
         <Alert variant="destructive" className="max-w-xs">
@@ -50,7 +57,9 @@ export function BenefitArchivePlanForm({ planId, planLabel }: BenefitArchivePlan
           <AlertDescription>{fieldErrors.form}</AlertDescription>
         </Alert>
       ) : null}
-      {fieldErrors?.planId ? <FieldError>{fieldErrors.planId}</FieldError> : null}
+      {fieldErrors?.planId ? (
+        <FieldError>{fieldErrors.planId}</FieldError>
+      ) : null}
       <Button
         size="sm"
         type="submit"
@@ -60,7 +69,11 @@ export function BenefitArchivePlanForm({ planId, planLabel }: BenefitArchivePlan
       >
         {pending ? (
           <>
-            <Loader2 className="size-4 animate-spin" data-icon="inline-start" aria-hidden />
+            <Loader2
+              className="size-4 animate-spin"
+              data-icon="inline-start"
+              aria-hidden
+            />
             {t("archiving")}
           </>
         ) : (

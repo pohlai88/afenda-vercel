@@ -21,7 +21,10 @@ import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../types"
 
 function revalidateKpi() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_KPI), "page")
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_KPI),
+    "page"
+  )
 }
 
 export async function createKpiPeriodAction(

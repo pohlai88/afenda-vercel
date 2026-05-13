@@ -14,7 +14,10 @@ import {
 } from "#components/ui/field"
 import { Input } from "#components/ui/input"
 
-import { enrollBenefitAction, type BenefitEnrollFormState } from "#features/hrm/client"
+import {
+  enrollBenefitAction,
+  type BenefitEnrollFormState,
+} from "#features/hrm/client"
 
 import { BENEFIT_COVERAGE_LEVELS } from "../data/benefit-helpers.shared"
 import type { LeaveEmployeeChoiceRow } from "../data/leave-request.queries.server"
@@ -87,7 +90,9 @@ export function BenefitEnrollmentForm({
             </option>
           ))}
         </select>
-        {fieldErrors?.employeeId ? <FieldError>{fieldErrors.employeeId}</FieldError> : null}
+        {fieldErrors?.employeeId ? (
+          <FieldError>{fieldErrors.employeeId}</FieldError>
+        ) : null}
       </Field>
 
       <Field>
@@ -100,12 +105,20 @@ export function BenefitEnrollmentForm({
             </option>
           ))}
         </select>
-        {fieldErrors?.planId ? <FieldError>{fieldErrors.planId}</FieldError> : null}
+        {fieldErrors?.planId ? (
+          <FieldError>{fieldErrors.planId}</FieldError>
+        ) : null}
       </Field>
 
       <Field>
         <FieldLabel htmlFor={covId}>{t("fieldCoverage")}</FieldLabel>
-        <select id={covId} name="coverageLevel" className={SELECT_CLASS} required defaultValue="employee_only">
+        <select
+          id={covId}
+          name="coverageLevel"
+          className={SELECT_CLASS}
+          required
+          defaultValue="employee_only"
+        >
           {BENEFIT_COVERAGE_LEVELS.map((level) => (
             <option key={level} value={level}>
               {t(`coverageLevels.${level}`)}
@@ -129,18 +142,34 @@ export function BenefitEnrollmentForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor={erAmt}>{t("fieldEmployerAmount")}</FieldLabel>
-          <Input id={erAmt} name="employerContributionAmount" type="number" min={0} step="0.01" />
+          <Input
+            id={erAmt}
+            name="employerContributionAmount"
+            type="number"
+            min={0}
+            step="0.01"
+          />
         </Field>
         <Field>
           <FieldLabel htmlFor={eeAmt}>{t("fieldEmployeeAmount")}</FieldLabel>
-          <Input id={eeAmt} name="employeeContributionAmount" type="number" min={0} step="0.01" />
+          <Input
+            id={eeAmt}
+            name="employeeContributionAmount"
+            type="number"
+            min={0}
+            step="0.01"
+          />
         </Field>
       </div>
 
       <Button type="submit" disabled={pending} className="self-start">
         {pending ? (
           <>
-            <Loader2 className="size-4 animate-spin" data-icon="inline-start" aria-hidden />
+            <Loader2
+              className="size-4 animate-spin"
+              data-icon="inline-start"
+              aria-hidden
+            />
             {t("submitting")}
           </>
         ) : (

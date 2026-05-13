@@ -184,10 +184,10 @@ export function PayrollProfileForm({
         <div className="grid gap-3 sm:grid-cols-2">
           <Field data-invalid={state && !state.ok && state.errors.pcbTp1}>
             <FieldLabel htmlFor="payroll-pcb-tp1">
-              {t("payrollPcbTp1Label")}
+              {t("payrollPcbTp1Label" as never)}
             </FieldLabel>
             <p className="mb-1 text-xs text-muted-foreground">
-              {t("payrollPcbTp1Hint")}
+              {t("payrollPcbTp1Hint" as never)}
             </p>
             <Input
               id="payroll-pcb-tp1"
@@ -206,10 +206,10 @@ export function PayrollProfileForm({
           </Field>
           <Field data-invalid={state && !state.ok && state.errors.pcbTp3}>
             <FieldLabel htmlFor="payroll-pcb-tp3">
-              {t("payrollPcbTp3Label")}
+              {t("payrollPcbTp3Label" as never)}
             </FieldLabel>
             <p className="mb-1 text-xs text-muted-foreground">
-              {t("payrollPcbTp3Hint")}
+              {t("payrollPcbTp3Hint" as never)}
             </p>
             <Input
               id="payroll-pcb-tp3"

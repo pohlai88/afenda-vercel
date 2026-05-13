@@ -17,10 +17,16 @@ import {
   verifyLifeEventFormSchema,
 } from "../schemas/benefit.schema"
 import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
-import type { RecordLifeEventFormState, VerifyLifeEventFormState } from "../types"
+import type {
+  RecordLifeEventFormState,
+  VerifyLifeEventFormState,
+} from "../types"
 
 function revalidateBenefits() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/benefits"), "layout")
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern("/hrm/benefits"),
+    "layout"
+  )
 }
 
 function parseIsoDateStart(iso: string): Date {

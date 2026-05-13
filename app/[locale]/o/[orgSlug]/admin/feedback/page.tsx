@@ -1,6 +1,9 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedSurface, parsePageHeaderData } from "#features/governed-surface"
+import {
+  GovernedSurface,
+  parsePageHeaderData,
+} from "#features/governed-surface"
 import { organizationAdminPath } from "#features/org-admin"
 import { OrgFeedbackList } from "#features/org-feedback"
 import {
@@ -33,7 +36,9 @@ export default async function OrgAdminFeedbackPage({
     backLabel: t("backToWorkbench"),
   })
   if (!headerParsed.success) {
-    throw new Error("OrgAdminFeedbackPage: invalid governed page header payload")
+    throw new Error(
+      "OrgAdminFeedbackPage: invalid governed page header payload"
+    )
   }
 
   return (

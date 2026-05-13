@@ -1,6 +1,6 @@
 ---
 description: Testing layout (Vitest/Playwright/coverage), Knip dead-code verdict, verify pipeline tier ladder
-globs: "tests/**/*,knip.json,package.json,scripts/**/*.mjs"
+globs: "tests/**/*,knip.json,package.json,scripts/**/*.mjs,.config/vitest.config.ts,.config/vitest.setup.ts"
 alwaysApply: false
 ---
 
@@ -15,11 +15,23 @@ alwaysApply: false
 | Directory | Purpose | Rules |
 |---|---|---|
 | `tests/fixtures/` | Deterministic IDs, emails, copy strings, static factories | No Playwright/browser APIs; no ERP workflows; parity enforced by `pnpm lint:fixtures-parity` |
-| `tests/unit/` | Vitest — Node by default | Use `// @vitest-environment jsdom` only for DOM/RTL tests; name DOM specs `*.dom.test.tsx`; no Vitest `projects` until DOM suites justify split |
+| `tests/unit/` | Vitest — Node by default | Use `// @vitest-environment jsdom` only for DOM/RTL tests; name DOM specs `*.dom.test.tsx`; no Vitest `projects` until DOM suites justify split. Config [`.config/vitest.config.ts`](../../.config/vitest.config.ts): **`test.dir`** = `tests/unit`, **`include`** = `**/*.test.{ts,tsx}`**, **`experimental.fsModuleCache`** (watch reruns). **`--coverage`** → `forks` + `maxWorkers: 1` + `fileParallelism: false`. **ADR-0008** |
 | `tests/e2e/` | Playwright `*.spec.ts` | Explicit `goto`/`getByRole`/`getByLabel`; tag stable gates `@smoke`; App Router routes validated here |
 | `tests/e2e/utils/` | Browser helpers | Import from `tests/fixtures`; no duplicate magic strings; avoid deep `test.extend` pyramids |
 
 **Playwright base URL:** `http://127.0.0.1:3001` (`next start`) — keeps `pnpm dev` on 3000. Override with `PLAYWRIGHT_BASE_URL`.
+
+## Vitest scripts (AGENTS.md §2)
+
+| Script | Purpose |
+|--------|---------|
+| `pnpm test` | Watch mode |
+| `pnpm test:fast` | `vitest run` without coverage (`with-env.mjs`) |
+| `pnpm test:ci` / `pnpm test:coverage` | `vitest run --coverage` |
+| `pnpm test:analyze:imports` | `--experimental.importDurations.print=true` — slow imports |
+| `pnpm test:analyze:imports:warn` | `print=on-warn` |
+
+Append Vitest path filters after `--`, e.g. `pnpm test:analyze:imports -- tests/unit/planner`.
 
 ## Coverage (V8)
 

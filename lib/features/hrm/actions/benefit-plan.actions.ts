@@ -16,7 +16,10 @@ import {
   updateBenefitPlanFormSchema,
 } from "../schemas/benefit.schema"
 import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
-import type { BenefitArchiveFormState, BenefitPlanMutationFormState } from "../types"
+import type {
+  BenefitArchiveFormState,
+  BenefitPlanMutationFormState,
+} from "../types"
 
 function isUniqueViolation(err: unknown): boolean {
   return (
@@ -28,7 +31,10 @@ function isUniqueViolation(err: unknown): boolean {
 }
 
 function revalidateBenefits() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/benefits"), "layout")
+  revalidatePath(
+    toLocaleOrgDashboardRevalidatePattern("/hrm/benefits"),
+    "layout"
+  )
 }
 
 function parseIsoDate(iso: string | undefined): Date | null {
@@ -213,7 +219,10 @@ export async function updateBenefitPlanAction(
     .select({ id: hrmBenefit.id })
     .from(hrmBenefit)
     .where(
-      and(eq(hrmBenefit.organizationId, organizationId), eq(hrmBenefit.id, data.planId))
+      and(
+        eq(hrmBenefit.organizationId, organizationId),
+        eq(hrmBenefit.id, data.planId)
+      )
     )
     .limit(1)
   if (!existing) {
@@ -328,7 +337,10 @@ export async function archiveBenefitPlanAction(
       updatedAt: new Date(),
     })
     .where(
-      and(eq(hrmBenefit.organizationId, organizationId), eq(hrmBenefit.id, planId))
+      and(
+        eq(hrmBenefit.organizationId, organizationId),
+        eq(hrmBenefit.id, planId)
+      )
     )
     .returning({ id: hrmBenefit.id })
 

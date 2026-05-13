@@ -23,7 +23,9 @@ export function GovernedAuditPanel({ model }: GovernedAuditPanelProps) {
           {model.headerTitle}
         </h3>
         {model.headerDescription ? (
-          <p className="text-sm text-muted-foreground">{model.headerDescription}</p>
+          <p className="text-sm text-muted-foreground">
+            {model.headerDescription}
+          </p>
         ) : null}
       </div>
       <div className="overflow-x-auto rounded-md border">
@@ -40,11 +42,13 @@ export function GovernedAuditPanel({ model }: GovernedAuditPanelProps) {
           <tbody className="divide-y">
             {model.rows.map((row) => (
               <tr key={row.id}>
-                <td className="px-3 py-2 whitespace-nowrap text-muted-foreground font-mono text-xs">
+                <td className="px-3 py-2 font-mono text-xs whitespace-nowrap text-muted-foreground">
                   {row.occurredAt}
                 </td>
                 <td className="px-3 py-2 font-mono text-xs">{row.action}</td>
-                <td className="max-w-[180px] truncate px-3 py-2">{row.actorLabel}</td>
+                <td className="max-w-[180px] truncate px-3 py-2">
+                  {row.actorLabel}
+                </td>
                 <td className="max-w-[200px] truncate px-3 py-2 text-muted-foreground">
                   {row.resourceLabel ?? "—"}
                 </td>

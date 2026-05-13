@@ -151,7 +151,10 @@ export {
   waiveBenefitEnrollmentAction,
   terminateBenefitEnrollmentAction,
 } from "./actions/benefit-enrollment.actions"
-export { recordLifeEventAction, verifyLifeEventAction } from "./actions/benefit-life-event.actions"
+export {
+  recordLifeEventAction,
+  verifyLifeEventAction,
+} from "./actions/benefit-life-event.actions"
 export type {
   BenefitPlanMutationFormState,
   BenefitArchiveFormState,
