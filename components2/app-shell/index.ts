@@ -42,4 +42,8 @@ export {
 // Import in Client Components to control command palette, notification badge, etc.
 // ---------------------------------------------------------------------------
 export { useAppShellStore } from "../stores/app-shell.store"
-export type { AppShellState, AppShellStore, RailMode } from "../stores/app-shell.store"
+export type {
+  AppShellState,
+  AppShellStore,
+  RailMode,
+} from "../stores/app-shell.store"

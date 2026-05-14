@@ -23,11 +23,7 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "../ui/context-menu"
-import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-} from "../ui/empty"
+import { Empty, EmptyHeader, EmptyTitle } from "../ui/empty"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Separator } from "../ui/separator"
 import {
@@ -40,8 +36,14 @@ import {
 } from "../ui/sidebar"
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
-import { useLaneMemoryStore, LANE_MEMORY_MAX } from "../stores/lane-memory.store"
-import type { LaneMemoryItem, LaneMemoryLane } from "../stores/lane-memory.store"
+import {
+  useLaneMemoryStore,
+  LANE_MEMORY_MAX,
+} from "../stores/lane-memory.store"
+import type {
+  LaneMemoryItem,
+  LaneMemoryLane,
+} from "../stores/lane-memory.store"
 import { AppShellNavItem, PrimaryNavItem } from "./nav-item.client"
 import type {
   AppShellRailConfig,
@@ -93,7 +95,7 @@ function CollapsibleSectionHeader({
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="flex flex-1 items-center gap-1 rounded text-[10px] font-semibold uppercase leading-none tracking-wide text-sidebar-foreground/55 transition-colors hover:text-sidebar-foreground/75 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        className="flex flex-1 items-center gap-1 rounded text-[10px] leading-none font-semibold tracking-wide text-sidebar-foreground/55 uppercase transition-colors hover:text-sidebar-foreground/75 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
       >
         <Icon className="size-2.5 shrink-0" aria-hidden />
         <span>{label}</span>
@@ -194,7 +196,7 @@ function SearchResultsList({
                 />
                 <span className="flex-1 truncate">{item.label}</span>
                 {item.sectionLabel ? (
-                  <span className="shrink-0 text-[10px] uppercase tracking-wide text-sidebar-foreground/35">
+                  <span className="shrink-0 text-[10px] tracking-wide text-sidebar-foreground/35 uppercase">
                     {item.sectionLabel}
                   </span>
                 ) : null}
@@ -220,7 +222,10 @@ function SearchResultsList({
                   onClick={onSelect}
                   className="flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[11px] text-sidebar-foreground transition-colors hover:bg-sidebar-accent/25 hover:text-sidebar-accent-foreground"
                 >
-                  <PinIcon className="size-2.5 shrink-0 opacity-40" aria-hidden />
+                  <PinIcon
+                    className="size-2.5 shrink-0 opacity-40"
+                    aria-hidden
+                  />
                   <span className="flex-1 truncate">{item.label}</span>
                   <span
                     className={cn(
@@ -236,7 +241,10 @@ function SearchResultsList({
                   key={item.id}
                   className="flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[11px] text-sidebar-foreground/65"
                 >
-                  <PinIcon className="size-2.5 shrink-0 opacity-40" aria-hidden />
+                  <PinIcon
+                    className="size-2.5 shrink-0 opacity-40"
+                    aria-hidden
+                  />
                   <span className="flex-1 truncate">{item.label}</span>
                   <span
                     className={cn(
@@ -270,10 +278,13 @@ function SearchResultsList({
                   onClick={onSelect}
                   className="flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[11px] text-sidebar-foreground transition-colors hover:bg-sidebar-accent/25 hover:text-sidebar-accent-foreground"
                 >
-                  <ClockIcon className="size-2.5 shrink-0 opacity-40" aria-hidden />
+                  <ClockIcon
+                    className="size-2.5 shrink-0 opacity-40"
+                    aria-hidden
+                  />
                   <span className="flex-1 truncate">{r.label}</span>
                   {stamp ? (
-                    <span className="shrink-0 text-[10px] tabular-nums text-sidebar-foreground/40">
+                    <span className="shrink-0 text-[10px] text-sidebar-foreground/40 tabular-nums">
                       {stamp}
                     </span>
                   ) : null}
@@ -371,7 +382,7 @@ function RailSearch({
         autoComplete="off"
         spellCheck={false}
         className={cn(
-          "h-full min-h-0 w-full border-0 bg-transparent py-0 pr-7 pl-7 text-xs text-sidebar-foreground shadow-none outline-none ring-0",
+          "h-full min-h-0 w-full border-0 bg-transparent py-0 pr-7 pl-7 text-xs text-sidebar-foreground shadow-none ring-0 outline-none",
           "placeholder:text-sidebar-foreground/50"
         )}
       />
@@ -492,9 +503,7 @@ function NavItemWithLaneMenu({
       {(["pinned", "urgent", "todo"] as const).map((lane) => (
         <ContextMenuItem
           key={lane}
-          onClick={() =>
-            addItem({ label: item.label, href: item.href, lane })
-          }
+          onClick={() => addItem({ label: item.label, href: item.href, lane })}
         >
           <PinIcon className="size-3.5 opacity-60" />
           {LANE_LABELS[lane]}
@@ -507,7 +516,9 @@ function NavItemWithLaneMenu({
     // Pass contextMenuContent directly into PrimaryNavItem — the ContextMenu
     // trigger will be placed on the <SidebarMenuItem> (<li>) which correctly
     // forwards event handlers via prop spreading.
-    return <PrimaryNavItem item={item} contextMenuContent={contextMenuContent} />
+    return (
+      <PrimaryNavItem item={item} contextMenuContent={contextMenuContent} />
+    )
   }
 
   // AppShellNavItem (sub mode) wraps the <li> externally — same HTML validity.
@@ -537,7 +548,7 @@ function RailNavSection({
           {section.label}
         </SidebarGroupLabel>
       ) : null}
-      <SidebarGroupContent className="pb-0 pt-0">
+      <SidebarGroupContent className="pt-0 pb-0">
         <SidebarMenu className="gap-0">
           {section.items.map((item) => (
             <NavItemWithLaneMenu
@@ -584,7 +595,7 @@ function LocalLaneRow({
 
   const rowContent = (
     <span className="group/lane-row flex min-w-0 flex-1 items-center gap-1">
-      <span className="min-w-0 flex-1 truncate text-[11px] font-medium leading-tight">
+      <span className="min-w-0 flex-1 truncate text-[11px] leading-tight font-medium">
         {item.label}
       </span>
       <button
@@ -596,7 +607,7 @@ function LocalLaneRow({
           e.stopPropagation()
           onRemove()
         }}
-        className="invisible shrink-0 rounded p-px text-sidebar-foreground/40 transition-colors hover:text-destructive group-hover/lane-row:visible focus:visible"
+        className="invisible shrink-0 rounded p-px text-sidebar-foreground/40 transition-colors group-hover/lane-row:visible hover:text-destructive focus:visible"
       >
         <XIcon className="size-3" aria-hidden />
       </button>
@@ -645,7 +656,11 @@ function LocalLaneRow({
               className={buttonBase}
             >
               <ContextMenuTrigger asChild>
-                <Link href={item.href} prefetch={false} aria-current={active ? "page" : undefined}>
+                <Link
+                  href={item.href}
+                  prefetch={false}
+                  aria-current={active ? "page" : undefined}
+                >
                   {activeBar}
                   {rowContent}
                 </Link>
@@ -657,9 +672,7 @@ function LocalLaneRow({
           <>
             <SidebarMenuButton size="sm" className={buttonBase}>
               <ContextMenuTrigger asChild>
-                <span className="flex w-full items-center">
-                  {rowContent}
-                </span>
+                <span className="flex w-full items-center">{rowContent}</span>
               </ContextMenuTrigger>
             </SidebarMenuButton>
             {menuContent}
@@ -758,8 +771,8 @@ function RailLanesWidget({ collapsed }: { collapsed: boolean }) {
 
   const laneItems = items.filter((i) => i.lane === activeLane)
   const activeLaneItemId = useMemo(() => {
-    const linked = laneItems.filter((i): i is LaneMemoryItem & { href: string } =>
-      Boolean(i.href)
+    const linked = laneItems.filter(
+      (i): i is LaneMemoryItem & { href: string } => Boolean(i.href)
     )
     return firstMatchingRowId(pathname, linked)
   }, [pathname, laneItems])
@@ -773,7 +786,11 @@ function RailLanesWidget({ collapsed }: { collapsed: boolean }) {
     items.filter((i) => i.lane === lane).length
 
   return (
-    <SidebarGroup aria-label="Memory" data-rail-section="memory-lanes" className="p-0">
+    <SidebarGroup
+      aria-label="Memory"
+      data-rail-section="memory-lanes"
+      className="p-0"
+    >
       <CollapsibleSectionHeader
         icon={PinIcon}
         label="Memory"
@@ -794,98 +811,102 @@ function RailLanesWidget({ collapsed }: { collapsed: boolean }) {
         }
       />
 
-      {open ? <SidebarGroupContent className="pb-0 pt-0">
-        {/* Lane tab switcher */}
-        <ToggleGroup
-          type="single"
-          value={activeLane}
-          onValueChange={(v) => {
-            if (!v) return
-            setActiveLane(v as LaneMemoryLane)
-            setShowAll(false)
-            setShowAdd(false)
-          }}
-          variant="outline"
-          size="sm"
-          className="mb-0.5 grid w-full grid-cols-3 gap-0.5 px-0 py-0"
-        >
-          {(["pinned", "urgent", "todo"] as const).map((lane) => {
-            const count = laneCount(lane)
-            return (
-              <ToggleGroupItem
-                key={lane}
-                value={lane}
-                aria-label={`${LANE_LABELS[lane]}${count ? ` (${count})` : ""}`}
-                className="gap-0.5 text-[11px] leading-none"
-              >
-                {LANE_LABELS[lane]}
-                {count > 0 ? (
-                  <span className="tabular-nums opacity-60">{count}</span>
-                ) : null}
-              </ToggleGroupItem>
-            )
-          })}
-        </ToggleGroup>
-
-        {/* Quick-add form */}
-        {showAdd ? (
-          <LaneAddForm
-            lane={activeLane}
-            onAdd={(label, href) => {
-              addItem({ label, href, lane: activeLane })
+      {open ? (
+        <SidebarGroupContent className="pt-0 pb-0">
+          {/* Lane tab switcher */}
+          <ToggleGroup
+            type="single"
+            value={activeLane}
+            onValueChange={(v) => {
+              if (!v) return
+              setActiveLane(v as LaneMemoryLane)
+              setShowAll(false)
               setShowAdd(false)
             }}
-            onClose={() => setShowAdd(false)}
-          />
-        ) : null}
+            variant="outline"
+            size="sm"
+            className="mb-0.5 grid w-full grid-cols-3 gap-0.5 px-0 py-0"
+          >
+            {(["pinned", "urgent", "todo"] as const).map((lane) => {
+              const count = laneCount(lane)
+              return (
+                <ToggleGroupItem
+                  key={lane}
+                  value={lane}
+                  aria-label={`${LANE_LABELS[lane]}${count ? ` (${count})` : ""}`}
+                  className="gap-0.5 text-[11px] leading-none"
+                >
+                  {LANE_LABELS[lane]}
+                  {count > 0 ? (
+                    <span className="tabular-nums opacity-60">{count}</span>
+                  ) : null}
+                </ToggleGroupItem>
+              )
+            })}
+          </ToggleGroup>
 
-        {/* Lane rows or empty state */}
-        {laneItems.length === 0 ? (
-          !showAdd ? (
-            <Empty className="border border-dashed border-sidebar-border/40 bg-sidebar-accent/5 py-2">
-              <EmptyHeader>
-                <EmptyTitle className="text-xs">
-                  Nothing in {LANE_LABELS[activeLane].toLowerCase()} yet
-                </EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          ) : null
-        ) : (
-          <>
-            <SidebarMenu className="gap-0">
-              {visible.map((item) => (
-                <LocalLaneRow
-                  key={item.id}
-                  item={item}
-                  isActive={Boolean(item.href && item.id === activeLaneItemId)}
-                  onRemove={() => removeItem(item.id)}
-                  onMove={(lane) => moveLane(item.id, lane)}
-                />
-              ))}
-            </SidebarMenu>
+          {/* Quick-add form */}
+          {showAdd ? (
+            <LaneAddForm
+              lane={activeLane}
+              onAdd={(label, href) => {
+                addItem({ label, href, lane: activeLane })
+                setShowAdd(false)
+              }}
+              onClose={() => setShowAdd(false)}
+            />
+          ) : null}
 
-            {/* Show more / less toggle */}
-            {laneItems.length > LANES_VISIBLE ? (
-              <button
-                type="button"
-                onClick={() => setShowAll((v) => !v)}
-                className="mt-0.5 w-full rounded px-2 py-1 text-left text-xs text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent/25 hover:text-sidebar-foreground/80"
-              >
-                {showAll
-                  ? "Show less"
-                  : `+${overflowCount} more in ${LANE_LABELS[activeLane].toLowerCase()}`}
-              </button>
-            ) : null}
+          {/* Lane rows or empty state */}
+          {laneItems.length === 0 ? (
+            !showAdd ? (
+              <Empty className="border border-dashed border-sidebar-border/40 bg-sidebar-accent/5 py-2">
+                <EmptyHeader>
+                  <EmptyTitle className="text-xs">
+                    Nothing in {LANE_LABELS[activeLane].toLowerCase()} yet
+                  </EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : null
+          ) : (
+            <>
+              <SidebarMenu className="gap-0">
+                {visible.map((item) => (
+                  <LocalLaneRow
+                    key={item.id}
+                    item={item}
+                    isActive={Boolean(
+                      item.href && item.id === activeLaneItemId
+                    )}
+                    onRemove={() => removeItem(item.id)}
+                    onMove={(lane) => moveLane(item.id, lane)}
+                  />
+                ))}
+              </SidebarMenu>
 
-            {/* At-cap warning */}
-            {laneItems.length >= LANE_MEMORY_MAX ? (
-              <p className="mt-0.5 px-2 text-xs text-muted-foreground/60">
-                Lane full ({LANE_MEMORY_MAX} max)
-              </p>
-            ) : null}
-          </>
-        )}
-      </SidebarGroupContent> : null}
+              {/* Show more / less toggle */}
+              {laneItems.length > LANES_VISIBLE ? (
+                <button
+                  type="button"
+                  onClick={() => setShowAll((v) => !v)}
+                  className="mt-0.5 w-full rounded px-2 py-1 text-left text-xs text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent/25 hover:text-sidebar-foreground/80"
+                >
+                  {showAll
+                    ? "Show less"
+                    : `+${overflowCount} more in ${LANE_LABELS[activeLane].toLowerCase()}`}
+                </button>
+              ) : null}
+
+              {/* At-cap warning */}
+              {laneItems.length >= LANE_MEMORY_MAX ? (
+                <p className="mt-0.5 px-2 text-xs text-muted-foreground/60">
+                  Lane full ({LANE_MEMORY_MAX} max)
+                </p>
+              ) : null}
+            </>
+          )}
+        </SidebarGroupContent>
+      ) : null}
     </SidebarGroup>
   )
 }
@@ -909,7 +930,7 @@ function RailViewsSection({
       <SidebarGroupLabel className={RAIL_SECTION_HEADING_CLASS}>
         {label}
       </SidebarGroupLabel>
-      <SidebarGroupContent className="pb-0 pt-0">
+      <SidebarGroupContent className="pt-0 pb-0">
         <SidebarMenu className="gap-0">
           {views.map((view) => {
             const active = view.id === activeViewId
@@ -933,7 +954,7 @@ function RailViewsSection({
                         active ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <span className="min-w-0 flex-1 truncate text-[11px] font-medium leading-tight">
+                    <span className="min-w-0 flex-1 truncate text-[11px] leading-tight font-medium">
                       {view.label}
                     </span>
                   </Link>
@@ -969,45 +990,47 @@ function RailRecentsSection({
         open={open}
         onToggle={() => setOpen((v) => !v)}
       />
-      {open ? <SidebarGroupContent className="pb-0 pt-0">
-        <SidebarMenu className="gap-0">
-          {recents.map((recent) => {
-            const stamp = formatRecentStamp(recent.occurredAt)
-            return (
-              <SidebarMenuItem key={recent.id}>
-                <SidebarMenuButton
-                  asChild
-                  size="sm"
-                  className="relative h-auto min-h-6 items-center gap-1.5 py-0.5"
-                >
-                  <Link href={recent.href} prefetch={false}>
-                    <span
-                      className={cn(
-                        "grid min-w-0 flex-1 items-baseline gap-x-1.5 gap-y-0",
-                        stamp
-                          ? "grid-cols-[minmax(0,1fr)_auto]"
-                          : "grid-cols-1"
-                      )}
-                    >
-                      <span className="truncate text-[11px] font-medium leading-tight text-sidebar-foreground">
-                        {recent.label}
+      {open ? (
+        <SidebarGroupContent className="pt-0 pb-0">
+          <SidebarMenu className="gap-0">
+            {recents.map((recent) => {
+              const stamp = formatRecentStamp(recent.occurredAt)
+              return (
+                <SidebarMenuItem key={recent.id}>
+                  <SidebarMenuButton
+                    asChild
+                    size="sm"
+                    className="relative h-auto min-h-6 items-center gap-1.5 py-0.5"
+                  >
+                    <Link href={recent.href} prefetch={false}>
+                      <span
+                        className={cn(
+                          "grid min-w-0 flex-1 items-baseline gap-x-1.5 gap-y-0",
+                          stamp
+                            ? "grid-cols-[minmax(0,1fr)_auto]"
+                            : "grid-cols-1"
+                        )}
+                      >
+                        <span className="truncate text-[11px] leading-tight font-medium text-sidebar-foreground">
+                          {recent.label}
+                        </span>
+                        {stamp ? (
+                          <time
+                            className="shrink-0 text-[10px] font-medium text-sidebar-foreground/50 tabular-nums"
+                            dateTime={recent.occurredAt}
+                          >
+                            {stamp}
+                          </time>
+                        ) : null}
                       </span>
-                      {stamp ? (
-                        <time
-                          className="shrink-0 text-[10px] font-medium text-sidebar-foreground/50 tabular-nums"
-                          dateTime={recent.occurredAt}
-                        >
-                          {stamp}
-                        </time>
-                      ) : null}
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-          })}
-        </SidebarMenu>
-      </SidebarGroupContent> : null}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            })}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      ) : null}
     </SidebarGroup>
   )
 }
@@ -1050,7 +1073,11 @@ type AppShellRailProps = {
   mode?: "primary" | "sub"
 }
 
-export function AppShellRail({ config, collapsed, mode = "sub" }: AppShellRailProps) {
+export function AppShellRail({
+  config,
+  collapsed,
+  mode = "sub",
+}: AppShellRailProps) {
   const { slots, labels } = config
   const { nav, footer: _footer, views, recents } = slots
 
@@ -1096,7 +1123,9 @@ export function AppShellRail({ config, collapsed, mode = "sub" }: AppShellRailPr
         navSections={nav}
         recents={recents}
         placeholder={labels.navSearchPlaceholder ?? "Search…"}
-        ariaLabel={labels.navSearchAriaLabel ?? "Search navigation, memory, and recents"}
+        ariaLabel={
+          labels.navSearchAriaLabel ?? "Search navigation, memory, and recents"
+        }
         collapsedAriaLabel={
           labels.navSearchCollapsedTriggerAriaLabel ?? "Open search"
         }
@@ -1104,80 +1133,80 @@ export function AppShellRail({ config, collapsed, mode = "sub" }: AppShellRailPr
 
       {/* Scrollable nav — hidden while search results are showing */}
       {!isSearchActive ? (
-      <nav
-        className="af-workbench-rail-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 py-0.5 [--radius:var(--radius-xl)]"
-        aria-label={labels.ariaLabel}
-      >
-        {isNavEmpty ? (
-          collapsed ? (
-            <span
-              aria-hidden
-              data-rail-empty="true"
-              className="mx-auto my-3 block h-1 w-6 rounded-full bg-muted-foreground/25"
-              title={emptyLabel}
-            />
-          ) : (
-            <Empty
-              data-rail-empty="true"
-              className="min-h-0 flex-none border border-dashed border-sidebar-border/50 bg-sidebar-accent/5 p-4 py-6"
-            >
-              <EmptyHeader className="max-w-none">
-                <EmptyTitle className="text-xs font-medium leading-snug text-sidebar-foreground">
-                  {emptyLabel}
-                </EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )
-        ) : filterExcludesAll ? (
-          collapsed ? (
-            <span
-              aria-hidden
-              data-rail-filter-empty="true"
-              className="mx-auto my-3 block h-1 w-6 rounded-full bg-muted-foreground/25"
-              title={noMatchesLabel}
-            />
-          ) : (
-            <Empty
-              data-rail-filter-empty="true"
-              className="min-h-0 flex-none border border-dashed border-sidebar-border/50 bg-sidebar-accent/5 p-4 py-6"
-            >
-              <EmptyHeader className="max-w-none">
-                <EmptyTitle className="text-xs font-medium leading-snug text-sidebar-foreground">
-                  {noMatchesLabel}
-                </EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )
-        ) : (
-          <div className="flex flex-col gap-0">
-            {displayNav.map((section) => (
-              <RailNavSection
-                key={section.id}
-                section={section}
-                collapsed={collapsed}
-                mode={mode}
+        <nav
+          className="af-workbench-rail-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 py-0.5 [--radius:var(--radius-xl)]"
+          aria-label={labels.ariaLabel}
+        >
+          {isNavEmpty ? (
+            collapsed ? (
+              <span
+                aria-hidden
+                data-rail-empty="true"
+                className="mx-auto my-3 block h-1 w-6 rounded-full bg-muted-foreground/25"
+                title={emptyLabel}
               />
-            ))}
+            ) : (
+              <Empty
+                data-rail-empty="true"
+                className="min-h-0 flex-none border border-dashed border-sidebar-border/50 bg-sidebar-accent/5 p-4 py-6"
+              >
+                <EmptyHeader className="max-w-none">
+                  <EmptyTitle className="text-xs leading-snug font-medium text-sidebar-foreground">
+                    {emptyLabel}
+                  </EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )
+          ) : filterExcludesAll ? (
+            collapsed ? (
+              <span
+                aria-hidden
+                data-rail-filter-empty="true"
+                className="mx-auto my-3 block h-1 w-6 rounded-full bg-muted-foreground/25"
+                title={noMatchesLabel}
+              />
+            ) : (
+              <Empty
+                data-rail-filter-empty="true"
+                className="min-h-0 flex-none border border-dashed border-sidebar-border/50 bg-sidebar-accent/5 p-4 py-6"
+              >
+                <EmptyHeader className="max-w-none">
+                  <EmptyTitle className="text-xs leading-snug font-medium text-sidebar-foreground">
+                    {noMatchesLabel}
+                  </EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )
+          ) : (
+            <div className="flex flex-col gap-0">
+              {displayNav.map((section) => (
+                <RailNavSection
+                  key={section.id}
+                  section={section}
+                  collapsed={collapsed}
+                  mode={mode}
+                />
+              ))}
 
-            {hasViews ? (
-              <>
-                <Separator
-                  decorative
-                  className="my-0.5 h-px shrink-0 bg-transparent"
-                />
-                <RailViewsSection
-                  views={views!}
-                  heading={labels.viewsHeading}
-                />
-              </>
-            ) : null}
-          </div>
-        )}
-      </nav>
+              {hasViews ? (
+                <>
+                  <Separator
+                    decorative
+                    className="my-0.5 h-px shrink-0 bg-transparent"
+                  />
+                  <RailViewsSection
+                    views={views!}
+                    heading={labels.viewsHeading}
+                  />
+                </>
+              ) : null}
+            </div>
+          )}
+        </nav>
       ) : null}
 
       {/* Docked footer — Memory widget + Recents, always visible */}
-      <div className="group-data-[collapsible=icon]:hidden shrink-0">
+      <div className="shrink-0 group-data-[collapsible=icon]:hidden">
         <div className="px-2.5 pt-0 pb-0">
           <RailLanesWidget collapsed={collapsed} />
           {dockedRecents ? (

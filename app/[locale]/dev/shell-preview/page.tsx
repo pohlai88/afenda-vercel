@@ -46,9 +46,21 @@ const SUB_RAIL: AppShellRailConfig = {
             href: PREVIEW_HREF,
             active: true,
             items: [
-              { id: "sub-employees-all", label: "All employees", href: PREVIEW_HREF },
-              { id: "sub-employees-active", label: "Active", href: PREVIEW_HREF },
-              { id: "sub-employees-offboarding", label: "Offboarding", href: PREVIEW_HREF },
+              {
+                id: "sub-employees-all",
+                label: "All employees",
+                href: PREVIEW_HREF,
+              },
+              {
+                id: "sub-employees-active",
+                label: "Active",
+                href: PREVIEW_HREF,
+              },
+              {
+                id: "sub-employees-offboarding",
+                label: "Offboarding",
+                href: PREVIEW_HREF,
+              },
             ],
           },
           {
@@ -284,7 +296,10 @@ function UtilityBarLeft() {
       </div>
       <div className="flex items-center gap-1 text-sm">
         <span className="font-medium text-foreground">Acme Corp</span>
-        <ChevronRightIcon className="size-3.5 text-muted-foreground" aria-hidden />
+        <ChevronRightIcon
+          className="size-3.5 text-muted-foreground"
+          aria-hidden
+        />
         <span className="text-muted-foreground">Dashboard</span>
       </div>
     </div>
@@ -297,7 +312,12 @@ function UtilityBarRight() {
       <Button variant="ghost" size="icon-sm" aria-label="Search">
         <SearchIcon className="size-4" aria-hidden />
       </Button>
-      <Button variant="ghost" size="icon-sm" aria-label="Notifications" className="relative">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label="Notifications"
+        className="relative"
+      >
         <BellIcon className="size-4" aria-hidden />
         <span
           aria-hidden
@@ -316,18 +336,68 @@ function UtilityBarRight() {
 // ---------------------------------------------------------------------------
 
 const STATS = [
-  { label: "Total employees", value: "248", delta: "+3 this week", tone: "positive" },
-  { label: "Open positions", value: "12", delta: "4 urgent", tone: "attention" },
-  { label: "Payroll this month", value: "$1.2M", delta: "On track", tone: "default" },
-  { label: "Compliance items", value: "3", delta: "2 overdue", tone: "critical" },
+  {
+    label: "Total employees",
+    value: "248",
+    delta: "+3 this week",
+    tone: "positive",
+  },
+  {
+    label: "Open positions",
+    value: "12",
+    delta: "4 urgent",
+    tone: "attention",
+  },
+  {
+    label: "Payroll this month",
+    value: "$1.2M",
+    delta: "On track",
+    tone: "default",
+  },
+  {
+    label: "Compliance items",
+    value: "3",
+    delta: "2 overdue",
+    tone: "critical",
+  },
 ] as const
 
 const SAMPLE_ROWS = [
-  { id: "1", name: "Alice Nguyen", role: "Software Engineer", status: "Active", dept: "Engineering" },
-  { id: "2", name: "Bob Carter", role: "Product Manager", status: "Active", dept: "Product" },
-  { id: "3", name: "Carol Kim", role: "Designer", status: "On leave", dept: "Design" },
-  { id: "4", name: "Dan Smith", role: "HR Specialist", status: "Active", dept: "People" },
-  { id: "5", name: "Eva Torres", role: "Finance Lead", status: "Active", dept: "Finance" },
+  {
+    id: "1",
+    name: "Alice Nguyen",
+    role: "Software Engineer",
+    status: "Active",
+    dept: "Engineering",
+  },
+  {
+    id: "2",
+    name: "Bob Carter",
+    role: "Product Manager",
+    status: "Active",
+    dept: "Product",
+  },
+  {
+    id: "3",
+    name: "Carol Kim",
+    role: "Designer",
+    status: "On leave",
+    dept: "Design",
+  },
+  {
+    id: "4",
+    name: "Dan Smith",
+    role: "HR Specialist",
+    status: "Active",
+    dept: "People",
+  },
+  {
+    id: "5",
+    name: "Eva Torres",
+    role: "Finance Lead",
+    status: "Active",
+    dept: "Finance",
+  },
 ] as const
 
 const STATUS_CLASS: Record<string, string> = {
@@ -399,8 +469,12 @@ function PreviewContent() {
                   <td className="px-4 py-3 font-medium text-foreground">
                     {row.name}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{row.role}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{row.dept}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {row.role}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {row.dept}
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_CLASS[row.status] ?? "bg-muted text-muted-foreground"}`}
@@ -424,16 +498,16 @@ function PreviewContent() {
           <li>
             <strong className="text-foreground">Primary rail</strong> —{" "}
             <code>AppShell</code> with <code>mode=&quot;primary&quot;</code>:{" "}
-            <code>PrimaryNavItem</code> / <code>SidebarMenuButton</code> — collapse
-            and tooltips via <code>SidebarProvider</code>. Persist key:{" "}
+            <code>PrimaryNavItem</code> / <code>SidebarMenuButton</code> —
+            collapse and tooltips via <code>SidebarProvider</code>. Persist key:{" "}
             <code>dev-shell-preview-rail</code>.
           </li>
           <li>
             <strong className="text-foreground">Secondary rail</strong> —{" "}
             <code>AppSubLayout</code>: absolute overlay on the left edge of the
             content area. Hover the content pane to reveal it. Pure text
-            hierarchy — no icons, no badges, no toggle. Section headings at
-            8 px, items at 9 px, child items at 8 px.
+            hierarchy — no icons, no badges, no toggle. Section headings at 8
+            px, items at 9 px, child items at 8 px.
           </li>
           <li>
             Mock nav, badges, and recents are cosmetic; every <code>href</code>{" "}

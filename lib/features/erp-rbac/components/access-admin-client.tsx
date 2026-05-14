@@ -21,10 +21,7 @@ import {
   FieldLabel,
 } from "#components/ui/field"
 import { Input } from "#components/ui/input"
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "#components/ui/native-select"
+import { NativeSelect, NativeSelectOption } from "#components/ui/native-select"
 import {
   Table,
   TableBody,
@@ -33,12 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "#components/ui/table"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "#components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs"
 
 import {
   assignErpRoleMemberAction,
@@ -89,7 +81,11 @@ function ActionStateMessage({ state }: { state: ErpRbacActionState }) {
   )
 }
 
-function AuthorityAssignForm({ members }: { members: readonly AccessMemberRow[] }) {
+function AuthorityAssignForm({
+  members,
+}: {
+  members: readonly AccessMemberRow[]
+}) {
   const [state, formAction] = useActionState(assignTenantAuthorityAction, null)
 
   return (
@@ -113,7 +109,11 @@ function AuthorityAssignForm({ members }: { members: readonly AccessMemberRow[] 
         <Field>
           <FieldLabel htmlFor="authority-role">Authority</FieldLabel>
           <FieldContent>
-            <NativeSelect id="authority-role" name="role" defaultValue="tenant_support_admin">
+            <NativeSelect
+              id="authority-role"
+              name="role"
+              defaultValue="tenant_support_admin"
+            >
               <NativeSelectOption value="tenant_support_admin">
                 Support admin
               </NativeSelectOption>
@@ -125,7 +125,8 @@ function AuthorityAssignForm({ members }: { members: readonly AccessMemberRow[] 
               </NativeSelectOption>
             </NativeSelect>
             <FieldDescription>
-              Tenant authority governs configuration and RBAC management, not ERP execution.
+              Tenant authority governs configuration and RBAC management, not
+              ERP execution.
             </FieldDescription>
           </FieldContent>
         </Field>
@@ -234,7 +235,11 @@ function GrantPermissionForm({ roles }: { roles: readonly ErpRoleRow[] }) {
         <Field>
           <FieldLabel htmlFor="grant-permission">Permission</FieldLabel>
           <FieldContent>
-            <NativeSelect id="grant-permission" name="permissionKey" defaultValue="">
+            <NativeSelect
+              id="grant-permission"
+              name="permissionKey"
+              defaultValue=""
+            >
               <NativeSelectOption value="" disabled>
                 Select a permission
               </NativeSelectOption>
@@ -338,7 +343,8 @@ export function AccessAdminClient({
           <CardHeader>
             <CardTitle>Assign governance authority</CardTitle>
             <CardDescription>
-              Separate tenant governance from ERP execution. All admins must remain tenant members.
+              Separate tenant governance from ERP execution. All admins must
+              remain tenant members.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -397,7 +403,8 @@ export function AccessAdminClient({
           <CardHeader>
             <CardTitle>Create ERP role</CardTitle>
             <CardDescription>
-              Roles carry business permissions. They do not inherit from tenant admin status.
+              Roles carry business permissions. They do not inherit from tenant
+              admin status.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -424,7 +431,10 @@ export function AccessAdminClient({
                   .filter((membership) => membership.status === "active")
                   .map((membership) => (
                     <TableRow key={membership.id}>
-                      <TableCell>{roleById.get(membership.roleId)?.name ?? membership.roleId}</TableCell>
+                      <TableCell>
+                        {roleById.get(membership.roleId)?.name ??
+                          membership.roleId}
+                      </TableCell>
                       <TableCell>
                         {membership.userName ?? membership.userEmail}
                       </TableCell>
@@ -444,7 +454,8 @@ export function AccessAdminClient({
           <CardHeader>
             <CardTitle>Grant permissions</CardTitle>
             <CardDescription>
-              CRUD-SAP permissions are explicit. Lifecycle duties remain split by SoD rules.
+              CRUD-SAP permissions are explicit. Lifecycle duties remain split
+              by SoD rules.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -475,7 +486,10 @@ export function AccessAdminClient({
                     const definition = permissionByKey.get(key)
                     return (
                       <TableRow key={permission.id}>
-                        <TableCell>{roleById.get(permission.roleId)?.name ?? permission.roleId}</TableCell>
+                        <TableCell>
+                          {roleById.get(permission.roleId)?.name ??
+                            permission.roleId}
+                        </TableCell>
                         <TableCell>{definition?.label ?? key}</TableCell>
                         <TableCell>
                           <Badge variant="outline">

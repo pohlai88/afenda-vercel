@@ -28,10 +28,7 @@ import {
 import { usePathname } from "#i18n/navigation"
 import { Link } from "#i18n/navigation"
 import { cn } from "#lib/utils"
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-} from "../ui/context-menu"
+import { ContextMenu, ContextMenuTrigger } from "../ui/context-menu"
 import {
   Collapsible,
   CollapsibleContent,
@@ -54,28 +51,30 @@ import type { AppShellRailNavItem, AppShellRailNavIconId } from "./rail.schema"
 // Icon map — serializable token → Lucide component
 // ---------------------------------------------------------------------------
 
-export const APP_SHELL_RAIL_ICON_MAP: Record<AppShellRailNavIconId, LucideIcon> =
-  {
-    activity: ActivityIcon,
-    briefcase: BriefcaseIcon,
-    building: BuildingIcon,
-    "building-2": Building2Icon,
-    calendar: CalendarIcon,
-    clock: ClockIcon,
-    "file-text": FileTextIcon,
-    "key-round": KeyRoundIcon,
-    "layout-dashboard": LayoutDashboardIcon,
-    list: ListIcon,
-    "messages-square": MessagesSquareIcon,
-    "monitor-smartphone": MonitorSmartphoneIcon,
-    plug: PlugIcon,
-    settings: SettingsIcon,
-    shield: ShieldIcon,
-    "shield-check": ShieldCheckIcon,
-    "shopping-bag": ShoppingBagIcon,
-    "user-round": UserRoundIcon,
-    users: UsersIcon,
-  }
+export const APP_SHELL_RAIL_ICON_MAP: Record<
+  AppShellRailNavIconId,
+  LucideIcon
+> = {
+  activity: ActivityIcon,
+  briefcase: BriefcaseIcon,
+  building: BuildingIcon,
+  "building-2": Building2Icon,
+  calendar: CalendarIcon,
+  clock: ClockIcon,
+  "file-text": FileTextIcon,
+  "key-round": KeyRoundIcon,
+  "layout-dashboard": LayoutDashboardIcon,
+  list: ListIcon,
+  "messages-square": MessagesSquareIcon,
+  "monitor-smartphone": MonitorSmartphoneIcon,
+  plug: PlugIcon,
+  settings: SettingsIcon,
+  shield: ShieldIcon,
+  "shield-check": ShieldCheckIcon,
+  "shopping-bag": ShoppingBagIcon,
+  "user-round": UserRoundIcon,
+  users: UsersIcon,
+}
 
 // ---------------------------------------------------------------------------
 // Nav count tone — text only (no chip) for components2 rail
@@ -93,7 +92,10 @@ export const RAIL_NAV_COUNT_TEXT_CLASS = {
 // ---------------------------------------------------------------------------
 
 export function isNavItemActive(
-  item: Pick<AppShellRailNavItem, "href" | "active" | "match" | "activePatterns">,
+  item: Pick<
+    AppShellRailNavItem,
+    "href" | "active" | "match" | "activePatterns"
+  >,
   pathname: string
 ): boolean {
   if (item.active !== undefined) return item.active
@@ -147,9 +149,7 @@ function SubItemList({ items }: { items: AppShellRailNavItem["items"] }) {
                 <span
                   className={cn(
                     "grid w-full min-w-0 items-baseline gap-x-2 gap-y-0",
-                    hasMeta
-                      ? "grid-cols-[minmax(0,1fr)_auto]"
-                      : "grid-cols-1"
+                    hasMeta ? "grid-cols-[minmax(0,1fr)_auto]" : "grid-cols-1"
                   )}
                 >
                   <span className="truncate font-medium">{child.label}</span>
@@ -203,7 +203,7 @@ function NavIconBlock({
           aria-hidden
           data-rail-badge="true"
           className={cn(
-            "absolute -top-1 -right-1 text-[10px] font-semibold tabular-nums leading-none",
+            "absolute -top-1 -right-1 text-[10px] leading-none font-semibold tabular-nums",
             RAIL_NAV_COUNT_TEXT_CLASS[badgeTone]
           )}
         >
@@ -238,7 +238,8 @@ export function PrimaryNavItem({
   const children = item.items ?? []
 
   const activeChild = children.find((c) => isNavItemActive(c, pathname))
-  const itemActive = isNavItemActive(item, pathname) || activeChild !== undefined
+  const itemActive =
+    isNavItemActive(item, pathname) || activeChild !== undefined
   const parentCurrent = itemActive && activeChild === undefined
   const hasChildren = children.length > 0
 
@@ -280,7 +281,7 @@ export function PrimaryNavItem({
         {showExpandedBadge ? (
           <SidebarMenuBadge
             className={cn(
-              "min-h-0 min-w-0 h-auto justify-end rounded-none bg-transparent px-0 shadow-none ring-0",
+              "h-auto min-h-0 min-w-0 justify-end rounded-none bg-transparent px-0 shadow-none ring-0",
               "font-semibold tabular-nums",
               RAIL_NAV_COUNT_TEXT_CLASS[badgeTone]
             )}
@@ -354,7 +355,8 @@ export function AppShellNavItem({ item, collapsed }: AppShellNavItemProps) {
   const hasVisibleChildren = !collapsed && children.length > 0
 
   const activeChild = children.find((c) => isNavItemActive(c, pathname))
-  const itemActive = isNavItemActive(item, pathname) || activeChild !== undefined
+  const itemActive =
+    isNavItemActive(item, pathname) || activeChild !== undefined
   const parentCurrent = itemActive && activeChild === undefined
 
   const badgeCount = item.badge?.count

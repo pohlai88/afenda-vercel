@@ -61,7 +61,10 @@ function SidebarModeOption({
         {selected ? (
           <CheckIcon className="size-3.5" aria-hidden />
         ) : (
-          <span className="size-1.5 rounded-full bg-popover-foreground/35" aria-hidden />
+          <span
+            className="size-1.5 rounded-full bg-popover-foreground/35"
+            aria-hidden
+          />
         )}
       </span>
       <span className="min-w-0">
@@ -103,7 +106,10 @@ export function AppShellRailFooter({ labels = {} }: AppShellRailFooterProps) {
 
   return (
     <div
-      className={cn("flex items-center", collapsed ? "justify-center" : "justify-start gap-2")}
+      className={cn(
+        "flex items-center",
+        collapsed ? "justify-center" : "justify-start gap-2"
+      )}
       data-app-shell-rail-footer="true"
     >
       <DropdownMenu>
@@ -135,7 +141,7 @@ export function AppShellRailFooter({ labels = {} }: AppShellRailFooterProps) {
           collisionPadding={12}
           className="w-64 border-0 p-2 shadow-lg ring-0 dark:ring-0"
         >
-          <DropdownMenuLabel className="border-0 px-2 pb-1.5 pt-1 text-xs font-medium text-muted-foreground shadow-none">
+          <DropdownMenuLabel className="border-0 px-2 pt-1 pb-1.5 text-xs font-medium text-muted-foreground shadow-none">
             {sidebarControl}
           </DropdownMenuLabel>
           <DropdownMenuGroup className="flex flex-col gap-0.5 border-0 border-t-0 pt-0">

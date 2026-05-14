@@ -594,9 +594,7 @@ export function WorkbenchNotificationsAdvancedBlock({
                 <Textarea
                   id="notification-body"
                   value={form.body}
-                  onChange={(event) =>
-                    onFormUpdate("body", event.target.value)
-                  }
+                  onChange={(event) => onFormUpdate("body", event.target.value)}
                   rows={5}
                   maxLength={4000}
                 />

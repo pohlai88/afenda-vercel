@@ -16,7 +16,9 @@ export async function requireTenantAuthority(
   | {
       ok: true
       session: Awaited<ReturnType<typeof requireOrgSession>>
-      organizationId: Awaited<ReturnType<typeof requireOrgSession>>["organizationId"]
+      organizationId: Awaited<
+        ReturnType<typeof requireOrgSession>
+      >["organizationId"]
       userId: Awaited<ReturnType<typeof requireOrgSession>>["userId"]
       sessionId: Awaited<ReturnType<typeof requireOrgSession>>["sessionId"]
       user: Awaited<ReturnType<typeof requireOrgSession>>["user"]
@@ -56,7 +58,9 @@ export async function requireTenantOwnerOrOperator(): Promise<
   | {
       ok: true
       session: Awaited<ReturnType<typeof requireOrgSession>>
-      organizationId: Awaited<ReturnType<typeof requireOrgSession>>["organizationId"]
+      organizationId: Awaited<
+        ReturnType<typeof requireOrgSession>
+      >["organizationId"]
       userId: Awaited<ReturnType<typeof requireOrgSession>>["userId"]
       sessionId: Awaited<ReturnType<typeof requireOrgSession>>["sessionId"]
       user: Awaited<ReturnType<typeof requireOrgSession>>["user"]
@@ -110,7 +114,9 @@ export async function requireErpPermission(
   | {
       ok: true
       session: Awaited<ReturnType<typeof requireOrgSession>>
-      organizationId: Awaited<ReturnType<typeof requireOrgSession>>["organizationId"]
+      organizationId: Awaited<
+        ReturnType<typeof requireOrgSession>
+      >["organizationId"]
       userId: Awaited<ReturnType<typeof requireOrgSession>>["userId"]
       sessionId: Awaited<ReturnType<typeof requireOrgSession>>["sessionId"]
       user: Awaited<ReturnType<typeof requireOrgSession>>["user"]

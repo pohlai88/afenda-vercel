@@ -40,7 +40,9 @@ export const APP_SHELL_RAIL_BADGE_TONE_KEYS = [
   "critical",
 ] as const
 
-export const appShellRailBadgeToneSchema = z.enum(APP_SHELL_RAIL_BADGE_TONE_KEYS)
+export const appShellRailBadgeToneSchema = z.enum(
+  APP_SHELL_RAIL_BADGE_TONE_KEYS
+)
 
 // ---------------------------------------------------------------------------
 // Active-match strategy — replaces ad-hoc pathname.startsWith guesses.
@@ -153,7 +155,9 @@ export type AppShellRailNavItem = z.infer<typeof appShellRailNavItemSchema>
 export type AppShellRailNavChildItem = z.infer<
   typeof appShellRailNavChildItemSchema
 >
-export type AppShellRailNavSection = z.infer<typeof appShellRailNavSectionSchema>
+export type AppShellRailNavSection = z.infer<
+  typeof appShellRailNavSectionSchema
+>
 export type AppShellRailView = z.infer<typeof appShellRailViewSchema>
 export type AppShellRailRecent = z.infer<typeof appShellRailRecentSchema>
 export type AppShellLabels = z.infer<typeof appShellRailLabelsSchema>

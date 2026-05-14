@@ -144,11 +144,7 @@ function LaneQuickAddDialog({
  *
  * Render this around the main content area in AppShellClient.
  */
-export function GlobalLaneMenu({
-  children,
-}: {
-  children: ReactNode
-}) {
+export function GlobalLaneMenu({ children }: { children: ReactNode }) {
   const addItem = useLaneMemoryStore((s) => s.addItem)
   const pathname = usePathname()
 
@@ -169,7 +165,9 @@ export function GlobalLaneMenu({
       // Walk up from the click target to find the nearest <a> with an href.
       // This captures employee links, record links, etc. precisely.
       // Falls back to the current page when no link is under the cursor.
-      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>("a[href]")
+      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>(
+        "a[href]"
+      )
       capturedHref.current = anchor
         ? (anchor.getAttribute("href") ?? pathname)
         : pathname

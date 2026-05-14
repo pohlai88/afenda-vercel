@@ -240,6 +240,8 @@ export function getErpPermissionDefinition(
   return ERP_PERMISSION_REGISTRY_BY_KEY.get(key) ?? null
 }
 
-export function isKnownErpPermissionKey(value: string): value is ErpPermissionKey {
+export function isKnownErpPermissionKey(
+  value: string
+): value is ErpPermissionKey {
   return ERP_PERMISSION_REGISTRY_BY_KEY.has(value as ErpPermissionKey)
 }

@@ -42,11 +42,7 @@ export default async function OrganizationMarketplaceCategoryPage(props: {
     hasTenantAuthority({
       organizationId: session.organizationId,
       userId: session.userId,
-      roles: [
-        "tenant_owner",
-        "tenant_key_admin",
-        "tenant_support_admin",
-      ],
+      roles: ["tenant_owner", "tenant_key_admin", "tenant_support_admin"],
     }),
   ])
 
