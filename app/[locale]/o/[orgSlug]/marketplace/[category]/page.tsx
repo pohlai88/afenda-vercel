@@ -14,10 +14,10 @@ import {
   type CapabilityCategory,
   type MarketplaceCategoryNavItem,
 } from "#features/marketplace"
+import { hasTenantAuthority } from "#features/erp-rbac/server"
 import { Link } from "#i18n/navigation"
 import { SITE_NAME } from "#lib/site"
 import { requireOrgSession } from "#lib/tenant"
-import { canActInOrganization } from "#lib/auth"
 
 export const dynamic = "force-dynamic"
 
@@ -39,12 +39,15 @@ export default async function OrganizationMarketplaceCategoryPage(props: {
   const session = await requireOrgSession()
   const [t, isAdmin] = await Promise.all([
     getTranslations("Marketplace"),
-    canActInOrganization(
-      session.userId,
-      session.user.role,
-      session.organizationId,
-      "admin"
-    ),
+    hasTenantAuthority({
+      organizationId: session.organizationId,
+      userId: session.userId,
+      roles: [
+        "tenant_owner",
+        "tenant_key_admin",
+        "tenant_support_admin",
+      ],
+    }),
   ])
 
   const definitions = getCapabilityDefinitions()

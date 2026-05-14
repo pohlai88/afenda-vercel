@@ -1,6 +1,6 @@
 "use server"
 
-import { requireOrgSession } from "#lib/tenant"
+import { requireErpPermission } from "#features/erp-rbac/server"
 
 import { embedKnowledgeText } from "#features/knowledge/data/embeddings.server"
 import { findSimilarKnowledgeChunks } from "#features/knowledge/data/knowledge-chunk.queries"
@@ -11,7 +11,15 @@ export async function searchSimilarKnowledgeChunks(
   _prevState: SearchSimilarFormState,
   formData: FormData
 ): Promise<SearchSimilarFormState> {
-  const { organizationId } = await requireOrgSession()
+  const gate = await requireErpPermission({
+    module: "knowledge",
+    object: "chunk",
+    function: "search",
+  })
+  if (!gate.ok) {
+    return { ok: false, errors: { form: gate.error } }
+  }
+  const { organizationId } = gate.session
 
   const parsed = searchSimilarSchema.safeParse({
     query: formData.get("query"),

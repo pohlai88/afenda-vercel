@@ -7,9 +7,11 @@ import type { AppLocale } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/route-envelope.shared"
 import { getOrganizationNameById } from "#lib/org-slug.server"
 import type { OrgSession } from "#lib/tenant"
+import { listEffectiveErpPermissionsForUser } from "#features/erp-rbac/server"
 import {
   buildHrmRailSlots,
   HRM_CAPABILITIES,
+  type HrmCapability,
   organizationHrmPath,
   organizationHrmRootPath,
 } from "#features/hrm"
@@ -38,13 +40,20 @@ export async function OrgHrmDeferredWorkbench({
     getHrmRailPressureCounts(orgSession.organizationId),
     getOrganizationNameById(orgSession.organizationId),
   ])
+  const effectivePermissions = await listEffectiveErpPermissionsForUser({
+    organizationId: orgSession.organizationId,
+    userId: orgSession.userId,
+  })
+  const visibleCapabilities: readonly HrmCapability[] = HRM_CAPABILITIES.filter(
+    (capability) => effectivePermissions.includes(capability.requiredPermission)
+  )
 
   const orgPrimaryLabel = orgDisplayName ?? orgSlug
 
   const navLabels: Record<string, string> = {
     overview: tShell("overviewLink"),
     ...Object.fromEntries(
-      HRM_CAPABILITIES.map((capability) => [
+      visibleCapabilities.map((capability) => [
         capability.nav.navKey,
         tNav(capability.nav.navKey),
       ])
@@ -53,6 +62,7 @@ export async function OrgHrmDeferredWorkbench({
 
   const railSlots = buildHrmRailSlots({
     orgSlug,
+    capabilities: visibleCapabilities,
     navLabels,
     pressure: railPressure,
   })
@@ -113,7 +123,7 @@ export async function OrgHrmDeferredWorkbench({
                 label: tShell("overviewLink"),
                 href: organizationHrmRootPath(orgSlug) as string,
               },
-              ...HRM_CAPABILITIES.map((capability) => ({
+              ...visibleCapabilities.map((capability) => ({
                 label: tNav(capability.nav.navKey),
                 href: organizationHrmPath(
                   orgSlug,

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server"
 
-import { canActInOrganization, writeIamAuditEventFromHeaders } from "#lib/auth"
+import { writeIamAuditEventFromHeaders } from "#lib/auth"
+import { canUseErpPermission } from "#features/erp-rbac/server"
 import {
   routeJsonError,
   ROUTE_JSON_HEADERS,
@@ -80,12 +81,15 @@ export async function GET(
     return routeJsonError("Unauthorized", 401)
   }
 
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
+  const allowed = await canUseErpPermission({
+    organizationId: session.organizationId,
+    userId: session.userId,
+    permission: {
+      module: "hrm",
+      object: "compliance",
+      function: "audit",
+    },
+  })
   if (!allowed) {
     return routeJsonError("Forbidden", 403)
   }

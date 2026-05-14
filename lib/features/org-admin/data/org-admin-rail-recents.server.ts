@@ -50,6 +50,7 @@ import { organizationAdminPath } from "../constants"
 export type OrgAdminRecentSegment =
   | "overview"
   | "members"
+  | "access"
   | "audit"
   | "integrations"
   | "settings"
@@ -64,6 +65,7 @@ export type OrgAdminRecentSegment =
 const SEGMENT_RESOURCE_TYPES = {
   overview: "org_admin_overview",
   members: "org_admin_members",
+  access: "org_admin_access",
   audit: "org_admin_audit",
   integrations: "org_admin_integrations",
   settings: "org_admin_settings",

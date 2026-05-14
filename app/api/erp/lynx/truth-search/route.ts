@@ -6,6 +6,7 @@ import {
   embedKnowledgeText,
   findSimilarKnowledgeChunks,
 } from "#features/knowledge"
+import { canUseErpPermission } from "#features/erp-rbac/server"
 import {
   buildLynxTruthSystemPrompt,
   LYNX_AUDIT_ACTIONS,
@@ -61,6 +62,18 @@ export async function POST(request: Request) {
   const org = await getOrgSessionFromRequest(request)
   if (!org) {
     return routeJsonError("Unauthorized", 401)
+  }
+  const allowed = await canUseErpPermission({
+    organizationId: org.organizationId,
+    userId: org.userId,
+    permission: {
+      module: "lynx",
+      object: "workspace",
+      function: "search",
+    },
+  })
+  if (!allowed) {
+    return routeJsonError("Forbidden", 403)
   }
 
   const parsedBody = await readRequestJson(request)

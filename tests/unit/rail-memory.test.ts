@@ -133,13 +133,26 @@ describe("pinRecordInputSchema", () => {
 
   it("accepts a well-formed input", () => {
     const parsed = pinRecordInputSchema.parse(valid)
-    expect(parsed).toStrictEqual(valid)
+    // lane defaults to "pinned" when omitted
+    expect(parsed).toStrictEqual({ ...valid, lane: "pinned" })
   })
 
   it("makes icon optional", () => {
     const { icon: _icon, ...withoutIcon } = valid
     const parsed = pinRecordInputSchema.parse(withoutIcon)
     expect(parsed.icon).toBeUndefined()
+  })
+
+  it("accepts explicit lane values", () => {
+    for (const lane of ["pinned", "urgent", "todo"] as const) {
+      expect(pinRecordInputSchema.parse({ ...valid, lane }).lane).toBe(lane)
+    }
+  })
+
+  it("rejects unknown lane values", () => {
+    expect(() =>
+      pinRecordInputSchema.parse({ ...valid, lane: "archive" })
+    ).toThrow()
   })
 
   it("rejects unknown workbenchId", () => {
@@ -373,6 +386,7 @@ describe("pinRowToDto", () => {
     label: "Sarah Chen",
     href: "/o/acme/dashboard/hrm/employees/emp-1",
     icon: "user",
+    lane: "pinned",
     rank: 0,
     createdAt: new Date("2026-05-12T10:00:00.000Z"),
   }
@@ -393,6 +407,14 @@ describe("pinRowToDto", () => {
   it("coerces null / blank icon to null", () => {
     expect(pinRowToDto({ ...row, icon: null })!.icon).toBeNull()
     expect(pinRowToDto({ ...row, icon: "   " })!.icon).toBeNull()
+  })
+
+  it("maps lane through to the DTO", () => {
+    expect(pinRowToDto({ ...row, lane: "urgent" })!.lane).toBe("urgent")
+  })
+
+  it("coerces unknown lane values to 'pinned'", () => {
+    expect(pinRowToDto({ ...row, lane: "archive" })!.lane).toBe("pinned")
   })
 })
 
@@ -456,6 +478,7 @@ describe("pinDtoToSlot", () => {
       label: "Sarah",
       href: "/x",
       icon: "user-round",
+      lane: "pinned",
       rank: 2,
       createdAt: new Date(),
     })
@@ -478,6 +501,7 @@ describe("pinDtoToSlot", () => {
       label: "Sarah",
       href: "/x",
       icon: null,
+      lane: "pinned",
       rank: 0,
       createdAt: new Date(),
     })

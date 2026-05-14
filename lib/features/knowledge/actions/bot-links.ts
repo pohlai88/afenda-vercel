@@ -3,17 +3,14 @@
 import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
-import {
-  canActInOrganization,
-  writeIamAuditEventFromNextHeaders,
-} from "#lib/auth"
+import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import {
   createLynxOperatorRuntime,
   resolveLynxTruthStreamProviderOptionsForOrg,
 } from "#features/lynx"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
 import { logUnexpectedServerError } from "#lib/logger.server"
-import { requireOrgSession } from "#lib/tenant"
 
 import {
   deleteOrgBotLink,
@@ -36,14 +33,13 @@ export async function createOrgBotLinkAction(
   _prev: BotLinkActionState,
   formData: FormData
 ): Promise<BotLinkActionState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) return { ok: false, error: "Admin role required." }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) return { ok: false, error: gate.error }
+  const session = gate.session
 
   const platform = formData.get("platform")
   if (platform !== "github" && platform !== "discord") {
@@ -86,14 +82,13 @@ export async function deleteOrgBotLinkAction(
   _prev: BotLinkActionState,
   formData: FormData
 ): Promise<BotLinkActionState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) return { ok: false, error: "Admin role required." }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) return { ok: false, error: gate.error }
+  const session = gate.session
 
   const id = formData.get("id")
   if (typeof id !== "string" || id.length === 0) {
@@ -125,14 +120,13 @@ export async function updateOrgBotLinkAction(
   _prev: BotLinkActionState,
   formData: FormData
 ): Promise<BotLinkActionState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) return { ok: false, error: "Admin role required." }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) return { ok: false, error: gate.error }
+  const session = gate.session
 
   const id = formData.get("id")
   if (typeof id !== "string" || id.length === 0) {
@@ -180,14 +174,13 @@ export async function toggleOrgBotLinkEnabledAction(
   _prev: BotLinkActionState,
   formData: FormData
 ): Promise<BotLinkActionState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) return { ok: false, error: "Admin role required." }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) return { ok: false, error: gate.error }
+  const session = gate.session
 
   const id = formData.get("id")
   const enabled = formData.get("enabled") === "1"
@@ -221,14 +214,13 @@ export async function testOrgBotLinkAction(
   _prev: BotLinkActionState,
   formData: FormData
 ): Promise<BotLinkActionState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) return { ok: false, error: "Admin role required." }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) return { ok: false, error: gate.error }
+  const session = gate.session
 
   const id = formData.get("id")
   if (typeof id !== "string" || id.length === 0) {

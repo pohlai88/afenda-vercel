@@ -4,6 +4,8 @@
     // Internal `#…/*` aliases: mirror `package.json` → `imports` for Node + bundlers.
     "paths": {
       "#components/*": ["./components/*"],
+      "#components2/*": ["./components2/*"],
+      "#app-shell": ["./components2/app-shell/index.ts"],
       "#lib/*": ["./lib/*"],
       "#hooks/*": ["./hooks/*"],
       "#features/*": ["./lib/features/*"],

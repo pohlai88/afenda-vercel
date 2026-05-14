@@ -4,14 +4,11 @@ import { after } from "next/server"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 
-import {
-  canActInOrganization,
-  writeIamAuditEventFromNextHeaders,
-} from "#lib/auth"
+import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import { requireErpPermission } from "#features/erp-rbac/server"
 import { closeOrgNotification } from "#features/org-notifications/server"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import { appendPlannerActivity } from "../data/planner.mutations.server"
 import {
@@ -62,15 +59,12 @@ export async function closePlannerNoticeAction(
     )
   }
 
-  const session = await requireOrgSession()
-  const canManage = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-
-  if (!canManage) {
+  const gate = await requireErpPermission({
+    module: "planner",
+    object: "notice",
+    function: "update",
+  })
+  if (!gate.ok) {
     redirect(
       toLocalePath(
         locale,
@@ -85,6 +79,7 @@ export async function closePlannerNoticeAction(
       )
     )
   }
+  const session = gate.session
 
   await closeOrgNotification({
     organizationId: session.organizationId,

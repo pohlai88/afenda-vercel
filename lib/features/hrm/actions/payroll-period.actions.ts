@@ -7,11 +7,10 @@ import {
   enqueuePayrollFinalizeWorkflowRun,
   payrollFinalizePayloadSchema,
 } from "#features/execution"
+import { requireErpPermission } from "#features/erp-rbac/server"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { buildCrudSapAuditAction } from "#lib/erp/crud-sap.shared"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import {
   createPayrollPeriodFormSchema,
@@ -33,7 +32,7 @@ import {
   hasApprovedPayrollPeriodLockApproval,
 } from "../data/payroll.queries.server"
 import { resolveRulePack } from "../data/payroll-rule-pack.server"
-import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import { requireHrmPermission } from "../data/hrm-admin-guard.server"
 import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type {
   PayrollPeriodCreateFormState,
@@ -76,16 +75,13 @@ export async function createPayrollPeriodAction(
   _prev: PayrollPeriodCreateFormState,
   formData: FormData
 ): Promise<PayrollPeriodCreateFormState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) {
-    return hrmActionFailure({ form: "Admin role required." })
-  }
+  const gate = await requireErpPermission({
+    module: "hrm",
+    object: "payroll",
+    function: "create",
+  })
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
+  const session = gate.session
 
   const parsed = createPayrollPeriodFormSchema.safeParse({
     periodStart: formData.get("periodStart"),
@@ -155,16 +151,13 @@ export async function updatePayrollPeriodAction(
   _prev: PayrollPeriodUpdateFormState,
   formData: FormData
 ): Promise<PayrollPeriodUpdateFormState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) {
-    return hrmActionFailure({ form: "Admin role required." })
-  }
+  const gate = await requireErpPermission({
+    module: "hrm",
+    object: "payroll",
+    function: "update",
+  })
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
+  const session = gate.session
 
   const parsed = updatePayrollPeriodFormSchema.safeParse({
     periodId: formData.get("periodId"),
@@ -232,7 +225,10 @@ export async function preparePayrollRunsAction(
   _prev: PreparePayrollRunsFormState,
   formData: FormData
 ): Promise<PreparePayrollRunsFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireHrmPermission({
+    object: "payroll",
+    function: "update",
+  })
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
@@ -345,7 +341,10 @@ export async function lockPayrollPeriodAction(
   _prev: LockPayrollPeriodFormState,
   formData: FormData
 ): Promise<LockPayrollPeriodFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireHrmPermission({
+    object: "payroll",
+    function: "update",
+  })
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 

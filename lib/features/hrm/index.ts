@@ -93,7 +93,6 @@ export type {
 export type {
   HrmCapability,
   HrmCapabilityId,
-  HrmMinimumOrgRole,
   HrmNavKey,
   LeaveTypeMutationFormState,
   LeavePolicyMutationFormState,
@@ -184,6 +183,8 @@ export { CompliancePage } from "./components/compliance-page"
 /** Compliance evidence detail route surface. */
 export { ComplianceEvidenceDetailPage } from "./components/compliance-evidence-detail-page"
 export { BenefitsPage } from "./components/benefits-page"
+export { HrmImportsPage } from "./components/hrm-imports-page"
+export { RecruitmentPage } from "./components/recruitment-page"
 /** Cross-period compliance operational health (Suspense-streamed). */
 export { ComplianceOperationalHealth } from "./components/compliance-operational-health"
 export { ComplianceOperationalHealthSkeleton } from "./components/compliance-operational-health-skeleton"

@@ -262,12 +262,8 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
 
-  /* Nexus L1 utility chrome (full bar + left rail) — recessed vs workspace canvas */
-  --af-nexus-utility-bar-surface: color-mix(
-    in oklab,
-    var(--sidebar) 40%,
-    var(--muted) 60%
-  );
+  /* Nexus L1 utility chrome — unified with sidebar surface (no recessed treatment) */
+  --af-nexus-utility-bar-surface: var(--sidebar);
 
   /* Account workbench chrome — flat gutter behind top bar, left rail, and corner wedge */
   --af-account-workbench-chrome: color-mix(

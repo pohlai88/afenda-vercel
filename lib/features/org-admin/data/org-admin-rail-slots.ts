@@ -12,6 +12,7 @@ import type { OrgAdminNavKey, OrgAdminRailPressureMap } from "../types"
 
 const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
   members: "users",
+  access: "shield",
   audit: "shield",
   feedback: "messages-square",
   integrations: "plug",

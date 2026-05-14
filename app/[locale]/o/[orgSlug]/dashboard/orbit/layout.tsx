@@ -3,6 +3,8 @@ import type { ReactNode } from "react"
 import { getTranslations } from "next-intl/server"
 
 import { WorkbenchCommandLayer } from "#components/workbench/workbench-command"
+import { ErpAccessDenied } from "#features/erp-rbac"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { organizationOrbitPath } from "#features/planner"
 
 export default async function OrgDashboardOrbitLayout({
@@ -13,6 +15,19 @@ export default async function OrgDashboardOrbitLayout({
   params: Promise<{ orgSlug: string }>
 }) {
   const { orgSlug } = await params
+  const allowed = await canUseErpPermissionForCurrentOrg({
+    module: "planner",
+    object: "workspace",
+    function: "search",
+  })
+  if (!allowed) {
+    return (
+      <ErpAccessDenied
+        title="Orbit"
+        description="This surface requires an ERP role with Orbit search access."
+      />
+    )
+  }
   const t = await getTranslations("Dashboard.Orbit")
 
   return (

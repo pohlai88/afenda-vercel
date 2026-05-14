@@ -1,4 +1,6 @@
 import { PoliciesPage } from "#features/hrm"
+import { ErpAccessDenied } from "#features/erp-rbac"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export const dynamic = "force-dynamic"
 
@@ -8,6 +10,19 @@ export default async function OrgDashboardHrmPoliciesPage({
 }: PageProps<"/[locale]/o/[orgSlug]/dashboard/hrm/policies">) {
   const { orgSlug } = await params
   const sp = await searchParams
+  const allowed = await canUseErpPermissionForCurrentOrg({
+    module: "hrm",
+    object: "policy",
+    function: "search",
+  })
+  if (!allowed) {
+    return (
+      <ErpAccessDenied
+        title="Policies"
+        description="This HRM surface requires Policy search access."
+      />
+    )
+  }
 
   // Coerce only string-shaped search params; arrays / undefined fall back
   // to the page composer's defaults (default tab + archived rows hidden).

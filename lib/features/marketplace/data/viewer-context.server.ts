@@ -4,9 +4,9 @@ import { cache } from "react"
 
 import { eq } from "drizzle-orm"
 
-import { canActInOrganization } from "#lib/auth"
 import { db } from "#lib/db"
 import { neonAuthMember } from "#lib/db/schema-neon-auth"
+import { hasTenantAuthority } from "#features/erp-rbac/server"
 import { APP_LOCALES } from "#lib/i18n/locales.shared"
 
 import type { CapabilityViewerContext } from "../types"
@@ -37,12 +37,15 @@ export const buildCapabilityViewerContext = cache(
     organizationId: string
   }): Promise<CapabilityViewerContext> => {
     const [isAdmin, memberRows] = await Promise.all([
-      canActInOrganization(
-        input.userId,
-        input.userRole,
-        input.organizationId,
-        "admin"
-      ),
+      hasTenantAuthority({
+        organizationId: input.organizationId,
+        userId: input.userId,
+        roles: [
+          "tenant_owner",
+          "tenant_key_admin",
+          "tenant_support_admin",
+        ],
+      }),
       db
         .select({ id: neonAuthMember.id })
         .from(neonAuthMember)

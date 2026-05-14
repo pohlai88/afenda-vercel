@@ -10,8 +10,8 @@ import {
   CardTitle,
 } from "#components/ui/card"
 import { Skeleton } from "#components/ui/skeleton"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   isHrmDocumentClassification,
@@ -58,12 +58,11 @@ export async function DocumentsPage({
 
   const [t, isAdmin, employees] = await Promise.all([
     getTranslations("Dashboard.Hrm.documents"),
-    canActInOrganization(
-      orgSession.userId,
-      orgSession.user.role,
-      orgSession.organizationId,
-      "admin"
-    ),
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "document",
+      function: "update",
+    }),
     listEmployeeChoicesForDocumentFilter(orgSession.organizationId),
   ])
 

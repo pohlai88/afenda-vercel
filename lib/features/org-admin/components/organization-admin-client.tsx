@@ -9,7 +9,6 @@ import {
   cancelInvitationAction,
   inviteMemberAction,
   removeMemberAction,
-  updateMemberRoleAction,
   type OrgAdminActionState,
 } from "../actions/members.actions"
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
@@ -95,37 +94,6 @@ function CancelInvitationButton({ invitationId }: { invitationId: string }) {
   )
 }
 
-function UpdateMemberRoleForm({ m }: { m: MemberRow }) {
-  const tInvite = useTranslations("OrgAdmin.invite")
-  const tList = useTranslations("OrgAdmin.memberList")
-  const [state, formAction] = useActionState(updateMemberRoleAction, null)
-  return (
-    <form action={formAction} className="flex flex-col gap-1">
-      <div className="flex flex-wrap items-center gap-2">
-        <input type="hidden" name="memberId" value={m.id} />
-        <input type="hidden" name="targetUserId" value={m.userId} />
-        <select
-          name="role"
-          defaultValue={m.role}
-          aria-label={tInvite("labelRole")}
-          className="h-9 rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
-        >
-          <option value="member">{tInvite("roleMember")}</option>
-          <option value="admin">{tInvite("roleAdmin")}</option>
-          <option value="owner">{tInvite("roleOwner")}</option>
-        </select>
-        <SubmitButton
-          label={tList("updateRole")}
-          pendingLabel={tList("saving")}
-          variant="secondary"
-        />
-      </div>
-      <ActionError state={state} />
-      <ActionMessage state={state} />
-    </form>
-  )
-}
-
 function RemoveMemberForm({ m }: { m: MemberRow }) {
   const t = useTranslations("OrgAdmin.memberList")
   const [state, formAction] = useActionState(removeMemberAction, null)
@@ -190,6 +158,7 @@ export function OrganizationAdminClient({
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium">{tInvite("title")}</h2>
         <form action={inviteFormAction} className="flex flex-col gap-3">
+          <input type="hidden" name="role" value="member" />
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="grid flex-1 gap-2">
               <Label htmlFor="invite-email">{tInvite("labelEmail")}</Label>
@@ -202,23 +171,15 @@ export function OrganizationAdminClient({
                 placeholder={tInvite("placeholderEmail")}
               />
             </div>
-            <div className="grid w-full gap-2 sm:w-40">
-              <Label htmlFor="invite-role">{tInvite("labelRole")}</Label>
-              <select
-                id="invite-role"
-                name="role"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                defaultValue="member"
-              >
-                <option value="member">{tInvite("roleMember")}</option>
-                <option value="admin">{tInvite("roleAdmin")}</option>
-              </select>
-            </div>
             <SubmitButton
               label={tInvite("submit")}
               pendingLabel={tInvite("submitting")}
             />
           </div>
+          <p className="text-sm text-muted-foreground">
+            Tenant governance and ERP RBAC are now managed from the Access
+            surface. Invitations create members only.
+          </p>
           <ActionError state={inviteState} />
           <ActionMessage state={inviteState} />
         </form>
@@ -271,10 +232,7 @@ export function OrganizationAdminClient({
                     })}
                   </span>
                 ) : (
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                    <UpdateMemberRoleForm m={m} />
-                    <RemoveMemberForm m={m} />
-                  </div>
+                  <RemoveMemberForm m={m} />
                 )}
               </div>
             </li>

@@ -1,4 +1,6 @@
 import { DocumentsPage } from "#features/hrm"
+import { ErpAccessDenied } from "#features/erp-rbac"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export const dynamic = "force-dynamic"
 
@@ -8,6 +10,19 @@ export default async function OrgDashboardHrmDocumentsPage({
 }: PageProps<"/[locale]/o/[orgSlug]/dashboard/hrm/documents">) {
   const { orgSlug } = await params
   const sp = await searchParams
+  const allowed = await canUseErpPermissionForCurrentOrg({
+    module: "hrm",
+    object: "document",
+    function: "search",
+  })
+  if (!allowed) {
+    return (
+      <ErpAccessDenied
+        title="Documents"
+        description="This HRM surface requires Documents search access."
+      />
+    )
+  }
 
   // Coerce only string-shaped search params; arrays / undefined fall back
   // to the page composer's defaults (no filter active). The composer

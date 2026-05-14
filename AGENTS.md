@@ -28,11 +28,12 @@
 | Goal | Where |
 |---|---|
 | Jump to topic | [Contents](#contents) |
-| Workbench shell | `#components/workbench/*` (`AppShell`/`AppSubLayout` = `WorkbenchShell`/`WorkbenchSubLayout`). Rule: `.cursor/rules/shell-directory.mdc` |
+| Workbench shell | **Legacy:** `#components/workbench/*` (`AppShell`/`AppSubLayout` = `WorkbenchShell`/`WorkbenchSubLayout`). **New (canonical):** `#app-shell` (`components2/app-shell/`); shell providers `components2/providers/`; shell Zustand `components2/stores/`. Rule: `.cursor/rules/shell-directory.mdc` |
 | Nexus (org root) | `app/[locale]/o/[orgSlug]/nexus/` · `#features/nexus` · redirected from `/{locale}/o/{orgSlug}`. See §5 |
 | ERP feature | `lib/features/<module>/` · `#features/<module>` only · no deep imports · see §6 |
 | Orbit / Planner | `lib/features/planner/` · product name Orbit · see ADR-0006 · rule `.cursor/rules/planner-directory.mdc` |
 | HRM | `lib/features/hrm/` · `HRM_CAPABILITIES` registry · `#features/hrm/client` for forms · `#features/hrm/server` for rule-pack |
+| ERP RBAC | `lib/features/erp-rbac/` · tenant governance overlays + ERP permission guards · `#features/erp-rbac/server` for server-only guards/queries |
 | Lynx / Knowledge | `lib/features/lynx/` · `#features/lynx/client` for client islands · rule `.cursor/rules/lynx-knowledge.mdc` |
 | Org admin | `lib/features/org-admin/` · `ORG_ADMIN_CAPABILITIES` registry · `/o/{orgSlug}/admin/*` · rule `.cursor/rules/org-admin-directory.mdc` |
 | Platform admin | `lib/features/platform-admin/` · `PLATFORM_ADMIN_CAPABILITIES` · `/operator/*` |
@@ -248,6 +249,11 @@ turbo/generators/config.ts
 - **Step-up:** `requireRecentAuthStepUp` with `disableCookieCache: true` → `AUTH_STATUS.SESSION_EXPIRED` or `AUTH_STATUS.STEP_UP_REQUIRED`.
 - **Invites:** `ORG_INVITE_MAX_PER_HOUR` (default 30); Upstash Redis ratelimit when env set, otherwise `iam_audit_event` rolling counts.
 - **Files:** Vercel Blob (`app/api/upload/blob/`). S3-compatible reserved for archive/long-lived evidence.
+- **Authority split (ERP hard cutover):**
+  - `neon_auth.member.role` is compatibility-only membership metadata (`member/admin/owner`) and is **not** ERP business authorization.
+  - Tenant governance authority lives in `lib/features/erp-rbac/` via `tenant_authority` overlays: `tenant_owner`, `tenant_key_admin`, `tenant_support_admin`.
+  - ERP operational authority lives in `erp_role` + `erp_role_member` + `erp_role_permission` and is enforced through `requireErpPermission(...)`.
+  - Platform recovery authority stays separate (`platform_operator`, `platform_support`, `platform_security`) and never grants ERP business access by itself.
 - **Rule:** `.cursor/rules/iam-directory.mdc`
 
 ### Tenant routing
@@ -341,6 +347,20 @@ await writeAuditEvent7W1H({
 - Routes: `/dashboard/hrm/employees`, `/dashboard/hrm/employees/[employeeId]`, `/dashboard/hrm/[segment]`.
 - **ESLint rule `afenda/hrm-pii-audit-metadata`**: blocks PII keys inside `writeIamAuditEvent*` calls within `lib/features/hrm/`.
 - Narrative: `docs/_draft/hrm-draft-v2.md`.
+- **Authorization doctrine:** `minimumOrgRole` is retired as business authorization. HRM page entry, nav visibility, data loads, and mutations must resolve from ERP RBAC permission keys, not Better Auth org roles.
+
+### ERP RBAC
+
+- Module: `lib/features/erp-rbac/` — tenant-governance overlays + ERP operational permission model.
+- Public guards:
+  - `requireTenantAuthority(...)`
+  - `requireTenantOwnerOrOperator()`
+  - `requireErpPermission(...)`
+  - `listEffectiveErpPermissionsForUser(...)`
+- **Function vocabulary:** `create | read | update | delete | search | audit | predict`
+- **Derived verbs:** `submit | approve | reject | lock | finalize | post -> update`; `archive | remove -> delete`; `detail | download | export -> read` unless the route is explicitly audit-grade.
+- **Separation of duties (v1):** for the same `(organization, module, object)`, one user may not effectively hold more than one of `create`, `update`, or `delete`. `read`, `search`, `audit`, and `predict` may combine freely.
+- **Cutover rule:** ERP modules must not use `canActInOrganization(..., "admin")` as final business authorization.
 
 ### Org admin (`/o/{orgSlug}/admin`)
 
@@ -501,6 +521,23 @@ import { listOrgImportJobs } from "#features/org-admin/server"
 import { listContactsForOrganization } from "#features/contacts/data/contacts.queries"
 ```
 
+### File naming convention (`components2/`)
+
+Files in `components2/` follow a `<entity>.<aspect>.<layer>` pattern:
+
+| Pattern | When to use | Examples |
+|---|---|---|
+| `<entity>.schema.ts` | Zod schemas + `z.infer<>` types | `rail.schema.ts` |
+| `<entity>.tsx` | RSC entry — `server-only`, no `"use client"` | `app-shell.tsx`, `sub-layout.tsx` |
+| `<entity>.client.tsx` | Client component — `"use client"` | `app-shell.client.tsx`, `nav-rail.client.tsx` |
+| `<entity>.tsx` (shared) | Pure layout/composition, no directive | `utility-bar.tsx`, `surface.tsx` |
+
+**Rules:**
+- File name = primary export name (`app-shell.tsx` → exports `AppShell`).
+- `*.schema.ts` for all Zod contracts — never bare `schema.ts`.
+- No generic names: `schema.ts`, `shell.tsx`, `rail.tsx` are forbidden without an entity qualifier.
+- Full spec: `.cursor/rules/shell-directory.mdc` → *File naming convention*.
+
 ### Banned categories
 
 `services` · `managers` · `helpers` · `utils` · `repositories` · `controllers` · `hooks` · `adapters` · `processors` · `engines` · `builders` · `factories`
@@ -544,6 +581,7 @@ lib/
   features/
     contacts/     ← ceiling reference module
     hrm/          ← workforce module
+    erp-rbac/     ← tenant governance overlays + ERP permission system
     lynx/         ← machine layer
     knowledge/    ← pgvector substrate
     nexus/        ← org-root data layer

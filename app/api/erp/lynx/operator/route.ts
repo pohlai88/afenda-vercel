@@ -14,6 +14,7 @@ import {
 } from "#features/lynx"
 import * as Sentry from "@sentry/nextjs"
 
+import { canUseErpPermission } from "#features/erp-rbac/server"
 import { isLynxOperatorEnabled } from "#flags"
 import { writeIamAuditEventFromHeaders } from "#lib/auth"
 import { logUnexpectedServerError } from "#lib/logger.server"
@@ -49,6 +50,18 @@ export async function POST(request: Request) {
   const org = await getOrgSessionFromRequest(request)
   if (!org) {
     return routeJsonError("Unauthorized", 401)
+  }
+  const allowed = await canUseErpPermission({
+    organizationId: org.organizationId,
+    userId: org.userId,
+    permission: {
+      module: "lynx",
+      object: "workspace",
+      function: "predict",
+    },
+  })
+  if (!allowed) {
+    return routeJsonError("Forbidden", 403)
   }
 
   if (!(await isLynxOperatorEnabled())) {

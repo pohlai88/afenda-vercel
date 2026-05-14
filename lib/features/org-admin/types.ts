@@ -5,6 +5,7 @@ import type { WorkbenchRailBadgeTone } from "#components/workbench/left-nav-rail
 /** Stable capability identifiers for the organizational control plane. */
 export type OrgAdminCapabilityId =
   | "identity"
+  | "access"
   | "governance"
   | "feedback"
   | "integrations"
@@ -37,6 +38,7 @@ export type OrgAdminCapability = {
 /** Concrete nav keys present in `OrgAdmin.nav.*` (excludes overview/aria). */
 export type OrgAdminNavKey =
   | "members"
+  | "access"
   | "audit"
   | "feedback"
   | "integrations"

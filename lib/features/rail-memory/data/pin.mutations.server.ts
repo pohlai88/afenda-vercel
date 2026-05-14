@@ -106,6 +106,7 @@ export async function insertPin(input: {
   label: string
   href: string
   icon?: string
+  lane?: string
 }): Promise<{ id: string; rank: number }> {
   const id = crypto.randomUUID()
   const rank = await nextRankFor(input)
@@ -119,9 +120,39 @@ export async function insertPin(input: {
     label: input.label,
     href: input.href,
     icon: input.icon ?? null,
+    lane: input.lane ?? "pinned",
     rank,
   })
   return { id, rank }
+}
+
+// ---------------------------------------------------------------------------
+// Change lane — move an existing pin to a different lane bucket
+// ---------------------------------------------------------------------------
+
+/**
+ * Updates the `lane` of a pin row, scoped by `(organizationId, userId)` for IDOR
+ * safety. Returns `true` on success, `false` when the pin was not found (stale id,
+ * cross-tenant attempt — both collapse to the same not-found semantics).
+ */
+export async function changePinLane(input: {
+  organizationId: string
+  userId: string
+  pinId: string
+  lane: string
+}): Promise<boolean> {
+  const updated = await db
+    .update(railPinnedItem)
+    .set({ lane: input.lane, updatedAt: new Date() })
+    .where(
+      and(
+        eq(railPinnedItem.id, input.pinId),
+        eq(railPinnedItem.organizationId, input.organizationId),
+        eq(railPinnedItem.userId, input.userId)
+      )
+    )
+    .returning({ id: railPinnedItem.id })
+  return updated.length > 0
 }
 
 // ---------------------------------------------------------------------------

@@ -81,6 +81,23 @@ export default async function OrgAdminOverviewPage({
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{t("accessCardTitle")}</CardTitle>
+            <CardDescription>{t("accessCardDescription")}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground">
+              {t("accessCardBody")}
+            </p>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={organizationAdminPath(orgSlug, "access")}>
+                {t("openAccess")}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="flex flex-wrap gap-2">

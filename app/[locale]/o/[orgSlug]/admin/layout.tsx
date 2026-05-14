@@ -5,7 +5,6 @@ import { notFound, redirect } from "next/navigation"
 
 import { WorkbenchSubLayoutShellSkeleton } from "#components/workbench"
 import {
-  canActInOrganization,
   fetchOrgWorkbenchIdentity,
   requireRecentAuthStepUp,
   requireVerifiedEmailForAccount,
@@ -14,6 +13,7 @@ import { organizationDashboardPath } from "#lib/dashboard-module-paths"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
 import { requireOrgSession } from "#lib/tenant"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { organizationAdminPath } from "#features/org-admin"
 
 import { OrgAdminDeferredWorkbench } from "./_components/org-admin-deferred-workbench"
@@ -39,17 +39,16 @@ export default async function OrgAdminWorkbenchLayout({
 
   const orgSession = await requireOrgSession()
 
-  const [canAdmin, identity] = await Promise.all([
-    canActInOrganization(
-      orgSession.userId,
-      orgSession.user.role,
-      orgSession.organizationId,
-      "admin"
-    ),
+  const [tenantAuthorityGate, identity] = await Promise.all([
+    requireTenantAuthority([
+      "tenant_owner",
+      "tenant_key_admin",
+      "tenant_support_admin",
+    ]),
     fetchOrgWorkbenchIdentity(orgSession.organizationId),
   ])
 
-  if (!canAdmin) {
+  if (!tenantAuthorityGate.ok) {
     redirect(toLocalePath(locale, organizationDashboardPath(orgSlug, "home")))
   }
   if (!identity) {

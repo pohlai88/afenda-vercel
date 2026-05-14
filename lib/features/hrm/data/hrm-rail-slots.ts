@@ -8,7 +8,11 @@ import {
   organizationHrmPath,
   organizationHrmRootPath,
 } from "../constants"
-import type { HrmNavKey, HrmRailPressureMap } from "../types"
+import type {
+  HrmCapability,
+  HrmNavKey,
+  HrmRailPressureMap,
+} from "../types"
 
 const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
   employees: "users",
@@ -48,10 +52,12 @@ const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
  */
 export function buildHrmRailSlots({
   orgSlug,
+  capabilities = HRM_CAPABILITIES,
   navLabels,
   pressure,
 }: {
   orgSlug: string
+  capabilities?: readonly HrmCapability[]
   /** Translated nav labels keyed by HRM nav key (e.g. employees, leave, etc.) */
   navLabels: Record<string, string>
   /** Optional pressure map produced by `getHrmRailPressureCounts`. */
@@ -64,7 +70,7 @@ export function buildHrmRailSlots({
     icon: "layout-dashboard" as const,
   }
 
-  const navItems = HRM_CAPABILITIES.map((capability) => {
+  const navItems = capabilities.map((capability) => {
     const navKey = capability.nav.navKey as HrmNavKey
     const badge = pressure?.[navKey]
     return {

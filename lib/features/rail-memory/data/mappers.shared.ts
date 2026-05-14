@@ -6,6 +6,8 @@ import type {
 } from "#components/workbench/left-nav-rail/workbench-rail.schema"
 
 import { isWorkbenchId } from "../constants"
+import type { PinLane } from "../schemas/pin-input.schema"
+import { PIN_LANE_VALUES } from "../schemas/pin-input.schema"
 import type {
   RailMemoryPin,
   RailMemoryRecent,
@@ -55,6 +57,18 @@ function coerceIcon(raw: string | null): WorkbenchRailNavIconId | null {
 }
 
 // ---------------------------------------------------------------------------
+// Lane coercion — DB column is free-form text; coerce to closed enum
+// ---------------------------------------------------------------------------
+
+function coerceLane(raw: string): PinLane {
+  // Safety cast: unknown lane tokens fall back to "pinned" so legacy rows
+  // and future lane additions degrade gracefully.
+  return (PIN_LANE_VALUES as ReadonlyArray<string>).includes(raw)
+    ? (raw as PinLane)
+    : "pinned"
+}
+
+// ---------------------------------------------------------------------------
 // DB row shapes — narrowed structurally so the mappers don't drag in
 // the Drizzle type for every column. Keeps the mapper module
 // import-graph thin (no `lib/db/schema` dep at runtime).
@@ -72,6 +86,7 @@ type PinRow = {
   icon: string | null
   rank: number
   createdAt: Date
+  lane: string
 }
 
 type ViewRow = {
@@ -124,6 +139,7 @@ export function pinRowToDto(row: PinRow): RailMemoryPin | null {
     icon: coerceIcon(row.icon),
     rank: row.rank,
     createdAt: row.createdAt,
+    lane: coerceLane(row.lane),
   }
 }
 

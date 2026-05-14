@@ -1,5 +1,5 @@
 import { OrbitPage } from "#features/planner/server"
-import { canActInOrganization } from "#lib/auth"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
 
@@ -15,12 +15,11 @@ export default async function OrbitSessionsPage({
     searchParams,
   ])
   ensureAppLocale(localeRaw)
-  const canManageNotices = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
+  const canManageNotices = await canUseErpPermissionForCurrentOrg({
+    module: "planner",
+    object: "notice",
+    function: "update",
+  })
 
   return (
     <OrbitPage

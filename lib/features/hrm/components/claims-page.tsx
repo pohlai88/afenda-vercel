@@ -11,8 +11,8 @@ import {
   CardTitle,
 } from "#components/ui/card"
 import { Skeleton } from "#components/ui/skeleton"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   listActiveEmployeeChoicesForLeave,
@@ -46,12 +46,11 @@ export async function ClaimsPage() {
 
   const [t, isAdmin, employees, claimTypes] = await Promise.all([
     getTranslations("Dashboard.Hrm.claims"),
-    canActInOrganization(
-      orgSession.userId,
-      orgSession.user.role,
-      orgSession.organizationId,
-      "admin"
-    ),
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "claim",
+      function: "update",
+    }),
     listActiveEmployeeChoicesForLeave(orgSession.organizationId),
     listClaimTypesForOrg(orgSession.organizationId, { activeOnly: true }),
   ])

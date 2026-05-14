@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#components/module-page-header"
+import { ErpAccessDenied } from "#features/erp-rbac"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { requireOrgSession } from "#lib/tenant"
 
 import {
@@ -22,6 +24,19 @@ import { PayrollConsolePage } from "#features/hrm/client"
 export const dynamic = "force-dynamic"
 
 export default async function OrgDashboardHrmPayrollPage() {
+  const allowed = await canUseErpPermissionForCurrentOrg({
+    module: "hrm",
+    object: "payroll",
+    function: "search",
+  })
+  if (!allowed) {
+    return (
+      <ErpAccessDenied
+        title="Payroll"
+        description="This HRM surface requires Payroll search access."
+      />
+    )
+  }
   const session = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.payroll")
 

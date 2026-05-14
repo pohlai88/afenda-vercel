@@ -19,8 +19,8 @@ import {
   TableHeader,
   TableRow,
 } from "#components/ui/table"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   ORG_STRUCTURE_DEFAULT_TAB,
@@ -53,15 +53,14 @@ export async function OrganizationPage({
   tabParam,
   includeArchivedParam,
 }: OrganizationPageProps) {
-  const orgSession = await requireOrgSession()
+  await requireOrgSession()
   const [t, isAdmin] = await Promise.all([
     getTranslations("Dashboard.Hrm.organization"),
-    canActInOrganization(
-      orgSession.userId,
-      orgSession.user.role,
-      orgSession.organizationId,
-      "admin"
-    ),
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "organization",
+      function: "update",
+    }),
   ])
 
   const activeTab =

@@ -21,11 +21,11 @@ import {
   listUserCapabilityPreferences,
   resolveCapabilitiesForViewer,
 } from "#features/marketplace/server"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { Link, redirect } from "#i18n/navigation"
-import { canActInOrganization, requireRecentAuthStepUp } from "#lib/auth"
+import { requireRecentAuthStepUp } from "#lib/auth"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
-import { requireOrgSession } from "#lib/tenant"
 
 export const dynamic = "force-dynamic"
 
@@ -38,21 +38,20 @@ export const metadata: Metadata = {
 export default async function OrganizationMarketplaceAdminPage(props: {
   params: Promise<{ locale: string; orgSlug: string }>
 }) {
-  const [{ locale: localeRaw, orgSlug }, session] = await Promise.all([
+  const [{ locale: localeRaw, orgSlug }, gate] = await Promise.all([
     props.params,
-    requireOrgSession(),
+    requireTenantAuthority([
+      "tenant_owner",
+      "tenant_key_admin",
+      "tenant_support_admin",
+    ]).catch(() => null),
   ])
   const locale = ensureAppLocale(localeRaw)
 
-  const isAdmin = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!isAdmin) {
+  if (!gate?.ok) {
     redirect({ href: organizationMarketplacePath(orgSlug), locale })
   }
+  const session = gate.session
 
   await requireRecentAuthStepUp({
     returnTo: toLocalePath(

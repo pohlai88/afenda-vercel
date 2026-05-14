@@ -6,18 +6,25 @@ import { revalidatePath } from "next/cache"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { customers } from "#lib/db/schema"
+import { requireErpPermission } from "#features/erp-rbac/server"
 import { contactSchema } from "#features/contacts/schemas/contact.schema"
 import type { CreateContactFormState } from "#features/contacts/types"
 import { ORG_DASHBOARD_CONTACTS } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 export async function createContact(
   _prevState: CreateContactFormState,
   formData: FormData
 ): Promise<CreateContactFormState> {
-  // Tier B (standard CRUD): org membership via requireOrgSession; not admin-guarded master data.
-  const { organizationId, userId, sessionId } = await requireOrgSession()
+  const gate = await requireErpPermission({
+    module: "contacts",
+    object: "record",
+    function: "create",
+  })
+  if (!gate.ok) {
+    return { ok: false, errors: { form: gate.error } }
+  }
+  const { organizationId, userId, sessionId } = gate.session
 
   const parsed = contactSchema.safeParse({
     name: formData.get("name"),

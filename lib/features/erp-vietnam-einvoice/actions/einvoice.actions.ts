@@ -1,14 +1,13 @@
 "use server"
 
 import {
-  canActInOrganization,
   requireRecentAuthStepUp,
   writeIamAuditEvent,
 } from "#lib/auth"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { requireErpPermission } from "#features/erp-rbac/server"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import { EINVOICE_AUDIT_ACTIONS } from "../erp-vietnam-einvoice.contract"
 import { validateEinvoiceOrgSlugMatchesSession } from "../data/einvoice-org-guard.server"
@@ -27,16 +26,15 @@ export async function issueEInvoiceAction(
   _prev: IssueEinvoiceActionState | undefined,
   formData: FormData
 ): Promise<IssueEinvoiceActionState> {
-  const session = await requireOrgSession()
-  const admin = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!admin) {
-    return { ok: false, error: "Admin permissions required." }
+  const gate = await requireErpPermission({
+    module: "einvoice",
+    object: "invoice",
+    function: "create",
+  })
+  if (!gate.ok) {
+    return { ok: false, error: gate.error }
   }
+  const session = gate.session
 
   const tenant = await validateEinvoiceOrgSlugMatchesSession(
     String(formData.get("orgSlug") ?? ""),

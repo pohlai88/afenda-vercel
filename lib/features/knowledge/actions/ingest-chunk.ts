@@ -6,12 +6,12 @@ import { revalidatePath } from "next/cache"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { knowledgeChunk } from "#lib/db/schema"
+import { requireErpPermission } from "#features/erp-rbac/server"
 import {
   ORG_DASHBOARD_KNOWLEDGE,
   ORG_DASHBOARD_LYNX,
 } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import { embedKnowledgeText } from "#features/knowledge/data/embeddings.server"
 import { ingestChunkSchema } from "#features/knowledge/schemas/chunk.schema"
@@ -21,7 +21,15 @@ export async function ingestKnowledgeChunk(
   _prevState: IngestChunkFormState,
   formData: FormData
 ): Promise<IngestChunkFormState> {
-  const { organizationId, userId, sessionId } = await requireOrgSession()
+  const gate = await requireErpPermission({
+    module: "knowledge",
+    object: "chunk",
+    function: "create",
+  })
+  if (!gate.ok) {
+    return { ok: false, errors: { form: gate.error } }
+  }
+  const { organizationId, userId, sessionId } = gate.session
 
   const parsed = ingestChunkSchema.safeParse({
     title: formData.get("title"),

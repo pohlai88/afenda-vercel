@@ -10,8 +10,8 @@ import {
 } from "#components/ui/card"
 import { Button } from "#components/ui/button"
 import { Input } from "#components/ui/input"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   submitCreateKpiPeriod,
@@ -29,12 +29,11 @@ type HrmKpiPageProps = {
 
 export async function HrmKpiPage({ orgSlug }: HrmKpiPageProps) {
   const session = await requireOrgSession()
-  const isHrmAdmin = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
+  const isHrmAdmin = await canUseErpPermissionForCurrentOrg({
+    module: "hrm",
+    object: "kpi",
+    function: "update",
+  })
   const [t, periods, employees] = await Promise.all([
     getTranslations("Dashboard.Hrm.kpi"),
     listKpiPeriodsForOrg(session.organizationId),

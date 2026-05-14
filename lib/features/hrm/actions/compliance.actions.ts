@@ -24,7 +24,7 @@ import {
 } from "../data/payroll.queries.server"
 import { resolveRulePack } from "../data/payroll-rule-pack.server"
 import type { StatutoryPackType } from "../data/payroll-rule-pack.server"
-import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import { requireHrmPermission } from "../data/hrm-admin-guard.server"
 import { hrmCodedActionFailure } from "../schemas/hrm-action-result.shared"
 import type {
   GenerateAllStatutoryPacksFormState,
@@ -113,7 +113,10 @@ export async function generateStatutoryPackAction(
   _prev: GenerateStatutoryPackFormState,
   formData: FormData
 ): Promise<GenerateStatutoryPackFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireHrmPermission({
+    object: "compliance",
+    function: "update",
+  })
   if (!gate.ok) {
     return hrmCodedActionFailure("permission_denied", gate.error)
   }
@@ -259,7 +262,10 @@ export async function generateAllStatutoryPacksAction(
   _prev: GenerateAllStatutoryPacksFormState,
   formData: FormData
 ): Promise<GenerateAllStatutoryPacksFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireHrmPermission({
+    object: "compliance",
+    function: "update",
+  })
   if (!gate.ok) {
     return hrmCodedActionFailure("permission_denied", gate.error)
   }
@@ -419,7 +425,10 @@ export async function markEvidenceSubmittedAction(
   _prev: MarkEvidenceSubmittedFormState,
   formData: FormData
 ): Promise<MarkEvidenceSubmittedFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireHrmPermission({
+    object: "compliance",
+    function: "update",
+  })
   if (!gate.ok) {
     return hrmCodedActionFailure("permission_denied", gate.error)
   }

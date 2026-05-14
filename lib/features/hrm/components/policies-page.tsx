@@ -11,8 +11,8 @@ import {
   CardTitle,
 } from "#components/ui/card"
 import { Skeleton } from "#components/ui/skeleton"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   HRM_POLICY_DEFAULT_TAB,
@@ -59,16 +59,15 @@ export async function PoliciesPage({
   tabParam,
   includeArchivedParam,
 }: PoliciesPageProps) {
-  const orgSession = await requireOrgSession()
+  await requireOrgSession()
 
   const [t, isAdmin] = await Promise.all([
     getTranslations("Dashboard.Hrm.policies"),
-    canActInOrganization(
-      orgSession.userId,
-      orgSession.user.role,
-      orgSession.organizationId,
-      "admin"
-    ),
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "policy",
+      function: "update",
+    }),
   ])
 
   // Re-validate URL-supplied tab against the canonical enum so a future

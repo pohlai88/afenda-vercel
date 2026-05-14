@@ -4,17 +4,15 @@ import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import {
-  canActInOrganization,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   createPlannerSignalLink,
   insertPlannerSignal,
 } from "#features/planner/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
 import { getOrganizationSlugById } from "#lib/org-slug.server"
-import { requireOrgSession } from "#lib/tenant"
-
 import {
   deleteOrgEventEndpoint as deleteEndpointRow,
   insertOrgEventEndpoint,
@@ -93,17 +91,15 @@ function fieldErrorsFromZod(error: ZodError<OrgEventEndpointInput>): {
 }
 
 async function requireOrgAdmin() {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) {
-    return { ok: false as const, error: "Admin role required." }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) {
+    return { ok: false as const, error: gate.error }
   }
-  return { ok: true as const, session }
+  return { ok: true as const, session: gate.session }
 }
 
 /**

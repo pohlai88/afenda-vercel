@@ -27,6 +27,14 @@ const idSchema = z.string().trim().min(1).max(128)
 const resourceTypeSchema = z.string().trim().min(1).max(64)
 const iconSchema = z.string().trim().min(1).max(64).optional()
 
+/**
+ * Application-layer enum for pin lane buckets.
+ * Stored as free-form text at the DB layer — the closed set is enforced here.
+ */
+export const PIN_LANE_VALUES = ["pinned", "urgent", "todo"] as const
+export type PinLane = (typeof PIN_LANE_VALUES)[number]
+const laneSchema = z.enum(PIN_LANE_VALUES).default("pinned").optional()
+
 export const pinRecordInputSchema = z
   .object({
     workbenchId: workbenchIdSchema,
@@ -35,10 +43,21 @@ export const pinRecordInputSchema = z
     label: labelSchema,
     href: hrefSchema,
     icon: iconSchema,
+    lane: laneSchema,
   })
   .strict()
 
 export type PinRecordInput = z.infer<typeof pinRecordInputSchema>
+
+/** Move an existing pin to a different lane without touching other fields. */
+export const changePinLaneInputSchema = z
+  .object({
+    pinId: idSchema,
+    lane: z.enum(PIN_LANE_VALUES),
+  })
+  .strict()
+
+export type ChangePinLaneInput = z.infer<typeof changePinLaneInputSchema>
 
 export const unpinRecordInputSchema = z
   .object({

@@ -2,12 +2,11 @@
 
 import {
   buildOrganizationIamAuditCsv,
-  canActInOrganization,
   listOrganizationIamAuditEventsForExport,
   writeIamAuditEventFromNextHeaders,
   type OrganizationIamAuditOriginFilter,
 } from "#lib/auth"
-import { requireOrgSession } from "#lib/tenant"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 
 export type OrgAuditExportState =
   | { ok: true; csv: string; filename: string }
@@ -17,16 +16,15 @@ export type OrgAuditExportState =
 export async function exportOrganizationIamAuditCsvAction(
   formData?: FormData
 ): Promise<OrgAuditExportState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) {
-    return { ok: false, error: "Admin access required." }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) {
+    return { ok: false, error: gate.error }
   }
+  const session = gate.session
 
   const includeSimulated =
     formData?.get("includeSimulated") === "on" ||

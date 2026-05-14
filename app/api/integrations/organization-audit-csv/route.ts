@@ -1,10 +1,10 @@
 import type { NextRequest } from "next/server"
 
 import {
-  canActInOrganization,
   organizationIamAuditExportReadableStream,
   writeIamAuditEventFromHeaders,
 } from "#lib/auth"
+import { hasTenantAuthority } from "#features/erp-rbac/server"
 import { routeTextError } from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
 
@@ -20,12 +20,11 @@ export async function GET(request: NextRequest): Promise<Response> {
     return routeTextError("Unauthorized", 401)
   }
 
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
+  const allowed = await hasTenantAuthority({
+    organizationId: session.organizationId,
+    userId: session.userId,
+    roles: ["tenant_owner", "tenant_key_admin", "tenant_support_admin"],
+  })
   if (!allowed) {
     return routeTextError("Forbidden", 403)
   }

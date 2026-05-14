@@ -4,11 +4,10 @@ import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import {
-  canActInOrganization,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import { transitionOrgFeedbackEventState } from "../data/feedback.mutations.server"
 import { feedbackTransitionFormSchema } from "../schemas/feedback-transition.schema"
@@ -35,16 +34,15 @@ export async function transitionOrgFeedbackAction(
   _prev: TransitionOrgFeedbackState,
   formData: FormData
 ): Promise<TransitionOrgFeedbackState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) {
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) {
     return { status: "error", messageKey: "errorUnauthorized" }
   }
+  const session = gate.session
 
   const parsed = feedbackTransitionFormSchema.safeParse({
     id: formData.get("id"),

@@ -1,8 +1,6 @@
 import type { WorkbenchRailBadgeTone } from "#components/workbench/left-nav-rail"
+import type { ErpPermissionKey } from "#features/erp-rbac"
 import type { HrmDashboardCapabilitySegment } from "#lib/hrm-dashboard.shared"
-
-/** Minimum org role required to open a capability route (Better Auth org roles). */
-export type HrmMinimumOrgRole = "member" | "admin" | "owner"
 
 export type HrmCapabilityId =
   | "workforce"
@@ -34,7 +32,7 @@ export type HrmCapability = {
     readonly order: number
     readonly primarySegment: HrmDashboardCapabilitySegment
   }
-  readonly minimumOrgRole: HrmMinimumOrgRole
+  readonly requiredPermission: ErpPermissionKey
 }
 
 export const HRM_NAV_NAMESPACE = "Dashboard.Hrm.nav" as const

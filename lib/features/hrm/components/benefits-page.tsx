@@ -8,8 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "#components/ui/card"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   listActiveEmployeeChoicesForLeave,
@@ -50,12 +50,11 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
   const [t, isAdmin, employees, plans, enrollments, lifeEvents] =
     await Promise.all([
       getTranslations("Dashboard.Hrm.benefits"),
-      canActInOrganization(
-        orgSession.userId,
-        orgSession.user.role,
-        orgSession.organizationId,
-        "admin"
-      ),
+      canUseErpPermissionForCurrentOrg({
+        module: "hrm",
+        object: "benefit",
+        function: "update",
+      }),
       listActiveEmployeeChoicesForLeave(orgSession.organizationId),
       listBenefitPlansForOrganization(orgSession.organizationId, {
         limit: 200,

@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto"
 
 import { writeIamAuditEventFromHeaders } from "#lib/auth"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { db } from "#lib/db"
 import { hrmImportSession } from "#lib/db/schema"
 import { logUnexpectedServerError } from "#lib/logger.server"
@@ -10,6 +9,7 @@ import {
   routeJsonError,
 } from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
+import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import {
   dryRunAttendance,
@@ -37,14 +37,16 @@ export async function POST(request: Request) {
       return routeJsonError("Unauthorized", 401)
     }
 
-    if (
-      !(await canActInOrganization(
-        org.userId,
-        org.user.role,
-        org.organizationId,
-        "admin"
-      ))
-    ) {
+    const allowed = await canUseErpPermission({
+      organizationId: org.organizationId,
+      userId: org.userId,
+      permission: {
+        module: "hrm",
+        object: "organization",
+        function: "update",
+      },
+    })
+    if (!allowed) {
       return routeJsonError("Forbidden", 403)
     }
 

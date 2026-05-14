@@ -2827,6 +2827,13 @@ export const railPinnedItem = pgTable(
     href: text("href").notNull(),
     /** Optional `WorkbenchRailNavIconId` token (validated client-side). */
     icon: text("icon"),
+    /**
+     * Memory lane bucket. Application-layer enum: "pinned" | "urgent" | "todo".
+     * Stored as free-form text so adding a lane is migration-free at the DB boundary;
+     * Zod input schemas enforce the closed set at the trust boundary.
+     * Existing rows default to "pinned" automatically.
+     */
+    lane: text("lane").notNull().default("pinned"),
     /** Drag-to-reorder rank (lower = higher in the list). */
     rank: integer("rank").notNull().default(0),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
@@ -2989,6 +2996,147 @@ export const userCapabilityPreference = pgTable(
     index("user_capability_preference_org_user_idx").on(
       t.organizationId,
       t.userId
+    ),
+  ]
+)
+
+/**
+ * Tenant-governance overlays — separate from Better Auth organization roles.
+ *
+ * These rows define who governs the tenant itself (owner, key admin,
+ * support admin). They are FK-less to `neon_auth.*` per repo convention.
+ */
+export const tenantAuthority = pgTable(
+  "tenant_authority",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    userId: text("userId").notNull(),
+    role: text("role").notNull(),
+    status: text("status").notNull().default("active"),
+    appointedByUserId: text("appointedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("tenant_authority_org_user_role_uidx").on(
+      t.organizationId,
+      t.userId,
+      t.role
+    ),
+    index("tenant_authority_org_role_idx").on(
+      t.organizationId,
+      t.role,
+      t.status
+    ),
+    index("tenant_authority_org_user_idx").on(
+      t.organizationId,
+      t.userId,
+      t.status
+    ),
+  ]
+)
+
+/**
+ * Tenant-defined ERP role catalog. Roles own permission grants; members are
+ * assigned separately via `erp_role_member`.
+ */
+export const erpRole = pgTable(
+  "erp_role",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    status: text("status").notNull().default("active"),
+    createdByUserId: text("createdByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("erp_role_org_name_uidx").on(t.organizationId, t.name),
+    index("erp_role_org_status_idx").on(t.organizationId, t.status),
+  ]
+)
+
+/**
+ * Org member → ERP role assignments.
+ */
+export const erpRoleMember = pgTable(
+  "erp_role_member",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    roleId: text("roleId")
+      .notNull()
+      .references(() => erpRole.id, { onDelete: "cascade" }),
+    userId: text("userId").notNull(),
+    status: text("status").notNull().default("active"),
+    assignedByUserId: text("assignedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("erp_role_member_role_user_uidx").on(t.roleId, t.userId),
+    index("erp_role_member_org_user_idx").on(
+      t.organizationId,
+      t.userId,
+      t.status
+    ),
+    index("erp_role_member_org_role_idx").on(
+      t.organizationId,
+      t.roleId,
+      t.status
+    ),
+  ]
+)
+
+/**
+ * ERP role permission grants. Permissions are canonical `(module, object,
+ * function)` tuples resolved against the ERP RBAC registry at the action
+ * boundary.
+ */
+export const erpRolePermission = pgTable(
+  "erp_role_permission",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    roleId: text("roleId")
+      .notNull()
+      .references(() => erpRole.id, { onDelete: "cascade" }),
+    module: text("module").notNull(),
+    object: text("object").notNull(),
+    function: text("function").notNull(),
+    status: text("status").notNull().default("active"),
+    grantedByUserId: text("grantedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("erp_role_permission_role_module_object_function_uidx").on(
+      t.roleId,
+      t.module,
+      t.object,
+      t.function
+    ),
+    index("erp_role_permission_org_role_idx").on(
+      t.organizationId,
+      t.roleId,
+      t.status
+    ),
+    index("erp_role_permission_org_module_object_idx").on(
+      t.organizationId,
+      t.module,
+      t.object,
+      t.status
     ),
   ]
 )

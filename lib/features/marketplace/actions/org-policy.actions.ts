@@ -6,19 +6,18 @@ import { revalidatePath, revalidateTag } from "next/cache"
 import { and, eq } from "drizzle-orm"
 
 import {
-  canActInOrganization,
   requireRecentAuthStepUp,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
 import { db } from "#lib/db"
 import { orgCapabilityPolicy } from "#lib/db/schema"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   toLocaleMarketplaceRevalidatePattern,
   toLocalePath,
   toLocaleRoutePattern,
 } from "#lib/i18n/locales.shared"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
-import { requireOrgSession } from "#lib/tenant"
 
 import { isKnownCapabilityId } from "../data/capability-catalog.shared"
 import { marketplacePath } from "../constants"
@@ -65,18 +64,17 @@ async function requireAdminWithStepUp(): Promise<{
   userId: string
   sessionId: string
 }> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) {
-    // Caller throws on permission_denied via the typed result; we
-    // delegate by returning a sentinel from the action layer.
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ]).catch(() => {
+    throw new MarketplacePermissionDeniedError()
+  })
+  if (!gate.ok) {
     throw new MarketplacePermissionDeniedError()
   }
+  const session = gate.session
   const locale = await getRequestAppLocale()
   await requireRecentAuthStepUp({
     returnTo: toLocalePath(locale, marketplacePath("admin")),

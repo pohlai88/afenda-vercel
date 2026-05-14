@@ -1,4 +1,5 @@
-import { canActInOrganization, writeIamAuditEventFromHeaders } from "#lib/auth"
+import { writeIamAuditEventFromHeaders } from "#lib/auth"
+import { canUseErpPermission } from "#features/erp-rbac/server"
 import { closeOrgNotification } from "#features/org-notifications/server"
 import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
@@ -13,12 +14,15 @@ export async function POST(
   const orgSession = await getOrgSessionFromRequest(request)
   if (!orgSession) return routeJsonError("Unauthorized", 401)
 
-  const canManage = await canActInOrganization(
-    orgSession.userId,
-    orgSession.user.role,
-    orgSession.organizationId,
-    "admin"
-  )
+  const canManage = await canUseErpPermission({
+    organizationId: orgSession.organizationId,
+    userId: orgSession.userId,
+    permission: {
+      module: "planner",
+      object: "notice",
+      function: "update",
+    },
+  })
   if (!canManage) return routeJsonError("Forbidden", 403)
 
   const { noticeId } = await params

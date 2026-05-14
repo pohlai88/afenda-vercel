@@ -11,8 +11,8 @@ import {
 } from "#components/ui/card"
 import { Input } from "#components/ui/input"
 import { Textarea } from "#components/ui/textarea"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   submitDecideSalaryAdvance,
@@ -27,12 +27,11 @@ type HrmAdvancesPageProps = {
 
 export async function HrmAdvancesPage({ orgSlug }: HrmAdvancesPageProps) {
   const session = await requireOrgSession()
-  const isAdmin = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
+  const isAdmin = await canUseErpPermissionForCurrentOrg({
+    module: "hrm",
+    object: "salary_advance",
+    function: "update",
+  })
 
   const [t, advances, employees, format] = await Promise.all([
     getTranslations("Dashboard.Hrm.advances"),

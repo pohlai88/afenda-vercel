@@ -4,11 +4,10 @@ import { after } from "next/server"
 import { revalidatePath, revalidateTag } from "next/cache"
 
 import {
-  canActInOrganization,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
+import { requireErpPermission } from "#features/erp-rbac/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import { KNOWLEDGE_AUDIT_ACTIONS } from "../constants"
 import { upsertKnowledgeOrgSetting } from "../data/settings.queries.server"
@@ -26,14 +25,13 @@ export async function updateKnowledgeOrgSettingsAction(
   _prev: UpdateKnowledgeOrgSettingsState,
   formData: FormData
 ): Promise<UpdateKnowledgeOrgSettingsState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) return { ok: false, error: "Admin role required." }
+  const gate = await requireErpPermission({
+    module: "knowledge",
+    object: "settings",
+    function: "update",
+  })
+  if (!gate.ok) return { ok: false, error: gate.error }
+  const session = gate.session
 
   const retrievalHybridEnabled = formData.get("retrievalHybridEnabled") === "1"
   const retrievalRerankEnabled = formData.get("retrievalRerankEnabled") === "1"

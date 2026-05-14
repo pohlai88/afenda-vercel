@@ -1,4 +1,6 @@
 import { ComplianceEvidenceDetailPage } from "#features/hrm"
+import { ErpAccessDenied } from "#features/erp-rbac"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export const dynamic = "force-dynamic"
 
@@ -23,6 +25,19 @@ export default async function OrgDashboardHrmComplianceEvidenceDetailPage({
   params,
 }: OrgDashboardHrmComplianceEvidenceDetailPageProps) {
   const { orgSlug, evidenceId } = await params
+  const allowed = await canUseErpPermissionForCurrentOrg({
+    module: "hrm",
+    object: "compliance",
+    function: "read",
+  })
+  if (!allowed) {
+    return (
+      <ErpAccessDenied
+        title="Compliance evidence"
+        description="This HRM surface requires Compliance read access."
+      />
+    )
+  }
   return (
     <ComplianceEvidenceDetailPage orgSlug={orgSlug} evidenceId={evidenceId} />
   )

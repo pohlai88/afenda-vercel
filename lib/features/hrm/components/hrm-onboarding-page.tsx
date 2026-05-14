@@ -16,8 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "#components/ui/table"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import { HrmOnboardingStepForm } from "./hrm-onboarding-step-form"
 import { listActiveContractsForOnboardingDashboard } from "../data/onboarding.queries.server"
@@ -38,12 +38,11 @@ function formatChecklist(value: unknown): string {
 export async function HrmOnboardingPage({ orgSlug }: HrmOnboardingPageProps) {
   const session = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.onboarding")
-  const isAdmin = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
+  const isAdmin = await canUseErpPermissionForCurrentOrg({
+    module: "hrm",
+    object: "onboarding",
+    function: "update",
+  })
 
   const rows = isAdmin
     ? await listActiveContractsForOnboardingDashboard(session.organizationId)

@@ -1,6 +1,7 @@
 import type { WorkbenchRailNavIconId } from "#components/workbench/left-nav-rail/workbench-rail.schema"
 
 import type { WorkbenchId } from "./constants"
+import type { PinLane } from "./schemas/pin-input.schema"
 
 /**
  * Working Memory Rail — application-layer DTO surface.
@@ -43,6 +44,8 @@ export type RailMemoryPin = {
   readonly icon: WorkbenchRailNavIconId | null
   readonly rank: number
   readonly createdAt: Date
+  /** Memory lane bucket — defaults to "pinned" for legacy rows. */
+  readonly lane: PinLane
 }
 
 /** One saved view (named filtered URL inside a workbench). */

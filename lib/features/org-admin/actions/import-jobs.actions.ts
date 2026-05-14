@@ -7,11 +7,10 @@ import {
   importJobRunPayloadSchema,
 } from "#features/execution"
 import {
-  canActInOrganization,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import { IMPORT_MAX_ROWS_PER_JOB, isImportAdapterId } from "../constants"
 import { digestCsv, parseCsv } from "../data/csv-parser.shared"
@@ -38,15 +37,13 @@ export type ImportJobActionState =
   | null
 
 async function requireOrgAdmin() {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) return { ok: false as const, error: "Admin role required." }
-  return { ok: true as const, session }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) return { ok: false as const, error: gate.error }
+  return { ok: true as const, session: gate.session }
 }
 
 /**

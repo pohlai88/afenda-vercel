@@ -3,13 +3,10 @@
 import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
-import {
-  canActInOrganization,
-  writeIamAuditEventFromNextHeaders,
-} from "#lib/auth"
+import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
 import { logUnexpectedServerError } from "#lib/logger.server"
-import { requireOrgSession } from "#lib/tenant"
 
 import {
   deleteOrgProviderCredential,
@@ -34,15 +31,13 @@ function integrationsPathPattern() {
 }
 
 async function requireAdminOrgSession() {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) throw new Error("Admin role required.")
-  return session
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) throw new Error(gate.error)
+  return gate.session
 }
 
 export async function createKnowledgeCredentialAction(

@@ -2632,6 +2632,7 @@
       "aria": "Organization admin sections",
       "overview": "Overview",
       "members": "Members",
+      "access": "Access control",
       "audit": "Audit log",
       "feedback": "Feedback inbox",
       "settings": "Settings",
@@ -2668,6 +2669,7 @@
       "recentsLabels": {
         "overview": "Admin overview",
         "members": "Members & invitations",
+        "access": "Access control",
         "audit": "Audit log",
         "integrations": "Integrations",
         "settings": "Settings"
@@ -2680,10 +2682,18 @@
       "membersCardDescription": "People with access to this workspace.",
       "invitesCardTitle": "Pending invitations",
       "invitesCardDescription": "Invites waiting to be accepted.",
+      "accessCardTitle": "Access control",
+      "accessCardDescription": "Tenant governance and ERP RBAC.",
+      "accessCardBody": "Configure governance overlays, ERP roles, and permission grants without relying on legacy org-role shortcuts.",
       "manageMembers": "Manage members",
       "viewInvites": "View invitations",
+      "openAccess": "Open access control",
       "backToErp": "Back to ERP dashboard",
       "openAudit": "Audit log"
+    },
+    "access": {
+      "title": "Access control",
+      "description": "Manage tenant governance overlays and ERP RBAC assignments."
     },
     "members": {
       "title": "Members & invitations",

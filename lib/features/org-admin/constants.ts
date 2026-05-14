@@ -25,6 +25,12 @@ export const ORG_ADMIN_CAPABILITIES = [
     nav: { navKey: "members", order: 10, primarySegment: "members" },
   },
   {
+    id: "access",
+    segments: ["access"] as const,
+    auditPrefix: "org.access",
+    nav: { navKey: "access", order: 15, primarySegment: "access" },
+  },
+  {
     id: "governance",
     segments: ["audit"] as const,
     auditPrefix: "org.governance",

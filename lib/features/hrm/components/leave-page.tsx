@@ -11,8 +11,8 @@ import {
   CardTitle,
 } from "#components/ui/card"
 import { Skeleton } from "#components/ui/skeleton"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   listActiveEmployeeChoicesForLeave,
@@ -50,12 +50,11 @@ export async function LeavePage({ orgSlug }: LeavePageProps) {
 
   const [t, isAdmin, employees, leaveTypes] = await Promise.all([
     getTranslations("Dashboard.Hrm.leave"),
-    canActInOrganization(
-      orgSession.userId,
-      orgSession.user.role,
-      orgSession.organizationId,
-      "admin"
-    ),
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "leave",
+      function: "update",
+    }),
     listActiveEmployeeChoicesForLeave(orgSession.organizationId),
     listActiveLeaveTypesForOrg(orgSession.organizationId),
   ])

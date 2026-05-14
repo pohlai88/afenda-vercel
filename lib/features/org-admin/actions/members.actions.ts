@@ -6,15 +6,14 @@ import { z } from "zod"
 import {
   assertOrgInviteRateAllowed,
   auth,
-  canActInOrganization,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import type { requireOrgSession } from "#lib/tenant"
 
 const emailSchema = z.string().trim().email().max(320)
-const inviteRoleSchema = z.enum(["member", "admin"])
-const memberRoleSchema = z.enum(["member", "admin", "owner"])
+const inviteRoleSchema = z.enum(["member"])
 const idSchema = z.string().trim().min(1).max(128)
 
 export type OrgAdminActionState =
@@ -52,20 +51,18 @@ function invitationIdFromCreateResult(result: unknown): string | null {
 }
 
 async function requireOrgAdminActionSession() {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) {
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) {
     return {
-      session: null as typeof session | null,
-      error: "Admin access required.",
+      session: null as Awaited<ReturnType<typeof requireOrgSession>> | null,
+      error: gate.error,
     }
   }
-  return { session, error: null as string | null }
+  return { session: gate.session, error: null as string | null }
 }
 
 export async function inviteMemberAction(
@@ -82,9 +79,7 @@ export async function inviteMemberAction(
   if (!parsedEmail.success) {
     return { ok: false, error: "Enter a valid email address." }
   }
-  const parsedRole = inviteRoleSchema.safeParse(
-    formData.get("role") ?? "member"
-  )
+  const parsedRole = inviteRoleSchema.safeParse("member")
   if (!parsedRole.success) {
     return { ok: false, error: "Invalid role." }
   }
@@ -171,72 +166,11 @@ export async function cancelInvitationAction(
 
 export async function updateMemberRoleAction(
   _prev: OrgAdminActionState,
-  formData: FormData
+  _formData: FormData
 ): Promise<OrgAdminActionState> {
-  const gate = await requireOrgAdminActionSession()
-  if (gate.error || !gate.session) {
-    return { ok: false, error: gate.error ?? "Unauthorized." }
-  }
-  const session = gate.session
-
-  const memberId = idSchema.safeParse(formData.get("memberId"))
-  const targetUserId = z
-    .string()
-    .trim()
-    .min(1)
-    .safeParse(formData.get("targetUserId"))
-  const role = memberRoleSchema.safeParse(formData.get("role"))
-
-  if (!memberId.success || !targetUserId.success) {
-    return { ok: false, error: "Invalid member." }
-  }
-  if (!role.success) {
-    return { ok: false, error: "Invalid role." }
-  }
-  if (targetUserId.data === session.userId) {
-    return { ok: false, error: "You cannot change your own role." }
-  }
-
-  if (role.data === "owner") {
-    const ownerGate = await canActInOrganization(
-      session.userId,
-      session.user.role,
-      session.organizationId,
-      "owner"
-    )
-    if (!ownerGate) {
-      return {
-        ok: false,
-        error: "Only an organization owner can assign the owner role.",
-      }
-    }
-  }
-
-  try {
-    const result = await auth.organization.updateMemberRole({
-      memberId: memberId.data,
-      role: role.data,
-      organizationId: session.organizationId,
-    })
-    if (result.error) {
-      return { ok: false, error: neonAuthErrorMessage(result.error) }
-    }
-    await writeIamAuditEventFromNextHeaders({
-      action: "org.member.role.update",
-      actorUserId: session.userId,
-      actorSessionId: session.sessionId,
-      organizationId: session.organizationId,
-      resourceType: "member",
-      resourceId: memberId.data,
-      metadata: { role: role.data, targetUserId: targetUserId.data },
-    })
-    revalidateOrgAdminWorkbench()
-    return { ok: true, message: "Role updated." }
-  } catch (e) {
-    return {
-      ok: false,
-      error: e instanceof Error ? e.message : "Something went wrong.",
-    }
+  return {
+    ok: false,
+    error: "Tenant governance is now managed from Access control.",
   }
 }
 

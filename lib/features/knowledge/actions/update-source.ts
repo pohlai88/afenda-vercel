@@ -3,12 +3,9 @@
 import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
-import {
-  canActInOrganization,
-  writeIamAuditEventFromNextHeaders,
-} from "#lib/auth"
+import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import { KNOWLEDGE_AUDIT_ACTIONS } from "#features/knowledge/constants"
 import type { KnowledgeSourceActionState } from "#features/knowledge/types"
@@ -23,14 +20,15 @@ export async function updateKnowledgeSourceAction(
   _prev: KnowledgeSourceActionState,
   formData: FormData
 ): Promise<KnowledgeSourceActionState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) return { ok: false, errors: { form: "Admin role required." } }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) {
+    return { ok: false, errors: { form: gate.error } }
+  }
+  const session = gate.session
 
   const parsed = updateKnowledgeSourceInputSchema.safeParse({
     sourceId: formData.get("sourceId"),

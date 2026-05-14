@@ -6,9 +6,9 @@ import { z } from "zod"
 
 import {
   auth,
-  canActInOrganization,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   allocateUniqueOrganizationSlug,
   getOrganizationSlugById,
@@ -18,7 +18,8 @@ import {
   toLocaleOrgDashboardRevalidatePattern,
   toLocaleOrgNexusRevalidatePattern,
 } from "#lib/i18n/locales.shared"
-import { requireOrgSession, requireSignedInSession } from "#lib/tenant"
+import { requireSignedInSession } from "#lib/tenant"
+import type { requireOrgSession } from "#lib/tenant"
 
 const nameSchema = z
   .string()
@@ -151,20 +152,18 @@ function revalidateOrgRoutes() {
 }
 
 async function requireOrgAdminActionSession() {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) {
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) {
     return {
-      session: null as typeof session | null,
-      error: "Admin access required.",
+      session: null as Awaited<ReturnType<typeof requireOrgSession>> | null,
+      error: gate.error,
     }
   }
-  return { session, error: null as string | null }
+  return { session: gate.session, error: null as string | null }
 }
 
 /**

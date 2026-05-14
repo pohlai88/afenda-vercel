@@ -253,6 +253,20 @@
       "when": 1779465840000,
       "tag": "0035_erp_vietnam_einvoice",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1779465900000,
+      "tag": "0036_rail_pinned_item_lane",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1779465960000,
+      "tag": "0037_erp_rbac_hard_cutover",
+      "breakpoints": true
     }
   ]
 }

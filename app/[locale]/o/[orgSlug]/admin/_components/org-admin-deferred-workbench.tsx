@@ -155,6 +155,10 @@ export async function OrgAdminDeferredWorkbench({
                 href: organizationAdminPath(orgSlug, "members"),
               },
               {
+                label: t("nav.access"),
+                href: organizationAdminPath(orgSlug, "access"),
+              },
+              {
                 label: t("nav.audit"),
                 href: organizationAdminPath(orgSlug, "audit"),
               },

@@ -15,7 +15,7 @@ import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { getOrganizationSlugById } from "#lib/org-slug.server"
 
 import { organizationHrmPath } from "../constants"
-import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import { requireHrmPermission } from "../data/hrm-admin-guard.server"
 import { getPayrollPeriod } from "../data/payroll.queries.server"
 import {
   PAYROLL_PERIOD_LOCK_SUBJECT_KIND,
@@ -47,7 +47,10 @@ export async function requestPayrollPeriodLockApprovalAction(
   _prev: PayrollLockApprovalFormState,
   formData: FormData
 ): Promise<PayrollLockApprovalFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireHrmPermission({
+    object: "payroll",
+    function: "update",
+  })
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
@@ -195,7 +198,10 @@ export async function approvePayrollPeriodLockApprovalAction(
   _prev: PayrollLockApprovalFormState,
   formData: FormData
 ): Promise<PayrollLockApprovalFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireHrmPermission({
+    object: "payroll",
+    function: "update",
+  })
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
@@ -280,7 +286,10 @@ export async function rejectPayrollPeriodLockApprovalAction(
   _prev: PayrollLockApprovalFormState,
   formData: FormData
 ): Promise<PayrollLockApprovalFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireHrmPermission({
+    object: "payroll",
+    function: "update",
+  })
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 

@@ -11,8 +11,8 @@ import {
   CardTitle,
 } from "#components/ui/card"
 import { Skeleton } from "#components/ui/skeleton"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import { isIsoDate, todayIsoDate } from "../data/attendance-display.shared"
 import { listActiveEmployeeChoicesForAttendance } from "../server"
@@ -56,12 +56,11 @@ export async function AttendancePage({
 
   const [t, isAdmin, employees] = await Promise.all([
     getTranslations("Dashboard.Hrm.attendance"),
-    canActInOrganization(
-      orgSession.userId,
-      orgSession.user.role,
-      orgSession.organizationId,
-      "admin"
-    ),
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "attendance",
+      function: "update",
+    }),
     listActiveEmployeeChoicesForAttendance(orgSession.organizationId),
   ])
 

@@ -2,11 +2,8 @@
 
 import { after } from "next/server"
 
-import {
-  canActInOrganization,
-  writeIamAuditEventFromNextHeaders,
-} from "#lib/auth"
-import { requireOrgSession } from "#lib/tenant"
+import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 
 import { KNOWLEDGE_AUDIT_ACTIONS } from "#features/knowledge/constants"
 import type { EvalRunSummary } from "#features/knowledge/types"
@@ -32,14 +29,15 @@ export async function runKnowledgeEvalSetAction(
   _prev: RunKnowledgeEvalSetState,
   formData: FormData
 ): Promise<RunKnowledgeEvalSetState> {
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) return { ok: false, error: "Admin role required." }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) {
+    return { ok: false, error: gate.error }
+  }
+  const session = gate.session
 
   const parsed = runKnowledgeEvalSetInputSchema.safeParse({
     evalSetId: formData.get("evalSetId"),

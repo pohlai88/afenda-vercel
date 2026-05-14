@@ -2,13 +2,12 @@
 
 import { revalidatePath } from "next/cache"
 
-import { canActInOrganization } from "#lib/auth"
 import { scenarioIdSchema } from "#lib/erp/scenario-types.shared"
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   toLocaleOrgAdminRevalidatePattern,
   toLocaleOrgDashboardRevalidatePattern,
 } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
 
 import { isOperationalSimulationEnabled } from "../constants"
 import { replayOperationalScenarioForOrganization } from "../data/scenario-replay.server"
@@ -29,16 +28,15 @@ export async function replayOrgOperationalScenarioAction(
     return { ok: false, error: "Invalid scenario identifier." }
   }
 
-  const session = await requireOrgSession()
-  const allowed = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
-  if (!allowed) {
-    return { ok: false, error: "Admin access required." }
+  const gate = await requireTenantAuthority([
+    "tenant_owner",
+    "tenant_key_admin",
+    "tenant_support_admin",
+  ])
+  if (!gate.ok) {
+    return { ok: false, error: gate.error }
   }
+  const session = gate.session
 
   try {
     const { simulationRunId } = await replayOperationalScenarioForOrganization({

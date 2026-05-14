@@ -10,6 +10,7 @@ import {
   ORG_DASHBOARD_HRM,
   organizationDashboardPath,
 } from "#lib/dashboard-module-paths"
+import { buildErpPermissionKey } from "#features/erp-rbac"
 
 import type { HrmCapability, HrmNavKey } from "./types"
 import { HRM_NAV_NAMESPACE } from "./types"
@@ -24,105 +25,165 @@ export const HRM_CAPABILITIES = [
     segments: ["employees"] as const,
     auditPrefix: "erp.hrm.employee",
     nav: { navKey: "employees", order: 10, primarySegment: "employees" },
-    minimumOrgRole: "member",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "employee",
+      function: "search",
+    }),
   },
   {
     id: "organization",
     segments: ["organization"] as const,
     auditPrefix: "erp.hrm.organization",
     nav: { navKey: "organization", order: 15, primarySegment: "organization" },
-    minimumOrgRole: "admin",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "organization",
+      function: "read",
+    }),
   },
   {
     id: "onboarding",
     segments: ["onboarding"] as const,
     auditPrefix: "erp.hrm.onboarding",
     nav: { navKey: "onboarding", order: 16, primarySegment: "onboarding" },
-    minimumOrgRole: "admin",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "onboarding",
+      function: "read",
+    }),
   },
   {
     id: "leave",
     segments: ["leave"] as const,
     auditPrefix: "erp.hrm.leave",
     nav: { navKey: "leave", order: 20, primarySegment: "leave" },
-    minimumOrgRole: "member",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "leave",
+      function: "search",
+    }),
   },
   {
     id: "attendance",
     segments: ["attendance"] as const,
     auditPrefix: "erp.hrm.attendance",
     nav: { navKey: "attendance", order: 30, primarySegment: "attendance" },
-    minimumOrgRole: "member",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "attendance",
+      function: "search",
+    }),
   },
   {
     id: "benefits",
     segments: ["benefits"] as const,
     auditPrefix: "erp.hrm.benefit",
     nav: { navKey: "benefits", order: 38, primarySegment: "benefits" },
-    minimumOrgRole: "admin",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "benefit",
+      function: "search",
+    }),
   },
   {
     id: "claims",
     segments: ["claims"] as const,
     auditPrefix: "erp.hrm.claim",
     nav: { navKey: "claims", order: 35, primarySegment: "claims" },
-    minimumOrgRole: "member",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "claim",
+      function: "search",
+    }),
   },
   {
     id: "payroll",
     segments: ["payroll"] as const,
     auditPrefix: "erp.hrm.payroll",
     nav: { navKey: "payroll", order: 40, primarySegment: "payroll" },
-    minimumOrgRole: "admin",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "payroll",
+      function: "search",
+    }),
   },
   {
     id: "performance",
     segments: ["performance"] as const,
     auditPrefix: "erp.hrm.performance",
     nav: { navKey: "performance", order: 45, primarySegment: "performance" },
-    minimumOrgRole: "member",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "performance",
+      function: "search",
+    }),
   },
   {
     id: "kpi",
     segments: ["kpi"] as const,
     auditPrefix: "erp.hrm.kpi",
     nav: { navKey: "kpi", order: 46, primarySegment: "kpi" },
-    minimumOrgRole: "admin",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "kpi",
+      function: "search",
+    }),
   },
   {
     id: "advances",
     segments: ["advances"] as const,
     auditPrefix: "erp.hrm.salary_advance",
     nav: { navKey: "advances", order: 47, primarySegment: "advances" },
-    minimumOrgRole: "member",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "salary_advance",
+      function: "search",
+    }),
   },
   {
     id: "compliance",
     segments: ["compliance"] as const,
     auditPrefix: "erp.hrm.compliance",
     nav: { navKey: "compliance", order: 50, primarySegment: "compliance" },
-    minimumOrgRole: "admin",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "compliance",
+      function: "search",
+    }),
   },
   {
     id: "documents",
     segments: ["documents"] as const,
     auditPrefix: "erp.hrm.document",
     nav: { navKey: "documents", order: 60, primarySegment: "documents" },
-    minimumOrgRole: "member",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "document",
+      function: "search",
+    }),
   },
   {
     id: "policies",
     segments: ["policies"] as const,
     auditPrefix: "erp.hrm.policy",
     nav: { navKey: "policies", order: 70, primarySegment: "policies" },
-    minimumOrgRole: "admin",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "policy",
+      function: "search",
+    }),
   },
   {
     id: "snapshot",
     segments: ["snapshot"] as const,
     auditPrefix: "erp.hrm.snapshot",
     nav: { navKey: "snapshot", order: 80, primarySegment: "snapshot" },
-    minimumOrgRole: "member",
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "snapshot",
+      function: "read",
+    }),
   },
 ] as const satisfies readonly HrmCapability[]
 

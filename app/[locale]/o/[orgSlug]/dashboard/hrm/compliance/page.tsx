@@ -3,6 +3,8 @@ import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#components/module-page-header"
+import { ErpAccessDenied } from "#features/erp-rbac"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { requireOrgSession } from "#lib/tenant"
 
 import {
@@ -39,6 +41,19 @@ export default async function OrgDashboardHrmCompliancePage({
   params: Promise<{ locale: string; orgSlug: string }>
   searchParams: Promise<PageSearchParams>
 }) {
+  const allowed = await canUseErpPermissionForCurrentOrg({
+    module: "hrm",
+    object: "compliance",
+    function: "search",
+  })
+  if (!allowed) {
+    return (
+      <ErpAccessDenied
+        title="Compliance"
+        description="This HRM surface requires Compliance search access."
+      />
+    )
+  }
   const session = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.compliance")
   const { orgSlug } = await params

@@ -16,8 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "#components/ui/table"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   HrmAcknowledgePerformanceReviewForm,
@@ -37,12 +37,11 @@ type HrmPerformancePageProps = {
 export async function HrmPerformancePage({ orgSlug }: HrmPerformancePageProps) {
   const session = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.performance")
-  const isAdmin = await canActInOrganization(
-    session.userId,
-    session.user.role,
-    session.organizationId,
-    "admin"
-  )
+  const isAdmin = await canUseErpPermissionForCurrentOrg({
+    module: "hrm",
+    object: "performance",
+    function: "update",
+  })
 
   const [cycles, reviews] = await Promise.all([
     listReviewCyclesForOrg(session.organizationId),
