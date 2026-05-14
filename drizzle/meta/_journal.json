@@ -218,6 +218,41 @@
       "when": 1778697157258,
       "tag": "0030_hrm_benefits_phase5",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1779465600000,
+      "tag": "0031_hrm_contract_compensation",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1779465660000,
+      "tag": "0032_hrm_time_report",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1779465720000,
+      "tag": "0033_hrm_viet_erp_plan_0033",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1779465780000,
+      "tag": "0034_hrm_vn_rule_pack_registry_seed",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1779465840000,
+      "tag": "0035_erp_vietnam_einvoice",
+      "breakpoints": true
     }
   ]
 }

@@ -4,8 +4,17 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Bell, CheckCheck, Plus, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { Alert, AlertDescription } from "#components/ui/alert"
 import { Badge } from "#components/ui/badge"
 import { Button } from "#components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "#components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -29,9 +38,14 @@ import {
   FieldLabel,
 } from "#components/ui/field"
 import { Input } from "#components/ui/input"
-import { NativeSelect, NativeSelectOption } from "#components/ui/native-select"
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemFooter,
+  ItemTitle,
+} from "#components/ui/item"
 import { ScrollArea } from "#components/ui/scroll-area"
-import { Separator } from "#components/ui/separator"
 import {
   Sheet,
   SheetContent,
@@ -41,7 +55,9 @@ import {
   SheetTrigger,
 } from "#components/ui/sheet"
 import { Spinner } from "#components/ui/spinner"
+import { Tabs, TabsList, TabsTrigger } from "#components/ui/tabs"
 import { Textarea } from "#components/ui/textarea"
+import { ToggleGroup, ToggleGroupItem } from "#components/ui/toggle-group"
 import { Link } from "#i18n/navigation"
 import type {
   OrgNotificationNotice,
@@ -70,6 +86,8 @@ type CreateNoticeFormState = {
   linkedPath: string
 }
 
+type NoticeFilter = "all" | "unread" | "acknowledged" | "critical"
+
 const EMPTY_CREATE_FORM: CreateNoticeFormState = {
   title: "",
   body: "",
@@ -78,6 +96,8 @@ const EMPTY_CREATE_FORM: CreateNoticeFormState = {
   linkedEntityLabel: "",
   linkedPath: "",
 }
+
+const NOTICE_SEVERITIES = ["info", "warning", "critical"] as const
 
 function formatDateTime(value: string | null): string {
   if (!value) return "—"
@@ -106,12 +126,12 @@ function severityBadgeVariant(
 
 function noticeListTone(input: { active: boolean; unread: boolean }): string {
   if (input.active) {
-    return "border-border/70 bg-background text-foreground"
+    return "border-border bg-background text-foreground shadow-xs"
   }
   if (input.unread) {
     return "border-info/40 bg-info/5 text-foreground"
   }
-  return "border-border/50 bg-card text-card-foreground"
+  return "border-border/60 bg-card text-card-foreground"
 }
 
 async function readJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
@@ -133,6 +153,7 @@ export function WorkbenchUtilityNotifications({
   const [createOpen, setCreateOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [noticeFilter, setNoticeFilter] = useState<NoticeFilter>("all")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [createError, setCreateError] = useState<string | null>(null)
   const [items, setItems] = useState<OrgNotificationNotice[]>([])
@@ -144,6 +165,27 @@ export function WorkbenchUtilityNotifications({
     () => items.filter((item) => !item.isRead).length,
     [items]
   )
+  const acknowledgedCount = useMemo(
+    () => items.filter((item) => item.isAcknowledged).length,
+    [items]
+  )
+  const criticalCount = useMemo(
+    () => items.filter((item) => item.severity === "critical").length,
+    [items]
+  )
+
+  const filteredItems = useMemo(() => {
+    switch (noticeFilter) {
+      case "unread":
+        return items.filter((item) => !item.isRead)
+      case "acknowledged":
+        return items.filter((item) => item.isAcknowledged)
+      case "critical":
+        return items.filter((item) => item.severity === "critical")
+      default:
+        return items
+    }
+  }, [items, noticeFilter])
 
   const selectedNotice = useMemo(
     () => items.find((item) => item.id === selectedNoticeId) ?? null,
@@ -309,46 +351,92 @@ export function WorkbenchUtilityNotifications({
 
         <SheetContent
           side="right"
-          className="af-nexus-popover-panel flex w-full flex-col border-l border-border/60 bg-background/96 p-0 supports-[backdrop-filter]:bg-background/80 sm:max-w-5xl"
+          className="flex h-dvh w-full max-w-full flex-col overflow-hidden border-l bg-background p-0 sm:max-w-5xl"
         >
           <SheetHeader className="border-b border-border/50 px-5 py-4 text-left">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex min-w-0 flex-col gap-1">
-                <SheetTitle>{t("title")}</SheetTitle>
-                <SheetDescription>{t("description")}</SheetDescription>
+            <div className="flex min-w-0 flex-col gap-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 flex-col gap-1">
+                  <SheetTitle>{t("title")}</SheetTitle>
+                  <SheetDescription>{t("description")}</SheetDescription>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Badge variant="outline">
+                    {t("unreadCount", { count: unreadCount })}
+                  </Badge>
+                  {canManage ? (
+                    <Button size="sm" onClick={() => setCreateOpen(true)}>
+                      <Plus data-icon="inline-start" aria-hidden />
+                      {t("newNotice")}
+                    </Button>
+                  ) : null}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  {t("unreadCount", { count: unreadCount })}
-                </Badge>
-                {canManage ? (
-                  <Button size="sm" onClick={() => setCreateOpen(true)}>
-                    <Plus data-icon="inline-start" aria-hidden />
-                    {t("newNotice")}
-                  </Button>
-                ) : null}
+
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <Card size="sm" className="shadow-none">
+                  <CardHeader>
+                    <CardDescription>{t("activeNotices")}</CardDescription>
+                    <CardTitle>{items.length}</CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card size="sm" className="shadow-none">
+                  <CardHeader>
+                    <CardDescription>{t("state.unread")}</CardDescription>
+                    <CardTitle>{unreadCount}</CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card size="sm" className="shadow-none">
+                  <CardHeader>
+                    <CardDescription>{t("state.acknowledged")}</CardDescription>
+                    <CardTitle>{acknowledgedCount}</CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card size="sm" className="shadow-none">
+                  <CardHeader>
+                    <CardDescription>{t("severity.critical")}</CardDescription>
+                    <CardTitle>{criticalCount}</CardTitle>
+                  </CardHeader>
+                </Card>
               </div>
             </div>
           </SheetHeader>
 
           {errorMessage ? (
-            <div className="border-b border-border/50 px-5 py-3 text-sm text-destructive">
-              {errorMessage}
-            </div>
+            <Alert variant="destructive" className="rounded-none border-x-0">
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
           ) : null}
 
-          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[20rem_minmax(0,1fr)]">
-            <div className="min-h-0 border-b border-border/50 lg:border-r lg:border-b-0">
+          <div className="grid min-h-0 min-w-0 flex-1 overflow-hidden lg:grid-cols-[21rem_minmax(0,1fr)]">
+            <div className="min-h-0 min-w-0 overflow-hidden border-b border-border/50 lg:border-r lg:border-b-0">
               <div className="flex h-full min-h-0 flex-col">
-                <div className="border-b border-border/40 px-4 py-3 text-xs font-medium text-muted-foreground">
-                  {t("activeNotices")}
-                </div>
+                <Tabs
+                  value={noticeFilter}
+                  onValueChange={(value) =>
+                    setNoticeFilter(value as NoticeFilter)
+                  }
+                  className="border-b border-border/40 px-3 py-3"
+                >
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="all">{t("activeNotices")}</TabsTrigger>
+                    <TabsTrigger value="unread">
+                      {t("state.unread")}
+                    </TabsTrigger>
+                    <TabsTrigger value="acknowledged">
+                      {t("state.acknowledged")}
+                    </TabsTrigger>
+                    <TabsTrigger value="critical">
+                      {t("severity.critical")}
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
                 {loading && items.length === 0 ? (
                   <div className="flex flex-1 items-center justify-center px-4 py-10 text-sm text-muted-foreground">
                     <Spinner className="mr-2" aria-hidden />
                     {t("loading")}
                   </div>
-                ) : items.length === 0 ? (
+                ) : filteredItems.length === 0 ? (
                   <div className="p-4">
                     <Empty className="border border-dashed border-border/60 bg-muted/20 px-6 py-10">
                       <EmptyHeader>
@@ -363,26 +451,30 @@ export function WorkbenchUtilityNotifications({
                     </Empty>
                   </div>
                 ) : (
-                  <ScrollArea className="min-h-0 flex-1">
+                  <ScrollArea className="h-full min-h-0 flex-1 overflow-hidden">
                     <ul className="flex min-h-full flex-col gap-2 p-3">
-                      {items.map((item) => {
+                      {filteredItems.map((item) => {
                         const displayBadge = describeOrgNotificationBadge(item)
 
                         return (
                           <li key={item.id}>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedNoticeId(item.id)}
+                            <Item
+                              asChild
+                              variant="outline"
+                              size="sm"
                               className={cn(
-                                "w-full rounded-2xl border p-3 text-left transition-colors",
+                                "items-start",
                                 noticeListTone({
                                   active: item.id === selectedNoticeId,
                                   unread: !item.isRead,
                                 })
                               )}
                             >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex min-w-0 flex-col gap-1">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedNoticeId(item.id)}
+                              >
+                                <ItemContent className="min-w-0">
                                   <div className="flex flex-wrap items-center gap-2">
                                     <Badge
                                       variant={severityBadgeVariant(
@@ -412,27 +504,29 @@ export function WorkbenchUtilityNotifications({
                                       </Badge>
                                     )}
                                   </div>
-                                  <p className="truncate text-sm font-medium text-foreground">
+                                  <ItemTitle className="w-full truncate text-foreground">
                                     {item.title}
-                                  </p>
-                                  <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                                  </ItemTitle>
+                                  <ItemDescription className="text-xs leading-relaxed">
                                     {item.body}
-                                  </p>
+                                  </ItemDescription>
                                   {item.linkedEntityLabel ? (
                                     <p className="truncate text-[11px] text-muted-foreground">
                                       {item.linkedEntityLabel}
                                     </p>
                                   ) : null}
-                                </div>
+                                </ItemContent>
                                 {!item.isRead ? (
                                   <span className="mt-1 size-2.5 shrink-0 rounded-full bg-info" />
                                 ) : null}
-                              </div>
-                              <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
-                                <span>{t(`source.${item.source}`)}</span>
-                                <span>{formatDateTime(item.publishedAt)}</span>
-                              </div>
-                            </button>
+                                <ItemFooter className="text-[11px] text-muted-foreground">
+                                  <span>{t(`source.${item.source}`)}</span>
+                                  <span>
+                                    {formatDateTime(item.publishedAt)}
+                                  </span>
+                                </ItemFooter>
+                              </button>
+                            </Item>
                           </li>
                         )
                       })}
@@ -442,11 +536,11 @@ export function WorkbenchUtilityNotifications({
               </div>
             </div>
 
-            <ScrollArea className="min-h-0">
+            <ScrollArea className="h-full min-h-0 min-w-0 overflow-hidden">
               <div className="flex min-h-full flex-col p-4 lg:p-5">
                 {selectedNotice ? (
-                  <div className="flex min-h-full flex-col gap-5">
-                    <div className="flex flex-col gap-3">
+                  <Card className="min-h-full shadow-none">
+                    <CardHeader className="border-b border-border/50">
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge
                           variant={severityBadgeVariant(
@@ -478,15 +572,15 @@ export function WorkbenchUtilityNotifications({
                         )}
                       </div>
 
-                      <div className="flex flex-col gap-2">
-                        <h3 className="text-lg font-semibold text-foreground">
-                          {selectedNotice.title}
-                        </h3>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
-                          {selectedNotice.body}
-                        </p>
-                      </div>
+                      <CardTitle className="text-lg">
+                        {selectedNotice.title}
+                      </CardTitle>
+                      <CardDescription className="leading-relaxed whitespace-pre-wrap">
+                        {selectedNotice.body}
+                      </CardDescription>
+                    </CardHeader>
 
+                    <CardContent className="flex flex-1 flex-col gap-5 pt-5">
                       <dl className="grid gap-3 text-sm sm:grid-cols-2">
                         <div>
                           <dt className="text-xs text-muted-foreground">
@@ -515,11 +609,9 @@ export function WorkbenchUtilityNotifications({
                           </div>
                         ) : null}
                       </dl>
-                    </div>
+                    </CardContent>
 
-                    <Separator />
-
-                    <div className="mt-auto flex flex-wrap gap-2">
+                    <CardFooter className="mt-auto flex-wrap gap-2 border-t">
                       <Button
                         type="button"
                         variant="outline"
@@ -530,7 +622,7 @@ export function WorkbenchUtilityNotifications({
                         onClick={() => void handleRead(selectedNotice.id)}
                       >
                         {busyNoticeId === selectedNotice.id ? (
-                          <Spinner aria-hidden />
+                          <Spinner data-icon="inline-start" aria-hidden />
                         ) : null}
                         {t("markRead")}
                       </Button>
@@ -545,7 +637,7 @@ export function WorkbenchUtilityNotifications({
                         }
                       >
                         {busyNoticeId === selectedNotice.id ? (
-                          <Spinner aria-hidden />
+                          <Spinner data-icon="inline-start" aria-hidden />
                         ) : (
                           <CheckCheck data-icon="inline-start" aria-hidden />
                         )}
@@ -553,10 +645,15 @@ export function WorkbenchUtilityNotifications({
                       </Button>
                       {selectedNotice.linkedPath &&
                       selectedNotice.linkedEntityLabel ? (
-                        <Button asChild variant="secondary">
+                        <Button
+                          asChild
+                          variant="secondary"
+                          className="max-w-full"
+                        >
                           <Link
                             href={selectedNotice.linkedPath}
                             aria-label={t("openLinkedRecord")}
+                            className="min-w-0 truncate"
                           >
                             {`${t("openLinkedRecord")} · ${selectedNotice.linkedEntityLabel}`}
                           </Link>
@@ -570,15 +667,15 @@ export function WorkbenchUtilityNotifications({
                           onClick={() => void handleClose(selectedNotice.id)}
                         >
                           {busyNoticeId === selectedNotice.id ? (
-                            <Spinner aria-hidden />
+                            <Spinner data-icon="inline-start" aria-hidden />
                           ) : (
                             <X data-icon="inline-start" aria-hidden />
                           )}
                           {t("closeNotice")}
                         </Button>
                       ) : null}
-                    </div>
-                  </div>
+                    </CardFooter>
+                  </Card>
                 ) : (
                   <Empty className="h-full border border-dashed border-border/60 bg-muted/20 px-6 py-10">
                     <EmptyHeader>
@@ -614,8 +711,8 @@ export function WorkbenchUtilityNotifications({
             <DialogDescription>{t("createDescription")}</DialogDescription>
           </DialogHeader>
 
-          <FieldGroup className="py-2">
-            <Field>
+          <FieldGroup className="grid gap-4 py-2 sm:grid-cols-2">
+            <Field className="sm:col-span-2">
               <FieldLabel htmlFor="notification-title">
                 {t("fields.title")}
               </FieldLabel>
@@ -629,7 +726,7 @@ export function WorkbenchUtilityNotifications({
               </FieldContent>
             </Field>
 
-            <Field>
+            <Field className="sm:col-span-2">
               <FieldLabel htmlFor="notification-body">
                 {t("fields.body")}
               </FieldLabel>
@@ -644,86 +741,85 @@ export function WorkbenchUtilityNotifications({
               </FieldContent>
             </Field>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="notification-severity">
-                  {t("fields.severity")}
-                </FieldLabel>
-                <FieldContent>
-                  <NativeSelect
-                    id="notification-severity"
-                    value={form.severity}
-                    onChange={(event) =>
-                      updateForm(
-                        "severity",
-                        event.target.value as OrgNotificationSeverity
-                      )
+            <Field>
+              <FieldLabel>{t("fields.severity")}</FieldLabel>
+              <FieldContent>
+                <ToggleGroup
+                  type="single"
+                  value={form.severity}
+                  onValueChange={(value) => {
+                    if (value) {
+                      updateForm("severity", value as OrgNotificationSeverity)
                     }
-                    className="w-full"
-                  >
-                    <NativeSelectOption value="info">
-                      {t("severity.info")}
-                    </NativeSelectOption>
-                    <NativeSelectOption value="warning">
-                      {t("severity.warning")}
-                    </NativeSelectOption>
-                    <NativeSelectOption value="critical">
-                      {t("severity.critical")}
-                    </NativeSelectOption>
-                  </NativeSelect>
-                </FieldContent>
-              </Field>
+                  }}
+                  variant="outline"
+                  size="sm"
+                  spacing={1}
+                  className="flex-wrap justify-start"
+                  aria-label={t("fields.severity")}
+                >
+                  {NOTICE_SEVERITIES.map((severity) => (
+                    <ToggleGroupItem
+                      key={severity}
+                      value={severity}
+                      className="h-8 rounded-full px-3 text-xs"
+                    >
+                      {t(`severity.${severity}`)}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </FieldContent>
+            </Field>
 
-              <Field>
-                <FieldLabel htmlFor="notification-expiry">
-                  {t("fields.expiresAt")}
-                </FieldLabel>
-                <FieldContent>
-                  <Input
-                    id="notification-expiry"
-                    type="datetime-local"
-                    value={form.expiresAt}
-                    onChange={(event) =>
-                      updateForm("expiresAt", event.target.value)
-                    }
-                  />
-                </FieldContent>
-              </Field>
-            </div>
+            <Field>
+              <FieldLabel htmlFor="notification-expiry">
+                {t("fields.expiresAt")}
+              </FieldLabel>
+              <FieldContent>
+                <Input
+                  id="notification-expiry"
+                  type="datetime-local"
+                  value={form.expiresAt}
+                  onChange={(event) =>
+                    updateForm("expiresAt", event.target.value)
+                  }
+                />
+              </FieldContent>
+            </Field>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="notification-linked-label">
-                  {t("fields.linkedLabel")}
-                </FieldLabel>
-                <FieldContent>
-                  <Input
-                    id="notification-linked-label"
-                    value={form.linkedEntityLabel}
-                    onChange={(event) =>
-                      updateForm("linkedEntityLabel", event.target.value)
-                    }
-                  />
-                </FieldContent>
-              </Field>
+            <Field>
+              <FieldLabel htmlFor="notification-linked-label">
+                {t("fields.linkedLabel")}
+              </FieldLabel>
+              <FieldContent>
+                <Input
+                  id="notification-linked-label"
+                  value={form.linkedEntityLabel}
+                  onChange={(event) =>
+                    updateForm("linkedEntityLabel", event.target.value)
+                  }
+                />
+              </FieldContent>
+            </Field>
 
-              <Field>
-                <FieldLabel htmlFor="notification-linked-path">
-                  {t("fields.linkedPath")}
-                </FieldLabel>
-                <FieldContent>
-                  <Input
-                    id="notification-linked-path"
-                    value={form.linkedPath}
-                    onChange={(event) =>
-                      updateForm("linkedPath", event.target.value)
-                    }
-                  />
-                </FieldContent>
-              </Field>
-            </div>
+            <Field>
+              <FieldLabel htmlFor="notification-linked-path">
+                {t("fields.linkedPath")}
+              </FieldLabel>
+              <FieldContent>
+                <Input
+                  id="notification-linked-path"
+                  value={form.linkedPath}
+                  onChange={(event) =>
+                    updateForm("linkedPath", event.target.value)
+                  }
+                />
+              </FieldContent>
+            </Field>
 
-            <FieldError role="alert">{createError}</FieldError>
+            <FieldError className="sm:col-span-2" role="alert">
+              {createError}
+            </FieldError>
           </FieldGroup>
 
           <DialogFooter>
@@ -739,7 +835,9 @@ export function WorkbenchUtilityNotifications({
               disabled={submitting}
               onClick={() => void handleCreateNotice()}
             >
-              {submitting ? <Spinner aria-hidden /> : null}
+              {submitting ? (
+                <Spinner data-icon="inline-start" aria-hidden />
+              ) : null}
               {t("publish")}
             </Button>
           </DialogFooter>

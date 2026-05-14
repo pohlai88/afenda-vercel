@@ -1,0 +1,115 @@
+---
+description: Hard prohibition on compatibility shims, dead routes, dead exports, and any code that survives past its removal date. No exceptions without an ADR.
+alwaysApply: true
+---
+
+# No Dead Code, No Compatibility Shims
+
+## The rule is simple
+
+When a route, component, export, or branch is **deleted**, everything that existed **only to support it** is deleted **in the same commit**. No shims. No aliases. No redirects. No "keep it for now."
+
+**"We'll clean it up later" is not a schedule. It is a lie.**
+
+---
+
+## What is forbidden (block merge immediately)
+
+### 1. Compatibility redirects for retired surfaces
+
+```ts
+// ❌ The route is gone. This shim has no reason to exist.
+if (pathname === "/account/orbit") {
+  return organizationOrbitPath(orgSlug)
+}
+```
+
+If `/account/orbit` is deleted from the App Router, **the redirect goes with it in the same PR**. There is no "we'll keep this for old bookmarks" grace period unless a named stakeholder has filed an issue and an owner has set a removal date.
+
+### 2. Exports that reference deleted code
+
+```ts
+// ❌ accountOrbitPath was removed from constants.ts but still exported from index.ts
+export { accountOrbitPath } from "./constants"
+```
+
+Delete the export. Find every import site. Fix them. `pnpm lint` will catch stragglers.
+
+### 3. Branches that are now unreachable
+
+```ts
+// ❌ scopeKind === "personal" is not a valid state anymore
+if (scope.scopeKind === "personal") { ... }
+```
+
+If the type no longer includes `"personal"`, the branch is dead. Delete it.
+
+### 4. "Phase N will do this" comments where Phase N shipped
+
+```ts
+// ❌ Phase 2 already shipped — this is now just noise that hides real intent
+// Phase 2 will wire real data here
+const data: Foo[] = []
+```
+
+Wire the data or delete the stub. Do not leave the comment.
+
+### 5. Any file whose only job is bridging to a deleted surface
+
+If `legacy-authenticated-route-alias.server.ts` contains zero aliases for anything that still exists, delete the file. If it still has live aliases, remove only the dead ones. Never leave dead branches inside a live file.
+
+---
+
+## When a surface is retired
+
+The moment a route directory is deleted:
+
+1. Remove the alias/redirect that forwarded to it.
+2. Remove the export from every barrel (`index.ts`, `client.ts`, `server.ts`).
+3. Remove the import from every import site.
+4. Remove the test expectation that asserted the file exists.
+5. Remove the ADR/doc reference that describes the old route as "planned" or "current."
+6. Run `pnpm typecheck && pnpm lint`. Both must exit 0 before the PR is opened.
+
+**All six steps happen in the same PR as the deletion. Not in a follow-up.**
+
+---
+
+## The only allowed exception
+
+A compatibility alias may survive **only if all of the following are true**:
+
+- An external party (external API consumer, mobile app, third-party integration) depends on the URL and cannot be updated immediately.
+- There is a filed issue with a named owner and a hard removal date ≤ 30 days out.
+- The alias is annotated with `// COMPAT: remove by YYYY-MM-DD — issue #NNN`.
+- The `AGENTS.md` has been updated to list the alias under a "Scheduled removals" section.
+
+If any of these four conditions is not met, the alias is dead code and must be deleted.
+
+---
+
+## Why this exists
+
+A five-line redirect is not "safe to leave." It is:
+
+- A false surface that appears in route discovery tools.
+- An import chain that drags in dead modules.
+- A test surface that asserts behavior that no longer exists.
+- A documentation reference that describes an architecture that is no longer true.
+- A debugging trap: the next engineer to hit `/account/orbit` will spend an hour wondering why it redirects somewhere when the route does not exist in the App Router.
+
+**"Easy to remove later" is the exact reason to remove it now.** If it is easy, there is no argument for deferral.
+
+---
+
+## Enforcement
+
+```bash
+# Required after every deletion task
+pnpm typecheck && pnpm lint
+
+# Before push
+pnpm verify:parallel
+```
+
+ESLint's `no-unused-vars`, `import/no-unused-modules`, and the repo's `check-agent-contract.mjs` catch most residue. TypeScript catches the rest. Neither tool can catch a live alias pointing at a dead surface — that is a human responsibility enforced by this rule.
