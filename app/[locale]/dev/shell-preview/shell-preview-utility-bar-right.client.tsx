@@ -4,8 +4,9 @@ import type { Route } from "next"
 
 import { AppShellUtilityBarRight } from "#components2/app-shell/client"
 
-/** Locale-internal preview surface — every link stays on this page. */
-const PREVIEW_HREF = "/dev/shell-preview" satisfies Route
+// Dev preview only — locale-internal href; double assertion bypasses typed-routes
+// strictness since the locale segment is dynamic (/{locale}/dev/shell-preview).
+const PREVIEW_HREF = "/dev/shell-preview" as unknown as Route
 
 /**
  * Client bridge: passes serializable `account` props (including `onSignOut` no-op)

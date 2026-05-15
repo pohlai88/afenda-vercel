@@ -1,10 +1,18 @@
 "use client"
 
-import { cn } from "#lib/utils"
+import { Keyboard } from "lucide-react"
 
+import { cn } from "#lib/utils"
+import { uiRadius, uiSurfaceElevation } from "#lib/design-system"
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu"
 import { Kbd, KbdGroup } from "../ui/kbd"
-import { AppShellShortcutsIcon } from "./utility-bar.client"
-import { AppShellUtilityPanel } from "./utility-bar-panel.client"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
+import { APP_SHELL_UTILITY_L2_ICON_CLASS } from "./utility-bar.client"
 
 // ---------------------------------------------------------------------------
 // Shortcut data
@@ -50,70 +58,108 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
 // Component
 // ---------------------------------------------------------------------------
 
-/** Right-rail shortcuts reference panel — Popover anchored below the trigger. */
+/** Right-rail shortcuts reference panel — DropdownMenu anchored to the trigger. */
 export function UtilityBarShortcutsPanel() {
   return (
-    <AppShellUtilityPanel
-      trigger={
-        <AppShellShortcutsIcon
-          ariaLabel="Keyboard shortcuts"
-          tooltip="Keyboard shortcuts"
-        />
-      }
-      title="Keyboard shortcuts"
-      description="Available across the ERP shell and modules."
-      widthClass="w-96"
-    >
-      <div className="space-y-5 px-4 py-4">
-        {SHORTCUT_GROUPS.map((group) => (
-          <section key={group.title}>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              {group.title}
-            </p>
-            <div className="divide-y divide-border/50">
-              {group.rows.map((row) => (
-                <div
-                  key={row.label}
-                  className={cn(
-                    "flex items-center justify-between py-2",
-                    row.comingSoon && "opacity-40"
-                  )}
-                >
-                  <span className="text-[11px] text-foreground">
-                    {row.label}
-                    {row.comingSoon && (
-                      <span className="ml-1.5 text-[9px] text-muted-foreground">
-                        (coming soon)
-                      </span>
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label="Keyboard shortcuts"
+              className={cn(
+                APP_SHELL_UTILITY_L2_ICON_CLASS,
+                "data-[state=open]:bg-muted/55 data-[state=open]:text-foreground"
+              )}
+            >
+              <span
+                aria-hidden
+                className="size-[15px] shrink-0 [&>svg]:size-full"
+              >
+                <Keyboard strokeWidth={2} />
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" align="center" sideOffset={8}>
+          Keyboard shortcuts
+        </TooltipContent>
+      </Tooltip>
+
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className={cn(
+          "w-96 p-0",
+          "border border-border bg-card/95 text-card-foreground backdrop-blur-sm",
+          uiRadius.popover,
+          uiSurfaceElevation.raised,
+          "ring-0 ring-offset-0"
+        )}
+      >
+        {/* Header */}
+        <div className="shrink-0 border-b border-border/50 px-4 py-3">
+          <p className="text-xs font-semibold tracking-tight text-card-foreground">
+            Keyboard shortcuts
+          </p>
+          <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+            Available across the ERP shell and modules.
+          </p>
+        </div>
+
+        {/* Shortcut groups */}
+        <div className="space-y-4 px-4 py-4">
+          {SHORTCUT_GROUPS.map((group) => (
+            <section key={group.title}>
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                {group.title}
+              </p>
+              <div className="divide-y divide-border/50">
+                {group.rows.map((row) => (
+                  <div
+                    key={row.label}
+                    className={cn(
+                      "flex items-center justify-between py-2",
+                      row.comingSoon && "opacity-40"
                     )}
-                  </span>
-
-                  <div className="flex items-center gap-2">
-                    <KbdGroup>
-                      {row.mac.map((k) => (
-                        <Kbd key={k}>{k}</Kbd>
-                      ))}
-                    </KbdGroup>
-
-                    {row.win.join("") !== row.mac.join("") && (
-                      <>
-                        <span className="text-[9px] text-muted-foreground">
-                          /
+                  >
+                    <span className="text-[11px] text-foreground">
+                      {row.label}
+                      {row.comingSoon && (
+                        <span className="ml-1.5 text-[9px] text-muted-foreground">
+                          (coming soon)
                         </span>
-                        <KbdGroup>
-                          {row.win.map((k) => (
-                            <Kbd key={k}>{k}</Kbd>
-                          ))}
-                        </KbdGroup>
-                      </>
-                    )}
+                      )}
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <KbdGroup>
+                        {row.mac.map((k) => (
+                          <Kbd key={k}>{k}</Kbd>
+                        ))}
+                      </KbdGroup>
+
+                      {row.win.join("") !== row.mac.join("") && (
+                        <>
+                          <span className="text-[9px] text-muted-foreground">
+                            /
+                          </span>
+                          <KbdGroup>
+                            {row.win.map((k) => (
+                              <Kbd key={k}>{k}</Kbd>
+                            ))}
+                          </KbdGroup>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-    </AppShellUtilityPanel>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
