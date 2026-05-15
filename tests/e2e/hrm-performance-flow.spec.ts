@@ -1,9 +1,6 @@
-import { expect, test } from "@playwright/test"
+import { expect, test } from "./fixtures/auth"
 
-import {
-  resolveOrgSlugFromSession,
-  signInAsOrgAdmin,
-} from "./utils/org-admin-auth"
+import { resolveOrgSlugFromSession } from "./utils/org-admin-auth"
 
 const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
 const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
@@ -19,7 +16,6 @@ test.describe("HRM performance surface", () => {
     "performance page renders for org admin",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
       await page.goto(`/en/o/${slug}/dashboard/hrm/performance`)

@@ -72,7 +72,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCi,
   retries: isCi ? 2 : 0,
-  workers: isCi ? 1 : undefined,
+  workers: isCi ? 2 : undefined,
   expect: { timeout: 10_000 },
   // JUnit for CI artifacts; traces/screenshots/videos use `outputDir` above. If you add the HTML reporter, set
   // `outputFolder` under `.artifacts/playwright/` so nothing lands at the repo root.

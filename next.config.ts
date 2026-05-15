@@ -20,11 +20,33 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   typedRoutes: true,
   /**
-   * Pino uses Node APIs / optional worker transports (`pino-pretty`).
-   * Next.js already treats `pino` / `pino-pretty` as server externals by default; listing them here keeps the contract explicit in-repo.
+   * Packages that must not be bundled by webpack and instead resolved via native Node.js `require`.
+   *
+   * Rules for additions:
+   *  1. `pino` / `pino-pretty` — Node transport APIs / optional worker transports.
+   *  2. `@opentelemetry/instrumentation` (and `require-in-the-middle`, `@fastify/otel`) — use
+   *     dynamic `require(expression)` internally to load plugins at runtime; webpack cannot
+   *     statically analyse these calls and emits "Critical dependency" warnings for every
+   *     transitive consumer (Sentry → @sentry/node → prisma/fastify/express instrumentations).
+   *     Marking them external silences the warnings AND reduces webpack's traversal work.
+   *  3. `@vercel/queue` — Vercel Workflow DevKit runtime package that also uses a dynamic
+   *     `require(expression)` pattern; same treatment as OTel above.
+   *
    * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages
    */
-  serverExternalPackages: ["pino", "pino-pretty"],
+  serverExternalPackages: [
+    "pino",
+    "pino-pretty",
+    // OpenTelemetry instrumentation packages — dynamic require inside these packages
+    // generates webpack "Critical dependency: the request of a dependency is an expression"
+    // warnings through the @sentry/nextjs → @sentry/node → prisma/fastify/express chains.
+    "@opentelemetry/instrumentation",
+    "require-in-the-middle",
+    "import-in-the-middle",
+    "@fastify/otel",
+    // Vercel Workflow DevKit queue runtime — same dynamic-require pattern.
+    "@vercel/queue",
+  ],
   logging: {
     fetches: {
       fullUrl: true,
@@ -83,6 +105,16 @@ const nextConfig: NextConfig = {
       })
     }
 
+    // CSP violation reporting → Sentry (report-only: never blocks, always reports).
+    // Graduates to enforcing Content-Security-Policy once violations are triaged.
+    const cspReportUri = process.env.SENTRY_CSP_REPORT_URI
+    if (cspReportUri) {
+      securityHeaders.push({
+        key: "Content-Security-Policy-Report-Only",
+        value: `default-src 'self'; report-uri ${cspReportUri}`,
+      })
+    }
+
     return [{ source: "/:path*", headers: securityHeaders }]
   },
   async redirects() {
@@ -124,25 +156,28 @@ const nextConfig: NextConfig = {
 
 const coreConfig = withWorkflow(withNextIntl(withMDX(nextConfig)))
 
-const sentrySourceMapsUploadEnabled =
-  Boolean(process.env.SENTRY_AUTH_TOKEN) &&
-  Boolean(process.env.SENTRY_ORG) &&
-  Boolean(process.env.SENTRY_PROJECT)
-
-/** Error tracking + optional source maps upload when CI/Vercel provides SENTRY_* auth. */
-export default sentrySourceMapsUploadEnabled
-  ? withSentryConfig(coreConfig, {
-      org: process.env.SENTRY_ORG,
-      project: process.env.SENTRY_PROJECT,
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      silent: true,
-      widenClientFileUpload: true,
-      disableLogger: true,
-      sourcemaps: {
-        deleteSourcemapsAfterUpload: true,
-      },
-    })
-  : coreConfig
+/**
+ * Always wrap with withSentryConfig so the webpack plugin runs unconditionally —
+ * this silences the OTel "Critical dependency" warnings by applying Sentry's
+ * server-external rules even when SENTRY_AUTH_TOKEN is absent (local dev).
+ * Source-map upload is gated on SENTRY_AUTH_TOKEN being present.
+ */
+export default withSentryConfig(coreConfig, {
+  org: "afenda",
+  project: "javascript-nextjs",
+  // Upload source maps to Sentry when auth token is available (CI / Vercel production)
+  ...(process.env.SENTRY_AUTH_TOKEN
+    ? {
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        widenClientFileUpload: true,
+        sourcemaps: { deleteSourcemapsAfterUpload: true },
+      }
+    : {}),
+  // Proxy Sentry ingest through /monitoring to bypass ad-blockers
+  tunnelRoute: "/monitoring",
+  silent: !process.env.CI,
+  disableLogger: true,
+})
 
 /**
  * Host allowlist for Server Actions (CSRF / reverse-proxy safety).

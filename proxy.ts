@@ -107,5 +107,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|_vercel|\\.well-known|.*\\..*).*)"],
+  // Exclude api routes, Next.js internals, Vercel internals, static files, and
+  // the Sentry tunnel route (/monitoring) which must not be intercepted by intl middleware.
+  matcher: ["/((?!api|monitoring|_next|_vercel|\\.well-known|.*\\..*).*)"],
 }

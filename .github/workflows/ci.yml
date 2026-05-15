@@ -2,8 +2,15 @@
 # apply `drizzle` migrations against a real Neon branch locally or in a follow-up job (Neon
 # branch per PR / Docker pgvector) if you need DB-backed vector tests in CI.
 #
-# Turborepo: static analysis + unit tests run via `pnpm verify:ci` (parallel task cache).
+# Turborepo: static analysis runs via `pnpm verify:no-test` (parallel task cache).
+# Tests run via sharded Vitest (3 parallel runners) and are merged post-run.
 # Optional Remote Cache — add repo secrets TURBO_TOKEN, TURBO_TEAM (see AGENTS.md §2).
+#
+# Job layout (all run in parallel; wall time = max across the group):
+#   lint-check    — lint + typecheck + knip (Turbo-cached)          ~1-2 min
+#   test-shards   — 3-shard Vitest matrix, uploads blob artifacts   ~20-30s each
+#   merge-coverage — merges blobs + checks coverage thresholds      ~15s
+#   e2e           — build + Playwright                              ~4-6 min
 name: CI
 
 on:
@@ -11,16 +18,17 @@ on:
     branches: [main, master]
   pull_request:
 
+# Shared env used by every job
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+  TURBO_TELEMETRY_DISABLED: "1"
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+
 jobs:
-  verify:
+  lint-check:
     runs-on: ubuntu-latest
-    env:
-      NEXT_TELEMETRY_DISABLED: "1"
-      TURBO_TELEMETRY_DISABLED: "1"
-      # Empty until secrets are configured — local-only Turbo cache still works.
-      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
-      TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,8 +54,111 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-${{ hashFiles('pnpm-lock.yaml') }}-
 
-      - run: pnpm verify:ci
+      # Second-level cache: ESLint per-file results + tsc incremental build info.
+      # When Turbo's task cache misses (new branch, changed inputs), these caches
+      # let ESLint and tsc skip individual unchanged files instead of starting cold.
+      - uses: actions/cache@v4
+        with:
+          path: .artifacts
+          key: ${{ runner.os }}-artifacts-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-artifacts-${{ hashFiles('pnpm-lock.yaml') }}-
+            ${{ runner.os }}-artifacts-
 
+      # verify:no-test = all Turbo tasks except test:ci (lint, typecheck, knip, format).
+      # Tests are handled by the sharded test-shards + merge-coverage jobs.
+      - run: pnpm verify:no-test
+
+  test-shards:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: "1/3"
+            index: 1
+          - shard: "2/3"
+            index: 2
+          - shard: "3/3"
+            index: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.21.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # SHARD is expanded by bash: `vitest run ... --shard=1/3` etc.
+      # Serial mode applies only on Windows (V8 NTFS file-locking); Linux runs in parallel.
+      - name: Run Vitest shard ${{ matrix.shard }}
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: pnpm test:ci:shard
+
+      # Each shard uploads its blob report to a uniquely named artifact.
+      # merge-coverage downloads and merges them for the final coverage check.
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: vitest-blob-${{ matrix.index }}
+          path: .vitest-reports/
+          retention-days: 1
+
+  merge-coverage:
+    runs-on: ubuntu-latest
+    needs: [test-shards]
+    if: ${{ !cancelled() }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.21.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # Download all shard blob reports into .vitest-reports/
+      - uses: actions/download-artifact@v4
+        with:
+          path: .vitest-reports
+          pattern: vitest-blob-*
+          merge-multiple: true
+
+      # Merge blob reports, regenerate coverage, and enforce thresholds.
+      # Exits non-zero if any configured threshold is not met.
+      - run: pnpm test:ci:merge
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.21.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # Next.js build cache — avoids full rebuild when only non-source files change.
       - uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.next/cache
@@ -57,11 +168,24 @@ jobs:
 
       - run: pnpm run build
 
-      - run: pnpm exec playwright install --with-deps chromium
+      # Playwright browser binaries (~130 MB for Chromium). Keyed to pnpm-lock.yaml so
+      # the cache only invalidates when the @playwright/test version changes.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
 
       - run: mkdir -p .artifacts
 
-      - run: node scripts/with-env.mjs playwright test
+      # Explicit --config required: config lives at .config/playwright.config.ts (not repo root).
+      # Without it Playwright falls back to defaults, missing webServer, outputDir, retries, reporter.
+      - run: node scripts/with-env.mjs playwright test --config .config/playwright.config.ts
 
       - uses: actions/upload-artifact@v4
         if: always()

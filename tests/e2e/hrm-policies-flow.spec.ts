@@ -1,9 +1,6 @@
-import { expect, test } from "@playwright/test"
+import { expect, test } from "./fixtures/auth"
 
-import {
-  resolveOrgSlugFromSession,
-  signInAsOrgAdmin,
-} from "./utils/org-admin-auth"
+import { resolveOrgSlugFromSession } from "./utils/org-admin-auth"
 
 const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
 const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
@@ -32,7 +29,6 @@ test.describe("HRM policies workbench UI surface", () => {
     "policies page renders the page header for the active org",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
@@ -51,7 +47,6 @@ test.describe("HRM policies workbench UI surface", () => {
     "policies page exposes the leave types tab + card by default",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
@@ -77,7 +72,6 @@ test.describe("HRM policies workbench UI surface", () => {
     "policies page deep links into a different tab when ?tab=… is set",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
@@ -102,7 +96,6 @@ test.describe("HRM policies workbench UI surface", () => {
     "policies page under unknown org slug renders organization not-found",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       await page.goto(
         "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/policies"
       )

@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server"
+import * as Sentry from "@sentry/nextjs"
 
 import { runDocumentExpiryWatchTick } from "#features/hrm/server"
 import { runWithNodeOtelSpan } from "#lib/otel-span.server"
@@ -48,21 +49,32 @@ export async function GET(request: NextRequest) {
     return routeJsonError("Unauthorized", 401)
   }
 
-  const startedAt = Date.now()
-  const summary = await runWithNodeOtelSpan(
-    "cron.hrm_document_expiry_watch.tick",
-    { "erp.cron": "hrm-document-expiry-watch" },
-    () => runDocumentExpiryWatchTick()
-  )
+  return Sentry.withMonitor(
+    "hrm-document-expiry-watch",
+    async () => {
+      const startedAt = Date.now()
+      const summary = await runWithNodeOtelSpan(
+        "cron.hrm_document_expiry_watch.tick",
+        { "erp.cron": "hrm-document-expiry-watch" },
+        () => runDocumentExpiryWatchTick()
+      )
 
-  return routeJsonOk({
-    ok: true,
-    job: "hrm-document-expiry-watch",
-    ranAt: new Date().toISOString(),
-    durationMs: Date.now() - startedAt,
-    scanned: summary.scanned,
-    emitted: summary.emitted,
-    emittedByTier: summary.emittedByTier,
-    fullyAudited: summary.fullyAudited,
-  })
+      return routeJsonOk({
+        ok: true,
+        job: "hrm-document-expiry-watch",
+        ranAt: new Date().toISOString(),
+        durationMs: Date.now() - startedAt,
+        scanned: summary.scanned,
+        emitted: summary.emitted,
+        emittedByTier: summary.emittedByTier,
+        fullyAudited: summary.fullyAudited,
+      })
+    },
+    {
+      schedule: { type: "crontab", value: "0 7 * * *" },
+      checkinMargin: 15,
+      maxRuntime: 10,
+      timezone: "UTC",
+    }
+  )
 }

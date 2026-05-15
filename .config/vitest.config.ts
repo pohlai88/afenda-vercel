@@ -11,11 +11,14 @@
  * - Default `environment: "node"` for fast unit tests; `*.dom.test.tsx` use `// @vitest-environment jsdom`
  *   (Next.js uses `jsdom` globally — we avoid loading jsdom for non-DOM suites).
  * - `next/headers` / `next/navigation` are stubbed for imports outside the Next.js runtime.
- * - Parallelism: **`--coverage`** → **`forks`** + **`maxWorkers: 1`** + **`fileParallelism: false`**
- *   (v8 / Windows). Otherwise **`forks`** + Vitest defaults (parallel files + workers).
- * - **`dir` + `include`**: discovery scoped to `tests/unit` (Vitest “Improving performance” — less root scanning).
+ * - Parallelism: **Windows only** — `forks` + `maxWorkers: 1` + `fileParallelism: false` when running
+ *   with coverage (V8 NTFS file-locking constraint; see https://main.vitest.dev/guide/improving-performance).
+ *   Linux/macOS CI runs coverage in parallel: `forks` + `maxWorkers: 4`.
+ *   Without `--coverage` + `run`, uses `forks` with Vitest defaults (parallel files + CPU-scaled workers).
+ * - **`dir` + `include`**: discovery scoped to `tests/unit` (Vitest "Improving performance" — less root scanning).
  * - **`experimental.fsModuleCache`**: persists transform cache between watch sessions (no effect on one-shot `vitest run`).
  */
+import os from "node:os"
 import path from "node:path"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vitest/config"
@@ -23,23 +26,16 @@ import { defineConfig } from "vitest/config"
 const workspaceRoot = path.resolve(import.meta.dirname, "..")
 
 /**
- * v8 coverage merge + Windows stability: with **`--coverage`**, use **`forks`** +
- * **`maxWorkers: 1`** + **`fileParallelism: false`**. Without **`--coverage`**, use
- * **`forks`** with Vitest defaults (parallel test files + CPU-scaled workers) so
- * DOM suites stay process-isolated while **`pnpm test`** / **`test:fast`** speed up.
+ * Windows-only serial mode: V8 coverage uses a file-per-worker JSON strategy that races on
+ * NTFS rename/read. On Linux/macOS, multiple forks can write to separate files safely.
+ * See https://main.vitest.dev/guide/improving-performance for the official recommendation.
  */
-function vitestArgvCollectsCoverage(): boolean {
-  return process.argv.some(
-    (arg) => arg === "--coverage" || arg.startsWith("--coverage=")
-  )
-}
-
 function vitestArgvRunsOnce(): boolean {
   return process.argv.includes("run")
 }
 
-const collectCoverage = vitestArgvCollectsCoverage()
 const runOnce = vitestArgvRunsOnce()
+const isWindows = process.platform === "win32"
 
 export default defineConfig({
   root: workspaceRoot,
@@ -80,7 +76,9 @@ export default defineConfig({
        */
       fsModuleCache: !runOnce,
     },
-    ...(collectCoverage
+    // Serial mode is a Windows-only constraint (V8 NTFS file-locking).
+    // On Linux CI, run coverage in parallel with 4 workers for a 3-5x speedup.
+    ...(isWindows
       ? {
           pool: "forks" as const,
           maxWorkers: 1,
@@ -120,6 +118,10 @@ export default defineConfig({
       clean: true,
       reporter: ["text", "json-summary", "lcov"],
       reportsDirectory: "./.artifacts/coverage",
+      // Parallel V8 report processing. Vitest default is Math.min(20, availableParallelism).
+      // Cap at 4 to avoid OOM on smaller CI runners without sacrificing throughput.
+      // Node 24 always exposes os.availableParallelism() — more accurate than cpus().length.
+      processingConcurrency: Math.min(os.availableParallelism(), 4),
       exclude: [
         "**/*.d.ts",
         "**/*.{config,setup}.*",

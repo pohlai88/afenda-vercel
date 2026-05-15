@@ -1,6 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect, test } from "./fixtures/auth"
 
-import { signInAsOrgAdmin } from "./utils/org-admin-auth"
 import {
   hasOrgSwitchFixtureDatabase,
   ORG_SWITCH_E2E_FIXTURE,
@@ -9,16 +8,8 @@ import {
 } from "./utils/org-switch-fixtures"
 import { BOOTSTRAP_FIXTURE } from "../fixtures/bootstrap-mocks"
 
-/**
- * Must stay aligned with `DEV_PASSWORD` in `scripts/seed-dev-users.mjs` and
- * `components/dev/dev-signin-panel.tsx`.
- */
-const DEV_OWNER_PASSWORD = "123qweasdzxc!@#"
-
 const orgAdminEmail =
   process.env.E2E_ORG_ADMIN_EMAIL?.trim() || BOOTSTRAP_FIXTURE.members[0].email
-const orgAdminPassword =
-  process.env.E2E_ORG_ADMIN_PASSWORD?.trim() || DEV_OWNER_PASSWORD
 
 test.describe("Workbench org switch", () => {
   test.describe.configure({ mode: "serial" })
@@ -35,8 +26,6 @@ test.describe("Workbench org switch", () => {
     await seedOrgSwitchFixtureForUser(orgAdminEmail)
 
     try {
-      await signInAsOrgAdmin(page, orgAdminEmail, orgAdminPassword!)
-
       await page.goto(`/en/o/${BOOTSTRAP_FIXTURE.organization.slug}/nexus`, {
         waitUntil: "domcontentloaded",
       })

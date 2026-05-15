@@ -1,9 +1,6 @@
-import { expect, test } from "@playwright/test"
+import { expect, test } from "./fixtures/auth"
 
-import {
-  resolveOrgSlugFromSession,
-  signInAsOrgAdmin,
-} from "./utils/org-admin-auth"
+import { resolveOrgSlugFromSession } from "./utils/org-admin-auth"
 
 const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
 const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
@@ -19,7 +16,6 @@ test.describe("HRM workforce tenant boundaries", () => {
     "unknown org slug renders organization not-found while signed in",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       await page.goto(
         "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/employees"
       )
@@ -36,7 +32,6 @@ test.describe("HRM workforce tenant boundaries", () => {
     "missing employee record renders dashboard not-found",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
       const fakeId = "00000000-0000-4000-8000-000000000001"
@@ -51,7 +46,6 @@ test.describe("HRM workforce tenant boundaries", () => {
     "unknown org slug also denies access to the claims surface",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       await page.goto(
         "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/claims"
       )

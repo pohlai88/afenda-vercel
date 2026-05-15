@@ -10,6 +10,8 @@
 
 # testing & CI tool output (Vitest coverage, Playwright junit/traces/screenshots, etc.)
 /.artifacts/
+# Vitest blob shard reports (uploaded to GitHub Actions artifacts; never committed)
+/.vitest-reports/
 
 # Ad-hoc CLI output files that must never be committed
 knip-output.txt

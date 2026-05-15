@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server"
 import { sql } from "drizzle-orm"
+import * as Sentry from "@sentry/nextjs"
 
 import { db } from "#lib/db"
 import { publishOrgNotificationIfMissing } from "#features/org-notifications/server"
@@ -26,6 +27,19 @@ export async function GET(request: NextRequest) {
     return routeJsonError("Unauthorized", 401)
   }
 
+  return Sentry.withMonitor(
+    "erp-jobs",
+    () => runErpJobsCron(),
+    {
+      schedule: { type: "crontab", value: "0 5 * * *" },
+      checkinMargin: 15,
+      maxRuntime: 10,
+      timezone: "UTC",
+    }
+  )
+}
+
+async function runErpJobsCron() {
   const started = Date.now()
   await runWithNodeOtelSpan(
     "cron.erp_jobs.database_ping",
@@ -130,3 +144,4 @@ export async function GET(request: NextRequest) {
     checks: { database: "ok", blockedEscalations },
   })
 }
+

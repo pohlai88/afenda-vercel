@@ -1,9 +1,6 @@
-import { expect, test } from "@playwright/test"
+import { expect, test } from "./fixtures/auth"
 
-import {
-  resolveOrgSlugFromSession,
-  signInAsOrgAdmin,
-} from "./utils/org-admin-auth"
+import { resolveOrgSlugFromSession } from "./utils/org-admin-auth"
 
 const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
 const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
@@ -23,8 +20,6 @@ test.describe("orbit operator loop (optional credentials)", () => {
     "org admin can create a signal, promote it into execution work, comment, save a filtered view, and resolve it",
     { tag: "@orbit" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
-
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(
         !slug,

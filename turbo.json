@@ -51,6 +51,14 @@
     "lint:eslint": {
       "inputs": [
         "$TURBO_DEFAULT$",
+        "!drizzle/**",
+        "!messages/**",
+        "!content/**",
+        "!public/**",
+        "!docs/**",
+        "!tests/e2e/**",
+        "!tests/fixtures/**",
+        "!*.md",
         "eslint.config.mjs",
         "tsconfig.json",
         ".config/tsconfig.test.json",
@@ -70,7 +78,18 @@
       ]
     },
     "typecheck": {
-      "inputs": ["$TURBO_DEFAULT$", "tsconfig.json", "i18n/global.d.ts"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!drizzle/**",
+        "!messages/**",
+        "!content/**",
+        "!public/**",
+        "!docs/**",
+        "!tests/**",
+        "!*.md",
+        "tsconfig.json",
+        "i18n/global.d.ts"
+      ],
       "outputs": [".artifacts/.tsbuildinfo/main"]
     },
     "typecheck:test": {

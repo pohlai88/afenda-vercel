@@ -1,4 +1,4 @@
-import { docs } from "collections/server"
+import { docs } from "#collections/server"
 import { loader } from "fumadocs-core/source"
 
 import type { AppLocale } from "#lib/i18n/locales.shared"

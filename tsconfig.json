@@ -3,17 +3,40 @@
     "baseUrl": ".",
     // Internal `#…/*` aliases: mirror `package.json` → `imports` for Node + bundlers.
     "paths": {
-      "collections/*": ["./.source/*"],
-      "#components/*": ["./components/*"],
-      "#components2/*": ["./components2/*"],
-      "#app-shell": ["./components2/app-shell/index.ts"],
-      "#lib/*": ["./lib/*"],
-      "#hooks/*": ["./hooks/*"],
-      "#features/*": ["./lib/features/*"],
-      "#i18n/*": ["./i18n/*"]
+      "#collections/*": [
+        "./.source/*"
+      ],
+      "#components/*": [
+        "./components/*"
+      ],
+      "#components2/*": [
+        "./components2/*"
+      ],
+      "#app-shell": [
+        "./components2/app-shell/index.ts"
+      ],
+      "#lib/*": [
+        "./lib/*"
+      ],
+      "#hooks/*": [
+        "./hooks/*"
+      ],
+      "#features/*": [
+        "./lib/features/*"
+      ],
+      "#i18n/*": [
+        "./i18n/*"
+      ],
+      "#flags": [
+        "./flags.ts"
+      ]
     },
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -28,6 +51,13 @@
     "incremental": true,
     "tsBuildInfoFile": ".artifacts/.tsbuildinfo/main",
     "forceConsistentCasingInFileNames": true,
+    // Restrict global @types scanning to node only. @types/react and @types/react-dom
+    // are loaded via JSX transform imports, not as global ambient types; @types/pg and
+    // others are import-only. Auto-scanning all @types packages slows program construction.
+    // See: https://github.com/microsoft/TypeScript/wiki/Performance#controlling-types-inclusion
+    "types": [
+      "node"
+    ],
     // Assume a file change only affects files that directly import it — avoids rechecking
     // the full transitive closure on every save in watch mode (IDE language-server + tsc --watch).
     "assumeChangesOnlyAffectDirectDependencies": true,
@@ -45,8 +75,8 @@
     "i18n/global.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    // Production typed routes only; dev typed-route output is generated while
-    // `next dev` runs and must stay outside the main compile graph.
+    // Production typed routes (Next.js typed-routes feature).
+    // Dev typed-route output stays outside the compile graph — excluded by ".next/dev" in exclude below.
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],

@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server"
+import * as Sentry from "@sentry/nextjs"
 
 import { runComplianceAgingWatchTick } from "#features/hrm/server"
 import { runWithNodeOtelSpan } from "#lib/otel-span.server"
@@ -58,23 +59,34 @@ export async function GET(request: NextRequest) {
     return routeJsonError("Unauthorized", 401)
   }
 
-  const startedAt = Date.now()
-  const summary = await runWithNodeOtelSpan(
-    "cron.hrm_compliance_aging_watch.tick",
-    { "erp.cron": "hrm-compliance-aging-watch" },
-    () => runComplianceAgingWatchTick()
-  )
+  return Sentry.withMonitor(
+    "hrm-compliance-aging-watch",
+    async () => {
+      const startedAt = Date.now()
+      const summary = await runWithNodeOtelSpan(
+        "cron.hrm_compliance_aging_watch.tick",
+        { "erp.cron": "hrm-compliance-aging-watch" },
+        () => runComplianceAgingWatchTick()
+      )
 
-  return routeJsonOk({
-    ok: true,
-    job: "hrm-compliance-aging-watch",
-    ranAt: new Date().toISOString(),
-    durationMs: Date.now() - startedAt,
-    scanned: summary.scanned,
-    emitted: summary.emitted,
-    emittedByTier: summary.emittedByTier,
-    fullyAudited: summary.fullyAudited,
-    fanoutByTier: summary.fanoutByTier,
-    criticalFanout: summary.criticalFanout,
-  })
+      return routeJsonOk({
+        ok: true,
+        job: "hrm-compliance-aging-watch",
+        ranAt: new Date().toISOString(),
+        durationMs: Date.now() - startedAt,
+        scanned: summary.scanned,
+        emitted: summary.emitted,
+        emittedByTier: summary.emittedByTier,
+        fullyAudited: summary.fullyAudited,
+        fanoutByTier: summary.fanoutByTier,
+        criticalFanout: summary.criticalFanout,
+      })
+    },
+    {
+      schedule: { type: "crontab", value: "0 6 * * *" },
+      checkinMargin: 15,
+      maxRuntime: 10,
+      timezone: "UTC",
+    }
+  )
 }

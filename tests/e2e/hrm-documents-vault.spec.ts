@@ -1,9 +1,6 @@
-import { expect, test } from "@playwright/test"
+import { expect, test } from "./fixtures/auth"
 
-import {
-  resolveOrgSlugFromSession,
-  signInAsOrgAdmin,
-} from "./utils/org-admin-auth"
+import { resolveOrgSlugFromSession } from "./utils/org-admin-auth"
 
 const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
 const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
@@ -33,7 +30,6 @@ test.describe("HRM documents vault UI surface", () => {
     "documents vault page renders the page header for the active org",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
@@ -52,7 +48,6 @@ test.describe("HRM documents vault UI surface", () => {
     "documents vault page exposes the filter + library cards",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
@@ -69,7 +64,6 @@ test.describe("HRM documents vault UI surface", () => {
     "documents vault preserves URL-driven filters on a deep link",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
@@ -91,7 +85,6 @@ test.describe("HRM documents vault UI surface", () => {
     "documents vault under unknown org slug renders organization not-found",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       await page.goto(
         "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/documents"
       )

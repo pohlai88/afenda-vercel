@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server"
+import * as Sentry from "@sentry/nextjs"
 
 import { writeIamAuditEvent } from "#lib/auth"
 import { EXECUTION_AUDIT_ACTIONS } from "#features/execution"
@@ -48,36 +49,43 @@ export async function GET(request: NextRequest) {
     return routeJsonError("Unauthorized", 401)
   }
 
-  const startedAt = Date.now()
-  const summary = await runWithNodeOtelSpan(
-    "cron.hrm_statutory_retry.tick",
-    { "erp.cron": "hrm-statutory-retry" },
-    () => runStatutoryRetryTick()
-  )
+  return Sentry.withMonitor(
+    "hrm-statutory-retry",
+    async () => {
+      const startedAt = Date.now()
+      const summary = await runWithNodeOtelSpan(
+        "cron.hrm_statutory_retry.tick",
+        { "erp.cron": "hrm-statutory-retry" },
+        () => runStatutoryRetryTick()
+      )
 
-  // Audit fan-out — best-effort, never block the cron response on it.
-  await Promise.allSettled(
-    summary.outcomes.map((outcome, index) => {
-      const candidate = summary.candidates[index]
-      if (!candidate) return Promise.resolve()
-      return emitRetryAudit(outcome, candidate).catch(() => {
-        // Audit failures must never crash the cron; the structured response
-        // body still reports the outcome counts for operator review.
+      await Promise.allSettled(
+        summary.outcomes.map((outcome, index) => {
+          const candidate = summary.candidates[index]
+          if (!candidate) return Promise.resolve()
+          return emitRetryAudit(outcome, candidate).catch(() => {})
+        })
+      )
+
+      return routeJsonOk({
+        ok: true,
+        job: "hrm-statutory-retry",
+        ranAt: new Date().toISOString(),
+        durationMs: Date.now() - startedAt,
+        scanned: summary.scanned,
+        delivered: summary.delivered,
+        failed: summary.failed,
+        skipped: summary.skipped,
+        exhausted: summary.exhausted,
       })
-    })
+    },
+    {
+      schedule: { type: "crontab", value: "0 * * * *" },
+      checkinMargin: 5,
+      maxRuntime: 10,
+      timezone: "UTC",
+    }
   )
-
-  return routeJsonOk({
-    ok: true,
-    job: "hrm-statutory-retry",
-    ranAt: new Date().toISOString(),
-    durationMs: Date.now() - startedAt,
-    scanned: summary.scanned,
-    delivered: summary.delivered,
-    failed: summary.failed,
-    skipped: summary.skipped,
-    exhausted: summary.exhausted,
-  })
 }
 
 async function emitRetryAudit(

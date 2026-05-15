@@ -1,9 +1,6 @@
-import { expect, test } from "@playwright/test"
+import { expect, test } from "./fixtures/auth"
 
-import {
-  resolveOrgSlugFromSession,
-  signInAsOrgAdmin,
-} from "./utils/org-admin-auth"
+import { resolveOrgSlugFromSession } from "./utils/org-admin-auth"
 import {
   HRM_PAYROLL_E2E_FIXTURE,
   hasHrmPayrollFixtureDatabase,
@@ -36,7 +33,6 @@ test.describe("HRM payroll preparation UI surface", () => {
     "payroll page renders the page header for the active org",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
@@ -58,7 +54,6 @@ test.describe("HRM payroll preparation UI surface", () => {
     "payroll page exposes period creation fields and stable empty state",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
@@ -93,7 +88,6 @@ test.describe("HRM payroll preparation UI surface", () => {
     "payroll route under unknown org slug renders organization not-found",
     { tag: "@hrm" },
     async ({ page }) => {
-      await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
       await page.goto(
         "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/payroll"
       )
@@ -123,7 +117,6 @@ test.describe("HRM payroll preparation UI surface", () => {
       })
 
       try {
-        await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
         const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
         test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
@@ -206,7 +199,6 @@ test.describe("HRM payroll preparation UI surface", () => {
           })
           .toMatchObject({ approvalStates: ["approved"] })
 
-        await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
         await page.goto(`/en/o/${slug}/dashboard/hrm/payroll`, {
           waitUntil: "domcontentloaded",
         })

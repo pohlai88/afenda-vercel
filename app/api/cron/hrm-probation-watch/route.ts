@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server"
+import * as Sentry from "@sentry/nextjs"
 
 import { runProbationWatchTick } from "#features/hrm/server"
 import { runWithNodeOtelSpan } from "#lib/otel-span.server"
@@ -23,20 +24,31 @@ export async function GET(request: NextRequest) {
     return routeJsonError("Unauthorized", 401)
   }
 
-  const startedAt = Date.now()
-  const summary = await runWithNodeOtelSpan(
-    "cron.hrm_probation_watch.tick",
-    { "erp.cron": "hrm-probation-watch" },
-    () => runProbationWatchTick()
-  )
+  return Sentry.withMonitor(
+    "hrm-probation-watch",
+    async () => {
+      const startedAt = Date.now()
+      const summary = await runWithNodeOtelSpan(
+        "cron.hrm_probation_watch.tick",
+        { "erp.cron": "hrm-probation-watch" },
+        () => runProbationWatchTick()
+      )
 
-  return routeJsonOk({
-    ok: true,
-    job: "hrm-probation-watch",
-    ranAt: new Date().toISOString(),
-    durationMs: Date.now() - startedAt,
-    scanned: summary.scanned,
-    emitted: summary.emitted,
-    skippedAlreadyAudited: summary.skippedAlreadyAudited,
-  })
+      return routeJsonOk({
+        ok: true,
+        job: "hrm-probation-watch",
+        ranAt: new Date().toISOString(),
+        durationMs: Date.now() - startedAt,
+        scanned: summary.scanned,
+        emitted: summary.emitted,
+        skippedAlreadyAudited: summary.skippedAlreadyAudited,
+      })
+    },
+    {
+      schedule: { type: "crontab", value: "0 8 * * *" },
+      checkinMargin: 15,
+      maxRuntime: 10,
+      timezone: "UTC",
+    }
+  )
 }

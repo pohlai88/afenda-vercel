@@ -1,13 +1,11 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test } from "./fixtures/auth"
+import type { Page } from "@playwright/test"
 
 import {
   ORG_ADMIN_AUDIT_E2E_COPY,
   ORG_AUDIT_CSV_HEADER_PROVENANCE_SNIPPET,
 } from "../fixtures/bootstrap-mocks"
-import {
-  resolveOrgSlugFromSession,
-  signInAsOrgAdmin,
-} from "./utils/org-admin-auth"
+import { resolveOrgSlugFromSession } from "./utils/org-admin-auth"
 
 const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
 const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
@@ -38,10 +36,6 @@ test.describe("org admin audit (optional credentials)", () => {
     "signed-in org admin can open audit page and stream export returns CSV",
     { tag: "@orgAdmin" },
     async ({ page }) => {
-      await test.step("Sign in", async () => {
-        await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
-      })
-
       const slug = await test.step("Resolve organization slug", async () =>
         resolveOrgSlugFromSession(page, orgSlugFromEnv))
       test.skip(
@@ -72,10 +66,6 @@ test.describe("org admin audit (optional credentials)", () => {
     "audit origin filter navigation updates URL and shows Origin column",
     { tag: "@orgAdmin" },
     async ({ page }) => {
-      await test.step("Sign in", async () => {
-        await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
-      })
-
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(
         !slug,
@@ -117,10 +107,6 @@ test.describe("org admin audit (optional credentials)", () => {
     "signed-in org admin can open workbench overview and audit page",
     { tag: "@orgAdmin" },
     async ({ page }) => {
-      await test.step("Sign in", async () => {
-        await signInAsOrgAdmin(page, orgAdminEmail!, orgAdminPassword!)
-      })
-
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(
         !slug,
