@@ -425,7 +425,7 @@ describe("WorkbenchUtilityMessenger", { timeout: 20_000 }, () => {
     fireEvent.click(screen.getByRole("button", { name: "Create context" }))
     expect(await screen.findByText("Vendor payment hold")).toBeTruthy()
 
-    fireEvent.change(screen.getByLabelText("Add coordination update"), {
+    fireEvent.change(await screen.findByLabelText("Add coordination update"), {
       target: { value: "Please review the certification mismatch." },
     })
 
