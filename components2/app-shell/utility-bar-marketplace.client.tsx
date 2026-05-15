@@ -1,6 +1,12 @@
 "use client"
 
-import { useCallback, useMemo, useState, type DragEvent, type ElementType } from "react"
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type DragEvent,
+  type ElementType,
+} from "react"
 import { useTranslations } from "next-intl"
 import {
   Activity,
@@ -152,8 +158,7 @@ function CatalogItemRow({
   const def = UTILITY_BAR_CATALOG.find((d) => d.id === item.id)
   if (!def) return null
 
-  const label =
-    def.id === "settings" ? tCatalog("settings.label") : def.label
+  const label = def.id === "settings" ? tCatalog("settings.label") : def.label
   const description =
     def.id === "settings" ? tCatalog("settings.description") : def.description
 
@@ -186,7 +191,7 @@ function CatalogItemRow({
         onDragEnd()
       }}
       className={cn(
-        "group/row flex select-none items-center gap-2.5 px-4 py-2.5 transition-colors",
+        "group/row flex items-center gap-2.5 px-4 py-2.5 transition-colors select-none",
         allowReorder && "cursor-grab active:cursor-grabbing",
         !allowReorder && "cursor-default",
         isDragging && allowReorder && "opacity-40",
@@ -205,7 +210,9 @@ function CatalogItemRow({
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-medium text-foreground">{label}</p>
-        <p className="truncate text-[10px] text-muted-foreground">{description}</p>
+        <p className="truncate text-[10px] text-muted-foreground">
+          {description}
+        </p>
       </div>
 
       <Switch
@@ -370,8 +377,8 @@ function UtilityBarConfigSheet({
         <SheetHeader className="shrink-0 border-b border-border/40 px-4 py-4 text-left">
           <SheetTitle>Customise utility bar</SheetTitle>
           <SheetDescription>
-            Show, hide, and reorder icons on the right rail. Changes persist in this
-            browser (localStorage).
+            Show, hide, and reorder icons on the right rail. Changes persist in
+            this browser (localStorage).
           </SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -406,8 +413,8 @@ function RequestUtilityDialog({
         <DialogHeader>
           <DialogTitle>Request a utility</DialogTitle>
           <DialogDescription>
-            Describe the control or workflow you need. This preview does not submit to
-            the server yet.
+            Describe the control or workflow you need. This preview does not
+            submit to the server yet.
           </DialogDescription>
         </DialogHeader>
         <Textarea
@@ -419,7 +426,11 @@ function RequestUtilityDialog({
           className="min-h-24 resize-y text-sm"
         />
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button

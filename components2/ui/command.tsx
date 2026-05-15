@@ -72,11 +72,11 @@ function CommandInput({
   return (
     // Standard shadcn pattern: edge-to-edge with a bottom border divider.
     // No InputGroup pill — it creates a blob-within-blob inside the rounded dialog.
-    <div data-slot="command-input-wrapper" className="flex items-center border-b border-border/60 px-3">
-      <SearchIcon
-        aria-hidden
-        className="mr-2 size-4 shrink-0 opacity-40"
-      />
+    <div
+      data-slot="command-input-wrapper"
+      className="flex items-center border-b border-border/60 px-3"
+    >
+      <SearchIcon aria-hidden className="mr-2 size-4 shrink-0 opacity-40" />
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(
@@ -114,7 +114,10 @@ function CommandEmpty({
   return (
     <CommandPrimitive.Empty
       data-slot="command-empty"
-      className={cn("py-8 text-center text-sm text-muted-foreground", className)}
+      className={cn(
+        "py-8 text-center text-sm text-muted-foreground",
+        className
+      )}
       {...props}
     />
   )
@@ -129,7 +132,7 @@ function CommandGroup({
       data-slot="command-group"
       className={cn(
         "overflow-hidden p-1 text-foreground",
-        "**:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:pb-1 **:[[cmdk-group-heading]]:pt-2",
+        "**:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:pt-2 **:[[cmdk-group-heading]]:pb-1",
         "**:[[cmdk-group-heading]]:text-[11px] **:[[cmdk-group-heading]]:font-medium",
         "**:[[cmdk-group-heading]]:tracking-wide **:[[cmdk-group-heading]]:uppercase",
         "**:[[cmdk-group-heading]]:text-muted-foreground/60",
@@ -187,7 +190,10 @@ function CommandLoading({
   return (
     <CommandPrimitive.Loading
       data-slot="command-loading"
-      className={cn("py-8 text-center text-sm text-muted-foreground", className)}
+      className={cn(
+        "py-8 text-center text-sm text-muted-foreground",
+        className
+      )}
       {...props}
     >
       {children ?? (

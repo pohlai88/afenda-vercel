@@ -1,6 +1,12 @@
 "use client"
 
-import { startTransition, useEffect, useState, type DragEvent, type ReactNode } from "react"
+import {
+  startTransition,
+  useEffect,
+  useState,
+  type DragEvent,
+  type ReactNode,
+} from "react"
 import {
   Archive,
   BugPlay,
@@ -24,8 +30,7 @@ import {
 // @internal — raw verb labels must not appear in production UI
 // ---------------------------------------------------------------------------
 
-const SAP_EDGE_SEP_CLASS =
-  "h-[18px] w-px shrink-0 bg-border/50"
+const SAP_EDGE_SEP_CLASS = "h-[18px] w-px shrink-0 bg-border/50"
 
 const L2_BTN = cn(
   "flex size-[28px] shrink-0 items-center justify-center rounded-full",
@@ -62,7 +67,10 @@ const SAP_LABELS: Record<SapVerbId, string> = {
 }
 
 function isSapVerbId(value: unknown): value is SapVerbId {
-  return typeof value === "string" && (SAP_VERB_IDS as readonly string[]).includes(value)
+  return (
+    typeof value === "string" &&
+    (SAP_VERB_IDS as readonly string[]).includes(value)
+  )
 }
 
 function normalizePersistedOrder(raw: unknown): SapVerbId[] | null {
@@ -191,7 +199,7 @@ function DraggableSapVerbItem({
         "cursor-grab active:cursor-grabbing",
         isDragging && "opacity-30",
         isDropTarget &&
-          "before:absolute before:-left-[3px] before:top-1 before:bottom-1 before:w-0.5 before:rounded-full before:bg-ring"
+          "before:absolute before:top-1 before:bottom-1 before:-left-[3px] before:w-0.5 before:rounded-full before:bg-ring"
       )}
     >
       {children}
@@ -277,10 +285,7 @@ export function ShellPreviewCrudSapActionBar() {
             onDrop={handleDrop}
             onDragEnd={handleDragEnd}
           >
-            <SapBtn
-              label={SAP_LABELS[id]}
-              destructive={id === "deprecate"}
-            >
+            <SapBtn label={SAP_LABELS[id]} destructive={id === "deprecate"}>
               <SapIcon id={id} />
             </SapBtn>
           </DraggableSapVerbItem>

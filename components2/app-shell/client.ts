@@ -70,9 +70,7 @@ export type { AppShellUtilityBarIconDropdownProps } from "./utility-bar-icon-dro
 
 export { AppShellAccountDropdown } from "./utility-bar-account-dropdown.client"
 export type { AppShellAccountDropdownProps } from "./utility-bar-account-dropdown.client"
-export {
-  buildAppShellAccountDropdownGroups,
-} from "./utility-bar-account-dropdown.groups"
+export { buildAppShellAccountDropdownGroups } from "./utility-bar-account-dropdown.groups"
 export type { AppShellAccountDropdownHrefs } from "./utility-bar-account-dropdown.groups"
 
 // Standard utility dropdown (DropdownMenu)

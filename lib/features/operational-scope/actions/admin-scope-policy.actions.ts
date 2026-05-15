@@ -47,9 +47,9 @@ export async function setOrgScopePolicyAction(
   const { scopeType, policy, audience, displayOrder } = parsed.data
 
   // Capture previous policy for audit metadata.
-  const existing = (
-    await listOrgScopePolicies(session.organizationId)
-  ).find((p) => p.scopeType === scopeType && p.audience === audience)
+  const existing = (await listOrgScopePolicies(session.organizationId)).find(
+    (p) => p.scopeType === scopeType && p.audience === audience
+  )
 
   await upsertOrgOperationalScopePolicy({
     organizationId: session.organizationId,

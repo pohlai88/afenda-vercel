@@ -48,13 +48,11 @@ export type UtilityBarStore = UtilityBarState & UtilityBarActions
 // Helpers
 // ---------------------------------------------------------------------------
 
-const INITIAL_ITEMS: UtilityBarItemState[] = UTILITY_BAR_CATALOG.map(
-  (def) => ({
-    id: def.id,
-    visible: def.defaultVisible,
-    order: def.defaultOrder,
-  })
-)
+const INITIAL_ITEMS: UtilityBarItemState[] = UTILITY_BAR_CATALOG.map((def) => ({
+  id: def.id,
+  visible: def.defaultVisible,
+  order: def.defaultOrder,
+}))
 
 const CATALOG_IDS: UtilityBarItemId[] = UTILITY_BAR_CATALOG.map((d) => d.id)
 

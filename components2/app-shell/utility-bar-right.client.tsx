@@ -88,19 +88,24 @@ function RailIcon({
   settingsAriaLabel: string
   settingsTooltip: string
 }) {
-  const href = (
-    id === "insight" ? hrefs?.insight :
-    id === "help" ? hrefs?.help :
-    id === "settings" ? hrefs?.settings :
-    undefined
-  ) ?? ("/" as Route)
+  const href =
+    (id === "insight"
+      ? hrefs?.insight
+      : id === "help"
+        ? hrefs?.help
+        : id === "settings"
+          ? hrefs?.settings
+          : undefined) ?? ("/" as Route)
 
   switch (id) {
     case "search-mobile":
       return <AppShellSearchMobileIcon ariaLabel="Search" tooltip="Search" />
     case "quick-create":
       return (
-        <AppShellQuickCreateIcon ariaLabel="Quick create" tooltip="Quick create" />
+        <AppShellQuickCreateIcon
+          ariaLabel="Quick create"
+          tooltip="Quick create"
+        />
       )
     case "insight":
       return (
@@ -114,20 +119,28 @@ function RailIcon({
       return <AppShellThemeIcon ariaLabel="Appearance" tooltip="Appearance" />
     case "density":
       return (
-        <AppShellDensityIcon ariaLabel="Layout density" tooltip="Layout density" />
+        <AppShellDensityIcon
+          ariaLabel="Layout density"
+          tooltip="Layout density"
+        />
       )
     case "locale":
       return <AppShellLocaleIcon ariaLabel="Language" tooltip="Language" />
     case "shortcuts":
       return (
-        <AppShellShortcutsIcon ariaLabel="Shortcuts" tooltip="Keyboard shortcuts" />
+        <AppShellShortcutsIcon
+          ariaLabel="Shortcuts"
+          tooltip="Keyboard shortcuts"
+        />
       )
     case "feedback":
       return (
         <AppShellFeedbackIcon ariaLabel="Feedback" tooltip="Send feedback" />
       )
     case "help":
-      return <AppShellHelpIcon href={href} ariaLabel="Help" tooltip="Help & docs" />
+      return (
+        <AppShellHelpIcon href={href} ariaLabel="Help" tooltip="Help & docs" />
+      )
     case "settings":
       return (
         <AppShellSettingsIcon
@@ -138,19 +151,27 @@ function RailIcon({
       )
     case "connectivity":
       return (
-        <AppShellConnectivityIcon ariaLabel="Network status" tooltip="Connectivity" />
+        <AppShellConnectivityIcon
+          ariaLabel="Network status"
+          tooltip="Connectivity"
+        />
       )
     case "storage":
       return (
         <AppShellStorageIcon ariaLabel="Storage" tooltip="Storage inspector" />
       )
     case "screenshot":
-      return <AppShellScreenshotIcon ariaLabel="Screenshot" tooltip="Screenshot" />
+      return (
+        <AppShellScreenshotIcon ariaLabel="Screenshot" tooltip="Screenshot" />
+      )
     case "upload":
       return <AppShellUploadIcon ariaLabel="Upload" tooltip="File upload" />
     case "diagnosis":
       return (
-        <AppShellDiagnosisIcon ariaLabel="Diagnosis" tooltip="Network diagnosis" />
+        <AppShellDiagnosisIcon
+          ariaLabel="Diagnosis"
+          tooltip="Network diagnosis"
+        />
       )
     case "messenger":
       return <AppShellMessengerIcon ariaLabel="Messenger" tooltip="Messenger" />
@@ -202,7 +223,7 @@ function DraggableRailItem({
         "cursor-grab active:cursor-grabbing",
         isDragging && "opacity-30",
         isDropTarget &&
-          "before:absolute before:-left-[3px] before:top-1 before:bottom-1 before:w-0.5 before:rounded-full before:bg-ring"
+          "before:absolute before:top-1 before:bottom-1 before:-left-[3px] before:w-0.5 before:rounded-full before:bg-ring"
       )}
     >
       {children}
@@ -261,7 +282,9 @@ export function AppShellUtilityBarRight({
       return
     }
     const ids = [
-      ...selectVisibleItems(useUtilityBarStore.getState().items).map((i) => i.id),
+      ...selectVisibleItems(useUtilityBarStore.getState().items).map(
+        (i) => i.id
+      ),
     ]
     const from = ids.indexOf(dragId)
     if (from !== -1) {

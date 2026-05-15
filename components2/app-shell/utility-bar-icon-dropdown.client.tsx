@@ -7,13 +7,14 @@ import {
   type AppShellUtilityDropdownProps,
 } from "./utility-dropdown.client"
 
-export type AppShellUtilityBarIconDropdownProps = AppShellUtilityDropdownProps & {
-  /**
-   * Sibling UI after the dropdown root (sheets, dialogs, portals).
-   * Same pattern as marketplace: dropdown closes; overlays stay mounted as siblings.
-   */
-  children?: ReactNode
-}
+export type AppShellUtilityBarIconDropdownProps =
+  AppShellUtilityDropdownProps & {
+    /**
+     * Sibling UI after the dropdown root (sheets, dialogs, portals).
+     * Same pattern as marketplace: dropdown closes; overlays stay mounted as siblings.
+     */
+    children?: ReactNode
+  }
 
 /**
  * Standard utility-bar entry: {@link AppShellUtilityDropdown} plus optional sibling overlays.

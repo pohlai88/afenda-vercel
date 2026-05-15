@@ -82,9 +82,7 @@ const PALETTE_PROPS: AppShellCommandPaletteProps = {
  * L1 utility-bar search trigger only — pairs with {@link ShellPreviewCommandPalette}
  * passed to `AppSubLayout` `command` so the dialog mounts with sub-layout chrome.
  */
-const SEP = (
-  <div aria-hidden className="h-4 w-px shrink-0 bg-border/40" />
-)
+const SEP = <div aria-hidden className="h-4 w-px shrink-0 bg-border/40" />
 
 export function ShellPreviewCommandSearch() {
   return (

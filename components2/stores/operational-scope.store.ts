@@ -46,8 +46,7 @@ export const useOperationalScopeUiStore = create<OperationalScopeUiStore>(
     openPopover: (scopeType) =>
       set({ openPopoverScopeType: scopeType, searchQuery: "" }),
 
-    closePopover: () =>
-      set({ openPopoverScopeType: null, searchQuery: "" }),
+    closePopover: () => set({ openPopoverScopeType: null, searchQuery: "" }),
 
     setSearchQuery: (q) => set({ searchQuery: q }),
 

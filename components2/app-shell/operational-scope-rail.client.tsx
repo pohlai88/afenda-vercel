@@ -27,23 +27,25 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "../ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { useOperationalScopeUiStore } from "../stores/operational-scope.store"
 
 function sourceDescriptor(
   source: "route" | "workflow" | "user" | "policy" | "default"
 ): string {
   switch (source) {
-    case "route":      return "Resolved from URL"
-    case "workflow":   return "Resolved from workflow"
-    case "user":       return "User selection"
-    case "policy":     return "Org policy"
-    case "default":    return "Default"
-    default:           return source
+    case "route":
+      return "Resolved from URL"
+    case "workflow":
+      return "Resolved from workflow"
+    case "user":
+      return "User selection"
+    case "policy":
+      return "Org policy"
+    case "default":
+      return "Default"
+    default:
+      return source
   }
 }
 
@@ -132,10 +134,10 @@ function ScopeUnit({
                 // flex parent from squeezing it.
                 "w-[96px] shrink-0 overflow-hidden",
                 "inline-flex items-center rounded-md px-2 py-1",
-                "select-none transition-colors",
+                "transition-colors select-none",
                 "hover:bg-accent/30",
                 "data-[state=open]:bg-accent/30",
-                "focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none",
+                "focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
               )}
             >
               {isPending ? (
@@ -144,8 +146,8 @@ function ScopeUnit({
               {/* truncate is the "max chars" indicator — label clips to slot width */}
               <span
                 className={cn(
-                  "block w-full truncate text-left text-[10px] font-bold leading-tight text-foreground",
-                  isPending ? "opacity-60" : "",
+                  "block w-full truncate text-left text-[10px] leading-tight font-bold text-foreground",
+                  isPending ? "opacity-60" : ""
                 )}
               >
                 {hasValue ? selectedLabel : emptyCopy}
@@ -153,7 +155,12 @@ function ScopeUnit({
             </button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent side="bottom" align="start" sideOffset={6} className="max-w-xs whitespace-pre-line text-xs">
+        <TooltipContent
+          side="bottom"
+          align="start"
+          sideOffset={6}
+          className="max-w-xs text-xs whitespace-pre-line"
+        >
           {tooltipLines}
         </TooltipContent>
       </Tooltip>
@@ -167,7 +174,7 @@ function ScopeUnit({
           "border border-border bg-card/95 text-card-foreground backdrop-blur-sm",
           uiRadius.popover,
           uiSurfaceElevation.raised,
-          "ring-0 ring-offset-0",
+          "ring-0 ring-offset-0"
         )}
       >
         {/* Header strip */}
@@ -175,8 +182,15 @@ function ScopeUnit({
           <p className="text-xs font-semibold tracking-tight text-card-foreground">
             {dimensionLabel.charAt(0).toUpperCase() + dimensionLabel.slice(1)}
           </p>
-          <p className={cn("mt-1 text-[11px] leading-snug text-muted-foreground", uiTracking.control)}>
-            {hasValue ? selectedLabel : `Select a ${dimensionLabel.toLowerCase()}`}
+          <p
+            className={cn(
+              "mt-1 text-[11px] leading-snug text-muted-foreground",
+              uiTracking.control
+            )}
+          >
+            {hasValue
+              ? selectedLabel
+              : `Select a ${dimensionLabel.toLowerCase()}`}
           </p>
         </div>
 
@@ -210,7 +224,7 @@ function ScopeUnit({
             <button
               type="button"
               onClick={handleUnpin}
-              className="w-full px-3 py-2 text-left text-xs text-destructive transition-colors hover:bg-destructive/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+              className="w-full px-3 py-2 text-left text-xs text-destructive transition-colors hover:bg-destructive/5 focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
             >
               Remove from path
             </button>
@@ -261,7 +275,10 @@ export function OperationalScopePath({
       {cappedScopes.map((scope, i) => (
         <Fragment key={scope.scopeType}>
           {i > 0 ? (
-            <div aria-hidden className="mx-1 h-4 w-px shrink-0 self-center bg-border/40" />
+            <div
+              aria-hidden
+              className="mx-1 h-4 w-px shrink-0 self-center bg-border/40"
+            />
           ) : null}
           <ScopeUnit
             scopeType={scope.scopeType}

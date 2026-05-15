@@ -62,7 +62,8 @@ export function buildAppShellAccountDropdownGroups({
         {
           id: "appearance",
           label: "Appearance (theme)",
-          description: "Coming soon — light, dark, and system appearance in account.",
+          description:
+            "Coming soon — light, dark, and system appearance in account.",
           icon: Palette,
           disabled: true,
         },
@@ -109,7 +110,8 @@ export function buildAppShellAccountDropdownGroups({
         {
           id: "privacy",
           label: "Privacy & data",
-          description: "Coming soon — visibility, exports, and retention controls.",
+          description:
+            "Coming soon — visibility, exports, and retention controls.",
           icon: Lock,
           disabled: true,
         },
@@ -145,7 +147,8 @@ export function buildAppShellAccountDropdownGroups({
         {
           id: "switch-account",
           label: "Switch account",
-          description: "Coming soon — fast user switching for multiple profiles.",
+          description:
+            "Coming soon — fast user switching for multiple profiles.",
           icon: Users,
           disabled: true,
         },

@@ -3,10 +3,7 @@ import "server-only"
 import { and, asc, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import {
-  orgOperationalScopePolicy,
-  userOperationalScope,
-} from "#lib/db/schema"
+import { orgOperationalScopePolicy, userOperationalScope } from "#lib/db/schema"
 
 /**
  * Returns all org-level scope policies for an organization, ordered by displayOrder.

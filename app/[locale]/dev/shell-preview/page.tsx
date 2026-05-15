@@ -482,51 +482,66 @@ function PreviewContent() {
           </li>
           <li>
             <strong className="text-foreground">Secondary rail</strong> —{" "}
-            <code>AppSubLayout</code> with <code>rail=&#123;SUB_RAIL&#125;</code>: floating
-            HRM text nav when the primary sidebar is icon-only (
-            <code>useSidebar().open === false</code>). Hover the content pane to reveal
-            it. <code>command=&#123;&lt;ShellPreviewCommandPalette /&gt;&#125;</code> mounts
-            the cmdk dialog with the same store as the center search trigger.
+            <code>AppSubLayout</code> with{" "}
+            <code>rail=&#123;SUB_RAIL&#125;</code>: floating HRM text nav when
+            the primary sidebar is icon-only (
+            <code>useSidebar().open === false</code>). Hover the content pane to
+            reveal it.{" "}
+            <code>
+              command=&#123;&lt;ShellPreviewCommandPalette /&gt;&#125;
+            </code>{" "}
+            mounts the cmdk dialog with the same store as the center search
+            trigger.
           </li>
           <li>
             Mock nav, badges, and recents are cosmetic; every <code>href</code>{" "}
             points back to this page.
           </li>
           <li>
-            <strong className="text-foreground">Utility bar — tenant vs scope</strong>{" "}
+            <strong className="text-foreground">
+              Utility bar — tenant vs scope
+            </strong>{" "}
             — The <strong>building + name</strong> chip is the active{" "}
             <em>organization</em> (workspace tenant), same role as{" "}
             <code>WorkbenchOrgCompanySwitch</code> on real ERP routes. The{" "}
             <strong>operational scope</strong> rail (project, team, …) is{" "}
-            <em>inside</em> that tenant — ADR-0019 does not model organization as a
-            scope dimension, so it will not appear as a fifth row in{" "}
+            <em>inside</em> that tenant — ADR-0019 does not model organization
+            as a scope dimension, so it will not appear as a fifth row in{" "}
             <strong>Configure</strong>.
           </li>
           <li>
-            <strong className="text-foreground">Utility bar — operational scope</strong>{" "}
+            <strong className="text-foreground">
+              Utility bar — operational scope
+            </strong>{" "}
             — <code>OperationalScopeRail</code> (mock context via{" "}
             <code>ShellPreviewOperationalScope</code>): project + team pills,{" "}
-            <strong>Add scope</strong> ghost, and org-admin <strong>Configure</strong>{" "}
-            sheet. Server Actions are not connected to a real org session in this
-            preview.
+            <strong>Add scope</strong> ghost, and org-admin{" "}
+            <strong>Configure</strong> sheet. Server Actions are not connected
+            to a real org session in this preview.
           </li>
           <li>
-            <strong className="text-foreground">Utility bar — right rail</strong>{" "}
-            — <code>AppShellUtilityBarRight</code> renders items from the persisted
-            Zustand store (<code>useUtilityBarStore</code>). Icons are drag-to-reorder;
-            order and visibility are saved to <code>localStorage</code>. The{" "}
-            <strong>Marketplace</strong> Store icon opens{" "}
-            <code>AppShellUtilityDropdown</code> with a titled header, dev-style row
-            hovers, grouped actions, and a footnote footer.{" "}
-            <strong>Customise icon bar</strong> opens a right <code>Sheet</code> with
-            the drag/toggle list; <strong>Request utility</strong> opens a stub{" "}
-            <code>Dialog</code>. The avatar opens <code>AppShellAccountDropdown</code>{" "}
-            (personal IAM links + coming-soon placeholders + preview sign-out no-op).
+            <strong className="text-foreground">
+              Utility bar — right rail
+            </strong>{" "}
+            — <code>AppShellUtilityBarRight</code> renders items from the
+            persisted Zustand store (<code>useUtilityBarStore</code>). Icons are
+            drag-to-reorder; order and visibility are saved to{" "}
+            <code>localStorage</code>. The <strong>Marketplace</strong> Store
+            icon opens <code>AppShellUtilityDropdown</code> with a titled
+            header, dev-style row hovers, grouped actions, and a footnote
+            footer. <strong>Customise icon bar</strong> opens a right{" "}
+            <code>Sheet</code> with the drag/toggle list;{" "}
+            <strong>Request utility</strong> opens a stub <code>Dialog</code>.
+            The avatar opens <code>AppShellAccountDropdown</code> (personal IAM
+            links + coming-soon placeholders + preview sign-out no-op).
           </li>
           <li>
-            <strong className="text-foreground">Surface chrome — CRUD-SAP mock</strong>{" "}
-            — <code>ShellPreviewCrudSapActionBar</code>: edge-only separators, HTML5
-            drag-and-drop reorder (same affordance as the right rail), persisted under{" "}
+            <strong className="text-foreground">
+              Surface chrome — CRUD-SAP mock
+            </strong>{" "}
+            — <code>ShellPreviewCrudSapActionBar</code>: edge-only separators,
+            HTML5 drag-and-drop reorder (same affordance as the right rail),
+            persisted under{" "}
             <code>afenda-dev-shell-preview-crud-sap-order-v1</code>.
           </li>
         </ul>

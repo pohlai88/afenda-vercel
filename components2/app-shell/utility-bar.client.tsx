@@ -96,7 +96,12 @@ function AppShellDisc({
     <Tooltip>
       <TooltipTrigger asChild>
         {href ? (
-          <Button variant="ghost" size="icon-lg" asChild className={cn(APP_SHELL_UTILITY_DISC_CLASS, className)}>
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            asChild
+            className={cn(APP_SHELL_UTILITY_DISC_CLASS, className)}
+          >
             <Link
               href={href}
               prefetch={false}
@@ -194,9 +199,18 @@ export const APP_SHELL_UTILITY_L2_ICON_CLASS = cn(
 const ICON_CLASS = APP_SHELL_UTILITY_L2_ICON_CLASS
 
 /** Internal: icon inside the button — 15px, no pointer events */
-function BarIcon({ children, className }: { children: ReactNode; className?: string }) {
+function BarIcon({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
   return (
-    <span aria-hidden className={cn("size-[15px] shrink-0 [&>svg]:size-full", className)}>
+    <span
+      aria-hidden
+      className={cn("size-[15px] shrink-0 [&>svg]:size-full", className)}
+    >
       {children}
     </span>
   )
@@ -321,16 +335,23 @@ export function AppShellAppsDisc({
         align="start"
         sideOffset={8}
         className={cn(
-          "flex max-h-[min(92vh,40rem)] w-[min(20rem,calc(100vw-2rem))] min-w-0 flex-col overflow-hidden gap-0 p-0",
+          "flex max-h-[min(92vh,40rem)] w-[min(20rem,calc(100vw-2rem))] min-w-0 flex-col gap-0 overflow-hidden p-0",
           "border border-border bg-card/95 text-card-foreground backdrop-blur-sm",
           uiRadius.popover,
           uiSurfaceElevation.raised,
-          "ring-0 ring-offset-0",
+          "ring-0 ring-offset-0"
         )}
       >
         <div className="shrink-0 border-b border-border/50 px-4 py-3">
-          <p className="text-xs font-semibold tracking-tight text-card-foreground">App launcher</p>
-          <p className={cn("mt-1 text-[11px] leading-snug text-muted-foreground", uiTracking.control)}>
+          <p className="text-xs font-semibold tracking-tight text-card-foreground">
+            App launcher
+          </p>
+          <p
+            className={cn(
+              "mt-1 text-[11px] leading-snug text-muted-foreground",
+              uiTracking.control
+            )}
+          >
             No apps configured yet.
           </p>
         </div>
@@ -355,8 +376,14 @@ export function AppShellPolicyDisc({
 }: AppShellPolicyDiscProps) {
   if (!dropdownContent) {
     return (
-      <AppShellIconButton ariaLabel={ariaLabel} tooltip={tooltip} className={className}>
-        <BarIcon><Scale strokeWidth={2} /></BarIcon>
+      <AppShellIconButton
+        ariaLabel={ariaLabel}
+        tooltip={tooltip}
+        className={className}
+      >
+        <BarIcon>
+          <Scale strokeWidth={2} />
+        </BarIcon>
       </AppShellIconButton>
     )
   }
@@ -375,7 +402,9 @@ export function AppShellPolicyDisc({
                 className
               )}
             >
-              <BarIcon><Scale strokeWidth={2} /></BarIcon>
+              <BarIcon>
+                <Scale strokeWidth={2} />
+              </BarIcon>
             </button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
@@ -387,11 +416,11 @@ export function AppShellPolicyDisc({
         align="start"
         sideOffset={8}
         className={cn(
-          "flex max-h-[min(92vh,40rem)] w-[min(28rem,calc(100vw-2rem))] min-w-0 flex-col overflow-hidden gap-0 p-0",
+          "flex max-h-[min(92vh,40rem)] w-[min(28rem,calc(100vw-2rem))] min-w-0 flex-col gap-0 overflow-hidden p-0",
           "border border-border bg-card/95 text-card-foreground backdrop-blur-sm",
           uiRadius.popover,
           uiSurfaceElevation.raised,
-          "ring-0 ring-offset-0",
+          "ring-0 ring-offset-0"
         )}
       >
         {dropdownContent}
@@ -405,70 +434,100 @@ export function AppShellPolicyDisc({
 // ---------------------------------------------------------------------------
 
 /** Help / docs link */
-export function AppShellHelpIcon(props: Omit<AppShellIconLinkProps, "children">) {
+export function AppShellHelpIcon(
+  props: Omit<AppShellIconLinkProps, "children">
+) {
   return (
     <AppShellIconLink {...props}>
-      <BarIcon><CircleHelp strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <CircleHelp strokeWidth={2} />
+      </BarIcon>
     </AppShellIconLink>
   )
 }
 
 /** Lynx · machine insight link */
-export function AppShellInsightIcon(props: Omit<AppShellIconLinkProps, "children">) {
+export function AppShellInsightIcon(
+  props: Omit<AppShellIconLinkProps, "children">
+) {
   return (
     <AppShellIconLink {...props}>
-      <BarIcon><Sparkles strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <Sparkles strokeWidth={2} />
+      </BarIcon>
     </AppShellIconLink>
   )
 }
 
 /** Org admin settings link */
-export function AppShellSettingsIcon(props: Omit<AppShellIconLinkProps, "children">) {
+export function AppShellSettingsIcon(
+  props: Omit<AppShellIconLinkProps, "children">
+) {
   return (
     <AppShellIconLink {...props}>
-      <BarIcon><ShieldCheck strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <ShieldCheck strokeWidth={2} />
+      </BarIcon>
     </AppShellIconLink>
   )
 }
 
 /** Quick-create button */
-export function AppShellQuickCreateIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellQuickCreateIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><PenLine strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <PenLine strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Search button (mobile only — hidden at sm+) */
-export function AppShellSearchMobileIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellSearchMobileIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props} className={cn("sm:hidden", props.className)}>
-      <BarIcon><Search strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <Search strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Notifications bell button */
-export function AppShellNotificationsIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellNotificationsIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><Bell strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <Bell strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Keyboard shortcuts button */
-export function AppShellShortcutsIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellShortcutsIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><Keyboard strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <Keyboard strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Theme (sun / moon) toggle — flips light/dark via `next-themes`. */
-export function AppShellThemeIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellThemeIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   const { resolvedTheme, setTheme } = useTheme()
   const t = useTranslations("Dashboard.shell.utilityBar.theme")
 
@@ -498,82 +557,118 @@ export function AppShellThemeIcon(props: Omit<AppShellIconButtonProps, "children
 }
 
 /** Layout density button */
-export function AppShellDensityIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellDensityIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><Rows3 strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <Rows3 strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Locale / language button */
-export function AppShellLocaleIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellLocaleIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><Languages strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <Languages strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Feedback button */
-export function AppShellFeedbackIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellFeedbackIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><MessageSquare strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <MessageSquare strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Messenger / async messaging button */
-export function AppShellMessengerIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellMessengerIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><MessageCircle strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <MessageCircle strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Connectivity / network status button */
-export function AppShellConnectivityIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellConnectivityIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><Wifi strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <Wifi strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Storage inspector button */
-export function AppShellStorageIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellStorageIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><Database strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <Database strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Screenshot capture button */
-export function AppShellScreenshotIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellScreenshotIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><Camera strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <Camera strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** File upload button */
-export function AppShellUploadIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellUploadIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><FileUp strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <FileUp strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
 
 /** Network diagnosis button */
-export function AppShellDiagnosisIcon(props: Omit<AppShellIconButtonProps, "children">) {
+export function AppShellDiagnosisIcon(
+  props: Omit<AppShellIconButtonProps, "children">
+) {
   return (
     <AppShellIconButton {...props}>
-      <BarIcon><Activity strokeWidth={2} /></BarIcon>
+      <BarIcon>
+        <Activity strokeWidth={2} />
+      </BarIcon>
     </AppShellIconButton>
   )
 }
@@ -615,10 +710,7 @@ export function AppShellUtilityBarLeftIcons({
         tooltip={brandTooltip}
       />
       <div className="flex items-center gap-1.5">
-        <AppShellAppsDisc
-          ariaLabel={appsAriaLabel}
-          tooltip={appsTooltip}
-        />
+        <AppShellAppsDisc ariaLabel={appsAriaLabel} tooltip={appsTooltip} />
         <AppShellPolicyDisc
           ariaLabel={policyAriaLabel}
           tooltip={policyTooltip}
@@ -626,9 +718,7 @@ export function AppShellUtilityBarLeftIcons({
         />
       </div>
       {scopeRail ? (
-        <div className="ml-1 flex min-w-0 items-center">
-          {scopeRail}
-        </div>
+        <div className="ml-1 flex min-w-0 items-center">{scopeRail}</div>
       ) : null}
     </div>
   )

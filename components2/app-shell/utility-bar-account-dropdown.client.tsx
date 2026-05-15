@@ -54,8 +54,11 @@ export function AppShellAccountDropdown({
   const router = useRouter()
   const [signOutPending, startSignOut] = useTransition()
 
-  const { account: hrefAccount, identity: hrefIdentity, security: hrefSecurity } =
-    hrefs
+  const {
+    account: hrefAccount,
+    identity: hrefIdentity,
+    security: hrefSecurity,
+  } = hrefs
 
   const resolvedTitle = title ?? t("title")
   const resolvedTriggerAria = triggerAriaLabel ?? t("triggerAriaLabel")

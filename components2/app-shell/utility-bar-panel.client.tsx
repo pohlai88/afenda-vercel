@@ -4,11 +4,7 @@ import type { ReactNode } from "react"
 
 import { cn } from "#lib/utils"
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 
 // ---------------------------------------------------------------------------
 // Types

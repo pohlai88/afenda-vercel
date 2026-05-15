@@ -4,13 +4,10 @@ import { isValidScopeType } from "#lib/erp/operational-scope-registry.shared"
 import { ORG_SCOPE_AUDIENCES, ORG_SCOPE_POLICIES } from "../constants"
 
 /** Runtime-validated scopeType — checked against the live registry. */
-export const scopeTypeSchema = z
-  .string()
-  .min(1)
-  .refine(isValidScopeType, {
-    message:
-      "Unknown scope type. It must be registered in the operational scope registry.",
-  })
+export const scopeTypeSchema = z.string().min(1).refine(isValidScopeType, {
+  message:
+    "Unknown scope type. It must be registered in the operational scope registry.",
+})
 
 export const orgScopePolicySchema = z.enum(ORG_SCOPE_POLICIES)
 export const orgScopeAudienceSchema = z.enum(ORG_SCOPE_AUDIENCES)

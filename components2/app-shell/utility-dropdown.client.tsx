@@ -30,7 +30,7 @@ const utilityDropdownTitleClass =
 
 /** L2a — primary row label (menu actions). */
 const utilityDropdownActionClass = cn(
-  "text-xs font-medium leading-snug text-card-foreground",
+  "text-xs leading-snug font-medium text-card-foreground",
   uiTracking.control
 )
 
@@ -107,7 +107,7 @@ export type AppShellUtilityDropdownProps = {
 
 function utilityDropdownItemClass(disabled: boolean) {
   return cn(
-    "flex min-w-0 w-full max-w-full cursor-default items-start gap-2.5",
+    "flex w-full max-w-full min-w-0 cursor-default items-start gap-2.5",
     "border border-transparent px-2.5 py-3 transition-colors",
     uiRadius.control,
     "text-left text-xs outline-none select-none",
@@ -169,7 +169,7 @@ export function AppShellUtilityDropdown({
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          "flex max-h-[min(92vh,40rem)] w-[min(20rem,calc(100vw-2rem))] min-w-0 flex-col overflow-hidden p-0 gap-0",
+          "flex max-h-[min(92vh,40rem)] w-[min(20rem,calc(100vw-2rem))] min-w-0 flex-col gap-0 overflow-hidden p-0",
           "border border-border bg-card/95 text-card-foreground backdrop-blur-sm",
           uiRadius.popover,
           uiSurfaceElevation.raised,
@@ -183,7 +183,12 @@ export function AppShellUtilityDropdown({
               <p className={utilityDropdownTitleClass}>{title.trim()}</p>
             ) : null}
             {subtitle?.trim() ? (
-              <p className={cn(utilityDropdownMetaClass, title?.trim() ? "mt-1" : null)}>
+              <p
+                className={cn(
+                  utilityDropdownMetaClass,
+                  title?.trim() ? "mt-1" : null
+                )}
+              >
                 {subtitle.trim()}
               </p>
             ) : null}
@@ -192,7 +197,7 @@ export function AppShellUtilityDropdown({
 
         <div
           className={cn(
-            "min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2",
+            "min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-1.5 py-2",
             !showHeader && !footer ? "py-1.5" : null
           )}
         >
@@ -209,7 +214,12 @@ export function AppShellUtilityDropdown({
 
                   const labelBlock = (
                     <span className="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
-                      <span className={cn(utilityDropdownActionClass, "line-clamp-2")}>
+                      <span
+                        className={cn(
+                          utilityDropdownActionClass,
+                          "line-clamp-2"
+                        )}
+                      >
                         {item.label}
                       </span>
                       {item.description ? (

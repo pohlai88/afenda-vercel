@@ -81,10 +81,7 @@ function CommandInput({
           {...props}
         />
         <InputGroupAddon>
-          <SearchIcon
-            aria-hidden
-            className="size-4 shrink-0 opacity-50"
-          />
+          <SearchIcon aria-hidden className="size-4 shrink-0 opacity-50" />
         </InputGroupAddon>
       </InputGroup>
     </div>

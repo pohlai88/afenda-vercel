@@ -1517,9 +1517,7 @@ export const hrmCompensationComponent = pgTable(
       t.organizationId,
       t.code
     ),
-    index("hrm_compensation_component_organizationId_idx").on(
-      t.organizationId
-    ),
+    index("hrm_compensation_component_organizationId_idx").on(t.organizationId),
   ]
 )
 
@@ -2152,9 +2150,12 @@ export const hrmTimeReport = pgTable(
     destination: text("destination"),
     reason: text("reason"),
     state: text("state").notNull().default("submitted"),
-    currentApprovalId: text("currentApprovalId").references(() => hrmApproval.id, {
-      onDelete: "set null",
-    }),
+    currentApprovalId: text("currentApprovalId").references(
+      () => hrmApproval.id,
+      {
+        onDelete: "set null",
+      }
+    ),
     approvedByUserId: text("approvedByUserId"),
     approvedAt: timestamp("approvedAt", { mode: "date" }),
     rejectedReason: text("rejectedReason"),
@@ -3089,8 +3090,10 @@ export const eInvoice = pgTable(
     buyerName: text("buyerName").notNull(),
     buyerTaxCode: text("buyerTaxCode"),
     currency: text("currency").notNull().default("VND"),
-    totalAmountVnd: decimal("totalAmountVnd", { precision: 18, scale: 0 })
-      .notNull(),
+    totalAmountVnd: decimal("totalAmountVnd", {
+      precision: 18,
+      scale: 0,
+    }).notNull(),
     vatRateBps: integer("vatRateBps").notNull().default(0),
     xmlPayload: text("xmlPayload").notNull(),
     providerReference: text("providerReference"),
@@ -3454,10 +3457,7 @@ export const userOperationalScope = pgTable(
       t.userId,
       t.scopeType
     ),
-    index("user_operational_scope_org_user_idx").on(
-      t.organizationId,
-      t.userId
-    ),
+    index("user_operational_scope_org_user_idx").on(t.organizationId, t.userId),
   ]
 )
 

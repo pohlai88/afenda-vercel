@@ -42,10 +42,9 @@ export function TimeReportRejectForm({
     }
   }, [state])
 
-  const error: Extract<
-    TimeReportApprovalFormState,
-    { ok: false }
-  >["errors"] | null =
+  const error:
+    | Extract<TimeReportApprovalFormState, { ok: false }>["errors"]
+    | null =
     state && !state.ok
       ? (state.errors as Extract<
           TimeReportApprovalFormState,

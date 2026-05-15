@@ -34,18 +34,24 @@ export function AppShellUtilityBar({
       <div className="mx-auto max-w-screen-2xl px-2.5 sm:px-4">
         {center ? (
           <div className="relative flex h-(--af-l1-height) w-full min-w-0 items-center justify-between gap-2">
-            <div className="relative z-10 flex min-w-0 items-center gap-1.5">{left}</div>
+            <div className="relative z-10 flex min-w-0 items-center gap-1.5">
+              {left}
+            </div>
             <div className="relative z-10 flex min-w-0 items-center justify-end gap-1.5">
               {right}
             </div>
             {/* True bar midpoint (50% of full inner width), not the gap between L/R clusters. */}
             <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-              <div className="pointer-events-auto w-full min-w-0 max-w-[100px]">{center}</div>
+              <div className="pointer-events-auto w-full max-w-[100px] min-w-0">
+                {center}
+              </div>
             </div>
           </div>
         ) : (
           <div className="relative flex h-(--af-l1-height) items-center justify-between gap-2">
-            <div className="flex min-w-0 flex-1 items-center gap-1.5">{left}</div>
+            <div className="flex min-w-0 flex-1 items-center gap-1.5">
+              {left}
+            </div>
             <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5">
               {right}
             </div>

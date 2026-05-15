@@ -192,7 +192,7 @@ export function AppShellClient({
                 {utilityBar.right}
               </div>
               <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-                <div className="pointer-events-auto w-full min-w-0 max-w-[100px]">
+                <div className="pointer-events-auto w-full max-w-[100px] min-w-0">
                   {utilityBar.center}
                 </div>
               </div>

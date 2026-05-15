@@ -87,7 +87,11 @@ export function AppShellSurface({
               {subNav ? (
                 <button
                   type="button"
-                  aria-label={subNav.open ? "Close navigation panel" : "Open navigation panel"}
+                  aria-label={
+                    subNav.open
+                      ? "Close navigation panel"
+                      : "Open navigation panel"
+                  }
                   aria-expanded={subNav.open}
                   aria-controls={undefined}
                   onClick={subNav.toggle}

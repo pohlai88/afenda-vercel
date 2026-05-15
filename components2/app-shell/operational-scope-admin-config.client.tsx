@@ -78,7 +78,13 @@ const SCOPE_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   contract: Landmark,
 }
 
-function ScopeIcon({ scopeType, className }: { scopeType: string; className?: string }) {
+function ScopeIcon({
+  scopeType,
+  className,
+}: {
+  scopeType: string
+  className?: string
+}) {
   const Icon = SCOPE_ICONS[scopeType]
   if (!Icon) return <Circle className={className} />
   return <Icon className={className} />
@@ -98,9 +104,11 @@ const SOURCE_LABEL: Record<string, string> = {
 
 const SOURCE_CLASS: Record<string, string> = {
   route: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20",
-  workflow: "bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/20",
+  workflow:
+    "bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/20",
   user: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
-  policy: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  policy:
+    "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
   default: "bg-muted text-muted-foreground border-border/50",
 }
 
@@ -109,15 +117,25 @@ const SOURCE_CLASS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 function PathTab({ activeScopes }: { activeScopes: ActiveScopeEntry[] }) {
-  const sorted = [...activeScopes].sort((a, b) => a.displayOrder - b.displayOrder)
+  const sorted = [...activeScopes].sort(
+    (a, b) => a.displayOrder - b.displayOrder
+  )
 
   if (sorted.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
         <Scale className="size-7 text-muted-foreground/40" strokeWidth={1.5} />
-        <p className="text-xs font-medium text-muted-foreground">No active scope</p>
-        <p className={cn("max-w-[18rem] text-[11px] leading-snug text-muted-foreground/70", uiTracking.control)}>
-          Set dimension policies in the Policy tab to make scope dimensions appear in the path bar.
+        <p className="text-xs font-medium text-muted-foreground">
+          No active scope
+        </p>
+        <p
+          className={cn(
+            "max-w-[18rem] text-[11px] leading-snug text-muted-foreground/70",
+            uiTracking.control
+          )}
+        >
+          Set dimension policies in the Policy tab to make scope dimensions
+          appear in the path bar.
         </p>
       </div>
     )
@@ -126,33 +144,43 @@ function PathTab({ activeScopes }: { activeScopes: ActiveScopeEntry[] }) {
   return (
     <div className="flex flex-col divide-y divide-border/40">
       {sorted.map((scope) => {
-        const hasValue = scope.selectedLabel !== null && scope.selectedLabel.length > 0
+        const hasValue =
+          scope.selectedLabel !== null && scope.selectedLabel.length > 0
         const dimensionLabel = scope.scopeType.replace(/_/g, " ")
         const sourceCls = SOURCE_CLASS[scope.source] ?? SOURCE_CLASS.default
         const sourceLabel = SOURCE_LABEL[scope.source] ?? scope.source
 
         return (
-          <div key={scope.scopeType} className="flex items-center gap-3 px-4 py-2.5">
+          <div
+            key={scope.scopeType}
+            className="flex items-center gap-3 px-4 py-2.5"
+          >
             <ScopeIcon
               scopeType={scope.scopeType}
               className="size-3.5 shrink-0 text-muted-foreground"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[10px] font-medium uppercase tracking-widest text-muted-foreground/60">
+              <p className="truncate text-[10px] font-medium tracking-widest text-muted-foreground/60 uppercase">
                 {dimensionLabel}
               </p>
-              <p className={cn(
-                "truncate text-xs",
-                hasValue ? "font-medium text-foreground" : "italic text-muted-foreground/60"
-              )}>
+              <p
+                className={cn(
+                  "truncate text-xs",
+                  hasValue
+                    ? "font-medium text-foreground"
+                    : "text-muted-foreground/60 italic"
+                )}
+              >
                 {hasValue ? scope.selectedLabel : "Not set"}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              <span className={cn(
-                "inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-medium leading-none",
-                sourceCls
-              )}>
+              <span
+                className={cn(
+                  "inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] leading-none font-medium",
+                  sourceCls
+                )}
+              >
                 {sourceLabel}
               </span>
               {hasValue ? (
@@ -166,9 +194,15 @@ function PathTab({ activeScopes }: { activeScopes: ActiveScopeEntry[] }) {
       })}
 
       <div className="px-4 py-2.5">
-        <p className={cn("text-[11px] leading-snug text-muted-foreground/60", uiTracking.control)}>
-          Up to {SCOPE_RAIL_VISIBLE_LIMIT} dimensions shown simultaneously. Route-resolved
-          dimensions appear automatically; user-pinned dimensions persist per session.
+        <p
+          className={cn(
+            "text-[11px] leading-snug text-muted-foreground/60",
+            uiTracking.control
+          )}
+        >
+          Up to {SCOPE_RAIL_VISIBLE_LIMIT} dimensions shown simultaneously.
+          Route-resolved dimensions appear automatically; user-pinned dimensions
+          persist per session.
         </p>
       </div>
     </div>
@@ -209,12 +243,17 @@ function ScopePolicyRow({
       aria-busy={isPending}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <ScopeIcon scopeType={entry.scopeType} className="size-3.5 shrink-0 text-muted-foreground" />
+        <ScopeIcon
+          scopeType={entry.scopeType}
+          className="size-3.5 shrink-0 text-muted-foreground"
+        />
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-xs font-medium">{entry.label}</span>
             {!entry.available ? (
-              <Badge variant="secondary" className="text-[10px]">Reserved</Badge>
+              <Badge variant="secondary" className="text-[10px]">
+                Reserved
+              </Badge>
             ) : null}
           </div>
           <p className="text-[10px] text-muted-foreground/70">{entry.module}</p>
@@ -230,9 +269,15 @@ function ScopePolicyRow({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="allowed" className="text-xs">Allowed</SelectItem>
-          <SelectItem value="mandatory" className="text-xs">Mandatory</SelectItem>
-          <SelectItem value="blocked" className="text-xs">Blocked</SelectItem>
+          <SelectItem value="allowed" className="text-xs">
+            Allowed
+          </SelectItem>
+          <SelectItem value="mandatory" className="text-xs">
+            Mandatory
+          </SelectItem>
+          <SelectItem value="blocked" className="text-xs">
+            Blocked
+          </SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -255,7 +300,8 @@ function PolicyTab({
       <Alert className="mx-4 mt-3 mb-0 border-amber-500/25 bg-amber-500/5">
         <Scale className="size-3.5 text-amber-600 dark:text-amber-400" />
         <AlertDescription className="text-[11px] text-amber-700/80 dark:text-amber-400/80">
-          Policy changes apply immediately to all users and are written to the audit ledger.
+          Policy changes apply immediately to all users and are written to the
+          audit ledger.
         </AlertDescription>
       </Alert>
 
@@ -265,7 +311,9 @@ function PolicyTab({
             key={entry.scopeType}
             entry={entry}
             currentPolicy={
-              (policyByType.get(entry.scopeType)?.policy as OrgScopePolicy | undefined) ?? null
+              (policyByType.get(entry.scopeType)?.policy as
+                | OrgScopePolicy
+                | undefined) ?? null
             }
             organizationId={organizationId}
           />
@@ -312,23 +360,31 @@ function AudienceTab() {
       <div className="px-4 py-3">
         <Alert className="border-border/50 bg-muted/30">
           <AlertDescription className="text-[11px] text-muted-foreground">
-            Role-based scope visibility is planned for a future release. Configure which
-            dimensions are shown per org role.
+            Role-based scope visibility is planned for a future release.
+            Configure which dimensions are shown per org role.
           </AlertDescription>
         </Alert>
       </div>
 
       <div className="divide-y divide-border/40 px-4 pb-3">
         {AUDIENCE_PLACEHOLDER.map((row) => (
-          <div key={row.id} className="flex items-center justify-between gap-3 py-2.5">
+          <div
+            key={row.id}
+            className="flex items-center justify-between gap-3 py-2.5"
+          >
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium">{row.label}</p>
-              <p className="text-[10px] text-muted-foreground/70">{row.description}</p>
+              <p className="text-[10px] text-muted-foreground/70">
+                {row.description}
+              </p>
             </div>
             {row.locked ? (
               <Lock className="size-3.5 shrink-0 text-muted-foreground/40" />
             ) : (
-              <Badge variant="outline" className="shrink-0 text-[10px] text-muted-foreground">
+              <Badge
+                variant="outline"
+                className="shrink-0 text-[10px] text-muted-foreground"
+              >
                 Soon
               </Badge>
             )}
@@ -343,30 +399,43 @@ function AudienceTab() {
 // Tab: Defaults — pre-set default scope selections (placeholder)
 // ---------------------------------------------------------------------------
 
-function DefaultsTab({ registeredScopes }: { registeredScopes: ScopeRegistryEntry[] }) {
+function DefaultsTab({
+  registeredScopes,
+}: {
+  registeredScopes: ScopeRegistryEntry[]
+}) {
   return (
     <div className="flex flex-col gap-0">
       <div className="px-4 py-3">
         <Alert className="border-border/50 bg-muted/30">
           <AlertDescription className="text-[11px] text-muted-foreground">
-            Default scope pre-sets let you specify fallback selections when a user has no
-            active choice for a dimension. Coming in a future release.
+            Default scope pre-sets let you specify fallback selections when a
+            user has no active choice for a dimension. Coming in a future
+            release.
           </AlertDescription>
         </Alert>
       </div>
 
       <div className="divide-y divide-border/40 px-4 pb-3">
-        {registeredScopes.filter((e) => e.available).map((entry) => (
-          <div key={entry.scopeType} className="flex items-center justify-between gap-3 py-2.5">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              <ScopeIcon scopeType={entry.scopeType} className="size-3.5 shrink-0 text-muted-foreground" />
-              <p className="truncate text-xs font-medium">{entry.label}</p>
+        {registeredScopes
+          .filter((e) => e.available)
+          .map((entry) => (
+            <div
+              key={entry.scopeType}
+              className="flex items-center justify-between gap-3 py-2.5"
+            >
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <ScopeIcon
+                  scopeType={entry.scopeType}
+                  className="size-3.5 shrink-0 text-muted-foreground"
+                />
+                <p className="truncate text-xs font-medium">{entry.label}</p>
+              </div>
+              <span className="shrink-0 text-[10px] text-muted-foreground/50 italic">
+                No default
+              </span>
             </div>
-            <span className="shrink-0 text-[10px] italic text-muted-foreground/50">
-              No default
-            </span>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   )
@@ -398,15 +467,23 @@ export function OperationalScopeAdminConfigContent({
     <>
       {/* Standard header strip */}
       <div className="shrink-0 border-b border-border/50 px-4 py-3">
-        <p className="text-xs font-semibold tracking-tight text-card-foreground">Scope policy</p>
-        <p className={cn("mt-1 text-[11px] leading-snug text-muted-foreground", uiTracking.control)}>
-          Manage scope dimensions, policies, and audience rules for this organisation.
+        <p className="text-xs font-semibold tracking-tight text-card-foreground">
+          Scope policy
+        </p>
+        <p
+          className={cn(
+            "mt-1 text-[11px] leading-snug text-muted-foreground",
+            uiTracking.control
+          )}
+        >
+          Manage scope dimensions, policies, and audience rules for this
+          organisation.
         </p>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="path" className="flex min-h-0 flex-1 flex-col">
-        <TabsList className="h-8 shrink-0 rounded-none border-b border-border/50 bg-transparent px-4 justify-start gap-0">
+        <TabsList className="h-8 shrink-0 justify-start gap-0 rounded-none border-b border-border/50 bg-transparent px-4">
           <TabsTrigger
             value="path"
             className="h-7 rounded-sm px-3 text-[11px] data-[state=active]:bg-muted/60 data-[state=active]:shadow-none"
@@ -433,11 +510,17 @@ export function OperationalScopeAdminConfigContent({
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="path" className="mt-0 min-h-0 flex-1 overflow-y-auto">
+        <TabsContent
+          value="path"
+          className="mt-0 min-h-0 flex-1 overflow-y-auto"
+        >
           <PathTab activeScopes={activeScopes} />
         </TabsContent>
 
-        <TabsContent value="policy" className="mt-0 min-h-0 flex-1 overflow-y-auto">
+        <TabsContent
+          value="policy"
+          className="mt-0 min-h-0 flex-1 overflow-y-auto"
+        >
           <PolicyTab
             registeredScopes={registeredScopes}
             orgPolicies={orgPolicies}
@@ -445,11 +528,17 @@ export function OperationalScopeAdminConfigContent({
           />
         </TabsContent>
 
-        <TabsContent value="audience" className="mt-0 min-h-0 flex-1 overflow-y-auto">
+        <TabsContent
+          value="audience"
+          className="mt-0 min-h-0 flex-1 overflow-y-auto"
+        >
           <AudienceTab />
         </TabsContent>
 
-        <TabsContent value="defaults" className="mt-0 min-h-0 flex-1 overflow-y-auto">
+        <TabsContent
+          value="defaults"
+          className="mt-0 min-h-0 flex-1 overflow-y-auto"
+        >
           <DefaultsTab registeredScopes={registeredScopes} />
         </TabsContent>
       </Tabs>

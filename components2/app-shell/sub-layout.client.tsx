@@ -103,8 +103,8 @@ export function AppSubLayoutClient({
             className={cn(
               "hidden min-h-0 shrink-0 md:flex md:flex-col",
               "w-40",
-              "ml-4 mr-6 mt-4",
-              "bg-transparent border-0 shadow-none ring-0"
+              "mt-4 mr-6 ml-4",
+              "border-0 bg-transparent shadow-none ring-0"
             )}
           >
             <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto py-1">
@@ -124,7 +124,11 @@ export function AppSubLayoutClient({
           {/* Expanded primary → floating panel controlled by chrome toggle */}
           {!primaryCollapsed ? (
             <SubNavFloatingContext.Provider
-              value={{ open: floatingOpen, toggle: toggleFloating, close: closeFloating }}
+              value={{
+                open: floatingOpen,
+                toggle: toggleFloating,
+                close: closeFloating,
+              }}
             >
               <FloatingSubPanel
                 rail={rail}
@@ -213,7 +217,7 @@ function SubNavSection({
       {section.label ? (
         <p
           className={cn(
-            "px-1 text-[11px] font-semibold leading-4 tracking-[-0.01em]",
+            "px-1 text-[11px] leading-4 font-semibold tracking-[-0.01em]",
             "text-foreground",
             !isFirst && "mt-1"
           )}

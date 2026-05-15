@@ -1,6 +1,13 @@
 "use client"
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import type { LucideIcon } from "lucide-react"
 import type { Route } from "next"
 
@@ -131,7 +138,7 @@ function CommandPaletteItemRow({
         </span>
       )}
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-sm font-medium leading-snug tracking-[-0.01em]">
+        <span className="truncate text-sm leading-snug font-medium tracking-[-0.01em]">
           {item.label}
         </span>
         {item.description && (
@@ -227,7 +234,7 @@ export function AppShellCommandPalette({
         className="flex flex-col overflow-hidden rounded-none border-0 bg-transparent p-0 shadow-none"
       >
         <CommandInput placeholder={placeholder} />
-        <CommandList className="min-h-0 flex-1 max-h-none">
+        <CommandList className="max-h-none min-h-0 flex-1">
           {isLoading ? (
             <CommandLoading />
           ) : (
@@ -256,7 +263,10 @@ export function AppShellCommandPalette({
           aria-label="Keyboard shortcuts"
           className="flex shrink-0 items-center gap-3 border-t border-border/50 px-3 py-2"
         >
-          <KbdGroup aria-hidden className="gap-1.5 text-xs text-muted-foreground/70">
+          <KbdGroup
+            aria-hidden
+            className="gap-1.5 text-xs text-muted-foreground/70"
+          >
             <span className="inline-flex items-center gap-1">
               <Kbd>↵</Kbd>
               <span>select</span>

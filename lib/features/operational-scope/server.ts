@@ -106,7 +106,9 @@ async function resolveOperationalContextImpl(
 
     const rawRouteId = def.routeMatcher?.(routeSegments) ?? null
     const routeId =
-      typeof rawRouteId === "string" && rawRouteId.length > 0 ? rawRouteId : null
+      typeof rawRouteId === "string" && rawRouteId.length > 0
+        ? rawRouteId
+        : null
     if (routeId !== null) {
       scopes[scopeType] = {
         scopeType,
