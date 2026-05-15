@@ -21,20 +21,21 @@ import {
   AppShellConnectivityIcon,
   AppShellDensityIcon,
   AppShellDiagnosisIcon,
-  AppShellFeedbackIcon,
   AppShellHelpIcon,
   AppShellInsightIcon,
-  AppShellLocaleIcon,
+  AppShellLocaleDropdown,
   AppShellMessengerIcon,
   AppShellQuickCreateIcon,
   AppShellScreenshotIcon,
   AppShellSearchMobileIcon,
   AppShellSettingsIcon,
-  AppShellShortcutsIcon,
   AppShellStorageIcon,
   AppShellThemeIcon,
   AppShellUploadIcon,
 } from "./utility-bar.client"
+import { UtilityBarShortcutsPanel } from "./utility-bar-shortcuts.client"
+import { UtilityBarFeedbackPanel } from "./utility-bar-feedback.client"
+import { useAppShellStore } from "../stores/app-shell.store"
 
 // ---------------------------------------------------------------------------
 // Props
@@ -82,11 +83,13 @@ function RailIcon({
   hrefs,
   settingsAriaLabel,
   settingsTooltip,
+  openCommand,
 }: {
   id: UtilityBarItemId
   hrefs?: AppShellUtilityBarRightProps["hrefs"]
   settingsAriaLabel: string
   settingsTooltip: string
+  openCommand: () => void
 }) {
   const href =
     (id === "insight"
@@ -99,7 +102,13 @@ function RailIcon({
 
   switch (id) {
     case "search-mobile":
-      return <AppShellSearchMobileIcon ariaLabel="Search" tooltip="Search" />
+      return (
+        <AppShellSearchMobileIcon
+          ariaLabel="Search"
+          tooltip="Search"
+          onClickAction={openCommand}
+        />
+      )
     case "quick-create":
       return (
         <AppShellQuickCreateIcon
@@ -125,18 +134,11 @@ function RailIcon({
         />
       )
     case "locale":
-      return <AppShellLocaleIcon ariaLabel="Language" tooltip="Language" />
+      return <AppShellLocaleDropdown ariaLabel="Language" tooltip="Language" />
     case "shortcuts":
-      return (
-        <AppShellShortcutsIcon
-          ariaLabel="Shortcuts"
-          tooltip="Keyboard shortcuts"
-        />
-      )
+      return <UtilityBarShortcutsPanel />
     case "feedback":
-      return (
-        <AppShellFeedbackIcon ariaLabel="Feedback" tooltip="Send feedback" />
-      )
+      return <UtilityBarFeedbackPanel />
     case "help":
       return (
         <AppShellHelpIcon href={href} ariaLabel="Help" tooltip="Help & docs" />
@@ -259,6 +261,7 @@ export function AppShellUtilityBarRight({
   const tBar = useTranslations("Dashboard.shell.utilityBar")
   const items = useUtilityBarStore((s) => s.items)
   const reorderVisibleInRail = useUtilityBarStore((s) => s.reorderVisibleInRail)
+  const openCommand = useAppShellStore((s) => s.openCommand)
   const visibleItems = selectVisibleItems(items)
 
   const [dragId, setDragId] = useState<UtilityBarItemId | null>(null)
@@ -321,6 +324,7 @@ export function AppShellUtilityBarRight({
             hrefs={hrefs}
             settingsAriaLabel={tBar("settingsAriaLabel")}
             settingsTooltip={tBar("settingsTooltip")}
+            openCommand={openCommand}
           />
         </DraggableRailItem>
       ))}

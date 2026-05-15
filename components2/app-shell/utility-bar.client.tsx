@@ -6,14 +6,18 @@ import type { Route } from "next"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu"
 import { useTheme } from "next-themes"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import {
   Activity,
   Bell,
   Camera,
+  CheckCircle2,
   CircleHelp,
   Database,
   FileUp,
@@ -33,7 +37,8 @@ import {
   Wifi,
 } from "lucide-react"
 
-import { Link } from "#i18n/navigation"
+import { Link, usePathname, useRouter } from "#i18n/navigation"
+import { APP_LOCALES } from "#lib/i18n/locales.shared"
 import { APP_ICON_512_PNG, ERP_UTILITY_AVATAR_PNG } from "#lib/site"
 import { uiRadius, uiSurfaceElevation, uiTracking } from "#lib/design-system"
 import { cn } from "#lib/utils"
@@ -569,18 +574,95 @@ export function AppShellDensityIcon(
   )
 }
 
-/** Locale / language button */
-export function AppShellLocaleIcon(
-  props: Omit<AppShellIconButtonProps, "children">
-) {
+/** Locale / language dropdown — lists available locales, switches via router. */
+export function AppShellLocaleDropdown({
+  ariaLabel = "Language",
+  tooltip = "Language",
+  className,
+}: {
+  ariaLabel?: string
+  tooltip?: string
+  className?: string
+}) {
+  const currentLocale = useLocale()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const LOCALE_LABELS: Record<string, string> = { en: "English" }
+
   return (
-    <AppShellIconButton {...props}>
-      <BarIcon>
-        <Languages strokeWidth={2} />
-      </BarIcon>
-    </AppShellIconButton>
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label={ariaLabel}
+              className={cn(
+                APP_SHELL_UTILITY_L2_ICON_CLASS,
+                "data-[state=open]:bg-muted/55 data-[state=open]:text-foreground",
+                className
+              )}
+            >
+              <BarIcon>
+                <Languages strokeWidth={2} />
+              </BarIcon>
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" align="center" sideOffset={8}>
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
+
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className={cn(
+          "w-48 p-1",
+          "border border-border bg-card/95 text-card-foreground backdrop-blur-sm",
+          uiRadius.popover,
+          uiSurfaceElevation.raised,
+          "ring-0 ring-offset-0"
+        )}
+      >
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Language
+        </DropdownMenuLabel>
+        {APP_LOCALES.map((locale) => (
+          <DropdownMenuItem
+            key={locale}
+            onSelect={() => {
+              if (locale !== currentLocale) {
+                router.replace(pathname, { locale })
+              }
+            }}
+            className="flex cursor-pointer items-center gap-2 text-[11px]"
+          >
+            <span className="size-3.5 shrink-0">
+              {locale === currentLocale ? (
+                <CheckCircle2 className="size-full" strokeWidth={2} />
+              ) : null}
+            </span>
+            {LOCALE_LABELS[locale] ?? locale}
+            {locale === currentLocale && (
+              <span className="ml-auto text-[10px] text-muted-foreground">
+                Current
+              </span>
+            )}
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <p className="px-2 py-1.5 text-[10px] leading-snug text-muted-foreground">
+          More languages coming soon.
+        </p>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
+
+/** @deprecated Use AppShellLocaleDropdown. Kept for backward compatibility. */
+export const AppShellLocaleIcon = AppShellLocaleDropdown
 
 /** Feedback button */
 export function AppShellFeedbackIcon(

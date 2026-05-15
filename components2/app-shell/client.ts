@@ -22,6 +22,7 @@ export {
   AppShellShortcutsIcon,
   AppShellThemeIcon,
   AppShellDensityIcon,
+  AppShellLocaleDropdown,
   AppShellLocaleIcon,
   AppShellFeedbackIcon,
   AppShellMessengerIcon,
@@ -63,6 +64,10 @@ export type { AppShellUtilityPanelProps } from "./utility-bar-panel.client"
 
 // Marketplace panel (customization hub)
 export { AppShellMarketplacePanel } from "./utility-bar-marketplace.client"
+
+// Self-contained right-rail panels
+export { UtilityBarShortcutsPanel } from "./utility-bar-shortcuts.client"
+export { UtilityBarFeedbackPanel } from "./utility-bar-feedback.client"
 
 // Utility-bar dropdown shell (dropdown + optional sibling overlays)
 export { AppShellUtilityBarIconDropdown } from "./utility-bar-icon-dropdown.client"
