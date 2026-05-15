@@ -146,7 +146,7 @@ export function UtilityBarOrgAdminPanel({
 
         {hasSlug ? (
           <div className="py-1">
-            <DropdownMenuLabel className="px-3 py-1 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+            <DropdownMenuLabel className="px-3 py-1 text-[9px] font-semibold tracking-widest text-muted-foreground/70 uppercase">
               Pages
             </DropdownMenuLabel>
             {ORG_ADMIN_PAGES.map((page) => {
@@ -159,12 +159,15 @@ export function UtilityBarOrgAdminPanel({
 
               return (
                 <DropdownMenuItem key={page.segment} asChild className="py-0">
-                  <Link href={href} className="flex items-center gap-2.5 px-3 py-2">
+                  <Link
+                    href={href}
+                    className="flex items-center gap-2.5 px-3 py-2"
+                  >
                     <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted/50 text-muted-foreground">
                       {page.icon}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-medium leading-tight text-foreground">
+                      <p className="text-[11px] leading-tight font-medium text-foreground">
                         {page.label}
                       </p>
                       <p className="text-[9px] leading-tight text-muted-foreground">

@@ -24,23 +24,21 @@ import { useAppShellStore } from "../stores/app-shell.store"
 // Copy + helpers
 // ---------------------------------------------------------------------------
 
-const DENSITY_COPY: Record<
-  UiDensity,
-  { title: string; description: string }
-> = {
-  compact: {
-    title: "Compact",
-    description: "Tighter rows and smaller gaps.",
-  },
-  comfortable: {
-    title: "Comfortable",
-    description: "Default ERP rhythm.",
-  },
-  relaxed: {
-    title: "Relaxed",
-    description: "More breathing room.",
-  },
-}
+const DENSITY_COPY: Record<UiDensity, { title: string; description: string }> =
+  {
+    compact: {
+      title: "Compact",
+      description: "Tighter rows and smaller gaps.",
+    },
+    comfortable: {
+      title: "Comfortable",
+      description: "Default ERP rhythm.",
+    },
+    relaxed: {
+      title: "Relaxed",
+      description: "More breathing room.",
+    },
+  }
 
 /**
  * Directly set `data-density` on the main scroll pane without a React

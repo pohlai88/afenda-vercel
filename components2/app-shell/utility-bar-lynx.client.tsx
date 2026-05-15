@@ -210,7 +210,7 @@ export function UtilityBarLynxPanel({ href }: UtilityBarLynxPanelProps) {
         align="end"
         sideOffset={8}
         className={cn(
-          "w-80 max-h-[min(28rem,calc(100vh-6rem))] overflow-hidden p-0",
+          "max-h-[min(28rem,calc(100vh-6rem))] w-80 overflow-hidden p-0",
           "flex flex-col",
           "border border-border bg-card/95 text-card-foreground backdrop-blur-sm",
           uiRadius.popover,
@@ -228,10 +228,7 @@ export function UtilityBarLynxPanel({ href }: UtilityBarLynxPanelProps) {
         </div>
 
         <div className="shrink-0 space-y-2 border-b border-border/40 px-3 py-2">
-          <label
-            htmlFor="utility-bar-lynx-question"
-            className="sr-only"
-          >
+          <label htmlFor="utility-bar-lynx-question" className="sr-only">
             {tTruth("labelQuestion")}
           </label>
           <div className="flex items-center gap-2">
@@ -283,13 +280,15 @@ export function UtilityBarLynxPanel({ href }: UtilityBarLynxPanelProps) {
           {phase.kind === "streaming" ? (
             <div className="space-y-2">
               {phase.evidenceCount > 0 ? (
-                <p className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
+                <p className="text-[9px] font-medium tracking-wider text-muted-foreground uppercase">
                   {tBar("evidenceCount", { count: phase.evidenceCount })}
                 </p>
               ) : null}
               <div className="max-h-40 overflow-y-auto rounded-md border border-border/50 bg-muted/20 p-2 text-[10px] leading-snug whitespace-pre-wrap text-foreground/90">
                 {phase.raw || (
-                  <span className="text-muted-foreground">{tTruth("pending")}</span>
+                  <span className="text-muted-foreground">
+                    {tTruth("pending")}
+                  </span>
                 )}
               </div>
             </div>
@@ -298,7 +297,7 @@ export function UtilityBarLynxPanel({ href }: UtilityBarLynxPanelProps) {
           {phase.kind === "done" ? (
             <div className="space-y-2">
               {phase.evidenceCount > 0 ? (
-                <p className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
+                <p className="text-[9px] font-medium tracking-wider text-muted-foreground uppercase">
                   {tBar("evidenceCount", { count: phase.evidenceCount })}
                 </p>
               ) : null}
@@ -310,7 +309,12 @@ export function UtilityBarLynxPanel({ href }: UtilityBarLynxPanelProps) {
         </div>
 
         <div className="shrink-0 border-t border-border/50 px-3 py-2">
-          <Button variant="ghost" size="sm" className="h-8 w-full justify-center text-[10px]" asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-full justify-center text-[10px]"
+            asChild
+          >
             <Link href={href} prefetch={false}>
               {tBar("openFullLynx")}
             </Link>

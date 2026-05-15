@@ -20,10 +20,7 @@ export default async function HelpDocsLayout({
 
   return (
     <RootProvider>
-      <DocsLayout
-        tree={source.getPageTree()}
-        {...helpDocsBaseLayoutOptions()}
-      >
+      <DocsLayout tree={source.getPageTree()} {...helpDocsBaseLayoutOptions()}>
         {children}
       </DocsLayout>
     </RootProvider>

@@ -64,10 +64,7 @@ function readSnapshot(
 ): ConnectivityNetworkState {
   const online = typeof navigator !== "undefined" ? navigator.onLine : false
   const prevOnline = previous?.online
-  const since =
-    previous && online === prevOnline
-      ? previous.since
-      : new Date()
+  const since = previous && online === prevOnline ? previous.since : new Date()
 
   return {
     online,
@@ -218,7 +215,7 @@ export function UtilityBarConnectivityPanel() {
               <span
                 aria-hidden
                 className={cn(
-                  "absolute right-0.5 top-0.5 size-1.5 rounded-full ring-1 ring-background",
+                  "absolute top-0.5 right-0.5 size-1.5 rounded-full ring-1 ring-background",
                   dotColor
                 )}
               />
@@ -262,7 +259,7 @@ export function UtilityBarConnectivityPanel() {
             <>
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
                     Status
                   </p>
                   <p className="mt-1 text-[11px] font-medium text-foreground">
@@ -282,7 +279,7 @@ export function UtilityBarConnectivityPanel() {
 
               {net.type !== undefined && net.type !== "" && (
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
                     Connection type
                   </p>
                   <p className="mt-1 text-[11px] text-foreground">
@@ -293,19 +290,19 @@ export function UtilityBarConnectivityPanel() {
 
               {net.effectiveType !== undefined && (
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
                     Quality
                   </p>
                   <p className="mt-1 text-[11px] text-foreground">
-                    {effectiveTypeLabel(net.effectiveType)} (
-                    {net.effectiveType})
+                    {effectiveTypeLabel(net.effectiveType)} ({net.effectiveType}
+                    )
                   </p>
                 </div>
               )}
 
               {(net.downlink !== undefined || net.rtt !== undefined) && (
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
                     Bandwidth
                   </p>
                   <p className="mt-1 text-[11px] text-foreground">
@@ -324,7 +321,7 @@ export function UtilityBarConnectivityPanel() {
 
               {net.saveData === true && (
                 <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-400">
+                  <p className="text-[10px] font-semibold tracking-widest text-amber-700 uppercase dark:text-amber-400">
                     Data saver
                   </p>
                   <p className="mt-1 text-[11px] text-foreground">
@@ -336,7 +333,7 @@ export function UtilityBarConnectivityPanel() {
           )}
 
           <div className="border-t border-border/50 pt-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
               Quick diagnosis
             </p>
             {embeddedDx.kind === "idle" && (
@@ -380,7 +377,9 @@ export function UtilityBarConnectivityPanel() {
                         </span>
                         {row ? (
                           <>
-                            <NetworkDiagnosisVerdictIcon verdict={row.verdict} />
+                            <NetworkDiagnosisVerdictIcon
+                              verdict={row.verdict}
+                            />
                             <div className="min-w-0 flex-1">
                               <p className="text-[10px] font-medium text-foreground">
                                 {row.label}

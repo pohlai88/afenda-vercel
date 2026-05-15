@@ -263,11 +263,11 @@ export function UtilityBarStoragePanel() {
                           <p className="truncate font-mono text-[10px] font-medium text-foreground">
                             {row.key}
                           </p>
-                          <p className="mt-0.5 break-all font-mono text-[9px] leading-snug text-muted-foreground">
+                          <p className="mt-0.5 font-mono text-[9px] leading-snug break-all text-muted-foreground">
                             {truncateValue(row.raw)}
                           </p>
                           {row.isJson ? (
-                            <span className="mt-1 inline-block rounded bg-muted px-1 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <span className="mt-1 inline-block rounded bg-muted px-1 py-0.5 text-[8px] font-semibold tracking-wide text-muted-foreground uppercase">
                               JSON
                             </span>
                           ) : null}
@@ -301,7 +301,11 @@ export function UtilityBarStoragePanel() {
                 onPointerDown={(e) => e.preventDefault()}
                 onClick={() => syncFromBrowser()}
               >
-                <RefreshCw className="mr-1.5 size-3.5" strokeWidth={2} aria-hidden />
+                <RefreshCw
+                  className="mr-1.5 size-3.5"
+                  strokeWidth={2}
+                  aria-hidden
+                />
                 Refresh
               </Button>
               <Button
@@ -313,7 +317,11 @@ export function UtilityBarStoragePanel() {
                 onPointerDown={(e) => e.preventDefault()}
                 onClick={clearAll}
               >
-                <Trash2 className="mr-1.5 size-3.5" strokeWidth={2} aria-hidden />
+                <Trash2
+                  className="mr-1.5 size-3.5"
+                  strokeWidth={2}
+                  aria-hidden
+                />
                 Clear all
               </Button>
             </div>

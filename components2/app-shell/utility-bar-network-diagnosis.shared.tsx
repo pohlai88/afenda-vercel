@@ -1,11 +1,6 @@
 "use client"
 
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  XCircle,
-} from "lucide-react"
+import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react"
 
 import { cn } from "#lib/utils"
 
@@ -194,16 +189,15 @@ export function NetworkDiagnosisSummary({
           "border-destructive/35 bg-destructive/10 text-destructive",
         worst === "warn" &&
           "border-amber-500/35 bg-amber-500/10 text-amber-900 dark:text-amber-100",
-        worst === "info" &&
-          "border-border bg-muted/40 text-foreground",
+        worst === "info" && "border-border bg-muted/40 text-foreground",
         worst === "pass" &&
           "border-emerald-500/35 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100"
       )}
     >
-      <p className="text-[10px] font-semibold uppercase tracking-widest opacity-80">
+      <p className="text-[10px] font-semibold tracking-widest uppercase opacity-80">
         Summary
       </p>
-      <p className="mt-1 text-[11px] font-medium leading-snug">{copy}</p>
+      <p className="mt-1 text-[11px] leading-snug font-medium">{copy}</p>
     </div>
   )
 }
@@ -221,10 +215,8 @@ export function NetworkDiagnosisProgressBar({
         <span className="text-[10px] font-medium text-muted-foreground">
           Progress
         </span>
-        <span className="tabular-nums text-[10px] font-semibold text-foreground">
-          {isRunning
-            ? `${Math.min(completedCount + 1, 3)} / 3`
-            : "3 / 3"}
+        <span className="text-[10px] font-semibold text-foreground tabular-nums">
+          {isRunning ? `${Math.min(completedCount + 1, 3)} / 3` : "3 / 3"}
         </span>
       </div>
       <div
@@ -244,9 +236,7 @@ export function NetworkDiagnosisProgressBar({
               className={cn(
                 "h-1.5 flex-1 rounded-full transition-colors duration-300",
                 filled && "bg-primary",
-                !filled &&
-                  !active &&
-                  "bg-muted",
+                !filled && !active && "bg-muted",
                 active && "bg-primary/55 motion-safe:animate-pulse"
               )}
             />

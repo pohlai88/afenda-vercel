@@ -20,12 +20,10 @@ export default function ClaimNotFound() {
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium text-muted-foreground">404</p>
-        <h1 className="text-lg font-medium text-foreground">
-          Claim not found
-        </h1>
+        <h1 className="text-lg font-medium text-foreground">Claim not found</h1>
         <p className="max-w-md text-sm text-muted-foreground">
-          This claim does not exist in the active organization, or you no
-          longer have access to it.
+          This claim does not exist in the active organization, or you no longer
+          have access to it.
         </p>
       </div>
       {orgSlug ? (

@@ -80,7 +80,11 @@ const ALLOWED_UPLOAD_TYPES = [
 
 function isAllowedFile(file: File): boolean {
   const type = file.type || ""
-  if (!ALLOWED_UPLOAD_TYPES.includes(type as (typeof ALLOWED_UPLOAD_TYPES)[number])) {
+  if (
+    !ALLOWED_UPLOAD_TYPES.includes(
+      type as (typeof ALLOWED_UPLOAD_TYPES)[number]
+    )
+  ) {
     return false
   }
   if (file.size > NEXUS_UTILITY_UPLOAD_MAX_BYTES) return false
@@ -140,7 +144,8 @@ export function UtilityBarUploadPanel({
           access: "public",
           contentType: file.type || undefined,
           handleUploadUrl: "/api/upload/blob",
-          multipart: file.size >= NEXUS_UTILITY_UPLOAD_MULTIPART_THRESHOLD_BYTES,
+          multipart:
+            file.size >= NEXUS_UTILITY_UPLOAD_MULTIPART_THRESHOLD_BYTES,
           clientPayload: JSON.stringify({
             source: "nexus-utility-right-rail",
             evidenceKind: "file",
@@ -153,7 +158,10 @@ export function UtilityBarUploadPanel({
           onUploadProgress(event) {
             setPhase((p) =>
               p.kind === "uploading"
-                ? { ...p, progress: Math.max(0, Math.min(100, event.percentage)) }
+                ? {
+                    ...p,
+                    progress: Math.max(0, Math.min(100, event.percentage)),
+                  }
                 : p
             )
           },
@@ -166,10 +174,9 @@ export function UtilityBarUploadPanel({
         error instanceof Error && error.message.trim().length > 0
           ? error.message
           : "Upload failed"
-      const message =
-        /401|unauthorized/i.test(raw)
-          ? "Not authorized — open an organization workspace and try again."
-          : raw
+      const message = /401|unauthorized/i.test(raw)
+        ? "Not authorized — open an organization workspace and try again."
+        : raw
       setPhase({ kind: "error", message })
     }
   }
@@ -239,8 +246,8 @@ export function UtilityBarUploadPanel({
         <div className="space-y-3 px-4 py-4">
           {!orgIdValid ? (
             <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-950 dark:text-amber-100">
-              Uploads require an active organization workspace (tenant id is
-              not available on this surface).
+              Uploads require an active organization workspace (tenant id is not
+              available on this surface).
             </p>
           ) : null}
 
@@ -364,7 +371,9 @@ export function UtilityBarUploadPanel({
                     aria-hidden
                   />
                 </div>
-                <p className="text-sm font-medium text-foreground">Upload complete</p>
+                <p className="text-sm font-medium text-foreground">
+                  Upload complete
+                </p>
                 <button
                   type="button"
                   onClick={() => void copyUrl(phase.result.url)}

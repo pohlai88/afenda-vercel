@@ -145,7 +145,8 @@ export function UtilityBarDiagnosisPanel() {
                         isActiveSpinner &&
                           "border-primary/30 bg-primary/5 shadow-sm",
                         row && !isActiveSpinner && "border-border/60 bg-card",
-                        isPending && "border-dashed border-muted-foreground/25 bg-muted/20"
+                        isPending &&
+                          "border-dashed border-muted-foreground/25 bg-muted/20"
                       )}
                     >
                       <div className="flex items-start gap-2.5">
@@ -154,7 +155,9 @@ export function UtilityBarDiagnosisPanel() {
                         </span>
                         {row ? (
                           <>
-                            <NetworkDiagnosisVerdictIcon verdict={row.verdict} />
+                            <NetworkDiagnosisVerdictIcon
+                              verdict={row.verdict}
+                            />
                             <div className="min-w-0 flex-1">
                               <p className="text-[11px] font-medium text-foreground">
                                 {row.label}
