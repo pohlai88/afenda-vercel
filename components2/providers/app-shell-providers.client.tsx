@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react"
 
+import { AppShellThemeBridge } from "./app-shell-theme-bridge.client"
 import { AppShellSidebarProvider } from "./sidebar-provider.client"
 import { AppShellTooltipProvider } from "./tooltip-provider.client"
 
@@ -15,8 +16,12 @@ type AppShellProvidersProps = {
  * AppShellProviders — single mount point for all shell-level React contexts.
  *
  * Composes individual providers in the correct nesting order.
- * Add new providers here (e.g. QueryClientProvider, ThemeProvider) without
- * touching AppShellClient — one file to change, one place to reason about.
+ * Add new providers here (e.g. QueryClientProvider) without touching
+ * AppShellClient — one file to change, one place to reason about.
+ *
+ * Theme: `ThemeProvider` from `#components/theme-provider` wraps the app in
+ * `app/layout.tsx`. `AppShellThemeBridge` mirrors `useTheme()` into
+ * `useAppShellStore` for shell consumers.
  *
  * Mount order (outer → inner):
  *   AppShellTooltipProvider  (shadcn tooltip delay)
@@ -29,6 +34,7 @@ export function AppShellProviders({
   return (
     <AppShellTooltipProvider>
       <AppShellSidebarProvider defaultOpen={sidebarDefaultOpen}>
+        <AppShellThemeBridge />
         {children}
       </AppShellSidebarProvider>
     </AppShellTooltipProvider>

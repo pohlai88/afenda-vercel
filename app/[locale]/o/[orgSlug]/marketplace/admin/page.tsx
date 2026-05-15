@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export default async function OrganizationMarketplaceAdminPage(props: {
   params: Promise<{ locale: string; orgSlug: string }>
 }) {
-  const [{ locale: localeRaw, orgSlug }, gate] = await Promise.all([
+  const [{ locale: localeRaw, orgSlug }, gateResult] = await Promise.all([
     props.params,
     requireTenantAuthority([
       "tenant_owner",
@@ -48,8 +48,9 @@ export default async function OrganizationMarketplaceAdminPage(props: {
   ])
   const locale = ensureAppLocale(localeRaw)
 
-  if (!gate?.ok) {
-    redirect({ href: organizationMarketplacePath(orgSlug), locale })
+  const gate = gateResult
+  if (!gate || gate.ok !== true) {
+    return redirect({ href: organizationMarketplacePath(orgSlug), locale })
   }
   const session = gate.session
 

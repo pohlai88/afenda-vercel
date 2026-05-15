@@ -14,8 +14,13 @@ import {
   timeReportApprovalDecisionSchema,
   timeReportRejectDecisionSchema,
 } from "../schemas/time-report.schema"
-import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
 import type { TimeReportApprovalFormState } from "../types"
+
+function timeReportApprovalFailure(
+  errors: Extract<TimeReportApprovalFormState, { ok: false }>["errors"]
+): TimeReportApprovalFormState {
+  return { ok: false, errors }
+}
 
 function revalidateLeaveAndTimeReports() {
   revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "layout")
@@ -34,7 +39,7 @@ export async function approveTimeReportAction(
   formData: FormData
 ): Promise<TimeReportApprovalFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return hrmActionFailure({ form: gate.error })
+  if (!gate.ok) return timeReportApprovalFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -44,7 +49,7 @@ export async function approveTimeReportAction(
   })
 
   if (!parsed.success) {
-    return hrmActionFailure({
+    return timeReportApprovalFailure({
       reportId: parsed.error.issues[0]?.message,
     })
   }
@@ -65,11 +70,11 @@ export async function approveTimeReportAction(
   })
 
   if (!row) {
-    return hrmActionFailure({ reportId: "Time report not found." })
+    return timeReportApprovalFailure({ reportId: "Time report not found." })
   }
 
   if (row.state !== "submitted") {
-    return hrmActionFailure({
+    return timeReportApprovalFailure({
       reportId: `Cannot approve a time report with state "${row.state}". Expected "submitted".`,
     })
   }
@@ -130,7 +135,7 @@ export async function rejectTimeReportAction(
   formData: FormData
 ): Promise<TimeReportApprovalFormState> {
   const gate = await requireHrmAdmin()
-  if (!gate.ok) return hrmActionFailure({ form: gate.error })
+  if (!gate.ok) return timeReportApprovalFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
 
@@ -142,7 +147,7 @@ export async function rejectTimeReportAction(
 
   if (!parsed.success) {
     const errs = parsed.error.flatten().fieldErrors
-    return hrmActionFailure({
+    return timeReportApprovalFailure({
       reportId: errs.reportId?.[0],
       rejectedReason: errs.rejectedReason?.[0],
       form: parsed.error.issues[0]?.message,
@@ -165,11 +170,11 @@ export async function rejectTimeReportAction(
   })
 
   if (!row) {
-    return hrmActionFailure({ reportId: "Time report not found." })
+    return timeReportApprovalFailure({ reportId: "Time report not found." })
   }
 
   if (row.state !== "submitted") {
-    return hrmActionFailure({
+    return timeReportApprovalFailure({
       reportId: `Cannot reject a time report with state "${row.state}". Expected "submitted".`,
     })
   }

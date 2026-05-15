@@ -162,6 +162,9 @@ export const ERP_UTILITY_AVATAR_PNG = "/erp-icon/erp-user-avatar.png" as const
 export const ERP_UTILITY_MULTIPLE_APPS_PNG =
   "/erp-icon/multiple-apps.png" as const
 
+/** Operational scope policy disc (`public/erp-icon/operationpolicy.png`). */
+export const ERP_UTILITY_POLICY_PNG = "/erp-icon/operationpolicy.png" as const
+
 /** Lynx module identity in dashboard chrome (sidebar, command palette). */
 export const LYNX_MODULE_NAV_ICON_PNG = "/icons/lynx/lynx-3d.png" as const
 

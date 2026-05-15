@@ -141,6 +141,8 @@
      L1 = utility bar tier (top chrome + sticky surface header offset).
      One source of truth so the surface header and utility bar cannot drift. */
   --af-l1-height: 3rem;
+  /* Sticky breadcrumb / surface chrome band inside main (below L1 utility bar). */
+  --af-topnav-height: 3rem;
 
   /* Surface padding scale (single source; @theme spacing-* maps here) */
   --space-surface-xs: 0.5rem;

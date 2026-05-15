@@ -17,10 +17,7 @@ import {
   dryRunPayroll,
   parseCsv,
 } from "#features/hrm/server"
-import {
-  HRM_IMPORT_TYPES,
-  hrmImportTypeSchema,
-} from "#features/hrm/schemas/hrm-import.schema"
+import { HRM_IMPORT_TYPES, hrmImportTypeSchema } from "#features/hrm"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"

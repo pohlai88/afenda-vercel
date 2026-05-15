@@ -2,13 +2,13 @@ import "server-only"
 
 import { and, eq } from "drizzle-orm"
 
-import type { AfendaDb } from "#lib/db"
+import type { db } from "#lib/db"
 import * as schema from "#lib/db/schema"
 
 import { buildDefaultOffboardingChecklist } from "./offboarding-defaults.shared"
 
 export type HrmOffboardingDbExecutor = Parameters<
-  Parameters<AfendaDb["transaction"]>[0]
+  Parameters<typeof db.transaction>[0]
 >[0]
 
 export async function insertDefaultOffboardingInstance(

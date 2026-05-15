@@ -73,6 +73,8 @@ export const EXECUTION_AUDIT_ACTIONS = {
    */
   STATUTORY_SUBMISSION_AGING_CRITICAL:
     "erp.execution.statutory_submission.aging.critical",
+  /** Org-scoped durable signal persisted to `org_domain_signal_outbox`. */
+  DOMAIN_SIGNAL_RECORDED: "erp.execution.org_domain_signal.recorded",
 } as const
 
 export type ExecutionAuditAction =

@@ -3,7 +3,7 @@ import { Geist_Mono, Inter } from "next/font/google"
 import { headers } from "next/headers"
 
 import "./globals.css"
-import { ThemeProvider } from "#components/theme-provider"
+import { AppShellRootThemeProvider } from "#components2/providers/theme-provider.client"
 import { Toaster } from "#components/ui/sonner"
 import { TooltipProvider } from "#components/ui/tooltip"
 import {
@@ -179,7 +179,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-svh">
-        <ThemeProvider
+        <AppShellRootThemeProvider
           attribute="class"
           defaultTheme="system"
           enableColorScheme
@@ -190,7 +190,7 @@ export default async function RootLayout({
             {children}
             <Toaster />
           </TooltipProvider>
-        </ThemeProvider>
+        </AppShellRootThemeProvider>
       </body>
     </html>
   )

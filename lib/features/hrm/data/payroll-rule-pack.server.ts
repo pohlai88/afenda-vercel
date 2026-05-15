@@ -120,6 +120,12 @@ export type PayrollComputeInput = {
    * PCB projection (MYR/month). Omitted treated as zero.
    */
   readonly pcbTp3AdditionalDeductionMonthly?: string | null
+
+  /** Payroll currency (ISO-4217), e.g. VND for Vietnam rule packs. */
+  readonly payCurrency?: string | null
+
+  /** Tax dependent count for jurisdictions that use household relief (e.g. VN). */
+  readonly taxDependentCount?: number | null
 }
 
 export type ContributionResult = {

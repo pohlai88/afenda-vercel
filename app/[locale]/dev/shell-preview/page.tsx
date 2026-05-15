@@ -1,20 +1,28 @@
 import { redirect } from "next/navigation"
-import {
-  BellIcon,
-  ChevronRightIcon,
-  PlusIcon,
-  SearchIcon,
-  UserCircleIcon,
-} from "lucide-react"
+import type { Route } from "next"
+import { FilePlus } from "lucide-react"
 
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { AppShell, AppShellSurface, AppSubLayout } from "#app-shell"
 import type { AppShellRailConfig } from "#app-shell"
+import {
+  AppShellBrandDisc,
+  AppShellAppsDisc,
+} from "#components2/app-shell/client"
 import { AppShellRailFooter } from "#components2/app-shell/rail-footer.client"
-import { Button } from "#components2/ui/button"
 
-/** Every mock link stays on this page — preview is for `components2` app-shell chrome only. */
-const PREVIEW_HREF = "/dev/shell-preview"
+import {
+  ShellPreviewCommandPalette,
+  ShellPreviewCommandSearch,
+} from "./shell-preview-command-search.client"
+import {
+  ShellPreviewCrudSapActionBar,
+  ShellPreviewSapBtn,
+} from "./shell-preview-crud-sap-action-bar.client"
+import { ShellPreviewOperationalScope } from "./shell-preview-operational-scope.client"
+import { ShellPreviewPolicyDisc } from "./shell-preview-policy-disc.client"
+import { ShellPreviewUtilityBarRight } from "./shell-preview-utility-bar-right.client"
+const PREVIEW_HREF = "/dev/shell-preview" satisfies Route
 
 // ---------------------------------------------------------------------------
 // Sub-layout rail — secondary in-flow aside (mirrors an HRM workbench)
@@ -32,13 +40,6 @@ const SUB_RAIL: AppShellRailConfig = {
       {
         id: "hrm-primary",
         items: [
-          {
-            id: "sub-overview",
-            label: "Overview",
-            icon: "layout-dashboard",
-            href: PREVIEW_HREF,
-            match: "exact",
-          },
           {
             id: "sub-employees",
             label: "Employees",
@@ -243,6 +244,8 @@ export default async function ShellPreviewPage({
             sidebarControl: "Sidebar",
             expanded: "Expanded mode",
             expandedHelp: "Always show the full navigation rail.",
+            hover: "Expand on hover",
+            hoverHelp: "Show only icons; expands while hovering.",
             collapsed: "Collapsed",
             collapsedHelp: "Show only icons in the navigation rail.",
           }}
@@ -257,25 +260,25 @@ export default async function ShellPreviewPage({
       rail={rail}
       utilityBar={{
         left: <UtilityBarLeft />,
-        right: <UtilityBarRight />,
+        right: (
+          <>
+            <ShellPreviewCommandSearch />
+            <ShellPreviewUtilityBarRight />
+          </>
+        ),
       }}
     >
-      <AppSubLayout rail={SUB_RAIL}>
+      <AppSubLayout rail={SUB_RAIL} command={<ShellPreviewCommandPalette />}>
         <AppShellSurface
           title="Shell Preview"
-          subtitle="components2/app-shell: primary rail (AppShell) + secondary in-flow rail (AppSubLayout). Mock labels and badges are hardcoded; all links stay on this URL."
+          subtitle="components2/app-shell: primary rail (AppShell) + secondary in-flow rail (AppSubLayout) + operational scope rail mock in the utility bar. Mock labels and badges are hardcoded; all links stay on this URL."
           breadcrumbs={[
             { label: "Dev" },
             { label: "Shell Preview" },
             { label: "HRM" },
             { label: "Employees" },
           ]}
-          headerActions={
-            <Button size="sm" className="gap-1.5">
-              <PlusIcon className="size-3.5" aria-hidden />
-              New item
-            </Button>
-          }
+          headerActions={<ShellPreviewCrudSapActionBar />}
         >
           <PreviewContent />
         </AppShellSurface>
@@ -290,43 +293,19 @@ export default async function ShellPreviewPage({
 
 function UtilityBarLeft() {
   return (
-    <div className="flex items-center gap-2.5">
-      <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-[11px] font-bold text-primary-foreground">
-        A
-      </div>
-      <div className="flex items-center gap-1 text-sm">
-        <span className="font-medium text-foreground">Acme Corp</span>
-        <ChevronRightIcon
-          className="size-3.5 text-muted-foreground"
-          aria-hidden
-        />
-        <span className="text-muted-foreground">Dashboard</span>
-      </div>
-    </div>
-  )
-}
-
-function UtilityBarRight() {
-  return (
-    <div className="flex items-center gap-1">
-      <Button variant="ghost" size="icon-sm" aria-label="Search">
-        <SearchIcon className="size-4" aria-hidden />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label="Notifications"
-        className="relative"
-      >
-        <BellIcon className="size-4" aria-hidden />
-        <span
-          aria-hidden
-          className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-destructive"
-        />
-      </Button>
-      <Button variant="ghost" size="icon-sm" aria-label="Account">
-        <UserCircleIcon className="size-4" aria-hidden />
-      </Button>
+    <div className="flex min-w-0 flex-1 items-center justify-start gap-1.5">
+      <AppShellBrandDisc
+        href={PREVIEW_HREF}
+        ariaLabel="Afenda home (preview)"
+        tooltip="Organization home — reloads this preview page"
+      />
+      <AppShellAppsDisc
+        ariaLabel="Apps (preview)"
+        tooltip="App launcher — CSS preview only"
+      />
+      <ShellPreviewPolicyDisc />
+      <div aria-hidden className="h-4 w-px shrink-0 bg-border/40" />
+      <ShellPreviewOperationalScope />
     </div>
   )
 }
@@ -442,10 +421,9 @@ function PreviewContent() {
         <div className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-xs">
           <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
             <h2 className="text-sm font-medium text-foreground">Employees</h2>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-xs">
-              <PlusIcon className="size-3.5" aria-hidden />
-              Add employee
-            </Button>
+            <ShellPreviewSapBtn label="Create">
+              <FilePlus strokeWidth={2} />
+            </ShellPreviewSapBtn>
           </div>
           <table className="w-full text-sm">
             <thead>
@@ -504,14 +482,52 @@ function PreviewContent() {
           </li>
           <li>
             <strong className="text-foreground">Secondary rail</strong> —{" "}
-            <code>AppSubLayout</code>: absolute overlay on the left edge of the
-            content area. Hover the content pane to reveal it. Pure text
-            hierarchy — no icons, no badges, no toggle. Section headings at 8
-            px, items at 9 px, child items at 8 px.
+            <code>AppSubLayout</code> with <code>rail=&#123;SUB_RAIL&#125;</code>: floating
+            HRM text nav when the primary sidebar is icon-only (
+            <code>useSidebar().open === false</code>). Hover the content pane to reveal
+            it. <code>command=&#123;&lt;ShellPreviewCommandPalette /&gt;&#125;</code> mounts
+            the cmdk dialog with the same store as the center search trigger.
           </li>
           <li>
             Mock nav, badges, and recents are cosmetic; every <code>href</code>{" "}
             points back to this page.
+          </li>
+          <li>
+            <strong className="text-foreground">Utility bar — tenant vs scope</strong>{" "}
+            — The <strong>building + name</strong> chip is the active{" "}
+            <em>organization</em> (workspace tenant), same role as{" "}
+            <code>WorkbenchOrgCompanySwitch</code> on real ERP routes. The{" "}
+            <strong>operational scope</strong> rail (project, team, …) is{" "}
+            <em>inside</em> that tenant — ADR-0019 does not model organization as a
+            scope dimension, so it will not appear as a fifth row in{" "}
+            <strong>Configure</strong>.
+          </li>
+          <li>
+            <strong className="text-foreground">Utility bar — operational scope</strong>{" "}
+            — <code>OperationalScopeRail</code> (mock context via{" "}
+            <code>ShellPreviewOperationalScope</code>): project + team pills,{" "}
+            <strong>Add scope</strong> ghost, and org-admin <strong>Configure</strong>{" "}
+            sheet. Server Actions are not connected to a real org session in this
+            preview.
+          </li>
+          <li>
+            <strong className="text-foreground">Utility bar — right rail</strong>{" "}
+            — <code>AppShellUtilityBarRight</code> renders items from the persisted
+            Zustand store (<code>useUtilityBarStore</code>). Icons are drag-to-reorder;
+            order and visibility are saved to <code>localStorage</code>. The{" "}
+            <strong>Marketplace</strong> Store icon opens{" "}
+            <code>AppShellUtilityDropdown</code> with a titled header, dev-style row
+            hovers, grouped actions, and a footnote footer.{" "}
+            <strong>Customise icon bar</strong> opens a right <code>Sheet</code> with
+            the drag/toggle list; <strong>Request utility</strong> opens a stub{" "}
+            <code>Dialog</code>. The avatar opens <code>AppShellAccountDropdown</code>{" "}
+            (personal IAM links + coming-soon placeholders + preview sign-out no-op).
+          </li>
+          <li>
+            <strong className="text-foreground">Surface chrome — CRUD-SAP mock</strong>{" "}
+            — <code>ShellPreviewCrudSapActionBar</code>: edge-only separators, HTML5
+            drag-and-drop reorder (same affordance as the right rail), persisted under{" "}
+            <code>afenda-dev-shell-preview-crud-sap-order-v1</code>.
           </li>
         </ul>
       </section>

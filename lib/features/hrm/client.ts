@@ -211,3 +211,17 @@ export type {
   ClaimsCountsSummary,
   ClaimStateValue,
 } from "./data/claim-helpers.shared"
+
+export {
+  submitTimeReportAction,
+  cancelTimeReportAction,
+} from "./actions/time-report.actions"
+export {
+  approveTimeReportAction,
+  rejectTimeReportAction,
+} from "./actions/time-report-approval.actions"
+export type {
+  CancelTimeReportFormState,
+  TimeReportApprovalFormState,
+  TimeReportMutationFormState,
+} from "./types"

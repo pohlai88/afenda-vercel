@@ -8,6 +8,7 @@ import {
   listUserCapabilityPreferences,
   resolveCapabilitiesForViewer,
 } from "#features/marketplace/server"
+import { resolveOperationalContext } from "#features/operational-scope"
 import { APP_LOCALES } from "#lib/i18n/locales.shared"
 
 import { WorkbenchCommandTrigger } from "./workbench-command-trigger"
@@ -30,6 +31,10 @@ export type WorkbenchUtilityBarRowProps = {
  * own a customize sheet anymore (those now live under
  * `/{locale}/marketplace`).
  *
+ * Also resolves the operational context (ADR-0019) for the left scope rail.
+ * Both run in parallel under the existing Suspense boundary so they never
+ * block the shell mount.
+ *
  * Wrapped in Suspense from {@link WorkbenchUtilityBar}.
  */
 export async function WorkbenchUtilityBarRow({
@@ -39,11 +44,13 @@ export async function WorkbenchUtilityBarRow({
   userId,
   userEmail,
 }: WorkbenchUtilityBarRowProps) {
-  const [userOrgs, orgPolicy, userPreferences] = await Promise.all([
-    listUserOrganizationsForSwitcher(userId),
-    listOrgCapabilityPolicy(orgId),
-    listUserCapabilityPreferences({ organizationId: orgId, userId }),
-  ])
+  const [userOrgs, orgPolicy, userPreferences, operationalContext] =
+    await Promise.all([
+      listUserOrganizationsForSwitcher(userId),
+      listOrgCapabilityPolicy(orgId),
+      listUserCapabilityPreferences({ organizationId: orgId, userId }),
+      resolveOperationalContext(orgId, userId),
+    ])
 
   const currentOrg = userOrgs.find((o) => o.id === orgId)
   const displayOrgName = currentOrg?.name?.trim() || orgName
@@ -77,6 +84,7 @@ export async function WorkbenchUtilityBarRow({
           orgId={orgId}
           userOrgs={userOrgs}
           showOrgLoadingBay={userOrgs.length > 1}
+          operationalContext={operationalContext}
         />
       </div>
 

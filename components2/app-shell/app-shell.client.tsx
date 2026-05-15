@@ -100,19 +100,31 @@ function AppShellRailSidebar({ config }: { config: AppShellRailConfig }) {
 // ---------------------------------------------------------------------------
 // UtilityBarRailTrigger — mode-aware rail toggle
 //
-// Uses setRailMode rather than toggleSidebar() so it doesn't fight
-// RailController. Clicking while in "hover" mode pins the rail open
-// (switches to "expanded").
+// `RailController` pushes `railMode` → `open`, but **SidebarRail** and **⌘/Ctrl+B**
+// call `toggleSidebar()` and flip **`open` only**. If we only read `railMode` here,
+// `railMode === "expanded"` while `open === false` makes the first header click
+// redundantly set `collapsed` mode instead of `setOpen(true)` — collapsible feels
+// broken (two clicks to re-expand; wrong panel icon).
+//
+// Rule: in **`expanded`** rail mode, if the sidebar is already narrow (`!open`),
+// restore width with **`setOpen(true)`** without changing `railMode`.
+// Icon reflects actual **`open`**, not `railMode` alone.
 // ---------------------------------------------------------------------------
 
 function UtilityBarRailTrigger() {
+  const { open, setOpen } = useSidebar()
   const railMode = useAppShellStore((s) => s.railMode)
   const setRailMode = useAppShellStore((s) => s.setRailMode)
 
   function handleClick() {
-    if (railMode === "expanded") setRailMode("collapsed")
-    else if (railMode === "collapsed") setRailMode("expanded")
-    else setRailMode("expanded") // hover → pin open
+    if (railMode === "expanded") {
+      if (open) setRailMode("collapsed")
+      else setOpen(true)
+    } else if (railMode === "collapsed") {
+      setRailMode("expanded")
+    } else {
+      setRailMode("expanded") // hover → pin open
+    }
   }
 
   return (
@@ -123,7 +135,7 @@ function UtilityBarRailTrigger() {
       aria-label="Toggle navigation rail"
       className="shrink-0 text-sidebar-foreground hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground"
     >
-      {railMode === "expanded" ? (
+      {open ? (
         <PanelLeftCloseIcon aria-hidden data-icon="inline-start" />
       ) : (
         <PanelLeftOpenIcon aria-hidden data-icon="inline-start" />
@@ -170,25 +182,32 @@ export function AppShellClient({
         className="sticky top-0 z-40 shrink-0 bg-sidebar"
       >
         <div className="mx-auto max-w-screen-2xl px-2.5 sm:px-4">
-          <div className="relative flex h-(--af-l1-height) items-center justify-between gap-2">
-            {/* Left wing: trigger (when rail is present) + caller left slot */}
-            <div className="flex min-w-0 flex-1 items-center gap-1.5">
-              {rail ? <UtilityBarRailTrigger /> : null}
-              {utilityBar.left}
-            </div>
-
-            {/* Absolute center slot */}
-            {utilityBar.center ? (
-              <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center px-14 sm:px-24">
-                <div className="pointer-events-auto">{utilityBar.center}</div>
+          {utilityBar.center ? (
+            <div className="relative flex h-(--af-l1-height) w-full min-w-0 items-center justify-between gap-2">
+              <div className="relative z-10 flex min-w-0 items-center gap-1.5 overflow-hidden">
+                {rail ? <UtilityBarRailTrigger /> : null}
+                {utilityBar.left}
               </div>
-            ) : null}
-
-            {/* Right wing */}
-            <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5">
-              {utilityBar.right}
+              <div className="relative z-10 flex flex-none items-center justify-end gap-1.5 overflow-hidden">
+                {utilityBar.right}
+              </div>
+              <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+                <div className="pointer-events-auto w-full min-w-0 max-w-[100px]">
+                  {utilityBar.center}
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="relative flex h-(--af-l1-height) items-center justify-between gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                {rail ? <UtilityBarRailTrigger /> : null}
+                {utilityBar.left}
+              </div>
+              <div className="flex flex-none items-center justify-end gap-1.5 overflow-hidden">
+                {utilityBar.right}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

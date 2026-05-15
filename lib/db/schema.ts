@@ -1475,6 +1475,8 @@ export const hrmEmploymentContract = pgTable(
     scenarioId: text("scenarioId"),
     scenarioVersion: integer("scenarioVersion"),
     simulationSeed: text("simulationSeed"),
+    /** Contract annex slots (ADR-0015). */
+    annexSlots: jsonb("annexSlots"),
   },
   (t) => [
     uniqueIndex(
@@ -1489,6 +1491,63 @@ export const hrmEmploymentContract = pgTable(
     index("hrm_employment_contract_organizationId_state_idx").on(
       t.organizationId,
       t.state
+    ),
+  ]
+)
+
+/** Per-org compensation component catalog (ADR-0015). */
+export const hrmCompensationComponent = pgTable(
+  "hrm_compensation_component",
+  {
+    id: text("id").primaryKey().notNull(),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    label: text("label").notNull(),
+    taxTreatment: text("taxTreatment").notNull().default("taxable"),
+    statutoryBaseTreatment: text("statutoryBaseTreatment")
+      .notNull()
+      .default("included"),
+    sortOrder: integer("sortOrder").notNull().default(0),
+    isActive: boolean("isActive").notNull().default(true),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_compensation_component_organizationId_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_compensation_component_organizationId_idx").on(
+      t.organizationId
+    ),
+  ]
+)
+
+/** Per-contract compensation line amounts (ADR-0015). */
+export const hrmContractCompensationLine = pgTable(
+  "hrm_contract_compensation_line",
+  {
+    id: text("id").primaryKey().notNull(),
+    organizationId: text("organizationId").notNull(),
+    contractId: text("contractId")
+      .notNull()
+      .references(() => hrmEmploymentContract.id, { onDelete: "cascade" }),
+    componentId: text("componentId")
+      .notNull()
+      .references(() => hrmCompensationComponent.id, { onDelete: "restrict" }),
+    amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+    currency: text("currency").notNull().default("MYR"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_contract_compensation_line_contract_component_uidx").on(
+      t.contractId,
+      t.componentId
+    ),
+    index("hrm_contract_compensation_line_contractId_idx").on(t.contractId),
+    index("hrm_contract_compensation_line_organizationId_idx").on(
+      t.organizationId
     ),
   ]
 )
@@ -1544,6 +1603,7 @@ export const hrmReview = pgTable(
     hrSubmittedAt: timestamp("hrSubmittedAt", { mode: "date" }),
     /** e.g. text | stars_5 — governs UI copy for staged reviews. */
     ratingScale: text("ratingScale").notNull().default("text"),
+    competencyScoresJson: jsonb("competencyScoresJson"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
@@ -1898,6 +1958,226 @@ export const hrmApproval = pgTable(
   ]
 )
 
+// ---------------------------------------------------------------------------
+// Viet-ERP parity: recruitment, offboarding, import sessions, time reports
+// (see drizzle/0033_hrm_viet_erp_plan_0033.sql, 0032_hrm_time_report.sql)
+// ---------------------------------------------------------------------------
+
+export const hrmJobRequisition = pgTable(
+  "hrm_job_requisition",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    title: text("title").notNull(),
+    departmentId: text("departmentId").references(() => hrmDepartment.id, {
+      onDelete: "set null",
+    }),
+    headcount: integer("headcount").notNull().default(1),
+    status: text("status").notNull().default("draft"),
+    approverUserId: text("approverUserId"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_job_requisition_org_status_idx").on(t.organizationId, t.status),
+    index("hrm_job_requisition_org_department_idx").on(
+      t.organizationId,
+      t.departmentId
+    ),
+  ]
+)
+
+export const hrmCandidate = pgTable(
+  "hrm_candidate",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    legalName: text("legalName").notNull(),
+    email: text("email"),
+    phone: text("phone"),
+    resumeUrl: text("resumeUrl"),
+    source: text("source"),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_candidate_org_email_idx").on(t.organizationId, t.email),
+    index("hrm_candidate_org_archived_idx").on(t.organizationId, t.archivedAt),
+  ]
+)
+
+export const hrmApplication = pgTable(
+  "hrm_application",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    candidateId: text("candidateId")
+      .notNull()
+      .references(() => hrmCandidate.id, { onDelete: "restrict" }),
+    requisitionId: text("requisitionId")
+      .notNull()
+      .references(() => hrmJobRequisition.id, { onDelete: "restrict" }),
+    stage: text("stage").notNull().default("applied"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_application_org_candidate_requisition_uidx").on(
+      t.organizationId,
+      t.candidateId,
+      t.requisitionId
+    ),
+    index("hrm_application_org_stage_idx").on(t.organizationId, t.stage),
+    index("hrm_application_org_requisition_idx").on(
+      t.organizationId,
+      t.requisitionId
+    ),
+  ]
+)
+
+export const hrmInterview = pgTable(
+  "hrm_interview",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    applicationId: text("applicationId")
+      .notNull()
+      .references(() => hrmApplication.id, { onDelete: "cascade" }),
+    interviewerUserId: text("interviewerUserId").notNull(),
+    scheduledAt: timestamp("scheduledAt", { mode: "date" }).notNull(),
+    feedback: jsonb("feedback"),
+    outcome: text("outcome"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_interview_org_application_idx").on(
+      t.organizationId,
+      t.applicationId
+    ),
+    index("hrm_interview_org_scheduled_idx").on(
+      t.organizationId,
+      t.scheduledAt
+    ),
+  ]
+)
+
+export const hrmOffboardingInstance = pgTable(
+  "hrm_offboarding_instance",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    terminationDate: date("terminationDate", { mode: "date" }).notNull(),
+    checklist: jsonb("checklist").notNull(),
+    status: text("status").notNull().default("open"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_offboarding_instance_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_offboarding_instance_org_status_idx").on(
+      t.organizationId,
+      t.status
+    ),
+  ]
+)
+
+export const hrmImportSession = pgTable(
+  "hrm_import_session",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    importType: text("importType").notNull(),
+    status: text("status").notNull().default("pending"),
+    rowCount: integer("rowCount").notNull().default(0),
+    errorJson: jsonb("errorJson"),
+    rollbackJson: jsonb("rollbackJson"),
+    createdByUserId: text("createdByUserId").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_import_session_org_status_idx").on(t.organizationId, t.status),
+    index("hrm_import_session_org_type_idx").on(t.organizationId, t.importType),
+  ]
+)
+
+export const hrmTimeReport = pgTable(
+  "hrm_time_report",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    reportKind: text("reportKind").notNull(),
+    workDate: date("workDate", { mode: "string" }),
+    overtimeMinutes: integer("overtimeMinutes"),
+    tripStartDate: date("tripStartDate", { mode: "string" }),
+    tripEndDate: date("tripEndDate", { mode: "string" }),
+    destination: text("destination"),
+    reason: text("reason"),
+    state: text("state").notNull().default("submitted"),
+    currentApprovalId: text("currentApprovalId").references(() => hrmApproval.id, {
+      onDelete: "set null",
+    }),
+    approvedByUserId: text("approvedByUserId"),
+    approvedAt: timestamp("approvedAt", { mode: "date" }),
+    rejectedReason: text("rejectedReason"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_time_report_org_employee_state_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.state
+    ),
+    index("hrm_time_report_org_state_kind_idx").on(
+      t.organizationId,
+      t.state,
+      t.reportKind
+    ),
+  ]
+)
+
 /**
  * Leave application state machine (Phase 2B).
  * states: draft → submitted → approved | rejected; approved → taken | cancelled.
@@ -2105,6 +2385,7 @@ export const hrmAttendanceEvent = pgTable(
     importBatchId: text("importBatchId"),
     rawPayloadHash: text("rawPayloadHash"),
     metadata: jsonb("metadata"),
+    checkInIp: text("checkInIp"),
     createdByUserId: text("createdByUserId"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   },
@@ -2273,6 +2554,9 @@ export const hrmPayrollRun = pgTable(
     /** Array of ValidationIssue objects from rule-pack validateProfile(). */
     validationIssues: jsonb("validationIssues")
       .$type<Array<{ code: string; message: string }>>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    compensationSnapshot: jsonb("compensationSnapshot")
       .notNull()
       .default(sql`'[]'::jsonb`),
     temporalPast: jsonb("temporalPast"),
@@ -2788,6 +3072,95 @@ export const hrmCountryRulePack = pgTable(
   ]
 )
 
+/** Vietnam e-invoice persistence (drizzle/0035_erp_vietnam_einvoice.sql). */
+export const eInvoice = pgTable(
+  "e_invoice",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    status: text("status").notNull().default("draft"),
+    provider: text("provider").notNull().default("mock"),
+    templateCode: text("templateCode").notNull(),
+    series: text("series").notNull(),
+    invoiceNumber: text("invoiceNumber").notNull(),
+    issueDate: date("issueDate", { mode: "date" }).notNull(),
+    buyerName: text("buyerName").notNull(),
+    buyerTaxCode: text("buyerTaxCode"),
+    currency: text("currency").notNull().default("VND"),
+    totalAmountVnd: decimal("totalAmountVnd", { precision: 18, scale: 0 })
+      .notNull(),
+    vatRateBps: integer("vatRateBps").notNull().default(0),
+    xmlPayload: text("xmlPayload").notNull(),
+    providerReference: text("providerReference"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("e_invoice_org_status_idx").on(t.organizationId, t.status),
+    index("e_invoice_org_issue_date_idx").on(t.organizationId, t.issueDate),
+  ]
+)
+
+export const eInvoiceTransmission = pgTable(
+  "e_invoice_transmission",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    eInvoiceId: text("eInvoiceId")
+      .notNull()
+      .references(() => eInvoice.id, { onDelete: "cascade" }),
+    channel: text("channel").notNull().default("mock"),
+    state: text("state").notNull().default("queued"),
+    requestXml: text("requestXml"),
+    responseXml: text("responseXml"),
+    errorCode: text("errorCode"),
+    errorMessage: text("errorMessage"),
+    attemptCount: integer("attemptCount").notNull().default(0),
+    lastAttemptAt: timestamp("lastAttemptAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("e_invoice_transmission_org_invoice_idx").on(
+      t.organizationId,
+      t.eInvoiceId
+    ),
+  ]
+)
+
+/** Durable org-scoped domain signal outbox (`#features/execution`). */
+export const orgDomainSignalOutbox = pgTable(
+  "org_domain_signal_outbox",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    signalKey: text("signalKey").notNull(),
+    payload: jsonb("payload").notNull(),
+    actorUserId: text("actorUserId").notNull(),
+    actorSessionId: text("actorSessionId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("org_domain_signal_outbox_org_created_idx").on(
+      t.organizationId,
+      t.createdAt
+    ),
+    index("org_domain_signal_outbox_org_key_idx").on(
+      t.organizationId,
+      t.signalKey
+    ),
+  ]
+)
+
 // ---------------------------------------------------------------------------
 // Working Memory Rail (Phase 3a)
 //
@@ -2994,6 +3367,94 @@ export const userCapabilityPreference = pgTable(
       t.capabilityId
     ),
     index("user_capability_preference_org_user_idx").on(
+      t.organizationId,
+      t.userId
+    ),
+  ]
+)
+
+/**
+ * Per-org operational scope policy — governs which scope types are available,
+ * mandatory, or blocked for each audience (all / admin / member).
+ *
+ * One row per (organizationId, scopeType, audience). `scopeType` is free-form
+ * text validated against the live `OperationalScopeRegistry` at write time —
+ * same pattern as `org_capability_policy.capabilityId`. IDs are FK-less to
+ * neon_auth.* per repo convention.
+ *
+ * See ADR-0019.
+ */
+export const orgOperationalScopePolicy = pgTable(
+  "org_operational_scope_policy",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    /** Registry-validated scope type: 'project' | 'team' | 'period' | 'warehouse' … */
+    scopeType: text("scopeType").notNull(),
+    /** `allowed | mandatory | blocked` — validated by Zod at the action boundary. */
+    policy: text("policy").notNull(),
+    /** `all | admin | member` — collapses role-policy layer. */
+    audience: text("audience").notNull().default("all"),
+    displayOrder: integer("displayOrder").notNull().default(0),
+    /** User who last changed the policy (audit lineage; FK-less per convention). */
+    updatedByUserId: text("updatedByUserId").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("org_operational_scope_policy_org_scope_audience_uidx").on(
+      t.organizationId,
+      t.scopeType,
+      t.audience
+    ),
+    index("org_operational_scope_policy_org_idx").on(t.organizationId),
+  ]
+)
+
+/**
+ * Per-(org, user) operational scope preference and current selection.
+ *
+ * One row per (organizationId, userId, scopeType). Slot position is determined
+ * at render time from `displayOrder` — the DB does not encode visual slots.
+ * `pinned = true` means the scope always appears in the rail even when the
+ * route does not auto-resolve it. `selectedId = null` means pinned but no
+ * entity chosen yet.
+ *
+ * IDs are FK-less to neon_auth.* per the established convention.
+ *
+ * See ADR-0019.
+ */
+export const userOperationalScope = pgTable(
+  "user_operational_scope",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    userId: text("userId").notNull(),
+    /** Registry-validated scope type — validated by Zod at write. */
+    scopeType: text("scopeType").notNull(),
+    /** Null = pinned but no entity selected yet. */
+    selectedId: text("selectedId"),
+    /** Denormalised display label — avoids extra join on render. */
+    selectedLabel: text("selectedLabel"),
+    /** Optional URL-safe reference for route matching. */
+    selectedSlug: text("selectedSlug"),
+    displayOrder: integer("displayOrder").notNull().default(0),
+    /** True = always show in the rail regardless of route context. */
+    pinned: boolean("pinned").notNull().default(false),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("user_operational_scope_org_user_scope_uidx").on(
+      t.organizationId,
+      t.userId,
+      t.scopeType
+    ),
+    index("user_operational_scope_org_user_idx").on(
       t.organizationId,
       t.userId
     ),

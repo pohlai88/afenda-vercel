@@ -1,0 +1,101 @@
+---
+description: Standards for utility-bar icon buttons and their dropdown panels in components2/app-shell/
+globs: components2/app-shell/**/*.tsx,app/**/shell-preview/**/*.tsx
+alwaysApply: false
+---
+
+# Utility-Bar Icon Buttons and Dropdown Panels
+
+## Icon button shape (L2 — 28 px ring)
+
+All utility-bar icon triggers — left rail (apps, policy) and right rail — use the **L2 ring class**:
+
+```tsx
+import { APP_SHELL_UTILITY_L2_ICON_CLASS } from "./utility-bar.client"
+
+// ✅ icon button (no dropdown)
+<button type="button" aria-label={ariaLabel} className={cn(APP_SHELL_UTILITY_L2_ICON_CLASS, className)}>
+  <BarIcon><Grip strokeWidth={2} /></BarIcon>
+</button>
+
+// ✅ icon button that opens a dropdown
+<DropdownMenuTrigger asChild>
+  <button
+    type="button"
+    aria-label={ariaLabel}
+    className={cn(
+      APP_SHELL_UTILITY_L2_ICON_CLASS,
+      "data-[state=open]:bg-muted/55 data-[state=open]:text-foreground",
+      className
+    )}
+  >
+    <BarIcon><Grip strokeWidth={2} /></BarIcon>
+  </button>
+</DropdownMenuTrigger>
+```
+
+**`APP_SHELL_UTILITY_DISC_CLASS` (33 px, no ring) is for image-based discs only** — `AppShellBrandDisc` and `AppShellAvatarDisc`. Never use it for Lucide icon triggers.
+
+Open-state: always `data-[state=open]:` — never `aria-expanded:`.
+
+## Tooltip + dropdown trigger composition
+
+```tsx
+// ✅ correct nesting — Tooltip wraps both trigger and content
+<DropdownMenu>
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <DropdownMenuTrigger asChild>
+        <button ...>{icon}</button>
+      </DropdownMenuTrigger>
+    </TooltipTrigger>
+    <TooltipContent side="bottom" align="center" sideOffset={8}>
+      {tooltip}
+    </TooltipContent>
+  </Tooltip>
+  <DropdownMenuContent ...>…</DropdownMenuContent>
+</DropdownMenu>
+
+// ❌ never use Menubar for a single-trigger apps launcher
+<Menubar><MenubarMenu><MenubarTrigger>…</MenubarTrigger></MenubarMenu></Menubar>
+```
+
+## Dropdown panel chrome (matches AppShellUtilityDropdown)
+
+```tsx
+import { uiRadius, uiSurfaceElevation, uiTracking } from "#lib/design-system"
+
+<DropdownMenuContent
+  align="start"
+  sideOffset={8}
+  className={cn(
+    "flex max-h-[min(92vh,40rem)] w-[min(20rem,calc(100vw-2rem))] min-w-0 flex-col overflow-hidden gap-0 p-0",
+    "border border-border bg-card/95 text-card-foreground backdrop-blur-sm",
+    uiRadius.popover,        // "rounded-xl"
+    uiSurfaceElevation.raised, // "shadow-elevation-2"
+    "ring-0 ring-offset-0",
+  )}
+>
+  {/* Header strip — always present */}
+  <div className="shrink-0 border-b border-border/50 px-4 py-3">
+    <p className="text-xs font-semibold tracking-tight text-card-foreground">{title}</p>
+    {subtitle ? (
+      <p className={cn("mt-1 text-[11px] leading-snug text-muted-foreground", uiTracking.control)}>
+        {subtitle}
+      </p>
+    ) : null}
+  </div>
+
+  {/* Scrollable body */}
+  <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2">
+    {children}
+  </div>
+</DropdownMenuContent>
+```
+
+Raw `MenubarContent`, `w-56`, or unstyled `DropdownMenuContent` are not acceptable — use the pattern above.
+
+## Circular import note
+
+`utility-dropdown.client.tsx` imports `APP_SHELL_UTILITY_L2_ICON_CLASS` from `utility-bar.client.tsx`.
+Do **not** import `AppShellUtilityDropdown` back into `utility-bar.client.tsx` — inline the chrome instead.

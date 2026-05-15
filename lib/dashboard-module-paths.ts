@@ -78,6 +78,8 @@ export const ORG_DASHBOARD_HRM_COMPLIANCE_DETAIL =
 /** Phase 4: claims kanban + per-claim detail dynamic segment. */
 export const ORG_DASHBOARD_HRM_CLAIMS = "/hrm/claims" as const
 export const ORG_DASHBOARD_HRM_CLAIM_DETAIL = "/hrm/claims/[claimId]" as const
+export const ORG_DASHBOARD_HRM_IMPORTS = "/hrm/imports" as const
+export const ORG_DASHBOARD_HRM_RECRUITMENT = "/hrm/recruitment" as const
 
 /** Org structure (departments, positions, job grades) — admin catalog surface. */
 export const ORG_DASHBOARD_HRM_ORGANIZATION = "/hrm/organization" as const

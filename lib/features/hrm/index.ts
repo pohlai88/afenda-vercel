@@ -25,6 +25,13 @@ export {
   submitClaimFormSchema,
 } from "./schemas/claim.schema"
 
+export {
+  HRM_IMPORT_TYPES,
+  hrmImportRollbackJsonSchema,
+  hrmImportTypeSchema,
+} from "./schemas/hrm-import.schema"
+export type { HrmImportRollbackJson, HrmImportType } from "./schemas/hrm-import.schema"
+
 export type {
   AttachClaimEvidenceFormValues,
   CancelClaimFormValues,

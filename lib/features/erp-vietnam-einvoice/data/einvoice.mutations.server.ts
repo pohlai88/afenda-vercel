@@ -28,7 +28,7 @@ export async function insertIssuedEinvoiceWithMockTransmission(input: {
         buyerName: input.body.buyerName,
         buyerTaxCode: input.body.buyerTaxCode,
         currency: input.body.currency,
-        totalAmountVnd: input.body.totalAmountVnd,
+        totalAmountVnd: input.body.totalAmountVnd.toString(),
         vatRateBps: input.body.vatRateBps,
         xmlPayload: input.xmlPayload,
         createdByUserId: input.createdByUserId,

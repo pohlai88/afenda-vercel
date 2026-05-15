@@ -1,8 +1,22 @@
 "use client"
 
-import type { ReactNode } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react"
+import { ChevronDown, ChevronRight } from "lucide-react"
+
 import { Link } from "#i18n/navigation"
 import { cn } from "#lib/utils"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "#components2/ui/collapsible"
 import { useSidebar } from "../ui/sidebar"
 import type {
   AppShellRailConfig,
@@ -11,6 +25,29 @@ import type {
   AppShellRailNavSection,
 } from "./rail.schema"
 
+// ---------------------------------------------------------------------------
+// Context — lets AppShellSurface render a panel toggle in its chrome bar
+// without prop-drilling through the children tree.
+// ---------------------------------------------------------------------------
+
+export type SubNavFloatingContextValue = {
+  open: boolean
+  toggle: () => void
+  close: () => void
+}
+
+export const SubNavFloatingContext =
+  createContext<SubNavFloatingContextValue | null>(null)
+
+/** Returns floating sub-nav state when rendered inside AppSubLayoutClient in floating mode, null otherwise. */
+export function useSubNavFloating(): SubNavFloatingContextValue | null {
+  return useContext(SubNavFloatingContext)
+}
+
+// ---------------------------------------------------------------------------
+// Public component
+// ---------------------------------------------------------------------------
+
 export type AppSubLayoutProps = {
   rail?: AppShellRailConfig | null
   command?: ReactNode | null
@@ -18,28 +55,27 @@ export type AppSubLayoutProps = {
 }
 
 /**
- * AppSubLayoutClient — hover-reveal floating text navigation inside the
- * content pane.
+ * AppSubLayoutClient — secondary nav with two modes based on primary rail state:
  *
- * Position contract:
- *   • `position: fixed` avoids the sticky-vs-containing-block ambiguity that
- *     arises from SidebarInset having `position: relative`.
- *   • `top: calc(var(--af-l1-height) + 1rem)` — exactly 1 rem below the
- *     utility bar, anchored to the viewport.
- *   • `left` is derived from the sidebar state (expanded 16 rem / icon 3 rem)
- *     plus a small inset so the panel sits just inside the content left border.
- *   • `max-h: calc(100dvh - var(--af-l1-height) - 2rem)` — 1 rem at top +
- *     1 rem at bottom clearance.
- *   • The panel stays visible while the mouse is over it (own hover),
- *     and the content area hover (`group/subnav`) is the reveal trigger.
- *   • Passthrough when rail is null.
+ * | Primary rail  | Secondary nav                                               |
+ * |---------------|-------------------------------------------------------------|
+ * | Collapsed     | Static in-flow tree rail beside content                     |
+ * | Expanded      | Floating panel toggled by PanelLeft button in surface chrome |
+ * | Mobile        | Hidden                                                      |
+ *
+ * Floating mode: toggle button lives in AppShellSurface's sticky chrome bar
+ * (before the breadcrumb). State is shared via SubNavFloatingContext so the
+ * panel and the toggle button stay decoupled.
  */
 export function AppSubLayoutClient({
   rail = null,
   command = null,
   children,
 }: AppSubLayoutProps) {
-  const { state } = useSidebar()
+  const { open: sidebarOpen } = useSidebar()
+  const [floatingOpen, setFloatingOpen] = useState(false)
+  const toggleFloating = useCallback(() => setFloatingOpen((p) => !p), [])
+  const closeFloating = useCallback(() => setFloatingOpen(false), [])
 
   if (!rail) {
     return (
@@ -50,53 +86,56 @@ export function AppSubLayoutClient({
     )
   }
 
-  // 0.5 rem inset from the content area's left border
-  const leftOffset =
-    state === "expanded"
-      ? "calc(var(--sidebar-width) + 0.5rem)"
-      : "calc(var(--sidebar-width-icon) + 0.5rem)"
+  const primaryCollapsed = !sidebarOpen
 
   return (
     <>
-      <div className="group/subnav relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
-        {/*
-         * Fixed overlay — viewport-anchored so it doesn't scroll with content
-         * and is not clipped by SidebarInset's overflow or position context.
-         */}
-        <aside
-          aria-label={rail.labels.ariaLabel}
-          style={{
-            top: "calc(var(--af-l1-height) + 1rem)",
-            left: leftOffset,
-          }}
-          className={cn(
-            "fixed z-30",
-            // Reveal: group hover shows it; own hover keeps it visible
-            "pointer-events-none opacity-0",
-            "group-hover/subnav:pointer-events-auto group-hover/subnav:opacity-100",
-            "hover:pointer-events-auto hover:opacity-100",
-            "transition-opacity duration-150 ease-out",
-            // Size
-            "w-[7.5rem]",
-            "max-h-[calc(100dvh-var(--af-l1-height)-2rem)]",
-            "overflow-y-auto",
-            // Appearance
-            "rounded-xl bg-background",
-            "border border-border/50 shadow-sm",
-            // Hide on mobile (sidebar is a sheet there)
-            "hidden md:flex md:flex-col"
-          )}
-        >
-          <nav className="flex flex-col gap-3 px-2.5 py-2.5">
-            {rail.slots.nav.map((section) => (
-              <SubNavSection key={section.id} section={section} />
-            ))}
-          </nav>
-        </aside>
+      <div
+        className={cn(
+          "flex min-h-0 min-w-0 flex-1 overflow-hidden",
+          primaryCollapsed && "md:flex-row"
+        )}
+      >
+        {/* ── Collapsed primary → static in-flow tree rail ── */}
+        {primaryCollapsed ? (
+          <aside
+            aria-label={rail.labels.ariaLabel}
+            className={cn(
+              "hidden min-h-0 shrink-0 md:flex md:flex-col",
+              "w-40",
+              "ml-4 mr-6 mt-4",
+              "bg-transparent border-0 shadow-none ring-0"
+            )}
+          >
+            <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto py-1">
+              {rail.slots.nav.map((section, index) => (
+                <SubNavSection
+                  key={section.id}
+                  section={section}
+                  isFirst={index === 0}
+                />
+              ))}
+            </nav>
+          </aside>
+        ) : null}
 
-        {/* Content pane */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          {children}
+        {/* ── Content column — relative so floating panel can anchor here ── */}
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          {/* Expanded primary → floating panel controlled by chrome toggle */}
+          {!primaryCollapsed ? (
+            <SubNavFloatingContext.Provider
+              value={{ open: floatingOpen, toggle: toggleFloating, close: closeFloating }}
+            >
+              <FloatingSubPanel
+                rail={rail}
+                open={floatingOpen}
+                onClose={closeFloating}
+              />
+              {children}
+            </SubNavFloatingContext.Provider>
+          ) : (
+            children
+          )}
         </div>
       </div>
 
@@ -106,49 +145,138 @@ export function AppSubLayoutClient({
 }
 
 // ---------------------------------------------------------------------------
-// Text nav primitives — no icons, pure hierarchy
+// Floating panel — expanded primary rail mode
 // ---------------------------------------------------------------------------
 
-function SubNavSection({ section }: { section: AppShellRailNavSection }) {
+function FloatingSubPanel({
+  rail,
+  open,
+  onClose,
+}: {
+  rail: AppShellRailConfig
+  open: boolean
+  onClose: () => void
+}) {
+  // ESC closes the panel
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    document.addEventListener("keydown", onKey)
+    return () => document.removeEventListener("keydown", onKey)
+  }, [open, onClose])
+
   return (
-    <div className="flex flex-col gap-px">
-      {section.label ? (
-        <p className="mb-1.5 px-1.5 pt-0.5 text-[8px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50 select-none">
-          {section.label}
-        </p>
-      ) : null}
-      {section.items.map((item) => (
-        <SubNavItem key={item.id} item={item} />
-      ))}
+    <div
+      id={`floating-subnav-${rail.storageKey}`}
+      role="region"
+      aria-label={rail.labels.ariaLabel}
+      className={cn(
+        // Starts below the sticky surface chrome (--af-l1-height) so the
+        // toggle button in the chrome bar is never obscured by the panel.
+        "absolute top-(--af-l1-height) bottom-0 left-0 z-20",
+        "flex w-44 flex-col",
+        "border-r border-border/50 bg-card/95 backdrop-blur-sm",
+        "transition-all duration-200 ease-out",
+        open
+          ? "translate-x-0 opacity-100"
+          : "pointer-events-none -translate-x-full opacity-0"
+      )}
+    >
+      <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 py-3">
+        {rail.slots.nav.map((section, index) => (
+          <SubNavSection
+            key={section.id}
+            section={section}
+            isFirst={index === 0}
+          />
+        ))}
+      </nav>
     </div>
   )
 }
 
-function SubNavItem({ item }: { item: AppShellRailNavItem }) {
+// ---------------------------------------------------------------------------
+// Shared nav tree — used by both static aside and floating panel
+// ---------------------------------------------------------------------------
+
+function SubNavSection({
+  section,
+  isFirst,
+}: {
+  section: AppShellRailNavSection
+  isFirst: boolean
+}) {
   return (
-    <div className="flex flex-col gap-px">
+    <div className="flex flex-col gap-1">
+      {section.label ? (
+        <p
+          className={cn(
+            "px-1 text-[11px] font-semibold leading-4 tracking-[-0.01em]",
+            "text-foreground",
+            !isFirst && "mt-1"
+          )}
+        >
+          {section.label}
+        </p>
+      ) : null}
+
+      <div className="flex flex-col gap-0.5">
+        {section.items.map((item) => (
+          <SubNavTreeItem key={item.id} item={item} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SubNavTreeItem({ item }: { item: AppShellRailNavItem }) {
+  const childItems = item.items
+  const hasChildren = Boolean(childItems?.length)
+  const [open, setOpen] = useState(hasChildren ? Boolean(item.active) : false)
+
+  const itemClass = cn(
+    "flex w-full items-center gap-1.5 rounded-md px-1 py-1",
+    "text-[12px] leading-5 tracking-[-0.01em]",
+    "transition-colors",
+    item.active
+      ? "font-medium text-foreground"
+      : "font-normal text-muted-foreground hover:text-foreground"
+  )
+
+  if (!hasChildren || !childItems) {
+    return (
       <Link
         href={item.href}
         aria-current={item.active ? "page" : undefined}
         prefetch={false}
-        className={cn(
-          "block rounded-md px-1.5 py-[4px]",
-          "text-[9.5px] leading-none tracking-[0.005em] transition-colors",
-          item.active
-            ? "font-[540] text-foreground"
-            : "font-normal text-muted-foreground/70 hover:text-foreground"
-        )}
+        className={cn(itemClass, "pl-[22px]")}
       >
-        {item.label}
+        <span className="truncate">{item.label}</span>
       </Link>
-      {item.items && item.items.length > 0 ? (
-        <div className="mb-0.5 flex flex-col gap-px pl-3">
-          {item.items.map((child) => (
+    )
+  }
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className={itemClass}>
+        {open ? (
+          <ChevronDown className="size-3 shrink-0 text-muted-foreground/50" />
+        ) : (
+          <ChevronRight className="size-3 shrink-0 text-muted-foreground/50" />
+        )}
+        <span className="truncate text-left">{item.label}</span>
+      </CollapsibleTrigger>
+
+      <CollapsibleContent>
+        <div className="flex flex-col gap-0.5 pl-[22px]">
+          {childItems.map((child) => (
             <SubNavChildItem key={child.id} item={child} />
           ))}
         </div>
-      ) : null}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }
 
@@ -159,14 +287,15 @@ function SubNavChildItem({ item }: { item: AppShellRailNavChildItem }) {
       aria-current={item.active ? "page" : undefined}
       prefetch={false}
       className={cn(
-        "block rounded-md px-1.5 py-[3px]",
-        "text-[8.5px] leading-none tracking-[0.005em] transition-colors",
+        "block rounded-md px-1 py-0.5",
+        "text-[11.5px] leading-5 tracking-[-0.01em]",
+        "transition-colors",
         item.active
-          ? "font-[500] text-foreground"
-          : "text-muted-foreground/50 hover:text-muted-foreground"
+          ? "font-medium text-foreground"
+          : "font-normal text-muted-foreground/70 hover:text-foreground"
       )}
     >
-      {item.label}
+      <span className="truncate">{item.label}</span>
     </Link>
   )
 }

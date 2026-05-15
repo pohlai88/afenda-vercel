@@ -1,3 +1,5 @@
+import type { ResolvedOperationalContext } from "#lib/erp/operational-context.shared"
+
 /**
  * Describes the resolved operational context of a shell layout segment.
  *
@@ -30,4 +32,12 @@ export interface RouteEnvelope {
   orgSlug?: string
   /** Present when the org session resolves and organizationId is available. */
   orgId?: string
+  /**
+   * Resolved operational context from resolveOperationalContext().
+   * Present on org-scoped surfaces when the resolver ran successfully.
+   * Useful for client error boundaries that need context without a re-fetch.
+   * Primary resolution happens inside WorkbenchUtilityBarRow (Tier B / Suspense).
+   * See ADR-0019.
+   */
+  operationalContext?: ResolvedOperationalContext | null
 }

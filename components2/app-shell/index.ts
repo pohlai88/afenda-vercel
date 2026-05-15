@@ -45,5 +45,8 @@ export { useAppShellStore } from "../stores/app-shell.store"
 export type {
   AppShellState,
   AppShellStore,
+  AppShellThemeSnapshot,
   RailMode,
+  ResolvedAppearance,
+  ThemePreference,
 } from "../stores/app-shell.store"

@@ -1,4 +1,7 @@
+"use client"
+
 import { Fragment, type ReactNode } from "react"
+import { PanelLeft } from "lucide-react"
 
 import { Link } from "#i18n/navigation"
 import { cn } from "#lib/utils"
@@ -10,9 +13,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../ui/breadcrumb"
+import { useSubNavFloating } from "./sub-layout.client"
 
-/** Shared horizontal gutter + max readable width. */
-const SURFACE_CONTENT_COLUMN = "w-full max-w-4xl px-4 sm:px-6"
+/** Shared horizontal gutter + max readable width. Centred so left/right space is balanced at any rail state. */
+const SURFACE_CONTENT_COLUMN = "w-full max-w-4xl mx-auto px-4 sm:px-6"
 
 type SurfaceBreadcrumb = {
   label: string
@@ -37,9 +41,8 @@ export type AppShellSurfaceProps = {
  *   • Surface chrome (sticky breadcrumb/action bar inside main) — `h-(--af-l1-height)`, `text-[11px]`
  *   • Execution body (title + children) — breathable padding
  *
- * When `hasStickyChrome` is true the surface manages its own inner scroll so
- * the breadcrumb bar stays pinned while content scrolls. Otherwise the parent
- * `<main>` scroll handles everything.
+ * When rendered inside AppSubLayoutClient in floating mode, reads
+ * SubNavFloatingContext to show a PanelLeft toggle before the breadcrumb.
  */
 export function AppShellSurface({
   title,
@@ -49,7 +52,10 @@ export function AppShellSurface({
   children,
   className,
 }: AppShellSurfaceProps) {
-  const hasStickyChrome = Boolean(breadcrumbs?.length) || Boolean(headerActions)
+  const subNav = useSubNavFloating()
+
+  const hasStickyChrome =
+    Boolean(breadcrumbs?.length) || Boolean(headerActions) || subNav !== null
   const hasIntro = Boolean(title) || Boolean(subtitle)
 
   const scrollBodyPadTop =
@@ -67,16 +73,36 @@ export function AppShellSurface({
         className
       )}
     >
-      {/* Sticky surface chrome — breadcrumbs + header actions */}
+      {/* Sticky surface chrome — panel toggle + breadcrumbs + header actions */}
       {hasStickyChrome ? (
         <div className="af-workbench-surface-header sticky top-0 z-30 shrink-0">
           <div
             className={cn(
               SURFACE_CONTENT_COLUMN,
-              "flex h-(--af-l1-height) min-w-0 items-center justify-between gap-4"
+              "flex h-(--af-l1-height) min-w-0 items-center justify-between gap-2"
             )}
           >
-            <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              {/* Panel toggle — only present in floating sub-nav mode */}
+              {subNav ? (
+                <button
+                  type="button"
+                  aria-label={subNav.open ? "Close navigation panel" : "Open navigation panel"}
+                  aria-expanded={subNav.open}
+                  aria-controls={undefined}
+                  onClick={subNav.toggle}
+                  className={cn(
+                    "flex shrink-0 items-center justify-center rounded-md p-1",
+                    "transition-colors",
+                    subNav.open
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <PanelLeft className="size-4" />
+                </button>
+              ) : null}
+
               {breadcrumbs && breadcrumbs.length > 0 ? (
                 <Breadcrumb>
                   <BreadcrumbList className="gap-1.5 text-[11px] tracking-[0.01em] sm:gap-1.5">

@@ -16,7 +16,7 @@ import {
 
 /**
  * Lynx surface error boundary — keeps the dashboard shell mounted while
- * the Lynx AI / Truth Retrieval surface recovers from uncaught render or
+ * the Lynx machine / Truth Retrieval surface recovers from uncaught render or
  * network failures (streaming, embedding, external AI provider timeouts).
  */
 export default function LynxError(props: NextAppErrorPageProps) {

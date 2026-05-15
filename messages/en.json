@@ -224,6 +224,15 @@
         "toggleAriaOpen": "Close details panel",
         "toggleAriaClosed": "Open details panel"
       },
+      "accountMenu": {
+        "title": "Account",
+        "triggerAriaLabel": "Open account menu",
+        "triggerTooltip": "Account",
+        "defaultSubtitle": "Personal account & session",
+        "footer": "Organization admin and org-wide policy live outside this menu. Security here protects your sign-in for this profile — not your company’s network perimeter.",
+        "securityLabel": "Account security",
+        "securityDescription": "Passwords, passkeys, sessions, and step-up for your Afenda identity."
+      },
       "utilityBar": {
         "help": "Help",
         "helpTooltip": "Help and product overview",
@@ -231,7 +240,14 @@
         "insightTooltip": "Open Lynx · Truth retrieval",
         "marketplaceTooltip": "Open utilities marketplace",
         "integrationsTooltip": "Open external integrations",
-        "settingsTooltip": "Organization settings",
+        "settingsAriaLabel": "Organization admin",
+        "settingsTooltip": "Open organization Admin workbench",
+        "catalog": {
+          "settings": {
+            "label": "Organization admin",
+            "description": "Members, audit, integrations, and workspace settings."
+          }
+        },
         "console": "Organizations",
         "consoleTooltip": "Open organization loading bay",
         "search": "Search",
@@ -365,6 +381,8 @@
         "theme": {
           "trigger": "Appearance",
           "tooltip": "Theme · Light, dark, or system",
+          "toggleToLight": "Switch to light appearance",
+          "toggleToDark": "Switch to dark appearance",
           "light": "Light",
           "dark": "Dark",
           "system": "System"
@@ -525,7 +543,7 @@
             "storage": "Storage",
             "insight": "Lynx",
             "integrations": "External integrations",
-            "settings": "Organization settings"
+            "settings": "Organization admin"
           }
         },
         "placeholders": {
@@ -735,7 +753,8 @@
             "expandOnHoverHelp": "Show labels only while pointer or keyboard focus is inside the rail.",
             "current": "Current"
           }
-        }
+        },
+        "backToWorkspace": "Back to HR workspace"
       },
       "nav": {
         "employees": "Workforce",
@@ -815,6 +834,61 @@
           "title": "HR snapshot",
           "description": "Read-only projection of HR operational truth — counts, payroll period state, and compliance health with links into execution surfaces."
         }
+      },
+      "imports": {
+        "eyebrow": "Operations",
+        "title": "Bulk HR import",
+        "description": "Dry-run CSV uploads for employees, attendance, or payroll rows before committing.",
+        "errorGeneric": "Something went wrong. Try again.",
+        "errorTitle": "Dry run failed",
+        "wizardTitle": "CSV dry run",
+        "wizardDescription": "Choose an import type and upload a UTF-8 CSV. No rows are written until you commit from the guided flow.",
+        "fieldImportType": "Import type",
+        "importTypes": {
+          "employees": "Employees",
+          "attendance": "Attendance",
+          "payroll": "Payroll"
+        },
+        "fieldFile": "CSV file",
+        "dryRunPending": "Running dry run…",
+        "dryRunSubmit": "Run dry run",
+        "dryRunOk": "Dry run complete — {count} rows parsed (session {id}).",
+        "rowError": "Line {line}: {message}",
+        "dryRunNoRowErrors": "No row-level validation errors.",
+        "recentTitle": "Recent import sessions",
+        "recentDescription": "Latest dry runs and commits for this organization.",
+        "recentEmpty": "No import sessions yet.",
+        "rowsLabel": "Rows"
+      },
+      "recruitment": {
+        "eyebrow": "Talent",
+        "title": "Recruitment",
+        "description": "Requisitions, candidates, applications, and interviews — governed Server Actions.",
+        "newRequisitionTitle": "New requisition",
+        "newRequisitionDescription": "Create a draft headcount request.",
+        "fieldTitle": "Title",
+        "fieldHeadcount": "Headcount",
+        "createDraft": "Create draft",
+        "requisitionsTitle": "Open requisitions",
+        "requisitionsEmpty": "No requisitions yet.",
+        "noDepartment": "No department",
+        "headcountLabel": "{count, plural, one {# seat} other {# seats}}",
+        "publish": "Publish",
+        "newApplicationTitle": "New application",
+        "newApplicationDescription": "Link a candidate to a requisition.",
+        "fieldRequisition": "Requisition",
+        "selectRequisition": "Select a requisition…",
+        "fieldCandidateName": "Candidate name",
+        "fieldEmail": "Email",
+        "fieldPhone": "Phone",
+        "fieldSource": "Source",
+        "createApplication": "Create application",
+        "pipelineTitle": "Pipeline",
+        "interviewCount": "{count, plural, one {# interview} other {# interviews}}",
+        "fieldInterviewWhen": "When",
+        "interviewerSelfNote": "Your note (optional)",
+        "scheduleInterview": "Schedule interview",
+        "moveStage": "Move stage"
       },
       "rulePackSg": {
         "leaveAnnual": "Annual leave (Singapore)",
@@ -1280,6 +1354,17 @@
           "confidential": "Confidential",
           "restricted": "Restricted"
         },
+        "offboardingSectionTitle": "Offboarding",
+        "offboardingSectionDescription": "Checklist tasks for this termination.",
+        "offboardingTerminationLabel": "Termination date: {date}",
+        "offboardingTaskReturnEquipment": "Return equipment",
+        "offboardingTaskRevokeAccess": "Revoke access",
+        "offboardingTaskFinalPayroll": "Final payroll review",
+        "offboardingTaskExitInterview": "Exit interview",
+        "offboardingTaskUnknown": "Task",
+        "offboardingAssignedRole": "Owner: {role}",
+        "offboardingCompletedAt": "Completed {at}",
+        "offboardingMarkDone": "Mark done",
         "dependentsSectionTitle": "Dependents",
         "dependentsSectionDescription": "Household and tax dependents linked to this employee.",
         "dependentsEmpty": "No active dependents.",
@@ -1950,7 +2035,57 @@
           "afternoon": "PM"
         },
         "daysShort": "{count, plural, one {1 day} other {# days}}",
-        "halfDayDuration": "0.5 day"
+        "halfDayDuration": "0.5 day",
+        "timeReports": {
+          "applyButton": "Submit time report",
+          "applyDialogTitle": "Submit overtime or trip report",
+          "applyDialogDescription": "Creates a pending approval for the selected employee.",
+          "cancelReport": "Cancel report",
+          "cancelDialogDescription": "Withdraw this report: {detail}",
+          "colReportType": "Type",
+          "colDetail": "Detail",
+          "colRequested": "Requested",
+          "colActions": "Actions",
+          "colState": "State",
+          "colUpdated": "Updated",
+          "reportKindOvertime": "Overtime",
+          "reportKindTrip": "Business trip",
+          "fieldReportKind": "Report kind",
+          "fieldWorkDate": "Work date",
+          "fieldOvertimeMinutes": "Overtime (minutes)",
+          "fieldTripStart": "Trip start",
+          "fieldTripEnd": "Trip end",
+          "fieldDestination": "Destination",
+          "fieldDestinationPlaceholder": "City or client site",
+          "fieldEmployee": "Employee",
+          "fieldEmployeePlaceholder": "Select an employee…",
+          "fieldReason": "Reason",
+          "fieldReasonPlaceholder": "Optional context",
+          "errorTitle": "Could not save",
+          "submit": "Submit",
+          "submitting": "Submitting…",
+          "inboxLoadFailed": "Could not load pending reports.",
+          "inboxEmpty": "No pending time reports.",
+          "recentLoadFailed": "Could not load recent reports.",
+          "recentEmpty": "No recent time reports.",
+          "cancelling": "Cancelling…",
+          "approve": "Approve",
+          "approving": "Approving…",
+          "approveAria": "Approve {detail}",
+          "reject": "Reject",
+          "rejectAria": "Reject {detail}",
+          "rejectReasonLabel": "Rejection reason",
+          "rejectReasonPlaceholder": "Required",
+          "decisionNoteLabel": "Decision note",
+          "decisionNotePlaceholder": "Optional",
+          "rejecting": "Rejecting…",
+          "state": {
+            "submitted": "Submitted",
+            "approved": "Approved",
+            "rejected": "Rejected",
+            "cancelled": "Cancelled"
+          }
+        }
       },
       "attendance": {
         "eyebrow": "Attendance",

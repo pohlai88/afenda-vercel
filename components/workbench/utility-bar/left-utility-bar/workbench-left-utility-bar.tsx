@@ -3,6 +3,8 @@
 import type { ReactNode } from "react"
 
 import type { UserOrgSummary } from "#features/org-admin/client"
+import type { ResolvedOperationalContext } from "#lib/erp/operational-context.shared"
+import { OperationalScopeRail } from "#components2/app-shell/operational-scope-rail.client"
 
 import { WorkbenchAppLauncher } from "./workbench-app-launcher"
 import { WorkbenchOrgCompanySwitch } from "./workbench-org-company-switch.client"
@@ -14,6 +16,8 @@ type WorkbenchLeftUtilityBarProps = {
   orgId: string
   userOrgs: UserOrgSummary[]
   showOrgLoadingBay?: boolean
+  /** Resolved operational context from the Tier B fetch. See ADR-0019. */
+  operationalContext?: ResolvedOperationalContext | null
   /**
    * Override the default NavPanel with workspace-level switcher content
    * (future: multi-project / multi-team / multi-company picker).
@@ -24,9 +28,12 @@ type WorkbenchLeftUtilityBarProps = {
 /**
  * Left rail — workspace context zone.
  *
- * Currently renders the brand + module nav panel.
- * Reserved for workspace-level switchers: org, project, team.
- * Operational shortcuts and personal utilities live on the right rail.
+ * Renders the brand + module nav panel and the ERP operational scope path bar
+ * (ADR-0019). The path bar shows up to 5 scope dimensions as a borderless
+ * breadcrumb path — project / team / period / etc.
+ *
+ * Scope policy administration is owned by the Scale (policy) icon disc
+ * in the shell utility bar — not by this rail.
  */
 export function WorkbenchLeftUtilityBar({
   orgSlug,
@@ -34,6 +41,7 @@ export function WorkbenchLeftUtilityBar({
   orgId,
   userOrgs,
   showOrgLoadingBay = false,
+  operationalContext = null,
   children,
 }: WorkbenchLeftUtilityBarProps) {
   return (
@@ -53,6 +61,7 @@ export function WorkbenchLeftUtilityBar({
           />
         </>
       )}
+      <OperationalScopeRail operationalContext={operationalContext} />
     </div>
   )
 }

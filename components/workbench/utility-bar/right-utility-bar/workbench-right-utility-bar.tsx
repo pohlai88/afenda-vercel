@@ -97,13 +97,12 @@ function UtilityMarketplaceLink() {
 }
 
 function UtilityOrgSettingsLink({ orgSlug }: { orgSlug: string }) {
-  const tAdmin = useTranslations("Dashboard.commandPalette.admin")
   const tBar = useTranslations("Dashboard.shell.utilityBar")
 
   return (
     <WorkbenchUtilityRoundTooltipLink
       href={organizationAdminPath(orgSlug, "settings")}
-      ariaLabel={tAdmin("settings")}
+      ariaLabel={tBar("settingsAriaLabel")}
       tooltip={tBar("settingsTooltip")}
     >
       <ShieldCheck

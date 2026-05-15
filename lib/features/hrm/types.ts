@@ -356,6 +356,46 @@ export type PayrollLockApprovalFormState =
     }
 
 // ---------------------------------------------------------------------------
+// Time reports (overtime / business trip)
+// ---------------------------------------------------------------------------
+
+export type TimeReportMutationFormState =
+  | { ok: true; reportId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        reportKind?: string
+        workDate?: string
+        overtimeMinutes?: string
+        tripStartDate?: string
+        tripEndDate?: string
+        destination?: string
+        reason?: string
+      }
+    }
+
+export type CancelTimeReportFormState =
+  | { ok: true; reportId: string }
+  | {
+      ok: false
+      errors: { form?: string; reportId?: string; cancelReason?: string }
+    }
+
+export type TimeReportApprovalFormState =
+  | { ok: true; reportId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        reportId?: string
+        decisionNote?: string
+        rejectedReason?: string
+      }
+    }
+
+// ---------------------------------------------------------------------------
 // Phase 4: Claim form states
 // ---------------------------------------------------------------------------
 
