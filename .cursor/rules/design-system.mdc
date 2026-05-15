@@ -43,21 +43,34 @@ buttonVariantSchema.parse(value)
 
 ---
 
-## Material semantics (shell infrastructure)
+## Material semantics (M3 surface foundation)
 
 Authority order: `app/globals.css` → ADR-0001 §13 → AGENTS §7. If they diverge, `globals.css` + ADR win — fix this rule in the same change.
 
-> Material is **shell infrastructure** — not generic UI styling. Buttons, forms, tables, ERP content stay `opaque`. Cognition is **not** a reading layer.
+> The shell foundation is **Material 3 hybrid**: opaque surface roles, restrained elevation, and on-brand state colors. Glass / cognition gradients / blur tiers are **retired**. Buttons, forms, tables, and ERP content stay `opaque`. Surfaces communicate state through M3 surface containers, not blur.
 
-### Four phases (only these exist)
+### Token chain
 
-| Phase | Class | When |
-|---|---|---|
-| `shell` | `.af-material-shell` | Idle, settled — default for chrome |
-| `transition` | `.af-material-transition` | Activation threshold |
-| `cognition` | `.af-material-cognition` | Truth resolution (Lynx active) |
-| `cognition+` | shell + `data-lynx="high-confidence"` | Confidence-deepened cognition |
-| opaque | `.af-material-opaque` | Dense reading surfaces — **required** for tables, ledgers, audit logs, ERP forms |
+```
+--af-brand-seed (oklch)
+  → --md-ref-palette-* (M3 reference palette, primary/secondary/tertiary/error/neutral)
+    → --md-sys-color-* (M3 system color roles: primary, surface-container-*, on-*, outline-*)
+       --md-sys-shape-corner-* / --md-sys-elevation-level* / --md-sys-motion-* / --md-sys-state-*-opacity
+      → shadcn aliases (--background, --primary, --card, --sidebar-*, --chart-*)
+        → Tailwind v4 @theme inline utilities (bg-card, text-primary, …)
+      → --erp-* control / field / table contracts → --af-control-* (back-compat)
+```
+
+### Four phases (still the canonical state machine)
+
+| Phase | Class | M3 mapping | When |
+|---|---|---|---|
+| `shell` | `.af-material-shell` | `surface-container` + `elevation-level1` | Idle, settled — default for chrome |
+| `transition` | `.af-material-transition` | `surface-container-high` + `elevation-level2` | Hover / focus / typing |
+| `cognition` | `.af-material-cognition` | `surface-container-highest` + `elevation-level3` + primary-tinted border | Truth resolution (Lynx active) |
+| opaque | `.af-material-opaque` | `--card` flat | Dense reading surfaces — **required** for tables, ledgers, audit logs, ERP forms |
+
+The `cognition` class name is preserved for backward compatibility with consumers; semantically it now reads as "highest opaque surface with primary-tinted border + elevation-3" — no glass, no gradient, no blur.
 
 ### `data-phase` state machine (canonical values only)
 
@@ -67,15 +80,17 @@ idle → hover → focus → typing → resolving → execution → settled
 
 Forbidden ad-hoc names: `active`, `selected`, `open`, `loading`, `processing`, `ai`, `aiActive`.
 
-### `data-lynx` vocabulary
+### Lynx-on-M3 mapping (5 states)
 
-| Value | Meaning |
-|---|---|
-| `idle` | shell |
-| `listening` | transition |
-| `resolving` | cognition |
-| `high-confidence` | deeper saturation |
-| `warning` / `mismatch` | pressure pulse / unstable refraction |
+`.af-material[data-lynx="…"]` rules express Lynx machine state through M3 tokens. **No new tokens. No animations.** Each rule reads as a static M3 surface + state-layer combination.
+
+| `data-lynx` value | M3 surface role | M3 elevation / border | Meaning |
+|---|---|---|---|
+| `listening` | mix(`tertiary-container` 55%, `surface-container`) | tinted `outline-variant` | Awaiting input / passive intelligence |
+| `resolving` | `tertiary-container` | `elevation-level2`, `tertiary` border | Active truth retrieval |
+| `high-confidence` | `primary-container` | `elevation-level2`, `primary` border | Resolved with confidence |
+| `warning` | (inherit) | `error` border + 1px error ring | Low confidence / data conflict |
+| `mismatch` | `error-container` | `error` border | Hard mismatch / contradiction |
 
 Banned user-facing labels: **AI mode**, **AI active**, **Thinking**, **Processing**, **Generating**. Use: `resolving`, `listening`, `high confidence`, `warning`, `mismatch`.
 
@@ -83,10 +98,10 @@ Banned user-facing labels: **AI mode**, **AI active**, **Thinking**, **Processin
 
 | Surface | Allowed material |
 |---|---|
-| Utility bar (L1) | `shell` only |
-| Dock (L4) | `shell` + `current` |
-| Command palette (L3) | `shell → transition → cognition` |
-| Lynx resolution surfaces | `cognition` (via `data-lynx`) |
+| Utility bar (L1) | `shell` only (paired with `.af-nexus-l1-chrome-backplate`) |
+| Dock (L4) | `shell` |
+| Command palette (L3) | `shell → transition → cognition` (palette overlay blur is owned by shadcn `CommandDialog`, not by `.af-nexus-popover-panel`) |
+| Lynx resolution surfaces | `.af-material[data-lynx]` (5 states above) |
 | Modals, toasts | `shell` or `transition` |
 | Dense tables / ledgers / audit logs | `opaque` only |
 | ERP forms | `opaque` or light `shell` |
@@ -99,7 +114,7 @@ style={{ backdropFilter: "blur(20px)" }}
 style={{ willChange: "backdrop-filter" }}
 ```
 ```html
-<!-- ❌ arbitrary blur — bypasses 3-tier budget -->
+<!-- ❌ arbitrary blur — bypasses M3 surface contract -->
 <div className="backdrop-blur-[18px]" />
 <div className="blur-[24px]" />
 <!-- ❌ scaled backdrop-blur under components/nexus/ -->
@@ -110,23 +125,27 @@ style={{ willChange: "backdrop-filter" }}
 animation: pulse 2s ease infinite;
 ```
 
-Also forbidden (renamed identifiers — drift detector):
-- `--af-water-*` → use `--af-cognition-*` / `--af-resolution-*`
-- `.af-material-water` → `.af-material-cognition`
-- `.af-material-transitioning` → `.af-material-transition`
+Also forbidden (drift detectors — see `check-design-contract.mjs`):
+- `--af-water-*`, `.af-material-water`, `.af-material-transitioning` (legacy renames)
+- `--af-cognition-*`, `--af-glass-*`, `--af-resolution-*`, `--af-blur-*`, `--af-depth-*`, `--af-current-strength`, `--af-ripple-strength`, `--af-flow-angle`, `--af-material-edge`, `--af-material-highlight` (retired by M3 hybrid — express intent through `--md-sys-*` instead)
+- `af-pressure-pulse`, `af-unstable-refraction` (retired Lynx animations — express via `.af-material[data-lynx]` in `app/globals.css`)
+- `data-layout-density="compact|relaxed"` (CSS block removed; re-add the `:root[data-layout-density]` block before re-introducing the attribute)
 
 ### Nexus chrome utilities (`components/nexus/` only)
 
-Use these CSS helpers — do **not** use Tailwind `backdrop-blur-*`:
-- `.af-nexus-l1-chrome-backplate` (L1 shell-tier glass tint + blur; pair `.af-nexus-utility-bar-backdrop` on bar)
-- `.af-nexus-popover-panel` (floating panels → command tier)
+Use these CSS helpers — do **not** apply Tailwind `backdrop-blur-*` directly:
+- `.af-nexus-l1-chrome-backplate` (L1 utility-bar surface; pair `.af-nexus-utility-bar-backdrop` on the bar)
+- `.af-nexus-popover-panel` (floating panels — opaque popover surface)
 - `.af-nexus-round-control-backdrop` (icon-only round controls)
+
+These classes own the chrome surface contract. They no longer apply `backdrop-filter` (M3 surfaces are opaque); the rule still routes consumers through them so any future blur reintroduction stays centralized.
 
 ### Animation discipline
 
 - State pulses fire **3 iterations on entry, then settle**.
-- Persistent state: communicate via **static styling** (`outline`, `border-color`), never infinite animation.
+- Persistent state: communicate via **static styling** (`outline`, `border-color`, M3 surface role swap), never infinite animation.
 - All animations respect `prefers-reduced-motion: reduce`.
+- Motion duration / easing must reference `--md-sys-motion-duration-*` / `--md-sys-motion-easing-*` (or their `--motion-*` aliases).
 
 ---
 

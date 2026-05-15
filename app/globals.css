@@ -1,8 +1,17 @@
 /* =============================================================================
-   Afenda — global stylesheet (Tailwind CSS v4, CSS-first theme)
-   - Imports: framework → animation → shadcn bridge (order matters).
-   - Tokens: OKLCH in `:root` / `.dark`; `@theme inline` maps to utilities only.
-   - Variants: class dark + real `:hover` (Tailwind’s hover is coarse-pointer gated).
+   Afenda — globals.css
+   Tailwind CSS v4 + shadcn/ui + Material 3 hybrid foundation
+
+   Single source of truth for visual tokens, surfaces, and chrome.
+
+   Token chain:
+     --af-brand-seed
+       -> --md-ref-palette-* (M3 reference palette, 6 roles x 13+ tones)
+         -> --md-sys-* (M3 system tokens: color/shape/elevation/motion/state/typescale)
+           -> shadcn aliases (--background, --primary, --card, --sidebar-*, --chart-*)
+             -> Tailwind v4 @theme inline (utilities)
+           -> --erp-* (ERP density / control / field / table / menu contracts)
+             -> --af-control-*, --af-field-*, --af-table-*, --af-menu-* (back-compat)
    ============================================================================= */
 
 @import "tailwindcss";
@@ -18,65 +27,99 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* -------------------------------------------------------------------------- */
-/* Tailwind bridge — maps semantic CSS variables to utilities                 */
+/* Tailwind v4 theme bridge                                                   */
 /* -------------------------------------------------------------------------- */
 
 @theme inline {
-  /* Typography */
+  /* Typography family */
+
   --font-sans: "Inter", "Inter Fallback", ui-sans-serif, system-ui, sans-serif;
-  --font-heading:
-    "Inter", "Inter Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono:
     "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular, Menlo,
     Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* Core surfaces */
+  /* M3 typography utilities — Tailwind emits text-display-large ... text-label-small */
+
+  --text-display-large: var(--md-sys-typescale-display-large-size);
+  --text-display-medium: var(--md-sys-typescale-display-medium-size);
+  --text-display-small: var(--md-sys-typescale-display-small-size);
+
+  --text-headline-large: var(--md-sys-typescale-headline-large-size);
+  --text-headline-medium: var(--md-sys-typescale-headline-medium-size);
+  --text-headline-small: var(--md-sys-typescale-headline-small-size);
+
+  --text-title-large: var(--md-sys-typescale-title-large-size);
+  --text-title-medium: var(--md-sys-typescale-title-medium-size);
+  --text-title-small: var(--md-sys-typescale-title-small-size);
+
+  --text-body-large: var(--md-sys-typescale-body-large-size);
+  --text-body-medium: var(--md-sys-typescale-body-medium-size);
+  --text-body-small: var(--md-sys-typescale-body-small-size);
+
+  --text-label-large: var(--md-sys-typescale-label-large-size);
+  --text-label-medium: var(--md-sys-typescale-label-medium-size);
+  --text-label-small: var(--md-sys-typescale-label-small-size);
+
+  /* shadcn color utilities */
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
 
-  /* Interactive */
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--primary-hover);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary-hover: var(--secondary-hover);
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Status & semantics */
-  --color-destructive: var(--destructive);
+  /* ERP status utilities */
+
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+
   --color-critical: var(--critical);
   --color-critical-foreground: var(--critical-foreground);
 
-  /* Data / KPI tones */
   --color-data-positive: var(--data-positive);
   --color-data-negative: var(--data-negative);
   --color-data-neutral: var(--data-neutral);
 
-  /* Charts (multi-hue, ERP-safe) */
+  /* Charts */
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  /* App chrome — sidebar */
+  /* shadcn sidebar */
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -86,691 +129,1250 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Radius scale (base token: --radius in :root) */
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* M3 direct color utilities (escape hatch when shadcn alias is wrong fit) */
+
+  --color-md-primary: var(--md-sys-color-primary);
+  --color-md-on-primary: var(--md-sys-color-on-primary);
+  --color-md-primary-container: var(--md-sys-color-primary-container);
+  --color-md-on-primary-container: var(--md-sys-color-on-primary-container);
+
+  --color-md-secondary: var(--md-sys-color-secondary);
+  --color-md-on-secondary: var(--md-sys-color-on-secondary);
+  --color-md-secondary-container: var(--md-sys-color-secondary-container);
+  --color-md-on-secondary-container: var(--md-sys-color-on-secondary-container);
+
+  --color-md-tertiary: var(--md-sys-color-tertiary);
+  --color-md-on-tertiary: var(--md-sys-color-on-tertiary);
+  --color-md-tertiary-container: var(--md-sys-color-tertiary-container);
+  --color-md-on-tertiary-container: var(--md-sys-color-on-tertiary-container);
+
+  --color-md-error: var(--md-sys-color-error);
+  --color-md-on-error: var(--md-sys-color-on-error);
+  --color-md-error-container: var(--md-sys-color-error-container);
+  --color-md-on-error-container: var(--md-sys-color-on-error-container);
+
+  --color-md-background: var(--md-sys-color-background);
+  --color-md-on-background: var(--md-sys-color-on-background);
+
+  --color-md-surface: var(--md-sys-color-surface);
+  --color-md-on-surface: var(--md-sys-color-on-surface);
+  --color-md-surface-variant: var(--md-sys-color-surface-variant);
+  --color-md-on-surface-variant: var(--md-sys-color-on-surface-variant);
+
+  --color-md-surface-dim: var(--md-sys-color-surface-dim);
+  --color-md-surface-bright: var(--md-sys-color-surface-bright);
+  --color-md-surface-container-lowest: var(
+    --md-sys-color-surface-container-lowest
+  );
+  --color-md-surface-container-low: var(--md-sys-color-surface-container-low);
+  --color-md-surface-container: var(--md-sys-color-surface-container);
+  --color-md-surface-container-high: var(--md-sys-color-surface-container-high);
+  --color-md-surface-container-highest: var(
+    --md-sys-color-surface-container-highest
+  );
+
+  --color-md-outline: var(--md-sys-color-outline);
+  --color-md-outline-variant: var(--md-sys-color-outline-variant);
+
+  --color-md-inverse-surface: var(--md-sys-color-inverse-surface);
+  --color-md-inverse-on-surface: var(--md-sys-color-inverse-on-surface);
+  --color-md-inverse-primary: var(--md-sys-color-inverse-primary);
+
+  /* Radius / shape */
+
+  --radius-xs: var(--md-sys-shape-corner-extra-small);
+  --radius-sm: var(--md-sys-shape-corner-small);
+  --radius-md: var(--md-sys-shape-corner-medium);
+  --radius-lg: var(--md-sys-shape-corner-large);
+  --radius-xl: var(--md-sys-shape-corner-extra-large);
+  --radius-2xl: var(--af-shape-2xl);
+  --radius-3xl: var(--af-shape-3xl);
+  --radius-4xl: var(--af-shape-4xl);
 
   /* Elevation */
-  --shadow-elevation-1: var(--elevation-1);
-  --shadow-elevation-2: var(--elevation-2);
-  --shadow-elevation-3: var(--elevation-3);
 
-  /* Spacing — density (stack rhythm) & surface (inset padding scale) */
-  --spacing-density-comfortable: var(--density-comfortable);
-  --spacing-density-compact: var(--density-compact);
-  --spacing-density-relaxed: var(--density-relaxed);
-  --spacing-surface-xs: var(--space-surface-xs);
-  --spacing-surface-sm: var(--space-surface-sm);
-  --spacing-surface-md: var(--space-surface-md);
-  --spacing-surface-lg: var(--space-surface-lg);
-  --spacing-surface-xl: var(--space-surface-xl);
-  --spacing-surface-2xl: var(--space-surface-2xl);
+  --shadow-elevation-0: var(--md-sys-elevation-level0);
+  --shadow-elevation-1: var(--md-sys-elevation-level1);
+  --shadow-elevation-2: var(--md-sys-elevation-level2);
+  --shadow-elevation-3: var(--md-sys-elevation-level3);
+  --shadow-elevation-4: var(--md-sys-elevation-level4);
+  --shadow-elevation-5: var(--md-sys-elevation-level5);
 
-  /* Motion — consumed by tw-animate / transition utilities */
-  --animate-duration-fast: var(--motion-duration-fast);
-  --animate-duration-base: var(--motion-duration-base);
-  --animate-duration-slow: var(--motion-duration-slow);
-  --animate-ease-standard: var(--motion-ease-standard);
-  --animate-ease-emphasized: var(--motion-ease-emphasized);
-  --animate-ease-decelerate: var(--motion-ease-decelerate);
-  --animate-ease-accelerate: var(--motion-ease-accelerate);
+  /* ERP density / spacing */
+
+  --spacing-density-comfortable: var(--erp-density-comfortable);
+  --spacing-density-compact: var(--erp-density-compact);
+  --spacing-density-relaxed: var(--erp-density-relaxed);
+
+  --spacing-surface-xs: var(--erp-surface-xs);
+  --spacing-surface-sm: var(--erp-surface-sm);
+  --spacing-surface-md: var(--erp-surface-md);
+  --spacing-surface-lg: var(--erp-surface-lg);
+  --spacing-surface-xl: var(--erp-surface-xl);
+  --spacing-surface-2xl: var(--erp-surface-2xl);
+
+  /* Motion */
+
+  --animate-ease-standard: var(--md-sys-motion-easing-standard);
+  --animate-ease-emphasized: var(--md-sys-motion-easing-emphasized);
+  --animate-ease-emphasized-decelerate: var(
+    --md-sys-motion-easing-emphasized-decelerate
+  );
+  --animate-ease-emphasized-accelerate: var(
+    --md-sys-motion-easing-emphasized-accelerate
+  );
+
+  --animate-duration-short1: var(--md-sys-motion-duration-short1);
+  --animate-duration-short2: var(--md-sys-motion-duration-short2);
+  --animate-duration-short3: var(--md-sys-motion-duration-short3);
+  --animate-duration-short4: var(--md-sys-motion-duration-short4);
+
+  --animate-duration-medium1: var(--md-sys-motion-duration-medium1);
+  --animate-duration-medium2: var(--md-sys-motion-duration-medium2);
+  --animate-duration-medium3: var(--md-sys-motion-duration-medium3);
+  --animate-duration-medium4: var(--md-sys-motion-duration-medium4);
+
+  --animate-duration-long1: var(--md-sys-motion-duration-long1);
+  --animate-duration-long2: var(--md-sys-motion-duration-long2);
+  --animate-duration-long3: var(--md-sys-motion-duration-long3);
+  --animate-duration-long4: var(--md-sys-motion-duration-long4);
 }
 
 /* -------------------------------------------------------------------------- */
-/* Design tokens — light                                                        */
+/* Design tokens — light                                                      */
 /* -------------------------------------------------------------------------- */
 
 :root {
   color-scheme: light;
 
-  /* Geometry */
-  --radius: 0.625rem;
+  /* Afenda brand seed — preserves original primary behavior */
+
+  --af-brand-seed: oklch(0.36 0.048 305);
+  --af-brand-hue: 305;
+  --af-tertiary-hue: 238;
+
+  /* App geometry */
+
+  --radius: var(--md-sys-shape-corner-medium);
   --app-font-size: 16px;
   --app-body-line-height: 1.5;
+
   --nexus-topbar-height: 48px;
   --nexus-rail-width: 296px;
   --nexus-rail-collapsed-width: 64px;
   --nexus-workspace-radius: 18px;
 
-  /* Shell rhythm — fixed optical heights consumed across the workbench OS.
-     L1 = utility bar tier (top chrome + sticky surface header offset).
-     One source of truth so the surface header and utility bar cannot drift. */
   --af-l1-height: 3rem;
-  /* Sticky breadcrumb / surface chrome band inside main (below L1 utility bar). */
   --af-topnav-height: 3rem;
 
-  /* Surface padding scale (single source; @theme spacing-* maps here) */
-  --space-surface-xs: 0.5rem;
-  --space-surface-sm: 0.75rem;
-  --space-surface-md: 1rem;
-  --space-surface-lg: 1.5rem;
-  --space-surface-xl: 2rem;
-  --space-surface-2xl: 3rem;
+  --af-shape-2xl: 1.5rem;
+  --af-shape-3xl: 2rem;
+  --af-shape-4xl: 2.5rem;
 
-  /* Canvas */
-  --background: oklch(0.992 0.0025 305);
-  --foreground: oklch(0.165 0.011 305);
+  /* M3 reference palette — primary (Afenda purple) */
 
-  /* Surfaces */
-  --card: oklch(1 0.0015 305);
-  --card-foreground: var(--foreground);
-  --popover: oklch(1 0.0015 305);
-  --popover-foreground: var(--foreground);
+  --md-ref-palette-primary-0: oklch(0 0 var(--af-brand-hue));
+  --md-ref-palette-primary-10: oklch(0.18 0.026 var(--af-brand-hue));
+  --md-ref-palette-primary-20: oklch(0.27 0.038 var(--af-brand-hue));
+  --md-ref-palette-primary-30: oklch(0.32 0.044 var(--af-brand-hue));
+  --md-ref-palette-primary-40: var(--af-brand-seed);
+  --md-ref-palette-primary-50: oklch(0.46 0.062 var(--af-brand-hue));
+  --md-ref-palette-primary-60: oklch(0.56 0.074 var(--af-brand-hue));
+  --md-ref-palette-primary-70: oklch(0.66 0.082 var(--af-brand-hue));
+  --md-ref-palette-primary-80: oklch(0.76 0.086 var(--af-brand-hue));
+  --md-ref-palette-primary-90: oklch(0.9 0.04 var(--af-brand-hue));
+  --md-ref-palette-primary-95: oklch(0.95 0.024 var(--af-brand-hue));
+  --md-ref-palette-primary-99: oklch(0.99 0.006 var(--af-brand-hue));
+  --md-ref-palette-primary-100: oklch(1 0 var(--af-brand-hue));
 
-  /* Brand / controls — solid hovers (avoid opacity-only hover on fills) */
-  --primary: oklch(0.36 0.048 305);
-  --primary-foreground: oklch(0.99 0.002 305);
-  --primary-hover: oklch(0.3 0.052 305);
-  --secondary: oklch(0.958 0.004 305);
-  --secondary-foreground: oklch(0.28 0.014 305);
-  --secondary-hover: oklch(0.935 0.005 305);
-  --muted: oklch(0.963 0.004 305);
-  --muted-foreground: oklch(0.48 0.014 305);
-  --accent: oklch(0.935 0.007 305);
-  --accent-foreground: oklch(0.28 0.02 305);
+  /* M3 reference palette — secondary */
 
-  /* Semantics — restrained chroma */
-  --destructive: oklch(0.52 0.12 25);
-  --success: oklch(0.55 0.09 150);
-  --success-foreground: oklch(0.97 0.004 150);
-  --warning: oklch(0.65 0.11 83);
+  --md-ref-palette-secondary-0: oklch(0 0 var(--af-brand-hue));
+  --md-ref-palette-secondary-10: oklch(0.18 0.014 var(--af-brand-hue));
+  --md-ref-palette-secondary-20: oklch(0.27 0.018 var(--af-brand-hue));
+  --md-ref-palette-secondary-30: oklch(0.36 0.022 var(--af-brand-hue));
+  --md-ref-palette-secondary-40: oklch(0.45 0.026 var(--af-brand-hue));
+  --md-ref-palette-secondary-50: oklch(0.55 0.028 var(--af-brand-hue));
+  --md-ref-palette-secondary-60: oklch(0.64 0.03 var(--af-brand-hue));
+  --md-ref-palette-secondary-70: oklch(0.73 0.028 var(--af-brand-hue));
+  --md-ref-palette-secondary-80: oklch(0.82 0.024 var(--af-brand-hue));
+  --md-ref-palette-secondary-90: oklch(0.93 0.014 var(--af-brand-hue));
+  --md-ref-palette-secondary-95: oklch(0.965 0.008 var(--af-brand-hue));
+  --md-ref-palette-secondary-99: oklch(0.992 0.003 var(--af-brand-hue));
+  --md-ref-palette-secondary-100: oklch(1 0 var(--af-brand-hue));
+
+  /* M3 reference palette — tertiary (controlled-information / intelligence hue) */
+
+  --md-ref-palette-tertiary-0: oklch(0 0 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-10: oklch(0.18 0.026 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-20: oklch(0.28 0.038 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-30: oklch(0.4 0.048 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-40: oklch(0.52 0.055 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-50: oklch(0.6 0.06 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-60: oklch(0.68 0.058 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-70: oklch(0.76 0.052 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-80: oklch(0.84 0.042 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-90: oklch(0.93 0.022 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-95: oklch(0.965 0.014 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-99: oklch(0.992 0.004 var(--af-tertiary-hue));
+  --md-ref-palette-tertiary-100: oklch(1 0 var(--af-tertiary-hue));
+
+  /* M3 reference palette — error */
+
+  --md-ref-palette-error-0: oklch(0 0 25);
+  --md-ref-palette-error-10: oklch(0.18 0.055 25);
+  --md-ref-palette-error-20: oklch(0.28 0.08 25);
+  --md-ref-palette-error-30: oklch(0.4 0.105 25);
+  --md-ref-palette-error-40: oklch(0.52 0.12 25);
+  --md-ref-palette-error-50: oklch(0.6 0.13 25);
+  --md-ref-palette-error-60: oklch(0.68 0.125 25);
+  --md-ref-palette-error-70: oklch(0.76 0.105 25);
+  --md-ref-palette-error-80: oklch(0.84 0.08 25);
+  --md-ref-palette-error-90: oklch(0.94 0.035 25);
+  --md-ref-palette-error-95: oklch(0.97 0.02 25);
+  --md-ref-palette-error-99: oklch(0.992 0.005 25);
+  --md-ref-palette-error-100: oklch(1 0 25);
+
+  /* M3 reference palette — neutral (includes M3 surface-container tones) */
+
+  --md-ref-palette-neutral-0: oklch(0 0 var(--af-brand-hue));
+  --md-ref-palette-neutral-4: oklch(0.08 0.008 var(--af-brand-hue));
+  --md-ref-palette-neutral-6: oklch(0.105 0.009 var(--af-brand-hue));
+  --md-ref-palette-neutral-10: oklch(0.165 0.011 var(--af-brand-hue));
+  --md-ref-palette-neutral-12: oklch(0.185 0.011 var(--af-brand-hue));
+  --md-ref-palette-neutral-17: oklch(0.235 0.012 var(--af-brand-hue));
+  --md-ref-palette-neutral-20: oklch(0.27 0.012 var(--af-brand-hue));
+  --md-ref-palette-neutral-22: oklch(0.295 0.012 var(--af-brand-hue));
+  --md-ref-palette-neutral-24: oklch(0.32 0.012 var(--af-brand-hue));
+  --md-ref-palette-neutral-30: oklch(0.39 0.011 var(--af-brand-hue));
+  --md-ref-palette-neutral-40: oklch(0.48 0.01 var(--af-brand-hue));
+  --md-ref-palette-neutral-50: oklch(0.57 0.009 var(--af-brand-hue));
+  --md-ref-palette-neutral-60: oklch(0.66 0.008 var(--af-brand-hue));
+  --md-ref-palette-neutral-70: oklch(0.75 0.007 var(--af-brand-hue));
+  --md-ref-palette-neutral-80: oklch(0.84 0.006 var(--af-brand-hue));
+  --md-ref-palette-neutral-87: oklch(0.9 0.004 var(--af-brand-hue));
+  --md-ref-palette-neutral-90: oklch(0.92 0.004 var(--af-brand-hue));
+  --md-ref-palette-neutral-92: oklch(0.935 0.004 var(--af-brand-hue));
+  --md-ref-palette-neutral-94: oklch(0.958 0.004 var(--af-brand-hue));
+  --md-ref-palette-neutral-95: oklch(0.965 0.004 var(--af-brand-hue));
+  --md-ref-palette-neutral-96: oklch(0.975 0.0035 var(--af-brand-hue));
+  --md-ref-palette-neutral-98: oklch(0.992 0.0025 var(--af-brand-hue));
+  --md-ref-palette-neutral-99: oklch(0.996 0.0015 var(--af-brand-hue));
+  --md-ref-palette-neutral-100: oklch(1 0 var(--af-brand-hue));
+
+  /* M3 reference palette — neutral variant (outlines + surface-variant) */
+
+  --md-ref-palette-neutral-variant-0: oklch(0 0 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-4: oklch(0.08 0.01 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-6: oklch(0.105 0.01 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-10: oklch(0.17 0.014 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-12: oklch(0.19 0.014 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-17: oklch(0.24 0.014 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-20: oklch(0.29 0.014 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-22: oklch(0.315 0.014 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-24: oklch(0.34 0.014 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-30: oklch(0.42 0.014 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-40: oklch(0.5 0.014 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-50: oklch(0.58 0.014 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-60: oklch(0.66 0.012 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-70: oklch(0.75 0.01 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-80: oklch(0.84 0.008 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-87: oklch(0.9 0.007 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-90: oklch(0.93 0.006 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-92: oklch(0.945 0.006 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-94: oklch(0.958 0.005 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-95: oklch(0.965 0.005 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-96: oklch(0.975 0.004 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-98: oklch(0.99 0.003 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-99: oklch(0.996 0.002 var(--af-brand-hue));
+  --md-ref-palette-neutral-variant-100: oklch(1 0 var(--af-brand-hue));
+
+  /* M3 system color roles — light */
+
+  --md-sys-color-primary: var(--md-ref-palette-primary-40);
+  --md-sys-color-on-primary: var(--md-ref-palette-primary-100);
+  --md-sys-color-primary-container: var(--md-ref-palette-primary-90);
+  --md-sys-color-on-primary-container: var(--md-ref-palette-primary-10);
+  --md-sys-color-inverse-primary: var(--md-ref-palette-primary-80);
+
+  --md-sys-color-secondary: var(--md-ref-palette-secondary-40);
+  --md-sys-color-on-secondary: var(--md-ref-palette-secondary-100);
+  --md-sys-color-secondary-container: var(--md-ref-palette-secondary-90);
+  --md-sys-color-on-secondary-container: var(--md-ref-palette-secondary-10);
+
+  --md-sys-color-tertiary: var(--md-ref-palette-tertiary-40);
+  --md-sys-color-on-tertiary: var(--md-ref-palette-tertiary-100);
+  --md-sys-color-tertiary-container: var(--md-ref-palette-tertiary-90);
+  --md-sys-color-on-tertiary-container: var(--md-ref-palette-tertiary-10);
+
+  --md-sys-color-error: var(--md-ref-palette-error-40);
+  --md-sys-color-on-error: var(--md-ref-palette-error-100);
+  --md-sys-color-error-container: var(--md-ref-palette-error-90);
+  --md-sys-color-on-error-container: var(--md-ref-palette-error-10);
+
+  --md-sys-color-background: var(--md-ref-palette-neutral-98);
+  --md-sys-color-on-background: var(--md-ref-palette-neutral-10);
+
+  --md-sys-color-surface: var(--md-ref-palette-neutral-98);
+  --md-sys-color-on-surface: var(--md-ref-palette-neutral-10);
+
+  --md-sys-color-surface-variant: var(--md-ref-palette-neutral-variant-90);
+  --md-sys-color-on-surface-variant: var(--md-ref-palette-neutral-variant-30);
+
+  --md-sys-color-surface-dim: var(--md-ref-palette-neutral-87);
+  --md-sys-color-surface-bright: var(--md-ref-palette-neutral-98);
+
+  --md-sys-color-surface-container-lowest: var(--md-ref-palette-neutral-100);
+  --md-sys-color-surface-container-low: var(--md-ref-palette-neutral-96);
+  --md-sys-color-surface-container: var(--md-ref-palette-neutral-94);
+  --md-sys-color-surface-container-high: var(--md-ref-palette-neutral-92);
+  --md-sys-color-surface-container-highest: var(--md-ref-palette-neutral-90);
+
+  --md-sys-color-outline: var(--md-ref-palette-neutral-variant-50);
+  --md-sys-color-outline-variant: var(--md-ref-palette-neutral-variant-80);
+
+  --md-sys-color-inverse-surface: var(--md-ref-palette-neutral-20);
+  --md-sys-color-inverse-on-surface: var(--md-ref-palette-neutral-95);
+
+  --md-sys-color-shadow: oklch(0 0 0);
+  --md-sys-color-scrim: oklch(0 0 0);
+
+  /* M3 shape */
+
+  --md-sys-shape-corner-none: 0;
+  --md-sys-shape-corner-extra-small: 0.25rem;
+  --md-sys-shape-corner-small: 0.5rem;
+  --md-sys-shape-corner-medium: 0.75rem;
+  --md-sys-shape-corner-large: 1rem;
+  --md-sys-shape-corner-extra-large: 1.75rem;
+  --md-sys-shape-corner-full: 9999px;
+
+  /* M3 elevation — restrained for ERP */
+
+  --md-sys-elevation-level0: none;
+  --md-sys-elevation-level1:
+    0 1px 2px color-mix(in oklab, var(--md-sys-color-shadow) 10%, transparent),
+    0 1px 3px color-mix(in oklab, var(--md-sys-color-shadow) 6%, transparent);
+  --md-sys-elevation-level2:
+    0 1px 2px color-mix(in oklab, var(--md-sys-color-shadow) 10%, transparent),
+    0 6px 14px color-mix(in oklab, var(--md-sys-color-shadow) 7%, transparent);
+  --md-sys-elevation-level3:
+    0 1px 2px color-mix(in oklab, var(--md-sys-color-shadow) 10%, transparent),
+    0 10px 24px color-mix(in oklab, var(--md-sys-color-shadow) 8%, transparent);
+  --md-sys-elevation-level4:
+    0 2px 3px color-mix(in oklab, var(--md-sys-color-shadow) 10%, transparent),
+    0 14px 32px color-mix(in oklab, var(--md-sys-color-shadow) 9%, transparent);
+  --md-sys-elevation-level5:
+    0 4px 6px color-mix(in oklab, var(--md-sys-color-shadow) 10%, transparent),
+    0 18px 44px color-mix(in oklab, var(--md-sys-color-shadow) 10%, transparent);
+
+  /* M3 motion */
+
+  --md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --md-sys-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+
+  --md-sys-motion-duration-short1: 50ms;
+  --md-sys-motion-duration-short2: 100ms;
+  --md-sys-motion-duration-short3: 150ms;
+  --md-sys-motion-duration-short4: 200ms;
+
+  --md-sys-motion-duration-medium1: 250ms;
+  --md-sys-motion-duration-medium2: 300ms;
+  --md-sys-motion-duration-medium3: 350ms;
+  --md-sys-motion-duration-medium4: 400ms;
+
+  --md-sys-motion-duration-long1: 450ms;
+  --md-sys-motion-duration-long2: 500ms;
+  --md-sys-motion-duration-long3: 550ms;
+  --md-sys-motion-duration-long4: 600ms;
+
+  /* M3 state layers */
+
+  --md-sys-state-hover-opacity: 0.08;
+  --md-sys-state-focus-opacity: 0.12;
+  --md-sys-state-pressed-opacity: 0.12;
+  --md-sys-state-dragged-opacity: 0.16;
+
+  /* M3 typography (15 roles, sizes match material-web v0.192 spec) */
+
+  --md-sys-typescale-display-large-size: 3.5625rem;
+  --md-sys-typescale-display-medium-size: 2.8125rem;
+  --md-sys-typescale-display-small-size: 2.25rem;
+
+  --md-sys-typescale-headline-large-size: 2rem;
+  --md-sys-typescale-headline-medium-size: 1.75rem;
+  --md-sys-typescale-headline-small-size: 1.5rem;
+
+  --md-sys-typescale-title-large-size: 1.375rem;
+  --md-sys-typescale-title-medium-size: 1rem;
+  --md-sys-typescale-title-small-size: 0.875rem;
+
+  --md-sys-typescale-body-large-size: 1rem;
+  --md-sys-typescale-body-medium-size: 0.875rem;
+  --md-sys-typescale-body-small-size: 0.75rem;
+
+  --md-sys-typescale-label-large-size: 0.875rem;
+  --md-sys-typescale-label-medium-size: 0.75rem;
+  --md-sys-typescale-label-small-size: 0.6875rem;
+
+  --md-sys-typescale-display-large-line-height: 4rem;
+  --md-sys-typescale-display-medium-line-height: 3.25rem;
+  --md-sys-typescale-display-small-line-height: 2.75rem;
+
+  --md-sys-typescale-headline-large-line-height: 2.5rem;
+  --md-sys-typescale-headline-medium-line-height: 2.25rem;
+  --md-sys-typescale-headline-small-line-height: 2rem;
+
+  --md-sys-typescale-title-large-line-height: 1.75rem;
+  --md-sys-typescale-title-medium-line-height: 1.5rem;
+  --md-sys-typescale-title-small-line-height: 1.25rem;
+
+  --md-sys-typescale-body-large-line-height: 1.5rem;
+  --md-sys-typescale-body-medium-line-height: 1.25rem;
+  --md-sys-typescale-body-small-line-height: 1rem;
+
+  --md-sys-typescale-label-large-line-height: 1.25rem;
+  --md-sys-typescale-label-medium-line-height: 1rem;
+  --md-sys-typescale-label-small-line-height: 1rem;
+
+  --md-sys-typescale-display-large-tracking: -0.015625rem;
+  --md-sys-typescale-display-medium-tracking: 0;
+  --md-sys-typescale-display-small-tracking: 0;
+
+  --md-sys-typescale-headline-large-tracking: 0;
+  --md-sys-typescale-headline-medium-tracking: 0;
+  --md-sys-typescale-headline-small-tracking: 0;
+
+  --md-sys-typescale-title-large-tracking: 0;
+  --md-sys-typescale-title-medium-tracking: 0.009375rem;
+  --md-sys-typescale-title-small-tracking: 0.00625rem;
+
+  --md-sys-typescale-body-large-tracking: 0.03125rem;
+  --md-sys-typescale-body-medium-tracking: 0.015625rem;
+  --md-sys-typescale-body-small-tracking: 0.025rem;
+
+  --md-sys-typescale-label-large-tracking: 0.00625rem;
+  --md-sys-typescale-label-medium-tracking: 0.03125rem;
+  --md-sys-typescale-label-small-tracking: 0.03125rem;
+
+  --md-sys-typescale-regular-weight: 400;
+  --md-sys-typescale-medium-weight: 500;
+  --md-sys-typescale-semibold-weight: 600;
+  --md-sys-typescale-bold-weight: 700;
+
+  /* shadcn aliases */
+
+  --background: var(--md-sys-color-background);
+  --foreground: var(--md-sys-color-on-background);
+
+  --card: var(--md-sys-color-surface-container-low);
+  --card-foreground: var(--md-sys-color-on-surface);
+
+  --popover: var(--md-sys-color-surface-container-high);
+  --popover-foreground: var(--md-sys-color-on-surface);
+
+  --primary: var(--md-sys-color-primary);
+  --primary-foreground: var(--md-sys-color-on-primary);
+  --primary-hover: var(--md-ref-palette-primary-30);
+
+  --secondary: var(--md-sys-color-secondary-container);
+  --secondary-foreground: var(--md-sys-color-on-secondary-container);
+  --secondary-hover: var(--md-sys-color-surface-container-high);
+
+  --muted: var(--md-sys-color-surface-container);
+  --muted-foreground: var(--md-sys-color-on-surface-variant);
+
+  /* shadcn accent maps to primary-container so selected states stay on-brand */
+  --accent: var(--md-sys-color-primary-container);
+  --accent-foreground: var(--md-sys-color-on-primary-container);
+
+  --destructive: var(--md-sys-color-error);
+  --destructive-foreground: var(--md-sys-color-on-error);
+
+  --border: var(--md-sys-color-outline-variant);
+  --input: var(--md-sys-color-outline-variant);
+  --ring: var(--md-sys-color-primary);
+
+  /* ERP status aliases */
+
+  --success: oklch(0.54 0.09 150);
+  --success-foreground: oklch(0.98 0.004 150);
+
+  --warning: oklch(0.66 0.11 83);
   --warning-foreground: oklch(0.22 0.018 83);
-  --info: oklch(0.55 0.09 245);
-  --info-foreground: oklch(0.97 0.004 245);
+
+  --info: var(--md-sys-color-tertiary);
+  --info-foreground: var(--md-sys-color-on-tertiary);
+
   --critical: oklch(0.48 0.14 26);
-  --critical-foreground: oklch(0.97 0.003 26);
-  --data-positive: oklch(0.54 0.09 152);
-  --data-negative: oklch(0.52 0.13 27);
-  --data-neutral: oklch(0.55 0.009 305);
+  --critical-foreground: oklch(0.98 0.003 26);
 
-  /* Chrome */
-  --border: oklch(0.895 0.006 305);
-  --input: oklch(0.925 0.005 305);
-  --ring: oklch(0.48 0.052 305);
-
-  /* Elevation */
-  --elevation-1: 0 1px 2px
-    color-mix(in oklab, var(--foreground) 12%, transparent);
-  --elevation-2:
-    0 1px 2px color-mix(in oklab, var(--foreground) 10%, transparent),
-    0 8px 18px color-mix(in oklab, var(--foreground) 8%, transparent);
-  --elevation-3:
-    0 1px 2px color-mix(in oklab, var(--foreground) 10%, transparent),
-    0 14px 30px color-mix(in oklab, var(--foreground) 10%, transparent);
-
-  /* Density — stack rhythm between blocks */
-  --density-comfortable: 1rem;
-  --density-compact: 0.75rem;
-  --density-relaxed: 1.25rem;
-
-  /* Density — shared control, menu, table, and overlay geometry */
-  --af-control-height-xs: 1.5rem;
-  --af-control-height-sm: 2rem;
-  --af-control-height-md: 2.25rem;
-  --af-control-height-lg: 2.5rem;
-  --af-control-icon-xs: 1.5rem;
-  --af-control-icon-sm: 2rem;
-  --af-control-icon-md: 2.25rem;
-  --af-control-icon-lg: 2.5rem;
-  --af-control-gap-sm: 0.25rem;
-  --af-control-gap-md: 0.375rem;
-  --af-control-gap-lg: 0.375rem;
-  --af-control-px-xs: 0.625rem;
-  --af-control-px-sm: 0.75rem;
-  --af-control-px-md: 0.875rem;
-  --af-control-px-lg: 1.5rem;
-  --af-control-py-md: 0.5rem;
-  --af-control-py-lg: 0.5rem;
-  --af-field-height: 2.5rem;
-  --af-field-px: 0.75rem;
-  --af-field-py: 0.625rem;
-  --af-textarea-px: 0.75rem;
-  --af-textarea-py: 0.75rem;
-  --af-input-group-height: 2.25rem;
-  --af-table-head-height: 3rem;
-  --af-table-cell-px: 0.75rem;
-  --af-table-cell-py: 0.75rem;
-  --af-menu-item-px: 0.75rem;
-  --af-menu-item-py: 0.5rem;
-
-  /* Motion */
-  --motion-duration-fast: 120ms;
-  --motion-duration-base: 180ms;
-  --motion-duration-slow: 280ms;
-  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --motion-ease-emphasized: cubic-bezier(0.2, 0, 0, 1.2);
-  --motion-ease-decelerate: cubic-bezier(0, 0, 0, 1);
-  --motion-ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
+  --data-positive: var(--success);
+  --data-negative: var(--critical);
+  --data-neutral: var(--md-ref-palette-neutral-50);
 
   /* Charts */
-  --chart-1: oklch(0.46 0.058 305);
-  --chart-2: oklch(0.5 0.055 240);
+
+  --chart-1: var(--md-sys-color-primary);
+  --chart-2: var(--md-sys-color-tertiary);
   --chart-3: oklch(0.52 0.065 155);
   --chart-4: oklch(0.62 0.075 78);
-  --chart-5: oklch(0.52 0.095 28);
+  --chart-5: var(--md-ref-palette-error-50);
 
-  /* Sidebar */
-  --sidebar: oklch(0.975 0.0035 305);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(0.935 0.006 305);
-  --sidebar-accent-foreground: oklch(0.26 0.018 305);
-  --sidebar-border: var(--border);
-  --sidebar-ring: var(--ring);
+  /* Sidebar aliases */
 
-  /* Nexus L1 utility chrome — unified with sidebar surface (no recessed treatment) */
+  --sidebar: var(--md-sys-color-surface-container-low);
+  --sidebar-foreground: var(--md-sys-color-on-surface);
+  --sidebar-primary: var(--md-sys-color-primary);
+  --sidebar-primary-foreground: var(--md-sys-color-on-primary);
+  --sidebar-accent: var(--md-sys-color-primary-container);
+  --sidebar-accent-foreground: var(--md-sys-color-on-primary-container);
+  --sidebar-border: var(--md-sys-color-outline-variant);
+  --sidebar-ring: var(--md-sys-color-primary);
+
+  /* Afenda shell aliases */
+
   --af-nexus-utility-bar-surface: var(--sidebar);
+  --af-account-workbench-chrome: var(--md-sys-color-surface-container);
 
-  /* Account workbench chrome — flat gutter behind top bar, left rail, and corner wedge */
-  --af-account-workbench-chrome: color-mix(
-    in oklab,
-    var(--muted) 100%,
-    transparent
-  );
+  /* ERP density / surface rhythm */
 
-  /* ------------------------------------------------------------------------ */
-  /* Material semantics                                                        */
-  /*                                                                            */
-  /*  Public philosophy (docs / ADR / copy):                                    */
-  /*    Glass    = separation / shell / system                                  */
-  /*    Water    = truth / flow / cognition                                     */
-  /*    Depth    = operational gravity                                          */
-  /*    Ripple   = interaction causality                                        */
-  /*    Current  = active processing                                            */
-  /*                                                                            */
-  /*  Runtime token vocabulary (this file, components, design contract):        */
-  /*    cognition  = chromatic anchors of the cognition layer                   */
-  /*    resolution = surface state used during resolving / execution            */
-  /*    shell      = calm idle/settled state                                    */
-  /*                                                                            */
-  /*  Doctrine: never derive new blur values; consume the tier tokens below.    */
-  /* ------------------------------------------------------------------------ */
+  --erp-density-comfortable: 1rem;
+  --erp-density-compact: 0.75rem;
+  --erp-density-relaxed: 1.25rem;
 
-  /* Blur budget — only these three tiers are allowed app-wide */
-  --af-blur-shell: 14px;
-  --af-blur-command: 20px;
-  --af-blur-resolution: 24px;
+  --erp-surface-xs: 0.5rem;
+  --erp-surface-sm: 0.75rem;
+  --erp-surface-md: 1rem;
+  --erp-surface-lg: 1.5rem;
+  --erp-surface-xl: 2rem;
+  --erp-surface-2xl: 3rem;
 
-  /* Saturation budget — locked to blur tiers */
-  --af-sat-shell: 1.06;
-  --af-sat-command: 1.14;
-  --af-sat-resolution: 1.2;
+  /* ERP control contracts (shadcn owns primitives; Afenda owns ERP density) */
 
-  /* Directional flow — geometric angle of cognitive current */
-  --af-flow-angle: 145deg;
+  --erp-control-height-xs: 1.5rem;
+  --erp-control-height-sm: 2rem;
+  --erp-control-height-md: 2.25rem;
+  --erp-control-height-lg: 2.5rem;
 
-  /* Flow velocity — how strongly cognition pushes through the material */
-  --af-flow-velocity-idle: 0;
-  --af-flow-velocity-resolving: 0.6;
-  --af-flow-velocity-confidence: 0.9;
-  --af-flow-velocity-mismatch: 0.4;
+  --erp-control-icon-xs: 1.5rem;
+  --erp-control-icon-sm: 2rem;
+  --erp-control-icon-md: 2.25rem;
+  --erp-control-icon-lg: 2.5rem;
 
-  /* Motion categories — different cognition layers move differently */
-  --motion-category-shell: 520ms cubic-bezier(0.22, 1, 0.36, 1);
-  --motion-category-command: 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  --motion-category-resolution: 720ms cubic-bezier(0.22, 1, 0.36, 1);
-  --motion-category-pressure: 240ms cubic-bezier(0.4, 0, 0.6, 1);
+  --erp-control-gap-sm: 0.25rem;
+  --erp-control-gap-md: 0.375rem;
+  --erp-control-gap-lg: 0.375rem;
 
-  /* Edges & inner light */
-  --af-material-edge: color-mix(in oklab, var(--border) 72%, white 28%);
-  --af-material-highlight: color-mix(in oklab, white 12%, transparent);
+  --erp-control-px-xs: 0.625rem;
+  --erp-control-px-sm: 0.75rem;
+  --erp-control-px-md: 0.875rem;
+  --erp-control-px-lg: 1.5rem;
 
-  /* Glass surface (shell) */
-  --af-glass-bg: color-mix(in oklab, var(--card) 78%, transparent);
+  --erp-control-py-md: 0.5rem;
+  --erp-control-py-lg: 0.5rem;
 
-  /* Cognition chromatic anchors + resolution surface */
-  --af-cognition-1: oklch(0.7 0.03 238);
-  --af-cognition-2: oklch(0.62 0.05 264);
-  --af-resolution-surface: color-mix(
-    in oklab,
-    var(--card) 72%,
-    var(--af-cognition-1) 28%
-  );
+  --erp-field-height: 2.5rem;
+  --erp-field-px: 0.75rem;
+  --erp-field-py: 0.625rem;
 
-  /* Depth tiers — operational gravity */
-  --af-depth-shell: 0 16px 36px color-mix(in oklab, black 14%, transparent);
-  --af-depth-transition: 0 20px 52px
-    color-mix(in oklab, var(--af-cognition-2) 12%, transparent);
-  --af-depth-resolution: 0 28px 84px
-    color-mix(in oklab, var(--af-cognition-2) 24%, transparent);
+  --erp-textarea-px: 0.75rem;
+  --erp-textarea-py: 0.75rem;
 
-  /* Ripple / Current intensity */
-  --af-ripple-strength: 8%;
-  --af-current-strength: 12%;
-}
+  --erp-input-group-height: 2.25rem;
 
-:root[data-layout-density="compact"] {
-  --app-font-size: 15px;
-  --app-body-line-height: 1.45;
-  --space-surface-xs: 0.4375rem;
-  --space-surface-sm: 0.625rem;
-  --space-surface-md: 0.875rem;
-  --space-surface-lg: 1.25rem;
-  --space-surface-xl: 1.5rem;
-  --space-surface-2xl: 2rem;
-  --density-comfortable: 0.875rem;
-  --density-compact: 0.625rem;
-  --density-relaxed: 1.125rem;
-  --af-control-height-sm: 1.875rem;
-  --af-control-height-md: 2.125rem;
-  --af-control-height-lg: 2.375rem;
-  --af-control-icon-sm: 1.875rem;
-  --af-control-icon-md: 2.125rem;
-  --af-control-icon-lg: 2.375rem;
-  --af-control-gap-sm: 0.25rem;
-  --af-control-gap-md: 0.3125rem;
-  --af-control-gap-lg: 0.3125rem;
-  --af-control-px-xs: 0.5rem;
-  --af-control-px-sm: 0.625rem;
-  --af-control-px-md: 0.75rem;
-  --af-control-px-lg: 1.25rem;
-  --af-control-py-md: 0.4375rem;
-  --af-control-py-lg: 0.4375rem;
-  --af-field-height: 2.25rem;
-  --af-field-px: 0.625rem;
-  --af-field-py: 0.5rem;
-  --af-textarea-px: 0.625rem;
-  --af-textarea-py: 0.625rem;
-  --af-input-group-height: 2.125rem;
-  --af-table-head-height: 2.5rem;
-  --af-table-cell-px: 0.625rem;
-  --af-table-cell-py: 0.5rem;
-  --af-menu-item-px: 0.625rem;
-  --af-menu-item-py: 0.4375rem;
-}
+  --erp-table-head-height: 3rem;
+  --erp-table-cell-px: 0.75rem;
+  --erp-table-cell-py: 0.75rem;
 
-:root[data-layout-density="relaxed"] {
-  --app-font-size: 17px;
-  --app-body-line-height: 1.6;
-  --space-surface-xs: 0.625rem;
-  --space-surface-sm: 0.875rem;
-  --space-surface-md: 1.125rem;
-  --space-surface-lg: 1.75rem;
-  --space-surface-xl: 2.25rem;
-  --space-surface-2xl: 3.5rem;
-  --density-comfortable: 1.125rem;
-  --density-compact: 0.875rem;
-  --density-relaxed: 1.375rem;
-  --af-control-height-sm: 2.125rem;
-  --af-control-height-md: 2.5rem;
-  --af-control-height-lg: 2.75rem;
-  --af-control-icon-sm: 2.125rem;
-  --af-control-icon-md: 2.5rem;
-  --af-control-icon-lg: 2.75rem;
-  --af-control-gap-sm: 0.3125rem;
-  --af-control-gap-md: 0.5rem;
-  --af-control-gap-lg: 0.5rem;
-  --af-control-px-xs: 0.6875rem;
-  --af-control-px-sm: 0.875rem;
-  --af-control-px-md: 1rem;
-  --af-control-px-lg: 1.75rem;
-  --af-control-py-md: 0.625rem;
-  --af-control-py-lg: 0.625rem;
-  --af-field-height: 2.75rem;
-  --af-field-px: 0.875rem;
-  --af-field-py: 0.75rem;
-  --af-textarea-px: 0.875rem;
-  --af-textarea-py: 0.875rem;
-  --af-input-group-height: 2.5rem;
-  --af-table-head-height: 3.25rem;
-  --af-table-cell-px: 0.875rem;
-  --af-table-cell-py: 0.875rem;
-  --af-menu-item-px: 0.875rem;
-  --af-menu-item-py: 0.625rem;
+  --erp-menu-item-px: 0.75rem;
+  --erp-menu-item-py: 0.5rem;
+
+  /* Back-compat aliases for existing component CSS names */
+
+  --density-comfortable: var(--erp-density-comfortable);
+  --density-compact: var(--erp-density-compact);
+  --density-relaxed: var(--erp-density-relaxed);
+
+  --space-surface-xs: var(--erp-surface-xs);
+  --space-surface-sm: var(--erp-surface-sm);
+  --space-surface-md: var(--erp-surface-md);
+  --space-surface-lg: var(--erp-surface-lg);
+  --space-surface-xl: var(--erp-surface-xl);
+  --space-surface-2xl: var(--erp-surface-2xl);
+
+  --af-control-height-xs: var(--erp-control-height-xs);
+  --af-control-height-sm: var(--erp-control-height-sm);
+  --af-control-height-md: var(--erp-control-height-md);
+  --af-control-height-lg: var(--erp-control-height-lg);
+
+  --af-control-icon-xs: var(--erp-control-icon-xs);
+  --af-control-icon-sm: var(--erp-control-icon-sm);
+  --af-control-icon-md: var(--erp-control-icon-md);
+  --af-control-icon-lg: var(--erp-control-icon-lg);
+
+  --af-control-gap-sm: var(--erp-control-gap-sm);
+  --af-control-gap-md: var(--erp-control-gap-md);
+  --af-control-gap-lg: var(--erp-control-gap-lg);
+
+  --af-control-px-xs: var(--erp-control-px-xs);
+  --af-control-px-sm: var(--erp-control-px-sm);
+  --af-control-px-md: var(--erp-control-px-md);
+  --af-control-px-lg: var(--erp-control-px-lg);
+
+  --af-control-py-md: var(--erp-control-py-md);
+  --af-control-py-lg: var(--erp-control-py-lg);
+
+  --af-field-height: var(--erp-field-height);
+  --af-field-px: var(--erp-field-px);
+  --af-field-py: var(--erp-field-py);
+
+  --af-textarea-px: var(--erp-textarea-px);
+  --af-textarea-py: var(--erp-textarea-py);
+
+  --af-input-group-height: var(--erp-input-group-height);
+
+  --af-table-head-height: var(--erp-table-head-height);
+  --af-table-cell-px: var(--erp-table-cell-px);
+  --af-table-cell-py: var(--erp-table-cell-py);
+
+  --af-menu-item-px: var(--erp-menu-item-px);
+  --af-menu-item-py: var(--erp-menu-item-py);
+
+  --motion-duration-fast: var(--md-sys-motion-duration-short3);
+  --motion-duration-base: var(--md-sys-motion-duration-short4);
+  --motion-duration-slow: var(--md-sys-motion-duration-medium2);
+  --motion-ease-standard: var(--md-sys-motion-easing-standard);
+  --motion-ease-emphasized: var(--md-sys-motion-easing-emphasized);
+  --motion-ease-decelerate: var(--md-sys-motion-easing-emphasized-decelerate);
+  --motion-ease-accelerate: var(--md-sys-motion-easing-emphasized-accelerate);
 }
 
 /* -------------------------------------------------------------------------- */
-/* Design tokens — dark (overrides only; shared tokens inherit from :root)    */
+/* Design tokens — dark                                                       */
 /* -------------------------------------------------------------------------- */
 
 .dark {
   color-scheme: dark;
 
-  --background: oklch(0.105 0.011 305);
-  --foreground: oklch(0.925 0.005 305);
+  --md-sys-color-primary: var(--md-ref-palette-primary-80);
+  --md-sys-color-on-primary: var(--md-ref-palette-primary-20);
+  --md-sys-color-primary-container: var(--md-ref-palette-primary-30);
+  --md-sys-color-on-primary-container: var(--md-ref-palette-primary-90);
+  --md-sys-color-inverse-primary: var(--md-ref-palette-primary-40);
 
-  --card: oklch(0.145 0.013 305);
-  --card-foreground: var(--foreground);
-  --popover: oklch(0.165 0.014 305);
-  --popover-foreground: var(--foreground);
+  --md-sys-color-secondary: var(--md-ref-palette-secondary-80);
+  --md-sys-color-on-secondary: var(--md-ref-palette-secondary-20);
+  --md-sys-color-secondary-container: var(--md-ref-palette-secondary-30);
+  --md-sys-color-on-secondary-container: var(--md-ref-palette-secondary-90);
 
-  --primary: oklch(0.7 0.1 305);
-  --primary-hover: oklch(0.76 0.11 305);
-  --primary-foreground: oklch(0.13 0.018 305);
+  --md-sys-color-tertiary: var(--md-ref-palette-tertiary-80);
+  --md-sys-color-on-tertiary: var(--md-ref-palette-tertiary-20);
+  --md-sys-color-tertiary-container: var(--md-ref-palette-tertiary-30);
+  --md-sys-color-on-tertiary-container: var(--md-ref-palette-tertiary-90);
 
-  --secondary: oklch(0.205 0.013 305);
-  --secondary-foreground: oklch(0.92 0.006 305);
-  --secondary-hover: oklch(0.24 0.014 305);
+  --md-sys-color-error: var(--md-ref-palette-error-80);
+  --md-sys-color-on-error: var(--md-ref-palette-error-20);
+  --md-sys-color-error-container: var(--md-ref-palette-error-30);
+  --md-sys-color-on-error-container: var(--md-ref-palette-error-90);
 
-  /* Muted track (tabs/toggles): keep clearly above --card for segment contrast */
-  --muted: oklch(0.21 0.013 305);
-  --muted-foreground: oklch(0.62 0.012 305);
+  --md-sys-color-background: var(--md-ref-palette-neutral-6);
+  --md-sys-color-on-background: var(--md-ref-palette-neutral-90);
 
-  /* Selected chip / emphasis surface: lighter than --muted in dark */
-  --accent: oklch(0.27 0.02 305);
-  --accent-foreground: oklch(0.94 0.006 305);
+  --md-sys-color-surface: var(--md-ref-palette-neutral-6);
+  --md-sys-color-on-surface: var(--md-ref-palette-neutral-90);
 
-  --destructive: oklch(0.58 0.12 25);
-  --success: oklch(0.58 0.09 150);
-  --success-foreground: oklch(0.18 0.014 150);
-  --warning: oklch(0.68 0.11 83);
-  --warning-foreground: oklch(0.2 0.02 83);
-  --info: oklch(0.58 0.09 245);
-  --info-foreground: oklch(0.17 0.015 245);
+  --md-sys-color-surface-variant: var(--md-ref-palette-neutral-variant-30);
+  --md-sys-color-on-surface-variant: var(--md-ref-palette-neutral-variant-80);
+
+  --md-sys-color-surface-dim: var(--md-ref-palette-neutral-6);
+  --md-sys-color-surface-bright: var(--md-ref-palette-neutral-24);
+
+  --md-sys-color-surface-container-lowest: var(--md-ref-palette-neutral-4);
+  --md-sys-color-surface-container-low: var(--md-ref-palette-neutral-10);
+  --md-sys-color-surface-container: var(--md-ref-palette-neutral-12);
+  --md-sys-color-surface-container-high: var(--md-ref-palette-neutral-17);
+  --md-sys-color-surface-container-highest: var(--md-ref-palette-neutral-22);
+
+  --md-sys-color-outline: var(--md-ref-palette-neutral-variant-60);
+  --md-sys-color-outline-variant: var(--md-ref-palette-neutral-variant-30);
+
+  --md-sys-color-inverse-surface: var(--md-ref-palette-neutral-90);
+  --md-sys-color-inverse-on-surface: var(--md-ref-palette-neutral-20);
+
+  --primary-hover: var(--md-ref-palette-primary-90);
+  --secondary-hover: var(--md-sys-color-surface-container-highest);
+
+  --success: oklch(0.62 0.09 150);
+  --success-foreground: oklch(0.16 0.018 150);
+
+  --warning: oklch(0.72 0.11 83);
+  --warning-foreground: oklch(0.18 0.02 83);
+
   --critical: oklch(0.62 0.13 26);
   --critical-foreground: oklch(0.16 0.014 26);
-  --data-positive: oklch(0.62 0.09 152);
-  --data-negative: oklch(0.62 0.12 27);
-  --data-neutral: oklch(0.62 0.009 305);
 
-  --border: oklch(0.255 0.011 305);
-  --input: oklch(0.225 0.011 305);
-  --ring: oklch(0.6 0.1 305);
-
-  --elevation-1: 0 1px 2px color-mix(in oklab, black 45%, transparent);
-  --elevation-2:
-    0 1px 2px color-mix(in oklab, black 45%, transparent),
-    0 8px 18px color-mix(in oklab, black 40%, transparent);
-  --elevation-3:
-    0 1px 2px color-mix(in oklab, black 45%, transparent),
-    0 14px 30px color-mix(in oklab, black 42%, transparent);
-
-  --chart-1: oklch(0.64 0.07 305);
-  --chart-2: oklch(0.65 0.065 240);
+  --chart-1: var(--md-sys-color-primary);
+  --chart-2: var(--md-sys-color-tertiary);
   --chart-3: oklch(0.66 0.075 155);
   --chart-4: oklch(0.72 0.085 78);
-  --chart-5: oklch(0.65 0.11 28);
+  --chart-5: var(--md-ref-palette-error-70);
 
-  --sidebar: oklch(0.12 0.011 305);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(0.22 0.018 305);
-  --sidebar-accent-foreground: oklch(0.9 0.006 305);
-  --sidebar-border: oklch(0.255 0.011 305);
-  --sidebar-ring: var(--ring);
-
-  --af-nexus-utility-bar-surface: var(--sidebar);
-
-  --af-account-workbench-chrome: oklch(0.155 0.013 305);
-
-  /* Dark-mode material tuning: stronger edge, slightly denser glass + cognition */
-  --af-material-edge: color-mix(in oklab, var(--border) 86%, white 14%);
-  --af-material-highlight: color-mix(in oklab, white 16%, transparent);
-  --af-glass-bg: color-mix(in oklab, var(--card) 68%, transparent);
-  --af-resolution-surface: color-mix(
-    in oklab,
-    var(--card) 62%,
-    var(--af-cognition-1) 38%
-  );
-
-  /* Dark blur/saturation tier tuning (still constrained to the same 3 tiers) */
-  --af-blur-shell: 16px;
-  --af-blur-command: 22px;
-  --af-blur-resolution: 28px;
-  --af-sat-shell: 1.1;
-  --af-sat-command: 1.18;
-  --af-sat-resolution: 1.26;
+  --md-sys-elevation-level1:
+    0 1px 2px color-mix(in oklab, black 34%, transparent),
+    0 1px 3px color-mix(in oklab, black 24%, transparent);
+  --md-sys-elevation-level2:
+    0 1px 2px color-mix(in oklab, black 34%, transparent),
+    0 6px 14px color-mix(in oklab, black 28%, transparent);
+  --md-sys-elevation-level3:
+    0 1px 2px color-mix(in oklab, black 34%, transparent),
+    0 10px 24px color-mix(in oklab, black 32%, transparent);
+  --md-sys-elevation-level4:
+    0 2px 3px color-mix(in oklab, black 34%, transparent),
+    0 14px 32px color-mix(in oklab, black 34%, transparent);
+  --md-sys-elevation-level5:
+    0 4px 6px color-mix(in oklab, black 34%, transparent),
+    0 18px 44px color-mix(in oklab, black 36%, transparent);
 }
 
 /* -------------------------------------------------------------------------- */
-/* Material semantics                                                         */
-/*                                                                            */
-/*  State machine (canonical, runtime states reported by components):         */
-/*    idle -> hover -> focus -> typing -> resolving -> execution -> settled   */
-/*                                                                            */
-/*  Material phase model (CSS contract — only 4 phases exist):                */
-/*    shell        (idle / settled)                                            */
-/*    transition   (hover / focus / typing)                                    */
-/*    cognition    (resolving)                                                 */
-/*    cognition+   (execution / Lynx high-confidence)                          */
-/*                                                                            */
-/*  Layer governance (do not violate without ADR amendment):                  */
-/*    Utility bar       : shell only                                          */
-/*    Dock              : shell + current                                     */
-/*    Command palette   : shell -> transition -> cognition                    */
-/*    Dense tables      : opaque only (.af-material-opaque) — REQUIRED        */
-/*    ERP forms         : opaque or light shell                               */
-/*    Lynx resolution   : cognition (data-lynx="resolving")                   */
-/*    Evidence cards    : restrained cognition (no high-confidence escalation)*/
-/*    Modals            : shell or transition                                 */
-/*    Toasts            : shell only                                          */
-/*                                                                            */
-/*  Hard rule: cognition (water) is NOT a reading layer.                      */
-/*  Dense ERP grids, ledgers, audit logs, and timelines must stay opaque.     */
+/* Base                                                                       */
 /* -------------------------------------------------------------------------- */
 
-/* Shared material object — transition physics + paint containment */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    min-height: 100%;
+    font-size: var(--app-font-size);
+    background: var(--background);
+    color: var(--foreground);
+    text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    min-height: 100%;
+    background: var(--background);
+    color: var(--foreground);
+    font-variant-numeric: tabular-nums;
+    line-height: var(--app-body-line-height);
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
+
+  ::selection {
+    background: color-mix(
+      in oklab,
+      var(--md-sys-color-primary) 24%,
+      transparent
+    );
+    color: var(--foreground);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-sans);
+    font-weight: var(--md-sys-typescale-semibold-weight);
+    color: var(--foreground);
+  }
+
+  h1 {
+    font-size: var(--md-sys-typescale-headline-large-size);
+    line-height: var(--md-sys-typescale-headline-large-line-height);
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-size: var(--md-sys-typescale-headline-medium-size);
+    line-height: var(--md-sys-typescale-headline-medium-line-height);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-size: var(--md-sys-typescale-title-large-size);
+    line-height: var(--md-sys-typescale-title-large-line-height);
+    letter-spacing: -0.015em;
+  }
+
+  h4 {
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+  }
+
+  p {
+    line-height: 1.65;
+  }
+
+  button,
+  input,
+  optgroup,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Afenda chrome — root scope                                                 */
+/*                                                                            */
+/* These classes live OUTSIDE @layer utilities so they win cleanly against    */
+/* Tailwind utilities of the same selector specificity. A consumer writing    */
+/*   <div class="af-material-shell bg-card">                                  */
+/* gets the af-material-shell background, not bg-card.                        */
+/* -------------------------------------------------------------------------- */
+
+/* Surface roles */
+
+.af-surface {
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+}
+
+.af-surface-dim {
+  background: var(--md-sys-color-surface-dim);
+  color: var(--md-sys-color-on-surface);
+}
+
+.af-surface-bright {
+  background: var(--md-sys-color-surface-bright);
+  color: var(--md-sys-color-on-surface);
+}
+
+.af-surface-lowest {
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface);
+}
+
+.af-surface-low {
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
+}
+
+.af-surface-container {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+}
+
+.af-surface-high {
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+}
+
+.af-surface-highest {
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Container roles */
+
+.af-primary-container {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.af-secondary-container {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.af-tertiary-container {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+}
+
+.af-error-container {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+/* Borders */
+
+.af-border {
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.af-border-strong {
+  border: 1px solid var(--md-sys-color-outline);
+}
+
+.af-border-muted {
+  border: 1px solid
+    color-mix(in oklab, var(--md-sys-color-outline-variant) 55%, transparent);
+}
+
+.af-hairline {
+  border: 1px solid
+    color-mix(in oklab, var(--md-sys-color-outline-variant) 42%, transparent);
+}
+
+/* Elevation */
+
+.af-elevation-0 {
+  box-shadow: var(--md-sys-elevation-level0);
+}
+
+.af-elevation-1 {
+  box-shadow: var(--md-sys-elevation-level1);
+}
+
+.af-elevation-2 {
+  box-shadow: var(--md-sys-elevation-level2);
+}
+
+.af-elevation-3 {
+  box-shadow: var(--md-sys-elevation-level3);
+}
+
+.af-elevation-4 {
+  box-shadow: var(--md-sys-elevation-level4);
+}
+
+.af-elevation-5 {
+  box-shadow: var(--md-sys-elevation-level5);
+}
+
+/* App shell */
+
+.af-app-shell {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.af-account-workbench-chrome,
+.af-workbench-chrome {
+  background: var(--af-account-workbench-chrome);
+  color: var(--foreground);
+}
+
+.af-top-bar {
+  height: var(--af-l1-height);
+  background: var(--af-nexus-utility-bar-surface);
+  color: var(--sidebar-foreground);
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--sidebar-border) 72%, transparent);
+}
+
+.af-left-rail {
+  background: var(--sidebar);
+  color: var(--sidebar-foreground);
+  border-right: 1px solid
+    color-mix(in oklab, var(--sidebar-border) 72%, transparent);
+}
+
+.af-surface-header,
+.af-workbench-surface-header {
+  min-height: var(--af-topnav-height);
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--md-sys-color-outline-variant) 72%, transparent);
+}
+
+.af-panel {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  border-radius: var(--af-shape-2xl);
+  box-shadow: var(--md-sys-elevation-level0);
+}
+
+.af-panel-muted {
+  background: var(--muted);
+  color: var(--foreground);
+  border: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+  border-radius: var(--md-sys-shape-corner-large);
+  box-shadow: none;
+}
+
+.af-floating-panel {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  border-radius: var(--af-shape-2xl);
+  box-shadow: var(--md-sys-elevation-level2);
+}
+
+.af-command-panel {
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid
+    color-mix(in oklab, var(--md-sys-color-outline-variant) 72%, transparent);
+  border-radius: var(--af-shape-2xl);
+  box-shadow: var(--md-sys-elevation-level2);
+}
+
+/* Material chrome — opaque M3 surfaces (replaces glass / cognition) */
+
 .af-material {
   position: relative;
   isolation: isolate;
   overflow: clip;
   contain: paint;
-  border: 1px solid var(--af-material-edge);
+  border: 1px solid var(--md-sys-color-outline-variant);
   transition:
-    background var(--motion-category-shell),
-    border-color var(--motion-category-shell),
-    box-shadow var(--motion-category-resolution),
-    backdrop-filter var(--motion-category-resolution),
-    --af-flow-angle var(--motion-category-resolution),
-    transform var(--motion-category-pressure);
+    background var(--md-sys-motion-duration-medium1)
+      var(--md-sys-motion-easing-standard),
+    border-color var(--md-sys-motion-duration-medium1)
+      var(--md-sys-motion-easing-standard),
+    box-shadow var(--md-sys-motion-duration-medium1)
+      var(--md-sys-motion-easing-standard),
+    transform var(--md-sys-motion-duration-short4)
+      var(--md-sys-motion-easing-standard);
 }
 
-.af-material::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--af-material-highlight) 100%, transparent),
-    transparent 46%
-  );
-  opacity: 0.9;
-}
-
-/* Ripple layer becomes visible during transition / cognition states */
-.af-material::after {
-  content: "";
-  position: absolute;
-  inset: -30%;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at var(--ripple-x, 50%) var(--ripple-y, 45%),
-    color-mix(
-      in oklab,
-      var(--af-cognition-1) var(--af-ripple-strength),
-      transparent
-    ),
-    transparent 48%
-  );
-  opacity: var(--ripple-opacity, 0);
-  transition: opacity 260ms var(--motion-ease-standard);
-}
-
-/* ---- Phase: shell (idle / settled) --------------------------------------- */
 .af-material-shell,
 .af-material-shell:is([data-phase="idle"], [data-phase="settled"]) {
-  background: var(--af-glass-bg);
-  backdrop-filter: blur(var(--af-blur-shell)) saturate(var(--af-sat-shell));
-  box-shadow:
-    inset 0 1px 0 color-mix(in oklab, white 10%, transparent),
-    var(--af-depth-shell);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level1);
 }
 
-/* ---- Phase: transition (hover / focus / typing) -------------------------- */
 .af-material-transition,
 .af-material-shell:is(
   [data-phase="hover"],
   [data-phase="focus"],
   [data-phase="typing"]
 ) {
-  background: linear-gradient(
-    var(--af-flow-angle),
-    color-mix(in oklab, var(--af-cognition-1) 8%, var(--af-glass-bg)),
-    color-mix(in oklab, var(--af-cognition-2) 7%, var(--af-glass-bg))
-  );
-  backdrop-filter: blur(var(--af-blur-command)) saturate(var(--af-sat-command));
-  box-shadow:
-    inset 0 1px 0 color-mix(in oklab, white 12%, transparent),
-    var(--af-depth-transition);
-  --ripple-opacity: 0.6;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level2);
 }
 
-/* Typing intensifies the current */
-.af-material-shell[data-phase="typing"] {
-  --af-flow-angle: 150deg;
-  --ripple-opacity: 0.75;
-}
-
-/* ---- Phase: cognition (resolving / execution) ---------------------------- */
 .af-material-cognition,
 .af-material-shell:is([data-phase="resolving"], [data-phase="execution"]) {
-  background: linear-gradient(
-    var(--af-flow-angle),
-    color-mix(
-      in oklab,
-      var(--af-cognition-1) 18%,
-      var(--af-resolution-surface)
-    ),
-    color-mix(in oklab, var(--af-cognition-2) 22%, var(--af-resolution-surface))
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+  border-color: color-mix(
+    in oklab,
+    var(--md-sys-color-primary) 32%,
+    var(--md-sys-color-outline-variant)
   );
-  backdrop-filter: blur(var(--af-blur-resolution))
-    saturate(var(--af-sat-resolution));
-  box-shadow:
-    inset 0 1px 0 color-mix(in oklab, white 16%, transparent),
-    var(--af-depth-resolution);
-  --ripple-opacity: 0.3;
+  box-shadow: var(--md-sys-elevation-level3);
 }
 
-/* Resolving / execution differ only in flow direction + ripple intensity */
-.af-material-shell[data-phase="resolving"] {
-  --af-flow-angle: 155deg;
-}
-.af-material-shell[data-phase="execution"] {
-  --af-flow-angle: 165deg;
-  --ripple-opacity: 0.4;
-}
-
-/* ---- Current: active processing pressure (additive accent) --------------- */
-.af-material[data-current="on"] {
-  background: linear-gradient(
-    var(--af-flow-angle),
-    color-mix(
-      in oklab,
-      var(--af-cognition-1) var(--af-current-strength),
-      var(--af-resolution-surface)
-    ),
-    color-mix(
-      in oklab,
-      var(--af-cognition-2) calc(var(--af-current-strength) + 2%),
-      var(--af-resolution-surface)
-    )
-  );
-}
-
-/* ---- Opaque variant — REQUIRED for dense reading surfaces ---------------- */
-/* Use for: tables, ledgers, inventory grids, audit logs, evidence timelines, */
-/* and any ERP form. Cognition / glass must NOT be applied here.              */
 .af-material-opaque {
   background: var(--card);
+  color: var(--card-foreground);
   backdrop-filter: none;
-  box-shadow: var(--shadow-elevation-1);
+  box-shadow: none;
   contain: layout paint;
 }
 
-/* ---- GPU isolation — scoped will-change on active phases only ------------ */
-/* Never apply will-change globally; it must be transient or the compositor   */
-/* keeps backing layers alive and GPU memory inflates across the dashboard.   */
-.af-material:is(
-  [data-phase="hover"],
-  [data-phase="focus"],
-  [data-phase="typing"],
-  [data-phase="resolving"],
-  [data-phase="execution"]
-),
-.af-material:is(
-  [data-lynx="listening"],
-  [data-lynx="resolving"],
-  [data-lynx="high-confidence"],
-  [data-lynx="warning"],
-  [data-lynx="mismatch"]
-) {
-  will-change: backdrop-filter, background, box-shadow;
-}
+/* Lynx visual states — adopted into M3, no new tokens.                       */
+/* Vocabulary preserved from ADR-0001:                                        */
+/*   listening | resolving | high-confidence | warning | mismatch             */
+/* Each state maps to existing M3 surface roles + state-layer/elevation.      */
 
-/* -------------------------------------------------------------------------- */
-/* Nexus chrome — blur/saturation only via tier tokens (ADR-0001 blur budget). */
-/* Do not use Tailwind backdrop-blur-* in components/nexus — use these classes. */
-/* -------------------------------------------------------------------------- */
-
-/* Shared L1 glass (utility bar + account rail) — same blur tier + tint vs opaque fill. */
-.af-nexus-l1-chrome-backplate {
-  backdrop-filter: blur(var(--af-blur-shell)) saturate(var(--af-sat-shell));
+.af-material[data-lynx="listening"] {
   background: color-mix(
     in oklab,
-    var(--af-nexus-utility-bar-surface) 78%,
+    var(--md-sys-color-tertiary-container) 55%,
+    var(--md-sys-color-surface-container)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--md-sys-color-tertiary) 24%,
+    var(--md-sys-color-outline-variant)
+  );
+}
+
+.af-material[data-lynx="resolving"] {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+  border-color: var(--md-sys-color-tertiary);
+  box-shadow: var(--md-sys-elevation-level2);
+}
+
+.af-material[data-lynx="high-confidence"] {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: var(--md-sys-elevation-level2);
+}
+
+.af-material[data-lynx="warning"] {
+  border-color: var(--md-sys-color-error);
+  box-shadow: 0 0 0 1px
+    color-mix(in oklab, var(--md-sys-color-error) 60%, transparent);
+}
+
+.af-material[data-lynx="mismatch"] {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  border-color: var(--md-sys-color-error);
+}
+
+/* Nexus chrome compatibility */
+
+.af-nexus-l1-chrome-backplate {
+  background: var(--af-nexus-utility-bar-surface);
+  color: var(--sidebar-foreground);
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--sidebar-border) 72%, transparent);
+}
+
+.af-nexus-utility-bar-backdrop {
+  box-shadow: 0 1px 0
+    color-mix(in oklab, var(--md-sys-color-outline-variant) 72%, transparent);
+}
+
+.af-nexus-popover-panel {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  box-shadow: var(--md-sys-elevation-level2);
+}
+
+.af-nexus-round-control-backdrop {
+  background: var(--md-sys-color-surface-container-high);
+  border: 1px solid
+    color-mix(in oklab, var(--md-sys-color-outline-variant) 64%, transparent);
+  box-shadow: var(--md-sys-elevation-level1);
+}
+
+/* Workbench flush disc */
+
+.af-workbench-flush-disc {
+  transition:
+    transform var(--md-sys-motion-duration-short4)
+      var(--md-sys-motion-easing-standard),
+    filter var(--md-sys-motion-duration-short4)
+      var(--md-sys-motion-easing-standard),
+    box-shadow var(--md-sys-motion-duration-short4)
+      var(--md-sys-motion-easing-standard);
+}
+
+.af-workbench-flush-disc:hover {
+  filter: brightness(1.04) saturate(1.02);
+  box-shadow: var(--md-sys-elevation-level2);
+}
+
+.af-workbench-flush-disc:active {
+  transform: scale(0.96);
+}
+
+.af-workbench-flush-disc[aria-expanded="true"],
+.af-workbench-flush-disc[data-state="open"] {
+  filter: brightness(0.96);
+}
+
+/* Interaction states — M3 state layer driven */
+
+.af-state-hover {
+  transition:
+    background-color var(--md-sys-motion-duration-short4)
+      var(--md-sys-motion-easing-standard),
+    color var(--md-sys-motion-duration-short4)
+      var(--md-sys-motion-easing-standard),
+    border-color var(--md-sys-motion-duration-short4)
+      var(--md-sys-motion-easing-standard),
+    box-shadow var(--md-sys-motion-duration-short4)
+      var(--md-sys-motion-easing-standard);
+}
+
+.af-state-hover:hover {
+  background: color-mix(
+    in oklab,
+    var(--md-sys-color-on-surface)
+      calc(var(--md-sys-state-hover-opacity) * 100%),
     transparent
   );
 }
 
-@supports (backdrop-filter: blur(1px)) {
-  .af-nexus-l1-chrome-backplate {
-    background: color-mix(
-      in oklab,
-      var(--af-nexus-utility-bar-surface) 64%,
-      transparent
-    );
-  }
+.af-state-selected {
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 
-/* Horizontal edge — compose with `.af-nexus-l1-chrome-backplate` on the utility bar only. */
-/* Account workbench chrome — solid fill for shell root, left rail, and corner gutter. */
-.af-account-workbench-chrome {
-  background: var(--af-account-workbench-chrome);
+.af-state-pressed {
+  background: color-mix(
+    in oklab,
+    var(--md-sys-color-on-surface)
+      calc(var(--md-sys-state-pressed-opacity) * 100%),
+    transparent
+  );
 }
 
-.af-nexus-utility-bar-backdrop {
-  box-shadow: 0 1px 0 color-mix(in oklab, white 4%, transparent);
+.af-focus-ring {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
-/* Workbench surface header — sticky page header backdrop (command-tier blur). */
-/* Replace inline `bg-card/95 backdrop-blur-xl` usages with this class.          */
-.af-workbench-surface-header {
-  backdrop-filter: blur(var(--af-blur-command)) saturate(var(--af-sat-command));
-  background: color-mix(in oklab, var(--card) 88%, transparent);
-  border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+/* Reading surfaces */
+
+.af-reading-surface {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+  box-shadow: none;
 }
 
-@supports (backdrop-filter: blur(1px)) {
-  .af-workbench-surface-header {
-    background: color-mix(in oklab, var(--card) 72%, transparent);
-  }
+.af-table-surface {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+  border-radius: var(--md-sys-shape-corner-large);
+  box-shadow: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .af-workbench-surface-header {
-    backdrop-filter: none;
-    background: var(--card);
-  }
+.af-form-surface {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+  border-radius: var(--md-sys-shape-corner-large);
+  box-shadow: none;
 }
 
-/*
- * Workbench scrollbars — `main` and WorkbenchSurface inner scrollport.
- * Thumb uses ~45% muted-foreground in oklab (~1.5× a typical 30% hint track).
- */
+/* -------------------------------------------------------------------------- */
+/* Workbench scrollbars                                                       */
+/* -------------------------------------------------------------------------- */
+
 .af-workbench-main-scroll,
 .af-workbench-surface-scroll,
 .af-workbench-rail-scroll {
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--muted-foreground) 45%, transparent)
+  scrollbar-color: color-mix(
+      in oklab,
+      var(--md-sys-color-outline) 45%,
+      transparent
+    )
     transparent;
 }
 
@@ -790,7 +1392,7 @@
 .af-workbench-surface-scroll::-webkit-scrollbar-thumb,
 .af-workbench-rail-scroll::-webkit-scrollbar-thumb {
   border-radius: 9999px;
-  background: color-mix(in oklab, var(--muted-foreground) 45%, transparent);
+  background: color-mix(in oklab, var(--md-sys-color-outline) 45%, transparent);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
@@ -798,278 +1400,27 @@
 .af-workbench-main-scroll::-webkit-scrollbar-thumb:hover,
 .af-workbench-surface-scroll::-webkit-scrollbar-thumb:hover,
 .af-workbench-rail-scroll::-webkit-scrollbar-thumb:hover {
-  border-radius: 9999px;
-  background: color-mix(in oklab, var(--muted-foreground) 58%, transparent);
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-.dark .af-nexus-utility-bar-backdrop {
-  box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 8%, transparent);
-}
-
-.af-nexus-popover-panel {
-  backdrop-filter: blur(var(--af-blur-command)) saturate(var(--af-sat-command));
-}
-
-.af-nexus-round-control-backdrop {
-  backdrop-filter: blur(var(--af-blur-shell)) saturate(var(--af-sat-shell));
+  background: color-mix(in oklab, var(--md-sys-color-outline) 58%, transparent);
 }
 
 /* -------------------------------------------------------------------------- */
-/* Workbench flush disc — raster controls whose PNG owns the brand surface.   */
-/*                                                                            */
-/* No chrome (no glass, no border, no shadow ring) so the artwork reads       */
-/* edge-to-edge. Subtle hover lift + press feedback + open-state damping are  */
-/* layered here so callers stay declarative and a11y-correct.                 */
+/* Reduced motion                                                             */
 /* -------------------------------------------------------------------------- */
-
-.af-workbench-flush-disc {
-  transition:
-    transform var(--motion-category-pressure),
-    filter var(--motion-category-shell),
-    box-shadow var(--motion-category-shell);
-}
-
-.af-workbench-flush-disc:hover {
-  filter: brightness(1.06) saturate(1.04);
-  box-shadow: 0 4px 14px color-mix(in oklab, var(--foreground) 14%, transparent);
-}
-
-.af-workbench-flush-disc:active {
-  transform: scale(0.96);
-}
-
-.af-workbench-flush-disc[aria-expanded="true"],
-.af-workbench-flush-disc[data-state="open"] {
-  filter: brightness(0.94);
-}
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+
+  .af-material,
+  .af-state-hover,
   .af-workbench-flush-disc {
     transition: none;
   }
+
   .af-workbench-flush-disc:active {
     transform: none;
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-/* Lynx — material-aware cognition state                                       */
-/* Maps Lynx state -> material behavior. Never label these as "AI mode".       */
-/*                                                                            */
-/*    idle              -> shell                                               */
-/*    listening         -> transition (refraction)                             */
-/*    resolving         -> cognition                                           */
-/*    high-confidence   -> deeper saturation                                   */
-/*    warning           -> brief pressure pulse + persistent warning outline   */
-/*    mismatch          -> brief unstable refraction + persistent skewed angle */
-/*                                                                            */
-/*  Animation discipline (Apple HIG: continuous motion must be rare):          */
-/*    Pulses fire 3 iterations on state entry, then settle.                    */
-/*    Persistent state is communicated by static styling (outline + angle).    */
-/* -------------------------------------------------------------------------- */
-
-.af-material[data-lynx="listening"] {
-  background: linear-gradient(
-    var(--af-flow-angle),
-    color-mix(in oklab, var(--af-cognition-1) 9%, var(--af-glass-bg)),
-    color-mix(in oklab, var(--af-cognition-2) 8%, var(--af-glass-bg))
-  );
-  backdrop-filter: blur(var(--af-blur-command)) saturate(var(--af-sat-command));
-  --ripple-opacity: 0.65;
-}
-
-.af-material[data-lynx="resolving"] {
-  background: linear-gradient(
-    var(--af-flow-angle),
-    color-mix(
-      in oklab,
-      var(--af-cognition-1) 20%,
-      var(--af-resolution-surface)
-    ),
-    color-mix(in oklab, var(--af-cognition-2) 24%, var(--af-resolution-surface))
-  );
-  backdrop-filter: blur(var(--af-blur-resolution))
-    saturate(var(--af-sat-resolution));
-  --af-flow-angle: 158deg;
-}
-
-.af-material[data-lynx="high-confidence"] {
-  --af-sat-resolution: 1.34;
-  background: linear-gradient(
-    var(--af-flow-angle),
-    color-mix(
-      in oklab,
-      var(--af-cognition-1) 26%,
-      var(--af-resolution-surface)
-    ),
-    color-mix(in oklab, var(--af-cognition-2) 30%, var(--af-resolution-surface))
-  );
-  backdrop-filter: blur(var(--af-blur-resolution))
-    saturate(var(--af-sat-resolution));
-}
-
-/* Warning: 3-pulse on entry, then persistent warning outline (no infinite spin) */
-.af-material[data-lynx="warning"] {
-  outline: 1px solid color-mix(in oklab, var(--warning) 60%, transparent);
-  outline-offset: -1px;
-  animation: af-pressure-pulse 2400ms var(--motion-ease-standard) 3 forwards;
-}
-
-/* Mismatch: 3 unstable cycles on entry, then persistent skewed flow angle */
-.af-material[data-lynx="mismatch"] {
-  --af-flow-angle: 165deg;
-  border-color: color-mix(
-    in oklab,
-    var(--af-cognition-2) 50%,
-    var(--af-material-edge)
-  );
-  animation: af-unstable-refraction 1800ms ease-in-out 3 forwards;
-}
-
-@keyframes af-pressure-pulse {
-  0%,
-  100% {
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 12%, transparent),
-      var(--af-depth-transition);
-  }
-  50% {
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 14%, transparent),
-      0 22px 64px color-mix(in oklab, var(--warning) 22%, transparent);
-  }
-}
-
-@keyframes af-unstable-refraction {
-  0%,
-  100% {
-    --af-flow-angle: 145deg;
-    backdrop-filter: blur(var(--af-blur-command))
-      saturate(var(--af-sat-command));
-  }
-  50% {
-    --af-flow-angle: 175deg;
-    backdrop-filter: blur(var(--af-blur-resolution))
-      saturate(calc(var(--af-sat-command) + 0.04));
-  }
-}
-
-/* Fallback when backdrop filters are unavailable */
-@supports not (backdrop-filter: blur(1px)) {
-  .af-material-shell {
-    background: color-mix(in oklab, var(--card) 94%, var(--background) 6%);
-  }
-
-  .af-material-transition,
-  .af-material-cognition,
-  .af-material:is(
-    [data-lynx="listening"],
-    [data-lynx="resolving"],
-    [data-lynx="high-confidence"]
-  ) {
-    background: color-mix(in oklab, var(--card) 86%, var(--af-cognition-1) 14%);
-  }
-
-  .af-nexus-l1-chrome-backplate,
-  .af-nexus-popover-panel,
-  .af-nexus-round-control-backdrop {
-    backdrop-filter: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .af-material {
-    transition:
-      background 140ms linear,
-      border-color 140ms linear,
-      box-shadow 140ms linear;
-  }
-
-  .af-material::after {
-    transition: none;
-  }
-
-  .af-material:is([data-lynx="warning"], [data-lynx="mismatch"]) {
-    animation: none;
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-/* Base                                                                       */
-/* -------------------------------------------------------------------------- */
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
-  html {
-    @apply font-sans;
-    font-size: var(--app-font-size);
-    text-rendering: optimizeLegibility;
-    -webkit-text-size-adjust: 100%;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    html {
-      scroll-behavior: smooth;
-    }
-  }
-
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-variant-numeric: tabular-nums;
-    line-height: var(--app-body-line-height);
-  }
-
-  ::selection {
-    background: color-mix(in oklab, var(--primary) 24%, transparent);
-    color: var(--foreground);
-  }
-
-  h1,
-  h2,
-  h3,
-  h4 {
-    font-family: var(--font-heading);
-    font-weight: 600;
-    color: var(--foreground);
-  }
-
-  h1 {
-    font-size: clamp(2rem, 4vw, 3rem);
-    line-height: 1.05;
-    letter-spacing: -0.035em;
-    text-wrap: balance;
-  }
-
-  h2 {
-    font-size: clamp(1.5rem, 2.6vw, 2rem);
-    line-height: 1.12;
-    letter-spacing: -0.025em;
-    text-wrap: balance;
-  }
-
-  h3 {
-    font-size: 1.125rem;
-    line-height: 1.25;
-    letter-spacing: -0.015em;
-  }
-
-  h4 {
-    font-size: 1rem;
-    line-height: 1.3;
-    letter-spacing: -0.01em;
-  }
-
-  p {
-    line-height: 1.65;
-  }
-
-  button:not(:disabled),
-  [role="button"]:not(:disabled) {
-    cursor: pointer;
   }
 }

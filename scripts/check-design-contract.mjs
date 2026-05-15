@@ -65,16 +65,17 @@ function isSpacingTokenReference(value) {
 /* -------------------------------------------------------------------------- */
 /* Material semantics — adoption governance                                   */
 /*                                                                            */
-/* Material phases, blur tiers, will-change scoping, and infinite animations  */
-/* live ONLY in app/globals.css. Mirrors .cursor/rules/material-semantics.mdc */
-/* and ADR-0001 §12.                                                          */
+/* The M3 hybrid in app/globals.css owns all surfaces, elevation, motion,     */
+/* and state-layer behavior. Components consume via .af-* chrome classes or   */
+/* shadcn aliases (--background, --primary, --card, …) — never via inline    */
+/* style or Tailwind arbitrary blur utilities.                                */
 /* -------------------------------------------------------------------------- */
 
 /** JSX inline style: backdropFilter / willChange bypass material governance. */
 const FORBIDDEN_INLINE_BACKDROP = /\bbackdropFilter\s*:/g
 const FORBIDDEN_INLINE_WILL_CHANGE = /\bwillChange\s*:/g
 
-/** Tailwind arbitrary blur utilities bypass the 3-tier blur budget. */
+/** Tailwind arbitrary blur utilities bypass the M3 surface contract. */
 const FORBIDDEN_BACKDROP_BLUR_UTIL = /\bbackdrop-blur-\[/g
 const FORBIDDEN_BLUR_UTIL = /(?<![\w-])blur-\[/g
 
@@ -93,12 +94,39 @@ const FORBIDDEN_NEXUS_TAILWIND_BACKDROP =
 const FORBIDDEN_INFINITE_ANIMATION = /animation\s*:[^;}\n]*\binfinite\b/g
 
 /**
- * Drift detection — legacy material identifiers renamed to operational vocabulary.
- * Public philosophy still says "water" in docs/ADRs; engineering tokens do not.
+ * Drift detection — legacy material identifiers retired by the M3 hybrid.
+ * Engineering tokens do not use the older "water" / "cognition" / "glass" /
+ * "resolution" / "blur" vocabularies. Visual intent expresses through M3
+ * surface roles (--md-sys-color-surface-container-*), elevation
+ * (--md-sys-elevation-level*), motion (--md-sys-motion-*), and state layers
+ * (--md-sys-state-*-opacity).
  */
 const FORBIDDEN_LEGACY_WATER_TOKEN = /--af-water-/g
 const FORBIDDEN_LEGACY_WATER_CLASS = /\baf-material-water\b/g
 const FORBIDDEN_LEGACY_TRANSITIONING_CLASS = /\baf-material-transitioning\b/g
+
+/**
+ * Retired M3-hybrid foundation tokens — must not be re-introduced. Visual
+ * intent now flows through M3 surface / elevation / motion / state tokens.
+ * Matches both `--af-cognition-*` style refs and `var(--af-cognition-…)` lookups.
+ */
+const FORBIDDEN_RETIRED_HYBRID_TOKEN =
+  /--af-(?:cognition|glass|resolution|blur|current-strength|ripple-strength|flow-angle|depth|material-edge|material-highlight)\b/g
+
+/**
+ * Retired M3-hybrid Lynx animations — adopt M3 motion durations + ease tokens
+ * inside .af-material[data-lynx="…"] rules instead.
+ */
+const FORBIDDEN_RETIRED_HYBRID_ANIMATION =
+  /\baf-(?:pressure-pulse|unstable-refraction)\b/g
+
+/**
+ * Layout-density attribute is no longer wired to a UI control. Re-add only
+ * once a settings panel toggle ships and the corresponding CSS block returns
+ * to globals.css.
+ */
+const FORBIDDEN_LAYOUT_DENSITY_ATTR =
+  /\bdata-layout-density\s*=\s*"(?:compact|relaxed)"/g
 
 function walk(dir) {
   const out = []
@@ -314,7 +342,7 @@ for (const file of files) {
     FORBIDDEN_LEGACY_WATER_TOKEN.lastIndex = 0
     if (FORBIDDEN_LEGACY_WATER_TOKEN.test(row)) {
       report(
-        "legacy material token --af-water-* (renamed to --af-cognition-* / --af-resolution-* / --af-blur-resolution / --af-sat-resolution / --af-depth-resolution)",
+        "legacy material token --af-water-* (retired — use M3 surface tokens: --md-sys-color-surface-container-*, --md-sys-elevation-level*, --md-sys-color-tertiary-container)",
         lineNo,
         row
       )
@@ -322,7 +350,7 @@ for (const file of files) {
     FORBIDDEN_LEGACY_WATER_CLASS.lastIndex = 0
     if (FORBIDDEN_LEGACY_WATER_CLASS.test(row)) {
       report(
-        "legacy material class .af-material-water (renamed to .af-material-cognition)",
+        "legacy material class .af-material-water (retired — use .af-material-shell + data-phase or .af-material[data-lynx])",
         lineNo,
         row
       )
@@ -331,6 +359,30 @@ for (const file of files) {
     if (FORBIDDEN_LEGACY_TRANSITIONING_CLASS.test(row)) {
       report(
         "legacy material class .af-material-transitioning (renamed to .af-material-transition)",
+        lineNo,
+        row
+      )
+    }
+    FORBIDDEN_RETIRED_HYBRID_TOKEN.lastIndex = 0
+    if (FORBIDDEN_RETIRED_HYBRID_TOKEN.test(row)) {
+      report(
+        "retired hybrid token (--af-cognition-/--af-glass-/--af-resolution-/--af-blur-/--af-depth-/--af-material-edge|highlight) — use M3 surface/elevation/motion tokens",
+        lineNo,
+        row
+      )
+    }
+    FORBIDDEN_RETIRED_HYBRID_ANIMATION.lastIndex = 0
+    if (FORBIDDEN_RETIRED_HYBRID_ANIMATION.test(row)) {
+      report(
+        "retired hybrid animation (af-pressure-pulse / af-unstable-refraction) — express Lynx state via .af-material[data-lynx] rules in app/globals.css with M3 motion tokens",
+        lineNo,
+        row
+      )
+    }
+    FORBIDDEN_LAYOUT_DENSITY_ATTR.lastIndex = 0
+    if (FORBIDDEN_LAYOUT_DENSITY_ATTR.test(row)) {
+      report(
+        'data-layout-density="compact|relaxed" attribute — density toggle CSS is removed from globals.css; re-add the :root[data-layout-density] block first if a UI control needs it',
         lineNo,
         row
       )

@@ -371,28 +371,45 @@ A surface conforms to Spatial OS when **all** of the following hold:
 8. **Layer rendering contract honored** (§6) — L1 / L4 synchronous; L2 streamed via Suspense; L3 palette opens in <16ms with no network on the open path.
 9. **No client-owned tenant truth** — no Client Component in `components/nexus/**` imports server-only modules, feature server barrels, or duplicates server-resolved tenant identity.
 10. **Single L2 surface** — per route segment until §10 is amended.
-11. **Material semantics adoption** (§13) — `data-phase` values are restricted to the canonical state machine; surface ↔ material assignments respect §13.4; dense reading surfaces use `.af-material-opaque`; legacy water-vocabulary tokens / classes do not appear in TSX or CSS modules.
+11. **M3 hybrid material adoption** (§13) — `data-phase` values are restricted to the canonical state machine (§13.3); surface ↔ material assignments respect §13.5; dense reading surfaces use `.af-material-opaque`; Lynx state expresses via `.af-material[data-lynx]` only; retired tokens from §13.6 do not appear in TSX or CSS modules; visual intent flows through `--md-sys-*` (surface, elevation, motion, state) rather than legacy `--af-cognition-*` / `--af-glass-*` / `--af-blur-*` / `--af-depth-*` tokens.
 
 A diff failing any of the above must either (a) bring the surface into conformance, or (b) amend this ADR in the same change.
 
 ---
 
-## 13. Material semantics — adoption layer
+## 13. Material semantics — Material 3 hybrid foundation
 
-The Spatial OS shell is rendered in a token-driven **material system** that lives in `app/globals.css`. Mirror rule: **`.cursor/rules/material-semantics.mdc`**. Mechanical enforcement: **`scripts/check-design-contract.mjs`** (CI-gated via `pnpm lint`).
+The Spatial OS shell is rendered on a **Material 3 hybrid token system** that lives in `app/globals.css`. Mirror rule: **`.cursor/rules/design-system.mdc`** (§ Material semantics). Mechanical enforcement: **`scripts/check-design-contract.mjs`** (CI-gated via `pnpm lint`).
 
-### 13.1 Phase model (4 phases — exhaustive)
+> **2026 promotion note** — the cognition / glass / 3-tier blur foundation described in earlier revisions of this section is retired. Visual intent now flows through M3 surface roles, M3 elevation levels, M3 motion tokens, and M3 state-layer opacities. The Lynx vocabulary is preserved verbatim and re-mapped onto M3 surfaces. No new tokens were introduced in the promotion. See §13.5 / §13.6 for the retired token list.
+
+### 13.1 Token chain (authoritative)
 
 ```txt
-shell        -> idle / settled
-transition   -> hover / focus / typing
-cognition    -> resolving / execution
-cognition+   -> Lynx high-confidence
+--af-brand-seed (oklch(0.36 0.048 305))
+  -> --md-ref-palette-* (M3 reference palette: primary, secondary, tertiary, error, neutral, neutral-variant)
+    -> --md-sys-color-* (M3 system roles: primary, surface-container-{lowest..highest}, on-*, outline, outline-variant, inverse-*)
+       --md-sys-shape-corner-{xs..xl} / --md-sys-elevation-level{0..5} / --md-sys-motion-{easing|duration}-* / --md-sys-state-*-opacity / --md-sys-typescale-*
+      -> shadcn aliases (--background, --primary, --card, --popover, --accent, --sidebar-*, --chart-*)
+        -> Tailwind v4 @theme inline (text-display-large..text-label-small, bg-card, text-primary, …)
+      -> --erp-{density|surface|control|field|table|menu}-* (ERP density contracts)
+        -> --af-{control|field|table|menu}-* (back-compat aliases for existing TS components)
 ```
 
-Phase mutation is driven by `data-*` attributes — class names are stable. No new phase classes may be introduced without amending this ADR.
+`--af-brand-hue` (305) and `--af-tertiary-hue` (238) parameterize the brand and information hues; every reference palette derives from them.
 
-### 13.2 Runtime state machine (canonical)
+### 13.2 Phase model (4 phases — class names preserved)
+
+```txt
+shell        -> idle / settled        (surface-container + elevation-level1)
+transition   -> hover / focus / typing (surface-container-high + elevation-level2)
+cognition    -> resolving / execution  (surface-container-highest + primary-tinted border + elevation-level3)
+opaque       -> dense reading surfaces (--card flat, no elevation)
+```
+
+The `cognition` class name is preserved for consumer compatibility; semantically it now reads as "highest opaque surface with primary-tinted border at elevation-level3" — no glass, no gradient, no blur. Phase mutation is driven by `data-phase` attributes; class names are stable.
+
+### 13.3 Runtime state machine (canonical)
 
 ```txt
 idle -> hover -> focus -> typing -> resolving -> execution -> settled
@@ -400,27 +417,28 @@ idle -> hover -> focus -> typing -> resolving -> execution -> settled
 
 Forbidden runtime labels: `active`, `selected`, `open`, `loading`, `processing`, `ai`, `aiActive`. Components map their internal state into one of the canonical values above.
 
-### 13.3 Lynx material-aware vocabulary
+### 13.4 Lynx-on-M3 vocabulary (5 states, M3 tokens only)
 
-| `data-lynx` | Material behavior |
-| ---- | ---- |
-| `idle` | shell |
-| `listening` | transition (refraction) |
-| `resolving` | cognition |
-| `high-confidence` | deeper saturation |
-| `warning` | brief pressure pulse + persistent warning outline |
-| `mismatch` | brief unstable refraction + persistent skewed flow angle |
+`.af-material[data-lynx="…"]` rules express Lynx machine state through pure M3 surface roles. **No new tokens. No animations.** Each state is a static M3 surface + state-layer composition.
 
-Mirrors **`.cursor/rules/lynx-directory.mdc`** (banned user-facing labels: *AI mode*, *Thinking*, *Processing*, *Generating*).
+| `data-lynx` | M3 surface role | M3 elevation / border | Meaning |
+| ---- | ---- | ---- | ---- |
+| `listening` | `mix(tertiary-container 55%, surface-container)` | tinted `outline-variant` | Awaiting input / passive intelligence |
+| `resolving` | `tertiary-container` | `elevation-level2`, `tertiary` border | Active truth retrieval |
+| `high-confidence` | `primary-container` | `elevation-level2`, `primary` border | Resolved with confidence |
+| `warning` | (inherit) | `error` border + 1px error ring | Low confidence / data conflict |
+| `mismatch` | `error-container` | `error` border | Hard mismatch / contradiction |
 
-### 13.4 Surface adoption table (authoritative)
+Mirrors `.cursor/rules/lynx-knowledge.mdc`. Banned user-facing labels: *AI mode*, *Thinking*, *Processing*, *Generating*.
+
+### 13.5 Surface adoption table (authoritative)
 
 | Surface | Allowed material |
 | ---- | ---- |
-| Utility bar (L1) | `shell` only |
-| Dock (L4) | `shell` + `current` |
-| Command palette (L3) | `shell` -> `transition` -> `cognition` |
-| Lynx resolution surfaces | `cognition` (via `data-lynx`) |
+| Utility bar (L1) | `shell` only (paired with `.af-nexus-l1-chrome-backplate`) |
+| Dock (L4) | `shell` |
+| Command palette (L3) | `shell` -> `transition` -> `cognition` (palette overlay blur is owned by shadcn `CommandDialog`, not by `.af-nexus-popover-panel`) |
+| Lynx resolution surfaces | `.af-material[data-lynx]` (5 states above) |
 | Modals | `shell` or `transition` |
 | Toasts | `shell` only |
 | Evidence cards | restrained `cognition` (no high-confidence default) |
@@ -431,46 +449,46 @@ Mirrors **`.cursor/rules/lynx-directory.mdc`** (banned user-facing labels: *AI m
 
 Violations require an ADR amendment in the same change.
 
-### 13.5 Engineering token vocabulary
+### 13.6 Retired tokens (drift detectors enforced in CI)
 
-Public philosophy still uses **glass / water** in copy, ADRs, and documentation. **Engineering tokens are operational** to prevent literal interpretation drift:
-
-```txt
---af-glass-bg                          (shell surface)
---af-cognition-1, --af-cognition-2     (chromatic anchors)
---af-resolution-surface                (cognition surface)
---af-blur-shell|command|resolution     (3-tier blur budget — exhaustive)
---af-sat-shell|command|resolution      (saturation tiers)
---af-depth-shell|transition|resolution (operational gravity)
---af-flow-angle, --af-flow-velocity-*  (directional cognition pressure)
---motion-category-shell|command|resolution|pressure
---af-ripple-strength, --af-current-strength
-```
-
-Renamed for clarity (drift detection in CI):
+The 2026 M3 promotion retired the following identifiers. They are forbidden anywhere outside `app/globals.css` and most are forbidden in `app/globals.css` as well — express the intent through the M3 chain in §13.1.
 
 ```txt
---af-water-*                  -> --af-cognition-* / --af-resolution-* / --af-blur-resolution / --af-sat-resolution / --af-depth-resolution
-.af-material-water            -> .af-material-cognition
-.af-material-transitioning    -> .af-material-transition
+--af-water-*                   (legacy rename, never re-add)
+--af-cognition-*               (use --md-sys-color-surface-container-highest + --md-sys-color-primary border)
+--af-glass-*                   (use --md-sys-color-surface-container)
+--af-resolution-*              (use --md-sys-color-tertiary-container or --md-sys-color-primary-container)
+--af-blur-{shell|command|resolution}   (no blur tier — M3 surfaces are opaque)
+--af-sat-*                     (color saturation lives inside M3 tonal palette tones)
+--af-depth-*                   (use --md-sys-elevation-level{0..5})
+--af-current-strength, --af-ripple-strength, --af-flow-angle  (no flow vector — Lynx state is static)
+--af-material-edge, --af-material-highlight                   (use --md-sys-color-outline-variant)
+
+.af-material-water             (use .af-material-shell + data-phase or .af-material[data-lynx])
+.af-material-transitioning     (renamed to .af-material-transition)
+af-pressure-pulse              (express via .af-material[data-lynx="warning"] static border)
+af-unstable-refraction         (express via .af-material[data-lynx="mismatch"] static surface)
+
+data-layout-density="compact|relaxed"   (CSS toggle removed; re-add :root[data-layout-density] block first)
 ```
 
-### 13.6 Forbidden patterns (mechanical)
+The `cognition` / `glass` / `water` words may still appear in product copy, ADR narrative, or marketing language. They no longer have engineering tokens behind them.
 
-Outside `app/globals.css`:
+### 13.7 Forbidden patterns (mechanical, outside `app/globals.css`)
 
 - inline `style={{ backdropFilter: ... }}` and `style={{ willChange: ... }}`
 - Tailwind arbitrary blur (`backdrop-blur-[…]`, `blur-[…]`)
+- Tailwind scaled `backdrop-blur-{sm..3xl}` inside `components/nexus/**`
 - `animation: … infinite` (continuous motion lives only in `app/globals.css` and must settle)
-- legacy material identifiers from §13.5
+- any retired identifier from §13.6
 
-### 13.7 Animation discipline
+### 13.8 Animation discipline
 
-Pulses fire **3 iterations on entry, then settle**. Persistent state is communicated by static styling (`outline`, `border-color`, skewed `--af-flow-angle`). All animations respect `prefers-reduced-motion: reduce`.
+Pulses fire **3 iterations on entry, then settle**. Persistent state is communicated by static styling (`outline`, `border-color`, M3 surface role swap). All animations respect `prefers-reduced-motion: reduce`. Motion duration / easing must reference `--md-sys-motion-duration-*` / `--md-sys-motion-easing-*` (or their `--motion-*` aliases).
 
-### 13.8 Performance discipline
+### 13.9 Performance discipline
 
-`.af-material` carries `contain: paint`; `.af-material-opaque` carries `contain: layout paint`. `will-change` is scoped to active phases via `:is()` inside `app/globals.css` — never applied globally and never via JSX inline style.
+`.af-material` carries `contain: paint`; `.af-material-opaque` carries `contain: layout paint`. `will-change` is no longer scoped (M3 surfaces are flat — there is no compositor-heavy blur to hint). It must never be applied via JSX inline style.
 
 ---
 
