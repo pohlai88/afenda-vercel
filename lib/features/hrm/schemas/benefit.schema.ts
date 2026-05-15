@@ -24,6 +24,18 @@ const optionalNonNegativeDecimal = z.preprocess(
   z.coerce.number().finite().nonnegative().optional()
 )
 
+const optionalJsonRecord = z.preprocess((value) => {
+  const normalized = emptyToUndefined(value)
+  if (normalized === undefined) return undefined
+  if (typeof normalized === "object") return normalized
+  if (typeof normalized !== "string") return normalized
+  try {
+    return JSON.parse(normalized)
+  } catch {
+    return normalized
+  }
+}, z.record(z.string(), z.unknown()).optional())
+
 export const createBenefitPlanFormSchema = z.object({
   code: z
     .string()
@@ -34,6 +46,22 @@ export const createBenefitPlanFormSchema = z.object({
   description: z.preprocess(emptyToUndefined, z.string().max(4000).optional()),
   benefitKind: z.enum(BENEFIT_KINDS),
   benefitType: z.preprocess(emptyToUndefined, z.string().max(128).optional()),
+  planYear: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().min(1900).max(2200).optional()
+  ),
+  carrierName: z.preprocess(emptyToUndefined, z.string().max(256).optional()),
+  providerName: z.preprocess(emptyToUndefined, z.string().max(256).optional()),
+  policyReference: z.preprocess(
+    emptyToUndefined,
+    z.string().max(256).optional()
+  ),
+  eligibilityRules: optionalJsonRecord,
+  rateTableVersion: z.preprocess(
+    emptyToUndefined,
+    z.string().max(128).optional()
+  ),
+  rateTable: optionalJsonRecord,
   employerContributionType: contributionTypeSchema.default("none"),
   employerContributionValue: optionalNonNegativeDecimal,
   employeeContributionType: contributionTypeSchema.default("none"),

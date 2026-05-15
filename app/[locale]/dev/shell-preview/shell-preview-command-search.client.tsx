@@ -11,7 +11,7 @@ import {
 } from "#components2/app-shell/client"
 
 /** Locale-internal href — shell-preview stays on this dev route for all mock actions. */
-const PREVIEW_HREF = "/dev/shell-preview" satisfies Route
+const PREVIEW_HREF = "/dev/shell-preview" as Route
 
 const SHELL_PREVIEW_COMMAND_SECTIONS: AppShellCommandPaletteSection[] = [
   {

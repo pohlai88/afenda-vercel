@@ -23,7 +23,11 @@ import { LeaveDecisionForms } from "./leave-decision-form"
  * inline notice; we never throw out of this section so the rest of the
  * leave page keeps rendering.
  */
-export async function LeavePendingInbox({ isAdmin }: { isAdmin: boolean }) {
+export async function LeavePendingInbox({
+  canApproveAll,
+}: {
+  canApproveAll: boolean
+}) {
   const orgSession = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.leave")
 
@@ -32,6 +36,7 @@ export async function LeavePendingInbox({ isAdmin }: { isAdmin: boolean }) {
     rows = await listAllLeaveRequestsForOrg(orgSession.organizationId, {
       states: ["submitted"],
       limit: 100,
+      assignedApproverUserId: canApproveAll ? undefined : orgSession.userId,
     })
   } catch (err) {
     logUnexpectedServerError("leave-pending-inbox: query failed", err, {
@@ -57,7 +62,7 @@ export async function LeavePendingInbox({ isAdmin }: { isAdmin: boolean }) {
           <TableHead>{t("colDates")}</TableHead>
           <TableHead>{t("colDuration")}</TableHead>
           <TableHead>{t("colRequested")}</TableHead>
-          {isAdmin ? <TableHead>{t("colActions")}</TableHead> : null}
+          <TableHead>{t("colActions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -94,14 +99,15 @@ export async function LeavePendingInbox({ isAdmin }: { isAdmin: boolean }) {
             <TableCell className="text-xs text-muted-foreground">
               {row.requestedAt.toLocaleString()}
             </TableCell>
-            {isAdmin ? (
-              <TableCell>
+            <TableCell>
+              {canApproveAll ||
+              row.currentApproverUserId === orgSession.userId ? (
                 <LeaveDecisionForms
                   requestId={row.id}
-                  dateRange={`${row.startDate} → ${row.endDate}`}
+                  dateRange={`${row.startDate} -> ${row.endDate}`}
                 />
-              </TableCell>
-            ) : null}
+              ) : null}
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>

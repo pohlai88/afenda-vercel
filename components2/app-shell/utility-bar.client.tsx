@@ -626,7 +626,7 @@ export function AppShellLocaleDropdown({
           "ring-0 ring-offset-0"
         )}
       >
-        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
           Language
         </DropdownMenuLabel>
         {APP_LOCALES.map((locale) => (

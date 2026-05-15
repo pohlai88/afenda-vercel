@@ -11,55 +11,59 @@ import {
   CardTitle,
 } from "#components/ui/card"
 import { Skeleton } from "#components/ui/skeleton"
+import { ErpAccessDenied } from "#features/erp-rbac"
 import { requireOrgSession } from "#lib/tenant"
-import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   listActiveEmployeeChoicesForLeave,
   listActiveLeaveTypesForOrg,
+  resolveLeaveSurfaceAccess,
+  type LeaveSurfaceAccess,
 } from "../server"
 
+import { LeaveAbsenceCalendar } from "./leave-absence-calendar"
 import { LeaveApplyDialog } from "./leave-apply-dialog"
+import { LeaveMyPanel } from "./leave-my-panel"
 import { LeavePendingInbox } from "./leave-pending-inbox"
-import { LeaveRecentTable } from "./leave-recent-table"
 
 /**
- * Leave management surface (Phase 4 — UI binding for the shipped Phase
- * 2B Server Actions). Composition responsibility:
- *
- *  - **Authority** is established by the parent layout (`requireOrgSession`
- *    via the workbench shell) and re-validated here for the apply gate.
- *  - **Tier A** (admin gate + employee/leave-type pickers + translations)
- *    sits in a single blocking `Promise.all` so the page renders the
- *    header + dialog trigger immediately.
- *  - **Tier B** (pending inbox + recent activity) streams behind
- *    Suspense boundaries — neither blocks first paint, and a failure in
- *    one section does not break the other.
- *
- * The applied-on-behalf flow is admin-gated to match the underlying
- * `applyLeaveAction`. Members see a calm read-only "coming soon" panel
- * plus the recent-activity table (no row actions), so navigation
- * remains useful but no privileged affordance is rendered.
+ * Leave management surface. The page stays server-first and splits the
+ * domain into self-service, approval, and visibility sections while all
+ * authority remains inside Server Components and Server Actions.
  */
 type LeavePageProps = {
   orgSlug: string
+  access?: LeaveSurfaceAccess
 }
 
-export async function LeavePage({ orgSlug }: LeavePageProps) {
+export async function LeavePage({ orgSlug, access }: LeavePageProps) {
   const orgSession = await requireOrgSession()
+  const leaveAccess =
+    access ??
+    (await resolveLeaveSurfaceAccess({
+      organizationId: orgSession.organizationId,
+      userId: orgSession.userId,
+    }))
 
-  const [t, isAdmin, employees, leaveTypes] = await Promise.all([
+  if (!leaveAccess.canEnter) {
+    return (
+      <ErpAccessDenied
+        title="Leave"
+        description="This HRM surface requires Leave access or a linked employee record."
+      />
+    )
+  }
+
+  const [t, employees, leaveTypes] = await Promise.all([
     getTranslations("Dashboard.Hrm.leave"),
-    canUseErpPermissionForCurrentOrg({
-      module: "hrm",
-      object: "leave",
-      function: "update",
-    }),
-    listActiveEmployeeChoicesForLeave(orgSession.organizationId),
+    leaveAccess.canManage
+      ? listActiveEmployeeChoicesForLeave(orgSession.organizationId)
+      : Promise.resolve([]),
     listActiveLeaveTypesForOrg(orgSession.organizationId),
   ])
 
-  const canApply = isAdmin && employees.length > 0 && leaveTypes.length > 0
+  const canApplyOnBehalf =
+    leaveAccess.canManage && employees.length > 0 && leaveTypes.length > 0
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -69,16 +73,7 @@ export async function LeavePage({ orgSlug }: LeavePageProps) {
         description={t("pageDescription")}
       />
 
-      {!isAdmin ? (
-        <Card size="sm">
-          <CardHeader>
-            <CardTitle>{t("memberRestrictedTitle")}</CardTitle>
-            <CardDescription>{t("memberRestrictedBody")}</CardDescription>
-          </CardHeader>
-        </Card>
-      ) : null}
-
-      {isAdmin && employees.length === 0 ? (
+      {leaveAccess.canManage && employees.length === 0 ? (
         <Card size="sm">
           <CardHeader>
             <CardTitle>{t("noEmployeesTitle")}</CardTitle>
@@ -87,7 +82,9 @@ export async function LeavePage({ orgSlug }: LeavePageProps) {
         </Card>
       ) : null}
 
-      {isAdmin && employees.length > 0 && leaveTypes.length === 0 ? (
+      {leaveAccess.canManage &&
+      employees.length > 0 &&
+      leaveTypes.length === 0 ? (
         <Card size="sm">
           <CardHeader>
             <CardTitle>{t("noLeaveTypesTitle")}</CardTitle>
@@ -98,9 +95,21 @@ export async function LeavePage({ orgSlug }: LeavePageProps) {
 
       <Card size="sm">
         <CardHeader>
+          <CardTitle>{t("myLeaveTitle")}</CardTitle>
+          <CardDescription>{t("myLeaveDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Suspense fallback={<LeaveSectionSkeleton />}>
+            <LeaveMyPanel leaveTypes={leaveTypes} />
+          </Suspense>
+        </CardContent>
+      </Card>
+
+      <Card size="sm">
+        <CardHeader>
           <CardTitle>{t("inboxTitle")}</CardTitle>
           <CardDescription>{t("inboxDescription")}</CardDescription>
-          {canApply ? (
+          {canApplyOnBehalf ? (
             <CardAction>
               <LeaveApplyDialog
                 orgSlug={orgSlug}
@@ -112,19 +121,19 @@ export async function LeavePage({ orgSlug }: LeavePageProps) {
         </CardHeader>
         <CardContent>
           <Suspense fallback={<LeaveSectionSkeleton />}>
-            <LeavePendingInbox isAdmin={isAdmin} />
+            <LeavePendingInbox canApproveAll={leaveAccess.canManage} />
           </Suspense>
         </CardContent>
       </Card>
 
       <Card size="sm">
         <CardHeader>
-          <CardTitle>{t("recentTitle")}</CardTitle>
-          <CardDescription>{t("recentDescription")}</CardDescription>
+          <CardTitle>{t("absenceTitle")}</CardTitle>
+          <CardDescription>{t("absenceDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<LeaveSectionSkeleton />}>
-            <LeaveRecentTable isAdmin={isAdmin} />
+            <LeaveAbsenceCalendar />
           </Suspense>
         </CardContent>
       </Card>

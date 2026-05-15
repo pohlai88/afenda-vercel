@@ -38,6 +38,11 @@ describe("resolvePostAuthCallbackUrl", () => {
         toLocalePath(DEFAULT_APP_LOCALE, "/account/orbit")
       )
     ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/account/orbit"))
+    expect(
+      resolvePostAuthCallbackUrl(
+        toLocalePath(DEFAULT_APP_LOCALE, "/p/acme-employee/employee")
+      )
+    ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/p/acme-employee/employee"))
   })
 
   it("rejects double locale prefix", () => {

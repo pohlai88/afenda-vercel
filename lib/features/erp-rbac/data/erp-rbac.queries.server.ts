@@ -96,6 +96,43 @@ export async function canUseErpPermissionForCurrentOrg(
   })
 }
 
+export async function listUserIdsWithErpPermission(input: {
+  organizationId: string
+  permission: ErpPermissionTuple
+}): Promise<readonly string[]> {
+  const rows = await db
+    .selectDistinct({ userId: erpRoleMember.userId })
+    .from(erpRoleMember)
+    .innerJoin(
+      erpRole,
+      and(
+        eq(erpRole.id, erpRoleMember.roleId),
+        eq(erpRole.organizationId, input.organizationId),
+        eq(erpRole.status, "active")
+      )
+    )
+    .innerJoin(
+      erpRolePermission,
+      and(
+        eq(erpRolePermission.roleId, erpRole.id),
+        eq(erpRolePermission.organizationId, input.organizationId),
+        eq(erpRolePermission.module, input.permission.module),
+        eq(erpRolePermission.object, input.permission.object),
+        eq(erpRolePermission.function, input.permission.function),
+        eq(erpRolePermission.status, "active")
+      )
+    )
+    .where(
+      and(
+        eq(erpRoleMember.organizationId, input.organizationId),
+        eq(erpRoleMember.status, "active")
+      )
+    )
+    .orderBy(asc(erpRoleMember.userId))
+
+  return rows.map((row) => row.userId)
+}
+
 export async function listTenantAuthorityAssignments(input: {
   organizationId: string
 }): Promise<readonly TenantAuthorityAssignmentRow[]> {

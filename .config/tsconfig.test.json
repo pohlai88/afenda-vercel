@@ -6,6 +6,7 @@
     // Separate incremental cache — warm on repeated typecheck:test runs without
     // invalidating the main tsconfig.tsbuildinfo cache.
     "tsBuildInfoFile": "../.artifacts/.tsbuildinfo/test",
+    "assumeChangesOnlyAffectDirectDependencies": false,
     "noEmit": true
   },
   "include": [

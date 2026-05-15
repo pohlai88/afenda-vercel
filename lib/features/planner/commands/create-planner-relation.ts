@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireOrgSession, requireSignedInSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/tenant"
 
 import { buildPlannerAuditAction } from "../audit/planner-audit.shared"
 import { createPlannerRelation } from "../data/planner.mutations.server"
@@ -40,56 +40,12 @@ export async function createPlannerRelationAction(
     redirect(toLocalePath(locale, `${href}?status=invalidInput`))
   }
 
-  if (scopeKind === "organization") {
-    const session = await requireOrgSession()
-    const created = await createPlannerRelation({
-      scope: {
-        scopeKind: "organization",
-        organizationId: session.organizationId,
-      },
-      itemId: parsed.data.itemId,
-      relationType: parsed.data.relationType,
-      relatedItemId: parsed.data.relatedItemId,
-      relatedSignalId: parsed.data.relatedSignalId,
-      actorUserId: session.userId,
-    })
-
-    after(() =>
-      writeIamAuditEventFromNextHeaders({
-        action: buildPlannerAuditAction("relation", "create"),
-        organizationId: session.organizationId,
-        actorUserId: session.userId,
-        actorSessionId: session.sessionId,
-        resourceType: "planner_relation",
-        resourceId: created.relationId,
-        metadata: {
-          itemId: parsed.data.itemId,
-          relationType: parsed.data.relationType,
-          relatedItemId: parsed.data.relatedItemId ?? null,
-          relatedSignalId: parsed.data.relatedSignalId ?? null,
-        },
-      })
-    )
-
-    revalidateOrbitScope(scopeKind)
-    redirect(
-      toLocalePath(
-        locale,
-        orbitStatusPath({
-          scopeKind,
-          orgSlug,
-          surface,
-          status: "updatedItem",
-          focusKind: "item",
-          focusId: parsed.data.itemId,
-        })
-      )
-    )
-  }
-
-  const session = await requireSignedInSession()
+  const session = await requireOrgSession()
   const created = await createPlannerRelation({
-    scope: { scopeKind: "personal", ownerUserId: session.userId },
+    scope: {
+      scopeKind: "organization",
+      organizationId: session.organizationId,
+    },
     itemId: parsed.data.itemId,
     relationType: parsed.data.relationType,
     relatedItemId: parsed.data.relatedItemId,
@@ -100,6 +56,7 @@ export async function createPlannerRelationAction(
   after(() =>
     writeIamAuditEventFromNextHeaders({
       action: buildPlannerAuditAction("relation", "create"),
+      organizationId: session.organizationId,
       actorUserId: session.userId,
       actorSessionId: session.sessionId,
       resourceType: "planner_relation",

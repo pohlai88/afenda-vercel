@@ -202,7 +202,7 @@ export async function recomputeLeaveBalance(
     "taken",
   ]
 
-  const [entitlementRow, requests] = await Promise.all([
+  const [entitlementRow, requests, existing] = await Promise.all([
     db.query.hrmLeaveEntitlement.findFirst({
       where: and(
         eq(hrmLeaveEntitlement.organizationId, organizationId),
@@ -224,6 +224,20 @@ export async function recomputeLeaveBalance(
       ),
       columns: { state: true, durationDays: true, startDate: true },
     }),
+    db.query.hrmLeaveBalance.findFirst({
+      where: and(
+        eq(hrmLeaveBalance.organizationId, organizationId),
+        eq(hrmLeaveBalance.employeeId, employeeId),
+        eq(hrmLeaveBalance.leaveTypeId, leaveTypeId),
+        eq(hrmLeaveBalance.entitlementYear, entitlementYear)
+      ),
+      columns: {
+        id: true,
+        openingDays: true,
+        adjustedDays: true,
+        carriedForwardDays: true,
+      },
+    }),
   ])
 
   const daysEntitled = entitlementRow
@@ -232,6 +246,9 @@ export async function recomputeLeaveBalance(
 
   const summary = computeLeaveBalanceSummary({
     daysEntitled,
+    openingDays: existing ? Number(existing.openingDays) : 0,
+    adjustedDays: existing ? Number(existing.adjustedDays) : 0,
+    carriedForwardDays: existing ? Number(existing.carriedForwardDays) : 0,
     requests: requests.map((r) => ({
       state: r.state as LeaveRequestStateValue,
       durationDays: r.durationDays,
@@ -239,16 +256,6 @@ export async function recomputeLeaveBalance(
   })
 
   const now = new Date()
-
-  const existing = await db.query.hrmLeaveBalance.findFirst({
-    where: and(
-      eq(hrmLeaveBalance.organizationId, organizationId),
-      eq(hrmLeaveBalance.employeeId, employeeId),
-      eq(hrmLeaveBalance.leaveTypeId, leaveTypeId),
-      eq(hrmLeaveBalance.entitlementYear, entitlementYear)
-    ),
-    columns: { id: true },
-  })
 
   if (existing) {
     await db

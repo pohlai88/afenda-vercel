@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
-  requireOrgSession: vi.fn(),
-  canActInOrganization: vi.fn(),
+  requireTenantAuthority: vi.fn(),
   requireRecentAuthStepUp: vi.fn(),
   getRequestAppLocale: vi.fn(),
 }))
@@ -16,14 +15,13 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-vi.mock("#lib/tenant", () => ({
-  requireOrgSession: mocks.requireOrgSession,
-}))
-
 vi.mock("#lib/auth", () => ({
-  canActInOrganization: mocks.canActInOrganization,
   requireRecentAuthStepUp: mocks.requireRecentAuthStepUp,
   writeIamAuditEventFromNextHeaders: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock("#features/erp-rbac/server", () => ({
+  requireTenantAuthority: mocks.requireTenantAuthority,
 }))
 
 vi.mock("#lib/i18n/request-locale.server", () => ({
@@ -47,20 +45,21 @@ describe("setOrgCapabilityPolicyAction — step-up callback", () => {
     vi.mocked(db.select).mockReset()
     vi.mocked(db.insert).mockReset()
     vi.mocked(db.update).mockReset()
-    mocks.requireOrgSession.mockReset()
-    mocks.canActInOrganization.mockReset()
+    mocks.requireTenantAuthority.mockReset()
     mocks.requireRecentAuthStepUp.mockReset()
     mocks.getRequestAppLocale.mockReset()
   })
 
   it("uses a locale-prefixed return path for admin step-up", async () => {
-    mocks.requireOrgSession.mockResolvedValue({
-      userId: "admin-user",
-      sessionId: "sess-1",
-      organizationId: "org-1",
-      user: { email: "admin@example.com", name: null, role: "admin" },
+    mocks.requireTenantAuthority.mockResolvedValue({
+      ok: true,
+      session: {
+        userId: "admin-user",
+        sessionId: "sess-1",
+        organizationId: "org-1",
+        user: { email: "admin@example.com", name: null, role: "admin" },
+      },
     })
-    mocks.canActInOrganization.mockResolvedValue(true)
     mocks.getRequestAppLocale.mockResolvedValue("en")
 
     const limit = vi.fn().mockResolvedValue([])
@@ -85,13 +84,7 @@ describe("setOrgCapabilityPolicyAction — step-up callback", () => {
   })
 
   it("returns permission_denied before step-up when the viewer is not an admin", async () => {
-    mocks.requireOrgSession.mockResolvedValue({
-      userId: "member-user",
-      sessionId: "sess-1",
-      organizationId: "org-1",
-      user: { email: "member@example.com", name: null, role: "member" },
-    })
-    mocks.canActInOrganization.mockResolvedValue(false)
+    mocks.requireTenantAuthority.mockResolvedValue({ ok: false })
 
     const result = await setOrgCapabilityPolicyAction({
       capabilityId: "right.help",

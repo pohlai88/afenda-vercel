@@ -66,8 +66,19 @@ export type { AppShellUtilityPanelProps } from "./utility-bar-panel.client"
 export { AppShellMarketplacePanel } from "./utility-bar-marketplace.client"
 
 // Self-contained right-rail panels
+export { UtilityBarOrgAdminPanel } from "./utility-bar-org-admin.client"
+export type { UtilityBarOrgAdminPanelProps } from "./utility-bar-org-admin.client"
+export { UtilityBarConnectivityPanel } from "./utility-bar-connectivity.client"
+export { UtilityBarLynxPanel } from "./utility-bar-lynx.client"
+export type { UtilityBarLynxPanelProps } from "./utility-bar-lynx.client"
+export { UtilityBarDensityPanel } from "./utility-bar-density.client"
+export { UtilityBarDiagnosisPanel } from "./utility-bar-diagnosis.client"
+export { UtilityBarScreenshotPanel } from "./utility-bar-screenshot.client"
 export { UtilityBarShortcutsPanel } from "./utility-bar-shortcuts.client"
 export { UtilityBarFeedbackPanel } from "./utility-bar-feedback.client"
+export { UtilityBarStoragePanel } from "./utility-bar-storage.client"
+export { UtilityBarUploadPanel } from "./utility-bar-upload.client"
+export type { UtilityBarUploadPanelProps } from "./utility-bar-upload.client"
 
 // Utility-bar dropdown shell (dropdown + optional sibling overlays)
 export { AppShellUtilityBarIconDropdown } from "./utility-bar-icon-dropdown.client"

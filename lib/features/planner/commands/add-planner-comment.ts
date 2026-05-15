@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireOrgSession, requireSignedInSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/tenant"
 
 import { buildPlannerAuditAction } from "../audit/planner-audit.shared"
 import { insertPlannerComment } from "../data/planner.mutations.server"
@@ -38,51 +38,12 @@ export async function addPlannerCommentAction(
     redirect(toLocalePath(locale, `${href}?status=invalidInput`))
   }
 
-  if (scopeKind === "organization") {
-    const session = await requireOrgSession()
-    await insertPlannerComment({
-      scope: {
-        scopeKind: "organization",
-        organizationId: session.organizationId,
-      },
-      itemId: parsed.data.itemId,
-      body: parsed.data.body,
-      actorUserId: session.userId,
-    })
-
-    after(() =>
-      writeIamAuditEventFromNextHeaders({
-        action: buildPlannerAuditAction("comment", "comment"),
-        organizationId: session.organizationId,
-        actorUserId: session.userId,
-        actorSessionId: session.sessionId,
-        resourceType: "planner_comment",
-        resourceId: parsed.data.itemId,
-        metadata: {
-          itemId: parsed.data.itemId,
-        },
-      })
-    )
-
-    revalidateOrbitScope(scopeKind)
-    redirect(
-      toLocalePath(
-        locale,
-        orbitStatusPath({
-          scopeKind,
-          orgSlug,
-          surface,
-          status: "commentAdded",
-          focusKind: "item",
-          focusId: parsed.data.itemId,
-        })
-      )
-    )
-  }
-
-  const session = await requireSignedInSession()
+  const session = await requireOrgSession()
   await insertPlannerComment({
-    scope: { scopeKind: "personal", ownerUserId: session.userId },
+    scope: {
+      scopeKind: "organization",
+      organizationId: session.organizationId,
+    },
     itemId: parsed.data.itemId,
     body: parsed.data.body,
     actorUserId: session.userId,
@@ -91,6 +52,7 @@ export async function addPlannerCommentAction(
   after(() =>
     writeIamAuditEventFromNextHeaders({
       action: buildPlannerAuditAction("comment", "comment"),
+      organizationId: session.organizationId,
       actorUserId: session.userId,
       actorSessionId: session.sessionId,
       resourceType: "planner_comment",

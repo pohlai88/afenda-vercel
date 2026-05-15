@@ -121,6 +121,7 @@ export type AttendanceDayRow = {
   readonly state: string
   readonly lockedByPayrollPeriodId: string | null
   readonly derivedFromEventChecksum: string | null
+  readonly calculationSnapshot: unknown | null
   readonly updatedByUserId: string | null
   readonly updatedAt: Date
 }
@@ -149,6 +150,7 @@ export async function getAttendanceDay(opts: {
       state: hrmAttendanceDay.state,
       lockedByPayrollPeriodId: hrmAttendanceDay.lockedByPayrollPeriodId,
       derivedFromEventChecksum: hrmAttendanceDay.derivedFromEventChecksum,
+      calculationSnapshot: hrmAttendanceDay.calculationSnapshot,
       updatedByUserId: hrmAttendanceDay.updatedByUserId,
       updatedAt: hrmAttendanceDay.updatedAt,
     })
@@ -190,6 +192,7 @@ export async function listAttendanceDaysForEmployee(opts: {
       state: hrmAttendanceDay.state,
       lockedByPayrollPeriodId: hrmAttendanceDay.lockedByPayrollPeriodId,
       derivedFromEventChecksum: hrmAttendanceDay.derivedFromEventChecksum,
+      calculationSnapshot: hrmAttendanceDay.calculationSnapshot,
       updatedByUserId: hrmAttendanceDay.updatedByUserId,
       updatedAt: hrmAttendanceDay.updatedAt,
     })
@@ -362,6 +365,7 @@ export async function listAttendanceDaysForPayroll(opts: {
       state: hrmAttendanceDay.state,
       lockedByPayrollPeriodId: hrmAttendanceDay.lockedByPayrollPeriodId,
       derivedFromEventChecksum: hrmAttendanceDay.derivedFromEventChecksum,
+      calculationSnapshot: hrmAttendanceDay.calculationSnapshot,
       updatedByUserId: hrmAttendanceDay.updatedByUserId,
       updatedAt: hrmAttendanceDay.updatedAt,
     })

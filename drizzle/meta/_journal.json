@@ -267,6 +267,48 @@
       "when": 1779465960000,
       "tag": "0037_erp_rbac_hard_cutover",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1779466020000,
+      "tag": "0038_hrm_employee_master_record",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1779466080000,
+      "tag": "0039_hrm_org_structure_assignment",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1779466140000,
+      "tag": "0040_portal_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1779466200000,
+      "tag": "0041_hrm_shift_schedule_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1779466260000,
+      "tag": "0042_hrm_benefits_enterprise_metadata",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1779466320000,
+      "tag": "0043_hrm_claims_enterprise_metadata",
+      "breakpoints": true
     }
   ]
 }

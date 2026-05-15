@@ -3,6 +3,7 @@ import { getFormatter, getTranslations } from "next-intl/server"
 import { z } from "zod"
 
 import type { Route } from "next"
+import type { ReactNode } from "react"
 
 import { Link } from "#i18n/navigation"
 import { ModulePageHeader } from "#components/module-page-header"
@@ -24,9 +25,9 @@ import {
   submitCreateDependent,
 } from "../actions/dependent.actions"
 import { organizationHrmPath } from "../constants"
-import { listDependentsForEmployee } from "../data/dependent.queries.server"
 import { listEmployeeChangeHistory } from "../data/employee-change-history.queries.server"
-import { getEmployeeForOrganization } from "../data/employee.queries.server"
+import { getEmployeeMasterRecordForOrganization } from "../data/employee-master.queries.server"
+import { getEmployeePortalAccessForEmployee } from "../data/employee-portal-access.server"
 import { listEmployeeIamAuditTimeline } from "../data/employee-timeline.queries.server"
 import { HRM_DEPENDENT_RELATIONSHIPS } from "../schemas/dependent.schema"
 
@@ -39,7 +40,8 @@ const DEPENDENT_RELATIONSHIP_MESSAGE_KEY = {
 
 import { EmployeeArchiveForm } from "./employee-archive-form"
 import { EmployeeDetailPayrollContract } from "./employee-detail-payroll-contract"
-import { EmployeeEditForm } from "./employee-edit-form"
+import { EmployeeMasterForms } from "./employee-master-forms"
+import { EmployeePortalAccessCard } from "./employee-portal-access-card"
 import { EmployeeTimeline } from "./employee-timeline"
 
 type EmployeeDetailPageProps = {
@@ -57,23 +59,30 @@ export async function EmployeeDetailPage({
   }
 
   const { organizationId } = await requireOrgSession()
-  const [employee, timelineRows, dependents, changeHistory] = await Promise.all(
-    [
-      getEmployeeForOrganization(organizationId, idParsed.data),
+  const [snapshot, timelineRows, changeHistory, portalAccess] =
+    await Promise.all([
+      getEmployeeMasterRecordForOrganization({
+        organizationId,
+        employeeId: idParsed.data,
+      }),
       listEmployeeIamAuditTimeline({
         organizationId,
         employeeId: idParsed.data,
       }),
-      listDependentsForEmployee(organizationId, idParsed.data),
       listEmployeeChangeHistory({
         organizationId,
         employeeId: idParsed.data,
       }),
-    ]
-  )
-  if (!employee) {
+      getEmployeePortalAccessForEmployee({
+        organizationId,
+        employeeId: idParsed.data,
+      }),
+    ])
+  if (!snapshot) {
     notFound()
   }
+  const employee = snapshot.employee
+  const dependents = snapshot.dependents
 
   const [t, format] = await Promise.all([
     getTranslations("Dashboard.Hrm.workforce"),
@@ -85,6 +94,36 @@ export async function EmployeeDetailPage({
     dateStyle: "medium",
     timeStyle: "short",
   })
+  const completenessLabel = (key: string) => {
+    switch (key) {
+      case "identity":
+        return t("masterRecord.completeness.identity")
+      case "contact":
+        return t("masterRecord.completeness.contact")
+      case "employment":
+        return t("masterRecord.completeness.employment")
+      case "statutory":
+        return t("masterRecord.completeness.statutory")
+      case "documents":
+        return t("masterRecord.completeness.documents")
+      default:
+        return key
+    }
+  }
+  const authorizationStatusLabel = (status: string) => {
+    switch (status) {
+      case "active":
+        return t("masterRecord.authorizationStatus.active")
+      case "pending":
+        return t("masterRecord.authorizationStatus.pending")
+      case "expired":
+        return t("masterRecord.authorizationStatus.expired")
+      case "revoked":
+        return t("masterRecord.authorizationStatus.revoked")
+      default:
+        return status
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -117,6 +156,16 @@ export async function EmployeeDetailPage({
           <CardDescription>{t("summarySectionDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(snapshot.completeness).map(([key, complete]) => (
+              <Badge key={key} variant={complete ? "outline" : "secondary"}>
+                {completenessLabel(key)}:{" "}
+                {complete
+                  ? t("masterRecord.completenessStatus.ready")
+                  : t("masterRecord.completenessStatus.missing")}
+              </Badge>
+            ))}
+          </div>
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground">{t("fieldLegalName")}</dt>
@@ -142,23 +191,33 @@ export async function EmployeeDetailPage({
             </div>
             <div className="sm:col-span-2">
               <dt className="text-muted-foreground">
-                {t("fieldDepartmentId")}
+                {t("masterRecord.fields.department")}
               </dt>
-              <dd className="font-mono text-xs">
-                {employee.currentDepartmentId ?? "—"}
-              </dd>
+              <dd>{placementLabel(snapshot.placementLabels.department)}</dd>
             </div>
             <div className="sm:col-span-2">
-              <dt className="text-muted-foreground">{t("fieldPositionId")}</dt>
-              <dd className="font-mono text-xs">
-                {employee.currentPositionId ?? "—"}
-              </dd>
+              <dt className="text-muted-foreground">
+                {t("masterRecord.fields.position")}
+              </dt>
+              <dd>{placementLabel(snapshot.placementLabels.position)}</dd>
             </div>
             <div className="sm:col-span-2">
-              <dt className="text-muted-foreground">{t("fieldJobGradeId")}</dt>
-              <dd className="font-mono text-xs">
-                {employee.currentJobGradeId ?? "—"}
-              </dd>
+              <dt className="text-muted-foreground">
+                {t("masterRecord.fields.jobGrade")}
+              </dt>
+              <dd>{placementLabel(snapshot.placementLabels.jobGrade)}</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-muted-foreground">
+                {t("masterRecord.fields.manager")}
+              </dt>
+              <dd>{placementLabel(snapshot.placementLabels.manager)}</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-muted-foreground">
+                {t("masterRecord.fields.linkedUser")}
+              </dt>
+              <dd>{placementLabel(snapshot.placementLabels.linkedUser)}</dd>
             </div>
           </dl>
           {employee.archivedAt && employee.archivedReason ? (
@@ -174,6 +233,149 @@ export async function EmployeeDetailPage({
         </CardContent>
       </Card>
 
+      <Card id="identity" size="sm">
+        <CardHeader>
+          <CardTitle className="text-base">
+            {t("masterRecord.cardTitle")}
+          </CardTitle>
+          <CardDescription>{t("masterRecord.cardDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <nav className="flex flex-wrap gap-2 text-xs">
+            {[
+              ["#identity", t("masterRecord.nav.identity")],
+              ["#employment", t("masterRecord.nav.employment")],
+              ["#statutory", t("masterRecord.nav.statutory")],
+              ["#dependents", t("masterRecord.nav.dependents")],
+              ["#history", t("masterRecord.nav.history")],
+            ].map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                className="rounded-md border border-border px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <MasterSection title={t("masterRecord.sections.identityProfile")}>
+              <MasterValue
+                label={t("masterRecord.values.dateOfBirth")}
+                value={
+                  snapshot.personalProfile?.dateOfBirth
+                    ? format.dateTime(snapshot.personalProfile.dateOfBirth, {
+                        dateStyle: "medium",
+                      })
+                    : "—"
+                }
+              />
+              <MasterValue
+                label={t("masterRecord.values.nationality")}
+                value={snapshot.personalProfile?.nationality ?? "—"}
+              />
+              <MasterValue
+                label={t("masterRecord.values.maritalStatus")}
+                value={snapshot.personalProfile?.maritalStatus ?? "—"}
+              />
+            </MasterSection>
+            <MasterSection title={t("masterRecord.sections.contactProfile")}>
+              <MasterValue
+                label={t("masterRecord.values.workEmail")}
+                value={
+                  snapshot.contactProfile?.workEmail ?? employee.email ?? "—"
+                }
+              />
+              <MasterValue
+                label={t("masterRecord.values.workPhone")}
+                value={
+                  snapshot.contactProfile?.workPhone ?? employee.phone ?? "—"
+                }
+              />
+              <MasterValue
+                label={t("masterRecord.values.personalContact")}
+                value={
+                  snapshot.contactProfile?.personalEmail ||
+                  snapshot.contactProfile?.personalPhone
+                    ? t("masterRecord.values.recorded")
+                    : "—"
+                }
+              />
+            </MasterSection>
+            <MasterSection title={t("masterRecord.sections.identityDocuments")}>
+              {snapshot.identityDocuments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("masterRecord.empty.identityDocuments")}
+                </p>
+              ) : (
+                <ul className="space-y-2 text-sm">
+                  {snapshot.identityDocuments.map((doc) => (
+                    <li key={doc.id} className="rounded-md border p-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium">{doc.documentType}</span>
+                        {doc.isPrimary ? (
+                          <Badge variant="outline">
+                            {t("masterRecord.badges.primary")}
+                          </Badge>
+                        ) : null}
+                        <span className="text-muted-foreground">
+                          {doc.issuingCountry} ·{" "}
+                          {maskIdentifier(doc.documentNumber)}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </MasterSection>
+            <MasterSection title={t("masterRecord.sections.workAuthorization")}>
+              {snapshot.workAuthorizations.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("masterRecord.empty.workAuthorization")}
+                </p>
+              ) : (
+                <ul className="space-y-2 text-sm">
+                  {snapshot.workAuthorizations.map((auth) => (
+                    <li key={auth.id} className="rounded-md border p-2">
+                      <span className="font-medium">
+                        {auth.countryCode} · {auth.authorizationType}
+                      </span>
+                      <span className="ml-2 text-muted-foreground">
+                        {authorizationStatusLabel(auth.status)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </MasterSection>
+          </div>
+        </CardContent>
+      </Card>
+
+      {!employee.archivedAt ? (
+        <Card id="employment" size="sm">
+          <CardHeader>
+            <CardTitle className="text-base">
+              {t("masterRecord.updatesTitle")}
+            </CardTitle>
+            <CardDescription>
+              {t("masterRecord.updatesDescription")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <EmployeeMasterForms orgSlug={orgSlug} snapshot={snapshot} />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <EmployeePortalAccessCard
+        orgSlug={orgSlug}
+        employeeId={employee.id}
+        linkedUserId={employee.linkedUserId}
+        archived={Boolean(employee.archivedAt)}
+        access={portalAccess}
+      />
+
       <EmployeeDetailPayrollContract
         orgSlug={orgSlug}
         organizationId={organizationId}
@@ -181,7 +383,7 @@ export async function EmployeeDetailPage({
         archivedAt={employee.archivedAt}
       />
 
-      <Card size="sm">
+      <Card id="dependents" size="sm">
         <CardHeader>
           <CardTitle className="text-base">
             {t("dependentsSectionTitle")}
@@ -315,7 +517,7 @@ export async function EmployeeDetailPage({
         </CardContent>
       </Card>
 
-      <Card size="sm">
+      <Card id="history" size="sm">
         <CardHeader>
           <CardTitle className="text-base">{t("changeHistoryTitle")}</CardTitle>
           <CardDescription>{t("changeHistoryDescription")}</CardDescription>
@@ -380,17 +582,6 @@ export async function EmployeeDetailPage({
 
           <Card size="sm">
             <CardHeader>
-              <CardTitle className="text-base">{t("editTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <EmployeeEditForm orgSlug={orgSlug} employee={employee} />
-            </CardContent>
-          </Card>
-
-          <Separator />
-
-          <Card size="sm">
-            <CardHeader>
               <CardTitle className="text-base">{t("archiveTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
@@ -418,6 +609,48 @@ function serializeChangeValue(value: unknown): string {
   } catch {
     return String(value)
   }
+}
+
+function MasterSection({
+  title,
+  children,
+}: {
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <section className="rounded-md border border-border p-3">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <div className="mt-3 space-y-2">{children}</div>
+    </section>
+  )
+}
+
+function MasterValue({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="text-sm">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-medium">{value}</p>
+    </div>
+  )
+}
+
+function placementLabel(
+  option: {
+    code: string
+    label: string
+    secondaryLabel: string | null
+  } | null
+): string {
+  if (!option) return "—"
+  return `${option.code} · ${option.label}${
+    option.secondaryLabel ? ` (${option.secondaryLabel})` : ""
+  }`
+}
+
+function maskIdentifier(value: string): string {
+  if (value.length <= 4) return "••••"
+  return `•••• ${value.slice(-4)}`
 }
 
 function relationshipKey(

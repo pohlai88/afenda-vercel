@@ -1,11 +1,13 @@
 import type { NextConfig } from "next"
 import { withSentryConfig } from "@sentry/nextjs"
+import { createMDX } from "fumadocs-mdx/next"
 import createNextIntlPlugin from "next-intl/plugin"
 import { withWorkflow } from "workflow/next"
 
 import { betterAuthAllowedHostsFromEnv } from "./lib/site"
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
+const withMDX = createMDX()
 const LEGAL_DOCS_ROUTE_PREFIX = "/legal-docs"
 
 /** @see https://nextjs.org/docs/app/api-reference/config/next-config-js/serverActions (wildcard origins). */
@@ -120,7 +122,7 @@ const nextConfig: NextConfig = {
   },
 }
 
-const coreConfig = withWorkflow(withNextIntl(nextConfig))
+const coreConfig = withWorkflow(withNextIntl(withMDX(nextConfig)))
 
 const sentrySourceMapsUploadEnabled =
   Boolean(process.env.SENTRY_AUTH_TOKEN) &&

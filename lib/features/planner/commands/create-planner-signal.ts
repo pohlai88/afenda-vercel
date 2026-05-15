@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireOrgSession, requireSignedInSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/tenant"
 
 import { buildPlannerAuditAction } from "../audit/planner-audit.shared"
 import { createPlannerSignalFormSchema } from "../domain/planner.schemas"
@@ -47,54 +47,12 @@ export async function createPlannerSignalAction(
     )
   }
 
-  if (scopeKind === "organization") {
-    const session = await requireOrgSession()
-    const row = await insertPlannerSignal({
-      scope: {
-        scopeKind: "organization",
-        organizationId: session.organizationId,
-      },
-      title: parsed.data.title,
-      description: parsed.data.description,
-      signalClass: parsed.data.signalClass,
-      actorUserId: session.userId,
-    })
-
-    after(() =>
-      writeIamAuditEventFromNextHeaders({
-        action: buildPlannerAuditAction("signal", "create"),
-        organizationId: session.organizationId,
-        actorUserId: session.userId,
-        actorSessionId: session.sessionId,
-        resourceType: "planner_signal",
-        resourceId: row.id,
-        metadata: {
-          scopeKind,
-          signalClass: parsed.data.signalClass,
-        },
-      })
-    )
-
-    revalidateOrbitScope(scopeKind)
-
-    redirect(
-      toLocalePath(
-        locale,
-        orbitStatusPath({
-          scopeKind,
-          orgSlug,
-          surface,
-          status: "createdSignal",
-          focusKind: "signal",
-          focusId: row.id,
-        })
-      )
-    )
-  }
-
-  const session = await requireSignedInSession()
+  const session = await requireOrgSession()
   const row = await insertPlannerSignal({
-    scope: { scopeKind: "personal", ownerUserId: session.userId },
+    scope: {
+      scopeKind: "organization",
+      organizationId: session.organizationId,
+    },
     title: parsed.data.title,
     description: parsed.data.description,
     signalClass: parsed.data.signalClass,
@@ -104,6 +62,7 @@ export async function createPlannerSignalAction(
   after(() =>
     writeIamAuditEventFromNextHeaders({
       action: buildPlannerAuditAction("signal", "create"),
+      organizationId: session.organizationId,
       actorUserId: session.userId,
       actorSessionId: session.sessionId,
       resourceType: "planner_signal",

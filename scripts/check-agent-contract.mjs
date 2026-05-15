@@ -19,6 +19,7 @@ const REQUIRED_FILES = [
   ".cursor/rules/planner-directory.mdc",
   ".cursor/rules/simulation-directory.mdc",
   ".cursor/rules/shell-directory.mdc",
+  ".cursor/rules/portal-directory.mdc",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
   "tests/unit/fixtures-i18n-parity.test.ts",
@@ -60,6 +61,7 @@ const TOP_LEVEL_DIR_ALLOWLIST = new Set([
   "scripts",
   "tests",
   "turbo",
+  "content",
 ])
 
 const ROOT_RUNTIME_FILES = new Set([
@@ -93,6 +95,7 @@ const ROOT_TOOLING_FILES = new Set([
   ".lintstagedrc.json",
   "turbo.json",
   "turbo/generators/config.ts",
+  "source.config.ts",
 ])
 
 const ROOT_WORKSPACE_FILES = new Set([

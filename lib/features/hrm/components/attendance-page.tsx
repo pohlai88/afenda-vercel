@@ -21,6 +21,10 @@ import { AttendanceDaySummary } from "./attendance-day-summary"
 import { AttendanceDaySelector } from "./attendance-day-selector"
 import { AttendanceRecentEvents } from "./attendance-recent-events"
 import { AttendanceRecordEventDialog } from "./attendance-record-event-dialog"
+import {
+  AttendanceShiftAssignmentPanel,
+  AttendanceShiftAssignmentPanelSkeleton,
+} from "./attendance-shift-assignment-panel"
 
 /**
  * Attendance management surface (Phase 4 — UI binding for the shipped
@@ -76,6 +80,7 @@ export async function AttendancePage({
       ? employeeIdParam
       : null
   const validDate = dateParam && isIsoDate(dateParam) ? dateParam : null
+  const selectedDate = validDate ?? todayIsoDate()
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -113,13 +118,22 @@ export async function AttendancePage({
             orgSlug={orgSlug}
             employees={employees}
             selectedEmployeeId={validEmployeeId}
-            selectedDate={validDate ?? todayIsoDate()}
+            selectedDate={selectedDate}
           />
+          {isAdmin && validEmployeeId ? (
+            <Suspense fallback={<AttendanceShiftAssignmentPanelSkeleton />}>
+              <AttendanceShiftAssignmentPanel
+                organizationId={orgSession.organizationId}
+                employeeId={validEmployeeId}
+                attendanceDate={selectedDate}
+              />
+            </Suspense>
+          ) : null}
           {validEmployeeId ? (
             <Suspense fallback={<AttendanceDaySummarySkeleton />}>
               <AttendanceDaySummary
                 employeeId={validEmployeeId}
-                attendanceDate={validDate ?? todayIsoDate()}
+                attendanceDate={selectedDate}
                 isAdmin={isAdmin}
               />
             </Suspense>

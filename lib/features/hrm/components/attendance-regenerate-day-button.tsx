@@ -25,8 +25,7 @@ type AttendanceRegenerateDayButtonProps = {
  * not a destructive change.
  *
  * Result feedback appears inline next to the button so the operator
- * knows whether the click did anything (`updated`) or not (`skipped`).
- * Locked-day rejection is surfaced via the action's `form` error.
+ * knows whether the click updated, skipped, or hit a locked payroll day.
  */
 export function AttendanceRegenerateDayButton({
   employeeId,
@@ -85,6 +84,14 @@ export function AttendanceRegenerateDayButton({
           aria-live="polite"
         >
           {t("regenerateSkipped")}
+        </span>
+      ) : success === "locked" ? (
+        <span
+          className="text-xs text-destructive"
+          role="status"
+          aria-live="polite"
+        >
+          {t("regenerateFailedLocked")}
         </span>
       ) : null}
       {error?.form ? (

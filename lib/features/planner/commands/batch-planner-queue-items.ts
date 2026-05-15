@@ -7,7 +7,7 @@ import { isOrbitAdvancedOperatorControlsEnabled } from "#flags"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireOrgSession, requireSignedInSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/tenant"
 
 import { buildPlannerAuditAction } from "../audit/planner-audit.shared"
 import {
@@ -78,94 +78,11 @@ export async function batchPlannerQueueItemsAction(
 
   const parsedSurface = parsed.data.surface
 
-  if (scopeKind === "organization") {
-    const session = await requireOrgSession()
-    const scope = {
-      scopeKind: "organization" as const,
-      organizationId: session.organizationId,
-    }
-
-    switch (parsed.data.operation) {
-      case "activate_items":
-        await batchTransitionPlannerItemsLifecycle({
-          scope,
-          itemIds: parsed.data.itemIds,
-          lifecycle: "active",
-          actorUserId: session.userId,
-        })
-        break
-      case "block_items":
-        await batchTransitionPlannerItemsLifecycle({
-          scope,
-          itemIds: parsed.data.itemIds,
-          lifecycle: "blocked",
-          actorUserId: session.userId,
-        })
-        break
-      case "ready_items":
-        await batchTransitionPlannerItemsLifecycle({
-          scope,
-          itemIds: parsed.data.itemIds,
-          lifecycle: "ready_for_review",
-          actorUserId: session.userId,
-        })
-        break
-      case "verify_items":
-        await batchTransitionPlannerItemsLifecycle({
-          scope,
-          itemIds: parsed.data.itemIds,
-          lifecycle: "verified",
-          actorUserId: session.userId,
-        })
-        break
-      case "assign_items":
-        await batchAssignPlannerOwnership({
-          scope,
-          itemIds: parsed.data.itemIds,
-          role: "assignee",
-          subjectUserId: parsed.data.subjectUserId,
-          subjectLabel: parsed.data.subjectLabel,
-          actorUserId: session.userId,
-        })
-        break
-      default:
-        throw new Error("Unsupported planner queue batch operation")
-    }
-
-    after(() =>
-      writeIamAuditEventFromNextHeaders({
-        ...batchQueueAuditShape(parsed.data.operation),
-        organizationId: session.organizationId,
-        actorUserId: session.userId,
-        actorSessionId: session.sessionId,
-        resourceId: parsed.data.itemIds[0] ?? parsed.data.operation,
-        metadata: {
-          batch: true,
-          operation: parsed.data.operation,
-          surface: parsedSurface,
-          itemCount: parsed.data.itemIds.length,
-          subjectUserId: parsed.data.subjectUserId ?? null,
-          subjectLabel: parsed.data.subjectLabel ?? null,
-        },
-      })
-    )
-
-    revalidateOrbitScope(scopeKind)
-    redirect(
-      toLocalePath(
-        locale,
-        orbitStatusPath({
-          scopeKind,
-          orgSlug,
-          surface: parsedSurface,
-          status: "batchUpdated",
-        })
-      )
-    )
+  const session = await requireOrgSession()
+  const scope = {
+    scopeKind: "organization" as const,
+    organizationId: session.organizationId,
   }
-
-  const session = await requireSignedInSession()
-  const scope = { scopeKind: "personal" as const, ownerUserId: session.userId }
 
   switch (parsed.data.operation) {
     case "activate_items":
@@ -217,6 +134,7 @@ export async function batchPlannerQueueItemsAction(
   after(() =>
     writeIamAuditEventFromNextHeaders({
       ...batchQueueAuditShape(parsed.data.operation),
+      organizationId: session.organizationId,
       actorUserId: session.userId,
       actorSessionId: session.sessionId,
       resourceId: parsed.data.itemIds[0] ?? parsed.data.operation,

@@ -54,6 +54,11 @@ function toDecimalOrNull(
   return value.toFixed(fractionDigits)
 }
 
+function trimOrNull(value: string | undefined): string | null {
+  const normalized = value?.trim()
+  return normalized ? normalized : null
+}
+
 // ---------------------------------------------------------------------------
 // Tier B — benefit plan catalog (admin-gated)
 // ---------------------------------------------------------------------------
@@ -78,6 +83,13 @@ export async function createBenefitPlanAction(
     description: formData.get("description"),
     benefitKind: formData.get("benefitKind"),
     benefitType: formData.get("benefitType"),
+    planYear: formData.get("planYear"),
+    carrierName: formData.get("carrierName"),
+    providerName: formData.get("providerName"),
+    policyReference: formData.get("policyReference"),
+    eligibilityRules: formData.get("eligibilityRules"),
+    rateTableVersion: formData.get("rateTableVersion"),
+    rateTable: formData.get("rateTable"),
     employerContributionType: formData.get("employerContributionType"),
     employerContributionValue: formData.get("employerContributionValue"),
     employeeContributionType: formData.get("employeeContributionType"),
@@ -95,6 +107,11 @@ export async function createBenefitPlanAction(
       name: fe.name?.[0],
       benefitKind: fe.benefitKind?.[0],
       benefitType: fe.benefitType?.[0],
+      planYear: fe.planYear?.[0],
+      carrierName: fe.carrierName?.[0],
+      providerName: fe.providerName?.[0],
+      policyReference: fe.policyReference?.[0],
+      rateTableVersion: fe.rateTableVersion?.[0],
       effectiveFrom: fe.effectiveFrom?.[0],
       waitingPeriodDays: fe.waitingPeriodDays?.[0],
       employerContributionType: fe.employerContributionType?.[0],
@@ -116,7 +133,14 @@ export async function createBenefitPlanAction(
         name: data.name.trim(),
         description: data.description?.trim() ?? null,
         benefitKind: data.benefitKind,
-        benefitType: data.benefitType?.trim() ?? null,
+        benefitType: trimOrNull(data.benefitType),
+        planYear: data.planYear ?? null,
+        carrierName: trimOrNull(data.carrierName),
+        providerName: trimOrNull(data.providerName),
+        policyReference: trimOrNull(data.policyReference),
+        eligibilityRules: data.eligibilityRules ?? null,
+        rateTableVersion: trimOrNull(data.rateTableVersion),
+        rateTable: data.rateTable ?? null,
         employerContributionType: data.employerContributionType,
         employerContributionValue: toDecimalOrNull(
           data.employerContributionValue,
@@ -188,6 +212,13 @@ export async function updateBenefitPlanAction(
     description: formData.get("description"),
     benefitKind: formData.get("benefitKind"),
     benefitType: formData.get("benefitType"),
+    planYear: formData.get("planYear"),
+    carrierName: formData.get("carrierName"),
+    providerName: formData.get("providerName"),
+    policyReference: formData.get("policyReference"),
+    eligibilityRules: formData.get("eligibilityRules"),
+    rateTableVersion: formData.get("rateTableVersion"),
+    rateTable: formData.get("rateTable"),
     employerContributionType: formData.get("employerContributionType"),
     employerContributionValue: formData.get("employerContributionValue"),
     employeeContributionType: formData.get("employeeContributionType"),
@@ -206,6 +237,11 @@ export async function updateBenefitPlanAction(
       name: fe.name?.[0],
       benefitKind: fe.benefitKind?.[0],
       benefitType: fe.benefitType?.[0],
+      planYear: fe.planYear?.[0],
+      carrierName: fe.carrierName?.[0],
+      providerName: fe.providerName?.[0],
+      policyReference: fe.policyReference?.[0],
+      rateTableVersion: fe.rateTableVersion?.[0],
       effectiveFrom: fe.effectiveFrom?.[0],
       waitingPeriodDays: fe.waitingPeriodDays?.[0],
       employerContributionType: fe.employerContributionType?.[0],
@@ -239,7 +275,14 @@ export async function updateBenefitPlanAction(
         name: data.name.trim(),
         description: data.description?.trim() ?? null,
         benefitKind: data.benefitKind,
-        benefitType: data.benefitType?.trim() ?? null,
+        benefitType: trimOrNull(data.benefitType),
+        planYear: data.planYear ?? null,
+        carrierName: trimOrNull(data.carrierName),
+        providerName: trimOrNull(data.providerName),
+        policyReference: trimOrNull(data.policyReference),
+        eligibilityRules: data.eligibilityRules ?? null,
+        rateTableVersion: trimOrNull(data.rateTableVersion),
+        rateTable: data.rateTable ?? null,
         employerContributionType: data.employerContributionType,
         employerContributionValue: toDecimalOrNull(
           data.employerContributionValue,

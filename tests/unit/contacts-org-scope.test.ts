@@ -4,6 +4,8 @@ const drizzleEqMocks = vi.hoisted(() => ({
   eqCalls: [] as unknown[][],
 }))
 
+const requireErpPermissionMock = vi.hoisted(() => vi.fn())
+
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof import("drizzle-orm")>()
   return {
@@ -34,6 +36,10 @@ vi.mock("#lib/auth", () => ({
   writeIamAuditEventFromNextHeaders: vi.fn().mockResolvedValue(undefined),
 }))
 
+vi.mock("#features/erp-rbac/server", () => ({
+  requireErpPermission: requireErpPermissionMock,
+}))
+
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }))
@@ -43,6 +49,7 @@ import { requireOrgSession } from "#lib/tenant"
 describe("contacts org isolation", () => {
   beforeEach(() => {
     vi.mocked(requireOrgSession).mockReset()
+    requireErpPermissionMock.mockReset()
     vi.mocked(db.select).mockReset()
     vi.mocked(db.insert).mockReset()
     drizzleEqMocks.eqCalls = []
@@ -64,12 +71,15 @@ describe("contacts org isolation", () => {
     expect(orgArgsB).toContain("org-b")
   })
 
-  it("createContact inserts with organizationId from requireOrgSession, not FormData", async () => {
-    vi.mocked(requireOrgSession).mockResolvedValue({
-      userId: "user-1",
-      sessionId: "sess-1",
-      organizationId: "org-session",
-      user: { email: "a@b.com", name: null, role: "member" },
+  it("createContact inserts with organizationId from ERP permission session, not FormData", async () => {
+    requireErpPermissionMock.mockResolvedValue({
+      ok: true,
+      session: {
+        userId: "user-1",
+        sessionId: "sess-1",
+        organizationId: "org-session",
+        user: { email: "a@b.com", name: null, role: "member" },
+      },
     })
 
     const returning = vi.fn().mockResolvedValue([{ id: "new-id" }])

@@ -66,6 +66,7 @@ export type GovernedDetailTabKind = z.infer<typeof governedDetailTabKindSchema>
 export type GovernedDetailSection = z.infer<typeof governedDetailSectionSchema>
 export type GovernedRevisionEntry = z.infer<typeof governedRevisionEntrySchema>
 export type GovernedDetailTabsModel = z.infer<typeof governedDetailTabsSchema>
+export type GovernedDetailTabsInput = z.input<typeof governedDetailTabsSchema>
 
 export function parseGovernedDetailTabsData(raw: unknown) {
   return governedDetailTabsSchema.safeParse(raw)

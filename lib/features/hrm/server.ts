@@ -10,6 +10,35 @@ export type {
   UpdateEmployeeMutationResult,
 } from "./data/employee.mutations.server"
 
+export {
+  deriveEmployeeMasterCompleteness,
+  getEmployeeMasterRecordForOrganization,
+} from "./data/employee-master.queries.server"
+
+export {
+  listDepartmentsForOrg,
+  listEmployeeAssignmentHistory,
+  listJobGradesForOrg,
+  listOrgStructureEmployeePlacements,
+  listOrgStructureSnapshot,
+  listOrgUnitTree,
+  listPositionControlRows,
+  listPositionsForOrg,
+  validateOrgStructureHealth,
+} from "./data/org-structure.queries.server"
+
+export type {
+  DepartmentListRow,
+  EmployeeAssignmentHistoryRow,
+  JobGradeListRow,
+  OrgStructureEmployeePlacementRow,
+  OrgStructureHealthIssue,
+  OrgStructureSnapshot,
+  OrgUnitTreeRow,
+  PositionControlRow,
+  PositionListRow,
+} from "./data/org-structure.queries.server"
+
 export { upsertPayrollProfileMutation } from "./data/payroll-profile.mutations.server"
 
 export type {
@@ -40,6 +69,26 @@ export {
   readLeaveBalance,
 } from "./data/leave-balance.server"
 
+export {
+  buildLeaveRequestPolicySnapshot,
+  computeCarryForwardExpiry,
+  computeLeaveRequestDuration,
+  validateLeavePolicyForRequest,
+} from "./data/leave-absence.shared"
+
+export { resolveLeaveSurfaceAccess } from "./data/leave-access.server"
+export type { LeaveSurfaceAccess } from "./data/leave-access.server"
+
+export { resolveLeaveRequestCalendar } from "./data/leave-calendar.server"
+export type { LeaveRequestCalendar } from "./data/leave-calendar.server"
+
+export type {
+  LeavePolicyIssue,
+  LeavePolicyIssueCode,
+  LeavePolicyValidationResult,
+  LeaveRequestPolicySnapshot,
+} from "./data/leave-absence.shared"
+
 export type {
   LeaveRequestStateValue,
   HalfDayValue,
@@ -55,6 +104,11 @@ export {
   listAllLeaveRequestsForOrg,
   listActiveEmployeeChoicesForLeave,
   listActiveLeaveTypesForOrg,
+  findLeaveEmployeeForUser,
+  getLeaveEmployeeForOrg,
+  getLeaveTypeForRequest,
+  resolveLeaveApproverUserId,
+  resolveManagerApproverUserId,
 } from "./data/leave-request.queries.server"
 
 export type {
@@ -64,6 +118,8 @@ export type {
   OrgLeaveRequestRow,
   LeaveEmployeeChoiceRow,
   LeaveTypeChoiceRow,
+  LeaveEmployeeContextRow,
+  LeaveTypeContextRow,
 } from "./data/leave-request.queries.server"
 
 export {
@@ -80,6 +136,7 @@ export type {
 /** Attendance aggregation + queries (events, day rollups). */
 export {
   aggregateAttendanceDay,
+  attendanceSnapshotHasPayrollBlockingException,
   computeEventChecksum,
   regenerateAttendanceDayFromEvents,
 } from "./data/attendance-aggregator.server"
@@ -91,6 +148,9 @@ export type {
   HrmAttendanceEventForAggregation,
   HrmAttendanceDayDraft,
   AttendanceCalculationSnapshot,
+  AttendanceException,
+  AttendanceExceptionCode,
+  AttendanceExceptionSeverity,
 } from "./data/attendance-aggregator.server"
 
 export {
@@ -110,6 +170,32 @@ export type {
   OrgAttendanceDayRow,
   AttendanceEmployeeChoiceRow,
 } from "./data/attendance.queries.server"
+
+export {
+  assignEmployeeShiftAction,
+  createShiftTemplateAction,
+} from "./actions/attendance-shift.actions"
+
+export {
+  getShiftAssignmentForEmployeeDate,
+  listShiftTemplatesForOrg,
+  resolveAttendanceShiftContext,
+  shiftAssignmentRowToView,
+  shiftTemplateRowToOption,
+} from "./data/attendance-shift.queries.server"
+
+export type {
+  ShiftAssignmentRow,
+  ShiftTemplateRow,
+} from "./data/attendance-shift.queries.server"
+
+export type {
+  AttendanceShiftAssignmentView,
+  AttendanceShiftTemplateOption,
+  AttendanceShiftContext,
+  RegenerateAttendanceDayResult,
+  ShiftHolidayBehavior,
+} from "./data/attendance-shift.shared"
 
 export {
   ATTENDANCE_MANUAL_EVENT_TYPES,
@@ -176,17 +262,37 @@ export {
   getPayrollPeriod,
   listPayrollRunsForPeriod,
   listPayrollLinesForRun,
+  listPayrollLinesForPeriod,
   getPayrollRunInputSnapshot,
   isAttendancePayrollReadyForPeriod,
   hasApprovedPayrollPeriodLockApproval,
+  getApprovedPayrollPeriodLockApproval,
   getPendingPayrollPeriodLockApprovalId,
+  getPayrollPeriodPrimaryCountryCode,
 } from "./data/payroll.queries.server"
 
 export type {
   PayrollPeriodRow,
   PayrollRunRow,
   PayrollLineRow,
+  PayrollPeriodLockApprovalRow,
 } from "./data/payroll.queries.server"
+
+export {
+  buildPayrollCloseSnapshot,
+  buildPayrollPostingPreview,
+  buildPayslipSnapshotForRun,
+  listPayrollCloseExceptions,
+} from "./data/payroll-close.server"
+
+export type {
+  PayrollCloseActionFormState,
+  PayrollCloseChecklistItem,
+  PayrollCloseException,
+  PayrollCloseSnapshot,
+  PayrollPayslipSnapshot,
+  PayrollPostingPreview,
+} from "./data/payroll-close.shared"
 
 /** Compliance evidence reads (period/org scope, delivery lookup). */
 export {
@@ -420,19 +526,42 @@ export type {
 export {
   countApprovedUnpaidClaimsForOrg,
   countPendingClaimsForOrg,
+  canUploadClaimEvidenceForUser,
+  findClaimEmployeeForUser,
   findClaimApproval,
   findOrgDocumentForClaim,
   findOrgEmployeeForClaim,
   getClaimDetail,
   getClaimTypeForOrg,
+  listClaimsForCurrentEmployee,
   listApprovedUnpaidClaimsForPeriod,
   listClaimsForEmployee,
   listClaimsForOrg,
+  listClaimsForOrgPage,
   listClaimTypesForOrg,
   listPendingClaimApprovalsForOrg,
+  resolveClaimApproverUserId,
+  sumClaimsForEmployeeClaimTypeWindow,
 } from "./data/claim.queries.server"
+export {
+  resolveClaimSurfaceAccess,
+} from "./data/claim-access.server"
 
 /** Benefits administration reads (plans, enrollments, life events). */
+export {
+  buildBenefitCensusReportForOrganization,
+  evaluateBenefitEligibilityForEmployee,
+  listBenefitPayrollProjectionEnrollmentsForPeriod,
+  projectBenefitPayrollLinesForEmployeePeriod,
+} from "./data/benefit-enterprise.queries.server"
+
+export type {
+  BenefitEligibilityEvaluation,
+  BenefitPayrollProjectionQueryOptions,
+  BuildBenefitCensusReportForOrganizationOptions,
+  EvaluateBenefitEligibilityForEmployeeOptions,
+} from "./data/benefit-enterprise.queries.server"
+
 export {
   countPendingBenefitEnrollmentsForOrganization,
   getBenefitEnrollmentForOrganization,
@@ -459,6 +588,7 @@ export type {
   ClaimRow,
   ClaimTypeRow,
 } from "./data/claim.queries.server"
+export type { ClaimSurfaceAccess } from "./data/claim-access.server"
 
 /** Document expiry watch pure helpers + cron tick summary types. */
 export {

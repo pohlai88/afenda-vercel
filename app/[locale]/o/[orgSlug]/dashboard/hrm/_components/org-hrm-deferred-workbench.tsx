@@ -11,6 +11,7 @@ import { listEffectiveErpPermissionsForUser } from "#features/erp-rbac/server"
 import {
   buildHrmRailSlots,
   HRM_CAPABILITIES,
+  resolveLeaveSurfaceAccess,
   type HrmCapability,
   organizationHrmPath,
   organizationHrmRootPath,
@@ -34,18 +35,25 @@ export async function OrgHrmDeferredWorkbench({
   orgSlug,
   orgSession,
 }: OrgHrmDeferredWorkbenchProps) {
-  const [tShell, tNav, railPressure, orgDisplayName] = await Promise.all([
-    getTranslations("Dashboard.Hrm.shell"),
-    getTranslations("Dashboard.Hrm.nav"),
-    getHrmRailPressureCounts(orgSession.organizationId),
-    getOrganizationNameById(orgSession.organizationId),
-  ])
+  const [tShell, tNav, railPressure, orgDisplayName, leaveAccess] =
+    await Promise.all([
+      getTranslations("Dashboard.Hrm.shell"),
+      getTranslations("Dashboard.Hrm.nav"),
+      getHrmRailPressureCounts(orgSession.organizationId),
+      getOrganizationNameById(orgSession.organizationId),
+      resolveLeaveSurfaceAccess({
+        organizationId: orgSession.organizationId,
+        userId: orgSession.userId,
+      }),
+    ])
   const effectivePermissions = await listEffectiveErpPermissionsForUser({
     organizationId: orgSession.organizationId,
     userId: orgSession.userId,
   })
   const visibleCapabilities: readonly HrmCapability[] = HRM_CAPABILITIES.filter(
-    (capability) => effectivePermissions.includes(capability.requiredPermission)
+    (capability) =>
+      effectivePermissions.includes(capability.requiredPermission) ||
+      (capability.id === "leave" && leaveAccess.canEnter)
   )
 
   const orgPrimaryLabel = orgDisplayName ?? orgSlug

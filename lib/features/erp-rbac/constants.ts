@@ -235,9 +235,9 @@ export const ERP_PERMISSION_REGISTRY_BY_KEY = new Map<
 >(ERP_PERMISSION_REGISTRY.map((permission) => [permission.key, permission]))
 
 export function getErpPermissionDefinition(
-  key: ErpPermissionKey
+  key: string
 ): ErpPermissionDefinition | null {
-  return ERP_PERMISSION_REGISTRY_BY_KEY.get(key) ?? null
+  return ERP_PERMISSION_REGISTRY_BY_KEY.get(key as ErpPermissionKey) ?? null
 }
 
 export function isKnownErpPermissionKey(

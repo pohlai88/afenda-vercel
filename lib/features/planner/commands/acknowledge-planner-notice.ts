@@ -43,22 +43,6 @@ export async function acknowledgePlannerNoticeAction(
     redirect(toLocalePath(locale, `${href}?status=invalidInput`))
   }
 
-  if (scopeKind !== "organization") {
-    redirect(
-      toLocalePath(
-        locale,
-        orbitStatusPath({
-          scopeKind,
-          orgSlug,
-          surface,
-          status: "updatedItem",
-          focusKind: "item",
-          focusId: parsed.data.itemId,
-        })
-      )
-    )
-  }
-
   const session = await requireOrgSession()
   await acknowledgeOrgNotification({
     organizationId: session.organizationId,

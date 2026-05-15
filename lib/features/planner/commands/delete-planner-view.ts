@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireOrgSession, requireSignedInSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/tenant"
 
 import { buildPlannerAuditAction } from "../audit/planner-audit.shared"
 import { deletePlannerView } from "../data/planner.mutations.server"
@@ -36,41 +36,19 @@ export async function deletePlannerViewAction(
     redirect(toLocalePath(locale, `${href}?status=invalidInput`))
   }
 
-  if (scopeKind === "organization") {
-    const session = await requireOrgSession()
-    await deletePlannerView({
-      scope: {
-        scopeKind: "organization",
-        organizationId: session.organizationId,
-      },
-      viewId: parsed.data.viewId,
-    })
-
-    after(() =>
-      writeIamAuditEventFromNextHeaders({
-        action: buildPlannerAuditAction("view", "delete"),
-        organizationId: session.organizationId,
-        actorUserId: session.userId,
-        actorSessionId: session.sessionId,
-        resourceType: "planner_view",
-        resourceId: parsed.data.viewId,
-      })
-    )
-
-    revalidateOrbitScope(scopeKind)
-    const href = orbitScopedPath({ scopeKind, orgSlug, surface })
-    redirect(toLocalePath(locale, `${href}?status=deletedView`))
-  }
-
-  const session = await requireSignedInSession()
+  const session = await requireOrgSession()
   await deletePlannerView({
-    scope: { scopeKind: "personal", ownerUserId: session.userId },
+    scope: {
+      scopeKind: "organization",
+      organizationId: session.organizationId,
+    },
     viewId: parsed.data.viewId,
   })
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
       action: buildPlannerAuditAction("view", "delete"),
+      organizationId: session.organizationId,
       actorUserId: session.userId,
       actorSessionId: session.sessionId,
       resourceType: "planner_view",

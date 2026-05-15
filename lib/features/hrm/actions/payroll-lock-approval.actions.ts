@@ -224,6 +224,7 @@ export async function approvePayrollPeriodLockApprovalAction(
       subjectKind: hrmApproval.subjectKind,
       subjectId: hrmApproval.subjectId,
       state: hrmApproval.state,
+      requestedByUserId: hrmApproval.requestedByUserId,
     })
     .from(hrmApproval)
     .where(
@@ -243,6 +244,11 @@ export async function approvePayrollPeriodLockApprovalAction(
   if (row.state !== "pending") {
     return hrmActionFailure({
       form: `Approval is not pending (state: ${row.state}).`,
+    })
+  }
+  if (row.requestedByUserId === session.userId) {
+    return hrmActionFailure({
+      form: "Requester cannot approve their own payroll lock certification.",
     })
   }
 

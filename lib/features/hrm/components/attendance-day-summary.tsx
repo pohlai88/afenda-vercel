@@ -1,6 +1,9 @@
+import { and, eq } from "drizzle-orm"
 import { getTranslations } from "next-intl/server"
 
 import { Badge } from "#components/ui/badge"
+import { db } from "#lib/db"
+import { hrmEmployee } from "#lib/db/schema"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/tenant"
 
@@ -8,13 +11,11 @@ import {
   attendanceDayStateTone,
   formatMinutesAsHoursMinutes,
 } from "../data/attendance-display.shared"
+import { attendanceSnapshotExceptionCount } from "../data/attendance-shift.shared"
 import {
   type AttendanceDayRow,
   getAttendanceDay,
 } from "../data/attendance.queries.server"
-import { db } from "#lib/db"
-import { hrmEmployee } from "#lib/db/schema"
-import { and, eq } from "drizzle-orm"
 
 import { AttendanceRegenerateDayButton } from "./attendance-regenerate-day-button"
 
@@ -119,6 +120,9 @@ export async function AttendanceDaySummary({
     ? t(`state.${row.state}`)
     : row.state
   const isLocked = row.state === "locked"
+  const exceptionCount = attendanceSnapshotExceptionCount(
+    row.calculationSnapshot
+  )
 
   return (
     <div className="flex flex-col gap-4">
@@ -180,6 +184,10 @@ export async function AttendanceDaySummary({
         <SummaryStat
           label={t("metricScheduledMinutes")}
           value={formatMinutesAsHoursMinutes(row.scheduledMinutes)}
+        />
+        <SummaryStat
+          label={t("metricExceptionCount")}
+          value={String(exceptionCount)}
         />
         <SummaryStat
           label={t("metricLastUpdated")}

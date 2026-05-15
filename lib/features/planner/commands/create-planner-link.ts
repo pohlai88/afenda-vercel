@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireOrgSession, requireSignedInSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/tenant"
 
 import { buildPlannerAuditAction } from "../audit/planner-audit.shared"
 import { createPlannerLink } from "../data/planner.mutations.server"
@@ -43,59 +43,12 @@ export async function createPlannerLinkAction(
     redirect(toLocalePath(locale, `${href}?status=invalidInput`))
   }
 
-  if (scopeKind === "organization") {
-    const session = await requireOrgSession()
-    const created = await createPlannerLink({
-      scope: {
-        scopeKind: "organization",
-        organizationId: session.organizationId,
-      },
-      itemId: parsed.data.itemId,
-      module: parsed.data.module,
-      entityType: parsed.data.entityType,
-      entityId: parsed.data.entityId,
-      displayLabel: parsed.data.displayLabel,
-      href: parsed.data.href,
-      causalityReason: parsed.data.causalityReason,
-      actorUserId: session.userId,
-    })
-
-    after(() =>
-      writeIamAuditEventFromNextHeaders({
-        action: buildPlannerAuditAction("link", "create"),
-        organizationId: session.organizationId,
-        actorUserId: session.userId,
-        actorSessionId: session.sessionId,
-        resourceType: "planner_link",
-        resourceId: created.linkId,
-        metadata: {
-          itemId: parsed.data.itemId,
-          module: parsed.data.module,
-          entityType: parsed.data.entityType,
-          entityId: parsed.data.entityId,
-        },
-      })
-    )
-
-    revalidateOrbitScope(scopeKind)
-    redirect(
-      toLocalePath(
-        locale,
-        orbitStatusPath({
-          scopeKind,
-          orgSlug,
-          surface,
-          status: "updatedItem",
-          focusKind: "item",
-          focusId: parsed.data.itemId,
-        })
-      )
-    )
-  }
-
-  const session = await requireSignedInSession()
+  const session = await requireOrgSession()
   const created = await createPlannerLink({
-    scope: { scopeKind: "personal", ownerUserId: session.userId },
+    scope: {
+      scopeKind: "organization",
+      organizationId: session.organizationId,
+    },
     itemId: parsed.data.itemId,
     module: parsed.data.module,
     entityType: parsed.data.entityType,
@@ -109,6 +62,7 @@ export async function createPlannerLinkAction(
   after(() =>
     writeIamAuditEventFromNextHeaders({
       action: buildPlannerAuditAction("link", "create"),
+      organizationId: session.organizationId,
       actorUserId: session.userId,
       actorSessionId: session.sessionId,
       resourceType: "planner_link",

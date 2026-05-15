@@ -5,6 +5,10 @@ import type {
   PayrollRulePack,
   ValidationIssue,
 } from "./payroll-rule-pack.server"
+import {
+  projectBenefitPayrollLinesForPeriod,
+  type BenefitPayrollProjectionEnrollment,
+} from "./benefit-payroll-projection.shared"
 
 // ---------------------------------------------------------------------------
 // Input / output contracts
@@ -23,6 +27,8 @@ export type PayrollEngineInput = {
   /** Gross salary declared on the active contract (e.g. "5000.00"). */
   readonly basicSalaryAmount: string
   readonly basicSalaryCurrency: string
+  /** ISO date string "YYYY-MM-DD" — first day of the period. */
+  readonly periodStart?: string
   /** ISO date string "YYYY-MM-DD" — last day of the period; used for rule-pack resolution. */
   readonly periodEnd: string
   /** Total approved unpaid leave deduction minutes for this period. */
@@ -77,6 +83,8 @@ export type PayrollEngineInput = {
     readonly amount: string
     readonly currency: string
   }>
+  /** Benefit enrollments whose coverage may overlap the payroll period. */
+  readonly benefitEnrollments?: ReadonlyArray<BenefitPayrollProjectionEnrollment>
 }
 
 /**
@@ -355,6 +363,14 @@ export async function computePayrollRun(
       metadata: { salaryAdvanceId: adv.id, currency: adv.currency },
     })
   }
+
+  const benefitLines = projectBenefitPayrollLinesForPeriod({
+    enrollments: input.benefitEnrollments ?? [],
+    periodStart: input.periodStart ?? input.periodEnd,
+    periodEnd: input.periodEnd,
+    currency: input.basicSalaryCurrency,
+  })
+  lines.push(...benefitLines)
 
   // 5. Net pay = BASIC + earnings + employee deductions only (employer_contribution excluded)
   const netPay = lines

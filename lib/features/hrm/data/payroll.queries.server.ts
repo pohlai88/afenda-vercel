@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, desc, eq, isNotNull } from "drizzle-orm"
+import { and, desc, eq, inArray, isNotNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -13,13 +13,19 @@ import {
   hrmPayrollRun,
 } from "#lib/db/schema"
 
-import { listAttendanceDaysForPayroll } from "./attendance.queries.server"
+import { attendanceSnapshotHasPayrollBlockingException } from "./attendance-aggregator.server"
+import {
+  listAttendanceDaysForEmployee,
+  listAttendanceDaysForPayroll,
+} from "./attendance.queries.server"
+import { listBenefitPayrollProjectionEnrollmentsForPeriod } from "./benefit-enterprise.queries.server"
 import { listApprovedUnpaidClaimsForPeriod } from "./claim.queries.server"
 import { listApprovedSalaryAdvancesForEmployeePayroll } from "./salary-advance.queries.server"
 import { PAYROLL_PERIOD_LOCK_SUBJECT_KIND } from "../schemas/payroll-period.schema"
 import { parseMalaysiaPcbStatutoryExtras } from "../schemas/malaysia-pcb-statutory-extras.shared"
 
 import type { PayrollEngineInput } from "./payroll-engine.server"
+import type { AttendanceDayRow } from "./attendance.queries.server"
 
 // ---------------------------------------------------------------------------
 // Period queries
@@ -180,7 +186,19 @@ export type PayrollLineRow = {
   code: string
   description: string
   amount: string
+  claimId: string | null
+  salaryAdvanceId: string | null
   rulePackProvenance: Record<string, unknown> | null
+}
+
+function mapPayrollLineRow(row: PayrollLineRow): PayrollLineRow {
+  return {
+    ...row,
+    rulePackProvenance: (row.rulePackProvenance ?? null) as Record<
+      string,
+      unknown
+    > | null,
+  }
 }
 
 export async function listPayrollLinesForRun(
@@ -195,6 +213,8 @@ export async function listPayrollLinesForRun(
       code: hrmPayrollLine.code,
       description: hrmPayrollLine.description,
       amount: hrmPayrollLine.amount,
+      claimId: hrmPayrollLine.claimId,
+      salaryAdvanceId: hrmPayrollLine.salaryAdvanceId,
       rulePackProvenance: hrmPayrollLine.rulePackProvenance,
     })
     .from(hrmPayrollLine)
@@ -205,18 +225,66 @@ export async function listPayrollLinesForRun(
       )
     )
 
-  return rows.map((r) => ({
-    ...r,
-    rulePackProvenance: (r.rulePackProvenance ?? null) as Record<
-      string,
-      unknown
-    > | null,
-  }))
+  return rows.map(mapPayrollLineRow)
+}
+
+export async function listPayrollLinesForPeriod(
+  organizationId: string,
+  periodId: string
+): Promise<PayrollLineRow[]> {
+  const runIds = await db
+    .select({ id: hrmPayrollRun.id })
+    .from(hrmPayrollRun)
+    .where(
+      and(
+        eq(hrmPayrollRun.organizationId, organizationId),
+        eq(hrmPayrollRun.periodId, periodId)
+      )
+    )
+
+  if (runIds.length === 0) return []
+
+  const rows = await db
+    .select({
+      id: hrmPayrollLine.id,
+      runId: hrmPayrollLine.runId,
+      lineKind: hrmPayrollLine.lineKind,
+      code: hrmPayrollLine.code,
+      description: hrmPayrollLine.description,
+      amount: hrmPayrollLine.amount,
+      claimId: hrmPayrollLine.claimId,
+      salaryAdvanceId: hrmPayrollLine.salaryAdvanceId,
+      rulePackProvenance: hrmPayrollLine.rulePackProvenance,
+    })
+    .from(hrmPayrollLine)
+    .where(
+      and(
+        eq(hrmPayrollLine.organizationId, organizationId),
+        inArray(
+          hrmPayrollLine.runId,
+          runIds.map((run) => run.id)
+        )
+      )
+    )
+
+  return rows.map(mapPayrollLineRow)
 }
 
 // ---------------------------------------------------------------------------
 // Input snapshot query (used by the workflow step)
 // ---------------------------------------------------------------------------
+
+type PayrollAttendanceRow = Pick<
+  AttendanceDayRow,
+  "state" | "calculationSnapshot"
+>
+
+function isAttendanceDayReadyForPayroll(row: PayrollAttendanceRow): boolean {
+  return (
+    (row.state === "computed" || row.state === "locked") &&
+    !attendanceSnapshotHasPayrollBlockingException(row.calculationSnapshot)
+  )
+}
 
 /** Builds the PayrollEngineInput from DB snapshots of the run's contract + profile. */
 export async function getPayrollRunInputSnapshot(
@@ -265,6 +333,10 @@ export async function getPayrollRunInputSnapshot(
     typeof period.periodEnd === "string"
       ? String(period.periodEnd).slice(0, 10)
       : (period.periodEnd as Date).toISOString().slice(0, 10)
+  const periodStartIso =
+    typeof period.periodStart === "string"
+      ? String(period.periodStart).slice(0, 10)
+      : (period.periodStart as Date).toISOString().slice(0, 10)
 
   const ymd = periodEndIso.slice(0, 10).split("-")
   const yRaw = Number.parseInt(ymd[0] ?? "2026", 10)
@@ -291,6 +363,24 @@ export async function getPayrollRunInputSnapshot(
       amount: row.amount,
       currency: row.currency,
     }))
+
+  const attendanceRows = await listAttendanceDaysForEmployee({
+    organizationId,
+    employeeId: run.employeeId,
+    fromDate: period.periodStart,
+    toDate: period.periodEnd,
+  })
+  const finalizedAttendanceRows = attendanceRows.filter(
+    isAttendanceDayReadyForPayroll
+  )
+  const scheduledAttendanceMinutes = finalizedAttendanceRows.reduce(
+    (sum, row) => sum + row.scheduledMinutes,
+    0
+  )
+  const overtimeAttendanceMinutes = finalizedAttendanceRows.reduce(
+    (sum, row) => sum + row.overtimeMinutes,
+    0
+  )
 
   // Fetch active contract (for salary)
   let baseSalaryAmount = "0"
@@ -344,11 +434,13 @@ export async function getPayrollRunInputSnapshot(
     countryCode,
     basicSalaryAmount: baseSalaryAmount,
     basicSalaryCurrency: baseSalaryCurrency,
+    periodStart: periodStartIso,
     periodEnd: periodEndIso,
-    // Leave and overtime minute feeds remain reserved; payroll readiness is checked separately.
+    // Payroll consumes finalized attendance days, while readiness blocks unresolved exceptions.
     unpaidLeaveMinutes: 0,
-    scheduledMinutes: 8 * 60 * 22, // 22 working days × 8 hours — default until attendance wiring
-    overtimeMinutes: 0,
+    scheduledMinutes:
+      scheduledAttendanceMinutes > 0 ? scheduledAttendanceMinutes : 8 * 60 * 22,
+    overtimeMinutes: overtimeAttendanceMinutes,
     // Phase 3B statutory fields — defaults until payroll profile is enriched with these
     epfMemberCategory: null,
     employeeAgeBand: null,
@@ -369,10 +461,17 @@ export async function getPayrollRunInputSnapshot(
       employeeId: run.employeeId,
       periodEndIso,
     }),
+    benefitEnrollments: await listBenefitPayrollProjectionEnrollmentsForPeriod({
+      organizationId,
+      employeeId: run.employeeId,
+      periodStart: period.periodStart,
+      periodEnd: period.periodEnd,
+      currency: baseSalaryCurrency,
+    }),
   }
 }
 
-/** Attendance rows in the period window must be `computed` or `locked`; absent rows → ready. */
+/** Attendance rows in the period window must be finalized and free of payroll-blocking exceptions. */
 export async function isAttendancePayrollReadyForPeriod(opts: {
   readonly organizationId: string
   readonly periodStart: string
@@ -384,15 +483,37 @@ export async function isAttendancePayrollReadyForPeriod(opts: {
     toDate: opts.periodEnd,
   })
   if (rows.length === 0) return true
-  return rows.every((r) => r.state === "computed" || r.state === "locked")
+  return rows.every(isAttendanceDayReadyForPayroll)
 }
 
 export async function hasApprovedPayrollPeriodLockApproval(
   organizationId: string,
   periodId: string
 ): Promise<boolean> {
+  return (
+    (await getApprovedPayrollPeriodLockApproval(organizationId, periodId)) !==
+    null
+  )
+}
+
+export type PayrollPeriodLockApprovalRow = {
+  id: string
+  requestedByUserId: string
+  decisionByUserId: string | null
+  decisionAt: Date | null
+}
+
+export async function getApprovedPayrollPeriodLockApproval(
+  organizationId: string,
+  periodId: string
+): Promise<PayrollPeriodLockApprovalRow | null> {
   const rows = await db
-    .select({ id: hrmApproval.id })
+    .select({
+      id: hrmApproval.id,
+      requestedByUserId: hrmApproval.requestedByUserId,
+      decisionByUserId: hrmApproval.decisionByUserId,
+      decisionAt: hrmApproval.decisionAt,
+    })
     .from(hrmApproval)
     .where(
       and(
@@ -403,7 +524,8 @@ export async function hasApprovedPayrollPeriodLockApproval(
       )
     )
     .limit(1)
-  return rows.length > 0
+
+  return rows[0] ?? null
 }
 
 export async function getPendingPayrollPeriodLockApprovalId(

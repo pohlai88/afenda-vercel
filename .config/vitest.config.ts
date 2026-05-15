@@ -34,7 +34,12 @@ function vitestArgvCollectsCoverage(): boolean {
   )
 }
 
+function vitestArgvRunsOnce(): boolean {
+  return process.argv.includes("run")
+}
+
 const collectCoverage = vitestArgvCollectsCoverage()
+const runOnce = vitestArgvRunsOnce()
 
 export default defineConfig({
   root: workspaceRoot,
@@ -63,12 +68,17 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "node",
+    testTimeout: 20_000,
+    hookTimeout: 20_000,
     /** Discovery root — `include` globs are relative to this directory. */
     dir: path.join(workspaceRoot, "tests/unit"),
     include: ["**/*.test.{ts,tsx}"],
     experimental: {
-      /** Speeds up `pnpm test` (watch) reruns; see Vitest “Improving performance”. */
-      fsModuleCache: true,
+      /**
+       * Keep the persistent transform cache for watch mode only. In one-shot
+       * Windows fork runs it races on rename/read inside node_modules/.experimental-vitest-cache.
+       */
+      fsModuleCache: !runOnce,
     },
     ...(collectCoverage
       ? {
@@ -76,9 +86,14 @@ export default defineConfig({
           maxWorkers: 1,
           fileParallelism: false,
         }
-      : {
-          pool: "forks" as const,
-        }),
+      : runOnce
+        ? {
+            pool: "forks" as const,
+            maxWorkers: 4,
+          }
+        : {
+            pool: "forks" as const,
+          }),
     server: {
       deps: {
         /**

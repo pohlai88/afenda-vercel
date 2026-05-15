@@ -15,6 +15,7 @@ export {
   listRoleIdsForUser,
   listTenantAuthoritiesForUser,
   listTenantAuthorityAssignments,
+  listUserIdsWithErpPermission,
 } from "./data/erp-rbac.queries.server"
 export {
   requireErpPermission,

@@ -10,11 +10,14 @@ import { describe, expect, it } from "vitest"
 import {
   applyPerClaimLimit,
   buildClaimApprovalSnapshot,
+  buildClaimNumber,
+  buildClaimPolicySnapshot,
   canTransitionFromApproved,
   canTransitionFromSubmitted,
   CLAIM_EVIDENCE_TYPES,
   CLAIM_STATES,
   computeClaimsSummary,
+  doesClaimRequireEvidence,
   isClaimCancellable,
   isClaimDateInRange,
   isClaimEvidenceType,
@@ -235,6 +238,11 @@ describe("buildClaimApprovalSnapshot", () => {
     currency: "MYR",
     description: "Petrol receipt for client visit",
     evidenceCount: 1,
+    evidenceRequired: true,
+    payoutMethod: "payroll",
+    financeAccountCode: "payroll.claims_expense",
+    costCenterCode: "OPS",
+    taxTreatment: "non_taxable_reimbursement",
     policyVersion: "MY-2026-01",
     requestedAt: new Date("2026-05-11T10:00:00.000Z"),
   }
@@ -254,6 +262,8 @@ describe("buildClaimApprovalSnapshot", () => {
     expect(snap.currency).toBe("MYR")
     expect(snap.perClaimLimit).toBe(500)
     expect(snap.evidenceCount).toBe(1)
+    expect(snap.evidenceRequired).toBe(true)
+    expect(snap.payoutMethod).toBe("payroll")
     expect(snap.defaultPayrollLineCode).toBe("ALLOWANCE_TRAVEL")
   })
 
@@ -278,6 +288,63 @@ describe("buildClaimApprovalSnapshot", () => {
     const snap1 = buildClaimApprovalSnapshot(baseInput)
     const snap2 = buildClaimApprovalSnapshot(baseInput)
     expect(JSON.stringify(snap1)).toBe(JSON.stringify(snap2))
+  })
+})
+
+describe("claim policy metadata", () => {
+  it("requires evidence when the claim type requires all evidence", () => {
+    expect(
+      doesClaimRequireEvidence({
+        amount: 10,
+        requiresEvidence: true,
+        evidenceRequiredAboveAmount: null,
+      })
+    ).toBe(true)
+  })
+
+  it("requires evidence when amount crosses the threshold", () => {
+    expect(
+      doesClaimRequireEvidence({
+        amount: 250,
+        requiresEvidence: false,
+        evidenceRequiredAboveAmount: 200,
+      })
+    ).toBe(true)
+  })
+
+  it("builds a deterministic claim policy snapshot", () => {
+    const snapshot = buildClaimPolicySnapshot({
+      perClaimLimit: 500,
+      periodLimit: 1000,
+      annualLimit: 5000,
+      requiresEvidence: false,
+      evidenceRequiredAboveAmount: 200,
+      amount: 250,
+      payoutMethod: "payroll",
+      financeAccountCode: "payroll.claims_expense",
+      costCenterCode: "OPS",
+      taxTreatment: "non_taxable_reimbursement",
+      evaluatedAt: new Date("2026-05-11T10:00:00.000Z"),
+    })
+
+    expect(snapshot).toMatchObject({
+      perClaimLimit: 500,
+      periodLimit: 1000,
+      annualLimit: 5000,
+      evidenceRequired: true,
+      payoutMethod: "payroll",
+      financeAccountCode: "payroll.claims_expense",
+    })
+    expect(snapshot.evaluatedAt).toBe("2026-05-11T10:00:00.000Z")
+  })
+
+  it("builds a stable human claim reference from date and id", () => {
+    expect(
+      buildClaimNumber({
+        claimDate: "2026-05-10",
+        claimId: "12345678-1234-4234-9234-123456789abc",
+      })
+    ).toBe("CLM-20260510-1234567812")
   })
 })
 

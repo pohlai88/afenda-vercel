@@ -36,6 +36,42 @@ export {
 } from "./schemas/audit-panel.schema"
 
 export {
+  SCHEMA_STABILITY as DETAIL_TABS_SCHEMA_STABILITY,
+  governedDetailTabsSchema,
+  parseGovernedDetailTabsData,
+  type GovernedDetailSection,
+  type GovernedDetailTabKind,
+  type GovernedDetailTabsInput,
+  type GovernedDetailTabsModel,
+  type GovernedRevisionEntry,
+} from "./schemas/detail-tabs.schema"
+
+export {
+  SCHEMA_STABILITY as GOVERNED_COMPONENT_SCHEMA_STABILITY,
+  governedComponentSchema,
+  parseGovernedComponentData,
+  type GovernedComponent,
+} from "./schemas/component.schema"
+
+export {
+  EMPTY_GOVERNED_COMPONENT_REGISTRY,
+  SCHEMA_STABILITY as GOVERNED_COMPONENT_REGISTRY_SCHEMA_STABILITY,
+  governedComponentRegistrySchema,
+  parseGovernedComponentRegistryData,
+  type GovernedComponentRegistry,
+} from "./schemas/component-registry.schema"
+
+export {
+  FORM_EVENTS,
+  SCHEMA_STABILITY as EVENT_HANDLER_SCHEMA_STABILITY,
+  eventHandlerMetadataSchema,
+  formEventIdSchema,
+  parseEventHandlerMetadata,
+  type EventHandlerMetadata,
+  type FormEventId,
+} from "./schemas/events.shared"
+
+export {
   type ActionFieldErrors,
   type ActionResult,
   isActionFailure,
@@ -66,3 +102,7 @@ export {
   GovernedAuditPanel,
   type GovernedAuditPanelProps,
 } from "./components/governed-audit-panel"
+export {
+  GovernedDetailTabs,
+  type GovernedDetailTabsProps,
+} from "./components/governed-detail-tabs"

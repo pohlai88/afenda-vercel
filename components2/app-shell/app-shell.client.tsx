@@ -168,6 +168,8 @@ export function AppShellClient({
   overlay,
   children,
 }: AppShellClientProps) {
+  const density = useAppShellStore((s) => s.density)
+
   return (
     <AppShellProviders sidebarDefaultOpen={rail !== null}>
       {/* Mode controller — invisible, effect-only */}
@@ -231,6 +233,7 @@ export function AppShellClient({
          */}
         <SidebarInset
           id="app-shell-main"
+          data-density={density}
           tabIndex={-1}
           className={cn(
             "min-h-0 min-w-0 overflow-y-auto overscroll-y-contain outline-none",

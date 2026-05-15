@@ -15,7 +15,8 @@ import {
 import { Input } from "#components/ui/input"
 
 import {
-  submitClaimAction,
+  submitClaimOnBehalfAction,
+  submitOwnClaimAction,
   type SubmitClaimFormState,
 } from "#features/hrm/client"
 
@@ -23,6 +24,7 @@ import type { LeaveEmployeeChoiceRow } from "../data/leave-request.queries.serve
 import type { ClaimTypeRow } from "../data/claim.queries.server"
 
 type ClaimSubmitFormProps = {
+  mode: "own" | "on_behalf"
   employees: ReadonlyArray<LeaveEmployeeChoiceRow>
   claimTypes: ReadonlyArray<ClaimTypeRow>
   onSuccess?: () => void
@@ -37,15 +39,18 @@ const SELECT_CLASS =
  * normal function.
  */
 export function ClaimSubmitForm({
+  mode,
   employees,
   claimTypes,
   onSuccess,
 }: ClaimSubmitFormProps) {
   const t = useTranslations("Dashboard.Hrm.claims")
+  const action =
+    mode === "own" ? submitOwnClaimAction : submitClaimOnBehalfAction
   const [state, formAction, pending] = useActionState<
     SubmitClaimFormState | undefined,
     FormData
-  >(submitClaimAction, undefined)
+  >(action, undefined)
 
   const employeeId = useId()
   const claimTypeId = useId()
@@ -78,29 +83,31 @@ export function ClaimSubmitForm({
         </Alert>
       ) : null}
 
-      <Field data-invalid={fieldErrors?.employeeId ? true : undefined}>
-        <FieldLabel htmlFor={employeeId}>{t("fieldEmployee")}</FieldLabel>
-        <select
-          id={employeeId}
-          name="employeeId"
-          required
-          defaultValue=""
-          className={SELECT_CLASS}
-          aria-invalid={Boolean(fieldErrors?.employeeId)}
-        >
-          <option value="" disabled>
-            {t("fieldEmployeePlaceholder")}
-          </option>
-          {employees.map((employee) => (
-            <option key={employee.id} value={employee.id}>
-              {employee.legalName} · {employee.employeeNumber}
+      {mode === "on_behalf" ? (
+        <Field data-invalid={fieldErrors?.employeeId ? true : undefined}>
+          <FieldLabel htmlFor={employeeId}>{t("fieldEmployee")}</FieldLabel>
+          <select
+            id={employeeId}
+            name="employeeId"
+            required
+            defaultValue=""
+            className={SELECT_CLASS}
+            aria-invalid={Boolean(fieldErrors?.employeeId)}
+          >
+            <option value="" disabled>
+              {t("fieldEmployeePlaceholder")}
             </option>
-          ))}
-        </select>
-        {fieldErrors?.employeeId ? (
-          <FieldError>{fieldErrors.employeeId}</FieldError>
-        ) : null}
-      </Field>
+            {employees.map((employee) => (
+              <option key={employee.id} value={employee.id}>
+                {employee.legalName} · {employee.employeeNumber}
+              </option>
+            ))}
+          </select>
+          {fieldErrors?.employeeId ? (
+            <FieldError>{fieldErrors.employeeId}</FieldError>
+          ) : null}
+        </Field>
+      ) : null}
 
       <Field data-invalid={fieldErrors?.claimTypeId ? true : undefined}>
         <FieldLabel htmlFor={claimTypeId}>{t("fieldClaimType")}</FieldLabel>

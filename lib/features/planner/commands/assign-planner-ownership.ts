@@ -7,7 +7,7 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { publishOrgNotification } from "#features/org-notifications/server"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireOrgSession, requireSignedInSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/tenant"
 
 import { buildPlannerAuditAction } from "../audit/planner-audit.shared"
 import { organizationOrbitPath } from "../constants"
@@ -44,90 +44,19 @@ export async function assignPlannerOwnershipAction(
     redirect(toLocalePath(locale, `${href}?status=invalidInput`))
   }
 
-  if (scopeKind === "organization") {
-    const session = await requireOrgSession()
-    const itemContext = await getPlannerItemNotificationContext({
-      scope: {
-        scopeKind: "organization",
-        organizationId: session.organizationId,
-      },
-      itemId: parsed.data.itemId,
-    })
-    await assignPlannerOwnership({
-      scope: {
-        scopeKind: "organization",
-        organizationId: session.organizationId,
-      },
-      itemId: parsed.data.itemId,
-      role: parsed.data.role,
-      subjectUserId: parsed.data.subjectUserId,
-      subjectLabel: parsed.data.subjectLabel,
-      actorUserId: session.userId,
-    })
-
-    if (
-      parsed.data.subjectUserId &&
-      parsed.data.subjectUserId !== session.userId &&
-      (parsed.data.role === "assignee" ||
-        parsed.data.role === "reviewer" ||
-        parsed.data.role === "escalation_owner")
-    ) {
-      const targetUserId = parsed.data.subjectUserId
-      const notice = buildPlannerAssignmentNotice({
-        role: parsed.data.role,
-        itemTitle: itemContext?.title ?? "Execution item",
-        itemDescription: itemContext?.description ?? null,
-      })
-      await publishOrgNotification({
-        organizationId: session.organizationId,
-        targetUserId,
-        title: notice.title,
-        body: notice.body,
-        severity: notice.severity,
-        linkedEntityType: "planner_item",
-        linkedEntityId: parsed.data.itemId,
-        linkedEntityLabel: itemContext?.title ?? parsed.data.itemId,
-        linkedPath: orgSlug
-          ? `${organizationOrbitPath(orgSlug)}?focusKind=item&focusId=${parsed.data.itemId}`
-          : null,
-      })
-    }
-
-    after(() =>
-      writeIamAuditEventFromNextHeaders({
-        action: buildPlannerAuditAction("assignment", "assign"),
-        organizationId: session.organizationId,
-        actorUserId: session.userId,
-        actorSessionId: session.sessionId,
-        resourceType: "planner_assignment",
-        resourceId: parsed.data.itemId,
-        metadata: {
-          role: parsed.data.role,
-          subjectUserId: parsed.data.subjectUserId ?? null,
-          subjectLabel: parsed.data.subjectLabel ?? null,
-        },
-      })
-    )
-
-    revalidateOrbitScope(scopeKind)
-    redirect(
-      toLocalePath(
-        locale,
-        orbitStatusPath({
-          scopeKind,
-          orgSlug,
-          surface,
-          status: "updatedItem",
-          focusKind: "item",
-          focusId: parsed.data.itemId,
-        })
-      )
-    )
-  }
-
-  const session = await requireSignedInSession()
+  const session = await requireOrgSession()
+  const itemContext = await getPlannerItemNotificationContext({
+    scope: {
+      scopeKind: "organization",
+      organizationId: session.organizationId,
+    },
+    itemId: parsed.data.itemId,
+  })
   await assignPlannerOwnership({
-    scope: { scopeKind: "personal", ownerUserId: session.userId },
+    scope: {
+      scopeKind: "organization",
+      organizationId: session.organizationId,
+    },
     itemId: parsed.data.itemId,
     role: parsed.data.role,
     subjectUserId: parsed.data.subjectUserId,
@@ -135,9 +64,38 @@ export async function assignPlannerOwnershipAction(
     actorUserId: session.userId,
   })
 
+  if (
+    parsed.data.subjectUserId &&
+    parsed.data.subjectUserId !== session.userId &&
+    (parsed.data.role === "assignee" ||
+      parsed.data.role === "reviewer" ||
+      parsed.data.role === "escalation_owner")
+  ) {
+    const targetUserId = parsed.data.subjectUserId
+    const notice = buildPlannerAssignmentNotice({
+      role: parsed.data.role,
+      itemTitle: itemContext?.title ?? "Execution item",
+      itemDescription: itemContext?.description ?? null,
+    })
+    await publishOrgNotification({
+      organizationId: session.organizationId,
+      targetUserId,
+      title: notice.title,
+      body: notice.body,
+      severity: notice.severity,
+      linkedEntityType: "planner_item",
+      linkedEntityId: parsed.data.itemId,
+      linkedEntityLabel: itemContext?.title ?? parsed.data.itemId,
+      linkedPath: orgSlug
+        ? `${organizationOrbitPath(orgSlug)}?focusKind=item&focusId=${parsed.data.itemId}`
+        : null,
+    })
+  }
+
   after(() =>
     writeIamAuditEventFromNextHeaders({
       action: buildPlannerAuditAction("assignment", "assign"),
+      organizationId: session.organizationId,
       actorUserId: session.userId,
       actorSessionId: session.sessionId,
       resourceType: "planner_assignment",

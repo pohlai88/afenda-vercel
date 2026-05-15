@@ -6,7 +6,6 @@ import {
   ORBIT_PRIMARY_SURFACES,
   PLANNER_ACTIVE_ITEM_LIFECYCLES,
   PLANNER_SIGNAL_CLASSES,
-  accountOrbitPath,
   organizationOrbitPath,
 } from "#features/planner/constants"
 import { DASHBOARD_NAV_MODULES } from "#lib/dashboard-module-paths"
@@ -29,9 +28,6 @@ describe("planner contract", () => {
     expect(organizationOrbitPath("acme", "signals")).toBe(
       "/o/acme/dashboard/orbit/signals"
     )
-    expect(accountOrbitPath()).toBe("/account/orbit")
-    expect(accountOrbitPath("triage")).toBe("/account/orbit/triage")
-    expect(accountOrbitPath("today")).toBe("/account/orbit/today")
   })
 
   it("keeps queue as a base route and other surfaces as explicit tails", () => {

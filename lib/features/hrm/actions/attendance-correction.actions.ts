@@ -8,9 +8,9 @@ import { db } from "#lib/db"
 import { hrmAttendanceEvent } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
-import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
 import { regenerateAttendanceDayFromEvents } from "../data/attendance-aggregator.server"
 import { getAttendanceEvent } from "../data/attendance.queries.server"
+import { requireHrmPermission } from "../data/hrm-admin-guard.server"
 import {
   correctAttendanceEventSchema,
   recordAttendanceEventSchema,
@@ -30,11 +30,46 @@ import type {
  * revalidation comes along for free since it sits below the layout —
  * mirrors the leave / compliance / payroll mutation pattern.
  */
-function revalidateAttendance() {
+function revalidateAttendanceAndPayroll() {
   revalidatePath(
     toLocaleOrgDashboardRevalidatePattern("/hrm/attendance"),
     "layout"
   )
+  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"), "page")
+}
+
+function previousIsoDate(attendanceDate: string): string {
+  const date = new Date(`${attendanceDate}T00:00:00.000Z`)
+  date.setUTCDate(date.getUTCDate() - 1)
+  return date.toISOString().slice(0, 10)
+}
+
+async function regenerateAttendanceDateAndPrevious(opts: {
+  organizationId: string
+  employeeId: string
+  attendanceDate: string
+  actorUserId: string
+}) {
+  const dates = new Set([
+    opts.attendanceDate,
+    previousIsoDate(opts.attendanceDate),
+  ])
+  for (const attendanceDate of dates) {
+    await regenerateAttendanceDayFromEvents({
+      organizationId: opts.organizationId,
+      employeeId: opts.employeeId,
+      attendanceDate,
+      actorUserId: opts.actorUserId,
+    })
+  }
+}
+
+async function requireAttendanceUpdate() {
+  return requireHrmPermission({
+    object: "attendance",
+    function: "update",
+    errorMessage: "HRM attendance update permission required.",
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -42,15 +77,15 @@ function revalidateAttendance() {
 // ---------------------------------------------------------------------------
 
 /**
- * Tier B (admin-gated) — records a single manual attendance event for an employee,
- * then triggers idempotent day re-aggregation.
+ * Tier B — records a single manual attendance event for an employee, then triggers
+ * idempotent day re-aggregation through the HRM attendance update permission.
  * Audit: `erp.hrm.attendance.event.create`
  */
 export async function recordAttendanceEventAction(
   _prev: AttendanceRecordFormState | undefined,
   formData: FormData
 ): Promise<AttendanceRecordFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireAttendanceUpdate()
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
@@ -102,8 +137,7 @@ export async function recordAttendanceEventAction(
     createdByUserId: userId,
   })
 
-  // Re-aggregate the day after the new event
-  await regenerateAttendanceDayFromEvents({
+  await regenerateAttendanceDateAndPrevious({
     organizationId,
     employeeId: data.employeeId,
     attendanceDate,
@@ -124,7 +158,7 @@ export async function recordAttendanceEventAction(
     },
   })
 
-  revalidateAttendance()
+  revalidateAttendanceAndPayroll()
   return { ok: true, eventId }
 }
 
@@ -133,15 +167,15 @@ export async function recordAttendanceEventAction(
 // ---------------------------------------------------------------------------
 
 /**
- * Tier B (admin-gated) — creates a new correction event pointing to the original,
- * then triggers idempotent day re-aggregation. Original event is never mutated.
+ * Tier B — creates a new correction event pointing to the original, then triggers
+ * idempotent day re-aggregation. Original event is never mutated.
  * Audit: `erp.hrm.attendance.event.create` with `metadata.kind = "correction"`
  */
 export async function correctAttendanceEventAction(
   _prev: AttendanceCorrectionFormState | undefined,
   formData: FormData
 ): Promise<AttendanceCorrectionFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireAttendanceUpdate()
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
@@ -195,9 +229,8 @@ export async function correctAttendanceEventAction(
     createdByUserId: userId,
   })
 
-  // Re-aggregate the original event's date (superseded event now excluded from active set)
   const originalDate = originalEvent.occurredAt.toISOString().slice(0, 10)
-  await regenerateAttendanceDayFromEvents({
+  await regenerateAttendanceDateAndPrevious({
     organizationId,
     employeeId: originalEvent.employeeId,
     attendanceDate: originalDate,
@@ -206,7 +239,7 @@ export async function correctAttendanceEventAction(
 
   // Also regenerate the correction date if it differs (e.g. crossing midnight)
   if (attendanceDate !== originalDate) {
-    await regenerateAttendanceDayFromEvents({
+    await regenerateAttendanceDateAndPrevious({
       organizationId,
       employeeId: originalEvent.employeeId,
       attendanceDate,
@@ -229,7 +262,7 @@ export async function correctAttendanceEventAction(
     },
   })
 
-  revalidateAttendance()
+  revalidateAttendanceAndPayroll()
   return { ok: true, correctionEventId: correctionId }
 }
 
@@ -238,15 +271,15 @@ export async function correctAttendanceEventAction(
 // ---------------------------------------------------------------------------
 
 /**
- * Tier B (admin-gated) — explicitly regenerates the `hrm_attendance_day` aggregate
- * for a given employee + date. Idempotent (no-op if checksum is unchanged).
+ * Tier B — explicitly regenerates the `hrm_attendance_day` aggregate for a given
+ * employee + date. Idempotent (no-op if checksum and shift context are unchanged).
  * Audit: `erp.hrm.attendance.day.update`
  */
 export async function regenerateAttendanceDayAction(
   _prev: RegenerateDayFormState | undefined,
   formData: FormData
 ): Promise<RegenerateDayFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireAttendanceUpdate()
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
 
@@ -290,7 +323,7 @@ export async function regenerateAttendanceDayAction(
         regeneratedBy: "manual",
       },
     })
-    revalidateAttendance()
+    revalidateAttendanceAndPayroll()
   }
 
   return { ok: true, result }

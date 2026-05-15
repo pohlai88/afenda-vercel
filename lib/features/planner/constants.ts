@@ -118,10 +118,3 @@ export function organizationOrbitPath(
   const base = `/o/${slug}/dashboard/orbit`
   return (surface === "queue" ? base : `${base}/${surface}`) as Route
 }
-
-export function accountOrbitPath(
-  surface: OrbitDashboardSurface = "queue"
-): Route {
-  const base = "/account/orbit"
-  return (surface === "queue" ? base : `${base}/${surface}`) as Route
-}

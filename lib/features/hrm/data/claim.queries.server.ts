@@ -11,7 +11,7 @@
  */
 import "server-only"
 
-import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm"
+import { and, asc, desc, eq, gte, inArray, isNull, lte } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -22,8 +22,19 @@ import {
   hrmDocument,
   hrmEmployee,
 } from "#lib/db/schema"
+import {
+  canUseErpPermission,
+  listUserIdsWithErpPermission,
+} from "#features/erp-rbac/server"
 
 import type { ClaimEvidenceType, ClaimStateValue } from "./claim-helpers.shared"
+
+const CLAIM_LIST_LIMIT_MAX = 100
+
+function normalizeClaimListLimit(limit: number | undefined): number {
+  if (!Number.isFinite(limit ?? 0) || !limit) return 50
+  return Math.min(Math.max(Math.trunc(limit), 1), CLAIM_LIST_LIMIT_MAX)
+}
 
 // ---------------------------------------------------------------------------
 // Row shapes (serializable — safe to pass into Server / Client Components).
@@ -37,12 +48,20 @@ export type ClaimTypeRow = {
   readonly defaultPayrollLineCode: string
   readonly currency: string
   readonly perClaimLimit: string | null
+  readonly periodLimit: string | null
+  readonly annualLimit: string | null
+  readonly evidenceRequiredAboveAmount: string | null
   readonly requiresEvidence: boolean
+  readonly defaultPayoutMethod: string
+  readonly defaultFinanceAccountCode: string | null
+  readonly defaultCostCenterCode: string | null
+  readonly defaultTaxTreatment: string
   readonly isActive: boolean
 }
 
 export type ClaimRow = {
   readonly id: string
+  readonly claimNumber: string | null
   readonly employeeId: string
   readonly employeeNumber: string | null
   readonly employeeFullName: string | null
@@ -55,6 +74,7 @@ export type ClaimRow = {
   readonly description: string | null
   readonly state: ClaimStateValue
   readonly submittedAt: Date | null
+  readonly submittedByUserId: string | null
   readonly currentApprovalId: string | null
   readonly decidedByUserId: string | null
   readonly decidedAt: Date | null
@@ -63,6 +83,12 @@ export type ClaimRow = {
   readonly paidAt: Date | null
   readonly cancelledAt: Date | null
   readonly evidenceCount: number
+  readonly requiresEvidence: boolean
+  readonly payoutMethod: string
+  readonly financeAccountCode: string | null
+  readonly costCenterCode: string | null
+  readonly projectCode: string | null
+  readonly taxTreatment: string
   readonly createdAt: Date
   readonly updatedAt: Date
 }
@@ -110,7 +136,14 @@ export async function listClaimTypesForOrg(
       defaultPayrollLineCode: hrmClaimType.defaultPayrollLineCode,
       currency: hrmClaimType.currency,
       perClaimLimit: hrmClaimType.perClaimLimit,
+      periodLimit: hrmClaimType.periodLimit,
+      annualLimit: hrmClaimType.annualLimit,
+      evidenceRequiredAboveAmount: hrmClaimType.evidenceRequiredAboveAmount,
       requiresEvidence: hrmClaimType.requiresEvidence,
+      defaultPayoutMethod: hrmClaimType.defaultPayoutMethod,
+      defaultFinanceAccountCode: hrmClaimType.defaultFinanceAccountCode,
+      defaultCostCenterCode: hrmClaimType.defaultCostCenterCode,
+      defaultTaxTreatment: hrmClaimType.defaultTaxTreatment,
       isActive: hrmClaimType.isActive,
     })
     .from(hrmClaimType)
@@ -137,7 +170,14 @@ export async function getClaimTypeForOrg(
       defaultPayrollLineCode: true,
       currency: true,
       perClaimLimit: true,
+      periodLimit: true,
+      annualLimit: true,
+      evidenceRequiredAboveAmount: true,
       requiresEvidence: true,
+      defaultPayoutMethod: true,
+      defaultFinanceAccountCode: true,
+      defaultCostCenterCode: true,
+      defaultTaxTreatment: true,
       isActive: true,
     },
   })
@@ -154,6 +194,9 @@ async function fetchClaimsBase(
     ids?: readonly string[]
     states?: readonly ClaimStateValue[]
     employeeId?: string
+    claimDateFrom?: string
+    claimDateTo?: string
+    limit?: number
   }
 ): Promise<ClaimRow[]> {
   const orgPredicate = eq(hrmClaim.organizationId, organizationId)
@@ -168,14 +211,28 @@ async function fetchClaimsBase(
   const employeePred = filter.employeeId
     ? eq(hrmClaim.employeeId, filter.employeeId)
     : undefined
+  const claimDateFromPred = filter.claimDateFrom
+    ? gte(hrmClaim.claimDate, filter.claimDateFrom)
+    : undefined
+  const claimDateToPred = filter.claimDateTo
+    ? lte(hrmClaim.claimDate, filter.claimDateTo)
+    : undefined
 
-  const where = [orgPredicate, idPred, statePred, employeePred].filter(
-    (clause): clause is Exclude<typeof clause, undefined> => Boolean(clause)
+  const where = [
+    orgPredicate,
+    idPred,
+    statePred,
+    employeePred,
+    claimDateFromPred,
+    claimDateToPred,
+  ].filter((clause): clause is Exclude<typeof clause, undefined> =>
+    Boolean(clause)
   )
 
   const rows = await db
     .select({
       id: hrmClaim.id,
+      claimNumber: hrmClaim.claimNumber,
       employeeId: hrmClaim.employeeId,
       employeeNumber: hrmEmployee.employeeNumber,
       employeeFullName: hrmEmployee.legalName,
@@ -188,6 +245,7 @@ async function fetchClaimsBase(
       description: hrmClaim.description,
       state: hrmClaim.state,
       submittedAt: hrmClaim.submittedAt,
+      submittedByUserId: hrmClaim.submittedByUserId,
       currentApprovalId: hrmClaim.currentApprovalId,
       decidedByUserId: hrmClaim.decidedByUserId,
       decidedAt: hrmClaim.decidedAt,
@@ -195,6 +253,12 @@ async function fetchClaimsBase(
       paidByPayrollLineId: hrmClaim.paidByPayrollLineId,
       paidAt: hrmClaim.paidAt,
       cancelledAt: hrmClaim.cancelledAt,
+      requiresEvidence: hrmClaimType.requiresEvidence,
+      payoutMethod: hrmClaim.payoutMethod,
+      financeAccountCode: hrmClaim.financeAccountCode,
+      costCenterCode: hrmClaim.costCenterCode,
+      projectCode: hrmClaim.projectCode,
+      taxTreatment: hrmClaim.taxTreatment,
       createdAt: hrmClaim.createdAt,
       updatedAt: hrmClaim.updatedAt,
     })
@@ -203,6 +267,7 @@ async function fetchClaimsBase(
     .leftJoin(hrmClaimType, eq(hrmClaimType.id, hrmClaim.claimTypeId))
     .where(and(...where))
     .orderBy(desc(hrmClaim.createdAt))
+    .limit(normalizeClaimListLimit(filter.limit))
 
   if (rows.length === 0) return []
 
@@ -231,6 +296,7 @@ async function fetchClaimsBase(
     state: row.state as ClaimStateValue,
     claimTypeCode: row.claimTypeCode ?? "",
     claimTypeName: row.claimTypeName ?? "",
+    requiresEvidence: row.requiresEvidence ?? false,
     evidenceCount: countByClaim.get(row.id) ?? 0,
   }))
 }
@@ -241,16 +307,42 @@ async function fetchClaimsBase(
 
 export async function listClaimsForOrg(
   organizationId: string,
-  options: { states?: readonly ClaimStateValue[]; employeeId?: string } = {}
+  options: {
+    states?: readonly ClaimStateValue[]
+    employeeId?: string
+    limit?: number
+  } = {}
+): Promise<ReadonlyArray<ClaimRow>> {
+  return fetchClaimsBase(organizationId, options)
+}
+
+export async function listClaimsForOrgPage(
+  organizationId: string,
+  options: {
+    states?: readonly ClaimStateValue[]
+    employeeId?: string
+    limit?: number
+  } = {}
 ): Promise<ReadonlyArray<ClaimRow>> {
   return fetchClaimsBase(organizationId, options)
 }
 
 export async function listClaimsForEmployee(
   organizationId: string,
-  employeeId: string
+  employeeId: string,
+  options: { limit?: number } = {}
 ): Promise<ReadonlyArray<ClaimRow>> {
-  return fetchClaimsBase(organizationId, { employeeId })
+  return fetchClaimsBase(organizationId, { employeeId, limit: options.limit })
+}
+
+export async function listClaimsForCurrentEmployee(
+  organizationId: string,
+  userId: string,
+  options: { limit?: number } = {}
+): Promise<ReadonlyArray<ClaimRow>> {
+  const employee = await findClaimEmployeeForUser(organizationId, userId)
+  if (!employee) return []
+  return listClaimsForEmployee(organizationId, employee.id, options)
 }
 
 export async function getClaimDetail(
@@ -325,6 +417,7 @@ export async function listApprovedUnpaidClaimsForPeriod(
   const rows = await db
     .select({
       id: hrmClaim.id,
+      claimNumber: hrmClaim.claimNumber,
       employeeId: hrmClaim.employeeId,
       employeeNumber: hrmEmployee.employeeNumber,
       employeeFullName: hrmEmployee.legalName,
@@ -337,6 +430,7 @@ export async function listApprovedUnpaidClaimsForPeriod(
       description: hrmClaim.description,
       state: hrmClaim.state,
       submittedAt: hrmClaim.submittedAt,
+      submittedByUserId: hrmClaim.submittedByUserId,
       currentApprovalId: hrmClaim.currentApprovalId,
       decidedByUserId: hrmClaim.decidedByUserId,
       decidedAt: hrmClaim.decidedAt,
@@ -344,6 +438,12 @@ export async function listApprovedUnpaidClaimsForPeriod(
       paidByPayrollLineId: hrmClaim.paidByPayrollLineId,
       paidAt: hrmClaim.paidAt,
       cancelledAt: hrmClaim.cancelledAt,
+      requiresEvidence: hrmClaimType.requiresEvidence,
+      payoutMethod: hrmClaim.payoutMethod,
+      financeAccountCode: hrmClaim.financeAccountCode,
+      costCenterCode: hrmClaim.costCenterCode,
+      projectCode: hrmClaim.projectCode,
+      taxTreatment: hrmClaim.taxTreatment,
       createdAt: hrmClaim.createdAt,
       updatedAt: hrmClaim.updatedAt,
     })
@@ -354,21 +454,22 @@ export async function listApprovedUnpaidClaimsForPeriod(
       and(
         eq(hrmClaim.organizationId, organizationId),
         eq(hrmClaim.state, "approved"),
+        eq(hrmClaim.payoutMethod, "payroll"),
+        isNull(hrmClaim.paidByPayrollLineId),
         gte(hrmClaim.claimDate, periodStart),
         lte(hrmClaim.claimDate, periodEnd)
       )
     )
     .orderBy(asc(hrmClaim.claimDate))
 
-  return rows
-    .filter((row) => row.paidByPayrollLineId == null)
-    .map((row) => ({
-      ...row,
-      state: row.state as ClaimStateValue,
-      claimTypeCode: row.claimTypeCode ?? "",
-      claimTypeName: row.claimTypeName ?? "",
-      evidenceCount: 0,
-    }))
+  return rows.map((row) => ({
+    ...row,
+    state: row.state as ClaimStateValue,
+    claimTypeCode: row.claimTypeCode ?? "",
+    claimTypeName: row.claimTypeName ?? "",
+    requiresEvidence: row.requiresEvidence ?? false,
+    evidenceCount: 0,
+  }))
 }
 
 /**
@@ -465,6 +566,8 @@ export async function findOrgEmployeeForClaim(
   id: string
   employeeNumber: string
   legalName: string
+  linkedUserId: string | null
+  managerEmployeeId: string | null
   archivedAt: Date | null
 } | null> {
   const row = await db.query.hrmEmployee.findFirst({
@@ -476,8 +579,126 @@ export async function findOrgEmployeeForClaim(
       id: true,
       employeeNumber: true,
       legalName: true,
+      linkedUserId: true,
+      managerEmployeeId: true,
       archivedAt: true,
     },
   })
   return row ?? null
+}
+
+export async function findClaimEmployeeForUser(
+  organizationId: string,
+  userId: string
+): Promise<{
+  id: string
+  employeeNumber: string
+  legalName: string
+  linkedUserId: string | null
+  managerEmployeeId: string | null
+  archivedAt: Date | null
+} | null> {
+  const row = await db.query.hrmEmployee.findFirst({
+    where: and(
+      eq(hrmEmployee.organizationId, organizationId),
+      eq(hrmEmployee.linkedUserId, userId),
+      isNull(hrmEmployee.archivedAt)
+    ),
+    columns: {
+      id: true,
+      employeeNumber: true,
+      legalName: true,
+      linkedUserId: true,
+      managerEmployeeId: true,
+      archivedAt: true,
+    },
+  })
+  return row ?? null
+}
+
+export async function resolveClaimApproverUserId(input: {
+  organizationId: string
+  managerEmployeeId: string | null
+}): Promise<string | null> {
+  if (input.managerEmployeeId) {
+    const manager = await db.query.hrmEmployee.findFirst({
+      where: and(
+        eq(hrmEmployee.organizationId, input.organizationId),
+        eq(hrmEmployee.id, input.managerEmployeeId),
+        isNull(hrmEmployee.archivedAt)
+      ),
+      columns: { linkedUserId: true },
+    })
+    if (manager?.linkedUserId) return manager.linkedUserId
+  }
+
+  const [fallbackApproverUserId] = await listUserIdsWithErpPermission({
+    organizationId: input.organizationId,
+    permission: { module: "hrm", object: "claim", function: "update" },
+  })
+
+  return fallbackApproverUserId ?? null
+}
+
+export async function sumClaimsForEmployeeClaimTypeWindow(input: {
+  organizationId: string
+  employeeId: string
+  claimTypeId: string
+  claimDateFrom: string
+  claimDateTo: string
+}): Promise<number> {
+  const rows = await db
+    .select({ amount: hrmClaim.amount })
+    .from(hrmClaim)
+    .where(
+      and(
+        eq(hrmClaim.organizationId, input.organizationId),
+        eq(hrmClaim.employeeId, input.employeeId),
+        eq(hrmClaim.claimTypeId, input.claimTypeId),
+        inArray(hrmClaim.state, ["submitted", "approved", "paid"]),
+        gte(hrmClaim.claimDate, input.claimDateFrom),
+        lte(hrmClaim.claimDate, input.claimDateTo)
+      )
+    )
+
+  return rows.reduce((total, row) => total + Number(row.amount), 0)
+}
+
+export async function canUploadClaimEvidenceForUser(input: {
+  organizationId: string
+  userId: string
+  employeeId: string
+  claimId: string
+}): Promise<boolean> {
+  const claim = await db.query.hrmClaim.findFirst({
+    where: and(
+      eq(hrmClaim.organizationId, input.organizationId),
+      eq(hrmClaim.id, input.claimId),
+      eq(hrmClaim.employeeId, input.employeeId)
+    ),
+    columns: { state: true },
+  })
+  if (
+    !claim ||
+    claim.state === "paid" ||
+    claim.state === "rejected" ||
+    claim.state === "cancelled"
+  ) {
+    return false
+  }
+
+  const employee = await db.query.hrmEmployee.findFirst({
+    where: and(
+      eq(hrmEmployee.organizationId, input.organizationId),
+      eq(hrmEmployee.id, input.employeeId)
+    ),
+    columns: { linkedUserId: true },
+  })
+  if (employee?.linkedUserId === input.userId) return true
+
+  return canUseErpPermission({
+    organizationId: input.organizationId,
+    userId: input.userId,
+    permission: { module: "hrm", object: "claim", function: "update" },
+  })
 }

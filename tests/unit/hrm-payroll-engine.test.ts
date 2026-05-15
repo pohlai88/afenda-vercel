@@ -178,6 +178,45 @@ describe("Payroll engine — MY-2026-01 integration", () => {
       // No statutory lines without rule pack
       expect(result.lines.some((l) => l.code === "EPF_EE")).toBe(false)
     })
+
+    it("projects active benefit enrollments into deduction and employer cost lines", async () => {
+      const result = await computePayrollRun(
+        baseInput({
+          periodStart: "2026-03-01",
+          benefitEnrollments: [
+            {
+              enrollmentId: "enrollment-medical-001",
+              benefitId: "benefit-medical-001",
+              benefitCode: "medical",
+              benefitName: "Medical",
+              employeeId: "emp-test-001",
+              state: "active",
+              effectiveFrom: "2026-03-01",
+              terminatedAt: null,
+              employeeContributionAmount: "100.00",
+              employerContributionAmount: "250.00",
+              currency: "MYR",
+            },
+          ],
+        }),
+        null
+      )
+
+      expect(
+        result.lines.find((line) => line.code === "BENEFIT_MEDICAL_EE")
+      ).toMatchObject({
+        lineKind: "employee_deduction",
+        amount: "-100.00",
+      })
+      expect(
+        result.lines.find((line) => line.code === "BENEFIT_MEDICAL_ER")
+      ).toMatchObject({
+        lineKind: "employer_contribution",
+        amount: "250.00",
+      })
+      expect(result.netPay).toBe("4900.00")
+      expect(result.employerCost).toBe("5250.00")
+    })
   })
 
   describe("Unpaid leave deduction", () => {

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const {
   acknowledgeOrgNotificationMock,
   canActInOrganizationMock,
+  canUseErpPermissionMock,
   closeOrgNotificationMock,
   createOrgNotificationMock,
   getOrgSessionFromRequestMock,
@@ -12,6 +13,7 @@ const {
 } = vi.hoisted(() => ({
   acknowledgeOrgNotificationMock: vi.fn(),
   canActInOrganizationMock: vi.fn(),
+  canUseErpPermissionMock: vi.fn(),
   closeOrgNotificationMock: vi.fn(),
   createOrgNotificationMock: vi.fn(),
   getOrgSessionFromRequestMock: vi.fn(),
@@ -35,6 +37,10 @@ vi.mock("#features/org-notifications/server", () => ({
   createOrgNotification: createOrgNotificationMock,
   listActiveOrgNotificationsForUser: listActiveOrgNotificationsForUserMock,
   markOrgNotificationRead: markOrgNotificationReadMock,
+}))
+
+vi.mock("#features/erp-rbac/server", () => ({
+  canUseErpPermission: canUseErpPermissionMock,
 }))
 
 import {
@@ -80,7 +86,7 @@ describe("api/erp/notifications routes", () => {
       organizationId: "org-1",
       user: { email: "ops@example.com", name: "Ops", role: "member" },
     })
-    canActInOrganizationMock.mockResolvedValue(false)
+    canUseErpPermissionMock.mockResolvedValue(false)
 
     const response = await POST_COLLECTION(
       new Request("https://app.test/api/erp/notifications", {
@@ -105,7 +111,7 @@ describe("api/erp/notifications routes", () => {
       organizationId: "org-1",
       user: { email: "ops@example.com", name: "Ops", role: "admin" },
     })
-    canActInOrganizationMock.mockResolvedValue(true)
+    canUseErpPermissionMock.mockResolvedValue(true)
     createOrgNotificationMock.mockResolvedValue({
       noticeId: "notice-1",
       publishedAt: new Date("2026-05-11T10:00:00.000Z"),
@@ -203,7 +209,7 @@ describe("api/erp/notifications routes", () => {
       organizationId: "org-1",
       user: { email: "ops@example.com", name: "Ops", role: "member" },
     })
-    canActInOrganizationMock.mockResolvedValue(false)
+    canUseErpPermissionMock.mockResolvedValue(false)
 
     const forbidden = await POST_CLOSE(
       new Request("https://app.test/api/erp/notifications/notice-1/close", {
@@ -216,7 +222,7 @@ describe("api/erp/notifications routes", () => {
 
     expect(forbidden.status).toBe(403)
 
-    canActInOrganizationMock.mockResolvedValue(true)
+    canUseErpPermissionMock.mockResolvedValue(true)
     const allowed = await POST_CLOSE(
       new Request("https://app.test/api/erp/notifications/notice-1/close", {
         method: "POST",

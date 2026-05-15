@@ -10,7 +10,7 @@ import {
   ORG_DASHBOARD_HRM,
   organizationDashboardPath,
 } from "#lib/dashboard-module-paths"
-import { buildErpPermissionKey } from "#features/erp-rbac"
+import { buildErpPermissionKey } from "#features/erp-rbac/client"
 
 import type { HrmCapability, HrmNavKey } from "./types"
 import { HRM_NAV_NAMESPACE } from "./types"
@@ -231,6 +231,11 @@ export function organizationHrmPath(
   return `${base}/${segment}` as Route
 }
 
+/** Locale-internal claims URL (`/dashboard/hrm/claims`). */
+export function organizationHrmClaimsPath(orgSlug: string): Route {
+  return organizationHrmPath(orgSlug, "claims")
+}
+
 /** Locale-internal employee detail URL (`/dashboard/hrm/employees/{id}`). */
 export function organizationHrmEmployeePath(
   orgSlug: string,
@@ -257,6 +262,27 @@ function isLikelyEvidenceId(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value
   )
+}
+
+function isLikelyClaimId(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  )
+}
+
+/** Locale-internal claim detail URL (`/dashboard/hrm/claims/{claimId}`). */
+export function organizationHrmClaimPath(
+  orgSlug: string,
+  claimId: string
+): Route {
+  const slug = normalizeOrgSlugParam(orgSlug)
+  if (!slug) {
+    throw new Error("organizationHrmClaimPath: invalid org slug")
+  }
+  if (!isLikelyClaimId(claimId)) {
+    throw new Error("organizationHrmClaimPath: claimId is not a valid UUID")
+  }
+  return `/o/${slug}/dashboard/hrm/claims/${claimId}` as Route
 }
 
 /** Locale-internal compliance evidence detail URL (`/dashboard/hrm/compliance/{evidenceId}`). */

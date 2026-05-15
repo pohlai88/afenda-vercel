@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import type { Route } from "next"
-import { useTranslations } from "next-intl"
 
 import { cn } from "#lib/utils"
 
@@ -18,23 +17,23 @@ import {
 import { AppShellMarketplacePanel } from "./utility-bar-marketplace.client"
 import {
   AppShellAvatarDisc,
-  AppShellConnectivityIcon,
-  AppShellDensityIcon,
-  AppShellDiagnosisIcon,
   AppShellHelpIcon,
-  AppShellInsightIcon,
   AppShellLocaleDropdown,
   AppShellMessengerIcon,
   AppShellQuickCreateIcon,
-  AppShellScreenshotIcon,
   AppShellSearchMobileIcon,
-  AppShellSettingsIcon,
-  AppShellStorageIcon,
   AppShellThemeIcon,
-  AppShellUploadIcon,
 } from "./utility-bar.client"
-import { UtilityBarShortcutsPanel } from "./utility-bar-shortcuts.client"
+import { UtilityBarConnectivityPanel } from "./utility-bar-connectivity.client"
+import { UtilityBarDensityPanel } from "./utility-bar-density.client"
+import { UtilityBarDiagnosisPanel } from "./utility-bar-diagnosis.client"
 import { UtilityBarFeedbackPanel } from "./utility-bar-feedback.client"
+import { UtilityBarLynxPanel } from "./utility-bar-lynx.client"
+import { UtilityBarOrgAdminPanel } from "./utility-bar-org-admin.client"
+import { UtilityBarScreenshotPanel } from "./utility-bar-screenshot.client"
+import { UtilityBarShortcutsPanel } from "./utility-bar-shortcuts.client"
+import { UtilityBarStoragePanel } from "./utility-bar-storage.client"
+import { UtilityBarUploadPanel } from "./utility-bar-upload.client"
 import { useAppShellStore } from "../stores/app-shell.store"
 
 // ---------------------------------------------------------------------------
@@ -72,6 +71,16 @@ export type AppShellUtilityBarRightProps = {
    * child or omit to use the built-in sign-out flow).
    */
   account?: AppShellAccountDropdownProps
+  /**
+   * Organization id (UUID) for governed Blob uploads from the right rail.
+   * Omit on surfaces without a tenant session — upload panel shows guidance only.
+   */
+  workspaceBlobOrganizationId?: string | null
+  /**
+   * Active organization slug for the org-admin quick-jump panel.
+   * Omit on surfaces without a tenant session — panel shows guidance only.
+   */
+  orgSlug?: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -81,24 +90,22 @@ export type AppShellUtilityBarRightProps = {
 function RailIcon({
   id,
   hrefs,
-  settingsAriaLabel,
-  settingsTooltip,
   openCommand,
+  workspaceBlobOrganizationId,
+  orgSlug,
 }: {
   id: UtilityBarItemId
   hrefs?: AppShellUtilityBarRightProps["hrefs"]
-  settingsAriaLabel: string
-  settingsTooltip: string
   openCommand: () => void
+  workspaceBlobOrganizationId?: string | null
+  orgSlug?: string | null
 }) {
   const href =
     (id === "insight"
       ? hrefs?.insight
       : id === "help"
         ? hrefs?.help
-        : id === "settings"
-          ? hrefs?.settings
-          : undefined) ?? ("/" as Route)
+        : undefined) ?? ("/" as Route)
 
   switch (id) {
     case "search-mobile":
@@ -117,22 +124,11 @@ function RailIcon({
         />
       )
     case "insight":
-      return (
-        <AppShellInsightIcon
-          href={href}
-          ariaLabel="Lynx machine insight"
-          tooltip="Lynx machine insight"
-        />
-      )
+      return <UtilityBarLynxPanel href={href} />
     case "theme":
       return <AppShellThemeIcon ariaLabel="Appearance" tooltip="Appearance" />
     case "density":
-      return (
-        <AppShellDensityIcon
-          ariaLabel="Layout density"
-          tooltip="Layout density"
-        />
-      )
+      return <UtilityBarDensityPanel />
     case "locale":
       return <AppShellLocaleDropdown ariaLabel="Language" tooltip="Language" />
     case "shortcuts":
@@ -144,37 +140,21 @@ function RailIcon({
         <AppShellHelpIcon href={href} ariaLabel="Help" tooltip="Help & docs" />
       )
     case "settings":
-      return (
-        <AppShellSettingsIcon
-          href={href}
-          ariaLabel={settingsAriaLabel}
-          tooltip={settingsTooltip}
-        />
-      )
+      return <UtilityBarOrgAdminPanel orgSlug={orgSlug ?? null} />
     case "connectivity":
-      return (
-        <AppShellConnectivityIcon
-          ariaLabel="Network status"
-          tooltip="Connectivity"
-        />
-      )
+      return <UtilityBarConnectivityPanel />
     case "storage":
-      return (
-        <AppShellStorageIcon ariaLabel="Storage" tooltip="Storage inspector" />
-      )
+      return <UtilityBarStoragePanel />
     case "screenshot":
-      return (
-        <AppShellScreenshotIcon ariaLabel="Screenshot" tooltip="Screenshot" />
-      )
+      return <UtilityBarScreenshotPanel />
     case "upload":
-      return <AppShellUploadIcon ariaLabel="Upload" tooltip="File upload" />
-    case "diagnosis":
       return (
-        <AppShellDiagnosisIcon
-          ariaLabel="Diagnosis"
-          tooltip="Network diagnosis"
+        <UtilityBarUploadPanel
+          organizationId={workspaceBlobOrganizationId ?? null}
         />
       )
+    case "diagnosis":
+      return <UtilityBarDiagnosisPanel />
     case "messenger":
       return <AppShellMessengerIcon ariaLabel="Messenger" tooltip="Messenger" />
   }
@@ -257,8 +237,9 @@ export function AppShellUtilityBarRight({
   marketplaceAriaLabel = "Marketplace",
   marketplaceTooltip = "Marketplace",
   account,
+  workspaceBlobOrganizationId = null,
+  orgSlug = null,
 }: AppShellUtilityBarRightProps) {
-  const tBar = useTranslations("Dashboard.shell.utilityBar")
   const items = useUtilityBarStore((s) => s.items)
   const reorderVisibleInRail = useUtilityBarStore((s) => s.reorderVisibleInRail)
   const openCommand = useAppShellStore((s) => s.openCommand)
@@ -322,9 +303,9 @@ export function AppShellUtilityBarRight({
           <RailIcon
             id={item.id}
             hrefs={hrefs}
-            settingsAriaLabel={tBar("settingsAriaLabel")}
-            settingsTooltip={tBar("settingsTooltip")}
             openCommand={openCommand}
+            workspaceBlobOrganizationId={workspaceBlobOrganizationId}
+            orgSlug={orgSlug}
           />
         </DraggableRailItem>
       ))}

@@ -1,5 +1,10 @@
 import { z } from "zod"
 
+import {
+  normalizeShiftCode,
+  SHIFT_HOLIDAY_BEHAVIORS,
+} from "../data/attendance-shift.shared"
+
 /** ISO datetime string accepted by the attendance forms (e.g. "2026-05-11T09:00:00"). */
 const isoDatetimeSchema = z
   .string()
@@ -24,6 +29,21 @@ const ATTENDANCE_EVENT_TYPES = [
 ] as const
 
 const ATTENDANCE_SOURCES = ["manual", "csv_import"] as const
+
+const shiftClockTimeSchema = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Must be HH:mm")
+
+const wholeMinutesSchema = z.coerce
+  .number()
+  .int("Must be a whole number")
+  .min(0, "Must be zero or greater")
+
+const positiveMinutesSchema = z.coerce
+  .number()
+  .int("Must be a whole number")
+  .min(1, "Must be greater than zero")
 
 // ---------------------------------------------------------------------------
 // recordAttendanceEventAction form schema
@@ -75,6 +95,51 @@ export const regenerateAttendanceDaySchema = z.object({
 
 export type RegenerateAttendanceDayInput = z.infer<
   typeof regenerateAttendanceDaySchema
+>
+
+// ---------------------------------------------------------------------------
+// Shift templates + explicit assignments
+// ---------------------------------------------------------------------------
+
+export const createShiftTemplateSchema = z
+  .object({
+    code: z
+      .string()
+      .trim()
+      .min(1, "Code is required")
+      .max(24, "Code must be 24 characters or less")
+      .transform(normalizeShiftCode)
+      .refine((value) => /^[A-Z0-9_]+$/.test(value), {
+        message: "Use letters, numbers, and underscores only",
+      }),
+    name: z.string().trim().min(1, "Name is required").max(120),
+    defaultStartTime: shiftClockTimeSchema,
+    defaultEndTime: shiftClockTimeSchema,
+    unpaidBreakMinutes: wholeMinutesSchema.default(0),
+    paidBreakMinutes: wholeMinutesSchema.default(0),
+    lateGraceMinutes: wholeMinutesSchema.default(0),
+    earlyOutGraceMinutes: wholeMinutesSchema.default(0),
+    overtimeGraceMinutes: wholeMinutesSchema.default(0),
+    maxContinuousClockMinutes: positiveMinutesSchema.default(960),
+    holidayBehavior: z.enum(SHIFT_HOLIDAY_BEHAVIORS).default("scheduled"),
+  })
+  .refine((value) => value.defaultStartTime !== value.defaultEndTime, {
+    message: "Start and end cannot be the same time",
+    path: ["defaultEndTime"],
+  })
+
+export type CreateShiftTemplateInput = z.infer<
+  typeof createShiftTemplateSchema
+>
+
+export const assignEmployeeShiftSchema = z.object({
+  employeeId: z.string().trim().min(1, "Employee is required"),
+  attendanceDate: isoDateSchema,
+  shiftTemplateId: z.string().trim().min(1, "Shift template is required"),
+})
+
+export type AssignEmployeeShiftInput = z.infer<
+  typeof assignEmployeeShiftSchema
 >
 
 // ---------------------------------------------------------------------------

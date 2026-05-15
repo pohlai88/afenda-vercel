@@ -106,6 +106,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Workflow DevKit internals (not app code)
     "app/.well-known/workflow/**",
+    // Fumadocs generated collection output; app code imports through
+    // `collections/*`, but generated artifacts must not be linted as source.
+    ".source/**",
     // Python virtual environment (pip vendored JS, not project code)
     ".venv/**",
     // Artifact directories

@@ -2,6 +2,8 @@ import "server-only"
 
 import { createHash } from "crypto"
 
+import { and, eq } from "drizzle-orm"
+
 import { db } from "#lib/db"
 import { hrmAttendanceEvent } from "#lib/db/schema"
 import type {
@@ -71,6 +73,21 @@ export const attendanceImportAdapter: OrgImportAdapter<AttendanceCsvRow> = {
       .digest("hex")
 
     const eventId = crypto.randomUUID()
+
+    const existingRows = await db
+      .select({ id: hrmAttendanceEvent.id })
+      .from(hrmAttendanceEvent)
+      .where(
+        and(
+          eq(hrmAttendanceEvent.organizationId, organizationId),
+          eq(hrmAttendanceEvent.rawPayloadHash, rawPayloadHash)
+        )
+      )
+      .limit(1)
+
+    if (existingRows.length > 0) {
+      return { ok: false, code: "duplicate", message: "Duplicate event row" }
+    }
 
     try {
       await db.insert(hrmAttendanceEvent).values({

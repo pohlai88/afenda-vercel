@@ -24,6 +24,12 @@ import {
   preparePayrollRunsAction,
 } from "../actions/payroll-period.actions"
 import {
+  generatePayrollPayslipsAction,
+  postPayrollPeriodAction,
+  publishPayrollPayslipsAction,
+  refreshPayrollCloseSnapshotAction,
+} from "../actions/payroll-close.actions"
+import {
   approvePayrollPeriodLockApprovalAction,
   rejectPayrollPeriodLockApprovalAction,
   requestPayrollPeriodLockApprovalAction,
@@ -39,6 +45,10 @@ import type {
   PayrollRunRow,
 } from "../data/payroll.queries.server"
 import type { PayrollPeriodTraceability } from "../data/payroll-engine.server"
+import type {
+  PayrollCloseActionFormState,
+  PayrollCloseSnapshot,
+} from "../data/payroll-close.shared"
 
 // ---------------------------------------------------------------------------
 // Period state badge
@@ -257,6 +267,11 @@ const initialLockPeriod: LockPayrollPeriodFormState = {
   errors: {},
 }
 
+const initialPayrollCloseAction: PayrollCloseActionFormState = {
+  ok: false,
+  errors: {},
+}
+
 export function RequestPayrollLockApprovalButton({
   periodId,
   disabled,
@@ -386,6 +401,316 @@ export function LockPayrollPeriodButton({
         </span>
       )}
     </form>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Payroll close passport
+// ---------------------------------------------------------------------------
+
+function ChecklistStatusBadge({
+  status,
+}: {
+  status: PayrollCloseSnapshot["checklist"][number]["status"]
+}) {
+  const t = useTranslations("Dashboard.Hrm.payroll")
+  const label = {
+    passed: t("close.status.passed"),
+    warning: t("close.status.warning"),
+    blocked: t("close.status.blocked"),
+    pending: t("close.status.pending"),
+  }[status]
+  const variant =
+    status === "blocked"
+      ? "destructive"
+      : status === "passed"
+        ? "default"
+        : status === "warning"
+          ? "secondary"
+          : "outline"
+
+  return (
+    <Badge variant={variant} className="text-xs">
+      {label}
+    </Badge>
+  )
+}
+
+function PayrollCloseActionButton({
+  periodId,
+  action,
+  label,
+  pendingLabel,
+  variant = "outline",
+  disabled = false,
+}: {
+  periodId: string
+  action: (
+    prev: PayrollCloseActionFormState,
+    formData: FormData
+  ) => Promise<PayrollCloseActionFormState>
+  label: string
+  pendingLabel: string
+  variant?: "default" | "outline" | "secondary"
+  disabled?: boolean
+}) {
+  const [state, formAction, pending] = useActionState(
+    action,
+    initialPayrollCloseAction
+  )
+
+  return (
+    <form action={formAction} className="flex flex-col gap-1">
+      <input type="hidden" name="periodId" value={periodId} />
+      <Button
+        type="submit"
+        size="sm"
+        variant={variant}
+        disabled={disabled || pending}
+      >
+        {pending ? pendingLabel : label}
+      </Button>
+      {state.ok && (
+        <span className="text-xs text-muted-foreground">{state.message}</span>
+      )}
+      {!state.ok && state.errors.form && (
+        <span className="text-xs text-destructive">{state.errors.form}</span>
+      )}
+    </form>
+  )
+}
+
+export function PayrollClosePassport({
+  periodId,
+  snapshot,
+}: {
+  periodId: string
+  snapshot: PayrollCloseSnapshot | null
+}) {
+  const t = useTranslations("Dashboard.Hrm.payroll")
+
+  if (!snapshot) {
+    return (
+      <div className="rounded-md border border-border bg-muted/20 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <Label className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+              {t("close.title")}
+            </Label>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t("close.unavailable")}
+            </p>
+          </div>
+          <PayrollCloseActionButton
+            periodId={periodId}
+            action={refreshPayrollCloseSnapshotAction}
+            label={t("close.refresh")}
+            pendingLabel={t("close.refreshing")}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  const canRunLockedActions =
+    snapshot.periodState === "locked" || snapshot.periodState === "finalized"
+
+  return (
+    <div className="space-y-5 rounded-md border border-border bg-muted/20 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <Label className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+            {t("close.title")}
+          </Label>
+          <div className="mt-2 flex flex-wrap items-baseline gap-3">
+            <span className="text-3xl font-semibold tabular-nums">
+              {snapshot.readinessScore}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {t("close.readinessScore")}
+            </span>
+            <Badge variant="outline" className="text-xs">
+              {snapshot.primaryCountryCode}
+            </Badge>
+          </div>
+        </div>
+        <div className="grid gap-2 text-right text-sm sm:grid-cols-3">
+          <div>
+            <div className="text-muted-foreground">{t("close.runs")}</div>
+            <div className="font-medium tabular-nums">
+              {snapshot.totals.employeeCount}/{snapshot.totals.runCount}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">{t("close.netPay")}</div>
+            <div className="font-medium tabular-nums">
+              {snapshot.totals.netPay} {snapshot.currency}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">{t("close.hash")}</div>
+            <div className="font-mono text-xs">
+              {snapshot.inputHash.slice(0, 12)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="space-y-3">
+          <div className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+            {t("close.checklist")}
+          </div>
+          <div className="divide-y divide-border rounded-md border border-border bg-background">
+            {snapshot.checklist.map((item) => (
+              <div
+                key={item.id}
+                className="grid gap-2 px-3 py-2 sm:grid-cols-[1fr_auto]"
+              >
+                <div>
+                  <div className="text-sm font-medium">{item.label}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {item.detail}
+                  </div>
+                </div>
+                <ChecklistStatusBadge status={item.status} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <div className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+              {t("close.exceptions")}
+            </div>
+            <div className="mt-3 space-y-2">
+              {snapshot.exceptions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("close.noExceptions")}
+                </p>
+              ) : (
+                snapshot.exceptions.map((exception) => (
+                  <div
+                    key={exception.id}
+                    className="rounded-md border border-border bg-background px-3 py-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge variant="destructive" className="text-xs">
+                        {exception.code}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {exception.severity}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm">{exception.message}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+              {t("close.evidence")}
+            </div>
+            <div className="mt-3 space-y-2">
+              {snapshot.evidenceManifest.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("close.noEvidence")}
+                </p>
+              ) : (
+                snapshot.evidenceManifest.map((evidence) => (
+                  <div
+                    key={evidence.evidenceId}
+                    className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  >
+                    <span>
+                      {evidence.countryCode} · {evidence.packType}
+                    </span>
+                    <Badge variant="outline" className="text-xs">
+                      {evidence.submissionState}
+                    </Badge>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 border-t border-border pt-4 lg:grid-cols-[1fr_auto]">
+        <div>
+          <div className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+            {t("close.postingPreview")}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-4 text-sm">
+            <span>
+              {t("close.debits")}{" "}
+              <strong className="tabular-nums">
+                {snapshot.postingPreview.totalDebits}
+              </strong>
+            </span>
+            <span>
+              {t("close.credits")}{" "}
+              <strong className="tabular-nums">
+                {snapshot.postingPreview.totalCredits}
+              </strong>
+            </span>
+            <span>
+              {t("close.balance")}{" "}
+              <strong className="tabular-nums">
+                {snapshot.postingPreview.netBalance}
+              </strong>
+            </span>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {snapshot.postingPreview.lines.slice(0, 6).map((line) => (
+              <div
+                key={line.id}
+                className="flex items-center justify-between gap-3 text-xs"
+              >
+                <span className="truncate text-muted-foreground">
+                  {line.accountName}
+                </span>
+                <span className="font-medium tabular-nums">
+                  {line.side === "debit" ? "Dr" : "Cr"} {line.amount}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="grid min-w-48 gap-2">
+          <PayrollCloseActionButton
+            periodId={periodId}
+            action={refreshPayrollCloseSnapshotAction}
+            label={t("close.refresh")}
+            pendingLabel={t("close.refreshing")}
+          />
+          <PayrollCloseActionButton
+            periodId={periodId}
+            action={postPayrollPeriodAction}
+            label={t("close.validatePosting")}
+            pendingLabel={t("close.validatingPosting")}
+            disabled={!canRunLockedActions}
+          />
+          <PayrollCloseActionButton
+            periodId={periodId}
+            action={generatePayrollPayslipsAction}
+            label={t("close.generatePayslips")}
+            pendingLabel={t("close.generatingPayslips")}
+            disabled={!canRunLockedActions}
+          />
+          <PayrollCloseActionButton
+            periodId={periodId}
+            action={publishPayrollPayslipsAction}
+            label={t("close.publishPayslips")}
+            pendingLabel={t("close.publishingPayslips")}
+            disabled={!canRunLockedActions}
+          />
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -587,11 +912,13 @@ export function PayrollRunTable({ runs }: { runs: PayrollRunRow[] }) {
 export function PayrollPeriodDetailCard({
   period,
   runs,
+  closeSnapshot,
   traceability,
   pendingLockApprovalId,
 }: {
   period: PayrollPeriodRow
   runs: PayrollRunRow[]
+  closeSnapshot: PayrollCloseSnapshot | null
   traceability: PayrollPeriodTraceability
   pendingLockApprovalId: string | null
 }) {
@@ -615,7 +942,7 @@ export function PayrollPeriodDetailCard({
     allRunsComputed &&
     traceability.runsWithBlockers === 0 &&
     traceability.attendanceComplete &&
-    period.currency === "MYR"
+    (closeSnapshot ? closeSnapshot.exceptions.length === 0 : true)
 
   return (
     <Card size="sm">
@@ -640,6 +967,7 @@ export function PayrollPeriodDetailCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        <PayrollClosePassport periodId={period.id} snapshot={closeSnapshot} />
         <div>
           <Label className="mb-1 block text-xs font-semibold tracking-widest text-muted-foreground uppercase">
             {t("traceabilityTitle")}
@@ -686,11 +1014,6 @@ export function PayrollPeriodDetailCard({
                   disabled={false}
                 />
               )}
-              {period.currency !== "MYR" && (
-                <p className="text-xs text-amber-700 dark:text-amber-400">
-                  {t("lockMyrOnly")}
-                </p>
-              )}
             </div>
           </div>
         )}
@@ -707,11 +1030,13 @@ export function PayrollConsolePage({
   periods,
   periodRuns,
   periodTraceability,
+  periodCloseSnapshots,
   periodPendingLockApprovalIds,
 }: {
   periods: PayrollPeriodRow[]
   periodRuns: Map<string, PayrollRunRow[]>
   periodTraceability: Map<string, PayrollPeriodTraceability>
+  periodCloseSnapshots: Map<string, PayrollCloseSnapshot | null>
   periodPendingLockApprovalIds: Map<string, string | null>
 }) {
   const t = useTranslations("Dashboard.Hrm.payroll")
@@ -740,6 +1065,7 @@ export function PayrollConsolePage({
           key={period.id}
           period={period}
           runs={periodRuns.get(period.id) ?? []}
+          closeSnapshot={periodCloseSnapshots.get(period.id) ?? null}
           traceability={
             periodTraceability.get(period.id) ?? {
               employeeCount: 0,

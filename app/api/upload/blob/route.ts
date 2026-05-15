@@ -10,6 +10,7 @@ import {
   routePublicErrorMessage,
 } from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
+import { canUploadClaimEvidenceForUser } from "#features/hrm/server"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -82,14 +83,58 @@ function isAllowedNexusUploadPath(orgId: string, pathname: string): boolean {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
+type HrmUploadPath = {
+  employeeId: string
+  claimId: string | null
+}
+
 /** Tenant-scoped HR evidence: `orgs/{orgId}/hrm/{employeeId}/…`. */
-function isAllowedHrmUploadPath(orgId: string, pathname: string): boolean {
+function parseHrmUploadPath(
+  orgId: string,
+  pathname: string
+): HrmUploadPath | null {
   const parts = pathname.split("/").filter(Boolean)
-  if (parts.length < 5) return false
+  if (parts.length < 5) return null
   if (parts[0] !== "orgs" || parts[1] !== orgId || parts[2] !== "hrm") {
+    return null
+  }
+  const employeeId = parts[3] ?? ""
+  if (!UUID_RE.test(employeeId)) return null
+  if (parts[4] !== "claims") {
+    return { employeeId, claimId: null }
+  }
+  const claimId = parts[5] ?? ""
+  if (parts.length < 7 || !UUID_RE.test(claimId)) return null
+  return { employeeId, claimId }
+}
+
+async function isAllowedHrmUploadPath(input: {
+  orgId: string
+  userId: string
+  pathname: string
+  clientPayload: WorkbenchUtilityUploadClientPayload | null
+}): Promise<boolean> {
+  const parsed = parseHrmUploadPath(input.orgId, input.pathname)
+  if (!parsed) return false
+  if (!parsed.claimId) return true
+  if (
+    input.clientPayload?.linkedEntityType &&
+    input.clientPayload.linkedEntityType !== "hrm_claim"
+  ) {
     return false
   }
-  return UUID_RE.test(parts[3] ?? "")
+  if (
+    input.clientPayload?.linkedEntityId &&
+    input.clientPayload.linkedEntityId !== parsed.claimId
+  ) {
+    return false
+  }
+  return canUploadClaimEvidenceForUser({
+    organizationId: input.orgId,
+    userId: input.userId,
+    employeeId: parsed.employeeId,
+    claimId: parsed.claimId,
+  })
 }
 
 function isAllowedOrbitUploadPath(orgId: string, pathname: string): boolean {
@@ -101,14 +146,16 @@ function isAllowedOrbitUploadPath(orgId: string, pathname: string): boolean {
   return UUID_RE.test(parts[3] ?? "")
 }
 
-function isAllowedOrgWorkspaceUploadPath(
-  orgId: string,
+async function isAllowedOrgWorkspaceUploadPath(input: {
+  orgId: string
+  userId: string
   pathname: string
-): boolean {
+  clientPayload: WorkbenchUtilityUploadClientPayload | null
+}): Promise<boolean> {
   return (
-    isAllowedNexusUploadPath(orgId, pathname) ||
-    isAllowedHrmUploadPath(orgId, pathname) ||
-    isAllowedOrbitUploadPath(orgId, pathname)
+    isAllowedNexusUploadPath(input.orgId, input.pathname) ||
+    (await isAllowedHrmUploadPath(input)) ||
+    isAllowedOrbitUploadPath(input.orgId, input.pathname)
   )
 }
 
@@ -137,16 +184,17 @@ export async function POST(request: Request) {
           throw new Error("Unauthorized")
         }
 
-        const allowedForOrg = isAllowedOrgWorkspaceUploadPath(
-          orgSession.organizationId,
-          pathname
-        )
+        const parsedClientPayload = parseClientPayload(clientPayload)
+        const allowedForOrg = await isAllowedOrgWorkspaceUploadPath({
+          orgId: orgSession.organizationId,
+          userId: orgSession.userId,
+          pathname,
+          clientPayload: parsedClientPayload,
+        })
 
         if (!allowedForOrg) {
           throw new Error("Upload path is not allowed for this workspace")
         }
-
-        const parsedClientPayload = parseClientPayload(clientPayload)
 
         return {
           allowedContentTypes: [

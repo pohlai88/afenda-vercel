@@ -9,8 +9,8 @@ import {
 } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-const { html2canvasMock, uploadMock } = vi.hoisted(() => ({
-  html2canvasMock: vi.fn(),
+const { toBlobMock, uploadMock } = vi.hoisted(() => ({
+  toBlobMock: vi.fn(),
   uploadMock: vi.fn(),
 }))
 
@@ -60,8 +60,8 @@ function interpolate(
   )
 }
 
-vi.mock("html2canvas", () => ({
-  default: html2canvasMock,
+vi.mock("html-to-image", () => ({
+  toBlob: toBlobMock,
 }))
 
 vi.mock("@vercel/blob/client", () => ({
@@ -81,14 +81,6 @@ vi.mock("next-intl", () => ({
 import { WorkbenchUtilityScreenshot } from "#components/workbench/utility-bar/right-utility-bar/workbench-utility-screenshot"
 import { TooltipProvider } from "#components/ui/tooltip"
 
-function createMockCanvas() {
-  return {
-    toBlob(callback: (blob: Blob | null) => void) {
-      callback(new Blob(["png"], { type: "image/png" }))
-    },
-  } as unknown as HTMLCanvasElement
-}
-
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
@@ -97,8 +89,8 @@ afterEach(() => {
 
 describe("WorkbenchUtilityScreenshot", () => {
   beforeEach(() => {
-    html2canvasMock.mockReset()
-    html2canvasMock.mockResolvedValue(createMockCanvas())
+    toBlobMock.mockReset()
+    toBlobMock.mockResolvedValue(new Blob(["png"], { type: "image/png" }))
     vi.stubGlobal(
       "ResizeObserver",
       class ResizeObserver {
@@ -117,7 +109,6 @@ describe("WorkbenchUtilityScreenshot", () => {
   })
 
   it("captures the workspace view and uploads the screenshot", async () => {
-    html2canvasMock.mockResolvedValue(createMockCanvas())
     uploadMock.mockResolvedValue({
       url: "https://blob.example/workspace.png",
       downloadUrl: "https://blob.example/workspace.png?download=1",
@@ -138,12 +129,10 @@ describe("WorkbenchUtilityScreenshot", () => {
     expect(
       await screen.findByText("Workspace capture ready for upload.")
     ).toBeTruthy()
-    expect(html2canvasMock).toHaveBeenCalledWith(
+    expect(toBlobMock).toHaveBeenCalledWith(
       document.querySelector('[data-workbench-capture-root="workspace"]'),
       expect.objectContaining({
-        backgroundColor: null,
-        logging: false,
-        useCORS: true,
+        pixelRatio: expect.any(Number),
       })
     )
 
@@ -164,8 +153,6 @@ describe("WorkbenchUtilityScreenshot", () => {
   })
 
   it("captures the content view when content mode is selected", async () => {
-    html2canvasMock.mockResolvedValue(createMockCanvas())
-
     render(
       <TooltipProvider>
         <WorkbenchUtilityScreenshot orgId="org-1" />
@@ -179,14 +166,14 @@ describe("WorkbenchUtilityScreenshot", () => {
     expect(
       await screen.findByText("Content capture ready for upload.")
     ).toBeTruthy()
-    expect(html2canvasMock).toHaveBeenCalledWith(
+    expect(toBlobMock).toHaveBeenCalledWith(
       document.querySelector('[data-workbench-capture-root="content"]'),
       expect.any(Object)
     )
   })
 
   it("shows inline capture failures", async () => {
-    html2canvasMock.mockRejectedValue(new Error("Capture crashed"))
+    toBlobMock.mockRejectedValue(new Error("Capture crashed"))
 
     render(
       <TooltipProvider>
@@ -203,8 +190,6 @@ describe("WorkbenchUtilityScreenshot", () => {
   })
 
   it("resets the preview when cleared", async () => {
-    html2canvasMock.mockResolvedValue(createMockCanvas())
-
     render(
       <TooltipProvider>
         <WorkbenchUtilityScreenshot orgId="org-1" />
@@ -232,7 +217,6 @@ describe("WorkbenchUtilityScreenshot", () => {
   })
 
   it("shows inline upload failures", async () => {
-    html2canvasMock.mockResolvedValue(createMockCanvas())
     uploadMock.mockRejectedValue(new Error("Upload screenshot failed"))
 
     render(

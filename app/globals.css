@@ -15,6 +15,10 @@
    ============================================================================= */
 
 @import "tailwindcss";
+/* Fumadocs UI: shadcn preset inherits this project's existing shadcn/afenda design tokens
+   instead of introducing a parallel neutral palette that would clash with globals.css. */
+@import "fumadocs-ui/css/shadcn.css";
+@import "fumadocs-ui/css/preset.css";
 @source "..";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -748,6 +752,64 @@
   --motion-ease-emphasized: var(--md-sys-motion-easing-emphasized);
   --motion-ease-decelerate: var(--md-sys-motion-easing-emphasized-decelerate);
   --motion-ease-accelerate: var(--md-sys-motion-easing-emphasized-accelerate);
+}
+
+/*
+ * Main scroll pane only (`#app-shell-main` — `data-density` on SidebarInset).
+ * Utility bar, primary sidebar, and surface chrome are outside this subtree.
+ */
+[data-density="compact"] {
+  --erp-surface-xs: 0.25rem;
+  --erp-surface-sm: 0.5rem;
+  --erp-surface-md: 0.75rem;
+  --erp-surface-lg: 1rem;
+  --erp-surface-xl: 1.5rem;
+  --erp-surface-2xl: 2rem;
+  --erp-table-cell-px: 0.5rem;
+  --erp-table-cell-py: 0.5rem;
+  --erp-menu-item-py: 0.25rem;
+  --erp-control-height-sm: 1.75rem;
+  --erp-control-height-md: 2rem;
+  --erp-field-py: 0.375rem;
+  --space-surface-xs: var(--erp-surface-xs);
+  --space-surface-sm: var(--erp-surface-sm);
+  --space-surface-md: var(--erp-surface-md);
+  --space-surface-lg: var(--erp-surface-lg);
+  --space-surface-xl: var(--erp-surface-xl);
+  --space-surface-2xl: var(--erp-surface-2xl);
+  --af-table-cell-px: var(--erp-table-cell-px);
+  --af-table-cell-py: var(--erp-table-cell-py);
+  --af-menu-item-py: var(--erp-menu-item-py);
+  --af-control-height-sm: var(--erp-control-height-sm);
+  --af-control-height-md: var(--erp-control-height-md);
+  --af-field-py: var(--erp-field-py);
+}
+
+[data-density="relaxed"] {
+  --erp-surface-xs: 0.75rem;
+  --erp-surface-sm: 1rem;
+  --erp-surface-md: 1.5rem;
+  --erp-surface-lg: 2rem;
+  --erp-surface-xl: 2.5rem;
+  --erp-surface-2xl: 4rem;
+  --erp-table-cell-px: 1rem;
+  --erp-table-cell-py: 1rem;
+  --erp-menu-item-py: 0.625rem;
+  --erp-control-height-sm: 2.25rem;
+  --erp-control-height-md: 2.5rem;
+  --erp-field-py: 0.875rem;
+  --space-surface-xs: var(--erp-surface-xs);
+  --space-surface-sm: var(--erp-surface-sm);
+  --space-surface-md: var(--erp-surface-md);
+  --space-surface-lg: var(--erp-surface-lg);
+  --space-surface-xl: var(--erp-surface-xl);
+  --space-surface-2xl: var(--erp-surface-2xl);
+  --af-table-cell-px: var(--erp-table-cell-px);
+  --af-table-cell-py: var(--erp-table-cell-py);
+  --af-menu-item-py: var(--erp-menu-item-py);
+  --af-control-height-sm: var(--erp-control-height-sm);
+  --af-control-height-md: var(--erp-control-height-md);
+  --af-field-py: var(--erp-field-py);
 }
 
 /* -------------------------------------------------------------------------- */

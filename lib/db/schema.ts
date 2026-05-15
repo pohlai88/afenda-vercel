@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm"
 import {
   boolean,
+  check,
   date,
   decimal,
   foreignKey,
@@ -1201,6 +1202,10 @@ export const hrmJobGrade = pgTable(
       t.organizationId,
       t.archivedAt
     ),
+    index("hrm_job_grade_organizationId_ordinal_idx").on(
+      t.organizationId,
+      t.ordinal
+    ),
   ]
 )
 
@@ -1235,6 +1240,10 @@ export const hrmDepartment = pgTable(
     index("hrm_department_organizationId_archivedAt_idx").on(
       t.organizationId,
       t.archivedAt
+    ),
+    index("hrm_department_organizationId_parentDepartmentId_idx").on(
+      t.organizationId,
+      t.parentDepartmentId
     ),
   ]
 )
@@ -1278,6 +1287,10 @@ export const hrmPosition = pgTable(
       t.organizationId,
       t.archivedAt
     ),
+    index("hrm_position_organizationId_reportsToPositionId_idx").on(
+      t.organizationId,
+      t.reportsToPositionId
+    ),
   ]
 )
 
@@ -1306,6 +1319,10 @@ export const hrmEmployee = pgTable(
     countryCode: text("countryCode"),
     workStateCode: text("workStateCode"),
     linkedUserId: text("linkedUserId"),
+    employmentStatus: text("employmentStatus").notNull().default("active"),
+    employmentStartDate: date("employmentStartDate", { mode: "date" }),
+    probationEndDate: date("probationEndDate", { mode: "date" }),
+    confirmationDate: date("confirmationDate", { mode: "date" }),
     currentDepartmentId: text("currentDepartmentId").references(
       () => hrmDepartment.id
     ),
@@ -1356,6 +1373,209 @@ export const hrmEmployee = pgTable(
     index("hrm_employee_organizationId_managerEmployeeId_idx").on(
       t.organizationId,
       t.managerEmployeeId
+    ),
+    index("hrm_employee_organizationId_employmentStatus_idx").on(
+      t.organizationId,
+      t.employmentStatus
+    ),
+  ]
+)
+
+/**
+ * Effective-dated employee placement history. The `hrm_employee.current*`
+ * columns remain cached compatibility projections during the org-structure
+ * remodel; this table becomes the auditable source for placement changes.
+ */
+export const hrmEmployeeAssignment = pgTable(
+  "hrm_employee_assignment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "cascade" }),
+    departmentId: text("departmentId").references(() => hrmDepartment.id, {
+      onDelete: "set null",
+    }),
+    positionId: text("positionId").references(() => hrmPosition.id, {
+      onDelete: "set null",
+    }),
+    jobGradeId: text("jobGradeId").references(() => hrmJobGrade.id, {
+      onDelete: "set null",
+    }),
+    managerEmployeeId: text("managerEmployeeId").references(
+      () => hrmEmployee.id,
+      { onDelete: "set null" }
+    ),
+    costCenterCode: text("costCenterCode"),
+    workLocationCode: text("workLocationCode"),
+    effectiveFrom: date("effectiveFrom", { mode: "date" }).notNull(),
+    effectiveTo: date("effectiveTo", { mode: "date" }),
+    status: text("status").notNull().default("active"),
+    reason: text("reason"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_employee_assignment_org_employee_effective_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.effectiveFrom
+    ),
+    index("hrm_employee_assignment_org_active_idx").on(
+      t.organizationId,
+      t.status,
+      t.effectiveTo
+    ),
+    index("hrm_employee_assignment_org_department_idx").on(
+      t.organizationId,
+      t.departmentId
+    ),
+    index("hrm_employee_assignment_org_position_idx").on(
+      t.organizationId,
+      t.positionId
+    ),
+  ]
+)
+
+/** Normalized employee personal profile. `hrm_employee` keeps compatibility mirrors during cutover. */
+export const hrmEmployeePersonalProfile = pgTable(
+  "hrm_employee_personal_profile",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "cascade" }),
+    dateOfBirth: date("dateOfBirth", { mode: "date" }),
+    gender: text("gender"),
+    nationality: text("nationality"),
+    maritalStatus: text("maritalStatus"),
+    primaryIdentityDocumentId: text("primaryIdentityDocumentId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_employee_personal_profile_org_employee_uidx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_employee_personal_profile_org_nationality_idx").on(
+      t.organizationId,
+      t.nationality
+    ),
+  ]
+)
+
+/** Normalized employee contact profile. Sensitive values are redacted in history/audit. */
+export const hrmEmployeeContactProfile = pgTable(
+  "hrm_employee_contact_profile",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "cascade" }),
+    workEmail: text("workEmail"),
+    workPhone: text("workPhone"),
+    personalEmail: text("personalEmail"),
+    personalPhone: text("personalPhone"),
+    address: jsonb("address").$type<Record<string, unknown>>(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_employee_contact_profile_org_employee_uidx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_employee_contact_profile_org_workEmail_idx").on(
+      t.organizationId,
+      t.workEmail
+    ),
+  ]
+)
+
+/** Multi-document employee identity register. Stores raw statutory identifiers; audit callers must redact. */
+export const hrmEmployeeIdentityDocument = pgTable(
+  "hrm_employee_identity_document",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "cascade" }),
+    documentType: text("documentType").notNull(),
+    documentNumber: text("documentNumber").notNull(),
+    issuingCountry: text("issuingCountry").notNull(),
+    issuedAt: date("issuedAt", { mode: "date" }),
+    expiresAt: date("expiresAt", { mode: "date" }),
+    isPrimary: boolean("isPrimary").notNull().default(false),
+    verificationStatus: text("verificationStatus")
+      .notNull()
+      .default("unverified"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_employee_identity_document_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    uniqueIndex("hrm_employee_identity_document_org_employee_primary_uidx")
+      .on(t.organizationId, t.employeeId)
+      .where(sql`${t.isPrimary} = true`),
+  ]
+)
+
+/** Employee work authorization register for country-specific right-to-work evidence. */
+export const hrmEmployeeWorkAuthorization = pgTable(
+  "hrm_employee_work_authorization",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "cascade" }),
+    countryCode: text("countryCode").notNull(),
+    authorizationType: text("authorizationType").notNull(),
+    documentNumber: text("documentNumber"),
+    issuedAt: date("issuedAt", { mode: "date" }),
+    expiresAt: date("expiresAt", { mode: "date" }),
+    status: text("status").notNull().default("active"),
+    notes: text("notes"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_employee_work_authorization_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_employee_work_authorization_org_country_status_idx").on(
+      t.organizationId,
+      t.countryCode,
+      t.status
     ),
   ]
 )
@@ -2358,6 +2578,142 @@ export const hrmPayrollProfile = pgTable(
 // Phase 2C: Attendance event stream + daily aggregate
 // ---------------------------------------------------------------------------
 
+/** Reusable org-scoped shift policy/catalog. Assignments copy the policy snapshot for payroll-stable history. */
+export const hrmShiftTemplate = pgTable(
+  "hrm_shift_template",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    /** HH:mm, interpreted against the explicit attendanceDate when assigned. */
+    defaultStartTime: text("defaultStartTime").notNull(),
+    /** HH:mm, end <= start is treated as next-day end when assigned. */
+    defaultEndTime: text("defaultEndTime").notNull(),
+    unpaidBreakMinutes: integer("unpaidBreakMinutes").notNull().default(0),
+    paidBreakMinutes: integer("paidBreakMinutes").notNull().default(0),
+    lateGraceMinutes: integer("lateGraceMinutes").notNull().default(0),
+    earlyOutGraceMinutes: integer("earlyOutGraceMinutes").notNull().default(0),
+    overtimeGraceMinutes: integer("overtimeGraceMinutes").notNull().default(0),
+    maxContinuousClockMinutes: integer("maxContinuousClockMinutes")
+      .notNull()
+      .default(960),
+    /** scheduled | skip | paid_holiday */
+    holidayBehavior: text("holidayBehavior").notNull().default("scheduled"),
+    isActive: boolean("isActive").notNull().default(true),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_shift_template_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_shift_template_org_active_idx").on(
+      t.organizationId,
+      t.isActive,
+      t.code
+    ),
+    check(
+      "hrm_shift_template_code_format_chk",
+      sql`${t.code} ~ '^[A-Z0-9_]{1,24}$'`
+    ),
+    check(
+      "hrm_shift_template_start_time_format_chk",
+      sql`${t.defaultStartTime} ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'`
+    ),
+    check(
+      "hrm_shift_template_end_time_format_chk",
+      sql`${t.defaultEndTime} ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'`
+    ),
+    check(
+      "hrm_shift_template_nonnegative_minutes_chk",
+      sql`${t.unpaidBreakMinutes} >= 0 AND ${t.paidBreakMinutes} >= 0 AND ${t.lateGraceMinutes} >= 0 AND ${t.earlyOutGraceMinutes} >= 0 AND ${t.overtimeGraceMinutes} >= 0`
+    ),
+    check(
+      "hrm_shift_template_positive_max_duration_chk",
+      sql`${t.maxContinuousClockMinutes} > 0`
+    ),
+    check(
+      "hrm_shift_template_holiday_behavior_chk",
+      sql`${t.holidayBehavior} IN ('scheduled', 'skip', 'paid_holiday')`
+    ),
+  ]
+)
+
+/** Exact per-employee shift assignment for one attendance date. */
+export const hrmShiftAssignment = pgTable(
+  "hrm_shift_assignment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    shiftTemplateId: text("shiftTemplateId")
+      .notNull()
+      .references(() => hrmShiftTemplate.id, { onDelete: "restrict" }),
+    attendanceDate: date("attendanceDate").notNull(),
+    scheduledStartAt: timestamp("scheduledStartAt", {
+      mode: "date",
+    }).notNull(),
+    scheduledEndAt: timestamp("scheduledEndAt", { mode: "date" }).notNull(),
+    templateCode: text("templateCode").notNull(),
+    templateName: text("templateName").notNull(),
+    unpaidBreakMinutes: integer("unpaidBreakMinutes").notNull().default(0),
+    paidBreakMinutes: integer("paidBreakMinutes").notNull().default(0),
+    lateGraceMinutes: integer("lateGraceMinutes").notNull().default(0),
+    earlyOutGraceMinutes: integer("earlyOutGraceMinutes").notNull().default(0),
+    overtimeGraceMinutes: integer("overtimeGraceMinutes").notNull().default(0),
+    maxContinuousClockMinutes: integer("maxContinuousClockMinutes")
+      .notNull()
+      .default(960),
+    holidayBehavior: text("holidayBehavior").notNull().default("scheduled"),
+    policySnapshot: jsonb("policySnapshot").notNull(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_shift_assignment_org_employee_date_uidx").on(
+      t.organizationId,
+      t.employeeId,
+      t.attendanceDate
+    ),
+    index("hrm_shift_assignment_org_date_idx").on(
+      t.organizationId,
+      t.attendanceDate
+    ),
+    index("hrm_shift_assignment_org_template_idx").on(
+      t.organizationId,
+      t.shiftTemplateId
+    ),
+    check(
+      "hrm_shift_assignment_window_order_chk",
+      sql`${t.scheduledEndAt} > ${t.scheduledStartAt}`
+    ),
+    check(
+      "hrm_shift_assignment_nonnegative_minutes_chk",
+      sql`${t.unpaidBreakMinutes} >= 0 AND ${t.paidBreakMinutes} >= 0 AND ${t.lateGraceMinutes} >= 0 AND ${t.earlyOutGraceMinutes} >= 0 AND ${t.overtimeGraceMinutes} >= 0`
+    ),
+    check(
+      "hrm_shift_assignment_positive_max_duration_chk",
+      sql`${t.maxContinuousClockMinutes} > 0`
+    ),
+    check(
+      "hrm_shift_assignment_holiday_behavior_chk",
+      sql`${t.holidayBehavior} IN ('scheduled', 'skip', 'paid_holiday')`
+    ),
+  ]
+)
+
 /** Immutable raw attendance event stream. Corrections create new rows (never update). */
 export const hrmAttendanceEvent = pgTable(
   "hrm_attendance_event",
@@ -2686,8 +3042,26 @@ export const hrmClaimType = pgTable(
     currency: text("currency").notNull().default("MYR"),
     /** Optional per-claim cap; null = no limit. */
     perClaimLimit: decimal("perClaimLimit", { precision: 15, scale: 2 }),
+    /** Optional per-calendar-month cap; null = no limit. */
+    periodLimit: decimal("periodLimit", { precision: 15, scale: 2 }),
+    /** Optional per-calendar-year cap; null = no limit. */
+    annualLimit: decimal("annualLimit", { precision: 15, scale: 2 }),
+    /** Require evidence when the claim amount is at or above this amount. */
+    evidenceRequiredAboveAmount: decimal("evidenceRequiredAboveAmount", {
+      precision: 15,
+      scale: 2,
+    }),
     /** Whether claims of this type require at least one evidence document. */
     requiresEvidence: boolean("requiresEvidence").notNull().default(true),
+    /** payroll | ap — payroll remains the default reimbursement path. */
+    defaultPayoutMethod: text("defaultPayoutMethod")
+      .notNull()
+      .default("payroll"),
+    defaultFinanceAccountCode: text("defaultFinanceAccountCode"),
+    defaultCostCenterCode: text("defaultCostCenterCode"),
+    defaultTaxTreatment: text("defaultTaxTreatment")
+      .notNull()
+      .default("non_taxable_reimbursement"),
     isActive: boolean("isActive").notNull().default(true),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
@@ -2707,6 +3081,8 @@ export const hrmClaim = pgTable(
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     organizationId: text("organizationId").notNull(),
+    /** Human-stable claim reference for audit and finance review. */
+    claimNumber: text("claimNumber"),
     employeeId: text("employeeId")
       .notNull()
       .references(() => hrmEmployee.id, { onDelete: "restrict" }),
@@ -2722,6 +3098,7 @@ export const hrmClaim = pgTable(
     /** draft | submitted | approved | rejected | cancelled | paid */
     state: text("state").notNull().default("draft"),
     submittedAt: timestamp("submittedAt", { mode: "date" }),
+    submittedByUserId: text("submittedByUserId"),
     /** FK to hrm_approval — single-step approval reuses the generic primitive. */
     currentApprovalId: text("currentApprovalId").references(
       () => hrmApproval.id,
@@ -2737,6 +3114,15 @@ export const hrmClaim = pgTable(
     cancelledReason: text("cancelledReason"),
     /** Pinned policy version (claim-type snapshot) for re-runnable audits. */
     policyVersion: text("policyVersion"),
+    policySnapshot: jsonb("policySnapshot"),
+    /** payroll | ap. Payroll-paid claims continue to use hrm_payroll_line.claimId. */
+    payoutMethod: text("payoutMethod").notNull().default("payroll"),
+    financeAccountCode: text("financeAccountCode"),
+    costCenterCode: text("costCenterCode"),
+    projectCode: text("projectCode"),
+    taxTreatment: text("taxTreatment")
+      .notNull()
+      .default("non_taxable_reimbursement"),
     /** Operational temporal spine (Past · Now · Next). */
     temporalPast: jsonb("temporalPast"),
     temporalNow: jsonb("temporalNow"),
@@ -2749,9 +3135,22 @@ export const hrmClaim = pgTable(
     updatedByUserId: text("updatedByUserId"),
   },
   (t) => [
+    uniqueIndex("hrm_claim_org_claim_number_uidx").on(
+      t.organizationId,
+      t.claimNumber
+    ),
     index("hrm_claim_org_employee_state_idx").on(
       t.organizationId,
       t.employeeId,
+      t.state
+    ),
+    index("hrm_claim_org_submitter_idx").on(
+      t.organizationId,
+      t.submittedByUserId
+    ),
+    index("hrm_claim_org_payout_state_idx").on(
+      t.organizationId,
+      t.payoutMethod,
       t.state
     ),
     index("hrm_claim_org_state_claim_date_idx").on(
@@ -2825,6 +3224,15 @@ export const hrmBenefit = pgTable(
     benefitKind: text("benefitKind").notNull().default("other"),
     /** Optional granular subtype (e.g. health_insurance, meal_allowance). */
     benefitType: text("benefitType"),
+    /** Enterprise plan-year/version metadata; null for legacy/simple plans. */
+    planYear: integer("planYear"),
+    carrierName: text("carrierName"),
+    providerName: text("providerName"),
+    policyReference: text("policyReference"),
+    eligibilityRules:
+      jsonb("eligibilityRules").$type<Record<string, unknown>>(),
+    rateTableVersion: text("rateTableVersion"),
+    rateTable: jsonb("rateTable").$type<Record<string, unknown>>(),
     employerContributionType: text("employerContributionType")
       .notNull()
       .default("none"),
@@ -3372,6 +3780,97 @@ export const userCapabilityPreference = pgTable(
     index("user_capability_preference_org_user_idx").on(
       t.organizationId,
       t.userId
+    ),
+  ]
+)
+
+/**
+ * Org-owned external portal registry.
+ *
+ * Portal slugs are globally unique URL identifiers for `/p/{portalSlug}`.
+ * IDs are FK-less to `neon_auth.*`; organizationId is resolved against the
+ * Neon Auth organization mirror at read time.
+ */
+export const organizationPortal = pgTable(
+  "organization_portal",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    slug: text("slug").notNull(),
+    audience: text("audience").notNull(),
+    status: text("status").notNull().default("active"),
+    displayName: text("displayName").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("organization_portal_slug_uidx").on(t.slug),
+    uniqueIndex("organization_portal_org_audience_active_uidx")
+      .on(t.organizationId, t.audience)
+      .where(sql`${t.status} = 'active'`),
+    index("organization_portal_org_idx").on(t.organizationId),
+    index("organization_portal_org_audience_status_idx").on(
+      t.organizationId,
+      t.audience,
+      t.status
+    ),
+  ]
+)
+
+/**
+ * User access grants for an org-owned portal.
+ *
+ * `subjectId` is reserved for audience-specific identity binding, such as an
+ * employee, supplier, customer, or investor record. Absence means the current
+ * audience has not attached a subject model yet.
+ */
+export const organizationPortalAccess = pgTable(
+  "organization_portal_access",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    portalId: text("portalId")
+      .notNull()
+      .references(() => organizationPortal.id, { onDelete: "cascade" }),
+    organizationId: text("organizationId").notNull(),
+    userId: text("userId").notNull(),
+    audience: text("audience").notNull(),
+    subjectId: text("subjectId"),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("organization_portal_access_portal_user_audience_uidx").on(
+      t.portalId,
+      t.userId,
+      t.audience
+    ),
+    uniqueIndex(
+      "organization_portal_access_portal_audience_subject_active_uidx"
+    )
+      .on(t.portalId, t.audience, t.subjectId)
+      .where(sql`${t.status} = 'active' AND ${t.subjectId} IS NOT NULL`),
+    index("organization_portal_access_org_user_status_idx").on(
+      t.organizationId,
+      t.userId,
+      t.status
+    ),
+    index("organization_portal_access_portal_user_status_idx").on(
+      t.portalId,
+      t.userId,
+      t.status
+    ),
+    index("organization_portal_access_portal_subject_idx").on(
+      t.portalId,
+      t.subjectId
     ),
   ]
 )

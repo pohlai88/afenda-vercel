@@ -1,22 +1,28 @@
 import { ClaimsPage } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac"
-import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
+import { requireOrgSession } from "#lib/tenant"
+import { resolveClaimSurfaceAccess } from "#features/hrm/server"
 
 export const dynamic = "force-dynamic"
 
-export default async function OrgDashboardHrmClaimsPage() {
-  const allowed = await canUseErpPermissionForCurrentOrg({
-    module: "hrm",
-    object: "claim",
-    function: "search",
+export default async function OrgDashboardHrmClaimsPage({
+  params,
+}: PageProps<"/[locale]/o/[orgSlug]/dashboard/hrm/claims">) {
+  const [{ orgSlug }, session] = await Promise.all([
+    params,
+    requireOrgSession(),
+  ])
+  const access = await resolveClaimSurfaceAccess({
+    organizationId: session.organizationId,
+    userId: session.userId,
   })
-  if (!allowed) {
+  if (!access.canEnter) {
     return (
       <ErpAccessDenied
         title="Claims"
-        description="This HRM surface requires Claims search access."
+        description="This HRM surface requires Claims access or a linked employee record."
       />
     )
   }
-  return <ClaimsPage />
+  return <ClaimsPage orgSlug={orgSlug} access={access} />
 }

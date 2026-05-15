@@ -6,6 +6,7 @@ import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { requireOrgSession } from "#lib/tenant"
 
 import {
+  buildPayrollCloseSnapshot,
   derivePayrollTraceability,
   getPendingPayrollPeriodLockApprovalId,
   hasApprovedPayrollPeriodLockApproval,
@@ -18,6 +19,7 @@ import type {
   PayrollPeriodRow,
   PayrollPeriodTraceability,
   PayrollRunRow,
+  PayrollCloseSnapshot,
 } from "#features/hrm/server"
 import { PayrollConsolePage } from "#features/hrm/client"
 
@@ -47,6 +49,7 @@ export default async function OrgDashboardHrmPayrollPage() {
   // Build per-period runs + traceability maps
   const periodRuns = new Map<string, PayrollRunRow[]>()
   const periodTraceability = new Map<string, PayrollPeriodTraceability>()
+  const periodCloseSnapshots = new Map<string, PayrollCloseSnapshot | null>()
   const periodPendingLockApprovalIds = new Map<string, string | null>()
 
   await Promise.all(
@@ -62,6 +65,7 @@ export default async function OrgDashboardHrmPayrollPage() {
         approvalExists,
         pendingLockApprovalId,
         approvedUnpaidClaims,
+        closeSnapshot,
       ] = await Promise.all([
         isAttendancePayrollReadyForPeriod({
           organizationId: session.organizationId,
@@ -78,9 +82,14 @@ export default async function OrgDashboardHrmPayrollPage() {
           period.periodStart,
           period.periodEnd
         ),
+        buildPayrollCloseSnapshot({
+          organizationId: session.organizationId,
+          periodId: period.id,
+        }),
       ])
 
       periodPendingLockApprovalIds.set(period.id, pendingLockApprovalId)
+      periodCloseSnapshots.set(period.id, closeSnapshot)
 
       periodTraceability.set(
         period.id,
@@ -106,6 +115,7 @@ export default async function OrgDashboardHrmPayrollPage() {
         periods={periods}
         periodRuns={periodRuns}
         periodTraceability={periodTraceability}
+        periodCloseSnapshots={periodCloseSnapshots}
         periodPendingLockApprovalIds={periodPendingLockApprovalIds}
       />
     </div>

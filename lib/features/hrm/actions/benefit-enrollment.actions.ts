@@ -9,6 +9,8 @@ import { db } from "#lib/db"
 import { hrmBenefit, hrmBenefitEnrollment } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
+import { evaluateBenefitEligibilityForEmployee } from "../data/benefit-enterprise.queries.server"
+import { summarizeBenefitEligibilityFailure } from "../data/benefit-eligibility.shared"
 import { getBenefitEnrollmentForOrganization } from "../data/benefit.queries.server"
 import { getEmployeeForOrganization } from "../data/employee.queries.server"
 import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
@@ -123,6 +125,32 @@ export async function enrollBenefitAction(
   }
 
   const effectiveFrom = parseIsoDateStart(data.effectiveFrom)
+  const eligibility = await evaluateBenefitEligibilityForEmployee({
+    organizationId,
+    employeeId: data.employeeId,
+    planId: data.planId,
+    asOf: effectiveFrom,
+    requestedCoverageLevel: data.coverageLevel,
+  })
+  if (!eligibility) {
+    return hrmActionFailure({
+      form: "Could not resolve benefit eligibility for this employee.",
+    })
+  }
+  if (!eligibility.result.eligible) {
+    const reasonCodes = new Set(
+      eligibility.result.reasons.map((reason) => reason.code)
+    )
+    const failure = summarizeBenefitEligibilityFailure(eligibility.result)
+    return hrmActionFailure({
+      coverageLevel:
+        reasonCodes.has("coverage_not_offered") ||
+        reasonCodes.has("dependent_required")
+          ? (failure ?? undefined)
+          : undefined,
+      form: failure ?? undefined,
+    })
+  }
 
   let row: { id: string }
   try {

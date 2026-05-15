@@ -20,7 +20,8 @@ import type { LeaveEmployeeChoiceRow } from "../data/leave-request.queries.serve
 import { ClaimSubmitForm } from "./claim-submit-form"
 
 type ClaimSubmitDialogProps = {
-  employees: ReadonlyArray<LeaveEmployeeChoiceRow>
+  mode: "own" | "on_behalf"
+  employees?: ReadonlyArray<LeaveEmployeeChoiceRow>
   claimTypes: ReadonlyArray<ClaimTypeRow>
 }
 
@@ -30,27 +31,36 @@ type ClaimSubmitDialogProps = {
  * reads as a normal cross-component callback.
  */
 export function ClaimSubmitDialog({
+  mode,
   employees,
   claimTypes,
 }: ClaimSubmitDialogProps) {
   const t = useTranslations("Dashboard.Hrm.claims")
   const [open, setOpen] = useState(false)
+  const isOwn = mode === "own"
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" type="button">
           <PlusIcon data-icon="inline-start" aria-hidden />
-          {t("submitClaim")}
+          {isOwn ? t("submitOwnClaim") : t("submitClaim")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t("submitDialogTitle")}</DialogTitle>
-          <DialogDescription>{t("submitDialogDescription")}</DialogDescription>
+          <DialogTitle>
+            {isOwn ? t("submitOwnDialogTitle") : t("submitDialogTitle")}
+          </DialogTitle>
+          <DialogDescription>
+            {isOwn
+              ? t("submitOwnDialogDescription")
+              : t("submitDialogDescription")}
+          </DialogDescription>
         </DialogHeader>
         <ClaimSubmitForm
-          employees={employees}
+          mode={mode}
+          employees={employees ?? []}
           claimTypes={claimTypes}
           onSuccess={() => setOpen(false)}
         />

@@ -4,7 +4,7 @@
  */
 import "server-only"
 
-import { and, desc, eq, inArray } from "drizzle-orm"
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -14,6 +14,7 @@ import {
   hrmLeaveRequest,
   hrmLeaveType,
 } from "#lib/db/schema"
+import { listUserIdsWithErpPermission } from "#features/erp-rbac/server"
 
 import {
   parseHrmApprovalState,
@@ -55,6 +56,7 @@ export type LeaveRequestRow = {
 export type OrgLeaveRequestRow = LeaveRequestRow & {
   employeeNumber: string | null
   employeeFullName: string | null
+  currentApproverUserId: string | null
 }
 
 /** Lightweight identity tuple for the apply-on-behalf select. */
@@ -70,6 +72,28 @@ export type LeaveTypeChoiceRow = {
   code: string
   paid: boolean
   fixedDaysPerYear: number | null
+}
+
+export type LeaveEmployeeContextRow = {
+  id: string
+  employeeNumber: string
+  legalName: string
+  gender: string | null
+  countryCode: string | null
+  workStateCode: string | null
+  employmentStartDate: Date | null
+  linkedUserId: string | null
+  managerEmployeeId: string | null
+  archivedAt: Date | null
+}
+
+export type LeaveTypeContextRow = {
+  id: string
+  code: string
+  archivedAt: Date | null
+  genderRestriction: string | null
+  maxCarryForwardDays: number
+  carryForwardExpiryMonths: number | null
 }
 
 export type LeaveRequestDetailRow = LeaveRequestRow & {
@@ -289,6 +313,8 @@ export async function listAllLeaveRequestsForOrg(
   options: {
     states?: ReadonlyArray<string>
     limit?: number
+    assignedApproverUserId?: string
+    employeeId?: string
   } = {}
 ): Promise<OrgLeaveRequestRow[]> {
   const limit = Math.min(Math.max(options.limit ?? 50, 1), 200)
@@ -296,11 +322,36 @@ export async function listAllLeaveRequestsForOrg(
     options.states && options.states.length > 0
       ? inArray(hrmLeaveRequest.state, [...options.states])
       : undefined
+  const assignedRequestIds = options.assignedApproverUserId
+    ? (
+        await db.query.hrmApproval.findMany({
+          where: and(
+            eq(hrmApproval.organizationId, organizationId),
+            eq(hrmApproval.subjectKind, "leave_request"),
+            eq(hrmApproval.state, "pending"),
+            eq(
+              hrmApproval.currentApproverUserId,
+              options.assignedApproverUserId
+            )
+          ),
+          columns: { subjectId: true },
+        })
+      ).map((row) => row.subjectId)
+    : null
+
+  if (assignedRequestIds && assignedRequestIds.length === 0) return []
 
   const requests = await db.query.hrmLeaveRequest.findMany({
-    where: stateFilter
-      ? and(eq(hrmLeaveRequest.organizationId, organizationId), stateFilter)
-      : eq(hrmLeaveRequest.organizationId, organizationId),
+    where: and(
+      eq(hrmLeaveRequest.organizationId, organizationId),
+      stateFilter,
+      options.employeeId
+        ? eq(hrmLeaveRequest.employeeId, options.employeeId)
+        : undefined,
+      assignedRequestIds
+        ? inArray(hrmLeaveRequest.id, assignedRequestIds)
+        : undefined
+    ),
     columns: {
       id: true,
       employeeId: true,
@@ -328,8 +379,15 @@ export async function listAllLeaveRequestsForOrg(
 
   const employeeIds = [...new Set(requests.map((r) => r.employeeId))]
   const leaveTypeIds = [...new Set(requests.map((r) => r.leaveTypeId))]
+  const approvalIds = [
+    ...new Set(
+      requests.flatMap((r) =>
+        r.currentApprovalId ? [r.currentApprovalId] : []
+      )
+    ),
+  ]
 
-  const [employees, leaveTypes] = await Promise.all([
+  const [employees, leaveTypes, approvals] = await Promise.all([
     db.query.hrmEmployee.findMany({
       where: and(
         eq(hrmEmployee.organizationId, organizationId),
@@ -344,6 +402,15 @@ export async function listAllLeaveRequestsForOrg(
       ),
       columns: { id: true, code: true },
     }),
+    approvalIds.length > 0
+      ? db.query.hrmApproval.findMany({
+          where: and(
+            eq(hrmApproval.organizationId, organizationId),
+            inArray(hrmApproval.id, approvalIds)
+          ),
+          columns: { id: true, currentApproverUserId: true },
+        })
+      : Promise.resolve([]),
   ])
 
   const employeeMap = new Map(
@@ -353,6 +420,9 @@ export async function listAllLeaveRequestsForOrg(
     ])
   )
   const leaveTypeMap = new Map(leaveTypes.map((lt) => [lt.id, lt.code]))
+  const approvalMap = new Map(
+    approvals.map((approval) => [approval.id, approval.currentApproverUserId])
+  )
 
   return requests.map((r) => ({
     ...r,
@@ -360,6 +430,9 @@ export async function listAllLeaveRequestsForOrg(
     leaveTypeCode: leaveTypeMap.get(r.leaveTypeId) ?? null,
     employeeNumber: employeeMap.get(r.employeeId)?.number ?? null,
     employeeFullName: employeeMap.get(r.employeeId)?.name ?? null,
+    currentApproverUserId: r.currentApprovalId
+      ? (approvalMap.get(r.currentApprovalId) ?? null)
+      : null,
   }))
 }
 
@@ -379,9 +452,15 @@ export async function listActiveEmployeeChoicesForLeave(
       legalName: hrmEmployee.legalName,
     })
     .from(hrmEmployee)
-    .where(eq(hrmEmployee.organizationId, organizationId))
+    .where(
+      and(
+        eq(hrmEmployee.organizationId, organizationId),
+        isNull(hrmEmployee.archivedAt)
+      )
+    )
+    .orderBy(asc(hrmEmployee.employeeNumber))
 
-  return rows.sort((a, b) => a.employeeNumber.localeCompare(b.employeeNumber))
+  return rows
 }
 
 /**
@@ -460,4 +539,112 @@ export async function listLeaveBalancesForEmployee(
     ...r,
     leaveTypeCode: leaveTypeMap.get(r.leaveTypeId) ?? null,
   }))
+}
+
+export async function findLeaveEmployeeForUser(
+  organizationId: string,
+  userId: string
+): Promise<LeaveEmployeeContextRow | null> {
+  const row = await db.query.hrmEmployee.findFirst({
+    where: and(
+      eq(hrmEmployee.organizationId, organizationId),
+      eq(hrmEmployee.linkedUserId, userId),
+      isNull(hrmEmployee.archivedAt)
+    ),
+    columns: {
+      id: true,
+      employeeNumber: true,
+      legalName: true,
+      gender: true,
+      countryCode: true,
+      workStateCode: true,
+      employmentStartDate: true,
+      linkedUserId: true,
+      managerEmployeeId: true,
+      archivedAt: true,
+    },
+  })
+
+  return row ?? null
+}
+
+export async function getLeaveEmployeeForOrg(
+  organizationId: string,
+  employeeId: string
+): Promise<LeaveEmployeeContextRow | null> {
+  const row = await db.query.hrmEmployee.findFirst({
+    where: and(
+      eq(hrmEmployee.organizationId, organizationId),
+      eq(hrmEmployee.id, employeeId)
+    ),
+    columns: {
+      id: true,
+      employeeNumber: true,
+      legalName: true,
+      gender: true,
+      countryCode: true,
+      workStateCode: true,
+      employmentStartDate: true,
+      linkedUserId: true,
+      managerEmployeeId: true,
+      archivedAt: true,
+    },
+  })
+
+  return row ?? null
+}
+
+export async function getLeaveTypeForRequest(
+  organizationId: string,
+  leaveTypeId: string
+): Promise<LeaveTypeContextRow | null> {
+  const row = await db.query.hrmLeaveType.findFirst({
+    where: and(
+      eq(hrmLeaveType.organizationId, organizationId),
+      eq(hrmLeaveType.id, leaveTypeId)
+    ),
+    columns: {
+      id: true,
+      code: true,
+      archivedAt: true,
+      genderRestriction: true,
+      maxCarryForwardDays: true,
+      carryForwardExpiryMonths: true,
+    },
+  })
+
+  return row ?? null
+}
+
+export async function resolveManagerApproverUserId(input: {
+  organizationId: string
+  managerEmployeeId: string | null
+}): Promise<string | null> {
+  if (!input.managerEmployeeId) return null
+
+  const row = await db.query.hrmEmployee.findFirst({
+    where: and(
+      eq(hrmEmployee.organizationId, input.organizationId),
+      eq(hrmEmployee.id, input.managerEmployeeId),
+      isNull(hrmEmployee.archivedAt)
+    ),
+    columns: { linkedUserId: true },
+  })
+
+  return row?.linkedUserId ?? null
+}
+
+export async function resolveLeaveApproverUserId(input: {
+  organizationId: string
+  managerEmployeeId: string | null
+}): Promise<string | null> {
+  const managerUserId = await resolveManagerApproverUserId(input)
+  if (managerUserId) return managerUserId
+
+  const [fallbackApproverUserId] = await listUserIdsWithErpPermission({
+    organizationId: input.organizationId,
+    permission: { module: "hrm", object: "leave", function: "update" },
+  })
+
+  return fallbackApproverUserId ?? null
 }

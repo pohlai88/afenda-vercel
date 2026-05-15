@@ -25,11 +25,11 @@ function buildOrbitUploadPath(
   itemId: string,
   file: File
 ) {
+  if (scope.scopeKind !== "organization") {
+    throw new Error("Orbit attachments require organization scope")
+  }
   const safeName = sanitizeUploadFilename(file.name)
-  const prefix =
-    scope.scopeKind === "organization"
-      ? `orgs/${scope.organizationId}/orbit/${itemId}`
-      : `users/${scope.ownerUserId}/orbit/${itemId}`
+  const prefix = `orgs/${scope.organizationId}/orbit/${itemId}`
 
   return `${prefix}/${Date.now()}-${safeName}`
 }

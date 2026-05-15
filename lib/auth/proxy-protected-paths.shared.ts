@@ -1,13 +1,15 @@
 /**
  * Locale-internal pathname checks for `proxy.ts` session cookie presence gate.
- * Keeps ERP (`/o/…`) and canonical IAM surfaces aligned.
+ * Keeps ERP (`/o/…`), portals (`/p/…`), and canonical IAM surfaces aligned.
  *
  * `/o` — bare org resolver (`app/[locale]/o/page.tsx`) requires a session.
  * `/o/{slug}/…` — tenant routes; also matched by `isOrgScopedLocaleInternalPath`.
+ * `/p` and `/p/{portalSlug}/…` — portal routes; real authorization remains server-side.
  */
 
 const PROTECTED_PATH_PREFIXES = [
   "/o",
+  "/p",
   "/account",
   "/operator",
   "/accept-invitation",

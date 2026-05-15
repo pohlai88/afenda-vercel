@@ -22,7 +22,7 @@ import {
 import { ShellPreviewOperationalScope } from "./shell-preview-operational-scope.client"
 import { ShellPreviewPolicyDisc } from "./shell-preview-policy-disc.client"
 import { ShellPreviewUtilityBarRight } from "./shell-preview-utility-bar-right.client"
-const PREVIEW_HREF = "/dev/shell-preview" satisfies Route
+const PREVIEW_HREF = "/dev/shell-preview" as Route
 
 // ---------------------------------------------------------------------------
 // Sub-layout rail — secondary in-flow aside (mirrors an HRM workbench)

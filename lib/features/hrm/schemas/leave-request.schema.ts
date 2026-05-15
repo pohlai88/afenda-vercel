@@ -8,9 +8,8 @@ import { z } from "zod"
 const HALF_DAY_OPTIONS = ["none", "morning", "afternoon"] as const
 export type HalfDayOption = (typeof HALF_DAY_OPTIONS)[number]
 
-export const applyLeaveFormSchema = z
+const leaveRequestDateFieldsSchema = z
   .object({
-    employeeId: z.string().uuid("Employee ID must be a valid UUID"),
     leaveTypeId: z.string().uuid("Leave type ID must be a valid UUID"),
     startDate: z
       .string()
@@ -21,7 +20,8 @@ export const applyLeaveFormSchema = z
     durationDays: z.coerce
       .number()
       .positive("Duration must be greater than 0")
-      .max(365, "Duration cannot exceed 365 days"),
+      .max(365, "Duration cannot exceed 365 days")
+      .optional(),
     halfDay: z.enum(HALF_DAY_OPTIONS).default("none"),
     reason: z
       .string()
@@ -30,6 +30,11 @@ export const applyLeaveFormSchema = z
       .default(null),
     evidenceDocumentId: z.string().uuid().nullable().default(null),
     policyVersion: z.string().max(64).nullable().default(null),
+    durationOverrideReason: z
+      .string()
+      .max(1000, "Override reason must be at most 1000 characters")
+      .nullable()
+      .default(null),
   })
   .superRefine((val, ctx) => {
     if (val.startDate > val.endDate) {
@@ -39,16 +44,46 @@ export const applyLeaveFormSchema = z
         message: "End date must be on or after start date",
       })
     }
-    if (val.halfDay !== "none" && val.durationDays !== 0.5) {
+    if (val.halfDay !== "none" && val.startDate !== val.endDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["endDate"],
+        message: "Half-day requests must start and end on the same date",
+      })
+    }
+  })
+
+export const applyLeaveFormSchema = leaveRequestDateFieldsSchema
+  .extend({
+    employeeId: z.string().uuid("Employee ID must be a valid UUID"),
+  })
+  .superRefine((val, ctx) => {
+    const overrideReason = val.durationOverrideReason?.trim()
+    if (val.durationDays !== undefined && !overrideReason) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["durationOverrideReason"],
+        message:
+          "Duration override reason is required when duration is overridden",
+      })
+    }
+    if (val.durationDays === undefined && overrideReason) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["durationDays"],
-        message: "Half-day requests must have duration of 0.5 days",
+        message:
+          "Duration override days are required when override reason is provided",
       })
     }
   })
 
 export type ApplyLeaveFormValues = z.infer<typeof applyLeaveFormSchema>
+
+export const requestOwnLeaveFormSchema = leaveRequestDateFieldsSchema
+
+export type RequestOwnLeaveFormValues = z.infer<
+  typeof requestOwnLeaveFormSchema
+>
 
 export const cancelLeaveFormSchema = z.object({
   requestId: z.string().uuid("Request ID must be a valid UUID"),
@@ -80,4 +115,58 @@ export const leaveRejectDecisionSchema = leaveApprovalDecisionSchema.extend({
 
 export type LeaveRejectDecisionValues = z.infer<
   typeof leaveRejectDecisionSchema
+>
+
+export const leaveBalanceAdjustmentKinds = [
+  "opening_balance",
+  "manual_correction",
+  "carry_forward",
+  "expiry",
+  "encashment_ready",
+] as const
+
+export type LeaveBalanceAdjustmentKind =
+  (typeof leaveBalanceAdjustmentKinds)[number]
+
+export const adjustLeaveBalanceFormSchema = z.object({
+  employeeId: z.string().uuid("Employee ID must be a valid UUID"),
+  leaveTypeId: z.string().uuid("Leave type ID must be a valid UUID"),
+  entitlementYear: z.coerce
+    .number()
+    .int("Entitlement year must be an integer")
+    .min(2000)
+    .max(2100),
+  adjustmentKind: z.enum(leaveBalanceAdjustmentKinds),
+  days: z.coerce
+    .number()
+    .positive("Adjustment days must be greater than 0")
+    .max(365, "Adjustment days cannot exceed 365"),
+  reason: z
+    .string()
+    .min(1, "Adjustment reason is required")
+    .max(1000, "Reason must be at most 1000 characters"),
+})
+
+export type AdjustLeaveBalanceFormValues = z.infer<
+  typeof adjustLeaveBalanceFormSchema
+>
+
+export const runLeaveCarryForwardFormSchema = z
+  .object({
+    fromYear: z.coerce.number().int().min(2000).max(2100),
+    toYear: z.coerce.number().int().min(2000).max(2100),
+    employeeId: z.string().uuid().nullable().default(null),
+  })
+  .superRefine((val, ctx) => {
+    if (val.toYear !== val.fromYear + 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["toYear"],
+        message: "Carry-forward target year must be the next entitlement year",
+      })
+    }
+  })
+
+export type RunLeaveCarryForwardFormValues = z.infer<
+  typeof runLeaveCarryForwardFormSchema
 >

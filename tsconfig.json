@@ -3,6 +3,7 @@
     "baseUrl": ".",
     // Internal `#…/*` aliases: mirror `package.json` → `imports` for Node + bundlers.
     "paths": {
+      "collections/*": ["./.source/*"],
       "#components/*": ["./components/*"],
       "#components2/*": ["./components2/*"],
       "#app-shell": ["./components2/app-shell/index.ts"],
@@ -44,8 +45,8 @@
     "i18n/global.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    // Production typed routes only. next-env.d.ts already imports .next/dev/types/routes.d.ts
-    // via an `import` statement — do not add .next/dev/types/** here (redundant, AGENTS.md §8).
+    // Production typed routes only; dev typed-route output is generated while
+    // `next dev` runs and must stay outside the main compile graph.
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
@@ -57,6 +58,7 @@
   //   drizzle.config.ts                  → tsconfig.scripts.json
   "exclude": [
     "node_modules",
+    ".source",
     ".next/dev",
     "tests",
     "scripts",

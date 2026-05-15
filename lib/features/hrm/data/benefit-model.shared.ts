@@ -11,6 +11,13 @@ export type BenefitPlanRow = {
   description: string | null
   benefitKind: string
   benefitType: string | null
+  planYear: number | null
+  carrierName: string | null
+  providerName: string | null
+  policyReference: string | null
+  eligibilityRules: Record<string, unknown> | null
+  rateTableVersion: string | null
+  rateTable: Record<string, unknown> | null
   employerContributionType: string
   employerContributionValue: string | null
   employeeContributionType: string

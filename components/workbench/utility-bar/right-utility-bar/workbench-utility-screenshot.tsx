@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import html2canvas from "html2canvas"
+import { toBlob as captureToBlob } from "html-to-image"
 import { Camera, CheckCircle2 } from "lucide-react"
 import { upload as uploadBlob } from "@vercel/blob/client"
 import { useTranslations } from "next-intl"
@@ -54,17 +54,6 @@ function waitForNextPaint(): Promise<void> {
   })
 }
 
-function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob)
-        return
-      }
-      reject(new Error("Canvas export failed"))
-    }, "image/png")
-  })
-}
 
 /**
  * Quick viewport capture utility for governed screenshot intake from the Nexus right rail.
@@ -123,16 +112,12 @@ export function WorkbenchUtilityScreenshot({
         throw new Error(t("errorTargetMissing"))
       }
 
-      const canvas = await html2canvas(target, {
-        backgroundColor: null,
-        logging: false,
-        scale: Math.min(window.devicePixelRatio || 1, 2),
-        useCORS: true,
-        ignoreElements(element) {
-          return element.hasAttribute("data-nexus-capture-exclude")
-        },
+      const blob = await captureToBlob(target, {
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        filter: (element) =>
+          !element.hasAttribute("data-nexus-capture-exclude"),
       })
-      const blob = await canvasToBlob(canvas)
+      if (!blob) throw new Error(t("errorCapture"))
       const previewSrc = URL.createObjectURL(blob)
       const fileName = buildScreenshotFileName(mode)
 

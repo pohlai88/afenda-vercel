@@ -9,24 +9,33 @@ import {
   hrmApproval,
   hrmClaim,
   hrmClaimEvidence,
-  hrmClaimType,
 } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import {
-  applyPerClaimLimit,
+  applyClaimAmountLimit,
+  buildClaimNumber,
   buildClaimApprovalSnapshot,
+  buildClaimPolicySnapshot,
+  doesClaimRequireEvidence,
   isClaimCancellable,
   isClaimDateInRange,
 } from "../data/claim-helpers.shared"
 import {
+  findClaimEmployeeForUser,
   findOrgDocumentForClaim,
   findOrgEmployeeForClaim,
+  getClaimTypeForOrg,
+  resolveClaimApproverUserId,
+  sumClaimsForEmployeeClaimTypeWindow,
 } from "../data/claim.queries.server"
-import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import { requireHrmPermission } from "../data/hrm-admin-guard.server"
 import {
   attachClaimEvidenceFormSchema,
   cancelClaimFormSchema,
+  requestOwnClaimFormSchema,
   submitClaimFormSchema,
 } from "../schemas/claim.schema"
 import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
@@ -49,20 +58,337 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-// ---------------------------------------------------------------------------
-// Tier B — submit claim (admin-gated at MVP; member self-service later)
-// ---------------------------------------------------------------------------
+type SubmitClaimInput = {
+  organizationId: string
+  userId: string
+  sessionId: string | null
+  employeeId: string
+  claimTypeId: string
+  claimDate: string
+  amount: number
+  currency?: string
+  description: string | null
+  policyVersion: string | null
+  submissionMode: "self_service" | "on_behalf"
+}
 
-/**
- * Submits a reimbursable claim. Creates `hrm_claim` (state=submitted) +
- * `hrm_approval(subjectKind=claim, state=pending)` in one transaction.
- * Audit: `erp.hrm.claim.submit` + `erp.hrm.approval.request`.
- */
-export async function submitClaimAction(
+function claimMonthWindow(claimDate: string): {
+  claimDateFrom: string
+  claimDateTo: string
+} {
+  const year = Number(claimDate.slice(0, 4))
+  const month = Number(claimDate.slice(5, 7))
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  const monthText = String(month).padStart(2, "0")
+  return {
+    claimDateFrom: `${year}-${monthText}-01`,
+    claimDateTo: `${year}-${monthText}-${String(lastDay).padStart(2, "0")}`,
+  }
+}
+
+function claimYearWindow(claimDate: string): {
+  claimDateFrom: string
+  claimDateTo: string
+} {
+  const year = claimDate.slice(0, 4)
+  return {
+    claimDateFrom: `${year}-01-01`,
+    claimDateTo: `${year}-12-31`,
+  }
+}
+
+type SubmitClaimFieldErrors = NonNullable<
+  Extract<SubmitClaimFormState, { ok: false }>["errors"]
+>
+
+async function submitClaimForEmployee(
+  input: SubmitClaimInput
+): Promise<SubmitClaimFormState> {
+  const { organizationId, userId, sessionId } = input
+
+  const [employee, claimType] = await Promise.all([
+    findOrgEmployeeForClaim(organizationId, input.employeeId),
+    getClaimTypeForOrg(organizationId, input.claimTypeId),
+  ])
+
+  if (!employee) {
+    return hrmActionFailure({ employeeId: "Employee not found." })
+  }
+  if (employee.archivedAt) {
+    return hrmActionFailure({
+      employeeId: "Cannot submit a claim for an archived employee.",
+    })
+  }
+  if (!claimType) {
+    return hrmActionFailure({ claimTypeId: "Claim type not found." })
+  }
+  if (!claimType.isActive) {
+    return hrmActionFailure({ claimTypeId: "Claim type is not active." })
+  }
+
+  const currency = (input.currency ?? claimType.currency).toUpperCase()
+  if (currency !== claimType.currency.toUpperCase()) {
+    return hrmActionFailure({
+      currency: `Currency must match the claim type (${claimType.currency}).`,
+    })
+  }
+
+  if (!isClaimDateInRange(input.claimDate, todayIso())) {
+    return hrmActionFailure({
+      claimDate: "Claim date must be on or before today.",
+    })
+  }
+
+  const perClaimLimit =
+    claimType.perClaimLimit != null ? Number(claimType.perClaimLimit) : null
+  const periodLimit =
+    claimType.periodLimit != null ? Number(claimType.periodLimit) : null
+  const annualLimit =
+    claimType.annualLimit != null ? Number(claimType.annualLimit) : null
+  const evidenceRequiredAboveAmount =
+    claimType.evidenceRequiredAboveAmount != null
+      ? Number(claimType.evidenceRequiredAboveAmount)
+      : null
+
+  const limitChecks: Array<{
+    label: string
+    totalBefore: number
+    limit: number | null
+  }> = [
+    { label: "per-claim", totalBefore: 0, limit: perClaimLimit },
+  ]
+
+  if (periodLimit != null && periodLimit > 0) {
+    const window = claimMonthWindow(input.claimDate)
+    const totalBefore = await sumClaimsForEmployeeClaimTypeWindow({
+      organizationId,
+      employeeId: employee.id,
+      claimTypeId: claimType.id,
+      ...window,
+    })
+    limitChecks.push({ label: "monthly", totalBefore, limit: periodLimit })
+  }
+
+  if (annualLimit != null && annualLimit > 0) {
+    const window = claimYearWindow(input.claimDate)
+    const totalBefore = await sumClaimsForEmployeeClaimTypeWindow({
+      organizationId,
+      employeeId: employee.id,
+      claimTypeId: claimType.id,
+      ...window,
+    })
+    limitChecks.push({ label: "annual", totalBefore, limit: annualLimit })
+  }
+
+  for (const check of limitChecks) {
+    const outcome = applyClaimAmountLimit(
+      input.amount + check.totalBefore,
+      check.limit
+    )
+    if (!outcome.ok) {
+      return hrmActionFailure({
+        amount:
+          outcome.limit > 0
+            ? `Amount exceeds the ${check.label} limit of ${outcome.limit.toFixed(2)} ${currency}.`
+            : "Amount must be greater than 0.",
+      })
+    }
+  }
+
+  const claimId = crypto.randomUUID()
+  const claimNumber = buildClaimNumber({ claimDate: input.claimDate, claimId })
+  const approvalId = crypto.randomUUID()
+  const now = new Date()
+  const evidenceRequired = doesClaimRequireEvidence({
+    amount: input.amount,
+    requiresEvidence: claimType.requiresEvidence,
+    evidenceRequiredAboveAmount,
+  })
+  const payoutMethod = claimType.defaultPayoutMethod || "payroll"
+  const taxTreatment =
+    claimType.defaultTaxTreatment || "non_taxable_reimbursement"
+  const currentApproverUserId = await resolveClaimApproverUserId({
+    organizationId,
+    managerEmployeeId: employee.managerEmployeeId,
+  })
+  const policySnapshot = buildClaimPolicySnapshot({
+    perClaimLimit,
+    periodLimit,
+    annualLimit,
+    requiresEvidence: claimType.requiresEvidence,
+    evidenceRequiredAboveAmount,
+    amount: input.amount,
+    payoutMethod,
+    financeAccountCode: claimType.defaultFinanceAccountCode,
+    costCenterCode: claimType.defaultCostCenterCode,
+    taxTreatment,
+    evaluatedAt: now,
+  })
+
+  const approvalSnapshot = {
+    ...buildClaimApprovalSnapshot({
+      employeeId: employee.id,
+      employeeNumber: employee.employeeNumber,
+      employeeFullName: employee.legalName,
+      claimTypeId: claimType.id,
+      claimTypeCode: claimType.code,
+      claimTypeName: claimType.name,
+      defaultPayrollLineCode: claimType.defaultPayrollLineCode,
+      perClaimLimit,
+      claimDate: input.claimDate,
+      amount: input.amount,
+      currency,
+      description: input.description,
+      evidenceCount: 0,
+      evidenceRequired,
+      payoutMethod,
+      financeAccountCode: claimType.defaultFinanceAccountCode,
+      costCenterCode: claimType.defaultCostCenterCode,
+      taxTreatment,
+      policyVersion: input.policyVersion,
+      requestedAt: now,
+    }),
+    claimNumber,
+    policy: policySnapshot,
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.insert(hrmApproval).values({
+      id: approvalId,
+      organizationId,
+      subjectKind: "claim",
+      subjectId: claimId,
+      state: "pending",
+      requestedByUserId: userId,
+      currentApproverUserId,
+      snapshot: approvalSnapshot,
+      createdByUserId: userId,
+      updatedByUserId: userId,
+    })
+
+    await tx.insert(hrmClaim).values({
+      id: claimId,
+      organizationId,
+      claimNumber,
+      employeeId: employee.id,
+      claimTypeId: claimType.id,
+      claimDate: input.claimDate,
+      amount: String(input.amount),
+      currency,
+      description: input.description,
+      state: "submitted",
+      submittedAt: now,
+      submittedByUserId: userId,
+      currentApprovalId: approvalId,
+      policyVersion: input.policyVersion,
+      policySnapshot,
+      payoutMethod,
+      financeAccountCode: claimType.defaultFinanceAccountCode,
+      costCenterCode: claimType.defaultCostCenterCode,
+      taxTreatment,
+      createdByUserId: userId,
+      updatedByUserId: userId,
+    })
+  })
+
+  await writeIamAuditEventFromNextHeaders({
+    action: "erp.hrm.claim.submit",
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_claim",
+    resourceId: claimId,
+    metadata: {
+      claimNumber,
+      employeeId: employee.id,
+      claimTypeCode: claimType.code,
+      claimDate: input.claimDate,
+      amount: input.amount,
+      currency,
+      submissionMode: input.submissionMode,
+      currentApproverUserId,
+      evidenceRequired,
+      payoutMethod,
+    },
+  })
+
+  await writeIamAuditEventFromNextHeaders({
+    action: "erp.hrm.approval.request",
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_approval",
+    resourceId: approvalId,
+    metadata: {
+      subjectKind: "claim",
+      subjectId: claimId,
+      claimNumber,
+      currentApproverUserId,
+    },
+  })
+
+  revalidateClaims()
+  return { ok: true, claimId }
+}
+
+function submitClaimFieldErrors(
+  errors: SubmitClaimFieldErrors
+): SubmitClaimFormState {
+  return hrmActionFailure(errors)
+}
+
+export async function submitOwnClaimAction(
   _prev: SubmitClaimFormState | undefined,
   formData: FormData
 ): Promise<SubmitClaimFormState> {
-  const gate = await requireHrmAdmin()
+  const session = await requireOrgSession()
+  const { organizationId, userId, sessionId } = session
+  const employee = await findClaimEmployeeForUser(organizationId, userId)
+  if (!employee) {
+    return hrmActionFailure({
+      form: "Your user is not linked to an active employee record in this organization.",
+    })
+  }
+
+  const parsed = requestOwnClaimFormSchema.safeParse({
+    claimTypeId: formData.get("claimTypeId"),
+    claimDate: formData.get("claimDate"),
+    amount: formData.get("amount"),
+    currency: formData.get("currency") || undefined,
+    description: formData.get("description") || null,
+    policyVersion: formData.get("policyVersion") || null,
+  })
+
+  if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors
+    return submitClaimFieldErrors({
+      claimTypeId: fieldErrors.claimTypeId?.[0],
+      claimDate: fieldErrors.claimDate?.[0],
+      amount: fieldErrors.amount?.[0],
+      currency: fieldErrors.currency?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
+  }
+
+  return submitClaimForEmployee({
+    organizationId,
+    userId,
+    sessionId,
+    employeeId: employee.id,
+    ...parsed.data,
+    submissionMode: "self_service",
+  })
+}
+
+export async function submitClaimOnBehalfAction(
+  _prev: SubmitClaimFormState | undefined,
+  formData: FormData
+): Promise<SubmitClaimFormState> {
+  const gate = await requireHrmPermission({
+    object: "claim",
+    function: "create",
+    errorMessage: "HRM claim create permission required for this operation.",
+  })
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
   const { session } = gate
   const { organizationId, userId, sessionId } = session
@@ -79,7 +405,7 @@ export async function submitClaimAction(
 
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors
-    return hrmActionFailure({
+    return submitClaimFieldErrors({
       employeeId: fieldErrors.employeeId?.[0],
       claimTypeId: fieldErrors.claimTypeId?.[0],
       claimDate: fieldErrors.claimDate?.[0],
@@ -89,150 +415,13 @@ export async function submitClaimAction(
     })
   }
 
-  const { data } = parsed
-
-  const [employee, claimType] = await Promise.all([
-    findOrgEmployeeForClaim(organizationId, data.employeeId),
-    db.query.hrmClaimType.findFirst({
-      where: and(
-        eq(hrmClaimType.id, data.claimTypeId),
-        eq(hrmClaimType.organizationId, organizationId)
-      ),
-      columns: {
-        id: true,
-        code: true,
-        name: true,
-        currency: true,
-        perClaimLimit: true,
-        defaultPayrollLineCode: true,
-        isActive: true,
-      },
-    }),
-  ])
-
-  if (!employee) {
-    return hrmActionFailure({ employeeId: "Employee not found." })
-  }
-  if (employee.archivedAt) {
-    return hrmActionFailure({
-      employeeId: "Cannot submit a claim for an archived employee.",
-    })
-  }
-  if (!claimType) {
-    return hrmActionFailure({ claimTypeId: "Claim type not found." })
-  }
-  if (!claimType.isActive) {
-    return hrmActionFailure({
-      claimTypeId: "Claim type is not active.",
-    })
-  }
-
-  const currency = (data.currency ?? claimType.currency).toUpperCase()
-  if (currency !== claimType.currency.toUpperCase()) {
-    return hrmActionFailure({
-      currency: `Currency must match the claim type (${claimType.currency}).`,
-    })
-  }
-
-  if (!isClaimDateInRange(data.claimDate, todayIso())) {
-    return hrmActionFailure({
-      claimDate: "Claim date must be on or before today.",
-    })
-  }
-
-  const limit =
-    claimType.perClaimLimit != null ? Number(claimType.perClaimLimit) : null
-  const limitOutcome = applyPerClaimLimit(data.amount, limit)
-  if (!limitOutcome.ok) {
-    return hrmActionFailure({
-      amount:
-        limitOutcome.limit > 0
-          ? `Amount exceeds the per-claim limit of ${limitOutcome.limit.toFixed(2)} ${currency}.`
-          : "Amount must be greater than 0.",
-    })
-  }
-
-  const claimId = crypto.randomUUID()
-  const approvalId = crypto.randomUUID()
-  const now = new Date()
-
-  const snapshot = buildClaimApprovalSnapshot({
-    employeeId: employee.id,
-    employeeNumber: employee.employeeNumber,
-    employeeFullName: employee.legalName,
-    claimTypeId: claimType.id,
-    claimTypeCode: claimType.code,
-    claimTypeName: claimType.name,
-    defaultPayrollLineCode: claimType.defaultPayrollLineCode,
-    perClaimLimit: limit,
-    claimDate: data.claimDate,
-    amount: data.amount,
-    currency,
-    description: data.description,
-    evidenceCount: 0,
-    policyVersion: data.policyVersion,
-    requestedAt: now,
-  })
-
-  await db.transaction(async (tx) => {
-    await tx.insert(hrmApproval).values({
-      id: approvalId,
-      organizationId,
-      subjectKind: "claim",
-      subjectId: claimId,
-      state: "pending",
-      requestedByUserId: userId,
-      snapshot,
-      createdByUserId: userId,
-      updatedByUserId: userId,
-    })
-
-    await tx.insert(hrmClaim).values({
-      id: claimId,
-      organizationId,
-      employeeId: employee.id,
-      claimTypeId: claimType.id,
-      claimDate: data.claimDate,
-      amount: String(data.amount),
-      currency,
-      description: data.description,
-      state: "submitted",
-      submittedAt: now,
-      currentApprovalId: approvalId,
-      policyVersion: data.policyVersion,
-      createdByUserId: userId,
-      updatedByUserId: userId,
-    })
-  })
-
-  await writeIamAuditEventFromNextHeaders({
-    action: "erp.hrm.claim.submit",
-    actorUserId: userId,
-    actorSessionId: sessionId,
+  return submitClaimForEmployee({
     organizationId,
-    resourceType: "hrm_claim",
-    resourceId: claimId,
-    metadata: {
-      employeeId: employee.id,
-      claimTypeCode: claimType.code,
-      claimDate: data.claimDate,
-      amount: data.amount,
-      currency,
-    },
+    userId,
+    sessionId,
+    ...parsed.data,
+    submissionMode: "on_behalf",
   })
-
-  await writeIamAuditEventFromNextHeaders({
-    action: "erp.hrm.approval.request",
-    actorUserId: userId,
-    actorSessionId: sessionId,
-    organizationId,
-    resourceType: "hrm_approval",
-    resourceId: approvalId,
-    metadata: { subjectKind: "claim", subjectId: claimId },
-  })
-
-  revalidateClaims()
-  return { ok: true, claimId }
 }
 
 // ---------------------------------------------------------------------------
@@ -248,9 +437,7 @@ export async function cancelClaimAction(
   _prev: CancelClaimFormState | undefined,
   formData: FormData
 ): Promise<CancelClaimFormState> {
-  const gate = await requireHrmAdmin()
-  if (!gate.ok) return hrmActionFailure({ form: gate.error })
-  const { session } = gate
+  const session = await requireOrgSession()
   const { organizationId, userId, sessionId } = session
 
   const parsed = cancelClaimFormSchema.safeParse({
@@ -276,6 +463,7 @@ export async function cancelClaimAction(
       state: true,
       currentApprovalId: true,
       employeeId: true,
+      submittedByUserId: true,
     },
   })
 
@@ -286,6 +474,22 @@ export async function cancelClaimAction(
   if (!isClaimCancellable(claim.state)) {
     return hrmActionFailure({
       claimId: `Cannot cancel a claim with state "${claim.state}".`,
+    })
+  }
+
+  const [canManage, employee] = await Promise.all([
+    canUseErpPermission({
+      organizationId,
+      userId,
+      permission: { module: "hrm", object: "claim", function: "update" },
+    }),
+    findOrgEmployeeForClaim(organizationId, claim.employeeId),
+  ])
+  const isOwnClaim =
+    claim.submittedByUserId === userId || employee?.linkedUserId === userId
+  if (!canManage && (!isOwnClaim || claim.state !== "submitted")) {
+    return hrmActionFailure({
+      form: "You can cancel only your own submitted claims.",
     })
   }
 
@@ -370,9 +574,7 @@ export async function attachClaimEvidenceAction(
   _prev: AttachClaimEvidenceFormState | undefined,
   formData: FormData
 ): Promise<AttachClaimEvidenceFormState> {
-  const gate = await requireHrmAdmin()
-  if (!gate.ok) return hrmActionFailure({ form: gate.error })
-  const { session } = gate
+  const session = await requireOrgSession()
   const { organizationId, userId, sessionId } = session
 
   const parsed = attachClaimEvidenceFormSchema.safeParse({
@@ -399,7 +601,12 @@ export async function attachClaimEvidenceAction(
       eq(hrmClaim.id, claimId),
       eq(hrmClaim.organizationId, organizationId)
     ),
-    columns: { id: true, state: true, employeeId: true },
+    columns: {
+      id: true,
+      state: true,
+      employeeId: true,
+      submittedByUserId: true,
+    },
   })
 
   if (!claim) {
@@ -415,6 +622,22 @@ export async function attachClaimEvidenceAction(
     })
   }
 
+  const [canManage, employee] = await Promise.all([
+    canUseErpPermission({
+      organizationId,
+      userId,
+      permission: { module: "hrm", object: "claim", function: "update" },
+    }),
+    findOrgEmployeeForClaim(organizationId, claim.employeeId),
+  ])
+  const isOwnClaim =
+    claim.submittedByUserId === userId || employee?.linkedUserId === userId
+  if (!canManage && !isOwnClaim) {
+    return hrmActionFailure({
+      form: "You can attach evidence only to your own claims.",
+    })
+  }
+
   const document = await findOrgDocumentForClaim(organizationId, documentId)
   if (!document) {
     return hrmActionFailure({ documentId: "Document not found." })
@@ -423,6 +646,12 @@ export async function attachClaimEvidenceAction(
     return hrmActionFailure({
       documentId:
         "Document is attached to a different employee — re-upload against the claimant.",
+    })
+  }
+  if (!canManage && document.employeeId !== claim.employeeId) {
+    return hrmActionFailure({
+      documentId:
+        "Self-service evidence must be uploaded against your employee record.",
     })
   }
 

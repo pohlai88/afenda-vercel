@@ -2,6 +2,8 @@
 
 import { create } from "zustand"
 
+import type { UiDensity } from "#lib/design-system"
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -52,6 +54,11 @@ export type AppShellState = {
   themePreference: ThemePreference
   /** Resolved light/dark for the document — `null` until the client has mounted. */
   resolvedAppearance: ResolvedAppearance
+  /**
+   * ERP content density for `SidebarInset` only (`data-density` on `#app-shell-main`).
+   * Utility bar, primary rail, and surface chrome are outside that subtree.
+   */
+  density: UiDensity
 }
 
 type AppShellActions = {
@@ -63,6 +70,7 @@ type AppShellActions = {
   setRailMode: (mode: RailMode) => void
   /** Called only from `AppShellThemeBridge` — maps `useTheme()` into this store. */
   applyNextTheme: (snapshot: AppShellThemeSnapshot) => void
+  setDensity: (density: UiDensity) => void
 }
 
 export type AppShellStore = AppShellState & AppShellActions
@@ -78,6 +86,7 @@ export type AppShellStore = AppShellState & AppShellActions
 //   • notificationCount   → badge in utility bar, populated by polling / SSE
 //   • railMode            → RailController → sidebar `open`; AppSubLayout uses `open` for float nav
 //   • themePreference / resolvedAppearance → mirrored from next-themes via AppShellThemeBridge
+//   • density             → `data-density` on SidebarInset (main scroll pane only)
 //
 // Do NOT put per-route business data here — keep it in Server Components.
 // ---------------------------------------------------------------------------
@@ -88,6 +97,7 @@ export const useAppShellStore = create<AppShellStore>()((set, get) => ({
   railMode: "expanded",
   themePreference: "system",
   resolvedAppearance: null,
+  density: "comfortable",
 
   openCommand: () => set({ commandOpen: true }),
   closeCommand: () => set({ commandOpen: false }),
@@ -95,6 +105,7 @@ export const useAppShellStore = create<AppShellStore>()((set, get) => ({
 
   setNotificationCount: (count) => set({ notificationCount: count }),
   setRailMode: (mode) => set({ railMode: mode }),
+  setDensity: (density) => set({ density }),
 
   applyNextTheme: (snapshot) => {
     const s = get()

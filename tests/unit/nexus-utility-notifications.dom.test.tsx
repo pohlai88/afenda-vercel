@@ -205,7 +205,7 @@ describe("NexusUtilityNotifications", () => {
     fireEvent.click(screen.getByRole("button", { name: "Mark read" }))
 
     await waitFor(() => {
-      expect(screen.queryByText("Unread")).toBeNull()
+      expect(screen.getByText("0 unread")).toBeTruthy()
       expect(screen.getAllByText("Read").length).toBeGreaterThan(0)
     })
 

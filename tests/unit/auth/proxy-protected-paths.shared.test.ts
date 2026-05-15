@@ -17,6 +17,14 @@ describe("proxy-protected-paths.shared", () => {
       )
     })
 
+    it("protects canonical /p portal prefix", () => {
+      expect(isProtectedLocaleInternalPath("/p")).toBe(true)
+      expect(isProtectedLocaleInternalPath("/p/acme-employee")).toBe(true)
+      expect(isProtectedLocaleInternalPath("/p/acme-employee/employee")).toBe(
+        true
+      )
+    })
+
     it("protects IAM and account surfaces", () => {
       expect(isProtectedLocaleInternalPath("/account/security")).toBe(true)
       expect(isProtectedLocaleInternalPath("/account")).toBe(true)

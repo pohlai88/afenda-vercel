@@ -146,7 +146,7 @@ export function UtilityBarFeedbackPanel() {
           <form onSubmit={handleSubmit} className="space-y-4 px-4 py-4">
             {/* Type selector */}
             <div className="space-y-1.5">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
                 Type
               </p>
               <div className="flex gap-1.5">
@@ -170,7 +170,7 @@ export function UtilityBarFeedbackPanel() {
 
             {/* Message */}
             <div className="space-y-1.5">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
                 Message
               </p>
               <Textarea

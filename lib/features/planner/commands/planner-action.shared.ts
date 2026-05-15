@@ -1,17 +1,14 @@
 import type { Route } from "next"
 
-import { accountOrbitPath, organizationOrbitPath } from "../constants"
-import {
-  revalidateAccountOrbitRoutes,
-  revalidateOrgOrbitRoutes,
-} from "../data/planner-revalidate.server"
+import { organizationOrbitPath } from "../constants"
+import { revalidateOrgOrbitRoutes } from "../data/planner-revalidate.server"
 
-export type PlannerActionScopeKind = "organization" | "personal"
+export type PlannerActionScopeKind = "organization"
 
 export function readPlannerActionScopeKind(
-  formData: FormData
+  _formData: FormData
 ): PlannerActionScopeKind {
-  return formData.get("scopeKind") === "personal" ? "personal" : "organization"
+  return "organization"
 }
 
 export function readPlannerActionSurface(
@@ -30,9 +27,8 @@ export function orbitScopedPath(input: {
   orgSlug: string | null
   surface: string
 }): Route {
-  return input.scopeKind === "organization" && input.orgSlug
-    ? organizationOrbitPath(input.orgSlug, input.surface as never)
-    : accountOrbitPath(input.surface as never)
+  if (!input.orgSlug) return "/o" as Route
+  return organizationOrbitPath(input.orgSlug, input.surface as never)
 }
 
 export function orbitStatusPath(input: {
@@ -51,9 +47,6 @@ export function orbitStatusPath(input: {
 }
 
 export function revalidateOrbitScope(scopeKind: PlannerActionScopeKind): void {
-  if (scopeKind === "organization") {
-    revalidateOrgOrbitRoutes()
-    return
-  }
-  revalidateAccountOrbitRoutes()
+  void scopeKind
+  revalidateOrgOrbitRoutes()
 }

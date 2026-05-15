@@ -36,6 +36,14 @@ export const submitClaimFormSchema = z.object({
 
 export type SubmitClaimFormValues = z.infer<typeof submitClaimFormSchema>
 
+export const requestOwnClaimFormSchema = submitClaimFormSchema.omit({
+  employeeId: true,
+})
+
+export type RequestOwnClaimFormValues = z.infer<
+  typeof requestOwnClaimFormSchema
+>
+
 export const cancelClaimFormSchema = z.object({
   claimId: z.string().uuid("Claim ID must be a valid UUID"),
   cancelledReason: z

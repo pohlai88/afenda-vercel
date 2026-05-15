@@ -112,7 +112,7 @@ export function UtilityBarShortcutsPanel() {
         <div className="space-y-4 px-4 py-4">
           {SHORTCUT_GROUPS.map((group) => (
             <section key={group.title}>
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="mb-2 text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
                 {group.title}
               </p>
               <div className="divide-y divide-border/50">

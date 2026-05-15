@@ -5,10 +5,17 @@ import { and, eq } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
-import { hrmApproval, hrmClaim } from "#lib/db/schema"
+import {
+  hrmApproval,
+  hrmClaim,
+  hrmClaimEvidence,
+  hrmClaimType,
+} from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermission } from "#features/erp-rbac/server"
 
-import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import { doesClaimRequireEvidence } from "../data/claim-helpers.shared"
 import {
   claimApprovalDecisionSchema,
   claimRejectDecisionSchema,
@@ -22,6 +29,51 @@ function revalidateClaims() {
     toLocaleOrgDashboardRevalidatePattern("/hrm/employees/[employeeId]"),
     "page"
   )
+}
+
+async function canDecideClaim(input: {
+  organizationId: string
+  userId: string
+  currentApprovalId: string | null
+}): Promise<boolean> {
+  if (input.currentApprovalId) {
+    const approval = await db.query.hrmApproval.findFirst({
+      where: and(
+        eq(hrmApproval.organizationId, input.organizationId),
+        eq(hrmApproval.id, input.currentApprovalId)
+      ),
+      columns: { currentApproverUserId: true, state: true },
+    })
+
+    if (
+      approval?.state === "pending" &&
+      approval.currentApproverUserId === input.userId
+    ) {
+      return true
+    }
+  }
+
+  return canUseErpPermission({
+    organizationId: input.organizationId,
+    userId: input.userId,
+    permission: { module: "hrm", object: "claim", function: "update" },
+  })
+}
+
+async function countClaimEvidence(input: {
+  organizationId: string
+  claimId: string
+}): Promise<number> {
+  const rows = await db
+    .select({ id: hrmClaimEvidence.id })
+    .from(hrmClaimEvidence)
+    .where(
+      and(
+        eq(hrmClaimEvidence.organizationId, input.organizationId),
+        eq(hrmClaimEvidence.claimId, input.claimId)
+      )
+    )
+  return rows.length
 }
 
 // ---------------------------------------------------------------------------
@@ -39,9 +91,7 @@ export async function approveClaimAction(
   _prev: ClaimApprovalFormState | undefined,
   formData: FormData
 ): Promise<ClaimApprovalFormState> {
-  const gate = await requireHrmAdmin()
-  if (!gate.ok) return hrmActionFailure({ form: gate.error })
-  const { session } = gate
+  const session = await requireOrgSession()
   const { organizationId, userId, sessionId } = session
 
   const parsed = claimApprovalDecisionSchema.safeParse({
@@ -67,6 +117,10 @@ export async function approveClaimAction(
       state: true,
       currentApprovalId: true,
       employeeId: true,
+      claimTypeId: true,
+      amount: true,
+      submittedByUserId: true,
+      createdByUserId: true,
     },
   })
 
@@ -77,6 +131,51 @@ export async function approveClaimAction(
   if (claim.state !== "submitted") {
     return hrmActionFailure({
       claimId: `Cannot approve a claim with state "${claim.state}". Expected "submitted".`,
+    })
+  }
+
+  if (claim.submittedByUserId === userId || claim.createdByUserId === userId) {
+    return hrmActionFailure({
+      form: "Maker-checker policy blocks approving your own claim.",
+    })
+  }
+
+  const allowed = await canDecideClaim({
+    organizationId,
+    userId,
+    currentApprovalId: claim.currentApprovalId,
+  })
+  if (!allowed) {
+    return hrmActionFailure({
+      form: "Only the assigned approver or HRM claim administrator can approve this claim.",
+    })
+  }
+
+  const [claimType, evidenceCount] = await Promise.all([
+    db.query.hrmClaimType.findFirst({
+      where: and(
+        eq(hrmClaimType.organizationId, organizationId),
+        eq(hrmClaimType.id, claim.claimTypeId)
+      ),
+      columns: {
+        requiresEvidence: true,
+        evidenceRequiredAboveAmount: true,
+      },
+    }),
+    countClaimEvidence({ organizationId, claimId }),
+  ])
+
+  const evidenceRequired = doesClaimRequireEvidence({
+    amount: Number(claim.amount),
+    requiresEvidence: claimType?.requiresEvidence ?? false,
+    evidenceRequiredAboveAmount:
+      claimType?.evidenceRequiredAboveAmount != null
+        ? Number(claimType.evidenceRequiredAboveAmount)
+        : null,
+  })
+  if (evidenceRequired && evidenceCount === 0) {
+    return hrmActionFailure({
+      claimId: "Evidence is required before this claim can be approved.",
     })
   }
 
@@ -120,6 +219,7 @@ export async function approveClaimAction(
       subjectKind: "claim",
       subjectId: claimId,
       employeeId: claim.employeeId,
+      evidenceCount,
     },
   })
 
@@ -142,9 +242,7 @@ export async function rejectClaimAction(
   _prev: ClaimApprovalFormState | undefined,
   formData: FormData
 ): Promise<ClaimApprovalFormState> {
-  const gate = await requireHrmAdmin()
-  if (!gate.ok) return hrmActionFailure({ form: gate.error })
-  const { session } = gate
+  const session = await requireOrgSession()
   const { organizationId, userId, sessionId } = session
 
   const parsed = claimRejectDecisionSchema.safeParse({
@@ -174,6 +272,8 @@ export async function rejectClaimAction(
       state: true,
       currentApprovalId: true,
       employeeId: true,
+      submittedByUserId: true,
+      createdByUserId: true,
     },
   })
 
@@ -184,6 +284,23 @@ export async function rejectClaimAction(
   if (claim.state !== "submitted") {
     return hrmActionFailure({
       claimId: `Cannot reject a claim with state "${claim.state}". Expected "submitted".`,
+    })
+  }
+
+  if (claim.submittedByUserId === userId || claim.createdByUserId === userId) {
+    return hrmActionFailure({
+      form: "Maker-checker policy blocks rejecting your own claim.",
+    })
+  }
+
+  const allowed = await canDecideClaim({
+    organizationId,
+    userId,
+    currentApprovalId: claim.currentApprovalId,
+  })
+  if (!allowed) {
+    return hrmActionFailure({
+      form: "Only the assigned approver or HRM claim administrator can reject this claim.",
     })
   }
 

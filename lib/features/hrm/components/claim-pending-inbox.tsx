@@ -24,7 +24,7 @@ import { ClaimDecisionForms } from "./claim-decision-form"
  * streamed behind a Suspense boundary so a slow query does not block the
  * page header. Failures degrade locally to a calm inline notice.
  */
-export async function ClaimPendingInbox({ isAdmin }: { isAdmin: boolean }) {
+export async function ClaimPendingInbox({ canManage }: { canManage: boolean }) {
   const orgSession = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.claims")
 
@@ -56,7 +56,7 @@ export async function ClaimPendingInbox({ isAdmin }: { isAdmin: boolean }) {
           <TableHead>{t("colAmount")}</TableHead>
           <TableHead>{t("colEvidence")}</TableHead>
           <TableHead>{t("colSubmitted")}</TableHead>
-          {isAdmin ? <TableHead>{t("colActions")}</TableHead> : null}
+          {canManage ? <TableHead>{t("colActions")}</TableHead> : null}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -91,7 +91,7 @@ export async function ClaimPendingInbox({ isAdmin }: { isAdmin: boolean }) {
                   ? row.submittedAt.toLocaleString()
                   : row.createdAt.toLocaleString()}
               </TableCell>
-              {isAdmin ? (
+              {canManage ? (
                 <TableCell>
                   <ClaimDecisionForms claimId={row.id} label={label} />
                 </TableCell>

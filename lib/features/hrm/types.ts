@@ -1,5 +1,5 @@
 import type { WorkbenchRailBadgeTone } from "#components/workbench/left-nav-rail"
-import type { ErpPermissionKey } from "#features/erp-rbac"
+import type { ErpPermissionKey } from "#features/erp-rbac/client"
 import type { HrmDashboardCapabilitySegment } from "#lib/hrm-dashboard.shared"
 
 export type HrmCapabilityId =
@@ -82,12 +82,121 @@ export type EmployeeRow = {
 
 export type EmployeeDetailRow = EmployeeRow & {
   phone: string | null
+  dateOfBirth: Date | null
+  gender: string | null
+  nationality: string | null
+  idDocumentType: string | null
+  idDocumentNumber: string | null
+  address: unknown | null
+  countryCode: string | null
+  workStateCode: string | null
+  linkedUserId: string | null
+  employmentStatus: string
+  employmentStartDate: Date | null
+  probationEndDate: Date | null
+  confirmationDate: Date | null
   updatedAt: Date
   currentDepartmentId: string | null
   currentPositionId: string | null
   currentJobGradeId: string | null
+  managerEmployeeId: string | null
   archivedReason: string | null
   currentEmploymentContractId: string | null
+}
+
+export type EmployeePersonalProfileRow = {
+  id: string
+  dateOfBirth: Date | null
+  gender: string | null
+  nationality: string | null
+  maritalStatus: string | null
+  primaryIdentityDocumentId: string | null
+}
+
+export type EmployeeContactProfileRow = {
+  id: string
+  workEmail: string | null
+  workPhone: string | null
+  personalEmail: string | null
+  personalPhone: string | null
+  address: Record<string, unknown> | null
+}
+
+export type EmployeeIdentityDocumentRow = {
+  id: string
+  documentType: string
+  documentNumber: string
+  issuingCountry: string
+  issuedAt: Date | null
+  expiresAt: Date | null
+  isPrimary: boolean
+  verificationStatus: string
+}
+
+export type EmployeeWorkAuthorizationRow = {
+  id: string
+  countryCode: string
+  authorizationType: string
+  documentNumber: string | null
+  issuedAt: Date | null
+  expiresAt: Date | null
+  status: string
+  notes: string | null
+}
+
+export type EmployeeMasterPlacementOption = {
+  id: string
+  code: string
+  label: string
+  secondaryLabel: string | null
+}
+
+export type EmployeeMasterPlacementLabels = {
+  department: EmployeeMasterPlacementOption | null
+  position: EmployeeMasterPlacementOption | null
+  jobGrade: EmployeeMasterPlacementOption | null
+  manager: EmployeeMasterPlacementOption | null
+  linkedUser: EmployeeMasterPlacementOption | null
+}
+
+export type EmployeeMasterPlacementOptions = {
+  departments: EmployeeMasterPlacementOption[]
+  positions: EmployeeMasterPlacementOption[]
+  jobGrades: EmployeeMasterPlacementOption[]
+  managers: EmployeeMasterPlacementOption[]
+  linkedUsers: EmployeeMasterPlacementOption[]
+}
+
+export type EmployeeMasterCompleteness = {
+  identity: boolean
+  contact: boolean
+  employment: boolean
+  statutory: boolean
+  documents: boolean
+}
+
+export type EmployeeMasterSnapshot = {
+  employee: EmployeeDetailRow
+  personalProfile: EmployeePersonalProfileRow | null
+  contactProfile: EmployeeContactProfileRow | null
+  identityDocuments: EmployeeIdentityDocumentRow[]
+  workAuthorizations: EmployeeWorkAuthorizationRow[]
+  payrollProfile: PayrollProfileCurrentRow | null
+  dependents: DependentRow[]
+  documents: HrmDocumentSummary[]
+  contracts: EmploymentContractSummary[]
+  placementLabels: EmployeeMasterPlacementLabels
+  placementOptions: EmployeeMasterPlacementOptions
+  completeness: EmployeeMasterCompleteness
+}
+
+export type DependentRow = {
+  id: string
+  legalName: string
+  relationship: string
+  dateOfBirth: Date | null
+  taxDependent: boolean
+  createdAt: Date
 }
 
 export type EmploymentContractSummary = {
@@ -194,6 +303,35 @@ export type EmployeeMutationFormState =
       }
     }
 
+export type EmployeeMasterMutationFormState =
+  | { ok: true }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        employeeNumber?: string
+        legalName?: string
+        workEmail?: string
+        personalEmail?: string
+        documentType?: string
+        documentNumber?: string
+        authorizationType?: string
+        countryCode?: string
+        effectiveFrom?: string
+      }
+    }
+
+export type EmployeePortalAccessFormState =
+  | { ok: true; portalSlug: string; status: "active" | "revoked" }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+      }
+    }
+
 export type LeaveTypeMutationFormState =
   | { ok: true; leaveTypeId: string }
   | {
@@ -233,6 +371,10 @@ export type OrgStructureFormState =
         name?: string
         title?: string
         departmentId?: string
+        positionId?: string
+        gradeId?: string
+        employeeId?: string
+        effectiveFrom?: string
       }
     }
 
@@ -247,7 +389,36 @@ export type LeaveRequestMutationFormState =
         startDate?: string
         endDate?: string
         durationDays?: string
+        durationOverrideReason?: string
         requestId?: string
+        evidenceDocumentId?: string
+      }
+    }
+
+export type LeaveBalanceAdjustmentFormState =
+  | { ok: true; balanceId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        leaveTypeId?: string
+        entitlementYear?: string
+        adjustmentKind?: string
+        days?: string
+        reason?: string
+      }
+    }
+
+export type LeaveCarryForwardFormState =
+  | { ok: true; processed: number }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        fromYear?: string
+        toYear?: string
+        employeeId?: string
       }
     }
 
@@ -299,13 +470,45 @@ export type AttendanceCorrectionFormState =
     }
 
 export type RegenerateDayFormState =
-  | { ok: true; result: "skipped" | "updated" }
+  | { ok: true; result: "skipped" | "updated" | "locked" }
   | {
       ok: false
       errors: {
         form?: string
         employeeId?: string
         attendanceDate?: string
+      }
+    }
+
+export type CreateShiftTemplateFormState =
+  | { ok: true; shiftTemplateId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        code?: string
+        name?: string
+        defaultStartTime?: string
+        defaultEndTime?: string
+        unpaidBreakMinutes?: string
+        paidBreakMinutes?: string
+        lateGraceMinutes?: string
+        earlyOutGraceMinutes?: string
+        overtimeGraceMinutes?: string
+        maxContinuousClockMinutes?: string
+        holidayBehavior?: string
+      }
+    }
+
+export type AssignEmployeeShiftFormState =
+  | { ok: true; assignmentId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        attendanceDate?: string
+        shiftTemplateId?: string
       }
     }
 
@@ -454,6 +657,11 @@ export type BenefitPlanMutationFormState =
         benefitKind?: string
         planId?: string
         benefitType?: string
+        planYear?: string
+        carrierName?: string
+        providerName?: string
+        policyReference?: string
+        rateTableVersion?: string
         effectiveFrom?: string
         waitingPeriodDays?: string
         employerContributionType?: string

@@ -35,7 +35,6 @@ import { batchPlannerQueueItemsAction } from "../commands/batch-planner-queue-it
 import { batchPlannerTriageAction } from "../commands/batch-planner-triage"
 import { closePlannerNoticeAction } from "../commands/close-planner-notice"
 import {
-  accountOrbitPath,
   organizationOrbitPath,
   PLANNER_OWNERSHIP_ROLES,
   PLANNER_RELATION_TYPES,
@@ -137,9 +136,13 @@ function plannerBasePath(input: {
   orgSlug?: string
   surface: OrbitDashboardSurface
 }) {
-  return input.scope.scopeKind === "organization"
-    ? organizationOrbitPath(input.orgSlug!, input.surface)
-    : accountOrbitPath(input.surface)
+  if (input.scope.scopeKind !== "organization") {
+    throw new Error("OrbitPage requires organization scope")
+  }
+  if (!input.orgSlug) {
+    throw new Error("OrbitPage requires an organization slug")
+  }
+  return organizationOrbitPath(input.orgSlug, input.surface)
 }
 
 type OrbitSearchParams = Record<string, string | string[] | undefined>

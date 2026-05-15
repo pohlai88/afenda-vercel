@@ -1,0 +1,54 @@
+---
+description: Run targeted typecheck and lint on touched files only — avoids full workspace scans when multiple agents run concurrently.
+alwaysApply: true
+---
+
+# Targeted Verification (Concurrent-Agent Safe)
+
+When multiple agents run concurrently, running `pnpm typecheck && pnpm lint` workspace-wide causes lock contention, duplicate Turborepo cache misses, and 30–90s delays. **Run targeted checks on touched paths instead.**
+
+## Post-task gate (default — use this)
+
+```powershell
+# 1. ESLint: only the files/directories you touched (~5s)
+pnpm exec eslint --max-warnings=0 <path1> [path2 ...]
+
+# 2. TypeScript: incremental full graph (~10s warm, skips unchanged)
+pnpm typecheck
+```
+
+### Choosing your ESLint target path
+
+| What you touched | Path to pass |
+|---|---|
+| One file | `app/[locale]/o/[orgSlug]/dashboard/contacts/page.tsx` |
+| A feature module | `lib/features/contacts/` |
+| Shell components | `components2/app-shell/` |
+| Multiple dirs | `lib/features/hrm/ components2/app-shell/` |
+| Whole area | `app/ lib/` (only when you touched >10 files spread across both) |
+
+**Never pass `./` or omit a path** — that triggers the full workspace ESLint scan.
+
+## When to run full workspace commands
+
+| Scenario | Command |
+|---|---|
+| You are the **only** agent running | `pnpm typecheck && pnpm lint` |
+| Pre-push / opening a PR | `pnpm verify:parallel` |
+| Drizzle schema change | `pnpm lint:drizzle-journal` (narrow) |
+| i18n message catalog change | `pnpm lint:fixtures-parity` (narrow) |
+| Design token change (`globals.css`) | `pnpm lint` (design-contract must re-run) |
+
+## TypeScript note
+
+`pnpm typecheck` (`tsc --noEmit`) always resolves the full project graph — true per-file TS checking is not supported. However, the `.tsbuildinfo` cache makes it **~10s warm** vs 60s cold. Two agents running `pnpm typecheck` simultaneously on different files is safe (read-only); contention only arises from the `.tsbuildinfo` write at the end. Accept this or stagger by 5s if you hit write conflicts.
+
+## Close condition (concurrent context)
+
+```txt
+Task is closed only when:
+  pnpm exec eslint --max-warnings=0 <touched-paths> → exits 0
+  pnpm typecheck → exits 0
+  No import targets a file that does not exist on disk
+  No redirect targets a deleted route
+```

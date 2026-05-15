@@ -1,6 +1,10 @@
 export type { HrmCapability, HrmCapabilityId, HrmNavKey } from "./types"
 
 export {
+  grantEmployeePortalAccessAction,
+  revokeEmployeePortalAccessAction,
+} from "./actions/employee-portal-access.actions"
+export {
   activateContractAction,
   createDraftContractAction,
   createSalaryRevisionDraftAction,
@@ -30,12 +34,27 @@ export {
   updateEmployeeAction,
 } from "./actions/employee.actions"
 export {
+  updateEmployeeContactAction,
+  updateEmployeeEmploymentAction,
+  updateEmployeeIdentityAction,
+  updateEmployeeStatutoryProfileAction,
+  upsertEmployeeIdentityDocumentAction,
+  upsertEmployeeWorkAuthorizationAction,
+} from "./actions/employee-master.actions"
+export {
   archiveDepartmentAction,
+  archiveOrgUnitAction,
   archiveJobGradeAction,
   archivePositionAction,
+  assignEmployeePlacementAction,
   createDepartmentAction,
+  createOrgUnitAction,
   createJobGradeAction,
   createPositionAction,
+  setPositionReportingLineAction,
+  updateJobGradeAction,
+  updateOrgUnitAction,
+  updatePositionAction,
 } from "./actions/org-structure.actions"
 export { attachEmployeeDocumentAction } from "./actions/hrm-document.actions"
 export {
@@ -43,10 +62,19 @@ export {
   rejectLeaveAction,
 } from "./actions/leave-approval.actions"
 export {
+  adjustLeaveBalanceAction,
   applyLeaveAction,
+  applyLeaveOnBehalfAction,
+  cancelPortalEmployeeLeaveAction,
   cancelLeaveAction,
+  requestPortalEmployeeLeaveAction,
+  requestOwnLeaveAction,
+  runLeaveCarryForwardAction,
 } from "./actions/leave-request.actions"
 export type {
+  EmployeePortalAccessFormState,
+  LeaveBalanceAdjustmentFormState,
+  LeaveCarryForwardFormState,
   LeaveApprovalFormState,
   LeaveRequestMutationFormState,
   CancelLeaveFormState,
@@ -69,9 +97,15 @@ export {
   recordAttendanceEventAction,
   regenerateAttendanceDayAction,
 } from "./actions/attendance-correction.actions"
+export {
+  assignEmployeeShiftAction,
+  createShiftTemplateAction,
+} from "./actions/attendance-shift.actions"
 export type {
+  AssignEmployeeShiftFormState,
   AttendanceRecordFormState,
   AttendanceCorrectionFormState,
+  CreateShiftTemplateFormState,
   RegenerateDayFormState,
 } from "./types"
 
@@ -81,6 +115,22 @@ export {
   preparePayrollRunsAction,
   lockPayrollPeriodAction,
 } from "./actions/payroll-period.actions"
+
+export {
+  generatePayrollPayslipsAction,
+  postPayrollPeriodAction,
+  publishPayrollPayslipsAction,
+  refreshPayrollCloseSnapshotAction,
+} from "./actions/payroll-close.actions"
+
+export type {
+  PayrollCloseActionFormState,
+  PayrollCloseChecklistItem,
+  PayrollCloseException,
+  PayrollCloseSnapshot,
+  PayrollPayslipSnapshot,
+  PayrollPostingPreview,
+} from "./data/payroll-close.shared"
 
 export {
   requestPayrollPeriodLockApprovalAction,
@@ -107,6 +157,8 @@ export {
   HRM_CAPABILITIES,
   isAllowedHrmDashboardSubsegment,
   organizationHrmComplianceDetailPath,
+  organizationHrmClaimPath,
+  organizationHrmClaimsPath,
   organizationHrmEmployeePath,
   organizationHrmPath,
   organizationHrmRootPath,
@@ -173,7 +225,8 @@ export type {
 export {
   attachClaimEvidenceAction,
   cancelClaimAction,
-  submitClaimAction,
+  submitClaimOnBehalfAction,
+  submitOwnClaimAction,
 } from "./actions/claim-submission.actions"
 export {
   approveClaimAction,
@@ -190,6 +243,7 @@ export {
   cancelClaimFormSchema,
   claimApprovalDecisionSchema,
   claimRejectDecisionSchema,
+  requestOwnClaimFormSchema,
   submitClaimFormSchema,
 } from "./schemas/claim.schema"
 export type {
@@ -197,6 +251,7 @@ export type {
   CancelClaimFormValues,
   ClaimApprovalDecisionValues,
   ClaimRejectDecisionValues,
+  RequestOwnClaimFormValues,
   SubmitClaimFormValues,
 } from "./schemas/claim.schema"
 export {

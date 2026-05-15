@@ -12,11 +12,12 @@ import {
 } from "#components/ui/card"
 import { Skeleton } from "#components/ui/skeleton"
 import { requireOrgSession } from "#lib/tenant"
-import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
   listActiveEmployeeChoicesForLeave,
   listClaimTypesForOrg,
+  resolveClaimSurfaceAccess,
+  type ClaimSurfaceAccess,
 } from "../server"
 
 import { ClaimPendingInbox } from "./claim-pending-inbox"
@@ -24,38 +25,48 @@ import { ClaimRecentTable } from "./claim-recent-table"
 import { ClaimSubmitDialog } from "./claim-submit-dialog"
 
 /**
- * Claims management surface (Phase 4 — UI binding for the new claims
- * Server Actions). Composition mirrors the leave page:
+ * Claims management surface. Composition mirrors the leave page:
  *
  *  - **Authority** is established by the parent layout (`requireOrgSession`
  *    via the workbench shell) and re-validated here for the submit gate.
- *  - **Tier A** (admin gate + employee/claim-type pickers + translations)
+ *  - **Tier A** (claim access + employee/claim-type pickers + translations)
  *    sits in a single blocking `Promise.all` so the page renders the
  *    header + dialog trigger immediately.
  *  - **Tier B** (pending inbox + recent activity) streams behind
  *    Suspense boundaries — neither blocks first paint, and a failure in
  *    one section does not break the other.
  *
- * The submit-on-behalf flow is admin-gated to match the underlying
- * `submitClaimAction`. Members see a calm read-only "coming soon" panel
- * plus the recent-activity table (no row actions), so navigation
- * remains useful but no privileged affordance is rendered.
+ * Self-service resolves the linked employee from the authenticated user.
+ * Submit-on-behalf and approval controls stay behind claim permissions.
  */
-export async function ClaimsPage() {
-  const orgSession = await requireOrgSession()
+type ClaimsPageProps = {
+  orgSlug: string
+  access?: ClaimSurfaceAccess
+}
 
-  const [t, isAdmin, employees, claimTypes] = await Promise.all([
+export async function ClaimsPage({ orgSlug, access }: ClaimsPageProps) {
+  const orgSession = await requireOrgSession()
+  const resolvedAccess =
+    access ??
+    (await resolveClaimSurfaceAccess({
+      organizationId: orgSession.organizationId,
+      userId: orgSession.userId,
+    }))
+
+  const [t, employees, claimTypes] = await Promise.all([
     getTranslations("Dashboard.Hrm.claims"),
-    canUseErpPermissionForCurrentOrg({
-      module: "hrm",
-      object: "claim",
-      function: "update",
-    }),
-    listActiveEmployeeChoicesForLeave(orgSession.organizationId),
+    resolvedAccess.canSubmitOnBehalf
+      ? listActiveEmployeeChoicesForLeave(orgSession.organizationId)
+      : Promise.resolve([]),
     listClaimTypesForOrg(orgSession.organizationId, { activeOnly: true }),
   ])
 
-  const canSubmit = isAdmin && employees.length > 0 && claimTypes.length > 0
+  const canSubmitOwn =
+    resolvedAccess.hasSelfServiceEmployee && claimTypes.length > 0
+  const canSubmitOnBehalf =
+    resolvedAccess.canSubmitOnBehalf &&
+    employees.length > 0 &&
+    claimTypes.length > 0
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -65,7 +76,8 @@ export async function ClaimsPage() {
         description={t("pageDescription")}
       />
 
-      {!isAdmin ? (
+      {!resolvedAccess.hasSelfServiceEmployee &&
+      !resolvedAccess.canReadOrgClaims ? (
         <Card size="sm">
           <CardHeader>
             <CardTitle>{t("memberRestrictedTitle")}</CardTitle>
@@ -74,7 +86,7 @@ export async function ClaimsPage() {
         </Card>
       ) : null}
 
-      {isAdmin && employees.length === 0 ? (
+      {resolvedAccess.canSubmitOnBehalf && employees.length === 0 ? (
         <Card size="sm">
           <CardHeader>
             <CardTitle>{t("noEmployeesTitle")}</CardTitle>
@@ -83,7 +95,9 @@ export async function ClaimsPage() {
         </Card>
       ) : null}
 
-      {isAdmin && employees.length > 0 && claimTypes.length === 0 ? (
+      {(resolvedAccess.canSubmitOnBehalf ||
+        resolvedAccess.hasSelfServiceEmployee) &&
+      claimTypes.length === 0 ? (
         <Card size="sm">
           <CardHeader>
             <CardTitle>{t("noClaimTypesTitle")}</CardTitle>
@@ -96,18 +110,26 @@ export async function ClaimsPage() {
         <CardHeader>
           <CardTitle>{t("inboxTitle")}</CardTitle>
           <CardDescription>{t("inboxDescription")}</CardDescription>
-          {canSubmit ? (
+          {canSubmitOwn || canSubmitOnBehalf ? (
             <CardAction>
-              <ClaimSubmitDialog
-                employees={employees}
-                claimTypes={claimTypes}
-              />
+              <div className="flex flex-wrap gap-2">
+                {canSubmitOwn ? (
+                  <ClaimSubmitDialog mode="own" claimTypes={claimTypes} />
+                ) : null}
+                {canSubmitOnBehalf ? (
+                  <ClaimSubmitDialog
+                    mode="on_behalf"
+                    employees={employees}
+                    claimTypes={claimTypes}
+                  />
+                ) : null}
+              </div>
             </CardAction>
           ) : null}
         </CardHeader>
         <CardContent>
           <Suspense fallback={<ClaimSectionSkeleton />}>
-            <ClaimPendingInbox isAdmin={isAdmin} />
+            <ClaimPendingInbox canManage={resolvedAccess.canManage} />
           </Suspense>
         </CardContent>
       </Card>
@@ -119,7 +141,7 @@ export async function ClaimsPage() {
         </CardHeader>
         <CardContent>
           <Suspense fallback={<ClaimSectionSkeleton />}>
-            <ClaimRecentTable />
+            <ClaimRecentTable orgSlug={orgSlug} access={resolvedAccess} />
           </Suspense>
         </CardContent>
       </Card>

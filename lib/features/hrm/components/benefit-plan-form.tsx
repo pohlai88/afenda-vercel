@@ -65,6 +65,11 @@ export function BenefitPlanForm({
   const descId = useId()
   const kindId = useId()
   const typeId = useId()
+  const planYearId = useId()
+  const carrierId = useId()
+  const providerId = useId()
+  const policyId = useId()
+  const rateVersionId = useId()
   const empTypeId = useId()
   const empValId = useId()
   const erTypeId = useId()
@@ -184,6 +189,78 @@ export function BenefitPlanForm({
           <FieldError>{fieldErrors.benefitType}</FieldError>
         ) : null}
       </Field>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field>
+          <FieldLabel htmlFor={planYearId}>{t("fieldPlanYear")}</FieldLabel>
+          <Input
+            id={planYearId}
+            name="planYear"
+            type="number"
+            min={1900}
+            max={2200}
+            defaultValue={plan?.planYear ?? ""}
+          />
+          {fieldErrors?.planYear ? (
+            <FieldError>{fieldErrors.planYear}</FieldError>
+          ) : null}
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={rateVersionId}>
+            {t("fieldRateTableVersion")}
+          </FieldLabel>
+          <Input
+            id={rateVersionId}
+            name="rateTableVersion"
+            maxLength={128}
+            defaultValue={plan?.rateTableVersion ?? ""}
+          />
+          {fieldErrors?.rateTableVersion ? (
+            <FieldError>{fieldErrors.rateTableVersion}</FieldError>
+          ) : null}
+        </Field>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Field>
+          <FieldLabel htmlFor={carrierId}>{t("fieldCarrierName")}</FieldLabel>
+          <Input
+            id={carrierId}
+            name="carrierName"
+            maxLength={256}
+            defaultValue={plan?.carrierName ?? ""}
+          />
+          {fieldErrors?.carrierName ? (
+            <FieldError>{fieldErrors.carrierName}</FieldError>
+          ) : null}
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={providerId}>{t("fieldProviderName")}</FieldLabel>
+          <Input
+            id={providerId}
+            name="providerName"
+            maxLength={256}
+            defaultValue={plan?.providerName ?? ""}
+          />
+          {fieldErrors?.providerName ? (
+            <FieldError>{fieldErrors.providerName}</FieldError>
+          ) : null}
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={policyId}>
+            {t("fieldPolicyReference")}
+          </FieldLabel>
+          <Input
+            id={policyId}
+            name="policyReference"
+            maxLength={256}
+            defaultValue={plan?.policyReference ?? ""}
+          />
+          {fieldErrors?.policyReference ? (
+            <FieldError>{fieldErrors.policyReference}</FieldError>
+          ) : null}
+        </Field>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>

@@ -10,15 +10,18 @@ Every completed task or phase **must** pass a residue sweep before being declare
 ## Verification tier (always respect cost)
 
 **Do not reach for a higher-cost tier to answer a lower-cost question.**
-See `verify-pipeline.mdc` for the full tier ladder.
+See `verify-pipeline.mdc` for the full tier ladder. See `targeted-verification.mdc` for concurrent-agent rules.
 
 | When | Command | Cost |
 |---|---|---|
-| After every task (non-negotiable) | `pnpm typecheck && pnpm lint` | ~30s warm |
+| After every task — concurrent agents | `pnpm exec eslint --max-warnings=0 <path> && pnpm typecheck` | ~15s warm |
+| After every task — solo agent | `pnpm typecheck && pnpm lint` | ~30s warm |
 | Before push / PR | `pnpm verify:parallel` | ~2–3 min |
 | Pre-merge only | `pnpm verify` (includes knip) | ~4–5 min |
 
-**Never run `pnpm knip` after individual task completions.** Knip is a full static graph walk — it belongs at the pre-push Tier 2 gate, not as a per-task tool. Use `pnpm lint` for fast import and boundary checks after each task.
+**When multiple agents run concurrently, always use the targeted form** — pass only the files/directories you touched to ESLint. Never pass `./` or omit a path when other agents are active.
+
+**Never run `pnpm knip` after individual task completions.** Knip is a full static graph walk — it belongs at the pre-push Tier 2 gate, not as a per-task tool.
 
 ---
 
@@ -69,14 +72,25 @@ export function NexusDock() { return null }
 
 ---
 
-## Fast gate (run after every task — ~30s)
+## Fast gate (run after every task)
 
+**Concurrent agents (default — use this):**
+```bash
+# Lint only touched paths — ~5s
+pnpm exec eslint --max-warnings=0 <path1> [path2 ...]
+
+# Incremental typecheck — ~10s warm
+pnpm typecheck
+```
+
+**Solo agent only:**
 ```bash
 pnpm typecheck
 pnpm lint
 ```
 
-Both must exit 0. No exceptions. This is the non-negotiable close condition.
+Both forms must exit 0. No exceptions. This is the non-negotiable close condition.
+Full decision table: `.cursor/rules/targeted-verification.mdc`.
 
 ---
 
@@ -111,8 +125,9 @@ pnpm typecheck
 
 ```txt
 Task is closed only when:
+  pnpm exec eslint --max-warnings=0 <touched-paths> → exits 0   (concurrent agents)
+  OR pnpm lint → exits 0                                          (solo agent)
   pnpm typecheck → exits 0
-  pnpm lint      → exits 0 (zero errors, zero warnings)
   No import targets a file that does not exist on disk
   No redirect targets a deleted route
   All stale "Phase N" comments are resolved or renamed to a future phase

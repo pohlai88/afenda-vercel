@@ -1,0 +1,123 @@
+---
+description: Portal boundary for org-owned external surfaces under /p/[portalSlug]; resolver, shell, and auth contracts.
+globs: "app/[locale]/p/**,components2/portal-shell/**,lib/portal/**"
+alwaysApply: false
+---
+
+# Portal directory contract
+
+**Doctrine:** ADR-0020. If this rule and `AGENTS.md` diverge, follow
+`AGENTS.md` and fix this rule in the same change.
+
+---
+
+## Route boundary
+
+`/{locale}/p/{portalSlug}` is the canonical portal boundary for org-owned
+external or constrained audiences: employee, supplier, customer, investor, and
+future portal audiences.
+
+`/p` is externally reachable, but it is not anonymous public runtime. Portal
+routes must be authenticated, invite-gated, or otherwise identity-bound.
+
+### Route ownership
+
+- `app/[locale]/p/[portalSlug]/layout.tsx` owns portal context resolution before
+  rendering portal chrome.
+- `/p/[portalSlug]` runtime files with dynamic params must use the Next.js App
+  Router async params contract, for example
+  `params: Promise<{ portalSlug: string }>` followed by `const { portalSlug } =
+  await params`.
+- `app/[locale]/p/**` owns routing, params, metadata, loading, error,
+  not-found, and page composition only.
+- `app/[locale]/p/**` must not contain ERP business logic, database query
+  composition, authorization policy definitions, or mutation logic.
+- Do not create `route.ts` files under `app/[locale]/p/**`. Portal HTTP
+  contracts belong in the allowed `app/api/*` route-handler families documented
+  by `AGENTS.md`.
+
+---
+
+## Portal shell
+
+`components2/portal-shell/` owns portal chrome only:
+
+- portal shell frame
+- portal navigation composition
+- portal identity/avatar affordances
+- portal organization visibility
+- portal loading/error chrome
+
+It must not own:
+
+- ERP business logic
+- database reads or writes
+- Server Actions
+- HRM, supplier, customer, or investor domain policy
+
+`/p` routes must not import or mount `WorkbenchShell`, `AppShell`,
+`WorkbenchSubLayout`, or `AppSubLayout`. Workbench chrome belongs to
+`/{locale}/o/{orgSlug}` only.
+
+---
+
+## Portal control plane
+
+`lib/portal/` owns portal infrastructure contracts:
+
+- portal slug validation
+- portal path helpers
+- portal audience registry
+- portal context types
+- portal resolver contracts
+- portal guard contracts
+- portal-specific revalidation helpers
+
+`lib/portal/` must not own ERP business logic. Audience business rules belong in
+the relevant feature module, for example `lib/features/hrm/` for employee
+self-service or a future supplier module for supplier workflows.
+
+---
+
+## Authorization
+
+Portal Server Components and Server Actions must authorize independently. A
+protected layout is not sufficient because Server Actions are separate entry
+points. Portal-related route handlers are allowed only in the approved
+`app/api/*` families and must perform their own portal authorization there.
+
+Rules:
+
+- Never trust `organizationId`, employee ID, supplier ID, customer ID, investor
+  ID, or subject identity from `FormData`, JSON, query strings, or route params
+  without server-side resolution.
+- Resolve organization authority from `portalSlug` through the portal resolver.
+- Use audience-specific guards for subject access once a portal audience ships.
+- Do not call `requireOrgSession()` as the portal default guard; supplier,
+  customer, investor, and some employee portal actors may not be Workbench org
+  members.
+- Keep `proxy.ts` as a locale/session cookie presence gate only.
+
+---
+
+## Path and naming
+
+- Use `/p`, not `/t`, for portal routes.
+- Path helpers must live under `lib/portal/`.
+- Portal path helpers must emit locale-internal paths; callers add locale with
+  `toLocalePath(locale, path)` when needed.
+- Do not hard-code portal URLs in feature modules when a portal path helper
+  exists.
+
+---
+
+## Forbidden
+
+- `WorkbenchShell` or `AppShell` imports under `app/[locale]/p/**`.
+- ERP business logic in `app/[locale]/p/**`, `components2/portal-shell/**`, or
+  `lib/portal/**`.
+- Portal auth decisions in `proxy.ts`.
+- Anonymous public workflows under `/p`.
+- Route-level organization hacks that bypass the portal resolver.
+- Duplicate HRM, supplier, customer, or investor business logic for portal vs
+  Workbench surfaces.

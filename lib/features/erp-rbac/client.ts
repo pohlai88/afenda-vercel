@@ -8,3 +8,5 @@ export {
   revokeErpPermissionAction,
   revokeTenantAuthorityAction,
 } from "./actions/access-admin.actions"
+export { buildErpPermissionKey } from "./constants"
+export type { ErpPermissionKey } from "./types"

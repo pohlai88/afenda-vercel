@@ -29,7 +29,8 @@ import {
   getPayrollPeriod,
   listPayrollRunsForPeriod,
   isAttendancePayrollReadyForPeriod,
-  hasApprovedPayrollPeriodLockApproval,
+  getApprovedPayrollPeriodLockApproval,
+  getPayrollPeriodPrimaryCountryCode,
 } from "../data/payroll.queries.server"
 import { resolveRulePack } from "../data/payroll-rule-pack.server"
 import { requireHrmPermission } from "../data/hrm-admin-guard.server"
@@ -334,7 +335,7 @@ export async function preparePayrollRunsAction(
 }
 
 // ---------------------------------------------------------------------------
-// Lock payroll period (MYR + MY rule pack — Phase 3B)
+// Lock payroll period (country rule pack + maker-checker certification)
 // ---------------------------------------------------------------------------
 
 export async function lockPayrollPeriodAction(
@@ -365,12 +366,6 @@ export async function lockPayrollPeriodAction(
   if (period.state !== "preparing") {
     return hrmActionFailure({ form: "Period must be preparing to lock." })
   }
-  if (period.currency !== "MYR") {
-    return hrmActionFailure({
-      form: "MYR payroll periods only — extend rule packs before locking other currencies.",
-    })
-  }
-
   const runs = await listPayrollRunsForPeriod(
     organizationId,
     parsed.data.periodId
@@ -398,28 +393,39 @@ export async function lockPayrollPeriodAction(
   })
   if (!attendanceOk) {
     return hrmActionFailure({
-      form: "Attendance days in this window must be computed or locked before payroll lock.",
+      form: "Attendance days in this window must be computed, locked, and free of payroll-blocking exceptions before payroll lock.",
     })
   }
 
-  if (
-    !(await hasApprovedPayrollPeriodLockApproval(
-      organizationId,
-      parsed.data.periodId
-    ))
-  ) {
+  const approvedLock = await getApprovedPayrollPeriodLockApproval(
+    organizationId,
+    parsed.data.periodId
+  )
+  if (!approvedLock) {
     return hrmActionFailure({
       form: "Request and obtain approved lock certification before locking.",
     })
   }
+  if (
+    !approvedLock.decisionByUserId ||
+    approvedLock.decisionByUserId === approvedLock.requestedByUserId
+  ) {
+    return hrmActionFailure({
+      form: "Payroll lock certification must be approved by a different user.",
+    })
+  }
 
   let rulePackVersion: string
+  const primaryCountryCode = await getPayrollPeriodPrimaryCountryCode(
+    organizationId,
+    parsed.data.periodId
+  )
   try {
     const periodEnd = new Date(`${period.periodEnd}T00:00:00.000Z`)
-    rulePackVersion = resolveRulePack("MY", periodEnd).version
+    rulePackVersion = resolveRulePack(primaryCountryCode, periodEnd).version
   } catch {
     return hrmActionFailure({
-      form: "No Malaysia rule pack is registered for this period end date.",
+      form: `No ${primaryCountryCode} rule pack is registered for this period end date.`,
     })
   }
 
@@ -442,6 +448,8 @@ export async function lockPayrollPeriodAction(
       resourceId: parsed.data.periodId,
       metadata: {
         periodId: parsed.data.periodId,
+        approvalId: approvedLock.id,
+        primaryCountryCode,
         rulePackVersion,
         paidClaimCount: lockResult.paidClaims.length,
       },

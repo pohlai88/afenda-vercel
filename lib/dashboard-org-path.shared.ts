@@ -12,6 +12,7 @@ export const ORG_ADMIN_PATH_SEGMENTS = new Set([
   "audit",
   "feedback",
   "settings",
+  "access",
   "integrations",
   "knowledge",
 ])

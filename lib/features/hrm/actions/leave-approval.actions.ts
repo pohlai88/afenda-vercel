@@ -7,8 +7,9 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmApproval, hrmLeaveRequest } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { requireOrgSession } from "#lib/tenant"
+import { canUseErpPermission } from "#features/erp-rbac/server"
 
-import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
 import { recomputeLeaveBalance } from "../data/leave-balance.server"
 import {
   leaveApprovalDecisionSchema,
@@ -32,6 +33,35 @@ function revalidateLeaveRequests() {
   )
 }
 
+async function canDecideLeaveRequest(input: {
+  organizationId: string
+  userId: string
+  currentApprovalId: string | null
+}): Promise<boolean> {
+  if (input.currentApprovalId) {
+    const approval = await db.query.hrmApproval.findFirst({
+      where: and(
+        eq(hrmApproval.organizationId, input.organizationId),
+        eq(hrmApproval.id, input.currentApprovalId)
+      ),
+      columns: { currentApproverUserId: true, state: true },
+    })
+
+    if (
+      approval?.state === "pending" &&
+      approval.currentApproverUserId === input.userId
+    ) {
+      return true
+    }
+  }
+
+  return canUseErpPermission({
+    organizationId: input.organizationId,
+    userId: input.userId,
+    permission: { module: "hrm", object: "leave", function: "update" },
+  })
+}
+
 // ---------------------------------------------------------------------------
 // Tier B — approve leave
 // ---------------------------------------------------------------------------
@@ -46,9 +76,7 @@ export async function approveLeaveAction(
   _prev: LeaveApprovalFormState | undefined,
   formData: FormData
 ): Promise<LeaveApprovalFormState> {
-  const gate = await requireHrmAdmin()
-  if (!gate.ok) return hrmActionFailure({ form: gate.error })
-  const { session } = gate
+  const session = await requireOrgSession()
   const { organizationId, userId, sessionId } = session
 
   const parsed = leaveApprovalDecisionSchema.safeParse({
@@ -87,6 +115,17 @@ export async function approveLeaveAction(
   if (req.state !== "submitted") {
     return hrmActionFailure({
       requestId: `Cannot approve a leave request with state "${req.state}". Expected "submitted".`,
+    })
+  }
+
+  const allowed = await canDecideLeaveRequest({
+    organizationId,
+    userId,
+    currentApprovalId: req.currentApprovalId,
+  })
+  if (!allowed) {
+    return hrmActionFailure({
+      form: "Only the assigned approver or HRM leave administrator can approve this request.",
     })
   }
 
@@ -160,9 +199,7 @@ export async function rejectLeaveAction(
   _prev: LeaveApprovalFormState | undefined,
   formData: FormData
 ): Promise<LeaveApprovalFormState> {
-  const gate = await requireHrmAdmin()
-  if (!gate.ok) return hrmActionFailure({ form: gate.error })
-  const { session } = gate
+  const session = await requireOrgSession()
   const { organizationId, userId, sessionId } = session
 
   const parsed = leaveRejectDecisionSchema.safeParse({
@@ -204,6 +241,17 @@ export async function rejectLeaveAction(
   if (req.state !== "submitted") {
     return hrmActionFailure({
       requestId: `Cannot reject a leave request with state "${req.state}". Expected "submitted".`,
+    })
+  }
+
+  const allowed = await canDecideLeaveRequest({
+    organizationId,
+    userId,
+    currentApprovalId: req.currentApprovalId,
+  })
+  if (!allowed) {
+    return hrmActionFailure({
+      form: "Only the assigned approver or HRM leave administrator can reject this request.",
     })
   }
 

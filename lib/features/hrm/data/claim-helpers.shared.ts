@@ -6,7 +6,7 @@
  *
  *   - {@link computeClaimsSummary} — counts by state for Nexus pressure +
  *     admin inbox badges.
- *   - {@link applyPerClaimLimit} — per-claim limit check (currency-blind
+ *   - {@link applyClaimAmountLimit} — monetary limit check (currency-blind
  *     because claim type pins a currency at create time).
  *   - {@link isClaimDateInRange} — claim date must not be in the future
  *     (`<= today`) and within an optional bounded window (e.g. payroll
@@ -56,10 +56,17 @@ export type PerClaimLimitOutcome =
  * Validates that `amount` is non-negative and (when a positive `limit` is
  * configured) does not exceed the per-claim cap. `null`/`undefined` limits
  * mean no cap. Comparison is currency-blind — claim-type pins the currency
- * at create time and `submitClaimAction` enforces the same currency via the
- * Zod schema.
+ * at create time and the claim submission Server Actions enforce the same
+ * currency via the Zod schema.
  */
 export function applyPerClaimLimit(
+  amount: number,
+  limit: number | null | undefined
+): PerClaimLimitOutcome {
+  return applyClaimAmountLimit(amount, limit)
+}
+
+export function applyClaimAmountLimit(
   amount: number,
   limit: number | null | undefined
 ): PerClaimLimitOutcome {
@@ -73,6 +80,71 @@ export function applyPerClaimLimit(
     return { ok: false, reason: "over_limit", amount, limit }
   }
   return { ok: true }
+}
+
+export function doesClaimRequireEvidence(input: {
+  amount: number
+  requiresEvidence: boolean
+  evidenceRequiredAboveAmount: number | null | undefined
+}): boolean {
+  if (input.requiresEvidence) return true
+  const threshold = input.evidenceRequiredAboveAmount
+  return (
+    Number.isFinite(input.amount) &&
+    threshold != null &&
+    input.amount >= threshold
+  )
+}
+
+export type ClaimPolicySnapshot = {
+  readonly perClaimLimit: number | null
+  readonly periodLimit: number | null
+  readonly annualLimit: number | null
+  readonly requiresEvidence: boolean
+  readonly evidenceRequiredAboveAmount: number | null
+  readonly evidenceRequired: boolean
+  readonly payoutMethod: string
+  readonly financeAccountCode: string | null
+  readonly costCenterCode: string | null
+  readonly taxTreatment: string
+  readonly evaluatedAt: string
+}
+
+export function buildClaimPolicySnapshot(input: {
+  perClaimLimit: number | null
+  periodLimit: number | null
+  annualLimit: number | null
+  requiresEvidence: boolean
+  evidenceRequiredAboveAmount: number | null
+  amount: number
+  payoutMethod: string
+  financeAccountCode: string | null
+  costCenterCode: string | null
+  taxTreatment: string
+  evaluatedAt: Date
+}): ClaimPolicySnapshot {
+  return {
+    perClaimLimit: input.perClaimLimit,
+    periodLimit: input.periodLimit,
+    annualLimit: input.annualLimit,
+    requiresEvidence: input.requiresEvidence,
+    evidenceRequiredAboveAmount: input.evidenceRequiredAboveAmount,
+    evidenceRequired: doesClaimRequireEvidence(input),
+    payoutMethod: input.payoutMethod,
+    financeAccountCode: input.financeAccountCode,
+    costCenterCode: input.costCenterCode,
+    taxTreatment: input.taxTreatment,
+    evaluatedAt: input.evaluatedAt.toISOString(),
+  }
+}
+
+export function buildClaimNumber(input: {
+  claimDate: string
+  claimId: string
+}): string {
+  const compactDate = input.claimDate.replaceAll("-", "")
+  const suffix = input.claimId.replaceAll("-", "").slice(0, 10).toUpperCase()
+  return `CLM-${compactDate}-${suffix}`
 }
 
 // ---------------------------------------------------------------------------
@@ -170,6 +242,11 @@ export type ClaimApprovalSnapshot = {
   readonly perClaimLimit: number | null
   readonly defaultPayrollLineCode: string
   readonly evidenceCount: number
+  readonly evidenceRequired: boolean
+  readonly payoutMethod: string
+  readonly financeAccountCode: string | null
+  readonly costCenterCode: string | null
+  readonly taxTreatment: string
   readonly policyVersion: string | null
   readonly requestedAt: string
 }
@@ -188,6 +265,11 @@ export function buildClaimApprovalSnapshot(input: {
   currency: string
   description: string | null
   evidenceCount: number
+  evidenceRequired: boolean
+  payoutMethod: string
+  financeAccountCode: string | null
+  costCenterCode: string | null
+  taxTreatment: string
   policyVersion: string | null
   requestedAt: Date
 }): ClaimApprovalSnapshot {
@@ -206,6 +288,11 @@ export function buildClaimApprovalSnapshot(input: {
     currency: input.currency,
     description: input.description,
     evidenceCount: input.evidenceCount,
+    evidenceRequired: input.evidenceRequired,
+    payoutMethod: input.payoutMethod,
+    financeAccountCode: input.financeAccountCode,
+    costCenterCode: input.costCenterCode,
+    taxTreatment: input.taxTreatment,
     policyVersion: input.policyVersion,
     requestedAt: input.requestedAt.toISOString(),
   }

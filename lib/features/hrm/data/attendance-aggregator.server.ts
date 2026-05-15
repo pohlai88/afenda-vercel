@@ -7,6 +7,13 @@ import { and, eq, gte, lt } from "drizzle-orm"
 import { db } from "#lib/db"
 import { hrmAttendanceDay, hrmAttendanceEvent } from "#lib/db/schema"
 
+import { resolveAttendanceShiftContext } from "./attendance-shift.queries.server"
+import {
+  buildAttendanceEventQueryWindow,
+  type AttendanceShiftContext,
+  type RegenerateAttendanceDayResult,
+} from "./attendance-shift.shared"
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -25,6 +32,33 @@ export type AttendanceEventSource =
   | "device"
 
 export type AttendanceDayState = "open" | "computed" | "locked"
+
+export type AttendanceExceptionSeverity = "attention" | "critical"
+
+export type AttendanceExceptionCode =
+  | "missing_clock_in"
+  | "missing_clock_out"
+  | "clock_out_without_clock_in"
+  | "duplicate_clock_in"
+  | "missing_break_end"
+  | "break_end_without_break_start"
+  | "excessive_shift_duration"
+  | "late_arrival"
+  | "early_out"
+  | "overtime"
+
+export type AttendanceException = {
+  readonly code: AttendanceExceptionCode
+  readonly severity: AttendanceExceptionSeverity
+  readonly payrollBlocking: boolean
+  readonly message: string
+  readonly metadata?: Record<string, string | number | boolean | null>
+}
+
+type ResolvedAttendanceShiftContext = Required<AttendanceShiftContext>
+type AttendanceShiftSnapshot = NonNullable<
+  AttendanceCalculationSnapshot["shift"]
+>
 
 /** Minimal shape of an attendance event as returned by the DB query layer. */
 export type HrmAttendanceEventForAggregation = {
@@ -50,6 +84,18 @@ export type AttendanceCalculationSnapshot = {
     readonly breakEnd: string | null
     readonly durationMinutes: number
   }>
+  readonly shift: {
+    readonly scheduledStartAt: string
+    readonly scheduledEndAt: string
+    readonly scheduledMinutes: number
+    readonly unpaidBreakMinutes: number
+    readonly paidBreakMinutes: number
+    readonly lateGraceMinutes: number
+    readonly earlyOutGraceMinutes: number
+    readonly overtimeGraceMinutes: number
+    readonly maxContinuousClockMinutes: number
+  } | null
+  readonly exceptions: readonly AttendanceException[]
 }
 
 /** Output of the pure aggregation function — written to `hrm_attendance_day`. */
@@ -62,9 +108,11 @@ export type HrmAttendanceDayDraft = {
   readonly lateMinutes: number
   readonly earlyOutMinutes: number
   readonly overtimeMinutes: number
+  readonly absenceCode: string | null
   /** SHA-256 of sorted contributing event IDs — used for idempotent re-aggregation. */
   readonly derivedFromEventChecksum: string
   readonly calculationSnapshot: AttendanceCalculationSnapshot
+  readonly exceptions: readonly AttendanceException[]
 }
 
 // ---------------------------------------------------------------------------
@@ -103,6 +151,119 @@ function minutesBetween(from: Date, to: Date): number {
   return Math.floor((to.getTime() - from.getTime()) / 60_000)
 }
 
+const DEFAULT_MAX_CONTINUOUS_CLOCK_MINUTES = 16 * 60
+
+function nonNegativeWholeMinutes(value: number | undefined): number {
+  if (value === undefined) return 0
+  if (!Number.isFinite(value) || value < 0) {
+    throw new Error(`Invalid attendance policy minutes: ${value}`)
+  }
+  return Math.floor(value)
+}
+
+function resolveShiftContext(
+  shiftContext?: AttendanceShiftContext
+): ResolvedAttendanceShiftContext | null {
+  if (!shiftContext) return null
+
+  const scheduledMinutes = minutesBetween(
+    shiftContext.scheduledStartAt,
+    shiftContext.scheduledEndAt
+  )
+  if (scheduledMinutes <= 0) {
+    throw new Error("Attendance shift must end after it starts")
+  }
+
+  const maxContinuousClockMinutes =
+    shiftContext.maxContinuousClockMinutes ??
+    DEFAULT_MAX_CONTINUOUS_CLOCK_MINUTES
+  if (
+    !Number.isFinite(maxContinuousClockMinutes) ||
+    maxContinuousClockMinutes <= 0
+  ) {
+    throw new Error(
+      `Invalid max continuous clock policy minutes: ${maxContinuousClockMinutes}`
+    )
+  }
+
+  return {
+    scheduledStartAt: shiftContext.scheduledStartAt,
+    scheduledEndAt: shiftContext.scheduledEndAt,
+    unpaidBreakMinutes: nonNegativeWholeMinutes(
+      shiftContext.unpaidBreakMinutes
+    ),
+    paidBreakMinutes: nonNegativeWholeMinutes(shiftContext.paidBreakMinutes),
+    lateGraceMinutes: nonNegativeWholeMinutes(shiftContext.lateGraceMinutes),
+    earlyOutGraceMinutes: nonNegativeWholeMinutes(
+      shiftContext.earlyOutGraceMinutes
+    ),
+    overtimeGraceMinutes: nonNegativeWholeMinutes(
+      shiftContext.overtimeGraceMinutes
+    ),
+    maxContinuousClockMinutes: Math.floor(maxContinuousClockMinutes),
+  }
+}
+
+function buildAttendanceException(input: {
+  code: AttendanceExceptionCode
+  severity: AttendanceExceptionSeverity
+  payrollBlocking: boolean
+  message: string
+  metadata?: Record<string, string | number | boolean | null>
+}): AttendanceException {
+  return input.metadata
+    ? { ...input, metadata: input.metadata }
+    : {
+        code: input.code,
+        severity: input.severity,
+        payrollBlocking: input.payrollBlocking,
+        message: input.message,
+      }
+}
+
+export function attendanceSnapshotHasPayrollBlockingException(
+  snapshot: unknown
+): boolean {
+  if (!snapshot || typeof snapshot !== "object") return false
+
+  const exceptions = (snapshot as { readonly exceptions?: unknown }).exceptions
+  if (!Array.isArray(exceptions)) return false
+
+  return exceptions.some((exception) => {
+    if (!exception || typeof exception !== "object") return false
+    return (
+      (exception as { readonly payrollBlocking?: unknown }).payrollBlocking ===
+      true
+    )
+  })
+}
+
+function attendanceSnapshotShiftMatches(
+  snapshot: unknown,
+  shift: AttendanceCalculationSnapshot["shift"]
+): boolean {
+  if (!snapshot || typeof snapshot !== "object") return shift === null
+
+  const snapshotShift = (snapshot as { readonly shift?: unknown }).shift
+  if (snapshotShift === null || snapshotShift === undefined) {
+    return shift === null
+  }
+  if (!shift || typeof snapshotShift !== "object") return false
+
+  const previous = snapshotShift as Partial<AttendanceShiftSnapshot>
+  return (
+    previous.scheduledStartAt === shift.scheduledStartAt &&
+    previous.scheduledEndAt === shift.scheduledEndAt &&
+    previous.scheduledMinutes === shift.scheduledMinutes &&
+    previous.unpaidBreakMinutes === shift.unpaidBreakMinutes &&
+    previous.paidBreakMinutes === shift.paidBreakMinutes &&
+    previous.lateGraceMinutes === shift.lateGraceMinutes &&
+    previous.earlyOutGraceMinutes === shift.earlyOutGraceMinutes &&
+    previous.overtimeGraceMinutes === shift.overtimeGraceMinutes &&
+    previous.maxContinuousClockMinutes === shift.maxContinuousClockMinutes
+  )
+}
+
 /**
  * Pure deterministic daily aggregate from a slice of attendance events for ONE
  * employee on ONE calendar date.
@@ -113,34 +274,22 @@ function minutesBetween(from: Date, to: Date): number {
  *  - Same input → same output except `calculationSnapshot.aggregatedAt` which records
  *    wall-clock time of computation (not used for idempotency checks).
  *  - Idempotency is based solely on `derivedFromEventChecksum` (SHA-256 of sorted event IDs).
- *  - Scheduled minutes are not computed here (requires shift roster — set to 0 until Phase 3).
- *  - Late / earlyOut minutes require shift start/end context — set to 0 until Phase 3.
- *  - Overtime = workedMinutes − scheduledMinutes when scheduledMinutes > 0, else 0.
+ *  - Shift context is optional so legacy/manual aggregation remains deterministic.
+ *  - With shift context, the draft includes schedule, grace-window, overtime, and
+ *    payroll-blocking exception state for downstream payroll readiness.
  */
 export function aggregateAttendanceDay(
-  events: readonly HrmAttendanceEventForAggregation[]
+  events: readonly HrmAttendanceEventForAggregation[],
+  shiftContext?: AttendanceShiftContext
 ): HrmAttendanceDayDraft {
-  if (events.length === 0) {
-    const checksum = computeEventChecksum([])
-    return {
-      firstClockInAt: null,
-      lastClockOutAt: null,
-      scheduledMinutes: 0,
-      workedMinutes: 0,
-      breakMinutes: 0,
-      lateMinutes: 0,
-      earlyOutMinutes: 0,
-      overtimeMinutes: 0,
-      derivedFromEventChecksum: checksum,
-      calculationSnapshot: {
-        eventIds: [],
-        eventChecksum: checksum,
-        aggregatedAt: new Date(0).toISOString(),
-        clockPairs: [],
-        breakPairs: [],
-      },
-    }
-  }
+  const shift = resolveShiftContext(shiftContext)
+  const scheduledSpanMinutes = shift
+    ? minutesBetween(shift.scheduledStartAt, shift.scheduledEndAt)
+    : 0
+  const scheduledMinutes = shift
+    ? Math.max(0, scheduledSpanMinutes - shift.unpaidBreakMinutes)
+    : 0
+  const exceptions: AttendanceException[] = []
 
   const activeEvents = filterActiveEvents(events)
   const sorted = [...activeEvents].sort(
@@ -169,12 +318,24 @@ export function aggregateAttendanceDay(
     switch (event.eventType) {
       case "clock_in": {
         if (openClockIn !== null) {
-          // Close open pair without explicit clock_out (guard)
           clockPairs.push({
             clockIn: openClockIn,
             clockOut: null,
             durationMinutes: 0,
           })
+          exceptions.push(
+            buildAttendanceException({
+              code: "duplicate_clock_in",
+              severity: "critical",
+              payrollBlocking: true,
+              message:
+                "Clock-in was recorded before the previous clock-in was closed.",
+              metadata: {
+                previousClockInAt: openClockIn.toISOString(),
+                duplicateClockInAt: event.occurredAt.toISOString(),
+              },
+            })
+          )
         }
         openClockIn = event.occurredAt
         break
@@ -187,10 +348,42 @@ export function aggregateAttendanceDay(
             durationMinutes: minutesBetween(openClockIn, event.occurredAt),
           })
           openClockIn = null
+        } else {
+          exceptions.push(
+            buildAttendanceException({
+              code: "clock_out_without_clock_in",
+              severity: "critical",
+              payrollBlocking: true,
+              message: "Clock-out was recorded without an open clock-in.",
+              metadata: {
+                clockOutAt: event.occurredAt.toISOString(),
+              },
+            })
+          )
         }
         break
       }
       case "break_start": {
+        if (openBreakStart !== null) {
+          breakPairs.push({
+            breakStart: openBreakStart,
+            breakEnd: null,
+            durationMinutes: 0,
+          })
+          exceptions.push(
+            buildAttendanceException({
+              code: "missing_break_end",
+              severity: "critical",
+              payrollBlocking: true,
+              message:
+                "Break start was recorded before the previous break was closed.",
+              metadata: {
+                previousBreakStartAt: openBreakStart.toISOString(),
+                nextBreakStartAt: event.occurredAt.toISOString(),
+              },
+            })
+          )
+        }
         openBreakStart = event.occurredAt
         break
       }
@@ -202,6 +395,18 @@ export function aggregateAttendanceDay(
             durationMinutes: minutesBetween(openBreakStart, event.occurredAt),
           })
           openBreakStart = null
+        } else {
+          exceptions.push(
+            buildAttendanceException({
+              code: "break_end_without_break_start",
+              severity: "critical",
+              payrollBlocking: true,
+              message: "Break end was recorded without an open break start.",
+              metadata: {
+                breakEndAt: event.occurredAt.toISOString(),
+              },
+            })
+          )
         }
         break
       }
@@ -218,6 +423,17 @@ export function aggregateAttendanceDay(
       clockOut: null,
       durationMinutes: 0,
     })
+    exceptions.push(
+      buildAttendanceException({
+        code: "missing_clock_out",
+        severity: "critical",
+        payrollBlocking: true,
+        message: "Clock-in is open and requires a matching clock-out.",
+        metadata: {
+          clockInAt: openClockIn.toISOString(),
+        },
+      })
+    )
   }
   if (openBreakStart !== null) {
     breakPairs.push({
@@ -225,6 +441,17 @@ export function aggregateAttendanceDay(
       breakEnd: null,
       durationMinutes: 0,
     })
+    exceptions.push(
+      buildAttendanceException({
+        code: "missing_break_end",
+        severity: "critical",
+        payrollBlocking: true,
+        message: "Break start is open and requires a matching break end.",
+        metadata: {
+          breakStartAt: openBreakStart.toISOString(),
+        },
+      })
+    )
   }
 
   const firstClockIn = clockPairs.length > 0 ? clockPairs[0].clockIn : null
@@ -235,20 +462,138 @@ export function aggregateAttendanceDay(
 
   const totalWorked = clockPairs.reduce((sum, p) => sum + p.durationMinutes, 0)
   const totalBreak = breakPairs.reduce((sum, p) => sum + p.durationMinutes, 0)
-  // Net worked = gross worked − break time (break deducted from clock span)
-  const netWorked = Math.max(0, totalWorked - totalBreak)
+  const paidObservedBreakMinutes = shift
+    ? Math.min(totalBreak, shift.paidBreakMinutes)
+    : 0
+  const unpaidObservedBreakMinutes = Math.max(
+    0,
+    totalBreak - paidObservedBreakMinutes
+  )
+  const netWorked = Math.max(0, totalWorked - unpaidObservedBreakMinutes)
 
-  // Scheduled + late + earlyOut require shift roster context — deferred to Phase 3.
-  const scheduledMinutes = 0
-  const lateMinutes = 0
-  const earlyOutMinutes = 0
-  const overtimeMinutes =
-    scheduledMinutes > 0 ? Math.max(0, netWorked - scheduledMinutes) : 0
+  let lateMinutes = 0
+  let earlyOutMinutes = 0
+  let overtimeMinutes = 0
+  let absenceCode: string | null = null
+
+  if (shift) {
+    if (firstClockIn === null) {
+      exceptions.push(
+        buildAttendanceException({
+          code: "missing_clock_in",
+          severity: "critical",
+          payrollBlocking: true,
+          message: "Scheduled attendance day has no clock-in.",
+          metadata: {
+            scheduledStartAt: shift.scheduledStartAt.toISOString(),
+          },
+        })
+      )
+    }
+
+    if (firstClockIn === null && lastClockOut === null) {
+      absenceCode = "absent"
+    }
+
+    if (firstClockIn !== null) {
+      const lateThreshold = new Date(
+        shift.scheduledStartAt.getTime() + shift.lateGraceMinutes * 60_000
+      )
+      lateMinutes =
+        firstClockIn.getTime() > lateThreshold.getTime()
+          ? minutesBetween(lateThreshold, firstClockIn)
+          : 0
+      if (lateMinutes > 0) {
+        exceptions.push(
+          buildAttendanceException({
+            code: "late_arrival",
+            severity: "attention",
+            payrollBlocking: false,
+            message: "Clock-in occurred after the configured grace window.",
+            metadata: {
+              lateMinutes,
+              scheduledStartAt: shift.scheduledStartAt.toISOString(),
+              firstClockInAt: firstClockIn.toISOString(),
+            },
+          })
+        )
+      }
+    }
+
+    if (lastClockOut !== null) {
+      const earlyOutThreshold = new Date(
+        shift.scheduledEndAt.getTime() - shift.earlyOutGraceMinutes * 60_000
+      )
+      earlyOutMinutes =
+        lastClockOut.getTime() < earlyOutThreshold.getTime()
+          ? minutesBetween(lastClockOut, earlyOutThreshold)
+          : 0
+      if (earlyOutMinutes > 0) {
+        exceptions.push(
+          buildAttendanceException({
+            code: "early_out",
+            severity: "attention",
+            payrollBlocking: false,
+            message: "Clock-out occurred before the configured grace window.",
+            metadata: {
+              earlyOutMinutes,
+              scheduledEndAt: shift.scheduledEndAt.toISOString(),
+              lastClockOutAt: lastClockOut.toISOString(),
+            },
+          })
+        )
+      }
+    }
+
+    overtimeMinutes =
+      scheduledMinutes > 0
+        ? Math.max(0, netWorked - scheduledMinutes - shift.overtimeGraceMinutes)
+        : 0
+    if (overtimeMinutes > 0) {
+      exceptions.push(
+        buildAttendanceException({
+          code: "overtime",
+          severity: "attention",
+          payrollBlocking: false,
+          message:
+            "Worked minutes exceed scheduled minutes plus overtime grace.",
+          metadata: {
+            overtimeMinutes,
+            scheduledMinutes,
+            workedMinutes: netWorked,
+          },
+        })
+      )
+    }
+
+    for (const pair of clockPairs) {
+      if (pair.durationMinutes > shift.maxContinuousClockMinutes) {
+        exceptions.push(
+          buildAttendanceException({
+            code: "excessive_shift_duration",
+            severity: "critical",
+            payrollBlocking: true,
+            message:
+              "Clock pair exceeds the maximum configured continuous duration.",
+            metadata: {
+              durationMinutes: pair.durationMinutes,
+              maxContinuousClockMinutes: shift.maxContinuousClockMinutes,
+              clockInAt: pair.clockIn.toISOString(),
+              clockOutAt: pair.clockOut?.toISOString() ?? null,
+            },
+          })
+        )
+      }
+    }
+  }
 
   const snapshot: AttendanceCalculationSnapshot = {
     eventIds: allIds,
     eventChecksum: checksum,
-    aggregatedAt: new Date().toISOString(),
+    aggregatedAt:
+      events.length === 0 && shift === null
+        ? new Date(0).toISOString()
+        : new Date().toISOString(),
     clockPairs: clockPairs.map((p) => ({
       clockIn: p.clockIn.toISOString(),
       clockOut: p.clockOut?.toISOString() ?? null,
@@ -259,6 +604,20 @@ export function aggregateAttendanceDay(
       breakEnd: p.breakEnd?.toISOString() ?? null,
       durationMinutes: p.durationMinutes,
     })),
+    shift: shift
+      ? {
+          scheduledStartAt: shift.scheduledStartAt.toISOString(),
+          scheduledEndAt: shift.scheduledEndAt.toISOString(),
+          scheduledMinutes,
+          unpaidBreakMinutes: shift.unpaidBreakMinutes,
+          paidBreakMinutes: shift.paidBreakMinutes,
+          lateGraceMinutes: shift.lateGraceMinutes,
+          earlyOutGraceMinutes: shift.earlyOutGraceMinutes,
+          overtimeGraceMinutes: shift.overtimeGraceMinutes,
+          maxContinuousClockMinutes: shift.maxContinuousClockMinutes,
+        }
+      : null,
+    exceptions,
   }
 
   return {
@@ -270,8 +629,10 @@ export function aggregateAttendanceDay(
     lateMinutes,
     earlyOutMinutes,
     overtimeMinutes,
+    absenceCode,
     derivedFromEventChecksum: checksum,
     calculationSnapshot: snapshot,
+    exceptions,
   }
 }
 
@@ -281,21 +642,29 @@ export function aggregateAttendanceDay(
 
 /**
  * Fetch all events for an (org, employee, date) and upsert the `hrm_attendance_day`
- * row. Idempotent: if the event checksum matches the stored value, no DB write occurs.
+ * row. Idempotent: if the event checksum and shift snapshot match the stored
+ * value, no DB write occurs.
  *
- * @returns `"skipped"` when checksum is unchanged, `"updated"` when the day was upserted.
+ * @returns `"skipped"` when checksum is unchanged, `"updated"` when the day was upserted,
+ * and `"locked"` when the stored day is payroll-locked.
  */
 export async function regenerateAttendanceDayFromEvents(opts: {
   organizationId: string
   employeeId: string
   attendanceDate: string // ISO date "YYYY-MM-DD"
   actorUserId: string
-}): Promise<"skipped" | "updated"> {
+}): Promise<RegenerateAttendanceDayResult> {
   const { organizationId, employeeId, attendanceDate, actorUserId } = opts
 
-  // Compute UTC day boundaries so the filter is precise and timezone-safe.
-  const dayStart = new Date(`${attendanceDate}T00:00:00.000Z`)
-  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000) // exclusive upper bound
+  const shiftContext = await resolveAttendanceShiftContext({
+    organizationId,
+    employeeId,
+    attendanceDate,
+  })
+  const { windowStart, windowEnd } = buildAttendanceEventQueryWindow({
+    attendanceDate,
+    shiftContext,
+  })
 
   const dateEvents = await db
     .select({
@@ -309,8 +678,8 @@ export async function regenerateAttendanceDayFromEvents(opts: {
       and(
         eq(hrmAttendanceEvent.organizationId, organizationId),
         eq(hrmAttendanceEvent.employeeId, employeeId),
-        gte(hrmAttendanceEvent.occurredAt, dayStart),
-        lt(hrmAttendanceEvent.occurredAt, dayEnd)
+        gte(hrmAttendanceEvent.occurredAt, windowStart),
+        lt(hrmAttendanceEvent.occurredAt, windowEnd)
       )
     )
 
@@ -320,7 +689,8 @@ export async function regenerateAttendanceDayFromEvents(opts: {
       eventType: e.eventType as AttendanceEventType,
       occurredAt: e.occurredAt,
       correctionOfEventId: e.correctionOfEventId,
-    }))
+    })),
+    shiftContext ?? undefined
   )
 
   // Check existing row for idempotency
@@ -328,6 +698,7 @@ export async function regenerateAttendanceDayFromEvents(opts: {
     .select({
       id: hrmAttendanceDay.id,
       derivedFromEventChecksum: hrmAttendanceDay.derivedFromEventChecksum,
+      calculationSnapshot: hrmAttendanceDay.calculationSnapshot,
       state: hrmAttendanceDay.state,
     })
     .from(hrmAttendanceDay)
@@ -341,14 +712,17 @@ export async function regenerateAttendanceDayFromEvents(opts: {
     .limit(1)
 
   const existingRow = existing[0]
-  if (
-    existingRow?.derivedFromEventChecksum === draft.derivedFromEventChecksum
-  ) {
-    return "skipped"
+  if (existingRow?.state === "locked") {
+    return "locked"
   }
 
-  // Locked days cannot be regenerated — return skipped to avoid silent overwrites.
-  if (existingRow?.state === "locked") {
+  if (
+    existingRow?.derivedFromEventChecksum === draft.derivedFromEventChecksum &&
+    attendanceSnapshotShiftMatches(
+      existingRow.calculationSnapshot,
+      draft.calculationSnapshot.shift
+    )
+  ) {
     return "skipped"
   }
 
@@ -364,6 +738,7 @@ export async function regenerateAttendanceDayFromEvents(opts: {
         lateMinutes: draft.lateMinutes,
         earlyOutMinutes: draft.earlyOutMinutes,
         overtimeMinutes: draft.overtimeMinutes,
+        absenceCode: draft.absenceCode,
         state: "computed",
         derivedFromEventChecksum: draft.derivedFromEventChecksum,
         calculationSnapshot: draft.calculationSnapshot,
@@ -384,6 +759,7 @@ export async function regenerateAttendanceDayFromEvents(opts: {
       lateMinutes: draft.lateMinutes,
       earlyOutMinutes: draft.earlyOutMinutes,
       overtimeMinutes: draft.overtimeMinutes,
+      absenceCode: draft.absenceCode,
       state: "computed",
       derivedFromEventChecksum: draft.derivedFromEventChecksum,
       calculationSnapshot: draft.calculationSnapshot,

@@ -22,7 +22,7 @@ import {
 import { Input } from "#components/ui/input"
 
 import {
-  applyLeaveAction,
+  applyLeaveOnBehalfAction,
   type LeaveRequestMutationFormState,
 } from "#features/hrm/client"
 
@@ -62,13 +62,14 @@ export function LeaveApplyForm({
   const [state, formAction, pending] = useActionState<
     LeaveRequestMutationFormState | undefined,
     FormData
-  >(applyLeaveAction, undefined)
+  >(applyLeaveOnBehalfAction, undefined)
 
   const employeeId = useId()
   const leaveTypeId = useId()
   const startDateId = useId()
   const endDateId = useId()
   const durationId = useId()
+  const durationOverrideReasonId = useId()
   const halfDayId = useId()
   const reasonId = useId()
 
@@ -198,7 +199,9 @@ export function LeaveApplyForm({
           </select>
         </Field>
         <Field data-invalid={fieldErrors?.durationDays ? true : undefined}>
-          <FieldLabel htmlFor={durationId}>{t("fieldDuration")}</FieldLabel>
+          <FieldLabel htmlFor={durationId}>
+            {t("fieldDurationOverride")}
+          </FieldLabel>
           <Input
             id={durationId}
             name="durationDays"
@@ -206,10 +209,7 @@ export function LeaveApplyForm({
             min="0.5"
             max="365"
             step="0.5"
-            required
-            value={halfDay === "none" ? undefined : 0.5}
-            defaultValue={halfDay === "none" ? "1" : undefined}
-            readOnly={halfDay !== "none"}
+            placeholder="Auto"
             aria-invalid={Boolean(fieldErrors?.durationDays)}
           />
           <FieldDescription>{t("fieldDurationHint")}</FieldDescription>
@@ -218,6 +218,24 @@ export function LeaveApplyForm({
           ) : null}
         </Field>
       </div>
+
+      <Field
+        data-invalid={fieldErrors?.durationOverrideReason ? true : undefined}
+      >
+        <FieldLabel htmlFor={durationOverrideReasonId}>
+          {t("fieldDurationOverrideReason")}
+        </FieldLabel>
+        <Input
+          id={durationOverrideReasonId}
+          name="durationOverrideReason"
+          maxLength={1000}
+          placeholder={t("fieldDurationOverrideReasonPlaceholder")}
+          aria-invalid={Boolean(fieldErrors?.durationOverrideReason)}
+        />
+        {fieldErrors?.durationOverrideReason ? (
+          <FieldError>{fieldErrors.durationOverrideReason}</FieldError>
+        ) : null}
+      </Field>
 
       <Field>
         <FieldLabel htmlFor={reasonId}>{t("fieldReason")}</FieldLabel>

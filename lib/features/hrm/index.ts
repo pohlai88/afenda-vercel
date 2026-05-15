@@ -1,7 +1,15 @@
 export {
   archiveEmployeeFormSchema,
   createEmployeeFormSchema,
+  employeeContactFormSchema,
+  employeeEmploymentFormSchema,
+  employeeIdentityDocumentFormSchema,
+  employeeIdentityFormSchema,
+  employeeStatutoryProfileFormSchema,
+  employeeWorkAuthorizationFormSchema,
+  malaysiaEmployeeStatutoryProfileSchema,
   updateEmployeeFormSchema,
+  vietnamEmployeeStatutoryProfileSchema,
 } from "./schemas/employee.schema"
 
 export {
@@ -11,10 +19,13 @@ export {
 } from "./schemas/leave-policy.schema"
 
 export {
+  adjustLeaveBalanceFormSchema,
   applyLeaveFormSchema,
   cancelLeaveFormSchema,
   leaveApprovalDecisionSchema,
   leaveRejectDecisionSchema,
+  requestOwnLeaveFormSchema,
+  runLeaveCarryForwardFormSchema,
 } from "./schemas/leave-request.schema"
 
 export {
@@ -22,6 +33,7 @@ export {
   cancelClaimFormSchema,
   claimApprovalDecisionSchema,
   claimRejectDecisionSchema,
+  requestOwnClaimFormSchema,
   submitClaimFormSchema,
 } from "./schemas/claim.schema"
 
@@ -35,11 +47,24 @@ export type {
   HrmImportType,
 } from "./schemas/hrm-import.schema"
 
+export {
+  archiveOrgUnitFormSchema,
+  assignEmployeePlacementFormSchema,
+  createJobGradeArchitectureFormSchema,
+  createOrgUnitFormSchema,
+  createPositionControlFormSchema,
+  setPositionReportingLineFormSchema,
+  updateJobGradeArchitectureFormSchema,
+  updateOrgUnitFormSchema,
+  updatePositionControlFormSchema,
+} from "./schemas/org-structure.schema"
+
 export type {
   AttachClaimEvidenceFormValues,
   CancelClaimFormValues,
   ClaimApprovalDecisionValues,
   ClaimRejectDecisionValues,
+  RequestOwnClaimFormValues,
   SubmitClaimFormValues,
 } from "./schemas/claim.schema"
 
@@ -47,6 +72,8 @@ export {
   recordAttendanceEventSchema,
   correctAttendanceEventSchema,
   regenerateAttendanceDaySchema,
+  createShiftTemplateSchema,
+  assignEmployeeShiftSchema,
   attendanceCsvRowSchema,
 } from "./schemas/attendance-event.schema"
 
@@ -87,31 +114,42 @@ export type {
 
 export type {
   HalfDayOption,
+  AdjustLeaveBalanceFormValues,
   ApplyLeaveFormValues,
   CancelLeaveFormValues,
   LeaveApprovalDecisionValues,
   LeaveRejectDecisionValues,
+  RequestOwnLeaveFormValues,
+  RunLeaveCarryForwardFormValues,
 } from "./schemas/leave-request.schema"
 
 export type {
   RecordAttendanceEventInput,
   CorrectAttendanceEventInput,
   RegenerateAttendanceDayInput,
+  CreateShiftTemplateInput,
+  AssignEmployeeShiftInput,
   AttendanceCsvRow,
 } from "./schemas/attendance-event.schema"
 
 export type {
+  EmployeeMasterSnapshot,
+  EmployeeMasterMutationFormState,
   HrmCapability,
   HrmCapabilityId,
   HrmNavKey,
   LeaveTypeMutationFormState,
   LeavePolicyMutationFormState,
   SeedLeaveTypesFormState,
+  LeaveBalanceAdjustmentFormState,
+  LeaveCarryForwardFormState,
   LeaveRequestMutationFormState,
   CancelLeaveFormState,
   LeaveApprovalFormState,
   AttendanceRecordFormState,
   AttendanceCorrectionFormState,
+  AssignEmployeeShiftFormState,
+  CreateShiftTemplateFormState,
   RegenerateDayFormState,
   PayrollPeriodCreateFormState,
   PayrollPeriodUpdateFormState,
@@ -128,9 +166,13 @@ export {
   CLAIM_STATES,
   applyPerClaimLimit,
   buildClaimApprovalSnapshot,
+  buildClaimNumber,
+  buildClaimPolicySnapshot,
   canTransitionFromApproved,
   canTransitionFromSubmitted,
   computeClaimsSummary,
+  doesClaimRequireEvidence,
+  applyClaimAmountLimit,
   isClaimCancellable,
   isClaimDateInRange,
   isClaimEvidenceType,
@@ -139,10 +181,50 @@ export {
 export type {
   ClaimApprovalSnapshot,
   ClaimEvidenceType,
+  ClaimPolicySnapshot,
   ClaimsCountsSummary,
   ClaimStateValue,
   PerClaimLimitOutcome,
 } from "./data/claim-helpers.shared"
+
+export { buildBenefitPlanEnterpriseVersion } from "./data/benefit-plan-version.shared"
+export type { BenefitPlanEnterpriseVersion } from "./data/benefit-plan-version.shared"
+export {
+  evaluateBenefitEligibility,
+  parseBenefitEligibilityRules,
+  summarizeBenefitEligibilityFailure,
+} from "./data/benefit-eligibility.shared"
+export type {
+  BenefitEligibilityEmployee,
+  BenefitEligibilityPlan,
+  BenefitEligibilityReason,
+  BenefitEligibilityReasonCode,
+  BenefitEligibilityResult,
+  BenefitEligibilityRules,
+  EvaluateBenefitEligibilityInput,
+} from "./data/benefit-eligibility.shared"
+export {
+  buildLifeEventEnrollmentWindow,
+  isBenefitEnrollmentWindowOpen,
+  resolveBenefitElectionAccess,
+} from "./data/benefit-self-service.shared"
+export type {
+  BenefitElectionAccessReason,
+  BenefitElectionAccessReasonCode,
+  BenefitElectionAccessResult,
+  BenefitEnrollmentWindow,
+  BenefitEnrollmentWindowKind,
+} from "./data/benefit-self-service.shared"
+export {
+  projectBenefitPayrollLines,
+  projectBenefitPayrollLinesForPeriod,
+} from "./data/benefit-payroll-projection.shared"
+export type {
+  BenefitPayrollProjectedLine,
+  BenefitPayrollProjectionEnrollment,
+} from "./data/benefit-payroll-projection.shared"
+export { buildBenefitCensusReport } from "./data/benefit-reporting.shared"
+export type { BenefitCensusReport } from "./data/benefit-reporting.shared"
 export { HRM_NAV_NAMESPACE } from "./types"
 
 export {
@@ -155,6 +237,8 @@ export {
   HRM_CAPABILITIES,
   isAllowedHrmDashboardSubsegment,
   organizationHrmComplianceDetailPath,
+  organizationHrmClaimPath,
+  organizationHrmClaimsPath,
   organizationHrmEmployeePath,
   organizationHrmPath,
   organizationHrmRootPath,
@@ -166,6 +250,9 @@ export {
   HrmOverviewPage,
 } from "./components/hrm-pages"
 
+export { resolveLeaveSurfaceAccess } from "./data/leave-access.server"
+export type { LeaveSurfaceAccess } from "./data/leave-access.server"
+
 export { buildHrmRailSlots } from "./data/hrm-rail-slots"
 
 /** Rail pressure badge types (`getHrmRailPressureCounts` lives in `#features/hrm/server`). */
@@ -176,9 +263,11 @@ export type {
 } from "./types"
 
 export { AttendancePage } from "./components/attendance-page"
+export { ClaimDetailPage } from "./components/claim-detail-page"
 export { ClaimsPage } from "./components/claims-page"
 export { DocumentsPage } from "./components/documents-page"
 export { EmployeeDetailPage } from "./components/employee-detail-page"
+export { EmployeePortalLeavePage } from "./components/employee-portal-leave-page"
 export { LeavePage } from "./components/leave-page"
 export { PoliciesPage } from "./components/policies-page"
 export { OrganizationPage } from "./components/organization-page"

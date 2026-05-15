@@ -11,9 +11,22 @@ import {
 } from "#components/ui/table"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/tenant"
+import { Link } from "#i18n/navigation"
+import type { Route } from "next"
 
-import { type ClaimRow, listClaimsForOrg } from "../data/claim.queries.server"
+import { organizationHrmClaimPath } from "../constants"
+import type { ClaimSurfaceAccess } from "../data/claim-access.server"
+import {
+  type ClaimRow,
+  listClaimsForCurrentEmployee,
+  listClaimsForOrgPage,
+} from "../data/claim.queries.server"
 import type { ClaimStateValue } from "../data/claim-helpers.shared"
+
+type ClaimRecentTableProps = {
+  orgSlug: string
+  access: ClaimSurfaceAccess
+}
 
 const STATE_TONE: Record<
   ClaimStateValue,
@@ -32,13 +45,22 @@ const STATE_TONE: Record<
  * on the claims page so admins and members can audit decisions without
  * a separate route.
  */
-export async function ClaimRecentTable() {
+export async function ClaimRecentTable({
+  orgSlug,
+  access,
+}: ClaimRecentTableProps) {
   const orgSession = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.claims")
 
   let rows: ReadonlyArray<ClaimRow>
   try {
-    rows = await listClaimsForOrg(orgSession.organizationId)
+    rows = access.canReadOrgClaims
+      ? await listClaimsForOrgPage(orgSession.organizationId, { limit: 50 })
+      : await listClaimsForCurrentEmployee(
+          orgSession.organizationId,
+          orgSession.userId,
+          { limit: 50 }
+        )
   } catch (err) {
     logUnexpectedServerError("claim-recent-table: query failed", err, {
       organizationId: orgSession.organizationId,
@@ -71,9 +93,12 @@ export async function ClaimRecentTable() {
           <TableRow key={row.id}>
             <TableCell>
               <div className="flex flex-col">
-                <span className="font-medium">
+                <Link
+                  href={organizationHrmClaimPath(orgSlug, row.id) as Route}
+                  className="font-medium hover:underline"
+                >
                   {row.employeeFullName ?? row.employeeId}
-                </span>
+                </Link>
                 {row.employeeNumber ? (
                   <span className="text-xs text-muted-foreground">
                     {row.employeeNumber}

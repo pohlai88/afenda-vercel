@@ -3,13 +3,17 @@
  * Tests: aggregateAttendanceDay, computeEventChecksum, filterActiveEvents (via aggregateAttendanceDay).
  * All tests are pure — no DB, no async, no imports from server-only modules.
  */
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
+
+vi.mock("server-only", () => ({}))
 
 import {
   aggregateAttendanceDay,
+  attendanceSnapshotHasPayrollBlockingException,
   computeEventChecksum,
 } from "../../lib/features/hrm/data/attendance-aggregator.server"
 import type { HrmAttendanceEventForAggregation } from "../../lib/features/hrm/data/attendance-aggregator.server"
+import type { AttendanceShiftContext } from "../../lib/features/hrm/data/attendance-shift.shared"
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -26,6 +30,22 @@ function makeEvent(
     eventType,
     occurredAt: new Date(timeISO),
     correctionOfEventId,
+  }
+}
+
+function makeShift(
+  overrides: Partial<AttendanceShiftContext> = {}
+): AttendanceShiftContext {
+  return {
+    scheduledStartAt: new Date("2026-05-11T09:00:00Z"),
+    scheduledEndAt: new Date("2026-05-11T18:00:00Z"),
+    unpaidBreakMinutes: 60,
+    paidBreakMinutes: 0,
+    lateGraceMinutes: 0,
+    earlyOutGraceMinutes: 0,
+    overtimeGraceMinutes: 0,
+    maxContinuousClockMinutes: 16 * 60,
+    ...overrides,
   }
 }
 
@@ -408,5 +428,165 @@ describe("aggregateAttendanceDay — CSV correction round-trip", () => {
     expect(before.derivedFromEventChecksum).not.toBe(
       after.derivedFromEventChecksum
     )
+  })
+})
+
+// ---------------------------------------------------------------------------
+// aggregateAttendanceDay — ERP shift context and payroll exceptions
+// ---------------------------------------------------------------------------
+
+describe("aggregateAttendanceDay — shift-aware ERP calculation", () => {
+  it("computes scheduled, worked, and exception-free minutes for a normal shift", () => {
+    const result = aggregateAttendanceDay(
+      [
+        makeEvent("e1", "clock_in", "2026-05-11T09:05:00Z"),
+        makeEvent("e2", "break_start", "2026-05-11T13:00:00Z"),
+        makeEvent("e3", "break_end", "2026-05-11T14:00:00Z"),
+        makeEvent("e4", "clock_out", "2026-05-11T18:00:00Z"),
+      ],
+      makeShift({ lateGraceMinutes: 10 })
+    )
+
+    expect(result.scheduledMinutes).toBe(480)
+    expect(result.workedMinutes).toBe(475)
+    expect(result.lateMinutes).toBe(0)
+    expect(result.earlyOutMinutes).toBe(0)
+    expect(result.overtimeMinutes).toBe(0)
+    expect(result.exceptions).toHaveLength(0)
+  })
+
+  it("does not deduct configured paid breaks from worked minutes", () => {
+    const result = aggregateAttendanceDay(
+      [
+        makeEvent("e1", "clock_in", "2026-05-11T09:00:00Z"),
+        makeEvent("e2", "break_start", "2026-05-11T12:00:00Z"),
+        makeEvent("e3", "break_end", "2026-05-11T12:30:00Z"),
+        makeEvent("e4", "clock_out", "2026-05-11T17:00:00Z"),
+      ],
+      makeShift({
+        scheduledEndAt: new Date("2026-05-11T17:00:00Z"),
+        unpaidBreakMinutes: 0,
+        paidBreakMinutes: 30,
+      })
+    )
+
+    expect(result.scheduledMinutes).toBe(480)
+    expect(result.breakMinutes).toBe(30)
+    expect(result.workedMinutes).toBe(480)
+  })
+
+  it("derives late and early-out exceptions from grace windows", () => {
+    const result = aggregateAttendanceDay(
+      [
+        makeEvent("e1", "clock_in", "2026-05-11T09:20:00Z"),
+        makeEvent("e2", "clock_out", "2026-05-11T16:30:00Z"),
+      ],
+      makeShift({
+        scheduledEndAt: new Date("2026-05-11T17:00:00Z"),
+        unpaidBreakMinutes: 0,
+        lateGraceMinutes: 5,
+        earlyOutGraceMinutes: 5,
+      })
+    )
+
+    expect(result.lateMinutes).toBe(15)
+    expect(result.earlyOutMinutes).toBe(25)
+    expect(result.exceptions.map((exception) => exception.code)).toEqual([
+      "late_arrival",
+      "early_out",
+    ])
+    expect(
+      attendanceSnapshotHasPayrollBlockingException(result.calculationSnapshot)
+    ).toBe(false)
+  })
+
+  it("computes overtime after scheduled minutes and overtime grace", () => {
+    const result = aggregateAttendanceDay(
+      [
+        makeEvent("e1", "clock_in", "2026-05-11T09:00:00Z"),
+        makeEvent("e2", "clock_out", "2026-05-11T19:00:00Z"),
+      ],
+      makeShift({
+        scheduledEndAt: new Date("2026-05-11T17:00:00Z"),
+        unpaidBreakMinutes: 0,
+        overtimeGraceMinutes: 15,
+      })
+    )
+
+    expect(result.scheduledMinutes).toBe(480)
+    expect(result.workedMinutes).toBe(600)
+    expect(result.overtimeMinutes).toBe(105)
+    expect(result.exceptions.map((exception) => exception.code)).toContain(
+      "overtime"
+    )
+  })
+
+  it("supports cross-midnight night shifts", () => {
+    const result = aggregateAttendanceDay(
+      [
+        makeEvent("e1", "clock_in", "2026-05-11T22:00:00Z"),
+        makeEvent("e2", "clock_out", "2026-05-12T06:00:00Z"),
+      ],
+      makeShift({
+        scheduledStartAt: new Date("2026-05-11T22:00:00Z"),
+        scheduledEndAt: new Date("2026-05-12T06:00:00Z"),
+        unpaidBreakMinutes: 0,
+      })
+    )
+
+    expect(result.scheduledMinutes).toBe(480)
+    expect(result.workedMinutes).toBe(480)
+    expect(result.exceptions).toHaveLength(0)
+  })
+
+  it("marks missing clock-out as payroll blocking", () => {
+    const result = aggregateAttendanceDay(
+      [makeEvent("e1", "clock_in", "2026-05-11T09:00:00Z")],
+      makeShift()
+    )
+
+    expect(result.exceptions.map((exception) => exception.code)).toContain(
+      "missing_clock_out"
+    )
+    expect(
+      attendanceSnapshotHasPayrollBlockingException(result.calculationSnapshot)
+    ).toBe(true)
+  })
+
+  it("marks a scheduled day with no events as absent and payroll blocking", () => {
+    const result = aggregateAttendanceDay([], makeShift())
+
+    expect(result.absenceCode).toBe("absent")
+    expect(result.scheduledMinutes).toBe(480)
+    expect(result.exceptions.map((exception) => exception.code)).toContain(
+      "missing_clock_in"
+    )
+    expect(
+      attendanceSnapshotHasPayrollBlockingException(result.calculationSnapshot)
+    ).toBe(true)
+    expect(result.calculationSnapshot.aggregatedAt).not.toBe(
+      new Date(0).toISOString()
+    )
+  })
+
+  it("treats legacy snapshots without exception arrays as non-blocking", () => {
+    expect(
+      attendanceSnapshotHasPayrollBlockingException({
+        eventIds: ["legacy"],
+        eventChecksum: "checksum",
+      })
+    ).toBe(false)
+  })
+
+  it("rejects invalid shift ranges instead of silently corrupting payroll input", () => {
+    expect(() =>
+      aggregateAttendanceDay(
+        [],
+        makeShift({
+          scheduledStartAt: new Date("2026-05-11T18:00:00Z"),
+          scheduledEndAt: new Date("2026-05-11T09:00:00Z"),
+        })
+      )
+    ).toThrow("Attendance shift must end after it starts")
   })
 })

@@ -2,22 +2,24 @@ import { describe, expect, it, vi, beforeEach } from "vitest"
 
 const {
   requireOrgSessionMock,
-  canActInOrganizationMock,
+  canUseErpPermissionForCurrentOrgMock,
   ensureAppLocaleMock,
   orbitPageMock,
 } = vi.hoisted(() => ({
   requireOrgSessionMock: vi.fn(),
-  canActInOrganizationMock: vi.fn(),
+  canUseErpPermissionForCurrentOrgMock: vi.fn(),
   ensureAppLocaleMock: vi.fn((locale: string) => locale),
   orbitPageMock: vi.fn(() => null),
 }))
+
+vi.mock("server-only", () => ({}))
 
 vi.mock("#lib/tenant", () => ({
   requireOrgSession: requireOrgSessionMock,
 }))
 
-vi.mock("#lib/auth", () => ({
-  canActInOrganization: canActInOrganizationMock,
+vi.mock("#features/erp-rbac/server", () => ({
+  canUseErpPermissionForCurrentOrg: canUseErpPermissionForCurrentOrgMock,
 }))
 
 vi.mock("#lib/i18n/locales.shared", () => ({
@@ -34,7 +36,7 @@ import OrbitTriagePage from "../../../app/[locale]/o/[orgSlug]/dashboard/orbit/t
 describe("orbit route wrappers", () => {
   beforeEach(() => {
     requireOrgSessionMock.mockReset()
-    canActInOrganizationMock.mockReset()
+    canUseErpPermissionForCurrentOrgMock.mockReset()
     ensureAppLocaleMock.mockClear()
     orbitPageMock.mockClear()
   })
@@ -45,7 +47,7 @@ describe("orbit route wrappers", () => {
       organizationId: "org-1",
       user: { role: "member" },
     })
-    canActInOrganizationMock.mockResolvedValue(false)
+    canUseErpPermissionForCurrentOrgMock.mockResolvedValue(false)
 
     const searchParams = { q: "blocked" }
     const element = await OrbitQueuePage({
@@ -54,12 +56,11 @@ describe("orbit route wrappers", () => {
     } as never)
 
     expect(ensureAppLocaleMock).toHaveBeenCalledWith("en")
-    expect(canActInOrganizationMock).toHaveBeenCalledWith(
-      "user-1",
-      "member",
-      "org-1",
-      "admin"
-    )
+    expect(canUseErpPermissionForCurrentOrgMock).toHaveBeenCalledWith({
+      module: "planner",
+      object: "notice",
+      function: "update",
+    })
     expect((element as { props: Record<string, unknown> }).props).toMatchObject(
       {
         scope: {
@@ -81,7 +82,7 @@ describe("orbit route wrappers", () => {
       organizationId: "org-1",
       user: { role: "admin" },
     })
-    canActInOrganizationMock.mockResolvedValue(true)
+    canUseErpPermissionForCurrentOrgMock.mockResolvedValue(true)
 
     const searchParams = { automationState: "attention" }
     const element = await OrbitTriagePage({

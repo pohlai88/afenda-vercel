@@ -24,6 +24,7 @@ export {
   orgAdminNavLabelKey,
   organizationAdminPath,
 } from "./constants"
+export { ORG_ADMIN_PATH_SEGMENTS } from "#lib/dashboard-org-path.shared"
 export {
   ORG_ADMIN_NAV_NAMESPACE,
   type OrgAdminCapability,

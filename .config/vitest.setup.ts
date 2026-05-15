@@ -1,6 +1,9 @@
+import { configure } from "@testing-library/dom"
 import { vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
+
+configure({ asyncUtilTimeout: 10_000 })
 
 /** Stub Neon Auth env so the createNeonAuth call doesn't throw during unit test imports. */
 process.env.NEON_AUTH_BASE_URL ??= "https://vitest.neonauth.example/neondb/auth"

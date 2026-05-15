@@ -1,18 +1,20 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs"
 
 import type {
+  GovernedDetailTabsInput,
   GovernedDetailSection,
   GovernedDetailTabKind,
   GovernedDetailTabsModel,
   GovernedRevisionEntry,
 } from "../schemas/detail-tabs.schema"
+import { governedDetailTabsSchema } from "../schemas/detail-tabs.schema"
 
 import { resolveGovernedDetailSectionContent } from "./detail-section-render-registry"
 import { GovernedAuditPanel } from "./governed-audit-panel"
 import { GovernedEmpty } from "./governed-empty"
 
 export type GovernedDetailTabsProps = {
-  model: GovernedDetailTabsModel
+  model: GovernedDetailTabsInput
 }
 
 function sortVisibleSections(
@@ -114,12 +116,25 @@ function effectiveDefaultTab(
 }
 
 export function GovernedDetailTabs({ model }: GovernedDetailTabsProps) {
-  const kinds = visibleTabKinds(model)
-  const defaultValue = effectiveDefaultTab(model)
-  const relations = sortVisibleSections(model.relations)
-  const referrers = sortVisibleSections(model.referrers)
-  const revisions = model.revisions ?? []
-  const auditRows = model.audit ?? []
+  const parsedModel = governedDetailTabsSchema.safeParse(model)
+  if (!parsedModel.success) {
+    return (
+      <GovernedEmpty
+        model={{
+          variant: "muted",
+          title: "Detail tabs unavailable",
+          description: "The detail tab model could not be parsed.",
+        }}
+      />
+    )
+  }
+  const normalizedModel = parsedModel.data
+  const kinds = visibleTabKinds(normalizedModel)
+  const defaultValue = effectiveDefaultTab(normalizedModel)
+  const relations = sortVisibleSections(normalizedModel.relations)
+  const referrers = sortVisibleSections(normalizedModel.referrers)
+  const revisions = normalizedModel.revisions ?? []
+  const auditRows = normalizedModel.audit ?? []
 
   return (
     <div data-test="governed-detail-tabs">
@@ -130,7 +145,7 @@ export function GovernedDetailTabs({ model }: GovernedDetailTabsProps) {
         >
           {kinds.includes("overview") ? (
             <TabsTrigger value="overview" data-test="tab-overview">
-              {model.overview.label}
+              {normalizedModel.overview.label}
             </TabsTrigger>
           ) : null}
           {kinds.includes("relations") ? (
@@ -157,7 +172,7 @@ export function GovernedDetailTabs({ model }: GovernedDetailTabsProps) {
 
         {kinds.includes("overview") ? (
           <TabsContent value="overview" data-test="tab-panel-overview">
-            {model.overview.hidden ? (
+            {normalizedModel.overview.hidden ? (
               <GovernedEmpty
                 model={{
                   variant: "muted",
@@ -167,12 +182,12 @@ export function GovernedDetailTabs({ model }: GovernedDetailTabsProps) {
               />
             ) : (
               <div className="flex flex-col gap-4">
-                {model.overview.description ? (
+                {normalizedModel.overview.description ? (
                   <p className="text-sm text-muted-foreground">
-                    {model.overview.description}
+                    {normalizedModel.overview.description}
                   </p>
                 ) : null}
-                {renderSectionSlot(model.overview)}
+                {renderSectionSlot(normalizedModel.overview)}
               </div>
             )}
           </TabsContent>
@@ -242,8 +257,8 @@ export function GovernedDetailTabs({ model }: GovernedDetailTabsProps) {
           <TabsContent value="audit" data-test="tab-panel-audit">
             <GovernedAuditPanel
               model={{
-                headerTitle: `${model.entityLabel} — audit`,
-                headerDescription: `${model.entityKind} · ${model.entityId}`,
+                headerTitle: `${normalizedModel.entityLabel} — audit`,
+                headerDescription: `${normalizedModel.entityKind} · ${normalizedModel.entityId}`,
                 rows: auditRows,
               }}
             />
