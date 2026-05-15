@@ -2,7 +2,10 @@ import { rm } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  ".."
+)
 const workflowOutputDir = path.join(repoRoot, "app", ".well-known", "workflow")
 
 try {

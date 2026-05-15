@@ -27,16 +27,12 @@ export async function GET(request: NextRequest) {
     return routeJsonError("Unauthorized", 401)
   }
 
-  return Sentry.withMonitor(
-    "erp-jobs",
-    () => runErpJobsCron(),
-    {
-      schedule: { type: "crontab", value: "0 5 * * *" },
-      checkinMargin: 15,
-      maxRuntime: 10,
-      timezone: "UTC",
-    }
-  )
+  return Sentry.withMonitor("erp-jobs", () => runErpJobsCron(), {
+    schedule: { type: "crontab", value: "0 5 * * *" },
+    checkinMargin: 15,
+    maxRuntime: 10,
+    timezone: "UTC",
+  })
 }
 
 async function runErpJobsCron() {
@@ -144,4 +140,3 @@ async function runErpJobsCron() {
     checks: { database: "ok", blockedEscalations },
   })
 }
-

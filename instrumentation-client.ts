@@ -16,10 +16,7 @@ if (dsn) {
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
     enableLogs: true,
-    tracePropagationTargets: [
-      "localhost",
-      /^https:\/\/www\.nexuscanon\.com/,
-    ],
+    tracePropagationTargets: ["localhost", /^https:\/\/www\.nexuscanon\.com/],
     integrations: [Sentry.replayIntegration()],
   })
 }

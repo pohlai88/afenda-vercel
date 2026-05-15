@@ -12,9 +12,6 @@ if (dsn) {
     profilesSampleRate: Number(process.env.SENTRY_PROFILES_SAMPLE_RATE ?? "0"),
     includeLocalVariables: true,
     enableLogs: true,
-    tracePropagationTargets: [
-      "localhost",
-      /^https:\/\/www\.nexuscanon\.com/,
-    ],
+    tracePropagationTargets: ["localhost", /^https:\/\/www\.nexuscanon\.com/],
   })
 }
