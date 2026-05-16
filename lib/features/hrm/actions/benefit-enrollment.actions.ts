@@ -10,10 +10,21 @@ import { hrmBenefit, hrmBenefitEnrollment } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { evaluateBenefitEligibilityForEmployee } from "../data/benefit-enterprise.queries.server"
+import {
+  describeBenefitEnrollmentCoverageConflict,
+  detectBenefitEnrollmentCoverageConflict,
+} from "../data/benefit-enrollment-guard.shared"
 import { summarizeBenefitEligibilityFailure } from "../data/benefit-eligibility.shared"
-import { getBenefitEnrollmentForOrganization } from "../data/benefit.queries.server"
+import {
+  getBenefitEnrollmentForOrganization,
+  listBenefitEnrollmentCoverageRowsForEmployeePlan,
+} from "../data/benefit.queries.server"
 import { getEmployeeForOrganization } from "../data/employee.queries.server"
 import { requireHrmAdmin } from "../data/hrm-admin-guard.server"
+import {
+  listClosedPayrollPeriodsOverlappingRange,
+  type ClosedPayrollPeriodRow,
+} from "../data/payroll.queries.server"
 import {
   activateBenefitEnrollmentFormSchema,
   enrollBenefitFormSchema,
@@ -47,11 +58,22 @@ function parseIsoDateStart(iso: string | undefined): Date {
   return new Date(`${d}T12:00:00.000Z`)
 }
 
+function toIsoDate(value: Date): string {
+  return value.toISOString().slice(0, 10)
+}
+
 function toMoneyString(value: number | undefined): string | null {
   if (value === undefined) {
     return null
   }
   return value.toFixed(2)
+}
+
+function describeClosedPayrollPeriodConflict(
+  action: "activate" | "terminate",
+  period: ClosedPayrollPeriodRow
+): string {
+  return `Cannot ${action} this enrollment because payroll period ${period.periodStart} to ${period.periodEnd} is ${period.state}.`
 }
 
 // ---------------------------------------------------------------------------
@@ -125,6 +147,24 @@ export async function enrollBenefitAction(
   }
 
   const effectiveFrom = parseIsoDateStart(data.effectiveFrom)
+  const existingCoverage = await listBenefitEnrollmentCoverageRowsForEmployeePlan(
+    organizationId,
+    data.employeeId,
+    data.planId
+  )
+  const coverageConflict = detectBenefitEnrollmentCoverageConflict({
+    candidateStart: effectiveFrom,
+    existing: existingCoverage,
+  })
+  if (coverageConflict) {
+    const message =
+      describeBenefitEnrollmentCoverageConflict(coverageConflict)
+    return hrmActionFailure({
+      effectiveFrom: message,
+      form: message,
+    })
+  }
+
   const eligibility = await evaluateBenefitEligibilityForEmployee({
     organizationId,
     employeeId: data.employeeId,
@@ -176,7 +216,7 @@ export async function enrollBenefitAction(
   } catch (err) {
     if (isUniqueViolation(err)) {
       return hrmActionFailure({
-        form: "This employee is already enrolled in this benefit plan.",
+        form: "This employee already has a pending or active enrollment for this benefit plan.",
       })
     }
     return hrmActionFailure({ form: "Could not create enrollment." })
@@ -194,6 +234,11 @@ export async function enrollBenefitAction(
         benefitId: data.planId,
         employeeId: data.employeeId,
         coverageLevel: data.coverageLevel,
+        effectiveFrom: toIsoDate(effectiveFrom),
+        employerContributionAmountProvided:
+          data.employerContributionAmount !== undefined,
+        employeeContributionAmountProvided:
+          data.employeeContributionAmount !== undefined,
       },
     })
   )
@@ -234,6 +279,31 @@ export async function activateBenefitEnrollmentAction(
     })
   }
 
+  const coverageConflict = detectBenefitEnrollmentCoverageConflict({
+    candidateStart: enrollment.effectiveFrom ?? enrollment.enrolledAt,
+    existing: await listBenefitEnrollmentCoverageRowsForEmployeePlan(
+      organizationId,
+      enrollment.employeeId,
+      enrollment.benefitId
+    ),
+    excludeEnrollmentId: enrollment.id,
+  })
+  if (coverageConflict) {
+    return hrmActionFailure({
+      form: describeBenefitEnrollmentCoverageConflict(coverageConflict),
+    })
+  }
+
+  const closedPeriods = await listClosedPayrollPeriodsOverlappingRange({
+    organizationId,
+    rangeStart: enrollment.effectiveFrom ?? enrollment.enrolledAt,
+  })
+  if (closedPeriods[0]) {
+    return hrmActionFailure({
+      form: describeClosedPayrollPeriodConflict("activate", closedPeriods[0]),
+    })
+  }
+
   await db
     .update(hrmBenefitEnrollment)
     .set({
@@ -256,7 +326,13 @@ export async function activateBenefitEnrollmentAction(
       actorSessionId: sessionId,
       resourceType: "hrm_benefit_enrollment",
       resourceId: parsed.data.enrollmentId,
-      metadata: { benefitId: enrollment.benefitId },
+      metadata: {
+        benefitId: enrollment.benefitId,
+        employeeId: enrollment.employeeId,
+        effectiveFrom: toIsoDate(
+          enrollment.effectiveFrom ?? enrollment.enrolledAt
+        ),
+      },
     })
   )
 
@@ -322,7 +398,14 @@ export async function waiveBenefitEnrollmentAction(
       actorSessionId: sessionId,
       resourceType: "hrm_benefit_enrollment",
       resourceId: parsed.data.enrollmentId,
-      metadata: { benefitId: enrollment.benefitId },
+      metadata: {
+        benefitId: enrollment.benefitId,
+        employeeId: enrollment.employeeId,
+        effectiveFrom: toIsoDate(
+          enrollment.effectiveFrom ?? enrollment.enrolledAt
+        ),
+        waivedReasonProvided: Boolean(parsed.data.waivedReason?.trim()),
+      },
     })
   )
 
@@ -368,6 +451,23 @@ export async function terminateBenefitEnrollmentAction(
   }
 
   const terminatedAt = parseIsoDateStart(parsed.data.terminatedAt)
+  const coverageStart = enrollment.effectiveFrom ?? enrollment.enrolledAt
+  if (terminatedAt.getTime() < coverageStart.getTime()) {
+    return hrmActionFailure({
+      terminatedAt: "Termination date cannot be before enrollment coverage starts.",
+      form: "Termination date cannot be before enrollment coverage starts.",
+    })
+  }
+
+  const closedPeriods = await listClosedPayrollPeriodsOverlappingRange({
+    organizationId,
+    rangeStart: terminatedAt,
+  })
+  if (closedPeriods[0]) {
+    return hrmActionFailure({
+      form: describeClosedPayrollPeriodConflict("terminate", closedPeriods[0]),
+    })
+  }
 
   await db
     .update(hrmBenefitEnrollment)
@@ -393,7 +493,15 @@ export async function terminateBenefitEnrollmentAction(
       actorSessionId: sessionId,
       resourceType: "hrm_benefit_enrollment",
       resourceId: parsed.data.enrollmentId,
-      metadata: { benefitId: enrollment.benefitId },
+      metadata: {
+        benefitId: enrollment.benefitId,
+        employeeId: enrollment.employeeId,
+        effectiveFrom: toIsoDate(coverageStart),
+        terminatedAt: toIsoDate(terminatedAt),
+        terminationReasonProvided: Boolean(
+          parsed.data.terminationReason?.trim()
+        ),
+      },
     })
   )
 

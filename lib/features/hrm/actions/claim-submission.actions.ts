@@ -1,6 +1,5 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { and, eq } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
@@ -10,27 +9,18 @@ import {
   hrmClaim,
   hrmClaimEvidence,
 } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import {
-  applyClaimAmountLimit,
-  buildClaimNumber,
-  buildClaimApprovalSnapshot,
-  buildClaimPolicySnapshot,
-  doesClaimRequireEvidence,
   isClaimCancellable,
-  isClaimDateInRange,
 } from "../data/claim-helpers.shared"
 import {
   findClaimEmployeeForUser,
   findOrgDocumentForClaim,
   findOrgEmployeeForClaim,
-  getClaimTypeForOrg,
-  resolveClaimApproverUserId,
-  sumClaimsForEmployeeClaimTypeWindow,
 } from "../data/claim.queries.server"
+import { submitClaimForEmployee, revalidateClaims } from "../data/claim-submission-mutation.server"
 import { requireHrmPermission } from "../data/hrm-admin-guard.server"
 import {
   attachClaimEvidenceFormSchema,
@@ -45,291 +35,13 @@ import type {
   SubmitClaimFormState,
 } from "../types"
 
-/**
- * Revalidates at **layout** scope so the HRM rail's `claims` pressure
- * badge (Phase 4 — HR Nexus aggregator) refreshes after every claim
- * mutation. The kanban + per-claim drill-down come along for free.
- */
-function revalidateClaims() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/claims"), "layout")
-}
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
-type SubmitClaimInput = {
-  organizationId: string
-  userId: string
-  sessionId: string | null
-  employeeId: string
-  claimTypeId: string
-  claimDate: string
-  amount: number
-  currency?: string
-  description: string | null
-  policyVersion: string | null
-  submissionMode: "self_service" | "on_behalf"
-}
-
-function claimMonthWindow(claimDate: string): {
-  claimDateFrom: string
-  claimDateTo: string
-} {
-  const year = Number(claimDate.slice(0, 4))
-  const month = Number(claimDate.slice(5, 7))
-  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate()
-  const monthText = String(month).padStart(2, "0")
-  return {
-    claimDateFrom: `${year}-${monthText}-01`,
-    claimDateTo: `${year}-${monthText}-${String(lastDay).padStart(2, "0")}`,
-  }
-}
-
-function claimYearWindow(claimDate: string): {
-  claimDateFrom: string
-  claimDateTo: string
-} {
-  const year = claimDate.slice(0, 4)
-  return {
-    claimDateFrom: `${year}-01-01`,
-    claimDateTo: `${year}-12-31`,
-  }
-}
+// ---------------------------------------------------------------------------
+// Tier B — claim mutations (revalidate via claim-submission-mutation)
+// ---------------------------------------------------------------------------
 
 type SubmitClaimFieldErrors = NonNullable<
   Extract<SubmitClaimFormState, { ok: false }>["errors"]
 >
-
-async function submitClaimForEmployee(
-  input: SubmitClaimInput
-): Promise<SubmitClaimFormState> {
-  const { organizationId, userId, sessionId } = input
-
-  const [employee, claimType] = await Promise.all([
-    findOrgEmployeeForClaim(organizationId, input.employeeId),
-    getClaimTypeForOrg(organizationId, input.claimTypeId),
-  ])
-
-  if (!employee) {
-    return hrmActionFailure({ employeeId: "Employee not found." })
-  }
-  if (employee.archivedAt) {
-    return hrmActionFailure({
-      employeeId: "Cannot submit a claim for an archived employee.",
-    })
-  }
-  if (!claimType) {
-    return hrmActionFailure({ claimTypeId: "Claim type not found." })
-  }
-  if (!claimType.isActive) {
-    return hrmActionFailure({ claimTypeId: "Claim type is not active." })
-  }
-
-  const currency = (input.currency ?? claimType.currency).toUpperCase()
-  if (currency !== claimType.currency.toUpperCase()) {
-    return hrmActionFailure({
-      currency: `Currency must match the claim type (${claimType.currency}).`,
-    })
-  }
-
-  if (!isClaimDateInRange(input.claimDate, todayIso())) {
-    return hrmActionFailure({
-      claimDate: "Claim date must be on or before today.",
-    })
-  }
-
-  const perClaimLimit =
-    claimType.perClaimLimit != null ? Number(claimType.perClaimLimit) : null
-  const periodLimit =
-    claimType.periodLimit != null ? Number(claimType.periodLimit) : null
-  const annualLimit =
-    claimType.annualLimit != null ? Number(claimType.annualLimit) : null
-  const evidenceRequiredAboveAmount =
-    claimType.evidenceRequiredAboveAmount != null
-      ? Number(claimType.evidenceRequiredAboveAmount)
-      : null
-
-  const limitChecks: Array<{
-    label: string
-    totalBefore: number
-    limit: number | null
-  }> = [
-    { label: "per-claim", totalBefore: 0, limit: perClaimLimit },
-  ]
-
-  if (periodLimit != null && periodLimit > 0) {
-    const window = claimMonthWindow(input.claimDate)
-    const totalBefore = await sumClaimsForEmployeeClaimTypeWindow({
-      organizationId,
-      employeeId: employee.id,
-      claimTypeId: claimType.id,
-      ...window,
-    })
-    limitChecks.push({ label: "monthly", totalBefore, limit: periodLimit })
-  }
-
-  if (annualLimit != null && annualLimit > 0) {
-    const window = claimYearWindow(input.claimDate)
-    const totalBefore = await sumClaimsForEmployeeClaimTypeWindow({
-      organizationId,
-      employeeId: employee.id,
-      claimTypeId: claimType.id,
-      ...window,
-    })
-    limitChecks.push({ label: "annual", totalBefore, limit: annualLimit })
-  }
-
-  for (const check of limitChecks) {
-    const outcome = applyClaimAmountLimit(
-      input.amount + check.totalBefore,
-      check.limit
-    )
-    if (!outcome.ok) {
-      return hrmActionFailure({
-        amount:
-          outcome.limit > 0
-            ? `Amount exceeds the ${check.label} limit of ${outcome.limit.toFixed(2)} ${currency}.`
-            : "Amount must be greater than 0.",
-      })
-    }
-  }
-
-  const claimId = crypto.randomUUID()
-  const claimNumber = buildClaimNumber({ claimDate: input.claimDate, claimId })
-  const approvalId = crypto.randomUUID()
-  const now = new Date()
-  const evidenceRequired = doesClaimRequireEvidence({
-    amount: input.amount,
-    requiresEvidence: claimType.requiresEvidence,
-    evidenceRequiredAboveAmount,
-  })
-  const payoutMethod = claimType.defaultPayoutMethod || "payroll"
-  const taxTreatment =
-    claimType.defaultTaxTreatment || "non_taxable_reimbursement"
-  const currentApproverUserId = await resolveClaimApproverUserId({
-    organizationId,
-    managerEmployeeId: employee.managerEmployeeId,
-  })
-  const policySnapshot = buildClaimPolicySnapshot({
-    perClaimLimit,
-    periodLimit,
-    annualLimit,
-    requiresEvidence: claimType.requiresEvidence,
-    evidenceRequiredAboveAmount,
-    amount: input.amount,
-    payoutMethod,
-    financeAccountCode: claimType.defaultFinanceAccountCode,
-    costCenterCode: claimType.defaultCostCenterCode,
-    taxTreatment,
-    evaluatedAt: now,
-  })
-
-  const approvalSnapshot = {
-    ...buildClaimApprovalSnapshot({
-      employeeId: employee.id,
-      employeeNumber: employee.employeeNumber,
-      employeeFullName: employee.legalName,
-      claimTypeId: claimType.id,
-      claimTypeCode: claimType.code,
-      claimTypeName: claimType.name,
-      defaultPayrollLineCode: claimType.defaultPayrollLineCode,
-      perClaimLimit,
-      claimDate: input.claimDate,
-      amount: input.amount,
-      currency,
-      description: input.description,
-      evidenceCount: 0,
-      evidenceRequired,
-      payoutMethod,
-      financeAccountCode: claimType.defaultFinanceAccountCode,
-      costCenterCode: claimType.defaultCostCenterCode,
-      taxTreatment,
-      policyVersion: input.policyVersion,
-      requestedAt: now,
-    }),
-    claimNumber,
-    policy: policySnapshot,
-  }
-
-  await db.transaction(async (tx) => {
-    await tx.insert(hrmApproval).values({
-      id: approvalId,
-      organizationId,
-      subjectKind: "claim",
-      subjectId: claimId,
-      state: "pending",
-      requestedByUserId: userId,
-      currentApproverUserId,
-      snapshot: approvalSnapshot,
-      createdByUserId: userId,
-      updatedByUserId: userId,
-    })
-
-    await tx.insert(hrmClaim).values({
-      id: claimId,
-      organizationId,
-      claimNumber,
-      employeeId: employee.id,
-      claimTypeId: claimType.id,
-      claimDate: input.claimDate,
-      amount: String(input.amount),
-      currency,
-      description: input.description,
-      state: "submitted",
-      submittedAt: now,
-      submittedByUserId: userId,
-      currentApprovalId: approvalId,
-      policyVersion: input.policyVersion,
-      policySnapshot,
-      payoutMethod,
-      financeAccountCode: claimType.defaultFinanceAccountCode,
-      costCenterCode: claimType.defaultCostCenterCode,
-      taxTreatment,
-      createdByUserId: userId,
-      updatedByUserId: userId,
-    })
-  })
-
-  await writeIamAuditEventFromNextHeaders({
-    action: "erp.hrm.claim.submit",
-    actorUserId: userId,
-    actorSessionId: sessionId,
-    organizationId,
-    resourceType: "hrm_claim",
-    resourceId: claimId,
-    metadata: {
-      claimNumber,
-      employeeId: employee.id,
-      claimTypeCode: claimType.code,
-      claimDate: input.claimDate,
-      amount: input.amount,
-      currency,
-      submissionMode: input.submissionMode,
-      currentApproverUserId,
-      evidenceRequired,
-      payoutMethod,
-    },
-  })
-
-  await writeIamAuditEventFromNextHeaders({
-    action: "erp.hrm.approval.request",
-    actorUserId: userId,
-    actorSessionId: sessionId,
-    organizationId,
-    resourceType: "hrm_approval",
-    resourceId: approvalId,
-    metadata: {
-      subjectKind: "claim",
-      subjectId: claimId,
-      claimNumber,
-      currentApproverUserId,
-    },
-  })
-
-  revalidateClaims()
-  return { ok: true, claimId }
-}
 
 function submitClaimFieldErrors(
   errors: SubmitClaimFieldErrors

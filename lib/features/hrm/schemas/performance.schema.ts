@@ -13,24 +13,76 @@ export const HRM_REVIEW_PIPELINES = ["single", "three_stage"] as const
 export type HrmReviewPipeline = (typeof HRM_REVIEW_PIPELINES)[number]
 export const hrmReviewPipelineSchema = z.enum(HRM_REVIEW_PIPELINES)
 
-/** Canonical `hrm_review.state` workflow values. */
+/** Canonical `hrm_review.state` workflow values for ERP v1. */
 export const HRM_REVIEW_ROW_STATES = [
-  "pending",
+  "self_pending",
+  "manager_pending",
+  "hr_pending",
   "submitted",
   "acknowledged",
+  "closed",
+  "cancelled",
 ] as const
 export type HrmReviewRowState = (typeof HRM_REVIEW_ROW_STATES)[number]
 export const hrmReviewRowStateSchema = z.enum(HRM_REVIEW_ROW_STATES)
+export const reviewStageSchema = hrmReviewRowStateSchema
 
 /** Insert default for new cycles (matches Drizzle column default). */
 export const HRM_REVIEW_CYCLE_INITIAL_STATE: HrmReviewCycleState = "draft"
 
 /** Stable object for action comparisons (avoids string drift). */
 export const HRM_REVIEW_ROW_STATE = {
-  pending: "pending",
+  selfPending: "self_pending",
+  managerPending: "manager_pending",
+  hrPending: "hr_pending",
   submitted: "submitted",
   acknowledged: "acknowledged",
+  closed: "closed",
+  cancelled: "cancelled",
 } as const satisfies Record<string, HrmReviewRowState>
+
+export function initialReviewStageForPipeline(
+  pipeline: HrmReviewPipeline
+): HrmReviewRowState {
+  return pipeline === "three_stage"
+    ? HRM_REVIEW_ROW_STATE.selfPending
+    : HRM_REVIEW_ROW_STATE.managerPending
+}
+
+export function normalizeReviewStage(
+  value: string | null | undefined,
+  pipeline: HrmReviewPipeline
+): HrmReviewRowState | null {
+  if (value === "pending") {
+    return initialReviewStageForPipeline(pipeline)
+  }
+  const parsed = hrmReviewRowStateSchema.safeParse(value)
+  return parsed.success ? parsed.data : null
+}
+
+export function nextReviewStageAfterSubmit(input: {
+  currentStage: HrmReviewRowState
+  pipeline: HrmReviewPipeline
+}): HrmReviewRowState | null {
+  if (
+    input.currentStage === HRM_REVIEW_ROW_STATE.selfPending &&
+    input.pipeline === "three_stage"
+  ) {
+    return HRM_REVIEW_ROW_STATE.managerPending
+  }
+  if (input.currentStage === HRM_REVIEW_ROW_STATE.managerPending) {
+    return input.pipeline === "three_stage"
+      ? HRM_REVIEW_ROW_STATE.hrPending
+      : HRM_REVIEW_ROW_STATE.submitted
+  }
+  if (
+    input.currentStage === HRM_REVIEW_ROW_STATE.hrPending &&
+    input.pipeline === "three_stage"
+  ) {
+    return HRM_REVIEW_ROW_STATE.submitted
+  }
+  return null
+}
 
 export const createReviewCycleFormSchema = z
   .object({
@@ -50,11 +102,23 @@ export const createReviewCycleFormSchema = z
     }
   })
 
+export const reviewGenerationFormSchema = z.object({
+  orgSlug: z.string().min(1),
+  cycleId: uuid,
+  fallbackReviewerUserId: uuid.optional(),
+})
+
+export const closeReviewCycleFormSchema = z.object({
+  orgSlug: z.string().min(1),
+  cycleId: uuid,
+})
+
 export const submitPerformanceReviewFormSchema = z.object({
   orgSlug: z.string().min(1),
   reviewId: uuid,
   rating: z.string().max(64).optional(),
   notes: z.string().max(4000).optional(),
+  competencyScoresJson: z.string().max(8000).optional(),
 })
 
 export const acknowledgePerformanceReviewFormSchema = z.object({
@@ -62,8 +126,20 @@ export const acknowledgePerformanceReviewFormSchema = z.object({
   reviewId: uuid,
 })
 
+export const cancelReviewFormSchema = z.object({
+  orgSlug: z.string().min(1),
+  reviewId: uuid,
+  reason: z.string().max(1000).optional(),
+})
+
 export type CreateReviewCycleFormInput = z.infer<
   typeof createReviewCycleFormSchema
+>
+export type ReviewGenerationFormInput = z.infer<
+  typeof reviewGenerationFormSchema
+>
+export type CloseReviewCycleFormInput = z.infer<
+  typeof closeReviewCycleFormSchema
 >
 export type SubmitPerformanceReviewFormInput = z.infer<
   typeof submitPerformanceReviewFormSchema
@@ -71,3 +147,4 @@ export type SubmitPerformanceReviewFormInput = z.infer<
 export type AcknowledgePerformanceReviewFormInput = z.infer<
   typeof acknowledgePerformanceReviewFormSchema
 >
+export type CancelReviewFormInput = z.infer<typeof cancelReviewFormSchema>

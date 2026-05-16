@@ -1,9 +1,12 @@
 /**
- * Runs a command with `.env.local` merged into the child environment.
+ * Runs a command with a dotenv file merged into the child environment.
  * Values already set in `process.env` win (CI and shell exports override file).
  *
- * Intended for Vitest and Playwright only — keep `pnpm dev` unwrapped unless
- * env drift is proven (see AGENTS.md §2).
+ * Default file: `.env.local` (repo root). Override:
+ *   `node scripts/with-env.mjs --env-file=.env.vercel node scripts/foo.mjs`
+ *
+ * Intended for Vitest, Playwright, and local Drizzle migrations — keep `pnpm dev`
+ * unwrapped unless env drift is proven (see AGENTS.md §2).
  *
  * Usage: node scripts/with-env.mjs vitest run --coverage
  */
@@ -36,25 +39,41 @@ function parseDotenv(content) {
   return out
 }
 
-/** @returns {Record<string, string>} */
-function loadEnvLocal() {
-  const envPath = path.join(root, ".env.local")
+/** @param {string} relOrAbsPath */
+function loadEnvFromFile(relOrAbsPath) {
+  const envPath = path.isAbsolute(relOrAbsPath)
+    ? relOrAbsPath
+    : path.join(root, relOrAbsPath)
   if (!fs.existsSync(envPath)) {
     console.warn(
-      "[with-env] No .env.local — run `pnpm env:sync` if tests need vars from `.env.config`."
+      `[with-env] No env file at ${relOrAbsPath} — run \`pnpm env:sync\` or \`vercel env pull\` if needed.`
     )
     return {}
   }
   return parseDotenv(fs.readFileSync(envPath, "utf8"))
 }
 
-const args = process.argv.slice(2)
+const rawArgs = process.argv.slice(2)
+let envFileRel = ".env.local"
+/** @type {string[]} */
+const args = []
+for (let i = 0; i < rawArgs.length; i += 1) {
+  const a = rawArgs[i]
+  if (a.startsWith("--env-file=")) {
+    envFileRel = a.slice("--env-file=".length)
+    continue
+  }
+  args.push(a)
+}
+
 if (args.length === 0) {
-  console.error("Usage: node scripts/with-env.mjs <command> [...args]")
+  console.error(
+    "Usage: node scripts/with-env.mjs [--env-file=path] <command> [...args]"
+  )
   process.exit(1)
 }
 
-const fromFile = loadEnvLocal()
+const fromFile = loadEnvFromFile(envFileRel)
 const childEnv = { ...fromFile, ...process.env }
 const [command, ...commandArgs] = args
 

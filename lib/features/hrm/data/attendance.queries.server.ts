@@ -100,6 +100,42 @@ export async function getAttendanceEvent(opts: {
   return rows[0] ?? null
 }
 
+export async function hasCorrectionEventForOriginal(opts: {
+  organizationId: string
+  originalEventId: string
+}): Promise<boolean> {
+  const rows = await db
+    .select({ id: hrmAttendanceEvent.id })
+    .from(hrmAttendanceEvent)
+    .where(
+      and(
+        eq(hrmAttendanceEvent.organizationId, opts.organizationId),
+        eq(hrmAttendanceEvent.correctionOfEventId, opts.originalEventId)
+      )
+    )
+    .limit(1)
+
+  return rows.length > 0
+}
+
+export async function hasAttendanceEventRawPayloadHash(opts: {
+  organizationId: string
+  rawPayloadHash: string
+}): Promise<boolean> {
+  const rows = await db
+    .select({ id: hrmAttendanceEvent.id })
+    .from(hrmAttendanceEvent)
+    .where(
+      and(
+        eq(hrmAttendanceEvent.organizationId, opts.organizationId),
+        eq(hrmAttendanceEvent.rawPayloadHash, opts.rawPayloadHash)
+      )
+    )
+    .limit(1)
+
+  return rows.length > 0
+}
+
 // ---------------------------------------------------------------------------
 // Day aggregate queries
 // ---------------------------------------------------------------------------
@@ -206,6 +242,29 @@ export async function listAttendanceDaysForEmployee(opts: {
       )
     )
     .orderBy(desc(hrmAttendanceDay.attendanceDate))
+}
+
+export async function listLockedAttendanceDatesForEmployee(opts: {
+  organizationId: string
+  employeeId: string
+  attendanceDates: readonly string[]
+}): Promise<string[]> {
+  const attendanceDates = [...new Set(opts.attendanceDates)]
+  if (attendanceDates.length === 0) return []
+
+  const rows = await db
+    .select({ attendanceDate: hrmAttendanceDay.attendanceDate })
+    .from(hrmAttendanceDay)
+    .where(
+      and(
+        eq(hrmAttendanceDay.organizationId, opts.organizationId),
+        eq(hrmAttendanceDay.employeeId, opts.employeeId),
+        eq(hrmAttendanceDay.state, "locked"),
+        inArray(hrmAttendanceDay.attendanceDate, attendanceDates)
+      )
+    )
+
+  return rows.map((row) => row.attendanceDate)
 }
 
 // ---------------------------------------------------------------------------

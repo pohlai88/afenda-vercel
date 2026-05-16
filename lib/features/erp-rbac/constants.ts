@@ -175,6 +175,12 @@ export const ERP_PERMISSION_REGISTRY = [
   }),
   ...buildPermissionSet({
     module: "hrm",
+    object: "import",
+    label: "HRM bulk import",
+    sensitivity: "sensitive",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
     object: "payroll",
     label: "HRM payroll",
     sensitivity: "restricted",

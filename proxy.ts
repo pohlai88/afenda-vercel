@@ -1,4 +1,5 @@
 import { hasNeonAuthSessionCookie } from "#lib/auth/neon-session-cookie.shared"
+import { isMarkdownPreferred, rewritePath } from "fumadocs-core/negotiation"
 import createIntlMiddleware from "next-intl/middleware"
 import { type NextRequest, NextResponse } from "next/server"
 
@@ -19,6 +20,16 @@ import {
 import { routing } from "./i18n/routing"
 
 const intlMiddleware = createIntlMiddleware(routing)
+
+/**
+ * Rewrite /{locale}/help-docs/… → /llms.mdx/help-docs/… for AI clients that
+ * prefer Markdown over HTML (Accept: text/markdown / text/plain / text/x-markdown).
+ * The /llms.mdx route handler serves the processed MDX as plain text.
+ */
+const { rewrite: rewriteHelpDocsMarkdown } = rewritePath(
+  "/:locale/help-docs{/*path}",
+  "/llms.mdx/help-docs{/*path}"
+)
 
 function copySetCookieHeaders(from: NextResponse, to: NextResponse) {
   const getSetCookie = (
@@ -48,6 +59,15 @@ function copySetCookieHeaders(from: NextResponse, to: NextResponse) {
  * require a cookie gate (see Next.js Data Security — proxy checks are optimistic only).
  */
 export function proxy(request: NextRequest) {
+  // AI agents that prefer Markdown get the raw MDX content directly — no locale
+  // processing or auth check needed for the markdown endpoint.
+  if (isMarkdownPreferred(request)) {
+    const rewritten = rewriteHelpDocsMarkdown(request.nextUrl.pathname)
+    if (rewritten) {
+      return NextResponse.rewrite(new URL(rewritten, request.nextUrl))
+    }
+  }
+
   const intlResponse = intlMiddleware(request)
 
   if (intlResponse.redirected) {
@@ -109,5 +129,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Exclude api routes, Next.js internals, Vercel internals, static files, and
   // the Sentry tunnel route (/monitoring) which must not be intercepted by intl middleware.
-  matcher: ["/((?!api|monitoring|_next|_vercel|\\.well-known|.*\\..*).*)"],
+  matcher: [
+    "/((?!api|monitoring|og|_next|_vercel|\\.well-known|.*\\..*).*)",
+  ],
 }

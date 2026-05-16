@@ -5,8 +5,11 @@
  * The wrapper owns one workspace-scoped lock under `.artifacts/` and retries
  * once when Next exits with its "another build process is already running"
  * failure after worker processes have drained.
+ *
+ * Use `spawn()` rather than `spawnSync()` so the wrapper can forward signals
+ * and tear down the entire build process tree when the parent is interrupted.
  */
-import { spawnSync } from "node:child_process"
+import { spawn, spawnSync } from "node:child_process"
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -15,6 +18,7 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 const artifactsDir = path.join(root, ".artifacts")
 const runnerLockPath = path.join(artifactsDir, "next-build-runner.lock")
 const nextLockPath = path.join(root, ".next", "lock")
+const nextDistPath = path.join(root, ".next")
 const nextCliPath = path.join(
   root,
   "node_modules",
@@ -27,8 +31,12 @@ const forwardedArgs = process.argv.slice(2)
 const isWindows = process.platform === "win32"
 const WAIT_INTERVAL_MS = 2_000
 const WAIT_TIMEOUT_MS = 15 * 60 * 1_000
-const BUILD_OUTPUT_MAX_BUFFER_BYTES = 32 * 1024 * 1024
+const BUILD_OUTPUT_CAPTURE_MAX_BYTES = 1024 * 1024
 const RETRYABLE_LOCK_MESSAGE = "Another next build process is already running."
+const parentPid = process.ppid
+let activeBuildChild = null
+let cleanupRegistered = false
+let parentWatchdog = null
 
 fs.mkdirSync(artifactsDir, { recursive: true })
 
@@ -152,16 +160,49 @@ function isWorkspaceBuildProcess(command) {
   if (normalized.includes("getciminstance win32_process")) return false
 
   return (
+    normalized.includes("next-build-stable") ||
     normalized.includes("next build") ||
     normalized.includes("/.next/build/") ||
     normalized.includes("\\.next\\build\\")
   )
 }
 
+// Detects every shape a `next dev` invocation can take inside this workspace.
+// The substring "next dev" alone misses two real cases on Windows:
+//   1. The Turbopack/Next worker that actually owns `.next/dev/` and binds the
+//      port runs as `node …/next/dist/server/lib/start-server.js` — the
+//      command line never contains the literal "next dev".
+//   2. The package-manager shell wrapper (`pnpm run dev`, `npm run dev`, …)
+//      stays alive as the parent of that worker and is what most editors
+//      attach to. Catching it lets the wrapper fail fast with a useful pid.
+function isWorkspaceDevProcess(command) {
+  const normalized = normalizePathForMatch(command)
+  if (!normalized.includes(workspaceMatch)) return false
+  if (normalized.includes("getciminstance win32_process")) return false
+
+  if (normalized.includes("next dev")) return true
+
+  if (
+    normalized.includes("/next/dist/server/lib/start-server.js") ||
+    normalized.includes("\\next\\dist\\server\\lib\\start-server.js")
+  ) {
+    return true
+  }
+
+  return /\b(pnpm|npm|yarn|bun)\b[^"\n]*\brun\b\s+dev\b/.test(normalized)
+}
+
 function listWorkspaceBuildProcesses() {
   return listProcesses().filter((processInfo) => {
     if (processInfo.pid === process.pid) return false
     return isWorkspaceBuildProcess(processInfo.command)
+  })
+}
+
+function listWorkspaceDevProcesses() {
+  return listProcesses().filter((processInfo) => {
+    if (processInfo.pid === process.pid) return false
+    return isWorkspaceDevProcess(processInfo.command)
   })
 }
 
@@ -189,6 +230,80 @@ function clearStaleNextLock() {
   return true
 }
 
+function removeNextDistDir() {
+  try {
+    fs.rmSync(nextDistPath, {
+      force: true,
+      recursive: true,
+      maxRetries: 5,
+      retryDelay: 200,
+    })
+  } catch (error) {
+    throw new Error(
+      `[next-build-stable] Failed to remove ${nextDistPath} before build: ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
+}
+
+function appendCapturedOutput(current, chunk) {
+  if (!chunk) return current
+  const next = current + chunk
+  if (next.length <= BUILD_OUTPUT_CAPTURE_MAX_BYTES) {
+    return next
+  }
+  return next.slice(-BUILD_OUTPUT_CAPTURE_MAX_BYTES)
+}
+
+function terminateChildProcessTree(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return
+
+  if (isWindows) {
+    spawnSync("taskkill", ["/pid", String(pid), "/t", "/f"], {
+      cwd: root,
+      stdio: "ignore",
+    })
+    return
+  }
+
+  try {
+    process.kill(-pid, "SIGTERM")
+  } catch {}
+}
+
+function registerBuildCleanup() {
+  if (cleanupRegistered) return
+  cleanupRegistered = true
+
+  const cleanup = () => {
+    if (parentWatchdog) {
+      clearInterval(parentWatchdog)
+      parentWatchdog = null
+    }
+
+    if (activeBuildChild?.pid) {
+      terminateChildProcessTree(activeBuildChild.pid)
+    }
+    removeFileIfExists(runnerLockPath)
+  }
+
+  for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
+    process.on(signal, () => {
+      cleanup()
+      process.exit(130)
+    })
+  }
+
+  process.on("exit", cleanup)
+
+  parentWatchdog = setInterval(() => {
+    if (!isProcessAlive(parentPid)) {
+      cleanup()
+      process.exit(130)
+    }
+  }, WAIT_INTERVAL_MS)
+  parentWatchdog.unref?.()
+}
+
 function runNextBuild() {
   const buildEnv = { ...process.env }
   if (!buildEnv.NODE_OPTIONS?.includes("--max-old-space-size")) {
@@ -197,18 +312,49 @@ function runNextBuild() {
       .join(" ")
   }
 
-  return spawnSync(process.execPath, [nextCliPath, "build", ...forwardedArgs], {
-    cwd: root,
-    env: buildEnv,
-    stdio: "pipe",
-    encoding: "utf8",
-    maxBuffer: BUILD_OUTPUT_MAX_BUFFER_BYTES,
-  })
-}
+  return new Promise((resolve, reject) => {
+    let stdout = ""
+    let stderr = ""
 
-function flushBuildOutput(result) {
-  if (result.stdout) process.stdout.write(result.stdout)
-  if (result.stderr) process.stderr.write(result.stderr)
+    const child = spawn(process.execPath, [nextCliPath, "build", ...forwardedArgs], {
+      cwd: root,
+      env: buildEnv,
+      stdio: ["inherit", "pipe", "pipe"],
+      detached: !isWindows,
+    })
+
+    activeBuildChild = child
+    registerBuildCleanup()
+
+    child.stdout?.setEncoding("utf8")
+    child.stderr?.setEncoding("utf8")
+
+    child.stdout?.on("data", (chunk) => {
+      stdout = appendCapturedOutput(stdout, chunk)
+      process.stdout.write(chunk)
+    })
+
+    child.stderr?.on("data", (chunk) => {
+      stderr = appendCapturedOutput(stderr, chunk)
+      process.stderr.write(chunk)
+    })
+
+    child.once("error", (error) => {
+      activeBuildChild = null
+      reject(error)
+    })
+
+    child.once("close", (code, signal) => {
+      activeBuildChild = null
+      resolve({
+        status: code,
+        signal,
+        stdout,
+        stderr,
+        error: null,
+      })
+    })
+  })
 }
 
 function assertBuildProcessResult(result) {
@@ -234,13 +380,28 @@ async function main() {
   try {
     await waitForWorkspaceBuildProcesses("existing next build processes")
 
+    const activeDevProcesses = listWorkspaceDevProcesses()
+    if (activeDevProcesses.length > 0) {
+      const detail = activeDevProcesses
+        .map((processInfo) => `pid ${processInfo.pid}: ${processInfo.command}`)
+        .join("\n  ")
+      throw new Error(
+        `[next-build-stable] Refusing to run while workspace next dev is active. Stop the dev server first so build can own .next/.\n  ${detail}`
+      )
+    }
+
+    // Next.js 16 on Windows can fail during its internal "clean" stage when a
+    // prior interrupted build leaves a partially-owned `.next` tree behind.
+    // Remove the dist dir ourselves so the actual build starts from a known
+    // empty workspace and the wrapper, not Next internals, owns recovery.
+    removeNextDistDir()
+
     if (clearStaleNextLock()) {
       console.warn("[next-build-stable] Removed stale .next/lock before build.")
     }
 
     for (let attempt = 1; attempt <= 2; attempt += 1) {
-      const result = runNextBuild()
-      flushBuildOutput(result)
+      const result = await runNextBuild()
       assertBuildProcessResult(result)
 
       if ((result.status ?? 1) === 0) {

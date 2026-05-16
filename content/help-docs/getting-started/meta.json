@@ -1,0 +1,11 @@
+{
+  "title": "Getting started",
+  "icon": "Rocket",
+  "root": true,
+  "pages": [
+    "index",
+    "quick-start",
+    "workspace-navigation",
+    "inviting-your-team"
+  ]
+}

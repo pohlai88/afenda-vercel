@@ -1,0 +1,36 @@
+---
+title: Recruitment (ATS)
+description: Requisitions, applications, interviews, offers, and hire conversion — governed with IAM audits.
+icon: Briefcase
+---
+
+## Overview
+
+Recruitment is the **internal ATS**: hiring managers publish requisitions, recruiters advance candidates through stages, and offers convert to employees when accepted. Every transition is validated server-side so impossible states cannot be saved.
+
+## Requisitions
+
+Draft requisitions capture title, department context, and headcount. Publishing locks the narrative for downstream pipeline work while still allowing controlled edits where policy permits.
+
+## Applications & interviews
+
+Applications link candidates to requisitions. Interviews capture outcomes that map to canonical event types for reporting — outcomes are enumerated, not free text.
+
+## Offers
+
+Offers carry compensation and start metadata. Approvals gate send actions; acceptance triggers conversion workflows that respect workforce uniqueness constraints.
+
+<Callout type="warn" title="Separation of duties">
+  Sensitive transitions may be denied when ERP RBAC detects conflicting duties for the same object family — prefer distinct approvers for create vs approve paths.
+</Callout>
+
+## Related
+
+<Cards>
+  <Card href="./employees" title="Employees">
+    Accepted offers create or link employee master rows.
+  </Card>
+  <Card href="./organization" title="Organization">
+    Departments and positions contextualise requisitions.
+  </Card>
+</Cards>

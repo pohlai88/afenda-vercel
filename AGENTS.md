@@ -36,6 +36,7 @@
 | HRM                    | `lib/features/hrm/` · `HRM_CAPABILITIES` registry · `#features/hrm/client` for forms · `#features/hrm/server` for rule-pack                                                                                                                                                                       |
 | ERP RBAC               | `lib/features/erp-rbac/` · tenant governance overlays + ERP permission guards · `#features/erp-rbac/server` for server-only guards/queries                                                                                                                                                        |
 | Lynx / Knowledge       | `lib/features/lynx/` · `#features/lynx/client` for client islands · rule `.cursor/rules/lynx-knowledge.mdc`                                                                                                                                                                                       |
+| Org Messenger (Ably)   | `lib/features/messenger/` · `#features/messenger/client` (panel) · `#features/messenger/server` (token mint) · `ABLY_API_KEY` in `.env.config` → `pnpm env:sync` · workbench rail `right.messenger` (chat) + `right.coordination` (operational console) · `POST /api/erp/messenger/auth`          |
 | Org admin              | `lib/features/org-admin/` · `ORG_ADMIN_CAPABILITIES` registry · `/o/{orgSlug}/admin/*` · rule `.cursor/rules/org-admin-directory.mdc`                                                                                                                                                             |
 | Portals                | `app/[locale]/p/[portalSlug]/` · `lib/portal/` · `components2/portal-shell/` · rule `.cursor/rules/portal-directory.mdc`                                                                                                                                                                          |
 | Platform admin         | `lib/features/platform-admin/` · `PLATFORM_ADMIN_CAPABILITIES` · `/operator/*`                                                                                                                                                                                                                    |
@@ -46,11 +47,13 @@
 | i18n                   | `#i18n/navigation` (client) · `toLocalePath` (server) · `localePrefix: "always"` · rule `.cursor/rules/i18n-directory.mdc`                                                                                                                                                                        |
 | DB / Drizzle           | `lib/db/schema.ts` · `pnpm db:migrate:local` · `pnpm db:generate` in TTY · rule `.cursor/rules/drizzle-migration-ledger.mdc`                                                                                                                                                                      |
 | Auth / IAM             | `#lib/auth` (server-only) · `#lib/auth-client` (browser) · rule `.cursor/rules/iam-directory.mdc`                                                                                                                                                                                                 |
-| Scaffold               | `pnpm gen [capability\|action\|adr\|audit-contract\|workflow-job]` — see §3                                                                                                                                                                                                                       |
+| Scaffold               | `pnpm gen [capability\|action\|adr\|audit-contract\|workflow-job\|help-doc]` — see §3                                                                                                                                                                                                                       |
 | UI / design            | `#components/ui/*` · `#lib/design-system` · `app/globals.css` tokens · rule `.cursor/rules/design-system.mdc`                                                                                                                                                                                     |
 | Tests                  | `pnpm test:fast` (unit) · `pnpm test:e2e` (Playwright port 3001) · rule `.cursor/rules/testing.mdc`                                                                                                                                                                                               |
 | Green CI               | **Targeted (concurrent agents):** `pnpm exec eslint --max-warnings=0 <path> && pnpm typecheck` · **Full (solo):** `pnpm typecheck && pnpm lint` · **Pre-push:** `pnpm verify:parallel` · Rule: `.cursor/rules/targeted-verification.mdc`                                                          |
 | Neon / Vercel MCP      | Configure in `.cursor/mcp.json` · see §5 [MCP validation](#validating-with-neon-and-vercel-mcp)                                                                                                                                                                                                   |
+| Help docs              | `app/[locale]/help-docs/` · `content/help-docs/` · `pnpm gen help-doc` · `pnpm lint:help-docs-links` · `pnpm lint:help-docs-prose` · `lib/help-docs-source.ts` · rule `.cursor/rules/help-docs-directory.mdc`                                                                                                     |
+| Help docs AI chat _(deferred)_ | **"Public Lynx"** — ask AI chat for help-docs visitors. `app/api/chat/route.ts` (Vercel AI SDK, no org session). Read `.cursor/rules/public-lynx.mdc` before implementing. Do NOT route through `lib/features/lynx/`. |
 
 ## Contents
 
@@ -79,7 +82,7 @@
 **Focused rules** (auto-loaded by glob):
 
 - `i18n-directory.mdc` · `iam-directory.mdc` · `shell-directory.mdc`
-- `design-system.mdc` · `erp-primitives.mdc` · `planner-directory.mdc`
+- `help-docs-directory.mdc` · `design-system.mdc` · `erp-primitives.mdc` · `planner-directory.mdc`
 - `lynx-knowledge.mdc` · `simulation-directory.mdc` · `org-admin-directory.mdc`
 - `drizzle-migration-ledger.mdc` · `app-router-contracts.mdc` · `testing.mdc`
 - `portal-directory.mdc` · `dev-directory.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
@@ -92,14 +95,15 @@
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `pnpm dev`                          | Dev server (Turbopack, port 3000)                                                                                   |
 | `pnpm build` / `pnpm start`         | Production build / serve                                                                                            |
-| `pnpm lint`                         | Turborepo: `lint:agent-contract → lint:drizzle-journal → lint:fixtures-parity → lint:eslint → lint:design-contract` |
+| `pnpm lint`                         | Turborepo: `lint:agent-contract → lint:drizzle-journal → lint:fixtures-parity → lint:eslint → lint:design-contract → lint:help-docs-links → lint:help-docs-prose` |
 | `pnpm lint:eslint`                  | ESLint — zero warnings, unused disables reported                                                                    |
 | `pnpm lint:drizzle-journal`         | `drizzle/*.sql` ↔ `_journal.json` parity                                                                            |
 | `pnpm lint:fixtures-parity`         | `tests/fixtures/*` ↔ `messages/en.json` + auth surfaces + seed script                                               |
-| `pnpm lint:a11y`                    | `eslint-plugin-jsx-a11y` — optional gate until folded into `lint`                                                   |
-| `pnpm typecheck`                    | `tsc --noEmit` (app only — tests/scripts have split tsconfigs)                                                      |
-| `pnpm typecheck:test`               | `tsc -p tsconfig.test.json`                                                                                         |
-| `pnpm typecheck:scripts`            | `tsc -p tsconfig.scripts.json`                                                                                      |
+| `pnpm lint:help-docs-links`         | `next-validate-link` — validates internal URLs in `content/help-docs/**/*.mdx` (Fumadocs)                                                                      |
+| `pnpm lint:help-docs-prose`         | `markdownlint-cli2` — narrow prose/style gate on `content/help-docs/**/*.mdx` (config `.config/markdownlint-help-docs.jsonc`)                                 |
+| `pnpm typecheck`                    | `tsc --noEmit` — **app graph only** (separate tsconfigs for tests/scripts; always run all three before push)        |
+| `pnpm typecheck:test`               | `tsc -p tsconfig.test.json` — test graph; catches type drift in `tests/unit/` that `pnpm typecheck` never sees      |
+| `pnpm typecheck:scripts`            | `tsc -p tsconfig.scripts.json` — scripts graph                                                                      |
 | `pnpm format` / `pnpm format:check` | Prettier + Tailwind class sorting                                                                                   |
 | `pnpm knip`                         | Dead-code verdict — run before push, not after each edit                                                            |
 | `pnpm verify`                       | Full pre-merge graph (lint + typecheck + knip + test:ci + format:check)                                             |
@@ -110,10 +114,10 @@
 | `pnpm test:ci`                      | `vitest run --coverage` → `.artifacts/coverage/`                                                                    |
 | `pnpm test:e2e`                     | `pnpm build` → Playwright on port 3001                                                                              |
 | `pnpm env:sync`                     | `.env.config` → `.env.local`                                                                                        |
-| `pnpm db:migrate:local`             | Drizzle migrate with `.env.local`, then `lint:fixtures-parity`                                                      |
-| `pnpm db:migrate:vercel`            | Same after `pnpm env:pull-vercel`                                                                                   |
-| `pnpm db:generate`                  | `drizzle-kit generate` — **requires interactive TTY**                                                               |
-| `pnpm db:push:local`                | Schema push for throwaway branches only                                                                             |
+| `pnpm db:migrate:local`             | **HUMAN-ONLY.** Apply `drizzle/*.sql` via `scripts/drizzle-migrate-logged.mjs` + `with-env` (prints Postgres errors), then `lint:fixtures-parity`. Never run from agents/CI. |
+| `pnpm db:migrate:vercel`            | **HUMAN-ONLY.** Same with `with-env --env-file=.env.vercel` after `pnpm env:pull-vercel`. Never run from agents/CI. |
+| `pnpm db:generate`                  | **HUMAN-ONLY.** `drizzle-kit generate` — requires interactive TTY. Never run from agents/CI.                        |
+| `pnpm db:push:local`                | **HUMAN-ONLY.** Schema push for throwaway branches only. Never run from agents/CI.                                  |
 | `pnpm simulate:replay`              | Replay scenario (`AFENDA_ENABLE_SIMULATION=1` required)                                                             |
 | `pnpm simulate:clear`               | Delete simulation rows for a run                                                                                    |
 
@@ -127,6 +131,8 @@ pnpm exec eslint --max-warnings=0 <path1> [path2 ...]
 pnpm typecheck
 ```
 
+> **Three-graph rule:** `pnpm typecheck` only covers the app graph. Touching `tests/unit/` also requires `pnpm typecheck:test`. Touching `scripts/` also requires `pnpm typecheck:scripts`. All three are automatically included in every `pnpm verify*` and `pnpm verify:quick` invocation — never skip the test/scripts graphs before push.
+
 **Post-task gate — full workspace (only agent running, or design-token / i18n changes):**
 
 ```bash
@@ -137,8 +143,10 @@ pnpm typecheck && pnpm lint
 **Narrow lint gates (run instead of full `pnpm lint` when only one concern changed):**
 
 ```bash
-pnpm lint:drizzle-journal   # after drizzle/*.sql changes
-pnpm lint:fixtures-parity   # after messages/en.json or fixture changes
+pnpm lint:drizzle-journal # after drizzle/*.sql changes
+pnpm lint:help-docs-links # after edits to content/help-docs MDX/internal links
+pnpm lint:help-docs-prose # after edits to content/help-docs MDX prose/style
+pnpm lint:fixtures-parity # after messages/en.json or fixture changes
 ```
 
 **Pre-push gate:**
@@ -164,6 +172,24 @@ pnpm verify:parallel
 
 **Transient output:** Vitest coverage → `.artifacts/coverage/` · Playwright JUnit → `.artifacts/playwright-junit.xml` · traces → `.artifacts/playwright/test-results/`
 
+**Fixture typing rule — `as const satisfies <RowType>`:**
+
+Mock DB-row and domain-type fixtures must use `as const satisfies <Type>` so any new required field on the real type fails at the fixture definition, not buried inside a `mockResolvedValue` call. Combine both operators: `as const` keeps literal types narrow for assertions (e.g. `state` stays `"preparing"`, not `string`); `satisfies` validates structural completeness against the real contract.
+
+```ts
+// ✅ — catches missing fields when PayrollPeriodRow gains a new required column
+const PREPARING_PERIOD = {
+  id: "period-2026-03",
+  state: "preparing",
+  // ...all fields...
+} as const satisfies PayrollPeriodRow
+
+// ❌ — new required field silently missing; error surfaces at mockResolvedValue instead
+const PREPARING_PERIOD = { id: "period-2026-03", state: "preparing" } as const
+```
+
+Apply this pattern to **every fixture that represents a DB row or a typed engine input/output**.
+
 ---
 
 ## 3. Toolchain
@@ -186,15 +212,25 @@ pnpm verify:parallel
 | `adr`            | Auto-incremented `docs/decisions/NNNN-*.md`                                                               |
 | `audit-contract` | `<module>.contract.ts` with `buildCrudSapAuditAction` strings                                             |
 | `workflow-job`   | Workflow DevKit durable run                                                                               |
+| `help-doc`       | `content/help-docs/<section>/<slug>.mdx` + optional `meta.json` append — `pnpm gen help-doc --section <dir> --slug <kebab> --title "…" --description "…" --audience admin\|employee\|developer --status draft\|beta\|stable` |
 
 Each generator runs `pnpm lint:agent-contract + pnpm lint:eslint --fix` on touched paths on day one. See ADR-0009.
 
 ### Drizzle migrations
 
+> **HUMAN-ONLY GATE — AI agents must NEVER run any of the following commands:**
+> `pnpm db:migrate:local`, `pnpm db:migrate:vercel`, `pnpm db:migrate`,
+> `pnpm db:push`, `pnpm db:push:local`, `pnpm db:generate`,
+> `node scripts/drizzle-migrate-logged.mjs`, `node scripts/nuke-db-public.mjs`.
+>
+> These commands write to or destroy a real database. Only the **human operator** may
+> execute them in their own terminal. If a task requires schema changes, stop, output
+> the required manual steps, and wait for the human to run them.
+
 - `lib/db/schema.ts` = schema source of truth (no `neon_auth.*` DDL — use `lib/db/schema-neon-auth.ts` for query-only mirrors).
 - `drizzle-kit generate` → SQL + `drizzle/meta/` (run in a **real TTY** for ambiguous renames).
 - `drizzle-kit migrate` applies **only** SQL registered in `_journal.json` — orphan `.sql` files are silently skipped.
-- `pnpm db:push*` = throwaway local branches only.
+- `pnpm db:push*` = throwaway local branches only (still human-only).
 - Never delete `drizzle/meta/` while legacy migrations exist — Drizzle will baseline the whole schema.
 
 ---
@@ -238,7 +274,7 @@ turbo/generators/config.ts
 | Moment                           | Gate                                                                                                                          |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `preinstall`                     | `check-agent-contract.mjs`                                                                                                    |
-| `pnpm lint`                      | `lint:agent-contract → lint:drizzle-journal → lint:fixtures-parity → lint:eslint → lint:design-contract` (Turborepo, cached)  |
+| `pnpm lint`                      | `lint:agent-contract → lint:drizzle-journal → lint:fixtures-parity → lint:eslint → lint:design-contract → lint:help-docs-links → lint:help-docs-prose` (Turborepo, cached)  |
 | `pnpm verify` / `pnpm verify:ci` | Full graph — lint + typecheck + knip + test:ci + format:check                                                                 |
 | CI (`.github/workflows/ci.yml`)  | `check-agent-contract` → `pnpm install` → cache `.turbo` → `pnpm verify:ci` → cache `.next/cache` → `pnpm build` → Playwright |
 
@@ -554,6 +590,44 @@ lib/portal/   → portal control plane only (slug, path, resolver, guard, audien
 - **`/{locale}/help-docs`** — public locale-first documentation (Fumadocs MDX), **no auth cookie gate** — naming parallel to **`/{locale}/legal-docs`**.
 - **`content/help-docs/`** — MDX authoring root; **`source.config.ts`** + **`.source/`** (generated by `fumadocs-mdx` / `next build`) feed `lib/help-docs-source.ts`.
 
+**Help-docs surface inventory** (split into a dedicated repo/package when content volume warrants it):
+
+| File / dir | Role |
+| --- | --- |
+| `source.config.ts` | `defineDocs({ dir: "content/help-docs" })` + extended `pageSchema`; postprocess `includeProcessedMarkdown` + `extractLinkReferences`; plugins `lastModified`, `jsonSchema({ insert: true })`; MDX: `remarkMdxMermaid`, `remarkAutoTypeTable`, `remarkTypeScriptToJavaScript`, Twoslash via `rehypeCodeOptions` |
+| `lib/help-docs-source.ts` | `getHelpDocsSource(locale)` — `loader()` scoped to `/{locale}/help-docs` base URL |
+| `lib/help-docs-layout.shared.ts` | `helpDocsBaseLayoutOptions(locale)` — `DocsLayout` props (nav title, sidebar) |
+| `lib/help-docs-og.shared.ts` | `getHelpDocsOgImagePath(locale, slugs)` — `/og/help-docs/{locale}/…/image.png` |
+| `lib/help-docs-markdown-route.shared.ts` | `getHelpDocsProcessedMarkdownPath(slug)` — `/llms.mdx/help-docs/…` (Copy / View as Markdown) |
+| `lib/site.ts` | `getHelpDocsGithubUrl(pagePath)` — from `NEXT_PUBLIC_HELP_DOCS_GITHUB_URL` |
+| `app/[locale]/help-docs/layout.tsx` | `DocsLayout` + scoped `RootProvider`; passes locale to layout options |
+| `app/[locale]/help-docs/[[...slug]]/page.tsx` | Page render + `generateStaticParams` + `generateMetadata` (OG + Twitter cards); `MarkdownCopyButton` + `ViewOptionsPopover` from `fumadocs-ui/layouts/notebook/page`; optional **Links on this page** from `page.data.extractedReferences` |
+| `app/[locale]/help-docs/[[...slug]]/actions.ts` | `submitHelpDocsFeedback` Server Action (logs via `rootLogger`) |
+| `app/og/help-docs/[locale]/[...slug]/route.tsx` | `next/og` `ImageResponse` for OG images; `revalidate = false` + `generateStaticParams` |
+| `app/api/search/route.ts` | Fumadocs Orama full-text search (`createFromSource`); indexes default locale |
+| `app/llms.txt/route.ts` | LLM-friendly plain-text index of all help-docs pages |
+| `app/llms-full.txt/route.ts` | Full MDX-processed content for all pages |
+| `app/llms.mdx/help-docs/[[...slug]]/route.ts` | Per-page markdown GET endpoint; rewrites `/{locale}/help-docs/*.md` |
+| `components/help-docs-mdx.tsx` | `useMDXComponents` — `defaultMdxComponents` + `TypeTable` |
+| `.config/markdownlint-help-docs.jsonc` | markdownlint-cli2 config for `lint:help-docs-prose` |
+| `scripts/lint-help-docs-prose.mjs` | Invokes markdownlint-cli2 on `content/help-docs/**/*.mdx` |
+| `turbo/generators/config.ts` | Registers `help-doc` generator (`pnpm gen help-doc`) |
+| `turbo/generators/templates/help-doc/page.mdx.hbs` | `pnpm gen help-doc` MDX skeleton |
+| `components/feedback/client.tsx` | `<Feedback>` client island (thumbs up/down + optional comment) |
+| `components/feedback/schema.ts` | Zod schema for feedback payload |
+| `content/help-docs/` | MDX pages + `meta.json` files (sidebar order) |
+| `scripts/validate-help-docs-links.ts` | `next-validate-link` — internal URL validation for MDX content |
+
+**Split trigger:** when `content/help-docs/` exceeds ~50 MDX files or requires a CMS, extract as a standalone Fumadocs Next.js app and serve under a subdomain (`docs.afenda.com`). Until then, keep it co-located.
+
+**Deferred integrations** (add only when a named requirement exists):
+- **`fumadocs-openapi`** — enable only when a committed `openapi.yaml` (or `openapi.json`) lives in-repo **or** CI has a stable pinned URL secret the generator can fetch; then add a `scripts/generate-openapi-docs.mts` (or similar) → committed MDX under `content/help-docs/` + `lint:help-docs-links` in CI.
+- **Public Lynx** (`app/api/chat/*`) — enable only after help-docs corpus is large enough to justify cost (e.g. **≥ 40** MDX pages) **and** product has consent / abuse-budget / rate-limit design; see `.cursor/rules/public-lynx.mdc`. Do not route through `#features/lynx`.
+- `@fumadocs/story` — component playground in MDX (needs `.story.tsx` files)
+- Takumi (`@takumi-rs/image-response`) — Rust OG renderer (not worth extra native dep for static images)
+
+See `.cursor/rules/help-docs-directory.mdc` for authoring and import rules.
+
 ### Portal control plane
 
 - `lib/portal/` owns portal slug validation, path helpers, audience registry, context types, resolver contracts, guard contracts, and portal-specific revalidation helpers.
@@ -631,6 +705,7 @@ app/api/upload/*
 app/api/webhooks/*
 app/api/integrations/*
 app/api/erp/<module>/*   ← mobile/external/streaming/webhook contracts only
+app/api/chat/*           ← DEFERRED: public help-docs AI chat ("Public Lynx"); see .cursor/rules/public-lynx.mdc
 ```
 
 ### Canonical directory shape

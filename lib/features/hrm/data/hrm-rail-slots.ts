@@ -18,6 +18,7 @@ const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
   employees: "users",
   organization: "building-2",
   onboarding: "list",
+  recruitment: "users",
   leave: "calendar",
   attendance: "clock",
   benefits: "shield",

@@ -16,6 +16,7 @@ export type NexusUtilityIconKey =
   | "messageCircle"
   | "messageSquare"
   | "penLine"
+  | "scanSearch"
   | "search"
   | "shieldCheck"
   | "sparkles"
@@ -43,6 +44,7 @@ export type NexusUtilityCatalogItemKey =
   | "density"
   | "locale"
   | "messenger"
+  | "coordination"
   | "feedback"
   | "screenshot"
   | "upload"
@@ -311,6 +313,20 @@ export const NEXUS_UTILITY_CATALOG = [
       customizable: true,
       defaultVisible: false,
       priority: 18,
+    },
+  },
+  {
+    id: "right.coordination",
+    itemKey: "coordination",
+    iconKey: "scanSearch",
+    marketplaceStatus: "installed",
+    marketplaceListed: true,
+    rightRailCompatible: true,
+    requestable: false,
+    widget: {
+      customizable: true,
+      defaultVisible: false,
+      priority: 19,
     },
   },
   {

@@ -25,6 +25,7 @@ import {
   PenLine,
   Plug2,
   RotateCcw,
+  ScanSearch,
   Search,
   ShieldCheck,
   Sparkles,
@@ -90,6 +91,7 @@ const CATALOG_ICON: Record<string, ElementType> = {
   FileUp,
   Activity,
   MessageCircle,
+  ScanSearch,
   Store,
 }
 

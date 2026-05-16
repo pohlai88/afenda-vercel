@@ -21,7 +21,7 @@ const isoDateSchema = z
   .trim()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
 
-const ATTENDANCE_EVENT_TYPES = [
+export const ATTENDANCE_EVENT_TYPES = [
   "clock_in",
   "clock_out",
   "break_start",

@@ -49,8 +49,7 @@ export async function EmployeePortalClaimsPage({
   const organizationId = context.portal.organizationId
   const employeeId = context.employee.id
 
-  const [tLeave, t, navLabels, format, claimTypes, claims] = await Promise.all([
-    getTranslations("Dashboard.Hrm.leave"),
+  const [t, navLabels, format, claimTypes, claims] = await Promise.all([
     getTranslations("Dashboard.Hrm.portalClaims"),
     getEmployeePortalSectionNavLabels(),
     getFormatter(),
@@ -69,7 +68,7 @@ export async function EmployeePortalClaimsPage({
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <header className="flex flex-col gap-2">
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          {tLeave("portalEmployee", {
+          {t("portalEmployee", {
             employeeNumber: context.employee.employeeNumber,
           })}
         </p>
@@ -134,7 +133,7 @@ export async function EmployeePortalClaimsPage({
                                 row.id
                               )}
                             >
-                              View
+                              {t("viewDetail")}
                             </Link>
                           </Button>
                           {isClaimCancellable(row.state) ? (

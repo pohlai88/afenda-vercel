@@ -7,14 +7,13 @@ const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
 const orgSlugFromEnv = process.env.E2E_ORG_SLUG?.trim()
 
 /**
- * Smoke gate for the HRM attendance surface (PR #2 — attendance UI binding).
+ * Focused operator flow for the HRM attendance surface.
  *
- * The full record -> correct -> regenerate round-trip is intentionally
- * out of scope here because it requires a seeded employee + active
- * employment contract per org, plus a deterministic clock to assert on
- * aggregator outputs. This spec proves the route is reachable, renders
- * the documented affordances, and respects tenant boundaries — i.e.
- * that the URL we just shipped does not 500 on prod-shaped builds.
+ * This covers the route contract plus one concrete admin mutation path:
+ * pick an employee/date, record a clock-in, and verify the day summary
+ * reflects payroll-blocking operational truth. The correction and
+ * multi-day scenarios remain unit-covered so this browser test stays
+ * stable across seeded orgs.
  */
 test.describe("HRM attendance UI surface", () => {
   test.skip(
@@ -41,7 +40,7 @@ test.describe("HRM attendance UI surface", () => {
   )
 
   test(
-    "attendance page exposes day summary + recent events sections",
+    "attendance admin flow records an event and surfaces operational day status",
     { tag: "@hrm" },
     async ({ page }) => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
@@ -52,6 +51,51 @@ test.describe("HRM attendance UI surface", () => {
       await expect(page.getByText("Day summary", { exact: true })).toBeVisible()
       await expect(
         page.getByText("Recent events", { exact: true })
+      ).toBeVisible()
+
+      const summaryForm = page.locator(
+        'form[action$="/dashboard/hrm/attendance"][method="get"]'
+      )
+      const employeeOptions = summaryForm.locator(
+        'select[name="employeeId"] option'
+      )
+      const employeeOptionCount = await employeeOptions.count()
+      test.skip(
+        employeeOptionCount <= 1,
+        "No active employees available for attendance mutation flow."
+      )
+
+      const futureDate = "2030-01-15"
+      await summaryForm
+        .locator('select[name="employeeId"]')
+        .selectOption({ index: 1 })
+      await summaryForm.locator('input[name="date"]').fill(futureDate)
+      await summaryForm.getByRole("button", { name: "Show day" }).click()
+
+      await page.getByRole("button", { name: "Record event" }).click()
+      const dialog = page.getByRole("dialog")
+      await dialog.locator('select[name="employeeId"]').selectOption({
+        index: 1,
+      })
+      await dialog.locator('select[name="eventType"]').selectOption("clock_in")
+      await dialog
+        .locator('input[name="occurredAt"]')
+        .fill(`${futureDate}T09:00`)
+      await dialog.getByRole("button", { name: "Record event" }).click()
+
+      await expect(dialog).not.toBeVisible()
+      await expect(
+        page.getByText("Payroll blocked", { exact: true })
+      ).toBeVisible()
+      await expect(
+        page.getByText("First clock in", { exact: true })
+      ).toBeVisible()
+
+      await page.getByRole("button", { name: "Regenerate day" }).click()
+      await expect(
+        page.getByText("No changes — the day aggregate is already in sync with the raw events.", {
+          exact: true,
+        })
       ).toBeVisible()
     }
   )

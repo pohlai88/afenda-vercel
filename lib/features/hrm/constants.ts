@@ -10,7 +10,7 @@ import {
   ORG_DASHBOARD_HRM,
   organizationDashboardPath,
 } from "#lib/dashboard-module-paths"
-import { buildErpPermissionKey } from "#features/erp-rbac/client"
+import { buildErpPermissionKey } from "#features/erp-rbac"
 
 import type { HrmCapability, HrmNavKey } from "./types"
 import { HRM_NAV_NAMESPACE } from "./types"
@@ -54,6 +54,17 @@ export const HRM_CAPABILITIES = [
     }),
   },
   {
+    id: "recruitment",
+    segments: ["recruitment"] as const,
+    auditPrefix: "erp.hrm.recruitment",
+    nav: { navKey: "recruitment", order: 18, primarySegment: "recruitment" },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "recruitment",
+      function: "search",
+    }),
+  },
+  {
     id: "leave",
     segments: ["leave"] as const,
     auditPrefix: "erp.hrm.leave",
@@ -94,6 +105,17 @@ export const HRM_CAPABILITIES = [
     requiredPermission: buildErpPermissionKey({
       module: "hrm",
       object: "claim",
+      function: "search",
+    }),
+  },
+  {
+    id: "imports",
+    segments: ["imports"] as const,
+    auditPrefix: "erp.hrm.import",
+    nav: { navKey: "imports", order: 37, primarySegment: "imports" },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "import",
       function: "search",
     }),
   },

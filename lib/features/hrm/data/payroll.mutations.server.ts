@@ -96,6 +96,32 @@ export async function updatePayrollPeriodState(
     )
 }
 
+export async function markPayrollPeriodPosted(input: {
+  readonly organizationId: string
+  readonly periodId: string
+  readonly postedByUserId: string
+  readonly postedAt?: Date
+  readonly postedJournalBatchId?: string | null
+}): Promise<void> {
+  const postedAt = input.postedAt ?? new Date()
+  await db
+    .update(hrmPayrollPeriod)
+    .set({
+      state: "posted",
+      postedByUserId: input.postedByUserId,
+      postedAt,
+      postedJournalBatchId: input.postedJournalBatchId ?? null,
+      updatedAt: postedAt,
+      updatedByUserId: input.postedByUserId,
+    })
+    .where(
+      and(
+        eq(hrmPayrollPeriod.organizationId, input.organizationId),
+        eq(hrmPayrollPeriod.id, input.periodId)
+      )
+    )
+}
+
 // ---------------------------------------------------------------------------
 // Run mutations
 // ---------------------------------------------------------------------------

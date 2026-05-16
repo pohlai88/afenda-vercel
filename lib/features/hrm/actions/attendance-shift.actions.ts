@@ -19,6 +19,7 @@ import type {
   AttendanceShiftTemplatePolicy,
 } from "../data/attendance-shift.shared"
 import { requireHrmPermission } from "../data/hrm-admin-guard.server"
+import { listClosedPayrollPeriodsOverlappingRange } from "../data/payroll.queries.server"
 import {
   assignEmployeeShiftSchema,
   createShiftTemplateSchema,
@@ -77,6 +78,8 @@ async function upsertShiftAssignmentUnlessLocked(input: {
   assignmentId: string
   actorUserId: string
   now: Date
+  guardRangeStart: string
+  guardRangeEnd: string
 }): Promise<string | null> {
   const policySnapshotJson = JSON.stringify(input.policySnapshot)
   const result = await db.execute<{ id: string }>(sql`
@@ -129,6 +132,14 @@ async function upsertShiftAssignmentUnlessLocked(input: {
         AND "attendanceDate" = ${input.attendanceDate}::date
         AND "state" = 'locked'
     )
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "hrm_payroll_period"
+        WHERE "organizationId" = ${input.organizationId}
+          AND "state" IN ('locked', 'finalized', 'posted')
+          AND "periodEnd" >= ${input.guardRangeStart}::date
+          AND "periodStart" <= ${input.guardRangeEnd}::date
+      )
     ON CONFLICT ("organizationId", "employeeId", "attendanceDate")
     DO UPDATE SET
       "shiftTemplateId" = ${input.template.id},
@@ -154,6 +165,14 @@ async function upsertShiftAssignmentUnlessLocked(input: {
         AND "attendanceDate" = ${input.attendanceDate}::date
         AND "state" = 'locked'
     )
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "hrm_payroll_period"
+        WHERE "organizationId" = ${input.organizationId}
+          AND "state" IN ('locked', 'finalized', 'posted')
+          AND "periodEnd" >= ${input.guardRangeStart}::date
+          AND "periodStart" <= ${input.guardRangeEnd}::date
+      )
     RETURNING "id"
   `)
 
@@ -279,7 +298,7 @@ export async function assignEmployeeShiftAction(
   }
   const data = parsed.data
 
-  const [employeeRows, template] = await Promise.all([
+  const [employeeRows, template, closedPayrollPeriods] = await Promise.all([
     db
       .select({ id: hrmEmployee.id, archivedAt: hrmEmployee.archivedAt })
       .from(hrmEmployee)
@@ -294,6 +313,11 @@ export async function assignEmployeeShiftAction(
       organizationId: session.organizationId,
       shiftTemplateId: data.shiftTemplateId,
     }),
+    listClosedPayrollPeriodsOverlappingRange({
+      organizationId: session.organizationId,
+      rangeStart: data.attendanceDate,
+      rangeEnd: data.attendanceDate,
+    }),
   ])
 
   const employee = employeeRows[0]
@@ -305,6 +329,12 @@ export async function assignEmployeeShiftAction(
   if (!template) {
     return hrmActionFailure({
       shiftTemplateId: "Shift template not found or inactive.",
+    })
+  }
+
+  if (closedPayrollPeriods.length > 0) {
+    return hrmActionFailure({
+      form: "Locked attendance days cannot be reassigned.",
     })
   }
 
@@ -328,6 +358,8 @@ export async function assignEmployeeShiftAction(
     assignmentId,
     actorUserId: session.userId,
     now,
+    guardRangeStart: data.attendanceDate,
+    guardRangeEnd: data.attendanceDate,
   })
   if (!persistedAssignmentId) {
     return hrmActionFailure({
@@ -365,5 +397,9 @@ export async function assignEmployeeShiftAction(
   })
 
   revalidateAttendanceAndPayroll()
-  return { ok: true, assignmentId: persistedAssignmentId }
+  return {
+    ok: true,
+    assignmentId: persistedAssignmentId,
+    regenerationResult,
+  }
 }

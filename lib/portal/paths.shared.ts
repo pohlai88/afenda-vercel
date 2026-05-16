@@ -19,7 +19,13 @@ export function portalPath(
   ) as Route
 }
 
-export type EmployeePortalSection = "leave"
+export type EmployeePortalSection =
+  | "leave"
+  | "payslips"
+  | "claims"
+  | "benefits"
+  | "attendance"
+  | "documents"
 
 export function employeePortalPath(
   portalSlug: string,

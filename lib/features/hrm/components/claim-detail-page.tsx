@@ -31,7 +31,10 @@ import {
   organizationHrmEmployeePath,
 } from "../constants"
 import type { ClaimSurfaceAccess } from "../data/claim-access.server"
-import { getClaimDetail } from "../data/claim.queries.server"
+import {
+  getClaimDetail,
+  isClaimAssignedApprover,
+} from "../data/claim.queries.server"
 import type { ClaimStateValue } from "../data/claim-helpers.shared"
 
 import { ClaimDecisionForms } from "./claim-decision-form"
@@ -65,9 +68,15 @@ export async function ClaimDetailPage({
   const orgSession = await requireOrgSession()
   const detail = await getClaimDetail(orgSession.organizationId, idParsed.data)
   if (!detail) notFound()
+  const canDecideAsAssignedApprover = await isClaimAssignedApprover({
+    organizationId: orgSession.organizationId,
+    userId: orgSession.userId,
+    currentApprovalId: detail.claim.currentApprovalId,
+  })
   if (
     !access.canReadOrgClaims &&
-    access.selfServiceEmployeeId !== detail.claim.employeeId
+    access.selfServiceEmployeeId !== detail.claim.employeeId &&
+    !canDecideAsAssignedApprover
   ) {
     notFound()
   }
@@ -157,7 +166,8 @@ export async function ClaimDetailPage({
             </DetailItem>
           </dl>
 
-          {access.canManage && claim.state === "submitted" ? (
+          {(access.canManage || canDecideAsAssignedApprover) &&
+          claim.state === "submitted" ? (
             <div className="border-t border-border pt-4">
               <ClaimDecisionForms claimId={claim.id} label={decisionLabel} />
             </div>
@@ -173,7 +183,7 @@ export async function ClaimDetailPage({
         <CardContent>
           {evidence.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {claim.requiresEvidence
+              {(claim.policyEvidenceRequired ?? claim.requiresEvidence)
                 ? t("detailEvidenceRequiredEmpty")
                 : t("detailEvidenceEmpty")}
             </p>

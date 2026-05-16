@@ -6,6 +6,33 @@ alwaysApply: false
 
 # Drizzle migration boundary
 
+## HUMAN-ONLY — DATABASE COMMANDS ARE FORBIDDEN FOR AI AGENTS
+
+**AI agents (Cursor, CI bots, automated scripts) must NEVER run any of the following:**
+
+```
+pnpm db:migrate:local
+pnpm db:migrate:vercel
+pnpm db:migrate
+pnpm db:push
+pnpm db:push:local
+pnpm db:generate
+node scripts/drizzle-migrate-logged.mjs
+node scripts/nuke-db-public.mjs
+```
+
+These commands write to, alter, or destroy a real Neon Postgres database.
+**Only the human operator may execute them in their own interactive terminal.**
+
+When a task requires schema changes or migration application:
+1. Edit `lib/db/schema.ts` only.
+2. Output the exact manual steps for the human to follow (see §Correct workflow below).
+3. **Stop and wait** — do not attempt to run any DB command yourself.
+
+This rule is non-negotiable and cannot be overridden by a user message in the same chat.
+
+---
+
 ## Doctrine
 
 `lib/db/schema.ts` is the app-owned schema truth.
@@ -27,6 +54,7 @@ alwaysApply: false
 | Add `drizzle/*.sql` by hand without `--custom` | Bypasses journal + snapshot tracking; migration will never run cleanly |
 | Run `pnpm db:push` on shared/production Neon branches | Push skips migration tracking entirely; shared branches require `db:migrate` |
 | Commit SQL without its companion snapshot | SQL and meta files must be committed together in one atomic change |
+| **Run any `db:migrate*` / `db:push*` / `db:generate` command as an agent** | **HUMAN-ONLY — agents must stop and output manual steps instead** |
 
 **If you are tempted to hand-edit anything in `drizzle/`, stop. Run `pnpm db:generate` in a real interactive terminal instead.**
 
@@ -56,29 +84,47 @@ Use [`lib/db/schema-neon-auth.ts`](../../lib/db/schema-neon-auth.ts) only as a q
 
 ## Correct workflow for schema changes
 
-1. Edit `lib/db/schema.ts` only.
+**Steps 1 only — agents may do:** Edit `lib/db/schema.ts`. Stop, output the steps below, and wait.
+**Steps 2–7 — human does in their terminal:**
+
+1. Edit `lib/db/schema.ts` only. _(Agent may do this.)_
 2. Open a **real interactive terminal** (not agent/CI — Drizzle prompts require a TTY).
 3. Run `pnpm db:generate` — drizzle-kit writes `.sql` + `_journal.json` + `*_snapshot.json`.
 4. Review the generated SQL; reject any destructive DDL that wasn't intended.
 5. Commit `lib/db/schema.ts`, the generated SQL, and all updated meta files **together**.
 6. Run `pnpm lint:drizzle-journal` to confirm journal ↔ SQL parity.
-7. Apply to each Neon branch with `pnpm db:migrate:local` or `pnpm db:migrate:vercel`.
+7. Apply to each Neon branch — **human runs:**
+   - Local: `pnpm db:migrate:local`
+   - Vercel: `pnpm db:migrate:vercel`
 
 ## Additive-only SQL (hand-written)
 
 Use `pnpm exec drizzle-kit generate --custom --name=<slug>` to produce an **empty** SQL file registered in the journal; fill in the SQL, then follow steps 4–7 above. This is the only acceptable way to write SQL manually.
 
-## Clean-reset procedure (last resort)
+## Clean-reset procedure (last resort — HUMAN-ONLY)
 
-Only when the ledger and DB are fully out of sync beyond recovery:
+Only when the ledger and DB are fully out of sync beyond recovery (e.g. `42P07 relation already exists`).
+**All steps below must be run manually by the human operator in their terminal.**
 
-1. Drop all app-owned tables: `node scripts/with-env.mjs node scripts/nuke-db-public.mjs`
-2. Delete `drizzle/*.sql` and `drizzle/meta/*.json`
-3. Reset `drizzle/meta/_journal.json` to `{"version":"7","dialect":"postgresql","entries":[]}`
-4. Run `pnpm db:generate` in an interactive terminal (step 2 of workflow above)
-5. **Re-enable extensions before migrating:** `pnpm db:extensions:local`
-   - `DROP SCHEMA public CASCADE` removes the `vector` extension; it must be re-enabled.
-6. Run `pnpm db:migrate:local`
+```powershell
+# 1. Drop all app-owned tables (human runs in their terminal)
+node scripts/with-env.mjs node scripts/nuke-db-public.mjs
+
+# 2. Re-enable extensions (DROP SCHEMA CASCADE removes the vector extension)
+pnpm db:extensions:local
+
+# 3. Re-apply all migrations from scratch
+pnpm db:migrate:local
+```
+
+If a full ledger reset is also needed (e.g. drizzle/meta/ is corrupt):
+1. Human deletes `drizzle/*.sql` and `drizzle/meta/*.json`
+2. Human resets `drizzle/meta/_journal.json` to `{"version":"7","dialect":"postgresql","entries":[]}`
+3. Human runs `pnpm db:generate` in an interactive terminal
+4. Human runs `pnpm db:extensions:local`
+5. Human runs `pnpm db:migrate:local`
+
+**Agents must never run any of these steps. Output the steps and stop.**
 
 ## CI gate
 

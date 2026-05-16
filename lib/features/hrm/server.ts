@@ -283,6 +283,7 @@ export {
   buildPayrollPostingPreview,
   buildPayslipSnapshotForRun,
   listPayrollCloseExceptions,
+  persistPayrollPayslipSnapshots,
 } from "./data/payroll-close.server"
 
 export type {
@@ -293,6 +294,19 @@ export type {
   PayrollPayslipSnapshot,
   PayrollPostingPreview,
 } from "./data/payroll-close.shared"
+
+export {
+  buildPayrollPostingRecord,
+  getPayrollPostingRecord,
+  postPayrollPeriod,
+} from "./data/payroll-posting.server"
+
+export type {
+  PayrollPostingRecord,
+  PayrollPostingRecordLine,
+  PayrollPostingResult,
+  PayrollPostingState,
+} from "./data/payroll-posting.shared"
 
 /** Compliance evidence reads (period/org scope, delivery lookup). */
 export {
@@ -551,7 +565,9 @@ export {
 export {
   buildBenefitCensusReportForOrganization,
   evaluateBenefitEligibilityForEmployee,
+  getBenefitPlanEnterpriseVersionForOrganization,
   listBenefitPayrollProjectionEnrollmentsForPeriod,
+  listBenefitPlanEnterpriseVersionsForOrganization,
   projectBenefitPayrollLinesForEmployeePeriod,
 } from "./data/benefit-enterprise.queries.server"
 
@@ -560,6 +576,7 @@ export type {
   BenefitPayrollProjectionQueryOptions,
   BuildBenefitCensusReportForOrganizationOptions,
   EvaluateBenefitEligibilityForEmployeeOptions,
+  ListBenefitPlanEnterpriseVersionsForOrganizationOptions,
 } from "./data/benefit-enterprise.queries.server"
 
 export {

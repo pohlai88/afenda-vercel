@@ -5,6 +5,11 @@ import { eq } from "drizzle-orm"
 import { db } from "#lib/db"
 import { hrmEmployee } from "#lib/db/schema"
 
+export type HrmEmployeeMutationDbClient = Pick<
+  typeof db,
+  "insert" | "update" | "select"
+>
+
 export type CreateEmployeeMutationInput = {
   organizationId: string
   actorUserId: string
@@ -12,6 +17,7 @@ export type CreateEmployeeMutationInput = {
   legalName: string
   preferredName?: string | null
   email?: string | null
+  employmentStartDate?: Date | null
   currentDepartmentId?: string | null
   currentPositionId?: string | null
   currentJobGradeId?: string | null
@@ -36,18 +42,20 @@ function isUniqueViolation(err: unknown): boolean {
  * event emission. Returns the new `employeeId` on success.
  */
 export async function createEmployeeMutation(
-  input: CreateEmployeeMutationInput
+  input: CreateEmployeeMutationInput,
+  client: HrmEmployeeMutationDbClient = db
 ): Promise<CreateEmployeeMutationResult> {
   const id = crypto.randomUUID()
 
   try {
-    await db.insert(hrmEmployee).values({
+    await client.insert(hrmEmployee).values({
       id,
       organizationId: input.organizationId,
       employeeNumber: input.employeeNumber,
       legalName: input.legalName,
       preferredName: input.preferredName ?? null,
       email: input.email ?? null,
+      employmentStartDate: input.employmentStartDate ?? null,
       currentDepartmentId: input.currentDepartmentId ?? null,
       currentPositionId: input.currentPositionId ?? null,
       currentJobGradeId: input.currentJobGradeId ?? null,

@@ -1,23 +1,14 @@
 "use client"
 
 import { useActionState } from "react"
-import { useFormStatus } from "react-dom"
 import { useTranslations } from "next-intl"
 
 import { Alert, AlertDescription } from "#components/ui/alert"
-import { Button } from "#components/ui/button"
 
 import { rollbackImportSessionAction } from "../actions/hrm-import.actions"
 
-function RollbackSubmitBtn() {
-  const { pending } = useFormStatus()
-  const t = useTranslations("Dashboard.Hrm.imports")
-  return (
-    <Button type="submit" variant="destructive" size="sm" disabled={pending}>
-      {t("rollbackSubmit")}
-    </Button>
-  )
-}
+import { HrmImportFormSubmitButton } from "./hrm-import-form-submit-button.client"
+import { useHrmImportRouterRefreshOnce } from "./hrm-import-use-router-refresh-once.client"
 
 type HrmImportRollbackButtonProps = {
   orgSlug: string
@@ -30,6 +21,8 @@ export function HrmImportRollbackButton({
 }: HrmImportRollbackButtonProps) {
   const t = useTranslations("Dashboard.Hrm.imports")
   const [state, action] = useActionState(rollbackImportSessionAction, undefined)
+
+  useHrmImportRouterRefreshOnce(state?.ok)
 
   if (state?.ok) {
     return (
@@ -47,7 +40,10 @@ export function HrmImportRollbackButton({
       <form action={action}>
         <input type="hidden" name="orgSlug" value={orgSlug} />
         <input type="hidden" name="importSessionId" value={sessionId} />
-        <RollbackSubmitBtn />
+        <HrmImportFormSubmitButton
+          label={t("rollbackSubmit")}
+          variant="destructive"
+        />
       </form>
     </div>
   )

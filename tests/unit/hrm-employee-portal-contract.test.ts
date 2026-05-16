@@ -12,6 +12,7 @@ import {
   resolveEmployeePortalContextFromRows,
   type EmployeePortalSubjectRow,
 } from "../../lib/features/hrm/data/employee-portal-access.shared"
+import { payrollPayslipSnapshotFromDocumentPayload } from "../../lib/features/hrm/data/payroll-close.shared"
 
 const basePortalContext: PortalContext = {
   portalId: "portal_01",
@@ -114,6 +115,47 @@ describe("HRM employee portal contract", () => {
     })
   })
 
+  it("reconstructs stored payslip payloads into portal snapshot shape", () => {
+    const snapshot = payrollPayslipSnapshotFromDocumentPayload({
+      payload: {
+        runId: "11111111-1111-4111-8111-111111111111",
+        periodId: "22222222-2222-4222-8222-222222222222",
+        employeeId: "33333333-3333-4333-8333-333333333333",
+        employeeNumber: "E-001",
+        employeeLegalName: "Employee One",
+        periodStart: "2026-04-01",
+        periodEnd: "2026-04-30",
+        paymentDate: "2026-05-01",
+        currency: "MYR",
+        rulePackVersion: "my-v1",
+        grossPay: "1000.00",
+        netPay: "800.00",
+        employerCost: "1100.00",
+        inputDigest: "digest_01",
+        generatedAt: "2026-05-01T00:00:00.000Z",
+        lines: [
+          {
+            lineKind: "earning",
+            code: "BASIC",
+            description: "Basic salary",
+            amount: "1000.00",
+            rulePackProvenance: null,
+          },
+        ],
+      },
+      payloadHash: "hash_01",
+    })
+
+    expect(snapshot?.inputHash).toBe("hash_01")
+    expect(snapshot?.lines).toHaveLength(1)
+    expect(
+      payrollPayslipSnapshotFromDocumentPayload({
+        payload: { bad: true },
+        payloadHash: "hash_02",
+      })
+    ).toBeNull()
+  })
+
   it("keeps provisioning and portal leave actions behind server-derived context", () => {
     const provisioningDataSource = readFileSync(
       join(
@@ -148,7 +190,7 @@ describe("HRM employee portal contract", () => {
       ),
       "utf8"
     )
-    const leaveSource = readFileSync(
+    const workbenchLeaveSource = readFileSync(
       join(
         process.cwd(),
         "lib",
@@ -156,6 +198,61 @@ describe("HRM employee portal contract", () => {
         "hrm",
         "actions",
         "leave-request.actions.ts"
+      ),
+      "utf8"
+    )
+    const portalLeaveSource = readFileSync(
+      join(
+        process.cwd(),
+        "lib",
+        "features",
+        "hrm",
+        "actions",
+        "employee-portal-leave.actions.ts"
+      ),
+      "utf8"
+    )
+    const leaveCommandSource = readFileSync(
+      join(
+        process.cwd(),
+        "lib",
+        "features",
+        "hrm",
+        "data",
+        "leave-request-commands.server.ts"
+      ),
+      "utf8"
+    )
+    const payslipQuerySource = readFileSync(
+      join(
+        process.cwd(),
+        "lib",
+        "features",
+        "hrm",
+        "data",
+        "hrm-document.queries.server.ts"
+      ),
+      "utf8"
+    )
+    const payslipListPageSource = readFileSync(
+      join(
+        process.cwd(),
+        "lib",
+        "features",
+        "hrm",
+        "components",
+        "employee-portal-payslips-page.tsx"
+      ),
+      "utf8"
+    )
+    const payslipDetailPageSource = readFileSync(
+      join(
+        process.cwd(),
+        "lib",
+        "features",
+        "hrm",
+        "components",
+        "employee-portal-payslip-detail-page.tsx"
       ),
       "utf8"
     )
@@ -181,20 +278,112 @@ describe("HRM employee portal contract", () => {
       "EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR"
     )
 
-    expect(leaveSource).toContain("requestPortalEmployeeLeaveAction")
-    expect(leaveSource).toContain("cancelPortalEmployeeLeaveAction")
-    expect(leaveSource).toContain("getEmployeePortalContext(rawPortalSlug)")
-    expect(leaveSource).toContain("EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR")
-    expect(leaveSource).not.toContain(
+    expect(workbenchLeaveSource).not.toContain(
+      "requestPortalEmployeeLeaveAction"
+    )
+    expect(workbenchLeaveSource).not.toContain(
+      "cancelPortalEmployeeLeaveAction"
+    )
+    expect(portalLeaveSource).toContain("requestPortalEmployeeLeaveAction")
+    expect(portalLeaveSource).toContain("cancelPortalEmployeeLeaveAction")
+    expect(portalLeaveSource).toContain(
+      "getEmployeePortalContext(rawPortalSlug)"
+    )
+    expect(portalLeaveSource).toContain(
+      "EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR"
+    )
+    expect(portalLeaveSource).not.toContain("requireOrgSession")
+    expect(leaveCommandSource).not.toContain("requireOrgSession")
+    expect(portalLeaveSource).not.toContain(
       `form: "${EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR}"`
     )
-    expect(leaveSource).toContain("employeeId: context.employee.id")
-    const portalRequestActionSource = leaveSource.slice(
-      leaveSource.indexOf("requestPortalEmployeeLeaveAction"),
-      leaveSource.indexOf("applyLeaveOnBehalfAction")
+    expect(portalLeaveSource).toContain("employeeId: context.employee.id")
+    const portalRequestActionSource = portalLeaveSource.slice(
+      portalLeaveSource.indexOf("requestPortalEmployeeLeaveAction"),
+      portalLeaveSource.indexOf("cancelPortalEmployeeLeaveAction")
     )
     expect(portalRequestActionSource).not.toContain(
       'employeeId: formData.get("employeeId")'
     )
+    expect(payslipQuerySource).toContain("listPayslipDocumentsForEmployee")
+    expect(payslipQuerySource).toContain("getPayslipDocumentForEmployee")
+    expect(payslipQuerySource).toContain(
+      'eq(hrmDocument.documentType, "payslip")'
+    )
+    expect(payslipQuerySource).toContain(
+      'eq(hrmDocument.subjectKind, "payroll_run")'
+    )
+    expect(payslipQuerySource).toContain("grossPay: hrmPayrollRun.grossPay")
+    expect(payslipQuerySource).toContain("netPay: hrmPayrollRun.netPay")
+    expect(payslipQuerySource).toContain(
+      "snapshot.runId !== document.subjectId"
+    )
+    expect(payslipQuerySource).toContain(
+      "snapshot.periodId !== document.periodId"
+    )
+    expect(payslipQuerySource).toContain('"portal_payslip_snapshot_mismatch"')
+    expect(payslipQuerySource).toContain('access: "private"')
+    expect(payslipQuerySource).toContain("useCache: false")
+    expect(payslipQuerySource).toContain(
+      "payrollPayslipSnapshotFromDocumentPayload"
+    )
+    const payslipSummaryTypeSource = payslipQuerySource.slice(
+      payslipQuerySource.indexOf("export type EmployeePayslipDocumentSummary"),
+      payslipQuerySource.indexOf("export type EmployeePayslipDocumentDetail")
+    )
+    expect(payslipSummaryTypeSource).not.toContain("blobUrl")
+    expect(payslipSummaryTypeSource).not.toContain("payloadHash")
+    expect(payslipListPageSource).toContain("requireEmployeePortalContext")
+    expect(payslipDetailPageSource).toContain("requireEmployeePortalContext")
+    expect(payslipDetailPageSource).toContain(
+      '"iam.portal.employee.payslip.view"'
+    )
+    expect(payslipListPageSource).not.toContain("document.blobUrl")
+    expect(payslipListPageSource).not.toContain("payloadHash")
+    expect(payslipDetailPageSource).not.toContain("document.openUrl")
+    expect(payslipDetailPageSource).not.toContain("inputHash")
+    expect(payslipListPageSource).not.toContain("requireOrgSession")
+    expect(payslipDetailPageSource).not.toContain("requireOrgSession")
+  })
+
+  it("keeps portal claims, attendance, and document actions server-context gated", () => {
+    const claimPortal = readFileSync(
+      join(
+        process.cwd(),
+        "lib",
+        "features",
+        "hrm",
+        "actions",
+        "employee-portal-claim.actions.ts"
+      ),
+      "utf8"
+    )
+    const attendancePortal = readFileSync(
+      join(
+        process.cwd(),
+        "lib",
+        "features",
+        "hrm",
+        "actions",
+        "employee-portal-attendance.actions.ts"
+      ),
+      "utf8"
+    )
+    const documentPortal = readFileSync(
+      join(
+        process.cwd(),
+        "lib",
+        "features",
+        "hrm",
+        "actions",
+        "employee-portal-document.actions.ts"
+      ),
+      "utf8"
+    )
+
+    for (const src of [claimPortal, attendancePortal, documentPortal]) {
+      expect(src).toContain("getEmployeePortalContext")
+      expect(src).not.toContain("requireOrgSession")
+    }
   })
 })

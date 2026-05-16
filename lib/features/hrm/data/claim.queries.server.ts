@@ -27,7 +27,11 @@ import {
   listUserIdsWithErpPermission,
 } from "#features/erp-rbac/server"
 
-import type { ClaimEvidenceType, ClaimStateValue } from "./claim-helpers.shared"
+import {
+  claimPolicySnapshotFromUnknown,
+  type ClaimEvidenceType,
+  type ClaimStateValue,
+} from "./claim-helpers.shared"
 
 const CLAIM_LIST_LIMIT_MAX = 100
 
@@ -84,6 +88,7 @@ export type ClaimRow = {
   readonly cancelledAt: Date | null
   readonly evidenceCount: number
   readonly requiresEvidence: boolean
+  readonly policyEvidenceRequired: boolean | null
   readonly payoutMethod: string
   readonly financeAccountCode: string | null
   readonly costCenterCode: string | null
@@ -254,6 +259,7 @@ async function fetchClaimsBase(
       paidAt: hrmClaim.paidAt,
       cancelledAt: hrmClaim.cancelledAt,
       requiresEvidence: hrmClaimType.requiresEvidence,
+      policySnapshot: hrmClaim.policySnapshot,
       payoutMethod: hrmClaim.payoutMethod,
       financeAccountCode: hrmClaim.financeAccountCode,
       costCenterCode: hrmClaim.costCenterCode,
@@ -291,14 +297,19 @@ async function fetchClaimsBase(
     countByClaim.set(row.claimId, (countByClaim.get(row.claimId) ?? 0) + 1)
   }
 
-  return rows.map((row) => ({
-    ...row,
-    state: row.state as ClaimStateValue,
-    claimTypeCode: row.claimTypeCode ?? "",
-    claimTypeName: row.claimTypeName ?? "",
-    requiresEvidence: row.requiresEvidence ?? false,
-    evidenceCount: countByClaim.get(row.id) ?? 0,
-  }))
+  return rows.map((row) => {
+    const policySnapshot = claimPolicySnapshotFromUnknown(row.policySnapshot)
+
+    return {
+      ...row,
+      state: row.state as ClaimStateValue,
+      claimTypeCode: row.claimTypeCode ?? "",
+      claimTypeName: row.claimTypeName ?? "",
+      requiresEvidence: row.requiresEvidence ?? false,
+      policyEvidenceRequired: policySnapshot?.evidenceRequired ?? null,
+      evidenceCount: countByClaim.get(row.id) ?? 0,
+    }
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -401,6 +412,30 @@ export async function listPendingClaimApprovalsForOrg(
   return fetchClaimsBase(organizationId, { states: ["submitted"] })
 }
 
+export async function listPendingClaimApprovalsForActor(
+  organizationId: string,
+  userId: string
+): Promise<ReadonlyArray<ClaimRow>> {
+  const approvals = await db
+    .select({ subjectId: hrmApproval.subjectId })
+    .from(hrmApproval)
+    .where(
+      and(
+        eq(hrmApproval.organizationId, organizationId),
+        eq(hrmApproval.subjectKind, "claim"),
+        eq(hrmApproval.state, "pending"),
+        eq(hrmApproval.currentApproverUserId, userId)
+      )
+    )
+
+  if (approvals.length === 0) return []
+
+  return fetchClaimsBase(organizationId, {
+    ids: approvals.map((approval) => approval.subjectId),
+    states: ["submitted"],
+  })
+}
+
 /**
  * Approved-but-not-yet-paid claims whose `claimDate` falls within
  * `[periodStart, periodEnd]`. Consumed by `payroll-finalize.workflow.ts`
@@ -468,6 +503,7 @@ export async function listApprovedUnpaidClaimsForPeriod(
     claimTypeCode: row.claimTypeCode ?? "",
     claimTypeName: row.claimTypeName ?? "",
     requiresEvidence: row.requiresEvidence ?? false,
+    policyEvidenceRequired: null,
     evidenceCount: 0,
   }))
 }
@@ -533,6 +569,31 @@ export async function findClaimApproval(
     columns: { id: true, state: true, subjectKind: true, subjectId: true },
   })
   return row ?? null
+}
+
+export async function isClaimAssignedApprover(input: {
+  organizationId: string
+  userId: string
+  currentApprovalId: string | null
+}): Promise<boolean> {
+  if (!input.currentApprovalId) return false
+
+  const approval = await db.query.hrmApproval.findFirst({
+    where: and(
+      eq(hrmApproval.organizationId, input.organizationId),
+      eq(hrmApproval.id, input.currentApprovalId),
+      eq(hrmApproval.subjectKind, "claim")
+    ),
+    columns: {
+      state: true,
+      currentApproverUserId: true,
+    },
+  })
+
+  return (
+    approval?.state === "pending" &&
+    approval.currentApproverUserId === input.userId
+  )
 }
 
 // ---------------------------------------------------------------------------

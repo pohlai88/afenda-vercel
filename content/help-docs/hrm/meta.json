@@ -5,11 +5,20 @@
   "pages": [
     "index",
     "employees",
+    "organization",
+    "onboarding",
+    "recruitment",
     "attendance",
     "leave",
+    "benefits",
+    "claims",
     "payroll",
     "performance",
+    "kpi",
+    "advances",
+    "compliance",
     "documents",
-    "imports"
+    "policies",
+    "snapshot"
   ]
 }

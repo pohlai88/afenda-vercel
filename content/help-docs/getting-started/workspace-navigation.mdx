@@ -1,0 +1,63 @@
+---
+title: Workspace navigation
+description: A guide to the Afenda shell — the sidebar, utility bar, command palette, and module routing.
+icon: LayoutDashboard
+---
+
+## Overview
+
+The Afenda shell is persistent across all modules. Once you reach the Nexus workspace, the same chrome — left rail, utility bar, and command layer — stays in place as you navigate between HRM, Contacts, Orbit, and other surfaces.
+
+## Shell elements
+
+| Element | What it does |
+|---|---|
+| **Left rail** | Primary module navigation — HRM, Contacts, Orbit, and more. Collapses to icon-only mode. |
+| **Utility bar** | Organisation switcher, notifications, and account menu — always visible in the top-right corner. |
+| **Command palette** | Global search and quick actions. Searches pages, contacts, employees, and settings in one place. |
+| **Working Memory rail** | Pinned pages and recent visits. Pin any page with the bookmark icon for instant re-access. |
+
+## Opening the command palette
+
+<Steps>
+  <Step>
+    Press `Ctrl K` (Windows / Linux) or `⌘ K` (macOS) from anywhere in the workspace.
+  </Step>
+  <Step>
+    Start typing — results appear instantly across modules, settings, and help topics.
+  </Step>
+  <Step>
+    Use the arrow keys to navigate results and `Enter` to open. Press `Escape` to dismiss.
+  </Step>
+</Steps>
+
+## Switching organisations
+
+If you are a member of more than one organisation, click your **organisation name** in the utility bar to open the org switcher. Selecting a different organisation navigates you to that workspace immediately.
+
+<Callout type="info">
+  Afenda switches organisations with a single click and preserves your session — no re-authentication is required unless your step-up policy requires it.
+</Callout>
+
+## Module URLs
+
+Every module lives under `/{locale}/o/{orgSlug}/dashboard/{module}`. You can bookmark any page — Afenda preserves your position after sign-in via the `callbackUrl` parameter.
+
+## Keyboard shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl K` / `⌘ K` | Open command palette |
+| `Ctrl /` / `⌘ /` | Focus sidebar search |
+| `Escape` | Close dialogs and panels |
+
+## Next steps
+
+<Cards>
+  <Card href="./quick-start" title="Quick start">
+    Review the full account and organisation creation steps.
+  </Card>
+  <Card href="./inviting-your-team" title="Inviting your team">
+    Add colleagues and assign them roles so they can log in.
+  </Card>
+</Cards>

@@ -24,7 +24,8 @@ import { WorkbenchUtilityConnectivityStatus } from "./workbench-utility-connecti
 import { WorkbenchUtilityFeedback } from "./workbench-utility-feedback"
 import { WorkbenchUtilityLayoutDensity } from "./workbench-utility-layout-density"
 import { WorkbenchUtilityLocaleMenu } from "./workbench-utility-locale-menu"
-import { WorkbenchUtilityMessenger } from "./workbench-utility-messenger"
+import { OperationalCoordinationConsole } from "#features/coordination/client"
+import { WorkbenchUtilityMessenger } from "./workbench-utility-messenger.client"
 import { WorkbenchUtilityNetworkDiagnosis } from "./workbench-utility-network-diagnosis"
 import { WorkbenchUtilityNotifications } from "./workbench-utility-notifications"
 import { WorkbenchUtilityRoundTooltipButton } from "./workbench-utility-round-tooltip-button"
@@ -204,6 +205,8 @@ function RightRailWidget({
       return <WorkbenchUtilityFeedback />
     case "right.messenger":
       return <WorkbenchUtilityMessenger orgId={orgId} />
+    case "right.coordination":
+      return <OperationalCoordinationConsole orgId={orgId} />
     case "right.shortcuts":
       return <WorkbenchUtilityShortcuts />
     case "right.help":

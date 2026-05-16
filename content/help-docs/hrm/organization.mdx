@@ -1,0 +1,36 @@
+---
+title: Organization structure
+description: Departments, positions, and job grades — master data that anchors placements, contracts, and reporting lines.
+icon: Network
+---
+
+## Overview
+
+The **organization** surface models how work is structured: departments form a tree, positions describe accountable roles, and job grades express compensation bands. HRM consumes this master data when you assign employees and when downstream modules (leave, payroll, recruitment) resolve context.
+
+## Departments
+
+Departments support a parent/child hierarchy so you can mirror legal entities, cost centres, or regional splits. Each node can carry a **cost centre code** for finance alignment.
+
+## Positions
+
+Positions are the named slots people hold — e.g. “Head of Engineering” or “Payroll Specialist”. Positions can define **reporting lines** so manager relationships stay explicit for approvals and audits.
+
+## Job grades
+
+Job grades group roles that share a compensation philosophy. They are referenced from employment contracts and can gate policy eligibility as the module matures.
+
+<Callout type="info" title="Governed writes">
+  Structural changes write to the IAM audit ledger. Prefer small, intentional edits over bulk rewrites so reviewers can trace intent.
+</Callout>
+
+## Related
+
+<Cards>
+  <Card href="./employees" title="Employees">
+    Placements link employees to departments and positions.
+  </Card>
+  <Card href="./recruitment" title="Recruitment">
+    Requisitions reference departments and headcount targets.
+  </Card>
+</Cards>

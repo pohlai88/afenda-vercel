@@ -902,6 +902,7 @@
         "dryRunNoRowErrors": "No row-level validation errors.",
         "commitSubmit": "Commit import",
         "commitOk": "Import committed successfully.",
+        "commitBlockedHint": "Resolve all row errors and ensure at least one valid row before committing.",
         "rollbackSubmit": "Rollback",
         "rollbackOk": "Import rolled back.",
         "recentTitle": "Recent import sessions",
@@ -2546,6 +2547,7 @@
         }
       },
       "portalClaims": {
+        "portalEmployee": "Employee {employeeNumber}",
         "portalPageTitle": "My claims",
         "portalPageDescription": "Submit expense claims and track approvals.",
         "listTitle": "Recent claims",
@@ -2563,6 +2565,7 @@
         "submit": "Submit",
         "cancel": "Cancel claim",
         "detailTitle": "Claim detail",
+        "viewDetail": "View",
         "timelineTitle": "Status",
         "evidenceTitle": "Evidence",
         "errorTitle": "Could not save"

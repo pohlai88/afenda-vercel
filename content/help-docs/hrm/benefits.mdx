@@ -1,0 +1,32 @@
+---
+title: Benefits
+description: Plans, enrollments, qualifying life events, and open-enrollment windows — admin-gated with IAM audits.
+icon: HeartPulse
+---
+
+## Overview
+
+**Benefits** covers plan catalogs, employee enrollments, and the time windows when changes are allowed. Enrollment mutations are **Server Actions** — there is no shadow REST API — so every commit is attributable.
+
+## Plans & tiers
+
+Plans describe coverage tiers, currencies, and eligibility notes. Administrators maintain the catalog; employees see read-only summaries in the portal where access is granted.
+
+## Open enrollment
+
+Open enrollment windows unlock self-service changes. Outside the window, employees request changes through HR — the portal surfaces the state honestly instead of failing silently.
+
+## Life events
+
+Qualifying life events (marriage, birth, loss of coverage) can unlock mid-year changes when policy allows. Evidence requirements stay explicit to support compliance reviews.
+
+## Related
+
+<Cards>
+  <Card href="./payroll" title="Payroll">
+    Deduction previews consume enrolled benefits where configured.
+  </Card>
+  <Card href="./employees" title="Employees">
+    Enrollment rows always resolve to a workforce subject.
+  </Card>
+</Cards>

@@ -1,3 +1,5 @@
+import { z } from "zod"
+
 export const PAYROLL_CLOSE_EXCEPTION_CODES = [
   "missing_contract",
   "missing_profile",
@@ -119,6 +121,52 @@ export type PayrollPayslipSnapshot = {
   readonly lines: readonly PayrollPayslipSnapshotLine[]
   readonly inputHash: string
   readonly generatedAt: string
+}
+
+export const payrollPayslipSnapshotLineSchema = z.object({
+  lineKind: z.string().min(1),
+  code: z.string().min(1),
+  description: z.string().min(1),
+  amount: z.string().min(1),
+  rulePackProvenance: z.record(z.string(), z.unknown()).nullable(),
+})
+
+export const payrollPayslipDocumentPayloadSchema = z.object({
+  runId: z.string().uuid(),
+  periodId: z.string().uuid(),
+  employeeId: z.string().uuid(),
+  employeeNumber: z.string().min(1),
+  employeeLegalName: z.string().min(1),
+  periodStart: z.string().min(1),
+  periodEnd: z.string().min(1),
+  paymentDate: z.string().min(1),
+  currency: z.string().min(1),
+  rulePackVersion: z.string().nullable(),
+  grossPay: z.string().min(1),
+  netPay: z.string().min(1),
+  employerCost: z.string().min(1),
+  inputDigest: z.string().nullable(),
+  lines: z.array(payrollPayslipSnapshotLineSchema),
+  generatedAt: z.string().min(1),
+})
+
+export type PayrollPayslipDocumentPayload = z.infer<
+  typeof payrollPayslipDocumentPayloadSchema
+>
+
+export function payrollPayslipSnapshotFromDocumentPayload(input: {
+  payload: unknown
+  payloadHash: string
+}): PayrollPayslipSnapshot | null {
+  const parsed = payrollPayslipDocumentPayloadSchema.safeParse(input.payload)
+  if (!parsed.success) {
+    return null
+  }
+
+  return {
+    ...parsed.data,
+    inputHash: input.payloadHash,
+  }
 }
 
 export type PayrollPayslipPersistenceResult = {

@@ -8,6 +8,7 @@ import { requireOrgSession } from "#lib/tenant"
 import {
   buildPayrollCloseSnapshot,
   derivePayrollTraceability,
+  getPayrollPostingRecord,
   getPendingPayrollPeriodLockApprovalId,
   hasApprovedPayrollPeriodLockApproval,
   isAttendancePayrollReadyForPeriod,
@@ -18,6 +19,7 @@ import {
 import type {
   PayrollPeriodRow,
   PayrollPeriodTraceability,
+  PayrollPostingRecord,
   PayrollRunRow,
   PayrollCloseSnapshot,
 } from "#features/hrm/server"
@@ -50,6 +52,7 @@ export default async function OrgDashboardHrmPayrollPage() {
   const periodRuns = new Map<string, PayrollRunRow[]>()
   const periodTraceability = new Map<string, PayrollPeriodTraceability>()
   const periodCloseSnapshots = new Map<string, PayrollCloseSnapshot | null>()
+  const periodPostingRecords = new Map<string, PayrollPostingRecord | null>()
   const periodPendingLockApprovalIds = new Map<string, string | null>()
 
   await Promise.all(
@@ -66,6 +69,7 @@ export default async function OrgDashboardHrmPayrollPage() {
         pendingLockApprovalId,
         approvedUnpaidClaims,
         closeSnapshot,
+        postingRecord,
       ] = await Promise.all([
         isAttendancePayrollReadyForPeriod({
           organizationId: session.organizationId,
@@ -86,10 +90,15 @@ export default async function OrgDashboardHrmPayrollPage() {
           organizationId: session.organizationId,
           periodId: period.id,
         }),
+        getPayrollPostingRecord({
+          organizationId: session.organizationId,
+          periodId: period.id,
+        }),
       ])
 
       periodPendingLockApprovalIds.set(period.id, pendingLockApprovalId)
       periodCloseSnapshots.set(period.id, closeSnapshot)
+      periodPostingRecords.set(period.id, postingRecord)
 
       periodTraceability.set(
         period.id,
@@ -116,6 +125,7 @@ export default async function OrgDashboardHrmPayrollPage() {
         periodRuns={periodRuns}
         periodTraceability={periodTraceability}
         periodCloseSnapshots={periodCloseSnapshots}
+        periodPostingRecords={periodPostingRecords}
         periodPendingLockApprovalIds={periodPendingLockApprovalIds}
       />
     </div>

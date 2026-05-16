@@ -31,6 +31,7 @@ export type UtilityBarItemId =
   | "upload"
   | "diagnosis"
   | "messenger"
+  | "coordination"
 
 /** Describes one configurable right-rail item in the catalog. */
 export type UtilityBarItemDef = {
@@ -233,11 +234,24 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
   {
     id: "messenger",
     label: "Messenger",
-    description: "Async in-app messaging.",
+    description: "Organization conversations — direct and group.",
     iconName: "MessageCircle",
     section: "utilities",
-    defaultVisible: false,
+    defaultVisible: true,
     defaultOrder: 15,
     isLink: false,
+    searchAliases: ["chat", "dm", "group chat", "conversations"],
+  },
+  {
+    id: "coordination",
+    label: "Operational coordination",
+    description:
+      "Coordination contexts with linked records and evidence trails.",
+    iconName: "ScanSearch",
+    section: "utilities",
+    defaultVisible: false,
+    defaultOrder: 16,
+    isLink: false,
+    searchAliases: ["evidence", "review", "linked record", "coordination"],
   },
 ] as const

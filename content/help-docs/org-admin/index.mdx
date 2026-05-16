@@ -1,0 +1,32 @@
+---
+title: Org admin
+description: Manage members, roles, integrations, audit logs, and organisation-wide settings.
+icon: Settings
+---
+
+## What is Org admin?
+
+Org admin is the control plane for your Afenda organisation. It covers everything an organisation owner or administrator needs to govern access, review compliance, and configure workspace-wide settings.
+
+<Callout type="info" title="Coming soon">
+  Detailed per-section documentation — members & roles, integrations, audit log, and settings — is being written and will appear here soon.
+</Callout>
+
+## Capabilities
+
+| Section | Description |
+|---|---|
+| **Members & roles** | Invite team members, assign roles (Member / Admin / Owner), and manage pending invitations |
+| **Audit log** | Immutable chronological record of every data access and mutation across all modules |
+| **Integrations** | Connect third-party services and configure webhooks for your organisation |
+| **Settings** | Organisation name, timezone, branding, and data retention configuration |
+
+## Who can access Org admin?
+
+The Org admin area is accessible to members with the **Admin** or **Owner** role. Platform-level controls are reserved for the **Owner** role only.
+
+To reach Org admin, open the left-hand rail and select **Admin**, or navigate directly to `/o/{orgSlug}/admin`.
+
+## Audit trail
+
+Every action taken in Org admin is logged to the immutable audit trail with the actor's identity, timestamp, and affected resource. The audit log is accessible under **Org admin → Audit** and is available for export.

@@ -1146,6 +1146,84 @@ export const orgCoordinationActivity = pgTable(
   ]
 )
 
+/** Org-scoped chat rooms (direct or group) — durable source of truth; realtime fan-out via Ably. */
+export const messengerRoom = pgTable(
+  "messenger_room",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    kind: text("kind").notNull(),
+    name: text("name"),
+    createdByUserId: text("createdByUserId").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    lastMessageAt: timestamp("lastMessageAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("messenger_room_organizationId_lastMessageAt_idx").on(
+      t.organizationId,
+      t.lastMessageAt
+    ),
+    check(
+      "messenger_room_kind_chk",
+      sql`${t.kind} IN ('direct', 'group')`
+    ),
+  ]
+)
+
+export const messengerRoomMember = pgTable(
+  "messenger_room_member",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    roomId: text("roomId")
+      .notNull()
+      .references(() => messengerRoom.id, { onDelete: "cascade" }),
+    userId: text("userId").notNull(),
+    joinedAt: timestamp("joinedAt", { mode: "date" }).notNull().defaultNow(),
+    lastReadAt: timestamp("lastReadAt", { mode: "date" }),
+  },
+  (t) => [
+    uniqueIndex("messenger_room_member_roomId_userId_uidx").on(
+      t.roomId,
+      t.userId
+    ),
+    index("messenger_room_member_userId_lastReadAt_idx").on(
+      t.userId,
+      t.lastReadAt
+    ),
+  ]
+)
+
+export const messengerMessage = pgTable(
+  "messenger_message",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    roomId: text("roomId")
+      .notNull()
+      .references(() => messengerRoom.id, { onDelete: "cascade" }),
+    organizationId: text("organizationId").notNull(),
+    authorUserId: text("authorUserId").notNull(),
+    body: text("body").notNull().default(""),
+    editedAt: timestamp("editedAt", { mode: "date" }),
+    deletedAt: timestamp("deletedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    ablyMessageSerial: text("ablyMessageSerial"),
+  },
+  (t) => [
+    index("messenger_message_organizationId_createdAt_idx").on(
+      t.organizationId,
+      t.createdAt
+    ),
+    index("messenger_message_roomId_createdAt_idx").on(t.roomId, t.createdAt),
+  ]
+)
+
 /**
  * Demo dataset for Lynx **natural language → SQL** (Vercel Labs pattern).
  * Org-scoped only; guarded execution allowlists this table in `nl-sql-demo-guard`.
@@ -1784,6 +1862,10 @@ export const hrmReviewCycle = pgTable(
     state: text("state").notNull().default("draft"),
     /** `single` = one reviewer submit; `three_stage` = self → manager → HR before final submit. */
     reviewPipeline: text("reviewPipeline").notNull().default("single"),
+    activatedAt: timestamp("activatedAt", { mode: "date" }),
+    activatedByUserId: text("activatedByUserId"),
+    closedAt: timestamp("closedAt", { mode: "date" }),
+    closedByUserId: text("closedByUserId"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
     createdByUserId: text("createdByUserId"),
@@ -1807,7 +1889,7 @@ export const hrmReview = pgTable(
       .notNull()
       .references(() => hrmEmployee.id, { onDelete: "restrict" }),
     reviewerId: text("reviewerId").notNull(),
-    state: text("state").notNull().default("pending"),
+    state: text("state").notNull().default("manager_pending"),
     rating: text("rating"),
     notes: text("notes"),
     selfRating: text("selfRating"),
@@ -1822,6 +1904,10 @@ export const hrmReview = pgTable(
     /** e.g. text | stars_5 — governs UI copy for staged reviews. */
     ratingScale: text("ratingScale").notNull().default("text"),
     competencyScoresJson: jsonb("competencyScoresJson"),
+    closedAt: timestamp("closedAt", { mode: "date" }),
+    closedByUserId: text("closedByUserId"),
+    cancelledAt: timestamp("cancelledAt", { mode: "date" }),
+    cancelledByUserId: text("cancelledByUserId"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
@@ -1896,6 +1982,38 @@ export const hrmEmployeeChangeHistory = pgTable(
   ]
 )
 
+/** KPI metric catalog — canonical metric definitions for typed employee scores. */
+export const hrmKpiMetric = pgTable(
+  "hrm_kpi_metric",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    unit: text("unit").notNull().default("count"),
+    valueType: text("valueType").notNull().default("decimal"),
+    direction: text("direction").notNull().default("higher_is_better"),
+    aggregation: text("aggregation").notNull().default("sum"),
+    defaultWeight: decimal("defaultWeight", { precision: 9, scale: 4 })
+      .notNull()
+      .default("1.0000"),
+    state: text("state").notNull().default("active"),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    archivedByUserId: text("archivedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_kpi_metric_org_code_uidx").on(t.organizationId, t.code),
+    index("hrm_kpi_metric_org_state_idx").on(t.organizationId, t.state),
+  ]
+)
+
 /** KPI planning period (org-scoped). */
 export const hrmKpiPeriod = pgTable(
   "hrm_kpi_period",
@@ -1908,6 +2026,14 @@ export const hrmKpiPeriod = pgTable(
     periodStart: date("periodStart", { mode: "date" }).notNull(),
     periodEnd: date("periodEnd", { mode: "date" }).notNull(),
     state: text("state").notNull().default("draft"),
+    activatedAt: timestamp("activatedAt", { mode: "date" }),
+    activatedByUserId: text("activatedByUserId"),
+    lockedAt: timestamp("lockedAt", { mode: "date" }),
+    lockedByUserId: text("lockedByUserId"),
+    closedAt: timestamp("closedAt", { mode: "date" }),
+    closedByUserId: text("closedByUserId"),
+    evidenceSnapshot: jsonb("evidenceSnapshot"),
+    evidenceHash: text("evidenceHash"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
     createdByUserId: text("createdByUserId"),
@@ -1930,9 +2056,18 @@ export const hrmKpiScore = pgTable(
     employeeId: text("employeeId")
       .notNull()
       .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    metricId: text("metricId").references(() => hrmKpiMetric.id, {
+      onDelete: "restrict",
+    }),
     metricCode: text("metricCode").notNull(),
     targetValue: text("targetValue"),
     achievedValue: text("achievedValue"),
+    targetNumeric: decimal("targetNumeric", { precision: 18, scale: 6 }),
+    achievedNumeric: decimal("achievedNumeric", { precision: 18, scale: 6 }),
+    varianceNumeric: decimal("varianceNumeric", { precision: 18, scale: 6 }),
+    scorePercent: decimal("scorePercent", { precision: 9, scale: 4 }),
+    weight: decimal("weight", { precision: 9, scale: 4 }),
+    weightedScore: decimal("weightedScore", { precision: 18, scale: 6 }),
     notes: text("notes"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
@@ -1949,6 +2084,109 @@ export const hrmKpiScore = pgTable(
     index("hrm_kpi_score_organizationId_periodId_idx").on(
       t.organizationId,
       t.periodId
+    ),
+    index("hrm_kpi_score_org_period_metricId_idx").on(
+      t.organizationId,
+      t.periodId,
+      t.metricId
+    ),
+  ]
+)
+
+/**
+ * KPI personal goals (BambooHR-style) — parallel ledger to quantitative KPI scores.
+ * Milestones and comments are child rows; `hrm_kpi_metric` / `hrm_kpi_score` remain the scorecard.
+ */
+export const hrmKpiGoal = pgTable(
+  "hrm_kpi_goal",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    ownerEmployeeId: text("ownerEmployeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    status: text("status").notNull().default("in_progress"),
+    percentComplete: integer("percentComplete").notNull().default(0),
+    dueDate: date("dueDate", { mode: "date" }).notNull(),
+    completionDate: date("completionDate", { mode: "date" }),
+    alignsWithGoalId: text("alignsWithGoalId"),
+    sharedWithEmployeeIds: jsonb("sharedWithEmployeeIds")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId").notNull(),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.alignsWithGoalId],
+      foreignColumns: [t.id],
+    }).onDelete("set null"),
+    check(
+      "hrm_kpi_goal_status_chk",
+      sql`${t.status} IN ('in_progress', 'completed', 'closed')`
+    ),
+    check(
+      "hrm_kpi_goal_percent_chk",
+      sql`${t.percentComplete} >= 0 AND ${t.percentComplete} <= 100`
+    ),
+    index("hrm_kpi_goal_org_owner_idx").on(t.organizationId, t.ownerEmployeeId),
+    index("hrm_kpi_goal_org_status_idx").on(t.organizationId, t.status),
+    index("hrm_kpi_goal_org_dueDate_idx").on(t.organizationId, t.dueDate),
+  ]
+)
+
+export const hrmKpiGoalMilestone = pgTable(
+  "hrm_kpi_goal_milestone",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    goalId: text("goalId")
+      .notNull()
+      .references(() => hrmKpiGoal.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    sortOrder: integer("sortOrder").notNull().default(0),
+    startValue: decimal("startValue", { precision: 18, scale: 6 }),
+    endValue: decimal("endValue", { precision: 18, scale: 6 }),
+    currentValue: decimal("currentValue", { precision: 18, scale: 6 }),
+    completedAt: timestamp("completedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_kpi_goal_milestone_org_goal_idx").on(t.organizationId, t.goalId),
+  ]
+)
+
+export const hrmKpiGoalComment = pgTable(
+  "hrm_kpi_goal_comment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    goalId: text("goalId")
+      .notNull()
+      .references(() => hrmKpiGoal.id, { onDelete: "cascade" }),
+    authorUserId: text("authorUserId").notNull(),
+    commentText: text("commentText").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_kpi_goal_comment_org_goal_createdAt_idx").on(
+      t.organizationId,
+      t.goalId,
+      t.createdAt
     ),
   ]
 )
@@ -2248,6 +2486,10 @@ export const hrmApplication = pgTable(
       .notNull()
       .references(() => hrmJobRequisition.id, { onDelete: "restrict" }),
     stage: text("stage").notNull().default("applied"),
+    convertedEmployeeId: text("convertedEmployeeId").references(
+      () => hrmEmployee.id,
+      { onDelete: "set null" }
+    ),
     audit7w1h: jsonb("audit7w1h"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
@@ -2264,6 +2506,10 @@ export const hrmApplication = pgTable(
     index("hrm_application_org_requisition_idx").on(
       t.organizationId,
       t.requisitionId
+    ),
+    index("hrm_application_org_converted_employee_idx").on(
+      t.organizationId,
+      t.convertedEmployeeId
     ),
   ]
 )
@@ -2299,6 +2545,74 @@ export const hrmInterview = pgTable(
   ]
 )
 
+export const hrmJobOffer = pgTable(
+  "hrm_job_offer",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    applicationId: text("applicationId")
+      .notNull()
+      .references(() => hrmApplication.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("draft"),
+    compensationAmount: decimal("compensationAmount", {
+      precision: 15,
+      scale: 2,
+    }),
+    compensationCurrency: text("compensationCurrency").notNull().default("MYR"),
+    proposedStartDate: date("proposedStartDate", { mode: "date" }),
+    expiresAt: timestamp("expiresAt", { mode: "date" }),
+    notes: text("notes"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_job_offer_org_application_idx").on(
+      t.organizationId,
+      t.applicationId
+    ),
+    index("hrm_job_offer_org_status_idx").on(t.organizationId, t.status),
+    index("hrm_job_offer_org_expires_idx").on(t.organizationId, t.expiresAt),
+  ]
+)
+
+export const hrmRecruitmentEvent = pgTable(
+  "hrm_recruitment_event",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    subjectKind: text("subjectKind").notNull(),
+    subjectId: text("subjectId").notNull(),
+    eventType: text("eventType").notNull(),
+    fromState: text("fromState"),
+    toState: text("toState"),
+    actorUserId: text("actorUserId"),
+    metadata: jsonb("metadata").notNull().default({}),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_recruitment_event_org_subject_idx").on(
+      t.organizationId,
+      t.subjectKind,
+      t.subjectId
+    ),
+    index("hrm_recruitment_event_org_created_idx").on(
+      t.organizationId,
+      t.createdAt
+    ),
+    index("hrm_recruitment_event_org_type_idx").on(
+      t.organizationId,
+      t.eventType
+    ),
+  ]
+)
+
 export const hrmOffboardingInstance = pgTable(
   "hrm_offboarding_instance",
   {
@@ -2325,6 +2639,211 @@ export const hrmOffboardingInstance = pgTable(
     ),
     index("hrm_offboarding_instance_org_status_idx").on(
       t.organizationId,
+      t.status
+    ),
+  ]
+)
+
+export const hrmBoardingTemplate = pgTable(
+  "hrm_boarding_template",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    kind: text("kind").notNull(),
+    code: text("code").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    status: text("status").notNull().default("draft"),
+    versionNumber: integer("versionNumber").notNull().default(1),
+    appliesTo: jsonb("appliesTo")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_boarding_template_org_kind_code_uidx").on(
+      t.organizationId,
+      t.kind,
+      t.code
+    ),
+    index("hrm_boarding_template_org_kind_status_idx").on(
+      t.organizationId,
+      t.kind,
+      t.status
+    ),
+  ]
+)
+
+export const hrmBoardingTemplateTask = pgTable(
+  "hrm_boarding_template_task",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    templateId: text("templateId")
+      .notNull()
+      .references(() => hrmBoardingTemplate.id, { onDelete: "cascade" }),
+    taskKey: text("taskKey").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    ownerRole: text("ownerRole"),
+    ownerUserId: text("ownerUserId"),
+    dueOffsetDays: integer("dueOffsetDays").notNull().default(0),
+    required: boolean("required").notNull().default(true),
+    category: text("category").notNull().default("hr"),
+    sortOrder: integer("sortOrder").notNull().default(0),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_boarding_template_task_org_template_key_uidx").on(
+      t.organizationId,
+      t.templateId,
+      t.taskKey
+    ),
+    index("hrm_boarding_template_task_org_template_idx").on(
+      t.organizationId,
+      t.templateId
+    ),
+  ]
+)
+
+export const hrmBoardingInstance = pgTable(
+  "hrm_boarding_instance",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    kind: text("kind").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    contractId: text("contractId").references(() => hrmEmploymentContract.id, {
+      onDelete: "set null",
+    }),
+    status: text("status").notNull().default("pending"),
+    templateId: text("templateId").references(() => hrmBoardingTemplate.id, {
+      onDelete: "set null",
+    }),
+    sourceTemplateCode: text("sourceTemplateCode"),
+    sourceTemplateVersion: integer("sourceTemplateVersion")
+      .notNull()
+      .default(1),
+    startedAt: timestamp("startedAt", { mode: "date" }),
+    completedAt: timestamp("completedAt", { mode: "date" }),
+    cancelledAt: timestamp("cancelledAt", { mode: "date" }),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_boarding_instance_org_kind_status_idx").on(
+      t.organizationId,
+      t.kind,
+      t.status
+    ),
+    index("hrm_boarding_instance_org_employee_kind_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.kind
+    ),
+    index("hrm_boarding_instance_org_contract_kind_idx").on(
+      t.organizationId,
+      t.contractId,
+      t.kind
+    ),
+    uniqueIndex("hrm_boarding_instance_org_kind_employee_contract_open_uidx")
+      .on(t.organizationId, t.kind, t.employeeId, t.contractId)
+      .where(sql`"status" in ('pending', 'in_progress', 'blocked')`),
+  ]
+)
+
+export const hrmBoardingTask = pgTable(
+  "hrm_boarding_task",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    instanceId: text("instanceId")
+      .notNull()
+      .references(() => hrmBoardingInstance.id, { onDelete: "cascade" }),
+    templateTaskId: text("templateTaskId").references(
+      () => hrmBoardingTemplateTask.id,
+      { onDelete: "set null" }
+    ),
+    taskKey: text("taskKey").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    status: text("status").notNull().default("pending"),
+    ownerRole: text("ownerRole"),
+    ownerUserId: text("ownerUserId"),
+    dueAt: date("dueAt", { mode: "date" }),
+    required: boolean("required").notNull().default(true),
+    category: text("category").notNull().default("hr"),
+    sortOrder: integer("sortOrder").notNull().default(0),
+    blockedReason: text("blockedReason"),
+    blockedAt: timestamp("blockedAt", { mode: "date" }),
+    blockedByUserId: text("blockedByUserId"),
+    completedAt: timestamp("completedAt", { mode: "date" }),
+    completedByUserId: text("completedByUserId"),
+    waivedAt: timestamp("waivedAt", { mode: "date" }),
+    waivedByUserId: text("waivedByUserId"),
+    waiverReason: text("waiverReason"),
+    evidenceDocumentId: text("evidenceDocumentId").references(
+      () => hrmDocument.id,
+      { onDelete: "set null" }
+    ),
+    evidenceNote: text("evidenceNote"),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_boarding_task_org_instance_key_uidx").on(
+      t.organizationId,
+      t.instanceId,
+      t.taskKey
+    ),
+    index("hrm_boarding_task_org_instance_status_idx").on(
+      t.organizationId,
+      t.instanceId,
+      t.status
+    ),
+    index("hrm_boarding_task_org_owner_role_status_idx").on(
+      t.organizationId,
+      t.ownerRole,
+      t.status
+    ),
+    index("hrm_boarding_task_org_due_status_idx").on(
+      t.organizationId,
+      t.dueAt,
       t.status
     ),
   ]
@@ -2842,6 +3361,9 @@ export const hrmPayrollPeriod = pgTable(
     finalizedRunId: text("finalizedRunId"),
     /** Composite rule pack version snapshot — e.g. "MY-2026-01". Null until period locks. */
     rulePackVersion: text("rulePackVersion"),
+    postedByUserId: text("postedByUserId"),
+    postedAt: timestamp("postedAt", { mode: "date" }),
+    postedJournalBatchId: text("postedJournalBatchId"),
     temporalPast: jsonb("temporalPast"),
     temporalNow: jsonb("temporalNow"),
     temporalNext: jsonb("temporalNext"),
@@ -2997,6 +3519,79 @@ export const hrmPayrollLine = pgTable(
     ),
     index("hrm_payroll_line_claim_id_idx").on(t.claimId),
     index("hrm_payroll_line_salary_advance_id_idx").on(t.salaryAdvanceId),
+  ]
+)
+
+// ---------------------------------------------------------------------------
+// Payroll-originated accounting posting foundation
+// ---------------------------------------------------------------------------
+
+/**
+ * Narrow accounting journal foundation for governed source posting.
+ *
+ * First slice is intentionally limited to payroll-period posting
+ * (`sourceModule=hrm`, `sourceObject=payroll_period`). Lines are stored as a
+ * typed JSON payload so one row is sufficient for idempotent serverless
+ * posting with Neon HTTP.
+ */
+export const accountingJournalBatch = pgTable(
+  "accounting_journal_batch",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    sourceModule: text("sourceModule").notNull(),
+    sourceObject: text("sourceObject").notNull(),
+    sourceId: text("sourceId").notNull(),
+    reference: text("reference").notNull(),
+    currency: text("currency").notNull(),
+    sourceHash: text("sourceHash").notNull(),
+    closeSnapshotHash: text("closeSnapshotHash").notNull(),
+    totalDebits: decimal("totalDebits", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0"),
+    totalCredits: decimal("totalCredits", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0"),
+    netBalance: decimal("netBalance", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0"),
+    journalLines: jsonb("journalLines")
+      .$type<
+        Array<{
+          lineNumber: number
+          accountCode: string
+          accountName: string
+          side: "debit" | "credit"
+          amount: string
+          source: string
+        }>
+      >()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    postedByUserId: text("postedByUserId"),
+    postedAt: timestamp("postedAt", { mode: "date" }).notNull().defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("accounting_journal_batch_org_source_uidx").on(
+      t.organizationId,
+      t.sourceModule,
+      t.sourceObject,
+      t.sourceId
+    ),
+    index("accounting_journal_batch_org_postedAt_idx").on(
+      t.organizationId,
+      t.postedAt
+    ),
+    index("accounting_journal_batch_source_idx").on(
+      t.sourceModule,
+      t.sourceObject,
+      t.sourceId
+    ),
   ]
 )
 
@@ -3304,11 +3899,9 @@ export const hrmBenefitEnrollment = pgTable(
     updatedByUserId: text("updatedByUserId"),
   },
   (t) => [
-    uniqueIndex("hrm_benefit_enrollment_org_benefit_employee_uidx").on(
-      t.organizationId,
-      t.benefitId,
-      t.employeeId
-    ),
+    uniqueIndex("hrm_benefit_enrollment_org_benefit_employee_active_uidx")
+      .on(t.organizationId, t.benefitId, t.employeeId)
+      .where(sql`${t.state} in ('pending', 'active')`),
     index("hrm_benefit_enrollment_org_employee_idx").on(
       t.organizationId,
       t.employeeId
@@ -3853,11 +4446,11 @@ export const organizationPortalAccess = pgTable(
       t.userId,
       t.audience
     ),
-    uniqueIndex(
-      "organization_portal_access_portal_audience_subject_active_uidx"
-    )
-      .on(t.portalId, t.audience, t.subjectId)
-      .where(sql`${t.status} = 'active' AND ${t.subjectId} IS NOT NULL`),
+    uniqueIndex("organization_portal_access_employee_subject_active_uidx")
+      .on(t.portalId, t.subjectId)
+      .where(
+        sql`${t.status} = 'active' AND ${t.audience} = 'employee' AND ${t.subjectId} IS NOT NULL`
+      ),
     index("organization_portal_access_org_user_status_idx").on(
       t.organizationId,
       t.userId,

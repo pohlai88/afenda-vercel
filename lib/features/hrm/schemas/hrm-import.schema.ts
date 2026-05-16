@@ -12,6 +12,35 @@ export const hrmImportSessionStatusSchema = z.enum([
   "rolled_back",
 ])
 
+/** JSON body for `POST /api/erp/hrm/import` on success (200). */
+export const hrmImportDryRunSuccessResponseSchema = z.object({
+  ok: z.literal(true),
+  sessionId: z.string().min(1),
+  rowCount: z.number().int().nonnegative(),
+  errors: z.array(
+    z.object({
+      line: z.number().int().nonnegative(),
+      message: z.string(),
+    })
+  ),
+})
+
+export type HrmImportDryRunSuccessResponse = z.infer<
+  typeof hrmImportDryRunSuccessResponseSchema
+>
+
+export const hrmImportDryRunErrorResponseSchema = z.object({
+  error: z.string(),
+})
+
+export function parseHrmImportDryRunErrorMessage(
+  body: unknown,
+  fallback: string
+): string {
+  const parsed = hrmImportDryRunErrorResponseSchema.safeParse(body)
+  return parsed.success ? parsed.data.error : fallback
+}
+
 /** Stored on `hrm_import_session.rollbackJson` after dry-run (and extended after commit). */
 export const hrmImportRollbackJsonSchema = z.discriminatedUnion("kind", [
   z.object({

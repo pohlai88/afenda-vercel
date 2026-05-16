@@ -105,6 +105,9 @@ describe("portal foundation contract", () => {
     expect(employeePortalPath("acme-employee", "leave")).toBe(
       "/p/acme-employee/employee/leave"
     )
+    expect(employeePortalPath("acme-employee", "payslips")).toBe(
+      "/p/acme-employee/employee/payslips"
+    )
     expect(toLocalePortalRevalidatePattern("/employee/leave")).toBe(
       "/[locale]/p/[portalSlug]/employee/leave"
     )
@@ -235,11 +238,14 @@ describe("portal foundation contract", () => {
       "organization_portal_org_audience_active_uidx"
     )
     expect(schemaSource).toContain(
-      "organization_portal_access_portal_audience_subject_active_uidx"
+      "organization_portal_access_employee_subject_active_uidx"
     )
     expect(schemaSource).toContain("sql`${t.status} = 'active'`")
     expect(schemaSource).toContain(
-      "sql`${t.status} = 'active' AND ${t.subjectId} IS NOT NULL`"
+      "sql`${t.status} = 'active' AND ${t.audience} = 'employee' AND ${t.subjectId} IS NOT NULL`"
+    )
+    expect(schemaSource).not.toContain(
+      "organization_portal_access_portal_audience_subject_active_uidx"
     )
 
     expect(migrationSource).toContain(
@@ -250,6 +256,22 @@ describe("portal foundation contract", () => {
     )
     expect(migrationSource).toContain("WHERE \"status\" = 'active'")
     expect(migrationSource).toContain('"subjectId" IS NOT NULL')
+
+    const hardeningMigrationSource = readFileSync(
+      join(
+        process.cwd(),
+        "drizzle",
+        "0048_portal_employee_access_uniqueness.sql"
+      ),
+      "utf8"
+    )
+    expect(hardeningMigrationSource).toContain(
+      'DROP INDEX IF EXISTS "organization_portal_access_portal_audience_subject_active_uidx"'
+    )
+    expect(hardeningMigrationSource).toContain(
+      '"organization_portal_access_employee_subject_active_uidx"'
+    )
+    expect(hardeningMigrationSource).toContain("\"audience\" = 'employee'")
   })
 
   it("dispatches employee portal roots to leave self-service", () => {
@@ -283,6 +305,8 @@ describe("portal foundation contract", () => {
       "page.tsx",
       join("employee", "page.tsx"),
       join("employee", "leave", "page.tsx"),
+      join("employee", "payslips", "page.tsx"),
+      join("employee", "payslips", "[documentId]", "page.tsx"),
     ]
       .map((file) => readFileSync(join(routeRoot, file), "utf8"))
       .join("\n")

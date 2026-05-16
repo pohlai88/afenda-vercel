@@ -6,8 +6,8 @@ import { accountingFilterSchema } from "../schemas/accounting-filter.schema"
 import type { AccountingActionState } from "../types"
 
 /**
- * Tenant-guarded placeholder action. It validates the submitted shape and then
- * returns an expected failure until accounting foundation tables are introduced.
+ * Tenant-guarded placeholder action. Manual accounting entry stays out of scope
+ * for this slice even though payroll-originated posting is now persisted.
  */
 export async function postEntry(
   _prevState: AccountingActionState,
@@ -31,7 +31,7 @@ export async function postEntry(
   return {
     ok: false,
     error:
-      "Accounting posting is not available until the foundation tables ship.",
+      "Manual accounting posting is not available in this slice. Only payroll-originated governed posting is enabled.",
     code: "accounting_foundation_only",
   }
 }

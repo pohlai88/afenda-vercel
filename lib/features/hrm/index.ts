@@ -39,10 +39,14 @@ export {
 
 export {
   HRM_IMPORT_TYPES,
+  hrmImportDryRunErrorResponseSchema,
+  hrmImportDryRunSuccessResponseSchema,
   hrmImportRollbackJsonSchema,
   hrmImportTypeSchema,
+  parseHrmImportDryRunErrorMessage,
 } from "./schemas/hrm-import.schema"
 export type {
+  HrmImportDryRunSuccessResponse,
   HrmImportRollbackJson,
   HrmImportType,
 } from "./schemas/hrm-import.schema"
@@ -190,6 +194,21 @@ export type {
 export { buildBenefitPlanEnterpriseVersion } from "./data/benefit-plan-version.shared"
 export type { BenefitPlanEnterpriseVersion } from "./data/benefit-plan-version.shared"
 export {
+  buildBenefitCensusReportForOrganization,
+  evaluateBenefitEligibilityForEmployee,
+  getBenefitPlanEnterpriseVersionForOrganization,
+  listBenefitPayrollProjectionEnrollmentsForPeriod,
+  listBenefitPlanEnterpriseVersionsForOrganization,
+  projectBenefitPayrollLinesForEmployeePeriod,
+} from "./data/benefit-enterprise.queries.server"
+export type {
+  BenefitEligibilityEvaluation,
+  BenefitPayrollProjectionQueryOptions,
+  BuildBenefitCensusReportForOrganizationOptions,
+  EvaluateBenefitEligibilityForEmployeeOptions,
+  ListBenefitPlanEnterpriseVersionsForOrganizationOptions,
+} from "./data/benefit-enterprise.queries.server"
+export {
   evaluateBenefitEligibility,
   parseBenefitEligibilityRules,
   summarizeBenefitEligibilityFailure,
@@ -225,6 +244,7 @@ export type {
 } from "./data/benefit-payroll-projection.shared"
 export { buildBenefitCensusReport } from "./data/benefit-reporting.shared"
 export type { BenefitCensusReport } from "./data/benefit-reporting.shared"
+export { payrollPayslipSnapshotFromDocumentPayload } from "./data/payroll-close.shared"
 export { HRM_NAV_NAMESPACE } from "./types"
 
 export {
@@ -268,6 +288,13 @@ export { ClaimsPage } from "./components/claims-page"
 export { DocumentsPage } from "./components/documents-page"
 export { EmployeeDetailPage } from "./components/employee-detail-page"
 export { EmployeePortalLeavePage } from "./components/employee-portal-leave-page"
+export { EmployeePortalPayslipDetailPage } from "./components/employee-portal-payslip-detail-page"
+export { EmployeePortalPayslipsPage } from "./components/employee-portal-payslips-page"
+export { EmployeePortalClaimsPage } from "./components/employee-portal-claims-page"
+export { EmployeePortalClaimDetailPage } from "./components/employee-portal-claim-detail-page"
+export { EmployeePortalBenefitsPage } from "./components/employee-portal-benefits-page"
+export { EmployeePortalAttendancePage } from "./components/employee-portal-attendance-page"
+export { EmployeePortalDocumentsPage } from "./components/employee-portal-documents-page"
 export { LeavePage } from "./components/leave-page"
 export { PoliciesPage } from "./components/policies-page"
 export { OrganizationPage } from "./components/organization-page"
@@ -284,6 +311,37 @@ export { ComplianceEvidenceDetailPage } from "./components/compliance-evidence-d
 export { BenefitsPage } from "./components/benefits-page"
 export { HrmImportsPage } from "./components/hrm-imports-page"
 export { RecruitmentPage } from "./components/recruitment-page"
+export {
+  HRM_APPLICATION_STAGES,
+  HRM_INTERVIEW_OUTCOMES,
+  HRM_JOB_OFFER_STATUSES,
+  HRM_JOB_REQUISITION_STATUSES,
+  advanceApplicationStageFormSchema,
+  cancelJobRequisitionFormSchema,
+  convertAcceptedOfferFormSchema,
+  createCandidateApplicationFormSchema,
+  createJobOfferFormSchema,
+  createJobRequisitionFormSchema,
+  publishJobRequisitionFormSchema,
+  scheduleInterviewFormSchema,
+  submitInterviewFeedbackFormSchema,
+  updateJobOfferStatusFormSchema,
+} from "./schemas/recruitment.schema"
+export type {
+  HrmApplicationStage,
+  HrmInterviewOutcome,
+  HrmJobOfferStatus,
+  HrmJobRequisitionStatus,
+} from "./schemas/recruitment.schema"
+export {
+  APPLICATION_STAGE_TRANSITIONS,
+  OFFER_STATUS_TRANSITIONS,
+  REQUISITION_STATUS_TRANSITIONS,
+  canTransitionApplicationStage,
+  canTransitionOfferStatus,
+  canTransitionRequisitionStatus,
+  nextApplicationStageLabel,
+} from "./data/recruitment-workflow.shared"
 /** Cross-period compliance operational health (Suspense-streamed). */
 export { ComplianceOperationalHealth } from "./components/compliance-operational-health"
 export { ComplianceOperationalHealthSkeleton } from "./components/compliance-operational-health-skeleton"

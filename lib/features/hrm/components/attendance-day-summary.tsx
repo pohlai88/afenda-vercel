@@ -9,7 +9,9 @@ import { requireOrgSession } from "#lib/tenant"
 
 import {
   attendanceDayStateTone,
+  attendanceSnapshotHasPayrollBlockingException,
   formatMinutesAsHoursMinutes,
+  readAttendanceShiftSnapshot,
 } from "../data/attendance-display.shared"
 import { attendanceSnapshotExceptionCount } from "../data/attendance-shift.shared"
 import {
@@ -120,6 +122,10 @@ export async function AttendanceDaySummary({
     ? t(`state.${row.state}`)
     : row.state
   const isLocked = row.state === "locked"
+  const isPayrollBlocked = attendanceSnapshotHasPayrollBlockingException(
+    row.calculationSnapshot
+  )
+  const shiftSnapshot = readAttendanceShiftSnapshot(row.calculationSnapshot)
   const exceptionCount = attendanceSnapshotExceptionCount(
     row.calculationSnapshot
   )
@@ -128,6 +134,11 @@ export async function AttendanceDaySummary({
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline gap-2">
         <Badge variant={stateVariant}>{stateLabel}</Badge>
+        <Badge variant={isPayrollBlocked ? "destructive" : "success"}>
+          {isPayrollBlocked
+            ? t("payrollBlockedLabel")
+            : t("payrollReadyLabel")}
+        </Badge>
         {row.absenceCode ? (
           <Badge variant="outline">
             {t("absenceCodeLabel")} · {row.absenceCode}
@@ -203,6 +214,37 @@ export async function AttendanceDaySummary({
           </code>
         </p>
       ) : null}
+
+      {shiftSnapshot ? (
+        <div className="rounded-md border border-border bg-muted/20 p-3">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <Badge variant="info">{t("shiftPanelTitle")}</Badge>
+          </div>
+          <dl className="grid gap-3 text-sm sm:grid-cols-3">
+            <SummaryStat
+              label={t("shiftWindowLabel")}
+              value={`${formatDateTime(shiftSnapshot.scheduledStartAt)} - ${formatDateTime(
+                shiftSnapshot.scheduledEndAt
+              )}`}
+            />
+            <SummaryStat
+              label={t("shiftBreakLabel")}
+              value={t("shiftBreakValue", {
+                unpaid: shiftSnapshot.unpaidBreakMinutes,
+                paid: shiftSnapshot.paidBreakMinutes,
+              })}
+            />
+            <SummaryStat
+              label={t("shiftGraceLabel")}
+              value={t("shiftGraceValue", {
+                late: shiftSnapshot.lateGraceMinutes,
+                early: shiftSnapshot.earlyOutGraceMinutes,
+                overtime: shiftSnapshot.overtimeGraceMinutes,
+              })}
+            />
+          </dl>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -216,4 +258,11 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
       <dd className="font-medium">{value}</dd>
     </div>
   )
+}
+
+function formatDateTime(value: string): string {
+  return new Date(value).toLocaleString([], {
+    dateStyle: "medium",
+    timeStyle: "short",
+  })
 }

@@ -12,6 +12,7 @@ export const HRM_DASHBOARD_CAPABILITY_SEGMENTS = [
   "compliance",
   "documents",
   "employees",
+  "imports",
   "kpi",
   "leave",
   "onboarding",
@@ -19,6 +20,7 @@ export const HRM_DASHBOARD_CAPABILITY_SEGMENTS = [
   "payroll",
   "performance",
   "policies",
+  "recruitment",
   "snapshot",
 ] as const
 

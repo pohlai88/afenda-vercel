@@ -13,6 +13,7 @@ import {
   buildPayslipSnapshotForRun,
   persistPayrollPayslipSnapshots,
 } from "../data/payroll-close.server"
+import { postPayrollPeriod } from "../data/payroll-posting.server"
 import { listPayrollRunsForPeriod } from "../data/payroll.queries.server"
 import { requireHrmPermission } from "../data/hrm-admin-guard.server"
 import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
@@ -81,6 +82,21 @@ function payrollPayslipPersistenceErrorMessage(error: unknown): string {
   return "Could not persist payslip snapshots to governed document storage."
 }
 
+function payrollPostingErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return "Could not post payroll to the governed journal."
+  }
+
+  if (error.name === "payroll_posting_source_hash_mismatch") {
+    return "A different payroll posting already exists for this period. Stop and investigate posting drift before retrying."
+  }
+  if (error.name === "payroll_posting_persisted_mismatch") {
+    return "Persisted payroll posting does not match the computed posting payload."
+  }
+
+  return error.message || "Could not post payroll to the governed journal."
+}
+
 export async function refreshPayrollCloseSnapshotAction(
   _prev: PayrollCloseActionFormState,
   formData: FormData
@@ -120,24 +136,14 @@ export async function postPayrollPeriodAction(
   const parsed = invalidPeriodFailure(formData)
   if (!parsed.ok) return parsed
 
-  const snapshot = await buildPayrollCloseSnapshot({
+  const result = await postPayrollPeriod({
     organizationId: gate.session.organizationId,
     periodId: parsed.periodId,
-  })
-  if (!snapshot) {
-    return hrmActionFailure({ form: "Payroll period not found." })
-  }
-  if (
-    snapshot.periodState !== "locked" &&
-    snapshot.periodState !== "finalized"
-  ) {
+    actorUserId: gate.session.userId,
+  }).catch((error: unknown) => ({ error }))
+  if ("error" in result) {
     return hrmActionFailure({
-      form: "Payroll must be locked before posting can be validated.",
-    })
-  }
-  if (!snapshot.postingPreview.isBalanced) {
-    return hrmActionFailure({
-      form: `Posting preview is not balanced (${snapshot.postingPreview.netBalance}).`,
+      form: payrollPostingErrorMessage(result.error),
     })
   }
 
@@ -146,8 +152,8 @@ export async function postPayrollPeriodAction(
       action: buildCrudSapAuditAction({
         area: "erp",
         module: "hrm",
-        object: "payroll_posting_preview",
-        verb: "audit",
+        object: "payroll_posting",
+        verb: result.outcome === "posted" ? "create" : "audit",
       }),
       actorUserId: gate.session.userId,
       actorSessionId: gate.session.sessionId,
@@ -156,10 +162,13 @@ export async function postPayrollPeriodAction(
       resourceId: parsed.periodId,
       metadata: {
         periodId: parsed.periodId,
-        closeSnapshotHash: snapshot.inputHash,
-        postingPreviewHash: snapshot.postingPreview.inputHash,
-        totalDebits: snapshot.postingPreview.totalDebits,
-        totalCredits: snapshot.postingPreview.totalCredits,
+        journalId: result.record.journalId,
+        journalReference: result.record.reference,
+        closeSnapshotHash: result.record.closeSnapshotHash,
+        postingPreviewHash: result.record.sourceHash,
+        totalDebits: result.record.totalDebits,
+        totalCredits: result.record.totalCredits,
+        outcome: result.outcome,
       },
     })
   )
@@ -168,9 +177,11 @@ export async function postPayrollPeriodAction(
   return {
     ok: true,
     message:
-      "Posting preview is balanced. Accounting journal posting remains behind the payroll posting integration point.",
-    snapshotHash: snapshot.inputHash,
-    postingPreviewHash: snapshot.postingPreview.inputHash,
+      result.outcome === "posted"
+        ? `Payroll posted to governed journal ${result.record.reference}.`
+        : `Payroll was already posted to governed journal ${result.record.reference}.`,
+    snapshotHash: result.record.closeSnapshotHash,
+    postingPreviewHash: result.record.sourceHash,
   }
 }
 
@@ -193,7 +204,8 @@ export async function generatePayrollPayslipsAction(
   }
   if (
     snapshot.periodState !== "locked" &&
-    snapshot.periodState !== "finalized"
+    snapshot.periodState !== "finalized" &&
+    snapshot.periodState !== "posted"
   ) {
     return hrmActionFailure({
       form: "Payslip snapshots can only be generated after payroll lock.",
@@ -300,7 +312,8 @@ export async function publishPayrollPayslipsAction(
   }
   if (
     snapshot.periodState !== "locked" &&
-    snapshot.periodState !== "finalized"
+    snapshot.periodState !== "finalized" &&
+    snapshot.periodState !== "posted"
   ) {
     return hrmActionFailure({
       form: "Payslips can only be published after payroll lock.",

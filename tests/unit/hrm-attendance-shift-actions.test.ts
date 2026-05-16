@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   execute: vi.fn(),
   insert: vi.fn(),
   getActiveShiftTemplateForOrg: vi.fn(),
+  listClosedPayrollPeriodsOverlappingRange: vi.fn(),
   regenerateAttendanceDayFromEvents: vi.fn(),
   writeIamAuditEventFromNextHeaders: vi.fn(),
   revalidatePath: vi.fn(),
@@ -35,6 +36,11 @@ vi.mock("../../lib/features/hrm/data/hrm-admin-guard.server", () => ({
 
 vi.mock("../../lib/features/hrm/data/attendance-shift.queries.server", () => ({
   getActiveShiftTemplateForOrg: mocks.getActiveShiftTemplateForOrg,
+}))
+
+vi.mock("../../lib/features/hrm/data/payroll.queries.server", () => ({
+  listClosedPayrollPeriodsOverlappingRange:
+    mocks.listClosedPayrollPeriodsOverlappingRange,
 }))
 
 vi.mock("../../lib/features/hrm/data/attendance-aggregator.server", () => ({
@@ -83,6 +89,7 @@ describe("assignEmployeeShiftAction", () => {
     mocks.execute.mockReset()
     mocks.insert.mockReset()
     mocks.getActiveShiftTemplateForOrg.mockReset()
+    mocks.listClosedPayrollPeriodsOverlappingRange.mockReset()
     mocks.regenerateAttendanceDayFromEvents.mockReset()
     mocks.writeIamAuditEventFromNextHeaders.mockReset()
     mocks.revalidatePath.mockReset()
@@ -99,6 +106,8 @@ describe("assignEmployeeShiftAction", () => {
       employeeSelect([{ id: "employee-1", archivedAt: null }])
     )
     mocks.getActiveShiftTemplateForOrg.mockResolvedValue(TEMPLATE)
+    mocks.listClosedPayrollPeriodsOverlappingRange.mockResolvedValue([])
+    mocks.regenerateAttendanceDayFromEvents.mockResolvedValue("updated")
   })
 
   it("stops before regeneration, audit, and revalidation when the guarded upsert is blocked by a locked day", async () => {
@@ -129,5 +138,42 @@ describe("assignEmployeeShiftAction", () => {
     expect(result.ok).toBe(false)
     expect(mocks.select).not.toHaveBeenCalled()
     expect(mocks.execute).not.toHaveBeenCalled()
+  })
+
+  it("rejects shift assignment when the payroll period is already closed", async () => {
+    mocks.listClosedPayrollPeriodsOverlappingRange.mockResolvedValue([
+      {
+        id: "period-1",
+        periodStart: "2026-05-01",
+        periodEnd: "2026-05-31",
+        state: "locked",
+      },
+    ])
+
+    const result = await assignEmployeeShiftAction(undefined, shiftFormData())
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.errors.form).toBe(
+        "Locked attendance days cannot be reassigned."
+      )
+    }
+    expect(mocks.execute).not.toHaveBeenCalled()
+    expect(mocks.regenerateAttendanceDayFromEvents).not.toHaveBeenCalled()
+  })
+
+  it("returns the regeneration outcome on successful assignment", async () => {
+    mocks.execute.mockResolvedValue({ rows: [{ id: "assignment-1" }] })
+    mocks.regenerateAttendanceDayFromEvents.mockResolvedValue("skipped")
+
+    const result = await assignEmployeeShiftAction(undefined, shiftFormData())
+
+    expect(result).toEqual({
+      ok: true,
+      assignmentId: "assignment-1",
+      regenerationResult: "skipped",
+    })
+    expect(mocks.writeIamAuditEventFromNextHeaders).toHaveBeenCalledTimes(1)
+    expect(mocks.revalidatePath).toHaveBeenCalled()
   })
 })

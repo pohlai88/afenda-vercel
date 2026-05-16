@@ -1,16 +1,27 @@
 "use server"
 
 import { createHash } from "crypto"
-import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { db } from "#lib/db"
-import { hrmAttendanceEvent } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
+import {
+  applyAttendanceEventCorrection,
+  attendanceDateAndPrevious,
+  attendanceDateRange,
+  hasLockedRegenerationResult,
+  insertAttendanceEventUnlessLocked,
+  lockedAttendanceMutationMessage,
+  occurredAtToAttendanceDate,
+  regenerateAttendanceDateAndPrevious,
+  revalidateAttendanceAndPayroll,
+} from "../data/attendance-correction-mutation.server"
 import { regenerateAttendanceDayFromEvents } from "../data/attendance-aggregator.server"
-import { getAttendanceEvent } from "../data/attendance.queries.server"
+import {
+  hasAttendanceEventRawPayloadHash,
+  listLockedAttendanceDatesForEmployee,
+} from "../data/attendance.queries.server"
 import { requireHrmPermission } from "../data/hrm-admin-guard.server"
+import { listClosedPayrollPeriodsOverlappingRange } from "../data/payroll.queries.server"
 import {
   correctAttendanceEventSchema,
   recordAttendanceEventSchema,
@@ -22,47 +33,6 @@ import type {
   AttendanceRecordFormState,
   RegenerateDayFormState,
 } from "../types"
-
-/**
- * Revalidates at **layout** scope so any future HRM rail badge that
- * wires attendance pressure (Phase 2 — `getHrmRailPressureCounts`)
- * picks up after every attendance mutation. The attendance page
- * revalidation comes along for free since it sits below the layout —
- * mirrors the leave / compliance / payroll mutation pattern.
- */
-function revalidateAttendanceAndPayroll() {
-  revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/attendance"),
-    "layout"
-  )
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"), "page")
-}
-
-function previousIsoDate(attendanceDate: string): string {
-  const date = new Date(`${attendanceDate}T00:00:00.000Z`)
-  date.setUTCDate(date.getUTCDate() - 1)
-  return date.toISOString().slice(0, 10)
-}
-
-async function regenerateAttendanceDateAndPrevious(opts: {
-  organizationId: string
-  employeeId: string
-  attendanceDate: string
-  actorUserId: string
-}) {
-  const dates = new Set([
-    opts.attendanceDate,
-    previousIsoDate(opts.attendanceDate),
-  ])
-  for (const attendanceDate of dates) {
-    await regenerateAttendanceDayFromEvents({
-      organizationId: opts.organizationId,
-      employeeId: opts.employeeId,
-      attendanceDate,
-      actorUserId: opts.actorUserId,
-    })
-  }
-}
 
 async function requireAttendanceUpdate() {
   return requireHrmPermission({
@@ -113,7 +83,9 @@ export async function recordAttendanceEventAction(
   const data = parsed.data
 
   const occurredDate = new Date(data.occurredAt)
-  const attendanceDate = occurredDate.toISOString().slice(0, 10)
+  const attendanceDate = occurredAtToAttendanceDate(data.occurredAt)
+  const lockedGuardDates = attendanceDateAndPrevious(attendanceDate)
+  const { rangeStart, rangeEnd } = attendanceDateRange(lockedGuardDates)
   const rawPayloadHash = createHash("sha256")
     .update(
       JSON.stringify({
@@ -124,25 +96,71 @@ export async function recordAttendanceEventAction(
     )
     .digest("hex")
 
+  const [lockedDates, duplicateExists, closedPayrollPeriods] = await Promise.all([
+    listLockedAttendanceDatesForEmployee({
+      organizationId,
+      employeeId: data.employeeId,
+      attendanceDates: lockedGuardDates,
+    }),
+    hasAttendanceEventRawPayloadHash({
+      organizationId,
+      rawPayloadHash,
+    }),
+    listClosedPayrollPeriodsOverlappingRange({
+      organizationId,
+      rangeStart,
+      rangeEnd,
+    }),
+  ])
+
+  if (closedPayrollPeriods.length > 0) {
+    return hrmActionFailure({
+      form: lockedAttendanceMutationMessage(lockedGuardDates),
+    })
+  }
+  if (lockedDates.length > 0) {
+    return hrmActionFailure({
+      form: lockedAttendanceMutationMessage(lockedDates),
+    })
+  }
+  if (duplicateExists) {
+    return hrmActionFailure({
+      form: "An identical attendance event already exists.",
+    })
+  }
+
   const eventId = crypto.randomUUID()
-  await db.insert(hrmAttendanceEvent).values({
+  const insertedEventId = await insertAttendanceEventUnlessLocked({
     id: eventId,
     organizationId,
     employeeId: data.employeeId,
     eventType: data.eventType,
     occurredAt: occurredDate,
     source: data.source,
-    deviceId: data.deviceId,
+    deviceId: data.deviceId ?? null,
     rawPayloadHash,
     createdByUserId: userId,
+    lockedGuardDates,
+    guardRangeStart: rangeStart,
+    guardRangeEnd: rangeEnd,
   })
+  if (!insertedEventId) {
+    return hrmActionFailure({
+      form: lockedAttendanceMutationMessage(lockedGuardDates),
+    })
+  }
 
-  await regenerateAttendanceDateAndPrevious({
+  const regenerationResults = await regenerateAttendanceDateAndPrevious({
     organizationId,
     employeeId: data.employeeId,
     attendanceDate,
     actorUserId: userId,
   })
+  if (hasLockedRegenerationResult(regenerationResults)) {
+    return hrmActionFailure({
+      form: lockedAttendanceMutationMessage(lockedGuardDates),
+    })
+  }
 
   await writeIamAuditEventFromNextHeaders({
     action: "erp.hrm.attendance.event.create",
@@ -150,7 +168,7 @@ export async function recordAttendanceEventAction(
     actorSessionId: sessionId,
     organizationId,
     resourceType: "hrm_attendance_event",
-    resourceId: eventId,
+    resourceId: insertedEventId,
     metadata: {
       employeeId: data.employeeId,
       eventType: data.eventType,
@@ -159,7 +177,7 @@ export async function recordAttendanceEventAction(
   })
 
   revalidateAttendanceAndPayroll()
-  return { ok: true, eventId }
+  return { ok: true, eventId: insertedEventId }
 }
 
 // ---------------------------------------------------------------------------
@@ -202,68 +220,13 @@ export async function correctAttendanceEventAction(
   }
   const data = parsed.data
 
-  // Verify the original event belongs to this org
-  const originalEvent = await getAttendanceEvent({
+  return applyAttendanceEventCorrection({
     organizationId,
-    eventId: data.originalEventId,
+    userId,
+    sessionId,
+    data,
+    restrictToEmployeeId: null,
   })
-  if (!originalEvent) {
-    return hrmActionFailure({
-      form: "Original event not found or access denied.",
-    })
-  }
-
-  const occurredDate = new Date(data.occurredAt)
-  const attendanceDate = occurredDate.toISOString().slice(0, 10)
-  const correctionId = crypto.randomUUID()
-
-  await db.insert(hrmAttendanceEvent).values({
-    id: correctionId,
-    organizationId,
-    employeeId: originalEvent.employeeId,
-    eventType: data.eventType,
-    occurredAt: occurredDate,
-    source: "manual",
-    correctionOfEventId: data.originalEventId,
-    correctionReason: data.correctionReason,
-    createdByUserId: userId,
-  })
-
-  const originalDate = originalEvent.occurredAt.toISOString().slice(0, 10)
-  await regenerateAttendanceDateAndPrevious({
-    organizationId,
-    employeeId: originalEvent.employeeId,
-    attendanceDate: originalDate,
-    actorUserId: userId,
-  })
-
-  // Also regenerate the correction date if it differs (e.g. crossing midnight)
-  if (attendanceDate !== originalDate) {
-    await regenerateAttendanceDateAndPrevious({
-      organizationId,
-      employeeId: originalEvent.employeeId,
-      attendanceDate,
-      actorUserId: userId,
-    })
-  }
-
-  await writeIamAuditEventFromNextHeaders({
-    action: "erp.hrm.attendance.event.create",
-    actorUserId: userId,
-    actorSessionId: sessionId,
-    organizationId,
-    resourceType: "hrm_attendance_event",
-    resourceId: correctionId,
-    metadata: {
-      kind: "correction",
-      originalEventId: data.originalEventId,
-      employeeId: originalEvent.employeeId,
-      attendanceDate: originalDate,
-    },
-  })
-
-  revalidateAttendanceAndPayroll()
-  return { ok: true, correctionEventId: correctionId }
 }
 
 // ---------------------------------------------------------------------------

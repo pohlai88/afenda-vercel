@@ -45,7 +45,7 @@ export async function HrmImportsPage({ orgSlug }: HrmImportsPageProps) {
           {sessions.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("recentEmpty")}</p>
           ) : (
-              <ul className="divide-y divide-border rounded-md border border-border">
+            <ul className="divide-y divide-border rounded-md border border-border">
               {sessions.map((s) => (
                 <li
                   key={s.id}

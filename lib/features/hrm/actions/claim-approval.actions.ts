@@ -15,7 +15,11 @@ import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/tenant"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
-import { doesClaimRequireEvidence } from "../data/claim-helpers.shared"
+import {
+  claimPolicySnapshotFromUnknown,
+  doesClaimRequireEvidence,
+} from "../data/claim-helpers.shared"
+import { isClaimAssignedApprover } from "../data/claim.queries.server"
 import {
   claimApprovalDecisionSchema,
   claimRejectDecisionSchema,
@@ -36,22 +40,7 @@ async function canDecideClaim(input: {
   userId: string
   currentApprovalId: string | null
 }): Promise<boolean> {
-  if (input.currentApprovalId) {
-    const approval = await db.query.hrmApproval.findFirst({
-      where: and(
-        eq(hrmApproval.organizationId, input.organizationId),
-        eq(hrmApproval.id, input.currentApprovalId)
-      ),
-      columns: { currentApproverUserId: true, state: true },
-    })
-
-    if (
-      approval?.state === "pending" &&
-      approval.currentApproverUserId === input.userId
-    ) {
-      return true
-    }
-  }
+  if (await isClaimAssignedApprover(input)) return true
 
   return canUseErpPermission({
     organizationId: input.organizationId,
@@ -119,6 +108,7 @@ export async function approveClaimAction(
       employeeId: true,
       claimTypeId: true,
       amount: true,
+      policySnapshot: true,
       submittedByUserId: true,
       createdByUserId: true,
     },
@@ -165,14 +155,19 @@ export async function approveClaimAction(
     countClaimEvidence({ organizationId, claimId }),
   ])
 
-  const evidenceRequired = doesClaimRequireEvidence({
-    amount: Number(claim.amount),
-    requiresEvidence: claimType?.requiresEvidence ?? false,
-    evidenceRequiredAboveAmount:
-      claimType?.evidenceRequiredAboveAmount != null
-        ? Number(claimType.evidenceRequiredAboveAmount)
-        : null,
-  })
+  const storedPolicySnapshot = claimPolicySnapshotFromUnknown(
+    claim.policySnapshot
+  )
+  const evidenceRequired =
+    storedPolicySnapshot?.evidenceRequired ??
+    doesClaimRequireEvidence({
+      amount: Number(claim.amount),
+      requiresEvidence: claimType?.requiresEvidence ?? false,
+      evidenceRequiredAboveAmount:
+        claimType?.evidenceRequiredAboveAmount != null
+          ? Number(claimType.evidenceRequiredAboveAmount)
+          : null,
+    })
   if (evidenceRequired && evidenceCount === 0) {
     return hrmActionFailure({
       claimId: "Evidence is required before this claim can be approved.",

@@ -1,0 +1,6 @@
+{
+  "title": "Contacts",
+  "icon": "BookUser",
+  "root": true,
+  "pages": ["index"]
+}

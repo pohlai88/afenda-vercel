@@ -19,15 +19,26 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function OrgDashboardHrmKpiPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; orgSlug: string }>
+  searchParams?: Promise<{ tab?: string; goalStatus?: string }>
 }) {
   const { orgSlug } = await params
-  const allowed = await canUseErpPermissionForCurrentOrg({
-    module: "hrm",
-    object: "kpi",
-    function: "search",
-  })
+  const sp = (await searchParams) ?? {}
+  const activeTab = sp.tab === "goals" ? "goals" : "metrics"
+  const [allowed, isHrmAdmin] = await Promise.all([
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "kpi",
+      function: "search",
+    }),
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "kpi",
+      function: "update",
+    }),
+  ])
   if (!allowed) {
     return (
       <ErpAccessDenied
@@ -36,5 +47,12 @@ export default async function OrgDashboardHrmKpiPage({
       />
     )
   }
-  return <HrmKpiPage orgSlug={orgSlug} />
+  return (
+    <HrmKpiPage
+      orgSlug={orgSlug}
+      activeTab={activeTab}
+      goalStatusFilter={sp.goalStatus}
+      isHrmAdmin={isHrmAdmin}
+    />
+  )
 }

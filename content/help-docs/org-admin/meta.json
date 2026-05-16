@@ -1,0 +1,6 @@
+{
+  "title": "Org admin",
+  "icon": "Settings",
+  "root": true,
+  "pages": ["index"]
+}

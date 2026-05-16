@@ -1517,7 +1517,7 @@ When implementing the backlog below, pull the exact doc path from the MCP index 
 
 **Files**
 
-- `lib/features/hrm/index.ts`, `server.ts`, `client.ts`, `constants.ts`, `types.ts` (empty barrels)
+- `lib/features/hrm/index.ts`, `server.ts`, `client.ts`, `constants.ts`, `types.ts` — **`index.ts`** re-exports schemas, queries, and RSC surfaces; **`client.ts`** is the **Client Component + Server Actions** door (mutations); **`server.ts`** is `server-only` rule-pack / heavy queries
 - `lib/features/hrm/constants.ts` — `HRM_CAPABILITIES` registry (id / segments / nav key / audit prefix / required role / contract-test snapshot fields)
 - `lib/features/hrm/data/payroll-rule-pack.server.ts` — `PayrollRulePack` interface + `RULE_PACK_REGISTRY` (MY / SG / ID packs registered; add new countries here + seeds + tests)
 - `lib/dashboard-module-paths.ts` — `organizationDashboardPath(orgSlug, "hrm")`; HRM tails use `organizationHrmPath` / `organizationHrmRootPath` from [`lib/features/hrm/constants.ts`](lib/features/hrm/constants.ts) (not a separate `hrmDashboardPath` symbol)
@@ -1670,7 +1670,7 @@ Operational hardening shipped past the original 3C scope. Listed here so future 
 
 **Tests:** [`tests/unit/hrm-document-expiry-watch.test.ts`](tests/unit/hrm-document-expiry-watch.test.ts) (14 tests — tier wiring, threshold monotonicity, cutoff computation, partition idempotency, audit-metadata facets); [`tests/unit/hrm-nexus-pressure-mapper.test.ts`](tests/unit/hrm-nexus-pressure-mapper.test.ts) (11 tests — priority bucketing, severity ranking, namespaced ids, surface routing, stage badges, days-remaining humanization).
 
-**Stub status:** `hrm_benefit` + `hrm_benefit_enrollment` tables shipped without UI / Server Actions — `HRM_CAPABILITIES` does **not** register a benefits capability yet (would prematurely surface an empty page in the rail). Full benefits module deferred to Phase 5+.
+**Shipped status:** `hrm_benefit` + `hrm_benefit_enrollment` tables are backed by **`benefits`** in `HRM_CAPABILITIES`, Workbench routes under `/dashboard/hrm/benefits`, Server Actions (`benefit-*.actions.ts`), and unit tests (`hrm-benefit-*.test.ts`, `hrm-benefits-enterprise.test.ts`). Remaining product gaps (portal self-service, open-enrollment UX depth) are tracked in product backlogs — not a registry omission.
 
 ### Phase 5 — SEA country expansion (per country: 1–2 weeks each)
 

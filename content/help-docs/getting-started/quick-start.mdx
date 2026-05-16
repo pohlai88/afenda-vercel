@@ -1,0 +1,57 @@
+---
+title: Quick start
+description: Go from zero to a working Afenda workspace in under five minutes.
+icon: CirclePlay
+---
+
+## Overview
+
+This guide takes you through the three setup steps every new Afenda user completes: creating an account, creating an organisation, and reaching the Nexus workspace where all modules live.
+
+## Prerequisites
+
+- A valid email address
+- A modern browser (Chrome, Firefox, Edge, or Safari — latest two major versions)
+
+## Setup steps
+
+<Steps>
+  <Step>
+    ### Create your account
+
+    Visit the Afenda sign-up page and enter your email address. Check your inbox for a verification email and click the confirmation link. Set a strong password and complete your profile.
+  </Step>
+  <Step>
+    ### Create your organisation
+
+    After email verification you land on the **console** loading bay. Afenda will prompt you to create your first organisation:
+
+    1. Enter your **organisation name** — this becomes your workspace URL slug (e.g. `acme`).
+    2. Choose your **timezone** — used for attendance, leave, and payroll calculations.
+    3. Click **Create organisation**.
+
+    <Callout type="warn" title="Org slug is permanent">
+      Your organisation slug (`acme` in `/o/acme/`) cannot be changed after creation. Choose carefully — it appears in all bookmarked URLs shared with your team.
+    </Callout>
+  </Step>
+  <Step>
+    ### Reach the Nexus workspace
+
+    Once your organisation is created, Afenda redirects you automatically to `/{locale}/o/{orgSlug}/nexus` — the org root. From here you can access every module via the left-hand rail.
+
+    <Callout type="info" title="Bookmark your workspace">
+      Afenda preserves your last position after sign-out via the `callbackUrl` parameter, so any page you bookmark will bring you back to exactly where you were.
+    </Callout>
+  </Step>
+</Steps>
+
+## Next steps
+
+<Cards>
+  <Card href="./workspace-navigation" title="Workspace navigation">
+    Learn the shell, sidebar, and command palette so you can move efficiently between modules.
+  </Card>
+  <Card href="./inviting-your-team" title="Inviting your team">
+    Bring colleagues in and assign them roles so everyone can log in and collaborate.
+  </Card>
+</Cards>

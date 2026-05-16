@@ -14,6 +14,7 @@ import { requireOrgSession } from "#lib/tenant"
 
 import {
   type ClaimRow,
+  listPendingClaimApprovalsForActor,
   listPendingClaimApprovalsForOrg,
 } from "../data/claim.queries.server"
 
@@ -30,7 +31,12 @@ export async function ClaimPendingInbox({ canManage }: { canManage: boolean }) {
 
   let rows: ReadonlyArray<ClaimRow>
   try {
-    rows = await listPendingClaimApprovalsForOrg(orgSession.organizationId)
+    rows = canManage
+      ? await listPendingClaimApprovalsForOrg(orgSession.organizationId)
+      : await listPendingClaimApprovalsForActor(
+          orgSession.organizationId,
+          orgSession.userId
+        )
   } catch (err) {
     logUnexpectedServerError("claim-pending-inbox: query failed", err, {
       organizationId: orgSession.organizationId,
@@ -46,6 +52,8 @@ export async function ClaimPendingInbox({ canManage }: { canManage: boolean }) {
     return <p className="text-sm text-muted-foreground">{t("inboxEmpty")}</p>
   }
 
+  const showActions = canManage || rows.length > 0
+
   return (
     <Table>
       <TableHeader>
@@ -56,7 +64,7 @@ export async function ClaimPendingInbox({ canManage }: { canManage: boolean }) {
           <TableHead>{t("colAmount")}</TableHead>
           <TableHead>{t("colEvidence")}</TableHead>
           <TableHead>{t("colSubmitted")}</TableHead>
-          {canManage ? <TableHead>{t("colActions")}</TableHead> : null}
+          {showActions ? <TableHead>{t("colActions")}</TableHead> : null}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -91,7 +99,7 @@ export async function ClaimPendingInbox({ canManage }: { canManage: boolean }) {
                   ? row.submittedAt.toLocaleString()
                   : row.createdAt.toLocaleString()}
               </TableCell>
-              {canManage ? (
+              {showActions ? (
                 <TableCell>
                   <ClaimDecisionForms claimId={row.id} label={label} />
                 </TableCell>

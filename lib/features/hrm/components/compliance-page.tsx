@@ -156,7 +156,12 @@ function GenerateAllPacksButton({
   return (
     <form action={dispatch} className="inline-flex items-center gap-3">
       <input type="hidden" name="periodId" value={periodId} />
-      <Button type="submit" size="sm" disabled={disabled || isPending}>
+      <Button
+        type="submit"
+        size="sm"
+        disabled={disabled || isPending}
+        data-testid="hrm-compliance-generate-all-packs"
+      >
         {isPending ? t("generating") : t("generateAll")}
       </Button>
       {state.ok && (

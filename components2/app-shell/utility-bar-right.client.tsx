@@ -5,6 +5,8 @@ import type { Route } from "next"
 
 import { cn } from "#lib/utils"
 
+import type { MessengerPanelTransport } from "#features/messenger/client"
+
 import {
   selectVisibleItems,
   useUtilityBarStore,
@@ -19,16 +21,17 @@ import {
   AppShellAvatarDisc,
   AppShellHelpIcon,
   AppShellLocaleDropdown,
-  AppShellMessengerIcon,
   AppShellQuickCreateIcon,
   AppShellSearchMobileIcon,
   AppShellThemeIcon,
 } from "./utility-bar.client"
 import { UtilityBarConnectivityPanel } from "./utility-bar-connectivity.client"
+import { UtilityBarCoordinationPanel } from "./utility-bar-coordination.client"
 import { UtilityBarDensityPanel } from "./utility-bar-density.client"
 import { UtilityBarDiagnosisPanel } from "./utility-bar-diagnosis.client"
 import { UtilityBarFeedbackPanel } from "./utility-bar-feedback.client"
 import { UtilityBarLynxPanel } from "./utility-bar-lynx.client"
+import { UtilityBarMessengerPanel } from "./utility-bar-messenger.client"
 import { UtilityBarOrgAdminPanel } from "./utility-bar-org-admin.client"
 import { UtilityBarScreenshotPanel } from "./utility-bar-screenshot.client"
 import { UtilityBarShortcutsPanel } from "./utility-bar-shortcuts.client"
@@ -72,6 +75,12 @@ export type AppShellUtilityBarRightProps = {
    */
   account?: AppShellAccountDropdownProps
   /**
+   * Dev shell preview: stub Ably and use an in-memory messenger transport.
+   */
+  messengerPreviewStub?: boolean
+  /** Optional messenger transport override (shell preview mocks). */
+  messengerTransport?: MessengerPanelTransport
+  /**
    * Organization id (UUID) for governed Blob uploads from the right rail.
    * Omit on surfaces without a tenant session — upload panel shows guidance only.
    */
@@ -93,12 +102,16 @@ function RailIcon({
   openCommand,
   workspaceBlobOrganizationId,
   orgSlug,
+  messengerPreviewStub,
+  messengerTransport,
 }: {
   id: UtilityBarItemId
   hrefs?: AppShellUtilityBarRightProps["hrefs"]
   openCommand: () => void
   workspaceBlobOrganizationId?: string | null
   orgSlug?: string | null
+  messengerPreviewStub?: boolean
+  messengerTransport?: MessengerPanelTransport
 }) {
   const href =
     (id === "insight"
@@ -156,7 +169,19 @@ function RailIcon({
     case "diagnosis":
       return <UtilityBarDiagnosisPanel />
     case "messenger":
-      return <AppShellMessengerIcon ariaLabel="Messenger" tooltip="Messenger" />
+      return (
+        <UtilityBarMessengerPanel
+          organizationId={workspaceBlobOrganizationId ?? null}
+          previewStub={Boolean(messengerPreviewStub)}
+          transport={messengerTransport}
+        />
+      )
+    case "coordination":
+      return (
+        <UtilityBarCoordinationPanel
+          organizationId={workspaceBlobOrganizationId ?? null}
+        />
+      )
   }
 }
 
@@ -237,6 +262,8 @@ export function AppShellUtilityBarRight({
   marketplaceAriaLabel = "Marketplace",
   marketplaceTooltip = "Marketplace",
   account,
+  messengerPreviewStub = false,
+  messengerTransport,
   workspaceBlobOrganizationId = null,
   orgSlug = null,
 }: AppShellUtilityBarRightProps) {
@@ -306,6 +333,8 @@ export function AppShellUtilityBarRight({
             openCommand={openCommand}
             workspaceBlobOrganizationId={workspaceBlobOrganizationId}
             orgSlug={orgSlug}
+            messengerPreviewStub={messengerPreviewStub}
+            messengerTransport={messengerTransport}
           />
         </DraggableRailItem>
       ))}

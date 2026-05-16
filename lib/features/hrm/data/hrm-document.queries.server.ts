@@ -1,11 +1,26 @@
 import "server-only"
 
+import { createHash } from "node:crypto"
+
+import { get as getBlob } from "@vercel/blob"
 import { and, desc, eq, inArray } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { hrmDocument, hrmEmployee } from "#lib/db/schema"
+import {
+  hrmDocument,
+  hrmEmployee,
+  hrmPayrollPeriod,
+  hrmPayrollRun,
+} from "#lib/db/schema"
+import { logUnexpectedServerError } from "#lib/logger.server"
+
+import {
+  payrollPayslipSnapshotFromDocumentPayload,
+  stablePayrollCloseStringify,
+} from "./payroll-close.shared"
 
 import type { HrmDocumentSummary } from "../types"
+import type { PayrollPayslipSnapshot } from "./payroll-close.shared"
 
 export async function listHrmDocumentsForEmployee(
   organizationId: string,
@@ -31,6 +46,199 @@ export async function listHrmDocumentsForEmployee(
       )
     )
     .orderBy(desc(hrmDocument.uploadedAt))
+}
+
+export type EmployeePayslipDocumentSummary = {
+  readonly id: string
+  readonly title: string
+  readonly uploadedAt: Date
+  readonly effectiveFrom: Date
+  readonly periodEnd: string
+  readonly paymentDate: string
+  readonly currency: string
+  readonly grossPay: string
+  readonly netPay: string
+  readonly employerCost: string
+}
+
+export type EmployeePayslipDocumentDetail = EmployeePayslipDocumentSummary & {
+  readonly snapshot: PayrollPayslipSnapshot
+}
+
+function hashStablePayload(value: unknown): string {
+  return createHash("sha256")
+    .update(stablePayrollCloseStringify(value))
+    .digest("hex")
+}
+
+export async function listPayslipDocumentsForEmployee(
+  organizationId: string,
+  employeeId: string
+): Promise<EmployeePayslipDocumentSummary[]> {
+  return db
+    .select({
+      id: hrmDocument.id,
+      title: hrmDocument.title,
+      uploadedAt: hrmDocument.uploadedAt,
+      effectiveFrom: hrmDocument.effectiveFrom,
+      periodEnd: hrmPayrollPeriod.periodEnd,
+      paymentDate: hrmPayrollPeriod.paymentDate,
+      currency: hrmPayrollPeriod.currency,
+      grossPay: hrmPayrollRun.grossPay,
+      netPay: hrmPayrollRun.netPay,
+      employerCost: hrmPayrollRun.employerCost,
+    })
+    .from(hrmDocument)
+    .innerJoin(hrmPayrollRun, eq(hrmDocument.subjectId, hrmPayrollRun.id))
+    .innerJoin(
+      hrmPayrollPeriod,
+      eq(hrmPayrollRun.periodId, hrmPayrollPeriod.id)
+    )
+    .where(
+      and(
+        eq(hrmDocument.organizationId, organizationId),
+        eq(hrmDocument.employeeId, employeeId),
+        eq(hrmDocument.documentType, "payslip"),
+        eq(hrmDocument.subjectKind, "payroll_run"),
+        eq(hrmPayrollRun.organizationId, organizationId),
+        eq(hrmPayrollRun.employeeId, employeeId)
+      )
+    )
+    .orderBy(desc(hrmDocument.effectiveFrom), desc(hrmDocument.uploadedAt))
+}
+
+export async function getPayslipDocumentForEmployee(input: {
+  organizationId: string
+  employeeId: string
+  documentId: string
+}): Promise<EmployeePayslipDocumentDetail | null> {
+  const [document] = await db
+    .select({
+      id: hrmDocument.id,
+      title: hrmDocument.title,
+      blobUrl: hrmDocument.blobUrl,
+      payloadHash: hrmDocument.payloadHash,
+      uploadedAt: hrmDocument.uploadedAt,
+      effectiveFrom: hrmDocument.effectiveFrom,
+      documentType: hrmDocument.documentType,
+      subjectKind: hrmDocument.subjectKind,
+      subjectId: hrmDocument.subjectId,
+      periodId: hrmPayrollPeriod.id,
+      periodEnd: hrmPayrollPeriod.periodEnd,
+      paymentDate: hrmPayrollPeriod.paymentDate,
+      grossPay: hrmPayrollRun.grossPay,
+      netPay: hrmPayrollRun.netPay,
+      employerCost: hrmPayrollRun.employerCost,
+    })
+    .from(hrmDocument)
+    .innerJoin(hrmPayrollRun, eq(hrmDocument.subjectId, hrmPayrollRun.id))
+    .innerJoin(
+      hrmPayrollPeriod,
+      eq(hrmPayrollRun.periodId, hrmPayrollPeriod.id)
+    )
+    .where(
+      and(
+        eq(hrmDocument.organizationId, input.organizationId),
+        eq(hrmDocument.employeeId, input.employeeId),
+        eq(hrmDocument.id, input.documentId),
+        eq(hrmDocument.documentType, "payslip"),
+        eq(hrmDocument.subjectKind, "payroll_run"),
+        eq(hrmPayrollRun.organizationId, input.organizationId),
+        eq(hrmPayrollRun.employeeId, input.employeeId)
+      )
+    )
+    .limit(1)
+
+  if (!document || document.documentType !== "payslip") {
+    return null
+  }
+
+  try {
+    const blob = await getBlob(document.blobUrl, {
+      access: "private",
+      useCache: false,
+    })
+    if (!blob || blob.statusCode !== 200) {
+      return null
+    }
+
+    const payloadText = await new Response(blob.stream).text()
+    const parsedJson = JSON.parse(payloadText) as unknown
+    const expectedHash = hashStablePayload(parsedJson)
+
+    if (expectedHash !== document.payloadHash) {
+      logUnexpectedServerError(
+        "portal_payslip_hash_mismatch",
+        new Error("payslip_payload_hash_mismatch"),
+        {
+          organizationId: input.organizationId,
+          employeeId: input.employeeId,
+          documentId: input.documentId,
+        }
+      )
+      return null
+    }
+
+    const snapshot = payrollPayslipSnapshotFromDocumentPayload({
+      payload: parsedJson,
+      payloadHash: document.payloadHash,
+    })
+    if (!snapshot) {
+      logUnexpectedServerError(
+        "portal_payslip_payload_invalid",
+        new Error("payslip_payload_invalid"),
+        {
+          organizationId: input.organizationId,
+          employeeId: input.employeeId,
+          documentId: input.documentId,
+        }
+      )
+      return null
+    }
+
+    if (
+      snapshot.employeeId !== input.employeeId ||
+      snapshot.runId !== document.subjectId ||
+      snapshot.periodId !== document.periodId ||
+      snapshot.periodEnd !== document.periodEnd ||
+      snapshot.paymentDate !== document.paymentDate ||
+      snapshot.grossPay !== document.grossPay ||
+      snapshot.netPay !== document.netPay ||
+      snapshot.employerCost !== document.employerCost
+    ) {
+      logUnexpectedServerError(
+        "portal_payslip_snapshot_mismatch",
+        new Error("payslip_snapshot_mismatch"),
+        {
+          organizationId: input.organizationId,
+          employeeId: input.employeeId,
+          documentId: input.documentId,
+        }
+      )
+      return null
+    }
+
+    return {
+      id: document.id,
+      title: document.title,
+      uploadedAt: document.uploadedAt,
+      effectiveFrom: document.effectiveFrom,
+      periodEnd: snapshot.periodEnd,
+      paymentDate: snapshot.paymentDate,
+      currency: snapshot.currency,
+      grossPay: snapshot.grossPay,
+      netPay: snapshot.netPay,
+      employerCost: snapshot.employerCost,
+      snapshot,
+    }
+  } catch (error) {
+    logUnexpectedServerError("portal_payslip_read_failed", error, {
+      organizationId: input.organizationId,
+      employeeId: input.employeeId,
+      documentId: input.documentId,
+    })
+    return null
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -69,6 +69,94 @@ export function attendanceDayStateTone(state: string): AttendanceDayStateTone {
   }
 }
 
+export type AttendanceSnapshotException = {
+  readonly code: string
+  readonly severity?: string
+  readonly payrollBlocking?: boolean
+  readonly message: string
+  readonly metadata?: Record<string, string | number | boolean | null>
+}
+
+export type AttendanceShiftSnapshot = {
+  readonly scheduledStartAt: string
+  readonly scheduledEndAt: string
+  readonly scheduledMinutes: number
+  readonly unpaidBreakMinutes: number
+  readonly paidBreakMinutes: number
+  readonly lateGraceMinutes: number
+  readonly earlyOutGraceMinutes: number
+  readonly overtimeGraceMinutes: number
+  readonly maxContinuousClockMinutes: number
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null
+}
+
+export function readAttendanceSnapshotExceptions(
+  snapshot: unknown
+): readonly AttendanceSnapshotException[] {
+  if (!isRecord(snapshot)) return []
+  const exceptions = snapshot.exceptions
+  if (!Array.isArray(exceptions)) return []
+
+  return exceptions.filter((exception): exception is AttendanceSnapshotException => {
+    return isRecord(exception) && typeof exception.message === "string"
+  })
+}
+
+export function attendanceSnapshotHasPayrollBlockingException(
+  snapshot: unknown
+): boolean {
+  return readAttendanceSnapshotExceptions(snapshot).some(
+    (exception) => exception.payrollBlocking === true
+  )
+}
+
+export function isAttendanceDayReadyForPayroll(
+  state: string,
+  calculationSnapshot: unknown
+): boolean {
+  return (
+    (state === "computed" || state === "locked") &&
+    !attendanceSnapshotHasPayrollBlockingException(calculationSnapshot)
+  )
+}
+
+export function readAttendanceShiftSnapshot(
+  snapshot: unknown
+): AttendanceShiftSnapshot | null {
+  if (!isRecord(snapshot)) return null
+  const shift = snapshot.shift
+  if (!isRecord(shift)) return null
+
+  if (
+    typeof shift.scheduledStartAt !== "string" ||
+    typeof shift.scheduledEndAt !== "string" ||
+    typeof shift.scheduledMinutes !== "number" ||
+    typeof shift.unpaidBreakMinutes !== "number" ||
+    typeof shift.paidBreakMinutes !== "number" ||
+    typeof shift.lateGraceMinutes !== "number" ||
+    typeof shift.earlyOutGraceMinutes !== "number" ||
+    typeof shift.overtimeGraceMinutes !== "number" ||
+    typeof shift.maxContinuousClockMinutes !== "number"
+  ) {
+    return null
+  }
+
+  return {
+    scheduledStartAt: shift.scheduledStartAt,
+    scheduledEndAt: shift.scheduledEndAt,
+    scheduledMinutes: shift.scheduledMinutes,
+    unpaidBreakMinutes: shift.unpaidBreakMinutes,
+    paidBreakMinutes: shift.paidBreakMinutes,
+    lateGraceMinutes: shift.lateGraceMinutes,
+    earlyOutGraceMinutes: shift.earlyOutGraceMinutes,
+    overtimeGraceMinutes: shift.overtimeGraceMinutes,
+    maxContinuousClockMinutes: shift.maxContinuousClockMinutes,
+  }
+}
+
 /**
  * Format an integer minute count as `Xh Ym`, suppressing zero parts so
  * "0h 0m" collapses to "0m" and a clean hour reads as "8h" (no trailing

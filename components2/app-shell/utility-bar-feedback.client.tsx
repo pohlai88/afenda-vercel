@@ -55,9 +55,8 @@ export function UtilityBarFeedbackPanel() {
     e.preventDefault()
     if (!message.trim()) return
     setFormState("submitting")
-    // Stub: logs locally. Wire a Server Action here in a follow-up.
+    // TODO: replace with a Server Action (submitFeedbackAction) — issue TBD
     await new Promise((resolve) => setTimeout(resolve, 400))
-    console.info("[feedback]", { type, message: message.trim() })
     setFormState("success")
   }
 

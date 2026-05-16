@@ -1,5 +1,4 @@
 import { ClaimDetailPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac"
 import { requireOrgSession } from "#lib/tenant"
 import { resolveClaimSurfaceAccess } from "#features/hrm/server"
 
@@ -24,13 +23,5 @@ export default async function OrgDashboardHrmClaimDetailPage({
     organizationId: session.organizationId,
     userId: session.userId,
   })
-  if (!access.canEnter) {
-    return (
-      <ErpAccessDenied
-        title="Claim detail"
-        description="This HRM surface requires Claims access or a linked employee record."
-      />
-    )
-  }
   return <ClaimDetailPage orgSlug={orgSlug} claimId={claimId} access={access} />
 }

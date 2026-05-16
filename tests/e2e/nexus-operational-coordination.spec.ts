@@ -28,31 +28,26 @@ test.describe("nexus operational coordination (optional credentials)", () => {
 
       await page.goto(`/en/o/${slug}/dashboard`)
       await expect(
-        page.getByRole("banner", { name: "Afenda system utility bar" })
+        page.getByRole("banner", { name: "Afenda workbench utility bar" })
       ).toBeVisible({ timeout: 15_000 })
 
-      await page
-        .getByRole("button", { name: "Open control menu", exact: true })
-        .click()
-      await page
-        .getByRole("menuitem", {
-          name: "Customize utility bar",
-          exact: true,
-        })
-        .click()
+      await page.goto(`/en/o/${slug}/marketplace/utilities`)
 
-      const messengerSwitch = page.getByRole("switch", {
-        name: "Messenger",
-        exact: true,
+      const coordinationCard = page.locator("li").filter({
+        has: page.getByText("Operational coordination", { exact: true }),
       })
-      await expect(messengerSwitch).toBeVisible()
-      if ((await messengerSwitch.getAttribute("aria-checked")) !== "true") {
-        await messengerSwitch.click()
-      }
-      await expect(messengerSwitch).toHaveAttribute("aria-checked", "true")
-      await page.keyboard.press("Escape")
+      const enableCoordination = coordinationCard.getByRole("button", {
+        name: "Enable for me",
+      })
+      await expect(enableCoordination).toBeVisible({ timeout: 15_000 })
+      await enableCoordination.click()
 
-      await page.getByRole("button", { name: "Messenger", exact: true }).click()
+      await page.goto(`/en/o/${slug}/dashboard`)
+      await expect(
+        page.getByRole("banner", { name: "Afenda workbench utility bar" })
+      ).toBeVisible({ timeout: 15_000 })
+
+      await page.getByRole("button", { name: "Coordination", exact: true }).click()
       await expect(
         page.getByRole("heading", {
           name: "Operational coordination",

@@ -49,6 +49,13 @@ import type {
   PayrollCloseActionFormState,
   PayrollCloseSnapshot,
 } from "../data/payroll-close.shared"
+import {
+  resolvePayrollPostingState,
+} from "../data/payroll-posting.shared"
+import type {
+  PayrollPostingRecord,
+  PayrollPostingState,
+} from "../data/payroll-posting.shared"
 
 // ---------------------------------------------------------------------------
 // Period state badge
@@ -436,6 +443,24 @@ function ChecklistStatusBadge({
   )
 }
 
+function PostingStateBadge({ state }: { state: PayrollPostingState }) {
+  const t = useTranslations("Dashboard.Hrm.payroll")
+  const variant =
+    state === "posted"
+      ? "default"
+      : state === "ready_to_post"
+        ? "secondary"
+        : state === "posting_mismatch"
+          ? "destructive"
+          : "outline"
+
+  return (
+    <Badge variant={variant} className="text-xs">
+      {t(`close.postingState.${state}`)}
+    </Badge>
+  )
+}
+
 function PayrollCloseActionButton({
   periodId,
   action,
@@ -483,9 +508,11 @@ function PayrollCloseActionButton({
 export function PayrollClosePassport({
   periodId,
   snapshot,
+  postingRecord,
 }: {
   periodId: string
   snapshot: PayrollCloseSnapshot | null
+  postingRecord: PayrollPostingRecord | null
 }) {
   const t = useTranslations("Dashboard.Hrm.payroll")
 
@@ -512,8 +539,15 @@ export function PayrollClosePassport({
     )
   }
 
-  const canRunLockedActions =
-    snapshot.periodState === "locked" || snapshot.periodState === "finalized"
+  const canRunGovernedCloseActions =
+    snapshot.periodState === "locked" ||
+    snapshot.periodState === "finalized" ||
+    snapshot.periodState === "posted"
+  const postingState = resolvePayrollPostingState({
+    snapshot,
+    persistedRecord: postingRecord,
+  })
+  const canPostPayroll = postingState === "ready_to_post"
 
   return (
     <div className="space-y-5 rounded-md border border-border bg-muted/20 p-4">
@@ -679,6 +713,60 @@ export function PayrollClosePassport({
               </div>
             ))}
           </div>
+          <div className="mt-4 rounded-md border border-border bg-background px-3 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                {t("close.postingStatus")}
+              </div>
+              <PostingStateBadge state={postingState} />
+            </div>
+            {postingRecord ? (
+              <div className="mt-3 grid gap-3 text-xs sm:grid-cols-2">
+                <div>
+                  <div className="text-muted-foreground">
+                    {t("close.journalReference")}
+                  </div>
+                  <div className="font-medium">{postingRecord.reference}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">
+                    {t("close.postedAt")}
+                  </div>
+                  <div className="font-medium tabular-nums">
+                    {postingRecord.postedAt ?? "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">
+                    {t("close.postedBy")}
+                  </div>
+                  <div className="font-medium">
+                    {postingRecord.postedByUserId ?? "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">
+                    {t("close.postingHash")}
+                  </div>
+                  <div className="font-mono">
+                    {postingRecord.sourceHash.slice(0, 12)}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">
+                {t(`close.postingStateHint.${postingState}`)}
+              </p>
+            )}
+            {postingState === "posting_mismatch" && (
+              <p className="mt-3 text-xs text-destructive">
+                {t("close.postingMismatch", {
+                  currentHash: snapshot.postingPreview.inputHash.slice(0, 12),
+                  postedHash: postingRecord?.sourceHash.slice(0, 12) ?? "missing",
+                })}
+              </p>
+            )}
+          </div>
         </div>
         <div className="grid min-w-48 gap-2">
           <PayrollCloseActionButton
@@ -690,23 +778,24 @@ export function PayrollClosePassport({
           <PayrollCloseActionButton
             periodId={periodId}
             action={postPayrollPeriodAction}
-            label={t("close.validatePosting")}
-            pendingLabel={t("close.validatingPosting")}
-            disabled={!canRunLockedActions}
+            label={t("close.postPayroll")}
+            pendingLabel={t("close.postingPayroll")}
+            variant="default"
+            disabled={!canPostPayroll}
           />
           <PayrollCloseActionButton
             periodId={periodId}
             action={generatePayrollPayslipsAction}
             label={t("close.generatePayslips")}
             pendingLabel={t("close.generatingPayslips")}
-            disabled={!canRunLockedActions}
+            disabled={!canRunGovernedCloseActions}
           />
           <PayrollCloseActionButton
             periodId={periodId}
             action={publishPayrollPayslipsAction}
             label={t("close.publishPayslips")}
             pendingLabel={t("close.publishingPayslips")}
-            disabled={!canRunLockedActions}
+            disabled={!canRunGovernedCloseActions}
           />
         </div>
       </div>
@@ -913,12 +1002,14 @@ export function PayrollPeriodDetailCard({
   period,
   runs,
   closeSnapshot,
+  postingRecord,
   traceability,
   pendingLockApprovalId,
 }: {
   period: PayrollPeriodRow
   runs: PayrollRunRow[]
   closeSnapshot: PayrollCloseSnapshot | null
+  postingRecord: PayrollPostingRecord | null
   traceability: PayrollPeriodTraceability
   pendingLockApprovalId: string | null
 }) {
@@ -967,7 +1058,11 @@ export function PayrollPeriodDetailCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <PayrollClosePassport periodId={period.id} snapshot={closeSnapshot} />
+        <PayrollClosePassport
+          periodId={period.id}
+          snapshot={closeSnapshot}
+          postingRecord={postingRecord}
+        />
         <div>
           <Label className="mb-1 block text-xs font-semibold tracking-widest text-muted-foreground uppercase">
             {t("traceabilityTitle")}
@@ -1031,12 +1126,14 @@ export function PayrollConsolePage({
   periodRuns,
   periodTraceability,
   periodCloseSnapshots,
+  periodPostingRecords,
   periodPendingLockApprovalIds,
 }: {
   periods: PayrollPeriodRow[]
   periodRuns: Map<string, PayrollRunRow[]>
   periodTraceability: Map<string, PayrollPeriodTraceability>
   periodCloseSnapshots: Map<string, PayrollCloseSnapshot | null>
+  periodPostingRecords: Map<string, PayrollPostingRecord | null>
   periodPendingLockApprovalIds: Map<string, string | null>
 }) {
   const t = useTranslations("Dashboard.Hrm.payroll")
@@ -1066,6 +1163,7 @@ export function PayrollConsolePage({
           period={period}
           runs={periodRuns.get(period.id) ?? []}
           closeSnapshot={periodCloseSnapshots.get(period.id) ?? null}
+          postingRecord={periodPostingRecords.get(period.id) ?? null}
           traceability={
             periodTraceability.get(period.id) ?? {
               employeeCount: 0,

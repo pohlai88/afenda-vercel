@@ -7,11 +7,7 @@ import { Loader2 } from "lucide-react"
 import { useRouter } from "#i18n/navigation"
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
 import { Button } from "#components/ui/button"
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from "#components/ui/field"
+import { Field, FieldError, FieldLabel } from "#components/ui/field"
 import { Input } from "#components/ui/input"
 import {
   submitPortalEmployeeClaimAction,
@@ -159,8 +155,7 @@ export function EmployeePortalClaimSubmitForm({
       <Button type="submit" disabled={pending || claimTypes.length === 0}>
         {pending ? (
           <>
-            <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
-            …
+            <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />…
           </>
         ) : (
           t("submit")

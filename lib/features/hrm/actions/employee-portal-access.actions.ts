@@ -112,6 +112,7 @@ function revalidateEmployeePortalAccess(): void {
     "page"
   )
   revalidatePath(toLocalePortalRevalidatePattern("/employee/leave"), "page")
+  revalidatePath(toLocalePortalRevalidatePattern("/employee/payslips"), "page")
 }
 
 function isUniqueViolation(error: unknown): boolean {

@@ -14,7 +14,8 @@
     "GITHUB_BASE_REF",
     "PATH",
     "HOME",
-    "NODE_ENV"
+    "NODE_ENV",
+    "NODE_OPTIONS"
   ],
   "tasks": {
     "lint:agent-contract": {
@@ -75,6 +76,23 @@
         "lib/design-system.ts",
         "app/globals.css",
         "scripts/check-design-contract.mjs"
+      ]
+    },
+    "lint:help-docs-links": {
+      "inputs": [
+        "content/help-docs/**/*.mdx",
+        "content/help-docs/**/meta.json",
+        "scripts/validate-help-docs-links.ts",
+        "lib/i18n/locales.shared.ts",
+        "app/[locale]/help-docs/**",
+        "package.json"
+      ]
+    },
+    "lint:help-docs-prose": {
+      "inputs": [
+        "content/help-docs/**/*.mdx",
+        ".config/markdownlint-help-docs.jsonc",
+        "scripts/lint-help-docs-prose.mjs"
       ]
     },
     "typecheck": {

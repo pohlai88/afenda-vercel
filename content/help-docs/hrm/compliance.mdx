@@ -1,0 +1,32 @@
+---
+title: Statutory compliance
+description: Jurisdiction packs, statutory evidence, aging signals, and export-ready compliance artefacts.
+icon: ShieldCheck
+---
+
+## Overview
+
+**Compliance** tracks statutory obligations per supported jurisdiction (e.g. MY, SG, ID, VN). Evidence rows capture generation state, hashes, and outbound delivery metadata so audits answer *who generated what, when, with which inputs*.
+
+## Evidence packs
+
+Packs bundle calculations, forms, and checksums. Regeneration invalidates prior hashes deliberately — never “silent overwrite” without a new evidence row.
+
+## Aging & retries
+
+Aging summaries highlight due-soon or overdue artefacts. Cron-assisted retries stay idempotent: if a pack already succeeded, reruns short-circuit without duplicating delivery.
+
+<Callout type="info" title="Operator posture">
+  Compliance screens prioritise honesty over cheerleading — expect explicit empty states when packs are not configured for the org’s jurisdictions.
+</Callout>
+
+## Related
+
+<Cards>
+  <Card href="./payroll" title="Payroll">
+    Statutory previews consume the same payroll inputs as disbursement.
+  </Card>
+  <Card href="./documents" title="Documents vault">
+    Signed PDFs land in governed storage with hashed metadata.
+  </Card>
+</Cards>

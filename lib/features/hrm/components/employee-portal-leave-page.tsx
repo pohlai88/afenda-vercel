@@ -18,6 +18,7 @@ import {
 } from "#components/ui/table"
 
 import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
+import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 import {
   listActiveLeaveTypesForOrg,
   listLeaveBalancesForEmployee,
@@ -26,6 +27,7 @@ import {
 
 import { EmployeePortalLeaveCancelButton } from "./employee-portal-leave-cancel-button"
 import { EmployeePortalLeaveRequestForm } from "./employee-portal-leave-request-form"
+import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalLeavePageProps = {
   portalSlug: string
@@ -38,8 +40,9 @@ export async function EmployeePortalLeavePage({
   const organizationId = context.portal.organizationId
   const employeeId = context.employee.id
 
-  const [t, leaveTypes, balances, requests] = await Promise.all([
+  const [t, navLabels, leaveTypes, balances, requests] = await Promise.all([
     getTranslations("Dashboard.Hrm.leave"),
+    getEmployeePortalSectionNavLabels(),
     listActiveLeaveTypesForOrg(organizationId),
     listLeaveBalancesForEmployee(
       organizationId,
@@ -67,6 +70,12 @@ export async function EmployeePortalLeavePage({
           {t("portalPageDescription")}
         </p>
       </header>
+
+      <EmployeePortalSectionNav
+        portalSlug={context.portal.portalSlug}
+        current="leave"
+        labels={navLabels}
+      />
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex flex-col gap-5">

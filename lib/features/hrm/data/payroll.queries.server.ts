@@ -1,6 +1,14 @@
 import "server-only"
 
-import { and, desc, eq, inArray, isNotNull } from "drizzle-orm"
+import {
+  and,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  lte,
+} from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -13,11 +21,11 @@ import {
   hrmPayrollRun,
 } from "#lib/db/schema"
 
-import { attendanceSnapshotHasPayrollBlockingException } from "./attendance-aggregator.server"
 import {
   listAttendanceDaysForEmployee,
   listAttendanceDaysForPayroll,
 } from "./attendance.queries.server"
+import { isAttendanceDayReadyForPayroll } from "./attendance-display.shared"
 import { listBenefitPayrollProjectionEnrollmentsForPeriod } from "./benefit-enterprise.queries.server"
 import { listApprovedUnpaidClaimsForPeriod } from "./claim.queries.server"
 import { listApprovedSalaryAdvancesForEmployeePayroll } from "./salary-advance.queries.server"
@@ -43,9 +51,23 @@ export type PayrollPeriodRow = {
   lockedAt: Date | null
   finalizedRunId: string | null
   rulePackVersion: string | null
+  postedByUserId: string | null
+  postedAt: Date | null
+  postedJournalBatchId: string | null
   createdByUserId: string | null
   createdAt: Date
   updatedAt: Date
+}
+
+export type ClosedPayrollPeriodRow = Pick<
+  PayrollPeriodRow,
+  "id" | "periodStart" | "periodEnd" | "state"
+>
+
+function toPayrollDate(value: string | Date): string {
+  return value instanceof Date
+    ? value.toISOString().slice(0, 10)
+    : value.slice(0, 10)
 }
 
 export async function listPayrollPeriodsForOrg(
@@ -64,6 +86,9 @@ export async function listPayrollPeriodsForOrg(
       lockedAt: hrmPayrollPeriod.lockedAt,
       finalizedRunId: hrmPayrollPeriod.finalizedRunId,
       rulePackVersion: hrmPayrollPeriod.rulePackVersion,
+      postedByUserId: hrmPayrollPeriod.postedByUserId,
+      postedAt: hrmPayrollPeriod.postedAt,
+      postedJournalBatchId: hrmPayrollPeriod.postedJournalBatchId,
       createdByUserId: hrmPayrollPeriod.createdByUserId,
       createdAt: hrmPayrollPeriod.createdAt,
       updatedAt: hrmPayrollPeriod.updatedAt,
@@ -92,6 +117,9 @@ export async function getPayrollPeriod(
       lockedAt: hrmPayrollPeriod.lockedAt,
       finalizedRunId: hrmPayrollPeriod.finalizedRunId,
       rulePackVersion: hrmPayrollPeriod.rulePackVersion,
+      postedByUserId: hrmPayrollPeriod.postedByUserId,
+      postedAt: hrmPayrollPeriod.postedAt,
+      postedJournalBatchId: hrmPayrollPeriod.postedJournalBatchId,
       createdByUserId: hrmPayrollPeriod.createdByUserId,
       createdAt: hrmPayrollPeriod.createdAt,
       updatedAt: hrmPayrollPeriod.updatedAt,
@@ -106,6 +134,36 @@ export async function getPayrollPeriod(
     .limit(1)
 
   return row[0] ?? null
+}
+
+export async function listClosedPayrollPeriodsOverlappingRange(options: {
+  readonly organizationId: string
+  readonly rangeStart: string | Date
+  readonly rangeEnd?: string | Date | null
+}): Promise<ClosedPayrollPeriodRow[]> {
+  const rangeStart = toPayrollDate(options.rangeStart)
+  const rangeEnd = options.rangeEnd ? toPayrollDate(options.rangeEnd) : null
+
+  const conditions = [
+    eq(hrmPayrollPeriod.organizationId, options.organizationId),
+    inArray(hrmPayrollPeriod.state, ["locked", "finalized", "posted"]),
+    gte(hrmPayrollPeriod.periodEnd, rangeStart),
+  ]
+
+  if (rangeEnd) {
+    conditions.push(lte(hrmPayrollPeriod.periodStart, rangeEnd))
+  }
+
+  return db
+    .select({
+      id: hrmPayrollPeriod.id,
+      periodStart: hrmPayrollPeriod.periodStart,
+      periodEnd: hrmPayrollPeriod.periodEnd,
+      state: hrmPayrollPeriod.state,
+    })
+    .from(hrmPayrollPeriod)
+    .where(and(...conditions))
+    .orderBy(hrmPayrollPeriod.periodStart)
 }
 
 // ---------------------------------------------------------------------------
@@ -279,11 +337,8 @@ type PayrollAttendanceRow = Pick<
   "state" | "calculationSnapshot"
 >
 
-function isAttendanceDayReadyForPayroll(row: PayrollAttendanceRow): boolean {
-  return (
-    (row.state === "computed" || row.state === "locked") &&
-    !attendanceSnapshotHasPayrollBlockingException(row.calculationSnapshot)
-  )
+function isReadyForPayrollRow(row: PayrollAttendanceRow): boolean {
+  return isAttendanceDayReadyForPayroll(row.state, row.calculationSnapshot)
 }
 
 /** Builds the PayrollEngineInput from DB snapshots of the run's contract + profile. */
@@ -371,7 +426,7 @@ export async function getPayrollRunInputSnapshot(
     toDate: period.periodEnd,
   })
   const finalizedAttendanceRows = attendanceRows.filter(
-    isAttendanceDayReadyForPayroll
+    isReadyForPayrollRow
   )
   const scheduledAttendanceMinutes = finalizedAttendanceRows.reduce(
     (sum, row) => sum + row.scheduledMinutes,
@@ -483,7 +538,7 @@ export async function isAttendancePayrollReadyForPeriod(opts: {
     toDate: opts.periodEnd,
   })
   if (rows.length === 0) return true
-  return rows.every(isAttendanceDayReadyForPayroll)
+  return rows.every(isReadyForPayrollRow)
 }
 
 export async function hasApprovedPayrollPeriodLockApproval(

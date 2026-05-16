@@ -1,0 +1,70 @@
+---
+title: Inviting your team
+description: Send invitations to colleagues and assign them organisation roles so they can log in and collaborate.
+icon: UserPlus
+---
+
+## Overview
+
+Organisation members join Afenda through an email invitation. Each invitation carries a role that controls what the member can see and do across all modules. Only **Admin** or **Owner** members can send invitations.
+
+## Sending an invitation
+
+<Steps>
+  <Step>
+    ### Open Members
+
+    Go to **Org admin → Members** (`/o/{orgSlug}/admin/members`).
+  </Step>
+  <Step>
+    ### Initiate the invite
+
+    Click **Invite member** and enter the invitee's email address.
+  </Step>
+  <Step>
+    ### Choose a role
+
+    Select the appropriate role for the new member:
+
+    | Role | Access level |
+    |---|---|
+    | **Member** | Standard workspace access — read and contribute within assigned modules |
+    | **Admin** | Can manage members, integrations, and settings on behalf of the organisation |
+    | **Owner** | Full control including destructive actions (delete org, transfer ownership) |
+
+    <Callout type="warn" title="Role cannot be changed by the invitee">
+      The invitee accepts the role you assign. Only an Admin or Owner can change a member's role after they join — members cannot self-promote.
+    </Callout>
+  </Step>
+  <Step>
+    ### Send the invitation
+
+    Click **Send invitation**. The recipient receives an email with a time-limited invitation link. They must click the link and complete sign-up (or sign in if they already have an account) to join your organisation.
+  </Step>
+</Steps>
+
+## Invitation limits
+
+<Callout type="info" title="Rate limit">
+  Afenda allows up to **30 invitations per hour** per organisation to prevent abuse. If you need to onboard a large team at once, spread invitations across multiple hours or contact support.
+</Callout>
+
+## Managing pending invitations
+
+Pending invitations appear in the **Members** table with a `Pending` badge. You can:
+
+- **Resend** — send the invitation email again if the recipient missed it
+- **Revoke** — cancel the invitation before it is accepted
+
+Both actions are available from the actions menu (`…`) next to each pending row.
+
+## Next steps
+
+<Cards>
+  <Card href="./quick-start" title="Quick start">
+    Review the account creation flow your team members will go through when they accept their invitation.
+  </Card>
+  <Card href="./workspace-navigation" title="Workspace navigation">
+    Share this guide with new members so they can orient themselves quickly.
+  </Card>
+</Cards>

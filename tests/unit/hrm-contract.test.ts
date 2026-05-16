@@ -95,6 +95,11 @@ describe("HRM_CAPABILITIES registry", () => {
     }
   })
 
+  it("imports capability uses hrm.import.search permission", () => {
+    const imports = getHrmCapabilityById("imports")
+    expect(imports?.requiredPermission).toBe("hrm.import.search")
+  })
+
   it("registers onboarding and performance audit prefixes", () => {
     const prefixes = getHrmAuditPrefixes()
     expect(prefixes).toContain("erp.hrm.onboarding")
@@ -186,7 +191,7 @@ describe("HRM performance state registry", () => {
 
   it("exposes stable row state object values on the tuple", () => {
     const values = new Set(HRM_REVIEW_ROW_STATES)
-    expect(values.has(HRM_REVIEW_ROW_STATE.pending)).toBe(true)
+    expect(values.has(HRM_REVIEW_ROW_STATE.selfPending)).toBe(true)
     expect(values.has(HRM_REVIEW_ROW_STATE.submitted)).toBe(true)
     expect(values.has(HRM_REVIEW_ROW_STATE.acknowledged)).toBe(true)
   })

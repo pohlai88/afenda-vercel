@@ -95,6 +95,18 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
 
+  // `eslint-config-next/typescript` enables `@typescript-eslint/no-misused-promises`,
+  // which requires parser type information. Tooling under `.config/` is compiled
+  // via split tsconfigs (`tsconfig.test.json` / `tsconfig.scripts.json`), not the
+  // root program — ESLint hits "no parserOptions.project for this file" and crashes.
+  {
+    name: "afenda/config-tooling-disable-misused-promises",
+    files: [".config/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-misused-promises": "off",
+    },
+  },
+
   // -------------------------------------------------------------------------
   // Global ignores — build artifacts, generated files, external tooling
   // -------------------------------------------------------------------------
@@ -143,9 +155,10 @@ const eslintConfig = defineConfig([
   // § TypeScript governance — upgraded strictness for .ts / .tsx
   //
   // eslint-config-next/typescript ships @typescript-eslint/recommended with
-  // no-unused-vars and no-unused-expressions at "warn". We promote both to
-  // "error" and add the two rules that matter most for an enterprise TS
-  // codebase: consistent type-imports and no CommonJS require().
+  // no-unused-vars, no-unused-expressions, and no-explicit-any at "warn".
+  // We promote all three to "error" and add the rules that matter most for
+  // an enterprise TS codebase: consistent type-imports, no CommonJS
+  // require(), and no async callbacks passed to sync-only contexts.
   // -------------------------------------------------------------------------
   {
     name: "afenda/typescript-governance",
@@ -197,6 +210,19 @@ const eslintConfig = defineConfig([
        * require() is never correct here.
        */
       "@typescript-eslint/no-require-imports": "error",
+      /**
+       * `any` defeats the TypeScript contract. The quality contract
+       * (frontend-quality-contract.mdc §6) bans `any` without a justification
+       * comment; promoting from warn → error makes the gate hard.
+       */
+      "@typescript-eslint/no-explicit-any": "error",
+      /**
+       * `no-misused-promises` requires parserOptions.projectService (typed
+       * linting) which is intentionally not configured here — it would add
+       * 30–60s to every lint run. Enable it in a dedicated typed-lint pass
+       * once projectService is wired to tsconfig.json.
+       * "@typescript-eslint/no-misused-promises": "error",
+       */
     },
   },
 
@@ -217,6 +243,7 @@ const eslintConfig = defineConfig([
     files: [
       "app/**/*.{ts,tsx,js,jsx}",
       "components/**/*.{ts,tsx,js,jsx}",
+      "components2/**/*.{ts,tsx,js,jsx}",
       "lib/**/*.{ts,tsx,js,jsx}",
       "hooks/**/*.{ts,tsx,js,jsx}",
       "i18n/**/*.{ts,tsx,js}",
@@ -230,8 +257,10 @@ const eslintConfig = defineConfig([
        * Use `logUnexpectedServerError` (lib/logger.server) on Node,
        * `instrumentation.ts`'s onRequestError on Edge, or Sentry client.
        * See AGENTS.md §5 — Observability five-layer doctrine.
+       * Promoted to "error" (was "warn") — with --max-warnings 0 the gate
+       * was already hard; the severity now matches the doctrine's absolutism.
        */
-      "no-console": "warn",
+      "no-console": "error",
     },
   },
 
@@ -275,10 +304,17 @@ const eslintConfig = defineConfig([
     files: [
       "app/**/*.{js,jsx,ts,tsx}",
       "components/**/*.{js,jsx,ts,tsx}",
+      "components2/**/*.{js,jsx,ts,tsx}",
       "hooks/**/*.{js,jsx,ts,tsx}",
       "lib/**/*.{js,jsx,ts,tsx}",
     ],
-    ignores: ["components/ui/**", "lib/features/**"],
+    ignores: [
+      // UI primitive shelves — allowed to import radix/base-ui directly
+      "components/ui/**",
+      "components2/ui/**",
+      // ERP feature internals are governed by afenda/erp-module-imports
+      "lib/features/**",
+    ],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -308,6 +344,42 @@ const eslintConfig = defineConfig([
           ],
         },
       ],
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // § components2/ server-boundary — client shell must stay client-safe
+  //
+  // components2/ is the canonical shell layer (AppShell, PortalShell,
+  // stores, providers). Its *.client.tsx files execute in the browser.
+  // Apply the same server-import gate that hooks/ has.
+  // -------------------------------------------------------------------------
+  {
+    name: "afenda/components2-server-boundary",
+    files: ["components2/**/*.client.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [...serverOnlyPatterns],
+        },
+      ],
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // § React hooks quality — promote exhaustive-deps to error
+  //
+  // eslint-config-next/core-web-vitals sets react-hooks/exhaustive-deps to
+  // "warn". The quality contract (frontend-quality-contract.mdc §1) treats
+  // stale-closure useEffect as a block-merge anti-pattern. Promote to "error"
+  // so the pre-commit hook and CI gate are consistent with the contract.
+  // -------------------------------------------------------------------------
+  {
+    name: "afenda/react-hooks-quality",
+    files: ["**/*.{ts,tsx,js,jsx}"],
+    rules: {
+      "react-hooks/exhaustive-deps": "error",
     },
   },
 

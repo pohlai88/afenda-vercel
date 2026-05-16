@@ -127,7 +127,9 @@ export function AttendanceShiftAssignmentForms({
           </p>
         ) : assignState?.ok ? (
           <p className="text-xs text-success sm:col-span-2" role="status">
-            {t("shiftAssigned")}
+            {assignState.regenerationResult === "updated"
+              ? t("shiftAssigned")
+              : t("shiftAssignedSkipped")}
           </p>
         ) : null}
       </form>

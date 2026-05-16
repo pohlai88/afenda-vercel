@@ -315,6 +315,38 @@ export async function countPendingBenefitEnrollmentsForOrganization(
   return Number(row?.n ?? 0)
 }
 
+export async function listBenefitEnrollmentCoverageRowsForEmployeePlan(
+  organizationId: string,
+  employeeId: string,
+  planId: string
+): Promise<
+  Array<{
+    enrollmentId: string
+    state: string
+    effectiveFrom: Date | null
+    enrolledAt: Date | null
+    terminatedAt: Date | null
+  }>
+> {
+  return db
+    .select({
+      enrollmentId: hrmBenefitEnrollment.id,
+      state: hrmBenefitEnrollment.state,
+      effectiveFrom: hrmBenefitEnrollment.effectiveFrom,
+      enrolledAt: hrmBenefitEnrollment.enrolledAt,
+      terminatedAt: hrmBenefitEnrollment.terminatedAt,
+    })
+    .from(hrmBenefitEnrollment)
+    .where(
+      and(
+        eq(hrmBenefitEnrollment.organizationId, organizationId),
+        eq(hrmBenefitEnrollment.employeeId, employeeId),
+        eq(hrmBenefitEnrollment.benefitId, planId)
+      )
+    )
+    .orderBy(desc(hrmBenefitEnrollment.enrolledAt))
+}
+
 export async function getBenefitEnrollmentForOrganization(
   organizationId: string,
   enrollmentId: string
@@ -323,6 +355,9 @@ export async function getBenefitEnrollmentForOrganization(
   state: string
   benefitId: string
   employeeId: string
+  effectiveFrom: Date | null
+  enrolledAt: Date
+  terminatedAt: Date | null
 } | null> {
   const [row] = await db
     .select({
@@ -330,6 +365,9 @@ export async function getBenefitEnrollmentForOrganization(
       state: hrmBenefitEnrollment.state,
       benefitId: hrmBenefitEnrollment.benefitId,
       employeeId: hrmBenefitEnrollment.employeeId,
+      effectiveFrom: hrmBenefitEnrollment.effectiveFrom,
+      enrolledAt: hrmBenefitEnrollment.enrolledAt,
+      terminatedAt: hrmBenefitEnrollment.terminatedAt,
     })
     .from(hrmBenefitEnrollment)
     .where(

@@ -8,8 +8,17 @@ import {
   hrmCandidate,
   hrmDepartment,
   hrmInterview,
+  hrmJobOffer,
   hrmJobRequisition,
+  hrmRecruitmentEvent,
 } from "#lib/db/schema"
+
+import type {
+  HrmApplicationStage,
+  HrmInterviewOutcome,
+  HrmJobOfferStatus,
+  HrmJobRequisitionStatus,
+} from "../schemas/recruitment.schema"
 
 export type JobRequisitionRow = {
   id: string
@@ -17,8 +26,60 @@ export type JobRequisitionRow = {
   departmentId: string | null
   departmentName: string | null
   headcount: number
-  status: string
+  status: HrmJobRequisitionStatus
   createdAt: Date
+}
+
+function requisitionStatus(value: string): HrmJobRequisitionStatus {
+  if (
+    value === "draft" ||
+    value === "open" ||
+    value === "filled" ||
+    value === "cancelled"
+  ) {
+    return value
+  }
+  return "draft"
+}
+
+function applicationStage(value: string): HrmApplicationStage {
+  if (
+    value === "applied" ||
+    value === "screening" ||
+    value === "interview" ||
+    value === "offer" ||
+    value === "hired" ||
+    value === "rejected"
+  ) {
+    return value
+  }
+  return "applied"
+}
+
+function offerStatus(value: string): HrmJobOfferStatus {
+  if (
+    value === "draft" ||
+    value === "approved" ||
+    value === "sent" ||
+    value === "accepted" ||
+    value === "rejected" ||
+    value === "withdrawn"
+  ) {
+    return value
+  }
+  return "draft"
+}
+
+function interviewOutcome(value: string | null): HrmInterviewOutcome | null {
+  if (
+    value === "recommended" ||
+    value === "not_recommended" ||
+    value === "needs_follow_up" ||
+    value === "cancelled"
+  ) {
+    return value
+  }
+  return null
 }
 
 export async function listJobRequisitionsForOrg(
@@ -37,7 +98,10 @@ export async function listJobRequisitionsForOrg(
     .from(hrmJobRequisition)
     .leftJoin(
       hrmDepartment,
-      eq(hrmDepartment.id, hrmJobRequisition.departmentId)
+      and(
+        eq(hrmDepartment.id, hrmJobRequisition.departmentId),
+        eq(hrmDepartment.organizationId, organizationId)
+      )
     )
     .where(eq(hrmJobRequisition.organizationId, organizationId))
     .orderBy(desc(hrmJobRequisition.createdAt))
@@ -48,18 +112,20 @@ export async function listJobRequisitionsForOrg(
     departmentId: r.departmentId,
     departmentName: r.departmentName,
     headcount: r.headcount,
-    status: r.status,
+    status: requisitionStatus(r.status),
     createdAt: r.createdAt,
   }))
 }
 
 export type ApplicationPipelineRow = {
   id: string
-  stage: string
+  stage: HrmApplicationStage
+  candidateId: string
   candidateName: string
   candidateEmail: string | null
   requisitionTitle: string
   requisitionId: string
+  convertedEmployeeId: string | null
 }
 
 export async function listApplicationsForOrg(
@@ -69,16 +135,27 @@ export async function listApplicationsForOrg(
     .select({
       id: hrmApplication.id,
       stage: hrmApplication.stage,
+      candidateId: hrmCandidate.id,
       candidateName: hrmCandidate.legalName,
       candidateEmail: hrmCandidate.email,
       requisitionTitle: hrmJobRequisition.title,
       requisitionId: hrmJobRequisition.id,
+      convertedEmployeeId: hrmApplication.convertedEmployeeId,
     })
     .from(hrmApplication)
-    .innerJoin(hrmCandidate, eq(hrmCandidate.id, hrmApplication.candidateId))
+    .innerJoin(
+      hrmCandidate,
+      and(
+        eq(hrmCandidate.id, hrmApplication.candidateId),
+        eq(hrmCandidate.organizationId, organizationId)
+      )
+    )
     .innerJoin(
       hrmJobRequisition,
-      eq(hrmJobRequisition.id, hrmApplication.requisitionId)
+      and(
+        eq(hrmJobRequisition.id, hrmApplication.requisitionId),
+        eq(hrmJobRequisition.organizationId, organizationId)
+      )
     )
     .where(
       and(
@@ -88,7 +165,10 @@ export async function listApplicationsForOrg(
     )
     .orderBy(desc(hrmApplication.updatedAt))
 
-  return rows
+  return rows.map((row) => ({
+    ...row,
+    stage: applicationStage(row.stage),
+  }))
 }
 
 export async function getInterviewCountsForOrg(
@@ -105,3 +185,150 @@ export async function getInterviewCountsForOrg(
 
   return new Map(rows.map((r) => [r.applicationId, r.n]))
 }
+
+export type InterviewQueueRow = {
+  id: string
+  applicationId: string
+  candidateName: string
+  requisitionTitle: string
+  interviewerUserId: string
+  scheduledAt: Date
+  outcome: HrmInterviewOutcome | null
+}
+
+export async function listInterviewQueueForOrg(
+  organizationId: string
+): Promise<InterviewQueueRow[]> {
+  const rows = await db
+    .select({
+      id: hrmInterview.id,
+      applicationId: hrmApplication.id,
+      candidateName: hrmCandidate.legalName,
+      requisitionTitle: hrmJobRequisition.title,
+      interviewerUserId: hrmInterview.interviewerUserId,
+      scheduledAt: hrmInterview.scheduledAt,
+      outcome: hrmInterview.outcome,
+    })
+    .from(hrmInterview)
+    .innerJoin(
+      hrmApplication,
+      and(
+        eq(hrmApplication.id, hrmInterview.applicationId),
+        eq(hrmApplication.organizationId, organizationId)
+      )
+    )
+    .innerJoin(
+      hrmCandidate,
+      and(
+        eq(hrmCandidate.id, hrmApplication.candidateId),
+        eq(hrmCandidate.organizationId, organizationId)
+      )
+    )
+    .innerJoin(
+      hrmJobRequisition,
+      and(
+        eq(hrmJobRequisition.id, hrmApplication.requisitionId),
+        eq(hrmJobRequisition.organizationId, organizationId)
+      )
+    )
+    .where(eq(hrmInterview.organizationId, organizationId))
+    .orderBy(desc(hrmInterview.scheduledAt))
+
+  return rows.map((row) => ({
+    ...row,
+    outcome: interviewOutcome(row.outcome),
+  }))
+}
+
+export type JobOfferRow = {
+  id: string
+  applicationId: string
+  candidateName: string
+  candidateEmail: string | null
+  requisitionTitle: string
+  status: HrmJobOfferStatus
+  compensationAmount: string | null
+  compensationCurrency: string
+  proposedStartDate: Date | null
+  expiresAt: Date | null
+  convertedEmployeeId: string | null
+}
+
+export async function listJobOffersForOrg(
+  organizationId: string
+): Promise<JobOfferRow[]> {
+  const rows = await db
+    .select({
+      id: hrmJobOffer.id,
+      applicationId: hrmApplication.id,
+      candidateName: hrmCandidate.legalName,
+      candidateEmail: hrmCandidate.email,
+      requisitionTitle: hrmJobRequisition.title,
+      status: hrmJobOffer.status,
+      compensationAmount: hrmJobOffer.compensationAmount,
+      compensationCurrency: hrmJobOffer.compensationCurrency,
+      proposedStartDate: hrmJobOffer.proposedStartDate,
+      expiresAt: hrmJobOffer.expiresAt,
+      convertedEmployeeId: hrmApplication.convertedEmployeeId,
+    })
+    .from(hrmJobOffer)
+    .innerJoin(
+      hrmApplication,
+      and(
+        eq(hrmApplication.id, hrmJobOffer.applicationId),
+        eq(hrmApplication.organizationId, organizationId)
+      )
+    )
+    .innerJoin(
+      hrmCandidate,
+      and(
+        eq(hrmCandidate.id, hrmApplication.candidateId),
+        eq(hrmCandidate.organizationId, organizationId)
+      )
+    )
+    .innerJoin(
+      hrmJobRequisition,
+      and(
+        eq(hrmJobRequisition.id, hrmApplication.requisitionId),
+        eq(hrmJobRequisition.organizationId, organizationId)
+      )
+    )
+    .where(eq(hrmJobOffer.organizationId, organizationId))
+    .orderBy(desc(hrmJobOffer.updatedAt))
+
+  return rows.map((row) => ({
+    ...row,
+    status: offerStatus(row.status),
+  }))
+}
+
+export type RecruitmentEventRow = {
+  id: string
+  subjectKind: string
+  subjectId: string
+  eventType: string
+  fromState: string | null
+  toState: string | null
+  createdAt: Date
+}
+
+export async function listRecentRecruitmentEventsForOrg(
+  organizationId: string,
+  limit = 20
+): Promise<RecruitmentEventRow[]> {
+  return db
+    .select({
+      id: hrmRecruitmentEvent.id,
+      subjectKind: hrmRecruitmentEvent.subjectKind,
+      subjectId: hrmRecruitmentEvent.subjectId,
+      eventType: hrmRecruitmentEvent.eventType,
+      fromState: hrmRecruitmentEvent.fromState,
+      toState: hrmRecruitmentEvent.toState,
+      createdAt: hrmRecruitmentEvent.createdAt,
+    })
+    .from(hrmRecruitmentEvent)
+    .where(eq(hrmRecruitmentEvent.organizationId, organizationId))
+    .orderBy(desc(hrmRecruitmentEvent.createdAt))
+    .limit(limit)
+}
+

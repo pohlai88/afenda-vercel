@@ -1,0 +1,32 @@
+---
+title: Claims
+description: Submit reimbursable claims with evidence, route approvals, and surface unpaid approved rows to payroll.
+icon: Receipt
+---
+
+## Overview
+
+**Claims** let employees submit reimbursable spend with typed line items and attachments. Approvers work a pending inbox; approved unpaid claims can feed the next payroll period so finance does not double-pay.
+
+## Submission
+
+Employees pick a claim type (currency-aware), describe the spend, and attach evidence stored in governed Blob storage. Drafts can be cancelled; submitted rows follow the approval machine.
+
+## Approvals
+
+Approvers see amount, policy hints, and evidence thumbnails. Denials return structured reasons so employees can resubmit with corrections.
+
+<Callout type="info" title="Portal parity">
+  The employee portal exposes claim submission for authenticated portal users — authority still resolves from portal access rows, not guessed client state.
+</Callout>
+
+## Related
+
+<Cards>
+  <Card href="./payroll" title="Payroll">
+    Approved unpaid claims can surface during payroll preparation.
+  </Card>
+  <Card href="./documents" title="Documents vault">
+    Evidence shares the same governed upload contract.
+  </Card>
+</Cards>

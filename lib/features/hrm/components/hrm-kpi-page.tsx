@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server"
+import type { Route } from "next"
 
 import { ModulePageHeader } from "#components/module-page-header"
 import {
@@ -11,31 +12,97 @@ import {
 import { Button } from "#components/ui/button"
 import { Input } from "#components/ui/input"
 import { requireOrgSession } from "#lib/tenant"
-import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
+import { Link } from "#i18n/navigation"
 
 import {
   submitCreateKpiPeriod,
   submitUpsertKpiScore,
 } from "../actions/kpi.actions"
+import { organizationHrmPath } from "../constants"
 import {
   listKpiPeriodsForOrg,
   listKpiScoresForPeriod,
 } from "../data/kpi.queries.server"
 import { listActiveEmployeeChoicesForLeave } from "../data/leave-request.queries.server"
 
+import { KpiGoalList, type KpiGoalListGoalStatusFilter } from "./kpi-goal-list"
+
 type HrmKpiPageProps = {
   orgSlug: string
+  activeTab?: "metrics" | "goals"
+  /** Raw `goalStatus` search param (only used when `activeTab` is `goals`). */
+  goalStatusFilter?: string
+  /** Whether the current user has HRM KPI update permission (passed from route page). */
+  isHrmAdmin: boolean
 }
 
-export async function HrmKpiPage({ orgSlug }: HrmKpiPageProps) {
+function parseGoalStatus(raw: string | undefined): KpiGoalListGoalStatusFilter {
+  if (raw === "in_progress" || raw === "completed" || raw === "closed") {
+    return raw
+  }
+  return "all"
+}
+
+export async function HrmKpiPage({
+  orgSlug,
+  activeTab = "metrics",
+  goalStatusFilter,
+  isHrmAdmin,
+}: HrmKpiPageProps) {
   const session = await requireOrgSession()
-  const isHrmAdmin = await canUseErpPermissionForCurrentOrg({
-    module: "hrm",
-    object: "kpi",
-    function: "update",
-  })
-  const [t, periods, employees] = await Promise.all([
-    getTranslations("Dashboard.Hrm.kpi"),
+  const t = await getTranslations("Dashboard.Hrm.kpi")
+  const basePath = organizationHrmPath(orgSlug, "kpi")
+
+  const tabNav = (
+    <div className="inline-flex w-fit gap-1 rounded-full bg-muted p-1">
+      <Button
+        variant={activeTab === "metrics" ? "secondary" : "ghost"}
+        size="sm"
+        asChild
+      >
+        <Link href={basePath}>{t("surfaceTabMetrics")}</Link>
+      </Button>
+      <Button
+        variant={activeTab === "goals" ? "secondary" : "ghost"}
+        size="sm"
+        asChild
+      >
+        <Link href={`${basePath}?tab=goals` as Route}>
+          {t("surfaceTabGoals")}
+        </Link>
+      </Button>
+    </div>
+  )
+
+  if (activeTab === "goals") {
+    return (
+      <div className="flex flex-col gap-6 p-6">
+        <ModulePageHeader
+          eyebrow={t("eyebrow")}
+          title={t("title")}
+          description={t("description")}
+        />
+        {tabNav}
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">
+            {t("goalsTitle")}
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            {t("goalsDescription")}
+          </p>
+        </div>
+        <KpiGoalList
+          orgSlug={orgSlug}
+          organizationId={session.organizationId}
+          viewerUserId={session.userId}
+          isHrmAdmin={isHrmAdmin}
+          goalStatus={parseGoalStatus(goalStatusFilter)}
+        />
+      </div>
+    )
+  }
+
+  const [periods, employees] = await Promise.all([
     listKpiPeriodsForOrg(session.organizationId),
     listActiveEmployeeChoicesForLeave(session.organizationId),
   ])
@@ -53,6 +120,8 @@ export async function HrmKpiPage({ orgSlug }: HrmKpiPageProps) {
         title={t("title")}
         description={t("description")}
       />
+
+      {tabNav}
 
       {isHrmAdmin ? (
         <Card size="sm">

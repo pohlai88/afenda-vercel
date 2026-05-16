@@ -1,0 +1,28 @@
+---
+title: HR snapshot
+description: Read-only operational projection — counts, payroll state, compliance pressure, and deep links into execution surfaces.
+icon: ChartBar
+---
+
+## Overview
+
+The **HR snapshot** is a curated dashboard: it never invents numbers. Each card links into the owning HRM route so operators can move from signal to action without hunting URLs.
+
+## Signals vs actions
+
+Cards may show pressure (e.g. aging compliance) but the snapshot itself does not mutate data. Mutations always happen inside the target module with ERP RBAC checks.
+
+## Freshness
+
+Snapshot queries are tuned for fast reads. If a downstream workflow is mid-flight, the snapshot shows the last committed state — refresh after Server Actions complete.
+
+## Related
+
+<Cards>
+  <Card href="./payroll" title="Payroll">
+    Period state and lock posture surface here first.
+  </Card>
+  <Card href="./compliance" title="Statutory compliance">
+    Evidence health and aging fan-outs link from snapshot cards.
+  </Card>
+</Cards>

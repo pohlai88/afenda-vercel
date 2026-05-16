@@ -31,7 +31,6 @@ const nextConfig: NextConfig = {
    *     Marking them external silences the warnings AND reduces webpack's traversal work.
    *  3. `@vercel/queue` — Vercel Workflow DevKit runtime package that also uses a dynamic
    *     `require(expression)` pattern; same treatment as OTel above.
-   *
    * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages
    */
   serverExternalPackages: [
@@ -117,6 +116,15 @@ const nextConfig: NextConfig = {
 
     return [{ source: "/:path*", headers: securityHeaders }]
   },
+  async rewrites() {
+    return [
+      {
+        // Allow AI agents to fetch any help-docs page as Markdown by appending .md
+        source: "/:locale/help-docs/:path*.md",
+        destination: "/llms.mdx/help-docs/:path*",
+      },
+    ]
+  },
   async redirects() {
     return [
       {
@@ -176,7 +184,11 @@ export default withSentryConfig(coreConfig, {
   // Proxy Sentry ingest through /monitoring to bypass ad-blockers
   tunnelRoute: "/monitoring",
   silent: !process.env.CI,
-  disableLogger: true,
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
 })
 
 /**

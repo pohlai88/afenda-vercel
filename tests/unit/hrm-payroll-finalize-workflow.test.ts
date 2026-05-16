@@ -60,11 +60,15 @@ import { revalidatePath } from "next/cache"
 import { writeIamAuditEvent } from "#lib/auth"
 
 import { computePayrollRun } from "../../lib/features/hrm/data/payroll-engine.server"
-import type { PayrollEngineResult } from "../../lib/features/hrm/data/payroll-engine.server"
+import type {
+  PayrollEngineInput,
+  PayrollEngineResult,
+} from "../../lib/features/hrm/data/payroll-engine.server"
 import {
   getPayrollPeriod,
   getPayrollRunInputSnapshot,
   listPayrollRunsForPeriod,
+  type PayrollPeriodRow,
 } from "../../lib/features/hrm/data/payroll.queries.server"
 import {
   deletePayrollLinesForRun,
@@ -81,6 +85,8 @@ const PAYLOAD = {
   actorSessionId: "session-1",
 } as const
 
+// `satisfies PayrollPeriodRow` — any new required field on the type fails here,
+// not deep inside a mock call. `as const` keeps literal types narrow for assertions.
 const PREPARING_PERIOD = {
   id: PAYLOAD.periodId,
   organizationId: PAYLOAD.organizationId,
@@ -93,11 +99,17 @@ const PREPARING_PERIOD = {
   lockedAt: null,
   finalizedRunId: null,
   rulePackVersion: null,
+  postedByUserId: null,
+  postedAt: null,
+  postedJournalBatchId: null,
   createdByUserId: PAYLOAD.actorUserId,
   createdAt: new Date("2026-03-01T00:00:00.000Z"),
   updatedAt: new Date("2026-03-01T00:00:00.000Z"),
-} as const
+} as const satisfies PayrollPeriodRow
 
+// `satisfies PayrollEngineInput` — keeps the engine input contract honest at the
+// fixture level. `as const` narrows union fields (e.g. socsoCategory → 1) for
+// any downstream assertions without widening to the full union.
 const SNAPSHOT = {
   organizationId: PAYLOAD.organizationId,
   periodId: PAYLOAD.periodId,
@@ -126,7 +138,7 @@ const SNAPSHOT = {
   pcbTp3AdditionalDeductionMonthly: "0.00",
   approvedUnpaidClaims: [],
   approvedSalaryAdvances: [],
-} as const
+} as const satisfies PayrollEngineInput
 
 const COMPUTED_RESULT: PayrollEngineResult = {
   grossPay: "5000.00",

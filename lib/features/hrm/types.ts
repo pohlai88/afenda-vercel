@@ -6,10 +6,12 @@ export type HrmCapabilityId =
   | "workforce"
   | "organization"
   | "onboarding"
+  | "recruitment"
   | "leave"
   | "attendance"
   | "benefits"
   | "claims"
+  | "imports"
   | "payroll"
   | "performance"
   | "kpi"
@@ -270,6 +272,26 @@ export type ContractMutationFormState =
       }
     }
 
+export type RecruitmentMutationFormState =
+  | { ok: true; id?: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        requisitionId?: string
+        applicationId?: string
+        interviewId?: string
+        offerId?: string
+        employeeNumber?: string
+        stage?: string
+        status?: string
+        scheduledAt?: string
+        compensationAmount?: string
+        proposedStartDate?: string
+        expiresAt?: string
+      }
+    }
+
 export type PayrollProfileMutationFormState =
   | { ok: true }
   | {
@@ -501,7 +523,11 @@ export type CreateShiftTemplateFormState =
     }
 
 export type AssignEmployeeShiftFormState =
-  | { ok: true; assignmentId: string }
+  | {
+      ok: true
+      assignmentId: string
+      regenerationResult: "updated" | "skipped"
+    }
   | {
       ok: false
       errors: {

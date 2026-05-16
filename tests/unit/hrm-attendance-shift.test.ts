@@ -10,6 +10,11 @@ import {
   buildScheduledShiftWindow,
   normalizeShiftCode,
 } from "../../lib/features/hrm/data/attendance-shift.shared"
+import {
+  attendanceSnapshotHasPayrollBlockingException,
+  isAttendanceDayReadyForPayroll,
+  readAttendanceShiftSnapshot,
+} from "../../lib/features/hrm/data/attendance-display.shared"
 import type { AttendanceShiftTemplatePolicy } from "../../lib/features/hrm/data/attendance-shift.shared"
 
 const TEMPLATE: AttendanceShiftTemplatePolicy = {
@@ -142,5 +147,76 @@ describe("attendance shift shared helpers", () => {
       })
     ).toBe(2)
     expect(attendanceSnapshotExceptionCount({})).toBe(0)
+  })
+
+  it("reads payroll-blocking exception state from attendance snapshots", () => {
+    expect(
+      attendanceSnapshotHasPayrollBlockingException({
+        exceptions: [
+          {
+            code: "missing_clock_out",
+            message: "Missing clock out",
+            payrollBlocking: true,
+          },
+        ],
+      })
+    ).toBe(true)
+    expect(
+      attendanceSnapshotHasPayrollBlockingException({
+        exceptions: [
+          {
+            code: "late_arrival",
+            message: "Late arrival",
+            payrollBlocking: false,
+          },
+        ],
+      })
+    ).toBe(false)
+  })
+
+  it("treats only computed or locked non-blocked days as payroll-ready", () => {
+    expect(isAttendanceDayReadyForPayroll("computed", { exceptions: [] })).toBe(
+      true
+    )
+    expect(isAttendanceDayReadyForPayroll("locked", { exceptions: [] })).toBe(
+      true
+    )
+    expect(isAttendanceDayReadyForPayroll("open", { exceptions: [] })).toBe(
+      false
+    )
+    expect(
+      isAttendanceDayReadyForPayroll("computed", {
+        exceptions: [
+          {
+            code: "missing_clock_out",
+            message: "Missing clock out",
+            payrollBlocking: true,
+          },
+        ],
+      })
+    ).toBe(false)
+  })
+
+  it("reads the applied shift snapshot from an attendance calculation snapshot", () => {
+    expect(
+      readAttendanceShiftSnapshot({
+        shift: {
+          scheduledStartAt: "2026-05-11T09:00:00.000Z",
+          scheduledEndAt: "2026-05-11T18:00:00.000Z",
+          scheduledMinutes: 480,
+          unpaidBreakMinutes: 60,
+          paidBreakMinutes: 0,
+          lateGraceMinutes: 5,
+          earlyOutGraceMinutes: 5,
+          overtimeGraceMinutes: 0,
+          maxContinuousClockMinutes: 960,
+        },
+      })
+    ).toMatchObject({
+      scheduledStartAt: "2026-05-11T09:00:00.000Z",
+      scheduledMinutes: 480,
+      unpaidBreakMinutes: 60,
+    })
+    expect(readAttendanceShiftSnapshot({ shift: null })).toBeNull()
   })
 })

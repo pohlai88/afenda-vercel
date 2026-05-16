@@ -110,6 +110,51 @@ export type ClaimPolicySnapshot = {
   readonly evaluatedAt: string
 }
 
+export function claimPolicySnapshotFromUnknown(
+  value: unknown
+): ClaimPolicySnapshot | null {
+  if (!value || typeof value !== "object") return null
+  const snapshot = value as Record<string, unknown>
+
+  if (
+    typeof snapshot.requiresEvidence !== "boolean" ||
+    typeof snapshot.evidenceRequired !== "boolean" ||
+    typeof snapshot.payoutMethod !== "string" ||
+    typeof snapshot.taxTreatment !== "string" ||
+    typeof snapshot.evaluatedAt !== "string"
+  ) {
+    return null
+  }
+
+  const readOptionalNumber = (key: keyof ClaimPolicySnapshot) => {
+    const candidate = snapshot[key]
+    if (typeof candidate === "number") return candidate
+    return candidate == null ? null : null
+  }
+
+  return {
+    perClaimLimit: readOptionalNumber("perClaimLimit"),
+    periodLimit: readOptionalNumber("periodLimit"),
+    annualLimit: readOptionalNumber("annualLimit"),
+    requiresEvidence: snapshot.requiresEvidence,
+    evidenceRequiredAboveAmount: readOptionalNumber(
+      "evidenceRequiredAboveAmount"
+    ),
+    evidenceRequired: snapshot.evidenceRequired,
+    payoutMethod: snapshot.payoutMethod,
+    financeAccountCode:
+      typeof snapshot.financeAccountCode === "string"
+        ? snapshot.financeAccountCode
+        : null,
+    costCenterCode:
+      typeof snapshot.costCenterCode === "string"
+        ? snapshot.costCenterCode
+        : null,
+    taxTreatment: snapshot.taxTreatment,
+    evaluatedAt: snapshot.evaluatedAt,
+  }
+}
+
 export function buildClaimPolicySnapshot(input: {
   perClaimLimit: number | null
   periodLimit: number | null

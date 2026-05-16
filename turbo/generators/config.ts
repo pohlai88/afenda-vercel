@@ -12,6 +12,7 @@
  *   - `adr`            — auto-numbered `docs/decisions/NNNN-*.md`
  *   - `audit-contract` — `<module>.contract.ts` with stable audit strings
  *   - `workflow-job`   — Workflow DevKit durable run + sibling contract
+ *   - `help-doc`       — scaffold MDX under `content/help-docs/<section>/` + update `meta.json`
  *
  * Each generator finishes with a post-gen action that runs
  * `pnpm lint:agent-contract` + `pnpm lint:eslint --fix` scoped to the
@@ -20,11 +21,14 @@
  * Invoke via **`pnpm gen <generator>`** (`package.json` → **`scripts/turbo-gen.mjs`**
  * → **`pnpm exec turbo gen`**). For **`action`**, **`pnpm gen action --module <slug>`**
  * supplies **four positional `--args`** (prompt order: slug, object, verb, tierKey);
+ * for **`help-doc`**, **`pnpm gen help-doc --section <dir> --slug <stem> --title "…" --description "…" --audience <role> --status <draft|beta|stable>`**
+ * supplies **six positional `--args`** matching prompt order.
  * see **AGENTS.md §3**.
  *
  * @see https://turborepo.dev/docs/guides/generating-code
  */
 import path from "node:path"
+import fs from "node:fs"
 
 import type { PlopTypes } from "@turbo/gen"
 
@@ -44,6 +48,8 @@ import {
 import { runPostGenLint } from "./lib/post-gen-lint"
 import {
   validateAuditObject,
+  validateHelpDocSection,
+  validateHelpDocSlug,
   validateExistingModuleSlug,
   validateModuleSlug,
   validateShortDescription,
@@ -79,6 +85,33 @@ function postGenLintAction(
       touchedFiles,
       runAgentContract: options.runAgentContract,
     })
+  }
+}
+
+/** Append `slug` to `pages` in `content/help-docs/<section>/meta.json` when missing. */
+function appendHelpDocMetaJsonAction(): PlopTypes.CustomActionFunction {
+  return async (answers) => {
+    const a = answers as Record<string, unknown>
+    const section = String(a.section)
+    const slug = String(a.slug)
+    const metaPath = path.join(
+      process.cwd(),
+      "content",
+      "help-docs",
+      section,
+      "meta.json"
+    )
+    if (!fs.existsSync(metaPath)) {
+      return `Skipped meta.json (missing): ${metaPath}`
+    }
+    const raw = fs.readFileSync(metaPath, "utf8")
+    const j = JSON.parse(raw) as { pages?: string[] }
+    if (!Array.isArray(j.pages)) j.pages = []
+    if (!j.pages.includes(slug)) {
+      j.pages.push(slug)
+      fs.writeFileSync(metaPath, `${JSON.stringify(j, null, 2)}\n`, "utf8")
+    }
+    return `meta.json updated for section "${section}"`
   }
 }
 
@@ -471,6 +504,76 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
           templateFile: "templates/workflow-job/job.workflow.ts.hbs",
         },
         postGenLintAction(() => [contractFilePath, workflowFile]),
+      ]
+    },
+  })
+
+  // -------------------------------------------------------------------------
+  // GENERATOR 6 — help-doc
+  //
+  // Scaffolds `content/help-docs/<section>/<slug>.mdx` with canonical frontmatter
+  // and appends `slug` to `meta.json` `pages` when missing.
+  // -------------------------------------------------------------------------
+
+  p.setGenerator("help-doc", {
+    description:
+      "Scaffold a help-docs MDX page under content/help-docs/<section>/ and update meta.json.",
+    prompts: [
+      {
+        type: "input",
+        name: "section",
+        message:
+          "Section folder under content/help-docs/ (must exist, e.g. hrm, getting-started):",
+        validate: validateHelpDocSection,
+      },
+      {
+        type: "input",
+        name: "slug",
+        message: "Page slug / filename stem without .mdx (kebab-case):",
+        validate: validateHelpDocSlug,
+      },
+      {
+        type: "input",
+        name: "title",
+        message: "Page title (frontmatter `title`):",
+        validate: validateTitle,
+      },
+      {
+        type: "input",
+        name: "description",
+        message: "Short description (frontmatter `description`, ≥8 chars):",
+        validate: validateShortDescription,
+      },
+      {
+        type: "list",
+        name: "audience",
+        message: "Primary audience:",
+        choices: ["admin", "employee", "developer"],
+        default: "admin",
+      },
+      {
+        type: "list",
+        name: "status",
+        message: "Doc maturity:",
+        choices: ["draft", "beta", "stable"],
+        default: "draft",
+      },
+    ],
+    actions: (answers) => {
+      const a = answers ?? {}
+      const section = String(a.section)
+      const slug = String(a.slug)
+      const mdxPath = `content/help-docs/${section}/${slug}.mdx`
+      const metaPath = `content/help-docs/${section}/meta.json`
+
+      return [
+        {
+          type: "add",
+          path: path.join("{{turbo.paths.root}}", mdxPath),
+          templateFile: "templates/help-doc/page.mdx.hbs",
+        },
+        appendHelpDocMetaJsonAction(),
+        postGenLintAction(() => [mdxPath, metaPath], { runAgentContract: false }),
       ]
     },
   })

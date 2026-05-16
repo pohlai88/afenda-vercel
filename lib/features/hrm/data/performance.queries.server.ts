@@ -1,6 +1,6 @@
 import "server-only"
 
-import { desc, eq } from "drizzle-orm"
+import { and, asc, desc, eq, isNotNull, isNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { hrmEmployee, hrmReview, hrmReviewCycle } from "#lib/db/schema"
@@ -8,7 +8,7 @@ import { hrmEmployee, hrmReview, hrmReviewCycle } from "#lib/db/schema"
 import {
   hrmReviewCycleStateSchema,
   hrmReviewPipelineSchema,
-  hrmReviewRowStateSchema,
+  normalizeReviewStage,
   type HrmReviewCycleState,
   type HrmReviewPipeline,
   type HrmReviewRowState,
@@ -21,6 +21,8 @@ export type HrmReviewCycleRow = {
   periodEnd: Date
   state: HrmReviewCycleState
   reviewPipeline: HrmReviewPipeline
+  activatedAt: Date | null
+  closedAt: Date | null
   createdAt: Date
 }
 
@@ -28,6 +30,8 @@ export type HrmPerformanceReviewListRow = {
   reviewId: string
   cycleId: string
   cycleName: string
+  cycleState: HrmReviewCycleState
+  reviewPipeline: HrmReviewPipeline
   employeeId: string
   employeeLegalName: string
   employeeLinkedUserId: string | null
@@ -35,7 +39,17 @@ export type HrmPerformanceReviewListRow = {
   state: HrmReviewRowState
   rating: string | null
   notes: string | null
+  selfSubmittedAt: Date | null
+  managerSubmittedAt: Date | null
+  hrSubmittedAt: Date | null
   updatedAt: Date
+}
+
+export type HrmPerformanceReviewerChoiceRow = {
+  employeeId: string
+  employeeNumber: string
+  legalName: string
+  linkedUserId: string
 }
 
 export async function listReviewCyclesForOrg(
@@ -49,28 +63,32 @@ export async function listReviewCyclesForOrg(
       periodEnd: hrmReviewCycle.periodEnd,
       state: hrmReviewCycle.state,
       reviewPipeline: hrmReviewCycle.reviewPipeline,
+      activatedAt: hrmReviewCycle.activatedAt,
+      closedAt: hrmReviewCycle.closedAt,
       createdAt: hrmReviewCycle.createdAt,
     })
     .from(hrmReviewCycle)
     .where(eq(hrmReviewCycle.organizationId, organizationId))
     .orderBy(desc(hrmReviewCycle.createdAt))
 
-  return rows.map((r) => ({
-    ...r,
-    state: hrmReviewCycleStateSchema.parse(r.state),
-    reviewPipeline: hrmReviewPipelineSchema.parse(r.reviewPipeline),
+  return rows.map((row) => ({
+    ...row,
+    state: hrmReviewCycleStateSchema.parse(row.state),
+    reviewPipeline: hrmReviewPipelineSchema.parse(row.reviewPipeline),
   }))
 }
 
 export async function listPerformanceReviewsForOrg(
   organizationId: string,
-  limit = 50
+  limit = 100
 ): Promise<readonly HrmPerformanceReviewListRow[]> {
   const rows = await db
     .select({
       reviewId: hrmReview.id,
       cycleId: hrmReview.cycleId,
       cycleName: hrmReviewCycle.name,
+      cycleState: hrmReviewCycle.state,
+      reviewPipeline: hrmReviewCycle.reviewPipeline,
       employeeId: hrmReview.employeeId,
       employeeLegalName: hrmEmployee.legalName,
       employeeLinkedUserId: hrmEmployee.linkedUserId,
@@ -78,6 +96,9 @@ export async function listPerformanceReviewsForOrg(
       state: hrmReview.state,
       rating: hrmReview.rating,
       notes: hrmReview.notes,
+      selfSubmittedAt: hrmReview.selfSubmittedAt,
+      managerSubmittedAt: hrmReview.managerSubmittedAt,
+      hrSubmittedAt: hrmReview.hrSubmittedAt,
       updatedAt: hrmReview.updatedAt,
     })
     .from(hrmReview)
@@ -87,8 +108,44 @@ export async function listPerformanceReviewsForOrg(
     .orderBy(desc(hrmReview.updatedAt))
     .limit(limit)
 
-  return rows.map((r) => ({
-    ...r,
-    state: hrmReviewRowStateSchema.parse(r.state),
+  return rows.map((row) => {
+    const pipeline = hrmReviewPipelineSchema.parse(row.reviewPipeline)
+    const state = normalizeReviewStage(row.state, pipeline)
+    if (!state) {
+      throw new Error(`Invalid HRM review stage: ${row.state}`)
+    }
+    return {
+      ...row,
+      cycleState: hrmReviewCycleStateSchema.parse(row.cycleState),
+      reviewPipeline: pipeline,
+      state,
+    }
+  })
+}
+
+export async function listPerformanceReviewerChoicesForOrg(
+  organizationId: string
+): Promise<readonly HrmPerformanceReviewerChoiceRow[]> {
+  const rows = await db
+    .select({
+      employeeId: hrmEmployee.id,
+      employeeNumber: hrmEmployee.employeeNumber,
+      legalName: hrmEmployee.legalName,
+      linkedUserId: hrmEmployee.linkedUserId,
+    })
+    .from(hrmEmployee)
+    .where(
+      and(
+        eq(hrmEmployee.organizationId, organizationId),
+        eq(hrmEmployee.employmentStatus, "active"),
+        isNull(hrmEmployee.archivedAt),
+        isNotNull(hrmEmployee.linkedUserId)
+      )
+    )
+    .orderBy(asc(hrmEmployee.legalName))
+
+  return rows.map((row) => ({
+    ...row,
+    linkedUserId: row.linkedUserId ?? "",
   }))
 }

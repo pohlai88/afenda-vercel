@@ -24,73 +24,73 @@ const { html2canvasMock, uploadMock } = vi.hoisted(() => ({
 }))
 
 const TRANSLATIONS: Record<string, string> = {
-  "Dashboard.shell.utilityBar.messenger.trigger": "Messenger",
-  "Dashboard.shell.utilityBar.messenger.tooltip":
+  "Dashboard.shell.utilityBar.coordination.trigger": "Coordination",
+  "Dashboard.shell.utilityBar.coordination.tooltip":
     "Open operational coordination",
-  "Dashboard.shell.utilityBar.messenger.title": "Operational coordination",
-  "Dashboard.shell.utilityBar.messenger.description":
+  "Dashboard.shell.utilityBar.coordination.title": "Operational coordination",
+  "Dashboard.shell.utilityBar.coordination.description":
     "Coordinate around operational work, evidence, and review trails without leaving the workspace.",
-  "Dashboard.shell.utilityBar.messenger.newContext": "New context",
-  "Dashboard.shell.utilityBar.messenger.contextsTitle": "Contexts",
-  "Dashboard.shell.utilityBar.messenger.contextNoActivity": "No activity yet.",
-  "Dashboard.shell.utilityBar.messenger.emptyContexts":
+  "Dashboard.shell.utilityBar.coordination.newContext": "New context",
+  "Dashboard.shell.utilityBar.coordination.contextsTitle": "Contexts",
+  "Dashboard.shell.utilityBar.coordination.contextNoActivity": "No activity yet.",
+  "Dashboard.shell.utilityBar.coordination.emptyContexts":
     "No coordination contexts yet. Start one when work needs shared review, evidence, or follow-up.",
-  "Dashboard.shell.utilityBar.messenger.linkedRecord": "Linked record",
-  "Dashboard.shell.utilityBar.messenger.unlinkedContext":
+  "Dashboard.shell.utilityBar.coordination.linkedRecord": "Linked record",
+  "Dashboard.shell.utilityBar.coordination.unlinkedContext":
     "This context is not linked to an operational record yet.",
-  "Dashboard.shell.utilityBar.messenger.openLinkedRecord": "Open linked record",
-  "Dashboard.shell.utilityBar.messenger.attachEvidence": "Attach evidence",
-  "Dashboard.shell.utilityBar.messenger.markReviewed": "Mark reviewed",
-  "Dashboard.shell.utilityBar.messenger.activityTitle": "Activity",
-  "Dashboard.shell.utilityBar.messenger.loading": "Loading coordination…",
-  "Dashboard.shell.utilityBar.messenger.emptyActivity":
+  "Dashboard.shell.utilityBar.coordination.openLinkedRecord": "Open linked record",
+  "Dashboard.shell.utilityBar.coordination.attachEvidence": "Attach evidence",
+  "Dashboard.shell.utilityBar.coordination.markReviewed": "Mark reviewed",
+  "Dashboard.shell.utilityBar.coordination.activityTitle": "Activity",
+  "Dashboard.shell.utilityBar.coordination.loading": "Loading coordination…",
+  "Dashboard.shell.utilityBar.coordination.emptyActivity":
     "No activity yet. Add a coordination update or evidence to start the trail.",
-  "Dashboard.shell.utilityBar.messenger.composerLabel":
+  "Dashboard.shell.utilityBar.coordination.composerLabel":
     "Add coordination update",
-  "Dashboard.shell.utilityBar.messenger.composerPlaceholder":
+  "Dashboard.shell.utilityBar.coordination.composerPlaceholder":
     "Summarize the situation, the decision needed, or the evidence that matters.",
-  "Dashboard.shell.utilityBar.messenger.attachFile": "Attach file",
-  "Dashboard.shell.utilityBar.messenger.attachScreenshot": "Attach screenshot",
-  "Dashboard.shell.utilityBar.messenger.sendUpdate": "Send update",
-  "Dashboard.shell.utilityBar.messenger.sending": "Sending…",
-  "Dashboard.shell.utilityBar.messenger.evidenceTitle": "Evidence",
-  "Dashboard.shell.utilityBar.messenger.openEvidence": "Open evidence",
-  "Dashboard.shell.utilityBar.messenger.emptyEvidence":
+  "Dashboard.shell.utilityBar.coordination.attachFile": "Attach file",
+  "Dashboard.shell.utilityBar.coordination.attachScreenshot": "Attach screenshot",
+  "Dashboard.shell.utilityBar.coordination.sendUpdate": "Send update",
+  "Dashboard.shell.utilityBar.coordination.sending": "Sending…",
+  "Dashboard.shell.utilityBar.coordination.evidenceTitle": "Evidence",
+  "Dashboard.shell.utilityBar.coordination.openEvidence": "Open evidence",
+  "Dashboard.shell.utilityBar.coordination.emptyEvidence":
     "No evidence attached yet.",
-  "Dashboard.shell.utilityBar.messenger.selectContext":
+  "Dashboard.shell.utilityBar.coordination.selectContext":
     "Select an operational context to review coordination and evidence.",
-  "Dashboard.shell.utilityBar.messenger.newContextTitle":
+  "Dashboard.shell.utilityBar.coordination.newContextTitle":
     "New operational context",
-  "Dashboard.shell.utilityBar.messenger.newContextDescription":
+  "Dashboard.shell.utilityBar.coordination.newContextDescription":
     "Create a coordination context for the operators who need to review or act together.",
-  "Dashboard.shell.utilityBar.messenger.subjectLabel": "Context title",
-  "Dashboard.shell.utilityBar.messenger.subjectPlaceholder":
+  "Dashboard.shell.utilityBar.coordination.subjectLabel": "Context title",
+  "Dashboard.shell.utilityBar.coordination.subjectPlaceholder":
     "Example: Vendor payment hold",
-  "Dashboard.shell.utilityBar.messenger.startNoteLabel": "Starting note",
-  "Dashboard.shell.utilityBar.messenger.startNotePlaceholder":
+  "Dashboard.shell.utilityBar.coordination.startNoteLabel": "Starting note",
+  "Dashboard.shell.utilityBar.coordination.startNotePlaceholder":
     "Optional: summarize the issue, decision, or handoff needed.",
-  "Dashboard.shell.utilityBar.messenger.operatorsLabel": "Operators",
-  "Dashboard.shell.utilityBar.messenger.noOperators":
+  "Dashboard.shell.utilityBar.coordination.operatorsLabel": "Operators",
+  "Dashboard.shell.utilityBar.coordination.noOperators":
     "No operators available in this organization.",
-  "Dashboard.shell.utilityBar.messenger.cancel": "Cancel",
-  "Dashboard.shell.utilityBar.messenger.creating": "Creating…",
-  "Dashboard.shell.utilityBar.messenger.createContext": "Create context",
-  "Dashboard.shell.utilityBar.messenger.reviewedNote": "Marked reviewed.",
-  "Dashboard.shell.utilityBar.messenger.activityKinds.comment": "Coordination",
-  "Dashboard.shell.utilityBar.messenger.activityKinds.evidence_added":
+  "Dashboard.shell.utilityBar.coordination.cancel": "Cancel",
+  "Dashboard.shell.utilityBar.coordination.creating": "Creating…",
+  "Dashboard.shell.utilityBar.coordination.createContext": "Create context",
+  "Dashboard.shell.utilityBar.coordination.reviewedNote": "Marked reviewed.",
+  "Dashboard.shell.utilityBar.coordination.activityKinds.comment": "Coordination",
+  "Dashboard.shell.utilityBar.coordination.activityKinds.evidence_added":
     "Evidence added",
-  "Dashboard.shell.utilityBar.messenger.activityKinds.status_note":
+  "Dashboard.shell.utilityBar.coordination.activityKinds.status_note":
     "Status note",
-  "Dashboard.shell.utilityBar.messenger.evidenceKinds.file": "File evidence",
-  "Dashboard.shell.utilityBar.messenger.evidenceKinds.screenshot":
+  "Dashboard.shell.utilityBar.coordination.evidenceKinds.file": "File evidence",
+  "Dashboard.shell.utilityBar.coordination.evidenceKinds.screenshot":
     "Screenshot evidence",
-  "Dashboard.shell.utilityBar.messenger.errors.generic":
+  "Dashboard.shell.utilityBar.coordination.errors.generic":
     "Something went wrong. Try again.",
-  "Dashboard.shell.utilityBar.messenger.errors.captureTarget":
+  "Dashboard.shell.utilityBar.coordination.errors.captureTarget":
     "The workspace capture area is not available on this screen.",
-  "Dashboard.shell.utilityBar.messenger.errors.captureFailed":
+  "Dashboard.shell.utilityBar.coordination.errors.captureFailed":
     "Screenshot evidence capture failed. Try again.",
-  "Dashboard.shell.utilityBar.messenger.errors.sendFailed":
+  "Dashboard.shell.utilityBar.coordination.errors.sendFailed":
     "Couldn't send the coordination update. Try again.",
 }
 
@@ -348,13 +348,13 @@ afterEach(() => {
 })
 
 /** Load after {@link vi.resetModules} so `#i18n/navigation` mocks win over prior test files' module cache. */
-let WorkbenchUtilityMessenger: ComponentType<{ orgId: string }>
+let CoordinationConsole: ComponentType<{ orgId: string }>
 
-describe("WorkbenchUtilityMessenger", { timeout: 20_000 }, () => {
+describe("OperationalCoordinationConsole", { timeout: 20_000 }, () => {
   beforeAll(async () => {
     vi.resetModules()
-    ;({ WorkbenchUtilityMessenger } =
-      await import("#components/workbench/utility-bar/right-utility-bar/workbench-utility-messenger"))
+    const mod = await import("#features/coordination/client")
+    CoordinationConsole = mod.OperationalCoordinationConsole
   })
 
   beforeEach(() => {
@@ -386,11 +386,11 @@ describe("WorkbenchUtilityMessenger", { timeout: 20_000 }, () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityMessenger orgId="org-1" />
+        <CoordinationConsole orgId="org-1" />
       </TooltipProvider>
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Messenger" }))
+    fireEvent.click(screen.getByRole("button", { name: "Coordination" }))
     expect(
       await screen.findByRole("heading", {
         name: "Operational coordination",
@@ -412,11 +412,11 @@ describe("WorkbenchUtilityMessenger", { timeout: 20_000 }, () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityMessenger orgId="org-1" />
+        <CoordinationConsole orgId="org-1" />
       </TooltipProvider>
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Messenger" }))
+    fireEvent.click(screen.getByRole("button", { name: "Coordination" }))
     fireEvent.click(await screen.findByRole("button", { name: "New context" }))
     fireEvent.change(screen.getByLabelText("Context title"), {
       target: { value: "Vendor payment hold" },
@@ -466,11 +466,11 @@ describe("WorkbenchUtilityMessenger", { timeout: 20_000 }, () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityMessenger orgId="org-1" />
+        <CoordinationConsole orgId="org-1" />
       </TooltipProvider>
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Messenger" }))
+    fireEvent.click(screen.getByRole("button", { name: "Coordination" }))
     fireEvent.click(await screen.findByRole("button", { name: "New context" }))
     fireEvent.change(screen.getByLabelText("Context title"), {
       target: { value: "Payroll anomaly" },
@@ -504,11 +504,11 @@ describe("WorkbenchUtilityMessenger", { timeout: 20_000 }, () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityMessenger orgId="org-1" />
+        <CoordinationConsole orgId="org-1" />
       </TooltipProvider>
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Messenger" }))
+    fireEvent.click(screen.getByRole("button", { name: "Coordination" }))
     fireEvent.click(await screen.findByRole("button", { name: "New context" }))
     fireEvent.change(screen.getByLabelText("Context title"), {
       target: { value: "Audit follow-up" },
@@ -516,10 +516,13 @@ describe("WorkbenchUtilityMessenger", { timeout: 20_000 }, () => {
     fireEvent.click(screen.getByRole("button", { name: /Finance/i }))
     fireEvent.click(screen.getByRole("button", { name: "Create context" }))
     expect(await screen.findByText("Audit follow-up")).toBeTruthy()
+    await screen.findByLabelText("Add coordination update")
 
-    const fileInput = document.querySelector(
-      'input[type="file"]'
-    ) as HTMLInputElement
+    const fileInput = await waitFor(() => {
+      const input = document.querySelector('input[type="file"]')
+      expect(input).toBeTruthy()
+      return input as HTMLInputElement
+    })
     fireEvent.change(fileInput, {
       target: {
         files: [new File(["pdf"], "blocked.pdf", { type: "application/pdf" })],

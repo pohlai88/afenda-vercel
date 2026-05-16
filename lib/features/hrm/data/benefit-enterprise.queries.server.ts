@@ -12,11 +12,13 @@ import {
   hrmEmploymentContract,
 } from "#lib/db/schema"
 
+import { getBenefitPlanForOrganization, listBenefitPlansForOrganization } from "./benefit.queries.server"
 import {
   evaluateBenefitEligibility,
   parseBenefitEligibilityRules,
 } from "./benefit-eligibility.shared"
 import { toBenefitUtcDay } from "./benefit-calendar.shared"
+import { buildBenefitPlanEnterpriseVersion } from "./benefit-plan-version.shared"
 import { buildBenefitCensusReport } from "./benefit-reporting.shared"
 import {
   projectBenefitPayrollLinesForPeriod,
@@ -24,6 +26,7 @@ import {
   type BenefitPayrollProjectedLine,
 } from "./benefit-payroll-projection.shared"
 
+import type { BenefitPlanEnterpriseVersion } from "./benefit-plan-version.shared"
 import type {
   BenefitEligibilityResult,
   BenefitEligibilityRules,
@@ -60,6 +63,14 @@ export type BuildBenefitCensusReportForOrganizationOptions = {
   readonly asOf?: string | Date
 }
 
+export type ListBenefitPlanEnterpriseVersionsForOrganizationOptions = {
+  readonly organizationId: string
+  readonly isActive?: boolean
+  readonly benefitKind?: string
+  readonly limit?: number
+  readonly offset?: number
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000
 
 function toDateString(value: string | Date): string {
@@ -83,6 +94,26 @@ async function getDependentCount(
       )
     )
   return Number(row?.n ?? 0)
+}
+
+export async function getBenefitPlanEnterpriseVersionForOrganization(
+  organizationId: string,
+  planId: string
+): Promise<BenefitPlanEnterpriseVersion | null> {
+  const plan = await getBenefitPlanForOrganization(organizationId, planId)
+  return plan ? buildBenefitPlanEnterpriseVersion(plan) : null
+}
+
+export async function listBenefitPlanEnterpriseVersionsForOrganization(
+  options: ListBenefitPlanEnterpriseVersionsForOrganizationOptions
+): Promise<BenefitPlanEnterpriseVersion[]> {
+  const plans = await listBenefitPlansForOrganization(options.organizationId, {
+    isActive: options.isActive,
+    benefitKind: options.benefitKind,
+    limit: options.limit,
+    offset: options.offset,
+  })
+  return plans.map(buildBenefitPlanEnterpriseVersion)
 }
 
 export async function evaluateBenefitEligibilityForEmployee(

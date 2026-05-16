@@ -9,6 +9,31 @@
  * Keep the rules aligned with AGENTS.md §6 and lib/erp/crud-sap.shared.ts.
  */
 
+import fs from "node:fs"
+import path from "node:path"
+
+/** Help-docs section folder under `content/help-docs/<section>/`. */
+export function validateHelpDocSection(input: string): true | string {
+  if (!input) return "Section folder is required (e.g. hrm, getting-started)."
+  if (!/^[a-z][a-z0-9-]*$/.test(input)) {
+    return "Section must be lowercase alphanumeric with optional hyphens (e.g. getting-started)."
+  }
+  const dir = path.join(process.cwd(), "content", "help-docs", input)
+  if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
+    return `No directory at content/help-docs/${input}/ — create the section and meta.json first.`
+  }
+  return true
+}
+
+/** Help-docs page file stem (e.g. attendance-corrections → attendance-corrections.mdx). */
+export function validateHelpDocSlug(input: string): true | string {
+  if (!input) return "Page slug is required (filename without .mdx)."
+  if (!/^[a-z][a-z0-9-]*$/.test(input)) {
+    return "Slug must be lowercase kebab-case (e.g. attendance-corrections)."
+  }
+  return true
+}
+
 /** Lowercase kebab-case (e.g. "sales-orders"). Used for module slugs + adapters. */
 const KEBAB_CASE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
 

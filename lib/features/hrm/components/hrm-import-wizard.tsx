@@ -1,7 +1,6 @@
 "use client"
 
-import { useActionState, useCallback, useId, useState } from "react"
-import { useFormStatus } from "react-dom"
+import { useCallback, useId, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
@@ -16,27 +15,30 @@ import {
 import { Label } from "#components/ui/label"
 
 import {
-  commitImportSessionAction,
-  rollbackImportSessionAction,
-} from "../actions/hrm-import.actions"
-import { HRM_IMPORT_TYPES } from "../schemas/hrm-import.schema"
+  hrmImportDryRunSuccessResponseSchema,
+  HRM_IMPORT_TYPES,
+  parseHrmImportDryRunErrorMessage,
+  type HrmImportDryRunSuccessResponse,
+} from "../schemas/hrm-import.schema"
+
+import { reportHrmImportClientError } from "./hrm-import-report-error.client"
+import { HrmImportSessionCommitRollback } from "./hrm-import-session-commit-rollback.client"
+
+const DRY_RUN_DIAGNOSTIC_PREVIEW_MAX_CHARS = 400
 
 type DryRunResponse =
-  | {
-      ok: true
-      sessionId: string
-      rowCount: number
-      errors: { line: number; message: string }[]
-    }
+  | HrmImportDryRunSuccessResponse
   | { ok: false; error: string }
 
-function SubmitBtn({ label }: { label: string }) {
-  const { pending } = useFormStatus()
-  return (
-    <Button type="submit" disabled={pending} size="sm">
-      {label}
-    </Button>
-  )
+function previewUnknownForDiagnostics(value: unknown): string {
+  try {
+    const s = JSON.stringify(value)
+    return s.length > DRY_RUN_DIAGNOSTIC_PREVIEW_MAX_CHARS
+      ? `${s.slice(0, DRY_RUN_DIAGNOSTIC_PREVIEW_MAX_CHARS)}…`
+      : s
+  } catch {
+    return String(value).slice(0, DRY_RUN_DIAGNOSTIC_PREVIEW_MAX_CHARS)
+  }
 }
 
 type HrmImportWizardProps = {
@@ -45,17 +47,10 @@ type HrmImportWizardProps = {
 
 export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
   const t = useTranslations("Dashboard.Hrm.imports")
+  const importTypeId = useId()
   const fileId = useId()
   const [pending, setPending] = useState(false)
   const [result, setResult] = useState<DryRunResponse | null>(null)
-  const [commitState, commitAction] = useActionState(
-    commitImportSessionAction,
-    undefined
-  )
-  const [rollbackState, rollbackAction] = useActionState(
-    rollbackImportSessionAction,
-    undefined
-  )
 
   const runDryRun = useCallback(
     async (formData: FormData) => {
@@ -67,21 +62,35 @@ export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
           body: formData,
           credentials: "include",
         })
-        const data = (await res.json()) as DryRunResponse | { error?: string }
-        if (!res.ok) {
-          const msg =
-            "error" in data && typeof data.error === "string"
-              ? data.error
-              : t("errorGeneric")
-          setResult({ ok: false, error: msg })
-          return
-        }
-        if (!("ok" in data) || !data.ok) {
+        let raw: unknown
+        try {
+          raw = await res.json()
+        } catch (parseErr) {
+          reportHrmImportClientError("Import dry-run: invalid JSON body", parseErr)
           setResult({ ok: false, error: t("errorGeneric") })
           return
         }
-        setResult(data)
-      } catch {
+
+        if (!res.ok) {
+          setResult({
+            ok: false,
+            error: parseHrmImportDryRunErrorMessage(raw, t("errorGeneric")),
+          })
+          return
+        }
+
+        const okBody = hrmImportDryRunSuccessResponseSchema.safeParse(raw)
+        if (!okBody.success) {
+          reportHrmImportClientError(
+            "Import dry-run: 200 response did not match success schema",
+            new Error(previewUnknownForDiagnostics(raw))
+          )
+          setResult({ ok: false, error: t("errorGeneric") })
+          return
+        }
+        setResult(okBody.data)
+      } catch (err) {
+        reportHrmImportClientError("Import dry-run: request failed", err)
         setResult({ ok: false, error: t("errorGeneric") })
       } finally {
         setPending(false)
@@ -89,6 +98,11 @@ export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
     },
     [t]
   )
+
+  const canCommit =
+    result?.ok === true &&
+    result.errors.length === 0 &&
+    result.rowCount > 0
 
   return (
     <Card size="sm">
@@ -107,8 +121,9 @@ export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
           }}
         >
           <div className="grid gap-2">
-            <Label htmlFor={fileId}>{t("fieldImportType")}</Label>
+            <Label htmlFor={importTypeId}>{t("fieldImportType")}</Label>
             <select
+              id={importTypeId}
               name="importType"
               required
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -151,8 +166,8 @@ export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
             </p>
             {result.errors.length > 0 ? (
               <ul className="list-inside list-disc text-destructive">
-                {result.errors.map((e) => (
-                  <li key={`${e.line}-${e.message}`}>
+                {result.errors.map((e, index) => (
+                  <li key={`${e.line}-${index}-${e.message}`}>
                     {t("rowError", { line: e.line, message: e.message })}
                   </li>
                 ))}
@@ -161,53 +176,12 @@ export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
               <p className="text-muted-foreground">{t("dryRunNoRowErrors")}</p>
             )}
 
-            {commitState && !commitState.ok ? (
-              <Alert variant="destructive" className="py-2">
-                <AlertTitle>{t("errorTitle")}</AlertTitle>
-                <AlertDescription>{commitState.errors?.form}</AlertDescription>
-              </Alert>
-            ) : null}
-            {commitState?.ok ? (
-              <Alert className="py-2">
-                <AlertDescription>{t("commitOk")}</AlertDescription>
-              </Alert>
-            ) : null}
-
-            {!commitState?.ok ? (
-              <form action={commitAction} className="flex flex-wrap gap-2">
-                <input type="hidden" name="orgSlug" value={orgSlug} />
-                <input
-                  type="hidden"
-                  name="importSessionId"
-                  value={result.sessionId}
-                />
-                <SubmitBtn label={t("commitSubmit")} />
-              </form>
-            ) : null}
-
-            {commitState?.ok ? (
-              <>
-                {rollbackState && !rollbackState.ok ? (
-                  <Alert variant="destructive" className="py-2">
-                    <AlertTitle>{t("errorTitle")}</AlertTitle>
-                    <AlertDescription>
-                      {rollbackState.errors?.form}
-                    </AlertDescription>
-                  </Alert>
-                ) : null}
-                {!rollbackState?.ok ? (
-                  <form action={rollbackAction} className="flex flex-wrap gap-2">
-                    <input type="hidden" name="orgSlug" value={orgSlug} />
-                    <input
-                      type="hidden"
-                      name="importSessionId"
-                      value={result.sessionId}
-                    />
-                    <SubmitBtn label={t("rollbackSubmit")} />
-                  </form>
-                ) : null}
-              </>
-            ) : null}
+            <HrmImportSessionCommitRollback
+              key={result.sessionId}
+              orgSlug={orgSlug}
+              sessionId={result.sessionId}
+              canCommit={canCommit}
+            />
           </div>
         ) : null}
       </CardContent>

@@ -1,0 +1,6 @@
+{
+  "title": "Orbit",
+  "icon": "Compass",
+  "root": true,
+  "pages": ["index"]
+}

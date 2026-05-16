@@ -25,6 +25,48 @@ function parseModuleFlag() {
 }
 
 function buildTurboArgv() {
+  if (argv[0] === "help-doc") {
+    const pick = (flag) => {
+      const eq = argv.find((a) => a.startsWith(`${flag}=`))
+      if (eq) return eq.slice(flag.length + 1)
+      const i = argv.indexOf(flag)
+      if (i !== -1 && argv[i + 1]) return argv[i + 1]
+      return null
+    }
+    const section = pick("--section")
+    const slug = pick("--slug")
+    const title = pick("--title")
+    const description = pick("--description")
+    const audience = pick("--audience")
+    const status = pick("--status")
+    if (
+      section &&
+      slug &&
+      title &&
+      description &&
+      audience &&
+      status
+    ) {
+      return [
+        "gen",
+        "help-doc",
+        "--args",
+        section,
+        "--args",
+        slug,
+        "--args",
+        title,
+        "--args",
+        description,
+        "--args",
+        audience,
+        "--args",
+        status,
+      ]
+    }
+    return ["gen", ...argv]
+  }
+
   if (argv[0] !== "action") {
     return ["gen", ...argv]
   }

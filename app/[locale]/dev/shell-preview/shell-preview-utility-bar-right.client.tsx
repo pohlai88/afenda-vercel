@@ -1,33 +1,46 @@
 "use client"
 
+import { useEffect } from "react"
 import type { Route } from "next"
-import { useLocale } from "next-intl"
 
 import { AppShellUtilityBarRight } from "#components2/app-shell/client"
-import { helpDocsPath } from "#lib/help-docs-path.shared"
-import { ensureAppLocale } from "#lib/i18n/locales.shared"
+import { useUtilityBarStore } from "#components2/stores/utility-bar.store"
 
-// Dev preview only — locale-internal href; double assertion bypasses typed-routes
-// strictness since the locale segment is dynamic (/{locale}/dev/shell-preview).
+import {
+  createShellPreviewMessengerTransport,
+  SHELL_PREVIEW_MESSENGER_ORG_ID,
+} from "./shell-preview-messenger-mocks.client"
+
+// Dev preview only — locale-internal hrefs for `#i18n/navigation` `Link` (next-intl
+// adds `/{locale}`; never pass `toLocalePath` / `helpDocsPath` here or you get `/en/en/...`).
+// Double assertion bypasses typed-routes strictness since the locale segment is dynamic.
 const PREVIEW_HREF = "/dev/shell-preview" as unknown as Route
+const HELP_DOCS_HREF = "/help-docs" as unknown as Route
 
 /**
  * Client bridge: passes serializable `account` props (including `onSignOut` no-op)
  * into {@link AppShellUtilityBarRight} because the shell preview page is an RSC.
  *
- * `useLocale()` resolves the active locale so `hrefs.help` is always locale-prefixed
- * without requiring the RSC parent to pass props across the server→client boundary.
+ * Help uses the same locale-internal path contract as production utility bar links:
+ * `Link` from `#i18n/navigation` prefixes the active locale automatically.
  */
 export function ShellPreviewUtilityBarRight() {
-  const locale = ensureAppLocale(useLocale())
+  useEffect(() => {
+    useUtilityBarStore
+      .getState()
+      .ensureItemsVisibleForPreview(["messenger", "coordination"])
+  }, [])
 
   return (
     <AppShellUtilityBarRight
       hrefs={{
         insight: PREVIEW_HREF,
-        help: helpDocsPath(locale) as Route,
+        help: HELP_DOCS_HREF,
       }}
       orgSlug="preview-org"
+      workspaceBlobOrganizationId={SHELL_PREVIEW_MESSENGER_ORG_ID}
+      messengerPreviewStub
+      messengerTransport={createShellPreviewMessengerTransport()}
       account={{
         userEmail: "you@example.com",
         hrefs: {

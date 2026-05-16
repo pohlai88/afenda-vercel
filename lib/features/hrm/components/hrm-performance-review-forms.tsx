@@ -11,6 +11,9 @@ import { Textarea } from "#components/ui/textarea"
 
 import {
   acknowledgeReviewAction,
+  activateReviewCycleAction,
+  cancelReviewAction,
+  closeReviewCycleAction,
   createReviewCycleAction,
   submitReviewAction,
 } from "#features/hrm/client"
@@ -123,6 +126,119 @@ export function HrmCreateReviewCycleForm({
   )
 }
 
+type ReviewerChoice = {
+  linkedUserId: string
+  employeeNumber: string
+  legalName: string
+}
+
+type ActivateReviewCycleFormProps = {
+  orgSlug: string
+  cycleId: string
+  reviewerChoices: readonly ReviewerChoice[]
+}
+
+export function HrmActivateReviewCycleForm({
+  orgSlug,
+  cycleId,
+  reviewerChoices,
+}: ActivateReviewCycleFormProps) {
+  const t = useTranslations("Dashboard.Hrm.performance")
+  const baseId = useId()
+  const [state, formAction, pending] = useActionState(
+    activateReviewCycleAction,
+    undefined
+  )
+
+  return (
+    <form action={formAction} className="grid min-w-64 gap-2">
+      <input type="hidden" name="orgSlug" value={orgSlug} />
+      <input type="hidden" name="cycleId" value={cycleId} />
+
+      {state && !state.ok && state.errors.form ? (
+        <Alert variant="destructive" className="py-2">
+          <AlertTitle>{t("errorTitle")}</AlertTitle>
+          <AlertDescription>{state.errors.form}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <label
+        className="text-xs text-muted-foreground"
+        htmlFor={`${baseId}-fallback`}
+      >
+        {t("fallbackReviewer")}
+      </label>
+      <select
+        id={`${baseId}-fallback`}
+        name="fallbackReviewerUserId"
+        className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+        disabled={pending}
+      >
+        <option value="">{t("selectReviewer")}</option>
+        {reviewerChoices.map((choice) => (
+          <option key={choice.linkedUserId} value={choice.linkedUserId}>
+            {choice.employeeNumber} — {choice.legalName}
+          </option>
+        ))}
+      </select>
+      <p className="text-xs text-muted-foreground">
+        {t("fallbackReviewerHint")}
+      </p>
+      <Button type="submit" size="sm" variant="secondary" disabled={pending}>
+        {pending ? (
+          <>
+            <Loader2 className="mr-1 size-4 animate-spin" aria-hidden />
+            {t("saving")}
+          </>
+        ) : (
+          t("activateCycle")
+        )}
+      </Button>
+    </form>
+  )
+}
+
+type CloseReviewCycleFormProps = {
+  orgSlug: string
+  cycleId: string
+}
+
+export function HrmCloseReviewCycleForm({
+  orgSlug,
+  cycleId,
+}: CloseReviewCycleFormProps) {
+  const t = useTranslations("Dashboard.Hrm.performance")
+  const [state, formAction, pending] = useActionState(
+    closeReviewCycleAction,
+    undefined
+  )
+
+  return (
+    <form action={formAction} className="flex flex-col gap-2">
+      <input type="hidden" name="orgSlug" value={orgSlug} />
+      <input type="hidden" name="cycleId" value={cycleId} />
+
+      {state && !state.ok && state.errors.form ? (
+        <Alert variant="destructive" className="py-2">
+          <AlertTitle>{t("errorTitle")}</AlertTitle>
+          <AlertDescription>{state.errors.form}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <Button type="submit" size="sm" variant="outline" disabled={pending}>
+        {pending ? (
+          <>
+            <Loader2 className="mr-1 size-4 animate-spin" aria-hidden />
+            {t("saving")}
+          </>
+        ) : (
+          t("closeCycle")
+        )}
+      </Button>
+    </form>
+  )
+}
+
 type SubmitReviewFormProps = {
   orgSlug: string
   reviewId: string
@@ -164,6 +280,13 @@ export function HrmSubmitPerformanceReviewForm({
         rows={2}
         disabled={pending}
       />
+      <Textarea
+        id={`${baseId}-competencies`}
+        name="competencyScoresJson"
+        placeholder={t("competencyScoresPlaceholder")}
+        rows={2}
+        disabled={pending}
+      />
       <Button type="submit" size="sm" variant="secondary" disabled={pending}>
         {pending ? (
           <>
@@ -172,6 +295,47 @@ export function HrmSubmitPerformanceReviewForm({
           </>
         ) : (
           t("submitReview")
+        )}
+      </Button>
+    </form>
+  )
+}
+
+type CancelReviewFormProps = {
+  orgSlug: string
+  reviewId: string
+}
+
+export function HrmCancelPerformanceReviewForm({
+  orgSlug,
+  reviewId,
+}: CancelReviewFormProps) {
+  const t = useTranslations("Dashboard.Hrm.performance")
+  const [state, formAction, pending] = useActionState(
+    cancelReviewAction,
+    undefined
+  )
+
+  return (
+    <form action={formAction} className="flex flex-col gap-2">
+      <input type="hidden" name="orgSlug" value={orgSlug} />
+      <input type="hidden" name="reviewId" value={reviewId} />
+
+      {state && !state.ok && state.errors.form ? (
+        <Alert variant="destructive" className="py-2">
+          <AlertTitle>{t("errorTitle")}</AlertTitle>
+          <AlertDescription>{state.errors.form}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <Button type="submit" size="sm" variant="ghost" disabled={pending}>
+        {pending ? (
+          <>
+            <Loader2 className="mr-1 size-4 animate-spin" aria-hidden />
+            {t("saving")}
+          </>
+        ) : (
+          t("cancelReview")
         )}
       </Button>
     </form>

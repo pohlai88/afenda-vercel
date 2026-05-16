@@ -40,6 +40,11 @@ type UtilityBarActions = {
   reorderVisibleInRail: (newVisibleOrder: UtilityBarItemId[]) => void
   /** Reset to catalog defaults. */
   reset: () => void
+  /**
+   * Dev-only: force visibility for specific catalog ids without enforcing
+   * {@link UTILITY_BAR_MAX_VISIBLE} (shell preview page).
+   */
+  ensureItemsVisibleForPreview: (ids: UtilityBarItemId[]) => void
 }
 
 export type UtilityBarStore = UtilityBarState & UtilityBarActions
@@ -200,6 +205,16 @@ export const useUtilityBarStore = create<UtilityBarStore>()(
       },
 
       reset: () => set({ items: INITIAL_ITEMS }),
+
+      ensureItemsVisibleForPreview: (ids) => {
+        const idSet = new Set(ids)
+        if (idSet.size === 0) return
+        set({
+          items: get().items.map((i) =>
+            idSet.has(i.id) ? { ...i, visible: true } : i
+          ),
+        })
+      },
     }),
     {
       name: "afenda-utility-bar-v1",

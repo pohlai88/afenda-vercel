@@ -494,8 +494,11 @@ function PreviewContent() {
             trigger.
           </li>
           <li>
-            Mock nav, badges, and recents are cosmetic; every <code>href</code>{" "}
-            points back to this page.
+            Mock nav, badges, and recents are cosmetic; rail and preview{" "}
+            <code>href</code>s point back to this page. The utility-bar{" "}
+            <strong>Help</strong> icon uses a locale-internal <code>/help-docs</code>{" "}
+            path (same contract as <code>Link</code> from <code>#i18n/navigation</code>)
+            so it opens the real public docs surface.
           </li>
           <li>
             <strong className="text-foreground">

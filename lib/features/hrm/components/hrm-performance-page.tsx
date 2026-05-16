@@ -131,7 +131,9 @@ export async function HrmPerformancePage({ orgSlug }: HrmPerformancePageProps) {
               <TableBody>
                 {reviews.map((r) => {
                   const canSubmit =
-                    r.state === HRM_REVIEW_ROW_STATE.pending &&
+                    (r.state === HRM_REVIEW_ROW_STATE.selfPending ||
+                      r.state === HRM_REVIEW_ROW_STATE.managerPending ||
+                      r.state === HRM_REVIEW_ROW_STATE.hrPending) &&
                     (r.reviewerId === session.userId || isAdmin)
                   const canAcknowledge =
                     r.state === HRM_REVIEW_ROW_STATE.submitted &&

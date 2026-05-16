@@ -6,10 +6,16 @@ import {
   computePayrollCloseReadinessScore,
   stablePayrollCloseStringify,
 } from "../../lib/features/hrm/data/payroll-close.shared"
+import {
+  buildPayrollPostingRecordFromSnapshot,
+  isPayrollPostingRecordEquivalent,
+  resolvePayrollPostingState,
+} from "../../lib/features/hrm/data/payroll-posting.shared"
 
 import type {
   PayrollCloseApprovalSummary,
   PayrollCloseChecklistItem,
+  PayrollCloseSnapshot,
 } from "../../lib/features/hrm/data/payroll-close.shared"
 
 const approvedMakerChecker: PayrollCloseApprovalSummary = {
@@ -20,6 +26,76 @@ const approvedMakerChecker: PayrollCloseApprovalSummary = {
   decisionByUserId: "user-b",
   decisionAt: "2026-02-01T00:00:00.000Z",
   makerCheckerSatisfied: true,
+}
+
+function makeSnapshot(
+  overrides: Partial<PayrollCloseSnapshot> = {}
+): PayrollCloseSnapshot {
+  return {
+    periodId: "period-1",
+    periodState: "locked",
+    periodStart: "2026-01-01",
+    periodEnd: "2026-01-31",
+    paymentDate: "2026-02-05",
+    currency: "MYR",
+    readinessScore: 100,
+    primaryCountryCode: "MY",
+    rulePackVersion: "MY-2026-01",
+    resolvedRulePackVersion: "MY-2026-01",
+    checklist: [
+      {
+        id: "posting",
+        label: "Posting preview",
+        status: "passed",
+        detail: "Balanced.",
+      },
+    ],
+    totals: {
+      employeeCount: 1,
+      runCount: 1,
+      grossPay: "5000.00",
+      netPay: "4255.00",
+      employerCost: "5650.00",
+      employeeDeductions: "600.00",
+      employerContributions: "650.00",
+      taxDeductions: "145.00",
+      claimSettlements: "100.00",
+      advanceSettlements: "50.00",
+    },
+    exceptions: [],
+    evidenceManifest: [],
+    approvalSummary: approvedMakerChecker,
+    postingPreview: {
+      periodId: "period-1",
+      currency: "MYR",
+      lines: [
+        {
+          id: "line-1",
+          accountCode: "payroll.gross_wages_expense",
+          accountName: "Gross wages expense",
+          side: "debit",
+          amount: "5000.00",
+          source: "gross_wages",
+        },
+        {
+          id: "line-2",
+          accountCode: "payroll.net_payroll_payable",
+          accountName: "Net payroll payable",
+          side: "credit",
+          amount: "5000.00",
+          source: "net_pay",
+        },
+      ],
+      totalDebits: "5000.00",
+      totalCredits: "5000.00",
+      netBalance: "0.00",
+      isBalanced: true,
+      inputHash: "preview-hash-1",
+    },
+    inputHash: "close-hash-1",
+    generatedAt: "2026-02-05T00:00:00.000Z",
+    ...overrides,
+  }
 }
 
 describe("payroll close passport helpers", () => {
@@ -174,5 +250,78 @@ describe("payroll close passport helpers", () => {
     })
 
     expect(before).not.toBe(after)
+  })
+
+  it("builds a deterministic payroll posting record from the close snapshot", () => {
+    const snapshot = makeSnapshot()
+
+    const left = buildPayrollPostingRecordFromSnapshot({
+      organizationId: "org-1",
+      snapshot,
+    })
+    const right = buildPayrollPostingRecordFromSnapshot({
+      organizationId: "org-1",
+      snapshot,
+    })
+
+    expect(left).toEqual(right)
+    expect(left.sourceHash).toBe(snapshot.postingPreview.inputHash)
+    expect(left.closeSnapshotHash).toBe(snapshot.inputHash)
+    expect(left.totalDebits).toBe("5000.00")
+    expect(left.totalCredits).toBe("5000.00")
+  })
+
+  it("compares persisted posting records by their financial payload", () => {
+    const base = buildPayrollPostingRecordFromSnapshot({
+      organizationId: "org-1",
+      snapshot: makeSnapshot(),
+    })
+    const same = { ...base, journalId: "journal-1", status: "posted" as const }
+    const changed = {
+      ...same,
+      lines: same.lines.map((line, index) =>
+        index === 0 ? { ...line, amount: "5100.00" } : line
+      ),
+    }
+
+    expect(isPayrollPostingRecordEquivalent(base, same)).toBe(true)
+    expect(isPayrollPostingRecordEquivalent(base, changed)).toBe(false)
+  })
+
+  it("derives ready, posted, and mismatch posting states from the snapshot and persisted journal", () => {
+    const snapshot = makeSnapshot()
+    const candidate = buildPayrollPostingRecordFromSnapshot({
+      organizationId: "org-1",
+      snapshot,
+    })
+    const posted = {
+      ...candidate,
+      journalId: "journal-1",
+      status: "posted" as const,
+      postedAt: "2026-02-05T00:00:00.000Z",
+      postedByUserId: "user-b",
+    }
+
+    expect(
+      resolvePayrollPostingState({
+        snapshot,
+        persistedRecord: null,
+      })
+    ).toBe("ready_to_post")
+    expect(
+      resolvePayrollPostingState({
+        snapshot,
+        persistedRecord: posted,
+      })
+    ).toBe("posted")
+    expect(
+      resolvePayrollPostingState({
+        snapshot,
+        persistedRecord: {
+          ...posted,
+          sourceHash: "different-preview-hash",
+        },
+      })
+    ).toBe("posting_mismatch")
   })
 })

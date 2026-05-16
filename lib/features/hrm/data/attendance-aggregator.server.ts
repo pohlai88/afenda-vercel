@@ -2,17 +2,20 @@ import "server-only"
 
 import { createHash } from "crypto"
 
-import { and, eq, gte, lt } from "drizzle-orm"
+import { and, eq, gte, lt, sql } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { hrmAttendanceDay, hrmAttendanceEvent } from "#lib/db/schema"
 
+import { listClosedPayrollPeriodsOverlappingRange } from "./payroll.queries.server"
 import { resolveAttendanceShiftContext } from "./attendance-shift.queries.server"
 import {
   buildAttendanceEventQueryWindow,
   type AttendanceShiftContext,
   type RegenerateAttendanceDayResult,
 } from "./attendance-shift.shared"
+
+export { attendanceSnapshotHasPayrollBlockingException } from "./attendance-display.shared"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -221,21 +224,17 @@ function buildAttendanceException(input: {
       }
 }
 
-export function attendanceSnapshotHasPayrollBlockingException(
-  snapshot: unknown
-): boolean {
-  if (!snapshot || typeof snapshot !== "object") return false
-
-  const exceptions = (snapshot as { readonly exceptions?: unknown }).exceptions
-  if (!Array.isArray(exceptions)) return false
-
-  return exceptions.some((exception) => {
-    if (!exception || typeof exception !== "object") return false
-    return (
-      (exception as { readonly payrollBlocking?: unknown }).payrollBlocking ===
-      true
-    )
-  })
+function executeRows<T>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[]
+  if (
+    result &&
+    typeof result === "object" &&
+    "rows" in result &&
+    Array.isArray((result as { readonly rows: unknown }).rows)
+  ) {
+    return (result as { readonly rows: T[] }).rows
+  }
+  return []
 }
 
 function attendanceSnapshotShiftMatches(
@@ -655,6 +654,14 @@ export async function regenerateAttendanceDayFromEvents(opts: {
   actorUserId: string
 }): Promise<RegenerateAttendanceDayResult> {
   const { organizationId, employeeId, attendanceDate, actorUserId } = opts
+  const closedPayrollPeriods = await listClosedPayrollPeriodsOverlappingRange({
+    organizationId,
+    rangeStart: attendanceDate,
+    rangeEnd: attendanceDate,
+  })
+  if (closedPayrollPeriods.length > 0) {
+    return "locked"
+  }
 
   const shiftContext = await resolveAttendanceShiftContext({
     organizationId,
@@ -726,46 +733,83 @@ export async function regenerateAttendanceDayFromEvents(opts: {
     return "skipped"
   }
 
-  if (existingRow) {
-    await db
-      .update(hrmAttendanceDay)
-      .set({
-        firstClockInAt: draft.firstClockInAt,
-        lastClockOutAt: draft.lastClockOutAt,
-        scheduledMinutes: draft.scheduledMinutes,
-        workedMinutes: draft.workedMinutes,
-        breakMinutes: draft.breakMinutes,
-        lateMinutes: draft.lateMinutes,
-        earlyOutMinutes: draft.earlyOutMinutes,
-        overtimeMinutes: draft.overtimeMinutes,
-        absenceCode: draft.absenceCode,
-        state: "computed",
-        derivedFromEventChecksum: draft.derivedFromEventChecksum,
-        calculationSnapshot: draft.calculationSnapshot,
-        updatedByUserId: actorUserId,
-        updatedAt: new Date(),
-      })
-      .where(eq(hrmAttendanceDay.id, existingRow.id))
-  } else {
-    await db.insert(hrmAttendanceDay).values({
-      organizationId,
-      employeeId,
-      attendanceDate,
-      firstClockInAt: draft.firstClockInAt,
-      lastClockOutAt: draft.lastClockOutAt,
-      scheduledMinutes: draft.scheduledMinutes,
-      workedMinutes: draft.workedMinutes,
-      breakMinutes: draft.breakMinutes,
-      lateMinutes: draft.lateMinutes,
-      earlyOutMinutes: draft.earlyOutMinutes,
-      overtimeMinutes: draft.overtimeMinutes,
-      absenceCode: draft.absenceCode,
-      state: "computed",
-      derivedFromEventChecksum: draft.derivedFromEventChecksum,
-      calculationSnapshot: draft.calculationSnapshot,
-      createdByUserId: actorUserId,
-      updatedByUserId: actorUserId,
-    })
+  const calculationSnapshotJson = JSON.stringify(draft.calculationSnapshot)
+  const upsertResult = await db.execute<{ id: string }>(sql`
+    INSERT INTO "hrm_attendance_day" (
+      "organizationId",
+      "employeeId",
+      "attendanceDate",
+      "firstClockInAt",
+      "lastClockOutAt",
+      "scheduledMinutes",
+      "workedMinutes",
+      "breakMinutes",
+      "lateMinutes",
+      "earlyOutMinutes",
+      "overtimeMinutes",
+      "absenceCode",
+      "state",
+      "derivedFromEventChecksum",
+      "calculationSnapshot",
+      "createdByUserId",
+      "updatedByUserId"
+    )
+    SELECT
+      ${organizationId},
+      ${employeeId},
+      ${attendanceDate}::date,
+      ${draft.firstClockInAt},
+      ${draft.lastClockOutAt},
+      ${draft.scheduledMinutes},
+      ${draft.workedMinutes},
+      ${draft.breakMinutes},
+      ${draft.lateMinutes},
+      ${draft.earlyOutMinutes},
+      ${draft.overtimeMinutes},
+      ${draft.absenceCode},
+      'computed',
+      ${draft.derivedFromEventChecksum},
+      ${calculationSnapshotJson}::jsonb,
+      ${actorUserId},
+      ${actorUserId}
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM "hrm_payroll_period"
+      WHERE "organizationId" = ${organizationId}
+        AND "state" IN ('locked', 'finalized', 'posted')
+        AND "periodEnd" >= ${attendanceDate}::date
+        AND "periodStart" <= ${attendanceDate}::date
+    )
+    ON CONFLICT ("organizationId", "employeeId", "attendanceDate")
+    DO UPDATE SET
+      "firstClockInAt" = ${draft.firstClockInAt},
+      "lastClockOutAt" = ${draft.lastClockOutAt},
+      "scheduledMinutes" = ${draft.scheduledMinutes},
+      "workedMinutes" = ${draft.workedMinutes},
+      "breakMinutes" = ${draft.breakMinutes},
+      "lateMinutes" = ${draft.lateMinutes},
+      "earlyOutMinutes" = ${draft.earlyOutMinutes},
+      "overtimeMinutes" = ${draft.overtimeMinutes},
+      "absenceCode" = ${draft.absenceCode},
+      "state" = 'computed',
+      "derivedFromEventChecksum" = ${draft.derivedFromEventChecksum},
+      "calculationSnapshot" = ${calculationSnapshotJson}::jsonb,
+      "updatedByUserId" = ${actorUserId},
+      "updatedAt" = NOW()
+    WHERE "hrm_attendance_day"."state" <> 'locked'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "hrm_payroll_period"
+        WHERE "organizationId" = ${organizationId}
+          AND "state" IN ('locked', 'finalized', 'posted')
+          AND "periodEnd" >= ${attendanceDate}::date
+          AND "periodStart" <= ${attendanceDate}::date
+      )
+    RETURNING "id"
+  `)
+
+  if (executeRows<{ id: string }>(upsertResult).length === 0) {
+    return "locked"
   }
 
   return "updated"

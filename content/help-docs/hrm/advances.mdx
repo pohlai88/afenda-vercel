@@ -1,0 +1,32 @@
+---
+title: Salary advances
+description: Request, approve, and repay advances with payroll deduction lines on period lock.
+icon: Banknote
+---
+
+## Overview
+
+**Salary advances** give employees a governed path to request cash-flow support. Org administrators approve or reject requests; approved amounts can appear on payroll previews and clear automatically when a period locks with matching deduction lines.
+
+## Requesting
+
+Employees specify amount (two-decimal currency), optional reason, and target employee (admins may file on behalf). Validation is server-side — tampered forms cannot pick another employee.
+
+## Decisions
+
+Approvals write durable audit metadata; rejections capture an optional note surfaced back to the requester.
+
+## Repayment
+
+Repayment links to payroll artefacts so finance can prove clearance. Never edit repayment IDs manually — let the payroll lock workflow stamp them.
+
+## Related
+
+<Cards>
+  <Card href="./payroll" title="Payroll">
+    Deduction lines reconcile advances on lock.
+  </Card>
+  <Card href="./employees" title="Employees">
+    Requests always bind to a workforce employee row.
+  </Card>
+</Cards>
