@@ -11,8 +11,9 @@ import {
 import { requireOrgSession } from "#lib/tenant"
 
 import { buildGovernedHrmWorkbenchHeader } from "../data/hrm-governed-page-header.server"
-import { HrmImportWizard } from "./hrm-import-wizard"
 import { listRecentImportSessions } from "../data/hrm-import.queries.server"
+import { HrmImportRollbackButton } from "./hrm-import-rollback-button.client"
+import { HrmImportWizard } from "./hrm-import-wizard"
 
 type HrmImportsPageProps = {
   orgSlug: string
@@ -44,7 +45,7 @@ export async function HrmImportsPage({ orgSlug }: HrmImportsPageProps) {
           {sessions.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("recentEmpty")}</p>
           ) : (
-            <ul className="divide-y divide-border rounded-md border border-border">
+              <ul className="divide-y divide-border rounded-md border border-border">
               {sessions.map((s) => (
                 <li
                   key={s.id}
@@ -56,14 +57,22 @@ export async function HrmImportsPage({ orgSlug }: HrmImportsPageProps) {
                       {t("rowsLabel")}: {s.rowCount}
                     </p>
                   </div>
-                  <div className="text-right text-xs text-muted-foreground">
-                    <p>{s.status}</p>
-                    <p>
-                      {format.dateTime(s.updatedAt, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </p>
+                  <div className="flex items-center gap-4">
+                    {s.status === "committed" ? (
+                      <HrmImportRollbackButton
+                        orgSlug={orgSlug}
+                        sessionId={s.id}
+                      />
+                    ) : null}
+                    <div className="text-right text-xs text-muted-foreground">
+                      <p>{s.status}</p>
+                      <p>
+                        {format.dateTime(s.updatedAt, {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </p>
+                    </div>
                   </div>
                 </li>
               ))}

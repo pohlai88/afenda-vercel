@@ -1,4 +1,9 @@
-export type { HrmCapability, HrmCapabilityId, HrmNavKey } from "./types"
+export type {
+  HrmCapability,
+  HrmCapabilityId,
+  HrmNavKey,
+  RecruitmentMutationFormState,
+} from "./types"
 
 export {
   grantEmployeePortalAccessAction,
@@ -13,13 +18,53 @@ export {
 export { completeOnboardingStepAction } from "./actions/onboarding.actions"
 export {
   acknowledgeReviewAction,
+  activateReviewCycleAction,
+  cancelReviewAction,
+  closeReviewCycleAction,
   createReviewCycleAction,
   submitReviewAction,
 } from "./actions/performance.actions"
 export {
+  acceptJobOfferAction,
+  advanceApplicationStageAction,
+  advanceApplicationStageFormAction,
+  approveJobOfferAction,
+  cancelJobRequisitionAction,
+  cancelJobRequisitionFormAction,
+  convertAcceptedOfferToEmployeeAction,
+  convertAcceptedOfferToEmployeeFormAction,
+  createCandidateApplicationAction,
+  createCandidateApplicationFormAction,
+  createJobOfferAction,
+  createJobOfferFormAction,
+  createJobRequisitionAction,
+  createJobRequisitionFormAction,
+  publishJobRequisitionAction,
+  publishJobRequisitionFormAction,
+  rejectJobOfferAction,
+  scheduleInterviewAction,
+  scheduleInterviewFormAction,
+  sendJobOfferAction,
+  submitInterviewFeedbackAction,
+  submitInterviewFeedbackFormAction,
+  updateJobOfferStatusAction,
+  withdrawJobOfferAction,
+} from "./actions/recruitment.actions"
+export {
   createKpiPeriodAction,
   upsertKpiScoreAction,
 } from "./actions/kpi.actions"
+export {
+  submitAddKpiGoalMilestoneAction,
+  submitCloseKpiGoalAction,
+  submitCreateKpiGoalAction,
+  submitDeleteKpiGoalAction,
+  submitDeleteKpiGoalCommentAction,
+  submitPostKpiGoalCommentAction,
+  submitRemoveKpiGoalMilestoneAction,
+  submitUpdateKpiGoalAction,
+  submitUpdateKpiGoalMilestoneAction,
+} from "./actions/kpi-goal.actions"
 export {
   decideSalaryAdvanceAction,
   requestSalaryAdvanceAction,
@@ -62,12 +107,24 @@ export {
   rejectLeaveAction,
 } from "./actions/leave-approval.actions"
 export {
+  cancelPortalEmployeeLeaveAction,
+  requestPortalEmployeeLeaveAction,
+} from "./actions/employee-portal-leave.actions"
+export {
+  attachPortalEmployeeClaimEvidenceAction,
+  cancelPortalEmployeeClaimAction,
+  submitPortalEmployeeClaimAction,
+} from "./actions/employee-portal-claim.actions"
+export { requestPortalEmployeeAttendanceCorrectionAction } from "./actions/employee-portal-attendance.actions"
+export {
+  requestPortalEmployeeDocumentAction,
+  type PortalDocumentRequestFormState,
+} from "./actions/employee-portal-document.actions"
+export {
   adjustLeaveBalanceAction,
   applyLeaveAction,
   applyLeaveOnBehalfAction,
-  cancelPortalEmployeeLeaveAction,
   cancelLeaveAction,
-  requestPortalEmployeeLeaveAction,
   requestOwnLeaveAction,
   runLeaveCarryForwardAction,
 } from "./actions/leave-request.actions"
@@ -280,3 +337,9 @@ export type {
   TimeReportApprovalFormState,
   TimeReportMutationFormState,
 } from "./types"
+
+/** Bulk HR import — commit and rollback governed sessions. */
+export {
+  commitImportSessionAction,
+  rollbackImportSessionAction,
+} from "./actions/hrm-import.actions"

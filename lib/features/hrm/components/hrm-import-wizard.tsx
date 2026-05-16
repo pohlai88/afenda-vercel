@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useId, useState } from "react"
+import { useActionState, useCallback, useId, useState } from "react"
+import { useFormStatus } from "react-dom"
 import { useTranslations } from "next-intl"
 
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
@@ -14,6 +15,10 @@ import {
 } from "#components/ui/card"
 import { Label } from "#components/ui/label"
 
+import {
+  commitImportSessionAction,
+  rollbackImportSessionAction,
+} from "../actions/hrm-import.actions"
 import { HRM_IMPORT_TYPES } from "../schemas/hrm-import.schema"
 
 type DryRunResponse =
@@ -25,6 +30,15 @@ type DryRunResponse =
     }
   | { ok: false; error: string }
 
+function SubmitBtn({ label }: { label: string }) {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" disabled={pending} size="sm">
+      {label}
+    </Button>
+  )
+}
+
 type HrmImportWizardProps = {
   orgSlug: string
 }
@@ -34,6 +48,14 @@ export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
   const fileId = useId()
   const [pending, setPending] = useState(false)
   const [result, setResult] = useState<DryRunResponse | null>(null)
+  const [commitState, commitAction] = useActionState(
+    commitImportSessionAction,
+    undefined
+  )
+  const [rollbackState, rollbackAction] = useActionState(
+    rollbackImportSessionAction,
+    undefined
+  )
 
   const runDryRun = useCallback(
     async (formData: FormData) => {
@@ -123,7 +145,7 @@ export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
         ) : null}
 
         {result && result.ok ? (
-          <div className="mt-4 space-y-2 text-sm">
+          <div className="mt-4 space-y-3 text-sm">
             <p>
               {t("dryRunOk", { count: result.rowCount, id: result.sessionId })}
             </p>
@@ -138,6 +160,54 @@ export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
             ) : (
               <p className="text-muted-foreground">{t("dryRunNoRowErrors")}</p>
             )}
+
+            {commitState && !commitState.ok ? (
+              <Alert variant="destructive" className="py-2">
+                <AlertTitle>{t("errorTitle")}</AlertTitle>
+                <AlertDescription>{commitState.errors?.form}</AlertDescription>
+              </Alert>
+            ) : null}
+            {commitState?.ok ? (
+              <Alert className="py-2">
+                <AlertDescription>{t("commitOk")}</AlertDescription>
+              </Alert>
+            ) : null}
+
+            {!commitState?.ok ? (
+              <form action={commitAction} className="flex flex-wrap gap-2">
+                <input type="hidden" name="orgSlug" value={orgSlug} />
+                <input
+                  type="hidden"
+                  name="importSessionId"
+                  value={result.sessionId}
+                />
+                <SubmitBtn label={t("commitSubmit")} />
+              </form>
+            ) : null}
+
+            {commitState?.ok ? (
+              <>
+                {rollbackState && !rollbackState.ok ? (
+                  <Alert variant="destructive" className="py-2">
+                    <AlertTitle>{t("errorTitle")}</AlertTitle>
+                    <AlertDescription>
+                      {rollbackState.errors?.form}
+                    </AlertDescription>
+                  </Alert>
+                ) : null}
+                {!rollbackState?.ok ? (
+                  <form action={rollbackAction} className="flex flex-wrap gap-2">
+                    <input type="hidden" name="orgSlug" value={orgSlug} />
+                    <input
+                      type="hidden"
+                      name="importSessionId"
+                      value={result.sessionId}
+                    />
+                    <SubmitBtn label={t("rollbackSubmit")} />
+                  </form>
+                ) : null}
+              </>
+            ) : null}
           </div>
         ) : null}
       </CardContent>
