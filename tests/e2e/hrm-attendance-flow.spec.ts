@@ -93,9 +93,12 @@ test.describe("HRM attendance UI surface", () => {
 
       await page.getByRole("button", { name: "Regenerate day" }).click()
       await expect(
-        page.getByText("No changes — the day aggregate is already in sync with the raw events.", {
-          exact: true,
-        })
+        page.getByText(
+          "No changes — the day aggregate is already in sync with the raw events.",
+          {
+            exact: true,
+          }
+        )
       ).toBeVisible()
     }
   )

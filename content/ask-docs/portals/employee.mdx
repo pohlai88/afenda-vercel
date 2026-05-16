@@ -1,0 +1,53 @@
+---
+title: Employee portal
+description: Self-service surface for employees — access model, fourteen sections, audit semantics, and step-up gates.
+audience: employee
+status: stable
+icon: Users
+---
+
+## Overview
+
+The employee portal (`/{locale}/p/{portalSlug}/employee/*`) is the workforce self-service boundary. It runs inside **PortalShell** (not WorkbenchShell) and resolves tenant + subject context through `organization_portal` and `organization_portal_access`.
+
+## Access model
+
+- **Audience:** `employee` on `organization_portal`.
+- **Subject binding:** `organization_portal_access.subject_id` maps to `hrm_employee.id`.
+- **Session:** the signed-in user must match `linked_user_id` on the employee row (or hold an active portal access grant).
+- **IDOR rule:** every Server Action reads `organizationId` and `employeeId` from `getEmployeePortalContext(portalSlug)` — never from `FormData`.
+
+## Fourteen sections
+
+| Section | Path | Primary mutations |
+| --- | --- | --- |
+| Leave | `/employee/leave` | submit / cancel leave |
+| Payslips | `/employee/payslips` | read-only |
+| Advances | `/employee/advances` | request / cancel advance |
+| Claims | `/employee/claims` | submit / cancel / attach evidence |
+| Benefits | `/employee/benefits` | enroll / waive / life event |
+| Training | `/employee/training` | feedback |
+| Attendance | `/employee/attendance` | correction request |
+| Documents | `/employee/documents` | document request |
+| Signatures | `/employee/signatures` | ceremony submit / decline |
+| Profile | `/employee/profile/*` | personal / banking / emergency |
+| Performance | `/employee/performance` | goal detail read |
+| Offboarding | `/employee/offboarding` | checklist task completion |
+
+## Audit semantics
+
+Portal mutations emit `iam_audit_event` rows with `erp.hrm.*` actions after successful commit. Delegated data-layer commands (claims, leave, attendance) audit inside `lib/features/hrm/data/*-mutation.server.ts`. Profile updates use `erp.hrm.employee.profile.update` with `metadata.surface = employee_portal`.
+
+## Step-up (Tier A)
+
+- **Banking profile updates** — `requireRecentAuthStepUp` before payroll profile mutation.
+- **Signature ceremony submit** — step-up before `completeSignatureParty`.
+
+## Runtime envelope
+
+Each section ships `loading.tsx` skeletons; the employee segment provides `error.tsx` and `not-found.tsx` while **PortalShell** stays mounted.
+
+## Related
+
+- [HRM capabilities index](/ask-docs/hrm)
+- [Leave](/ask-docs/hrm/leave)

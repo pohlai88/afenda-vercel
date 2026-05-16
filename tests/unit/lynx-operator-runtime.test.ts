@@ -98,17 +98,14 @@ describe("Lynx operator runtime", () => {
   it("returns null when no language model env is configured", () => {
     vi.stubEnv("FLAG_LYNX_OPERATOR_ORBIT_TOOLS_ENABLED", "1")
     vi.stubEnv("AI_GATEWAY_API_KEY", "")
-    vi.stubEnv("OPENAI_API_KEY", "")
+    vi.stubEnv("VERCEL_OIDC_TOKEN", "")
     expect(createLynxOperatorRuntime({ organizationId: orgId })).toBeNull()
   })
 
   it("runtime surface is opaque (no agent/tools/registry keys)", () => {
     vi.stubEnv("FLAG_LYNX_OPERATOR_ORBIT_TOOLS_ENABLED", "1")
-    vi.stubEnv("AI_GATEWAY_API_KEY", "")
-    vi.stubEnv(
-      "OPENAI_API_KEY",
-      "sk-test-lynx-operator-runtime-unit-placeholder"
-    )
+    vi.stubEnv("AI_GATEWAY_API_KEY", "gk-test-lynx-operator-runtime-unit")
+    vi.stubEnv("VERCEL_OIDC_TOKEN", "")
     const rt = createLynxOperatorRuntime({ organizationId: orgId })
     expect(rt).not.toBeNull()
     if (!rt) return
@@ -125,11 +122,8 @@ describe("Lynx operator runtime", () => {
 
   it("runtime tool ids reflect Orbit tool policy", () => {
     vi.stubEnv("FLAG_LYNX_OPERATOR_ORBIT_TOOLS_ENABLED", "0")
-    vi.stubEnv("AI_GATEWAY_API_KEY", "")
-    vi.stubEnv(
-      "OPENAI_API_KEY",
-      "sk-test-lynx-operator-runtime-unit-placeholder"
-    )
+    vi.stubEnv("AI_GATEWAY_API_KEY", "gk-test-lynx-operator-runtime-unit")
+    vi.stubEnv("VERCEL_OIDC_TOKEN", "")
     const rt = createLynxOperatorRuntime({ organizationId: orgId })
     expect(rt).not.toBeNull()
     if (!rt) return

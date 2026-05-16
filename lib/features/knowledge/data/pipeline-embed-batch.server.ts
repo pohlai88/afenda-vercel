@@ -1,9 +1,13 @@
 import "server-only"
 
-import { gateway } from "@ai-sdk/gateway"
 import { embedMany } from "ai"
 
 import { KNOWLEDGE_EMBEDDING_DIMENSIONS } from "#features/knowledge/constants"
+import {
+  DEFAULT_EMBEDDING_MODEL,
+  hasAiGatewayAuth,
+  resolveAiGateway,
+} from "#lib/ai/gateway.server"
 import { runWithNodeOtelSpan } from "#lib/otel-span.server"
 
 import { getOrgProviderApiKey } from "./credential.queries.server"
@@ -27,18 +31,18 @@ export async function embedKnowledgeBatch(
       "knowledge.embed.zero_data_retention": Boolean(options?.enforceZdr),
     },
     async () => {
-      const hasGateway = Boolean(process.env.AI_GATEWAY_API_KEY?.trim())
-      const hasOpenAi = Boolean(process.env.OPENAI_API_KEY?.trim())
-      if (!hasGateway && !hasOpenAi) {
-        throw new Error("AI_GATEWAY_API_KEY or OPENAI_API_KEY must be set")
+      if (!hasAiGatewayAuth()) {
+        throw new Error(
+          "AI Gateway credentials missing (AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN)"
+        )
       }
 
       const model =
-        process.env.EMBEDDING_MODEL?.trim() || "openai/text-embedding-3-small"
+        process.env.EMBEDDING_MODEL?.trim() || DEFAULT_EMBEDDING_MODEL
       const openAiByok = await getOrgProviderApiKey(organizationId, "openai")
 
       const { embeddings } = await embedMany({
-        model: gateway.textEmbeddingModel(model),
+        model: resolveAiGateway().textEmbeddingModel(model),
         values: chunks,
         maxRetries: 2,
         providerOptions: {

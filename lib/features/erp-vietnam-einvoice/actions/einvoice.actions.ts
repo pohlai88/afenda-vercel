@@ -1,9 +1,6 @@
 "use server"
 
-import {
-  requireRecentAuthStepUp,
-  writeIamAuditEvent,
-} from "#lib/auth"
+import { requireRecentAuthStepUp, writeIamAuditEvent } from "#lib/auth"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
 import { requireErpPermission } from "#features/erp-rbac/server"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"

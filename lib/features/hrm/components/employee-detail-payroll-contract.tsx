@@ -20,6 +20,7 @@ import {
 } from "../schemas/employment-contract.schema"
 import { isHrmDocumentType } from "../schemas/hrm-document.schema"
 
+import { SignatureRequestPanel } from "./signature-request-panel"
 import { EmploymentContractDraftForm } from "./employment-contract-draft-form"
 import { EmploymentContractLifecycleForms } from "./employment-contract-lifecycle-forms"
 import { EmploymentContractSalaryRevisionForm } from "./employment-contract-salary-revision-form"
@@ -68,6 +69,8 @@ export async function EmployeeDetailPayrollContract({
     .map((c) => ({ id: c.id, versionNumber: c.versionNumber }))
 
   const hasActiveContract = contracts.some((c) => c.state === "active")
+  const contractSourceDocument =
+    documents.find((d) => d.documentType === "contract") ?? null
 
   return (
     <>
@@ -154,6 +157,16 @@ export async function EmployeeDetailPayrollContract({
                     orgSlug={orgSlug}
                     contract={c}
                   />
+                  {c.state === "draft" && contractSourceDocument ? (
+                    <SignatureRequestPanel
+                      orgSlug={orgSlug}
+                      organizationId={organizationId}
+                      kind="contract"
+                      subjectId={c.id}
+                      documentId={contractSourceDocument.id}
+                      signerEmployeeId={employeeId}
+                    />
+                  ) : null}
                 </div>
               ))
             )}

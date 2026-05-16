@@ -11,7 +11,6 @@ import {
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { getOrgSessionFromRequest } from "#lib/tenant"
 
-export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
 export async function POST(request: Request) {

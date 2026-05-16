@@ -5,6 +5,7 @@
 
 export const ORG_STRUCTURE_TABS = [
   "overview",
+  "chart",
   "org-units",
   "positions",
   "grades",
@@ -25,7 +26,5 @@ export function normalizeOrgStructureTab(
   value: string | undefined
 ): OrgStructureTab {
   if (value === "departments") return "org-units"
-  return value && isOrgStructureTab(value)
-    ? value
-    : ORG_STRUCTURE_DEFAULT_TAB
+  return value && isOrgStructureTab(value) ? value : ORG_STRUCTURE_DEFAULT_TAB
 }

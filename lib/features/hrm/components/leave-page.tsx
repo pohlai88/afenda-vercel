@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "#components/ui/card"
 import { Skeleton } from "#components/ui/skeleton"
-import { ErpAccessDenied } from "#features/erp-rbac"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { requireOrgSession } from "#lib/tenant"
 
 import {

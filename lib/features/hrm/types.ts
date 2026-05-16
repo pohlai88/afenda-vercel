@@ -15,10 +15,13 @@ export type HrmCapabilityId =
   | "payroll"
   | "performance"
   | "kpi"
+  | "skills"
+  | "training"
   | "advances"
   | "compliance"
   | "documents"
   | "policies"
+  | "signatures"
   | "snapshot"
 
 /** next-intl keys under `Dashboard.Hrm.nav.*` — must match message catalog. */
@@ -269,6 +272,28 @@ export type ContractMutationFormState =
         contractId?: string
         effectiveFrom?: string
         terminationDate?: string
+      }
+    }
+
+export type PortalAdvanceFormState =
+  | { ok: true }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        amount?: string
+        installmentCount?: string
+        firstPeriodEndIso?: string
+        reason?: string
+      }
+    }
+
+export type SignatureMutationFormState =
+  | { ok: true; requestId?: string; sealed?: boolean }
+  | {
+      ok: false
+      errors: {
+        form?: string
       }
     }
 

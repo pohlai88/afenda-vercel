@@ -16,7 +16,6 @@ import {
 } from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
 
-export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
 export async function GET(request: Request) {

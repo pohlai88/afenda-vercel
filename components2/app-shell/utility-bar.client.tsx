@@ -37,7 +37,8 @@ import {
   Wifi,
 } from "lucide-react"
 
-import { Link, usePathname, useRouter } from "#i18n/navigation"
+import { Link } from "#i18n/navigation"
+import { LocaleSwitchLink } from "#i18n/locale-switch-link.client"
 import { APP_LOCALES } from "#lib/i18n/locales.shared"
 import { APP_ICON_512_PNG, ERP_UTILITY_AVATAR_PNG } from "#lib/site"
 import { uiRadius, uiSurfaceElevation, uiTracking } from "#lib/design-system"
@@ -574,7 +575,7 @@ export function AppShellDensityIcon(
   )
 }
 
-/** Locale / language dropdown — lists available locales, switches via router. */
+/** Locale / language dropdown — declarative `Link` navigation (no imperative router). */
 export function AppShellLocaleDropdown({
   ariaLabel = "Language",
   tooltip = "Language",
@@ -585,10 +586,13 @@ export function AppShellLocaleDropdown({
   className?: string
 }) {
   const currentLocale = useLocale()
-  const router = useRouter()
-  const pathname = usePathname()
 
-  const LOCALE_LABELS: Record<string, string> = { en: "English" }
+  const LOCALE_LABELS: Record<string, string> = {
+    en: "English",
+    "zh-CN": "简体中文",
+    vi: "Tiếng Việt",
+    ms: "Bahasa Melayu",
+  }
 
   return (
     <DropdownMenu>
@@ -630,26 +634,24 @@ export function AppShellLocaleDropdown({
           Language
         </DropdownMenuLabel>
         {APP_LOCALES.map((locale) => (
-          <DropdownMenuItem
-            key={locale}
-            onSelect={() => {
-              if (locale !== currentLocale) {
-                router.replace(pathname, { locale })
-              }
-            }}
-            className="flex cursor-pointer items-center gap-2 text-[11px]"
-          >
-            <span className="size-3.5 shrink-0">
-              {locale === currentLocale ? (
-                <CheckCircle2 className="size-full" strokeWidth={2} />
-              ) : null}
-            </span>
-            {LOCALE_LABELS[locale] ?? locale}
-            {locale === currentLocale && (
-              <span className="ml-auto text-[10px] text-muted-foreground">
-                Current
+          <DropdownMenuItem key={locale} asChild>
+            <LocaleSwitchLink
+              locale={locale}
+              className="flex cursor-pointer items-center gap-2 text-[11px]"
+              aria-current={locale === currentLocale ? "true" : undefined}
+            >
+              <span className="size-3.5 shrink-0">
+                {locale === currentLocale ? (
+                  <CheckCircle2 className="size-full" strokeWidth={2} />
+                ) : null}
               </span>
-            )}
+              {LOCALE_LABELS[locale] ?? locale}
+              {locale === currentLocale && (
+                <span className="ml-auto text-[10px] text-muted-foreground">
+                  Current
+                </span>
+              )}
+            </LocaleSwitchLink>
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />

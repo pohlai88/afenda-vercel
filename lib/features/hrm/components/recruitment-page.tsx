@@ -67,7 +67,11 @@ function statusTone(status: string): "default" | "secondary" | "outline" {
   ) {
     return "default"
   }
-  if (status === "cancelled" || status === "rejected" || status === "withdrawn") {
+  if (
+    status === "cancelled" ||
+    status === "rejected" ||
+    status === "withdrawn"
+  ) {
     return "secondary"
   }
   return "outline"
@@ -113,25 +117,42 @@ export async function RecruitmentPage({ orgSlug }: RecruitmentPageProps) {
           <CardContent>
             <form
               action={createJobRequisitionFormAction}
-              className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem_auto]"
+              className="grid gap-3"
             >
               <input type="hidden" name="orgSlug" value={orgSlug} />
-              <div className="grid gap-2">
-                <Label htmlFor="rq-title">{t("fieldTitle")}</Label>
-                <Input id="rq-title" name="title" required maxLength={200} />
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem]">
+                <div className="grid gap-2">
+                  <Label htmlFor="rq-title">{t("fieldTitle")}</Label>
+                  <Input id="rq-title" name="title" required maxLength={200} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="rq-hc">{t("fieldHeadcount")}</Label>
+                  <Input
+                    id="rq-hc"
+                    name="headcount"
+                    type="number"
+                    min={1}
+                    max={999}
+                    defaultValue={1}
+                  />
+                </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="rq-hc">{t("fieldHeadcount")}</Label>
+                <Label htmlFor="rq-skills">
+                  {t("fieldRequiredSkillCodes")}
+                </Label>
                 <Input
-                  id="rq-hc"
-                  name="headcount"
-                  type="number"
-                  min={1}
-                  max={999}
-                  defaultValue={1}
+                  id="rq-skills"
+                  name="requiredSkillCodes"
+                  maxLength={500}
+                  placeholder="typescript, react"
+                  autoComplete="off"
                 />
+                <p className="text-xs text-muted-foreground">
+                  {t("fieldRequiredSkillCodesHelp")}
+                </p>
               </div>
-              <Button type="submit" variant="secondary" className="self-end">
+              <Button type="submit" variant="secondary" className="w-fit">
                 {t("createDraft")}
               </Button>
             </form>
@@ -143,9 +164,7 @@ export async function RecruitmentPage({ orgSlug }: RecruitmentPageProps) {
             <CardTitle className="text-base">
               {t("newApplicationTitle")}
             </CardTitle>
-            <CardDescription>
-              {t("newApplicationDescription")}
-            </CardDescription>
+            <CardDescription>{t("newApplicationDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form
@@ -171,7 +190,12 @@ export async function RecruitmentPage({ orgSlug }: RecruitmentPageProps) {
               </div>
               <div className="grid gap-2 lg:col-span-2">
                 <Label htmlFor="app-name">{t("fieldCandidateName")}</Label>
-                <Input id="app-name" name="legalName" required maxLength={200} />
+                <Input
+                  id="app-name"
+                  name="legalName"
+                  required
+                  maxLength={200}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="app-email">{t("fieldEmail")}</Label>
@@ -214,6 +238,13 @@ export async function RecruitmentPage({ orgSlug }: RecruitmentPageProps) {
                     {r.departmentName ?? t("noDepartment")} ·{" "}
                     {t("headcountLabel", { count: r.headcount })}
                   </p>
+                  {r.requiredSkillCodes.length > 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      {t("requiredSkillsLabel", {
+                        codes: r.requiredSkillCodes.join(", "),
+                      })}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant={statusTone(r.status)}>{r.status}</Badge>
@@ -318,10 +349,7 @@ export async function RecruitmentPage({ orgSlug }: RecruitmentPageProps) {
                                 name="interviewerUserId"
                                 value={userId}
                               />
-                              <Label
-                                htmlFor={`iv-${a.id}`}
-                                className="text-xs"
-                              >
+                              <Label htmlFor={`iv-${a.id}`} className="text-xs">
                                 {t("fieldInterviewWhen")}
                               </Label>
                               <Input
@@ -552,9 +580,7 @@ export async function RecruitmentPage({ orgSlug }: RecruitmentPageProps) {
 
       <Card size="sm">
         <CardHeader>
-          <CardTitle className="text-base">
-            {t("recentEventsTitle")}
-          </CardTitle>
+          <CardTitle className="text-base">{t("recentEventsTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           {events.length === 0 ? (
@@ -572,7 +598,9 @@ export async function RecruitmentPage({ orgSlug }: RecruitmentPageProps) {
                   {event.fromState || event.toState ? (
                     <span className="text-muted-foreground">
                       {" "}
-                      {event.fromState ?? "-"}{" → "}{event.toState ?? "-"}
+                      {event.fromState ?? "-"}
+                      {" → "}
+                      {event.toState ?? "-"}
                     </span>
                   ) : null}
                 </span>
@@ -640,7 +668,10 @@ function OfferCreateForm({
       />
       <div className="grid grid-cols-2 gap-1">
         <div className="grid gap-1">
-          <Label htmlFor={`offer-currency-${applicationId}`} className="text-xs">
+          <Label
+            htmlFor={`offer-currency-${applicationId}`}
+            className="text-xs"
+          >
             {t("fieldCurrency")}
           </Label>
           <Input
@@ -663,7 +694,12 @@ function OfferCreateForm({
           />
         </div>
       </div>
-      <Button type="submit" size="sm" variant="secondary" className="h-7 text-xs">
+      <Button
+        type="submit"
+        size="sm"
+        variant="secondary"
+        className="h-7 text-xs"
+      >
         {t("createOffer")}
       </Button>
     </form>
@@ -693,4 +729,3 @@ function OfferStatusForm({
     </form>
   )
 }
-

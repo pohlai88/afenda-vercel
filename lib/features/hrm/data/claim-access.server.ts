@@ -17,30 +17,35 @@ export async function resolveClaimSurfaceAccess(input: {
   organizationId: string
   userId: string
 }): Promise<ClaimSurfaceAccess> {
-  const [canReadClaim, canSearchClaim, canCreateClaim, canUpdateClaim, employee] =
-    await Promise.all([
-      canUseErpPermission({
-        organizationId: input.organizationId,
-        userId: input.userId,
-        permission: { module: "hrm", object: "claim", function: "read" },
-      }),
-      canUseErpPermission({
-        organizationId: input.organizationId,
-        userId: input.userId,
-        permission: { module: "hrm", object: "claim", function: "search" },
-      }),
-      canUseErpPermission({
-        organizationId: input.organizationId,
-        userId: input.userId,
-        permission: { module: "hrm", object: "claim", function: "create" },
-      }),
-      canUseErpPermission({
-        organizationId: input.organizationId,
-        userId: input.userId,
-        permission: { module: "hrm", object: "claim", function: "update" },
-      }),
-      findClaimEmployeeForUser(input.organizationId, input.userId),
-    ])
+  const [
+    canReadClaim,
+    canSearchClaim,
+    canCreateClaim,
+    canUpdateClaim,
+    employee,
+  ] = await Promise.all([
+    canUseErpPermission({
+      organizationId: input.organizationId,
+      userId: input.userId,
+      permission: { module: "hrm", object: "claim", function: "read" },
+    }),
+    canUseErpPermission({
+      organizationId: input.organizationId,
+      userId: input.userId,
+      permission: { module: "hrm", object: "claim", function: "search" },
+    }),
+    canUseErpPermission({
+      organizationId: input.organizationId,
+      userId: input.userId,
+      permission: { module: "hrm", object: "claim", function: "create" },
+    }),
+    canUseErpPermission({
+      organizationId: input.organizationId,
+      userId: input.userId,
+      permission: { module: "hrm", object: "claim", function: "update" },
+    }),
+    findClaimEmployeeForUser(input.organizationId, input.userId),
+  ])
 
   const canReadOrgClaims = canReadClaim || canSearchClaim || canUpdateClaim
   const canSubmitOnBehalf = canCreateClaim || canUpdateClaim

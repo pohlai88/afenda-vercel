@@ -5,7 +5,6 @@ import { runComplianceAgingWatchTick } from "#features/hrm/server"
 import { runWithNodeOtelSpan } from "#lib/otel-span.server"
 import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
 
-export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
 /**

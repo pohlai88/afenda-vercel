@@ -26,60 +26,23 @@ import type { StatutoryPackType } from "./payroll-rule-pack.server"
 import { buildStatutoryPackFromRuns } from "./statutory-pack.server"
 import { eventTypeForStatutoryPack } from "./statutory-event-types.shared"
 import { updateComplianceSubmissionStateMutation } from "./compliance.mutations.server"
+import {
+  shouldRetryStatutorySubmission,
+  STATUTORY_RETRY_BASE_DELAY_MS,
+  STATUTORY_RETRY_BATCH_LIMIT,
+  STATUTORY_RETRY_MAX_ATTEMPTS,
+  STATUTORY_RETRY_MAX_DELAY_MS,
+} from "./statutory-retry.shared"
 
-// ---------------------------------------------------------------------------
-// Backoff policy (pure — fully unit-testable, no DB / network dependencies)
-// ---------------------------------------------------------------------------
-
-/** Maximum delivery attempts (initial + retries) before giving up. */
-export const STATUTORY_RETRY_MAX_ATTEMPTS = 5
-
-/** Base delay before the first retry (after attempt 1 fails). */
-export const STATUTORY_RETRY_BASE_DELAY_MS = 5 * 60 * 1000 // 5 minutes
-
-/** Hard ceiling so the schedule cannot grow unbounded. */
-export const STATUTORY_RETRY_MAX_DELAY_MS = 4 * 60 * 60 * 1000 // 4 hours
-
-/** Per-cron-tick batch size — caps concurrency, avoids overload bursts. */
-export const STATUTORY_RETRY_BATCH_LIMIT = 25
-
-/**
- * Exponential backoff schedule. `attempts` is the count of attempts that
- * already happened (i.e. the failed delivery's `attempts` column). Returns
- * the delay before the **next** attempt should run.
- *
- * attempts=1 -> 5 min · attempts=2 -> 10 min · attempts=3 -> 20 min ·
- * attempts=4 -> 40 min · attempts=5+ -> capped at 4h.
- *
- * Pure function — no Date, no random jitter (deterministic for tests).
- * Jitter can be layered in by callers if/when a thundering-herd shows up.
- */
-export function statutoryRetryDelayMs(attempts: number): number {
-  if (attempts < 1) return STATUTORY_RETRY_BASE_DELAY_MS
-  const exponent = Math.min(attempts - 1, 16) // guard against overflow
-  const raw = STATUTORY_RETRY_BASE_DELAY_MS * 2 ** exponent
-  return Math.min(raw, STATUTORY_RETRY_MAX_DELAY_MS)
-}
-
-/**
- * Computes when the next attempt should run, given the timestamp of the last
- * completed attempt and how many attempts have already been made.
- */
-export function nextStatutoryRetryAt(
-  lastCompletedAt: Date,
-  attempts: number
-): Date {
-  return new Date(lastCompletedAt.getTime() + statutoryRetryDelayMs(attempts))
-}
-
-/**
- * Returns whether retry should still be attempted based on the prior attempt
- * count alone. Callers decide what to do when this returns `false` (mark
- * exhausted, alert, etc.).
- */
-export function shouldRetryStatutorySubmission(attempts: number): boolean {
-  return attempts < STATUTORY_RETRY_MAX_ATTEMPTS
-}
+export {
+  nextStatutoryRetryAt,
+  shouldRetryStatutorySubmission,
+  statutoryRetryDelayMs,
+  STATUTORY_RETRY_BASE_DELAY_MS,
+  STATUTORY_RETRY_BATCH_LIMIT,
+  STATUTORY_RETRY_MAX_ATTEMPTS,
+  STATUTORY_RETRY_MAX_DELAY_MS,
+} from "./statutory-retry.shared"
 
 // ---------------------------------------------------------------------------
 // Query: list candidates for retry across all tenants

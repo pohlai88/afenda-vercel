@@ -1,13 +1,14 @@
 import { getLLMText } from "#lib/get-llm-text"
-import { getHelpDocsSource } from "#lib/help-docs-source"
-import { DEFAULT_APP_LOCALE } from "#lib/i18n/locales.shared"
+import { askDocsSource } from "#lib/ask-docs-source"
+import { resolveAskDocsLocale } from "#lib/ask-docs/locale-resolver.shared"
 
-// Cached forever — content only changes on redeploy.
-export const revalidate = false
+/** Align with ask-docs HTML ISR window (ADR-0023). */
+export const revalidate = 3600
 
-export async function GET() {
-  const source = getHelpDocsSource(DEFAULT_APP_LOCALE)
-  const pages = source.getPages()
+export async function GET(request: Request) {
+  const url = new URL(request.url)
+  const locale = resolveAskDocsLocale(url.searchParams.get("locale"))
+  const pages = askDocsSource.getPages(locale)
   const texts = await Promise.all(pages.map(getLLMText))
   return new Response(texts.join("\n\n"), {
     headers: {

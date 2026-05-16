@@ -9,6 +9,13 @@ export const DEV_SIGNIN_PRESET_EMAILS = {
   erp: "erp@afenda.com",
 } as const
 
+/**
+ * Primary employee portal slug for {@link BOOTSTRAP_FIXTURE.organization}
+ * (`buildEmployeePortalSlugCandidates` → `{orgSlug}-employee`).
+ * Align with `E2E_EMPLOYEE_PORTAL_SLUG` in `.env.config`.
+ */
+export const DEMO_EMPLOYEE_PORTAL_SLUG = "demo-org-employee" as const
+
 export const BOOTSTRAP_FIXTURE = {
   organization: {
     id: "00000000-0000-4000-8000-000000000001",

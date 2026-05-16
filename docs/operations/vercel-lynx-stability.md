@@ -18,7 +18,7 @@ A common failure during **`next build` → Collecting page data** is Neon Auth r
 
 Minimum for retrieval + generation after sign-in:
 
-- **`AI_GATEWAY_API_KEY`** or **`OPENAI_API_KEY`** (embeddings / models).
+- **`AI_GATEWAY_API_KEY`** locally (or **`VERCEL_OIDC_TOKEN`** auto-injected on Vercel) for embeddings and models.
 - Org-level hybrid/rerank/BYOK follows **`#features/knowledge`** settings + optional **`KNOWLEDGE_BYOK_KEY`**.
 
 Optional tuning (documented in `.env.config.example`):

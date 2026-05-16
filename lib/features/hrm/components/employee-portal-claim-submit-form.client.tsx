@@ -152,7 +152,11 @@ export function EmployeePortalClaimSubmitForm({
         <Input id={descriptionId} name="description" className="h-9" />
       </Field>
 
-      <Button type="submit" disabled={pending || claimTypes.length === 0}>
+      <Button
+        type="submit"
+        className="min-h-11"
+        disabled={pending || claimTypes.length === 0}
+      >
         {pending ? (
           <>
             <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />…

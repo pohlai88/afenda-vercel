@@ -9,6 +9,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   serial,
   text,
   timestamp,
@@ -1159,17 +1160,16 @@ export const messengerRoom = pgTable(
     createdByUserId: text("createdByUserId").notNull(),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-    lastMessageAt: timestamp("lastMessageAt", { mode: "date" }).notNull().defaultNow(),
+    lastMessageAt: timestamp("lastMessageAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     index("messenger_room_organizationId_lastMessageAt_idx").on(
       t.organizationId,
       t.lastMessageAt
     ),
-    check(
-      "messenger_room_kind_chk",
-      sql`${t.kind} IN ('direct', 'group')`
-    ),
+    check("messenger_room_kind_chk", sql`${t.kind} IN ('direct', 'group')`),
   ]
 )
 
@@ -2215,6 +2215,9 @@ export const hrmSalaryAdvance = pgTable(
     decisionNote: text("decisionNote"),
     repaidAt: timestamp("repaidAt", { mode: "date" }),
     repaidByPayrollLineId: text("repaidByPayrollLineId"),
+    /** When set, approval materializes this many installments from `firstPeriodEndIso`. */
+    installmentCount: integer("installmentCount"),
+    firstPeriodEndIso: date("firstPeriodEndIso"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
@@ -2225,6 +2228,127 @@ export const hrmSalaryAdvance = pgTable(
       t.state
     ),
     index("hrm_salary_advance_org_state_idx").on(t.organizationId, t.state),
+  ]
+)
+
+/** Scheduled repayment slice for an approved salary advance (payroll engine consumes pending rows). */
+export const hrmSalaryAdvanceInstallment = pgTable(
+  "hrm_salary_advance_installment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    advanceId: text("advanceId")
+      .notNull()
+      .references(() => hrmSalaryAdvance.id, { onDelete: "cascade" }),
+    sequence: integer("sequence").notNull(),
+    /** ISO date YYYY-MM-DD — due when periodEnd <= this value. */
+    dueAfterPeriodEndIso: date("dueAfterPeriodEndIso").notNull(),
+    plannedAmount: decimal("plannedAmount", {
+      precision: 15,
+      scale: 2,
+    }).notNull(),
+    /** pending | deducted | cancelled */
+    state: text("state").notNull().default("pending"),
+    deductedByPayrollLineId: text("deductedByPayrollLineId"),
+    deductedAt: timestamp("deductedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_salary_advance_installment_advance_seq_uidx").on(
+      t.advanceId,
+      t.sequence
+    ),
+    index("hrm_salary_advance_installment_org_state_idx").on(
+      t.organizationId,
+      t.state
+    ),
+    index("hrm_salary_advance_installment_org_advance_due_idx").on(
+      t.organizationId,
+      t.advanceId,
+      t.dueAfterPeriodEndIso
+    ),
+  ]
+)
+
+/** Optional grouping for competency catalog rows. */
+export const hrmSkillCategory = pgTable(
+  "hrm_skill_category",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    label: text("label").notNull(),
+    sortOrder: integer("sortOrder").notNull().default(0),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_skill_category_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+  ]
+)
+
+/** Org competency catalog — recruitment and performance consume via employee_skill. */
+export const hrmSkill = pgTable(
+  "hrm_skill",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    categoryId: text("categoryId").references(() => hrmSkillCategory.id, {
+      onDelete: "set null",
+    }),
+    code: text("code").notNull(),
+    label: text("label").notNull(),
+    description: text("description"),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_skill_org_code_uidx").on(t.organizationId, t.code),
+    index("hrm_skill_org_archived_idx").on(t.organizationId, t.archivedAt),
+  ]
+)
+
+/** Employee proficiency on a catalog skill (1–5 scale). */
+export const hrmEmployeeSkill = pgTable(
+  "hrm_employee_skill",
+  {
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "cascade" }),
+    skillId: text("skillId")
+      .notNull()
+      .references(() => hrmSkill.id, { onDelete: "cascade" }),
+    proficiency: integer("proficiency").notNull(),
+    validityFrom: date("validityFrom").notNull(),
+    validityTo: date("validityTo"),
+    verifiedByUserId: text("verifiedByUserId"),
+    verifiedAt: timestamp("verifiedAt", { mode: "date" }),
+    notes: text("notes"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.employeeId, t.skillId] }),
+    index("hrm_employee_skill_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_employee_skill_org_skill_idx").on(t.organizationId, t.skillId),
+    check(
+      "hrm_employee_skill_proficiency_range",
+      sql`${t.proficiency} >= 1 AND ${t.proficiency} <= 5`
+    ),
   ]
 )
 
@@ -2849,6 +2973,369 @@ export const hrmBoardingTask = pgTable(
   ]
 )
 
+// ---------------------------------------------------------------------------
+// HRM Learning & Development (training records — P2-05)
+// ---------------------------------------------------------------------------
+
+export const hrmTrainingCategory = pgTable(
+  "hrm_training_category",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_training_category_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+  ]
+)
+
+export const hrmTrainingCourse = pgTable(
+  "hrm_training_course",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    categoryId: text("categoryId").references(() => hrmTrainingCategory.id, {
+      onDelete: "set null",
+    }),
+    deliveryMode: text("deliveryMode").notNull().default("classroom"),
+    defaultDurationHours: decimal("defaultDurationHours", {
+      precision: 9,
+      scale: 2,
+    }),
+    defaultCreditUnits: decimal("defaultCreditUnits", {
+      precision: 9,
+      scale: 2,
+    }),
+    statutoryFlag: boolean("statutoryFlag").notNull().default(false),
+    statutoryAuthorityCode: text("statutoryAuthorityCode"),
+    recertificationIntervalMonths: integer("recertificationIntervalMonths"),
+    defaultRequired: boolean("defaultRequired").notNull().default(true),
+    state: text("state").notNull().default("draft"),
+    grantsSkillId: text("grantsSkillId"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_training_course_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_training_course_org_statutory_idx").on(
+      t.organizationId,
+      t.statutoryFlag,
+      t.statutoryAuthorityCode
+    ),
+    check(
+      "hrm_training_course_delivery_mode_chk",
+      sql`${t.deliveryMode} IN ('classroom', 'online', 'external', 'self_paced', 'virtual')`
+    ),
+    check(
+      "hrm_training_course_state_chk",
+      sql`${t.state} IN ('draft', 'active', 'archived')`
+    ),
+  ]
+)
+
+/** Ordered prerequisite chain for a course (must complete prereq before assign). */
+export const hrmTrainingPrerequisite = pgTable(
+  "hrm_training_prerequisite",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    courseId: text("courseId")
+      .notNull()
+      .references(() => hrmTrainingCourse.id, { onDelete: "cascade" }),
+    prerequisiteCourseId: text("prerequisiteCourseId")
+      .notNull()
+      .references(() => hrmTrainingCourse.id, { onDelete: "restrict" }),
+    required: boolean("required").notNull().default(true),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_training_prerequisite_org_course_prereq_uidx").on(
+      t.organizationId,
+      t.courseId,
+      t.prerequisiteCourseId
+    ),
+    index("hrm_training_prerequisite_org_course_idx").on(
+      t.organizationId,
+      t.courseId
+    ),
+  ]
+)
+
+export const hrmTrainingSession = pgTable(
+  "hrm_training_session",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    courseId: text("courseId")
+      .notNull()
+      .references(() => hrmTrainingCourse.id, { onDelete: "restrict" }),
+    code: text("code").notNull(),
+    title: text("title").notNull(),
+    scheduledStartAt: timestamp("scheduledStartAt", { mode: "date" }).notNull(),
+    scheduledEndAt: timestamp("scheduledEndAt", { mode: "date" }).notNull(),
+    location: text("location").notNull().default(""),
+    meetingUrl: text("meetingUrl"),
+    trainerName: text("trainerName"),
+    trainerEmail: text("trainerEmail"),
+    vendorOrgId: text("vendorOrgId"),
+    capacity: integer("capacity"),
+    state: text("state").notNull().default("scheduled"),
+    closedAt: timestamp("closedAt", { mode: "date" }),
+    closedByUserId: text("closedByUserId"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_training_session_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_training_session_org_course_start_idx").on(
+      t.organizationId,
+      t.courseId,
+      t.scheduledStartAt
+    ),
+    index("hrm_training_session_org_open_state_idx")
+      .on(t.organizationId, t.state)
+      .where(sql`"state" IN ('scheduled', 'in_progress')`),
+    check(
+      "hrm_training_session_end_after_start_chk",
+      sql`"scheduledEndAt" > "scheduledStartAt"`
+    ),
+    check(
+      "hrm_training_session_state_chk",
+      sql`${t.state} IN ('scheduled', 'in_progress', 'completed', 'cancelled')`
+    ),
+  ]
+)
+
+export const hrmTrainingAssignment = pgTable(
+  "hrm_training_assignment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    courseId: text("courseId")
+      .notNull()
+      .references(() => hrmTrainingCourse.id, { onDelete: "restrict" }),
+    sessionId: text("sessionId").references(() => hrmTrainingSession.id, {
+      onDelete: "set null",
+    }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    assignedAt: timestamp("assignedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    dueAt: timestamp("dueAt", { mode: "date" }),
+    required: boolean("required").notNull().default(true),
+    state: text("state").notNull().default("assigned"),
+    attendance: text("attendance"),
+    priority: text("priority").notNull().default("normal"),
+    sourceKind: text("sourceKind").notNull().default("manual"),
+    sourceReference: text("sourceReference"),
+    createdByUserId: text("createdByUserId"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_training_assignment_org_course_emp_assigned_uidx").on(
+      t.organizationId,
+      t.courseId,
+      t.employeeId,
+      t.assignedAt
+    ),
+    index("hrm_training_assignment_org_employee_state_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.state
+    ),
+    index("hrm_training_assignment_org_course_state_idx").on(
+      t.organizationId,
+      t.courseId,
+      t.state
+    ),
+    index("hrm_training_assignment_org_session_idx").on(
+      t.organizationId,
+      t.sessionId
+    ),
+    index("hrm_training_assignment_org_due_assigned_idx")
+      .on(t.organizationId, t.dueAt)
+      .where(sql`"state" = 'assigned'`),
+    check(
+      "hrm_training_assignment_state_chk",
+      sql`${t.state} IN ('assigned', 'completed', 'waived', 'cancelled', 'overdue')`
+    ),
+    check(
+      "hrm_training_assignment_attendance_chk",
+      sql`${t.attendance} IS NULL OR ${t.attendance} IN ('present', 'absent', 'excused')`
+    ),
+    check(
+      "hrm_training_assignment_priority_chk",
+      sql`${t.priority} IN ('low', 'normal', 'high', 'statutory')`
+    ),
+    check(
+      "hrm_training_assignment_source_kind_chk",
+      sql`${t.sourceKind} IN ('manual', 'onboarding', 'recertification', 'compliance_cycle', 'session_roster')`
+    ),
+  ]
+)
+
+export const hrmTrainingRecord = pgTable(
+  "hrm_training_record",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    assignmentId: text("assignmentId").references(
+      () => hrmTrainingAssignment.id,
+      {
+        onDelete: "set null",
+      }
+    ),
+    sessionId: text("sessionId").references(() => hrmTrainingSession.id, {
+      onDelete: "set null",
+    }),
+    courseId: text("courseId")
+      .notNull()
+      .references(() => hrmTrainingCourse.id, { onDelete: "restrict" }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    completedAt: date("completedAt", { mode: "date" }).notNull(),
+    expiresAt: date("expiresAt", { mode: "date" }),
+    instructor: text("instructor"),
+    hoursCompleted: decimal("hoursCompleted", { precision: 9, scale: 2 }),
+    creditUnits: decimal("creditUnits", { precision: 9, scale: 2 }),
+    costAmount: decimal("costAmount", { precision: 15, scale: 2 }),
+    costCurrency: text("costCurrency").notNull().default("MYR"),
+    certificateDocumentId: text("certificateDocumentId").references(
+      () => hrmDocument.id,
+      { onDelete: "set null" }
+    ),
+    verificationState: text("verificationState")
+      .notNull()
+      .default("self_attested"),
+    verifiedByUserId: text("verifiedByUserId"),
+    verifiedAt: timestamp("verifiedAt", { mode: "date" }),
+    feedbackRating: integer("feedbackRating"),
+    feedbackText: text("feedbackText"),
+    notes: text("notes"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_training_record_org_employee_completed_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.completedAt
+    ),
+    index("hrm_training_record_org_expires_idx")
+      .on(t.organizationId, t.expiresAt)
+      .where(sql`"expiresAt" IS NOT NULL`),
+    check(
+      "hrm_training_record_verification_state_chk",
+      sql`${t.verificationState} IN ('self_attested', 'hr_verified', 'external_verified')`
+    ),
+    check(
+      "hrm_training_record_feedback_rating_chk",
+      sql`${t.feedbackRating} IS NULL OR (${t.feedbackRating} >= 1 AND ${t.feedbackRating} <= 5)`
+    ),
+  ]
+)
+
+export const hrmTrainingEvent = pgTable(
+  "hrm_training_event",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    action: text("action").notNull(),
+    recordId: text("recordId").references(() => hrmTrainingRecord.id, {
+      onDelete: "set null",
+    }),
+    assignmentId: text("assignmentId").references(
+      () => hrmTrainingAssignment.id,
+      {
+        onDelete: "set null",
+      }
+    ),
+    sessionId: text("sessionId").references(() => hrmTrainingSession.id, {
+      onDelete: "set null",
+    }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    payload: jsonb("payload")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    occurredAt: timestamp("occurredAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    actorUserId: text("actorUserId"),
+  },
+  (t) => [
+    index("hrm_training_event_org_employee_occurred_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.occurredAt
+    ),
+    uniqueIndex("hrm_training_event_daily_idempotency_uidx")
+      .on(
+        t.organizationId,
+        t.employeeId,
+        t.assignmentId,
+        t.action,
+        sql`date_trunc('day', ${t.occurredAt})`
+      )
+      .where(sql`"assignmentId" IS NOT NULL`),
+    check(
+      "hrm_training_event_action_chk",
+      sql`${t.action} IN ('assigned', 'completed', 'verified', 'waived', 'expired', 'reassigned', 'cancelled', 'session_closed')`
+    ),
+  ]
+)
+
 export const hrmImportSession = pgTable(
   "hrm_import_session",
   {
@@ -2868,6 +3355,161 @@ export const hrmImportSession = pgTable(
   (t) => [
     index("hrm_import_session_org_status_idx").on(t.organizationId, t.status),
     index("hrm_import_session_org_type_idx").on(t.organizationId, t.importType),
+  ]
+)
+
+/**
+ * HRM eSignature ceremony header (contract / boarding_task subjects).
+ * Phase 2: `mode = provider` + `providerEndpointId` for DocuSign-style adapters.
+ */
+export const hrmSignatureRequest = pgTable(
+  "hrm_signature_request",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    publicSlug: text("publicSlug").notNull(),
+    organizationId: text("organizationId").notNull(),
+    schemaVersion: integer("schemaVersion").notNull().default(1),
+    kind: text("kind").notNull(),
+    subjectType: text("subjectType").notNull(),
+    subjectId: text("subjectId").notNull(),
+    signingOrder: text("signingOrder").notNull().default("parallel"),
+    documentId: text("documentId")
+      .notNull()
+      .references(() => hrmDocument.id, { onDelete: "restrict" }),
+    signedEnvelopeDocumentId: text("signedEnvelopeDocumentId").references(
+      () => hrmDocument.id,
+      { onDelete: "set null" }
+    ),
+    derivedStatus: text("derivedStatus").notNull().default("draft"),
+    mode: text("mode").notNull().default("in_app"),
+    providerEndpointId: text("providerEndpointId").references(
+      () => orgEventEndpoint.id,
+      { onDelete: "set null" }
+    ),
+    externalReference: text("externalReference"),
+    declarationTextHash: text("declarationTextHash").notNull(),
+    expirationPeriodDays: integer("expirationPeriodDays"),
+    sentAt: timestamp("sentAt", { mode: "date" }),
+    lastEventAt: timestamp("lastEventAt", { mode: "date" }),
+    voidedAt: timestamp("voidedAt", { mode: "date" }),
+    voidReason: text("voidReason"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_signature_request_public_slug_uidx").on(t.publicSlug),
+    index("hrm_signature_request_org_derived_status_idx").on(
+      t.organizationId,
+      t.derivedStatus
+    ),
+    index("hrm_signature_request_org_kind_subject_idx").on(
+      t.organizationId,
+      t.kind,
+      t.subjectId
+    ),
+    uniqueIndex("hrm_signature_request_org_kind_subject_open_uidx")
+      .on(t.organizationId, t.kind, t.subjectId)
+      .where(sql`"derivedStatus" in ('draft', 'sent', 'partially_signed')`),
+  ]
+)
+
+/** Append-only signature ceremony audit ledger (witness trail). */
+export const hrmSignatureEvent = pgTable(
+  "hrm_signature_event",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    requestId: text("requestId")
+      .notNull()
+      .references(() => hrmSignatureRequest.id, { onDelete: "cascade" }),
+    partyId: text("partyId"),
+    type: text("type").notNull(),
+    actorType: text("actorType").notNull(),
+    actorUserId: text("actorUserId"),
+    actorEmail: text("actorEmail"),
+    actorName: text("actorName"),
+    userAgent: text("userAgent"),
+    ipAddress: text("ipAddress"),
+    data: jsonb("data").$type<Record<string, unknown>>().notNull().default({}),
+    dataHash: text("dataHash").notNull(),
+    occurredAt: timestamp("occurredAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("hrm_signature_event_request_occurred_idx").on(
+      t.requestId,
+      t.occurredAt
+    ),
+    index("hrm_signature_event_org_occurred_idx").on(
+      t.organizationId,
+      t.occurredAt
+    ),
+    index("hrm_signature_event_type_idx").on(t.type),
+  ]
+)
+
+/** One signer row per ceremony party (token-gated portal access). */
+export const hrmSignatureParty = pgTable(
+  "hrm_signature_party",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    requestId: text("requestId")
+      .notNull()
+      .references(() => hrmSignatureRequest.id, { onDelete: "cascade" }),
+    signerOrder: integer("signerOrder").notNull(),
+    signerEmployeeId: text("signerEmployeeId").references(
+      () => hrmEmployee.id,
+      {
+        onDelete: "set null",
+      }
+    ),
+    signerEmail: text("signerEmail").notNull(),
+    signerName: text("signerName").notNull(),
+    role: text("role").notNull().default("signer"),
+    token: text("token").notNull(),
+    readStatus: text("readStatus").notNull().default("not_opened"),
+    sendStatus: text("sendStatus").notNull().default("not_sent"),
+    signingStatus: text("signingStatus").notNull().default("not_signed"),
+    expiresAt: timestamp("expiresAt", { mode: "date" }),
+    sentAt: timestamp("sentAt", { mode: "date" }),
+    firstOpenedAt: timestamp("firstOpenedAt", { mode: "date" }),
+    signedAt: timestamp("signedAt", { mode: "date" }),
+    lastReminderSentAt: timestamp("lastReminderSentAt", { mode: "date" }),
+    nextReminderAt: timestamp("nextReminderAt", { mode: "date" }),
+    rejectionReason: text("rejectionReason"),
+    /** Logical FK to hrm_signature_event.id (set after sign; no DB FK — avoids cycle). */
+    signedProofEventId: text("signedProofEventId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_signature_party_token_uidx").on(t.token),
+    uniqueIndex("hrm_signature_party_request_signer_order_uidx").on(
+      t.requestId,
+      t.signerOrder
+    ),
+    uniqueIndex("hrm_signature_party_request_employee_uidx")
+      .on(t.requestId, t.signerEmployeeId)
+      .where(sql`"signerEmployeeId" is not null`),
+    index("hrm_signature_party_next_reminder_idx").on(t.nextReminderAt),
+    index("hrm_signature_party_expires_at_idx").on(t.expiresAt),
+    index("hrm_signature_party_request_signing_status_idx").on(
+      t.requestId,
+      t.signingStatus
+    ),
   ]
 )
 
@@ -3501,6 +4143,10 @@ export const hrmPayrollLine = pgTable(
     /** Optional FK when this deduction line repays an approved salary advance. */
     salaryAdvanceId: text("salaryAdvanceId").references(
       () => hrmSalaryAdvance.id,
+      { onDelete: "set null" }
+    ),
+    salaryAdvanceInstallmentId: text("salaryAdvanceInstallmentId").references(
+      () => hrmSalaryAdvanceInstallment.id,
       { onDelete: "set null" }
     ),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
@@ -4691,5 +5337,31 @@ export const erpRolePermission = pgTable(
       t.object,
       t.status
     ),
+  ]
+)
+
+/** Public ask-docs page feedback (anonymous or optional signed-in context). */
+export const askDocsFeedback = pgTable(
+  "ask_docs_feedback",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    orgId: text("org_id"),
+    userId: text("user_id"),
+    sessionId: text("session_id"),
+    locale: text("locale").notNull(),
+    pagePath: text("page_path").notNull(),
+    rating: integer("rating").notNull(),
+    message: text("message"),
+    source: text("source").notNull().default("ask-docs"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("ask_docs_feedback_locale_created_idx").on(t.locale, t.createdAt),
+    check("ask_docs_feedback_rating_chk", sql`${t.rating} IN (-1, 1)`),
   ]
 )

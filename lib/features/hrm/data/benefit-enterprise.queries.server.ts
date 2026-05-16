@@ -12,7 +12,10 @@ import {
   hrmEmploymentContract,
 } from "#lib/db/schema"
 
-import { getBenefitPlanForOrganization, listBenefitPlansForOrganization } from "./benefit.queries.server"
+import {
+  getBenefitPlanForOrganization,
+  listBenefitPlansForOrganization,
+} from "./benefit.queries.server"
 import {
   evaluateBenefitEligibility,
   parseBenefitEligibilityRules,

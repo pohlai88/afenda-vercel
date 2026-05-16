@@ -96,22 +96,23 @@ export async function recordAttendanceEventAction(
     )
     .digest("hex")
 
-  const [lockedDates, duplicateExists, closedPayrollPeriods] = await Promise.all([
-    listLockedAttendanceDatesForEmployee({
-      organizationId,
-      employeeId: data.employeeId,
-      attendanceDates: lockedGuardDates,
-    }),
-    hasAttendanceEventRawPayloadHash({
-      organizationId,
-      rawPayloadHash,
-    }),
-    listClosedPayrollPeriodsOverlappingRange({
-      organizationId,
-      rangeStart,
-      rangeEnd,
-    }),
-  ])
+  const [lockedDates, duplicateExists, closedPayrollPeriods] =
+    await Promise.all([
+      listLockedAttendanceDatesForEmployee({
+        organizationId,
+        employeeId: data.employeeId,
+        attendanceDates: lockedGuardDates,
+      }),
+      hasAttendanceEventRawPayloadHash({
+        organizationId,
+        rawPayloadHash,
+      }),
+      listClosedPayrollPeriodsOverlappingRange({
+        organizationId,
+        rangeStart,
+        rangeEnd,
+      }),
+    ])
 
   if (closedPayrollPeriods.length > 0) {
     return hrmActionFailure({

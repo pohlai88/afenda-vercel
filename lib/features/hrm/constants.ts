@@ -153,6 +153,28 @@ export const HRM_CAPABILITIES = [
     }),
   },
   {
+    id: "skills",
+    segments: ["skills"] as const,
+    auditPrefix: "erp.hrm.skill",
+    nav: { navKey: "skills", order: 48, primarySegment: "skills" },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "skill",
+      function: "search",
+    }),
+  },
+  {
+    id: "training",
+    segments: ["training"] as const,
+    auditPrefix: "erp.hrm.training",
+    nav: { navKey: "training", order: 49, primarySegment: "training" },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "training",
+      function: "search",
+    }),
+  },
+  {
     id: "advances",
     segments: ["advances"] as const,
     auditPrefix: "erp.hrm.salary_advance",
@@ -182,6 +204,17 @@ export const HRM_CAPABILITIES = [
     requiredPermission: buildErpPermissionKey({
       module: "hrm",
       object: "document",
+      function: "search",
+    }),
+  },
+  {
+    id: "signatures",
+    segments: ["signatures"] as const,
+    auditPrefix: "erp.hrm.signature",
+    nav: { navKey: "signatures", order: 62, primarySegment: "signatures" },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "signature",
       function: "search",
     }),
   },
@@ -256,6 +289,18 @@ export function organizationHrmPath(
 /** Locale-internal claims URL (`/dashboard/hrm/claims`). */
 export function organizationHrmClaimsPath(orgSlug: string): Route {
   return organizationHrmPath(orgSlug, "claims")
+}
+
+/** Locale-internal signatures URL (`/dashboard/hrm/signatures`). */
+export function organizationHrmSignaturesPath(orgSlug: string): Route {
+  return organizationHrmPath(orgSlug, "signatures")
+}
+
+export function organizationHrmSignatureRequestPath(
+  orgSlug: string,
+  publicSlug: string
+): Route {
+  return `${organizationHrmSignaturesPath(orgSlug)}/${publicSlug}` as Route
 }
 
 /** Locale-internal employee detail URL (`/dashboard/hrm/employees/{id}`). */

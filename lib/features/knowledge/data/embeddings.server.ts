@@ -1,24 +1,31 @@
 import "server-only"
 
-import { openai } from "@ai-sdk/openai"
 import { embed } from "ai"
 
 import { KNOWLEDGE_EMBEDDING_DIMENSIONS } from "#features/knowledge/constants"
+import {
+  DEFAULT_EMBEDDING_MODEL,
+  hasAiGatewayAuth,
+  resolveEmbeddingModel,
+} from "#lib/ai/gateway.server"
 
 /**
- * Server-only text embeddings for knowledge chunks. Requires `OPENAI_API_KEY`
- * (see `.env.config.example`). Uses `text-embedding-3-small` at 1536 dimensions
- * to match the `knowledge_chunk.embedding` column.
+ * Server-only text embeddings for knowledge chunks. Requires AI Gateway
+ * credentials (`AI_GATEWAY_API_KEY` locally or `VERCEL_OIDC_TOKEN` on Vercel).
+ * Uses `openai/text-embedding-3-small` at 1536 dimensions to match
+ * `knowledge_chunk.embedding`.
  */
 export async function embedKnowledgeText(text: string): Promise<number[]> {
-  if (!process.env.OPENAI_API_KEY?.trim()) {
-    throw new Error("OPENAI_API_KEY is not set")
+  if (!hasAiGatewayAuth()) {
+    throw new Error(
+      "AI Gateway credentials missing (AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN)"
+    )
   }
 
+  const modelId = process.env.EMBEDDING_MODEL?.trim() || DEFAULT_EMBEDDING_MODEL
+
   const { embedding } = await embed({
-    model: openai.embedding(
-      process.env.EMBEDDING_MODEL?.trim() || "text-embedding-3-small"
-    ),
+    model: resolveEmbeddingModel(modelId),
     value: text,
     providerOptions: {
       openai: {

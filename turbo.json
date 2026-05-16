@@ -36,6 +36,22 @@
         "scripts/check-drizzle-journal.mjs"
       ]
     },
+    "lint:route-error-files": {
+      "inputs": ["app/**/*error.tsx", "scripts/check-route-error-files.mjs"]
+    },
+    "lint:public-lynx-contract": {
+      "inputs": [
+        "app/api/chat/**",
+        "components/ai/search.tsx",
+        "components/ai/public-lynx-fab-drag.ts",
+        "components/ai/ask-lynx-tooltip.tsx",
+        "lib/ask-docs/public-lynx*.ts",
+        "lib/ask-docs/lynx-brand.shared.ts",
+        "package.json",
+        "scripts/check-public-lynx-contract.mjs",
+        ".cursor/rules/public-lynx.mdc"
+      ]
+    },
     "lint:fixtures-parity": {
       "inputs": [
         "tests/fixtures/**",
@@ -78,21 +94,29 @@
         "scripts/check-design-contract.mjs"
       ]
     },
-    "lint:help-docs-links": {
+    "lint:ask-docs-links": {
       "inputs": [
-        "content/help-docs/**/*.mdx",
-        "content/help-docs/**/meta.json",
-        "scripts/validate-help-docs-links.ts",
+        "content/ask-docs/**/*.mdx",
+        "content/ask-docs/**/meta.json",
+        "scripts/validate-ask-docs-links.ts",
         "lib/i18n/locales.shared.ts",
-        "app/[locale]/help-docs/**",
+        "app/**/ask-docs/**",
+        "app/api/ask-docs-search/**",
         "package.json"
       ]
     },
-    "lint:help-docs-prose": {
+    "lint:ask-docs-prose": {
       "inputs": [
-        "content/help-docs/**/*.mdx",
-        ".config/markdownlint-help-docs.jsonc",
-        "scripts/lint-help-docs-prose.mjs"
+        "content/ask-docs/**/*.mdx",
+        ".config/markdownlint-ask-docs.jsonc",
+        "scripts/lint-ask-docs-prose.mjs"
+      ]
+    },
+    "lint:components2-renderers": {
+      "inputs": [
+        "components2/metadata/registry.ts",
+        "components2/metadata/renderers/**",
+        "scripts/check-components2-renderers.mjs"
       ]
     },
     "typecheck": {

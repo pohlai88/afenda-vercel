@@ -555,7 +555,10 @@ function IdentityDocumentForm({
           label={t("identityDocument.fields.verification")}
           defaultValue="unverified"
           options={[
-            ["unverified", t("identityDocument.options.verification.unverified")],
+            [
+              "unverified",
+              t("identityDocument.options.verification.unverified"),
+            ],
             ["verified", t("identityDocument.options.verification.verified")],
             ["rejected", t("identityDocument.options.verification.rejected")],
             ["expired", t("identityDocument.options.verification.expired")],
@@ -642,10 +645,7 @@ function WorkAuthorizationForm({
           name="notes"
           label={t("workAuthorization.fields.notes")}
         />
-        <SubmitButton
-          pending={pending}
-          label={t("workAuthorization.submit")}
-        />
+        <SubmitButton pending={pending} label={t("workAuthorization.submit")} />
       </form>
     </section>
   )

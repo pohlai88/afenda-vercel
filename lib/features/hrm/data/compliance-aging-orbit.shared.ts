@@ -1,5 +1,5 @@
 import { organizationHrmPath } from "../constants"
-import type { AgingWatchCandidate } from "./compliance-aging-watch.server"
+import type { AgingWatchCandidate } from "./compliance-aging-watch.shared"
 
 export function buildCriticalAgingOrbitSignal(input: {
   candidate: AgingWatchCandidate

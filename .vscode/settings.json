@@ -31,6 +31,12 @@
   "files.encoding": "utf8",
 
   "eslint.useFlatConfig": true,
+  // Suppress "File ignored because no matching configuration" as problems/warnings when a buffer
+  // is not covered by eslint.config.mjs `files` (e.g. `app/globals.css`, env templates). CLI: use
+  // `pnpm exec eslint …` only on TS/TSX paths, or pass `--no-warn-ignored` if you must pass globs.
+  "eslint.options": {
+    "warnIgnored": false
+  },
   "eslint.probe": [
     "javascript",
     "javascriptreact",
@@ -100,6 +106,9 @@
   "[tailwindcss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "css.validate": false,
-    "css.lint.unknownAtRules": "ignore"
+    "css.lint.unknownAtRules": "ignore",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "never"
+    }
   }
 }

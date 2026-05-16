@@ -31,7 +31,6 @@ import {
 } from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
 
-export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 export const maxDuration = 60
 
@@ -84,17 +83,10 @@ export async function POST(request: Request) {
     return routeJsonError("Invalid question", 400)
   }
 
-  if (!process.env.OPENAI_API_KEY?.trim()) {
-    return routeJsonError(
-      "OPENAI_API_KEY is required for knowledge embeddings (Lynx retrieval). Optional: AI_GATEWAY_API_KEY routes answer generation via Vercel AI Gateway.",
-      503
-    )
-  }
-
   const languageModel = resolveLynxTruthStreamModel()
   if (!languageModel) {
     return routeJsonError(
-      "Could not resolve a language model for Lynx generation (configure AI_GATEWAY_API_KEY or OPENAI_API_KEY)",
+      "Could not resolve a language model for Lynx generation (AI Gateway credentials missing)",
       503
     )
   }

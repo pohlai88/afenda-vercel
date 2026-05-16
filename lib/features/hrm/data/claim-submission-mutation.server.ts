@@ -7,6 +7,7 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmApproval, hrmClaim, hrmClaimEvidence } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocalePortalRevalidatePattern } from "#lib/portal"
 
 import { and, eq } from "drizzle-orm"
 
@@ -32,9 +33,11 @@ import type {
   SubmitClaimFormState,
 } from "../types"
 import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
+import { withPortalMutationSpan } from "./portal-mutation-tracing.server"
 
 export function revalidateClaims() {
   revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/claims"), "layout")
+  revalidatePath(toLocalePortalRevalidatePattern("/employee/claims"), "page")
 }
 
 function todayIso(): string {
@@ -81,6 +84,25 @@ export type SubmitClaimForEmployeeInput = {
 }
 
 export async function submitClaimForEmployee(
+  input: SubmitClaimForEmployeeInput
+): Promise<SubmitClaimFormState> {
+  const run = async (): Promise<SubmitClaimFormState> =>
+    submitClaimForEmployeeBody(input)
+  if (input.submissionMode === "self_service") {
+    return withPortalMutationSpan(
+      {
+        spanName: "hrm.portal.claims.submit",
+        section: "claims",
+        organizationId: input.organizationId,
+        employeeId: input.employeeId,
+      },
+      run
+    )
+  }
+  return run()
+}
+
+async function submitClaimForEmployeeBody(
   input: SubmitClaimForEmployeeInput
 ): Promise<SubmitClaimFormState> {
   const { organizationId, userId, sessionId } = input
@@ -320,7 +342,28 @@ export type CancelClaimForPortalEmployeeInput = {
 export async function cancelClaimForPortalEmployee(
   input: CancelClaimForPortalEmployeeInput
 ): Promise<CancelClaimFormState> {
-  const { organizationId, userId, sessionId, employeeId, claimId, cancelledReason } = input
+  return withPortalMutationSpan(
+    {
+      spanName: "hrm.portal.claims.cancel",
+      section: "claims",
+      organizationId: input.organizationId,
+      employeeId: input.employeeId,
+    },
+    () => cancelClaimForPortalEmployeeBody(input)
+  )
+}
+
+async function cancelClaimForPortalEmployeeBody(
+  input: CancelClaimForPortalEmployeeInput
+): Promise<CancelClaimFormState> {
+  const {
+    organizationId,
+    userId,
+    sessionId,
+    employeeId,
+    claimId,
+    cancelledReason,
+  } = input
 
   const claim = await db.query.hrmClaim.findFirst({
     where: and(
@@ -428,7 +471,30 @@ export type AttachClaimEvidenceForPortalEmployeeInput = {
 export async function attachClaimEvidenceForPortalEmployee(
   input: AttachClaimEvidenceForPortalEmployeeInput
 ): Promise<AttachClaimEvidenceFormState> {
-  const { organizationId, userId, sessionId, employeeId, claimId, documentId, evidenceType, notes } = input
+  return withPortalMutationSpan(
+    {
+      spanName: "hrm.portal.claims.attach_evidence",
+      section: "claims",
+      organizationId: input.organizationId,
+      employeeId: input.employeeId,
+    },
+    () => attachClaimEvidenceForPortalEmployeeBody(input)
+  )
+}
+
+async function attachClaimEvidenceForPortalEmployeeBody(
+  input: AttachClaimEvidenceForPortalEmployeeInput
+): Promise<AttachClaimEvidenceFormState> {
+  const {
+    organizationId,
+    userId,
+    sessionId,
+    employeeId,
+    claimId,
+    documentId,
+    evidenceType,
+    notes,
+  } = input
 
   const claim = await db.query.hrmClaim.findFirst({
     where: and(

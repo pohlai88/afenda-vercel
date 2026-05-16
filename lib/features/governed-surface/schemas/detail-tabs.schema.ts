@@ -21,7 +21,7 @@ export const governedDetailSectionSchema = z
     description: z.string().optional(),
     hidden: z.boolean().default(false),
     orderIndex: z.number().int().nonnegative().default(0),
-    /** Renderer key — resolved by `detail-section-render-registry` (future component registry). */
+    /** Renderer key — resolved by `#components2/metadata` detail-section adapter. */
     rendererKey: z.string().min(1),
     rendererProps: z.unknown().optional(),
   })

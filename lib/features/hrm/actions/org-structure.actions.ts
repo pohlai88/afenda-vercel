@@ -263,13 +263,22 @@ async function assertActivePlacementReferences(
   )
   if (!fk.ok) return fk
 
-  if (input.departmentId && !(await getActiveDepartment(organizationId, input.departmentId))) {
+  if (
+    input.departmentId &&
+    !(await getActiveDepartment(organizationId, input.departmentId))
+  ) {
     return { ok: false, message: "Department is not active." }
   }
-  if (input.positionId && !(await getActivePosition(organizationId, input.positionId))) {
+  if (
+    input.positionId &&
+    !(await getActivePosition(organizationId, input.positionId))
+  ) {
     return { ok: false, message: "Position is not active." }
   }
-  if (input.gradeId && !(await getActiveJobGrade(organizationId, input.gradeId))) {
+  if (
+    input.gradeId &&
+    !(await getActiveJobGrade(organizationId, input.gradeId))
+  ) {
     return { ok: false, message: "Job grade is not active." }
   }
   return { ok: true }
@@ -927,7 +936,10 @@ export async function updatePositionAction(
     })
   }
 
-  const existing = await getActivePosition(organizationId, parsed.data.positionId)
+  const existing = await getActivePosition(
+    organizationId,
+    parsed.data.positionId
+  )
   if (!existing) return hrmActionFailure({ form: "Position not found." })
 
   const fk = await assertActivePlacementReferences(organizationId, {
@@ -1014,7 +1026,10 @@ export async function setPositionReportingLineAction(
     })
   }
 
-  const existing = await getActivePosition(organizationId, parsed.data.positionId)
+  const existing = await getActivePosition(
+    organizationId,
+    parsed.data.positionId
+  )
   if (!existing) return hrmActionFailure({ form: "Position not found." })
   if (
     parsed.data.reportsToPositionId &&
@@ -1181,7 +1196,10 @@ export async function assignEmployeePlacementAction(
     })
   }
 
-  const employee = await getActiveEmployee(organizationId, parsed.data.employeeId)
+  const employee = await getActiveEmployee(
+    organizationId,
+    parsed.data.employeeId
+  )
   if (!employee) return hrmActionFailure({ form: "Employee not found." })
   if (parsed.data.managerEmployeeId === parsed.data.employeeId) {
     return hrmActionFailure({ form: "An employee cannot manage themselves." })

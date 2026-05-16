@@ -2,6 +2,27 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
 
+vi.mock("next/navigation", () => ({
+  redirect: vi.fn(),
+  revalidatePath: vi.fn(),
+}))
+
+vi.mock("next-intl/navigation", () => ({
+  createNavigation: () => ({
+    Link: () => null,
+    redirect: vi.fn(),
+    usePathname: () => "/",
+    useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+    getPathname: vi.fn(() => "/"),
+  }),
+}))
+
+vi.mock("#i18n/navigation", () => ({
+  Link: ({ children }: { children?: unknown }) => children,
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => "/",
+}))
+
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }))
@@ -19,6 +40,11 @@ vi.mock("#features/execution", () => ({
 vi.mock("#features/planner/server", () => ({
   createPlannerSignalLink: vi.fn(),
   insertPlannerSignal: vi.fn().mockResolvedValue({ id: "signal-1" }),
+}))
+
+vi.mock("../../lib/features/hrm/constants", () => ({
+  organizationHrmPath: (slug: string, segment: string) =>
+    `/o/${slug}/dashboard/hrm/${segment}`,
 }))
 
 vi.mock("#lib/auth", () => ({
@@ -137,7 +163,7 @@ const SNAPSHOT = {
   pcbTp1AdditionalReliefMonthly: "0.00",
   pcbTp3AdditionalDeductionMonthly: "0.00",
   approvedUnpaidClaims: [],
-  approvedSalaryAdvances: [],
+  approvedSalaryAdvanceInstallments: [],
 } as const satisfies PayrollEngineInput
 
 const COMPUTED_RESULT: PayrollEngineResult = {

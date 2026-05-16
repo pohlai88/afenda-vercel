@@ -32,13 +32,15 @@ const TRANSLATIONS: Record<string, string> = {
     "Coordinate around operational work, evidence, and review trails without leaving the workspace.",
   "Dashboard.shell.utilityBar.coordination.newContext": "New context",
   "Dashboard.shell.utilityBar.coordination.contextsTitle": "Contexts",
-  "Dashboard.shell.utilityBar.coordination.contextNoActivity": "No activity yet.",
+  "Dashboard.shell.utilityBar.coordination.contextNoActivity":
+    "No activity yet.",
   "Dashboard.shell.utilityBar.coordination.emptyContexts":
     "No coordination contexts yet. Start one when work needs shared review, evidence, or follow-up.",
   "Dashboard.shell.utilityBar.coordination.linkedRecord": "Linked record",
   "Dashboard.shell.utilityBar.coordination.unlinkedContext":
     "This context is not linked to an operational record yet.",
-  "Dashboard.shell.utilityBar.coordination.openLinkedRecord": "Open linked record",
+  "Dashboard.shell.utilityBar.coordination.openLinkedRecord":
+    "Open linked record",
   "Dashboard.shell.utilityBar.coordination.attachEvidence": "Attach evidence",
   "Dashboard.shell.utilityBar.coordination.markReviewed": "Mark reviewed",
   "Dashboard.shell.utilityBar.coordination.activityTitle": "Activity",
@@ -50,7 +52,8 @@ const TRANSLATIONS: Record<string, string> = {
   "Dashboard.shell.utilityBar.coordination.composerPlaceholder":
     "Summarize the situation, the decision needed, or the evidence that matters.",
   "Dashboard.shell.utilityBar.coordination.attachFile": "Attach file",
-  "Dashboard.shell.utilityBar.coordination.attachScreenshot": "Attach screenshot",
+  "Dashboard.shell.utilityBar.coordination.attachScreenshot":
+    "Attach screenshot",
   "Dashboard.shell.utilityBar.coordination.sendUpdate": "Send update",
   "Dashboard.shell.utilityBar.coordination.sending": "Sending…",
   "Dashboard.shell.utilityBar.coordination.evidenceTitle": "Evidence",
@@ -76,7 +79,8 @@ const TRANSLATIONS: Record<string, string> = {
   "Dashboard.shell.utilityBar.coordination.creating": "Creating…",
   "Dashboard.shell.utilityBar.coordination.createContext": "Create context",
   "Dashboard.shell.utilityBar.coordination.reviewedNote": "Marked reviewed.",
-  "Dashboard.shell.utilityBar.coordination.activityKinds.comment": "Coordination",
+  "Dashboard.shell.utilityBar.coordination.activityKinds.comment":
+    "Coordination",
   "Dashboard.shell.utilityBar.coordination.activityKinds.evidence_added":
     "Evidence added",
   "Dashboard.shell.utilityBar.coordination.activityKinds.status_note":

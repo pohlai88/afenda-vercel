@@ -6,13 +6,10 @@ import {
   orgStructureNameSchema,
 } from "./org-unit.schema"
 
-const optionalNonNegativeIntegerSchema = z.preprocess(
-  (v) => {
-    if (typeof v === "string" && v.trim() === "") return undefined
-    return v
-  },
-  z.coerce.number().int().min(0).optional()
-)
+const optionalNonNegativeIntegerSchema = z.preprocess((v) => {
+  if (typeof v === "string" && v.trim() === "") return undefined
+  return v
+}, z.coerce.number().int().min(0).optional())
 
 export const positionEmploymentTypeSchema = z
   .string()

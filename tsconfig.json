@@ -3,40 +3,18 @@
     "baseUrl": ".",
     // Internal `#…/*` aliases: mirror `package.json` → `imports` for Node + bundlers.
     "paths": {
-      "#collections/*": [
-        "./.source/*"
-      ],
-      "#components/*": [
-        "./components/*"
-      ],
-      "#components2/*": [
-        "./components2/*"
-      ],
-      "#app-shell": [
-        "./components2/app-shell/index.ts"
-      ],
-      "#lib/*": [
-        "./lib/*"
-      ],
-      "#hooks/*": [
-        "./hooks/*"
-      ],
-      "#features/*": [
-        "./lib/features/*"
-      ],
-      "#i18n/*": [
-        "./i18n/*"
-      ],
-      "#flags": [
-        "./flags.ts"
-      ]
+      "#collections/*": ["./.source/*"],
+      "#components/*": ["./components/*"],
+      "#components2/*": ["./components2/*"],
+      "#app-shell": ["./components2/app-shell/index.ts"],
+      "#lib/*": ["./lib/*"],
+      "#hooks/*": ["./hooks/*"],
+      "#features/*": ["./lib/features/*"],
+      "#i18n/*": ["./i18n/*"],
+      "#flags": ["./flags.ts"]
     },
     "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -55,9 +33,7 @@
     // are loaded via JSX transform imports, not as global ambient types; @types/pg and
     // others are import-only. Auto-scanning all @types packages slows program construction.
     // See: https://github.com/microsoft/TypeScript/wiki/Performance#controlling-types-inclusion
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     // Assume a file change only affects files that directly import it — avoids rechecking
     // the full transitive closure on every save in watch mode (IDE language-server + tsc --watch).
     "assumeChangesOnlyAffectDirectDependencies": true,
@@ -86,6 +62,7 @@
   //   vitest.config.ts / vitest.setup.ts → tsconfig.test.json
   //   playwright.config.ts               → tsconfig.test.json
   //   drizzle.config.ts                  → tsconfig.scripts.json
+  //   source.config.ts                   → tsconfig.scripts.json (fumadocs-mdx build config)
   "exclude": [
     "node_modules",
     ".source",
@@ -96,6 +73,7 @@
     "vitest.config.ts",
     "vitest.setup.ts",
     "playwright.config.ts",
-    "drizzle.config.ts"
+    "drizzle.config.ts",
+    "source.config.ts"
   ]
 }

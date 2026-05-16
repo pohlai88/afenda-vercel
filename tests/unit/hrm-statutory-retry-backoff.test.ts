@@ -19,7 +19,7 @@ import {
   STATUTORY_RETRY_BATCH_LIMIT,
   STATUTORY_RETRY_MAX_ATTEMPTS,
   STATUTORY_RETRY_MAX_DELAY_MS,
-} from "#features/hrm/server"
+} from "../../lib/features/hrm/data/statutory-retry.shared"
 
 describe("HRM statutory retry — backoff policy constants", () => {
   it("base delay is 5 minutes", () => {

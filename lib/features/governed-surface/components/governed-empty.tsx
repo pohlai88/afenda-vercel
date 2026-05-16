@@ -2,8 +2,8 @@ import type { Route } from "next"
 
 import { Link } from "#i18n/navigation"
 
-import { Button } from "#components/ui/button"
-import { Empty, EmptyDescription, EmptyTitle } from "#components/ui/empty"
+import { Button } from "#components2/ui/button"
+import { Empty, EmptyDescription, EmptyTitle } from "#components2/ui/empty"
 import { ui } from "#lib/design-system"
 import { cn } from "#lib/utils"
 

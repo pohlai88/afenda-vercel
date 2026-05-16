@@ -103,11 +103,11 @@ export async function listEmployeeMasterPlacementOptions(
 ): Promise<EmployeeMasterPlacementOptions> {
   const [departments, positions, jobGrades, managers, linkedUsers] =
     await Promise.all([
-    listDepartmentsForOrg(organizationId, { includeArchived: false }),
-    listPositionsForOrg(organizationId, { includeArchived: false }),
-    listJobGradesForOrg(organizationId, { includeArchived: false }),
-    listActiveEmployeeManagerOptions(organizationId),
-    listAccessMembersForOrganization({ organizationId }),
+      listDepartmentsForOrg(organizationId, { includeArchived: false }),
+      listPositionsForOrg(organizationId, { includeArchived: false }),
+      listJobGradesForOrg(organizationId, { includeArchived: false }),
+      listActiveEmployeeManagerOptions(organizationId),
+      listAccessMembersForOrganization({ organizationId }),
     ])
 
   return {

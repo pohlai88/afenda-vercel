@@ -73,7 +73,7 @@ export async function generateLynxNlDemoSqlAction(
     return {
       ok: false,
       error:
-        "Could not resolve a language model (set OPENAI_API_KEY or AI_GATEWAY_API_KEY)",
+        "Could not resolve a language model (AI Gateway credentials missing)",
     }
   }
 
@@ -172,7 +172,7 @@ export async function explainLynxNlDemoSqlAction(
     return {
       ok: false,
       error:
-        "Could not resolve a language model (set OPENAI_API_KEY or AI_GATEWAY_API_KEY)",
+        "Could not resolve a language model (AI Gateway credentials missing)",
     }
   }
 
@@ -220,7 +220,7 @@ export async function suggestLynxNlDemoChartAction(
     return {
       ok: false,
       error:
-        "Could not resolve a language model (set OPENAI_API_KEY or AI_GATEWAY_API_KEY)",
+        "Could not resolve a language model (AI Gateway credentials missing)",
     }
   }
 

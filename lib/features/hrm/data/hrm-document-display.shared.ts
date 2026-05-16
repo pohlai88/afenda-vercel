@@ -25,6 +25,7 @@ export const HRM_DOCUMENT_TYPES = [
   "medical_cert",
   "statutory_pack",
   "payslip",
+  "signature_proof",
   "other",
 ] as const
 

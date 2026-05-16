@@ -2,8 +2,6 @@ import { sql } from "drizzle-orm"
 
 import { routeJsonOk } from "#lib/route-handler-json.shared"
 
-export const dynamic = "force-dynamic"
-
 type PublicHealthState = "ok" | "error"
 
 type PublicHealthResponse = {

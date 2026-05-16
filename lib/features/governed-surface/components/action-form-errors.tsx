@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
 
 import type { ActionResult } from "../schemas/action-result.shared"
 

@@ -2,9 +2,9 @@ import type { Route } from "next"
 
 /**
  * Single source of truth for supported UI locales (path prefix + catalogs).
- * First slice: `en` only; add more after routing/proxy/callbacks are stable.
+ * Ask-docs launch set: en, zh-CN, vi, ms (`zh-CN` allows `zh-TW` later without migration).
  */
-export const APP_LOCALES = ["en"] as const
+export const APP_LOCALES = ["en", "zh-CN", "vi", "ms"] as const
 
 export type AppLocale = (typeof APP_LOCALES)[number]
 

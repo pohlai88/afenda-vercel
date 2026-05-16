@@ -83,6 +83,28 @@ const serverOnlyPatterns = [
   },
 ]
 
+/**
+ * Public Lynx (ask-docs AI chat) must stay separate from ERP Lynx and IAM.
+ * @see .cursor/rules/public-lynx.mdc · scripts/check-public-lynx-contract.mjs
+ */
+const publicLynxForbiddenImports = [
+  {
+    group: ["#features/lynx", "#features/lynx/*"],
+    message:
+      "Public Lynx must not import ERP Lynx. Use lib/ask-docs/public-lynx* and Vercel AI SDK in app/api/chat/route.ts.",
+  },
+  {
+    group: ["lib/features/lynx", "lib/features/lynx/*"],
+    message:
+      "Public Lynx must not import ERP Lynx internals. Use lib/ask-docs/public-lynx* only.",
+  },
+  {
+    group: ["#lib/auth", "#lib/auth/*"],
+    message:
+      "Public Lynx has no org session. Do not import IAM server modules on the ask-docs chat surface.",
+  },
+]
+
 // ---------------------------------------------------------------------------
 // ESLint flat config
 // ---------------------------------------------------------------------------
@@ -330,6 +352,51 @@ const eslintConfig = defineConfig([
   },
 
   {
+    name: "afenda/ai-gateway-only",
+    files: ["app/api/chat/**/*.{ts,tsx}", "lib/ai/**/*.{ts,tsx}"],
+    ignores: ["lib/ai/model-policy.server.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "openai",
+              message:
+                "Use Vercel AI Gateway via #lib/ai/gateway.server — no direct OpenAI SDK.",
+            },
+            {
+              name: "@ai-sdk/openai",
+              message:
+                "Use Vercel AI Gateway via #lib/ai/gateway.server — no direct @ai-sdk/openai.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    name: "afenda/public-lynx-boundary",
+    files: [
+      "app/api/chat/**/*.{ts,tsx}",
+      "components/ai/search.tsx",
+      "components/ai/public-lynx-fab-drag.ts",
+      "components/ai/ask-lynx-tooltip.tsx",
+      "lib/ask-docs/public-lynx*.ts",
+      "lib/ask-docs/lynx-brand.shared.ts",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: publicLynxForbiddenImports,
+        },
+      ],
+    },
+  },
+
+  {
     name: "afenda/hooks-server-boundary",
     files: ["hooks/**/*.{ts,tsx}"],
     rules: {
@@ -459,6 +526,42 @@ const eslintConfig = defineConfig([
         },
       ],
       "no-console": "off",
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // § components2/metadata/renderers — import allowlist (renderer kernel)
+  // -------------------------------------------------------------------------
+  {
+    name: "afenda/components2-metadata-renderer-imports",
+    files: ["components2/metadata/renderers/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "react-jsx-parser",
+              message:
+                "Forbidden in renderer kernel — use typed renderer components, not runtime JSX parsing (ADR-0011).",
+            },
+          ],
+          patterns: [
+            {
+              group: ["#components/ui", "#components/ui/*"],
+              message: "Renderers import primitives from #components2/ui only.",
+            },
+            {
+              group: ["**/components/ui", "**/components/ui/*"],
+              message: "Renderers import primitives from #components2/ui only.",
+            },
+            {
+              group: ["#app-shell", "#app-shell/*", "#components2/app-shell/*"],
+              message: "Renderers must not import shell chrome.",
+            },
+          ],
+        },
+      ],
     },
   },
 

@@ -1,0 +1,303 @@
+---
+description: Rules for the public Fumadocs ask-docs surface (`/{locale}/ask-docs`, `content/ask-docs/` authoring tree, related lib files). Auto-loaded when editing these paths.
+globs:
+  - "app/(ask-docs)/**"
+  - "app/og/ask-docs/**"
+  - "app/api/search/**"
+  - "app/api/ask-docs-search/**"
+  - "app/api/chat/**"
+  - "components/ai/**"
+  - "app/llms.txt/**"
+  - "app/llms-full.txt/**"
+  - "app/llms.mdx/**"
+  - "content/ask-docs/**"
+  - "lib/ask-docs-*.ts"
+  - "lib/ask-docs-*.shared.ts"
+  - "components/ask-docs-mermaid.tsx"
+  - "components/feedback/**"
+  - "scripts/validate-ask-docs-links.ts"
+alwaysApply: false
+---
+
+# Public docs directory (`/{locale}/ask-docs`)
+
+## Surface contract
+
+- **Public, no auth gate.** `proxy.ts` matcher excludes this surface from the session cookie check.
+- **Locale-first.** All URLs are `/{locale}/ask-docs/…` via `localePrefix: "always"`. Never emit a bare `/ask-docs/…` URL from server code — use `toLocalePath(locale, "/ask-docs/…")`.
+- **Static by default.** Pages use `export const dynamic = "force-static"`. Do not add dynamic data fetching to docs pages.
+- **No ERP data.** Docs pages and components must not import from `#features/*`, `#lib/auth`, or any server-only ERP module.
+
+## Fumadocs MDX config (`source.config.ts`)
+
+`defineDocs` extends `pageSchema` for Afenda frontmatter and enables link-reference postprocessing:
+
+```ts
+import { metaSchema, pageSchema } from "fumadocs-core/source/schema"
+import { z } from "zod"
+
+export const docs = defineDocs({
+  dir: "content/ask-docs",
+  docs: {
+    async: true,
+    schema: pageSchema.extend({ /* audience, status, lastReviewedAt */ }),
+    postprocess: {
+      includeProcessedMarkdown: true,
+      extractLinkReferences: true,
+    },
+    async mdxOptions(environment) {
+      return applyMdxPreset({ /* remarkNpm, remarkSteps, Twoslash, … */ })(environment)
+    },
+  },
+  meta: { schema: metaSchema },
+})
+
+// page.tsx: `const loaded = await page.data.load()` — body, toc, lastModified live on `loaded`.
+```
+
+`defineConfig` plugins: `lastModified()`, `jsonSchema({ insert: true })`. Per-collection `async mdxOptions` uses `applyMdxPreset` (`remarkNpm` package-manager persistence, `remarkSteps`, structured search via `remarkStructure`, Shiki + Twoslash). Custom plugins: `remarkMdxMermaid`, `remarkAutoTypeTable`, `remarkTypeScriptToJavaScript`.
+
+`experimentalBuildCache` is intentionally **not** enabled — the cache is never auto-invalidated and requires a manual directory delete. Safe to add only when MDX compilation becomes a measurable CI bottleneck and a cache-bust strategy (e.g. Turborepo `outputs` + `inputs` hash) is in place.
+
+## Source and loader
+
+```ts
+// ✅ always scope source to the active locale
+import { askDocsSource } from "#lib/ask-docs-source"
+const page = askDocsSource.getPage(slug, locale)
+const tree = askDocsSource.getPageTree(locale)
+
+// ❌ never import docs collection directly in app/ or components/
+import { docs } from "#collections/server"
+```
+
+`askDocsSource` is a single Fumadocs `loader()` with `defineI18n` (`en`, `zh-CN`, `vi`, `ms`). Pass locale to `getPage(slug, locale)` and `getPageTree(locale)` — URLs are `/{locale}/ask-docs/...` via Fumadocs i18n (`hideLocale: "never"`).
+
+**Loader plugin wired:** `lucideIconsPlugin()` — converts the `icon` property in MDX frontmatter and `meta.json` to Lucide React elements automatically. Use any [Lucide icon name](https://lucide.dev/icons/) (PascalCase):
+
+```mdx
+---
+title: Getting Started
+icon: BookOpen
+---
+```
+
+```json
+{ "title": "HRM", "icon": "Users", "pages": ["employees", "attendance"] }
+```
+
+## Writing MDX content
+
+- Files live under `content/ask-docs/`.
+- Every directory needs a `meta.json` to control sidebar order and titles.
+- Run `pnpm lint:ask-docs-links` after adding or changing internal links (`[text](/ask-docs/…)`).
+- Run `pnpm lint:ask-docs-prose` after substantive MDX edits (markdownlint-cli2; config `.config/markdownlint-ask-docs.jsonc`).
+- Scaffold new pages with `pnpm gen ask-doc` (enforces frontmatter + section skeleton).
+- Internal links in MDX must use the `/ask-docs/…` authoring form (no locale prefix). The link validator expands them to `/{locale}/ask-docs/…` automatically.
+- **Inline code syntax highlighting:** append `{:lang}` to inline code — e.g. `` `const x = 1{:ts}` `` or `` `SELECT *{:sql}` ``. Plain inline code without the suffix renders as-is (backward-compatible).
+
+```mdx
+<!-- ✅ authoring form -->
+[Getting started](/ask-docs/getting-started)
+
+<!-- ❌ never include a locale prefix in MDX links -->
+[Getting started](/en/ask-docs/getting-started)
+```
+
+## OG images
+
+- Helper: `getAskDocsOgImagePath(locale, slugs)` from `#lib/ask-docs-og.shared`.
+- Endpoint: `app/og/ask-docs/[locale]/[...slug]/route.tsx` — `next/og` `ImageResponse`, `revalidate = false`.
+- The `/og` path segment is excluded from the `proxy.ts` intl matcher so next-intl never rewrites it.
+- Trailing segment is `image.png` (`ASK_DOCS_OG_IMAGE_FILENAME`).
+- `generateMetadata` in `page.tsx` wires `openGraph.images` and `twitter.images` to this path.
+
+## Search
+
+- Endpoint: `app/api/ask-docs-search/route.ts` — Fumadocs Orama via `createFromSource(askDocsSource, { localeMap })`. Accepts `?locale=`.
+- Do not add `app/api/search/` — duplicate route removed. Do not add ERP search on ask-docs.
+
+## Public Lynx (Ask AI)
+
+- UI: `#components/ai/search` — `AISearch`, `AISearchPanel`, `AISearchTrigger` wired in `app/(ask-docs)/[locale]/ask-docs/layout.tsx` (label **Ask Lynx**).
+- API: `app/api/chat/route.ts` — Vercel AI SDK `streamText` + flexsearch tool over ask-docs processed markdown. **No** `#features/lynx` import.
+- Requires `AI_GATEWAY_API_KEY` locally (or `VERCEL_OIDC_TOKEN` on Vercel) and `UPSTASH_REDIS_REST_*` for production rate limits. Parse POST via `readPublicLynxChatRequestBody` — not `req.json()`.
+- Lint: `pnpm lint:public-lynx-contract` after changes to `app/api/chat`, `components/ai/search`, or `lib/ask-docs/public-lynx*`.
+- Rule: `.cursor/rules/public-lynx.mdc`.
+
+## LLM export endpoints
+
+| Route | Purpose |
+| --- | --- |
+| `app/llms.txt/route.ts` | Plain-text index (all pages, one URL per line) |
+| `app/llms-full.txt/route.ts` | Full processed markdown for all pages |
+| `app/llms.mdx/ask-docs/[locale]/[[...slug]]/route.ts` | Per-page markdown GET; in-app links use `getAskDocsProcessedMarkdownPath(locale, slug)`; `/{locale}/ask-docs/*.md` rewrites to `/llms.mdx/ask-docs/:locale/...` |
+
+All three use `revalidate = false` and `Cache-Control: public, max-age=31536000, immutable`.
+
+## Feedback
+
+- `<Feedback onSendAction={submitAskDocsFeedback} />` — client island in `components/feedback/client.tsx`.
+- Server Action `submitAskDocsFeedback` lives in `app/(ask-docs)/[locale]/ask-docs/[[...slug]]/actions.ts`.
+- Log via `rootLogger.info` from `#lib/logger.server`. Never `console.log`.
+- No DB writes for feedback yet — logging only. Add a DB write when a feedback table is added to `lib/db/schema.ts`.
+
+## Fumadocs UI wiring
+
+### Theme
+`globals.css` already imports `fumadocs-ui/css/shadcn.css` + `fumadocs-ui/css/preset.css`. The `shadcn` preset inherits the project's existing design tokens rather than introducing a separate neutral palette. No changes needed.
+
+### `RootProvider`
+Placed at `app/(ask-docs)/[locale]/ask-docs/layout.tsx` (scoped to the docs surface, not the app root). Provides search dialog context (`/api/ask-docs-search`). Theme is inherited from the main app shell on `/ask-docs` unless overridden.
+
+**`search.links`** — Quick-links shown when the search dialog is empty. Wired to the top-level sections (when used):
+```tsx
+<RootProvider search={{ links: [
+  ["Getting Started", toLocalePath(locale, "/ask-docs/getting-started")],
+  ["HRM", toLocalePath(locale, "/ask-docs/hrm")],
+  // ...
+] }}>
+```
+Update `ask-docs/layout.tsx` whenever a new top-level section is added to `content/ask-docs/`.
+
+### `DocsLayout`
+`askDocsBaseLayoutOptions(locale)` in `app/(ask-docs)/[locale]/ask-docs/_lib/layout-options.ts` owns notebook chrome for this surface. Extend there — never inline layout config in `layout.tsx`. Layout options available:
+- `sidebar.prefetch: false` — safe to leave at default (`true`) because docs are `force-static` (served from CDN edge, not serverless functions).
+- `sidebar.defaultOpenLevel: 1` — currently set to open the first nesting level by default. ✅
+- `tabs` — Root-folder layout tabs; add `"root": true` to a `meta.json` when tab navigation is needed.
+- `sidebar.banner` — Optional banner inside the sidebar (e.g. version selector, CTA).
+
+### `DocsPage` — auto-rendered slots
+`DocsPage` automatically renders:
+- **Breadcrumb** — top-of-page path navigation (can be disabled with `breadcrumb={{ enabled: false }}`)
+- **Footer** — prev/next page navigation (can be disabled with `footer={{ enabled: false }}`)
+- **Table of Contents** — from `toc={page.data.toc}` (can be disabled with `tableOfContent={{ enabled: false }}`)
+
+No explicit slot components needed for standard usage. The `slots` prop and `slots/` exports from `fumadocs-ui/layouts/docs/page/slots/*` are only for deep custom replacements.
+
+### `PageLastUpdate`
+Use the official `PageLastUpdate` component from `fumadocs-ui/layouts/notebook/page` (same layout family as `DocsPage` on this surface):
+```tsx
+import { PageLastUpdate } from "fumadocs-ui/layouts/notebook/page"
+{page.data.lastModified && <PageLastUpdate date={page.data.lastModified} />}
+```
+
+### MDX components — `defaultMdxComponents` inventory
+`defaultMdxComponents` from `fumadocs-ui/mdx` already provides:
+
+| Key | Component | Source |
+| --- | --- | --- |
+| `pre` | `CodeBlock` + `Pre` | Built-in code block with copy button |
+| `Card`, `Cards` | Card layout | For linked section cards |
+| `Callout`, `CalloutContainer`, `CalloutTitle`, `CalloutDescription` | Callout | Info / warning / error / tip boxes |
+| `a` | `Link` | Locale-aware links (overridden by `createRelativeLink`) |
+| `img` | Sized image | Overridden by `ImageZoom` in `app/(ask-docs)/.../_components/mdx.tsx` |
+| `h1`–`h6` | `Heading` | With automatic anchor IDs |
+| `table` | `Table` | Overflow-safe table wrapper |
+| `CodeBlockTab`, `CodeBlockTabs`, etc. | Tab groups | For `tab="..."` code fence syntax |
+
+**No need to import or re-register these** — they arrive via `...defaultMdxComponents` spread.
+
+**`DocsCategory` — NOT available in fumadocs-ui v16.** The Fumadocs docs site uses its own custom implementation; it is not exported from the package. Build a custom category index component if section overview cards are needed on `index.mdx` pages.
+
+### `--fd-layout-width`
+Default is `97rem` (very wide). Can be scoped to the ask-docs surface via globals.css:
+```css
+/* Scope this inside an .ask-docs-surface selector or add to :root only if docs is the main surface */
+:root { --fd-layout-width: 80rem; }
+```
+Defer until the layout width becomes a design complaint; it does not affect functionality.
+
+## Components
+
+- `app/(ask-docs)/[locale]/ask-docs/_components/mdx.tsx` — `useMDXComponents`: vanilla Fumadocs shelf. Add new MDX components here only.
+- **Notebook layout exports** — `app/(ask-docs)/[locale]/ask-docs/[[...slug]]/page.tsx` imports `MarkdownCopyButton`, `ViewOptionsPopover`, `DocsPage`, etc. from `fumadocs-ui/layouts/notebook/page` (Fumadocs-styled copy / view-as-markdown / GitHub when `NEXT_PUBLIC_ASK_DOCS_GITHUB_URL` is set via `getAskDocsGithubUrl`). Optional **Links on this page** uses `page.data.extractedReferences` from `extractLinkReferences` postprocess.
+- These patterns are for the public docs surface only. Do not import notebook layout pieces from ERP pages.
+
+## TypeScript type tables
+
+Two authoring modes are available — both are fully wired:
+
+| Mode | MDX syntax | Path is relative to… | When to use |
+| --- | --- | --- | --- |
+| **Build-time** (`remarkAutoTypeTable`) | `<auto-type-table path="./types.ts" name="MyProps" />` | The MDX file itself | Preferred. Evaluated at `next build`; fastest. |
+| **RSC** (`AutoTypeTable`) | `<AutoTypeTable path="lib/features/x/types.ts" name="MyType" />` | Project root (`cwd`) | For live type references where MDX-relative paths are inconvenient. |
+
+Both require `TypeTable` from `fumadocs-ui/components/type-table` (already registered).
+
+**TSDoc annotations** supported in either mode:
+
+| Annotation | Effect |
+| --- | --- |
+| `@internal` | Hide the field from the table |
+| `@remarks \`alias\` description` | Show `alias` instead of the raw TS type |
+| `@fumadocsType \`name\`` | Override the displayed type name |
+| `@fumadocsHref #anchor` | Link the field to another type table anchor |
+
+## Layout options
+
+`askDocsBaseLayoutOptions(locale)` in `app/(ask-docs)/[locale]/ask-docs/_lib/layout-options.ts` returns `DocsLayoutProps`. Extend this function for nav links, sidebar config changes, or i18n options — do not inline layout config in `layout.tsx`.
+
+## Split trigger
+
+Extract to a standalone Fumadocs Next.js app (e.g. `docs.afenda.com`) when **any** of:
+- `content/ask-docs/` exceeds ~50 MDX files and authoring velocity requires a CMS.
+- A non-engineering team needs to publish without a Next.js deploy.
+- The Fumadocs surface needs a different design system or theming from the main app.
+
+Until then, keep co-located. The surface is already statically generated and adds negligible build cost.
+
+## Content source
+
+The current content source is **Fumadocs MDX** (`fumadocs-mdx`): bundler-based, build-time compilation, full import/export support, build-time image optimisation.
+
+Do **not** migrate to an alternative content source without a named trigger:
+
+| Alternative | Migration trigger | Why not now |
+| --- | --- | --- |
+| **`@fumadocs/local-md`** | Content must update without a redeploy AND imports/image-opt can be dropped | Bundleless runtime — loses build-time image optimisation and MDX import/export. All our MDX components (`TypeTable`, `Mermaid`, `ImageZoom`) depend on the bundler pass. |
+| **`@fumadocs/mdx-remote`** | Content is fetched from a remote API at runtime, not committed to the repo | Same tradeoffs as local-md. No upside while content lives in `content/ask-docs/`. |
+| **`@fumadocs/sanity`** | A Sanity project and studio exist AND non-engineering authors need a CMS UI | Requires full Sanity infra (project, studio, schema types, API keys). No current infrastructure. |
+| **Custom Loader API** (`fumadocs-core/source`) | A content source exists that has no Fumadocs adapter | Already used — `lib/ask-docs-source.ts` calls `loader()`. No further custom implementation needed unless pulling from a novel source. |
+
+## Deferred integrations
+
+Do **not** add these without a named requirement:
+
+| Integration | When to add |
+| --- | --- |
+| `fumadocs-openapi` | An OpenAPI spec file exists and API reference docs are needed |
+| `@fumadocs/story` | Component `.story.tsx` files exist and interactive props are needed in MDX |
+| Takumi (`@takumi-rs/image-response`) | OG image render time is a measurable bottleneck (unlikely for static gen) |
+| Notebook layout (`fumadocs-ui/layouts/notebook`) | More compact layout without a persistent sidebar; requires updating the page import from `…/docs/page` to `…/notebook/page`. Defer until a compact mode is explicitly requested. |
+| `Banner` component (`fumadocs-ui/components/banner`) | Site-wide announcement needed. Place at the top of the root layout inside the `<body>`. Supports `variant="rainbow"`, `id` for dismissal persistence. |
+
+## Fumadocs CLI (`@fumadocs/cli`)
+
+Config: `cli.json` at repo root — already initialised. Do not re-run `pnpm dlx @fumadocs/cli` (init only).
+
+| Command | Purpose | When to run |
+| --- | --- | --- |
+| `pnpm dlx @fumadocs/cli add <name>` | Install an ejectable Fumadocs component into `components/` | When you need a customisable copy of a component the package ships (e.g. `banner`, `files`). Check Fumadocs GitHub for available names. |
+| `pnpm dlx @fumadocs/cli tree ./dir ./output.tsx` | Generate `<Files>/<Folder>/<File>` JSX from a real directory | For MDX content that documents a directory structure. Output can be `.tsx` (paste inline) or `.mdx` (import). |
+| `pnpm dlx @fumadocs/cli customize` | Eject a Fumadocs layout component into `layouts/` for deep customisation | Defer — only when `DocsLayout` props are insufficient and layout source must be modified. |
+
+**`tree` output components** (`File`, `Folder`, `Files`) are registered in `app/(ask-docs)/.../_components/mdx.tsx` and available in all MDX files:
+
+```mdx
+<Files>
+  <Folder name="app" defaultOpen>
+    <File name="layout.tsx" />
+    <File name="page.tsx" />
+  </Folder>
+  <File name="package.json" />
+</Files>
+```
+
+## Lint gates
+
+```bash
+pnpm lint:ask-docs-links   # after editing content/ask-docs MDX or internal links
+pnpm exec eslint --max-warnings=0 "app/(ask-docs)" app/og/ask-docs app/api/ask-docs-search app/api/chat components/ai lib/ask-docs source.config.ts
+pnpm typecheck
+```

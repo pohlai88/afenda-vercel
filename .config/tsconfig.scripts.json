@@ -8,6 +8,6 @@
     "tsBuildInfoFile": "../.artifacts/.tsbuildinfo/scripts",
     "noEmit": true
   },
-  "include": ["../scripts/**/*.ts", "drizzle.config.ts"],
+  "include": ["../scripts/**/*.ts", "drizzle.config.ts", "source.config.ts"],
   "exclude": ["../node_modules"]
 }

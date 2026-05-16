@@ -22,10 +22,18 @@ export function portalPath(
 export type EmployeePortalSection =
   | "leave"
   | "payslips"
+  | "advances"
   | "claims"
   | "benefits"
+  | "training"
   | "attendance"
   | "documents"
+  | "signatures"
+  | "profile"
+  | "performance"
+  | "offboarding"
+
+export type EmployeePortalProfileSection = "personal" | "emergency" | "banking"
 
 export function employeePortalPath(
   portalSlug: string,
@@ -41,6 +49,34 @@ export function employeePortalPath(
       ? `/p/${normalized}/employee/${section}`
       : `/p/${normalized}/employee`
   ) as Route
+}
+
+export function employeePortalProfilePath(
+  portalSlug: string,
+  section?: EmployeePortalProfileSection
+): Route {
+  const normalized = normalizePortalSlugParam(portalSlug)
+  if (!normalized) {
+    throw new Error("employeePortalProfilePath: invalid portal slug")
+  }
+
+  return (
+    section
+      ? `/p/${normalized}/employee/profile/${section}`
+      : `/p/${normalized}/employee/profile`
+  ) as Route
+}
+
+export function employeePortalPerformanceGoalPath(
+  portalSlug: string,
+  goalId: string
+): Route {
+  const normalized = normalizePortalSlugParam(portalSlug)
+  if (!normalized) {
+    throw new Error("employeePortalPerformanceGoalPath: invalid portal slug")
+  }
+
+  return `/p/${normalized}/employee/performance/goals/${goalId}` as Route
 }
 
 export function toLocalePortalRevalidatePattern(

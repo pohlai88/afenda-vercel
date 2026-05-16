@@ -74,12 +74,12 @@ export type PayrollEngineInput = {
    */
   readonly approvedUnpaidClaims: ReadonlyArray<PayrollClaimInput>
   /**
-   * Approved salary advances not yet repaid whose `requestedAt` is on or
-   * before `periodEnd` — emitted as deduction lines with `salaryAdvanceId`
-   * so period lock can mark each advance repaid.
+   * Pending salary-advance installments due on or before `periodEnd` — one
+   * deduction line per installment with `salaryAdvanceInstallmentId`.
    */
-  readonly approvedSalaryAdvances: ReadonlyArray<{
+  readonly approvedSalaryAdvanceInstallments: ReadonlyArray<{
     readonly id: string
+    readonly advanceId: string
     readonly amount: string
     readonly currency: string
   }>
@@ -121,6 +121,7 @@ export type PayrollLineInput = {
    */
   readonly claimId?: string | null
   readonly salaryAdvanceId?: string | null
+  readonly salaryAdvanceInstallmentId?: string | null
 }
 
 export type PayrollEngineResult = {
@@ -351,16 +352,21 @@ export async function computePayrollRun(
     }
   }
 
-  for (const adv of input.approvedSalaryAdvances ?? []) {
-    const amt = parseAmount(adv.amount)
+  for (const installment of input.approvedSalaryAdvanceInstallments ?? []) {
+    const amt = parseAmount(installment.amount)
     if (amt <= 0) continue
     lines.push({
       lineKind: "employee_deduction",
       code: "SALARY_ADVANCE_REPAY",
       description: "Salary advance repayment",
       amount: formatAmount(-amt),
-      salaryAdvanceId: adv.id,
-      metadata: { salaryAdvanceId: adv.id, currency: adv.currency },
+      salaryAdvanceId: installment.advanceId,
+      salaryAdvanceInstallmentId: installment.id,
+      metadata: {
+        salaryAdvanceId: installment.advanceId,
+        salaryAdvanceInstallmentId: installment.id,
+        currency: installment.currency,
+      },
     })
   }
 

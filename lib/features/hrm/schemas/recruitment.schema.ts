@@ -39,6 +39,8 @@ export const createJobRequisitionFormSchema = z.object({
   title: z.string().min(1).max(200),
   departmentId: z.string().uuid().optional().or(z.literal("")),
   headcount: z.coerce.number().int().min(1).max(999).optional(),
+  /** Comma-separated catalog skill codes (e.g. `typescript, react`). */
+  requiredSkillCodes: z.string().max(500).optional().or(z.literal("")),
 })
 
 export const publishJobRequisitionFormSchema = z.object({

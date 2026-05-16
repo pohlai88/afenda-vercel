@@ -1,14 +1,15 @@
 import { llms } from "fumadocs-core/source"
 
-import { getHelpDocsSource } from "#lib/help-docs-source"
-import { DEFAULT_APP_LOCALE } from "#lib/i18n/locales.shared"
+import { askDocsSource } from "#lib/ask-docs-source"
+import { resolveAskDocsLocale } from "#lib/ask-docs/locale-resolver.shared"
 
-// Cached forever — content only changes on redeploy.
-export const revalidate = false
+/** Align with ask-docs HTML ISR window (ADR-0023). */
+export const revalidate = 3600
 
-export function GET() {
-  const source = getHelpDocsSource(DEFAULT_APP_LOCALE)
-  return new Response(llms(source).index(), {
+export function GET(request: Request) {
+  const url = new URL(request.url)
+  const locale = resolveAskDocsLocale(url.searchParams.get("locale"))
+  return new Response(llms(askDocsSource).index(locale), {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "public, max-age=31536000, immutable",

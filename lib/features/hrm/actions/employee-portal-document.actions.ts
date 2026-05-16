@@ -1,10 +1,13 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import { toLocalePortalRevalidatePattern } from "#lib/portal"
 
 import { getEmployeePortalContext } from "../data/employee-portal-access.server"
+import { withEmployeePortalActionSpan } from "../data/portal-mutation-tracing.server"
 import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../data/employee-portal-access.shared"
 
 const requestDocumentFormSchema = z.object({
@@ -53,22 +56,33 @@ export async function requestPortalEmployeeDocumentAction(
     }
   }
 
-  const requestId = crypto.randomUUID()
+  return withEmployeePortalActionSpan(
+    context,
+    "documents",
+    "request",
+    async () => {
+      const requestId = crypto.randomUUID()
 
-  await writeIamAuditEventFromNextHeaders({
-    action: "erp.hrm.document.create",
-    actorUserId: context.portal.userId,
-    actorSessionId: context.portal.sessionId,
-    organizationId: context.portal.organizationId,
-    resourceType: "hrm_document_request",
-    resourceId: requestId,
-    metadata: {
-      portal: true,
-      employeeId: context.employee.id,
-      title: parsed.data.title,
-      notes: parsed.data.notes ?? null,
-    },
-  })
+      await writeIamAuditEventFromNextHeaders({
+        action: "erp.hrm.document.create",
+        actorUserId: context.portal.userId,
+        actorSessionId: context.portal.sessionId,
+        organizationId: context.portal.organizationId,
+        resourceType: "hrm_document_request",
+        resourceId: requestId,
+        metadata: {
+          portal: true,
+          employeeId: context.employee.id,
+          title: parsed.data.title,
+          notes: parsed.data.notes ?? null,
+        },
+      })
 
-  return { ok: true }
+      revalidatePath(
+        toLocalePortalRevalidatePattern("/employee/documents"),
+        "page"
+      )
+      return { ok: true }
+    }
+  )
 }

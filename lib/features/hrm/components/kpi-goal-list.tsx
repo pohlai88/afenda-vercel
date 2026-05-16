@@ -36,7 +36,10 @@ import { listActiveEmployeeChoicesForLeave } from "../data/leave-request.queries
 import type { ContractMutationFormState } from "../types"
 import type { KpiGoalStatus } from "../schemas/kpi-goal.schema"
 
-function groupByKey<T>(items: readonly T[], keyFn: (item: T) => string): Map<string, T[]> {
+function groupByKey<T>(
+  items: readonly T[],
+  keyFn: (item: T) => string
+): Map<string, T[]> {
   const map = new Map<string, T[]>()
   for (const item of items) {
     const k = keyFn(item)

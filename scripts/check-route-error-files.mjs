@@ -11,8 +11,8 @@
  * .cursor/rules/error-boundaries.mdc, then add the approved path to
  * APPROVED_BOUNDARIES below.
  *
- * @see .cursor/rules/error-boundaries.mdc — decision rule and doctrine
- * @see AGENTS.md §8 — route error files
+ * @see .cursor/rules/app-router-contracts.mdc — decision rule and doctrine
+ * @see AGENTS.md §5 — route error files
  */
 import fs from "node:fs"
 import path from "node:path"
@@ -38,21 +38,29 @@ const APPROVED_BOUNDARIES = new Set([
   // Root catch-all (outside [locale])
   "app/error.tsx",
   // Locale shell
-  "app/[locale]/error.tsx",
+  "app/(main)/[locale]/error.tsx",
   // Auth shell
-  "app/[locale]/(auth)/error.tsx",
+  "app/(main)/[locale]/(auth)/error.tsx",
   // IAM shell
-  "app/[locale]/(iam)/error.tsx",
+  "app/(main)/[locale]/(iam)/error.tsx",
   // Operator workbench (global admin)
-  "app/[locale]/operator/error.tsx",
+  "app/(main)/[locale]/operator/error.tsx",
   // Org shell (all tenant surfaces)
-  "app/[locale]/o/[orgSlug]/error.tsx",
+  "app/(main)/[locale]/o/[orgSlug]/error.tsx",
   // Dashboard shell (all ERP modules)
-  "app/[locale]/o/[orgSlug]/dashboard/error.tsx",
+  "app/(main)/[locale]/o/[orgSlug]/dashboard/error.tsx",
   // Org admin workbench
-  "app/[locale]/o/[orgSlug]/admin/error.tsx",
+  "app/(main)/[locale]/o/[orgSlug]/admin/error.tsx",
   // Multi-org console (org picker)
-  "app/[locale]/console/error.tsx",
+  "app/(main)/[locale]/console/error.tsx",
+  // Portal shell (PortalShell chrome — separate from WorkbenchShell)
+  "app/(main)/[locale]/p/[portalSlug]/error.tsx",
+  // Employee portal self-service segment (14 sections under PortalShell)
+  "app/(main)/[locale]/p/[portalSlug]/employee/error.tsx",
+  // Orbit (Planner) surface — org workspace with dedicated WorkbenchCommandLayer
+  "app/(main)/[locale]/o/[orgSlug]/dashboard/orbit/error.tsx",
+  // Orbit (Planner) surface — account/personal planning surface under (iam)
+  "app/(main)/[locale]/(iam)/account/orbit/error.tsx",
 ])
 
 const SERVER_ONLY_PKG_RE =

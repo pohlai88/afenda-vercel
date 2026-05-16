@@ -49,7 +49,8 @@ import { createJobRequisitionAction } from "../../lib/features/hrm/actions/recru
 
 function buildForm(fields: Record<string, string>) {
   const formData = new FormData()
-  for (const [key, value] of Object.entries(fields)) {
+  const merged = { requiredSkillCodes: "", ...fields }
+  for (const [key, value] of Object.entries(merged)) {
     formData.set(key, value)
   }
   return formData

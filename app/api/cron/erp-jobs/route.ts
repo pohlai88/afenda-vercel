@@ -16,8 +16,6 @@ import { getOrganizationSlugById } from "#lib/org-slug.server"
 import { runWithNodeOtelSpan } from "#lib/otel-span.server"
 import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
 
-export const dynamic = "force-dynamic"
-
 /** Vercel cron: `vercel.json` + `CRON_SECRET` Bearer auth; extend with idempotent batch jobs. */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization")

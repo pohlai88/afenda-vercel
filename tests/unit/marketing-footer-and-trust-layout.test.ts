@@ -63,7 +63,7 @@ describe("landing footer", () => {
       "marketing",
       "landing-footer.tsx"
     )
-    const page = readProjectFile("app", "[locale]", "page.tsx")
+    const page = readProjectFile("app", "(main)", "[locale]", "page.tsx")
 
     expect(footer).toContain("Footer declarations")
     expect(footer).toContain("Trust routes")

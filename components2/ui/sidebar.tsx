@@ -405,7 +405,7 @@ function SidebarGroupLabel({
       data-slot="sidebar-group-label"
       data-sidebar="group-label"
       className={cn(
-        "flex h-6 shrink-0 items-center rounded-lg px-2 text-[10px] font-semibold uppercase tracking-wide text-sidebar-foreground/60 ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-3 [&>svg]:shrink-0",
+        "flex h-6 shrink-0 items-center rounded-lg px-2 text-[10px] font-semibold tracking-wide text-sidebar-foreground/60 uppercase ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-3 [&>svg]:shrink-0",
         className
       )}
       {...props}

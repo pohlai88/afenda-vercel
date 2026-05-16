@@ -12,7 +12,6 @@ import {
 import { getOrgSessionFromRequest } from "#lib/tenant"
 import { canUploadClaimEvidenceForUser } from "#features/hrm/server"
 
-export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
 const WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES = [

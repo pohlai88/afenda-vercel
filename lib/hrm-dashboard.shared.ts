@@ -21,7 +21,10 @@ export const HRM_DASHBOARD_CAPABILITY_SEGMENTS = [
   "performance",
   "policies",
   "recruitment",
+  "skills",
+  "signatures",
   "snapshot",
+  "training",
 ] as const
 
 export type HrmDashboardCapabilitySegment =

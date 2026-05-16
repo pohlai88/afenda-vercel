@@ -34,7 +34,7 @@ short and link out for depth.
 | --- | --- |
 | [0010](decisions/0010-hrm-module-growth-ceiling.md) | HRM growth ceiling |
 | [0011](decisions/0011-governed-surface-metadata-kernel.md) | Governed surface |
-| [0012](decisions/0012-viet-erp-domain-reference-map.md) | Viet-ERP reference map |
+| [0022](decisions/0022-viet-erp-domain-reference-map.md) | Viet-ERP reference map |
 | [0015](decisions/0015-hrm-contract-compensation-allowances.md) | HRM compensation |
 | [0016](decisions/0016-vietnamese-market-compliance.md) | Vietnamese compliance core |
 | [0017](decisions/0017-vietnamese-einvoice-substrate.md) | E-invoice substrate |

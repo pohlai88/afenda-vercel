@@ -25,7 +25,6 @@ import {
 } from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
 
-export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 export const maxDuration = 60
 
@@ -85,7 +84,7 @@ export async function POST(request: Request) {
   })
   if (!lynxRuntime) {
     return routeJsonError(
-      "Could not resolve a language model (configure AI_GATEWAY_API_KEY or OPENAI_API_KEY)",
+      "Could not resolve a language model (AI Gateway credentials missing)",
       503
     )
   }

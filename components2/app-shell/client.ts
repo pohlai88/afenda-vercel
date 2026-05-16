@@ -102,3 +102,16 @@ export type {
 // DnD-enabled right rail (replaces manual right icon composition)
 export { AppShellUtilityBarRight } from "./utility-bar-right.client"
 export type { AppShellUtilityBarRightProps } from "./utility-bar-right.client"
+
+export {
+  CrudSapActionBar,
+  CrudSapIconButton,
+} from "./crud-sap-action-bar.client"
+export {
+  CRUD_SAP_ORDER_STORAGE_KEY,
+  CRUD_SAP_VERB_IDS,
+  type CrudSapVerbId,
+} from "./crud-sap.schema"
+
+export { AppShellRailFooter } from "./rail-footer.client"
+export type { AppShellRailFooterProps } from "./rail-footer.client"

@@ -1,0 +1,33 @@
+"use client"
+
+import { AppShellPolicyDisc } from "#components2/app-shell/utility-bar.client"
+import { OperationalScopeAdminConfigContent } from "#components2/app-shell/operational-scope-admin-config.client"
+
+import {
+  SHELL_PREVIEW_ACTIVE_SCOPES,
+  SHELL_PREVIEW_ORG_ID,
+  SHELL_PREVIEW_ORG_POLICIES,
+  SHELL_PREVIEW_SCOPE_CATALOG,
+} from "../fixtures/operational-scope.fixture"
+
+export function AppShellPreviewPolicyDisc({
+  className,
+}: {
+  className?: string
+} = {}) {
+  return (
+    <AppShellPolicyDisc
+      ariaLabel="Operational scope policy"
+      tooltip="Scope policy"
+      className={className}
+      dropdownContent={
+        <OperationalScopeAdminConfigContent
+          registeredScopes={SHELL_PREVIEW_SCOPE_CATALOG}
+          orgPolicies={SHELL_PREVIEW_ORG_POLICIES}
+          organizationId={SHELL_PREVIEW_ORG_ID}
+          activeScopes={SHELL_PREVIEW_ACTIVE_SCOPES}
+        />
+      }
+    />
+  )
+}

@@ -9,8 +9,8 @@ import {
   buildLeaveApprovalSnapshot,
   computeLeaveBalanceSummary,
   detectLeaveOverlap,
-} from "../../lib/features/hrm/data/leave-balance.server"
-import type { LeaveRequestStateValue } from "../../lib/features/hrm/data/leave-balance.server"
+  type LeaveRequestStateValue,
+} from "../../lib/features/hrm/data/leave-balance.shared"
 
 // ---------------------------------------------------------------------------
 // computeLeaveBalanceSummary

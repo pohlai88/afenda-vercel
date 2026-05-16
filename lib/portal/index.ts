@@ -19,8 +19,13 @@ export type {
 } from "./context.shared"
 export {
   employeePortalPath,
+  employeePortalPerformanceGoalPath,
+  employeePortalProfilePath,
   portalPath,
   toLocalePortalRevalidatePattern,
 } from "./paths.shared"
-export type { EmployeePortalSection } from "./paths.shared"
+export type {
+  EmployeePortalProfileSection,
+  EmployeePortalSection,
+} from "./paths.shared"
 export { PORTAL_SLUG_MAX_LENGTH, normalizePortalSlugParam } from "./slug.shared"

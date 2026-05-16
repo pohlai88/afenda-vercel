@@ -12,7 +12,7 @@
  *   - `adr`            — auto-numbered `docs/decisions/NNNN-*.md`
  *   - `audit-contract` — `<module>.contract.ts` with stable audit strings
  *   - `workflow-job`   — Workflow DevKit durable run + sibling contract
- *   - `help-doc`       — scaffold MDX under `content/help-docs/<section>/` + update `meta.json`
+ *   - `ask-doc`        — scaffold MDX under `content/ask-docs/<section>/` + update `meta.json`
  *
  * Each generator finishes with a post-gen action that runs
  * `pnpm lint:agent-contract` + `pnpm lint:eslint --fix` scoped to the
@@ -21,7 +21,7 @@
  * Invoke via **`pnpm gen <generator>`** (`package.json` → **`scripts/turbo-gen.mjs`**
  * → **`pnpm exec turbo gen`**). For **`action`**, **`pnpm gen action --module <slug>`**
  * supplies **four positional `--args`** (prompt order: slug, object, verb, tierKey);
- * for **`help-doc`**, **`pnpm gen help-doc --section <dir> --slug <stem> --title "…" --description "…" --audience <role> --status <draft|beta|stable>`**
+ * for **`ask-doc`**, **`pnpm gen ask-doc --section <dir> --slug <stem> --title "…" --description "…" --audience <role> --status <draft|beta|stable>`**
  * supplies **six positional `--args`** matching prompt order.
  * see **AGENTS.md §3**.
  *
@@ -48,8 +48,8 @@ import {
 import { runPostGenLint } from "./lib/post-gen-lint"
 import {
   validateAuditObject,
-  validateHelpDocSection,
-  validateHelpDocSlug,
+  validateAskDocSection,
+  validateAskDocSlug,
   validateExistingModuleSlug,
   validateModuleSlug,
   validateShortDescription,
@@ -88,8 +88,8 @@ function postGenLintAction(
   }
 }
 
-/** Append `slug` to `pages` in `content/help-docs/<section>/meta.json` when missing. */
-function appendHelpDocMetaJsonAction(): PlopTypes.CustomActionFunction {
+/** Append `slug` to `pages` in `content/ask-docs/<section>/meta.json` when missing. */
+function appendAskDocMetaJsonAction(): PlopTypes.CustomActionFunction {
   return async (answers) => {
     const a = answers as Record<string, unknown>
     const section = String(a.section)
@@ -97,7 +97,7 @@ function appendHelpDocMetaJsonAction(): PlopTypes.CustomActionFunction {
     const metaPath = path.join(
       process.cwd(),
       "content",
-      "help-docs",
+      "ask-docs",
       section,
       "meta.json"
     )
@@ -509,28 +509,28 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
   })
 
   // -------------------------------------------------------------------------
-  // GENERATOR 6 — help-doc
+  // GENERATOR 6 — ask-doc
   //
-  // Scaffolds `content/help-docs/<section>/<slug>.mdx` with canonical frontmatter
+  // Scaffolds `content/ask-docs/<section>/<slug>.mdx` with canonical frontmatter
   // and appends `slug` to `meta.json` `pages` when missing.
   // -------------------------------------------------------------------------
 
-  p.setGenerator("help-doc", {
+  p.setGenerator("ask-doc", {
     description:
-      "Scaffold a help-docs MDX page under content/help-docs/<section>/ and update meta.json.",
+      "Scaffold an ask-docs MDX page under content/ask-docs/<section>/ and update meta.json.",
     prompts: [
       {
         type: "input",
         name: "section",
         message:
-          "Section folder under content/help-docs/ (must exist, e.g. hrm, getting-started):",
-        validate: validateHelpDocSection,
+          "Section folder under content/ask-docs/ (must exist, e.g. hrm, getting-started):",
+        validate: validateAskDocSection,
       },
       {
         type: "input",
         name: "slug",
         message: "Page slug / filename stem without .mdx (kebab-case):",
-        validate: validateHelpDocSlug,
+        validate: validateAskDocSlug,
       },
       {
         type: "input",
@@ -563,17 +563,77 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
       const a = answers ?? {}
       const section = String(a.section)
       const slug = String(a.slug)
-      const mdxPath = `content/help-docs/${section}/${slug}.mdx`
-      const metaPath = `content/help-docs/${section}/meta.json`
+      const mdxPath = `content/ask-docs/${section}/${slug}.mdx`
+      const metaPath = `content/ask-docs/${section}/meta.json`
 
       return [
         {
           type: "add",
           path: path.join("{{turbo.paths.root}}", mdxPath),
-          templateFile: "templates/help-doc/page.mdx.hbs",
+          templateFile: "templates/ask-doc/page.mdx.hbs",
         },
-        appendHelpDocMetaJsonAction(),
-        postGenLintAction(() => [mdxPath, metaPath], { runAgentContract: false }),
+        appendAskDocMetaJsonAction(),
+        postGenLintAction(() => [mdxPath, metaPath], {
+          runAgentContract: false,
+        }),
+      ]
+    },
+  })
+
+  // -------------------------------------------------------------------------
+  // GENERATOR 7 — governed-renderer (@experimental)
+  //
+  // Scaffolds components2/metadata/renderers/<id>.renderer.tsx + unit test
+  // and appends registry entry in components2/metadata/registry.ts.
+  // -------------------------------------------------------------------------
+
+  p.setGenerator("governed-renderer", {
+    description:
+      "@experimental — scaffold a governed metadata renderer (components2/metadata/renderers/).",
+    prompts: [
+      {
+        type: "input",
+        name: "id",
+        message:
+          "Renderer id without governed: prefix (kebab-case, e.g. stat-card):",
+        validate: validateModuleSlug,
+      },
+      {
+        type: "input",
+        name: "title",
+        message: "Human title for aria-label / docs:",
+        validate: validateTitle,
+      },
+    ],
+    actions: (answers) => {
+      const a = answers ?? {}
+      const kebabId = String(a.id)
+      const pascalId = kebabId
+        .split("-")
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+        .join("")
+      const rendererFile = `components2/metadata/renderers/${kebabId}.renderer.tsx`
+      const testFile = `tests/unit/components2/metadata/renderers/${kebabId}.test.tsx`
+
+      return [
+        {
+          type: "add",
+          path: path.join("{{turbo.paths.root}}", rendererFile),
+          templateFile: "templates/governed-renderer/renderer.tsx.hbs",
+          data: { kebabId, pascalId, title: String(a.title) },
+        },
+        {
+          type: "add",
+          path: path.join("{{turbo.paths.root}}", testFile),
+          templateFile: "templates/governed-renderer/renderer.test.tsx.hbs",
+          data: { kebabId, pascalId, title: String(a.title) },
+        },
+        postGenLintAction(() => [
+          rendererFile,
+          testFile,
+          "components2/metadata/registry.ts",
+          "components2/metadata/render-governed-component.tsx",
+        ]),
       ]
     },
   })

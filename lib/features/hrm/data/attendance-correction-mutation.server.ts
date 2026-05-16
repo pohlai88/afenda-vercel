@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocalePortalRevalidatePattern } from "#lib/portal"
 
 import { regenerateAttendanceDayFromEvents } from "./attendance-aggregator.server"
 import {
@@ -18,6 +19,7 @@ import type { RegenerateAttendanceDayResult } from "./attendance-shift.shared"
 import { listClosedPayrollPeriodsOverlappingRange } from "./payroll.queries.server"
 import type { CorrectAttendanceEventInput } from "../schemas/attendance-event.schema"
 import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
+import { withPortalMutationSpan } from "./portal-mutation-tracing.server"
 import type { AttendanceCorrectionFormState } from "../types"
 
 export function revalidateAttendanceAndPayroll() {
@@ -26,6 +28,10 @@ export function revalidateAttendanceAndPayroll() {
     "layout"
   )
   revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"), "page")
+  revalidatePath(
+    toLocalePortalRevalidatePattern("/employee/attendance"),
+    "page"
+  )
 }
 
 function previousIsoDate(attendanceDate: string): string {
@@ -187,6 +193,29 @@ export async function applyAttendanceEventCorrection(input: {
   sessionId: string | null
   data: CorrectAttendanceEventInput
   /** When set, the original event must belong to this employee (portal self-service). */
+  restrictToEmployeeId: string | null
+}): Promise<AttendanceCorrectionFormState> {
+  const run = async (): Promise<AttendanceCorrectionFormState> =>
+    applyAttendanceEventCorrectionBody(input)
+  if (input.restrictToEmployeeId !== null) {
+    return withPortalMutationSpan(
+      {
+        spanName: "hrm.portal.attendance.correct",
+        section: "attendance",
+        organizationId: input.organizationId,
+        employeeId: input.restrictToEmployeeId,
+      },
+      run
+    )
+  }
+  return run()
+}
+
+async function applyAttendanceEventCorrectionBody(input: {
+  organizationId: string
+  userId: string
+  sessionId: string | null
+  data: CorrectAttendanceEventInput
   restrictToEmployeeId: string | null
 }): Promise<AttendanceCorrectionFormState> {
   const { organizationId, userId, sessionId, data, restrictToEmployeeId } =

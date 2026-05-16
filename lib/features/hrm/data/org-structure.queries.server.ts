@@ -2,6 +2,8 @@ import "server-only"
 
 import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm"
 
+import { ORG_CHART_ROOT_ID, type OrgChartNode } from "./org-chart.shared"
+
 import { db } from "#lib/db"
 import {
   hrmDepartment,
@@ -375,8 +377,12 @@ export async function listEmployeeAssignmentHistory(
     departmentCode: row.departmentId
       ? (departmentMap.get(row.departmentId) ?? null)
       : null,
-    positionCode: row.positionId ? (positionMap.get(row.positionId) ?? null) : null,
-    jobGradeCode: row.jobGradeId ? (gradeMap.get(row.jobGradeId) ?? null) : null,
+    positionCode: row.positionId
+      ? (positionMap.get(row.positionId) ?? null)
+      : null,
+    jobGradeCode: row.jobGradeId
+      ? (gradeMap.get(row.jobGradeId) ?? null)
+      : null,
     managerLabel: row.managerEmployeeId
       ? (managerMap.get(row.managerEmployeeId) ?? null)
       : null,
@@ -515,7 +521,9 @@ export async function validateOrgStructureHealth(
     }
   }
 
-  return issues.sort((a, b) => severityRank(b.severity) - severityRank(a.severity))
+  return issues.sort(
+    (a, b) => severityRank(b.severity) - severityRank(a.severity)
+  )
 }
 
 export async function listOrgStructureSnapshot(
@@ -767,4 +775,74 @@ function severityRank(severity: OrgStructureHealthIssue["severity"]): number {
   if (severity === "critical") return 3
   if (severity === "attention") return 2
   return 1
+}
+
+export async function listOrgChartNodes(
+  organizationId: string,
+  options: { includeArchived: boolean }
+): Promise<readonly OrgChartNode[]> {
+  const [orgUnits, positions, placements] = await Promise.all([
+    listOrgUnitTree(organizationId, options),
+    listPositionControlRows(organizationId, options),
+    listOrgStructureEmployeePlacements(organizationId),
+  ])
+
+  const nodes: OrgChartNode[] = []
+
+  for (const unit of orgUnits) {
+    const parentId = unit.parentDepartmentId ?? ORG_CHART_ROOT_ID
+    nodes.push({
+      id: `dept:${unit.id}`,
+      kind: "department",
+      parentId,
+      label: unit.name,
+      secondaryLabel: unit.code,
+      resourceId: unit.id,
+    })
+  }
+
+  for (const position of positions) {
+    const budgeted = position.headcountBudget
+    const occupied = position.occupancyCount
+    const open = budgeted === null ? null : Math.max(0, budgeted - occupied)
+    nodes.push({
+      id: `pos:${position.id}`,
+      kind: "position",
+      parentId: `dept:${position.departmentId}`,
+      label: position.title,
+      secondaryLabel: position.code,
+      resourceId: position.id,
+      headcount: {
+        budgeted,
+        occupied,
+        open,
+      },
+    })
+  }
+
+  const employeesByPosition = new Map<
+    string,
+    OrgStructureEmployeePlacementRow[]
+  >()
+  for (const placement of placements) {
+    if (!placement.currentPositionId) continue
+    const list = employeesByPosition.get(placement.currentPositionId) ?? []
+    list.push(placement)
+    employeesByPosition.set(placement.currentPositionId, list)
+  }
+
+  for (const [positionId, employees] of employeesByPosition) {
+    for (const employee of employees) {
+      nodes.push({
+        id: `emp:${employee.id}`,
+        kind: "employee",
+        parentId: `pos:${positionId}`,
+        label: employee.label,
+        secondaryLabel: employee.employeeNumber,
+        resourceId: employee.id,
+      })
+    }
+  }
+
+  return nodes
 }

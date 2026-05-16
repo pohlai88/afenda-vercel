@@ -113,16 +113,8 @@ export function computeAgingThresholdAt(now: Date): Date {
   return new Date(now.getTime() - ms)
 }
 
-export type AgingWatchCandidate = {
-  readonly evidenceId: string
-  readonly organizationId: string
-  readonly periodId: string | null
-  readonly packType: string
-  readonly countryCode: string
-  readonly rulePackVersion: string
-  readonly submittedSinceUpdatedAt: Date
-  readonly ageDays: number
-}
+export type { AgingWatchCandidate } from "./compliance-aging-watch.shared"
+import type { AgingWatchCandidate } from "./compliance-aging-watch.shared"
 
 /**
  * One per-row emission decision: which tier to audit, with the full

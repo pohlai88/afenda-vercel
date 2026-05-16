@@ -20,8 +20,8 @@ export async function KnowledgePage() {
       <section className="flex flex-col gap-4 rounded-2xl border bg-card p-4">
         <h2 className="font-medium">Add chunk</h2>
         <p className="text-sm text-muted-foreground">
-          Embeddings use OpenAI text-embedding-3-small (1536 dimensions) when
-          OPENAI_API_KEY is set.
+          Embeddings use openai/text-embedding-3-small (1536 dimensions) routed
+          through Vercel AI Gateway.
         </p>
         <AddKnowledgeChunkForm />
       </section>

@@ -31,9 +31,13 @@ function extensionForMediaType(mediaType: string | undefined): string {
 }
 
 async function main() {
-  if (!process.env.AI_GATEWAY_API_KEY?.trim()) {
+  const gatewayAuth =
+    process.env.AI_GATEWAY_API_KEY?.trim() ||
+    process.env.VERCEL_OIDC_TOKEN?.trim()
+
+  if (!gatewayAuth) {
     console.error(
-      "Missing AI_GATEWAY_API_KEY. Add it to .env.local (Vercel → AI Gateway → API keys)."
+      "Missing AI Gateway credentials. Set AI_GATEWAY_API_KEY in .env.local or run vercel env pull for VERCEL_OIDC_TOKEN."
     )
     process.exit(1)
   }

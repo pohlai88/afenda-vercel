@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest"
 
 import { hrmEmployeeHireRowSchema } from "../../lib/features/org-admin/schemas/hrm-employee-hire-row.schema"
 
+vi.mock("server-only", () => ({}))
+
 vi.mock("#features/hrm/server", () => ({
   createEmployeeMutation: vi.fn(),
 }))

@@ -4,7 +4,6 @@ import { enqueueKnowledgeEvalWorkflowRun } from "#features/execution"
 import { listEvalSetRefs } from "#features/knowledge"
 import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
 
-export const dynamic = "force-dynamic"
 export const maxDuration = 30
 
 export async function GET(request: NextRequest) {

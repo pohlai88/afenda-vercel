@@ -199,6 +199,18 @@ export const ERP_PERMISSION_REGISTRY = [
   }),
   ...buildPermissionSet({
     module: "hrm",
+    object: "skill",
+    label: "HRM skills",
+    sensitivity: "sensitive",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
+    object: "training",
+    label: "HRM training & development",
+    sensitivity: "sensitive",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
     object: "salary_advance",
     label: "HRM salary advances",
     sensitivity: "sensitive",
@@ -232,6 +244,12 @@ export const ERP_PERMISSION_REGISTRY = [
     object: "recruitment",
     label: "HRM recruitment",
     sensitivity: "sensitive",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
+    object: "signature",
+    label: "HRM signatures",
+    sensitivity: "restricted",
   }),
 ] as const satisfies readonly ErpPermissionDefinition[]
 

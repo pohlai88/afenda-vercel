@@ -1,5 +1,6 @@
 import "server-only"
 
+import { after } from "next/server"
 import { and, asc, eq, inArray, isNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
@@ -168,144 +169,162 @@ export async function transitionBoardingTask(input: {
   readonly waiverReason?: string
   readonly evidenceDocumentId?: string
 }): Promise<BoardingTaskTransitionResult> {
-  return db.transaction(async (tx) => {
-    if (input.evidenceDocumentId) {
-      const [doc] = await tx
-        .select({ id: hrmDocument.id })
-        .from(hrmDocument)
+  const result = await db.transaction(
+    async (tx): Promise<BoardingTaskTransitionResult> => {
+      if (input.evidenceDocumentId) {
+        const [doc] = await tx
+          .select({ id: hrmDocument.id })
+          .from(hrmDocument)
+          .where(
+            and(
+              eq(hrmDocument.organizationId, input.organizationId),
+              eq(hrmDocument.id, input.evidenceDocumentId)
+            )
+          )
+          .limit(1)
+        if (!doc) {
+          return { ok: false, message: "Evidence document not found." }
+        }
+      }
+
+      const [row] = await tx
+        .select({
+          taskId: hrmBoardingTask.id,
+          taskKey: hrmBoardingTask.taskKey,
+          taskStatus: hrmBoardingTask.status,
+          instanceId: hrmBoardingInstance.id,
+          instanceStatus: hrmBoardingInstance.status,
+          kind: hrmBoardingInstance.kind,
+          employeeId: hrmBoardingInstance.employeeId,
+          contractId: hrmBoardingInstance.contractId,
+        })
+        .from(hrmBoardingTask)
+        .innerJoin(
+          hrmBoardingInstance,
+          eq(hrmBoardingInstance.id, hrmBoardingTask.instanceId)
+        )
         .where(
           and(
-            eq(hrmDocument.organizationId, input.organizationId),
-            eq(hrmDocument.id, input.evidenceDocumentId)
+            eq(hrmBoardingTask.organizationId, input.organizationId),
+            eq(hrmBoardingTask.id, input.taskId)
           )
         )
         .limit(1)
-      if (!doc) {
-        return { ok: false, message: "Evidence document not found." }
+
+      if (!row) {
+        return { ok: false, message: "Boarding task not found." }
       }
-    }
+      if (!isOpenBoardingStatus(row.instanceStatus)) {
+        return { ok: false, message: "Boarding instance is already closed." }
+      }
+      if (row.taskStatus === "completed" || row.taskStatus === "waived") {
+        return { ok: false, message: "Boarding task is already closed." }
+      }
 
-    const [row] = await tx
-      .select({
-        taskId: hrmBoardingTask.id,
-        taskKey: hrmBoardingTask.taskKey,
-        taskStatus: hrmBoardingTask.status,
-        instanceId: hrmBoardingInstance.id,
-        instanceStatus: hrmBoardingInstance.status,
-        kind: hrmBoardingInstance.kind,
-        employeeId: hrmBoardingInstance.employeeId,
-        contractId: hrmBoardingInstance.contractId,
+      const now = new Date()
+      const taskPatch = taskPatchForAction(input.action, {
+        actorUserId: input.actorUserId,
+        now,
+        note: input.note,
+        waiverReason: input.waiverReason,
+        evidenceDocumentId: input.evidenceDocumentId,
       })
-      .from(hrmBoardingTask)
-      .innerJoin(
-        hrmBoardingInstance,
-        eq(hrmBoardingInstance.id, hrmBoardingTask.instanceId)
-      )
-      .where(
-        and(
-          eq(hrmBoardingTask.organizationId, input.organizationId),
-          eq(hrmBoardingTask.id, input.taskId)
-        )
-      )
-      .limit(1)
+      if (!taskPatch.ok) {
+        return { ok: false, message: taskPatch.message }
+      }
 
-    if (!row) {
-      return { ok: false, message: "Boarding task not found." }
-    }
-    if (!isOpenBoardingStatus(row.instanceStatus)) {
-      return { ok: false, message: "Boarding instance is already closed." }
-    }
-    if (row.taskStatus === "completed" || row.taskStatus === "waived") {
-      return { ok: false, message: "Boarding task is already closed." }
-    }
-
-    const now = new Date()
-    const taskPatch = taskPatchForAction(input.action, {
-      actorUserId: input.actorUserId,
-      now,
-      note: input.note,
-      waiverReason: input.waiverReason,
-      evidenceDocumentId: input.evidenceDocumentId,
-    })
-    if (!taskPatch.ok) {
-      return { ok: false, message: taskPatch.message }
-    }
-
-    await tx
-      .update(hrmBoardingTask)
-      .set({
-        ...taskPatch.patch,
-        updatedAt: now,
-        updatedByUserId: input.actorUserId,
-      })
-      .where(
-        and(
-          eq(hrmBoardingTask.organizationId, input.organizationId),
-          eq(hrmBoardingTask.id, input.taskId)
-        )
-      )
-
-    const allTasks = await tx
-      .select({
-        required: hrmBoardingTask.required,
-        status: hrmBoardingTask.status,
-      })
-      .from(hrmBoardingTask)
-      .where(
-        and(
-          eq(hrmBoardingTask.organizationId, input.organizationId),
-          eq(hrmBoardingTask.instanceId, row.instanceId)
-        )
-      )
-
-    const nextInstanceStatus = deriveBoardingInstanceStatus(allTasks)
-    await tx
-      .update(hrmBoardingInstance)
-      .set({
-        status: nextInstanceStatus,
-        startedAt:
-          row.instanceStatus === "pending" && nextInstanceStatus !== "pending"
-            ? now
-            : undefined,
-        completedAt: nextInstanceStatus === "completed" ? now : undefined,
-        updatedAt: now,
-        updatedByUserId: input.actorUserId,
-      })
-      .where(
-        and(
-          eq(hrmBoardingInstance.organizationId, input.organizationId),
-          eq(hrmBoardingInstance.id, row.instanceId)
-        )
-      )
-
-    if (row.kind === "offboarding" && nextInstanceStatus === "completed") {
       await tx
-        .update(hrmEmployee)
+        .update(hrmBoardingTask)
         .set({
-          employmentStatus: "terminated",
+          ...taskPatch.patch,
           updatedAt: now,
           updatedByUserId: input.actorUserId,
         })
         .where(
           and(
-            eq(hrmEmployee.organizationId, input.organizationId),
-            eq(hrmEmployee.id, row.employeeId)
+            eq(hrmBoardingTask.organizationId, input.organizationId),
+            eq(hrmBoardingTask.id, input.taskId)
           )
         )
-    }
 
-    return {
-      ok: true,
-      taskId: row.taskId,
-      instanceId: row.instanceId,
-      kind: row.kind === "offboarding" ? "offboarding" : "onboarding",
-      employeeId: row.employeeId,
-      contractId: row.contractId,
-      taskKey: row.taskKey,
-      taskStatus: taskPatch.status,
-      instanceStatus: nextInstanceStatus,
+      const allTasks = await tx
+        .select({
+          required: hrmBoardingTask.required,
+          status: hrmBoardingTask.status,
+        })
+        .from(hrmBoardingTask)
+        .where(
+          and(
+            eq(hrmBoardingTask.organizationId, input.organizationId),
+            eq(hrmBoardingTask.instanceId, row.instanceId)
+          )
+        )
+
+      const nextInstanceStatus = deriveBoardingInstanceStatus(allTasks)
+      await tx
+        .update(hrmBoardingInstance)
+        .set({
+          status: nextInstanceStatus,
+          startedAt:
+            row.instanceStatus === "pending" && nextInstanceStatus !== "pending"
+              ? now
+              : undefined,
+          completedAt: nextInstanceStatus === "completed" ? now : undefined,
+          updatedAt: now,
+          updatedByUserId: input.actorUserId,
+        })
+        .where(
+          and(
+            eq(hrmBoardingInstance.organizationId, input.organizationId),
+            eq(hrmBoardingInstance.id, row.instanceId)
+          )
+        )
+
+      if (row.kind === "offboarding" && nextInstanceStatus === "completed") {
+        await tx
+          .update(hrmEmployee)
+          .set({
+            employmentStatus: "terminated",
+            updatedAt: now,
+            updatedByUserId: input.actorUserId,
+          })
+          .where(
+            and(
+              eq(hrmEmployee.organizationId, input.organizationId),
+              eq(hrmEmployee.id, row.employeeId)
+            )
+          )
+      }
+
+      return {
+        ok: true,
+        taskId: row.taskId,
+        instanceId: row.instanceId,
+        kind: row.kind === "offboarding" ? "offboarding" : "onboarding",
+        employeeId: row.employeeId,
+        contractId: row.contractId,
+        taskKey: row.taskKey,
+        taskStatus: taskPatch.status,
+        instanceStatus: nextInstanceStatus,
+      }
     }
-  })
+  )
+
+  if (result.ok && input.action === "start") {
+    const bridgeInput = {
+      organizationId: input.organizationId,
+      taskId: input.taskId,
+      actorUserId: input.actorUserId,
+      evidenceDocumentId: input.evidenceDocumentId ?? null,
+    }
+    after(async () => {
+      const { ensureBoardingTaskSignatureOnStart } =
+        await import("./boarding-signature-bridge.server")
+      await ensureBoardingTaskSignatureOnStart(bridgeInput)
+    })
+  }
+
+  return result
 }
 
 async function createBoardingInstanceFromTemplate(

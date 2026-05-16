@@ -39,7 +39,9 @@ const DEPENDENT_RELATIONSHIP_MESSAGE_KEY = {
 } as const
 
 import { EmployeeArchiveForm } from "./employee-archive-form"
+import { EmployeeDetailBoardingSection } from "./employee-detail-boarding-section"
 import { EmployeeDetailPayrollContract } from "./employee-detail-payroll-contract"
+import { EmployeeDetailTrainingSection } from "./employee-detail-training-section"
 import { EmployeeMasterForms } from "./employee-master-forms"
 import { EmployeePortalAccessCard } from "./employee-portal-access-card"
 import { EmployeeTimeline } from "./employee-timeline"
@@ -381,6 +383,17 @@ export async function EmployeeDetailPage({
         organizationId={organizationId}
         employeeId={employee.id}
         archivedAt={employee.archivedAt}
+      />
+
+      <EmployeeDetailBoardingSection
+        orgSlug={orgSlug}
+        organizationId={organizationId}
+        employeeId={employee.id}
+      />
+
+      <EmployeeDetailTrainingSection
+        organizationId={organizationId}
+        employeeId={employee.id}
       />
 
       <Card id="dependents" size="sm">

@@ -3,9 +3,7 @@
 import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
-import {
-  writeIamAuditEventFromNextHeaders,
-} from "#lib/auth"
+import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { requireErpPermission } from "#features/erp-rbac/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
 

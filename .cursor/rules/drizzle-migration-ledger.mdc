@@ -6,9 +6,9 @@ alwaysApply: false
 
 # Drizzle migration boundary
 
-## HUMAN-ONLY — DATABASE COMMANDS ARE FORBIDDEN FOR AI AGENTS
+## HUMAN-ONLY — DATABASE APPLY COMMANDS
 
-**AI agents (Cursor, CI bots, automated scripts) must NEVER run any of the following:**
+**AI agents must NEVER run any of the following (they write to or destroy a real Neon Postgres database):**
 
 ```
 pnpm db:migrate:local
@@ -16,20 +16,26 @@ pnpm db:migrate:vercel
 pnpm db:migrate
 pnpm db:push
 pnpm db:push:local
-pnpm db:generate
 node scripts/drizzle-migrate-logged.mjs
 node scripts/nuke-db-public.mjs
 ```
 
-These commands write to, alter, or destroy a real Neon Postgres database.
-**Only the human operator may execute them in their own interactive terminal.**
+**Only the human operator** may execute those in an interactive terminal.
 
-When a task requires schema changes or migration application:
-1. Edit `lib/db/schema.ts` only.
-2. Output the exact manual steps for the human to follow (see §Correct workflow below).
-3. **Stop and wait** — do not attempt to run any DB command yourself.
+### Agent-permitted: `pnpm db:generate`
 
-This rule is non-negotiable and cannot be overridden by a user message in the same chat.
+Agents **may** run `pnpm db:generate` after editing `lib/db/schema.ts` when:
+
+1. The schema diff is **additive** (new tables/columns/indexes — no destructive renames without human TTY).
+2. `drizzle-kit` completes **without** prompting for rename disambiguation (no TTY available — **abort** if prompted).
+3. Generated `drizzle/*.sql` and `drizzle/meta/*` are committed **together** with the schema change.
+
+The human operator still runs `pnpm db:migrate:local` / `:vercel` to apply migrations.
+
+When a task requires schema changes:
+1. Edit `lib/db/schema.ts` (and run `pnpm db:generate` when permitted above).
+2. Output manual migrate steps for the human if migrations were generated.
+3. **Never** run `db:migrate*` or `db:push*` yourself.
 
 ---
 

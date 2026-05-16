@@ -20,6 +20,22 @@
     {
       "path": "/api/cron/hrm-probation-watch",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/hrm-training-expiry-watch",
+      "schedule": "15 8 * * *"
+    },
+    {
+      "path": "/api/cron/hrm-signature-expiry",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/hrm-signature-reminder",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/hrm-snapshot-delivery",
+      "schedule": "15 9 * * *"
     }
   ],
   "headers": [

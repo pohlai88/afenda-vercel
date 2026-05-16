@@ -9,7 +9,6 @@ import { neonAuthInvitation } from "#lib/db/schema-neon-auth"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
 
-export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
 export async function POST(request: Request) {

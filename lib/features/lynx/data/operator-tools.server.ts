@@ -13,6 +13,7 @@ import {
   listRecentKnowledgeChunks,
 } from "#features/knowledge"
 import { countActiveImportJobsForOrganization } from "#features/org-admin/server"
+import { hasAiGatewayAuth } from "#lib/ai/gateway.server"
 
 import { LYNX_TRUTH_TOP_K } from "../constants"
 import type { LynxOperatorEvidenceHit } from "../types"
@@ -146,7 +147,7 @@ export function createLynxOperatorToolRegistry(
       audit: "record",
       schema: orgSearchKnowledgeInputSchema,
       execute: async (input: unknown) => {
-        if (!process.env.OPENAI_API_KEY?.trim()) {
+        if (!hasAiGatewayAuth()) {
           throw new Error("EMBED_UNAVAILABLE")
         }
         const parsed = orgSearchKnowledgeInputSchema.parse(input)

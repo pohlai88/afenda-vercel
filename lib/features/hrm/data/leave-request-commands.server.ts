@@ -30,6 +30,7 @@ import {
 } from "./leave-request.queries.server"
 
 import { hrmActionFailure } from "../schemas/hrm-action-result.shared"
+import { withPortalMutationSpan } from "./portal-mutation-tracing.server"
 import type {
   CancelLeaveFormState,
   LeaveRequestMutationFormState,
@@ -320,6 +321,25 @@ export type CancelLeaveRequestInput =
     }
 
 export async function cancelLeaveRequestForContext(
+  input: CancelLeaveRequestInput
+): Promise<CancelLeaveFormState> {
+  const run = async (): Promise<CancelLeaveFormState> =>
+    cancelLeaveRequestForContextBody(input)
+  if (input.mode === "employee_portal") {
+    return withPortalMutationSpan(
+      {
+        spanName: "hrm.portal.leave.cancel",
+        section: "leave",
+        organizationId: input.organizationId,
+        employeeId: input.employeeId,
+      },
+      run
+    )
+  }
+  return run()
+}
+
+async function cancelLeaveRequestForContextBody(
   input: CancelLeaveRequestInput
 ): Promise<CancelLeaveFormState> {
   const req = await db.query.hrmLeaveRequest.findFirst({

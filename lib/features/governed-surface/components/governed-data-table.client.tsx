@@ -14,7 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "#components/ui/table"
+} from "#components2/ui/table"
 
 export type GovernedDataTableClientProps<TData> = {
   data: TData[]

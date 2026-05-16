@@ -1488,9 +1488,9 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* Help-docs route isolation                                                  */
+/* Ask-docs route isolation                                                  */
 /*                                                                            */
-/* Scope:    body:has(.fd-docs-surface) — matches only when the help-docs     */
+/* Scope:    body:has(.fd-docs-surface) — matches only when the ask-docs     */
 /*           layout wrapper is present in the DOM. Page-level by construction. */
 /* Coverage: cascades to React tree AND portaled elements (search dialog,     */
 /*           tooltips, popovers) since portals render as body children.      */
@@ -1611,7 +1611,7 @@ body:has(.fd-docs-surface) {
 
 /* Fumadocs notebook rail: `unset` on non-inherited properties resolves to `initial`
    (transparent / no border), which strips the sidebar surface. Paint explicitly from
-   `--color-fd-*` so the rail matches the scoped help-docs palette. */
+   `--color-fd-*` so the rail matches the scoped ask-docs palette. */
 body:has(.fd-docs-surface) #nd-sidebar {
   background-color: var(--color-fd-muted);
   color: var(--color-fd-foreground);

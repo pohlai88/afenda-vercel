@@ -187,10 +187,7 @@ function numeric(value: string | null): number {
 export function summarizeKpiScores(
   scores: readonly KpiScoreListRow[]
 ): KpiScoreSummary {
-  const totalWeight = scores.reduce(
-    (sum, row) => sum + numeric(row.weight),
-    0
-  )
+  const totalWeight = scores.reduce((sum, row) => sum + numeric(row.weight), 0)
   const totalWeightedScore = scores.reduce(
     (sum, row) => sum + numeric(row.weightedScore),
     0

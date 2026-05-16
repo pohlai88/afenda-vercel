@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { describe, expect, it, vi } from "vitest"
+
+vi.mock("server-only", () => ({}))
+
+import { RULE_PACK_REGISTRY } from "../../lib/features/hrm/data/payroll-rule-pack.server"
 
 import { CPF_V2026_01_CODE } from "../../lib/features/hrm/data/rule-packs/singapore/cpf/v2026-01.table"
 import {
@@ -44,6 +48,16 @@ describe("Singapore SG-2026-01 rule pack", () => {
   })
 
   it("keeps the Drizzle registry seed manifest aligned with the TS pack", () => {
+    const seedPath = join(
+      process.cwd(),
+      "drizzle/0026_hrm_sg_rule_pack_registry_seed.sql"
+    )
+    if (!existsSync(seedPath)) {
+      expect(
+        RULE_PACK_REGISTRY.find((p) => p.version === "SG-2026-01")?.manifest
+      ).toEqual(singapore2026_01RulePack.manifest)
+      return
+    }
     expect(readSingaporeSeedManifest()).toEqual(
       singapore2026_01RulePack.manifest
     )

@@ -93,6 +93,9 @@ export const ORG_DASHBOARD_HRM_PERFORMANCE = "/hrm/performance" as const
 /** KPI periods and per-employee metric scores. */
 export const ORG_DASHBOARD_HRM_KPI = "/hrm/kpi" as const
 
+/** Training catalog, sessions, assignments, and completion records. */
+export const ORG_DASHBOARD_HRM_TRAINING = "/hrm/training" as const
+
 /** Salary advance requests and repayment via payroll. */
 export const ORG_DASHBOARD_HRM_ADVANCES = "/hrm/advances" as const
 

@@ -113,6 +113,27 @@ function revalidateEmployeePortalAccess(): void {
   )
   revalidatePath(toLocalePortalRevalidatePattern("/employee/leave"), "page")
   revalidatePath(toLocalePortalRevalidatePattern("/employee/payslips"), "page")
+  revalidatePath(toLocalePortalRevalidatePattern("/employee/advances"), "page")
+  revalidatePath(toLocalePortalRevalidatePattern("/employee/benefits"), "page")
+  revalidatePath(toLocalePortalRevalidatePattern("/employee/training"), "page")
+  revalidatePath(
+    toLocalePortalRevalidatePattern("/employee/attendance"),
+    "page"
+  )
+  revalidatePath(toLocalePortalRevalidatePattern("/employee/documents"), "page")
+  revalidatePath(
+    toLocalePortalRevalidatePattern("/employee/signatures"),
+    "page"
+  )
+  revalidatePath(toLocalePortalRevalidatePattern("/employee/profile"), "page")
+  revalidatePath(
+    toLocalePortalRevalidatePattern("/employee/performance"),
+    "page"
+  )
+  revalidatePath(
+    toLocalePortalRevalidatePattern("/employee/offboarding"),
+    "page"
+  )
 }
 
 function isUniqueViolation(error: unknown): boolean {

@@ -8,8 +8,6 @@ import { hasTenantAuthority } from "#features/erp-rbac/server"
 import { routeTextError } from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
 
-export const dynamic = "force-dynamic"
-
 /**
  * Streaming org IAM audit CSV (larger cap than the Server Action export).
  * Authenticated org admins only; same filter as the audit UI (`org.%` actions).

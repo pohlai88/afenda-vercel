@@ -173,8 +173,7 @@ export async function activateReviewCycleAction(
   const parsed = reviewGenerationFormSchema.safeParse({
     orgSlug: formData.get("orgSlug"),
     cycleId: formData.get("cycleId"),
-    fallbackReviewerUserId:
-      formData.get("fallbackReviewerUserId") || undefined,
+    fallbackReviewerUserId: formData.get("fallbackReviewerUserId") || undefined,
   })
   if (!parsed.success) {
     return hrmActionFailure({ form: "Invalid review generation request." })
@@ -243,7 +242,9 @@ export async function activateReviewCycleAction(
     }
   }
 
-  const employeesById = new Map(employees.map((employee) => [employee.id, employee]))
+  const employeesById = new Map(
+    employees.map((employee) => [employee.id, employee])
+  )
   const missingReviewerEmployees: string[] = []
   const initialStage = initialReviewStageForPipeline(pipeline)
 
@@ -491,8 +492,7 @@ export async function submitReviewStageAction(
   }
 
   const canUpdate = await canUpdatePerformance({ organizationId, userId })
-  const canSelf =
-    ctx.linkedUserId !== null && ctx.linkedUserId === userId
+  const canSelf = ctx.linkedUserId !== null && ctx.linkedUserId === userId
   const canManager = ctx.reviewerId === userId
   const allowed =
     canUpdate ||

@@ -150,3 +150,22 @@ export const verifyLifeEventFormSchema = z.object({
 export type VerifyLifeEventFormValues = z.infer<
   typeof verifyLifeEventFormSchema
 >
+
+export const portalEnrollBenefitSchema = z.object({
+  planId: z.string().uuid("Plan ID must be a valid UUID"),
+  coverageLevel: z.enum(BENEFIT_COVERAGE_LEVELS),
+  effectiveFrom: z.preprocess(
+    emptyToUndefined,
+    z.string().regex(ISO_DATE, "Effective from must be YYYY-MM-DD").optional()
+  ),
+})
+
+export const portalWaiveBenefitEnrollmentSchema = z.object({
+  enrollmentId: z.string().uuid("Enrollment ID must be a valid UUID"),
+})
+
+export const portalRecordLifeEventSchema = z.object({
+  eventType: z.enum(BENEFIT_LIFE_EVENT_TYPES),
+  eventDate: z.string().regex(ISO_DATE, "Event date must be YYYY-MM-DD"),
+  notes: z.preprocess(emptyToUndefined, z.string().max(4000).optional()),
+})

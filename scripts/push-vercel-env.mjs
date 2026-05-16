@@ -27,6 +27,13 @@ const KEYS = [
   { key: "BETTER_AUTH_API_KEY", sensitive: true },
   { key: "BLOB_READ_WRITE_TOKEN", sensitive: true },
   { key: "CRON_SECRET", sensitive: true },
+  { key: "AI_GATEWAY_API_KEY", sensitive: true },
+  { key: "EMBEDDING_MODEL", sensitive: false },
+  { key: "LYNX_GENERATION_MODEL", sensitive: false },
+  { key: "LYNX_FALLBACK_MODELS", sensitive: false },
+  { key: "LYNX_GATEWAY_MODEL_FALLBACKS", sensitive: false },
+  { key: "LYNX_PRIMARY_MODEL", sensitive: false },
+  { key: "LYNX_EMBEDDING_MODEL", sensitive: false },
   { key: "NEXT_PUBLIC_APP_NAME", sensitive: false },
   { key: "NEXT_PUBLIC_APP_URL", sensitive: false },
   { key: "NEXT_PUBLIC_STAGE", sensitive: false },
@@ -125,10 +132,11 @@ function vercelEnvAdd({ key, value, target, sensitive }) {
   }
 
   // stdin for value avoids Windows cmd `&` in DATABASE_URL breaking shell parsing.
+  // Do NOT append `\n` — Vercel stores it inside the secret (breaks CRON_SECRET headers).
   return spawnSync(process.execPath, args, {
     cwd: root,
     encoding: "utf-8",
-    input: value.endsWith("\n") ? value : `${value}\n`,
+    input: value,
     stdio: ["pipe", "pipe", "pipe"],
     shell: false,
   })

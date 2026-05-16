@@ -40,11 +40,7 @@ export const buildCapabilityViewerContext = cache(
       hasTenantAuthority({
         organizationId: input.organizationId,
         userId: input.userId,
-        roles: [
-          "tenant_owner",
-          "tenant_key_admin",
-          "tenant_support_admin",
-        ],
+        roles: ["tenant_owner", "tenant_key_admin", "tenant_support_admin"],
       }),
       db
         .select({ id: neonAuthMember.id })

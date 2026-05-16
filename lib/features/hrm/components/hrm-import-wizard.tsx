@@ -66,7 +66,10 @@ export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
         try {
           raw = await res.json()
         } catch (parseErr) {
-          reportHrmImportClientError("Import dry-run: invalid JSON body", parseErr)
+          reportHrmImportClientError(
+            "Import dry-run: invalid JSON body",
+            parseErr
+          )
           setResult({ ok: false, error: t("errorGeneric") })
           return
         }
@@ -100,9 +103,7 @@ export function HrmImportWizard({ orgSlug }: HrmImportWizardProps) {
   )
 
   const canCommit =
-    result?.ok === true &&
-    result.errors.length === 0 &&
-    result.rowCount > 0
+    result?.ok === true && result.errors.length === 0 && result.rowCount > 0
 
   return (
     <Card size="sm">

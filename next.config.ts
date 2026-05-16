@@ -73,6 +73,11 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     /**
+     * Cache Components deferred — ADR-0023. ERP/portal still use `force-dynamic` (~70 routes).
+     * Ask-docs uses `generateStaticParams` + `revalidate` (previous-model ISR).
+     */
+    // cacheComponents: true,
+    /**
      * `lucide-react`, `date-fns`, and `recharts` are barrel-optimized by default in Next.js 16.2+
      * (@see nextjs_docs optimizePackageImports). Omit redundant entries; add packages here only when
      * the upstream default list does not cover them.
@@ -119,9 +124,9 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        // Allow AI agents to fetch any help-docs page as Markdown by appending .md
-        source: "/:locale/help-docs/:path*.md",
-        destination: "/llms.mdx/help-docs/:path*",
+        // Allow AI agents to fetch any ask-docs page as Markdown by appending .md
+        source: "/:locale/ask-docs/:path*.md",
+        destination: "/llms.mdx/ask-docs/:locale/:path*",
       },
     ]
   },

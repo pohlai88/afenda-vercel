@@ -421,6 +421,16 @@ export {
   statutoryRetryDelayMs,
 } from "./data/statutory-retry.server"
 
+export {
+  runSignatureExpiryTick,
+  runSignatureReminderTick,
+} from "./data/signature-expiry-watch.server"
+
+export type {
+  SignatureExpiryTickSummary,
+  SignatureReminderTickSummary,
+} from "./data/signature-expiry-watch.server"
+
 export type {
   StatutoryRetryCandidate,
   StatutoryRetryOutcome,
@@ -557,9 +567,7 @@ export {
   resolveClaimApproverUserId,
   sumClaimsForEmployeeClaimTypeWindow,
 } from "./data/claim.queries.server"
-export {
-  resolveClaimSurfaceAccess,
-} from "./data/claim-access.server"
+export { resolveClaimSurfaceAccess } from "./data/claim-access.server"
 
 /** Benefits administration reads (plans, enrollments, life events). */
 export {
@@ -648,6 +656,49 @@ export {
 } from "./data/probation-watch.server"
 
 export type { ProbationWatchTickSummary } from "./data/probation-watch.server"
+
+export { runHrmSnapshotDeliveryTick } from "./data/hrm-snapshot-delivery.server"
+
+export type { HrmSnapshotDeliveryTickSummary } from "./data/hrm-snapshot-delivery.server"
+
+export {
+  HRM_SNAPSHOT_DELIVERY_AUDIT_ACTION,
+  shouldRunHrmSnapshotDelivery,
+} from "./data/hrm-snapshot-delivery.shared"
+
+export { runTrainingExpiryWatchTick } from "./data/training-expiry-watch.server"
+
+export type { TrainingExpiryWatchTickSummary } from "./data/training-expiry-watch.server"
+
+export {
+  getTrainingAnalyticsSummary,
+  listTrainingFeedbackAggregatesForOrg,
+} from "./data/training-analytics.queries.server"
+
+export type {
+  TrainingAnalyticsSummary,
+  TrainingFeedbackAggregate,
+} from "./data/training-analytics.queries.server"
+
+export { listTrainingFeedbackForCourse } from "./data/training.queries.server"
+
+export type { TrainingFeedbackForCourseRow } from "./data/training.queries.server"
+
+export {
+  listAllPrerequisitesForOrg,
+  listPrerequisitesForCourse,
+  validateTrainingPrerequisitesMet,
+} from "./data/training-prerequisite.server"
+
+export type { TrainingPrerequisiteRow } from "./data/training-prerequisite.server"
+
+export { listSkillMatrixForOrg } from "./data/skill.queries.server"
+
+export type {
+  SkillMatrixData,
+  SkillMatrixRow,
+  SkillMatrixSkill,
+} from "./data/skill.queries.server"
 
 /** HR pressure rows merged into Nexus snapshot (pure rank helpers + server read). */
 export {

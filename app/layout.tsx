@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next"
 import { Geist_Mono, Inter } from "next/font/google"
 import { headers } from "next/headers"
 
-import "./globals.css"
 import { AppShellRootThemeProvider } from "#components2/providers/theme-provider.client"
 import { Toaster } from "#components/ui/sonner"
 import { TooltipProvider } from "#components/ui/tooltip"

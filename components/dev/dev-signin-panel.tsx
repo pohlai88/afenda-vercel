@@ -8,8 +8,10 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react"
 
 import { useDevSignInPanelDrag } from "./dev-signin-panel-drag"
 
+import { usePathname } from "#i18n/navigation"
 import { neonAuthClient } from "#lib/auth-client-neon-compat"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { employeePortalPath } from "#lib/portal"
 import {
   uiRadius,
   uiStatusToneClasses,
@@ -31,34 +33,68 @@ import { cn } from "#lib/utils"
 const DEMO_ORG_ID = "00000000-0000-4000-8000-000000000001"
 const DEMO_ORG_SLUG = "demo-org"
 
+/** Must match `DEMO_EMPLOYEE_PORTAL_SLUG` in `tests/fixtures/bootstrap-mocks.ts`. */
+const DEMO_EMPLOYEE_PORTAL_SLUG = "demo-org-employee"
+
+const DEMO_DASHBOARD_HOME = organizationDashboardPath(DEMO_ORG_SLUG, "home")
+const DEMO_PORTAL_LEAVE = employeePortalPath(DEMO_EMPLOYEE_PORTAL_SLUG, "leave")
+
 /**
  * Must match `DEV_PASSWORD` in `scripts/seed-dev-users.mjs`.
  * Change both together when rotating dev credentials.
  */
 const DEV_PASSWORD = "123qweasdzxc!@#"
 
-/**
- * Resolves the post-auth route: safe `callbackUrl` (locale-stripped) or the demo
- * org dashboard (full tenant bootstrap: session + active org + known slug).
- */
-function resolveDevPostAuthRoute(callbackParam: string | null): Route {
-  const fallback = organizationDashboardPath(DEMO_ORG_SLUG, "home")
-  const raw = callbackParam?.trim()
-  if (!raw || raw.length > 2048) {
-    return fallback
-  }
-
-  const qIndex = raw.indexOf("?")
-  const pathOnly = qIndex >= 0 ? raw.slice(0, qIndex) : raw
-  const query = qIndex >= 0 ? raw.slice(qIndex) : ""
-
+function resolveInternalRouteFromPath(
+  pathOnly: string,
+  query: string
+): Route | null {
   const stripped = stripLeadingLocalePrefix(pathOnly)
   const internal = stripped ? stripped.pathnameWithoutLocale : pathOnly
   if (!internal.startsWith("/")) {
-    return fallback
+    return null
+  }
+  return `${internal}${query}` as Route
+}
+
+/**
+ * Resolves the post-auth route: safe `callbackUrl`, current portal path when on
+ * `/p/*`, preset default, or demo org dashboard.
+ */
+function resolveDevPostAuthRoute(input: {
+  callbackParam: string | null
+  currentPathname: string | null
+  presetFallback: Route
+}): Route {
+  const { callbackParam, currentPathname, presetFallback } = input
+
+  const raw = callbackParam?.trim()
+  if (raw && raw.length <= 2048) {
+    const qIndex = raw.indexOf("?")
+    const pathOnly = qIndex >= 0 ? raw.slice(0, qIndex) : raw
+    const query = qIndex >= 0 ? raw.slice(qIndex) : ""
+    const fromCallback = resolveInternalRouteFromPath(pathOnly, query)
+    if (fromCallback) {
+      return fromCallback
+    }
   }
 
-  return `${internal}${query}` as Route
+  if (currentPathname) {
+    const qIndex = currentPathname.indexOf("?")
+    const pathOnly =
+      qIndex >= 0 ? currentPathname.slice(0, qIndex) : currentPathname
+    const query = qIndex >= 0 ? currentPathname.slice(qIndex) : ""
+    const fromCurrent = resolveInternalRouteFromPath(pathOnly, query)
+    if (fromCurrent) {
+      const stripped = stripLeadingLocalePrefix(pathOnly)
+      const internal = stripped?.pathnameWithoutLocale ?? pathOnly
+      if (internal === "/p" || internal.startsWith("/p/")) {
+        return fromCurrent
+      }
+    }
+  }
+
+  return presetFallback
 }
 
 /** Same shape as server-validated `callbackUrl` / {@link SignInForm} — locale-prefixed absolute path on origin. */
@@ -83,20 +119,24 @@ const DEV_SIGNIN_PRESETS: ReadonlyArray<{
   role: string
   tone: UiStatusTone
   description: string
+  postAuthRoute: Route
 }> = [
   {
     label: "Owner",
     email: "owner@afenda.com",
     role: "Owner",
     tone: "info",
-    description: "Org owner — full tenant admin paths.",
+    description:
+      "Org owner — employee portal leave (grant portal access in workbench if needed).",
+    postAuthRoute: DEMO_PORTAL_LEAVE,
   },
   {
     label: "ERP",
     email: "erp@afenda.com",
     role: "Member",
     tone: "neutral",
-    description: "Standard ERP member — default dashboard access.",
+    description: "Standard ERP member — demo org dashboard home.",
+    postAuthRoute: DEMO_DASHBOARD_HOME,
   },
 ]
 
@@ -109,6 +149,7 @@ export function DevSignInPanel() {
   const [pending, setPending] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const searchParams = useSearchParams()
+  const pathname = usePathname()
   const locale = ensureAppLocale(useLocale())
   const panelRef = useRef<HTMLDivElement>(null)
   const expandPanel = useCallback(() => setCollapsed(false), [])
@@ -127,12 +168,16 @@ export function DevSignInPanel() {
     return () => cancelAnimationFrame(id)
   }, [collapsed, clampPanelToViewport])
 
-  async function signInAs(email: string) {
+  async function signInAs(email: string, presetFallback: Route) {
     if (pending) return
     setError(null)
     setPending(email)
 
-    const destination = resolveDevPostAuthRoute(searchParams.get("callbackUrl"))
+    const destination = resolveDevPostAuthRoute({
+      callbackParam: searchParams.get("callbackUrl"),
+      currentPathname: pathname,
+      presetFallback,
+    })
     const callbackURL = localePrefixedAuthCallback(locale, destination)
 
     try {
@@ -270,7 +315,9 @@ export function DevSignInPanel() {
                 <button
                   type="button"
                   disabled={pending !== null}
-                  onClick={() => void signInAs(preset.email)}
+                  onClick={() =>
+                    void signInAs(preset.email, preset.postAuthRoute)
+                  }
                   className={cn(
                     "-mx-2 w-[calc(100%+1rem)] border border-transparent p-surface-sm text-left transition-colors",
                     "hover:border-border hover:bg-accent disabled:pointer-events-none disabled:opacity-60",
@@ -326,7 +373,12 @@ export function DevSignInPanel() {
           to create accounts, org{" "}
           <code className="font-mono text-[0.625rem]">{DEMO_ORG_SLUG}</code>,
           and memberships in{" "}
-          <code className="font-mono text-[0.625rem]">neon_auth</code>.
+          <code className="font-mono text-[0.625rem]">neon_auth</code>. Employee
+          portal slug{" "}
+          <code className="font-mono text-[0.625rem]">
+            {DEMO_EMPLOYEE_PORTAL_SLUG}
+          </code>{" "}
+          requires active portal access on the linked employee record.
         </p>
       </div>
     </div>

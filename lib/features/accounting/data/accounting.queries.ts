@@ -10,9 +10,7 @@ import { listAccountingJournalBatchesForOrg } from "./accounting-journal.server"
  */
 export async function listAccountingOverview(
   organizationId: string
-): Promise<
-  AccountingOverviewItem[]
-> {
+): Promise<AccountingOverviewItem[]> {
   const rows = await listAccountingJournalBatchesForOrg(organizationId)
   return rows.map((row) => ({
     id: row.id,

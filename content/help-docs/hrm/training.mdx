@@ -1,0 +1,20 @@
+---
+title: Training & development (admin)
+description: Course catalog, scheduled sessions, assignments, completion records, and recertification for your organization.
+audience: admin
+status: beta
+---
+
+# Training & development
+
+Use **Dashboard → HRM → Training & development** to maintain the course catalog, schedule sessions, assign mandatory training, record completions, and verify employee attestations.
+
+## Workflow
+
+1. **Categories** — optional grouping for reporting.
+2. **Courses** — reusable definitions (delivery mode, statutory flag, recertification interval).
+3. **Sessions** — scheduled occurrences with rosters; **Close session** completes all present attendees in one transaction.
+4. **Assignments** — open work for employees (manual, onboarding, or recertification).
+5. **Records** — completion history; HR can verify self-attested portal submissions.
+
+Statutory courses (`statutoryFlag`) emit compliance evidence rows for the aging-watch pipeline. Completing a course linked from an onboarding boarding task (`metadata.trainingCourseCode`) auto-completes that task.

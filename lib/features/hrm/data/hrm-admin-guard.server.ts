@@ -11,7 +11,14 @@ import { requireErpPermission } from "#features/erp-rbac/server"
  */
 export async function requireHrmPermission(input: {
   object: string
-  function: "create" | "read" | "update" | "delete" | "search" | "audit" | "predict"
+  function:
+    | "create"
+    | "read"
+    | "update"
+    | "delete"
+    | "search"
+    | "audit"
+    | "predict"
   errorMessage?: string
 }): Promise<{ ok: false; error: string } | { ok: true; session: OrgSession }> {
   const gate = await requireErpPermission({
@@ -37,6 +44,7 @@ export async function requireHrmAdmin(
     object: "organization",
     function: "update",
     errorMessage:
-      errorMessage ?? "HRM organization permission required for this operation.",
+      errorMessage ??
+      "HRM organization permission required for this operation.",
   })
 }

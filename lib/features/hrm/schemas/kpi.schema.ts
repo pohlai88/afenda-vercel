@@ -99,7 +99,8 @@ export function calculateTypedKpiScore(input: {
         ? input.achieved === 0
           ? 100
           : 0
-        : (1 - Math.abs(input.achieved - input.target) / Math.abs(input.target)) *
+        : (1 -
+            Math.abs(input.achieved - input.target) / Math.abs(input.target)) *
           100
   }
 
@@ -199,9 +200,7 @@ export const upsertTypedKpiScoreFormSchema = z.object({
 })
 
 export type HrmKpiMetricInput = z.infer<typeof kpiMetricSchema>
-export type CreateKpiMetricFormInput = z.infer<
-  typeof createKpiMetricFormSchema
->
+export type CreateKpiMetricFormInput = z.infer<typeof createKpiMetricFormSchema>
 export type ArchiveKpiMetricFormInput = z.infer<
   typeof archiveKpiMetricFormSchema
 >

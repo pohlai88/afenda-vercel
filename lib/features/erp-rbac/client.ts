@@ -1,3 +1,4 @@
+export { ErpAccessDenied } from "./components/erp-access-denied"
 export type { ErpRbacActionState } from "./types"
 export {
   assignErpRoleMemberAction,

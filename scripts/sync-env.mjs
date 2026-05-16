@@ -38,9 +38,39 @@ function parseDotenv(content) {
     ) {
       val = val.slice(1, -1)
     }
-    out[key] = val
+    out[key] = normalizeEnvValue(key, val)
   }
   return out
+}
+
+/** Vercel rejects `CRON_SECRET` with any whitespace (HTTP header value). */
+function normalizeEnvValue(key, raw) {
+  const trimmed = raw.replace(/^\uFEFF/, "").trim()
+  if (key === "CRON_SECRET") {
+    return trimmed.replace(/\s/g, "")
+  }
+  return trimmed
+}
+
+/** Fix `CRON_SECRET=` lines in `.env.config` before sync (in-place). */
+function sanitizeCronSecretInDotenvText(content) {
+  return content
+    .split(/\r?\n/)
+    .map((line) => {
+      if (!line.startsWith("CRON_SECRET=")) return line
+      const eq = line.indexOf("=")
+      if (eq <= 0) return line
+      let val = line.slice(eq + 1).trim()
+      if (
+        (val.startsWith('"') && val.endsWith('"')) ||
+        (val.startsWith("'") && val.endsWith("'"))
+      ) {
+        val = val.slice(1, -1)
+      }
+      const normalized = normalizeEnvValue("CRON_SECRET", val)
+      return normalized ? `CRON_SECRET=${normalized}` : "CRON_SECRET="
+    })
+    .join("\n")
 }
 
 /** @param {string} val */
@@ -108,7 +138,14 @@ if (!fs.existsSync(srcPath)) {
   process.exit(1)
 }
 
-const configBody = fs.readFileSync(srcPath, "utf8")
+const configBodyRaw = fs.readFileSync(srcPath, "utf8")
+const configBody = sanitizeCronSecretInDotenvText(configBodyRaw)
+if (configBody !== configBodyRaw && !dryRun) {
+  fs.writeFileSync(srcPath, configBody, "utf8")
+  console.log(
+    "[env:sync] Normalized CRON_SECRET in .env.config (removed whitespace — required by Vercel cron)."
+  )
+}
 const parsedConfig = parseDotenv(configBody)
 const configKeySet = new Set(Object.keys(parsedConfig))
 

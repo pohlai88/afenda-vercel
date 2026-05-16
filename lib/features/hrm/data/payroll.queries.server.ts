@@ -1,14 +1,6 @@
 import "server-only"
 
-import {
-  and,
-  desc,
-  eq,
-  gte,
-  inArray,
-  isNotNull,
-  lte,
-} from "drizzle-orm"
+import { and, desc, eq, gte, inArray, isNotNull, lte } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -28,7 +20,7 @@ import {
 import { isAttendanceDayReadyForPayroll } from "./attendance-display.shared"
 import { listBenefitPayrollProjectionEnrollmentsForPeriod } from "./benefit-enterprise.queries.server"
 import { listApprovedUnpaidClaimsForPeriod } from "./claim.queries.server"
-import { listApprovedSalaryAdvancesForEmployeePayroll } from "./salary-advance.queries.server"
+import { listDueSalaryAdvanceInstallmentsForEmployeePayroll } from "./salary-advance.queries.server"
 import { PAYROLL_PERIOD_LOCK_SUBJECT_KIND } from "../schemas/payroll-period.schema"
 import { parseMalaysiaPcbStatutoryExtras } from "../schemas/malaysia-pcb-statutory-extras.shared"
 
@@ -425,9 +417,7 @@ export async function getPayrollRunInputSnapshot(
     fromDate: period.periodStart,
     toDate: period.periodEnd,
   })
-  const finalizedAttendanceRows = attendanceRows.filter(
-    isReadyForPayrollRow
-  )
+  const finalizedAttendanceRows = attendanceRows.filter(isReadyForPayrollRow)
   const scheduledAttendanceMinutes = finalizedAttendanceRows.reduce(
     (sum, row) => sum + row.scheduledMinutes,
     0
@@ -511,11 +501,12 @@ export async function getPayrollRunInputSnapshot(
     pcbTp1AdditionalReliefMonthly,
     pcbTp3AdditionalDeductionMonthly,
     approvedUnpaidClaims,
-    approvedSalaryAdvances: await listApprovedSalaryAdvancesForEmployeePayroll({
-      organizationId,
-      employeeId: run.employeeId,
-      periodEndIso,
-    }),
+    approvedSalaryAdvanceInstallments:
+      await listDueSalaryAdvanceInstallmentsForEmployeePayroll({
+        organizationId,
+        employeeId: run.employeeId,
+        periodEndIso,
+      }),
     benefitEnrollments: await listBenefitPayrollProjectionEnrollmentsForPeriod({
       organizationId,
       employeeId: run.employeeId,

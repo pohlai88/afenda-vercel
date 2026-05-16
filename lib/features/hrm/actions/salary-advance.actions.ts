@@ -5,13 +5,17 @@ import { revalidatePath } from "next/cache"
 import { and, eq } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { ORG_DASHBOARD_HRM_ADVANCES } from "#lib/dashboard-module-paths"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmSalaryAdvance } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
+import { requireHrmPermission } from "../data/hrm-admin-guard.server"
 import { requireHrmOrgTenantFromForm } from "../data/hrm-action-guard.server"
+import {
+  insertSalaryAdvanceRow,
+  materializeSalaryAdvanceInstallments,
+} from "../data/salary-advance-core.server"
 import {
   decideSalaryAdvanceFormSchema,
   requestSalaryAdvanceFormSchema,
@@ -33,13 +37,15 @@ export async function requestSalaryAdvanceAction(
   const gate = await requireHrmOrgTenantFromForm(formData)
   if (!gate.ok) return gate.response
   const { session } = gate
-  const { organizationId, userId, sessionId, user } = session
+  const { organizationId, userId, sessionId } = session
 
   const parsed = requestSalaryAdvanceFormSchema.safeParse({
     orgSlug: formData.get("orgSlug"),
     employeeId: formData.get("employeeId"),
     amount: formData.get("amount"),
     reason: formData.get("reason"),
+    installmentCount: formData.get("installmentCount") || undefined,
+    firstPeriodEndIso: formData.get("firstPeriodEndIso") || undefined,
   })
   if (!parsed.success) {
     return hrmActionFailure({ form: "Invalid advance request." })
@@ -60,13 +66,11 @@ export async function requestSalaryAdvanceAction(
     .limit(1)
   if (!emp) return hrmActionFailure({ form: "Employee not found." })
 
-  const isAdmin = await canActInOrganization(
-    userId,
-    user.role,
-    organizationId,
-    "admin"
-  )
-  if (!isAdmin) {
+  const createGate = await requireHrmPermission({
+    object: "salary_advance",
+    function: "create",
+  })
+  if (!createGate.ok) {
     if (!emp.linkedUserId || emp.linkedUserId !== userId) {
       return hrmActionFailure({
         form: "You can only request an advance for your own linked employee record.",
@@ -74,16 +78,14 @@ export async function requestSalaryAdvanceAction(
     }
   }
 
-  const advanceId = crypto.randomUUID()
-  await db.insert(hrmSalaryAdvance).values({
-    id: advanceId,
+  const advanceId = await insertSalaryAdvanceRow({
     organizationId,
     employeeId: emp.id,
     amount: parsed.data.amount,
-    currency: "MYR",
     reason: parsed.data.reason?.trim() || null,
-    state: "pending",
     requestedByUserId: userId,
+    installmentCount: parsed.data.installmentCount ?? null,
+    firstPeriodEndIso: parsed.data.firstPeriodEndIso ?? null,
   })
 
   after(() =>
@@ -109,16 +111,16 @@ export async function decideSalaryAdvanceAction(
   const gate = await requireHrmOrgTenantFromForm(formData)
   if (!gate.ok) return gate.response
   const { session } = gate
-  const { organizationId, userId, sessionId, user } = session
+  const { organizationId, userId, sessionId } = session
 
-  const isAdmin = await canActInOrganization(
-    userId,
-    user.role,
-    organizationId,
-    "admin"
-  )
-  if (!isAdmin) {
-    return hrmActionFailure({ form: "Only an org admin can decide advances." })
+  const decideGate = await requireHrmPermission({
+    object: "salary_advance",
+    function: "update",
+    errorMessage:
+      "HRM salary advance update permission required to decide advances.",
+  })
+  if (!decideGate.ok) {
+    return hrmActionFailure({ form: decideGate.error })
   }
 
   const parsed = decideSalaryAdvanceFormSchema.safeParse({
@@ -135,6 +137,10 @@ export async function decideSalaryAdvanceAction(
     .select({
       id: hrmSalaryAdvance.id,
       state: hrmSalaryAdvance.state,
+      amount: hrmSalaryAdvance.amount,
+      installmentCount: hrmSalaryAdvance.installmentCount,
+      firstPeriodEndIso: hrmSalaryAdvance.firstPeriodEndIso,
+      requestedAt: hrmSalaryAdvance.requestedAt,
     })
     .from(hrmSalaryAdvance)
     .where(
@@ -162,6 +168,33 @@ export async function decideSalaryAdvanceAction(
       updatedAt: now,
     })
     .where(eq(hrmSalaryAdvance.id, parsed.data.advanceId))
+
+  if (nextState === "approved") {
+    await materializeSalaryAdvanceInstallments({
+      organizationId,
+      advanceId: parsed.data.advanceId,
+      amount: String(row.amount),
+      installmentCount: row.installmentCount,
+      firstPeriodEndIso: row.firstPeriodEndIso
+        ? String(row.firstPeriodEndIso)
+        : null,
+      fallbackPeriodEndIso: row.requestedAt.toISOString().slice(0, 10),
+    })
+
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: "erp.hrm.salary_advance.installment.schedule",
+        actorUserId: userId,
+        actorSessionId: sessionId,
+        organizationId,
+        resourceType: "hrm_salary_advance",
+        resourceId: parsed.data.advanceId,
+        metadata: {
+          installmentCount: row.installmentCount ?? 1,
+        },
+      })
+    )
+  }
 
   after(() =>
     writeIamAuditEventFromNextHeaders({

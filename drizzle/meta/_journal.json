@@ -8,6 +8,34 @@
       "when": 1778905946351,
       "tag": "0000_opposite_onslaught",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779000000000,
+      "tag": "0001_hrm_signature_ceremony",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778916457680,
+      "tag": "0002_uneven_retro_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1778924357745,
+      "tag": "0003_harsh_jamie_braddock",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778935391995,
+      "tag": "0004_next_jackal",
+      "breakpoints": true
     }
   ]
 }

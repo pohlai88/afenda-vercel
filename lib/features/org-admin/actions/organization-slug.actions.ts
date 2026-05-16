@@ -4,10 +4,7 @@ import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { z } from "zod"
 
-import {
-  auth,
-  writeIamAuditEventFromNextHeaders,
-} from "#lib/auth"
+import { auth, writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   allocateUniqueOrganizationSlug,

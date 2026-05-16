@@ -316,12 +316,16 @@ function runNextBuild() {
     let stdout = ""
     let stderr = ""
 
-    const child = spawn(process.execPath, [nextCliPath, "build", ...forwardedArgs], {
-      cwd: root,
-      env: buildEnv,
-      stdio: ["inherit", "pipe", "pipe"],
-      detached: !isWindows,
-    })
+    const child = spawn(
+      process.execPath,
+      [nextCliPath, "build", ...forwardedArgs],
+      {
+        cwd: root,
+        env: buildEnv,
+        stdio: ["inherit", "pipe", "pipe"],
+        detached: !isWindows,
+      }
+    )
 
     activeBuildChild = child
     registerBuildCleanup()

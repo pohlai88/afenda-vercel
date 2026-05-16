@@ -11,7 +11,7 @@ function readProjectFile(...segments: string[]): string {
 
 describe("landing cookie consent preview", () => {
   it("renders the consent preview from the locale home page", () => {
-    const page = readProjectFile("app", "[locale]", "page.tsx")
+    const page = readProjectFile("app", "(main)", "[locale]", "page.tsx")
 
     expect(page).toContain("CookieConsentPreview")
     expect(page).toContain("LandingFooter")

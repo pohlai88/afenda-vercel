@@ -11,9 +11,15 @@ export async function getEmployeePortalSectionNavLabels(): Promise<
   return {
     leave: nav("leave"),
     payslips: nav("payslips"),
+    advances: nav("advances"),
     claims: nav("claims"),
     benefits: nav("benefits"),
+    training: nav("training"),
     attendance: nav("attendance"),
     documents: nav("documents"),
+    signatures: nav("signatures"),
+    profile: nav("profile"),
+    performance: nav("performance"),
+    offboarding: nav("offboarding"),
   }
 }

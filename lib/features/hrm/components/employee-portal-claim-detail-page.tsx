@@ -22,10 +22,12 @@ import {
 import { Link } from "#i18n/navigation"
 import { employeePortalPath } from "#lib/portal"
 
+import { isClaimCancellable } from "../data/claim-helpers.shared"
 import { getClaimDetail } from "../data/claim.queries.server"
 import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
+import { EmployeePortalClaimCancelButton } from "./employee-portal-claim-cancel-button.client"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalClaimDetailPageProps = {
@@ -76,9 +78,16 @@ export async function EmployeePortalClaimDetailPage({
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" asChild>
           <Link href={employeePortalPath(context.portal.portalSlug, "claims")}>
-            Back
+            {t("backToList")}
           </Link>
         </Button>
+        {isClaimCancellable(detail.claim.state) ? (
+          <EmployeePortalClaimCancelButton
+            portalSlug={context.portal.portalSlug}
+            claimId={detail.claim.id}
+            label={t("cancel")}
+          />
+        ) : null}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">

@@ -128,9 +128,7 @@ export const createShiftTemplateSchema = z
     path: ["defaultEndTime"],
   })
 
-export type CreateShiftTemplateInput = z.infer<
-  typeof createShiftTemplateSchema
->
+export type CreateShiftTemplateInput = z.infer<typeof createShiftTemplateSchema>
 
 export const assignEmployeeShiftSchema = z.object({
   employeeId: z.string().trim().min(1, "Employee is required"),
@@ -138,9 +136,7 @@ export const assignEmployeeShiftSchema = z.object({
   shiftTemplateId: z.string().trim().min(1, "Shift template is required"),
 })
 
-export type AssignEmployeeShiftInput = z.infer<
-  typeof assignEmployeeShiftSchema
->
+export type AssignEmployeeShiftInput = z.infer<typeof assignEmployeeShiftSchema>
 
 // ---------------------------------------------------------------------------
 // CSV import row schema (used by the attendance-import adapter)

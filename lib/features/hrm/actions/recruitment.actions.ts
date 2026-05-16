@@ -27,6 +27,7 @@ import {
   canTransitionOfferStatus,
   canTransitionRequisitionStatus,
   INTERVIEW_OUTCOME_TO_EVENT,
+  parseRequiredSkillCodesInput,
 } from "../data/recruitment-workflow.shared"
 import {
   advanceApplicationStageFormSchema,
@@ -229,8 +230,9 @@ export async function createJobRequisitionAction(
   const parsed = createJobRequisitionFormSchema.safeParse({
     orgSlug: formData.get("orgSlug"),
     title: formData.get("title"),
-    departmentId: formData.get("departmentId"),
-    headcount: formData.get("headcount"),
+    departmentId: formData.get("departmentId") ?? undefined,
+    headcount: formData.get("headcount") ?? undefined,
+    requiredSkillCodes: formData.get("requiredSkillCodes") ?? undefined,
   })
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors
@@ -247,6 +249,9 @@ export async function createJobRequisitionAction(
     if (!fk.ok) return hrmActionFailure({ form: fk.message })
   }
 
+  const skillRequirements = parseRequiredSkillCodesInput(
+    parsed.data.requiredSkillCodes
+  )
   const id = crypto.randomUUID()
   await db.insert(hrmJobRequisition).values({
     id,
@@ -255,6 +260,7 @@ export async function createJobRequisitionAction(
     departmentId: deptId,
     headcount: parsed.data.headcount ?? 1,
     status: "draft",
+    audit7w1h: skillRequirements.length > 0 ? { skillRequirements } : null,
     createdByUserId: userId,
     updatedByUserId: userId,
   })
@@ -265,7 +271,10 @@ export async function createJobRequisitionAction(
     eventType: "requisition.created",
     actorUserId: userId,
     toState: "draft",
-    metadata: { headcount: parsed.data.headcount ?? 1 },
+    metadata: {
+      headcount: parsed.data.headcount ?? 1,
+      skillRequirements,
+    },
   })
 
   auditRecruitment({
@@ -275,7 +284,10 @@ export async function createJobRequisitionAction(
     sessionId,
     resourceType: "hrm_job_requisition",
     resourceId: id,
-    metadata: { title: parsed.data.title },
+    metadata: {
+      title: parsed.data.title,
+      skillRequirements,
+    },
   })
 
   revalidateRecruitment()
@@ -591,7 +603,9 @@ export async function advanceApplicationStageAction(
   const from = assertApplicationStage(app.stage)
   const to = parsed.data.stage
   if (!canTransitionApplicationStage(from, to)) {
-    return hrmActionFailure({ form: `Cannot move application from ${from} to ${to}.` })
+    return hrmActionFailure({
+      form: `Cannot move application from ${from} to ${to}.`,
+    })
   }
 
   await db
@@ -990,7 +1004,9 @@ export async function updateJobOfferStatusAction(
   const from = assertOfferStatus(offer.status)
   const to = parsed.data.status
   if (!canTransitionOfferStatus(from, to)) {
-    return hrmActionFailure({ form: `Cannot move offer from ${from} to ${to}.` })
+    return hrmActionFailure({
+      form: `Cannot move offer from ${from} to ${to}.`,
+    })
   }
 
   await db.transaction(async (tx) => {
@@ -1120,7 +1136,9 @@ export async function convertAcceptedOfferToEmployeeAction(
     return hrmActionFailure({ form: "Only accepted offers can be converted." })
   }
   if (assertApplicationStage(offer.applicationStage) !== "offer") {
-    return hrmActionFailure({ form: "Application is not ready for hire conversion." })
+    return hrmActionFailure({
+      form: "Application is not ready for hire conversion.",
+    })
   }
   if (offer.convertedEmployeeId) {
     return hrmActionFailure({ form: "Offer has already been converted." })
@@ -1179,7 +1197,10 @@ export async function convertAcceptedOfferToEmployeeAction(
       actorUserId: userId,
       fromState: "accepted",
       toState: "converted",
-      metadata: { applicationId: offer.applicationId, employeeId: employee.employeeId },
+      metadata: {
+        applicationId: offer.applicationId,
+        employeeId: employee.employeeId,
+      },
     })
 
     const [hiredCount] = await tx
@@ -1217,7 +1238,10 @@ export async function convertAcceptedOfferToEmployeeAction(
         actorUserId: userId,
         fromState: offer.requisitionStatus,
         toState: "filled",
-        metadata: { hiredCount: hiredCount?.n ?? 0, headcount: offer.headcount },
+        metadata: {
+          hiredCount: hiredCount?.n ?? 0,
+          headcount: offer.headcount,
+        },
       })
     }
 
@@ -1275,7 +1299,9 @@ export async function rejectJobOfferAction(formData: FormData): Promise<void> {
   void (await updateJobOfferStatusAction(undefined, formData))
 }
 
-export async function withdrawJobOfferAction(formData: FormData): Promise<void> {
+export async function withdrawJobOfferAction(
+  formData: FormData
+): Promise<void> {
   formData.set("status", "withdrawn")
   void (await updateJobOfferStatusAction(undefined, formData))
 }
@@ -1334,4 +1360,3 @@ export async function convertAcceptedOfferToEmployeeFormAction(
 ): Promise<void> {
   void (await convertAcceptedOfferToEmployeeAction(undefined, formData))
 }
-

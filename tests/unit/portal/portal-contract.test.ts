@@ -201,7 +201,7 @@ describe("portal foundation contract", () => {
   })
 
   it("keeps /p free of route handlers and Workbench shell imports", () => {
-    const routeRoot = join(process.cwd(), "app", "[locale]", "p")
+    const routeRoot = join(process.cwd(), "app", "(main)", "[locale]", "p")
     const shellRoot = join(process.cwd(), "components2", "portal-shell")
     const controlRoot = join(process.cwd(), "lib", "portal")
     const files = [
@@ -229,8 +229,10 @@ describe("portal foundation contract", () => {
       join(process.cwd(), "lib", "db", "schema.ts"),
       "utf8"
     )
+    // Portal schema was included in the initial squashed migration — no separate
+    // portal_foundation or hardening migration files exist in this setup.
     const migrationSource = readFileSync(
-      join(process.cwd(), "drizzle", "0040_portal_foundation.sql"),
+      join(process.cwd(), "drizzle", "0000_opposite_onslaught.sql"),
       "utf8"
     )
 
@@ -248,35 +250,36 @@ describe("portal foundation contract", () => {
       "organization_portal_access_portal_audience_subject_active_uidx"
     )
 
+    // Initial migration ships the hardened employee-only constraint directly
+    // (no intermediate portal_audience_subject_active_uidx was ever created).
     expect(migrationSource).toContain(
       '"organization_portal_org_audience_active_uidx"'
     )
     expect(migrationSource).toContain(
-      '"organization_portal_access_portal_audience_subject_active_uidx"'
-    )
-    expect(migrationSource).toContain("WHERE \"status\" = 'active'")
-    expect(migrationSource).toContain('"subjectId" IS NOT NULL')
-
-    const hardeningMigrationSource = readFileSync(
-      join(
-        process.cwd(),
-        "drizzle",
-        "0048_portal_employee_access_uniqueness.sql"
-      ),
-      "utf8"
-    )
-    expect(hardeningMigrationSource).toContain(
-      'DROP INDEX IF EXISTS "organization_portal_access_portal_audience_subject_active_uidx"'
-    )
-    expect(hardeningMigrationSource).toContain(
       '"organization_portal_access_employee_subject_active_uidx"'
     )
-    expect(hardeningMigrationSource).toContain("\"audience\" = 'employee'")
+    expect(migrationSource).toContain(
+      '"organization_portal"."status" = \'active\''
+    )
+    expect(migrationSource).toContain('"subjectId" IS NOT NULL')
+    expect(migrationSource).toContain("\"audience\" = 'employee'")
+    // The superseded broader index was never created in this migration path.
+    expect(migrationSource).not.toContain(
+      '"organization_portal_access_portal_audience_subject_active_uidx"'
+    )
   })
 
   it("dispatches employee portal roots to leave self-service", () => {
     const source = readFileSync(
-      join(process.cwd(), "app", "[locale]", "p", "[portalSlug]", "page.tsx"),
+      join(
+        process.cwd(),
+        "app",
+        "(main)",
+        "[locale]",
+        "p",
+        "[portalSlug]",
+        "page.tsx"
+      ),
       "utf8"
     )
     const normalizedSource = source.replace(/\s+/g, " ")
@@ -296,6 +299,7 @@ describe("portal foundation contract", () => {
     const routeRoot = join(
       process.cwd(),
       "app",
+      "(main)",
       "[locale]",
       "p",
       "[portalSlug]"

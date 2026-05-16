@@ -56,7 +56,7 @@ export async function ingestKnowledgeChunk(
     return {
       ok: false,
       errors: {
-        form: "Could not generate embedding. Check OPENAI_API_KEY and try again.",
+        form: "Could not generate embedding. Check AI Gateway credentials and try again.",
       },
     }
   }

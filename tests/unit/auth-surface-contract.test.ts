@@ -19,7 +19,7 @@ const ROOT = process.cwd()
 
 function readAuth(...segments: string[]): string {
   return readFileSync(
-    join(ROOT, "app", "[locale]", "(auth)", ...segments),
+    join(ROOT, "app", "(main)", "[locale]", "(auth)", ...segments),
     "utf-8"
   )
 }

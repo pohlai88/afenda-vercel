@@ -5,6 +5,11 @@ export const requestSalaryAdvanceFormSchema = z.object({
   employeeId: z.string().uuid(),
   amount: z.string().regex(/^\d+(\.\d{1,2})?$/),
   reason: z.string().max(2000).optional(),
+  installmentCount: z.coerce.number().int().min(1).max(12).optional(),
+  firstPeriodEndIso: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 })
 
 export const decideSalaryAdvanceFormSchema = z.object({
@@ -20,3 +25,14 @@ export type RequestSalaryAdvanceFormInput = z.infer<
 export type DecideSalaryAdvanceFormInput = z.infer<
   typeof decideSalaryAdvanceFormSchema
 >
+
+/** Employee portal — org slug is resolved from portal context, not FormData. */
+export const employeePortalRequestAdvanceSchema = z.object({
+  amount: z.string().regex(/^\d+(\.\d{1,2})?$/),
+  reason: z.string().max(2000).optional(),
+  installmentCount: z.coerce.number().int().min(1).max(12).optional(),
+  firstPeriodEndIso: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+})

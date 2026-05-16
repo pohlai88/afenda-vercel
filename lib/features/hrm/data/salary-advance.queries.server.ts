@@ -1,9 +1,13 @@
 import "server-only"
 
-import { and, desc, eq, isNull } from "drizzle-orm"
+import { and, desc, eq, isNull, lte, sql } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { hrmEmployee, hrmSalaryAdvance } from "#lib/db/schema"
+import {
+  hrmEmployee,
+  hrmSalaryAdvance,
+  hrmSalaryAdvanceInstallment,
+} from "#lib/db/schema"
 
 export type SalaryAdvanceListRow = {
   id: string
@@ -14,6 +18,39 @@ export type SalaryAdvanceListRow = {
   state: string
   reason: string | null
   requestedAt: Date
+}
+
+export async function listSalaryAdvancesForEmployee(
+  organizationId: string,
+  employeeId: string,
+  limit = 50
+): Promise<SalaryAdvanceListRow[]> {
+  const rows = await db
+    .select({
+      id: hrmSalaryAdvance.id,
+      employeeId: hrmSalaryAdvance.employeeId,
+      employeeLegalName: hrmEmployee.legalName,
+      amount: hrmSalaryAdvance.amount,
+      currency: hrmSalaryAdvance.currency,
+      state: hrmSalaryAdvance.state,
+      reason: hrmSalaryAdvance.reason,
+      requestedAt: hrmSalaryAdvance.requestedAt,
+    })
+    .from(hrmSalaryAdvance)
+    .innerJoin(hrmEmployee, eq(hrmEmployee.id, hrmSalaryAdvance.employeeId))
+    .where(
+      and(
+        eq(hrmSalaryAdvance.organizationId, organizationId),
+        eq(hrmSalaryAdvance.employeeId, employeeId)
+      )
+    )
+    .orderBy(desc(hrmSalaryAdvance.requestedAt))
+    .limit(limit)
+
+  return rows.map((r) => ({
+    ...r,
+    amount: String(r.amount),
+  }))
 }
 
 export async function listSalaryAdvancesForOrg(
@@ -43,46 +80,96 @@ export async function listSalaryAdvancesForOrg(
   }))
 }
 
-export type SalaryAdvancePayrollInput = {
-  id: string
-  amount: string
-  currency: string
+export type SalaryAdvanceInstallmentPayrollInput = {
+  readonly id: string
+  readonly advanceId: string
+  readonly amount: string
+  readonly currency: string
 }
 
 /**
- * Approved advances not yet repaid — included in payroll engine input snapshot.
+ * Pending installments due on or before period end — payroll engine input snapshot.
  */
-export async function listApprovedSalaryAdvancesForEmployeePayroll(opts: {
+export async function listDueSalaryAdvanceInstallmentsForEmployeePayroll(opts: {
   readonly organizationId: string
   readonly employeeId: string
   readonly periodEndIso: string
-}): Promise<readonly SalaryAdvancePayrollInput[]> {
+}): Promise<readonly SalaryAdvanceInstallmentPayrollInput[]> {
   const rows = await db
     .select({
-      id: hrmSalaryAdvance.id,
-      amount: hrmSalaryAdvance.amount,
+      installmentId: hrmSalaryAdvanceInstallment.id,
+      advanceId: hrmSalaryAdvanceInstallment.advanceId,
+      plannedAmount: hrmSalaryAdvanceInstallment.plannedAmount,
       currency: hrmSalaryAdvance.currency,
-      requestedAt: hrmSalaryAdvance.requestedAt,
+      dueAfterPeriodEndIso: hrmSalaryAdvanceInstallment.dueAfterPeriodEndIso,
     })
-    .from(hrmSalaryAdvance)
+    .from(hrmSalaryAdvanceInstallment)
+    .innerJoin(
+      hrmSalaryAdvance,
+      eq(hrmSalaryAdvanceInstallment.advanceId, hrmSalaryAdvance.id)
+    )
     .where(
       and(
-        eq(hrmSalaryAdvance.organizationId, opts.organizationId),
+        eq(hrmSalaryAdvanceInstallment.organizationId, opts.organizationId),
         eq(hrmSalaryAdvance.employeeId, opts.employeeId),
         eq(hrmSalaryAdvance.state, "approved"),
-        isNull(hrmSalaryAdvance.repaidAt)
+        eq(hrmSalaryAdvanceInstallment.state, "pending"),
+        isNull(hrmSalaryAdvance.repaidAt),
+        // ISO date string lexicographic comparison is correct for YYYY-MM-DD
+        lte(
+          sql`${hrmSalaryAdvanceInstallment.dueAfterPeriodEndIso}::text`,
+          opts.periodEndIso
+        )
       )
     )
 
-  const end = opts.periodEndIso
-  return rows
-    .filter((r) => {
-      const req = r.requestedAt.toISOString().slice(0, 10)
-      return req <= end
+  return rows.map((row) => ({
+    id: row.installmentId,
+    advanceId: row.advanceId,
+    amount: String(row.plannedAmount),
+    currency: row.currency,
+  }))
+}
+
+export async function listAdvanceInstallmentsForEmployee(
+  organizationId: string,
+  employeeId: string,
+  _options: { readonly horizonMonths?: number } = {}
+): Promise<
+  readonly {
+    readonly id: string
+    readonly advanceId: string
+    readonly sequence: number
+    readonly dueAfterPeriodEndIso: string
+    readonly plannedAmount: string
+    readonly state: string
+  }[]
+> {
+  const rows = await db
+    .select({
+      id: hrmSalaryAdvanceInstallment.id,
+      advanceId: hrmSalaryAdvanceInstallment.advanceId,
+      sequence: hrmSalaryAdvanceInstallment.sequence,
+      dueAfterPeriodEndIso: hrmSalaryAdvanceInstallment.dueAfterPeriodEndIso,
+      plannedAmount: hrmSalaryAdvanceInstallment.plannedAmount,
+      state: hrmSalaryAdvanceInstallment.state,
     })
-    .map((r) => ({
-      id: r.id,
-      amount: String(r.amount),
-      currency: r.currency,
-    }))
+    .from(hrmSalaryAdvanceInstallment)
+    .innerJoin(
+      hrmSalaryAdvance,
+      eq(hrmSalaryAdvanceInstallment.advanceId, hrmSalaryAdvance.id)
+    )
+    .where(
+      and(
+        eq(hrmSalaryAdvanceInstallment.organizationId, organizationId),
+        eq(hrmSalaryAdvance.employeeId, employeeId)
+      )
+    )
+    .orderBy(hrmSalaryAdvanceInstallment.dueAfterPeriodEndIso)
+
+  return rows.map((row) => ({
+    ...row,
+    dueAfterPeriodEndIso: String(row.dueAfterPeriodEndIso),
+    plannedAmount: String(row.plannedAmount),
+  }))
 }

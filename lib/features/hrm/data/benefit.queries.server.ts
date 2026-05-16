@@ -10,6 +10,8 @@ import {
   hrmEmployee,
 } from "#lib/db/schema"
 
+import { evaluateBenefitEligibilityForEmployee } from "./benefit-enterprise.queries.server"
+import { summarizeBenefitEligibilityFailure } from "./benefit-eligibility.shared"
 import type {
   BenefitEnrollmentListRow,
   BenefitLifeEventRow,
@@ -379,6 +381,57 @@ export async function getBenefitEnrollmentForOrganization(
     .limit(1)
 
   return row ?? null
+}
+
+export type BenefitAvailableToEmployeeRow = {
+  readonly plan: BenefitPlanRow
+  readonly eligible: boolean
+  readonly ineligibleReason: string | null
+  readonly hasOpenEnrollment: boolean
+}
+
+export async function listBenefitsAvailableToEmployee(
+  organizationId: string,
+  employeeId: string
+): Promise<readonly BenefitAvailableToEmployeeRow[]> {
+  const plans = await listBenefitPlansForOrganization(organizationId, {
+    isActive: true,
+  })
+
+  const rows = await Promise.all(
+    plans.map(async (plan) => {
+      const [eligibility, coverage] = await Promise.all([
+        evaluateBenefitEligibilityForEmployee({
+          organizationId,
+          employeeId,
+          planId: plan.id,
+        }),
+        listBenefitEnrollmentCoverageRowsForEmployeePlan(
+          organizationId,
+          employeeId,
+          plan.id
+        ),
+      ])
+
+      const hasOpenEnrollment = coverage.some(
+        (row) => row.state === "pending" || row.state === "active"
+      )
+      const eligible = eligibility?.result.eligible === true
+
+      return {
+        plan,
+        eligible,
+        ineligibleReason:
+          eligible || !eligibility
+            ? null
+            : (summarizeBenefitEligibilityFailure(eligibility.result) ??
+              "Not eligible for this plan."),
+        hasOpenEnrollment,
+      } satisfies BenefitAvailableToEmployeeRow
+    })
+  )
+
+  return rows
 }
 
 export async function getBenefitLifeEventForOrganization(

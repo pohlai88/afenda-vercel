@@ -17,6 +17,11 @@ import {
   organizationAdminPath,
   organizationDashboardPath,
 } from "#lib/dashboard-module-paths"
+import {
+  DEFAULT_APP_LOCALE,
+  ensureAppLocale,
+  toLocalePath,
+} from "#lib/i18n/locales.shared"
 
 import { useWorkbenchCommand } from "../../workbench-command"
 import { WorkbenchControlMenu } from "./workbench-control-menu"
@@ -48,10 +53,13 @@ type WorkbenchRightUtilityBarProps = {
 
 function UtilityHelpLink() {
   const t = useTranslations("Dashboard.shell.utilityBar")
+  const envelope = useRouteEnvelope()
+  const locale = ensureAppLocale(envelope?.locale ?? DEFAULT_APP_LOCALE)
+  const href = toLocalePath(locale, "/ask-docs") as Route
 
   return (
     <WorkbenchUtilityRoundTooltipLink
-      href={"/" as Route}
+      href={href}
       ariaLabel={t("help")}
       tooltip={t("helpTooltip")}
     >

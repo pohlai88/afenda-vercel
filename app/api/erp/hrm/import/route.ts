@@ -19,7 +19,6 @@ import {
 } from "#features/hrm/server"
 import { HRM_IMPORT_TYPES, hrmImportTypeSchema } from "#features/hrm"
 
-export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
 /** Cap inline CSV stored for employee commit/rollback (chars). */

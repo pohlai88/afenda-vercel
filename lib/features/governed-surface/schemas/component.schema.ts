@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import type { SchemaStability } from "./_stability.shared"
 
-export const SCHEMA_STABILITY: SchemaStability = "experimental"
+export const SCHEMA_STABILITY: SchemaStability = "beta"
 
 /**
  * Separates renderer choice (`type`) from semantic intent (`serverType`) — see

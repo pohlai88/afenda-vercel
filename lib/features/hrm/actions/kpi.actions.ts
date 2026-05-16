@@ -76,9 +76,7 @@ async function requireKpiPermission(
 }
 
 function evidenceHash(snapshot: unknown): string {
-  return createHash("sha256")
-    .update(JSON.stringify(snapshot))
-    .digest("hex")
+  return createHash("sha256").update(JSON.stringify(snapshot)).digest("hex")
 }
 
 async function getActiveMetricById(input: {
@@ -369,7 +367,9 @@ export async function activateKpiPeriodAction(
     .limit(1)
   if (!period) return hrmActionFailure({ form: "KPI period not found." })
   if (period.state !== "draft") {
-    return hrmActionFailure({ form: "Only draft KPI periods can be activated." })
+    return hrmActionFailure({
+      form: "Only draft KPI periods can be activated.",
+    })
   }
 
   await db
@@ -698,7 +698,9 @@ export async function upsertKpiScoreAction(
     orgSlug: formData.get("orgSlug"),
     periodId: formData.get("periodId"),
     employeeId: formData.get("employeeId"),
-    metricCode: normalizeKpiMetricCode(String(formData.get("metricCode") ?? "")),
+    metricCode: normalizeKpiMetricCode(
+      String(formData.get("metricCode") ?? "")
+    ),
     targetValue: formData.get("targetValue"),
     achievedValue: formData.get("achievedValue"),
     notes: formData.get("notes"),

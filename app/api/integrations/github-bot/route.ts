@@ -7,7 +7,6 @@ import {
 import { getOrgBotLinkByGithubInstall } from "#features/knowledge"
 import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
 
-export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
 type GithubCommentWebhook = {

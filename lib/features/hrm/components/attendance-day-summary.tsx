@@ -135,9 +135,7 @@ export async function AttendanceDaySummary({
       <div className="flex flex-wrap items-baseline gap-2">
         <Badge variant={stateVariant}>{stateLabel}</Badge>
         <Badge variant={isPayrollBlocked ? "destructive" : "success"}>
-          {isPayrollBlocked
-            ? t("payrollBlockedLabel")
-            : t("payrollReadyLabel")}
+          {isPayrollBlocked ? t("payrollBlockedLabel") : t("payrollReadyLabel")}
         </Badge>
         {row.absenceCode ? (
           <Badge variant="outline">

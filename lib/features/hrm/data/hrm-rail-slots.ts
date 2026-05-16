@@ -8,11 +8,7 @@ import {
   organizationHrmPath,
   organizationHrmRootPath,
 } from "../constants"
-import type {
-  HrmCapability,
-  HrmNavKey,
-  HrmRailPressureMap,
-} from "../types"
+import type { HrmCapability, HrmNavKey, HrmRailPressureMap } from "../types"
 
 const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
   employees: "users",

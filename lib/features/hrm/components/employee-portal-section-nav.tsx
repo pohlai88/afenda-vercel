@@ -6,10 +6,16 @@ import { employeePortalPath, type EmployeePortalSection } from "#lib/portal"
 const SECTION_ORDER: readonly EmployeePortalSection[] = [
   "leave",
   "payslips",
+  "advances",
   "claims",
   "benefits",
+  "training",
   "attendance",
   "documents",
+  "signatures",
+  "profile",
+  "performance",
+  "offboarding",
 ]
 
 type EmployeePortalSectionNavProps = {

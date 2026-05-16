@@ -1,9 +1,9 @@
 import "server-only"
 
-import { gateway } from "@ai-sdk/gateway"
 import { rerank } from "ai"
 
 import type { HybridRetrievalRow } from "#features/knowledge/types"
+import { hasAiGatewayAuth, resolveRerankingModel } from "#lib/ai/gateway.server"
 
 export async function rerankKnowledgeRows(args: {
   query: string
@@ -16,8 +16,12 @@ export async function rerankKnowledgeRows(args: {
     return args.rows.slice(0, args.topK)
   }
 
+  if (!hasAiGatewayAuth()) {
+    return args.rows.slice(0, args.topK)
+  }
+
   const result = await rerank({
-    model: gateway.rerankingModel(modelId),
+    model: resolveRerankingModel(modelId),
     query: args.query,
     documents: args.rows.map((row) => row.body),
     topN: Math.min(args.topK, args.rows.length),

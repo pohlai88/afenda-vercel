@@ -49,9 +49,7 @@ import type {
   PayrollCloseActionFormState,
   PayrollCloseSnapshot,
 } from "../data/payroll-close.shared"
-import {
-  resolvePayrollPostingState,
-} from "../data/payroll-posting.shared"
+import { resolvePayrollPostingState } from "../data/payroll-posting.shared"
 import type {
   PayrollPostingRecord,
   PayrollPostingState,
@@ -762,7 +760,8 @@ export function PayrollClosePassport({
               <p className="mt-3 text-xs text-destructive">
                 {t("close.postingMismatch", {
                   currentHash: snapshot.postingPreview.inputHash.slice(0, 12),
-                  postedHash: postingRecord?.sourceHash.slice(0, 12) ?? "missing",
+                  postedHash:
+                    postingRecord?.sourceHash.slice(0, 12) ?? "missing",
                 })}
               </p>
             )}

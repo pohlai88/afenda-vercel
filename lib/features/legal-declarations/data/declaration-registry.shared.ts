@@ -403,7 +403,7 @@ export const declarationDocuments = {
           "The following vendors are validated as current or conditional subprocessors for the Afenda application stack. Customer-specific contracts may narrow, remove, or add vendors for a particular deployment.",
           "Vercel, Inc.: current hosting and application delivery boundary, including deployment infrastructure and Vercel-managed services referenced in the repository.",
           "Neon, LLC / Databricks: current managed PostgreSQL and authentication boundary, including pooled database access, Neon Auth, and repository features that store workflow, identity, or knowledge data.",
-          "OpenAI, LLC: conditional AI processor when OPENAI_API_KEY or AI_GATEWAY_API_KEY routes prompts, embeddings, retrieval chunks, or generated output through OpenAI-backed models.",
+          "OpenAI, LLC: conditional AI processor reached exclusively via Vercel AI Gateway (AI_GATEWAY_API_KEY locally, VERCEL_OIDC_TOKEN on Vercel) for prompts, embeddings, retrieval chunks, and generated outputs.",
           "Upstash, Inc.: conditional rate-limiting processor when UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are configured.",
           "Plus Five Five, Inc. / Resend: conditional transactional email processor when RESEND_API_KEY is configured.",
           "Functional Software, Inc. d/b/a Sentry: conditional monitoring processor when Sentry DSNs are configured and error or trace data is sent to Sentry.",
@@ -429,7 +429,7 @@ export const declarationDocuments = {
         title: "AI processing boundary",
         body: [
           "Afenda's AI path is treated separately from ordinary hosting because prompts, embeddings, retrieval chunks, generated outputs, and operator context can carry personal data or confidential business data.",
-          "The current code supports direct OpenAI use for embeddings and model calls, and Vercel AI Gateway for model routing where AI_GATEWAY_API_KEY is configured. Hugging Face, Cursor, Codex, and Cline are not treated as live production customer-data subprocessors unless customer data is intentionally submitted through those services.",
+          "All AI processing routes through Vercel AI Gateway. The repo no longer ships direct OpenAI client calls; provider selection (OpenAI, Anthropic, Google, Bedrock, Cohere) happens at the gateway. Hugging Face, Cursor, and Cline are not treated as live production customer-data subprocessors unless customer data is intentionally submitted through those services.",
         ],
         bullets: [
           "Do not send customer secrets, production credentials, personal data exports, or regulated records into development AI tools without a recorded approval path.",

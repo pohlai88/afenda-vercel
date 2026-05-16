@@ -141,6 +141,7 @@ describe("registry-derived path helpers", () => {
           join(
             process.cwd(),
             "app",
+            "(main)",
             "[locale]",
             "o",
             "[orgSlug]",

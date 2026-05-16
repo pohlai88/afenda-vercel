@@ -106,9 +106,8 @@ describe("PLATFORM_ADMIN_ALLOWED_SEGMENTS", () => {
           join(
             process.cwd(),
             "app",
+            "(main)",
             "[locale]",
-            "o",
-            "[orgSlug]",
             "operator",
             segment,
             "page.tsx"

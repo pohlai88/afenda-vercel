@@ -25,6 +25,11 @@ import { defineConfig } from "vitest/config"
 
 const workspaceRoot = path.resolve(import.meta.dirname, "..")
 
+process.env.DATABASE_URL ??= "postgresql://vitest:vitest@127.0.0.1:5432/vitest"
+process.env.NEON_AUTH_BASE_URL ??= "https://vitest.neonauth.example/neondb/auth"
+process.env.NEON_AUTH_COOKIE_SECRET ??=
+  "dGVzdHNlY3JldHRlc3RzZWNyZXR0ZXN0c2VjcmV0dGVzdA=="
+
 /**
  * Windows-only serial mode: V8 coverage uses a file-per-worker JSON strategy that races on
  * NTFS rename/read. On Linux/macOS, multiple forks can write to separate files safely.
@@ -41,6 +46,8 @@ export default defineConfig({
   root: workspaceRoot,
   resolve: {
     tsconfigPaths: true,
+    /** Single `next` instance so `next-intl` does not resolve a nested peer without Vitest stubs. */
+    dedupe: ["next", "react", "react-dom"],
     alias: {
       /**
        * `@neondatabase/auth/next/server` imports `next/headers` from its own peer
@@ -59,11 +66,30 @@ export default defineConfig({
         import.meta.dirname,
         "../tests/stubs/next-navigation.ts"
       ),
+      "next-intl/navigation": path.resolve(
+        import.meta.dirname,
+        "../tests/stubs/next-intl-navigation.ts"
+      ),
+      "server-only": path.resolve(
+        import.meta.dirname,
+        "../tests/stubs/server-only.ts"
+      ),
     },
   },
   plugins: [react()],
   test: {
     environment: "node",
+    env: {
+      DATABASE_URL:
+        process.env.DATABASE_URL ??
+        "postgresql://vitest:vitest@127.0.0.1:5432/vitest",
+      NEON_AUTH_BASE_URL:
+        process.env.NEON_AUTH_BASE_URL ??
+        "https://vitest.neonauth.example/neondb/auth",
+      NEON_AUTH_COOKIE_SECRET:
+        process.env.NEON_AUTH_COOKIE_SECRET ??
+        "dGVzdHNlY3JldHRlc3RzZWNyZXR0ZXN0c2VjcmV0dGVzdA==",
+    },
     testTimeout: 20_000,
     hookTimeout: 20_000,
     /** Discovery root — `include` globs are relative to this directory. */

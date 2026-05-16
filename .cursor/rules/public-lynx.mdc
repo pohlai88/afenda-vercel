@@ -1,25 +1,25 @@
 ---
-description: "Public Lynx" — the help-docs AI chat feature (deferred). Architecture constraints, branding contract, and implementation checklist for when this is built.
+description: "Public Lynx" — the public docs AI chat on /{locale}/ask-docs. Architecture constraints, branding contract, and change checklist.
 globs:
   - "app/api/chat/**"
   - "components/ai/chat*"
   - "components/ai/search*"
-  - "app/[locale]/help-docs/layout.tsx"
+  - "app/(ask-docs)/[locale]/ask-docs/layout.tsx"
 alwaysApply: false
 ---
 
-# Public Lynx — help-docs AI chat (DEFERRED)
+# Public Lynx — public docs AI chat
 
-> **Status: not yet built.** This rule captures the architecture contract so implementation is compliant when the feature is added. Do not build any part of this until the feature is explicitly requested.
+> **Status: active.** `app/api/chat/route.ts` + `#components/ai/search` on `/{locale}/ask-docs`. Vercel AI SDK + AI Gateway (`@ai-sdk/gateway` via `#lib/ai/gateway.server`); no org session; no `#features/lynx` import.
 
 ---
 
 ## What it is
 
-An AI chat dialog embedded in the public help-docs surface (`/{locale}/help-docs`), branded as **Lynx**.
+An AI chat dialog embedded in the public docs surface (`/{locale}/ask-docs`), branded as **Lynx**.
 
 - Visitors ask questions about Afenda's product.
-- The AI answers using help-docs content (`llms-full.txt`, Orama index, or per-page `.md` endpoints).
+- The AI answers using ask-docs content (`llms-full.txt`, Orama index, or per-page `.md` endpoints).
 - No org session required — fully public.
 
 ---
@@ -31,13 +31,29 @@ An AI chat dialog embedded in the public help-docs surface (`/{locale}/help-docs
 | | ERP Lynx (`lib/features/lynx/`) | Public Lynx (`app/api/chat/`) |
 |---|---|---|
 | Auth | `requireOrgSession()` — mandatory | None — public |
-| Scope | One org's ERP data | Public help-docs content |
+| Scope | One org's ERP data | Public docs content |
 | Audit | `erp.lynx.*` events required | No ERP audit subject |
 | Route | `app/api/erp/lynx/*` | `app/api/chat/route.ts` |
-| Import | `#features/lynx` | Vercel AI SDK directly |
+| Import | `#features/lynx` | Vercel AI SDK + AI Gateway |
 
 **Never route the public chat through `lib/features/lynx/`.**
 Doing so would either create a silent IDOR hole (no org session) or corrupt the Lynx audit contract.
+
+---
+
+## Prevented regressions (enforced in CI)
+
+| Failure mode | Prevention |
+|---|---|
+| Public chat imports ERP Lynx | ESLint `afenda/public-lynx-boundary` + `pnpm lint:public-lynx-contract` |
+| IAM session / audit on `/api/chat` | `scripts/check-public-lynx-contract.mjs` |
+| `req.json()` bypasses body size cap | Route must use `readPublicLynxChatRequestBody` from `lib/ask-docs/public-lynx-request.shared.ts` |
+| Duplicate transcript helpers in UI | `search.tsx` must use `buildPublicLynxConversationTranscript` + `extractPublicLynxMessageText` |
+| Bare `pnpm exec vitest run` (no config) | `check-public-lynx-contract.mjs` requires `--config .config/vitest.config.ts` on every `package.json` vitest script |
+
+**After touching this stack:** `pnpm lint:public-lynx-contract` and `pnpm exec vitest run --config .config/vitest.config.ts tests/unit/ask-docs/`.
+
+**Unit tests:** always `pnpm test:fast` or `pnpm exec vitest run --config .config/vitest.config.ts` — never bare `vitest run` (skips `server-only` / `next/navigation` stubs → false failures).
 
 ---
 
@@ -45,7 +61,7 @@ Doing so would either create a silent IDOR hole (no org session) or corrupt the 
 
 - Label in UI: **"Ask Lynx"** or **"Lynx"** — consistent with the authenticated ERP surface.
 - Do NOT use: "AI assistant", "chatbot", "copilot", "AI mode". See `lynx-knowledge.mdc` banned vocabulary.
-- Icon: use the Lynx brand mark, not a generic robot/spark icon.
+- Icon: use brand PNGs in `public/icons/lynx/` (`Lynx-transfrom-1.png` rest, `Lynx-transfrom-2.png` hover/open in light, `Lynx-transfrom-3.png` dark) via `LynxBrandMark` / `#lib/ask-docs/lynx-brand.shared` — full-fill round trigger, no padding. Never use lucide `MessageCircle` or generic robot/spark icons.
 
 ---
 
@@ -61,7 +77,7 @@ Mutations | Server Actions by default; Route Handlers only for
             `api/erp/<module>`, `api/chat`    ← add this
 ```
 
-Update the Quickstart table row for "Help docs AI chat".
+Update the Quickstart table row for "Ask docs AI chat".
 
 ### 2. API route
 
@@ -70,8 +86,9 @@ app/api/chat/route.ts    ← new, approved Route Handler family
 ```
 
 - Use Vercel AI SDK (`ai` package) directly — no Lynx barrel import.
-- Knowledge source: `llms-full.txt` (simplest), Orama vector index, or dedicated pgvector index.
-- Rate-limit aggressively (no auth = open to abuse). Use Upstash Redis ratelimit or Vercel KV.
+- Parse POST with `readPublicLynxChatRequestBody` — **not** `req.json()` (`PUBLIC_LYNX_MAX_RAW_BODY_CHARS`).
+- Knowledge source: flexsearch over ask-docs (`lib/ask-docs/public-lynx-search.server.ts`).
+- Rate-limit aggressively (no auth = open to abuse). `checkPublicLynxRateLimit` + Upstash when configured.
 - No `organizationId`, no `actorUserId`, no `writeIamAuditEvent` call.
 
 ### 3. Fumadocs integration
@@ -84,23 +101,17 @@ pnpm dlx @fumadocs/cli add ai/openrouter
 
 This installs `components/ai/search.tsx` (AI search panel + trigger).
 
-Wire into `app/[locale]/help-docs/layout.tsx`:
+Wire into `app/(ask-docs)/[locale]/ask-docs/layout.tsx`:
 
 ```tsx
 import { AISearch, AISearchPanel, AISearchTrigger } from "#components/ai/search"
 import { MessageCircleIcon } from "lucide-react"
-import { buttonVariants } from "fumadocs-ui/components/ui/button"
+import { buttonVariants } from "#components/ui/fumadocs-button"
 
 // Inside DocsLayout:
 <AISearch>
   <AISearchPanel />
-  <AISearchTrigger
-    position="float"
-    className={buttonVariants({ variant: "secondary", className: "rounded-2xl" })}
-  >
-    <MessageCircleIcon className="size-4.5" />
-    Ask Lynx
-  </AISearchTrigger>
+  <AISearchTrigger position="float" />
 </AISearch>
 ```
 
@@ -108,11 +119,11 @@ import { buttonVariants } from "fumadocs-ui/components/ui/button"
 
 ```dotenv
 # .env.local / Vercel env vars
-OPENROUTER_API_KEY="..."   # if using OpenRouter
-# or the provider key for whatever model is chosen
+AI_GATEWAY_API_KEY="vg_..."   # local dev — from Vercel → AI Gateway → API keys
+# On Vercel deploys, VERCEL_OIDC_TOKEN is auto-injected (no key needed)
 ```
 
-### 5. `help-docs-directory.mdc` update
+### 5. `ask-docs-directory.mdc` update
 
 Remove "Ask AI" from the deferred integrations table and add a quickstart entry for it.
 
@@ -124,9 +135,9 @@ Remove "Ask AI" from the deferred integrations table and add a quickstart entry 
 |---|---|
 | `app/api/chat/route.ts` | new — Vercel AI SDK streaming handler |
 | `components/ai/search.tsx` | new — installed by Fumadocs CLI |
-| `app/[locale]/help-docs/layout.tsx` | add `<AISearch>` wrapper |
+| `app/(ask-docs)/[locale]/ask-docs/layout.tsx` | add `<AISearch>` wrapper |
 | `AGENTS.md` | add `api/chat` to allowed Route Handler families |
-| `.cursor/rules/help-docs-directory.mdc` | move Ask AI from deferred → documented |
+| `.cursor/rules/ask-docs-directory.mdc` | move Ask AI from deferred → documented |
 | `.cursor/rules/public-lynx.mdc` | this file — remove "DEFERRED" from status |
 
 ---
@@ -135,4 +146,4 @@ Remove "Ask AI" from the deferred integrations table and add a quickstart entry 
 
 - [Fumadocs AI & LLMs guide](https://fumadocs.dev/docs/integrations/llms#ask-ai)
 - `lib/features/lynx/` — do not touch for this feature
-- `app/[locale]/help-docs/[[...slug]]/page.tsx` — today imports `MarkdownCopyButton` / `ViewOptionsPopover` from `fumadocs-ui/layouts/notebook/page` for LLM-friendly exports (pre–Public Lynx)
+- `app/(ask-docs)/[locale]/ask-docs/[[...slug]]/page.tsx` — today imports `MarkdownCopyButton` / `ViewOptionsPopover` from `fumadocs-ui/layouts/notebook/page` for LLM-friendly exports (pre–Public Lynx)

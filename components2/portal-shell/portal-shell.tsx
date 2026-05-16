@@ -2,6 +2,7 @@ import "server-only"
 
 import type { ReactNode } from "react"
 
+import { DevSignInPanelGate } from "#components/dev/dev-signin-panel-gate"
 import { RouteEnvelopeProvider } from "#components/route-envelope-context"
 import type { PortalContext } from "#lib/portal"
 import type { RouteEnvelope } from "#lib/route-envelope.shared"
@@ -62,6 +63,7 @@ export function PortalShell({ envelope, context, children }: PortalShellProps) {
         <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
           {children}
         </main>
+        <DevSignInPanelGate />
       </div>
     </RouteEnvelopeProvider>
   )

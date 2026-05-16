@@ -19,10 +19,7 @@ import {
   getErpPermissionDefinition,
   isKnownErpPermissionKey,
 } from "../constants"
-import type {
-  ErpRbacActionState,
-  TenantAuthorityRole,
-} from "../types"
+import type { ErpRbacActionState, TenantAuthorityRole } from "../types"
 import {
   listPermissionTuplesForRoleIds,
   listRoleIdsForUser,
@@ -104,7 +101,9 @@ async function upsertTenantAuthority(input: {
   })
 }
 
-async function countActiveSupportAdmins(organizationId: string): Promise<number> {
+async function countActiveSupportAdmins(
+  organizationId: string
+): Promise<number> {
   const rows = await db
     .select({ id: tenantAuthority.id })
     .from(tenantAuthority)
@@ -403,7 +402,9 @@ export async function grantErpPermissionAction(
   }
 
   const roleId = idSchema.safeParse(formData.get("roleId"))
-  const permissionKey = permissionKeySchema.safeParse(formData.get("permissionKey"))
+  const permissionKey = permissionKeySchema.safeParse(
+    formData.get("permissionKey")
+  )
   if (!roleId.success || !permissionKey.success) {
     return { ok: false, error: "Invalid permission grant input." }
   }

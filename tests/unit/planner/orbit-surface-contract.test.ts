@@ -16,6 +16,7 @@ describe("orbit surface contract", () => {
         join(
           ROOT,
           "app",
+          "(main)",
           "[locale]",
           "o",
           "[orgSlug]",
@@ -31,6 +32,7 @@ describe("orbit surface contract", () => {
         join(
           ROOT,
           "app",
+          "(main)",
           "[locale]",
           "(iam)",
           "account",
@@ -45,6 +47,7 @@ describe("orbit surface contract", () => {
         join(
           ROOT,
           "app",
+          "(main)",
           "[locale]",
           "o",
           "[orgSlug]",
@@ -59,6 +62,7 @@ describe("orbit surface contract", () => {
         join(
           ROOT,
           "app",
+          "(main)",
           "[locale]",
           "o",
           "[orgSlug]",
@@ -73,6 +77,7 @@ describe("orbit surface contract", () => {
         join(
           ROOT,
           "app",
+          "(main)",
           "[locale]",
           "o",
           "[orgSlug]",
@@ -87,6 +92,7 @@ describe("orbit surface contract", () => {
         join(
           ROOT,
           "app",
+          "(main)",
           "[locale]",
           "(iam)",
           "account",
@@ -97,7 +103,16 @@ describe("orbit surface contract", () => {
     ).toBe(true)
     expect(
       existsSync(
-        join(ROOT, "app", "[locale]", "(iam)", "account", "orbit", "error.tsx")
+        join(
+          ROOT,
+          "app",
+          "(main)",
+          "[locale]",
+          "(iam)",
+          "account",
+          "orbit",
+          "error.tsx"
+        )
       )
     ).toBe(true)
   })
@@ -105,6 +120,7 @@ describe("orbit surface contract", () => {
   it("mounts an Orbit command layer inside the org route segment", () => {
     const content = readRepoFile(
       "app",
+      "(main)",
       "[locale]",
       "o",
       "[orgSlug]",

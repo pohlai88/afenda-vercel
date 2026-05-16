@@ -47,6 +47,23 @@ export {
 } from "./schemas/detail-tabs.schema"
 
 export {
+  SCHEMA_STABILITY as STAT_CARD_SCHEMA_STABILITY,
+  parseStatCardConfiguration,
+  statCardConfigurationSchema,
+  type StatCardConfiguration,
+  type StatCardItem,
+  type StatCardTone,
+} from "./schemas/stat-card.schema"
+
+export {
+  SCHEMA_STABILITY as LIST_SURFACE_RENDERER_SCHEMA_STABILITY,
+  listSurfaceRendererConfigurationSchema,
+  parseListSurfaceRendererConfiguration,
+  type ListSurfaceRendererConfiguration,
+  type ListSurfaceRow,
+} from "./schemas/list-surface-renderer.schema"
+
+export {
   SCHEMA_STABILITY as GOVERNED_COMPONENT_SCHEMA_STABILITY,
   governedComponentSchema,
   parseGovernedComponentData,

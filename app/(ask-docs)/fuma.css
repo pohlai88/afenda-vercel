@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/solar.css";
+@import "fumadocs-ui/css/preset.css";
+
+/***
+
+ * Notebook layout scroll: do not trap height on #nd-page or lock body overflow.
+ * #nd-subnav keeps upstream sticky behavior (see Fumadocs notebook layout docs).
+ */
+/* https://www.fumadocs.dev/docs/ui/theme#layout-width */
+
+:root {
+  --fd-layout-width: 1240px;
+  --fd-sidebar-width: 240px;
+  --fd-toc-width: 220px;
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --fd-layout-width: 1480px;
+    --fd-sidebar-width: 260px;
+    --fd-toc-width: 240px;
+  }
+}

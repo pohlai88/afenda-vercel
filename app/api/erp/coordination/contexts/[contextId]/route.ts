@@ -2,7 +2,6 @@ import { getCoordinationContextDetail } from "#features/coordination/server"
 import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/tenant"
 
-export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
 export async function GET(

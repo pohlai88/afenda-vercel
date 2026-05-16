@@ -54,7 +54,7 @@ Zustand stores need no `<Provider>` — import `useAppShellStore` in any Client 
 Adding new shell state: extend `AppShellStore` in `app-shell.store.ts`. If the store grows beyond ~6 actions, split into a new file under `components2/stores/`.
 
 **Import alias:** `#app-shell` → `./components2/app-shell/index.ts` (server-only barrel)
-**Import alias:** `#components2/*` → `./components2/*` (direct access to components2 primitives)
+**Import alias:** `#components2/*` → `./components2/*` (direct access to components2 primitives). **`#components2`** (barrel) exports only `GovernedComponentRenderer` + registry — not shell or UI. Metadata kernel: `components2/metadata/` (ADR-0021). Dev preview: `components2/dev/app-shell-preview/`.
 
 ---
 

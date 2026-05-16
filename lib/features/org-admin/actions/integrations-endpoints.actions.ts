@@ -3,9 +3,7 @@
 import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
-import {
-  writeIamAuditEventFromNextHeaders,
-} from "#lib/auth"
+import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   createPlannerSignalLink,

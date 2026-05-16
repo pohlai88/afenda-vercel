@@ -22,13 +22,7 @@ Optional: `PLAYWRIGHT_BASE_URL` (see [`.env.config.example`](./.env.config.examp
 
 ## Database (Neon + Drizzle + pgvector)
 
-Production-shaped Postgres is **Neon** (see **[`AGENTS.md`](./AGENTS.md)** §5 — [**Neon + Vercel + pgvector checklist**](./AGENTS.md#neon--vercel--pgvector-checklist)). After connecting the **Vercel Marketplace Neon** integration and setting **`DATABASE_URL`**, run **`pnpm db:migrate:local`** (or migrate against each Neon branch you deploy). Knowledge / vector search also needs **`OPENAI_API_KEY`** on Vercel.
-
-## Codex SDK
-
-The repo now includes a server-only Codex helper at [`lib/codex/codex.server.ts`](./lib/codex/codex.server.ts) built around `@openai/codex-sdk`. It defaults to `OPENAI_API_KEY` when `CODEX_API_KEY` is unset and reads optional thread defaults from [`.env.config.example`](./.env.config.example) section G.
-
-Use [`startCodexThread`](./lib/codex/codex.server.ts) / [`resumeCodexThread`](./lib/codex/codex.server.ts) in server code, or smoke-test the integration with `pnpm codex:sdk:smoke`.
+Production-shaped Postgres is **Neon** (see **[`AGENTS.md`](./AGENTS.md)** §5 — [**Neon + Vercel + pgvector checklist**](./AGENTS.md#neon--vercel--pgvector-checklist)). After connecting the **Vercel Marketplace Neon** integration and setting **`DATABASE_URL`**, run **`pnpm db:migrate:local`** (or migrate against each Neon branch you deploy). Knowledge / vector search and Lynx AI need **`AI_GATEWAY_API_KEY`** locally; on Vercel, **`VERCEL_OIDC_TOKEN`** is auto-injected.
 
 ## Adding components
 

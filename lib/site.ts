@@ -192,18 +192,21 @@ export const BRAND_WORDMARK_MONO_SVG =
 export const DEFAULT_OG_IMAGE = APP_ICON_512_PNG
 
 /**
- * Constructs a GitHub source-file URL for a help-docs page so the
+ * Constructs a GitHub source-file URL for an ask-docs page so the
  * "Open in GitHub" link in `ViewOptionsPopover` resolves correctly.
  *
- * Set `NEXT_PUBLIC_HELP_DOCS_GITHUB_URL` to the base path of your MDX content
+ * Set `NEXT_PUBLIC_ASK_DOCS_GITHUB_URL` to the base path of your MDX content
  * on GitHub, e.g.:
- *   https://github.com/orgname/repo/blob/main/content/help-docs
+ *   https://github.com/orgname/repo/blob/main/content/ask-docs
  *
  * Returns `undefined` when the env var is absent so the popover omits the link
  * rather than showing a broken URL.
  */
-export function getHelpDocsGithubUrl(pagePath: string): string | undefined {
-  const base = process.env.NEXT_PUBLIC_HELP_DOCS_GITHUB_URL?.trim().replace(/\/$/, "")
+export function getAskDocsGithubUrl(pagePath: string): string | undefined {
+  const base = process.env.NEXT_PUBLIC_ASK_DOCS_GITHUB_URL?.trim().replace(
+    /\/$/,
+    ""
+  )
   if (!base) return undefined
   return `${base}/${pagePath}`
 }

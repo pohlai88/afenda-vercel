@@ -147,18 +147,18 @@ export async function enrollBenefitAction(
   }
 
   const effectiveFrom = parseIsoDateStart(data.effectiveFrom)
-  const existingCoverage = await listBenefitEnrollmentCoverageRowsForEmployeePlan(
-    organizationId,
-    data.employeeId,
-    data.planId
-  )
+  const existingCoverage =
+    await listBenefitEnrollmentCoverageRowsForEmployeePlan(
+      organizationId,
+      data.employeeId,
+      data.planId
+    )
   const coverageConflict = detectBenefitEnrollmentCoverageConflict({
     candidateStart: effectiveFrom,
     existing: existingCoverage,
   })
   if (coverageConflict) {
-    const message =
-      describeBenefitEnrollmentCoverageConflict(coverageConflict)
+    const message = describeBenefitEnrollmentCoverageConflict(coverageConflict)
     return hrmActionFailure({
       effectiveFrom: message,
       form: message,
@@ -454,7 +454,8 @@ export async function terminateBenefitEnrollmentAction(
   const coverageStart = enrollment.effectiveFrom ?? enrollment.enrolledAt
   if (terminatedAt.getTime() < coverageStart.getTime()) {
     return hrmActionFailure({
-      terminatedAt: "Termination date cannot be before enrollment coverage starts.",
+      terminatedAt:
+        "Termination date cannot be before enrollment coverage starts.",
       form: "Termination date cannot be before enrollment coverage starts.",
     })
   }

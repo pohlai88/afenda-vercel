@@ -229,7 +229,11 @@ export async function listKpiGoalMilestonesForGoals(input: {
         inArray(hrmKpiGoalMilestone.goalId, input.goalIds)
       )
     )
-    .orderBy(hrmKpiGoalMilestone.goalId, hrmKpiGoalMilestone.sortOrder, hrmKpiGoalMilestone.createdAt)
+    .orderBy(
+      hrmKpiGoalMilestone.goalId,
+      hrmKpiGoalMilestone.sortOrder,
+      hrmKpiGoalMilestone.createdAt
+    )
 }
 
 export async function listKpiGoalCommentsForGoals(input: {

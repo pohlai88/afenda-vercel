@@ -100,9 +100,11 @@ export function readAttendanceSnapshotExceptions(
   const exceptions = snapshot.exceptions
   if (!Array.isArray(exceptions)) return []
 
-  return exceptions.filter((exception): exception is AttendanceSnapshotException => {
-    return isRecord(exception) && typeof exception.message === "string"
-  })
+  return exceptions.filter(
+    (exception): exception is AttendanceSnapshotException => {
+      return isRecord(exception) && typeof exception.message === "string"
+    }
+  )
 }
 
 export function attendanceSnapshotHasPayrollBlockingException(

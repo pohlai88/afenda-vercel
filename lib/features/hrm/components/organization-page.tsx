@@ -31,6 +31,7 @@ import {
   listPositionControlRows,
 } from "../data/org-structure.queries.server"
 
+import { OrgChartPanel } from "./org-chart-panel"
 import { OrganizationTabNav } from "./organization-tab-nav"
 import {
   OrganizationAssignmentDialog,
@@ -94,6 +95,18 @@ export async function OrganizationPage({
       {activeTab === "overview" ? (
         <Suspense fallback={<Skeleton className="h-48 w-full rounded-lg" />}>
           <OrgOverviewPanel />
+        </Suspense>
+      ) : null}
+
+      {activeTab === "chart" ? (
+        <Suspense
+          fallback={<Skeleton className="h-[32rem] w-full rounded-lg" />}
+        >
+          <OrgChartPanel
+            orgSlug={orgSlug}
+            includeArchived={includeArchived}
+            canMutate={canMutate}
+          />
         </Suspense>
       ) : null}
 

@@ -1,11 +1,35 @@
 {
   "version": 1,
   "skills": {
+    "dry": {
+      "source": "jordancoin/codingskills",
+      "sourceType": "github",
+      "skillPath": "skills/dry/SKILL.md",
+      "computedHash": "149ae7a01fba8121a2031808acaccdd4f0b7a2f62577c8973cfb094427fa4fed"
+    },
+    "kiss": {
+      "source": "jordancoin/codingskills",
+      "sourceType": "github",
+      "skillPath": "skills/kiss/SKILL.md",
+      "computedHash": "ed11e47209fb6c7578dd525cb88252593f0f11275986052d640b07e139df4e21"
+    },
+    "kiss-dry-yagni": {
+      "source": "thebeardedbearsas/claude-craft",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/kiss-dry-yagni/SKILL.md",
+      "computedHash": "fe64fd54720d364789122510b794ee3f87cdd209fc8c38c91d0eac5ba148b54a"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",
       "skillPath": "skills/shadcn/SKILL.md",
       "computedHash": "80a6226e78f6d1fe464214ae0ef449d49d8ffaa3e7704f011e9b418c678ad4d1"
+    },
+    "yagni": {
+      "source": "jordancoin/codingskills",
+      "sourceType": "github",
+      "skillPath": "skills/yagni/SKILL.md",
+      "computedHash": "09f3cd68b7c600a6a2dd85d1254f8b3bc423404b08a4c82e4390cb1a8e348718"
     }
   }
 }

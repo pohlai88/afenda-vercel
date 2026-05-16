@@ -4,6 +4,7 @@ import type { KnowledgeSourceSyncPayload } from "./schemas/knowledge-source-sync
 import type { PlannerRecurrenceRunPayload } from "./schemas/planner-recurrence-run-payload.schema"
 import type { PlannerReminderRunPayload } from "./schemas/planner-reminder-run-payload.schema"
 import type { PayrollFinalizePayload } from "./schemas/payroll-finalize-payload.schema"
+import type { SignatureSealPayload } from "./schemas/signature-seal-payload.schema"
 
 export {
   EXECUTION_AUDIT_ACTIONS,
@@ -34,6 +35,10 @@ export {
   payrollFinalizePayloadSchema,
   type PayrollFinalizePayload,
 } from "./schemas/payroll-finalize-payload.schema"
+export {
+  signatureSealPayloadSchema,
+  type SignatureSealPayload,
+} from "./schemas/signature-seal-payload.schema"
 
 async function enqueueWorkflowWithOtelSpan(
   spanName: string,
@@ -82,6 +87,26 @@ export async function enqueueOrgImportJobWorkflowRun(
  * Enqueues durable payroll preview computation for every draft run in a period.
  * Workflow implementation: `lib/features/hrm/data/payroll-finalize.workflow.ts`.
  */
+export async function enqueueHrmSignatureSealWorkflowRun(
+  payload: SignatureSealPayload
+): Promise<void> {
+  await enqueueWorkflowWithOtelSpan(
+    "execution.workflow.hrm_signature_seal.enqueue",
+    payload.organizationId,
+    {
+      "erp.workflow": "hrm_signature_seal",
+      "erp.signature.request.id": payload.requestId,
+    },
+    async () => {
+      const [{ hrmSignatureSealWorkflow }, { start }] = await Promise.all([
+        import("./data/signature-seal-run-entry"),
+        import("workflow/api"),
+      ])
+      await start(hrmSignatureSealWorkflow, [payload])
+    }
+  )
+}
+
 export async function enqueuePayrollFinalizeWorkflowRun(
   payload: PayrollFinalizePayload
 ): Promise<void> {

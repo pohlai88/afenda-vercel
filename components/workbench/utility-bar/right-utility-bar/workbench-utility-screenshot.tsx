@@ -54,7 +54,6 @@ function waitForNextPaint(): Promise<void> {
   })
 }
 
-
 /**
  * Quick viewport capture utility for governed screenshot intake from the Nexus right rail.
  * v1 captures one PNG at a time, previews it, then uploads through the existing Blob route.

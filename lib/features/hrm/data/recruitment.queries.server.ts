@@ -13,6 +13,7 @@ import {
   hrmRecruitmentEvent,
 } from "#lib/db/schema"
 
+import { readRequisitionSkillRequirements } from "./recruitment-workflow.shared"
 import type {
   HrmApplicationStage,
   HrmInterviewOutcome,
@@ -27,6 +28,7 @@ export type JobRequisitionRow = {
   departmentName: string | null
   headcount: number
   status: HrmJobRequisitionStatus
+  requiredSkillCodes: readonly string[]
   createdAt: Date
 }
 
@@ -93,6 +95,7 @@ export async function listJobRequisitionsForOrg(
       departmentName: hrmDepartment.name,
       headcount: hrmJobRequisition.headcount,
       status: hrmJobRequisition.status,
+      audit7w1h: hrmJobRequisition.audit7w1h,
       createdAt: hrmJobRequisition.createdAt,
     })
     .from(hrmJobRequisition)
@@ -113,6 +116,7 @@ export async function listJobRequisitionsForOrg(
     departmentName: r.departmentName,
     headcount: r.headcount,
     status: requisitionStatus(r.status),
+    requiredSkillCodes: readRequisitionSkillRequirements(r.audit7w1h),
     createdAt: r.createdAt,
   }))
 }
@@ -331,4 +335,3 @@ export async function listRecentRecruitmentEventsForOrg(
     .orderBy(desc(hrmRecruitmentEvent.createdAt))
     .limit(limit)
 }
-

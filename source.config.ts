@@ -1,4 +1,4 @@
-import { defineConfig, defineDocs } from "fumadocs-mdx/config"
+import { applyMdxPreset, defineConfig, defineDocs } from "fumadocs-mdx/config"
 import jsonSchema from "fumadocs-mdx/plugins/json-schema"
 import lastModified from "fumadocs-mdx/plugins/last-modified"
 import type { RehypeCodeOptions } from "fumadocs-core/mdx-plugins"
@@ -15,14 +15,25 @@ import {
 } from "fumadocs-typescript"
 import { z } from "zod"
 
+/**
+ * `BuildEnvironment` is an internal type in fumadocs-mdx not re-exported from the
+ * public config surface. Derive it structurally from the `applyMdxPreset` return
+ * signature rather than reaching into an internal module or using `any`.
+ *
+ * applyMdxPreset(opts) → (environment: BuildEnvironment) → Promise<ProcessorOptions>
+ * Parameters<ReturnType<...>>[0]  →  'bundler' | 'runtime'
+ */
+type MdxBuildEnvironment = Parameters<ReturnType<typeof applyMdxPreset>>[0]
+
 const typescriptGenerator = createGenerator({
   cache: createFileSystemGeneratorCache(".next/fumadocs-typescript"),
 })
 
 const twoslashTypesCache = createFileSystemTypesCache()
 
+/** Locale routing for ask-docs lives in `askDocsI18n` (`lib/ask-docs-source.ts`); fumadocs-mdx `defineDocs` has no `i18n` field in v15. */
 export const docs = defineDocs({
-  dir: "content/help-docs",
+  dir: "content/ask-docs",
   docs: {
     schema: pageSchema.extend({
       audience: z.enum(["admin", "employee", "developer"]).optional(),
@@ -33,6 +44,44 @@ export const docs = defineDocs({
       includeProcessedMarkdown: true,
       extractLinkReferences: true,
     },
+    async: true,
+    async mdxOptions(environment: MdxBuildEnvironment) {
+      const { remarkSteps } =
+        await import("fumadocs-core/mdx-plugins/remark-steps")
+      const rehypeCodeOptions: RehypeCodeOptions = {
+        inline: "tailing-curly-colon",
+        themes: {
+          light: "catppuccin-latte",
+          dark: "catppuccin-mocha",
+        },
+        transformers: [
+          ...(rehypeCodeDefaultOptions.transformers ?? []),
+          transformerTwoslash({
+            typesCache: twoslashTypesCache,
+          }),
+        ],
+      }
+      return applyMdxPreset({
+        rehypeCodeOptions,
+        remarkCodeTabOptions: {
+          parseMdx: true,
+        },
+        remarkNpmOptions: {
+          persist: {
+            id: "package-manager",
+          },
+        },
+        remarkImageOptions: {
+          placeholder: "blur",
+        },
+        remarkPlugins: [
+          remarkMdxMermaid,
+          [remarkAutoTypeTable, { generator: typescriptGenerator }],
+          remarkTypeScriptToJavaScript,
+          remarkSteps,
+        ],
+      })(environment)
+    },
   },
   meta: {
     schema: metaSchema,
@@ -42,30 +91,4 @@ export const docs = defineDocs({
 export default defineConfig({
   // Reads git history to populate `page.data.lastModified` (Date | undefined) for each document.
   plugins: [lastModified(), jsonSchema({ insert: true })],
-  mdxOptions: {
-    remarkPlugins: [
-      remarkMdxMermaid,
-      [remarkAutoTypeTable, { generator: typescriptGenerator }],
-      remarkTypeScriptToJavaScript,
-    ],
-    // Blur-up placeholder for images referenced in MDX (Next.js only).
-    // The built-in remarkImage plugin transforms `![](./img.png)` into next/image imports;
-    // `placeholder: "blur"` pre-generates a low-quality placeholder at build time.
-    remarkImageOptions: {
-      placeholder: "blur",
-    },
-    // Enable inline code syntax highlighting.
-    // Syntax: `value{:lang}` e.g. `const x = 1{:ts}` or `SELECT *{:sql}`
-    // Without the `{:lang}` suffix, inline code renders as plain text (backward-compatible).
-    rehypeCodeOptions: {
-      ...rehypeCodeDefaultOptions,
-      inline: "tailing-curly-colon",
-      transformers: [
-        ...(rehypeCodeDefaultOptions.transformers ?? []),
-        transformerTwoslash({
-          typesCache: twoslashTypesCache,
-        }),
-      ],
-    } as RehypeCodeOptions,
-  },
 })

@@ -47,7 +47,7 @@ function baseInput(
     pcbTp1AdditionalReliefMonthly: "0.00",
     pcbTp3AdditionalDeductionMonthly: "0.00",
     approvedUnpaidClaims: [],
-    approvedSalaryAdvances: [],
+    approvedSalaryAdvanceInstallments: [],
     ...overrides,
   }
 }

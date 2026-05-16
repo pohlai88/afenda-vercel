@@ -9,7 +9,7 @@ import type {
 } from "../schemas/detail-tabs.schema"
 import { governedDetailTabsSchema } from "../schemas/detail-tabs.schema"
 
-import { resolveGovernedDetailSectionContent } from "./detail-section-render-registry"
+import { resolveGovernedDetailSectionContent } from "#components2/metadata"
 import { GovernedAuditPanel } from "./governed-audit-panel"
 import { GovernedEmpty } from "./governed-empty"
 

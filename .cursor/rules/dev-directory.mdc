@@ -1,12 +1,13 @@
 ---
-description: Gated developer tooling under components/dev (no globals.css edits)
-globs: "components/dev/**/*.{ts,tsx}"
+description: Gated developer tooling under components/dev and components2/dev
+globs: "components/dev/**/*.{ts,tsx},components2/dev/**/*.{ts,tsx}"
 alwaysApply: false
 ---
 
-# Developer overlays (`components/dev/`)
+# Developer overlays (`components/dev/`, `components2/dev/`)
 
 - **Purpose:** local-only UX (e.g. sign-in shortcuts, `route-error-debug-panel.tsx`). Must stay **gated** (`NODE_ENV`, optional `NEXT_PUBLIC_*` — see `.env.config.example` §H).
 - **Do not** add routes, IAM, or ERP logic here.
+- **`components2/dev/`** — app-shell preview playground (`app-shell-preview/preview-page.tsx`, `fixtures/`). The route `app/(main)/[locale]/dev/shell-preview/page.tsx` is a thin wrapper only. Preserve shell JSX structure when moving fixtures (ADR-0021).
 - **Do not** edit [`app/globals.css`](../../app/globals.css) for these surfaces. Style with existing semantic Tailwind tokens (`bg-card`, `border-border`, `text-muted-foreground`, `shadow-elevation-*`) plus **`#lib/design-system`** (`ui.*` preferred; legacy `uiRadius`, `uiSurfaceElevation`, `uiStatusToneClasses`, surface spacing utilities remain supported).
 - **Forbidden:** raw palette utilities (`bg-amber-*`, `text-blue-*`, etc.) — same spirit as `scripts/check-design-contract.mjs` for non-primitive app components.

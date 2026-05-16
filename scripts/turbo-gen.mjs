@@ -25,7 +25,7 @@ function parseModuleFlag() {
 }
 
 function buildTurboArgv() {
-  if (argv[0] === "help-doc") {
+  if (argv[0] === "ask-doc") {
     const pick = (flag) => {
       const eq = argv.find((a) => a.startsWith(`${flag}=`))
       if (eq) return eq.slice(flag.length + 1)
@@ -39,17 +39,10 @@ function buildTurboArgv() {
     const description = pick("--description")
     const audience = pick("--audience")
     const status = pick("--status")
-    if (
-      section &&
-      slug &&
-      title &&
-      description &&
-      audience &&
-      status
-    ) {
+    if (section && slug && title && description && audience && status) {
       return [
         "gen",
-        "help-doc",
+        "ask-doc",
         "--args",
         section,
         "--args",

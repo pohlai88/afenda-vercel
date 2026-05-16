@@ -3,6 +3,24 @@ import { vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
 
+/** Keeps `#features/erp-rbac` barrel imports from pulling `#i18n/navigation` in Node tests. */
+vi.mock("#i18n/navigation", () => ({
+  Link: ({ children }: { children?: unknown }) => children,
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => "/",
+  redirect: vi.fn(),
+}))
+
+vi.mock("next-intl/navigation", () => ({
+  createNavigation: () => ({
+    Link: ({ children }: { children?: unknown }) => children,
+    redirect: vi.fn(),
+    usePathname: () => "/",
+    useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+    getPathname: vi.fn(() => "/"),
+  }),
+}))
+
 configure({ asyncUtilTimeout: 10_000 })
 
 /** Stub Neon Auth env so the createNeonAuth call doesn't throw during unit test imports. */

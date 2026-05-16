@@ -1,5 +1,7 @@
 import { expect, test } from "./fixtures/auth"
 
+import { assertNoSeriousAxeViolations } from "./utils/axe"
+
 const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
 const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
 
@@ -27,10 +29,16 @@ test.describe("HRM employee portal sections", () => {
   const sections = [
     { path: "leave", heading: "My leave" },
     { path: "payslips", heading: "My payslips" },
+    { path: "advances", heading: "My salary advances" },
     { path: "claims", heading: "My claims" },
     { path: "benefits", heading: "My benefits" },
+    { path: "training", heading: "My training" },
     { path: "attendance", heading: "My attendance" },
     { path: "documents", heading: "My documents" },
+    { path: "signatures", heading: "My signatures" },
+    { path: "profile", heading: "My profile" },
+    { path: "performance", heading: "My performance" },
+    { path: "offboarding", heading: "My exit checklist" },
   ] as const
 
   for (const { path, heading } of sections) {
@@ -43,6 +51,7 @@ test.describe("HRM employee portal sections", () => {
         await expect(
           page.getByRole("heading", { name: heading, exact: true })
         ).toBeVisible()
+        await assertNoSeriousAxeViolations(page)
       }
     )
   }

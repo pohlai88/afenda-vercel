@@ -198,12 +198,15 @@ export function MessengerPanel({
 
     const rt = new Ably.Realtime({
       authCallback: (_tokenParams, callback) => {
-        void fetch(new URL("/api/erp/messenger/auth", window.location.origin).toString(), {
-          method: "POST",
-          credentials: "include",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({}),
-        })
+        void fetch(
+          new URL("/api/erp/messenger/auth", window.location.origin).toString(),
+          {
+            method: "POST",
+            credentials: "include",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({}),
+          }
+        )
           .then(async (r) => {
             if (!r.ok) throw new Error("auth failed")
             return (await r.json()) as Ably.TokenRequest | Ably.TokenDetails

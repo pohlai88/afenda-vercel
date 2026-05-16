@@ -4,7 +4,7 @@
  * Every generator output path goes through these helpers so:
  *   - Module folder shape matches AGENTS.md §6 (`lib/features/<slug>/`).
  *   - Route placement matches the locale-first surface
- *     (`app/[locale]/o/[orgSlug]/dashboard/<slug>/`).
+ *     (`app/(main)/[locale]/o/[orgSlug]/dashboard/<slug>/`).
  *   - ADRs land in `docs/decisions/` only.
  *   - i18n keys are inserted into `messages/en.json` only.
  *
@@ -41,11 +41,11 @@ export function moduleFile(slug: string, rel: string): string {
 }
 
 /**
- * Route directory under `app/[locale]/o/[orgSlug]/dashboard/<slug>/`.
+ * Route directory under `app/(main)/[locale]/o/[orgSlug]/dashboard/<slug>/`.
  * Used for capability route placement only.
  */
 export function dashboardRouteDir(slug: string): string {
-  return `app/[locale]/o/[orgSlug]/dashboard/${slug}`
+  return `app/(main)/[locale]/o/[orgSlug]/dashboard/${slug}`
 }
 
 /** Module audit-contract file: `<module>.contract.ts` at the module root. */

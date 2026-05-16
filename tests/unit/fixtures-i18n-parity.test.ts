@@ -14,6 +14,7 @@ import en from "../../messages/en.json"
 import { AUTH_PUBLIC_SHELL_COPY } from "../fixtures/auth-public-shell"
 import {
   BOOTSTRAP_FIXTURE,
+  DEMO_EMPLOYEE_PORTAL_SLUG,
   DEMO_PUBLIC_COPY,
   DEV_SIGNIN_PRESET_EMAILS,
   ORG_ADMIN_AUDIT_E2E_COPY,
@@ -88,13 +89,13 @@ describe("fixtures ↔ repo sources (substring scan)", () => {
 
   it("AUTH_PUBLIC_SHELL_COPY appears in auth route forms", () => {
     const forgot = readRepoFile(
-      "app/[locale]/(auth)/forgot-password/forgot-password-form.tsx"
+      "app/(main)/[locale]/(auth)/forgot-password/forgot-password-form.tsx"
     )
     const reset = readRepoFile(
-      "app/[locale]/(auth)/reset-password/reset-password-form.tsx"
+      "app/(main)/[locale]/(auth)/reset-password/reset-password-form.tsx"
     )
     const verify = readRepoFile(
-      "app/[locale]/(auth)/verify-email/verify-email-form.tsx"
+      "app/(main)/[locale]/(auth)/verify-email/verify-email-form.tsx"
     )
     expect(forgot).toContain(AUTH_PUBLIC_SHELL_COPY.forgotPasswordTitle)
     expect(forgot).toContain(AUTH_PUBLIC_SHELL_COPY.forgotPasswordSend)
@@ -124,6 +125,7 @@ describe("fixtures ↔ repo sources (substring scan)", () => {
     const panel = readRepoFile("components/dev/dev-signin-panel.tsx")
     expect(panel).toContain(BOOTSTRAP_FIXTURE.organization.id)
     expect(panel).toContain(BOOTSTRAP_FIXTURE.organization.slug)
+    expect(panel).toContain(DEMO_EMPLOYEE_PORTAL_SLUG)
     expect(panel).toContain(DEV_SIGNIN_PRESET_EMAILS.owner)
     expect(panel).toContain(DEV_SIGNIN_PRESET_EMAILS.erp)
   })

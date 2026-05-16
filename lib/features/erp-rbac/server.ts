@@ -1,5 +1,6 @@
 import "server-only"
 
+export { AccessAdminPage } from "./components/access-admin-page"
 export {
   canUseErpPermission,
   canUseErpPermissionForCurrentOrg,

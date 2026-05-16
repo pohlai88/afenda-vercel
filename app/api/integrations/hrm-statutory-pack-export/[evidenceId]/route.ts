@@ -46,8 +46,6 @@ function isStatutoryPackExportFormat(
   return (STATUTORY_PACK_EXPORT_FORMATS as readonly string[]).includes(value)
 }
 
-export const dynamic = "force-dynamic"
-
 /**
  * Phase 3R — Deterministic statutory-evidence export (JSON or CSV) with a
  * tamper-evident response hash anchor.

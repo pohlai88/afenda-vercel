@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "afenda",
+  "homepage": "https://afenda.com",
+  "items": [
+    {
+      "name": "base",
+      "type": "registry:base",
+      "title": "Afenda design tokens",
+      "description": "Tailwind v4 + CSS variable bridge from app/globals.css",
+      "files": [
+        {
+          "path": "app/globals.css",
+          "type": "registry:file",
+          "target": "app/globals.css"
+        }
+      ]
+    }
+  ]
+}

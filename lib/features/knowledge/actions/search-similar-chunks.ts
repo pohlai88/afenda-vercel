@@ -42,7 +42,7 @@ export async function searchSimilarKnowledgeChunks(
     return {
       ok: false,
       errors: {
-        form: "Could not embed search query. Check OPENAI_API_KEY and try again.",
+        form: "Could not embed search query. Check AI Gateway credentials and try again.",
       },
     }
   }

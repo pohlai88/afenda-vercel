@@ -22,13 +22,13 @@ import { routing } from "./i18n/routing"
 const intlMiddleware = createIntlMiddleware(routing)
 
 /**
- * Rewrite /{locale}/help-docs/… → /llms.mdx/help-docs/… for AI clients that
+ * Rewrite `/{locale}/ask-docs/…` → `/llms.mdx/ask-docs/…` for AI clients that
  * prefer Markdown over HTML (Accept: text/markdown / text/plain / text/x-markdown).
- * The /llms.mdx route handler serves the processed MDX as plain text.
+ * The `/llms.mdx` route handler serves the processed MDX as plain text.
  */
-const { rewrite: rewriteHelpDocsMarkdown } = rewritePath(
-  "/:locale/help-docs{/*path}",
-  "/llms.mdx/help-docs{/*path}"
+const { rewrite: rewriteAskDocsMarkdown } = rewritePath(
+  "/:locale/ask-docs{/*path}",
+  "/llms.mdx/ask-docs/:locale{/*path}"
 )
 
 function copySetCookieHeaders(from: NextResponse, to: NextResponse) {
@@ -62,7 +62,7 @@ export function proxy(request: NextRequest) {
   // AI agents that prefer Markdown get the raw MDX content directly — no locale
   // processing or auth check needed for the markdown endpoint.
   if (isMarkdownPreferred(request)) {
-    const rewritten = rewriteHelpDocsMarkdown(request.nextUrl.pathname)
+    const rewritten = rewriteAskDocsMarkdown(request.nextUrl.pathname)
     if (rewritten) {
       return NextResponse.rewrite(new URL(rewritten, request.nextUrl))
     }
@@ -129,7 +129,5 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Exclude api routes, Next.js internals, Vercel internals, static files, and
   // the Sentry tunnel route (/monitoring) which must not be intercepted by intl middleware.
-  matcher: [
-    "/((?!api|monitoring|og|_next|_vercel|\\.well-known|.*\\..*).*)",
-  ],
+  matcher: ["/((?!api|monitoring|og|_next|_vercel|\\.well-known|.*\\..*).*)"],
 }

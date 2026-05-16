@@ -23,11 +23,13 @@ alwaysApply: false
 
 ## Vitest scripts (AGENTS.md §2)
 
+**Mandatory:** every Vitest invocation must pass `--config .config/vitest.config.ts` (enforced by `pnpm lint:public-lynx-contract` on `package.json` scripts). Bare `pnpm exec vitest run` skips `server-only` / `next/navigation` stubs and produces false failures (e.g. `neon-auth-env.server.test.ts`, Public Lynx tests).
+
 | Script | Purpose |
 |--------|---------|
-| `pnpm test` | Watch mode |
-| `pnpm test:fast` | `vitest run` without coverage (`with-env.mjs`) |
-| `pnpm test:ci` / `pnpm test:coverage` | `vitest run --coverage` |
+| `pnpm test` | Watch mode (`--config .config/vitest.config.ts`) |
+| `pnpm test:fast` | `vitest run --config .config/vitest.config.ts` without coverage (`with-env.mjs`) |
+| `pnpm test:ci` / `pnpm test:coverage` | `vitest run --config .config/vitest.config.ts --coverage` |
 | `pnpm test:analyze:imports` | `--experimental.importDurations.print=true` — slow imports |
 | `pnpm test:analyze:imports:warn` | `print=on-warn` |
 

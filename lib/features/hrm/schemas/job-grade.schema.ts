@@ -40,7 +40,8 @@ export const createJobGradeArchitectureFormSchema = z
     },
     {
       path: ["maxSalaryAmount"],
-      message: "Maximum salary must be greater than or equal to minimum salary.",
+      message:
+        "Maximum salary must be greater than or equal to minimum salary.",
     }
   )
 

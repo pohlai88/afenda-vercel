@@ -1,5 +1,5 @@
 // source.config.ts
-import { defineConfig, defineDocs } from "fumadocs-mdx/config";
+import { applyMdxPreset, defineConfig, defineDocs } from "fumadocs-mdx/config";
 import jsonSchema from "fumadocs-mdx/plugins/json-schema";
 import lastModified from "fumadocs-mdx/plugins/last-modified";
 import { remarkMdxMermaid } from "fumadocs-core/mdx-plugins";
@@ -19,7 +19,7 @@ var typescriptGenerator = createGenerator({
 });
 var twoslashTypesCache = createFileSystemTypesCache();
 var docs = defineDocs({
-  dir: "content/help-docs",
+  dir: "content/ask-docs",
   docs: {
     schema: pageSchema.extend({
       audience: z.enum(["admin", "employee", "developer"]).optional(),
@@ -29,6 +29,43 @@ var docs = defineDocs({
     postprocess: {
       includeProcessedMarkdown: true,
       extractLinkReferences: true
+    },
+    async: true,
+    async mdxOptions(environment) {
+      const { remarkSteps } = await import("fumadocs-core/mdx-plugins/remark-steps");
+      const rehypeCodeOptions = {
+        inline: "tailing-curly-colon",
+        themes: {
+          light: "catppuccin-latte",
+          dark: "catppuccin-mocha"
+        },
+        transformers: [
+          ...rehypeCodeDefaultOptions.transformers ?? [],
+          transformerTwoslash({
+            typesCache: twoslashTypesCache
+          })
+        ]
+      };
+      return applyMdxPreset({
+        rehypeCodeOptions,
+        remarkCodeTabOptions: {
+          parseMdx: true
+        },
+        remarkNpmOptions: {
+          persist: {
+            id: "package-manager"
+          }
+        },
+        remarkImageOptions: {
+          placeholder: "blur"
+        },
+        remarkPlugins: [
+          remarkMdxMermaid,
+          [remarkAutoTypeTable, { generator: typescriptGenerator }],
+          remarkTypeScriptToJavaScript,
+          remarkSteps
+        ]
+      })(environment);
     }
   },
   meta: {
@@ -37,33 +74,7 @@ var docs = defineDocs({
 });
 var source_config_default = defineConfig({
   // Reads git history to populate `page.data.lastModified` (Date | undefined) for each document.
-  plugins: [lastModified(), jsonSchema({ insert: true })],
-  mdxOptions: {
-    remarkPlugins: [
-      remarkMdxMermaid,
-      [remarkAutoTypeTable, { generator: typescriptGenerator }],
-      remarkTypeScriptToJavaScript
-    ],
-    // Blur-up placeholder for images referenced in MDX (Next.js only).
-    // The built-in remarkImage plugin transforms `![](./img.png)` into next/image imports;
-    // `placeholder: "blur"` pre-generates a low-quality placeholder at build time.
-    remarkImageOptions: {
-      placeholder: "blur"
-    },
-    // Enable inline code syntax highlighting.
-    // Syntax: `value{:lang}` e.g. `const x = 1{:ts}` or `SELECT *{:sql}`
-    // Without the `{:lang}` suffix, inline code renders as plain text (backward-compatible).
-    rehypeCodeOptions: {
-      ...rehypeCodeDefaultOptions,
-      inline: "tailing-curly-colon",
-      transformers: [
-        ...rehypeCodeDefaultOptions.transformers ?? [],
-        transformerTwoslash({
-          typesCache: twoslashTypesCache
-        })
-      ]
-    }
-  }
+  plugins: [lastModified(), jsonSchema({ insert: true })]
 });
 export {
   source_config_default as default,

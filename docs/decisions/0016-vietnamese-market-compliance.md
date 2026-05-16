@@ -40,5 +40,5 @@ statutory packs — not in ad-hoc route logic.
 ## References
 
 - `lib/features/hrm/data/rule-packs/vietnam/`
-- `docs/decisions/0012-viet-erp-domain-reference-map.md`
+- `docs/decisions/0022-viet-erp-domain-reference-map.md`
 - `docs/decisions/0017-vietnamese-einvoice-substrate.md`

@@ -55,6 +55,7 @@ async function hasListeningServer(port: number): Promise<boolean> {
   })
 }
 
+/** Prefer `pnpm dev` on 3000 for this repo; 3001 is the dedicated Playwright port when 3000 is free. */
 const detectedLocalBaseURL =
   configuredBaseURL.length === 0 && !isCi && (await hasListeningServer(3000))
     ? "http://127.0.0.1:3000"

@@ -21,10 +21,11 @@ const GRADE_ID = "550e8400-e29b-41d4-a716-446655440003"
 const EMPLOYEE_ID = "550e8400-e29b-41d4-a716-446655440004"
 
 describe("HRM organization structure remodel contracts", () => {
-  it("uses the canonical 9/10 organization tab vocabulary", () => {
+  it("uses the canonical organization tab vocabulary", () => {
     expect(ORG_STRUCTURE_DEFAULT_TAB).toBe("overview")
     expect(ORG_STRUCTURE_TABS).toEqual([
       "overview",
+      "chart",
       "org-units",
       "positions",
       "grades",

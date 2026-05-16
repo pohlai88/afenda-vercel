@@ -82,9 +82,7 @@ export const useLaneMemoryStore = create<LaneMemoryStore>()(
 
       moveLane: (id, lane) =>
         set({
-          items: get().items.map((i) =>
-            i.id === id ? { ...i, lane } : i
-          ),
+          items: get().items.map((i) => (i.id === id ? { ...i, lane } : i)),
         }),
     }),
     { name: "afenda-lane-memory-v1" }

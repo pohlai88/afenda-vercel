@@ -10,6 +10,7 @@ import {
   hrmPayrollPeriod,
   hrmPayrollRun,
   hrmSalaryAdvance,
+  hrmSalaryAdvanceInstallment,
 } from "#lib/db/schema"
 
 import type { PayrollLineInput } from "./payroll-engine.server"
@@ -216,6 +217,7 @@ export async function insertPayrollLines(
       metadata: l.metadata ?? null,
       claimId: l.claimId ?? null,
       salaryAdvanceId: l.salaryAdvanceId ?? null,
+      salaryAdvanceInstallmentId: l.salaryAdvanceInstallmentId ?? null,
     }))
   )
 }
@@ -362,6 +364,7 @@ export async function lockPayrollPeriodAndRunsMutation(opts: {
     .select({
       lineId: hrmPayrollLine.id,
       advanceId: hrmPayrollLine.salaryAdvanceId,
+      installmentId: hrmPayrollLine.salaryAdvanceInstallmentId,
     })
     .from(hrmPayrollLine)
     .innerJoin(hrmPayrollRun, eq(hrmPayrollRun.id, hrmPayrollLine.runId))
@@ -374,20 +377,59 @@ export async function lockPayrollPeriodAndRunsMutation(opts: {
     )
 
   const repaidAt = new Date()
+  const touchedAdvanceIds = new Set<string>()
+
   for (const row of advanceRows) {
     if (!row.advanceId) continue
+    touchedAdvanceIds.add(row.advanceId)
+
+    if (row.installmentId) {
+      await db
+        .update(hrmSalaryAdvanceInstallment)
+        .set({
+          state: "deducted",
+          deductedAt: repaidAt,
+          deductedByPayrollLineId: row.lineId,
+          updatedAt: repaidAt,
+        })
+        .where(
+          and(
+            eq(hrmSalaryAdvanceInstallment.organizationId, opts.organizationId),
+            eq(hrmSalaryAdvanceInstallment.id, row.installmentId),
+            eq(hrmSalaryAdvanceInstallment.state, "pending")
+          )
+        )
+    }
+  }
+
+  for (const advanceId of touchedAdvanceIds) {
+    const pending = await db
+      .select({ id: hrmSalaryAdvanceInstallment.id })
+      .from(hrmSalaryAdvanceInstallment)
+      .where(
+        and(
+          eq(hrmSalaryAdvanceInstallment.organizationId, opts.organizationId),
+          eq(hrmSalaryAdvanceInstallment.advanceId, advanceId),
+          eq(hrmSalaryAdvanceInstallment.state, "pending")
+        )
+      )
+      .limit(1)
+
+    if (pending.length > 0) continue
+
+    const lineForAdvance = advanceRows.find((r) => r.advanceId === advanceId)
     await db
       .update(hrmSalaryAdvance)
       .set({
         state: "repaid",
         repaidAt,
-        repaidByPayrollLineId: row.lineId,
+        repaidByPayrollLineId: lineForAdvance?.lineId ?? null,
         updatedAt: repaidAt,
       })
       .where(
         and(
           eq(hrmSalaryAdvance.organizationId, opts.organizationId),
-          eq(hrmSalaryAdvance.id, row.advanceId),
+          eq(hrmSalaryAdvance.id, advanceId),
           eq(hrmSalaryAdvance.state, "approved")
         )
       )

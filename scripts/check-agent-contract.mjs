@@ -22,6 +22,9 @@ const REQUIRED_FILES = [
   ".cursor/rules/portal-directory.mdc",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
+  "scripts/check-route-error-files.mjs",
+  "scripts/check-public-lynx-contract.mjs",
+  ".cursor/rules/public-lynx.mdc",
   "tests/unit/fixtures-i18n-parity.test.ts",
   "turbo.json",
   "turbo/generators/config.ts",
@@ -49,8 +52,10 @@ const TOP_LEVEL_DIR_ALLOWLIST = new Set([
   ".github",
   ".husky",
   ".vscode",
+  ".source",
   "app",
   "components",
+  "components2",
   "docs",
   "drizzle",
   "hooks",
@@ -96,6 +101,7 @@ const ROOT_TOOLING_FILES = new Set([
   "turbo.json",
   "turbo/generators/config.ts",
   "source.config.ts",
+  "cli.json",
 ])
 
 const ROOT_WORKSPACE_FILES = new Set([

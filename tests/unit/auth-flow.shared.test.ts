@@ -6,7 +6,7 @@ import {
   buildVerifyEmailHref,
   parsePrefillEmail,
   resolvePostSignUpPath,
-} from "../../app/[locale]/(auth)/auth-flow.shared"
+} from "../../app/(main)/[locale]/(auth)/auth-flow.shared"
 
 describe("auth-flow.shared", () => {
   it("normalizes valid email prefills and rejects invalid ones", () => {
