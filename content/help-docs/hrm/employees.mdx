@@ -1,0 +1,81 @@
+---
+title: Employees
+description: Create and manage employee profiles, contracts, and onboarding workflows in Afenda HRM.
+icon: Users
+---
+
+## Overview
+
+Every person in your workforce has an **employee profile** in Afenda HRM. Profiles are the single source of truth for personal details, employment terms, and the record that attendance, leave, and payroll processing links back to.
+
+## Employee profile fields
+
+| Section | Fields |
+|---|---|
+| **Personal details** | Name, date of birth, contact information |
+| **Employment details** | Start date, employment type, department, job title |
+| **Contract** | Contract type, probation period, end date (if fixed-term) |
+| **Bank details** | Used for payroll disbursement |
+| **Emergency contacts** | Name, relationship, and phone number |
+
+## Creating an employee
+
+<Steps>
+  <Step>
+    Navigate to **HRM → Employees**.
+  </Step>
+  <Step>
+    Click **Add employee**.
+  </Step>
+  <Step>
+    Fill in the required fields (marked with `*`) — at minimum: name, start date, employment type, and department.
+  </Step>
+  <Step>
+    Click **Save**.
+
+    The employee is created in `Active` status. Their profile is immediately available for attendance, leave, and payroll processing.
+  </Step>
+</Steps>
+
+## Probation tracking
+
+Afenda automatically monitors probation end dates. Managers receive a notification before a probation period expires. The system transitions the employee status based on your configured probation policy.
+
+<Callout type="info">
+  The HRM probation watch cron job runs daily. Configure the advance notice window (default: 14 days) in your organisation's HRM settings.
+</Callout>
+
+## Offboarding
+
+<Steps>
+  <Step>
+    Open the employee profile.
+  </Step>
+  <Step>
+    Click **Offboard employee**.
+  </Step>
+  <Step>
+    Set the **last working day** and select an **offboarding reason**.
+  </Step>
+  <Step>
+    Confirm. The employee's status changes to `Inactive` and workspace access is revoked at end of day.
+
+    <Callout type="info" title="Records are retained">
+      All historical records — attendance, payslips, performance reviews — are retained after offboarding per your organisation's data retention policy.
+    </Callout>
+  </Step>
+</Steps>
+
+## Related
+
+<Cards>
+  <Card href="./attendance" title="Attendance">
+    Track daily clock-in/out records and correct anomalies for active employees.
+  </Card>
+  <Card href="./leave" title="Leave management">
+    Manage leave requests and balances tied to employee profiles.
+  </Card>
+  <Card href="./payroll" title="Payroll">
+    Run payroll using the employee roster — bank details and employment terms feed directly into pay runs.
+  </Card>
+</Cards>

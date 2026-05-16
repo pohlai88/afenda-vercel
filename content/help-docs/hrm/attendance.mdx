@@ -1,0 +1,67 @@
+---
+title: Attendance
+description: Track employee clock-in/out times, manage shift schedules, and surface attendance anomalies.
+icon: Clock
+---
+
+## Overview
+
+Afenda records attendance at the individual shift level. Every record links to an employee, captures clock-in and clock-out timestamps, and flags anomalies automatically so managers can act without manually reviewing every row.
+
+## What each record captures
+
+| Field | Description |
+|---|---|
+| **Employee** | The person the record belongs to |
+| **Clock-in** | Timestamp and method (manual, kiosk, or integration) |
+| **Clock-out** | Timestamp; missing clock-out is an automatic anomaly flag |
+| **Hours worked** | Computed from in/out timestamps |
+| **Anomaly flags** | Late arrival, early departure, missing clock-out, shift deviation |
+
+## Viewing attendance records
+
+Go to **HRM → Attendance**. Use the date range picker and employee filter to narrow the view. Click **Export CSV** in the toolbar to download the filtered data.
+
+## Making a manual correction
+
+Managers with the `hrm.attendance.update` ERP permission can correct records.
+
+<Steps>
+  <Step>
+    Click a record row to open its detail panel.
+  </Step>
+  <Step>
+    Edit the **clock-in** or **clock-out** time as needed.
+  </Step>
+  <Step>
+    Add a **correction note** — a clear explanation of why the change was made. This note is stored with the correction and visible in the audit trail.
+  </Step>
+  <Step>
+    Click **Save**. The correction is committed with your user identity, the original value, and the updated value logged to the audit trail.
+  </Step>
+</Steps>
+
+<Callout type="warn" title="Corrections are audited">
+  Every manual correction writes an immutable audit event (`hrm.attendance.record.update`). The correction note is required and cannot be blank.
+</Callout>
+
+## Anomaly watch
+
+The **HRM compliance aging watch** cron job runs daily and automatically flags:
+
+- Employees with missing attendance records for a working day
+- Consecutive absences without an approved leave request
+- Clock-in times outside the expected shift window (configurable threshold)
+
+Flagged anomalies appear in the **Compliance** tab and generate notifications to the employee's manager.
+
+## Related
+
+<Cards>
+  <Card href="./employees" title="Employees">
+    Attendance records link to employee profiles — manage the roster here.
+  </Card>
+  <Card href="./leave" title="Leave management">
+    Approved leave suppresses anomaly flags for the covered dates.
+  </Card>
+</Cards>

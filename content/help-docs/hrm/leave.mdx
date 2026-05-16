@@ -1,0 +1,72 @@
+---
+title: Leave management
+description: Submit, approve, and track employee leave requests and balances across all leave types.
+icon: CalendarDays
+---
+
+## Overview
+
+The leave management system handles the full lifecycle of employee time off: request submission, manager approval, balance tracking, and policy enforcement. Leave types and accrual rules are configured by your organisation administrator.
+
+## Leave types
+
+Your organisation administrator configures the leave types available to employees, for example:
+
+- Annual leave
+- Sick leave
+- Maternity / paternity leave
+- Unpaid leave
+
+Each type carries its own **accrual policy**, **carryover rules**, and **approval workflow**.
+
+## Submitting a leave request
+
+<Steps>
+  <Step>
+    Navigate to **HRM → Leave**.
+  </Step>
+  <Step>
+    Click **Request leave**.
+  </Step>
+  <Step>
+    Select the **leave type**, **start date**, and **end date**.
+  </Step>
+  <Step>
+    Add an optional note for your manager, then click **Submit**.
+
+    Your manager receives a notification to review the request. Leave balance is not deducted until the request is approved.
+  </Step>
+</Steps>
+
+## Approval workflow
+
+Managers see pending requests in their **Leave** queue. Three outcomes are available:
+
+| Action | Effect |
+|---|---|
+| **Approve** | Leave is confirmed; balance is deducted; employee is notified. |
+| **Reject** | Request is declined; employee is notified with the reason. |
+| **Request changes** | Employee is asked to adjust dates before resubmission. |
+
+## Leave balances
+
+Each employee's current balances are shown on their profile under **Leave balances**. Balances update in real time when requests are approved or reversed.
+
+## Carry-over and expiry
+
+Leave balances configured with a carry-over limit will automatically expire unused days at the end of the leave year.
+
+<Callout type="info" title="Advance expiry notice">
+  Employees receive a notification ahead of the expiry date (configurable advance window, default: 30 days) so they have time to use remaining days or raise an exception with their manager.
+</Callout>
+
+## Related
+
+<Cards>
+  <Card href="./attendance" title="Attendance">
+    Approved leave suppresses attendance anomaly flags for covered dates.
+  </Card>
+  <Card href="./employees" title="Employees">
+    Leave balances and history are visible on each employee's profile.
+  </Card>
+</Cards>

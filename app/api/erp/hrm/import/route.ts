@@ -39,8 +39,8 @@ export async function POST(request: Request) {
       userId: org.userId,
       permission: {
         module: "hrm",
-        object: "organization",
-        function: "update",
+        object: "import",
+        function: "create",
       },
     })
     if (!allowed) {

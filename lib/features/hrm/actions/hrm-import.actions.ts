@@ -5,12 +5,12 @@ import { revalidatePath } from "next/cache"
 import { and, eq, inArray } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { canActInOrganization } from "#lib/auth/permission.server"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmImportSession } from "#lib/db/schema"
 import { ORG_DASHBOARD_HRM_IMPORTS } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { logUnexpectedServerError } from "#lib/logger.server"
+import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import { requireHrmOrgTenantFromForm } from "../data/hrm-action-guard.server"
 import {
@@ -38,12 +38,16 @@ export async function commitImportSessionAction(
   const gate = await requireHrmOrgTenantFromForm(formData)
   if (!gate.ok) return gate.response
   const { session } = gate
-  const { organizationId, userId, sessionId, user } = session
+  const { organizationId, userId, sessionId } = session
 
   if (
-    !(await canActInOrganization(userId, user.role, organizationId, "admin"))
+    !(await canUseErpPermission({
+      organizationId,
+      userId,
+      permission: { module: "hrm", object: "import", function: "update" },
+    }))
   ) {
-    return hrmActionFailure({ form: "Admin role required." })
+    return hrmActionFailure({ form: "HRM import update permission required." })
   }
 
   const sessionIdParam = String(formData.get("importSessionId") ?? "").trim()
@@ -202,12 +206,16 @@ export async function rollbackImportSessionAction(
   const gate = await requireHrmOrgTenantFromForm(formData)
   if (!gate.ok) return gate.response
   const { session } = gate
-  const { organizationId, userId, sessionId, user } = session
+  const { organizationId, userId, sessionId } = session
 
   if (
-    !(await canActInOrganization(userId, user.role, organizationId, "admin"))
+    !(await canUseErpPermission({
+      organizationId,
+      userId,
+      permission: { module: "hrm", object: "import", function: "update" },
+    }))
   ) {
-    return hrmActionFailure({ form: "Admin role required." })
+    return hrmActionFailure({ form: "HRM import update permission required." })
   }
 
   const sessionIdParam = String(formData.get("importSessionId") ?? "").trim()

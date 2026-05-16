@@ -1,0 +1,111 @@
+---
+title: Bulk HR import
+description: Dry-run CSV uploads for employees, attendance, or payroll rows before committing — governed sessions with IAM audits.
+icon: Upload
+---
+
+## Overview
+
+The bulk HR import surface lets administrators stage large data sets from CSV files before any rows are written to the database. Every session follows a **dry-run → review → commit** workflow. Commits and rollbacks each write an immutable audit event to the IAM ledger (`erp.hrm.import.session.*`).
+
+## Supported import types
+
+| Import type | What it creates | Required CSV columns |
+|---|---|---|
+| **Employees** | New `hrmEmployee` records | `employeeNumber`, `legalName` |
+| **Attendance** | Attendance event rows | Validated against active employees |
+| **Payroll** | Payroll profile rows | Validated against pay periods |
+
+## Running a dry run
+
+<Steps>
+  <Step>
+    Navigate to **HRM → Bulk HR import**.
+  </Step>
+  <Step>
+    Select the **import type** from the dropdown.
+  </Step>
+  <Step>
+    Upload a UTF-8 encoded `.csv` file using the file picker.
+  </Step>
+  <Step>
+    Click **Run dry run**.
+
+    The server parses the CSV and validates every row without writing to the database. You receive a row count and a list of any validation errors.
+  </Step>
+</Steps>
+
+<Callout type="info">
+  No data is written during a dry run. The session is stored with status `dry_run` so you can review before committing.
+</Callout>
+
+## Reviewing dry-run results
+
+After the dry run completes, the wizard displays:
+
+- **Row count** — the number of successfully parsed rows.
+- **Validation errors** — any row-level problems, including the line number and the specific error message.
+
+Fix any errors in your CSV and re-upload before proceeding.
+
+## Committing an import session
+
+Once the dry run shows zero validation errors:
+
+<Steps>
+  <Step>
+    Review the dry-run summary in the wizard.
+  </Step>
+  <Step>
+    Click **Commit**.
+
+    The server re-validates the stored CSV and inserts the rows. For employee imports, each inserted employee ID is recorded in the session's rollback manifest.
+  </Step>
+  <Step>
+    The session status changes to `committed`. An `erp.hrm.import.session.commit` audit event is written.
+  </Step>
+</Steps>
+
+<Callout type="warn" title="Duplicate employee numbers">
+  If a CSV row contains an employee number that already exists in the organisation, the entire commit is rejected with a duplicate number error. Correct the CSV and run a fresh dry run.
+</Callout>
+
+## Rolling back a committed session
+
+Employee import sessions can be rolled back if the employees have not yet been assigned to payroll runs or leave periods.
+
+<Steps>
+  <Step>
+    Locate the committed session in the **Recent import sessions** list.
+  </Step>
+  <Step>
+    Click **Rollback**.
+
+    The server soft-deletes the employee records that were created by the session and marks the session as `rolled_back`.
+  </Step>
+  <Step>
+    An `erp.hrm.import.session.rollback` audit event is written to the IAM ledger.
+  </Step>
+</Steps>
+
+<Callout type="warn" title="Attendance and payroll rollback">
+  Attendance and payroll import sessions do not support automatic rollback. Contact your system administrator if you need to revert those rows.
+</Callout>
+
+## Required permission
+
+The bulk HR import surface requires the `hrm.import` ERP permission set. Only users with at least `hrm.import.search` can view the page. Committing and rolling back sessions additionally require `hrm.import.update`.
+
+Ask your organisation administrator to assign the appropriate ERP role if you cannot access this surface.
+
+## Audit trail
+
+Every dry-run, commit, and rollback writes to the IAM audit ledger:
+
+| Event | Trigger |
+|---|---|
+| `erp.hrm.import.session.dry_run` | Successful dry run via the CSV upload endpoint |
+| `erp.hrm.import.session.commit` | Successful commit — includes `importType` and rows applied |
+| `erp.hrm.import.session.rollback` | Successful rollback — includes `importType` and rows removed |
+
+Access the full audit history from **Org Admin → Audit**.

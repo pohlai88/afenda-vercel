@@ -1,0 +1,15 @@
+{
+  "title": "HRM",
+  "icon": "Users",
+  "root": true,
+  "pages": [
+    "index",
+    "employees",
+    "attendance",
+    "leave",
+    "payroll",
+    "performance",
+    "documents",
+    "imports"
+  ]
+}
