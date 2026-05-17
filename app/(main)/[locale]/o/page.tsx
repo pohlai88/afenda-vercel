@@ -4,10 +4,9 @@ import { redirect } from "#i18n/navigation"
 
 import { organizationNexusPath } from "#features/nexus"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
-import { requireOrgSession } from "#lib/tenant"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
+import { requireOrgSession } from "#lib/auth"
 
-export const dynamic = "force-dynamic"
 
 /**
  * Canonical org resolver — `/{locale}/o` → `/{locale}/o/{slug}/nexus`.

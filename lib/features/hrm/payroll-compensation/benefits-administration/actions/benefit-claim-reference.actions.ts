@@ -10,12 +10,12 @@ import { HRM_BENEFIT_AUDIT } from "../benefit.contract"
 import { insertBenefitClaimReference } from "../data/benefit-claim-reference.mutations.server"
 import { updateBenefitClaimReferenceRow } from "../data/benefit-claim-reference.mutations.server"
 import { getBenefitEnrollmentForOrganization } from "../data/benefit.queries.server"
-import { requireHrmAdmin } from "../../../hrm-admin-guard.server"
+import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
 import {
   createBenefitClaimReferenceFormSchema,
   updateBenefitClaimReferenceFormSchema,
 } from "../schema/benefit.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { BenefitEnrollmentTransitionFormState } from "../../../types"
 
 function revalidateBenefits() {

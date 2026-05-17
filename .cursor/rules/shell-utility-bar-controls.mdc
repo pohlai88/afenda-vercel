@@ -11,7 +11,7 @@ alwaysApply: false
 All utility-bar icon triggers — left rail (apps, policy) and right rail — use the **L2 ring class**:
 
 ```tsx
-import { APP_SHELL_UTILITY_L2_ICON_CLASS } from "./utility-bar.client"
+import { APP_SHELL_UTILITY_L2_ICON_CLASS } from "./appshell-utility-bar.client"
 
 // ✅ icon button (no dropdown)
 <button type="button" aria-label={ariaLabel} className={cn(APP_SHELL_UTILITY_L2_ICON_CLASS, className)}>
@@ -97,5 +97,5 @@ Raw `MenubarContent`, `w-56`, or unstyled `DropdownMenuContent` are not acceptab
 
 ## Circular import note
 
-`utility-dropdown.client.tsx` imports `APP_SHELL_UTILITY_L2_ICON_CLASS` from `utility-bar.client.tsx`.
-Do **not** import `AppShellUtilityDropdown` back into `utility-bar.client.tsx` — inline the chrome instead.
+`appshell-utility-bar-dropdown.client.tsx` imports `APP_SHELL_UTILITY_L2_ICON_CLASS` from `appshell-utility-bar.client.tsx`.
+Do **not** import `AppShellUtilityDropdown` back into `appshell-utility-bar.client.tsx` — inline the chrome instead.

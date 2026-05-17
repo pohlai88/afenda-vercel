@@ -4,9 +4,9 @@ import Link from "next/link"
 import { useState } from "react"
 
 import { exportOrganizationIamAuditCsvAction } from "../actions/audit-export.actions"
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
-import { Button } from "#components/ui/button"
-import { Spinner } from "#components/ui/spinner"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
+import { Button } from "#components2/ui/button"
+import { Spinner } from "#components2/ui/spinner"
 
 function triggerCsvDownload(csv: string, filename: string): void {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })

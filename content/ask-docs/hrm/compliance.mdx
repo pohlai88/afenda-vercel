@@ -2,11 +2,37 @@
 title: Statutory compliance
 description: Jurisdiction packs, statutory evidence, aging signals, and export-ready compliance artefacts.
 icon: ShieldCheck
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 **Compliance** tracks statutory obligations per supported jurisdiction (e.g. MY, SG, ID, VN). Evidence rows capture generation state, hashes, and outbound delivery metadata so audits answer *who generated what, when, with which inputs*.
+
+## Before you start
+
+- Confirm your organisation's jurisdiction packs are configured before expecting evidence rows.
+- Payroll inputs must be committed for previews that feed statutory calculations — draft pay runs do not produce production evidence.
+- Export and regeneration actions may require elevated ERP permissions; verify effective keys with your administrator.
+
+## Generating and reviewing evidence
+
+<Steps>
+  <Step>
+    Open **HRM → Compliance** and select the jurisdiction pack or evidence family in scope.
+  </Step>
+  <Step>
+    Review aging summaries for due-soon or overdue artefacts.
+  </Step>
+  <Step>
+    Generate or regenerate a pack when inputs are final — regeneration creates a new evidence row with an updated hash.
+  </Step>
+  <Step>
+    Export artefacts for filing or attach signed PDFs to the **documents vault** when retention requires it.
+  </Step>
+</Steps>
 
 ## Evidence packs
 
@@ -20,13 +46,30 @@ Aging summaries highlight due-soon or overdue artefacts. Cron-assisted retries s
   Compliance screens prioritise honesty over cheerleading — expect explicit empty states when packs are not configured for the org’s jurisdictions.
 </Callout>
 
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Evidence generation fails validation">
+    Open the linked payroll or input surface and resolve flagged rows before regenerating the pack.
+  </Accordion>
+  <Accordion title="Retry cron did not clear an overdue row">
+    Check delivery metadata on the evidence row — permanent failures require operator intervention, not another silent retry.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
-  <Card href="./payroll" title="Payroll">
+  <Card href="/ask-docs/hrm/payroll" title="Payroll">
     Statutory previews consume the same payroll inputs as disbursement.
   </Card>
-  <Card href="./documents" title="Documents vault">
+  <Card href="/ask-docs/hrm/documents" title="Documents vault">
     Signed PDFs land in governed storage with hashed metadata.
+  </Card>
+  <Card href="/ask-docs/hrm/snapshot" title="HR snapshot">
+    Compliance pressure cards deep-link from the snapshot.
+  </Card>
+  <Card href="/ask-docs/hrm/training" title="Training & development">
+    Recertification bridges when jurisdiction packs require it.
   </Card>
 </Cards>

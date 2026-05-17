@@ -1,6 +1,6 @@
 import "server-only"
 
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
 
 /**
  * ERP RBAC for multi-country payroll RSC surfaces (config + cross-country report).

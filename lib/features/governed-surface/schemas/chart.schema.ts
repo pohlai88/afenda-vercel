@@ -10,6 +10,9 @@ export const GOVERNED_CHART_CONFIGURATION_SCHEMA_ID =
 export const GOVERNED_CHART_CONFIGURATION_SCHEMA_STABILITY: SchemaStability =
   "beta"
 
+export const chartDataNatureSchema = z.enum(["time-series", "categorical"])
+export type ChartDataNature = z.infer<typeof chartDataNatureSchema>
+
 export const governedChartKindSchema = z.enum(["bar", "line", "area"])
 
 export const chartPointSchema = z
@@ -36,6 +39,7 @@ export const chartSeriesSchema = z
 
 export const governedChartConfigurationSchema = z
   .object({
+    dataNature: chartDataNatureSchema,
     chartKind: governedChartKindSchema,
     title: z.string().trim().min(1).optional(),
     series: z.array(chartSeriesSchema).min(1),

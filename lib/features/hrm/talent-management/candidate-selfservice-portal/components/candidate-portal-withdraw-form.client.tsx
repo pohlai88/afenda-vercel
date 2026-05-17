@@ -2,8 +2,8 @@
 
 import { useActionState } from "react"
 
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
-import { Button } from "#components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
+import { Button } from "#components2/ui/button"
 
 import {
   withdrawApplicationFromPortalAction,

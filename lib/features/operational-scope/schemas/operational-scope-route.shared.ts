@@ -2,7 +2,7 @@
  * Pure URL → operational scope helpers (client + server safe).
  *
  * Next.js: parent layouts do not re-render on in-tree navigations, so the
- * server snapshot from `WorkbenchUtilityBarRow` can lag the URL. Client
+ * server snapshot from the app-shell utility bar can lag the URL. Client
  * components merge route-derived dimensions with `mergeRouteOperationalContext`.
  */
 

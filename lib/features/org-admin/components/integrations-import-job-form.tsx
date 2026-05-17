@@ -5,12 +5,12 @@ import { useFormStatus } from "react-dom"
 
 import { useTranslations } from "next-intl"
 
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
-import { Button } from "#components/ui/button"
-import { Input } from "#components/ui/input"
-import { Label } from "#components/ui/label"
-import { Spinner } from "#components/ui/spinner"
-import { Textarea } from "#components/ui/textarea"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
+import { Button } from "#components2/ui/button"
+import { Input } from "#components2/ui/input"
+import { Label } from "#components2/ui/label"
+import { Spinner } from "#components2/ui/spinner"
+import { Textarea } from "#components2/ui/textarea"
 
 import {
   createOrgImportJob,

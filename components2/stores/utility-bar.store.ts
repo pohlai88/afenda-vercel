@@ -7,7 +7,7 @@ import {
   UTILITY_BAR_CATALOG,
   UTILITY_BAR_MAX_VISIBLE,
   type UtilityBarItemId,
-} from "../app-shell/utility-bar-items"
+} from "./utility-bar-catalog.shared"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -155,8 +155,8 @@ export const useUtilityBarStore = create<UtilityBarStore>()(
         const target = items.find((i) => i.id === id)
         if (!target) return
 
-        if (!target.visible) {
-          if (countVisible(items) >= UTILITY_BAR_MAX_VISIBLE - 1) return
+        if (!target.visible && countVisible(items) >= UTILITY_BAR_MAX_VISIBLE - 1) {
+          return
         }
 
         set({

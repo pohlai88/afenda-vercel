@@ -15,7 +15,7 @@ import { WORKBENCH_IDS } from "../constants"
  *      invalid input without needing a `requireOrgSession` mock.
  *
  *   2. **One trust boundary per action category.** When the kernel
- *      rail schema rev-bumps `workbenchRailPinSchema`, this file is
+ *      rail schema rev-bumps `appShellPrimaryLeftRailPinSchema`, this file is
  *      the *one* place to extend the writer-side contract.
  */
 

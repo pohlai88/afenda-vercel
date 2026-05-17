@@ -1,23 +1,23 @@
 import { expect, test } from "@playwright/test"
 
+import { BOOTSTRAP_FIXTURE } from "../fixtures/bootstrap-mocks"
+
 /**
- * Capability Registry — marketplace shell smoke.
+ * Capability Registry — org-scoped marketplace proxy gate.
  *
- * Auth-gated proxy contract for the new top-level `/marketplace` surface.
- * Mirrors `smoke.spec.ts` shape: the proxy must redirect unauthenticated
- * users to a locale-prefixed `/sign-in` with a `callbackUrl` that
- * preserves the full target path (including locale).
- *
- * Full toggle / policy flows (signed-in + admin step-up) require dev
- * credentials and live in a follow-up spec; @smoke covers the doors.
+ * Auth-gated proxy contract for `/{locale}/o/{orgSlug}/marketplace/*`.
+ * Mirrors `smoke.spec.ts`: unauthenticated users redirect to locale-prefixed
+ * `/sign-in` with a `callbackUrl` preserving the full target path.
  */
+
+const ORG_SLUG = BOOTSTRAP_FIXTURE.organization.slug
 
 test.describe("marketplace shell — proxy gate", () => {
   test(
-    "unauthenticated /marketplace redirects to sign-in with callbackUrl",
+    "unauthenticated org marketplace redirects to sign-in with callbackUrl",
     { tag: "@smoke" },
     async ({ page }) => {
-      const target = "/en/marketplace"
+      const target = `/en/o/${ORG_SLUG}/marketplace`
       await page.goto(target)
       await expect(page).toHaveURL(/\/en\/sign-in\?/)
       const u = new URL(page.url())
@@ -26,10 +26,10 @@ test.describe("marketplace shell — proxy gate", () => {
   )
 
   test(
-    "unauthenticated /marketplace/utilities redirects to sign-in with callbackUrl",
+    "unauthenticated org marketplace utilities redirects to sign-in with callbackUrl",
     { tag: "@smoke" },
     async ({ page }) => {
-      const target = "/en/marketplace/utilities"
+      const target = `/en/o/${ORG_SLUG}/marketplace/utilities`
       await page.goto(target)
       await expect(page).toHaveURL(/\/en\/sign-in\?/)
       const u = new URL(page.url())
@@ -38,10 +38,10 @@ test.describe("marketplace shell — proxy gate", () => {
   )
 
   test(
-    "unauthenticated /marketplace/admin redirects to sign-in with callbackUrl",
+    "unauthenticated org marketplace admin redirects to sign-in with callbackUrl",
     { tag: "@smoke" },
     async ({ page }) => {
-      const target = "/en/marketplace/admin"
+      const target = `/en/o/${ORG_SLUG}/marketplace/admin`
       await page.goto(target)
       await expect(page).toHaveURL(/\/en\/sign-in\?/)
       const u = new URL(page.url())

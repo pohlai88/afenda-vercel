@@ -4,18 +4,18 @@ import { useActionState, useEffect, useId, useRef } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
-import { Alert, AlertDescription } from "#components/ui/alert"
-import { Badge } from "#components/ui/badge"
-import { Button } from "#components/ui/button"
-import { Field, FieldLabel } from "#components/ui/field"
-import { Input } from "#components/ui/input"
+import { Alert, AlertDescription } from "#components2/ui/alert"
+import { Badge } from "#components2/ui/badge"
+import { Button } from "#components2/ui/button"
+import { Field, FieldLabel } from "#components2/ui/field"
+import { Input } from "#components2/ui/input"
 import { useRouter } from "#i18n/navigation"
 
 import {
   closeBenefitOpenEnrollmentAction,
   createBenefitOpenEnrollmentAction,
 } from "../actions/benefit-open-enrollment.actions"
-import type { BenefitOpenEnrollmentFormState } from "../../../types"
+import type { BenefitOpenEnrollmentFormState } from "../actions/benefit-open-enrollment.actions"
 
 import type { BenefitOpenEnrollmentRow } from "../data/benefit-model.shared"
 import type { BenefitPlanChoiceRow } from "./benefit-enrollment-form"

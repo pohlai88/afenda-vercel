@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import {
   deleteUserOperationalScope,
   upsertUserOperationalScope,

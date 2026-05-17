@@ -1,13 +1,13 @@
 import type {
-  WorkbenchRailNavIconId,
-  WorkbenchRailNavSection,
-  WorkbenchRailSlots,
-} from "#components/workbench/left-nav-rail"
+  AppShellPrimaryLeftRailNavIconId,
+  AppShellPrimaryLeftRailNavSection,
+  AppShellPrimaryLeftRailSlots,
+} from "#app-shell"
 
 import type { AccountRailSection } from "./account-shell.types"
 
 /**
- * Adapts account domain data → `WorkbenchRailSlots`.
+ * Adapts account domain data → `AppShellPrimaryLeftRailSlots`.
  *
  * Pure server function — no browser APIs, no hooks.
  *
@@ -21,8 +21,8 @@ export function buildAccountRailSlotsV2({
   sections,
 }: {
   sections: AccountRailSection[]
-}): WorkbenchRailSlots {
-  const navSection: WorkbenchRailNavSection = {
+}): AppShellPrimaryLeftRailSlots {
+  const navSection: AppShellPrimaryLeftRailNavSection = {
     id: "account",
     items: sections.map((section) => ({
       id: section.id,
@@ -64,7 +64,7 @@ function resolveAccountRailSectionActivePatterns(
 
 function iconForSectionId(
   id: AccountRailSection["id"]
-): WorkbenchRailNavIconId {
+): AppShellPrimaryLeftRailNavIconId {
   switch (id) {
     case "identity":
       return "user-round"

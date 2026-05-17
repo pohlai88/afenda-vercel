@@ -19,7 +19,7 @@ import {
   classifyRecertificationDueBand,
   isRecertificationAssignmentDuplicate,
 } from "./training-recertification.server"
-import { HRM_TRAINING_AUDIT } from "../../../training.contract"
+import { HRM_TRAINING_AUDIT } from "../training.contract"
 
 export type TrainingExpiryWatchTickSummary = CronTickScannedEmittedSummary & {
   readonly reassigned: number

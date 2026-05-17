@@ -10,16 +10,16 @@ import { ORG_DASHBOARD_HRM_TRAINING } from "#lib/dashboard-module-paths"
 import { db } from "#lib/db"
 import { hrmTrainingCategory, hrmTrainingCourse } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import type { OrgSession } from "#lib/tenant"
+import type { OrgSession } from "#lib/auth"
 
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import {
   createTrainingCategoryFormSchema,
   createTrainingCourseFormSchema,
   normalizeTrainingCourseCode,
 } from "../schemas/training.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
-import { HRM_TRAINING_AUDIT } from "../../../training.contract"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
+import { HRM_TRAINING_AUDIT } from "../training.contract"
 import type { TrainingMutationFormState } from "../data/training.types.shared"
 
 const TRAINING_PERMISSION = {

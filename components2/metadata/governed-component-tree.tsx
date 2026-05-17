@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { trace } from "@opentelemetry/api"
 
 import { GovernedEmpty } from "#features/governed-surface"
 import type { GovernedComponent } from "#features/governed-surface"
@@ -131,6 +132,15 @@ export function GovernedComponentTree({
     }
   }
 
+  recordGovernedDispatchSpan({
+    rendererId,
+    componentType: data.type,
+    serverType: data.serverType,
+    dataNature: extractDataNature(data.configuration),
+    surfaceKey,
+    validation: "ok",
+  })
+
   return renderGovernedRendererById({
     rendererId,
     componentType: data.type,
@@ -138,4 +148,30 @@ export function GovernedComponentTree({
     diagnostics,
     surfaceKey,
   })
+}
+
+function recordGovernedDispatchSpan(input: {
+  rendererId: string
+  componentType: string
+  serverType: string
+  dataNature: string | undefined
+  surfaceKey: string | undefined
+  validation: "ok" | "parse_failed" | "nature_mismatch" | "unregistered"
+}) {
+  if (typeof window !== "undefined") return
+  if (process.env.NEXT_RUNTIME !== "nodejs") return
+
+  const tracer = trace.getTracer("afenda-vercel")
+  const span = tracer.startSpan("governed.component.dispatch")
+  span.setAttribute("governed.renderer_id", input.rendererId)
+  span.setAttribute("governed.component_type", input.componentType)
+  span.setAttribute("governed.server_type", input.serverType)
+  span.setAttribute("governed.validation", input.validation)
+  if (input.dataNature) {
+    span.setAttribute("governed.data_nature", input.dataNature)
+  }
+  if (input.surfaceKey) {
+    span.setAttribute("governed.surface_key", input.surfaceKey)
+  }
+  span.end()
 }

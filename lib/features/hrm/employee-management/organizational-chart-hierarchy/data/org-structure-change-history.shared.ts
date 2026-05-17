@@ -2,6 +2,8 @@
 export const HRM_ORG_STRUCTURE_RESOURCE_TYPES = [
   "hrm_department",
   "hrm_position",
+  "hrm_employee_assignment",
+  "hrm_employee_reporting_relationship",
 ] as const
 
 export type HrmOrgStructureResourceType =
@@ -44,6 +46,7 @@ export const DEPARTMENT_CHANGE_FIELDS = [
   "code",
   "name",
   "orgUnitType",
+  "orgUnitStatus",
   "parentDepartmentId",
   "headEmployeeId",
   "costCenterCode",
@@ -57,10 +60,31 @@ export const POSITION_CHANGE_FIELDS = [
   "departmentId",
   "defaultGradeId",
   "reportsToPositionId",
+  "positionOwnerEmployeeId",
   "employmentType",
   "headcountBudget",
   "positionStatus",
   "costCenterCode",
   "workLocationCode",
   "effectiveFrom",
+] as const
+
+export const EMPLOYEE_PLACEMENT_CHANGE_FIELDS = [
+  "departmentId",
+  "positionId",
+  "jobGradeId",
+  "managerEmployeeId",
+  "dottedLineManagerId",
+  "costCenterCode",
+  "workLocationCode",
+  "effectiveFrom",
+] as const
+
+export const REPORTING_RELATIONSHIP_CHANGE_FIELDS = [
+  "employeeId",
+  "managerEmployeeId",
+  "relationshipType",
+  "effectiveFrom",
+  "effectiveTo",
+  "status",
 ] as const

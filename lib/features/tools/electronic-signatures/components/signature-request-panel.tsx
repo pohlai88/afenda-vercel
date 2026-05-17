@@ -7,11 +7,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmSignatureRequest } from "#lib/db/schema"
 
-import { SignatureRequestWorkbenchForm } from "./signature-request-workbench-form"
+import { SignatureRequestForm } from "./signature-request-form"
 
 type SignatureRequestPanelProps = {
   orgSlug: string
@@ -89,7 +89,7 @@ export async function SignatureRequestPanel({
         <CardDescription>{t("panelDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <SignatureRequestWorkbenchForm
+        <SignatureRequestForm
           orgSlug={orgSlug}
           kind={kind}
           subjectId={subjectId}

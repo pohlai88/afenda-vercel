@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   CAPABILITY_CATEGORIES,
   getCapabilityDefinitions,
@@ -17,9 +17,8 @@ import {
 import { hasTenantAuthority } from "#features/erp-rbac/server"
 import { Link } from "#i18n/navigation"
 import { SITE_NAME } from "#lib/site"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
-export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Marketplace · Category",

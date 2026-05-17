@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
-import { Input } from "#components/ui/input"
-import { Label } from "#components/ui/label"
+import { Button } from "#components2/ui/button"
+import { Input } from "#components2/ui/input"
+import { Label } from "#components2/ui/label"
 
 import {
   createKnowledgeCredentialFormAction,

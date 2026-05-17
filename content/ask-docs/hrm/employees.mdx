@@ -2,11 +2,20 @@
 title: Employees
 description: Create and manage employee profiles, contracts, and onboarding workflows in Afenda HRM.
 icon: Users
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 Every person in your workforce has an **employee profile** in Afenda HRM. Profiles are the single source of truth for personal details, employment terms, and the record that attendance, leave, and payroll processing links back to.
+
+## Before you start
+
+- Confirm **organization** departments and positions exist before creating placements.
+- Bank details are required before payroll disbursement — collect them during onboarding.
+- Creating employees requires appropriate ERP permissions; bulk creation may use [Bulk HR import](/ask-docs/hrm/imports).
 
 ## Employee profile fields
 
@@ -66,16 +75,30 @@ Afenda automatically monitors probation end dates. Managers receive a notificati
   </Step>
 </Steps>
 
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Cannot save a new employee">
+    Required fields or department placement may be incomplete — resolve validation messages on the form.
+  </Accordion>
+  <Accordion title="Employee missing from payroll roster">
+    Confirm status is `Active` and bank details are present for the pay period in scope.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
-  <Card href="./attendance" title="Attendance">
+  <Card href="/ask-docs/hrm/attendance" title="Attendance">
     Track daily clock-in/out records and correct anomalies for active employees.
   </Card>
-  <Card href="./leave" title="Leave management">
+  <Card href="/ask-docs/hrm/leave" title="Leave management">
     Manage leave requests and balances tied to employee profiles.
   </Card>
-  <Card href="./payroll" title="Payroll">
+  <Card href="/ask-docs/hrm/payroll" title="Payroll">
     Run payroll using the employee roster — bank details and employment terms feed directly into pay runs.
+  </Card>
+  <Card href="/ask-docs/hrm/onboarding" title="Onboarding">
+    Boarding checklists activate from new hire contracts.
   </Card>
 </Cards>

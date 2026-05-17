@@ -58,6 +58,18 @@ export const HRM_ESS_AUDIT = {
       object: "ess.document_request",
       verb: "create",
     }),
+    approve: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "ess.document_request",
+      verb: "update",
+    }),
+    reject: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "ess.document_request",
+      verb: "deprecate",
+    }),
     /** Employee downloaded a document from the portal. */
     download: buildCrudSapAuditAction({
       area: "erp",

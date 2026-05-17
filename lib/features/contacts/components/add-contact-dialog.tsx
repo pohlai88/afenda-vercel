@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { PlusIcon } from "lucide-react"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "#components/ui/dialog"
+} from "#components2/ui/dialog"
 
 import { AddContactForm } from "./add-contact-form"
 

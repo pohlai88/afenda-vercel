@@ -2,6 +2,9 @@
 title: KPI metrics & goals
 description: Quantitative KPI scorecards plus BambooHR-style personal goals with milestones and discussion.
 icon: Target
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
@@ -12,6 +15,29 @@ Afenda separates two complementary ledgers:
 - **Goals** — per-employee objectives with milestones, percent complete, due dates, and optional parent alignment.
 
 Scores remain authoritative for payroll or bonus hooks; goals capture qualitative execution and coaching context.
+
+## Before you start
+
+- Define metric catalog and planning periods before activating capture for a workforce population.
+- Goal mutations require the same ERP RBAC family as KPI metrics — do not bypass with org-role shortcuts.
+- Lock periods only after scores are reviewed — edits are blocked after lock.
+
+## Capturing scores and goals
+
+<Steps>
+  <Step>
+    Navigate to **HRM → KPI** and open the active planning period.
+  </Step>
+  <Step>
+    Enter or import **metric scores** per employee and metric code.
+  </Step>
+  <Step>
+    Create **personal goals** with milestones and due dates where qualitative tracking is needed.
+  </Step>
+  <Step>
+    Lock or close the period with evidence snapshots when leadership sign-off completes.
+  </Step>
+</Steps>
 
 ## Periods & scores
 
@@ -25,13 +51,30 @@ Goals carry `in_progress`, `completed`, and `closed` states. Milestones support 
   Goal mutations require the same ERP RBAC family as KPI metrics — do not bypass with org-role shortcuts.
 </Callout>
 
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Cannot edit a score after save">
+    The planning period may be locked or closed — reopen only through governed admin flows if your policy allows.
+  </Accordion>
+  <Accordion title="Rollup totals look wrong">
+    Confirm metric weights in the catalog and that every required metric code has a score for the employee in the period.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
-  <Card href="./performance" title="Performance">
+  <Card href="/ask-docs/hrm/performance" title="Performance">
     Review cycles complement operational KPIs.
   </Card>
-  <Card href="./snapshot" title="HR snapshot">
+  <Card href="/ask-docs/hrm/snapshot" title="HR snapshot">
     Snapshot cards deep-link into KPI health when enabled.
+  </Card>
+  <Card href="/ask-docs/hrm/employees" title="Employees">
+    Scores and goals anchor on workforce master records.
+  </Card>
+  <Card href="/ask-docs/hrm/payroll" title="Payroll">
+    Bonus or variable pay hooks may consume locked score periods.
   </Card>
 </Cards>

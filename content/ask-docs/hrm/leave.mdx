@@ -60,9 +60,27 @@ Leave balances configured with a carry-over limit will automatically expire unus
   Employees receive a notification ahead of the expiry date (configurable advance window, default: 30 days) so they have time to use remaining days or raise an exception with their manager.
 </Callout>
 
+<Callout type="info" title="Portal parity">
+  Employees submit and cancel **pending** leave at [Employee portal leave](/ask-docs/portals/leave). Managers approve in this HRM module.
+</Callout>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Employee cannot see a leave type">
+    Confirm the type is **active** for the organisation and the employee's population is in scope for that policy.
+  </Accordion>
+  <Accordion title="Balance did not update after approval">
+    Refresh the employee profile balances card; if still wrong, check for parallel unapproved requests consuming reserved balance.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
+  <Card href="/ask-docs/portals/leave" title="Employee portal leave">
+    Self-service balances, requests, and pending cancellations.
+  </Card>
   <Card href="./attendance" title="Attendance">
     Approved leave suppresses attendance anomaly flags for covered dates.
   </Card>

@@ -1,9 +1,9 @@
 import { getTranslations } from "next-intl/server"
 
-import { ModulePageHeader } from "#components/module-page-header"
+import { ModulePageHeader } from "#features/governed-surface"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import {
   buildPayrollCloseSnapshot,
@@ -25,7 +25,6 @@ import type {
 } from "#features/hrm/server"
 import { PayrollConsolePage } from "#features/hrm/client"
 
-export const dynamic = "force-dynamic"
 
 export default async function OrgDashboardHrmPayrollPage() {
   const allowed = await canUseErpPermissionForCurrentOrg({

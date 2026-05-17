@@ -15,8 +15,8 @@ import {
 } from "../data/payroll-close.server"
 import { postPayrollPeriod } from "../data/payroll-posting.server"
 import { listPayrollRunsForPeriod } from "../data/payroll.queries.server"
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 
 import type {
   PayrollCloseActionFormState,

@@ -1,0 +1,69 @@
+---
+title: Employee portal attendance
+description: View attendance history and submit correction requests from the employee portal.
+audience: employee
+status: draft
+icon: Clock
+---
+
+## Overview
+
+**My attendance** at `/{locale}/p/{portalSlug}/employee/attendance` shows your attendance history and lets you submit **correction requests** when a punch or day record is wrong. Managers resolve corrections in HRM; the portal does not edit attendance rows directly.
+
+## Before you start
+
+- Employee portal session with audience `employee`.
+- Correction requests require a reason and the dates or entries you believe are incorrect.
+
+## View history and request a correction
+
+<Steps>
+  <Step>
+    ### Open My attendance
+
+    From the employee portal, open **Attendance** in the section navigation.
+  </Step>
+  <Step>
+    ### Review your history
+
+    Scan recent days and statuses. Approved **leave** for a date should suppress anomaly flags for that day.
+  </Step>
+  <Step>
+    ### Submit a correction request
+
+    Use the correction form to describe the issue (missing punch, wrong in/out time, etc.) and submit.
+
+    HR or your manager processes the request in HRM → Attendance. You receive the outcome through normal org notification channels.
+
+    <Callout type="info" title="Portal vs Workbench">
+      The portal only **requests** corrections. Authoritative attendance truth is updated in HRM after review.
+    </Callout>
+  </Step>
+</Steps>
+
+## Portal vs HRM
+
+| Action | Employee portal | HRM |
+| --- | --- | --- |
+| View own attendance | Yes | Yes (broader) |
+| Submit correction request | Yes | — |
+| Approve / apply correction | — | Yes |
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="A day still shows an anomaly during approved leave">
+    Allow time for leave approval to sync, or submit a correction request with the leave reference.
+  </Accordion>
+  <Accordion title="My correction was rejected">
+    Read the reason returned by the approver and resubmit with clearer evidence if policy allows.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/portals/employee" title="Employee portal hub" />
+  <Card href="/ask-docs/hrm/attendance" title="Attendance (HRM)" />
+  <Card href="/ask-docs/portals/leave" title="Employee portal leave" />
+</Cards>

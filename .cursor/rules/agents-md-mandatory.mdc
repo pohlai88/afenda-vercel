@@ -14,7 +14,7 @@ alwaysApply: true
    - **§3** for **`pnpm gen`** / Turborepo generators — `pnpm gen action --module <slug>` is expanded by **`scripts/turbo-gen.mjs`** (positional `--args`; do not pass `--module` to raw `turbo gen`).
    - **§4** for CI gates and enforcement scripts (including Drizzle migrations when editing `drizzle/` or `lib/db/schema.ts`).
    - **§5** for routing, auth UX, locale, and `proxy.ts`.
-   - **§6** for directory shape and import rules.
+   - **§6** for directory shape, **`lib/` root allowlist (§6.1)**, subtrees (§6.2), and anti-drift (§6.3).
    - **§7** for design system boundaries.
 2. Prefer existing patterns over inventing new structures. Prefer contraction over expansion.
 3. Do not introduce new architectural categories, folders, or conventions unless **`AGENTS.md`** is updated first.
@@ -29,10 +29,14 @@ alwaysApply: true
 | `app/` layer | Routing, composition, page wiring only — no data/domain implementation |
 | Mutations | Server Actions by default; Route Handlers only for `auth`, `cron`, `upload`, `webhooks`, `integrations`, `api/erp/<module>` |
 | `proxy.ts` | Session/locale gate only — no DB, no business logic, no branching domain rules |
-| Banned categories | `services`, `utils`, `helpers`, `repositories`, `controllers` — forbidden unless `AGENTS.md` updated first |
+| Banned categories | `services`, `utils`, `helpers`, `repositories`, `controllers` — forbidden unless `AGENTS.md` updated first (exception: `lib/utils.ts` per AGENTS §6.1) |
+| `lib/` root | Only AGENTS.md **§6.1** allowlisted `lib/*.ts` files — no new loose root files |
+| IAM session guards | `#lib/auth` only — not `#lib/tenant` |
+| Doc accuracy | AGENTS.md paths must match disk in the same PR that moves files |
 | Root cleanliness | No dumping directories at repo root or module root |
-| UI primitives | Official shelf: `components/ui/**` on disk; every consumer imports only via **`#components/ui/*`** — no filesystem-relative `**/components/ui` specifiers. `radix-ui` / `@radix-ui/*` / `@base-ui/react` stay inside `components/ui` (ESLint). |
+| UI primitives | **`components/` is hard-deleted.** Shelf: `components2/ui/**` · import via **`#components2/ui/*`**. Never recreate repo-root `components/`. |
 | Design tokens | `@theme inline` `var(--*)` must resolve to `:root`/`.dark` definitions (`check-design-contract.mjs`) |
+| Deleted `components/` | **Entire repo-root `components/` directory is hard-deleted** — never mkdir or restore any path under it (`never-restore-deleted-components.mdc`) |
 
 ## Cross-module import rule
 

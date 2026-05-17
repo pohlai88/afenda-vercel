@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import {
   Table,
   TableBody,
@@ -8,9 +8,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "#components/ui/table"
+} from "#components2/ui/table"
 import { logUnexpectedServerError } from "#lib/logger.server"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import {
   formatHrmDocumentSize,

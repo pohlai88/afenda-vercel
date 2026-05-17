@@ -21,7 +21,7 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "#components/ui/chart"
+} from "#components2/ui/chart"
 
 import { transformLynxNlDemoDataForMultiLineChart } from "../data/nl-sql-demo-rechart.shared"
 import type {

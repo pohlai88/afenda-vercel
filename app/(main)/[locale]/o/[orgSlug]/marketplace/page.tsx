@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   buildCapabilityCardCopy,
   buildMarketplaceCopySource,
@@ -26,9 +26,8 @@ import {
 } from "#features/marketplace/server"
 import { Link } from "#i18n/navigation"
 import { SITE_NAME } from "#lib/site"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
-export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Marketplace",

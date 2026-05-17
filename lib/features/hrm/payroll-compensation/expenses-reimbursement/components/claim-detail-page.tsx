@@ -6,16 +6,16 @@ import type { ReactNode } from "react"
 import type { Route } from "next"
 
 import { Link } from "#i18n/navigation"
-import { ModulePageHeader } from "#components/module-page-header"
-import { Badge } from "#components/ui/badge"
-import { Button } from "#components/ui/button"
+import { ModulePageHeader } from "#features/governed-surface"
+import { Badge } from "#components2/ui/badge"
+import { Button } from "#components2/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 import {
   Table,
   TableBody,
@@ -23,8 +23,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "#components/ui/table"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/table"
+import { requireOrgSession } from "#lib/auth"
 
 import {
   organizationHrmClaimsPath,

@@ -1,12 +1,12 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 
-import { WorkbenchSubLayoutShellSkeleton } from "#components/workbench"
+import { AppSubLayoutShellSkeleton } from "#app-shell"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import { generateAccountOverviewMetadata } from "../../../(iam)/account/account-metadata"
-import { OrgAccountDeferredWorkbench } from "./_components/org-account-deferred-workbench"
+import { OrgAccountDeferredShell } from "./_components/org-account-deferred-shell"
 
 export async function generateMetadata({
   params,
@@ -17,9 +17,28 @@ export async function generateMetadata({
   return generateAccountOverviewMetadata(Promise.resolve({ locale }))
 }
 
-export const dynamic = "force-dynamic"
 
-export default async function OrganizationAccountLayout({
+export default function OrganizationAccountLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ locale: string; orgSlug: string }>
+}) {
+  return (
+    <Suspense
+      fallback={
+        <AppSubLayoutShellSkeleton statusLabel="Loading account settings" />
+      }
+    >
+      <OrganizationAccountLayoutInner params={params}>
+        {children}
+      </OrganizationAccountLayoutInner>
+    </Suspense>
+  )
+}
+
+async function OrganizationAccountLayoutInner({
   children,
   params,
 }: {
@@ -31,18 +50,12 @@ export default async function OrganizationAccountLayout({
   const session = await requireOrgSession()
 
   return (
-    <Suspense
-      fallback={
-        <WorkbenchSubLayoutShellSkeleton statusLabel="Loading account settings" />
-      }
+    <OrgAccountDeferredShell
+      locale={locale}
+      orgSlug={orgSlug}
+      orgSession={session}
     >
-      <OrgAccountDeferredWorkbench
-        locale={locale}
-        orgSlug={orgSlug}
-        orgSession={session}
-      >
-        {children}
-      </OrgAccountDeferredWorkbench>
-    </Suspense>
+      {children}
+    </OrgAccountDeferredShell>
   )
 }

@@ -13,7 +13,7 @@ import {
   tenantAuthority,
 } from "#lib/db/schema"
 import { neonAuthMember, neonAuthUser } from "#lib/db/schema-neon-auth"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import type {
   AccessMemberRow,

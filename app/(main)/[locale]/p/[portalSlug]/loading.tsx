@@ -1,4 +1,4 @@
-import { Skeleton } from "#components/ui/skeleton"
+import { Skeleton } from "#components2/ui/skeleton"
 
 export default function PortalLoading() {
   return (

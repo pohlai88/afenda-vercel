@@ -7,8 +7,10 @@ import { z } from "zod"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
-import { requireHrmOrgTenantFromForm } from "#features/hrm/server"
-import { requireHrmPermission } from "#features/hrm/server"
+import { requireToolsOrgTenantFromForm } from "../../_module-governance/tools-action-guard.server"
+import { requireToolsErpPermission } from "../../_module-governance/tools-admin-guard.server"
+import { toolsActionFailure } from "../../_module-governance/tools-action-result.shared"
+import type { ToolsMutationFormState } from "../../types"
 import {
   createSignatureRequest,
   resendSignaturePartyToken,
@@ -22,8 +24,6 @@ import {
   sendSignatureRequestFormSchema,
   SIGNATURE_PARTY_ROLES,
 } from "../schemas/signature.schema"
-import { hrmActionFailure } from "#features/hrm/server"
-import type { SignatureMutationFormState } from "../../../hrm/types"
 
 const voidSignatureRequestFormSchema = z.object({
   orgSlug: z.string().min(1),
@@ -55,19 +55,19 @@ function revalidateSignatureSurfaces() {
 }
 
 export async function createSignatureRequestAction(
-  _prev: SignatureMutationFormState | undefined,
+  _prev: ToolsMutationFormState | undefined,
   formData: FormData
-): Promise<SignatureMutationFormState> {
-  const gate = await requireHrmOrgTenantFromForm(formData)
+): Promise<ToolsMutationFormState> {
+  const gate = await requireToolsOrgTenantFromForm(formData)
   if (!gate.ok) return gate.response
 
-  const perm = await requireHrmPermission({
+  const perm = await requireToolsErpPermission({
     object: "signature",
     function: "create",
     errorMessage: "Signature create permission required.",
   })
   if (!perm.ok) {
-    return hrmActionFailure({ form: perm.error })
+    return toolsActionFailure({ form: perm.error })
   }
 
   const { session } = gate
@@ -85,7 +85,7 @@ export async function createSignatureRequestAction(
   })
 
   if (!parsed.success) {
-    return hrmActionFailure({
+    return toolsActionFailure({
       form: parsed.error.issues[0]?.message ?? "Invalid signature request.",
     })
   }
@@ -95,11 +95,11 @@ export async function createSignatureRequestAction(
     const raw = JSON.parse(parsed.data.partiesJson) as unknown
     const partyParsed = partyInputSchema.safeParse(raw)
     if (!partyParsed.success) {
-      return hrmActionFailure({ form: "Invalid parties JSON." })
+      return toolsActionFailure({ form: "Invalid parties JSON." })
     }
     parties = partyParsed.data
   } catch {
-    return hrmActionFailure({ form: "Parties must be valid JSON." })
+    return toolsActionFailure({ form: "Parties must be valid JSON." })
   }
 
   try {
@@ -133,7 +133,7 @@ export async function createSignatureRequestAction(
     revalidateSignatureSurfaces()
     return { ok: true, requestId }
   } catch (err) {
-    return hrmActionFailure({
+    return toolsActionFailure({
       form:
         err instanceof Error
           ? err.message
@@ -143,18 +143,18 @@ export async function createSignatureRequestAction(
 }
 
 export async function sendSignatureRequestAction(
-  _prev: SignatureMutationFormState | undefined,
+  _prev: ToolsMutationFormState | undefined,
   formData: FormData
-): Promise<SignatureMutationFormState> {
-  const gate = await requireHrmOrgTenantFromForm(formData)
+): Promise<ToolsMutationFormState> {
+  const gate = await requireToolsOrgTenantFromForm(formData)
   if (!gate.ok) return gate.response
 
-  const perm = await requireHrmPermission({
+  const perm = await requireToolsErpPermission({
     object: "signature",
     function: "update",
   })
   if (!perm.ok) {
-    return hrmActionFailure({ form: perm.error })
+    return toolsActionFailure({ form: perm.error })
   }
 
   const parsed = sendSignatureRequestFormSchema.safeParse({
@@ -162,7 +162,7 @@ export async function sendSignatureRequestAction(
     requestId: formData.get("requestId"),
   })
   if (!parsed.success) {
-    return hrmActionFailure({ form: "Invalid send request." })
+    return toolsActionFailure({ form: "Invalid send request." })
   }
 
   const { organizationId, userId, sessionId } = perm.session
@@ -189,7 +189,7 @@ export async function sendSignatureRequestAction(
     revalidateSignatureSurfaces()
     return { ok: true, requestId: parsed.data.requestId }
   } catch (err) {
-    return hrmActionFailure({
+    return toolsActionFailure({
       form:
         err instanceof Error
           ? err.message
@@ -199,18 +199,18 @@ export async function sendSignatureRequestAction(
 }
 
 export async function resendSignaturePartyAction(
-  _prev: SignatureMutationFormState | undefined,
+  _prev: ToolsMutationFormState | undefined,
   formData: FormData
-): Promise<SignatureMutationFormState> {
-  const gate = await requireHrmOrgTenantFromForm(formData)
+): Promise<ToolsMutationFormState> {
+  const gate = await requireToolsOrgTenantFromForm(formData)
   if (!gate.ok) return gate.response
 
-  const perm = await requireHrmPermission({
+  const perm = await requireToolsErpPermission({
     object: "signature",
     function: "update",
   })
   if (!perm.ok) {
-    return hrmActionFailure({ form: perm.error })
+    return toolsActionFailure({ form: perm.error })
   }
 
   const parsed = resendPartyFormSchema.safeParse({
@@ -219,7 +219,7 @@ export async function resendSignaturePartyAction(
     partyId: formData.get("partyId"),
   })
   if (!parsed.success) {
-    return hrmActionFailure({ form: "Invalid resend request." })
+    return toolsActionFailure({ form: "Invalid resend request." })
   }
 
   try {
@@ -229,10 +229,23 @@ export async function resendSignaturePartyAction(
       partyId: parsed.data.partyId,
       actorUserId: perm.session.userId,
     })
+
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: auditActionForSignatureEvent("signature_request.resent"),
+        actorUserId: perm.session.userId,
+        actorSessionId: perm.session.sessionId,
+        organizationId: perm.session.organizationId,
+        resourceType: "hrm_signature_request",
+        resourceId: parsed.data.requestId,
+        metadata: { partyId: parsed.data.partyId },
+      })
+    )
+
     revalidateSignatureSurfaces()
     return { ok: true }
   } catch (err) {
-    return hrmActionFailure({
+    return toolsActionFailure({
       form:
         err instanceof Error ? err.message : "Failed to resend party token.",
     })
@@ -240,18 +253,18 @@ export async function resendSignaturePartyAction(
 }
 
 export async function cancelSignatureRequestAction(
-  _prev: SignatureMutationFormState | undefined,
+  _prev: ToolsMutationFormState | undefined,
   formData: FormData
-): Promise<SignatureMutationFormState> {
-  const gate = await requireHrmOrgTenantFromForm(formData)
+): Promise<ToolsMutationFormState> {
+  const gate = await requireToolsOrgTenantFromForm(formData)
   if (!gate.ok) return gate.response
 
-  const perm = await requireHrmPermission({
+  const perm = await requireToolsErpPermission({
     object: "signature",
     function: "delete",
   })
   if (!perm.ok) {
-    return hrmActionFailure({ form: perm.error })
+    return toolsActionFailure({ form: perm.error })
   }
 
   const parsed = voidSignatureRequestFormSchema.safeParse({
@@ -260,7 +273,7 @@ export async function cancelSignatureRequestAction(
     reason: formData.get("reason") || undefined,
   })
   if (!parsed.success) {
-    return hrmActionFailure({ form: "Invalid cancel request." })
+    return toolsActionFailure({ form: "Invalid cancel request." })
   }
 
   const { organizationId, userId, sessionId } = perm.session
@@ -288,7 +301,7 @@ export async function cancelSignatureRequestAction(
     revalidateSignatureSurfaces()
     return { ok: true }
   } catch (err) {
-    return hrmActionFailure({
+    return toolsActionFailure({
       form:
         err instanceof Error
           ? err.message

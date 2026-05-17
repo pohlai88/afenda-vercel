@@ -34,11 +34,11 @@ const FORBIDDEN_BRAND_OPACITY_HOVER =
  * Arbitrary rounded-[…] is opt-in only (Tailwind still needs literals in allowlisted files).
  */
 const ARBITRARY_ROUNDED_ALLOWLIST = new Set([
-  "components/ui/calendar.tsx",
-  "components/ui/chart.tsx",
-  "components/ui/checkbox.tsx",
-  "components/ui/scroll-area.tsx",
-  "components/ui/tooltip.tsx",
+  "components2/ui/calendar.tsx",
+  "components2/ui/chart.tsx",
+  "components2/ui/checkbox.tsx",
+  "components2/ui/scroll-area.tsx",
+  "components2/ui/tooltip.tsx",
 ])
 
 const ARBITRARY_ROUNDED = /\brounded-\[/g
@@ -248,7 +248,7 @@ for (const file of files) {
     }
     FORBIDDEN_PRIMITIVE_COLOR.lastIndex = 0
     if (
-      rel.startsWith("components/ui/") &&
+      rel.startsWith("components2/ui/") &&
       FORBIDDEN_PRIMITIVE_COLOR.test(row)
     ) {
       report(
@@ -259,7 +259,7 @@ for (const file of files) {
     }
     FORBIDDEN_BRAND_OPACITY_HOVER.lastIndex = 0
     if (
-      rel.startsWith("components/ui/") &&
+      rel.startsWith("components2/ui/") &&
       FORBIDDEN_BRAND_OPACITY_HOVER.test(row)
     ) {
       report(
@@ -321,7 +321,7 @@ for (const file of files) {
         row
       )
     }
-    if (rel.startsWith("components/nexus/")) {
+    if (rel.startsWith("components2/nexus/")) {
       FORBIDDEN_NEXUS_TAILWIND_BACKDROP.lastIndex = 0
       if (FORBIDDEN_NEXUS_TAILWIND_BACKDROP.test(row)) {
         report(

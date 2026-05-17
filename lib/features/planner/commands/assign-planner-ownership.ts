@@ -7,7 +7,7 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { publishOrgNotification } from "#features/org-notifications/server"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import { buildPlannerAuditAction } from "../audit/planner-audit.shared"
 import { organizationOrbitPath } from "../constants"

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { buildClientCookieString } from "#lib/client-cookie.shared"
+import { buildClientCookieString } from "#lib/browser/client-cookie.shared"
 
 describe("buildClientCookieString", () => {
   it("adds baseline first-party preference cookie attributes", () => {

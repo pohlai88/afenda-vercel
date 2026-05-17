@@ -1,8 +1,7 @@
 import { ClaimDetailPage } from "#features/hrm"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import { resolveClaimSurfaceAccess } from "#features/hrm/server"
 
-export const dynamic = "force-dynamic"
 
 type OrgDashboardHrmClaimDetailPageProps = {
   params: Promise<{

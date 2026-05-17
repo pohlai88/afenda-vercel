@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
 
-import { RouteEnvelopeProvider } from "#components/route-envelope-context"
-import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
+import { RouteEnvelopeProvider } from "#components2/route-envelope-context.client"
+import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
-import type { RouteEnvelope } from "#lib/route-envelope.shared"
+import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 
 /**
  * Route group layout (`(iam)` is invisible in URLs): shared **private-surface** robots for

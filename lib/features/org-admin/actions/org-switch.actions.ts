@@ -6,11 +6,11 @@ import { organizationNexusPath } from "#features/nexus"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 import {
   requireSignedInSession,
   setActiveOrganizationForSession,
-} from "#lib/tenant"
+} from "#lib/auth"
 
 /**
  * Server Action: switch the active organization for the signed-in user.

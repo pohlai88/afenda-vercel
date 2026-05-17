@@ -9,9 +9,9 @@ import "server-only"
  * server primitives that crash inside a Client Component bundle.
  *
  * The rail-slot builders (PR 3d) compose recent / pinned / saved-view
- * DTOs into the kernel `WorkbenchRailSlots` shape via the mappers in
+ * DTOs into the kernel `AppShellPrimaryLeftRailSlots` shape via the mappers in
  * `data/mappers.shared.ts`. They live behind this barrel because the
- * mapper helpers expose `WorkbenchRail*` slot types that, while
+ * mapper helpers expose `AppShellPrimaryLeftRail*` slot types that, while
  * structurally serializable, are conventionally only consumed from
  * server composition.
  */

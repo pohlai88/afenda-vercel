@@ -6,13 +6,13 @@ import { requireErpPermission } from "#features/erp-rbac/server"
 import { ORG_DASHBOARD_HRM_TRAINING } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import {
   addTrainingPrerequisite,
   removeTrainingPrerequisite,
 } from "../data/training-prerequisite.server"
 import { setTrainingPrerequisiteFormSchema } from "../schemas/training.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { TrainingMutationFormState } from "../data/training.types.shared"
 
 function revalidateTraining() {

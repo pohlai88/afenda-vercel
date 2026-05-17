@@ -14,11 +14,25 @@ const CSV_HEADER = [
   "employeeNumber",
   "employeeLabel",
   "managerLabel",
+  "dottedLineManagerLabel",
+  "matrixManagerLabels",
+  "orgUnitType",
+  "orgUnitStatus",
+  "positionStatus",
+  "pendingHireCount",
+  "openHeadcountAfterPending",
+  "effectiveFrom",
+  "effectiveTo",
+  "reason",
+  "approvalReference",
 ] as const
 
-function escapeCsvCell(value: string | number | null | undefined): string {
+function escapeCsvCell(
+  value: string | number | Date | null | undefined
+): string {
   if (value === null || value === undefined) return ""
-  const text = String(value)
+  const text =
+    value instanceof Date ? value.toISOString().slice(0, 10) : String(value)
   if (/[",\n\r]/.test(text)) {
     return `"${text.replace(/"/g, '""')}"`
   }
@@ -45,6 +59,17 @@ export function serializeOrgStructureExportCsv(
         row.employeeNumber,
         row.employeeLabel,
         row.managerLabel,
+        row.dottedLineManagerLabel,
+        row.matrixManagerLabels,
+        row.orgUnitType,
+        row.orgUnitStatus,
+        row.positionStatus,
+        row.pendingHireCount,
+        row.openHeadcountAfterPending,
+        row.effectiveFrom,
+        row.effectiveTo,
+        row.reason,
+        row.approvalReference,
       ]
         .map(escapeCsvCell)
         .join(",")

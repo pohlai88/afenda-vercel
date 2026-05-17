@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-import { WorkbenchSurface } from "#components/workbench"
+import { AppShellSurface } from "#app-shell"
 
 import {
   MarketplaceCategoryNav,
@@ -27,7 +27,7 @@ export type MarketplaceShellProps = {
 }
 
 /**
- * Marketplace surface scaffold — pulls the per-page WorkbenchSurface
+ * Marketplace surface scaffold — pulls the per-page AppShellSurface
  * mount + category nav into one composition primitive so each
  * marketplace route stays focused on its own content.
  *
@@ -43,7 +43,7 @@ export function MarketplaceShell({
   children,
 }: MarketplaceShellProps) {
   return (
-    <WorkbenchSurface
+    <AppShellSurface
       title={title}
       subtitle={subtitle}
       breadcrumbs={breadcrumbs ? Array.from(breadcrumbs) : undefined}
@@ -58,6 +58,6 @@ export function MarketplaceShell({
         />
         <div className="flex flex-col gap-6">{children}</div>
       </div>
-    </WorkbenchSurface>
+    </AppShellSurface>
   )
 }

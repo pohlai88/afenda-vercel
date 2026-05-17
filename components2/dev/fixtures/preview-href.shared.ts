@@ -7,12 +7,6 @@ export const SHELL_PREVIEW_HREF = "/dev/shell-preview" as Route
 export const METADATA_RENDERER_GALLERY_HREF =
   "/dev/metadata-renderer-gallery" as Route
 
-/** Locale-internal HRM metadata scenario preview. */
-export const HRM_METADATA_PREVIEW_HREF = "/dev/hrm-metadata-preview" as Route
-
-/** Mock portal slug for HRM metadata preview links. */
-export const HRM_METADATA_PREVIEW_PORTAL_SLUG = "dev-hrm-preview"
-
 /** Locale-internal ask-docs path for utility bar Help (next-intl adds locale). */
 export const SHELL_PREVIEW_ASK_DOCS_HREF = "/ask-docs" as unknown as Route
 

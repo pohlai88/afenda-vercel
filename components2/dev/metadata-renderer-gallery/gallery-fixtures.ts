@@ -8,6 +8,8 @@ import { governedDetailTabsSchema } from "#features/governed-surface/schemas/det
 import { emptyStateSchema } from "#features/governed-surface/schemas/list-surface.schema"
 import { listSurfaceRendererConfigurationSchema } from "#features/governed-surface/schemas/list-surface-renderer.schema"
 import { governedSectionConfigurationSchema } from "#features/governed-surface/schemas/section.schema"
+import { governedApprovalTimelineConfigurationSchema } from "#features/governed-surface/schemas/approval-timeline.schema"
+import { governedChartConfigurationSchema } from "#features/governed-surface/schemas/chart.schema"
 import { governedStackConfigurationSchema } from "#features/governed-surface/schemas/stack.schema"
 
 import { SHELL_PREVIEW_LIST_SURFACE } from "../fixtures/list-surface.fixture"
@@ -18,7 +20,12 @@ export const GALLERY_STAT_CARD_KPI = assertGovernedSurfaceInput(
     dataNature: "kpi",
     density: "comfortable",
     stats: [
-      { label: "Open roles", value: "12", delta: "4 urgent", tone: "attention" },
+      {
+        label: "Open roles",
+        value: "12",
+        delta: "4 urgent",
+        tone: "attention",
+      },
       { label: "Active apps", value: "86", delta: "+6", tone: "positive" },
       { label: "Offers", value: "3", tone: "default" },
       { label: "Time to hire", value: "18d", tone: "default" },
@@ -188,6 +195,55 @@ export const GALLERY_STACK = assertGovernedSurfaceInput(
     ],
   },
   "gallery-stack"
+)
+
+export const GALLERY_CHART_TIME_SERIES = assertGovernedSurfaceInput(
+  governedChartConfigurationSchema,
+  {
+    dataNature: "time-series",
+    chartKind: "line",
+    title: "Leave utilization",
+    series: [
+      {
+        id: "approved",
+        label: "Approved",
+        points: [
+          { x: "W1", y: 4 },
+          { x: "W2", y: 6 },
+          { x: "W3", y: 5 },
+        ],
+      },
+    ],
+  },
+  "gallery-chart-time-series"
+)
+
+export const GALLERY_APPROVAL_TIMELINE = assertGovernedSurfaceInput(
+  governedApprovalTimelineConfigurationSchema,
+  {
+    dataNature: "approval-flow",
+    title: "Expense approval",
+    steps: [
+      {
+        id: "submit",
+        label: "Submitted",
+        status: "complete",
+        actorLabel: "Employee",
+      },
+      {
+        id: "manager",
+        label: "Manager review",
+        status: "active",
+        actorLabel: "Manager",
+      },
+      {
+        id: "finance",
+        label: "Finance",
+        status: "pending",
+      },
+    ],
+  },
+  "gallery-approval-timeline"
 )
 
 export const GALLERY_SECTION = assertGovernedSurfaceInput(

@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import {
   Table,
   TableBody,
@@ -8,7 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "#components/ui/table"
+} from "#components2/ui/table"
 
 import type { BenefitPlanRow } from "../data/benefit-model.shared"
 

@@ -13,8 +13,8 @@ import {
 import { upload as uploadBlob } from "@vercel/blob/client"
 import { useTranslations } from "next-intl"
 
-import { Badge } from "#components/ui/badge"
-import { Button } from "#components/ui/button"
+import { Badge } from "#components2/ui/badge"
+import { Button } from "#components2/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -22,23 +22,23 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "#components/ui/dialog"
+} from "#components2/ui/dialog"
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "#components/ui/empty"
+} from "#components2/ui/empty"
 import {
   Field,
   FieldContent,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "#components/ui/field"
-import { Input } from "#components/ui/input"
-import { ScrollArea } from "#components/ui/scroll-area"
+} from "#components2/ui/field"
+import { Input } from "#components2/ui/input"
+import { ScrollArea } from "#components2/ui/scroll-area"
 import {
   Sheet,
   SheetContent,
@@ -46,10 +46,10 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "#components/ui/sheet"
-import { Spinner } from "#components/ui/spinner"
-import { Textarea } from "#components/ui/textarea"
-import { Tooltip, TooltipContent, TooltipTrigger } from "#components/ui/tooltip"
+} from "#components2/ui/sheet"
+import { Spinner } from "#components2/ui/spinner"
+import { Textarea } from "#components2/ui/textarea"
+import { Tooltip, TooltipContent, TooltipTrigger } from "#components2/ui/tooltip"
 import type {
   CoordinationActivityCreateInput,
   CoordinationContextDetail,
@@ -342,7 +342,7 @@ export function OperationalCoordinationConsole({
     try {
       await waitForDomQuiet()
       const target = document.querySelector<HTMLElement>(
-        '[data-workbench-capture-root="workspace"]'
+        '[data-appshell-capture-root="workspace"]'
       )
       if (!target) throw new Error(t("errors.captureTarget"))
       const canvas = await html2canvas(target, {

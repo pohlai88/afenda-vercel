@@ -1,12 +1,11 @@
 import { getTranslations } from "next-intl/server"
 
-import { WorkbenchSurface } from "#components/workbench"
+import { AppShellSurface } from "#app-shell"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 
 import { AccountContextBand } from "./_components/account-context-band"
 import { getAccountShellData } from "./_components/account-shell-data.server"
 
-export const dynamic = "force-dynamic"
 
 function formatRecentTimestamp(
   locale: string,
@@ -43,7 +42,7 @@ export default async function AccountIndexPage({
   const recentItems = shellData.securityActivity.slice(0, 3)
 
   return (
-    <WorkbenchSurface
+    <AppShellSurface
       breadcrumbs={[
         { label: t("breadcrumbs.personal"), href: "/account" },
         { label: t("overview.title") },
@@ -107,6 +106,6 @@ export default async function AccountIndexPage({
           </p>
         )}
       </AccountContextBand>
-    </WorkbenchSurface>
+    </AppShellSurface>
   )
 }

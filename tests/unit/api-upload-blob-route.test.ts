@@ -24,12 +24,9 @@ vi.mock("@vercel/blob/client", () => ({
   handleUpload: handleUploadMock,
 }))
 
-vi.mock("#lib/tenant", () => ({
+vi.mock("#lib/auth", () => ({
   getOrgSessionFromRequest: getOrgSessionFromRequestMock,
   getSignedInSessionFromRequest: getSignedInSessionFromRequestMock,
-}))
-
-vi.mock("#lib/auth", () => ({
   writeIamAuditEventFromHeaders: writeIamAuditEventFromHeadersMock,
 }))
 

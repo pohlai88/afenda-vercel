@@ -9,7 +9,7 @@ import {
   hrmKpiGoalMilestone,
 } from "#lib/db/schema"
 
-import { isoDateOnlyToUtcDate } from "../../../hrm-calendar-dates.server"
+import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
 
 export async function insertKpiGoal(input: {
   organizationId: string

@@ -2,11 +2,37 @@
 title: Recruitment (ATS)
 description: Requisitions, applications, interviews, offers, and hire conversion — governed with IAM audits.
 icon: Briefcase
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 Recruitment is the **internal ATS**: hiring managers publish requisitions, recruiters advance candidates through stages, and offers convert to employees when accepted. Every transition is validated server-side so impossible states cannot be saved.
+
+## Before you start
+
+- Confirm **organization** departments and positions exist for requisition context.
+- Sensitive transitions may require separation of duties — distinct approvers for create vs approve paths.
+- Accepted offers respect workforce uniqueness constraints — duplicate employee numbers block conversion.
+
+## Running a hiring pipeline
+
+<Steps>
+  <Step>
+    Create a **requisition** with title, department context, and headcount — keep in draft until narrative is final.
+  </Step>
+  <Step>
+    Publish the requisition and link **applications** as candidates enter the pipeline.
+  </Step>
+  <Step>
+    Record **interview** outcomes using canonical event types (not free text) for reporting.
+  </Step>
+  <Step>
+    Route **offers** through approval, send to candidates, and convert to **employees** on acceptance.
+  </Step>
+</Steps>
 
 ## Requisitions
 
@@ -24,13 +50,30 @@ Offers carry compensation and start metadata. Approvals gate send actions; accep
   Sensitive transitions may be denied when ERP RBAC detects conflicting duties for the same object family — prefer distinct approvers for create vs approve paths.
 </Callout>
 
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Offer conversion fails">
+    Check for duplicate employee numbers or missing required contract fields on the offer payload.
+  </Accordion>
+  <Accordion title="Cannot publish a requisition">
+    Department or headcount validation may be incomplete — open the draft and resolve flagged fields.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
-  <Card href="./employees" title="Employees">
+  <Card href="/ask-docs/hrm/employees" title="Employees">
     Accepted offers create or link employee master rows.
   </Card>
-  <Card href="./organization" title="Organization">
+  <Card href="/ask-docs/hrm/organization" title="Organization">
     Departments and positions contextualise requisitions.
+  </Card>
+  <Card href="/ask-docs/hrm/onboarding" title="Onboarding">
+    Hire conversion can trigger boarding templates.
+  </Card>
+  <Card href="/ask-docs/hrm/skills" title="Skills">
+    Scorecards may reference required competencies.
   </Card>
 </Cards>

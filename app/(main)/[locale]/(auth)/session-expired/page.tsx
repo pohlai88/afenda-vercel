@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 import type { Route } from "next"
 
-import { AuthPageFrame } from "#components/auth/auth-page-frame"
-import { AuthResult } from "#components/auth/auth-result"
+import { AuthPageFrame } from "#components2/auth/auth-page-frame"
+import { AuthResult } from "#components2/auth/auth-result"
 import {
   AUTH_CONTEXT_QUERY_KEY,
   AUTH_STATUS,

@@ -1,6 +1,7 @@
 import "server-only"
 
-import { and, eq, ilike, ne, or } from "drizzle-orm"
+import { and, eq, ilike, ne, or, sql } from "drizzle-orm"
+import type { AnyColumn, SQL } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -11,6 +12,7 @@ import {
 
 import {
   normalizeEmployeeDuplicateEmail,
+  normalizeEmployeeDuplicateIdentityDocumentNumber,
   normalizeEmployeeDuplicatePhone,
 } from "./employee-duplicate-check.shared"
 
@@ -34,6 +36,35 @@ export type AssertNoEmployeeDuplicatesInput = {
   readonly identityDocumentNumber?: string | null
   readonly identityDocumentType?: string | null
   readonly excludeEmployeeId?: string
+}
+
+function normalizedPhoneSql(column: AnyColumn) {
+  return sql`regexp_replace(coalesce(${column}, ''), '[\\s().-]+', '', 'g')`
+}
+
+function normalizedIdentityDocumentNumberSql(column: AnyColumn) {
+  return sql`upper(regexp_replace(coalesce(${column}, ''), '[^[:alnum:]]+', '', 'g'))`
+}
+
+function identityDocumentNumberDuplicateCondition(input: {
+  readonly column: AnyColumn
+  readonly trimmedDocumentNumber: string
+  readonly normalizedDocumentNumber: string
+}): SQL {
+  const exactCondition = eq(input.column, input.trimmedDocumentNumber)
+  if (input.normalizedDocumentNumber.length === 0) return exactCondition
+
+  const condition = or(
+    exactCondition,
+    eq(
+      normalizedIdentityDocumentNumberSql(input.column),
+      input.normalizedDocumentNumber
+    )
+  )
+  if (!condition) {
+    throw new Error("identity_document_duplicate_condition_missing")
+  }
+  return condition
 }
 
 /**
@@ -142,7 +173,8 @@ export async function checkEmployeeDuplicates(
           employeeScope,
           or(
             ilike(hrmEmployee.phone, normalizedPhone),
-            ilike(hrmEmployee.phone, input.phone.trim())
+            ilike(hrmEmployee.phone, input.phone.trim()),
+            eq(normalizedPhoneSql(hrmEmployee.phone), normalizedPhone)
           )
         )
       )
@@ -165,14 +197,30 @@ export async function checkEmployeeDuplicates(
           ne(hrmEmployeeContactProfile.employeeId, input.excludeEmployeeId),
           or(
             ilike(hrmEmployeeContactProfile.workPhone, normalizedPhone),
-            ilike(hrmEmployeeContactProfile.personalPhone, normalizedPhone)
+            ilike(hrmEmployeeContactProfile.personalPhone, normalizedPhone),
+            eq(
+              normalizedPhoneSql(hrmEmployeeContactProfile.workPhone),
+              normalizedPhone
+            ),
+            eq(
+              normalizedPhoneSql(hrmEmployeeContactProfile.personalPhone),
+              normalizedPhone
+            )
           )
         )
       : and(
           eq(hrmEmployeeContactProfile.organizationId, input.organizationId),
           or(
             ilike(hrmEmployeeContactProfile.workPhone, normalizedPhone),
-            ilike(hrmEmployeeContactProfile.personalPhone, normalizedPhone)
+            ilike(hrmEmployeeContactProfile.personalPhone, normalizedPhone),
+            eq(
+              normalizedPhoneSql(hrmEmployeeContactProfile.workPhone),
+              normalizedPhone
+            ),
+            eq(
+              normalizedPhoneSql(hrmEmployeeContactProfile.personalPhone),
+              normalizedPhone
+            )
           )
         )
 
@@ -204,11 +252,52 @@ export async function checkEmployeeDuplicates(
   }
 
   if (input.identityDocumentNumber) {
+    const trimmedDocumentNumber = input.identityDocumentNumber.trim()
+    const normalizedDocumentNumber =
+      normalizeEmployeeDuplicateIdentityDocumentNumber(
+        input.identityDocumentNumber
+      )
+    const legacyIdentityConditions = [
+      identityDocumentNumberDuplicateCondition({
+        column: hrmEmployee.idDocumentNumber,
+        trimmedDocumentNumber,
+        normalizedDocumentNumber,
+      }),
+    ]
+    if (input.identityDocumentType) {
+      legacyIdentityConditions.push(
+        eq(hrmEmployee.idDocumentType, input.identityDocumentType)
+      )
+    }
+    const legacyIdentityRows = await db
+      .select({
+        id: hrmEmployee.id,
+        employeeNumber: hrmEmployee.employeeNumber,
+        legalName: hrmEmployee.legalName,
+        employmentStatus: hrmEmployee.employmentStatus,
+        documentType: hrmEmployee.idDocumentType,
+      })
+      .from(hrmEmployee)
+      .where(and(employeeScope, ...legacyIdentityConditions))
+      .limit(5)
+
+    for (const row of legacyIdentityRows) {
+      pushMatch({
+        employeeId: row.id,
+        employeeNumber: row.employeeNumber,
+        legalName: row.legalName,
+        employmentStatus: row.employmentStatus,
+        matchedOn: "identity_document",
+        matchedField: row.documentType ?? "identityDocument",
+      })
+    }
+
     const docConditions = [
-      eq(
-        hrmEmployeeIdentityDocument.documentNumber,
-        input.identityDocumentNumber.trim()
-      ),
+      identityDocumentNumberDuplicateCondition({
+        column: hrmEmployeeIdentityDocument.documentNumber,
+        trimmedDocumentNumber,
+        normalizedDocumentNumber,
+      }),
     ]
     if (input.identityDocumentType) {
       docConditions.push(

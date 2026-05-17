@@ -1,12 +1,11 @@
 import { getTranslations } from "next-intl/server"
 
-import { ModulePageHeader } from "#components/module-page-header"
+import { ModulePageHeader } from "#features/governed-surface"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { OffboardingOrgDashboardPage } from "#features/hrm"
 import { resolveOffboardingSurfaceCapabilities } from "#features/hrm/server"
 
-export const dynamic = "force-dynamic"
 
 export default async function OrgDashboardHrmOffboardingPage({
   params,

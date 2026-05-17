@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   signedEnvelopeV1Schema,
   zSignatureEventDataV1,
-} from "../../lib/features/tools/electronic-signatures/schemas/signature.schema"
+} from "#features/tools"
 
 describe("signedEnvelopeV1Schema", () => {
   it("accepts a minimal valid envelope", () => {
@@ -70,6 +70,37 @@ describe("zSignatureEventDataV1", () => {
         drawnSignatureSha256: null,
         declarationTextHash: "c".repeat(64),
       },
+    })
+    expect(parsed.success).toBe(true)
+  })
+
+  it("parses consent.presented and consent.accepted payloads", () => {
+    const presented = zSignatureEventDataV1.safeParse({
+      type: "consent.presented",
+      requestId: "req-1",
+      organizationId: "org-1",
+      data: { partyId: "party-1", recipientEmail: "jane@example.com" },
+    })
+    const accepted = zSignatureEventDataV1.safeParse({
+      type: "consent.accepted",
+      requestId: "req-1",
+      organizationId: "org-1",
+      data: {
+        partyId: "party-1",
+        recipientEmail: "jane@example.com",
+        consentAt: new Date().toISOString(),
+      },
+    })
+    expect(presented.success).toBe(true)
+    expect(accepted.success).toBe(true)
+  })
+
+  it("parses signature_request.resent payload", () => {
+    const parsed = zSignatureEventDataV1.safeParse({
+      type: "signature_request.resent",
+      requestId: "req-1",
+      organizationId: "org-1",
+      data: { partyId: "party-1", recipientEmail: "jane@example.com" },
     })
     expect(parsed.success).toBe(true)
   })

@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache"
 
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
+import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 
 import {
   resolveOrgEventDeliveryForWebhook,
@@ -14,7 +14,6 @@ import {
   findEvidenceByDeliveryId,
 } from "#features/hrm/server"
 
-export const runtime = "nodejs"
 export const maxDuration = 30
 
 const EXTERNAL_REFERENCE_MAX_LENGTH = 128

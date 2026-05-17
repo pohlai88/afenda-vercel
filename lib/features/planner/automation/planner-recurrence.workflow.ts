@@ -6,7 +6,7 @@ import { writeIamAuditEvent } from "#lib/auth"
 import { publishOrgNotificationIfMissing } from "#features/org-notifications/server"
 import { db } from "#lib/db"
 import { plannerActivity } from "#lib/db/schema"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { markPlannerRecurrenceProcessed, insertPlannerItem } from "../server"
 import {

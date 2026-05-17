@@ -13,10 +13,10 @@ import { ORG_DASHBOARD_HRM_PERFORMANCE } from "#lib/dashboard-module-paths"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmReview, hrmReviewCycle } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import type { OrgSession } from "#lib/tenant"
+import type { OrgSession } from "#lib/auth"
 
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
-import { isoDateOnlyToUtcDate } from "../../../hrm-calendar-dates.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
+import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
 import {
   acknowledgePerformanceReviewFormSchema,
   cancelReviewFormSchema,
@@ -32,7 +32,7 @@ import {
   submitPerformanceReviewFormSchema,
   type HrmReviewPipeline,
 } from "../schemas/performance.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
 
 const PERFORMANCE_PERMISSION = {
@@ -742,4 +742,29 @@ export async function cancelReviewAction(
 
   revalidatePerformanceSurface()
   return { ok: true }
+}
+
+/** RSC `<form action>` wrappers — plain FormData entry points. */
+export async function submitCreateReviewCycle(formData: FormData) {
+  await createReviewCycleAction(undefined, formData)
+}
+
+export async function submitActivateReviewCycle(formData: FormData) {
+  await activateReviewCycleAction(undefined, formData)
+}
+
+export async function submitCloseReviewCycle(formData: FormData) {
+  await closeReviewCycleAction(undefined, formData)
+}
+
+export async function submitPerformanceReview(formData: FormData) {
+  await submitReviewAction(undefined, formData)
+}
+
+export async function submitAcknowledgePerformanceReview(formData: FormData) {
+  await acknowledgeReviewAction(undefined, formData)
+}
+
+export async function submitCancelPerformanceReview(formData: FormData) {
+  await cancelReviewAction(undefined, formData)
 }

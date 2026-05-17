@@ -1,3 +1,5 @@
+import { cacheLife } from "next/cache"
+
 import { securityDisclosureLink } from "#features/legal-declarations"
 import {
   publicTrustOwnerRoutes,
@@ -7,9 +9,10 @@ import {
 import { DEFAULT_APP_LOCALE, toLocalePath } from "#lib/i18n/locales.shared"
 import { getSiteUrl } from "#lib/site"
 
-export const dynamic = "force-static"
+export async function GET(): Promise<Response> {
+  "use cache"
+  cacheLife("max")
 
-export function GET(): Response {
   const base = getSiteUrl().replace(/\/$/, "")
   const policyPath = toLocalePath(
     DEFAULT_APP_LOCALE,

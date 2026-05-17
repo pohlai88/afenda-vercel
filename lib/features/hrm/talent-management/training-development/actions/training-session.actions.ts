@@ -9,10 +9,10 @@ import { ORG_DASHBOARD_HRM_TRAINING } from "#lib/dashboard-module-paths"
 import { db } from "#lib/db"
 import { hrmTrainingAssignment, hrmTrainingSession } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import type { OrgSession } from "#lib/tenant"
+import type { OrgSession } from "#lib/auth"
 import { and, eq } from "drizzle-orm"
 
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import { completeBoardingTasksForTrainingRecord } from "../data/training-boarding-bridge.server"
 import { closeTrainingSessionInTransaction } from "../data/training-session.mutations.server"
 import { linkTrainingCompletionToComplianceEvidence } from "../data/training-statutory-bridge.server"
@@ -22,8 +22,8 @@ import {
   normalizeTrainingCourseCode,
   recordSessionAttendanceFormSchema,
 } from "../schemas/training.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
-import { HRM_TRAINING_AUDIT } from "../../../training.contract"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
+import { HRM_TRAINING_AUDIT } from "../training.contract"
 import type { TrainingMutationFormState } from "../data/training.types.shared"
 
 const TRAINING_PERMISSION = {

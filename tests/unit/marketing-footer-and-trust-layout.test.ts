@@ -13,7 +13,7 @@ import {
   landingFooterContactRoutes,
   landingFooterDeclarationLinks,
   landingFooterTrustLinks,
-} from "#components/marketing/landing-footer.content"
+} from "#components2/marketing"
 
 const ROOT = process.cwd()
 

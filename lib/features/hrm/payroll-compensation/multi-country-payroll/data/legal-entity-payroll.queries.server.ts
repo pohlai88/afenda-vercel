@@ -3,7 +3,7 @@ import "server-only"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { hrmPayrollLegalEntityConfig } from "#lib/db/schema"
+import { hrmPayrollProfile } from "#lib/db/schema"
 
 export type LegalEntityPayrollConfigRow = {
   readonly id: string
@@ -19,30 +19,36 @@ export async function listLegalEntityPayrollConfigs(
   organizationId: string,
   opts?: { readonly countryCode?: string; readonly activeOnly?: boolean }
 ): Promise<LegalEntityPayrollConfigRow[]> {
-  const conditions = [eq(hrmPayrollLegalEntityConfig.organizationId, organizationId)]
+  const conditions = [eq(hrmPayrollProfile.organizationId, organizationId)]
   if (opts?.countryCode) {
-    conditions.push(
-      eq(hrmPayrollLegalEntityConfig.countryCode, opts.countryCode)
-    )
-  }
-  if (opts?.activeOnly !== false) {
-    conditions.push(eq(hrmPayrollLegalEntityConfig.isActive, true))
+    conditions.push(eq(hrmPayrollProfile.countryCode, opts.countryCode))
   }
 
   const rows = await db
     .select({
-      id: hrmPayrollLegalEntityConfig.id,
-      legalEntityCode: hrmPayrollLegalEntityConfig.legalEntityCode,
-      countryCode: hrmPayrollLegalEntityConfig.countryCode,
-      registrationNumber: hrmPayrollLegalEntityConfig.registrationNumber,
-      defaultPayrollCurrency: hrmPayrollLegalEntityConfig.defaultPayrollCurrency,
-      payrollCountryCode: hrmPayrollLegalEntityConfig.payrollCountryCode,
-      isActive: hrmPayrollLegalEntityConfig.isActive,
+      countryCode: hrmPayrollProfile.countryCode,
+      payCurrency: hrmPayrollProfile.payCurrency,
     })
-    .from(hrmPayrollLegalEntityConfig)
+    .from(hrmPayrollProfile)
     .where(and(...conditions))
 
-  return rows
+  const unique = new Map<string, LegalEntityPayrollConfigRow>()
+  for (const row of rows) {
+    const countryCode = row.countryCode.toUpperCase()
+    const legalEntityCode = countryCode
+    if (unique.has(legalEntityCode)) continue
+    unique.set(legalEntityCode, {
+      id: legalEntityCode,
+      legalEntityCode,
+      countryCode,
+      registrationNumber: null,
+      defaultPayrollCurrency: row.payCurrency.toUpperCase(),
+      payrollCountryCode: countryCode,
+      isActive: true,
+    })
+  }
+
+  return [...unique.values()]
 }
 
 export async function getLegalEntityPayrollConfig(

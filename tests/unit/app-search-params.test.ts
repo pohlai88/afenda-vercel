@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   searchParamFirst,
   searchParamPositiveInt,
-} from "#lib/app-search-params.shared"
+} from "#lib/i18n/app-search-params.shared"
 
 describe("app-search-params.shared", () => {
   it("searchParamFirst prefers string over array", () => {

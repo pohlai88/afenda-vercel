@@ -2,7 +2,7 @@ import "server-only"
 
 import { Document, type DocumentData } from "flexsearch"
 
-import { askDocsSource } from "#lib/ask-docs-source"
+import { askDocsSource } from "#lib/ask-docs/source"
 import { DEFAULT_APP_LOCALE, type AppLocale } from "#lib/i18n/locales.shared"
 import { logUnexpectedServerError } from "#lib/logger.server"
 

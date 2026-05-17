@@ -96,9 +96,22 @@ export async function listEmployeeEmploymentHistory(input: {
     "currentPositionId",
     "currentJobGradeId",
     "managerEmployeeId",
+    "dottedLineManagerId",
+    "hrOwnerEmployeeId",
     "employmentStatus",
     "employmentType",
     "employmentStartDate",
+    "contractStartDate",
+    "contractEndDate",
+    "currentEmploymentContractId",
+    "workerCategory",
+    "employeeLevel",
+    "costCenterCode",
+    "workLocationCode",
+    "contract.state",
+    "contract.versionNumber",
+    "contract.effectiveFrom",
+    "contract.terminationReason",
   ])
 
   for (const row of changeRows) {

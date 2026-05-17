@@ -1,14 +1,28 @@
 import { Suspense } from "react"
 
-import { WorkbenchSubLayoutShellSkeleton } from "#components/workbench"
+import { AppSubLayoutShellSkeleton } from "#app-shell"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
-import { OrgHrmDeferredWorkbench } from "./_components/org-hrm-deferred-workbench"
+import { OrgHrmDeferredShell } from "./_components/org-hrm-deferred-shell"
 
-export const dynamic = "force-dynamic"
 
-export default async function OrgDashboardHrmLayout({
+export default function OrgDashboardHrmLayout({
+  children,
+  params,
+}: LayoutProps<"/[locale]/o/[orgSlug]/dashboard/hrm">) {
+  return (
+    <Suspense
+      fallback={
+        <AppSubLayoutShellSkeleton statusLabel="Loading human resources" />
+      }
+    >
+      <OrgDashboardHrmLayoutInner params={params}>{children}</OrgDashboardHrmLayoutInner>
+    </Suspense>
+  )
+}
+
+async function OrgDashboardHrmLayoutInner({
   children,
   params,
 }: LayoutProps<"/[locale]/o/[orgSlug]/dashboard/hrm">) {
@@ -18,18 +32,12 @@ export default async function OrgDashboardHrmLayout({
   const orgSession = await requireOrgSession()
 
   return (
-    <Suspense
-      fallback={
-        <WorkbenchSubLayoutShellSkeleton statusLabel="Loading human resources" />
-      }
+    <OrgHrmDeferredShell
+      locale={locale}
+      orgSlug={orgSlug}
+      orgSession={orgSession}
     >
-      <OrgHrmDeferredWorkbench
-        locale={locale}
-        orgSlug={orgSlug}
-        orgSession={orgSession}
-      >
-        {children}
-      </OrgHrmDeferredWorkbench>
-    </Suspense>
+      {children}
+    </OrgHrmDeferredShell>
   )
 }

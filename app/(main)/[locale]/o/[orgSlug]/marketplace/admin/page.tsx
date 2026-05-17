@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   buildCapabilityCardCopy,
   buildMarketplaceCopySource,
@@ -27,7 +27,6 @@ import { requireRecentAuthStepUp } from "#lib/auth"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
 
-export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Marketplace · Admin",

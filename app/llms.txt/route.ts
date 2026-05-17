@@ -1,12 +1,13 @@
+import { cacheLife } from "next/cache"
 import { llms } from "fumadocs-core/source"
 
-import { askDocsSource } from "#lib/ask-docs-source"
+import { askDocsSource } from "#lib/ask-docs/source"
 import { resolveAskDocsLocale } from "#lib/ask-docs/locale-resolver.shared"
 
-/** Align with ask-docs HTML ISR window (ADR-0023). */
-export const revalidate = 3600
+export async function GET(request: Request) {
+  "use cache"
+  cacheLife("hours")
 
-export function GET(request: Request) {
   const url = new URL(request.url)
   const locale = resolveAskDocsLocale(url.searchParams.get("locale"))
   return new Response(llms(askDocsSource).index(locale), {

@@ -1,4 +1,4 @@
-import { DeclarationShell } from "#components/marketing/declaration-shell"
+import { DeclarationShell } from "#components2/marketing"
 import {
   declarationFooterIdentity,
   declarationFooterLinks,

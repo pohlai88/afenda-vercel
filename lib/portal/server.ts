@@ -7,7 +7,7 @@ import { and, eq } from "drizzle-orm"
 import { db } from "#lib/db"
 import { organizationPortal, organizationPortalAccess } from "#lib/db/schema"
 import { neonAuthOrganization } from "#lib/db/schema-neon-auth"
-import { requireSignedInSession } from "#lib/tenant"
+import { requireSignedInSession } from "#lib/auth"
 
 import {
   resolvePortalContextFromRows,

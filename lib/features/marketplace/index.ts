@@ -23,8 +23,6 @@ export {
   CAPABILITY_CATEGORIES,
   isCapabilityCategory,
   isMarketplaceRoute,
-  marketplacePath,
-  marketplaceRoute,
   organizationMarketplacePath,
   MARKETPLACE_METRICS_K_ANONYMITY_THRESHOLD,
   MARKETPLACE_METRICS_REVALIDATE_SECONDS,

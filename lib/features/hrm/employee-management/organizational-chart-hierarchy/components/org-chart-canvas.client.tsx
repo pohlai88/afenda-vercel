@@ -14,15 +14,15 @@ import {
 import "@xyflow/react/dist/style.css"
 import { useTranslations } from "next-intl"
 
-import { Badge } from "#components/ui/badge"
-import { Button } from "#components/ui/button"
+import { Badge } from "#components2/ui/badge"
+import { Button } from "#components2/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "#components/ui/dialog"
+} from "#components2/ui/dialog"
 import { Link } from "#i18n/navigation"
 
 import {

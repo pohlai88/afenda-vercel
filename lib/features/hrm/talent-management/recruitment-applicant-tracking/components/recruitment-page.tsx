@@ -2,19 +2,19 @@ import { getTranslations } from "next-intl/server"
 
 import { GovernedComponentRenderer } from "#components2/metadata"
 import { GovernedSurface } from "#features/governed-surface"
-import { Badge } from "#components/ui/badge"
-import { Button } from "#components/ui/button"
+import { Badge } from "#components2/ui/badge"
+import { Button } from "#components2/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Input } from "#components/ui/input"
-import { Label } from "#components/ui/label"
-import { Textarea } from "#components/ui/textarea"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/card"
+import { Input } from "#components2/ui/input"
+import { Label } from "#components2/ui/label"
+import { Textarea } from "#components2/ui/textarea"
+import { requireOrgSession } from "#lib/auth"
 
 import {
   acceptJobOfferAction,
@@ -32,7 +32,7 @@ import {
   submitInterviewFeedbackFormAction,
   withdrawJobOfferAction,
 } from "../actions/recruitment.actions"
-import { buildGovernedHrmWorkbenchHeader } from "../../../hrm-governed-page-header.server"
+import { buildGovernedHrmWorkbenchHeader } from "../../../_module-governance/hrm-governed-page-header.server"
 import {
   listApplicationsForOrg,
   getInterviewCountsForOrg,
@@ -103,7 +103,8 @@ export async function RecruitmentPage({ orgSlug }: RecruitmentPageProps) {
 
   const openRequisitions = reqs.filter((x) => x.status === "open")
   const offerInFlightCount = offers.filter(
-    (o) => o.status === "draft" || o.status === "approved" || o.status === "sent"
+    (o) =>
+      o.status === "draft" || o.status === "approved" || o.status === "sent"
   ).length
   const activeApplicationCount = apps.filter(
     (a) =>

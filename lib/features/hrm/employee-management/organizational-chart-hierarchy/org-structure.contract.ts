@@ -121,4 +121,20 @@ export const HRM_ORG_STRUCTURE_AUDIT = {
       verb: "update",
     }),
   },
+
+  /** Effective-dated employee reporting relationship: direct, dotted-line, or matrix. */
+  reportingRelationship: {
+    create: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "organization.reporting_relationship",
+      verb: "create",
+    }),
+    update: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "organization.reporting_relationship",
+      verb: "update",
+    }),
+  },
 } as const

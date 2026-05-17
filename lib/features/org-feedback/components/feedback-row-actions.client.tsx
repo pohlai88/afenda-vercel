@@ -4,9 +4,9 @@ import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
 import { useTranslations } from "next-intl"
 
-import { Button } from "#components/ui/button"
-import { Label } from "#components/ui/label"
-import { Textarea } from "#components/ui/textarea"
+import { Button } from "#components2/ui/button"
+import { Label } from "#components2/ui/label"
+import { Textarea } from "#components2/ui/textarea"
 import {
   FEEDBACK_RESOLUTION_NOTE_MAX,
   type FeedbackStateId,

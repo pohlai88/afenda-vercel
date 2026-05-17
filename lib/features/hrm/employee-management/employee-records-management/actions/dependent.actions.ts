@@ -7,7 +7,7 @@ import { and, eq } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL } from "#lib/dashboard-module-paths"
 import { db } from "#lib/db"
-import { hrmDependent, hrmEmployee } from "#lib/db/schema"
+import { hrmDependent } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { requireEmployeeRecordMutationGate } from "../data/employee-record-action-guard.server"
@@ -15,8 +15,14 @@ import {
   archiveDependentFormSchema,
   createDependentFormSchema,
 } from "../schemas/dependent.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
+import { HRM_EMPLOYEE_RECORDS_AUDIT } from "../employee-records.contract"
+import {
+  mutableEmployeeRecordErrorMessage,
+  requireMutableEmployeeRecord,
+} from "../data/employee-record-mutability.server"
+import { recordEmployeeRecordChangeHistory } from "../data/employee-record-history.server"
 
 function revalidateEmployeeDetailSurface() {
   revalidatePath(
@@ -48,18 +54,14 @@ export async function createDependentAction(
     return hrmActionFailure({ form: "Invalid dependent input." })
   }
 
-  const [emp] = await db
-    .select({ id: hrmEmployee.id })
-    .from(hrmEmployee)
-    .where(
-      and(
-        eq(hrmEmployee.organizationId, organizationId),
-        eq(hrmEmployee.id, parsed.data.employeeId)
-      )
-    )
-    .limit(1)
-  if (!emp) {
-    return hrmActionFailure({ form: "Employee not found." })
+  const mutable = await requireMutableEmployeeRecord({
+    organizationId,
+    employeeId: parsed.data.employeeId,
+  })
+  if (!mutable.ok) {
+    return hrmActionFailure({
+      form: mutableEmployeeRecordErrorMessage(mutable),
+    })
   }
 
   const id = crypto.randomUUID()
@@ -68,21 +70,48 @@ export async function createDependentAction(
       ? new Date(`${parsed.data.dateOfBirth}T00:00:00.000Z`)
       : null
 
-  await db.insert(hrmDependent).values({
-    id,
-    organizationId,
-    employeeId: parsed.data.employeeId,
-    legalName: parsed.data.legalName,
-    relationship: parsed.data.relationship,
-    dateOfBirth: dob,
-    taxDependent: parsed.data.taxDependent ?? false,
-    createdByUserId: userId,
-    updatedByUserId: userId,
+  await db.transaction(async (tx) => {
+    await tx.insert(hrmDependent).values({
+      id,
+      organizationId,
+      employeeId: parsed.data.employeeId,
+      legalName: parsed.data.legalName,
+      relationship: parsed.data.relationship,
+      dateOfBirth: dob,
+      taxDependent: parsed.data.taxDependent ?? false,
+      createdByUserId: userId,
+      updatedByUserId: userId,
+    })
+    await recordEmployeeRecordChangeHistory(
+      {
+        organizationId,
+        employeeId: parsed.data.employeeId,
+        changedByUserId: userId,
+        changes: [
+          {
+            fieldName: "dependent.legalName",
+            oldValue: null,
+            newValue: parsed.data.legalName,
+          },
+          {
+            fieldName: "dependent.relationship",
+            oldValue: null,
+            newValue: parsed.data.relationship,
+          },
+          {
+            fieldName: "dependent.taxDependent",
+            oldValue: null,
+            newValue: parsed.data.taxDependent ?? false,
+          },
+        ],
+      },
+      tx
+    )
   })
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.dependent.create",
+      action: HRM_EMPLOYEE_RECORDS_AUDIT.dependent.create,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,
@@ -134,18 +163,46 @@ export async function archiveDependentAction(
     return hrmActionFailure({ form: "Dependent not found." })
   }
 
-  await db
-    .update(hrmDependent)
-    .set({
-      archivedAt: new Date(),
-      updatedByUserId: userId,
-      updatedAt: new Date(),
+  const mutable = await requireMutableEmployeeRecord({
+    organizationId,
+    employeeId: row.employeeId,
+  })
+  if (!mutable.ok) {
+    return hrmActionFailure({
+      form: mutableEmployeeRecordErrorMessage(mutable),
     })
-    .where(eq(hrmDependent.id, parsed.data.dependentId))
+  }
+
+  const archivedAt = new Date()
+  await db.transaction(async (tx) => {
+    await tx
+      .update(hrmDependent)
+      .set({
+        archivedAt,
+        updatedByUserId: userId,
+        updatedAt: archivedAt,
+      })
+      .where(eq(hrmDependent.id, parsed.data.dependentId))
+    await recordEmployeeRecordChangeHistory(
+      {
+        organizationId,
+        employeeId: row.employeeId,
+        changedByUserId: userId,
+        changes: [
+          {
+            fieldName: "dependent.archivedAt",
+            oldValue: null,
+            newValue: archivedAt.toISOString(),
+          },
+        ],
+      },
+      tx
+    )
+  })
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.dependent.archive",
+      action: HRM_EMPLOYEE_RECORDS_AUDIT.dependent.deprecate,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,

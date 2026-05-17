@@ -2,7 +2,7 @@
 
 import { useFormStatus } from "react-dom"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 
 import { downloadDocumentAction } from "../actions/hrm-document.actions"
 

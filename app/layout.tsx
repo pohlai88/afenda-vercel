@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next"
 import { Geist_Mono, Inter } from "next/font/google"
+import { connection } from "next/server"
 import { headers } from "next/headers"
 
 import { AppShellRootThemeProvider } from "#components2/providers/theme-provider.client"
-import { Toaster } from "#components/ui/sonner"
-import { TooltipProvider } from "#components/ui/tooltip"
+import { Toaster } from "#components2/ui/sonner"
+import { TooltipProvider } from "#components2/ui/tooltip"
 import {
   APP_ICON_192_PNG,
   APP_ICON_512_PNG,
@@ -55,6 +56,7 @@ async function resolveRequestMetadataBase(): Promise<URL> {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
+  await connection()
   const metadataBase = await resolveRequestMetadataBase()
   return {
     metadataBase,
@@ -155,6 +157,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  await connection()
   const h = await headers()
   const localeRaw = h.get(AFENDA_LOCALE_HEADER)?.trim()
   const htmlLang =

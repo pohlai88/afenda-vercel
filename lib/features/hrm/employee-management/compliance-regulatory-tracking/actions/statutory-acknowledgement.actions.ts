@@ -6,8 +6,8 @@ import { revalidatePath } from "next/cache"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { acknowledgeEvidenceTransition } from "../data/compliance-acknowledgement.server"
-import { requireHrmAdmin } from "../../../hrm-admin-guard.server"
-import { hrmCodedActionFailure } from "../../../hrm-action-result.shared"
+import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
+import { hrmCodedActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { AcknowledgeStatutoryEvidenceFormState } from "../../../types"
 
 const EXTERNAL_REFERENCE_MAX_LENGTH = 128

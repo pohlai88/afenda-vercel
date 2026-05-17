@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm"
 
-import { routeJsonOk } from "#lib/route-handler-json.shared"
+import { routeJsonOk } from "#lib/api/route-handler-json.shared"
 
 type PublicHealthState = "ok" | "error"
 

@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { stableJsonStringify } from "#lib/erp/stable-json.shared"
+
 export const PAYROLL_CLOSE_EXCEPTION_CODES = [
   "missing_contract",
   "missing_profile",
@@ -286,23 +288,10 @@ export function payrollCentsToDecimal(cents: number): string {
 }
 
 export function stablePayrollCloseStringify(value: unknown): string {
-  if (value === null || typeof value !== "object") {
-    return JSON.stringify(value) ?? "null"
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map(stablePayrollCloseStringify).join(",")}]`
-  }
-  const entries = Object.entries(value as Record<string, unknown>)
-    .filter(([, entryValue]) => entryValue !== undefined)
-    .sort(([left], [right]) => left.localeCompare(right))
-
-  return `{${entries
-    .map(
-      ([key, entryValue]) =>
-        `${JSON.stringify(key)}:${stablePayrollCloseStringify(entryValue)}`
-    )
-    .join(",")}}`
+  return stableJsonStringify(value)
 }
+
+export { stableJsonStringify } from "#lib/erp/stable-json.shared"
 
 export function computePayrollCloseReadinessScore(
   checklist: readonly PayrollCloseChecklistItem[]

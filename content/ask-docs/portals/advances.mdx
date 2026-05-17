@@ -1,0 +1,67 @@
+---
+title: Employee portal salary advances
+description: Request salary advances and cancel pending requests from the employee portal.
+audience: employee
+status: draft
+icon: Wallet
+---
+
+## Overview
+
+**My salary advances** at `/{locale}/p/{portalSlug}/employee/advances` lets you request an advance against payroll and cancel requests that have not yet been approved or paid. Amount limits and approval rules are configured in HRM.
+
+## Before you start
+
+- Employee portal session with audience `employee`.
+- Your organisation must allow employee-initiated advance requests.
+
+## Request or cancel an advance
+
+<Steps>
+  <Step>
+    ### Open My advances
+
+    From the employee portal, open **Advances** (or **Salary advances**) in the section navigation.
+  </Step>
+  <Step>
+    ### Submit a request
+
+    Enter the **amount** and any required reason or schedule fields, then submit. Finance or HR approves in HRM.
+  </Step>
+  <Step>
+    ### Cancel pending requests
+
+    Use **Cancel** on rows still awaiting approval. Paid or approved advances must be adjusted by HR in HRM.
+
+    <Callout type="info" title="Payroll linkage">
+      Approved advances may reduce net pay on the next posted payroll run — see payslips after payroll closes.
+    </Callout>
+  </Step>
+</Steps>
+
+## Portal vs HRM
+
+| Action | Employee portal | HRM |
+| --- | --- | --- |
+| Request advance | Yes | — |
+| Approve / pay | — | Yes |
+| Cancel pending | Yes | — |
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Request exceeds limit">
+    Your org may cap advance amount or frequency. Contact HR for an exception process.
+  </Accordion>
+  <Accordion title="Advance not on payslip yet">
+    Wait for the payroll period that includes the advance deduction to be posted and published.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/portals/employee" title="Employee portal hub" />
+  <Card href="/ask-docs/hrm/advances" title="Salary advances (HRM)" />
+  <Card href="/ask-docs/portals/payslips" title="Employee portal payslips" />
+</Cards>

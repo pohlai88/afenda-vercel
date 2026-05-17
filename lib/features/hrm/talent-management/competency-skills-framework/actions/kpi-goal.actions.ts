@@ -8,7 +8,7 @@ import { requireErpPermission } from "#features/erp-rbac/server"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { ORG_DASHBOARD_HRM_KPI } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import type { OrgSession } from "#lib/tenant"
+import type { OrgSession } from "#lib/auth"
 
 import {
   deleteKpiGoal,
@@ -25,7 +25,7 @@ import {
   getKpiGoalCommentById,
   getKpiGoalMilestoneById,
 } from "../data/kpi-goal.queries.server"
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import {
   addKpiGoalMilestoneFormSchema,
   closeKpiGoalFormSchema,
@@ -37,7 +37,7 @@ import {
   updateKpiGoalFormSchema,
   updateKpiGoalMilestoneFormSchema,
 } from "../schemas/kpi-goal.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
 
 function zodErrors(err: ZodError): Record<string, string | undefined> {

@@ -1,5 +1,5 @@
-import { ModulePageHeader } from "#components/module-page-header"
-import { requireOrgSession } from "#lib/tenant"
+import { ModulePageHeader } from "#features/governed-surface"
+import { requireOrgSession } from "#lib/auth"
 
 import { listRecentKnowledgeChunks } from "../data/knowledge-chunk.queries"
 import { AddKnowledgeChunkForm } from "./add-chunk-form"

@@ -3,14 +3,14 @@ import { getTranslations } from "next-intl/server"
 import type { Route } from "next"
 
 import { Link } from "#i18n/navigation"
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 
 import { organizationHrmPath } from "../../../constants"
 import { getEmployeeComplianceSummary } from "../../compliance-regulatory-tracking/data/employee-compliance-summary.queries.server"

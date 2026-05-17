@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 
 import { listJobFailures, listOrgImportJobs } from "../data/import-jobs.queries"
 

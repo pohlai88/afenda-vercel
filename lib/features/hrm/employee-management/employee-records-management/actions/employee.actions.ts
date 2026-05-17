@@ -16,12 +16,12 @@ import {
   toLocalePath,
 } from "#lib/i18n/locales.shared"
 
-import { isoDateOnlyToUtcDate } from "../../../hrm-calendar-dates.server"
+import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
 import { organizationHrmEmployeePath } from "../../../constants"
 import { terminateBenefitEnrollmentsForEmploymentEnd } from "../../../payroll-compensation/benefits-administration/data/benefit-employment-bridge.server"
 import { createOffboardingInstanceForTermination } from "../../employee-lifecycle-management/data/boarding.mutations.server"
 import { insertDefaultOffboardingInstance } from "../../offboarding-exit-management/data/offboarding.mutations.server"
-import { assertOptionalHrmPlacementFkBelongsToOrg } from "../../../hrm-org-fk.server"
+import { assertOptionalHrmPlacementFkBelongsToOrg } from "../../../_internal-cross-cutting/hrm-org-fk.server"
 import { updateEmployeeCoreFieldsWithHistory } from "../data/employee-core-update.mutations.server"
 import {
   assertNoEmployeeDuplicates,
@@ -38,9 +38,17 @@ import {
   rehireEmployeeFormSchema,
   updateEmployeeFormSchema,
 } from "../schemas/employee.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { EmployeeMutationFormState } from "../../../types"
 import { HRM_EMPLOYEE_RECORDS_AUDIT } from "../employee-records.contract"
+import {
+  recordEmployeeLifecycleEvent,
+  recordEmployeeRecordChangeHistory,
+} from "../data/employee-record-history.server"
+import {
+  mutableEmployeeRecordErrorMessage,
+  requireMutableEmployeeRecord,
+} from "../data/employee-record-mutability.server"
 
 export async function createEmployeeAction(
   _prev: EmployeeMutationFormState | undefined,
@@ -63,6 +71,11 @@ export async function createEmployeeAction(
     currentDepartmentId: formData.get("currentDepartmentId"),
     currentPositionId: formData.get("currentPositionId"),
     currentJobGradeId: formData.get("currentJobGradeId"),
+    dateOfBirth: formData.get("dateOfBirth"),
+    gender: formData.get("gender"),
+    nationality: formData.get("nationality"),
+    identityDocumentType: formData.get("identityDocumentType"),
+    identityDocumentNumber: formData.get("identityDocumentNumber"),
   })
 
   if (!parsed.success) {
@@ -75,7 +88,9 @@ export async function createEmployeeAction(
         fe.employmentStartDate?.[0] ??
         fe.currentDepartmentId?.[0] ??
         fe.currentPositionId?.[0] ??
-        fe.currentJobGradeId?.[0],
+        fe.currentJobGradeId?.[0] ??
+        fe.identityDocumentType?.[0] ??
+        fe.identityDocumentNumber?.[0],
     })
   }
 
@@ -115,17 +130,26 @@ export async function createEmployeeAction(
     currentDepartmentId: parsed.data.currentDepartmentId,
     currentPositionId: parsed.data.currentPositionId,
     currentJobGradeId: parsed.data.currentJobGradeId,
+    dateOfBirth: parsed.data.dateOfBirth
+      ? isoDateOnlyToUtcDate(parsed.data.dateOfBirth)
+      : null,
+    gender: parsed.data.gender ?? null,
+    nationality: parsed.data.nationality ?? null,
+    identityDocumentType: parsed.data.identityDocumentType ?? null,
+    identityDocumentNumber: parsed.data.identityDocumentNumber ?? null,
   })
 
   if (!created.ok) {
     if (created.code === "duplicate_employee_number") {
       return hrmActionFailure({
-        employeeNumber:
-          "Employee number already exists for this organization.",
+        employeeNumber: "Employee number already exists for this organization.",
       })
     }
     if (created.code === "duplicate_email") {
       return hrmActionFailure({ email: created.message })
+    }
+    if (created.code === "duplicate_identity") {
+      return hrmActionFailure({ form: created.message })
     }
     return hrmActionFailure({ form: "Could not create employee. Try again." })
   }
@@ -177,6 +201,7 @@ export async function updateEmployeeAction(
     legalName: formData.get("legalName"),
     preferredName: formData.get("preferredName"),
     email: formData.get("email"),
+    employmentStartDate: formData.get("employmentStartDate"),
     currentDepartmentId: formData.get("currentDepartmentId"),
     currentPositionId: formData.get("currentPositionId"),
     currentJobGradeId: formData.get("currentJobGradeId"),
@@ -193,6 +218,16 @@ export async function updateEmployeeAction(
         fe.currentDepartmentId?.[0] ??
         fe.currentPositionId?.[0] ??
         fe.currentJobGradeId?.[0],
+    })
+  }
+
+  const mutable = await requireMutableEmployeeRecord({
+    organizationId,
+    employeeId: parsed.data.employeeId,
+  })
+  if (!mutable.ok) {
+    return hrmActionFailure({
+      form: mutableEmployeeRecordErrorMessage(mutable),
     })
   }
 
@@ -337,6 +372,7 @@ export async function archiveEmployeeAction(
       id: hrmEmployee.id,
       archivedAt: hrmEmployee.archivedAt,
       employeeNumber: hrmEmployee.employeeNumber,
+      employmentStatus: hrmEmployee.employmentStatus,
       currentEmploymentContractId: hrmEmployee.currentEmploymentContractId,
     })
     .from(hrmEmployee)
@@ -365,9 +401,55 @@ export async function archiveEmployeeAction(
           archivedAt,
           archivedByUserId: userId,
           archivedReason: parsed.data.archivedReason ?? null,
+          employmentStatus: "terminated",
           updatedByUserId: userId,
         })
         .where(eq(hrmEmployee.id, parsed.data.employeeId))
+
+      await recordEmployeeLifecycleEvent(
+        {
+          organizationId,
+          employeeId: parsed.data.employeeId,
+          kind: "separation",
+          previousStatus: existing.employmentStatus,
+          newStatus: "terminated",
+          effectiveDate: archivedAt,
+          reason: parsed.data.archivedReason ?? null,
+          actorUserId: userId,
+          isEffectiveDated: true,
+        },
+        tx
+      )
+
+      await recordEmployeeRecordChangeHistory(
+        {
+          organizationId,
+          employeeId: parsed.data.employeeId,
+          changedByUserId: userId,
+          changes: [
+            {
+              fieldName: "employmentStatus",
+              oldValue: existing.employmentStatus,
+              newValue: "terminated",
+            },
+            {
+              fieldName: "archivedAt",
+              oldValue: null,
+              newValue: archivedAt.toISOString(),
+            },
+            {
+              fieldName: "archivedReason",
+              oldValue: null,
+              newValue: parsed.data.archivedReason ?? null,
+            },
+          ],
+          meta: {
+            effectiveDate: archivedAt,
+            reason: parsed.data.archivedReason ?? null,
+          },
+        },
+        tx
+      )
 
       await insertDefaultOffboardingInstance(tx, {
         organizationId,

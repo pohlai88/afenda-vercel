@@ -15,7 +15,7 @@ import {
   getOrgEventEndpointSigningKey,
 } from "#features/org-admin/server"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { getComplianceEvidence } from "../data/compliance.queries.server"
 import { fetchRunsForStatutoryPack } from "../data/compliance.queries.server"
@@ -25,9 +25,9 @@ import { resolveRulePack } from "../../../payroll-compensation/multi-country-pay
 import type { StatutoryPackType } from "../../../payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server"
 import { buildStatutoryPackFromRuns } from "../data/statutory-pack.server"
 import { eventTypeForStatutoryPack } from "../data/statutory-event-types.shared"
-import { requireHrmAdmin } from "../../../hrm-admin-guard.server"
+import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
 import { organizationHrmPath } from "../../../constants"
-import { hrmCodedActionFailure } from "../../../hrm-action-result.shared"
+import { hrmCodedActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { SubmitStatutoryEvidenceFormState } from "../../../types"
 
 const STATUTORY_PACK_TYPES = [

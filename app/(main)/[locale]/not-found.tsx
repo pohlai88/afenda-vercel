@@ -1,6 +1,6 @@
 import { Link } from "#i18n/navigation"
-import { AfendaBrandLockup } from "#components/afenda-brand"
-import { Button } from "#components/ui/button"
+import { AfendaBrandLockup } from "#components2/marketing"
+import { Button } from "#components2/ui/button"
 
 /**
  * Locale-tier 404 — used by `notFound()` calls inside `app/[locale]/**`.

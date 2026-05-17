@@ -1,9 +1,9 @@
 import { getTranslations } from "next-intl/server"
 
-import { ListSurfaceTable } from "#components2/metadata/renderers/list-surface-table"
+import { GovernedListSurfaceWithTrailingColumn } from "#components2/metadata"
 import { parseListSurfaceRendererConfiguration } from "#features/governed-surface/schemas/list-surface-renderer.schema"
 import { logUnexpectedServerError } from "#lib/logger.server"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import { buildClaimPendingListSurfaceConfiguration } from "../data/claim-pending-list-surface.server"
 import {
@@ -21,7 +21,8 @@ type ClaimPendingInboxProps = {
 
 /**
  * Admin inbox — pending claims awaiting approval. List body is metadata-driven
- * via `ListSurfaceTable`; action buttons stay in a trailing column (not
+ * via `GovernedListSurfaceWithTrailingColumn` (ADR-0026 Pattern C); action
+ * buttons stay in a trailing column (not
  * serializable in list-surface cells).
  */
 export async function ClaimPendingInbox({
@@ -95,7 +96,7 @@ export async function ClaimPendingInbox({
   const claimById = new Map(rows.map((row) => [row.id, row]))
 
   return (
-    <ListSurfaceTable
+    <GovernedListSurfaceWithTrailingColumn
       columns={parsed.data.columns}
       rows={parsed.data.rows}
       trailingColumn={

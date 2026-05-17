@@ -1,13 +1,13 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
-import { AuthPageFrame } from "#components/auth/auth-page-frame"
+import { AuthPageFrame } from "#components2/auth/auth-page-frame"
 import { getEnabledSocialProviderIds } from "#lib/auth/social-providers-env.shared"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
 
-import { parsePostAuthPath, parsePrefillEmail } from "../auth-flow.shared"
-import { SignInForm } from "../sign-in/sign-in-form"
+import { parsePostAuthPath, parsePrefillEmail } from "#components2/auth/auth-flow.shared"
+import { SignInForm } from "#components2/auth/sign-in-form.client"
 
 export async function generateMetadata({
   params,

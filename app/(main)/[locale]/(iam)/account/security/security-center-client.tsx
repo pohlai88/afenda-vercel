@@ -12,11 +12,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "#components/ui/alert-dialog"
-import { Button } from "#components/ui/button"
-import { Input } from "#components/ui/input"
-import { Label } from "#components/ui/label"
-import { Spinner } from "#components/ui/spinner"
+} from "#components2/ui/alert-dialog"
+import { Button } from "#components2/ui/button"
+import { Input } from "#components2/ui/input"
+import { Label } from "#components2/ui/label"
+import { Spinner } from "#components2/ui/spinner"
 
 import {
   deletePasskeyAction,

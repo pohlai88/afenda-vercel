@@ -1,16 +1,16 @@
 "use client"
 
-import { useRouteEnvelope } from "#components/route-envelope-context"
-import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
-import { RouteErrorRetryButton } from "#components/route-error-retry-button"
-import { useReportRouteError } from "#components/use-report-route-error"
+import { useRouteEnvelope } from "#components2/route-envelope-context.client"
+import { RouteErrorDebugPanel } from "#components2/dev/route-error-debug-panel"
+import { RouteErrorRetryButton } from "#components2/route-error/route-error-retry-button"
+import { useReportRouteError } from "#components2/route-error/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
-} from "#lib/next-app-error-page-props.shared"
+} from "#components2/route-error/error-page-props.shared"
 
 /**
- * Org-admin tier error boundary — keeps the workbench shell (sidebar, header)
+ * Org-admin tier error boundary — keeps the app shell (sidebar, header)
  * mounted while the page content recovers.
  */
 export default function OrgAdminError(props: NextAppErrorPageProps) {
@@ -26,7 +26,7 @@ export default function OrgAdminError(props: NextAppErrorPageProps) {
         Admin section failed to load
       </h1>
       <p className="max-w-md text-sm text-muted-foreground">
-        The workbench shell is still available — try again, or navigate to
+        The app shell is still available — try again, or navigate to
         another section from the sidebar.
       </p>
       {error.digest ? (

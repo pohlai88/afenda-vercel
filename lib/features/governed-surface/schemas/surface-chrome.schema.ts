@@ -13,11 +13,7 @@ export const governedSurfaceDensitySchema = z.enum([
   "relaxed",
 ])
 
-export const governedSurfaceElevationSchema = z.enum([
-  "flat",
-  "card",
-  "raised",
-])
+export const governedSurfaceElevationSchema = z.enum(["flat", "card", "raised"])
 
 export const governedSurfaceMaterialSchema = z.enum([
   "solid",
@@ -53,4 +49,3 @@ export type GovernedSurfaceChromeInput = z.input<
 export function parseGovernedSurfaceChromeData(raw: unknown) {
   return governedSurfaceChromeSchema.safeParse(raw)
 }
-

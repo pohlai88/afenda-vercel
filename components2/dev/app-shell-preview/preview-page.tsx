@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation"
 
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
-import { AppShell, AppShellSurface, AppSubLayout } from "#app-shell"
-import type { AppShellRailConfig } from "#app-shell"
+import { AppShell, AppSubLayout, AppShellSurface } from "#app-shell"
+import type { AppShellPrimaryLeftRailConfig } from "#app-shell"
 import {
   AppShellBrandDisc,
   AppShellAppsDisc,
-  AppShellRailFooter,
+  AppShellPrimaryLeftRailFooter,
   CrudSapActionBar,
-} from "#components2/app-shell/client"
+} from "#app-shell/client"
 
 import { SHELL_PREVIEW_HREF } from "../fixtures/preview-href.shared"
 import {
@@ -20,7 +20,7 @@ import { AppShellPreviewPolicyDisc } from "./policy-disc.client"
 import { AppShellPreviewContent } from "./preview-content"
 import { AppShellPreviewUtilityBarRight } from "./utility-bar-right.client"
 
-const SUB_RAIL: AppShellRailConfig = {
+const SUB_RAIL: AppShellPrimaryLeftRailConfig = {
   storageKey: "dev-shell-preview-sub-rail",
   labels: {
     ariaLabel: "HRM navigation",
@@ -108,7 +108,7 @@ export default async function AppShellPreviewPage({
   const { locale: localeRaw } = await params
   const locale = ensureAppLocale(localeRaw)
 
-  const rail: AppShellRailConfig = {
+  const rail: AppShellPrimaryLeftRailConfig = {
     storageKey: "dev-shell-preview-rail",
     labels: {
       ariaLabel: "Main navigation",
@@ -227,7 +227,7 @@ export default async function AppShellPreviewPage({
         },
       ],
       footer: (
-        <AppShellRailFooter
+        <AppShellPrimaryLeftRailFooter
           labels={{
             sidebarControl: "Sidebar",
             expanded: "Expanded mode",

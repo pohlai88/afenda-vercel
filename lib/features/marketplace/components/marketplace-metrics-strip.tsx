@@ -1,4 +1,4 @@
-import { Card, CardContent } from "#components/ui/card"
+import { Card, CardContent } from "#components2/ui/card"
 
 export type MarketplaceMetricStrip = {
   /** Capability id ("right.notifications", etc.). */

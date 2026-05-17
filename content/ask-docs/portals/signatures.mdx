@@ -1,0 +1,68 @@
+---
+title: Employee portal signatures
+description: Review and complete employment document signature ceremonies from the employee portal.
+audience: employee
+status: draft
+icon: PenLine
+---
+
+## Overview
+
+**My signatures** at `/{locale}/p/{portalSlug}/employee/signatures` lists documents awaiting your signature and opens a **ceremony** at `/employee/signatures/{token}` to submit or decline. Ceremonies are tenant-bound and time-limited.
+
+## Before you start
+
+- Employee portal session with audience `employee`.
+- Completing a ceremony may require **recent authentication (step-up)**.
+
+## Sign or decline
+
+<Steps>
+  <Step>
+    ### Open My signatures
+
+    From the employee portal, open **Signatures** in the section navigation.
+  </Step>
+  <Step>
+    ### Open a ceremony
+
+    Select a pending row to open the ceremony page. Read the document summary and legal copy before acting.
+  </Step>
+  <Step>
+    ### Complete step-up when prompted
+
+    Submitting or declining may call `requireRecentAuthStepUp` — re-authenticate if your session is stale.
+
+    <Callout type="warn" title="Tier A action">
+      Signature completion is irreversible for compliance. Decline only when you intend to reject the document; HR may reissue a new ceremony.
+    </Callout>
+  </Step>
+  <Step>
+    ### Submit or decline
+
+    Follow the ceremony controls to **submit** your signature or **decline** with a reason when supported.
+  </Step>
+</Steps>
+
+## Authority and audit
+
+- Ceremony tokens map to a single party on an org-owned signature request.
+- Successful submit/decline audits after commit with `erp.hrm.*` signature actions and `metadata.surface = employee_portal` where applicable.
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Step-up keeps failing">
+    Sign out and sign in again, then retry within the step-up time window. Contact IT if MFA or session policies block completion.
+  </Accordion>
+  <Accordion title="Ceremony link expired">
+    Ask HR to reissue the signature request from HRM.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/portals/employee" title="Employee portal hub" />
+  <Card href="/ask-docs/hrm/signatures" title="Signatures (HRM)" />
+</Cards>

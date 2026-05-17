@@ -4,8 +4,8 @@ import { useState, type ReactNode } from "react"
 
 import { Info } from "lucide-react"
 
-import { Badge } from "#components/ui/badge"
-import { Button } from "#components/ui/button"
+import { Badge } from "#components2/ui/badge"
+import { Button } from "#components2/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "#components/ui/dialog"
+} from "#components2/ui/dialog"
 
 export type CapabilityDetailDialogCopy = {
   triggerLabel: string

@@ -1,5 +1,5 @@
-import { AuthPageFrame } from "#components/auth/auth-page-frame"
-import { Button } from "#components/ui/button"
+import { AuthPageFrame } from "#components2/auth/auth-page-frame"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 
 /**

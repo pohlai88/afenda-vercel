@@ -11,31 +11,36 @@ const radixRestrictedPatterns = [
   {
     group: ["radix-ui"],
     message:
-      "Import primitives only via #components/ui/* — radix-ui stays inside components/ui.",
+      "Import primitives only via #components2/ui/* — radix-ui stays inside components2/ui.",
   },
   {
     group: ["@radix-ui/*"],
     message:
-      "Use #components/ui/* wrappers; do not import @radix-ui packages outside components/ui.",
+      "Use #components2/ui/* wrappers; do not import @radix-ui packages outside components2/ui.",
   },
   {
     group: ["@base-ui/react"],
     message:
-      "Use #components/ui/* wrappers (e.g. Combobox); @base-ui/react only inside components/ui.",
+      "Use #components2/ui/* wrappers (e.g. Combobox); @base-ui/react only inside components2/ui.",
   },
 ]
 
 /**
- * UI shelf lives under `components/ui/**` on disk; every consumer must import
- * through the package alias `#components/ui/*` (see `package.json` `imports`
- * and AGENTS.md §7). Filesystem-relative specifiers into `components/ui` break
+ * UI shelf lives under `components2/ui/**` on disk; every consumer must import
+ * through the package alias `#components2/ui/*` (see `package.json` `imports`
+ * and AGENTS.md §7). Filesystem-relative specifiers into `components2/ui` break
  * when files move and bypass the single import door.
  */
 const uiShelfFilesystemImportPatterns = [
   {
+    group: ["**/components2/ui", "**/components2/ui/*"],
+    message:
+      "Import UI primitives only via #components2/ui/* — not filesystem-relative paths into components2/ui (AGENTS.md §7).",
+  },
+  {
     group: ["**/components/ui", "**/components/ui/*"],
     message:
-      "Import UI primitives only via #components/ui/* — not filesystem-relative paths into components/ui (AGENTS.md §7).",
+      "components/ui is retired — import via #components2/ui/* (components2/ui on disk).",
   },
 ]
 
@@ -264,7 +269,6 @@ const eslintConfig = defineConfig([
     name: "afenda/production-logging",
     files: [
       "app/**/*.{ts,tsx,js,jsx}",
-      "components/**/*.{ts,tsx,js,jsx}",
       "components2/**/*.{ts,tsx,js,jsx}",
       "lib/**/*.{ts,tsx,js,jsx}",
       "hooks/**/*.{ts,tsx,js,jsx}",
@@ -289,7 +293,7 @@ const eslintConfig = defineConfig([
   // -------------------------------------------------------------------------
   // § ERP modules — radix / base-ui confinement + deep-import boundary
   //
-  // `lib/features/**` must not reach outside components/ui for UI primitives.
+  // `lib/features/**` must not reach outside components2/ui for UI primitives.
   // The deep-import boundary is also enforced by check-agent-contract.mjs for
   // belt-and-suspenders (script scans all source files at preinstall/CI).
   // -------------------------------------------------------------------------
@@ -312,9 +316,9 @@ const eslintConfig = defineConfig([
   // -------------------------------------------------------------------------
   // § App-layer / component / hook import discipline
   //
-  // All source outside components/ui and lib/features must respect:
+  // All source outside components2/ui and lib/features must respect:
   //   1. Radix / Base UI confinement
-  //   2. UI shelf import door (#components/ui/* only; no **/components/ui paths)
+  //   2. UI shelf import door (#components2/ui/* only; no **/components2/ui paths)
   //   3. No deep cross-module feature imports
   //
   // hooks/** additionally enforces the server-only client boundary — hooks
@@ -325,14 +329,12 @@ const eslintConfig = defineConfig([
     name: "afenda/app-layer-imports",
     files: [
       "app/**/*.{js,jsx,ts,tsx}",
-      "components/**/*.{js,jsx,ts,tsx}",
       "components2/**/*.{js,jsx,ts,tsx}",
       "hooks/**/*.{js,jsx,ts,tsx}",
       "lib/**/*.{js,jsx,ts,tsx}",
     ],
     ignores: [
-      // UI primitive shelves — allowed to import radix/base-ui directly
-      "components/ui/**",
+      // UI primitive shelf — allowed to import radix/base-ui directly
       "components2/ui/**",
       // ERP feature internals are governed by afenda/erp-module-imports
       "lib/features/**",
@@ -380,9 +382,9 @@ const eslintConfig = defineConfig([
     name: "afenda/public-lynx-boundary",
     files: [
       "app/api/chat/**/*.{ts,tsx}",
-      "components/ai/search.tsx",
-      "components/ai/public-lynx-fab-drag.ts",
-      "components/ai/ask-lynx-tooltip.tsx",
+      "components2/ai/search.tsx",
+      "components2/ai/public-lynx-fab-drag.ts",
+      "components2/ai/ask-lynx-tooltip.tsx",
       "lib/ask-docs/public-lynx*.ts",
       "lib/ask-docs/lynx-brand.shared.ts",
     ],
@@ -454,7 +456,7 @@ const eslintConfig = defineConfig([
   // § Nexus field — Tooltip import gate
   //
   // Nexus product surface must not import raw Tooltip ad hoc; L1 discs live
-  // under `components/workbench/utility-bar/` (WorkbenchUtility* wrappers).
+  // under `components2/app-shell/top-utils-bar/` (AppShellUtility* wrappers).
   // -------------------------------------------------------------------------
   {
     name: "afenda/nexus-tooltip-import-gate",
@@ -465,9 +467,9 @@ const eslintConfig = defineConfig([
         {
           paths: [
             {
-              name: "#components/ui/tooltip",
+              name: "#components2/ui/tooltip",
               message:
-                "Use WorkbenchUtilityRoundTooltipButton, WorkbenchUtilityRoundTooltipLink, or WorkbenchUtilityTriggerTooltip from `components/workbench/utility-bar/` for L1-style tooltips — or add a Nexus-local primitive with an ESLint ignore and ADR note.",
+                "Use AppShellUtilityRoundTooltipButton, AppShellUtilityRoundTooltipLink, or AppShellUtilityTriggerTooltip from `components2/app-shell/top-utils-bar/` for L1-style tooltips — or add a Nexus-local primitive with an ESLint ignore and ADR note.",
             },
           ],
         },

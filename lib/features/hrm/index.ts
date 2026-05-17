@@ -16,7 +16,7 @@ export {
   createLeaveTypeFormSchema,
   updateLeaveTypeFormSchema,
   createLeavePolicyFormSchema,
-} from "./workforce-time-attendance/schemas/leave-policy.schema"
+} from "./time-attendance/leave-attendance-management/schemas/leave-policy.schema"
 
 export {
   adjustLeaveBalanceFormSchema,
@@ -26,7 +26,7 @@ export {
   leaveRejectDecisionSchema,
   requestOwnLeaveFormSchema,
   runLeaveCarryForwardFormSchema,
-} from "./workforce-time-attendance/schemas/leave-request.schema"
+} from "./time-attendance/leave-attendance-management/schemas/leave-request.schema"
 
 export {
   attachClaimEvidenceFormSchema,
@@ -36,20 +36,6 @@ export {
   requestOwnClaimFormSchema,
   submitClaimFormSchema,
 } from "./payroll-compensation/expenses-reimbursement/schema/claim.schema"
-
-export {
-  HRM_IMPORT_TYPES,
-  hrmImportDryRunErrorResponseSchema,
-  hrmImportDryRunSuccessResponseSchema,
-  hrmImportRollbackJsonSchema,
-  hrmImportTypeSchema,
-  parseHrmImportDryRunErrorMessage,
-} from "../tools/bulk-csv-import/schemas/hrm-import.schema"
-export type {
-  HrmImportDryRunSuccessResponse,
-  HrmImportRollbackJson,
-  HrmImportType,
-} from "../tools/bulk-csv-import/schemas/hrm-import.schema"
 
 export {
   archiveOrgUnitFormSchema,
@@ -79,7 +65,7 @@ export {
   createShiftTemplateSchema,
   assignEmployeeShiftSchema,
   attendanceCsvRowSchema,
-} from "./workforce-time-attendance/schemas/attendance-event.schema"
+} from "./time-attendance/leave-attendance-management/schemas/attendance-event.schema"
 
 export {
   createPayrollPeriodFormSchema,
@@ -114,7 +100,7 @@ export type {
   CreateLeaveTypeFormValues,
   UpdateLeaveTypeFormValues,
   CreateLeavePolicyFormValues,
-} from "./workforce-time-attendance/schemas/leave-policy.schema"
+} from "./time-attendance/leave-attendance-management/schemas/leave-policy.schema"
 
 export type {
   HalfDayOption,
@@ -125,7 +111,7 @@ export type {
   LeaveRejectDecisionValues,
   RequestOwnLeaveFormValues,
   RunLeaveCarryForwardFormValues,
-} from "./workforce-time-attendance/schemas/leave-request.schema"
+} from "./time-attendance/leave-attendance-management/schemas/leave-request.schema"
 
 export type {
   RecordAttendanceEventInput,
@@ -134,7 +120,7 @@ export type {
   CreateShiftTemplateInput,
   AssignEmployeeShiftInput,
   AttendanceCsvRow,
-} from "./workforce-time-attendance/schemas/attendance-event.schema"
+} from "./time-attendance/leave-attendance-management/schemas/attendance-event.schema"
 
 export type {
   EmployeeMasterSnapshot,
@@ -268,12 +254,12 @@ export {
 export {
   HrmCapabilityPlaceholderPage,
   HrmOverviewPage,
-} from "./components/hrm-pages"
+} from "./_hrm_landing_page/hrm-pages"
 
-export { resolveLeaveSurfaceAccess } from "./workforce-time-attendance/data/leave-access.server"
-export type { LeaveSurfaceAccess } from "./workforce-time-attendance/data/leave-access.server"
+export { resolveLeaveSurfaceAccess } from "./time-attendance/leave-attendance-management/data/leave-access.server"
+export type { LeaveSurfaceAccess } from "./time-attendance/leave-attendance-management/data/leave-access.server"
 
-export { buildHrmRailSlots } from "./hrm-rail-slots"
+export { buildHrmRailSlots } from "./_internal-cross-cutting/hrm-rail-slots"
 
 /** Rail pressure badge types (`getHrmRailPressureCounts` lives in `#features/hrm/server`). */
 export type {
@@ -282,61 +268,63 @@ export type {
   HrmRailPressureTone,
 } from "./types"
 
-export { AttendancePage } from "./components/attendance-page"
-export { ClaimDetailPage } from "./components/claim-detail-page"
+export { AttendancePage } from "./time-attendance/leave-attendance-management/components/attendance-page"
+export { ClaimDetailPage } from "./payroll-compensation/expenses-reimbursement/components/claim-detail-page"
 export { ClaimsPage } from "./payroll-compensation/expenses-reimbursement/components/claims-page"
-export { DocumentsPage } from "./components/documents-page"
-export { EmployeeDetailPage } from "./components/employee-detail-page"
-export { EmployeePortalLeavePage } from "./components/employee-portal-leave-page"
-export { EmployeePortalPayslipDetailPage } from "./components/employee-portal-payslip-detail-page"
-export { EmployeePortalPayslipsPage } from "./components/employee-portal-payslips-page"
-export { EmployeePortalClaimsPage } from "./components/employee-portal-claims-page"
-export { EmployeePortalClaimDetailPage } from "./components/employee-portal-claim-detail-page"
-export { EmployeePortalAdvancesPage } from "./components/employee-portal-advances-page"
-export { EmployeePortalBenefitsPage } from "./components/employee-portal-benefits-page"
-export { EmployeePortalAttendancePage } from "./components/employee-portal-attendance-page"
-export { EmployeePortalDocumentsPage } from "./components/employee-portal-documents-page"
-export { EmployeePortalSignaturesPage } from "./components/employee-portal-signatures-page"
-export { EmployeePortalSignatureCeremonyPage } from "./components/employee-portal-signature-ceremony-page"
-export { SignaturesPage } from "./components/signatures-page"
-export { SignatureRequestDetailPage } from "./components/signature-request-detail-page"
-export { LeavePage } from "./components/leave-page"
-export { PoliciesPage } from "./components/policies-page"
+export { DocumentsPage } from "./employee-management/documents-management/components/documents-page"
+export { EmployeeDetailPage } from "./employee-management/employee-records-management/components/employee-detail-page"
+export {
+  EmployeePortalAdvancesPage,
+  EmployeePortalAttendancePage,
+  EmployeePortalBenefitsPage,
+  EmployeePortalClaimDetailPage,
+  EmployeePortalClaimsPage,
+  EmployeePortalDocumentsPage,
+  EmployeePortalLeavePage,
+  EmployeePortalOffboardingPage,
+  EmployeePortalPayslipDetailPage,
+  EmployeePortalPayslipsPage,
+  EmployeePortalPerformanceGoalPage,
+  EmployeePortalPerformancePage,
+  EmployeePortalProfileBankingPage,
+  EmployeePortalProfileEmergencyPage,
+  EmployeePortalProfilePage,
+  EmployeePortalProfilePersonalPage,
+  EmployeePortalSignatureCeremonyPage,
+  EmployeePortalSignaturesPage,
+  EmployeePortalTrainingPage,
+} from "./employee-management/employee-selfservice-portal"
+export { LeavePage } from "./time-attendance/leave-attendance-management/components/leave-page"
+export { PoliciesPage } from "./time-attendance/leave-attendance-management/components/policies-page"
 export { OrganizationPage } from "./employee-management/organizational-chart-hierarchy/components/organization-page"
-export { HrmOnboardingPage } from "./components/hrm-onboarding-page"
-export { HrmPerformancePage } from "./components/hrm-performance-page"
-export { HrmKpiPage } from "./components/hrm-kpi-page"
-export { HrmTrainingPage } from "./components/hrm-training-page"
-export { EmployeePortalTrainingPage } from "./components/employee-portal-training-page"
-export { EmployeePortalProfilePage } from "./components/employee-portal-profile-page"
-export { EmployeePortalProfilePersonalPage } from "./components/employee-portal-profile-personal-page"
-export { EmployeePortalProfileEmergencyPage } from "./components/employee-portal-profile-emergency-page"
-export { EmployeePortalProfileBankingPage } from "./components/employee-portal-profile-banking-page"
-export { EmployeePortalPerformancePage } from "./components/employee-portal-performance-page"
-export { EmployeePortalPerformanceGoalPage } from "./components/employee-portal-performance-goal-page"
-export { EmployeePortalOffboardingPage } from "./components/employee-portal-offboarding-page"
+export { HrmOnboardingPage } from "./employee-management/employee-lifecycle-management"
+export { HrmPerformancePage } from "./talent-management/performance-management/components/hrm-performance-page"
+export { HrmKpiPage } from "./talent-management/competency-skills-framework/components/hrm-kpi-page"
+export { HrmTrainingPage } from "./talent-management/training-development/components/hrm-training-page"
 export { EmployeePortalRequestsPage } from "./employee-management/employee-selfservice-portal/components/employee-portal-requests-page"
 export { OffboardingOrgDashboardPage } from "./employee-management/offboarding-exit-management/components/offboarding-org-dashboard-page"
 export { CandidatePortalApplyPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-apply-page"
 export { CandidatePortalCareersDetailPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-careers-detail-page"
 export { CandidatePortalCareersPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-careers-page"
 export { CandidatePortalStatusPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-status-page"
-export { HrmSkillsPage } from "./components/hrm-skills-page"
+export { HrmSkillsPage } from "./talent-management/competency-skills-framework/components/hrm-skills-page"
 /** P3: Training analytics + feedback widgets — usable as RSC slots inside org admin layouts. */
-export { TrainingAnalyticsPanel } from "./components/training-analytics-panel"
-export { TrainingFeedbackSummary } from "./components/training-feedback-summary"
-export { SkillMatrixPanel } from "./components/skill-matrix-panel"
+export { TrainingAnalyticsPanel } from "./talent-management/training-development/components/training-analytics-panel"
+export { TrainingFeedbackSummary } from "./talent-management/training-development/components/training-feedback-summary"
+export { SkillMatrixPanel } from "./talent-management/competency-skills-framework/components/skill-matrix-panel"
 /** P3: Employee training history + skills tab for employee detail pages. */
-export { EmployeeDetailTrainingSection } from "./components/employee-detail-training-section"
-export { HrmAdvancesPage } from "./components/hrm-advances-page"
-export { WorkforcePage } from "./components/workforce-page"
-export { PayrollConsolePage } from "./components/payroll-console"
-export { HrmSnapshotPage } from "./components/hrm-snapshot-page"
-export { CompliancePage } from "./components/compliance-page"
+export { EmployeeDetailTrainingSection } from "./employee-management/employee-records-management/components/employee-detail-training-section"
+export { HrmAdvancesPage } from "./payroll-compensation/payroll-processing/components/hrm-advances-page"
+export { WorkforcePage } from "./employee-management/employee-records-management/components/workforce-page"
+export { PayrollConsolePage } from "./payroll-compensation/payroll-processing/components/payroll-console"
+export { HrmSnapshotPage } from "./_internal-cross-cutting/hrm-snapshot-page"
+export { CompliancePage } from "./employee-management/compliance-regulatory-tracking/components/compliance-page"
 /** Compliance evidence detail route surface. */
-export { ComplianceEvidenceDetailPage } from "./components/compliance-evidence-detail-page"
-export { BenefitsPage } from "./components/benefits-page"
-export { HrmImportsPage } from "./components/hrm-imports-page"
+export { ComplianceEvidenceDetailPage } from "./employee-management/compliance-regulatory-tracking/components/compliance-evidence-detail-page"
+export { ComplianceExceptionsPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-exceptions-panel"
+export { ComplianceFilingsPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-filings-panel"
+export { ComplianceEmployeeStatusPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-employee-status-panel"
+export { BenefitsPage } from "./payroll-compensation/benefits-administration/components/benefits-page"
 export { RecruitmentPage } from "./talent-management/recruitment-applicant-tracking/components/recruitment-page"
 export {
   HRM_APPLICATION_STAGES,
@@ -370,9 +358,9 @@ export {
   nextApplicationStageLabel,
 } from "./talent-management/recruitment-applicant-tracking/data/recruitment-workflow.shared"
 /** Cross-period compliance operational health (Suspense-streamed). */
-export { ComplianceOperationalHealth } from "./components/compliance-operational-health"
-export { ComplianceOperationalHealthSkeleton } from "./components/compliance-operational-health-skeleton"
+export { ComplianceOperationalHealth } from "./employee-management/compliance-regulatory-tracking/components/compliance-operational-health"
+export { ComplianceOperationalHealthSkeleton } from "./employee-management/compliance-regulatory-tracking/components/compliance-operational-health-skeleton"
 
 /** Per-bureau delivery reliability card (Suspense-streamed). */
-export { BureauReliabilityCard } from "./components/bureau-reliability-card"
-export { BureauReliabilityCardSkeleton } from "./components/bureau-reliability-card-skeleton"
+export { BureauReliabilityCard } from "./employee-management/compliance-regulatory-tracking/components/bureau-reliability-card"
+export { BureauReliabilityCardSkeleton } from "./employee-management/compliance-regulatory-tracking/components/bureau-reliability-card-skeleton"

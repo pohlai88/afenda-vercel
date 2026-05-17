@@ -10,7 +10,7 @@ const {
   assertMessengerRoomMembershipMock: vi.fn(),
 }))
 
-vi.mock("#lib/tenant", () => ({
+vi.mock("#lib/auth", () => ({
   getOrgSessionFromRequest: getOrgSessionFromRequestMock,
 }))
 

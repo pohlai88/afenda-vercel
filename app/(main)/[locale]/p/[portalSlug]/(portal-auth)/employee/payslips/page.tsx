@@ -1,6 +1,5 @@
 import { EmployeePortalPayslipsPage } from "#features/hrm"
 
-export const dynamic = "force-dynamic"
 
 type EmployeePortalPayslipsRouteProps = {
   params: Promise<{ portalSlug: string }>

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { getAllowedHrmDashboardSubsegments } from "#features/hrm/constants"
 
-import { sanitizePathAfterOrgSlug } from "#lib/dashboard-org-path.shared"
+import { sanitizePathAfterOrgSlug } from "#lib/i18n/dashboard-org-path.shared"
 
 describe("sanitizePathAfterOrgSlug", () => {
   it("normalizes dashboard tails and rejects traversal-ish input", () => {

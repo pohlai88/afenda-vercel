@@ -199,3 +199,5 @@ A PR claiming to implement this ADR must:
 7. Add the ADR-0001 and ADR-0003 amendment notes per §3.3
 8. Pass `pnpm verify` (lint, typecheck, knip, test:ci, format) and `pnpm test:e2e`
 9. Result in zero `nexus-utility-`, `nexus-dock`, `nexus-command-`, `nexus-shell`, `nexus-surface-chrome`, or `nexus-skip-to-main` references in `app/`, `components/`, `lib/`, `tests/`, or `.cursor/rules/`
+
+**App vs source (2026-05):** Post-login layouts import production shell from `#app-shell` (`components2/app-shell/workbench/`). Repo-root `components/` is hard-deleted — see AGENTS.md §6 *App vs source* and `.cursor/rules/never-restore-deleted-components.mdc`.

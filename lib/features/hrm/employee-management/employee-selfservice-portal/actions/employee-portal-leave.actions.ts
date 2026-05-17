@@ -5,12 +5,12 @@ import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../data/employee-porta
 import {
   cancelLeaveRequestForContext,
   submitLeaveRequest,
-} from "../../../workforce-time-attendance/data/leave-request-commands.server"
+} from "../../../time-attendance/leave-attendance-management/data/leave-request-commands.server"
 import {
   cancelLeaveFormSchema,
   requestOwnLeaveFormSchema,
-} from "../../../workforce-time-attendance/schemas/leave-request.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+} from "../../../time-attendance/leave-attendance-management/schemas/leave-request.schema"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   CancelLeaveFormState,
   LeaveRequestMutationFormState,

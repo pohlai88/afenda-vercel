@@ -27,9 +27,8 @@ import {
   resolveCapabilitiesForViewer,
 } from "#features/marketplace/server"
 import { SITE_NAME } from "#lib/site"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
-export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Marketplace · Utilities",

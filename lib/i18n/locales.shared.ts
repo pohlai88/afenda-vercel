@@ -1,14 +1,33 @@
 import type { Route } from "next"
 
 /**
- * Single source of truth for supported UI locales (path prefix + catalogs).
+ * Full launch locale set (path prefix + catalogs).
  * Ask-docs launch set: en, zh-CN, vi, ms (`zh-CN` allows `zh-TW` later without migration).
  */
-export const APP_LOCALES = ["en", "zh-CN", "vi", "ms"] as const
+export const FULL_APP_LOCALES = ["en", "zh-CN", "vi", "ms"] as const
 
-export type AppLocale = (typeof APP_LOCALES)[number]
+export type FullAppLocale = (typeof FULL_APP_LOCALES)[number]
+
+/** Locale id — always the full launch union; use {@link APP_LOCALES} for active routing. */
+export type AppLocale = FullAppLocale
 
 export const DEFAULT_APP_LOCALE: AppLocale = "en"
+
+/**
+ * Temporary refactor gate: English-only routing and static params.
+ * See **ADR-0028** — resume checklist before deployment.
+ */
+export function isAfendaSingleLocaleRefactorMode(): boolean {
+  const raw =
+    process.env.AFENDA_I18N_SINGLE_LOCALE ??
+    process.env.NEXT_PUBLIC_AFENDA_I18N_SINGLE_LOCALE
+  return raw === "1" || raw === "true"
+}
+
+/** Active locales for routing, `generateStaticParams`, and message catalogs. */
+export const APP_LOCALES: readonly AppLocale[] = isAfendaSingleLocaleRefactorMode()
+  ? (["en"] as const)
+  : FULL_APP_LOCALES
 
 export function isAppLocale(value: string): value is AppLocale {
   return (APP_LOCALES as readonly string[]).includes(value)
@@ -88,9 +107,7 @@ export function toLocaleOrgAdminRevalidatePattern(adminTail: string): AppPath {
 }
 
 /**
- * `revalidatePath` for the Capability Registry surface (`/{locale}/marketplace/...`).
- * Marketplace is session-relative (active org resolved from the user's session) and
- * therefore not under `/o/[orgSlug]/...` — it has its own root pattern.
+ * `revalidatePath` for the org-scoped Capability Registry (`/o/[orgSlug]/marketplace/...`).
  */
 export function toLocaleMarketplaceRevalidatePattern(
   marketplaceTail: string = ""
@@ -101,7 +118,7 @@ export function toLocaleMarketplaceRevalidatePattern(
       : marketplaceTail.startsWith("/")
         ? marketplaceTail
         : `/${marketplaceTail}`
-  return `/[locale]/marketplace${tail}` as AppPath
+  return `/[locale]/o/[orgSlug]/marketplace${tail}` as AppPath
 }
 
 export type StrippedLocalePath = {

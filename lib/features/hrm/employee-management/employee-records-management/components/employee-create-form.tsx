@@ -1,21 +1,22 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useEffect } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
-import { Button } from "#components/ui/button"
-import { Field, FieldError, FieldLabel } from "#components/ui/field"
-import { Input } from "#components/ui/input"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
+import { Button } from "#components2/ui/button"
+import { Field, FieldError, FieldLabel } from "#components2/ui/field"
+import { Input } from "#components2/ui/input"
 
 import { createEmployeeAction } from "#features/hrm/client"
 
 type EmployeeCreateFormProps = {
   orgSlug: string
+  onSuccess?: () => void
 }
 
-export function EmployeeCreateForm({ orgSlug }: EmployeeCreateFormProps) {
+export function EmployeeCreateForm({ orgSlug, onSuccess }: EmployeeCreateFormProps) {
   const t = useTranslations("Dashboard.Hrm.workforce")
   const [state, formAction, pending] = useActionState(
     createEmployeeAction,
@@ -25,6 +26,10 @@ export function EmployeeCreateForm({ orgSlug }: EmployeeCreateFormProps) {
   const numInvalid = Boolean(state && !state.ok && state.errors.employeeNumber)
   const nameInvalid = Boolean(state && !state.ok && state.errors.legalName)
   const emailInvalid = Boolean(state && !state.ok && state.errors.email)
+
+  useEffect(() => {
+    if (state?.ok) onSuccess?.()
+  }, [onSuccess, state])
 
   return (
     <form action={formAction} className="flex flex-col gap-4">

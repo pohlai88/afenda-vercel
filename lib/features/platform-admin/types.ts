@@ -1,4 +1,4 @@
-import type { WorkbenchRailBadgeTone } from "#components/workbench/left-nav-rail"
+import type { AppShellPrimaryLeftRailBadgeTone } from "#app-shell"
 import type { AppPath } from "#lib/i18n/locales.shared"
 
 /** Stable capability identifiers for the global platform-admin surface. */
@@ -76,14 +76,14 @@ export type PlatformAdminOrganizationSummary = {
  * Semantic urgency carried by every platform-admin rail nav badge.
  * Re-exports the shell-level tone vocabulary so callers in
  * `lib/features/platform-admin/` never deep-import
- * `#components/workbench/left-nav-rail`.
+ * `#app-shell` rail schema internals.
  *
  * Operators read tone (color) before number — the threshold helpers in
  * `platform-admin-rail-pressure.shared.ts` are the only legitimate
  * source of `attention` / `critical`. UI components must not invent
  * new tones.
  */
-export type PlatformAdminRailPressureTone = WorkbenchRailBadgeTone
+export type PlatformAdminRailPressureTone = AppShellPrimaryLeftRailBadgeTone
 
 /**
  * Single nav badge payload. `count` is the integer surfaced in the UI
@@ -99,7 +99,7 @@ export type PlatformAdminRailPressureBadge = {
 /**
  * Per-nav-key pressure map produced by `getPlatformAdminRailPressureCounts`.
  * Sparse by design — empty slots hide. The rail-slot builder is a pure
- * mapper from this shape onto `WorkbenchRailNavItem.badge`.
+ * mapper from this shape onto `AppShellPrimaryLeftRailNavItem.badge`.
  *
  * Keyed by `PlatformAdminNavKey` (`users` / `organizations`); other
  * keys are absent unless wired in a later phase.

@@ -101,11 +101,11 @@ const PGVECTOR_URL = "https://github.com/pgvector/pgvector"
 
 const COOKIE_REPO_REFS = [
   "lib/auth/neon-session-cookie.shared.ts",
-  "components/marketing/cookie-consent-preview.tsx",
-  "components/ui/sidebar.tsx",
-  "components/nexus/nexus-lynx-summon.client.tsx",
-  "components/dev/dev-signin-panel.tsx",
-  "components/dev/dev-signin-panel-drag.ts",
+  "components2/marketing/cookie-consent-preview.tsx",
+  "components2/ui/sidebar.tsx",
+  "components2/nexus/nexus-lynx-summon.client.tsx",
+  "components2/dev/dev-signin-panel.tsx",
+  "components2/dev/dev-signin-panel-drag.ts",
 ] as const
 
 const privacyChannels = [
@@ -475,7 +475,7 @@ export const declarationDocuments = {
       "lib/features/knowledge/data/embeddings.server.ts",
       "lib/features/knowledge/data/pipeline-embed-batch.server.ts",
       "lib/auth/org-invite-rate.server.ts",
-      "lib/auth-mail.ts",
+      "lib/auth/auth-mail.server.ts",
       "lib/features/public-trust/data/trust-surface.fixture.shared.ts",
     ],
     statusNote:

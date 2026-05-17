@@ -28,7 +28,7 @@ import { after } from "next/server"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { logUnexpectedServerError } from "#lib/logger.server"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import { z } from "zod"
 
 function normalizeExecuteRows(result: unknown): LynxNlDemoResultRow[] {

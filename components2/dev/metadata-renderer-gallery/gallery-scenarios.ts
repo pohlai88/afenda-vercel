@@ -2,7 +2,9 @@ import type { GovernedComponent } from "#features/governed-surface"
 
 import {
   GALLERY_ACTION_BAR,
+  GALLERY_APPROVAL_TIMELINE,
   GALLERY_AUDIT_PANEL,
+  GALLERY_CHART_TIME_SERIES,
   GALLERY_DETAIL_TABS,
   GALLERY_EMPTY,
   GALLERY_LIST_SURFACE_DOCUMENT_LINES,
@@ -130,6 +132,28 @@ export const GALLERY_SCENARIOS: readonly GalleryScenario[] = [
       type: "governed:detail-tabs",
       serverType: "governed:detail-tabs",
       configuration: GALLERY_DETAIL_TABS,
+    },
+  },
+  {
+    id: "chart-time-series",
+    title: "Chart — time series",
+    description: "dataNature: time-series · line chart",
+    minWidthPx: 360,
+    component: {
+      type: "governed:chart",
+      serverType: "governed:chart",
+      configuration: GALLERY_CHART_TIME_SERIES,
+    },
+  },
+  {
+    id: "approval-timeline",
+    title: "Approval timeline",
+    description: "dataNature: approval-flow",
+    minWidthPx: 320,
+    component: {
+      type: "governed:approval-timeline",
+      serverType: "governed:approval-timeline",
+      configuration: GALLERY_APPROVAL_TIMELINE,
     },
   },
 ]

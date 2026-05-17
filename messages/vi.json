@@ -4064,7 +4064,7 @@
       "title": "Organization audit",
       "descriptionLead": "IAM events for this organization (actions starting with",
       "descriptionTail": "). Sensitive mutations should appear here after successful writes.",
-      "backToWorkbench": "← Back to admin overview",
+      "backToAdminOverview": "← Back to admin overview",
       "backToOrganization": "← Back to organization",
       "actionPrefix": "org.",
       "simulation": {
@@ -4126,7 +4126,7 @@
       "pageOf": "page {page} of {totalPages}",
       "previous": "Previous",
       "next": "Next",
-      "backToWorkbench": "← Back to admin overview",
+      "backToAdminOverview": "← Back to admin overview",
       "actions": {
         "acknowledge": "Acknowledge",
         "resolve": "Resolve",

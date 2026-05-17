@@ -1,7 +1,10 @@
 ---
 title: Truth retrieval
-description: Ask questions grounded in your organisation's knowledge chunks — answer, evidence, limitations, and next safe action.
+description: Ask questions grounded in knowledge chunks — streamed answer, evidence, limitations, and next safe action for your organisation.
+audience: admin
+status: stable
 icon: Search
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
@@ -10,27 +13,38 @@ icon: Search
 
 Use truth retrieval when you need: *what does our written evidence say about this?*
 
+## Before you start
+
+- ERP permission **`lynx.workspace.search`** for the Lynx page and `POST /api/erp/lynx/truth-search`.
+- At least one **knowledge chunk** with a successful embedding — see [Knowledge substrate](/ask-docs/lynx/knowledge-substrate).
+- AI Gateway auth for embeddings and generation.
+
+<Callout type="info" title="Default retrieval depth">
+  Similarity search returns the top **8** passages by default (`LYNX_TRUTH_TOP_K`). Thin corpora produce explicit limitation text instead of invented policy.
+</Callout>
+
 ## Where to use it
 
-| Surface | How |
-|---|---|
-| **Lynx console** | Truth retrieval section on `/o/{orgSlug}/dashboard/lynx` |
-| **Nexus summon** | Auto-runs when an atom is in focus — [Nexus summon](./nexus-summon) |
+| Surface | Entry |
+| --- | --- |
+| **Lynx console** | Truth retrieval section on `/{locale}/o/{orgSlug}/dashboard/lynx` |
+| **Nexus summon** | Auto-runs when an atom is in focus — [Nexus summon](/ask-docs/lynx/nexus-summon) |
+| **Utility bar panel** | Shortcut truth search with link to full console |
 
-## How it works
+## How truth retrieval works
 
 <Steps>
   <Step>
     Enter a natural-language **question** (for example: "Why was this return rejected?").
   </Step>
   <Step>
-    Lynx embeds the question and runs similarity search over `knowledge_chunk` rows scoped to your `organizationId` (default top **8** passages — `LYNX_TRUTH_TOP_K`).
+    Lynx embeds the question and runs similarity search over `knowledge_chunk` rows scoped to your `organizationId`.
   </Step>
   <Step>
-    The model receives a system prompt built from retrieved passages and streams markdown back over **`POST /api/erp/lynx/truth-search`**.
+    The model receives a system prompt built from retrieved passages and streams markdown over **`POST /api/erp/lynx/truth-search`** (NDJSON).
   </Step>
   <Step>
-    The UI parses the stream into **Answer**, **Evidence used**, **Limitations**, and **Next safe action**.
+    The UI parses the stream into **Answer**, **Evidence used**, **Limitations**, and **Next safe action** via `parseLynxTruthMarkdown`.
   </Step>
 </Steps>
 
@@ -38,16 +52,11 @@ Use truth retrieval when you need: *what does our written evidence say about thi
 
 ### Answer
 
-Synthesis from retrieved passages only. If no chunks match, the answer should state that coverage is insufficient rather than inventing policy.
+Synthesis from retrieved passages only. If no chunks match, the answer states that coverage is insufficient rather than inventing policy.
 
 ### Evidence used
 
-Each passage shows:
-
-- Chunk **title** and excerpt
-- **Cosine distance** (lower = closer match)
-
-Evidence is listed from server retrieval — not parsed from model prose alone.
+Each passage shows chunk **title**, excerpt, and **cosine distance** (lower = closer match). Evidence is listed from server retrieval metadata — not parsed from model prose alone.
 
 ### Limitations
 
@@ -57,32 +66,32 @@ When retrieval is thin, Lynx explains that answers are limited to stored chunks.
 
 Actionable, policy-safe guidance — for example open the Lynx console to add evidence, or escalate to an owner. This is not an automatic ERP mutation.
 
-## Prerequisites
+## Audit
 
-Truth retrieval needs **knowledge chunks** with embeddings. If the evidence list is empty:
+Successful queries emit **`erp.lynx.truth.query`** with a hashed query fingerprint — not the full question text in metadata when PII-sensitive.
 
-1. Open [Knowledge substrate](./knowledge-substrate) on the same Lynx page.
-2. Add title + body text and save (embedding runs on commit).
-3. Retry the question.
+## Troubleshooting
 
-Embeddings use the AI Gateway (`openai/text-embedding-3-small`, 1536 dimensions) via `#features/knowledge`.
+<Accordions type="single">
+  <Accordion title="Empty evidence list">
+    Add chunks on [Knowledge substrate](/ask-docs/lynx/knowledge-substrate) and confirm embeddings completed with gateway auth.
+  </Accordion>
+  <Accordion title="Stream error or disconnect">
+    Check gateway credentials, model config (`LYNX_GENERATION_MODEL`), and network stability. Client shows a recovery message on malformed streams.
+  </Accordion>
+  <Accordion title="Answer invents policy not in evidence">
+    Split chunks into tighter paragraphs and retry — truth prompts constrain the model to retrieved passages; empty retrieval should surface limitations instead.
+  </Accordion>
+  <Accordion title="I need live Orbit or contact counts">
+    Use [Operator assist](/ask-docs/lynx/operator-assist) — truth retrieval reads written chunks, not live ERP tables.
+  </Accordion>
+</Accordions>
 
-## Permissions and audit
+## Related
 
-- Requires **`lynx.workspace.search`** (and truth route permission checks on POST).
-- Successful queries emit **`erp.lynx.truth.query`** with a hashed query fingerprint — not the full question text in metadata when PII-sensitive.
-
-## Streaming errors
-
-| Symptom | Typical cause |
-|---|---|
-| "Something went wrong" | Gateway auth, model config, or server error |
-| "Could not read the response stream" | Client disconnect or malformed stream |
-| Empty evidence | No chunks or embedding unavailable |
-
-## Tips for better answers
-
-- Write chunks as **complete policy paragraphs**, not bullet fragments.
-- Use descriptive **titles** — they appear in evidence lists.
-- Split unrelated topics into separate chunks so retrieval stays precise.
-- For operational state (blocked Orbit items, contact counts), use [Operator assist](./operator-assist) instead of truth retrieval.
+<Cards>
+  <Card href="/ask-docs/lynx/knowledge-substrate" title="Knowledge substrate" description="Add and debug chunks that feed truth retrieval." />
+  <Card href="/ask-docs/lynx/nexus-summon" title="Nexus summon" description="Grounded truth overlay on the Nexus field." />
+  <Card href="/ask-docs/lynx/operator-assist" title="Operator assist" description="Live read-only facts across modules." />
+  <Card href="/ask-docs/lynx/concepts" title="Core concepts" description="Truth response shape and layer doctrine." />
+</Cards>

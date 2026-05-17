@@ -16,8 +16,9 @@ const {
   publishMessengerOrgEventMock: vi.fn(),
 }))
 
-vi.mock("#lib/tenant", () => ({
+vi.mock("#lib/auth", () => ({
   requireOrgSession: requireOrgSessionMock,
+  writeIamAuditEventFromNextHeaders: writeIamAuditEventFromNextHeadersMock,
 }))
 
 vi.mock("#lib/db", () => ({
@@ -25,10 +26,6 @@ vi.mock("#lib/db", () => ({
     insert: insertMock,
     update: updateMock,
   },
-}))
-
-vi.mock("#lib/auth", () => ({
-  writeIamAuditEventFromNextHeaders: writeIamAuditEventFromNextHeadersMock,
 }))
 
 vi.mock("#features/messenger/data/messenger.queries.server", () => ({

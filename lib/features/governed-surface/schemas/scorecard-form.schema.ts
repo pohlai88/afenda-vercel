@@ -7,8 +7,7 @@ import { governedSurfaceChromeSchema } from "./surface-chrome.schema"
 export const GOVERNED_SCORECARD_FORM_SCHEMA_ID =
   "governed.scorecard-form.configuration" as const
 
-export const GOVERNED_SCORECARD_FORM_SCHEMA_STABILITY: SchemaStability =
-  "beta"
+export const GOVERNED_SCORECARD_FORM_SCHEMA_STABILITY: SchemaStability = "beta"
 
 export const scorecardCriterionSchema = z
   .object({

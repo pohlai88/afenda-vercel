@@ -2,7 +2,7 @@
  * Deterministic IDs and copy for demos, Vitest expectations, and future Playwright / MSW wiring.
  * Do not use for production data — documentation and local bootstrap only.
  *
- * Emails match `components/dev/dev-signin-panel.tsx` dev shortcuts.
+ * Emails match `components2/dev/dev-signin-panel.tsx` dev shortcuts.
  */
 export const DEV_SIGNIN_PRESET_EMAILS = {
   owner: "owner@afenda.com",

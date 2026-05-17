@@ -11,8 +11,8 @@ import type {
   StatutoryRetryCandidate,
   StatutoryRetryOutcome,
 } from "#features/hrm/server"
-import { runWithNodeOtelSpan } from "#lib/otel-span.server"
-import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
+import { runWithNodeOtelSpan } from "#lib/observability/otel-span.server"
+import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 
 export const maxDuration = 60
 

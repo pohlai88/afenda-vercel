@@ -21,6 +21,8 @@ export const AFENDA_GOVERNED_COMPONENT_REGISTRY = {
   "governed:action-bar": "action-bar",
   "governed:audit-panel": "audit-panel",
   "governed:detail-tabs": "detail-tabs",
+  "governed:approval-timeline": "approval-timeline",
+  "governed:chart": "chart",
 } as const satisfies GovernedComponentRegistry
 
 export type AfendaGovernedComponentRegistry =
@@ -114,6 +116,10 @@ export const AFENDA_GOVERNED_RENDERER_CONTRACTS = {
     acceptedNatures: ["tabbed-detail"],
     minContainerPx: 480,
   },
+  "chart": {
+    acceptedNatures: ["time-series", "categorical"],
+    minContainerPx: 360,
+  },
   "kanban-board": {
     acceptedNatures: ["kanban"],
     minContainerPx: 720,
@@ -129,10 +135,6 @@ export const AFENDA_GOVERNED_RENDERER_CONTRACTS = {
   "approval-timeline": {
     acceptedNatures: ["approval-flow"],
     minContainerPx: 320,
-  },
-  chart: {
-    acceptedNatures: ["time-series", "categorical"],
-    minContainerPx: 360,
   },
   // Container-only renderers — never declare a dataNature.
   section: {

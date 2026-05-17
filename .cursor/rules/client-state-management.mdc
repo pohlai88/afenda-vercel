@@ -1,0 +1,162 @@
+---
+description: Client state — Zustand vs React providers in Next.js App Router. Server truth in RSC; Afenda UI in components2/stores; libraries and server props in components2/providers.
+globs: "components2/**,app/**,lib/features/**/components/**"
+alwaysApply: false
+---
+
+# Client state management (Zustand vs providers)
+
+**Doctrine:** If this rule and `AGENTS.md` diverge, follow `AGENTS.md`.
+
+**Related:** `shell-directory.mdc` (shell wiring) · `components2-directory.mdc` (naming) · `frontend-quality-contract.mdc` §7 · [Zustand Next.js guide](https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/nextjs.md)
+
+---
+
+## Prime directive
+
+```txt
+Server plane (RSC, Server Actions, #lib/auth)  →  no Zustand, no client hooks
+Client Afenda UI state                         →  Zustand in components2/stores/
+Third-party + server→client + rare Zustand     →  React providers in components2/providers/
+```
+
+**Refined rule:** Use **Zustand without a Provider** for shared **client-only UI** state. Use **React providers** for **third-party context**, **serializable server props**, and **Zustand store instances** only when you need per-subtree or per-request isolation (rare).
+
+**Not true:** “If Zustand exists, never use a provider.” Providers and Zustand solve different problems; both are first-class.
+
+---
+
+## Two planes
+
+| Plane | Owns | Tools |
+| --- | --- | --- |
+| **Server** | Session, tenant, org, permissions, ERP reads, mutations | RSC `layout.tsx` / `page.tsx`, Server Actions, `#lib/auth`, `#features/*` |
+| **Client** | Interaction, chrome toggles, persisted UX prefs, client async | `"use client"`, Zustand, providers, TanStack Query, `useActionState` |
+
+React Server Components are **not** “backend” in a separate runtime sense—they are the **server authority boundary**. Client islands must not own tenant truth.
+
+---
+
+## Zustand (`components2/stores/`)
+
+### Default pattern (current shell stores)
+
+Module-level `create()` stores — **no `<Provider>` wrapper**:
+
+- Import `useAppShellStore` (etc.) from `#app-shell/client` or `#components2/stores`
+- Files must start with `"use client"`
+- **Never** import stores from RSC files or `#app-shell` (server-only barrel)
+
+**Current stores (keep module singleton — KISS/YAGNI):**
+
+| Store | File | Role |
+| --- | --- | --- |
+| `useAppShellStore` | `app-shell.store.ts` | Command palette, density, rail mode preference, theme mirror |
+| `useUtilityBarStore` | `utility-bar.store.ts` | Utility bar icon order (persist) |
+| `useLaneMemoryStore` | `lane-memory.store.ts` | Lane memory pins (persist) |
+| `useOperationalScopeUiStore` | `operational-scope.store.ts` | Scope popover UI |
+
+### When module singleton is OK (Afenda default)
+
+- State is **client-only** (never read/written during RSC render)
+- No **request-scoped secrets** or per-user authoritative data
+- Hydration-safe defaults (`commandOpen: false`, etc.) or `persist` with client-only rehydration
+- Official Zustand note: module state is compatible with App Router **server caching** when RSC never touches the store
+
+### When to add `createStore` factory + Provider (rare)
+
+Per [Zustand Next.js guide](https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/nextjs.md):
+
+- Store seeded from **RSC props** and must not leak across requests
+- Store must **reset** when leaving a route segment
+- Test isolation needs a **fresh store per subtree**
+
+**Layout:**
+
+- Factory: `components2/stores/<domain>.store.ts` (`createStore` / `createXStore(init)`)
+- Provider: `components2/providers/<domain>-store-provider.client.tsx`
+- Compose in `app-shell-providers.client.tsx` only if shell-wide
+
+Do **not** migrate existing four shell stores to this pattern without a concrete requirement.
+
+---
+
+## React providers (`components2/providers/`)
+
+### Category 1 — Library providers (not replaceable by Zustand)
+
+| Provider | Why keep |
+| --- | --- |
+| `AppShellSidebarProvider` | shadcn `useSidebar()` — do not reimplement in Zustand |
+| `AppShellTooltipProvider` | shadcn tooltip subtree + delay |
+| `AppShellRootThemeProvider` | `next-themes` owns `<html>` class (`app/layout.tsx`) |
+
+### Category 2 — Server→client prop providers (Zustand is wrong)
+
+| Provider | Why keep |
+| --- | --- |
+| `RouteEnvelopeProvider` | Layout-resolved `RouteEnvelope` for `error.tsx` — do not mirror into Zustand |
+
+Pass **serializable** values only. RSC resolves authority; client reads via `useRouteEnvelope()`.
+
+### Category 3 — Bridge (intentional dual read path)
+
+| Bridge | Pattern |
+| --- | --- |
+| `AppShellThemeBridge` | `useTheme()` → `useAppShellStore.applyNextTheme` |
+
+**DRY:** `next-themes` remains **source of truth**; Zustand is a **convenience mirror** for shell code that should not call `useTheme()` everywhere.
+
+---
+
+## Decision matrix
+
+| Need | Use | Location |
+| --- | --- | --- |
+| Session, org, permissions, ERP data | RSC + `#lib/auth` / `#features/*` | Never Zustand |
+| Initial page data | Server Component | Never TanStack Query as sole source |
+| Cross-shell client UI (command open, density) | Zustand module store | `components2/stores/*.store.ts` |
+| Client async (search, polling) | TanStack Query | Feature `client.ts` or route-colocated client |
+| Form submit pending / validation errors | `useActionState` | Route-colocated actions |
+| shadcn / next-themes / QueryClient | React provider | `components2/providers/` |
+| Layout → client error context | React provider + serializable value | e.g. `RouteEnvelopeProvider` |
+| Compound widget internals | `createContext` inside `components2/ui/*` | Do not promote to app store |
+| Afenda-wide UI via hand-rolled `createContext` | **Forbidden** | Use Zustand store instead |
+
+---
+
+## Anti-patterns (block merge)
+
+- New `createContext` in `app/` or `lib/` for app-wide UI flags
+- RSC or `server-only` module importing `components2/stores/*`
+- Zustand holding `organizationId`, `permissions`, session, or ERP rows
+- Replacing `SidebarProvider` with custom Zustand sidebar state
+- Copying `RouteEnvelope` (or any layout authority) into Zustand
+- Root layout wrapping the whole app in providers beyond `AppShellRootThemeProvider` + shell `AppShellProviders`
+- Mixing Zustand `create()` and provider wrappers in the **same file** (`stores/` vs `providers/`)
+
+---
+
+## File split (never mix)
+
+| Folder | Tool | Example |
+| --- | --- | --- |
+| `components2/stores/` | Zustand | `app-shell.store.ts` |
+| `components2/providers/` | React context / library wraps | `sidebar-provider.client.tsx` |
+
+See `shell-directory.mdc` for compose order in `app-shell-providers.client.tsx`.
+
+---
+
+## State type quick reference
+
+Full table also in `frontend-quality-contract.mdc` §7. **Providers are not deprecated** when a row says Zustand—use both layers per categories above.
+
+| Data type | Solution |
+| --- | --- |
+| Server reads (default) | Server Component |
+| Client interactive async | TanStack Query |
+| Simple global **client** UI state | Zustand (`components2/stores/`) |
+| Library / server props / rare scoped Zustand | React provider (`components2/providers/`) |
+| Component-local | `useState` / `useReducer` |
+| Form / mutation UI | `useActionState` / Server Actions |

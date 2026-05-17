@@ -9,18 +9,18 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Skeleton } from "#components/ui/skeleton"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/card"
+import { Skeleton } from "#components2/ui/skeleton"
+import { requireOrgSession } from "#lib/auth"
 
-import { buildGovernedHrmWorkbenchHeader } from "../../../hrm-governed-page-header.server"
+import { buildGovernedHrmWorkbenchHeader } from "../../../_module-governance/hrm-governed-page-header.server"
 import {
-  listClaimTypesForOrg,
-  listExpenseFundsForOrg,
   resolveClaimSurfaceAccess,
   type ClaimSurfaceAccess,
-} from "../server"
-import { listActiveEmployeeChoicesForLeave } from "../../../server"
+} from "../data/claim-access.server"
+import { listClaimTypesForOrg } from "../data/claim.queries.server"
+import { listExpenseFundsForOrg } from "../data/expense-fund.queries.server"
+import { listActiveEmployeeChoicesForLeave } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
 
 import { ClaimExceptionInbox } from "./claim-exception-inbox"
 import { ClaimPendingInbox } from "./claim-pending-inbox"

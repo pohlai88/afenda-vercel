@@ -1,14 +1,23 @@
 ---
 title: Today
 description: Scheduled and active operational work for the current calendar day.
+audience: admin
+status: stable
 icon: CalendarDays
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-**Orbit Today** (`/o/{orgSlug}/dashboard/orbit/today`) focuses on **scheduled and active operational work for the current day** — the operating window operators care about right now on the calendar.
+**Orbit Today** (`/{locale}/o/{orgSlug}/dashboard/orbit/today`) focuses on **scheduled and active operational work for the current day** — the operating window operators care about right now on the calendar.
 
 Use Today when you need to answer: *what is supposed to happen today?*
+
+## Before you start
+
+- You need an active org session and ERP permissions for the planner module.
+- **Today** emphasises calendar-day commitment; **Queue** emphasises immediate execution rank — an item can appear in both when it is high pressure and scheduled today.
+- Scheduling changes emit planner audit events (`erp.planner.item.schedule`) and update how items appear on [Timeline](/ask-docs/orbit/timeline).
 
 ## What Today shows
 
@@ -24,7 +33,7 @@ Pressure ranking still applies within the day — critical blocked work may appe
 
 <Steps>
   <Step>
-    Open **Today** from the Orbit rail or command layer.
+    Open **Today** from the Orbit rail or command layer at `/{locale}/o/{orgSlug}/dashboard/orbit/today`.
   </Step>
   <Step>
     Review the execution feed sorted by priority and schedule slack.
@@ -37,21 +46,36 @@ Pressure ranking still applies within the day — critical blocked work may appe
   </Step>
 </Steps>
 
-## Scheduling changes
-
-To move work across days, use item scheduling actions from the detail pane (or create/upsert schedule from the item workflow). Scheduling emits planner audit events and updates how the item appears on **Timeline**.
-
 ## Today vs Queue
 
 | Surface | Emphasis |
-|---|---|
+| --- | --- |
 | **Today** | Calendar day commitment — what the organisation planned for this date |
 | **Queue** | Immediate execution rank — what must run now regardless of calendar bucket |
 
-An item can appear in both when it is high pressure and scheduled today.
+<Callout type="info" title="Move work across days">
+  Use item scheduling actions from the detail pane to reschedule. Updates propagate to **Timeline** on the next request.
+</Callout>
 
-## Related surfaces
+## Troubleshooting
 
-- [Timeline](./timeline) — multi-day horizon and overdue work
-- [Queue](./queue) — ranked immediate execution
-- [Sessions](./sessions) — time spent executing today's items
+<Accordions type="single">
+  <Accordion title="An item scheduled for today is missing">
+    Confirm lifecycle is `scheduled` or `active` and the schedule date matches the org timezone shown in the shell.
+  </Accordion>
+  <Accordion title="Blocked work dominates Today">
+    High derived pressure elevates blocked items even when calendar-bound — unblock or reassign from the detail pane before rescheduling.
+  </Accordion>
+  <Accordion title="I need multi-day horizon view">
+    Switch to [Timeline](/ask-docs/orbit/timeline) for overdue and upcoming bands beyond the current day.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/orbit/timeline" title="Timeline" description="Multi-day horizon and overdue work." />
+  <Card href="/ask-docs/orbit/queue" title="Queue" description="Ranked immediate execution." />
+  <Card href="/ask-docs/orbit/sessions" title="Sessions" description="Time spent executing today's items." />
+  <Card href="/ask-docs/orbit/concepts" title="Core concepts" description="Lifecycle states and temporal model." />
+</Cards>

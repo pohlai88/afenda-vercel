@@ -4,41 +4,39 @@ import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 import { and, eq, inArray } from "drizzle-orm"
 
-import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import { requireRecentAuthStepUp, writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmImportSession } from "#lib/db/schema"
 import { ORG_DASHBOARD_HRM_IMPORTS } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { canUseErpPermission } from "#features/erp-rbac/server"
+import { enqueueHrmImportApplyWorkflowRun } from "#features/execution"
 
-import { requireHrmOrgTenantFromForm } from "#features/hrm/server"
+import { requireToolsOrgTenantFromForm } from "../../_module-governance/tools-action-guard.server"
+import { toolsActionFailure } from "../../_module-governance/tools-action-result.shared"
+import type { ToolsMutationFormState } from "../../types"
+import { HRM_BULK_IMPORT_AUDIT } from "../bulk-import.contract"
+
 import {
   dryRunEmployees,
-  listValidEmployeeImportRows,
   parseCsv,
-} from "../../../hrm/employee-management/employee-records-management/data/hrm-import-csv.shared.ts"
-import { hrmActionFailure } from "#features/hrm/server"
+} from "../data/hrm-import-csv.shared"
+import { loadEmployeeImportCsvFromRollback } from "../data/hrm-import-source.server"
 import { hrmImportRollbackJsonSchema } from "../schemas/hrm-import.schema"
-import type { ContractMutationFormState } from "../../../hrm/types"
-
-function isUniqueViolation(err: unknown): boolean {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    "code" in err &&
-    (err as { code?: string }).code === "23505"
-  )
-}
 
 export async function commitImportSessionAction(
-  _prev: ContractMutationFormState | undefined,
+  _prev: ToolsMutationFormState | undefined,
   formData: FormData
-): Promise<ContractMutationFormState> {
-  const gate = await requireHrmOrgTenantFromForm(formData)
+): Promise<ToolsMutationFormState> {
+  const gate = await requireToolsOrgTenantFromForm(formData)
   if (!gate.ok) return gate.response
-  const { session } = gate
+  const { session, orgSlug } = gate
   const { organizationId, userId, sessionId } = session
+
+  await requireRecentAuthStepUp({
+    returnTo: `/o/${orgSlug}/dashboard/hrm/imports`,
+  })
 
   if (
     !(await canUseErpPermission({
@@ -47,12 +45,12 @@ export async function commitImportSessionAction(
       permission: { module: "hrm", object: "import", function: "update" },
     }))
   ) {
-    return hrmActionFailure({ form: "HRM import update permission required." })
+    return toolsActionFailure({ form: "HRM import update permission required." })
   }
 
   const sessionIdParam = String(formData.get("importSessionId") ?? "").trim()
   if (!sessionIdParam) {
-    return hrmActionFailure({ form: "Missing import session." })
+    return toolsActionFailure({ form: "Missing import session." })
   }
 
   const [row] = await db
@@ -72,14 +70,14 @@ export async function commitImportSessionAction(
     .limit(1)
 
   if (!row || row.status !== "dry_run") {
-    return hrmActionFailure({
+    return toolsActionFailure({
       form: "Only dry-run import sessions can be committed.",
     })
   }
 
   const parsedRollback = hrmImportRollbackJsonSchema.safeParse(row.rollbackJson)
   if (!parsedRollback.success) {
-    return hrmActionFailure({ form: "Import session payload is invalid." })
+    return toolsActionFailure({ form: "Import session payload is invalid." })
   }
 
   const rb = parsedRollback.data
@@ -90,106 +88,36 @@ export async function commitImportSessionAction(
       rb.importType === "employees" &&
       row.importType === "employees"
     ) {
-      const grid = parseCsv(rb.sourceCsv)
-      const summary = dryRunEmployees(grid)
+      const csvText = await loadEmployeeImportCsvFromRollback(rb)
+      const summary = dryRunEmployees(parseCsv(csvText))
       if (summary.errors.length > 0 || summary.rowCount === 0) {
-        return hrmActionFailure({
+        return toolsActionFailure({
           form: "Stored CSV no longer validates; run a new dry-run.",
         })
       }
-      const employeeRows = listValidEmployeeImportRows(grid)
-      if (employeeRows.length === 0) {
-        return hrmActionFailure({ form: "No valid employee rows to import." })
-      }
 
-      const appliedEmployeeIds = await db.transaction(async (tx) => {
-        const ids: string[] = []
-        for (const er of employeeRows) {
-          const id = crypto.randomUUID()
-          try {
-            await tx.insert(hrmEmployee).values({
-              id,
-              organizationId,
-              employeeNumber: er.employeeNumber,
-              legalName: er.legalName,
-              createdByUserId: userId,
-              updatedByUserId: userId,
-            })
-          } catch (err) {
-            if (isUniqueViolation(err)) {
-              throw new Error(`DUPLICATE_NUMBER:${er.employeeNumber}`)
-            }
-            throw err
-          }
-          ids.push(id)
-        }
-
-        const nextRollback = {
-          ...rb,
-          appliedEmployeeIds: ids,
-          appliedAt: new Date().toISOString(),
-          appliedByUserId: userId,
-        }
-
-        await tx
-          .update(hrmImportSession)
-          .set({
-            status: "committed",
-            rollbackJson: nextRollback,
-            updatedAt: new Date(),
-          })
-          .where(eq(hrmImportSession.id, row.id))
-
-        return ids
-      })
-
-      after(() =>
-        writeIamAuditEventFromNextHeaders({
-          action: "erp.hrm.import.session.commit",
-          actorUserId: userId,
-          actorSessionId: sessionId,
-          organizationId,
-          resourceType: "hrm_import_session",
-          resourceId: row.id,
-          metadata: {
-            importType: row.importType,
-            employeesCreated: appliedEmployeeIds.length,
-          },
-        })
-      )
-    } else {
       await db
         .update(hrmImportSession)
-        .set({ status: "committed", updatedAt: new Date() })
+        .set({ status: "processing", updatedAt: new Date() })
         .where(eq(hrmImportSession.id, row.id))
 
-      after(() =>
-        writeIamAuditEventFromNextHeaders({
-          action: "erp.hrm.import.session.commit",
-          actorUserId: userId,
-          actorSessionId: sessionId,
-          organizationId,
-          resourceType: "hrm_import_session",
-          resourceId: row.id,
-          metadata: {
-            importType: row.importType,
-            employeesCreated: 0,
-          },
-        })
-      )
-    }
-  } catch (err) {
-    if (err instanceof Error && err.message.startsWith("DUPLICATE_NUMBER:")) {
-      const num = err.message.slice("DUPLICATE_NUMBER:".length)
-      return hrmActionFailure({
-        form: `Duplicate employee number in org or CSV: ${num}`,
+      await enqueueHrmImportApplyWorkflowRun({
+        organizationId,
+        sessionId: row.id,
+        actorUserId: userId,
+        actorSessionId: sessionId,
+      })
+    } else if (rb.kind === "hrm_import_placeholder") {
+      return toolsActionFailure({
+        form: "This import type is not ready to commit. Run a valid employee CSV dry-run.",
       })
     }
+  } catch (err) {
     logUnexpectedServerError("hrm_import_commit_failed", err, {
       organizationId,
       importSessionId: row.id,
     })
-    return hrmActionFailure({ form: "Commit failed unexpectedly." })
+    return toolsActionFailure({ form: "Commit failed unexpectedly." })
   }
 
   revalidatePath(
@@ -200,13 +128,17 @@ export async function commitImportSessionAction(
 }
 
 export async function rollbackImportSessionAction(
-  _prev: ContractMutationFormState | undefined,
+  _prev: ToolsMutationFormState | undefined,
   formData: FormData
-): Promise<ContractMutationFormState> {
-  const gate = await requireHrmOrgTenantFromForm(formData)
+): Promise<ToolsMutationFormState> {
+  const gate = await requireToolsOrgTenantFromForm(formData)
   if (!gate.ok) return gate.response
-  const { session } = gate
+  const { session, orgSlug } = gate
   const { organizationId, userId, sessionId } = session
+
+  await requireRecentAuthStepUp({
+    returnTo: `/o/${orgSlug}/dashboard/hrm/imports`,
+  })
 
   if (
     !(await canUseErpPermission({
@@ -215,12 +147,12 @@ export async function rollbackImportSessionAction(
       permission: { module: "hrm", object: "import", function: "update" },
     }))
   ) {
-    return hrmActionFailure({ form: "HRM import update permission required." })
+    return toolsActionFailure({ form: "HRM import update permission required." })
   }
 
   const sessionIdParam = String(formData.get("importSessionId") ?? "").trim()
   if (!sessionIdParam) {
-    return hrmActionFailure({ form: "Missing import session." })
+    return toolsActionFailure({ form: "Missing import session." })
   }
 
   const [row] = await db
@@ -240,7 +172,7 @@ export async function rollbackImportSessionAction(
     .limit(1)
 
   if (!row || row.status !== "committed") {
-    return hrmActionFailure({
+    return toolsActionFailure({
       form: "Only committed import sessions can be rolled back.",
     })
   }
@@ -284,12 +216,12 @@ export async function rollbackImportSessionAction(
       organizationId,
       importSessionId: row.id,
     })
-    return hrmActionFailure({ form: "Rollback failed unexpectedly." })
+    return toolsActionFailure({ form: "Rollback failed unexpectedly." })
   }
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.import.session.rollback",
+      action: HRM_BULK_IMPORT_AUDIT.sessionRollback,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,

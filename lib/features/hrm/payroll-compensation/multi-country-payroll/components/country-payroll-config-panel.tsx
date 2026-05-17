@@ -3,14 +3,14 @@ import { getTranslations } from "next-intl/server"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 
 import { listCountryPayrollConfigurations } from "../data/country-payroll-config.server"
 import { requireMultiCountryPayrollSearchSession } from "../data/multi-country-payroll-access.server"

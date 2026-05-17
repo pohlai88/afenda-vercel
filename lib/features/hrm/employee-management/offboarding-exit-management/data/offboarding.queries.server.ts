@@ -6,8 +6,12 @@ import { db } from "#lib/db"
 import { hrmOffboardingInstance } from "#lib/db/schema"
 
 import type { OffboardingChecklistTask } from "./offboarding-defaults.shared"
+import {
+  readOffboardingInstanceDetails,
+  type OffboardingInstanceDetails,
+} from "./offboarding-instance-metadata.server"
 
-export type OffboardingInstanceRow = {
+export type OffboardingInstanceRow = OffboardingInstanceDetails & {
   id: string
   status: string
   terminationDate: string
@@ -30,6 +34,7 @@ export async function listOpenOffboardingForEmployee(
       status: true,
       terminationDate: true,
       checklist: true,
+      audit7w1h: true,
       updatedAt: true,
     },
     orderBy: [desc(hrmOffboardingInstance.createdAt)],
@@ -43,10 +48,12 @@ export async function listOpenOffboardingForEmployee(
         : typeof td === "string"
           ? td.slice(0, 10)
           : String(td).slice(0, 10)
+    const details = readOffboardingInstanceDetails(r.audit7w1h)
     return {
       id: r.id,
       status: r.status,
       terminationDate,
+      ...details,
       checklist: (r.checklist as OffboardingChecklistTask[]) ?? [],
       updatedAt: r.updatedAt,
     }

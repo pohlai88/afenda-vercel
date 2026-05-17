@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { WORKBENCH_RAIL_FORBIDDEN_LABEL_NAMESPACES } from "#components/workbench/left-nav-rail"
+import { APP_SHELL_PRIMARY_LEFT_RAIL_FORBIDDEN_LABEL_NAMESPACES } from "#app-shell"
 
 import { WORKBENCH_IDS } from "../constants"
 
@@ -19,7 +19,7 @@ import { WORKBENCH_IDS } from "../constants"
  * keyed off `(workbenchId, resourceType, href)`.
  *
  * The `label` field carries the same audit-namespace refinement as the
- * kernel `workbenchRailRecentSchema` — recents are continuity memory,
+ * kernel `appShellPrimaryLeftRailRecentSchema` — recents are continuity memory,
  * not audit logs. Defense in depth: even though RSC callers usually
  * pass surface-derived labels, an opt-in route could mistakenly hand
  * in a raw audit action string (`erp.contact.record.create`). Block at
@@ -31,7 +31,7 @@ const workbenchIdSchema = z.enum(WORKBENCH_IDS)
 
 function isAuditNamespaceLabel(value: string): boolean {
   const trimmed = value.trimStart()
-  return WORKBENCH_RAIL_FORBIDDEN_LABEL_NAMESPACES.some((prefix) =>
+  return APP_SHELL_PRIMARY_LEFT_RAIL_FORBIDDEN_LABEL_NAMESPACES.some((prefix) =>
     trimmed.startsWith(`${prefix}.`)
   )
 }

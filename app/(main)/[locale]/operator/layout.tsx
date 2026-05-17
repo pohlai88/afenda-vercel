@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 import { redirectLegacyAuthenticatedSurfaceAlias } from "#lib/auth/legacy-authenticated-route-alias.server"
-import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
+import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
 

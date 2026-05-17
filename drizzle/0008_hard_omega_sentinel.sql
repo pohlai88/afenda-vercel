@@ -1,0 +1,3 @@
+CREATE UNIQUE INDEX "hrm_employee_reporting_org_employee_manager_type_effective_uidx" ON "hrm_employee_reporting_relationship" USING btree ("organizationId","employeeId","managerEmployeeId","relationshipType","effectiveFrom");--> statement-breakpoint
+CREATE UNIQUE INDEX "hrm_org_unit_version_org_unit_effective_uidx" ON "hrm_org_unit_version" USING btree ("organizationId","orgUnitId","effectiveFrom");--> statement-breakpoint
+CREATE UNIQUE INDEX "hrm_position_version_org_position_effective_uidx" ON "hrm_position_version" USING btree ("organizationId","positionId","effectiveFrom");

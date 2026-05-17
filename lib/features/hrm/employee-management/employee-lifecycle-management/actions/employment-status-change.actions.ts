@@ -37,7 +37,7 @@ import {
   setLastWorkingDateFormSchema,
   suspendEmployeeFormSchema,
 } from "../schemas/employment-status-change.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import { HRM_EMPLOYEE_LIFECYCLE_AUDIT } from "../employee-lifecycle.contract"
 import type { ContractMutationFormState } from "../../../types"
 
@@ -307,9 +307,7 @@ export async function recordResignationAction(
     resignationDate: formData.get("resignationDate"),
     lastWorkingDate: formData.get("lastWorkingDate"),
     noticePeriodDays:
-      noticeRaw != null && noticeRaw !== ""
-        ? Number(noticeRaw)
-        : undefined,
+      noticeRaw != null && noticeRaw !== "" ? Number(noticeRaw) : undefined,
     resignationNote: formData.get("resignationNote") || undefined,
   })
   if (!parsed.success) {

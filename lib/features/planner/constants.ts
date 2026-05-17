@@ -3,8 +3,8 @@ import type { Route } from "next"
 import {
   ORBIT_DASHBOARD_SURFACES,
   type OrbitDashboardSurface,
-} from "#lib/planner-dashboard.shared"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+} from "./planner-dashboard-path.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 export const PLANNER_SIGNAL_CLASSES = [
   "anomaly",

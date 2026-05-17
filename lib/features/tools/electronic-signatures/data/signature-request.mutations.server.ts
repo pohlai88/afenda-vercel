@@ -24,7 +24,7 @@ import type {
   SignatureSigningStatus,
 } from "../schemas/signature.schema"
 import { zSignatureEventDataV1 } from "../schemas/signature.schema"
-import { stablePayrollCloseStringify } from "#features/hrm/server"
+import { stableJsonStringify } from "#lib/erp/stable-json.shared"
 import { nextSignatureReminderAt } from "./signature-reminder.shared"
 import {
   allActionablePartiesSigned,
@@ -37,6 +37,7 @@ import {
   type SignaturePartyIntentInput,
 } from "./signature-request-status.shared"
 import { triggerSignatureWebhook } from "./signature-webhook.server"
+import { notifySignaturePartyPortalDelivery } from "./signature-notification.server"
 import { auditActionForSignatureEvent } from "./signature-event-types.shared"
 
 export type HrmSignatureDbExecutor = Parameters<
@@ -66,7 +67,7 @@ function hashDeclarationText(text: string): string {
 
 function hashEventPayload(data: Record<string, unknown>): string {
   return createHash("sha256")
-    .update(stablePayrollCloseStringify(data), "utf8")
+    .update(stableJsonStringify(data), "utf8")
     .digest("hex")
 }
 
@@ -474,6 +475,26 @@ export async function sendSignatureRequest(input: {
       eventType: "signature_request.sent",
     })
   })
+
+  const sentParties = await db
+    .select({ id: hrmSignatureParty.id })
+    .from(hrmSignatureParty)
+    .where(
+      and(
+        eq(hrmSignatureParty.organizationId, input.organizationId),
+        eq(hrmSignatureParty.requestId, input.requestId),
+        eq(hrmSignatureParty.sendStatus, "sent")
+      )
+    )
+
+  for (const row of sentParties) {
+    await notifySignaturePartyPortalDelivery({
+      organizationId: input.organizationId,
+      partyId: row.id,
+      title: "Signature request ready",
+      body: "You have a document waiting for your signature.",
+    })
+  }
 }
 
 export async function resendSignaturePartyToken(input: {
@@ -507,6 +528,34 @@ export async function resendSignaturePartyToken(input: {
         updatedByUserId: input.actorUserId,
       })
       .where(eq(hrmSignatureParty.id, party.id))
+
+    await insertSignatureEvent(tx, {
+      organizationId: input.organizationId,
+      requestId: input.requestId,
+      partyId: party.id,
+      type: "signature_request.resent",
+      actor: {
+        actorType: "hr_admin",
+        actorUserId: input.actorUserId,
+      },
+      data: {
+        partyId: party.id,
+        recipientEmail: party.signerEmail,
+      },
+    })
+
+    await triggerSignatureWebhook({
+      organizationId: input.organizationId,
+      requestId: input.requestId,
+      eventType: "signature_request.resent",
+    })
+  })
+
+  await notifySignaturePartyPortalDelivery({
+    organizationId: input.organizationId,
+    partyId: input.partyId,
+    title: "Signature invitation resent",
+    body: "A new signing link is available for your pending signature.",
   })
 }
 
@@ -629,6 +678,64 @@ export async function recordSignaturePartyView(input: {
   })
 }
 
+export async function recordSignatureConsentPresented(input: {
+  readonly organizationId: string
+  readonly partyId: string
+  readonly actor: SignatureActorContext
+}): Promise<void> {
+  await db.transaction(async (tx) => {
+    const [party] = await tx
+      .select()
+      .from(hrmSignatureParty)
+      .where(
+        and(
+          eq(hrmSignatureParty.organizationId, input.organizationId),
+          eq(hrmSignatureParty.id, input.partyId)
+        )
+      )
+      .limit(1)
+
+    if (!party) {
+      throw new Error("Signature party not found")
+    }
+
+    const [existing] = await tx
+      .select({ id: hrmSignatureEvent.id })
+      .from(hrmSignatureEvent)
+      .where(
+        and(
+          eq(hrmSignatureEvent.organizationId, input.organizationId),
+          eq(hrmSignatureEvent.requestId, party.requestId),
+          eq(hrmSignatureEvent.partyId, party.id),
+          eq(hrmSignatureEvent.type, "consent.presented")
+        )
+      )
+      .limit(1)
+
+    if (existing) {
+      return
+    }
+
+    await insertSignatureEvent(tx, {
+      organizationId: input.organizationId,
+      requestId: party.requestId,
+      partyId: party.id,
+      type: "consent.presented",
+      actor: input.actor,
+      data: {
+        partyId: party.id,
+        recipientEmail: party.signerEmail,
+      },
+    })
+
+    await triggerSignatureWebhook({
+      organizationId: input.organizationId,
+      requestId: party.requestId,
+      eventType: "consent.presented",
+    })
+  })
+}
+
 export async function completeSignatureParty(input: {
   readonly organizationId: string
   readonly partyId: string
@@ -704,6 +811,20 @@ export async function completeSignatureParty(input: {
     }
 
     const signedAt = new Date()
+
+    await insertSignatureEvent(tx, {
+      organizationId: input.organizationId,
+      requestId: party.requestId,
+      partyId: party.id,
+      type: "consent.accepted",
+      actor: input.actor,
+      data: {
+        partyId: party.id,
+        recipientEmail: party.signerEmail,
+        consentAt: input.intent.consentAt,
+      },
+    })
+
     const proofEventId = await insertSignatureEvent(tx, {
       organizationId: input.organizationId,
       requestId: party.requestId,
@@ -950,5 +1071,12 @@ export async function sendSignaturePartyReminder(input: {
       requestId: party.requestId,
       eventType: "signature_request.reminder_sent",
     })
+  })
+
+  await notifySignaturePartyPortalDelivery({
+    organizationId: input.organizationId,
+    partyId: input.partyId,
+    title: "Signature reminder",
+    body: "Your signature is still required on a pending document.",
   })
 }

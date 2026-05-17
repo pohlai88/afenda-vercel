@@ -1,31 +1,69 @@
 ---
 title: Contacts
 description: Build and manage your organisation's contact directory — people, companies, and relationships.
+audience: admin
+status: stable
 icon: BookUser
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-The Contacts module is your organisation's central address book. It stores individuals and companies, links them to activities, and makes them searchable across the platform.
+The **Contacts** module is your organisation's central address book under `/{locale}/o/{orgSlug}/dashboard/contacts`. It stores people and companies, supports tags and segments, and links records to activities across the platform.
 
-<Callout type="info" title="More pages coming soon">
-  Detailed guides for creating contacts, organising contacts, and bulk importing are being written and will appear in the sidebar shortly.
-</Callout>
+## Before you start
+
+- You need an active org session and ERP permissions for contact operations.
+- Creating or archiving contacts requires explicit ERP permission gates — not Better Auth org role alone.
+- Bulk import uses CSV field mapping; validate a small sample before large uploads.
+
+## Open Contacts
+
+<Steps>
+  <Step>
+    Sign in and open Nexus at `/{locale}/o/{orgSlug}/nexus`.
+  </Step>
+  <Step>
+    Select **Contacts** from the left-hand rail to open the directory list.
+  </Step>
+  <Step>
+    Use the search bar to find records by name, email, phone, or company. Save filtered views as named segments for quick reuse.
+  </Step>
+</Steps>
 
 ## What you can manage
 
 | Capability | Description |
-|---|---|
+| --- | --- |
 | **People** | Individual contacts with name, email, phone, company link, and custom fields |
-| **Companies** | Organisation-level contact records linked to individual people |
-| **Tags & segments** | Categorise and group contacts for quick filtered views |
-| **Import** | Bulk-create contacts from a CSV file with field mapping |
+| **Companies** | Organisation-level records linked to individual people |
+| **Tags & segments** | Categorise and group contacts for filtered views |
+| **Import** | Bulk-create contacts from CSV with field mapping |
 | **Relationships** | Link contacts to each other (e.g. employee ↔ company) |
+
+<Callout type="info" title="Permissions and audit">
+  Contact mutations run through Server Actions guarded by `requireErpPermission`. Successful creates emit `erp.contact.record.create` audit events after commit.
+</Callout>
 
 ## Search and filters
 
-Use the search bar at the top of the Contacts list to find records by name, email, phone, or company. Combine multiple filters to narrow results. All filtered views can be saved as named segments for quick access later.
+Combine multiple filters to narrow the list. Named segments persist your filter criteria so operators can return to the same view without re-entering conditions.
 
-## Access
+## Troubleshooting
 
-The Contacts module is accessible from the left-hand rail in the Nexus workspace. Access to individual records and bulk operations is governed by your organisation's ERP permissions.
+<Accordions type="single">
+  <Accordion title="Create or archive action is denied">
+    Ask your administrator to grant the relevant ERP contact permissions for your role.
+  </Accordion>
+  <Accordion title="Import rows fail validation">
+    Check required columns in the CSV template, deduplicate email addresses, and retry with a smaller batch to surface row-level errors.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/getting-started/quick-start" title="Quick start" description="Account, organisation, and Nexus setup." />
+  <Card href="/ask-docs/getting-started/workspace-navigation" title="Workspace navigation" description="Shell, rail, and command palette." />
+  <Card href="/ask-docs/hrm/employees" title="Employees" description="Workforce records that may link to contact data." />
+</Cards>

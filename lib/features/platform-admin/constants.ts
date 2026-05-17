@@ -1,5 +1,5 @@
 import type { AppPath } from "#lib/i18n/locales.shared"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 import type {
   PlatformAdminCapability,

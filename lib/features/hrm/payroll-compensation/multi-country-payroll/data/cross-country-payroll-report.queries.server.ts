@@ -59,7 +59,6 @@ export async function getCrossCountryPayrollReport(input: {
       id: hrmPayrollPeriod.id,
       periodStart: hrmPayrollPeriod.periodStart,
       periodEnd: hrmPayrollPeriod.periodEnd,
-      payrollGroupCode: hrmPayrollPeriod.payrollGroupCode,
     })
     .from(hrmPayrollPeriod)
     .where(
@@ -121,9 +120,7 @@ export async function getCrossCountryPayrollReport(input: {
     const countryCode = run.countryCode?.trim() || "MY"
     const payCurrency = run.payCurrency?.trim() || "MYR"
     const payrollGroupCode =
-      run.payrollGroupCode?.trim() ||
-      period.payrollGroupCode?.trim() ||
-      "default"
+      run.payrollGroupCode?.trim() || "default"
 
     const key = `${run.periodId}|${countryCode}|${payCurrency}|${payrollGroupCode}`
     const bucket = buckets.get(key) ?? {

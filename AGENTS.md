@@ -2,7 +2,7 @@
 
 **Stack:** Next.js 16 · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui · Neon Postgres · Drizzle ORM
 
-**Read before every task:** §4 (enforcement gates), §5 (ERP + routing), §6 (directory contract).
+**Read before every task:** §4 (enforcement gates), §5 (ERP + routing), §6 (directory contract — **§6.1 `lib/` root allowlist**, §6.2 subtrees, §6.3 anti-drift).
 
 ---
 
@@ -42,54 +42,61 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 
 ## Non-negotiable boundaries
 
-| Boundary             | Rule                                                                                                                        |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Module public door   | `lib/features/<module>/index.ts` only — no cross-module deep imports                                                        |
-| ERP business logic   | `lib/features/<module>/` only — never in `app/`, `proxy.ts`, or `lib/erp/`                                                  |
-| `app/` layer         | Routing, composition, page wiring only                                                                                      |
-| Mutations            | Server Actions by default; Route Handlers only for `auth`, `cron`, `upload`, `webhooks`, `integrations`, `api/erp/<module>` |
-| `proxy.ts`           | Session/locale gate only — no DB, no business logic                                                                         |
-| Portal control plane | `lib/portal/` only — portal slug, path, resolver, guard, and audience contracts; no ERP business logic                      |
-| Banned categories    | `services`, `utils`, `helpers`, `repositories`, `controllers` — forbidden unless AGENTS.md updated first                    |
-| Root cleanliness     | No dump dirs at repo or module root                                                                                         |
-| UI primitives        | Import only via `#components/ui/*` — never filesystem-relative. `radix-ui`/`@base-ui/react` stay inside `components/ui`     |
-| Design tokens        | `@theme inline var(--)` must resolve to `:root`/`.dark` definitions                                                         |
-| Change governance    | New architectural category → update **this file first**, then implement                                                     |
+| Boundary             | Rule                                                                                                                                                                                                                                                                                                |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Module public door   | `lib/features/<module>/index.ts` only — no cross-module deep imports                                                                                                                                                                                                                                |
+| ERP business logic   | `lib/features/<module>/` only — never in `app/`, `proxy.ts`, or `lib/erp/`                                                                                                                                                                                                                          |
+| `app/` layer         | Routing, composition, page wiring only                                                                                                                                                                                                                                                              |
+| Mutations            | Server Actions by default; Route Handlers only for `auth`, `cron`, `upload`, `webhooks`, `integrations`, `api/erp/<module>`                                                                                                                                                                         |
+| `proxy.ts`           | Session/locale gate only — no DB, no business logic                                                                                                                                                                                                                                                 |
+| Portal control plane | `lib/portal/` only — portal slug, path, resolver, guard, and audience contracts; no ERP business logic                                                                                                                                                                                              |
+| Banned categories    | `services`, `utils`, `helpers`, `repositories`, `controllers` — forbidden unless AGENTS.md updated first (exception: `lib/utils.ts` — shadcn `cn()` door; see [§6.1](#61-lib-root-allowlist-exhaustive))                                                                                          |
+| `lib/` root          | Only [§6.1](#61-lib-root-allowlist-exhaustive) allowlisted files at `lib/*.ts` — all other code lives in a named subtree ([§6.2](#62-required-lib-subtrees))                                                                                                                                        |
+| IAM session guards   | `requireOrgSession`, `getOrgTenantContext`, `getOrgSessionFromRequest`, etc. from **`#lib/auth` only** — not `#lib/tenant` (retired door; removed in lib-nesting PR3)                                                                                                                                |
+| Doc accuracy         | AGENTS.md path references must match disk in the same PR that moves or renames files ([§6.3](#63-anti-drift-doctrine))                                                                                                                                                                              |
+| Root cleanliness     | No dump dirs at repo or module root                                                                                                                                                                                                                                                                 |
+| UI primitives        | **`components/` is hard-deleted.** Import via `#components2/ui/*` only; shelf on disk is `components2/ui/**`. Never recreate repo-root `components/`.                                                                                                                                              |
+| Design tokens        | `@theme inline var(--)` must resolve to `:root`/`.dark` definitions                                                                                                                                                                                                                                 |
+| Change governance    | New architectural category → update **this file first**, then implement                                                                                                                                                                                                                             |
 | Schema migrations    | **PRIORITY #1:** Agent runs `pnpm db:generate` → `lint:drizzle-journal` → `pnpm db:migrate:local`. Human **never** runs generate/migrate/reset. No `db:push*`, no hand-edited `drizzle/`, no ledger destruction. See [PRIORITY #1](#priority-1--drizzle-migrations-agents-own-local-humans-do-not). |
+| Deleted `components/` | **Entire repo-root `components/` directory is hard-deleted** — never mkdir or restore any file under it; fix forward in `components2/` (`.cursor/rules/never-restore-deleted-components.mdc`, always on) |
+| `app/` page thickness | `page.tsx` ≤ params + guards + single feature RSC export; no domain fetch graphs in `app/` |
+| Cache Components | `cacheComponents: true` in `next.config.ts` (ADR-0023 Phase 2). No segment `dynamic`/`revalidate`/`runtime` exports under `app/`. Ask-docs uses `'use cache'` + `cacheLife`. Verify with `pnpm build -- --debug-prerender`. |
 
 ---
 
 ## Quickstart
 
-| Goal                   | Where                                                                                                                                                                                                                                                                                             |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Jump to topic          | [Contents](#contents)                                                                                                                                                                                                                                                                             |
-| Workbench shell        | **Legacy:** `#components/workbench/*` (`AppShell`/`AppSubLayout` = `WorkbenchShell`/`WorkbenchSubLayout`). **New (canonical):** `#app-shell` (`components2/app-shell/`); shell providers `components2/providers/`; shell Zustand `components2/stores/`. Rule: `.cursor/rules/shell-directory.mdc` |
-| Metadata renderers     | `#components2` (narrow: dispatcher only) · `#components2/metadata` · `#components2/ui` (named imports) · `pnpm gen governed-renderer` · `pnpm lint:components2-renderers` · ADR-0021 |
-| Nexus (org root)       | `app/[locale]/o/[orgSlug]/nexus/` · `#features/nexus` · redirected from `/{locale}/o/{orgSlug}`. See §5                                                                                                                                                                                           |
-| ERP feature            | `lib/features/<module>/` · `#features/<module>` only · no deep imports · see §6                                                                                                                                                                                                                   |
-| Orbit / Planner        | `lib/features/planner/` · product name Orbit · see ADR-0006 · rule `.cursor/rules/planner-directory.mdc`                                                                                                                                                                                          |
-| HRM                    | `lib/features/hrm/` · `HRM_CAPABILITIES` registry · `#features/hrm/client` for forms · `#features/hrm/server` for rule-pack                                                                                                                                                                       |
-| ERP RBAC               | `lib/features/erp-rbac/` · tenant governance overlays + ERP permission guards · `#features/erp-rbac/server` for server-only guards/queries                                                                                                                                                        |
-| Lynx / Knowledge       | `lib/features/lynx/` · `#features/lynx/client` for client islands · rule `.cursor/rules/lynx-knowledge.mdc`                                                                                                                                                                                       |
-| Org Messenger (Ably)   | `lib/features/messenger/` · `#features/messenger/client` (panel) · `#features/messenger/server` (token mint) · `ABLY_API_KEY` in `.env.config` → `pnpm env:sync` · workbench rail `right.messenger` (chat) + `right.coordination` (operational console) · `POST /api/erp/messenger/auth`          |
-| Org admin              | `lib/features/org-admin/` · `ORG_ADMIN_CAPABILITIES` registry · `/o/{orgSlug}/admin/*` · rule `.cursor/rules/org-admin-directory.mdc`                                                                                                                                                             |
-| Portals                | `app/[locale]/p/[portalSlug]/` · `lib/portal/` · `components2/portal-shell/` · rule `.cursor/rules/portal-directory.mdc`                                                                                                                                                                          |
-| Platform admin         | `lib/features/platform-admin/` · `PLATFORM_ADMIN_CAPABILITIES` · `/operator/*`                                                                                                                                                                                                                    |
-| Operational primitives | `#lib/erp/temporal-spine.shared` · `#lib/erp/crud-sap.shared` · `#lib/erp/audit-7w1h.{shared,server}`                                                                                                                                                                                             |
-| Workflow DevKit        | `#features/execution` contract · `enqueueOrgImportJobWorkflowRun` · [useworkflow.dev](https://useworkflow.dev/)                                                                                                                                                                                   |
-| Operational simulation | `#features/simulation` · `AFENDA_ENABLE_SIMULATION=1` · rule `.cursor/rules/simulation-directory.mdc`                                                                                                                                                                                             |
-| Working Memory Rail    | `#features/rail-memory` · `WorkbenchRail` slots · `iam.workbench.*` audits                                                                                                                                                                                                                        |
-| i18n                   | `#i18n/navigation` (client) · `toLocalePath` (server) · `localePrefix: "always"` · rule `.cursor/rules/i18n-directory.mdc`                                                                                                                                                                        |
-| DB / Drizzle           | `lib/db/schema.ts` · **agents:** `pnpm db:generate` → `pnpm db:migrate:local` only · rule `.cursor/rules/drizzle-migration-ledger.mdc`                                                                                                                                                            |
-| Auth / IAM             | `#lib/auth` (server-only) · `#lib/auth-client` (browser) · rule `.cursor/rules/iam-directory.mdc`                                                                                                                                                                                                 |
-| Scaffold               | `pnpm gen [capability\|action\|adr\|audit-contract\|workflow-job\|ask-doc]` — see §3                                                                                                                                                                                                                       |
-| UI / design            | `#components/ui/*` · `#lib/design-system` · `app/globals.css` tokens · rule `.cursor/rules/design-system.mdc`                                                                                                                                                                                     |
-| Tests                  | `pnpm test:fast` (unit) · `pnpm test:e2e` (Playwright port 3001) · rule `.cursor/rules/testing.mdc`                                                                                                                                                                                               |
-| Green CI               | **Targeted (concurrent agents):** `pnpm exec eslint --max-warnings=0 <path> && pnpm typecheck` · **Full (solo):** `pnpm typecheck && pnpm lint` · **Pre-push:** `pnpm verify:parallel` · Rule: `.cursor/rules/targeted-verification.mdc`                                                          |
-| Neon / Vercel MCP      | Configure in `.cursor/mcp.json` · see §5 [MCP validation](#validating-with-neon-and-vercel-mcp)                                                                                                                                                                                                   |
-| Ask docs               | `app/(ask-docs)/[locale]/ask-docs/` · `content/ask-docs/` · `pnpm gen ask-doc` · `pnpm lint:ask-docs-links` · `pnpm lint:ask-docs-prose` · `lib/ask-docs-source.ts` (`askDocsSource` + `askDocsI18n`) · rule `.cursor/rules/ask-docs-directory.mdc`                                                                                                     |
-| Ask docs AI chat (Public Lynx) | `app/api/chat/route.ts` · `#components/ai/search` on `/{locale}/ask-docs` · `pnpm lint:public-lynx-contract` · rule `.cursor/rules/public-lynx.mdc` — **never** import `#features/lynx` |
+| Goal                           | Where                                                                                                                                                                                                                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Jump to topic                  | [Contents](#contents)                                                                                                                                                                                                                                                                             |
+| App shell (post-login)         | **`#app-shell`** (`components2/app-shell/`) — `AppShell` slot API (`utilityBar`, `rail`, `command`, `overlay`, `envelope`). Client chrome: **`#app-shell/client`**. Providers `components2/providers/`; stores `components2/stores/`. Rules: `shell-directory.mdc`, `components2-directory.mdc`, `never-restore-deleted-components.mdc` |
+| Metadata renderers             | `#components2` (narrow: dispatcher only) · `#components2/metadata` · `#components2/ui` (named imports) · `pnpm gen governed-renderer` · `pnpm lint:components2-renderers` · **ADR-0026** (canonical; ADR-0011/0021/0025 historical) · Pattern C: `GovernedListSurfaceWithTrailingColumn` |
+| Nexus (org root)               | `app/[locale]/o/[orgSlug]/nexus/` · `#features/nexus` · redirected from `/{locale}/o/{orgSlug}`. See §5                                                                                                                                                                                           |
+| ERP feature                    | `lib/features/<module>/` · `#features/<module>` only · no deep imports · see §6                                                                                                                                                                                                                   |
+| Orbit / Planner                | `lib/features/planner/` · product name Orbit · see ADR-0006 · rule `.cursor/rules/planner-directory.mdc`                                                                                                                                                                                          |
+| HRM                            | `lib/features/hrm/` · `HRM_CAPABILITIES` registry · `#features/hrm/client` for forms · `#features/hrm/server` for rule-pack                                                                                                                                                                       |
+| Tools                          | `lib/features/tools/` · `#features/tools` · `#features/tools/client` · `#features/tools/server` · subsystems: `bulk-csv-import/`, `electronic-signatures/` · HRM consumes; does not re-export                                                                                                      |
+| ERP RBAC                       | `lib/features/erp-rbac/` · tenant governance overlays + ERP permission guards · `#features/erp-rbac/server` for server-only guards/queries                                                                                                                                                        |
+| Lynx / Knowledge               | `lib/features/lynx/` · `#features/lynx/client` for client islands · rule `.cursor/rules/lynx-knowledge.mdc`                                                                                                                                                                                       |
+| Org Messenger (Ably)           | `lib/features/messenger/` · `#features/messenger/client` (panel) · `#features/messenger/server` (token mint) · `ABLY_API_KEY` in `.env.config` → `pnpm env:sync` · workbench rail `right.messenger` (chat) + `right.coordination` (operational console) · `POST /api/erp/messenger/auth`          |
+| Org admin                      | `lib/features/org-admin/` · `ORG_ADMIN_CAPABILITIES` registry · `/o/{orgSlug}/admin/*` · rule `.cursor/rules/org-admin-directory.mdc`                                                                                                                                                             |
+| Portals                        | `app/[locale]/p/[portalSlug]/` · `lib/portal/` · `components2/portal-shell/` · rule `.cursor/rules/portal-directory.mdc`                                                                                                                                                                          |
+| Platform admin                 | `lib/features/platform-admin/` · `PLATFORM_ADMIN_CAPABILITIES` · `/operator/*`                                                                                                                                                                                                                    |
+| Operational primitives         | `#lib/erp/temporal-spine.shared` · `#lib/erp/crud-sap.shared` · `#lib/erp/audit-7w1h.{shared,server}`                                                                                                                                                                                             |
+| Workflow DevKit                | `#features/execution` contract · `enqueueOrgImportJobWorkflowRun` · [useworkflow.dev](https://useworkflow.dev/)                                                                                                                                                                                   |
+| Operational simulation         | `#features/simulation` · `AFENDA_ENABLE_SIMULATION=1` · rule `.cursor/rules/simulation-directory.mdc`                                                                                                                                                                                             |
+| Working Memory Rail            | `#features/rail-memory` · `WorkbenchRail` slots · `iam.workbench.*` audits                                                                                                                                                                                                                        |
+| i18n                           | `#i18n/navigation` (client) · `toLocalePath` (server) · `localePrefix: "always"` · rule `.cursor/rules/i18n-directory.mdc` · **ADR-0028** (temporary English-only refactor gate — resume full locales before deploy)                                                                               |
+| DB / Drizzle                   | `lib/db/schema.ts` · **agents:** `pnpm db:generate` → `pnpm db:migrate:local` only · rule `.cursor/rules/drizzle-migration-ledger.mdc`                                                                                                                                                            |
+| Auth / IAM                     | `#lib/auth` (server — session guards, step-up, audit) · `#lib/auth-client` (browser) · session guards **only** from `#lib/auth` · rule `.cursor/rules/iam-directory.mdc` · lib layout [§6.1–6.3](#6-directory-contract)                                                                          |
+| Scaffold                       | `pnpm gen [capability\|action\|adr\|audit-contract\|workflow-job\|ask-doc]` — see §3                                                                                                                                                                                                              |
+| UI / design                    | `#components2/ui/*` · `#lib/design-system` · `app/globals.css` tokens · rule `.cursor/rules/design-system.mdc`                                                                                                                                                                                     |
+| Tests                          | `pnpm test:fast` (unit) · `pnpm test:e2e` (Playwright port 3001) · rule `.cursor/rules/testing.mdc`                                                                                                                                                                                               |
+| Green CI                       | **Targeted (concurrent agents):** `pnpm exec eslint --max-warnings=0 <path> && pnpm typecheck` · **Full (solo):** `pnpm typecheck && pnpm lint` · **Pre-push:** `pnpm verify:parallel` · Rule: `.cursor/rules/targeted-verification.mdc`                                                          |
+| Neon / Vercel MCP              | Configure in `.cursor/mcp.json` · see §5 [MCP validation](#validating-with-neon-and-vercel-mcp)                                                                                                                                                                                                   |
+| Ask docs                       | `app/(ask-docs)/[locale]/ask-docs/` · `content/ask-docs/` · `pnpm gen ask-doc` · `pnpm lint:ask-docs-links` · `pnpm lint:ask-docs-prose` · `pnpm lint:ask-docs-quality` · `pnpm audit:ask-docs-quality` · ADR-0027 · `.agents/skills/adqs/` · rule `.cursor/rules/ask-docs-directory.mdc` |
+| Ask docs AI chat (Public Lynx) | `app/api/chat/route.ts` · `#components2/ai/search` on `/{locale}/ask-docs` · `pnpm lint:public-lynx-contract` · rule `.cursor/rules/public-lynx.mdc` — **never** import `#features/lynx`                                                                                                           |
 
 ## Contents
 
@@ -112,6 +119,7 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 **Always-on rules** (loaded for every task):
 
 - `.cursor/rules/agents-md-mandatory.mdc` — preload + boundary checks
+- `.cursor/rules/never-restore-deleted-components.mdc` — **never** recreate deleted files/components/routes/exports
 - `.cursor/rules/nextjs-best-practices.mdc` — RSC, routing, caching, proxy
 - `.cursor/rules/frontend-quality-contract.mdc` — React/TS quality, layout geometry
 
@@ -121,43 +129,45 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 - `ask-docs-directory.mdc` · `design-system.mdc` · `erp-primitives.mdc` · `planner-directory.mdc`
 - `lynx-knowledge.mdc` · `public-lynx.mdc` · `simulation-directory.mdc` · `org-admin-directory.mdc`
 - `drizzle-migration-ledger.mdc` · `app-router-contracts.mdc` · `testing.mdc`
-- `portal-directory.mdc` · `dev-directory.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
+- `portal-directory.mdc` · `dev-directory.mdc` · `components2-directory.mdc` · `client-state-management.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
 
 ---
 
 ## 2. Commands & quality gates
 
-| Command                             | Purpose                                                                                                             |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                          | Dev server (Turbopack, port 3000)                                                                                   |
-| `pnpm build` / `pnpm start`         | Production build / serve                                                                                            |
-| `pnpm lint`                         | Turborepo: `lint:agent-contract → lint:drizzle-journal → lint:route-error-files → lint:public-lynx-contract → lint:fixtures-parity → lint:eslint → lint:design-contract → lint:ask-docs-links → lint:ask-docs-prose` |
-| `pnpm lint:eslint`                  | ESLint — zero warnings, unused disables reported                                                                    |
-| `pnpm lint:drizzle-journal`         | `drizzle/*.sql` ↔ `_journal.json` parity                                                                            |
-| `pnpm lint:route-error-files`       | `error.tsx` files ↔ approved operational shell allowlist (`scripts/check-route-error-files.mjs`)                   |
-| `pnpm lint:public-lynx-contract`    | Public Lynx boundary — no `#features/lynx`, raw POST cap, shared transcript helpers (`scripts/check-public-lynx-contract.mjs`) |
-| `pnpm lint:fixtures-parity`         | `tests/fixtures/*` ↔ `messages/en.json` + auth surfaces + seed script                                               |
-| `pnpm lint:ask-docs-links`         | `next-validate-link` — validates internal URLs in `content/ask-docs/**/*.mdx` (Fumadocs)                                                                      |
-| `pnpm lint:ask-docs-prose`         | `markdownlint-cli2` — narrow prose/style gate on `content/ask-docs/**/*.mdx` (config `.config/markdownlint-ask-docs.jsonc`)                                 |
-| `pnpm typecheck`                    | `tsc --noEmit` — **app graph only** (separate tsconfigs for tests/scripts; always run all three before push)        |
-| `pnpm typecheck:test`               | `tsc -p tsconfig.test.json` — test graph; catches type drift in `tests/unit/` that `pnpm typecheck` never sees      |
-| `pnpm typecheck:scripts`            | `tsc -p tsconfig.scripts.json` — scripts graph                                                                      |
-| `pnpm format` / `pnpm format:check` | Prettier + Tailwind class sorting                                                                                   |
-| `pnpm knip`                         | Dead-code verdict — run before push, not after each edit                                                            |
-| `pnpm verify`                       | Full pre-merge graph (lint + typecheck + knip + test:ci + format:check)                                             |
-| `pnpm verify:ci`                    | Same with `--concurrency=8 --output-logs=errors-only` for CI                                                        |
-| `pnpm verify:parallel`              | Alias for `pnpm verify` (stable name)                                                                               |
-| `pnpm test`                         | Vitest watch — `tests/unit/` (ADR-0008)                                                                             |
-| `pnpm test:fast`                    | `vitest run --config .config/vitest.config.ts` (required — bare `vitest run` skips stubs)                           |
-| `pnpm test:ci`                      | `vitest run --coverage` → `.artifacts/coverage/`                                                                    |
-| `pnpm test:e2e`                     | `pnpm build` → Playwright on port 3001                                                                              |
-| `pnpm env:sync`                     | `.env.config` → `.env.local`                                                                                        |
-| `pnpm db:generate`                  | **Agent-owned (required).** After `lib/db/schema.ts` edits — additive only; **abort** if rename disambiguation prompts (no TTY). Commit SQL + meta with schema. **Never** ask human to run. **Never** from CI. |
-| `pnpm db:migrate:local`             | **Agent-owned (required).** After `lint:drizzle-journal` passes on local `.env.local`. **Never** ask human to run. **Never** from CI. |
-| `pnpm db:migrate:vercel`            | Out of scope for agents; do not ask human to run as a substitute for local discipline. |
-| `pnpm db:push` / `pnpm db:push:local` | **Forbidden for agents/IDE** — overwrites DB from schema without journal discipline. Human throwaway branches only, if ever. |
-| `pnpm simulate:replay`              | Replay scenario (`AFENDA_ENABLE_SIMULATION=1` required)                                                             |
-| `pnpm simulate:clear`               | Delete simulation rows for a run                                                                                    |
+| Command                               | Purpose                                                                                                                                                                                                              |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                            | Dev server (Turbopack, port 3000)                                                                                                                                                                                    |
+| `pnpm build` / `pnpm start`           | Production build / serve                                                                                                                                                                                             |
+| `pnpm lint`                           | Turborepo: `lint:agent-contract → … → lint:ask-docs-links → lint:ask-docs-prose → lint:ask-docs-quality → …` |
+| `pnpm lint:eslint`                    | ESLint — zero warnings, unused disables reported                                                                                                                                                                     |
+| `pnpm lint:drizzle-journal`           | `drizzle/*.sql` ↔ `_journal.json` parity                                                                                                                                                                             |
+| `pnpm lint:route-error-files`         | `error.tsx` files ↔ approved operational shell allowlist (`scripts/check-route-error-files.mjs`)                                                                                                                     |
+| `pnpm lint:public-lynx-contract`      | Public Lynx boundary — no `#features/lynx`, raw POST cap, shared transcript helpers (`scripts/check-public-lynx-contract.mjs`)                                                                                       |
+| `pnpm lint:fixtures-parity`           | `tests/fixtures/*` ↔ `messages/en.json` + auth surfaces + seed script                                                                                                                                                |
+| `pnpm lint:ask-docs-links`            | `next-validate-link` — validates internal URLs in `content/ask-docs/**/*.mdx` (Fumadocs)                                                                                                                             |
+| `pnpm lint:ask-docs-prose`            | `markdownlint-cli2` — narrow prose/style gate on `content/ask-docs/**/*.mdx` (config `.config/markdownlint-ask-docs.jsonc`)                                                                                          |
+| `pnpm lint:ask-docs-quality`          | ADQS mechanical gate — stub strings, Related graph, stable frontmatter on `content/ask-docs/**/*.mdx` (`scripts/lint-ask-docs-quality.mjs`; ADR-0027)                                                                  |
+| `pnpm audit:ask-docs-quality`         | ADQS corpus tier report A/B/C → `.artifacts/ask-docs-quality-audit.txt` (`scripts/audit-ask-docs-quality.mjs`; not in CI — PR review aid)                                                                               |
+| `pnpm typecheck`                      | `tsc --noEmit` — **app graph only** (separate tsconfigs for tests/scripts; always run all three before push)                                                                                                         |
+| `pnpm typecheck:test`                 | `tsc -p tsconfig.test.json` — test graph; catches type drift in `tests/unit/` that `pnpm typecheck` never sees                                                                                                       |
+| `pnpm typecheck:scripts`              | `tsc -p tsconfig.scripts.json` — scripts graph                                                                                                                                                                       |
+| `pnpm format` / `pnpm format:check`   | Prettier + Tailwind class sorting                                                                                                                                                                                    |
+| `pnpm knip`                           | Dead-code verdict — run before push, not after each edit                                                                                                                                                             |
+| `pnpm verify`                         | Full pre-merge graph (lint + typecheck + knip + test:ci + format:check)                                                                                                                                              |
+| `pnpm verify:ci`                      | Same with `--concurrency=8 --output-logs=errors-only` for CI                                                                                                                                                         |
+| `pnpm verify:parallel`                | Alias for `pnpm verify` (stable name)                                                                                                                                                                                |
+| `pnpm test`                           | Vitest watch — `tests/unit/` (ADR-0008)                                                                                                                                                                              |
+| `pnpm test:fast`                      | `vitest run --config .config/vitest.config.ts` (required — bare `vitest run` skips stubs)                                                                                                                            |
+| `pnpm test:ci`                        | `vitest run --coverage` → `.artifacts/coverage/`                                                                                                                                                                     |
+| `pnpm test:e2e`                       | `pnpm build` → Playwright on port 3001                                                                                                                                                                               |
+| `pnpm env:sync`                       | `.env.config` → `.env.local`                                                                                                                                                                                         |
+| `pnpm db:generate`                    | **Agent-owned (required).** After `lib/db/schema.ts` edits — additive only; **abort** if rename disambiguation prompts (no TTY). Commit SQL + meta with schema. **Never** ask human to run. **Never** from CI.       |
+| `pnpm db:migrate:local`               | **Agent-owned (required).** After `lint:drizzle-journal` passes on local `.env.local`. **Never** ask human to run. **Never** from CI.                                                                                |
+| `pnpm db:migrate:vercel`              | Out of scope for agents; do not ask human to run as a substitute for local discipline.                                                                                                                               |
+| `pnpm db:push` / `pnpm db:push:local` | **Forbidden for agents/IDE** — overwrites DB from schema without journal discipline. Human throwaway branches only, if ever.                                                                                         |
+| `pnpm simulate:replay`                | Replay scenario (`AFENDA_ENABLE_SIMULATION=1` required)                                                                                                                                                              |
+| `pnpm simulate:clear`                 | Delete simulation rows for a run                                                                                                                                                                                     |
 
 **Post-task gate — targeted (use when other agents may be running):**
 
@@ -184,8 +194,10 @@ pnpm typecheck && pnpm lint
 pnpm lint:drizzle-journal # after drizzle/*.sql changes
 pnpm lint:ask-docs-links # after edits to content/ask-docs MDX/internal links
 pnpm lint:ask-docs-prose # after edits to content/ask-docs MDX prose/style
+pnpm lint:ask-docs-quality # after substantive MDX edits (ADQS skeleton + stubs)
+pnpm audit:ask-docs-quality # optional corpus tier report before PR
 pnpm lint:fixtures-parity # after messages/en.json or fixture changes
-pnpm lint:public-lynx-contract # after app/api/chat, components/ai/search, lib/ask-docs/public-lynx*
+pnpm lint:public-lynx-contract # after app/api/chat, components2/ai/search, lib/ask-docs/public-lynx*
 ```
 
 **Pre-push gate:**
@@ -196,7 +208,7 @@ pnpm verify:parallel
 
 > Rule: `.cursor/rules/targeted-verification.mdc` — full decision table for concurrent-agent scenarios.
 
-**Path aliases** (`package.json`): `#components/*` · `#lib/*` · `#hooks/*` · `#features/*`
+**Path aliases** (`package.json`): `#components2/*` · `#app-shell` · `#app-shell/client` · `#lib/*` · `#hooks/*` · `#features/*`
 
 ### Testing directory contract
 
@@ -244,13 +256,13 @@ Apply this pattern to **every fixture that represents a DB row or a typed engine
 
 **Turborepo generators** (`pnpm gen`):
 
-| Generator        | What it scaffolds                                                                                         |
-| ---------------- | --------------------------------------------------------------------------------------------------------- |
-| `capability`     | Full ERP module slice (actions, data, components, schemas, index, contract)                               |
-| `action`         | Server Action in existing module — `pnpm gen action --module <slug> [--object] [--verb] [--tier B\|A\|S]` |
-| `adr`            | Auto-incremented `docs/decisions/NNNN-*.md`                                                               |
-| `audit-contract` | `<module>.contract.ts` with `buildCrudSapAuditAction` strings                                             |
-| `workflow-job`   | Workflow DevKit durable run                                                                               |
+| Generator        | What it scaffolds                                                                                                                                                                                                          |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `capability`     | Full ERP module slice (actions, data, components, schemas, index, contract)                                                                                                                                                |
+| `action`         | Server Action in existing module — `pnpm gen action --module <slug> [--object] [--verb] [--tier B\|A\|S]`                                                                                                                  |
+| `adr`            | Auto-incremented `docs/decisions/NNNN-*.md`                                                                                                                                                                                |
+| `audit-contract` | `<module>.contract.ts` with `buildCrudSapAuditAction` strings                                                                                                                                                              |
+| `workflow-job`   | Workflow DevKit durable run                                                                                                                                                                                                |
 | `ask-doc`        | `content/ask-docs/<section>/<slug>.mdx` + optional `meta.json` append — `pnpm gen ask-doc --section <dir> --slug <kebab> --title "…" --description "…" --audience admin\|employee\|developer --status draft\|beta\|stable` |
 
 Each generator runs `pnpm lint:agent-contract + pnpm lint:eslint --fix` on touched paths on day one. See ADR-0009.
@@ -261,10 +273,10 @@ See **[PRIORITY #1](#priority-1--drizzle-migrations-agents-own-local-humans-do-n
 
 **Agent-owned (local). Human does not run generate, migrate, or DB reset.**
 
-| Who | Responsibility |
-| --- | --- |
-| **IDE / agent** | `lib/db/schema.ts` → `pnpm db:generate` → `pnpm lint:drizzle-journal` → `pnpm db:migrate:local` → commit atomically |
-| **Human operator** | **Does not** run `db:generate`, `db:migrate:local`, `db:push*`, or nuke/reset scripts for agents. Do not ask. |
+| Who                | Responsibility                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **IDE / agent**    | `lib/db/schema.ts` → `pnpm db:generate` → `pnpm lint:drizzle-journal` → `pnpm db:migrate:local` → commit atomically |
+| **Human operator** | **Does not** run `db:generate`, `db:migrate:local`, `db:push*`, or nuke/reset scripts for agents. Do not ask.       |
 
 **Agent workflow (local dev) — you run this, not the human:**
 
@@ -284,17 +296,17 @@ pnpm db:migrate:local               # fixes local "relation does not exist"
 
 **Forbidden for agents**
 
-| Command / action | Why |
-| --- | --- |
-| Asking human to run `db:generate` / `db:migrate:local` | Agent-owned per PRIORITY #1 |
-| Asking human to nuke or reset Neon | Human will not help; you must not destroy the ledger |
-| `pnpm db:push` / `pnpm db:push:local` | Overwrites DB — caused drift class |
-| `node scripts/drizzle-migrate-logged.mjs` | Use `pnpm db:migrate:local` only |
-| `node scripts/nuke-db-public.mjs` | Destructive — never |
-| Hand-edit `drizzle/*.sql`, `drizzle/meta/_journal.json`, `*_snapshot.json` | Corrupts drizzle-kit baseline |
-| Bulk orphan SQL cleanup without journal parity | Caused 21-vs-7 incident |
-| `drizzle-kit` CLI except via `pnpm db:generate` | Bypass |
-| Neon MCP / SQL DDL for app tables | Not in journal |
+| Command / action                                                           | Why                                                  |
+| -------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Asking human to run `db:generate` / `db:migrate:local`                     | Agent-owned per PRIORITY #1                          |
+| Asking human to nuke or reset Neon                                         | Human will not help; you must not destroy the ledger |
+| `pnpm db:push` / `pnpm db:push:local`                                      | Overwrites DB — caused drift class                   |
+| `node scripts/drizzle-migrate-logged.mjs`                                  | Use `pnpm db:migrate:local` only                     |
+| `node scripts/nuke-db-public.mjs`                                          | Destructive — never                                  |
+| Hand-edit `drizzle/*.sql`, `drizzle/meta/_journal.json`, `*_snapshot.json` | Corrupts drizzle-kit baseline                        |
+| Bulk orphan SQL cleanup without journal parity                             | Caused 21-vs-7 incident                              |
+| `drizzle-kit` CLI except via `pnpm db:generate`                            | Bypass                                               |
+| Neon MCP / SQL DDL for app tables                                          | Not in journal                                       |
 
 **Doctrine**
 
@@ -310,13 +322,13 @@ All boundaries are enforced mechanically by scripts + ESLint, not this markdown 
 
 ### 4.1 Contract scripts
 
-| Script                              | Enforces                                                                                                                                                                                            |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Script                                   | Enforces                                                                                                                                                                                            |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `scripts/check-agent-contract.mjs`       | Required files; `alwaysApply: true` on mandatory rules; ESLint restricts `#features/*/*`; no dump dirs; module root shape (`index.ts` required; allowed entries only); no cross-module deep imports |
 | `scripts/check-design-contract.mjs`      | `@theme inline var(--)` ↔ `:root`/`.dark`; forbidden radii/palette/shadow; material adoption drift                                                                                                  |
 | `scripts/check-drizzle-journal.mjs`      | `drizzle/*.sql` ↔ `_journal.json` tag + order parity                                                                                                                                                |
-| `scripts/check-route-error-files.mjs`    | `error.tsx` files ↔ operational shell allowlist; enforces `"use client"`, no server-only imports, no module-level boundaries                                                                         |
-| `scripts/check-public-lynx-contract.mjs` | Public Lynx stack — no ERP Lynx import, no IAM on `/api/chat`, `readPublicLynxChatRequestBody`, Vitest `--config` in `package.json` scripts                                                        |
+| `scripts/check-route-error-files.mjs`    | `error.tsx` files ↔ operational shell allowlist; enforces `"use client"`, no server-only imports, no module-level boundaries                                                                        |
+| `scripts/check-public-lynx-contract.mjs` | Public Lynx stack — no ERP Lynx import, no IAM on `/api/chat`, `readPublicLynxChatRequestBody`, Vitest `--config` in `package.json` scripts                                                         |
 | `pnpm lint:fixtures-parity`              | `tests/fixtures/*` ↔ `messages/en.json`, auth surfaces, seed script, dev sign-in panel, org audit CSV                                                                                               |
 | `turbo.json`                             | Cacheable verify task graph; `inputs` include `turbo.json` itself so cache-graph edits rerun the contract                                                                                           |
 
@@ -325,6 +337,7 @@ All boundaries are enforced mechanically by scripts + ESLint, not this markdown 
 ```
 AGENTS.md
 .cursor/rules/agents-md-mandatory.mdc
+.cursor/rules/never-restore-deleted-components.mdc
 .cursor/rules/design-system.mdc
 .cursor/rules/i18n-directory.mdc
 .cursor/rules/lynx-knowledge.mdc
@@ -343,12 +356,12 @@ turbo/generators/config.ts
 
 ### 4.3 Gate schedule
 
-| Moment                           | Gate                                                                                                                          |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `preinstall`                     | `check-agent-contract.mjs`                                                                                                    |
-| `pnpm lint`                      | `lint:agent-contract → lint:drizzle-journal → lint:route-error-files → lint:public-lynx-contract → lint:fixtures-parity → lint:eslint → lint:design-contract → lint:ask-docs-links → lint:ask-docs-prose` (Turborepo, cached)  |
-| `pnpm verify` / `pnpm verify:ci` | Full graph — lint + typecheck + knip + test:ci + format:check                                                                 |
-| CI (`.github/workflows/ci.yml`)  | `check-agent-contract` → `pnpm install` → cache `.turbo` → `pnpm verify:ci` → cache `.next/cache` → `pnpm build` → Playwright |
+| Moment                           | Gate                                                                                                                                                                                                                          |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `preinstall`                     | `check-agent-contract.mjs`                                                                                                                                                                                                    |
+| `pnpm lint`                      | `lint:agent-contract → lint:drizzle-journal → lint:route-error-files → lint:public-lynx-contract → lint:fixtures-parity → lint:eslint → lint:design-contract → lint:ask-docs-links → lint:ask-docs-prose` (Turborepo, cached) |
+| `pnpm verify` / `pnpm verify:ci` | Full graph — lint + typecheck + knip + test:ci + format:check                                                                                                                                                                 |
+| CI (`.github/workflows/ci.yml`)  | `check-agent-contract` → `pnpm install` → cache `.turbo` → `pnpm verify:ci` → cache `.next/cache` → `pnpm build` → Playwright                                                                                                 |
 
 **CI Remote Cache** (optional): set `TURBO_TOKEN` + `TURBO_TEAM` (`jacks-projects-7b3cfe94`) + `TURBO_REMOTE_CACHE_SIGNATURE_KEY` as GitHub secrets.
 
@@ -375,8 +388,9 @@ turbo/generators/config.ts
 ### Auth / IAM
 
 - **Neon Auth** (Better Auth–compatible) + organization plugin (multi-tenant `activeOrganizationId`).
-- **Server door:** `#lib/auth` (`server-only`) — `auth`, `requireRecentAuthStepUp`, all guards.
-- **Browser door:** `#lib/auth-client` (`lib/auth-client.ts`).
+- **Server door:** `#lib/auth` (`server-only`) — `auth`, `requireRecentAuthStepUp`, **all session/org guards** (`requireOrgSession`, `getOrgTenantContext`, `requireSignedInSession`, `requireGlobalAdminSession`, …).
+- **Browser door:** `#lib/auth-client` ([`lib/auth-client.ts`](lib/auth-client.ts)) — Neon Auth client only; never import `#lib/auth` from Client Components.
+- **Retired:** `#lib/tenant` and `lib/tenant.ts` — use `#lib/auth` only (`lib/auth/tenant-session.server.ts`).
 - **HTTP:** `/api/auth/[...path]`. Neon webhooks: `app/api/integrations/neon-auth-webhooks/`.
 - **Session guards** (use in layouts): `requireSignedInSession()` for `/console`/`/account`; `requireOrgSession()` + `getOrgTenantContext()` for ERP; `requireGlobalAdminSession()` for `/operator`.
 - **IDOR:** `organizationId` is authoritative **only** from `requireOrgSession` / `getOrgTenantContext` / `getOrgSessionFromRequest` — never trust it from `FormData`, JSON, or query strings.
@@ -405,7 +419,7 @@ turbo/generators/config.ts
 - **Authority:** `/p` resolves organization context through `portalSlug`; it does not rely on active Workbench org switching.
 - **Guard model:** portal layouts use portal context guards from `lib/portal/`; audience-specific guards enforce employee/supplier/customer/investor subject access.
 - **Business logic:** portal routes compose feature modules only through public doors; ERP/domain logic remains in `lib/features/<module>/`.
-- **Shell:** `/p` uses `PortalShell` from `components2/portal-shell/`; it must never mount `WorkbenchShell` or `AppShell`.
+- **Shell:** `/p` uses `PortalShell` from `components2/portal-shell/`; it must never mount `AppShell`.
 - **Rule:** `.cursor/rules/portal-directory.mdc`
 
 ### Locale-first routing
@@ -415,6 +429,7 @@ turbo/generators/config.ts
 - **Never emit bare `/sign-in`, `/o`, or `/p` from server** — use `toLocalePath(locale, path)`.
 - **Post-login:** `/{locale}/console` is the loading bay (single-org → redirect to nexus immediately).
 - **`callbackUrl`** must be locale-prefixed + validated via `resolvePostAuthCallbackUrl`.
+- **Refactor gate (local only):** `AFENDA_I18N_SINGLE_LOCALE` + `NEXT_PUBLIC_AFENDA_I18N_SINGLE_LOCALE` narrow `APP_LOCALES` to `en` for faster builds — see [ADR-0028](docs/decisions/0028-single-locale-refactor-gate.md). **Required before deploy:** unset both, `pnpm env:sync`, backfill non-English catalogs, full verify. Never set in CI/Vercel production.
 - **Rule:** `.cursor/rules/i18n-directory.mdc`
 
 ### Nexus runtime (org root)
@@ -425,17 +440,18 @@ Nexus owns the OS.  Surfaces execute work.  Materials are governed.
 
 - **Org root:** `/{locale}/o/{orgSlug}` → `/{locale}/o/{orgSlug}/nexus`.
 - **Shell mounts at:** `app/[locale]/o/[orgSlug]/layout.tsx` (not dashboard layout) — ensures utility bar / dock / command persist across surfaces.
-- **Components/workbench/** owns all shell chrome. **Components/nexus/** owns Nexus Field + Lynx summon only. No `components/dashboard/`.
+- **`components2/app-shell/`** owns all post-login shell chrome. **`components2/` Nexus field** (Lynx summon overlays) — not repo-root `components/`. No `components/dashboard/` (hard-deleted).
 - **NexusSnapshot:** one server-built snapshot per request — no per-widget fetching.
 - **Forbidden vocabulary:** dashboard (as org root noun), widget, cockpit, home (as org root noun), AI mode, notification center.
 - **Shell is final (ADR-0005):** do not reintroduce legacy shell wrappers.
 
-### Workbench chrome (shell)
+### App shell (post-login chrome)
 
-- `AppShell` / `AppSubLayout` = `WorkbenchShell` / `WorkbenchSubLayout` — import from `#components/workbench/*`.
-- Nested rail surfaces (org admin, HRM) use `AppSubLayout` inside the parent `AppShell`.
-- Shell schema kernel: `workbench-rail.schema.ts` is the single source of truth for rail slots. Builders are pure mappers. Cross-cutting structural changes → `ts-morph` codemod under `scripts/refactors/`.
-- Portal chrome is separate: `/p/{portalSlug}` uses `PortalShell` from `components2/portal-shell/`, never `WorkbenchShell` or `AppShell`.
+- Import **`AppShell`** / **`AppSubLayout`** from **`#app-shell`**; client islands from **`#app-shell/client`**.
+- Org/console layouts compose **`utilityBar`** via `buildAppShellOrgUtilityBarSlots` / `buildAppShellConsoleUtilityBarSlots` (server-only composers under `components2/app-shell/compose/`).
+- Nested rail surfaces (org admin, HRM, account, operator) use **`AppSubLayout`** + **`AppShellPrimaryLeftRail*`** inside the parent org `AppShell`.
+- Rail slot kernel: `appshell-primary-left-rail.schema.ts`. Builders are pure mappers. Cross-cutting structural changes → `ts-morph` codemod under `scripts/refactors/`.
+- Portal chrome is separate: `/p/{portalSlug}` uses `PortalShell` from `components2/portal-shell/`, never `AppShell`.
 
 ### Working Memory Rail
 
@@ -573,7 +589,7 @@ await writeAuditEvent7W1H({
 | Layer                          | What it covers                                                         |
 | ------------------------------ | ---------------------------------------------------------------------- |
 | Pino (`lib/logger.server.ts`)  | Structured evidence log (Node only). `LOG_PRETTY=1` for dev.           |
-| OpenTelemetry (`@vercel/otel`) | Execution map — custom spans via `lib/otel-span.server.ts` (Node only) |
+| OpenTelemetry (`@vercel/otel`) | Execution map — custom spans via `lib/observability/otel-span.server.ts` (Node only) |
 | Sentry (`@sentry/nextjs`)      | Incident inbox (grouping, source maps)                                 |
 | `iam_audit_event`              | Business truth ledger — do not replace with technical logs             |
 | Vercel Runtime Logs            | Operational backstop                                                   |
@@ -657,52 +673,158 @@ lib/erp/      → shared primitives only (temporal-spine, crud-sap, audit-7w1h, 
 lib/portal/   → portal control plane only (slug, path, resolver, guard, audience contracts)
 ```
 
+Afenda is **stricter than default Next.js colocation** ([project structure](https://nextjs.org/docs/app/getting-started/project-structure)): `app/` stays routing-only; shared code lives under named `lib/` subtrees or `components2/`, not loose files at `lib/` root.
+
+### 6.1 `lib/` root allowlist (exhaustive)
+
+Only these files may exist directly under `lib/` (`lib/*.ts` / `lib/*.tsx`). **No other loose files at `lib/` root.**
+
+| File | Import door | Layer |
+|------|-------------|-------|
+| `auth-client.ts` | `#lib/auth-client` | Client (`"use client"`) — browser IAM |
+| `auth-client-neon-compat.ts` | `#lib/auth-client-neon-compat` | Client — Neon Auth typings extension |
+| `dashboard-module-paths.ts` | `#lib/dashboard-module-paths` | Shared — client-safe ERP path builders |
+| `design-system.ts` | `#lib/design-system` | Shared — token/Zod contract |
+| `logger.server.ts` | `#lib/logger.server` | Server (Node) — structured logs |
+| `session-cache.ts` | `#lib/session-cache` | Server — `React.cache()` session dedupe |
+| `site.ts` | `#lib/site` | Shared — origin + brand constants |
+| `utils.ts` | `#lib/utils` | Shared — shadcn `cn()` only (`components.json` alias) |
+
+```txt
+FORBIDDEN without updating this table in the same PR:
+  lib/<anything-else>.ts
+  lib/<anything-else>.shared.ts
+  “temporary” root files “until we nest later”
+```
+
+**Carve-out:** `lib/utils.ts` is the only allowed `utils` *filename* at repo root. The banned category `utils/` still applies to new dump folders and feature innards.
+
+**Lib-nesting:** only §6.1 files may live at `lib/` root — nest new cross-cutting code under §6.2 subtrees; see [`.cursor/plans/lib-root-and-agents-anti-drift.plan.md`](.cursor/plans/lib-root-and-agents-anti-drift.plan.md). Session guards: `lib/auth/tenant-session.server.ts` via `#lib/auth`. IAM mail: `lib/auth/auth-mail.server.ts` (deep import only; not barrel-exported).
+
+### 6.2 Required `lib/` subtrees
+
+| Directory | Owns | Public door |
+|-----------|------|-------------|
+| `lib/auth/` | IAM control plane, session guards (`tenant-session.server.ts`), org slug, auth mail | `#lib/auth` (server barrel); `#lib/auth/*.shared` for edge/client |
+| `lib/db/` | Drizzle schema + client | `#lib/db` |
+| `lib/erp/` | Primitives only (temporal, CRUD-SAP, audit-7w1h, route envelope) | `#lib/erp/*` — no feature logic |
+| `lib/portal/` | Portal slug, guards, paths | `#lib/portal` |
+| `lib/features/<module>/` | ERP domain | `#features/<module>` only |
+| `lib/i18n/` | Locale paths, searchParams helpers, org forward-path sanitization | `#lib/i18n/*` |
+| `lib/ask-docs/` | Fumadocs loader, public Lynx helpers, LLM export | `#lib/ask-docs/*` |
+| `lib/ai/` | Shared AI helpers (non–ERP Lynx) | `#lib/ai/*` |
+| `lib/observability/` | OTEL spans, request-error telemetry | `#lib/observability/*` |
+| `lib/api/` | Route handler JSON helpers | `#lib/api/*` |
+| `lib/browser/` | Client-only cookie/preference helpers | `#lib/browser/*` |
+
+**Retired paths (do not recreate):**
+
+- `#lib/tenant` → `#lib/auth` only
+- `#lib/dashboard-org-path.shared`, `#lib/dashboard-org-redirect.server`, `#lib/app-search-params.shared`, `#lib/app-metadata-surface.shared` → `#lib/i18n/*` (`private-surface-robots.shared.ts` for metadata robots)
+- `#lib/hrm-dashboard.shared`, `#lib/planner-dashboard.shared` → `#features/hrm/hrm-dashboard-path.shared`, `#features/planner/planner-dashboard-path.shared` (not the module barrel — avoids `constants` ↔ `dashboard-module-paths` cycle)
+- `#lib/route-handler-json.shared` → `#lib/api/route-handler-json.shared`
+- `#lib/route-envelope.shared` → `#lib/erp/route-envelope.shared`
+- `#lib/otel-span.server`, `#lib/request-error-context.shared`, `#lib/request-error-telemetry.server` → `#lib/observability/*`
+- `#lib/client-cookie.shared` → `#lib/browser/client-cookie.shared`
+- `#lib/next-app-error-page-props.shared` → `#components2/route-error/error-page-props.shared`
+- Root `lib/ask-docs-*.ts` duplicates → `lib/ask-docs/*`
+- Repo-root `components/` → `components2/` only
+
+### 6.3 Anti-drift doctrine
+
+```txt
+Authority order:  AGENTS.md  >  .cursor/rules/*.mdc  >  comments  >  old ADRs
+
+When you move or delete a file:
+  1. Update every import in the same PR (no re-export shims at old paths).
+  2. Update AGENTS.md if the public door or §6.1 allowlist changed.
+  3. Update the matching .cursor/rules/*.mdc if it names the old path.
+  4. Run targeted eslint on touched paths + pnpm typecheck.
+
+When AGENTS.md and disk disagree:
+  Trust disk for builds; fix AGENTS.md before declaring the task done.
+
+Forbidden drift patterns:
+  - New lib/*.ts at root not in §6.1
+  - Parallel import doors (#lib/tenant vs #lib/auth)
+  - Documenting repo-root components/ paths (hard-deleted)
+  - “Phase N will nest this” with no issue link after Phase N shipped
+  - Compatibility redirects/aliases for deleted routes or moved modules
+```
+
+### App vs source (frontend boundary)
+
+```txt
+app/ — URL segments, layout.tsx authority (Tier A/B), thin page.tsx wiring,
+      loading.tsx / error.tsx / not-found.tsx, approved app/api/* only.
+      Forbidden: ERP queries, domain rules, feature UI bodies, Zod schemas,
+      Server Action implementations, and barrel re-exports of feature modules.
+
+lib/features/<module>/ — business logic, RSC feature pages, Server Actions,
+      schemas, contracts. Public doors: #features/<module>, #features/<module>/client,
+      #features/<module>/server.
+
+components2/ — shell chrome (app-shell, portal-shell, providers, stores),
+      metadata renderers, auth/console/marketing surfaces. Import via #app-shell,
+      #app-shell/client, #components2/* — not from app/.
+
+i18n/ + messages/ — locale routing and catalogs only.
+
+content/ask-docs/ — MDX authoring only (routes in app/(ask-docs)/).
+
+Cross-module imports: #features/<module> only — never deep paths into lib/features/.../data/.
+```
+
 ### Public docs / ask-docs (Fumadocs MDX)
 
 - **`/{locale}/ask-docs`** — canonical public locale-first documentation (Fumadocs MDX), **no auth cookie gate** — naming parallel to **`/{locale}/legal-docs`**.
-- **`content/ask-docs/`** — MDX authoring root; **`source.config.ts`** + **`.source/`** (generated by `fumadocs-mdx` / `next build`) feed `lib/ask-docs-source.ts`.
+- **`content/ask-docs/`** — MDX authoring root; **`source.config.ts`** + **`.source/`** (generated by `fumadocs-mdx` / `next build`) feed `lib/ask-docs/source.ts`.
 
 **Surface inventory** (split into a dedicated repo/package when content volume warrants it):
 
-| File / dir | Role |
-| --- | --- |
-| `source.config.ts` | `defineDocs({ dir: "content/ask-docs", async: true })` + extended `pageSchema`; `applyMdxPreset` per-collection MDX (`remarkNpm`, `remarkSteps`, Twoslash); plugins `lastModified`, `jsonSchema({ insert: true })` |
-| `lib/ask-docs-source.ts` | `askDocsSource` — single Fumadocs `loader()` with `defineI18n`; `getPage(slug, locale)` / `getPageTree(locale)` |
-| `lib/ask-docs-path.shared.ts` | `askDocsPath(locale, slug?)` — locale-prefixed `/ask-docs` paths |
-| `lib/ask-docs-og.shared.ts` | `getAskDocsOgImagePath(locale, slugs)` — `/og/ask-docs/{locale}/…/image.png` |
-| `app/(ask-docs)/[locale]/ask-docs/_lib/markdown-path.ts` | `getAskDocsProcessedMarkdownPath(slug)` — `/llms.mdx/ask-docs/…` (Copy / View as Markdown) |
-| `lib/site.ts` | `getAskDocsGithubUrl(pagePath)` — from `NEXT_PUBLIC_ASK_DOCS_GITHUB_URL` |
-| `app/(ask-docs)/[locale]/ask-docs/layout.tsx` | `DocsLayout` + scoped `RootProvider`; Orama `/api/ask-docs-search`; **Ask Lynx** (`#components/ai/search`) |
-| `app/api/chat/route.ts` | Public Lynx streaming chat — Vercel AI SDK + flexsearch over ask-docs (no org session) |
-| `components/ai/search.tsx` | Ask Lynx client islands — PNG round trigger (`public/icons/lynx/`), suggested prompts, ChatGPT-style bubbles, scroll anchor |
-| `lib/ask-docs/lynx-brand.shared.ts` | Lynx PNG path constants (`Lynx-transfrom-1/2/3.png`) |
-| `components/markdown.tsx` | Streaming markdown renderer for Lynx chat messages |
-| `app/(ask-docs)/[locale]/ask-docs/[[...slug]]/page.tsx` | Page render + `generateStaticParams` + `generateMetadata` (OG + Twitter cards); feedback + optional **Links on this page** |
-| `app/(ask-docs)/[locale]/ask-docs/[[...slug]]/actions.ts` | `submitAskDocsFeedback` Server Action (logs via `rootLogger`) |
-| `app/og/ask-docs/[locale]/[...slug]/route.tsx` | `next/og` `ImageResponse` for OG images; `revalidate = false` + `generateStaticParams` |
-| `app/api/ask-docs-search/route.ts` | Fumadocs Orama full-text search (`createFromSource` on `askDocsSource`); `?locale=` query; `localeMap` for en/zh-CN/vi/ms |
-| `app/api/ask-docs-search/route.ts` | Same for the ask-docs `RootProvider` search widget |
-| `app/llms.txt/route.ts` | LLM-friendly plain-text index of all docs pages |
-| `app/llms-full.txt/route.ts` | Full MDX-processed content for all pages |
-| `app/llms.mdx/ask-docs/[[...slug]]/route.ts` | Per-page markdown GET endpoint; `proxy.ts` + `next.config` rewrite `/{locale}/ask-docs/*.md` here |
-| `app/(ask-docs)/[locale]/ask-docs/_components/mdx.tsx` | `useMDXComponents` — vanilla Fumadocs shelf; `components/ask-docs-mermaid.tsx` for Mermaid |
-| `.config/markdownlint-ask-docs.jsonc` | markdownlint-cli2 config for `lint:ask-docs-prose` |
-| `scripts/lint-ask-docs-prose.mjs` | Invokes markdownlint-cli2 on `content/ask-docs/**/*.mdx` |
-| `turbo/generators/config.ts` | Registers `ask-doc` generator (`pnpm gen ask-doc`) |
-| `turbo/generators/templates/ask-doc/page.mdx.hbs` | `pnpm gen ask-doc` MDX skeleton |
-| `components/feedback/client.tsx` | `<Feedback>` client island (thumbs up/down + optional comment) |
-| `components/feedback/schema.ts` | Zod schema for feedback payload |
-| `content/ask-docs/` | MDX pages + `meta.json` files (sidebar order) |
-| `scripts/validate-ask-docs-links.ts` | `next-validate-link` — internal URL validation for MDX content |
+| File / dir                                                | Role                                                                                                                                                                                                               |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `source.config.ts`                                        | `defineDocs({ dir: "content/ask-docs", async: true })` + extended `pageSchema`; `applyMdxPreset` per-collection MDX (`remarkNpm`, `remarkSteps`, Twoslash); plugins `lastModified`, `jsonSchema({ insert: true })` |
+| `lib/ask-docs/source.ts`                                  | `askDocsSource` — single Fumadocs `loader()` with `defineI18n`; `getPage(slug, locale)` / `getPageTree(locale)`                                                                                                    |
+| `lib/ask-docs/path.shared.ts`                             | `askDocsPath(locale, slug?)` — locale-prefixed `/ask-docs` paths                                                                                                                                                   |
+| `lib/ask-docs/og.shared.ts`                               | `getAskDocsOgImagePath(locale, slugs)` — `/og/ask-docs/{locale}/…/image.png`                                                                                                                                       |
+| `app/(ask-docs)/[locale]/ask-docs/_lib/markdown-path.ts`  | `getAskDocsProcessedMarkdownPath(slug)` — `/llms.mdx/ask-docs/…` (Copy / View as Markdown)                                                                                                                         |
+| `lib/site.ts`                                             | `getAskDocsGithubUrl(pagePath)` — from `NEXT_PUBLIC_ASK_DOCS_GITHUB_URL`                                                                                                                                           |
+| `app/(ask-docs)/[locale]/ask-docs/layout.tsx`             | `DocsLayout` + scoped `RootProvider`; Orama `/api/ask-docs-search`; **Ask Lynx** (`#components2/ai/search`)                                                                                                        |
+| `app/api/chat/route.ts`                                   | Public Lynx streaming chat — Vercel AI SDK + flexsearch over ask-docs (no org session)                                                                                                                             |
+| `components2/ai/search.tsx`                               | Ask Lynx client islands — PNG round trigger (`public/icons/lynx/`), suggested prompts, ChatGPT-style bubbles, scroll anchor                                                                                        |
+| `lib/ask-docs/lynx-brand.shared.ts`                       | Lynx PNG path constants (`Lynx-transfrom-1/2/3.png`)                                                                                                                                                               |
+| `components2/markdown.tsx`                                | Streaming markdown renderer for Lynx chat messages                                                                                                                                                                 |
+| `app/(ask-docs)/[locale]/ask-docs/[[...slug]]/page.tsx`   | Page render + `generateStaticParams` + `generateMetadata` (OG + Twitter cards); feedback + optional **Links on this page**                                                                                         |
+| `app/(ask-docs)/[locale]/ask-docs/[[...slug]]/actions.ts` | `submitAskDocsFeedback` Server Action (logs via `rootLogger`)                                                                                                                                                      |
+| `app/og/ask-docs/[locale]/[...slug]/route.tsx`            | `next/og` `ImageResponse` for OG images; `revalidate = false` + `generateStaticParams`                                                                                                                             |
+| `app/api/ask-docs-search/route.ts`                        | Fumadocs Orama full-text search (`createFromSource` on `askDocsSource`); `?locale=` query; `localeMap` for en/zh-CN/vi/ms                                                                                          |
+| `app/api/ask-docs-search/route.ts`                        | Same for the ask-docs `RootProvider` search widget                                                                                                                                                                 |
+| `app/llms.txt/route.ts`                                   | LLM-friendly plain-text index of all docs pages                                                                                                                                                                    |
+| `app/llms-full.txt/route.ts`                              | Full MDX-processed content for all pages                                                                                                                                                                           |
+| `app/llms.mdx/ask-docs/[[...slug]]/route.ts`              | Per-page markdown GET endpoint; `proxy.ts` + `next.config` rewrite `/{locale}/ask-docs/*.md` here                                                                                                                  |
+| `app/(ask-docs)/[locale]/ask-docs/_components/mdx.tsx`    | `useMDXComponents` — vanilla Fumadocs shelf; `components2/ask-docs-mermaid.tsx` for Mermaid                                                                                                                        |
+| `.config/markdownlint-ask-docs.jsonc`                     | markdownlint-cli2 config for `lint:ask-docs-prose`                                                                                                                                                                 |
+| `scripts/lint-ask-docs-prose.mjs`                         | Invokes markdownlint-cli2 on `content/ask-docs/**/*.mdx`                                                                                                                                                           |
+| `scripts/lint-ask-docs-quality.mjs`                       | ADQS mechanical gate (stubs, Related, frontmatter) — see ADR-0027                                                                                                                                                  |
+| `scripts/audit-ask-docs-quality.mjs`                      | Heuristic tier report → `.artifacts/ask-docs-quality-audit.txt`                                                                                                                                                    |
+| `.agents/skills/adqs/SKILL.md`                            | Embedded agent workflow — composes documentation-audit + technical-writing + ADQS rubric                                                                                                                           |
+| `turbo/generators/config.ts`                              | Registers `ask-doc` generator (`pnpm gen ask-doc`)                                                                                                                                                                 |
+| `turbo/generators/templates/ask-doc/page.mdx.hbs`         | `pnpm gen ask-doc` MDX skeleton                                                                                                                                                                                    |
+| `components2/feedback/client.tsx`                         | `<Feedback>` client island (thumbs up/down + optional comment)                                                                                                                                                     |
+| `components2/feedback/schema.ts`                          | Zod schema for feedback payload                                                                                                                                                                                    |
+| `content/ask-docs/`                                       | MDX pages + `meta.json` files (sidebar order)                                                                                                                                                                      |
+| `scripts/validate-ask-docs-links.ts`                      | `next-validate-link` — internal URL validation for MDX content                                                                                                                                                     |
 
 **Split trigger:** when `content/ask-docs/` exceeds ~50 MDX files or requires a CMS, extract as a standalone Fumadocs Next.js app and serve under a subdomain (`docs.afenda.com`). Until then, keep it co-located.
 
 **Deferred integrations** (add only when a named requirement exists):
+
 - **`fumadocs-openapi`** — enable only when a committed `openapi.yaml` (or `openapi.json`) lives in-repo **or** CI has a stable pinned URL secret the generator can fetch; then add a `scripts/generate-openapi-docs.mts` (or similar) → committed MDX under `content/ask-docs/` + `lint:ask-docs-links` in CI.
 - `@fumadocs/story` — component playground in MDX (needs `.story.tsx` files)
 - Takumi (`@takumi-rs/image-response`) — Rust OG renderer (not worth extra native dep for static images)
 
-See `.cursor/rules/ask-docs-directory.mdc` for authoring and import rules.
+See `.cursor/rules/ask-docs-directory.mdc` for authoring, ADQS workflow, and import rules. Canonical decision: **ADR-0027**.
 
 ### Portal control plane
 
@@ -719,7 +841,7 @@ See `.cursor/rules/ask-docs-directory.mdc` for authoring and import rules.
 ```
 actions/    → "use server" Server Actions (validation, tenant guard, revalidation)
 data/       → server-only DB access (no React/UI/client imports)
-components/ → ERP module UI only
+lib/features/<module>/components/ → ERP module UI only (not repo-root components/)
 schemas/    → Zod validation contracts
 constants.ts · types.ts · index.ts · server.ts (optional) · client.ts (optional)
 *.contract.ts
@@ -747,21 +869,28 @@ import { listContactsForOrganization } from "#features/contacts/data/contacts.qu
 
 ### File naming convention (`components2/`)
 
-Files in `components2/` follow a `<entity>.<aspect>.<layer>` pattern:
+**Rule:** `.cursor/rules/components2-directory.mdc` (glob: `components2/**`).
 
-| Pattern                 | When to use                                  | Examples                                      |
-| ----------------------- | -------------------------------------------- | --------------------------------------------- |
-| `<entity>.schema.ts`    | Zod schemas + `z.infer<>` types              | `rail.schema.ts`                              |
-| `<entity>.tsx`          | RSC entry — `server-only`, no `"use client"` | `app-shell.tsx`, `sub-layout.tsx`             |
-| `<entity>.client.tsx`   | Client component — `"use client"`            | `app-shell.client.tsx`, `nav-rail.client.tsx` |
-| `<entity>.tsx` (shared) | Pure layout/composition, no directive        | `utility-bar.tsx`, `surface.tsx`              |
+Read the filename left → right: **folder = context**, then **entity** (and optional **aspect**), then **layer suffix**. Length varies; every segment is a concrete kebab-case noun — no `utils`, `helpers`, `manager`, `common`, `misc`, etc.
 
-**Rules:**
+```txt
+[feature-prefix-]<entity>[-<aspect>].<layer>.ts(x)
+```
 
-- File name = primary export name (`app-shell.tsx` → exports `AppShell`).
-- `*.schema.ts` for all Zod contracts — never bare `schema.ts`.
-- No generic names: `schema.ts`, `shell.tsx`, `rail.tsx` are forbidden without an entity qualifier.
-- Full spec: `.cursor/rules/shell-directory.mdc` → _File naming convention_.
+| Layer suffix | Role | Example |
+| --- | --- | --- |
+| `.store.ts` | Zustand (`stores/` only) | `utility-bar.store.ts` → `useUtilityBarStore` |
+| `.provider.client.tsx` | React provider | `theme-provider.client.tsx` |
+| `.client.tsx` | Client component | `appshell-utility-bar-messenger.client.tsx` |
+| `.tsx` | RSC entry or shared composition | `appshell.tsx`, `appshell-sub-layout-surface.tsx` |
+| `.schema.ts` | Zod contracts | `appshell-primary-left-rail.schema.ts` |
+| `.shared.ts` | Cross-boundary types | `appshell-props.shared.ts` |
+
+**Stores (reference practice):** one file per state domain under `components2/stores/` — `<domain>.store.ts`, barrel in `stores/index.ts`. Examples: `app-shell.store.ts`, `lane-memory.store.ts`, `operational-scope.store.ts`. Do not nest stores under `app-shell/`.
+
+**App-shell regions:** subfolder = place (`top-utils-bar/`, `left-rail-bar/`); file = `appshell-<entity>[-<aspect>].<layer>`.
+
+Shell wiring table: `shell-directory.mdc`.
 
 ### Banned categories
 
@@ -793,7 +922,7 @@ app/
     (iam)/**      ← account, security
     console/      ← post-login loading bay
     operator/     ← platform admin surface
-    p/[portalSlug]/ ← org-owned portal boundary (PortalShell; no WorkbenchShell)
+    p/[portalSlug]/ ← org-owned portal boundary (PortalShell; no AppShell)
     o/[orgSlug]/
       layout.tsx  ← AppShell mounts here
       page.tsx    ← redirect to nexus
@@ -807,10 +936,15 @@ components2/
   portal-shell/   ← portal chrome only
 
 lib/
+  auth-client.ts · auth-client-neon-compat.ts · dashboard-module-paths.ts
+  design-system.ts · logger.server.ts · session-cache.ts · site.ts · utils.ts  ← §6.1 allowlist only
   auth/           ← IAM control plane (index.ts = public door)
   db/             ← schema.ts + index.ts
   erp/            ← shared primitives only
   portal/         ← portal control plane (slug, path, resolver, guard, audience contracts)
+  i18n/           ← locale paths, org forward-path sanitization
+  ask-docs/       ← Fumadocs + public Lynx helpers
+  ai/             ← shared AI helpers (non–ERP Lynx)
   features/
     contacts/     ← ceiling reference module
     hrm/          ← workforce module
@@ -839,7 +973,36 @@ tests/
 
 ### Module exception: governed-surface
 
-May contain only `components/`, `schemas/`, `index.ts`, `client.ts`. Must not fetch domain data or own business logic. See ADR-0011.
+May contain only `components/` (under `lib/features/governed-surface/`), `schemas/`, `index.ts`, `client.ts`. Must not fetch domain data or own business logic. See ADR-0011.
+
+### Metadata rollout playbook (ADR-0026)
+
+Maturity score and gate: [`docs/architecture/metadata-maturity-score.md`](docs/architecture/metadata-maturity-score.md) (target **≥ 90** before mass ERP default).
+
+| Pattern | Use when | Import |
+| --- | --- | --- |
+| **A** | Page chrome + bespoke forms | `GovernedSurface` from `#features/governed-surface` |
+| **B** | Tables, KPI grids, audit lists | `GovernedComponentRenderer` from `#components2/metadata` |
+| **C** | Pattern B + non-serializable row actions | `GovernedListSurfaceWithTrailingColumn` from `#components2/metadata` |
+
+**Recipe (Pattern B):**
+
+1. Add `lib/features/<module>/data/*-surface-builders.server.ts` (`server-only`) returning `ListSurfaceRendererConfiguration`.
+2. Page: `Promise.all` for session, translations, queries, `resolveGovernedErpPermissionAllowed` when `requiresErpPermission` is set.
+3. Render `GovernedComponentRenderer` with `type` / `serverType` / `configuration` envelope.
+4. Optional: set `requiresErpPermission: { module, object, function }` on configuration; gate with `#features/governed-surface/server`.
+
+**New renderer:**
+
+```bash
+node scripts/wire-governed-renderer.mjs <slug>
+pnpm lint:components2-renderers && pnpm lint:renderer-contracts
+pnpm lint:renderer-container-queries && pnpm lint:renderer-skeleton-parity && pnpm lint:renderer-fixtures
+```
+
+**Forbidden:** deep `list-surface-table` imports from feature modules (use Pattern C wrapper).
+
+**Dev gallery:** `/{locale}/dev/metadata-renderer-gallery` — width presets, operator diagnostics, editable fixture JSON (development only).
 
 ---
 
@@ -850,13 +1013,13 @@ May contain only `components/`, `schemas/`, `index.ts`, `client.ts`. Must not fe
 | Semantic tokens     | `app/globals.css` (`:root`, `.dark`) | OKLCH palette, elevation, motion, density                               |
 | Tailwind bridge     | `app/globals.css` (`@theme inline`)  | Every `var(--)` must resolve to `:root`/`.dark`                         |
 | Primitive contracts | `lib/design-system.ts`               | Preferred `ui.*` aliases, allowlisted radii, Zod parsers                |
-| Primitives shelf    | `components/ui/**`                   | Import only via `#components/ui/*` — never filesystem-relative          |
-| Dev overlays        | `components/dev/`                    | Gated (`NODE_ENV === "development"`); use existing token utilities only |
+| Primitives shelf    | `components2/ui/**`                  | Import only via `#components2/ui/*` — never filesystem-relative         |
+| Dev overlays        | `components2/dev/`                 | Gated (`NODE_ENV === "development"`); use existing token utilities only |
 | Policy              | `docs/design-system/governance.md`   | Code leads; Figma mirrors code                                          |
 
 **Rules:**
 
-- `radix-ui` / `@radix-ui/*` / `@base-ui/react` confined to `components/ui`.
+- `radix-ui` / `@radix-ui/*` / `@base-ui/react` confined to `components2/ui`.
 - On filled primary/secondary controls: use `bg-primary-hover` / `bg-secondary-hover`, not `hover:bg-primary/…`.
 - Dev overlays: **do not** patch `app/globals.css` for dev-only styles.
 - Rule: `.cursor/rules/design-system.mdc`

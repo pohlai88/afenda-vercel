@@ -15,12 +15,13 @@ import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   toLocaleMarketplaceRevalidatePattern,
   toLocalePath,
-  toLocaleRoutePattern,
+  type AppPath,
 } from "#lib/i18n/locales.shared"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { isKnownCapabilityId } from "../data/capability-catalog.shared"
-import { marketplacePath } from "../constants"
+import { organizationMarketplacePath } from "../constants"
 import { capabilityMetricsTag } from "../data/marketplace-metrics.server"
 import {
   MARKETPLACE_AUDIT_ACTIONS,
@@ -76,8 +77,15 @@ async function requireAdminWithStepUp(): Promise<{
   }
   const session = gate.session
   const locale = await getRequestAppLocale()
+  const orgSlug = await getOrganizationSlugById(session.organizationId)
+  if (!orgSlug) {
+    throw new MarketplacePermissionDeniedError()
+  }
   await requireRecentAuthStepUp({
-    returnTo: toLocalePath(locale, marketplacePath("admin")),
+    returnTo: toLocalePath(
+      locale,
+      organizationMarketplacePath(orgSlug, "admin") as never
+    ),
   })
   return {
     organizationId: session.organizationId,
@@ -109,7 +117,7 @@ function denied(): {
 function revalidateMarketplaceForPolicy(capabilityId: string): void {
   revalidatePath(toLocaleMarketplaceRevalidatePattern("/utilities"), "page")
   revalidatePath(toLocaleMarketplaceRevalidatePattern("/admin"), "page")
-  revalidatePath(toLocaleRoutePattern("/" as `/${string}`), "layout")
+  revalidatePath("/[locale]/o/[orgSlug]" as AppPath, "layout")
   revalidateTag(capabilityMetricsTag(capabilityId), "max")
 }
 

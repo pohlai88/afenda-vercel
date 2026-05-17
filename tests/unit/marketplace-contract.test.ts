@@ -8,8 +8,7 @@ import {
   MARKETPLACE_AUDIT_ACTIONS,
   MARKETPLACE_RESOURCE_TYPES,
   marketplaceAuditPrefixIsRegistered,
-  marketplacePath,
-  marketplaceRoute,
+  organizationMarketplacePath,
   isMarketplaceRoute,
 } from "#features/marketplace"
 import {
@@ -66,21 +65,25 @@ describe("CAPABILITY_CATEGORIES registry", () => {
   })
 })
 
-describe("marketplacePath / marketplaceRoute / isMarketplaceRoute", () => {
-  it("marketplacePath() returns /marketplace", () => {
-    expect(marketplacePath()).toBe("/marketplace")
-    expect(marketplaceRoute()).toBe("/marketplace")
+describe("organizationMarketplacePath / isMarketplaceRoute", () => {
+  const slug = "demo-org"
+
+  it("organizationMarketplacePath() returns /o/{slug}/marketplace", () => {
+    expect(organizationMarketplacePath(slug)).toBe("/o/demo-org/marketplace")
   })
 
-  it("marketplacePath(category) returns /marketplace/<category> for every registered category", () => {
+  it("organizationMarketplacePath(category) returns /o/{slug}/marketplace/<category> for every registered category", () => {
     for (const category of CAPABILITY_CATEGORIES) {
-      expect(marketplacePath(category)).toBe(`/marketplace/${category}`)
-      expect(marketplaceRoute(category)).toBe(`/marketplace/${category}`)
+      expect(organizationMarketplacePath(slug, category)).toBe(
+        `/o/demo-org/marketplace/${category}`
+      )
     }
   })
 
-  it("marketplacePath('admin') returns /marketplace/admin", () => {
-    expect(marketplacePath("admin")).toBe("/marketplace/admin")
+  it("organizationMarketplacePath('admin') returns /o/{slug}/marketplace/admin", () => {
+    expect(organizationMarketplacePath(slug, "admin")).toBe(
+      "/o/demo-org/marketplace/admin"
+    )
   })
 
   it("isMarketplaceRoute accepts admin + every registered category and rejects others", () => {

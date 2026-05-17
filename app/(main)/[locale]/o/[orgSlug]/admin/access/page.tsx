@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { GovernedSurface } from "#features/governed-surface"
 import { AccessAdminPage } from "#features/erp-rbac/server"
 import { recordOrgAdminPageVisit } from "#features/org-admin/server"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 export default async function OrgAdminAccessPage({
   params,

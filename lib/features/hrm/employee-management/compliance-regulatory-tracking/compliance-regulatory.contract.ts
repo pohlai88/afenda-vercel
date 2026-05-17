@@ -10,6 +10,21 @@ import { buildCrudSapAuditAction } from "#lib/erp/crud-sap.shared"
  * waiver, and corrective action must emit one of these actions.
  */
 export const HRM_COMPLIANCE_REGULATORY_AUDIT = {
+  obligation: {
+    configured: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "compliance.obligation",
+      verb: "create",
+    }),
+    archived: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "compliance.obligation",
+      verb: "deprecate",
+    }),
+  },
+
   // ── Statutory evidence / pack ────────────────────────────────────────────
   pack: {
     /** Statutory pack evidence first generated for a locked payroll period. */
@@ -179,6 +194,13 @@ export const HRM_COMPLIANCE_REGULATORY_AUDIT = {
       object: "compliance.filing",
       verb: "resolve",
     }),
+    /** Filing formally waived by an authorized reviewer. */
+    waived: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "compliance.filing",
+      verb: "deprecate",
+    }),
   },
 
   // ── Policy acknowledgement compliance ────────────────────────────────────
@@ -207,6 +229,15 @@ export const HRM_COMPLIANCE_REGULATORY_AUDIT = {
       module: "hrm",
       object: "compliance.training",
       verb: "audit",
+    }),
+  },
+
+  report: {
+    exported: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "compliance.report",
+      verb: "search",
     }),
   },
 } as const

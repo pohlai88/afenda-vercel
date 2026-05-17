@@ -2,11 +2,37 @@
 title: HR snapshot
 description: Read-only operational projection — counts, payroll state, compliance pressure, and deep links into execution surfaces.
 icon: ChartBar
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 The **HR snapshot** is a curated dashboard: it never invents numbers. Each card links into the owning HRM route so operators can move from signal to action without hunting URLs.
+
+## Before you start
+
+- Snapshot cards are read-only — mutations always happen in the linked execution module.
+- Effective visibility follows ERP RBAC; cards for modules you cannot access may be hidden or show honest empty states.
+- Refresh after completing Server Actions in downstream workflows — the snapshot shows last committed state, not in-flight drafts.
+
+## Using the snapshot
+
+<Steps>
+  <Step>
+    Open **HRM → HR snapshot** (`/o/{orgSlug}/dashboard/hrm` snapshot entry when enabled in your org).
+  </Step>
+  <Step>
+    Scan pressure cards (payroll period state, compliance aging, headcount signals).
+  </Step>
+  <Step>
+    Click a card deep link to open the owning module with context preserved.
+  </Step>
+  <Step>
+    Return to the snapshot after resolving work to confirm pressure cleared.
+  </Step>
+</Steps>
 
 ## Signals vs actions
 
@@ -16,13 +42,34 @@ Cards may show pressure (e.g. aging compliance) but the snapshot itself does not
 
 Snapshot queries are tuned for fast reads. If a downstream workflow is mid-flight, the snapshot shows the last committed state — refresh after Server Actions complete.
 
+<Callout type="info" title="Read-only by design">
+  The snapshot is an operational lens, not a second write path. If a number looks wrong, fix data in the source module — do not expect inline edits here.
+</Callout>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="A card shows stale counts">
+    Hard-refresh the page after downstream commits complete. Long-running payroll or compliance jobs may lag until the workflow finishes.
+  </Accordion>
+  <Accordion title="Expected card is missing">
+    Your ERP role may lack search permission for that module, or the capability is disabled for the organisation.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
-  <Card href="./payroll" title="Payroll">
+  <Card href="/ask-docs/hrm/payroll" title="Payroll">
     Period state and lock posture surface here first.
   </Card>
-  <Card href="./compliance" title="Statutory compliance">
+  <Card href="/ask-docs/hrm/compliance" title="Statutory compliance">
     Evidence health and aging fan-outs link from snapshot cards.
+  </Card>
+  <Card href="/ask-docs/hrm/employees" title="Employees">
+    Headcount and roster health deep-link into the workforce master.
+  </Card>
+  <Card href="/ask-docs/hrm/kpi" title="KPI metrics & goals">
+    Scorecard health may appear when KPI capture is active.
   </Card>
 </Cards>

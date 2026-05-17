@@ -1,11 +1,32 @@
-import { AppSubLayout } from "#components/workbench"
+import { Suspense } from "react"
+
+import { AppSubLayout, AppSubLayoutShellSkeleton } from "#app-shell"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
-import type { RouteEnvelope } from "#lib/route-envelope.shared"
-import { requireOrgSession } from "#lib/tenant"
+import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
+import { requireOrgSession } from "#lib/auth"
 
-export const dynamic = "force-dynamic"
 
-export default async function OrganizationMarketplaceLayout({
+export default function OrganizationMarketplaceLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ locale: string; orgSlug: string }>
+}) {
+  return (
+    <Suspense
+      fallback={
+        <AppSubLayoutShellSkeleton statusLabel="Loading marketplace" />
+      }
+    >
+      <OrganizationMarketplaceLayoutInner params={params}>
+        {children}
+      </OrganizationMarketplaceLayoutInner>
+    </Suspense>
+  )
+}
+
+async function OrganizationMarketplaceLayoutInner({
   children,
   params,
 }: {

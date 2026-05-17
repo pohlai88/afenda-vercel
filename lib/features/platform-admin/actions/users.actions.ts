@@ -5,7 +5,7 @@ import { z } from "zod"
 
 import { auth, writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { toLocaleRoutePattern } from "#lib/i18n/locales.shared"
-import { requireGlobalAdminSession } from "#lib/tenant"
+import { requireGlobalAdminSession } from "#lib/auth"
 
 const userIdSchema = z.string().min(1).max(255)
 

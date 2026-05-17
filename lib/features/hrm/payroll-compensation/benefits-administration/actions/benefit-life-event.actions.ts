@@ -12,12 +12,12 @@ import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { HRM_BENEFIT_AUDIT } from "../benefit.contract"
 import { getBenefitLifeEventForOrganization } from "../data/benefit.queries.server"
 import { getEmployeeForOrganization } from "../../../employee-management/employee-records-management/data/employee.queries.server"
-import { requireHrmAdmin } from "../../../hrm-admin-guard.server"
+import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
 import {
   recordLifeEventFormSchema,
   verifyLifeEventFormSchema,
 } from "../schema/benefit.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   RecordLifeEventFormState,
   VerifyLifeEventFormState,

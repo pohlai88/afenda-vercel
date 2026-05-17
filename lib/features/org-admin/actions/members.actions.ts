@@ -10,7 +10,7 @@ import {
 } from "#lib/auth"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
-import type { requireOrgSession } from "#lib/tenant"
+import type { requireOrgSession } from "#lib/auth"
 
 const emailSchema = z.string().trim().email().max(320)
 const inviteRoleSchema = z.enum(["member"])
@@ -21,7 +21,7 @@ export type OrgAdminActionState =
   | { ok: false; error: string }
   | null
 
-function revalidateOrgAdminWorkbench() {
+function revalidateOrgAdminSurface() {
   revalidatePath(toLocaleOrgAdminRevalidatePattern(""), "layout")
 }
 
@@ -114,7 +114,7 @@ export async function inviteMemberAction(
         role: parsedRole.data,
       },
     })
-    revalidateOrgAdminWorkbench()
+    revalidateOrgAdminSurface()
     return { ok: true, message: "Invitation sent." }
   } catch (e) {
     return {
@@ -154,7 +154,7 @@ export async function cancelInvitationAction(
       resourceType: "invitation",
       resourceId: invId.data,
     })
-    revalidateOrgAdminWorkbench()
+    revalidateOrgAdminSurface()
     return { ok: true, message: "Invitation cancelled." }
   } catch (e) {
     return {
@@ -215,7 +215,7 @@ export async function removeMemberAction(
       resourceId: memberId.data,
       metadata: { targetUserId: targetUserId.data },
     })
-    revalidateOrgAdminWorkbench()
+    revalidateOrgAdminSurface()
     return { ok: true, message: "Member removed." }
   } catch (e) {
     return {

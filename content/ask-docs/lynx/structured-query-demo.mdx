@@ -1,26 +1,33 @@
 ---
 title: Structured query (demo)
-description: Plain-English questions against the org-scoped lynx_demo_unicorn dataset — read-only SQL and chart suggestions.
+description: Plain-English questions against the org-scoped lynx_demo_unicorn table — read-only SQL, results, and chart suggestions.
+audience: admin
+status: stable
 icon: Database
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 **Structured query (demo)** is Lynx's **Canonical intake** layer preview: ask in plain English, receive **read-only SQL** against a governed demo table, see results in a table or chart, and optionally explain the SQL.
 
+This is **not** production analytics over live ERP tables.
+
+## Before you start
+
+- ERP permission **`lynx.workspace.search`** to reach the Lynx page (demo Server Actions use `requireOrgSession()` once you are on the page).
+- **`FLAG_LYNX_STRUCTURED_QUERY_DEMO_ENABLED`** — when off, Lynx shows a policy notice instead of the demo form.
+- Seeded rows in **`lynx_demo_unicorn`** for your organisation — empty tables return empty results.
+
 <Callout type="warn" title="Demo only">
-  This layer queries **`lynx_demo_unicorn` only** — not your live ERP tables. It exists to validate NL→SQL guardrails before production intake ships.
+  This layer queries **`lynx_demo_unicorn` only** — not contacts, HRM, or Orbit tables. It validates NL→SQL guardrails before production intake ships.
 </Callout>
 
-## Enabling the demo
-
-The section appears when **`FLAG_LYNX_STRUCTURED_QUERY_DEMO_ENABLED`** is on. When disabled, Lynx shows a policy notice instead.
-
-## How to use it
+## How to use the demo
 
 <Steps>
   <Step>
-    Open **Lynx** → **Structured query (demo)**.
+    Open **Lynx** at `/{locale}/o/{orgSlug}/dashboard/lynx` → **Structured query (demo)**.
   </Step>
   <Step>
     Enter a question — for example: *Average valuation by industry in the United States*.
@@ -38,7 +45,7 @@ The section appears when **`FLAG_LYNX_STRUCTURED_QUERY_DEMO_ENABLED`** is on. Wh
 Generated SQL must pass static validation:
 
 | Rule | Reason |
-|---|---|
+| --- | --- |
 | `SELECT` only | No mutations via NL→SQL |
 | `FROM` must be exactly `"lynx_demo_unicorn"` | Prevents cross-table access |
 | `LIMIT` required and capped at 200 | Protects database and UI |
@@ -46,24 +53,40 @@ Generated SQL must pass static validation:
 
 Failed validation returns an expected error — not a silent fallback query.
 
-## Demo dataset
+## Audit
 
-Table **`lynx_demo_unicorn`** holds org-scoped sample company rows (unicorn-style demo dimensions such as industry, country, valuation). **Seed rows** in your environment before first use — without seed data, queries return empty results.
-
-Audit event: **`erp.lynx.nl_demo.query`**
-
-## Chart tab
-
-When the result shape supports visualization, Lynx suggests a chart configuration. If the shape is ambiguous, the UI shows *Chart suggestion unavailable — try a broader question.*
+Successful executions emit **`erp.lynx.nl_demo.query`** with resource type `lynx.nl_demo`.
 
 ## When to use something else
 
 | Need | Use instead |
-|---|---|
-| Policy answers from documents | [Truth retrieval](./truth-retrieval) |
-| Live Orbit or contact facts | [Operator assist](./operator-assist) |
+| --- | --- |
+| Policy answers from documents | [Truth retrieval](/ask-docs/lynx/truth-retrieval) |
+| Live Orbit or contact facts | [Operator assist](/ask-docs/lynx/operator-assist) |
 | Production ERP reporting | Governed dashboards and modules — not this demo |
 
-## Future: Canonical intake
+## Troubleshooting
 
-The product layer **Canonical intake** (`structured` slug in code) will generalise governed structured capture beyond this demo table. Until then, treat NL→SQL as a **preview** of intake guardrails, not production analytics.
+<Accordions type="single">
+  <Accordion title="Demo section shows policy notice">
+    `FLAG_LYNX_STRUCTURED_QUERY_DEMO_ENABLED` is off — enable via environment policy or use truth/operator layers instead.
+  </Accordion>
+  <Accordion title="Query returns zero rows">
+    Confirm demo seed data exists for your `organizationId` in `lynx_demo_unicorn`.
+  </Accordion>
+  <Accordion title="Validation rejected my generated SQL">
+    Rephrase to require a single-table `SELECT` with an explicit `LIMIT` — cross-table or DML patterns are blocked by design.
+  </Accordion>
+  <Accordion title="Chart tab unavailable">
+    Result shape may not support visualization — try a question that yields numeric aggregates by category.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/lynx/concepts" title="Core concepts" description="Canonical intake layer slug and reserved intake audit." />
+  <Card href="/ask-docs/lynx/truth-retrieval" title="Truth retrieval" description="Document-centric Q&A over knowledge chunks." />
+  <Card href="/ask-docs/lynx/operator-assist" title="Operator assist" description="Live read-only ERP facts via governed tools." />
+  <Card href="/ask-docs/lynx" title="Lynx overview" description="All Lynx layers and feature flags." />
+</Cards>

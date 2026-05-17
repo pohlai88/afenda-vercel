@@ -3,8 +3,8 @@
 import { useCallback, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 
-import { Button } from "#components/ui/button"
-import { Input } from "#components/ui/input"
+import { Button } from "#components2/ui/button"
+import { Input } from "#components2/ui/input"
 
 import type { LynxTruthEvidenceDTO } from "#features/lynx/types"
 import { LYNX_ERP_HTTP_ROUTES } from "../lynx.contract"

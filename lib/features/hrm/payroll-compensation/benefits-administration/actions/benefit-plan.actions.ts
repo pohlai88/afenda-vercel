@@ -26,13 +26,13 @@ import {
 } from "../data/benefit-plan.mutations.server"
 import { getBenefitProviderForOrganization } from "../data/benefit-provider.queries.server"
 import { getBenefitPlanForOrganization } from "../data/benefit.queries.server"
-import { requireHrmAdmin } from "../../../hrm-admin-guard.server"
+import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
 import {
   archiveBenefitPlanFormSchema,
   createBenefitPlanFormSchema,
   updateBenefitPlanFormSchema,
 } from "../schema/benefit.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   BenefitArchiveFormState,
   BenefitPlanMutationFormState,

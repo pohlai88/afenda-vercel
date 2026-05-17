@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { createLeaveTypeFormSchema } from "../../lib/features/hrm/workforce-time-attendance/schemas/leave-policy.schema"
+import { createLeaveTypeFormSchema } from "../../lib/features/hrm/time-attendance/leave-attendance-management/schemas/leave-policy.schema"
 
 describe("HRM policies — leave type schema", () => {
   it("accepts annual_grant leave type with tiers", () => {

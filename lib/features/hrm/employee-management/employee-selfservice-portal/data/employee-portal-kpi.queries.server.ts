@@ -5,7 +5,7 @@ import { and, eq, or, sql } from "drizzle-orm"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmKpiGoal } from "#lib/db/schema"
 
-import type { KpiGoalRow } from "./kpi-goal.queries.server"
+import type { KpiGoalRow } from "../../../talent-management/competency-skills-framework/data/kpi-goal.queries.server"
 
 export async function listKpiGoalsVisibleToEmployee(input: {
   readonly organizationId: string

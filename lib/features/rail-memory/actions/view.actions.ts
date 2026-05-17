@@ -8,7 +8,7 @@ import { and, eq } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { railSavedView } from "#lib/db/schema"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import {
   RAIL_MEMORY_AUDIT_ACTIONS,
@@ -42,7 +42,7 @@ import type {
  * action does not attempt to confirm the URL points at a real route,
  * because operators legitimately save views that link to filters
  * they're about to add. The rail UI rendering layer is the
- * authoritative gate (the kernel `parseWorkbenchRailView` runs at
+ * authoritative gate (the kernel `parseAppShellPrimaryLeftRailView` runs at
  * the slot boundary).
  */
 

@@ -2,18 +2,13 @@
 
 import { after } from "next/server"
 import { revalidatePath } from "next/cache"
-import { and, eq } from "drizzle-orm"
 
 import {
   requireRecentAuthStepUp,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
 import { db } from "#lib/db"
-import {
-  hrmEmployee,
-  hrmEmployeeContactProfile,
-  hrmEmployeePersonalProfile,
-} from "#lib/db/schema"
+import { hrmEssProfileUpdateRequest } from "#lib/db/schema"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 import { toLocalePortalRevalidatePattern } from "#lib/portal"
@@ -21,22 +16,19 @@ import { toLocalePortalRevalidatePattern } from "#lib/portal"
 import { getEmployeePortalContext } from "../data/employee-portal-access.server"
 import { withEmployeePortalActionSpan } from "../data/portal-mutation-tracing.server"
 import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../data/employee-portal-access.shared"
+import { notifyEssRequestLifecycle } from "../data/employee-portal-notification.server"
+import { HRM_ESS_AUDIT } from "../ess.contract"
 import { getCurrentPayrollProfileForEmployee } from "../../../payroll-compensation/payroll-processing/data/payroll-profile.queries.server"
-import { upsertPayrollProfileMutation } from "../../../payroll-compensation/payroll-processing/data/payroll-profile.mutations.server"
 import {
   portalBankingProfileFormSchema,
   portalEmergencyContactFormSchema,
   portalPersonalProfileFormSchema,
 } from "../schemas/employee-portal-profile.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { EmployeeMasterMutationFormState } from "../../../types"
 
 function revalidatePortalProfile() {
   revalidatePath(toLocalePortalRevalidatePattern("/employee/profile"), "page")
-}
-
-function optionalDate(value: string | undefined): Date | null {
-  return value ? new Date(`${value}T00:00:00.000Z`) : null
 }
 
 function buildAddress(data: {
@@ -58,6 +50,32 @@ function buildAddress(data: {
   const entries = Object.entries(address).filter(([, v]) => Boolean(v))
   if (entries.length === 0) return null
   return Object.fromEntries(entries) as Record<string, string>
+}
+
+async function createProfileUpdateRequest(input: {
+  organizationId: string
+  employeeId: string
+  userId: string
+  section: string
+  requestedChanges: Record<string, unknown>
+}): Promise<string> {
+  const [request] = await db
+    .insert(hrmEssProfileUpdateRequest)
+    .values({
+      organizationId: input.organizationId,
+      employeeId: input.employeeId,
+      section: input.section,
+      requestedChanges: input.requestedChanges,
+      status: "pending",
+      submittedByUserId: input.userId,
+    })
+    .returning({ id: hrmEssProfileUpdateRequest.id })
+
+  if (!request) {
+    throw new Error("Profile update request was not created.")
+  }
+
+  return request.id
 }
 
 export async function updatePortalPersonalProfileAction(
@@ -94,72 +112,39 @@ export async function updatePortalPersonalProfileAction(
       "profile",
       "personal.update",
       async () => {
-        await db.transaction(async (tx) => {
-          const [employee] = await tx
-            .select({ id: hrmEmployee.id, archivedAt: hrmEmployee.archivedAt })
-            .from(hrmEmployee)
-            .where(
-              and(
-                eq(hrmEmployee.organizationId, organizationId),
-                eq(hrmEmployee.id, employeeId)
-              )
-            )
-            .limit(1)
-
-          if (!employee || employee.archivedAt) {
-            throw new Error("Employee record is not available.")
-          }
-
-          await tx
-            .update(hrmEmployee)
-            .set({
-              preferredName: parsed.data.preferredName ?? null,
-              dateOfBirth: optionalDate(parsed.data.dateOfBirth),
-              gender: parsed.data.gender ?? null,
-              nationality: parsed.data.nationality ?? null,
-              updatedAt: new Date(),
-              updatedByUserId: userId,
-            })
-            .where(eq(hrmEmployee.id, employeeId))
-
-          const profileValues = {
-            dateOfBirth: optionalDate(parsed.data.dateOfBirth),
+        const requestId = await createProfileUpdateRequest({
+          organizationId,
+          employeeId,
+          userId,
+          section: "personal",
+          requestedChanges: {
+            preferredName: parsed.data.preferredName ?? null,
+            dateOfBirth: parsed.data.dateOfBirth ?? null,
             gender: parsed.data.gender ?? null,
             nationality: parsed.data.nationality ?? null,
             maritalStatus: parsed.data.maritalStatus ?? null,
-            updatedAt: new Date(),
-            updatedByUserId: userId,
-          }
-
-          await tx
-            .insert(hrmEmployeePersonalProfile)
-            .values({
-              organizationId,
-              employeeId,
-              ...profileValues,
-              createdByUserId: userId,
-              updatedByUserId: userId,
-            })
-            .onConflictDoUpdate({
-              target: [
-                hrmEmployeePersonalProfile.organizationId,
-                hrmEmployeePersonalProfile.employeeId,
-              ],
-              set: {
-                ...profileValues,
-              },
-            })
+          },
         })
 
         after(() =>
           writeIamAuditEventFromNextHeaders({
-            action: "erp.hrm.employee.profile.update",
+            action: HRM_ESS_AUDIT.profileUpdate.request,
             actorUserId: userId,
             actorSessionId: context.portal.sessionId,
             organizationId,
-            resourceType: "hrm_employee",
-            resourceId: employeeId,
-            metadata: { surface: "employee_portal", section: "personal" },
+            resourceType: "hrm_ess_profile_update_request",
+            resourceId: requestId,
+            metadata: { surface: "employee_portal", section: "personal", employeeId },
+          })
+        )
+        after(() =>
+          notifyEssRequestLifecycle({
+            organizationId,
+            targetUserId: userId,
+            kind: "profile_update",
+            status: "submitted",
+            requestId,
+            employeeId,
           })
         )
 
@@ -212,52 +197,37 @@ export async function updatePortalEmergencyContactAction(
       "profile",
       "emergency.update",
       async () => {
-        await db.transaction(async (tx) => {
-          const [existing] = await tx
-            .select({ id: hrmEmployeeContactProfile.id })
-            .from(hrmEmployeeContactProfile)
-            .where(
-              and(
-                eq(hrmEmployeeContactProfile.organizationId, organizationId),
-                eq(hrmEmployeeContactProfile.employeeId, employeeId)
-              )
-            )
-            .limit(1)
-
-          const values = {
+        const requestId = await createProfileUpdateRequest({
+          organizationId,
+          employeeId,
+          userId,
+          section: "contact",
+          requestedChanges: {
             personalEmail: parsed.data.personalEmail ?? null,
             personalPhone: parsed.data.personalPhone ?? null,
             address,
-            updatedAt: new Date(),
-            updatedByUserId: userId,
-          }
-
-          if (existing) {
-            await tx
-              .update(hrmEmployeeContactProfile)
-              .set(values)
-              .where(eq(hrmEmployeeContactProfile.id, existing.id))
-          } else {
-            await tx.insert(hrmEmployeeContactProfile).values({
-              organizationId,
-              employeeId,
-              workEmail: null,
-              workPhone: null,
-              ...values,
-              createdByUserId: userId,
-            })
-          }
+          },
         })
 
         after(() =>
           writeIamAuditEventFromNextHeaders({
-            action: "erp.hrm.employee.profile.update",
+            action: HRM_ESS_AUDIT.profileUpdate.request,
             actorUserId: userId,
             actorSessionId: context.portal.sessionId,
             organizationId,
-            resourceType: "hrm_employee",
-            resourceId: employeeId,
-            metadata: { surface: "employee_portal", section: "emergency" },
+            resourceType: "hrm_ess_profile_update_request",
+            resourceId: requestId,
+            metadata: { surface: "employee_portal", section: "contact", employeeId },
+          })
+        )
+        after(() =>
+          notifyEssRequestLifecycle({
+            organizationId,
+            targetUserId: userId,
+            kind: "profile_update",
+            status: "submitted",
+            requestId,
+            employeeId,
           })
         )
 
@@ -315,53 +285,47 @@ export async function updatePortalBankingProfileAction(
     })
   }
 
-  const effectiveFrom = new Date().toISOString().slice(0, 10)
-
   try {
     return await withEmployeePortalActionSpan(
       context,
       "profile",
       "banking.update",
       async () => {
-        const applied = await upsertPayrollProfileMutation({
+        const requestId = await createProfileUpdateRequest({
           organizationId,
           employeeId,
-          actorUserId: userId,
-          effectiveFrom,
-          countryCode: currentProfile.countryCode,
-          taxResidencyCountry: currentProfile.taxResidencyCountry,
-          taxIdentifierType: currentProfile.taxIdentifierType,
-          taxIdentifierNumber: currentProfile.taxIdentifierNumber,
-          epfNumber: currentProfile.epfNumber,
-          socsoNumber: currentProfile.socsoNumber,
-          eisEligible: currentProfile.eisEligible,
-          pcbCategory: currentProfile.pcbCategory,
-          hrdfApplicable: currentProfile.hrdfApplicable,
-          bankCode: parsed.data.bankCode ?? currentProfile.bankCode,
-          bankAccountHolderName:
-            parsed.data.bankAccountHolderName ??
-            currentProfile.bankAccountHolderName,
-          bankAccountTokenized:
-            parsed.data.bankAccountTokenized ??
-            currentProfile.bankAccountTokenized,
-          paySchedule: currentProfile.paySchedule,
-          payCurrency: currentProfile.payCurrency,
-          payrollGroupCode: currentProfile.payrollGroupCode,
+          userId,
+          section: "banking",
+          requestedChanges: {
+            bankCode: parsed.data.bankCode ?? currentProfile.bankCode,
+            bankAccountHolderName:
+              parsed.data.bankAccountHolderName ??
+              currentProfile.bankAccountHolderName,
+            bankAccountTokenized:
+              parsed.data.bankAccountTokenized ??
+              currentProfile.bankAccountTokenized,
+          },
         })
-
-        if (!applied.ok) {
-          return hrmActionFailure({ form: applied.message })
-        }
 
         after(() =>
           writeIamAuditEventFromNextHeaders({
-            action: "erp.hrm.employee.profile.update",
+            action: HRM_ESS_AUDIT.profileUpdate.request,
             actorUserId: userId,
             actorSessionId: context.portal.sessionId,
             organizationId,
-            resourceType: "hrm_employee",
-            resourceId: employeeId,
-            metadata: { surface: "employee_portal", section: "banking" },
+            resourceType: "hrm_ess_profile_update_request",
+            resourceId: requestId,
+            metadata: { surface: "employee_portal", section: "banking", employeeId },
+          })
+        )
+        after(() =>
+          notifyEssRequestLifecycle({
+            organizationId,
+            targetUserId: userId,
+            kind: "profile_update",
+            status: "submitted",
+            requestId,
+            employeeId,
           })
         )
 

@@ -12,9 +12,10 @@ import { toLocalePortalRevalidatePattern } from "#lib/portal"
 import { getEmployeePortalContext } from "../data/employee-portal-access.server"
 import { withEmployeePortalActionSpan } from "../data/portal-mutation-tracing.server"
 import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../data/employee-portal-access.shared"
+import { HRM_ESS_AUDIT } from "../ess.contract"
 import { insertSalaryAdvanceRow } from "../../../payroll-compensation/payroll-processing/data/salary-advance-core.server"
 import { employeePortalRequestAdvanceSchema } from "../../../payroll-compensation/payroll-processing/schemas/salary-advance.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { PortalAdvanceFormState } from "../../../types"
 
 function revalidateAdvancePortal() {
@@ -69,7 +70,7 @@ export async function submitEmployeePortalRequestAdvance(
 
       after(() =>
         writeIamAuditEventFromNextHeaders({
-          action: "erp.hrm.salary_advance.request",
+          action: HRM_ESS_AUDIT.advance.submit,
           actorUserId: context.portal.userId,
           actorSessionId: context.portal.sessionId,
           organizationId: context.portal.organizationId,
@@ -136,7 +137,7 @@ export async function submitEmployeePortalCancelPendingAdvance(
 
       after(() =>
         writeIamAuditEventFromNextHeaders({
-          action: "erp.hrm.salary_advance.cancel",
+          action: HRM_ESS_AUDIT.advance.cancel,
           actorUserId: context.portal.userId,
           actorSessionId: context.portal.sessionId,
           organizationId: context.portal.organizationId,

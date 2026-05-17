@@ -17,14 +17,14 @@ import { fileURLToPath } from "node:url"
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 
 const CHAT_ROUTE_REL = "app/api/chat/route.ts"
-const SEARCH_UI_REL = "components/ai/search.tsx"
+const SEARCH_UI_REL = "components2/ai/search.tsx"
 
 /** Files and dirs scanned for forbidden ERP Lynx / IAM coupling. */
 const PUBLIC_LYNX_SCAN_RELS = [
   CHAT_ROUTE_REL,
   SEARCH_UI_REL,
-  "components/ai/public-lynx-fab-drag.ts",
-  "components/ai/ask-lynx-tooltip.tsx",
+  "components2/ai/public-lynx-fab-drag.ts",
+  "components2/ai/ask-lynx-tooltip.tsx",
   "lib/ask-docs/lynx-brand.shared.ts",
 ]
 
@@ -211,7 +211,7 @@ assertVitestScriptsUseCanonicalConfig()
 if (failed) {
   console.error(`
 Public Lynx contract failed.
-- Public chat: app/api/chat/route.ts + #components/ai/search on /{locale}/ask-docs
+- Public chat: app/api/chat/route.ts + #components2/ai/search on /{locale}/ask-docs
 - Never import #features/lynx or call IAM guards on this surface
 - Run unit tests via pnpm test:fast (includes --config .config/vitest.config.ts)
 - See .cursor/rules/public-lynx.mdc and AGENTS.md §5

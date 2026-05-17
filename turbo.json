@@ -42,9 +42,9 @@
     "lint:public-lynx-contract": {
       "inputs": [
         "app/api/chat/**",
-        "components/ai/search.tsx",
-        "components/ai/public-lynx-fab-drag.ts",
-        "components/ai/ask-lynx-tooltip.tsx",
+        "components2/ai/search.tsx",
+        "components2/ai/public-lynx-fab-drag.ts",
+        "components2/ai/ask-lynx-tooltip.tsx",
         "lib/ask-docs/public-lynx*.ts",
         "lib/ask-docs/lynx-brand.shared.ts",
         "package.json",
@@ -59,7 +59,7 @@
         "messages/**",
         "lib/auth/org-audit-csv.shared.ts",
         "scripts/seed-dev-users.mjs",
-        "components/dev/dev-signin-panel.tsx",
+        "components2/dev/dev-signin-panel.tsx",
         ".config/vitest.config.ts",
         ".config/vitest.setup.ts",
         "scripts/with-env.mjs"
@@ -86,7 +86,7 @@
     "lint:design-contract": {
       "inputs": [
         "app/**",
-        "components/**",
+        "components2/**",
         "hooks/**",
         "lib/features/**",
         "lib/design-system.ts",
@@ -150,6 +150,14 @@
       "inputs": [
         "components2/dev/metadata-renderer-gallery/**",
         "scripts/check-renderer-fixtures.mjs"
+      ]
+    },
+    "lint:list-surface-table-imports": {
+      "inputs": [
+        "lib/features/**",
+        "app/**",
+        "components2/metadata/**",
+        "scripts/check-list-surface-table-imports.mjs"
       ]
     },
     "typecheck": {

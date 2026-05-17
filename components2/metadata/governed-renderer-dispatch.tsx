@@ -9,6 +9,8 @@ import type {
 import { ActionBarRenderer } from "./renderers/action-bar.renderer"
 import { AuditPanelRenderer } from "./renderers/audit-panel.renderer"
 import { DetailTabsRenderer } from "./renderers/detail-tabs.renderer"
+import { ApprovalTimelineRenderer } from "./renderers/approval-timeline.renderer"
+import { ChartRenderer } from "./renderers/chart.renderer"
 import { EmptyRenderer } from "./renderers/empty.renderer"
 import { ListSurfaceRenderer } from "./renderers/list-surface.renderer"
 import { SectionRenderer } from "./renderers/section.renderer"
@@ -48,6 +50,8 @@ const GOVERNED_RENDERERS = {
   "action-bar": ActionBarRenderer,
   "audit-panel": AuditPanelRenderer,
   "detail-tabs": DetailTabsRenderer,
+  "approval-timeline": ApprovalTimelineRenderer,
+  "chart": ChartRenderer,
 } satisfies Partial<
   Record<AfendaGovernedRendererId, (props: RendererProps) => ReactNode>
 >

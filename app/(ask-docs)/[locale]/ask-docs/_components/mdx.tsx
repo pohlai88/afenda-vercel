@@ -14,7 +14,7 @@ import {
 import { AutoTypeTable, type AutoTypeTableProps } from "fumadocs-typescript/ui"
 import type { MDXComponents } from "mdx/types"
 
-import { Mermaid } from "#components/ask-docs-mermaid"
+import { Mermaid } from "#components2/ask-docs-mermaid"
 
 const autoTypeTableGenerator = createGenerator({
   cache: createFileSystemGeneratorCache(".next/fumadocs-typescript"),

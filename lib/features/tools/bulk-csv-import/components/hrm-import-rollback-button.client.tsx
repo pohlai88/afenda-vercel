@@ -3,7 +3,7 @@
 import { useActionState } from "react"
 import { useTranslations } from "next-intl"
 
-import { Alert, AlertDescription } from "#components/ui/alert"
+import { Alert, AlertDescription } from "#components2/ui/alert"
 
 import { rollbackImportSessionAction } from "../actions/hrm-import.actions"
 

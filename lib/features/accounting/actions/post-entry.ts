@@ -1,6 +1,6 @@
 "use server"
 
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import { accountingFilterSchema } from "../schemas/accounting-filter.schema"
 import type { AccountingActionState } from "../types"

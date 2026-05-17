@@ -1,6 +1,6 @@
 import type { Route } from "next"
 
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 import type {
   NexusPressureSeverity,

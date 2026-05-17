@@ -2,11 +2,37 @@
 title: Claims
 description: Submit reimbursable claims with evidence, route approvals, and surface unpaid approved rows to payroll.
 icon: Receipt
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 **Claims** let employees submit reimbursable spend with typed line items and attachments. Approvers work a pending inbox; approved unpaid claims can feed the next payroll period so finance does not double-pay.
+
+## Before you start
+
+- Claim types are currency-aware — confirm policy limits before approvers work the queue.
+- Evidence uploads use governed Blob storage — same contract as the **documents vault**.
+- Portal users submit claims when portal access rows authorize them — not from guessed client state.
+
+## Approving claims
+
+<Steps>
+  <Step>
+    Open **HRM → Claims** and filter the pending approval inbox.
+  </Step>
+  <Step>
+    Review amount, policy hints, and evidence thumbnails for each submission.
+  </Step>
+  <Step>
+    **Approve** to route unpaid rows toward payroll, or **deny** with a structured reason for resubmission.
+  </Step>
+  <Step>
+    During payroll preparation, confirm approved unpaid claims appear in the hand-off summary.
+  </Step>
+</Steps>
 
 ## Submission
 
@@ -20,13 +46,30 @@ Approvers see amount, policy hints, and evidence thumbnails. Denials return stru
   The employee portal exposes claim submission for authenticated portal users — authority still resolves from portal access rows, not guessed client state.
 </Callout>
 
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Approved claim missing from payroll hand-off">
+    Confirm the claim status is approved-unpaid and the target pay period is open for inclusion.
+  </Accordion>
+  <Accordion title="Evidence upload fails">
+    Check file size limits and supported formats; retry from the portal or HRM evidence picker.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
-  <Card href="./payroll" title="Payroll">
+  <Card href="/ask-docs/portals/claims" title="Employee portal claims">
+    Self-service submission, evidence, and cancellation.
+  </Card>
+  <Card href="/ask-docs/hrm/payroll" title="Payroll">
     Approved unpaid claims can surface during payroll preparation.
   </Card>
-  <Card href="./documents" title="Documents vault">
+  <Card href="/ask-docs/hrm/documents" title="Documents vault">
     Evidence shares the same governed upload contract.
+  </Card>
+  <Card href="/ask-docs/hrm/advances" title="Salary advances">
+    Cash-flow advances use a separate approval and repayment path.
   </Card>
 </Cards>

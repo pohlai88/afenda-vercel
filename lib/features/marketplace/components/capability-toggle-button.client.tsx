@@ -4,7 +4,7 @@ import { useState, useTransition } from "react"
 
 import { CheckCircle2, Eye, EyeOff, Loader2, XCircle } from "lucide-react"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 
 import { setUserCapabilityPreferenceAction } from "../client"
 import type { PreferenceState, ResolvedEffectiveState } from "../client"

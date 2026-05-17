@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 
 import { GovernedComponentRenderer } from "#components2/metadata"
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 import {
   candidatePortalCareersApplyPath,

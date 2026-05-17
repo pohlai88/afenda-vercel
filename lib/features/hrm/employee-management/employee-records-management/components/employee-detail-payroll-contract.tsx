@@ -6,9 +6,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Separator } from "#components/ui/separator"
-import { Badge } from "#components/ui/badge"
+} from "#components2/ui/card"
+import { Separator } from "#components2/ui/separator"
+import { Badge } from "#components2/ui/badge"
 
 import { listEmploymentContractsForEmployee } from "../data/employment-contract.queries.server"
 import { listHrmDocumentsForEmployee } from "../../documents-management/data/hrm-document.queries.server"
@@ -26,7 +26,7 @@ import { EmploymentContractDraftForm } from "./employment-contract-draft-form"
 import { EmploymentContractLifecycleForms } from "./employment-contract-lifecycle-forms"
 import { EmploymentContractSalaryRevisionForm } from "./employment-contract-salary-revision-form"
 import { HrmDocumentAttachForm } from "../../documents-management/components/hrm-document-attach-form"
-import { PayrollProfileForm } from "../../../components/payroll-profile-form"
+import { PayrollProfileForm } from "../../../payroll-compensation/payroll-processing/components/payroll-profile-form"
 
 type EmployeeDetailPayrollContractProps = {
   orgSlug: string

@@ -10,6 +10,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/hrm-lifecycle-transition-due",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/hrm-compliance-aging-watch",
       "schedule": "0 6 * * *"
     },
@@ -24,6 +28,10 @@
     {
       "path": "/api/cron/hrm-training-expiry-watch",
       "schedule": "15 8 * * *"
+    },
+    {
+      "path": "/api/cron/hrm-compliance-control-watch",
+      "schedule": "30 8 * * *"
     },
     {
       "path": "/api/cron/hrm-signature-expiry",

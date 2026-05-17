@@ -1,7 +1,7 @@
 import Link from "next/link"
 
-import { AfendaBrandLockup } from "#components/afenda-brand"
-import { Button } from "#components/ui/button"
+import { AfendaBrandLockup } from "#components2/marketing"
+import { Button } from "#components2/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
 
 export default function NotFound() {

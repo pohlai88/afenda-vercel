@@ -7,9 +7,10 @@ import { db } from "#lib/db"
 import {
   hrmEmployee,
   hrmEmploymentContract,
+  hrmLifecycleEvent,
   iamAuditEvent,
 } from "#lib/db/schema"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 import type {
   CronTickInput,
   CronTickScannedEmittedSummary,
@@ -20,7 +21,7 @@ import { organizationHrmEmployeePath } from "../../../constants"
 import {
   formatUtcDateOnly,
   isoDateOnlyToUtcDate,
-} from "../../../hrm-calendar-dates.server"
+} from "../../../_module-governance/hrm-calendar-dates.server"
 import {
   PROBATION_REVIEW_DUE_AUDIT_ACTION,
   PROBATION_WATCH_BATCH_LIMIT,
@@ -166,6 +167,22 @@ export async function runProbationWatchTick(
           employeeId: c.employeeId,
           probationEndDate: formatUtcDateOnly(c.probationEndDate),
         },
+      })
+
+      await db.insert(hrmLifecycleEvent).values({
+        id: crypto.randomUUID(),
+        organizationId: c.organizationId,
+        employeeId: c.employeeId,
+        kind: "probation_review_due",
+        previousStatus: "probation",
+        newStatus: "probation",
+        effectiveDate: c.probationEndDate,
+        metadata: {
+          contractId: c.contractId,
+          probationEndDate: formatUtcDateOnly(c.probationEndDate),
+        },
+        actorUserId: null,
+        isEffectiveDated: true,
       })
 
       const endLabel = formatUtcDateOnly(c.probationEndDate)

@@ -5,9 +5,8 @@ import {
   resolveLynxTruthStreamProviderOptionsForOrg,
 } from "#features/lynx"
 import { getOrgBotLinkByDiscordGuild } from "#features/knowledge"
-import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
+import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 
-export const runtime = "nodejs"
 
 type DiscordCommandPayload = {
   guild_id?: string

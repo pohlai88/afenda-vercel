@@ -19,6 +19,7 @@ import {
   deriveWorkAuthorizationComplianceStatus,
   type HrmComplianceStatus,
 } from "./compliance-status.shared"
+import { deriveEffectiveDocumentVerificationStatus } from "../../documents-management/data/hrm-document-governance.shared"
 
 /**
  * Full employee-level compliance posture snapshot.
@@ -150,6 +151,7 @@ export async function getEmployeeComplianceSummary(
     db
       .select({
         verificationStatus: hrmDocument.verificationStatus,
+        documentLifecycleStatus: hrmDocument.documentLifecycleStatus,
         effectiveTo: hrmDocument.effectiveTo,
       })
       .from(hrmDocument)
@@ -157,7 +159,9 @@ export async function getEmployeeComplianceSummary(
         and(
           eq(hrmDocument.organizationId, organizationId),
           eq(hrmDocument.employeeId, employeeId),
-          isNotNull(hrmDocument.employeeId)
+          isNotNull(hrmDocument.employeeId),
+          eq(hrmDocument.isLatestVersion, true),
+          eq(hrmDocument.documentLifecycleStatus, "active")
         )
       ),
     // Mandatory training assignments + completion record (HRM-CMP-007/013)
@@ -222,7 +226,12 @@ export async function getEmployeeComplianceSummary(
 
   const documentStatuses = documents.map((row) =>
     deriveDocumentComplianceStatus({
-      verificationStatus: row.verificationStatus,
+      verificationStatus: deriveEffectiveDocumentVerificationStatus({
+        verificationStatus: row.verificationStatus,
+        documentLifecycleStatus: row.documentLifecycleStatus,
+        effectiveTo: row.effectiveTo,
+        now,
+      }),
       effectiveTo: row.effectiveTo,
       now,
     })

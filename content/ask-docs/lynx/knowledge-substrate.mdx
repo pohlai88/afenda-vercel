@@ -1,82 +1,91 @@
 ---
 title: Knowledge substrate
-description: Add, search, and debug knowledge chunks — the pgvector evidence layer behind Lynx truth retrieval.
+description: Add, search, and debug knowledge chunks — the pgvector evidence layer behind Lynx truth retrieval and operator tools.
+audience: admin
+status: stable
 icon: BookOpen
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-The **Knowledge substrate** is Afenda's pgvector store for organisational evidence. Lynx **truth retrieval** and operator **knowledge tools** read from the same `knowledge_chunk` rows you manage here.
+The **Knowledge substrate** is Afenda's pgvector store for organisational evidence. Lynx **truth retrieval** and operator knowledge tools read from the same `knowledge_chunk` rows you manage on the Lynx console and through the org-admin sources pipeline.
 
-Module owner: `#features/knowledge` · UI entry: bottom sections of `/o/{orgSlug}/dashboard/lynx`
+Module owner: `#features/knowledge` · Primary UI: bottom sections of `/{locale}/o/{orgSlug}/dashboard/lynx` · Pipeline admin: `/{locale}/o/{orgSlug}/admin/knowledge/sources`
 
-## Chunks
+## Before you start
 
-Each chunk has:
+- ERP permission **`lynx.workspace.search`** to reach the Lynx page.
+- **`knowledge.chunk.create`** to add chunks from the Lynx console form.
+- **`knowledge.chunk.search`** to run similarity search debug on the Lynx page.
+- AI Gateway credentials for embedding on save (`openai/text-embedding-3-small`, 1536 dimensions).
+
+<Callout type="warn" title="Single writer rule">
+  Source adapters list documents only — they do not write chunks. Only the knowledge pipeline commits `knowledge_document` and `knowledge_chunk` rows.
+</Callout>
+
+## Chunk fields
 
 | Field | Purpose |
-|---|---|
-| **Title** | Short label shown in evidence lists |
+| --- | --- |
+| **Title** | Short label in evidence lists and operator tool output |
 | **Body** | Text embedded and stored for similarity search |
 
-On save, Afenda:
-
-1. Persists the chunk for your `organizationId`
-2. Computes an embedding via AI Gateway
-3. Stores the vector on `knowledge_chunk` (HNSW index for similarity)
+On save, Afenda persists the row for your `organizationId`, computes an embedding via AI Gateway, and stores the vector on `knowledge_chunk` (HNSW index).
 
 ## Add a chunk
 
 <Steps>
   <Step>
-    Open **Lynx** → **Knowledge substrate** → **Add text chunks with embeddings**.
+    Open **Lynx** at `/{locale}/o/{orgSlug}/dashboard/lynx` → **Knowledge substrate** → **Add text chunks with embeddings**.
   </Step>
   <Step>
-    Enter **title** and **body** (paste full paragraphs — not single keywords).
+    Enter **title** and **body** — paste complete policy paragraphs, not single keywords.
   </Step>
   <Step>
-    Click **Save chunk**. Wait for confirmation — embedding requires gateway auth.
+    Click **Save chunk** and wait for confirmation. Embedding requires gateway auth.
   </Step>
   <Step>
-    Retry [Truth retrieval](./truth-retrieval) with a question that should match the new text.
+    Retry [Truth retrieval](/ask-docs/lynx/truth-retrieval) with a question that should match the new text.
   </Step>
 </Steps>
 
 ## Similarity search (debug)
 
-The **Similarity search** form runs the same retrieval substrate as truth search but shows raw **cosine distance** per hit. Use it to:
+The **Similarity search** form runs the same retrieval substrate as truth search but shows raw **cosine distance** per hit. Use it to tune chunk boundaries, confirm expected passages, or diagnose empty results.
 
-- Tune chunk boundaries before relying on truth answers
-- Confirm a query retrieves the passage you expect
-- Diagnose empty results (no chunks, wrong tenant, or embed unavailable)
+## Org-admin sources pipeline
 
-## Recent chunks
-
-The **Recent chunks** list shows the latest rows saved for your organisation (default list on the Lynx page). Empty state: *No chunks yet.*
+Long-running ingestion and connector management live under **Org admin → Knowledge sources** at `/{locale}/o/{orgSlug}/admin/knowledge/sources`. Permissions use `knowledge.source.*`, `knowledge.settings.*`, and related keys — separate from `lynx.workspace.search`.
 
 ## Architecture rules
 
 | Rule | Detail |
-|---|---|
-| Adapter purity | Source adapters list documents only — they do not write chunks |
-| Single writer | Only the knowledge pipeline commits `knowledge_document` / `knowledge_chunk` |
+| --- | --- |
+| Adapter purity | Adapters return `RawKnowledgeDocument` items only — no DB writes |
 | Source-blind retrieval | Ranking does not branch on adapter kind |
 | Tenant scope | All queries filter by `organizationId` from session |
+| Execution boundary | Long-running sync uses durable workflows — not inline route-handler loops |
 
-Long-running ingestion should use **durable workflows**, not inline route-handler loops.
+## Troubleshooting
 
-## Embeddings
-
-- Model: `openai/text-embedding-3-small` (1536 dimensions) via Vercel AI Gateway
-- Extension: `vector` on Neon Postgres
-- Lynx truth default top-K: **8** passages
-
-## Permissions
-
-Chunk forms run under org session guards in the Lynx page. Users without Lynx workspace access cannot reach the substrate UI.
+<Accordions type="single">
+  <Accordion title="Save chunk fails immediately">
+    Confirm `knowledge.chunk.create`, gateway auth, and that your session org matches the tenant you expect.
+  </Accordion>
+  <Accordion title="Similarity search returns nothing">
+    Verify chunks exist in **Recent chunks**, embeddings completed, and you hold `knowledge.chunk.search`.
+  </Accordion>
+  <Accordion title="Truth retrieval still misses new content">
+    Split unrelated topics into separate chunks and use descriptive titles — retrieval default top-K is **8** passages.
+  </Accordion>
+</Accordions>
 
 ## Related
 
-- [Truth retrieval](./truth-retrieval) — consumer of chunks
-- [Operator assist](./operator-assist) — `org_search_knowledge` and `org_recent_knowledge_chunks` tools
-- [Core concepts](./concepts) — Knowledge vs Lynx boundary
+<Cards>
+  <Card href="/ask-docs/lynx/truth-retrieval" title="Truth retrieval" description="Consumer of knowledge chunks for evidence-first answers." />
+  <Card href="/ask-docs/lynx/operator-assist" title="Operator assist" description="org_search_knowledge and org_recent_knowledge_chunks tools." />
+  <Card href="/ask-docs/lynx/concepts" title="Core concepts" description="Knowledge vs Lynx module boundary." />
+  <Card href="/ask-docs/org-admin" title="Org admin" description="Tenant governance including knowledge sources pipeline." />
+</Cards>

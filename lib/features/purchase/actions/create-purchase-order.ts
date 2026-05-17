@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { ORG_DASHBOARD_PURCHASE } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import { purchaseFilterSchema } from "../schemas/purchase-filter.schema"
 import type { PurchaseActionState } from "../types"
 

@@ -19,7 +19,7 @@ import {
 } from "#features/hrm/constants"
 import { HRM_NAV_NAMESPACE } from "#features/hrm/types"
 
-import { HRM_DASHBOARD_CAPABILITY_SEGMENTS } from "#lib/hrm-dashboard.shared"
+import { HRM_DASHBOARD_CAPABILITY_SEGMENTS } from "#features/hrm/hrm-dashboard-path.shared"
 
 import {
   DASHBOARD_NAV_MODULES,

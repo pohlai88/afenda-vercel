@@ -1,11 +1,11 @@
 import type { Route } from "next"
 
-import { AuthPageFrame } from "#components/auth/auth-page-frame"
-import { AuthResult } from "#components/auth/auth-result"
+import { AuthPageFrame } from "#components2/auth/auth-page-frame"
+import { AuthResult } from "#components2/auth/auth-result"
 import { getAuthShellSignedInSessionOrNull } from "#lib/auth"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 
-import { AcceptInvitationClient } from "./accept-invitation-client"
+import { AcceptInvitationClient } from "#components2/auth/accept-invitation-client"
 
 export default async function AcceptInvitationPage({
   params,

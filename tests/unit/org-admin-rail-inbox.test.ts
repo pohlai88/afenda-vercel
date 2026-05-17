@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-// Import the kernel parser directly (bypass `#components/workbench`
-// barrel which pulls the entire client `WorkbenchShell` graph and a
-// transitive `next-intl/server` dependency that breaks Vitest 4 + pnpm
-// module hoisting under Next 16).
-import { parseWorkbenchRailInbox } from "#components/workbench/left-nav-rail/workbench-rail.schema"
+// Import the kernel parser from `#app-shell` (server barrel — no client
+// shell graph; avoids Vitest 4 + pnpm hoisting issues with Next 16).
+import { parseAppShellPrimaryLeftRailInbox } from "#app-shell"
 
 import { deriveOrgAdminInbox } from "#features/org-admin/data/org-admin-rail-inbox.shared"
 import type {
@@ -232,6 +230,6 @@ describe("deriveOrgAdminInbox", () => {
       resolveLabel: RESOLVE_LABEL,
     })
     expect(inbox).not.toBeNull()
-    expect(() => parseWorkbenchRailInbox(inbox!)).not.toThrow()
+    expect(() => parseAppShellPrimaryLeftRailInbox(inbox!)).not.toThrow()
   })
 })

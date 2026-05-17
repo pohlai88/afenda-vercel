@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   normalizeOrgSlugParam,
   ORG_SLUG_MAX_LENGTH,
-} from "#lib/org-slug.shared"
+} from "#lib/auth/org-slug.shared"
 
 describe("normalizeOrgSlugParam", () => {
   it("accepts lowercase kebab and single-segment slugs", () => {

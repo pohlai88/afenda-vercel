@@ -28,6 +28,7 @@ export {
   createBenefitOpenEnrollmentAction,
   closeBenefitOpenEnrollmentAction,
 } from "./actions/benefit-open-enrollment.actions"
+export type { BenefitOpenEnrollmentFormState } from "./actions/benefit-open-enrollment.actions"
 
 export {
   exportBenefitCensusCsvAction,
@@ -44,7 +45,6 @@ export type {
   BenefitArchiveFormState,
   BenefitEnrollFormState,
   BenefitEnrollmentTransitionFormState,
-  BenefitOpenEnrollmentFormState,
   RecordLifeEventFormState,
   VerifyLifeEventFormState,
 } from "../../types"

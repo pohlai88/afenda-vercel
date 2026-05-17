@@ -1,11 +1,13 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
-import { AfendaBrandLockup } from "#components/afenda-brand"
-import { CookieConsentPreview } from "#components/marketing/cookie-consent-preview"
-import { LandingFooter } from "#components/marketing/landing-footer"
-import { ModeToggle } from "#components/mode-toggle"
-import { Button } from "#components/ui/button"
+import { AfendaBrandLockup } from "#components2/marketing"
+import {
+  CookieConsentPreview,
+  LandingFooter,
+} from "#components2/marketing"
+import { ModeToggle } from "#components2/providers/mode-toggle.client"
+import { Button } from "#components2/ui/button"
 import { SITE_DESCRIPTION, SITE_NAME } from "#lib/site"
 
 import { Link } from "#i18n/navigation"
@@ -69,13 +71,9 @@ export default async function Page() {
         eyebrow={t("cookieConsent.eyebrow")}
         title={t("cookieConsent.title")}
         description={t("cookieConsent.description")}
-        statusLabel={t("cookieConsent.status")}
         acceptLabel={t("cookieConsent.accept")}
         rejectLabel={t("cookieConsent.reject")}
         manageLabel={t("cookieConsent.manage")}
-        acceptedStateLabel={t("cookieConsent.acceptedState")}
-        rejectedStateLabel={t("cookieConsent.rejectedState")}
-        stateHintLabel={t("cookieConsent.stateHint")}
       />
     </div>
   )

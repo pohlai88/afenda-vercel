@@ -1,4 +1,4 @@
-import { AuthPageFrame } from "#components/auth/auth-page-frame"
+import { AuthPageFrame } from "#components2/auth/auth-page-frame"
 import { getEnabledSocialProviderIds } from "#lib/auth/social-providers-env.shared"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 
@@ -7,7 +7,7 @@ import {
   parsePrefillEmail,
   parseStepUp,
 } from "../auth-flow.shared"
-import { SignInForm } from "./sign-in-form"
+import { SignInForm } from "#components2/auth/sign-in-form.client"
 
 export default async function SignInPage({
   params,

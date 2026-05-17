@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 
 import type { ListColumn } from "#features/governed-surface/schemas/list-surface.schema"
 import type { ListSurfaceRow } from "#features/governed-surface/schemas/list-surface-renderer.schema"
+import type { uiDensity } from "#lib/design-system"
 import {
   Table,
   TableBody,
@@ -10,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "#components2/ui/table"
+import { cn } from "#lib/utils"
 
 import { ListSurfaceCell } from "./list-surface-cell.client"
 
@@ -33,6 +35,7 @@ export type ListSurfaceTableProps = {
   columns: readonly ListColumn[]
   rows: readonly ListSurfaceRow[]
   trailingColumn?: ListSurfaceTableTrailingColumn
+  density?: keyof typeof uiDensity
 }
 
 /**
@@ -43,40 +46,43 @@ export function ListSurfaceTable({
   columns,
   rows,
   trailingColumn,
+  density = "compact",
 }: ListSurfaceTableProps) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          {columns.map((column) => (
-            <TableHead key={column.id} className={alignClass(column.align)}>
-              {column.header}
-            </TableHead>
-          ))}
-          {trailingColumn ? (
-            <TableHead className="text-end">{trailingColumn.header}</TableHead>
-          ) : null}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map((row, rowIndex) => (
-          <TableRow key={row.id}>
+    <div className={cn("af-material-opaque min-w-0 rounded-lg")}>
+      <Table density={density}>
+        <TableHeader>
+          <TableRow>
             {columns.map((column) => (
-              <TableCell
-                key={`${row.id}-${column.id}`}
-                className={alignClass(column.align)}
-              >
-                <ListSurfaceCell column={column} row={row} />
-              </TableCell>
+              <TableHead key={column.id} className={alignClass(column.align)}>
+                {column.header}
+              </TableHead>
             ))}
             {trailingColumn ? (
-              <TableCell className="text-end">
-                {trailingColumn.render(row, rowIndex)}
-              </TableCell>
+              <TableHead className="text-end">{trailingColumn.header}</TableHead>
             ) : null}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row, rowIndex) => (
+            <TableRow key={row.id}>
+              {columns.map((column) => (
+                <TableCell
+                  key={`${row.id}-${column.id}`}
+                  className={alignClass(column.align)}
+                >
+                  <ListSurfaceCell column={column} row={row} />
+                </TableCell>
+              ))}
+              {trailingColumn ? (
+                <TableCell className="text-end">
+                  {trailingColumn.render(row, rowIndex)}
+                </TableCell>
+              ) : null}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   )
 }

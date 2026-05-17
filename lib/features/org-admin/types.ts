@@ -1,6 +1,6 @@
 import type { Route } from "next"
 
-import type { WorkbenchRailBadgeTone } from "#components/workbench/left-nav-rail"
+import type { AppShellPrimaryLeftRailBadgeTone } from "#app-shell"
 
 /** Stable capability identifiers for the organizational control plane. */
 export type OrgAdminCapabilityId =
@@ -173,13 +173,13 @@ export type UserOrgSummary = {
 /**
  * Semantic urgency carried by every org-admin rail nav badge. Re-exports
  * the shell-level tone vocabulary so callers in `lib/features/org-admin/`
- * never depend on a private `#components/workbench/left-nav-rail` deep import.
+ * never depend on a private `#app-shell` rail schema deep import.
  *
  * Operators read tone (color) before number — the threshold helpers in
  * `org-admin-rail-pressure.shared.ts` are the only legitimate source of
  * `attention` / `critical`. UI components must not invent new tones.
  */
-export type OrgAdminRailPressureTone = WorkbenchRailBadgeTone
+export type OrgAdminRailPressureTone = AppShellPrimaryLeftRailBadgeTone
 
 /**
  * Single nav badge payload. `count` is the integer surfaced in the UI when
@@ -196,7 +196,7 @@ export type OrgAdminRailPressureBadge = {
  * Per-nav-key pressure map produced by `getOrgAdminRailPressureCounts`.
  * Sparse by design — empty slots hide; `undefined` entries do not render a
  * badge. The rail-slot builder is a pure mapper from this shape onto
- * `WorkbenchRailNavItem.badge`.
+ * `AppShellPrimaryLeftRailNavItem.badge`.
  */
 export type OrgAdminRailPressureMap = Partial<
   Record<OrgAdminNavKey, OrgAdminRailPressureBadge>

@@ -2,7 +2,7 @@ import "server-only"
 
 import { createTokenizer } from "@orama/tokenizers/mandarin"
 
-import type { AppLocale } from "#lib/i18n/locales.shared"
+import type { FullAppLocale } from "#lib/i18n/locales.shared"
 
 /**
  * Orama options per ask-docs locale for `createFromSource` (`localeMap`).
@@ -11,7 +11,7 @@ import type { AppLocale } from "#lib/i18n/locales.shared"
  * @see https://fumadocs.dev/docs/headless/search/orama#special-languages
  */
 export const ASK_DOCS_ORAMA_LOCALE_MAP: Record<
-  AppLocale,
+  FullAppLocale,
   | { language: "english" }
   | {
       components: { tokenizer: ReturnType<typeof createTokenizer> }

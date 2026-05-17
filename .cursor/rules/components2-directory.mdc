@@ -1,0 +1,165 @@
+---
+description: components2/ layout, imports, and file naming (stores, providers, app-shell, ui, metadata). Filename = what the file owns + layer suffix.
+globs: "components2/**"
+alwaysApply: false
+---
+
+# `components2/` directory contract
+
+**Doctrine:** If this rule and `AGENTS.md` diverge, follow `AGENTS.md`. Shell-specific wiring: `.cursor/rules/shell-directory.mdc`.
+
+**Import aliases:** `#components2/*` → `./components2/*` · `#app-shell` → `./components2/app-shell/index.ts` (server barrel) · `#app-shell/client` → `./components2/app-shell/client.ts`.
+
+---
+
+## Top-level folders (bounded context)
+
+| Folder | Owns | Must not own |
+| --- | --- | --- |
+| `app-shell/` | Workbench chrome (RSC + client islands) | ERP/domain queries, feature business rules |
+| `portal-shell/` | Portal chrome | Workbench shell, tenant truth |
+| `stores/` | Context-free Zustand client stores | React providers, RSC, DB |
+| `providers/` | Client React context/providers | Zustand stores, domain logic |
+| `ui/` | Design-system primitives (shadcn shelf) | Feature workflows, shell layout |
+| `metadata/` | Governed renderer kernel (ADR-0021) | ERP mutations |
+| `dev/` | Gated local previews + fixtures | Production routes |
+| `marketing/` | Public/marketing surfaces | ERP shell |
+
+**Split rule:** stores and providers are **siblings** of `app-shell/`, not nested inside it. Shell components import stores via `#components2/stores` (or the `#app-shell/client` re-export when documented in `shell-directory.mdc`).
+
+---
+
+## File naming — read the filename
+
+Goal: **without opening the file**, know **what it owns** and **what layer it is**. Names use **kebab-case nouns** chained left → right (general → specific). Length varies; every segment must earn its place.
+
+### Pattern
+
+```txt
+[feature-prefix-]<entity>[-<aspect>].<layer>.ts(x)
+```
+
+| Part | Required? | Meaning | Example |
+| --- | --- | --- | --- |
+| `feature-prefix` | In crowded subfolders | Disambiguates files in the same folder | `appshell-` in `top-utils-bar/` |
+| `entity` | Yes | The thing this file owns | `utility-bar`, `lane-memory`, `primary-left-rail` |
+| `aspect` | Optional | A slice of the entity | `account-dropdown`, `network-diagnosis` |
+| `layer` | Yes (except barrels) | File role — see table below | `.store`, `.client`, `.schema` |
+
+**Folder = context.** Prefer short filenames inside a clearly named folder (`stores/utility-bar.store.ts`, not `stores/appshell-utility-bar.store.ts`).
+
+### Layer suffixes (closed set)
+
+| Suffix | Role | Primary export convention |
+| --- | --- | --- |
+| `.store.ts` | Zustand store (`"use client"`) | `use<Entity>Store` |
+| `.provider.client.tsx` | Single React provider | `<Entity>Provider` |
+| `.client.tsx` | Client component / island | PascalCase component matching entity |
+| `.tsx` | RSC entry (`server-only`) or shared composition (no directive) | `AppShell`, `AppShellUtilityBar`, … |
+| `.schema.ts` | Zod + `z.infer<>` types | Schema constants + inferred types |
+| `.shared.ts` / `.shared.tsx` | Cross-layer types/helpers (no `"use client"` unless needed) | Named exports only |
+| `.groups.ts` | Static menu/config blobs | Typed constants |
+| `.fixture.ts` | Dev/test fixtures (`dev/fixtures/`) | Fixture constants |
+| `index.ts` | Barrel for the folder | Re-exports only |
+
+**Barrels:** `index.ts` / `client.ts` only — never put implementation in a barrel.
+
+### Stores (`components2/stores/`) — reference practice
+
+One store per file. **Domain first, `.store` last.**
+
+```txt
+<domain>.store.ts  →  use<DomainPascal>Store
+```
+
+| File | Hook / type door |
+| --- | --- |
+| `app-shell.store.ts` | `useAppShellStore` |
+| `utility-bar.store.ts` | `useUtilityBarStore` |
+| `lane-memory.store.ts` | `useLaneMemoryStore` |
+| `operational-scope.store.ts` | `useOperationalScopeUiStore` |
+| `utility-bar-catalog.shared.ts` | Catalog + ids (shared with app-shell UI, not a store) |
+| `index.ts` | Re-exports all stores — no `create()` here |
+
+Rules:
+
+- **Domain** = state boundary (what UI surface or concern the store owns), kebab-case.
+- Do **not** prefix store files with `appshell-` when the folder already scopes them (`stores/`).
+- Persisted vs ephemeral is an implementation detail inside the file — not a filename segment.
+- New shell UI state → new `<domain>.store.ts` + export from `stores/index.ts`; do not grow unrelated domains in one file.
+
+### Providers (`components2/providers/`)
+
+```txt
+<what-it-provides>-provider.client.tsx
+<feature>-providers.client.tsx          # composed bundle only
+```
+
+Examples: `theme-provider.client.tsx`, `sidebar-provider.client.tsx`, `app-shell-providers.client.tsx`.
+
+**Rare:** `<domain>-store-provider.client.tsx` — only when a Zustand store must be **per-subtree** or **per-request** (factory + `useStore` from context per [Zustand Next.js guide](https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/nextjs.md)). Default shell stores stay module singletons in `stores/` with **no** Zustand provider. Full rules: `.cursor/rules/client-state-management.mdc`.
+
+### App shell (`components2/app-shell/`)
+
+Subfolders name the **region**; files name the **piece**:
+
+| Subfolder | Prefix on files | Example |
+| --- | --- | --- |
+| `top-utils-bar/` | `appshell-utility-bar-` | `appshell-utility-bar-messenger.client.tsx` |
+| `left-rail-bar/` | `appshell-primary-left-rail` | `appshell-primary-left-rail.schema.ts` |
+| `surface/` | `appshell-sub-layout` | `appshell-sub-layout.client.tsx` |
+| `crud-sap/` | `appshell-crud-sap-` | `appshell-crud-sap-action-bar.client.tsx` |
+| Root of `app-shell/` | `appshell` | `appshell.tsx`, `appshell.client.tsx` |
+
+RSC pair: `appshell.tsx` (public) + `appshell.client.tsx` (implementation). Types shared across the boundary → `appshell-props.shared.ts`.
+
+### UI (`components2/ui/`)
+
+Match shadcn slot names: `button.tsx`, `dropdown-menu.tsx`. No feature prefixes. Import only via `#components2/ui/<slot>`.
+
+---
+
+## Words to avoid in filenames
+
+Do not use vague or banned bucket words (same spirit as `AGENTS.md` banned categories):
+
+```txt
+utils · helpers · manager · service · common · misc · temp · new · final · legacy · wrapper · stuff · data
+```
+
+Use a **concrete noun** instead: `utility-bar`, `lane-memory`, `viewport`, `operational-scope`.
+
+---
+
+## Forbidden filenames
+
+```txt
+schema.ts              → <entity>.schema.ts
+shell.tsx              → appshell.tsx (or portal-shell.tsx)
+store.ts               → <domain>.store.ts
+index.ts with logic    → move impl to a named file
+```
+
+Generic single-word leaves inside `components2/` (`rail.tsx`, `surface.tsx` without qualifier) unless the folder has only one concept.
+
+---
+
+## Import boundaries
+
+| Consumer | Import |
+| --- | --- |
+| RSC / server layouts | `#app-shell`, `#components2/ui/*` |
+| Client shell islands | `#app-shell/client`, `#components2/stores`, `#components2/providers` |
+| ERP features | `#components2/ui/*`, governed metadata via `#components2/metadata` — not deep `app-shell/` paths |
+
+Client Components must not import `#app-shell` (server barrel). Stores are client-only — never import from RSC files.
+
+---
+
+## Checklist (new file)
+
+1. Which folder owns this concept?
+2. What is the **entity** (and optional **aspect**)?
+3. Which **layer suffix** matches the export?
+4. Does the filename map to the **primary export** without opening the file?
+5. Are all segments concrete nouns (no banned words)?

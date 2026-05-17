@@ -47,7 +47,7 @@ import type {
   CancelClaimFormState,
   SubmitClaimFormState,
 } from "../../../types"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import { withPortalMutationSpan } from "../../../employee-management/employee-selfservice-portal/data/portal-mutation-tracing.server"
 
 export function revalidateClaims() {
@@ -190,7 +190,9 @@ async function submitClaimForEmployeeBody(
     evaluatedAt: now,
   })
 
-  if (evaluation.validationFlags.some((flag) => flag.flag === "fx_rate_missing")) {
+  if (
+    evaluation.validationFlags.some((flag) => flag.flag === "fx_rate_missing")
+  ) {
     return hrmActionFailure({
       currency: "No exchange rate is configured for this currency pair.",
     })
@@ -209,7 +211,9 @@ async function submitClaimForEmployeeBody(
     (flag) => flag.severity === "error" && flag.flag.startsWith("over_")
   )
   if (hardPolicyBlock && !evaluation.requiresExceptionApproval) {
-    const first = evaluation.validationFlags.find((flag) => flag.severity === "error")
+    const first = evaluation.validationFlags.find(
+      (flag) => flag.severity === "error"
+    )
     return hrmActionFailure({
       amount: first?.message ?? "Claim exceeds configured policy limits.",
     })
@@ -280,7 +284,7 @@ async function submitClaimForEmployeeBody(
     claimNumber,
     policy: policySnapshot,
     expenseFundCode: expenseFund?.code ?? null,
-    validationFlags: evaluation.validationFlags,
+    validationFlags: [...evaluation.validationFlags],
   }
 
   const duplicateReviewStatus =
@@ -334,7 +338,7 @@ async function submitClaimForEmployeeBody(
       fxRateSource: evaluation.fxSnapshot?.rateSource ?? null,
       fxSnapshot: evaluation.fxSnapshot,
       eligibilitySnapshot: evaluation.eligibilitySnapshot,
-      validationFlags: evaluation.validationFlags,
+      validationFlags: [...evaluation.validationFlags],
       requiresExceptionApproval: evaluation.requiresExceptionApproval,
       duplicateReviewStatus,
       createdByUserId: userId,

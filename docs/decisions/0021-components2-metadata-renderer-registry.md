@@ -1,5 +1,7 @@
 # ADR-0021: components2 metadata renderer registry
 
+> **Canonical architecture:** [ADR-0026](./0026-metadata-driven-ui-architecture.md). This ADR records the original renderer-registry decision.
+
 **Status:** Accepted  
 **Date:** 2026-05-16  
 **Supersedes:** Renderer-kernel section of ADR-0012-phase10 (draft) for display dispatch only.
@@ -41,7 +43,7 @@ Promoted **2026-05-16** with evidence:
 | Criterion | Evidence |
 | --- | --- |
 | List or form renderer on execution path | `governed:list-surface` renderer; HRM `WorkforcePage` (`lib/features/hrm/components/workforce-page.tsx`) dispatches via `GovernedComponentRenderer`. |
-| Registry ↔ renderer parity | `pnpm lint:components2-renderers` — 2 renderers (`stat-card`, `list-surface`). |
+| Registry ↔ renderer parity | `pnpm lint:components2-renderers` — 8 shipped renderers (`stat-card` … `detail-tabs`). |
 | Schema stability | `governedComponentSchema`, `governedComponentRegistrySchema`, `stat-card`, `list-surface-renderer` at **`beta`**. |
 
 Second consecutive minor release with green parity lint is tracked at release time (first promotion landing).

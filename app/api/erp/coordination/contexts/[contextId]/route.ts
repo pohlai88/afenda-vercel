@@ -1,8 +1,7 @@
 import { getCoordinationContextDetail } from "#features/coordination/server"
-import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
-import { getOrgSessionFromRequest } from "#lib/tenant"
+import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
+import { getOrgSessionFromRequest } from "#lib/auth"
 
-export const runtime = "nodejs"
 
 export async function GET(
   request: Request,

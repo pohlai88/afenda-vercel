@@ -4,7 +4,7 @@ import { useMemo } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useFormatter, useTranslations } from "next-intl"
 
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import { GovernedDataTableClient } from "#features/governed-surface/client"
 
 import type { OrgFeedbackEventSummary } from "../types"

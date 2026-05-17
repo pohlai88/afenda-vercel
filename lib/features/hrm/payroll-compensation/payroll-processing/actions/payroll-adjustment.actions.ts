@@ -11,7 +11,7 @@ import { recordPayrollAdjustmentFormSchema } from "../schemas/payroll-adjustment
 import { getPayrollPeriod } from "../data/payroll.queries.server"
 import { insertPayrollAdjustment } from "../data/payroll.mutations.server"
 import { requirePayrollSessionMutationGate } from "../data/payroll-action-guard.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { PayrollAdjustmentFormState } from "../payroll-form-states"
 
 function revalidatePayrollPages() {
@@ -36,8 +36,7 @@ export async function recordPayrollAdjustmentAction(
     currency: formData.get("currency") ?? "MYR",
     reason: formData.get("reason"),
     approvalId: formData.get("approvalId") || undefined,
-    retroReferencePeriodId:
-      formData.get("retroReferencePeriodId") || undefined,
+    retroReferencePeriodId: formData.get("retroReferencePeriodId") || undefined,
   })
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors

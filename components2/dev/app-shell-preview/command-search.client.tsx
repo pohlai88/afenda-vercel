@@ -3,7 +3,7 @@
 import {
   AppShellCommandPalette,
   AppShellUtilityBarCommandSearchTrigger,
-} from "#components2/app-shell/client"
+} from "#app-shell/client"
 
 import { SHELL_PREVIEW_COMMAND_PALETTE_PROPS } from "../fixtures/command-palette.fixture"
 

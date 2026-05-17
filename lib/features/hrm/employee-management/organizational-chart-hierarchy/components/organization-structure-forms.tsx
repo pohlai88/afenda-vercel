@@ -4,8 +4,8 @@ import { useActionState, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2, PlusIcon } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
-import { Button } from "#components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
+import { Button } from "#components2/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -13,9 +13,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "#components/ui/dialog"
-import { Field, FieldError, FieldLabel } from "#components/ui/field"
-import { Input } from "#components/ui/input"
+} from "#components2/ui/dialog"
+import { Field, FieldError, FieldLabel } from "#components2/ui/field"
+import { Input } from "#components2/ui/input"
 
 import {
   archiveDepartmentAction,

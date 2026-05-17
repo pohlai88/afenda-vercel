@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 
 import {
@@ -13,7 +13,7 @@ import {
   sanitizePlatformOperatorUsersSearchParams,
   serializePlatformOperatorUsersSearchParams,
 } from "#features/platform-admin"
-import { requireGlobalAdminSession } from "#lib/tenant"
+import { requireGlobalAdminSession } from "#lib/auth"
 
 export default async function OrganizationPlatformAdminUsersPage({
   params,

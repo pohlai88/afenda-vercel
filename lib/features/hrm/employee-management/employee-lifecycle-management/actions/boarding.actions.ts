@@ -17,7 +17,7 @@ import {
   boardingTaskActionFormSchema,
   waiveBoardingTaskFormSchema,
 } from "../schemas/boarding.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import { HRM_EMPLOYEE_LIFECYCLE_AUDIT } from "../employee-lifecycle.contract"
 import type { ContractMutationFormState } from "../../../types"
 

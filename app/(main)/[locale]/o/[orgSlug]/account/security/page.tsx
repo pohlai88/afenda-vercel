@@ -15,7 +15,7 @@ import {
   type SecuritySessionRow,
 } from "../../../../(iam)/account/security/security-center-client"
 import { auth } from "#lib/auth"
-import { WorkbenchSurface } from "#components/workbench"
+import { AppShellSurface } from "#app-shell"
 import { organizationAccountPath } from "#lib/dashboard-module-paths"
 import { generateAccountSecurityMetadata } from "../../../../(iam)/account/account-metadata"
 
@@ -70,7 +70,7 @@ export default async function OrganizationAccountSecurityPage({
   }))
 
   return (
-    <WorkbenchSurface
+    <AppShellSurface
       breadcrumbs={[
         {
           label: tSurface("breadcrumbs.personal"),
@@ -88,6 +88,6 @@ export default async function OrganizationAccountSecurityPage({
         passkeys={passkeys}
         activity={activity}
       />
-    </WorkbenchSurface>
+    </AppShellSurface>
   )
 }

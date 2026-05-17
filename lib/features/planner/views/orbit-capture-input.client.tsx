@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react"
 
-import { Badge } from "#components/ui/badge"
-import { Input } from "#components/ui/input"
+import { Badge } from "#components2/ui/badge"
+import { Input } from "#components2/ui/input"
 
 import {
   DEFAULT_PLANNER_CAPTURE_TIME_ZONE,

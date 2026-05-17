@@ -31,7 +31,7 @@ const typescriptGenerator = createGenerator({
 
 const twoslashTypesCache = createFileSystemTypesCache()
 
-/** Locale routing for ask-docs lives in `askDocsI18n` (`lib/ask-docs-source.ts`); fumadocs-mdx `defineDocs` has no `i18n` field in v15. */
+/** Locale routing for ask-docs lives in `askDocsI18n` (`lib/ask-docs/source.ts`); fumadocs-mdx `defineDocs` has no `i18n` field in v15. */
 export const docs = defineDocs({
   dir: "content/ask-docs",
   docs: {

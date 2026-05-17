@@ -1,6 +1,6 @@
-import { AuthPageFrame } from "#components/auth/auth-page-frame"
+import { AuthPageFrame } from "#components2/auth/auth-page-frame"
 
-import { ForgotPasswordForm } from "./forgot-password-form"
+import { ForgotPasswordForm } from "#components2/auth/forgot-password-form.client"
 
 export default function ForgotPasswordPage() {
   return (

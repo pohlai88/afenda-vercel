@@ -1,8 +1,8 @@
 import type { Route } from "next"
 import type { ReactNode } from "react"
 
-import { Button } from "#components/ui/button"
-import { ModulePageHeader } from "#components/module-page-header"
+import { Button } from "#components2/ui/button"
+import { ModulePageHeader } from "./module-page-header"
 import { Link } from "#i18n/navigation"
 import { cn } from "#lib/utils"
 

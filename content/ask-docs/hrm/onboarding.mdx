@@ -2,11 +2,29 @@
 title: Onboarding & offboarding
 description: Boarding templates, task instances, and lifecycle states that keep hire-to-productive work auditable.
 icon: ClipboardCheck
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 **Onboarding** ties checklist templates to employment contracts. When someone joins, Afenda materialises **task instances** with due ordering, required flags, and completion evidence. **Offboarding** mirrors the discipline for exits — tasks close access paths instead of opening them.
+
+## Before you start
+
+- Maintain boarding **templates** before activating instances — the best-matching template wins per contract using deterministic scoring.
+- Link policy acknowledgements and document uploads to tasks when compliance requires evidence.
+- For exits, use the dedicated [Offboarding](/ask-docs/hrm/offboarding) workbench when managing clearance at scale.
+
+## Activating a boarding checklist
+
+<Steps>
+  <Step>Open the employee record and locate the **Boarding** panel.</Step>
+  <Step>Pick the template (or accept the system suggestion) before activation.</Step>
+  <Step>Mark tasks complete as evidence arrives — partial saves are allowed.</Step>
+  <Step>Resolve **blocked** instances when a task surfaces why work stopped.</Step>
+</Steps>
 
 ## Templates
 
@@ -16,19 +34,34 @@ Templates encode default tasks (IT access, payroll profile, policy acknowledgeme
 
 Instances move through explicit states (`pending`, `in_progress`, `blocked`, `completed`). Blocked rows surface why work stopped so HR can intervene without guessing.
 
-<Steps>
-  <Step>Open the employee record and locate the **Boarding** panel.</Step>
-  <Step>Pick the template (or accept the system suggestion) before activation.</Step>
-  <Step>Mark tasks complete as evidence arrives — partial saves are allowed.</Step>
-</Steps>
+<Callout type="info" title="Evidence discipline">
+  Completion without evidence is allowed only where the template marks a task as optional — required tasks should attach vault uploads or acknowledgement records.
+</Callout>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="No template suggested for a new hire">
+    Confirm an active template matches the contract type and department scoring rules.
+  </Accordion>
+  <Accordion title="Task stays blocked">
+    Open the task detail for the blocking reason — often a missing signature, document, or policy acknowledgement.
+  </Accordion>
+</Accordions>
 
 ## Related
 
 <Cards>
-  <Card href="./employees" title="Employees">
+  <Card href="/ask-docs/hrm/employees" title="Employees">
     Boarding instances anchor on the workforce master row.
   </Card>
-  <Card href="./documents" title="Documents vault">
+  <Card href="/ask-docs/hrm/documents" title="Documents vault">
     Evidence files attach through governed uploads.
+  </Card>
+  <Card href="/ask-docs/hrm/offboarding" title="Offboarding">
+    Exit-side checklist and clearance workflows.
+  </Card>
+  <Card href="/ask-docs/hrm/signatures" title="Electronic signatures">
+    Ceremonies referenced from boarding tasks.
   </Card>
 </Cards>

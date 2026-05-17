@@ -2,7 +2,7 @@ import "server-only"
 
 import { and, eq } from "drizzle-orm"
 
-import { sendAuthEmail } from "#lib/auth-mail"
+import { sendAuthEmail } from "#lib/auth/auth-mail.server"
 import { db } from "#lib/db"
 import {
   hrmEmployee,

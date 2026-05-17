@@ -8,7 +8,7 @@ import { hrmPayrollProfile } from "#lib/db/schema"
 import {
   calendarDayBeforeIso,
   isoDateOnlyToUtcDate,
-} from "../../../hrm-calendar-dates.server"
+} from "../../../_module-governance/hrm-calendar-dates.server"
 import { mergeMalaysiaPcbIntoStatutoryProfileExtras } from "../schemas/malaysia-pcb-statutory-extras.shared"
 
 export type UpsertPayrollProfileMutationInput = {

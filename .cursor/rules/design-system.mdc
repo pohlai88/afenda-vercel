@@ -26,11 +26,11 @@ alwaysApply: false
 
 ## Primitive import contract
 
-- UI shelf: **`components/ui/**`** on disk.
-- **All consumers** (`app/**`, `components/**` except the shelf, `hooks/**`, `lib/**`) import via **`#components/ui/<primitive>`** only.
-- Forbidden outside `components/ui` (ESLint):
+- UI shelf: **`components2/ui/**`** on disk.
+- **All consumers** (`app/**`, `components2/**` except the shelf, `hooks/**`, `lib/**`) import via **`#components2/ui/<primitive>`** only.
+- Forbidden outside `components2/ui` (ESLint):
   - `@radix-ui/*`, `radix-ui`, `@base-ui/react`
-  - filesystem-relative `**/components/ui` import specifiers
+  - filesystem-relative `**/components/ui` or repo-root `components/` import specifiers (hard-deleted)
 
 ## Runtime validation
 
@@ -117,7 +117,7 @@ style={{ willChange: "backdrop-filter" }}
 <!-- ❌ arbitrary blur — bypasses M3 surface contract -->
 <div className="backdrop-blur-[18px]" />
 <div className="blur-[24px]" />
-<!-- ❌ scaled backdrop-blur under components/nexus/ -->
+<!-- ❌ scaled backdrop-blur under Nexus chrome (components2/) -->
 <div className="backdrop-blur-2xl" />
 ```
 ```css
@@ -131,7 +131,7 @@ Also forbidden (drift detectors — see `check-design-contract.mjs`):
 - `af-pressure-pulse`, `af-unstable-refraction` (retired Lynx animations — express via `.af-material[data-lynx]` in `app/globals.css`)
 - `data-layout-density="compact|relaxed"` (CSS block removed; re-add the `:root[data-layout-density]` block before re-introducing the attribute)
 
-### Nexus chrome utilities (`components/nexus/` only)
+### Nexus chrome utilities (Nexus field in `components2/` + `app/globals.css` only)
 
 Use these CSS helpers — do **not** apply Tailwind `backdrop-blur-*` directly:
 - `.af-nexus-l1-chrome-backplate` (L1 utility-bar surface; pair `.af-nexus-utility-bar-backdrop` on the bar)
@@ -151,7 +151,7 @@ These classes own the chrome surface contract. They no longer apply `backdrop-fi
 
 ## Documentation sync (`docs/design-system/**/*.md`)
 
-- **Code is truth:** `app/globals.css`, `lib/design-system.ts`, `components/ui/`. Docs describe what code implements.
+- **Code is truth:** `app/globals.css`, `lib/design-system.ts`, `components2/ui/`. Docs describe what code implements.
 - Do not document tokens, variant strings, or APIs not yet in code.
 - When token/primitive APIs change, update `docs/design-system/governance.md` and Code Connect templates in the same change.
 

@@ -7,7 +7,7 @@ import type { ZodIssue } from "zod"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import { insertOrgFeedbackEvent } from "../data/feedback.mutations.server"
 import { feedbackSubmissionSchema } from "../schemas/feedback.schema"

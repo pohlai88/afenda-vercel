@@ -7,9 +7,10 @@ import { db } from "#lib/db"
 import {
   hrmEmployee,
   hrmEmploymentContract,
+  hrmLifecycleEvent,
   iamAuditEvent,
 } from "#lib/db/schema"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 import type {
   CronTickInput,
   CronTickScannedEmittedSummary,
@@ -20,17 +21,19 @@ import { organizationHrmEmployeePath } from "../../../constants"
 import {
   formatUtcDateOnly,
   isoDateOnlyToUtcDate,
-} from "../../../hrm-calendar-dates.server"
+} from "../../../_module-governance/hrm-calendar-dates.server"
 import {
   CONTRACT_EXPIRY_WARNING_AUDIT_ACTION,
   CONTRACT_EXPIRY_WATCH_BATCH_LIMIT,
   CONTRACT_EXPIRY_WARN_DAYS,
   type ContractExpiryCandidate,
 } from "./contract-expiry-watch.shared"
+import { triggerContractExpiryLifecycleTransition } from "./employee-lifecycle.mutations.server"
 
 export type ContractExpiryWatchTickSummary = CronTickScannedEmittedSummary & {
   readonly skippedAlreadyAudited: number
   readonly candidates: readonly ContractExpiryCandidate[]
+  readonly contractExpiryTransitions: number
 }
 
 async function loadContractsAlreadyEmitted(
@@ -120,6 +123,7 @@ export async function runContractExpiryWatchTick(
   input?: CronTickInput
 ): Promise<ContractExpiryWatchTickSummary> {
   const now = input?.now ?? new Date()
+  const todayLabel = formatUtcDateOnly(now)
   const candidates = await listContractExpiryCandidates({
     now,
     batchLimit: input?.batchLimit ?? CONTRACT_EXPIRY_WATCH_BATCH_LIMIT,
@@ -130,6 +134,7 @@ export async function runContractExpiryWatchTick(
       scanned: 0,
       emitted: 0,
       skippedAlreadyAudited: 0,
+      contractExpiryTransitions: 0,
       candidates: [],
     }
   }
@@ -140,6 +145,7 @@ export async function runContractExpiryWatchTick(
 
   let emitted = 0
   let skippedAlreadyAudited = 0
+  let contractExpiryTransitions = 0
 
   for (const c of candidates) {
     if (already.has(c.contractId)) {
@@ -154,6 +160,21 @@ export async function runContractExpiryWatchTick(
       }
 
       const effectiveToLabel = formatUtcDateOnly(c.effectiveTo)
+      const isDue = effectiveToLabel <= todayLabel
+
+      if (isDue) {
+        const transitionResult = await triggerContractExpiryLifecycleTransition({
+          organizationId: c.organizationId,
+          employeeId: c.employeeId,
+          contractId: c.contractId,
+          effectiveDate: c.effectiveTo,
+          actorUserId: "system",
+          reason: `Contract ${c.contractId} ended on ${effectiveToLabel}.`,
+        })
+        if (transitionResult === "applied") {
+          contractExpiryTransitions += 1
+        }
+      }
 
       await writeIamAuditEvent({
         action: CONTRACT_EXPIRY_WARNING_AUDIT_ACTION,
@@ -166,6 +187,20 @@ export async function runContractExpiryWatchTick(
           employeeId: c.employeeId,
           effectiveTo: effectiveToLabel,
         },
+      })
+
+      await db.insert(hrmLifecycleEvent).values({
+        id: crypto.randomUUID(),
+        organizationId: c.organizationId,
+        employeeId: c.employeeId,
+        kind: "contract_expiry_warning",
+        effectiveDate: c.effectiveTo,
+        metadata: {
+          contractId: c.contractId,
+          effectiveTo: effectiveToLabel,
+        },
+        actorUserId: null,
+        isEffectiveDated: true,
       })
 
       const href = organizationHrmEmployeePath(orgSlug, c.employeeId) as string
@@ -187,7 +222,7 @@ export async function runContractExpiryWatchTick(
         causalityReason:
           "Active fixed-term contract has an end date within the 30-day alert window.",
         actorUserId: null,
-        pressure: { urgency: 0.65, impact: 0.60 },
+        pressure: { urgency: 0.65, impact: 0.6 },
         auditMetadata: {
           employeeId: c.employeeId,
           effectiveTo: effectiveToLabel,
@@ -204,6 +239,7 @@ export async function runContractExpiryWatchTick(
     scanned: candidates.length,
     emitted,
     skippedAlreadyAudited,
+    contractExpiryTransitions,
     candidates,
   }
 }

@@ -7,7 +7,7 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { requirePayrollMutationGate } from "../../payroll-processing/data/payroll-action-guard.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import {
   insertPayrollExchangeRateMutation,
   upsertLegalEntityPayrollConfigMutation,

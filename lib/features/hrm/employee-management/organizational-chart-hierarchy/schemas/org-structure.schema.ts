@@ -14,7 +14,10 @@ import {
   setPositionReportingLineFormSchema,
   updatePositionControlFormSchema,
 } from "./position-control.schema"
-import { assignEmployeePlacementFormSchema } from "./employee-assignment.schema"
+import {
+  assignEmployeePlacementFormSchema,
+  setEmployeeReportingRelationshipFormSchema,
+} from "./employee-assignment.schema"
 
 export {
   archiveOrgUnitFormSchema,
@@ -32,7 +35,10 @@ export {
   setPositionReportingLineFormSchema,
   updatePositionControlFormSchema,
 } from "./position-control.schema"
-export { assignEmployeePlacementFormSchema } from "./employee-assignment.schema"
+export {
+  assignEmployeePlacementFormSchema,
+  setEmployeeReportingRelationshipFormSchema,
+} from "./employee-assignment.schema"
 
 export type {
   ArchiveOrgUnitFormInput,
@@ -50,7 +56,11 @@ export type {
   SetPositionReportingLineFormInput,
   UpdatePositionControlFormInput,
 } from "./position-control.schema"
-export type { AssignEmployeePlacementFormInput } from "./employee-assignment.schema"
+export type {
+  AssignEmployeePlacementFormInput,
+  HrmReportingRelationshipType,
+  SetEmployeeReportingRelationshipFormInput,
+} from "./employee-assignment.schema"
 
 export const createDepartmentFormSchema = createOrgUnitFormSchema
 export const archiveDepartmentFormSchema = archiveOrgUnitFormSchema
@@ -64,3 +74,5 @@ export const updatePositionFormSchema = updatePositionControlFormSchema
 export const setPositionReportsToFormSchema = setPositionReportingLineFormSchema
 export const assignEmployeeOrganizationPlacementFormSchema =
   assignEmployeePlacementFormSchema
+export const setEmployeeReportingFormSchema =
+  setEmployeeReportingRelationshipFormSchema

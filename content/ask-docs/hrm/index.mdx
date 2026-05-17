@@ -2,6 +2,9 @@
 title: HRM
 description: Manage your entire workforce lifecycle — from onboarding to payroll — within a single module.
 icon: Users
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
@@ -10,61 +13,111 @@ The HRM module covers the full employee lifecycle — from the moment someone jo
 
 In the Workbench, HRM is **registry-driven**: each sidebar segment maps to a row in `HRM_CAPABILITIES` (including bulk **HR import** for governed CSV sessions when that capability is enabled). What you see in the product nav matches that registry, ERP RBAC keys, and audit prefixes — so capabilities stay aligned as the module grows.
 
+## Before you start
+
+- Sign in to the Workbench with an org membership and an ERP role that includes the HRM segments you need.
+- Confirm **organization structure** (departments, positions, grades) before bulk employee creation or imports.
+- Assign ERP permissions through your organisation administrator — Better Auth org roles (`admin` / `owner`) do not replace HRM business authorization.
+
+## Getting started in HRM
+
+<Steps>
+  <Step>
+    Open **HRM → Employees** and create or import your workforce master records.
+  </Step>
+  <Step>
+    Configure **HRM → Organization** so placements and reporting lines resolve correctly.
+  </Step>
+  <Step>
+    Enable operational modules (attendance, leave, payroll) as your rollout requires — each segment is gated by its own ERP permission keys.
+  </Step>
+  <Step>
+    Review the **HR snapshot** for operational pressure and deep links into execution surfaces.
+  </Step>
+</Steps>
+
+## Capabilities
+
 <Cards>
-  <Card href="./employees" title="Employees">
+  <Card href="/ask-docs/hrm/employees" title="Employees">
     Employee profiles, employment contracts, probation tracking, and offboarding workflows.
   </Card>
-  <Card href="./organization" title="Organization">
+  <Card href="/ask-docs/hrm/organization" title="Organization">
     Departments, positions, and job grades — structure for placements and reporting lines.
   </Card>
-  <Card href="./onboarding" title="Onboarding">
+  <Card href="/ask-docs/hrm/onboarding" title="Onboarding">
     Boarding templates, task instances, and lifecycle states from hire to productive.
   </Card>
-  <Card href="./recruitment" title="Recruitment">
+  <Card href="/ask-docs/hrm/recruitment" title="Recruitment">
     Internal ATS — requisitions, interviews, offers, and hire conversion with audits.
   </Card>
-  <Card href="./attendance" title="Attendance">
+  <Card href="/ask-docs/hrm/attendance" title="Attendance">
     Clock-in/out records, shift tracking, manual corrections, and anomaly detection.
   </Card>
-  <Card href="./leave" title="Leave management">
+  <Card href="/ask-docs/hrm/leave" title="Leave management">
     Leave requests, multi-level approval workflows, balance tracking, and carry-over rules.
   </Card>
-  <Card href="./benefits" title="Benefits">
+  <Card href="/ask-docs/hrm/benefits" title="Benefits">
     Plans, enrollments, qualifying life events, and governed open-enrollment windows.
   </Card>
-  <Card href="./claims" title="Claims">
+  <Card href="/ask-docs/hrm/claims" title="Claims">
     Reimbursable claims with evidence, approvals, and payroll hand-off for unpaid rows.
   </Card>
-  <Card href="./payroll" title="Payroll">
+  <Card href="/ask-docs/hrm/payroll" title="Payroll">
     Pay runs, statutory deductions, gross-to-net calculations, and payslip generation.
   </Card>
-  <Card href="./performance" title="Performance">
+  <Card href="/ask-docs/hrm/performance" title="Performance">
     Review cycles, objectives, self-assessments, and manager evaluations.
   </Card>
-  <Card href="./kpi" title="KPI metrics & goals">
+  <Card href="/ask-docs/hrm/kpi" title="KPI metrics & goals">
     Quantitative scorecards plus personal goals, milestones, and discussion threads.
   </Card>
-  <Card href="./advances" title="Salary advances">
+  <Card href="/ask-docs/hrm/advances" title="Salary advances">
     Request, approve, and repay advances with payroll deduction evidence on lock.
   </Card>
-  <Card href="./compliance" title="Statutory compliance">
+  <Card href="/ask-docs/hrm/compliance" title="Statutory compliance">
     Jurisdiction packs, evidence rows, aging signals, and export-ready artefacts.
   </Card>
-  <Card href="./documents" title="Documents vault">
+  <Card href="/ask-docs/hrm/documents" title="Documents vault">
     Secure per-employee file store with expiry tracking and compliance dashboards.
   </Card>
-  <Card href="./policies" title="Policies">
+  <Card href="/ask-docs/hrm/policies" title="Policies">
     Handbook versions, acknowledgements, and policy-bound execution hooks.
   </Card>
-  <Card href="./snapshot" title="HR snapshot">
+  <Card href="/ask-docs/hrm/snapshot" title="HR snapshot">
     Read-only operational projection with deep links into execution surfaces.
   </Card>
 </Cards>
 
-## Permissions
-
-Access to HRM capabilities is controlled by ERP RBAC. Your organisation administrator assigns permissions per role. If you cannot see a section, contact your admin.
+<Callout type="info" title="Permissions">
+  Access to HRM capabilities is controlled by ERP RBAC. Your organisation administrator assigns permissions per role. If you cannot see a section, contact your admin.
+</Callout>
 
 ## Data protection
 
-All employee data processed in HRM is treated as sensitive. Afenda logs every data access and mutation to the immutable audit trail. See [Audit log](../org-admin) for details.
+All employee data processed in HRM is treated as sensitive. Afenda logs every data access and mutation to the immutable audit trail. See [Org admin](/ask-docs/org-admin) for governance surfaces.
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="A sidebar segment is missing">
+    Your ERP role may lack the permission keys for that capability. Ask an administrator to review effective permissions in org admin settings.
+  </Accordion>
+  <Accordion title="Actions return access denied">
+    Business authorization resolves from ERP RBAC, not org membership role alone. Confirm the specific `hrm.*` keys for the workflow you are running.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/getting-started/quick-start" title="Quick start">
+    Workbench navigation and first-login loading bay.
+  </Card>
+  <Card href="/ask-docs/org-admin" title="Org admin">
+    Members, audit export, and integration governance.
+  </Card>
+  <Card href="/ask-docs/portals/employee" title="Employee portal">
+    Self-service surfaces that pair with HRM execution modules.
+  </Card>
+</Cards>

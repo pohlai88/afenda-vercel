@@ -24,8 +24,8 @@ import {
 } from "../../../payroll-compensation/payroll-processing/data/payroll.queries.server"
 import { resolveRulePack } from "../../../payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server"
 import type { StatutoryPackType } from "../../../payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server"
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
-import { hrmCodedActionFailure } from "../../../hrm-action-result.shared"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
+import { hrmCodedActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   GenerateAllStatutoryPacksFormState,
   GenerateStatutoryPackFormState,

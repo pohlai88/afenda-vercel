@@ -12,9 +12,9 @@ import {
   shouldEscalatePlannerBlockedItem,
 } from "#features/planner"
 import { listPlannerBlockedItemsForEscalation } from "#features/planner/server"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
-import { runWithNodeOtelSpan } from "#lib/otel-span.server"
-import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
+import { runWithNodeOtelSpan } from "#lib/observability/otel-span.server"
+import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 
 /** Vercel cron: `vercel.json` + `CRON_SECRET` Bearer auth; extend with idempotent batch jobs. */
 export async function GET(request: NextRequest) {

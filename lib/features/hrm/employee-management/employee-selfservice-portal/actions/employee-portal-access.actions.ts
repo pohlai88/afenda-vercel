@@ -11,14 +11,14 @@ import { organizationPortalAccess } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { toLocalePortalRevalidatePattern } from "#lib/portal"
 
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import {
   ensureEmployeePortalForOrganization,
   getActiveEmployeePortalAccessForEmployee,
   getEmployeePortalSubject,
 } from "../data/employee-portal-access.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { EmployeePortalAccessFormState } from "../../../types"
 
 const employeePortalAccessFormSchema = z.object({

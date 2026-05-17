@@ -35,9 +35,16 @@ export async function resolveOrgReportingApproverUserId(input: {
   readonly organizationId: string
   readonly employeeId: string
   readonly level?: number
+  readonly asOfDate?: Date
 }): Promise<string | null> {
   const level = Math.max(1, input.level ?? 1)
-  const chain = await listOrgReportingChain(input.organizationId, input.employeeId)
+  const chain = await listOrgReportingChain(
+    input.organizationId,
+    input.employeeId,
+    {
+      asOfDate: input.asOfDate,
+    }
+  )
   const manager = chain.find((row) => row.depth === level)
   if (!manager) return null
   return resolveManagerApproverUserId({
@@ -53,9 +60,16 @@ export async function resolveOrgEscalationApproverUserIds(input: {
   readonly organizationId: string
   readonly employeeId: string
   readonly maxDepth?: number
+  readonly asOfDate?: Date
 }): Promise<readonly string[]> {
   const maxDepth = input.maxDepth ?? DEFAULT_ESCALATION_DEPTH
-  const chain = await listOrgReportingChain(input.organizationId, input.employeeId)
+  const chain = await listOrgReportingChain(
+    input.organizationId,
+    input.employeeId,
+    {
+      asOfDate: input.asOfDate,
+    }
+  )
   const links = chain.filter((link) => link.depth <= maxDepth)
   if (links.length === 0) return []
 

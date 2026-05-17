@@ -1,4 +1,4 @@
-import type { WorkbenchRailNavIconId } from "#components/workbench/left-nav-rail/workbench-rail.schema"
+import type { AppShellPrimaryLeftRailNavIconId } from "#app-shell"
 
 import type { WorkbenchId } from "./constants"
 import type { PinLane } from "./schemas/pin-input.schema"
@@ -6,20 +6,20 @@ import type { PinLane } from "./schemas/pin-input.schema"
 /**
  * Working Memory Rail — application-layer DTO surface.
  *
- * The Workbench shell schemas (`workbench-rail.schema.ts`) are the
- * **kernel** for what the rail can *render*. The types below are the
+ * App-shell primary left rail schemas (`appshell-primary-left-rail.schema.ts`)
+ * are the **kernel** for what the rail can *render*. The types below are the
  * **DTO** the `rail-memory` module emits on the server side and accepts
  * back from clients. They are intentionally a superset: the DB row
  * carries `createdAt` / `updatedAt` / `rank` columns that the rail UI
  * never renders, and the rail UI renders an `occurredAt` ISO string
  * that the DB stores as a `Date`. Mappers in `data/mappers.shared.ts`
  * are the only legitimate translators between the two — no other module
- * may shape the `WorkbenchRail*` payload directly.
+ * may shape the `AppShellPrimaryLeftRail*` payload directly.
  *
  * Kernel-level conditional density (Phase 3a) means callers must drop
  * empty arrays / zero-count inboxes BEFORE handing the slot to
- * `WorkbenchRail`. The mappers preserve raw counts; the builder layer
- * enforces "omit when empty."
+ * `AppShellPrimaryLeftRail`. The mappers preserve raw counts; the builder
+ * layer enforces "omit when empty."
  */
 
 // ---------------------------------------------------------------------------
@@ -41,7 +41,7 @@ export type RailMemoryPin = {
   readonly resourceId: string
   readonly label: string
   readonly href: string
-  readonly icon: WorkbenchRailNavIconId | null
+  readonly icon: AppShellPrimaryLeftRailNavIconId | null
   readonly rank: number
   readonly createdAt: Date
   /** Memory lane bucket — defaults to "pinned" for legacy rows. */
@@ -54,7 +54,7 @@ export type RailMemorySavedView = {
   readonly workbenchId: WorkbenchId
   readonly label: string
   readonly href: string
-  readonly icon: WorkbenchRailNavIconId | null
+  readonly icon: AppShellPrimaryLeftRailNavIconId | null
   readonly rank: number
   readonly createdAt: Date
   readonly updatedAt: Date
@@ -72,7 +72,7 @@ export type RailMemoryRecent = {
   readonly resourceId: string | null
   readonly label: string
   readonly href: string
-  readonly icon: WorkbenchRailNavIconId | null
+  readonly icon: AppShellPrimaryLeftRailNavIconId | null
   readonly occurredAt: Date
 }
 

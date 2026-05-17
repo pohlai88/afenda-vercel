@@ -55,6 +55,10 @@ describe("HRM employee lifecycle management contracts", () => {
     expect(guard).toContain("requireEmployeeLifecycleRecordGate")
     expect(mutations).toContain("assertEmploymentStatusTransition")
     expect(mutations).toContain("hrmLifecycleEvent")
+    expect(mutations).toContain("hrmLifecycleTransition")
+    expect(mutations).toContain("upsertEmployeeEffectiveAssignment")
+    expect(mutations).toContain("ensureLifecycleOffboardingTriggered")
+    expect(mutations).toContain("runLifecycleTransitionDueTick")
   })
 
   it("gates boarding task actions with kind-aware ERP permissions", () => {
@@ -71,5 +75,85 @@ describe("HRM employee lifecycle management contracts", () => {
     expect(boarding).toContain("HRM_EMPLOYEE_LIFECYCLE_AUDIT.boarding")
     expect(boarding).not.toContain("requireHrmAdmin")
     expect(guard).toContain("requireBoardingTaskMutationGate")
+  })
+
+  it("exports metadata and guarded lifecycle read surfaces through the HRM server door", () => {
+    const server = readFileSync(
+      join(process.cwd(), "lib/features/hrm/server.ts"),
+      "utf8"
+    )
+    const metadata = readFileSync(
+      join(LCM_ROOT, "data", "employee-lifecycle-surface-metadata.shared.ts"),
+      "utf8"
+    )
+
+    expect(server).toContain("runLifecycleTransitionDueTick")
+    expect(server).toContain("getEmployeeLifecycleSnapshot")
+    expect(server).toContain("getEmployeeLifecycleHistory")
+    expect(server).toContain("EMPLOYEE_LIFECYCLE_METADATA_COLUMNS")
+    expect(metadata).toContain("EMPLOYEE_LIFECYCLE_METADATA_FILTERS")
+    expect(metadata).toContain("EMPLOYEE_LIFECYCLE_METADATA_ROW_ACTIONS")
+  })
+
+  it("registers the lifecycle due-transition cron route", () => {
+    const route = readFileSync(
+      join(
+        process.cwd(),
+        "app/api/cron/hrm-lifecycle-transition-due/route.ts"
+      ),
+      "utf8"
+    )
+    const vercel = readFileSync(join(process.cwd(), "vercel.json"), "utf8")
+
+    expect(route).toContain("runLifecycleTransitionDueTick")
+    expect(route).toContain("CRON_SECRET")
+    expect(route).toContain("hrm-lifecycle-transition-due")
+    expect(vercel).toContain("/api/cron/hrm-lifecycle-transition-due")
+  })
+
+  it("defines the effective-dated lifecycle transition table", () => {
+    const schema = readFileSync(
+      join(process.cwd(), "lib/db/schema.ts"),
+      "utf8"
+    )
+
+    expect(schema).toContain("hrmLifecycleTransition")
+    expect(schema).toContain('"hrm_lifecycle_transition"')
+    expect(schema).toContain("transitionKind")
+    expect(schema).toContain("effectiveDate")
+    expect(schema).toContain("payload")
+    expect(schema).toContain(
+      "hrm_lifecycle_transition_org_emp_kind_eff_status_uidx"
+    )
+  })
+
+  it("connects contract expiry watch to lifecycle offboarding transition", () => {
+    const watchServer = readFileSync(
+      join(
+        process.cwd(),
+        "lib/features/hrm/employee-management/employee-lifecycle-management/data/contract-expiry-watch.server.ts"
+      ),
+      "utf8"
+    )
+    const contractContract = readFileSync(
+      join(
+        process.cwd(),
+        "lib/features/hrm/employee-management/employee-lifecycle-management/employee-lifecycle.contract.ts"
+      ),
+      "utf8"
+    )
+    const route = readFileSync(
+      join(
+        process.cwd(),
+        "app/api/cron/hrm-contract-expiry-watch/route.ts"
+      ),
+      "utf8"
+    )
+
+    expect(watchServer).toContain("triggerContractExpiryLifecycleTransition")
+    expect(watchServer).toContain("contractExpiryTransitions")
+    expect(watchServer).toContain("triggerContractExpiryLifecycleTransition")
+    expect(contractContract).toContain("expiry_reached")
+    expect(route).toContain("contractExpiryTransitions")
   })
 })

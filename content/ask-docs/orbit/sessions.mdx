@@ -1,40 +1,49 @@
 ---
 title: Sessions
 description: Active and recent execution sessions with worklog continuity in Orbit.
+audience: admin
+status: stable
 icon: Timer
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-**Orbit Sessions** (`/o/{orgSlug}/dashboard/orbit/sessions`) shows **active and recent execution sessions** — focused work periods logged against planner items with worklog continuity.
+**Orbit Sessions** (`/{locale}/o/{orgSlug}/dashboard/orbit/sessions`) shows **active and recent execution sessions** — focused work periods logged against planner items with worklog continuity.
 
 Use Sessions when you need to answer: *who is executing what right now, and what time was spent?*
+
+## Before you start
+
+- You need an active org session and ERP permissions for the planner module.
+- Sessions are first-class entities — not a hidden column on items.
+- Starting a session emits `erp.planner.session.start`; stopping emits `erp.planner.session.stop`.
 
 ## What is a session?
 
 A **planner session** is a bounded period of execution:
 
-- **Started** with an explicit operator action (`erp.planner.session.start`)
-- **Stopped** when work pauses or completes (`erp.planner.session.stop`)
+- **Started** with an explicit operator action
+- **Stopped** when work pauses or completes
 - Linked to one or more execution items for evidence and reporting
 
-Sessions are first-class entities — not a hidden column on items.
+<Callout type="info" title="Evidence, not timesheets alone">
+  Session history rolls into **Execution record** and **Activity stream** evidence groups on items — supporting audits and operator handoffs.
+</Callout>
 
-## Starting and stopping
+## Start and stop a session
 
 <Steps>
   <Step>
-    From [Queue](./queue) or item detail, click **Start session** (or use Sessions quick-create when no item is pre-selected).
+    From [Queue](/ask-docs/orbit/queue) or item detail, click **Start session** (or use Sessions quick-create when no item is pre-selected).
   </Step>
   <Step>
-    Work the item — comments, attachments, and lifecycle transitions accrue as operator evidence.
+    Work the item — comments, attachments, and lifecycle transitions accrue as operator evidence while the session runs.
   </Step>
   <Step>
-    **Stop session** when pausing or finishing the focused block.
+    **Stop session** when pausing or finishing the focused block. Stopping prevents orphaned running sessions.
   </Step>
 </Steps>
-
-Only one active session pattern should be used per operator policy; stopping prevents orphaned running sessions.
 
 ## Sessions surface
 
@@ -49,8 +58,25 @@ Select a session to inspect linked items, duration evidence, and related activit
 
 Session history rolls into execution evidence groups (**Execution record**, **Activity stream**) on items. This supports audits and handoffs — the next operator can see that work was in progress even if lifecycle state is still `active`.
 
-## Related surfaces
+## Troubleshooting
 
-- [Queue](./queue) — start sessions while executing ranked work
-- [Today](./today) — sessions tied to the day's plan
-- [Core concepts](./concepts) — evidence panel groupings
+<Accordions type="single">
+  <Accordion title="I cannot start a session">
+    Confirm an execution item is selected or created first. Sessions attach to planner items, not bare signals awaiting triage.
+  </Accordion>
+  <Accordion title="A session still shows as active">
+    Stop the session explicitly when pausing work. Only one active session pattern should run per operator policy.
+  </Accordion>
+  <Accordion title="Session time is missing from item evidence">
+    Open the item detail pane and check **Execution record** — session stop must complete before history appears in evidence groups.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/orbit/queue" title="Queue" description="Start sessions while executing ranked work." />
+  <Card href="/ask-docs/orbit/today" title="Today" description="Sessions tied to the day's execution plan." />
+  <Card href="/ask-docs/orbit/concepts" title="Core concepts" description="Evidence panel groupings and lifecycle." />
+  <Card href="/ask-docs/orbit" title="Orbit overview" description="Hub for queue-first execution surfaces." />
+</Cards>

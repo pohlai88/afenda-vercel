@@ -1,12 +1,11 @@
 import { ClaimsPage } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import {
   resolveClaimSurfaceAccess,
   type ClaimSurfaceAccess,
 } from "#features/hrm/server"
 
-export const dynamic = "force-dynamic"
 
 export default async function OrgDashboardHrmClaimsPage({
   params,

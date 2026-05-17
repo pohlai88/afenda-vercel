@@ -7,12 +7,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/card"
+import { requireOrgSession } from "#lib/auth"
 
-import { buildGovernedHrmWorkbenchHeader } from "#features/hrm/server"
-import { listRecentImportSessions } from "../../../hrm/employee-management/employee-records-management/data/hrm-import.queries.server.ts"
+import { buildGovernedToolsWorkbenchHeader } from "../../_module-governance/tools-governed-page-header.server"
+import { listRecentImportSessions } from "../data/hrm-import.queries.server"
 import { HrmImportRollbackButton } from "./hrm-import-rollback-button.client"
+import { HrmImportSessionCommitRollback } from "./hrm-import-session-commit-rollback.client"
 import { HrmImportWizard } from "./hrm-import-wizard"
 
 type HrmImportsPageProps = {
@@ -25,7 +26,7 @@ export async function HrmImportsPage({ orgSlug }: HrmImportsPageProps) {
     getTranslations("Dashboard.Hrm.imports"),
     listRecentImportSessions(organizationId),
     getFormatter(),
-    buildGovernedHrmWorkbenchHeader(orgSlug, "Dashboard.Hrm.imports", {
+    buildGovernedToolsWorkbenchHeader(orgSlug, "Dashboard.Hrm.imports", {
       eyebrow: "eyebrow",
       title: "title",
       description: "description",
@@ -56,8 +57,27 @@ export async function HrmImportsPage({ orgSlug }: HrmImportsPageProps) {
                     <p className="text-xs text-muted-foreground">
                       {t("rowsLabel")}: {s.rowCount}
                     </p>
+                    {s.errorJson?.rows?.length ? (
+                      <ul className="mt-1 list-inside list-disc text-xs text-destructive">
+                        {s.errorJson.rows.slice(0, 5).map((e, index) => (
+                          <li key={`${s.id}-${e.line}-${index}`}>
+                            {t("rowError", { line: e.line, message: e.message })}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-4">
+                    {s.status === "dry_run" &&
+                    s.rollbackKind === "hrm_import_v1" &&
+                    !s.errorJson?.rows?.length &&
+                    s.rowCount > 0 ? (
+                      <HrmImportSessionCommitRollback
+                        orgSlug={orgSlug}
+                        sessionId={s.id}
+                        canCommit
+                      />
+                    ) : null}
                     {s.status === "committed" ? (
                       <HrmImportRollbackButton
                         orgSlug={orgSlug}

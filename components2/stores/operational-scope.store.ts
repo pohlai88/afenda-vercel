@@ -37,7 +37,7 @@ type OperationalScopeUiActions = {
 export type OperationalScopeUiStore = OperationalScopeUiState &
   OperationalScopeUiActions
 
-export const useOperationalScopeUiStore = create<OperationalScopeUiStore>(
+export const useOperationalScopeUiStore = create<OperationalScopeUiStore>()(
   (set) => ({
     openPopoverScopeType: null,
     searchQuery: "",

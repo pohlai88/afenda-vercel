@@ -1,0 +1,76 @@
+---
+title: Employee portal claims
+description: Submit expense claims with evidence, track status, and cancel drafts from the employee portal.
+audience: employee
+status: draft
+icon: Receipt
+---
+
+## Overview
+
+**My claims** at `/{locale}/p/{portalSlug}/employee/claims` lets you create reimbursable claims, attach evidence, submit for approval, and cancel drafts or pending rows before they are finalized. Approvers work the queue in HRM; approved unpaid claims may surface in payroll preparation.
+
+## Before you start
+
+- Employee portal session with audience `employee`.
+- Evidence files must meet your organisation's upload policy (governed Blob storage).
+
+## Submit and manage claims
+
+<Steps>
+  <Step>
+    ### Open My claims
+
+    From the employee portal, open **Claims** in the section navigation.
+  </Step>
+  <Step>
+    ### Create a claim
+
+    Choose a **claim type**, enter line items and currency-aware amounts, and attach **evidence** (receipts, invoices). Save as draft or submit immediately.
+
+    <Callout type="info" title="Evidence storage">
+      Attachments use the same governed upload contract as the HRM documents vault — not ad-hoc URLs.
+    </Callout>
+  </Step>
+  <Step>
+    ### Track status
+
+    Open a claim (`/employee/claims/{claimId}`) to see approval state, denials, and approver notes.
+  </Step>
+  <Step>
+    ### Cancel when allowed
+
+    Cancel **draft** or eligible **pending** claims from the list or detail view before approval locks the row.
+  </Step>
+</Steps>
+
+## Portal vs HRM
+
+| Action | Employee portal | HRM |
+| --- | --- | --- |
+| Submit / cancel own claim | Yes | — |
+| Approve / deny | — | Yes |
+| Pay via payroll | — | Yes (when configured) |
+
+## Authority and audit
+
+Portal claim actions resolve authority from portal access rows via `getEmployeePortalContext` — not client-supplied org or employee IDs.
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="My claim was denied">
+    Read the structured denial reason on the detail page, correct line items or evidence, and submit a new claim if policy allows.
+  </Accordion>
+  <Accordion title="Upload failed">
+    Check file type and size limits. Retry with a PDF or image format accepted by your org.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/portals/employee" title="Employee portal hub" />
+  <Card href="/ask-docs/hrm/claims" title="Claims (HRM)" />
+  <Card href="/ask-docs/portals/documents" title="Employee portal documents" />
+</Cards>

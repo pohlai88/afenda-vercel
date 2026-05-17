@@ -31,6 +31,9 @@ export async function resolveEmployeeLegalEntityCode(
       and(
         eq(hrmPayrollProfile.organizationId, organizationId),
         eq(hrmPayrollProfile.employeeId, employeeId),
+        ...(countryCode
+          ? [eq(hrmPayrollProfile.countryCode, countryCode.toUpperCase())]
+          : []),
         isNull(hrmPayrollProfile.effectiveTo)
       )
     )

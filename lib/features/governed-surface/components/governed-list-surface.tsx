@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 
-import { ModulePageHeader } from "#components/module-page-header"
-import { Card, CardContent } from "#components/ui/card"
+import { ModulePageHeader } from "./module-page-header"
+import { Card, CardContent } from "#components2/ui/card"
 import { cn } from "#lib/utils"
 
 import type { ListSurface } from "../schemas/list-surface.schema"

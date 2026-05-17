@@ -5,6 +5,8 @@ alwaysApply: true
 
 # No Dead Code, No Compatibility Shims
 
+**The entire repo-root `components/` directory is hard-deleted — never recreate it or any path under it.** See **`never-restore-deleted-components.mdc`** (always on). Deletion is forward-only.
+
 ## The rule is simple
 
 When a route, component, export, or branch is **deleted**, everything that existed **only to support it** is deleted **in the same commit**. No shims. No aliases. No redirects. No "keep it for now."

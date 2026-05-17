@@ -109,6 +109,8 @@ remain outside the portal boundary.
   authorization belongs in server layouts, Server Components, Server Actions,
   and approved API route handlers.
 
+**App vs source:** Portal routes stay thin in `app/`; chrome in `components2/portal-shell/`. See AGENTS.md §6 *App vs source*.
+
 ---
 
 ## 5. Definition of Done

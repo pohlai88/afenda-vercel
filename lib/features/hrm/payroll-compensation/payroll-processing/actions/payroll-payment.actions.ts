@@ -14,7 +14,7 @@ import {
 import { generatePayrollPaymentBatch } from "../data/payroll-payment-batch.server"
 import { updatePayrollPaymentStatus } from "../data/payroll.mutations.server"
 import { requirePayrollSessionMutationGate } from "../data/payroll-action-guard.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   PayrollPaymentBatchFormState,
   PayrollPaymentStatusFormState,

@@ -7,7 +7,7 @@ import { createPlannerSignalFromErpProducer } from "#features/planner/server"
 import { publishOrgNotificationIfMissing } from "#features/org-notifications/server"
 import { writeIamAuditEvent } from "#lib/auth"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { organizationAdminPath } from "../constants"
 import { getImportAdapter } from "./member-invite.adapter.server"

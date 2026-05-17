@@ -219,6 +219,27 @@ export async function runDocumentExpiryWatchTick(
     }
   }
 
+  const expiredCandidates = candidates.filter(
+    (candidate) => candidate.daysToExpiry < 0
+  )
+  const nowForUpdate = new Date()
+  for (const candidate of expiredCandidates) {
+    await db
+      .update(hrmDocument)
+      .set({
+        verificationStatus: "expired",
+        updatedAt: nowForUpdate,
+      })
+      .where(
+        and(
+          eq(hrmDocument.organizationId, candidate.organizationId),
+          eq(hrmDocument.id, candidate.documentId),
+          eq(hrmDocument.documentLifecycleStatus, "active"),
+          inArray(hrmDocument.verificationStatus, ["pending", "verified"])
+        )
+      )
+  }
+
   return {
     scanned: candidates.length,
     emitted,

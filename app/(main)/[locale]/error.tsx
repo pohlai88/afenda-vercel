@@ -1,17 +1,17 @@
 "use client"
 
-import { useRouteEnvelope } from "#components/route-envelope-context"
-import { AfendaBrandLockup } from "#components/afenda-brand"
-import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
-import { RouteErrorActions } from "#components/route-error-primitives"
-import { RouteErrorRetryButton } from "#components/route-error-retry-button"
-import { Button } from "#components/ui/button"
+import { useRouteEnvelope } from "#components2/route-envelope-context.client"
+import { AfendaBrandLockup } from "#components2/marketing"
+import { RouteErrorDebugPanel } from "#components2/dev/route-error-debug-panel"
+import { RouteErrorActions } from "#components2/route-error/route-error-primitives"
+import { RouteErrorRetryButton } from "#components2/route-error/route-error-retry-button"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
-import { useReportRouteError } from "#components/use-report-route-error"
+import { useReportRouteError } from "#components2/route-error/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
-} from "#lib/next-app-error-page-props.shared"
+} from "#components2/route-error/error-page-props.shared"
 
 /**
  * Locale-tier error boundary — catches RSC/render errors below `app/[locale]/layout.tsx`

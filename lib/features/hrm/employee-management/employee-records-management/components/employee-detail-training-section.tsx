@@ -1,13 +1,13 @@
 import { getFormatter, getTranslations } from "next-intl/server"
 
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 import {
   Table,
   TableBody,
@@ -15,7 +15,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "#components/ui/table"
+} from "#components2/ui/table"
 
 import { listEmployeeSkillsForEmployee } from "../../../talent-management/competency-skills-framework/data/skill.queries.server"
 import {

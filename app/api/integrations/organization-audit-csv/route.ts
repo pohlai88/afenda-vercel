@@ -5,8 +5,8 @@ import {
   writeIamAuditEventFromHeaders,
 } from "#lib/auth"
 import { hasTenantAuthority } from "#features/erp-rbac/server"
-import { routeTextError } from "#lib/route-handler-json.shared"
-import { getOrgSessionFromRequest } from "#lib/tenant"
+import { routeTextError } from "#lib/api/route-handler-json.shared"
+import { getOrgSessionFromRequest } from "#lib/auth"
 
 /**
  * Streaming org IAM audit CSV (larger cap than the Server Action export).

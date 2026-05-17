@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { PlusIcon } from "lucide-react"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "#components/ui/dialog"
+} from "#components2/ui/dialog"
 
 import { BenefitProviderForm } from "./benefit-provider-form"
 

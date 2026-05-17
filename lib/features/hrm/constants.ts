@@ -3,8 +3,8 @@ import type { Route } from "next"
 import {
   HRM_DASHBOARD_CAPABILITY_SEGMENT_SET,
   type HrmDashboardCapabilitySegment,
-} from "#lib/hrm-dashboard.shared"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+} from "./hrm-dashboard-path.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 import {
   ORG_DASHBOARD_HRM,
@@ -17,7 +17,7 @@ import { HRM_NAV_NAMESPACE } from "./types"
 
 /**
  * Canonical HRM capability registry — routes, audit prefixes, nav order, and contract tests.
- * One row per `/dashboard/hrm/{segment}` segment (see `#lib/hrm-dashboard.shared`).
+ * One row per `/dashboard/hrm/{segment}` segment (see `hrm-dashboard-path.shared.ts`).
  */
 export const HRM_CAPABILITIES = [
   {
@@ -294,13 +294,6 @@ export function organizationHrmClaimsPath(orgSlug: string): Route {
 /** Locale-internal signatures URL (`/dashboard/hrm/signatures`). */
 export function organizationHrmSignaturesPath(orgSlug: string): Route {
   return organizationHrmPath(orgSlug, "signatures")
-}
-
-export function organizationHrmSignatureRequestPath(
-  orgSlug: string,
-  publicSlug: string
-): Route {
-  return `${organizationHrmSignaturesPath(orgSlug)}/${publicSlug}` as Route
 }
 
 /** Locale-internal employee detail URL (`/dashboard/hrm/employees/{id}`). */

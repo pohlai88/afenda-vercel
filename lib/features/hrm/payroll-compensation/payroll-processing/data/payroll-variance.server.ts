@@ -3,11 +3,7 @@ import "server-only"
 import { and, desc, eq, lt, sql } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import {
-  hrmPayrollAnomaly,
-  hrmPayrollPeriod,
-  hrmPayrollRun,
-} from "#lib/db/schema"
+import { hrmPayrollPeriod, hrmPayrollRun } from "#lib/db/schema"
 
 /** Net-pay variance above this % vs prior locked period is blocking (HRM-PAY-019). */
 const BLOCKING_VARIANCE_PCT = 25
@@ -57,11 +53,11 @@ async function findPriorLockedRunNetPay(input: {
   return { periodId: priorPeriodId, netPay: row.netPay }
 }
 
-export async function detectPayrollVarianceForPeriod(input: {
+async function listPayrollVarianceRows(input: {
   readonly organizationId: string
   readonly periodId: string
   readonly periodStart: string
-}): Promise<number> {
+}): Promise<readonly { severity: "blocking" | "warning" }[]> {
   const runs = await db
     .select({
       id: hrmPayrollRun.id,
@@ -77,16 +73,7 @@ export async function detectPayrollVarianceForPeriod(input: {
       )
     )
 
-  await db
-    .delete(hrmPayrollAnomaly)
-    .where(
-      and(
-        eq(hrmPayrollAnomaly.organizationId, input.organizationId),
-        eq(hrmPayrollAnomaly.periodId, input.periodId)
-      )
-    )
-
-  let created = 0
+  const rows: { severity: "blocking" | "warning" }[] = []
   for (const run of runs) {
     const prior = await findPriorLockedRunNetPay({
       organizationId: input.organizationId,
@@ -105,47 +92,49 @@ export async function detectPayrollVarianceForPeriod(input: {
     const severity =
       variancePct >= BLOCKING_VARIANCE_PCT ? "blocking" : "warning"
 
-    await db.insert(hrmPayrollAnomaly).values({
-      organizationId: input.organizationId,
-      periodId: input.periodId,
-      employeeId: run.employeeId,
-      code: "net_pay_variance",
-      severity,
-      message: `Net pay varies ${variancePct.toFixed(1)}% from prior period (${priorNet.toFixed(2)} → ${currentNet.toFixed(2)}).`,
-      priorPeriodId: prior.periodId,
-      currentAmount: run.netPay,
-      priorAmount: prior.netPay,
-      variancePct: variancePct.toFixed(4),
-    })
-    created += 1
+    rows.push({ severity })
   }
 
-  return created
+  return rows
+}
+
+export async function detectPayrollVarianceForPeriod(input: {
+  readonly organizationId: string
+  readonly periodId: string
+  readonly periodStart: string
+}): Promise<number> {
+  const rows = await listPayrollVarianceRows(input)
+  return rows.length
 }
 
 export async function countPayrollAnomaliesForPeriod(
   organizationId: string,
   periodId: string
 ): Promise<{ blocking: number; warning: number }> {
-  const rows = await db
-    .select({
-      severity: hrmPayrollAnomaly.severity,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(hrmPayrollAnomaly)
+  const [period] = await db
+    .select({ periodStart: hrmPayrollPeriod.periodStart })
+    .from(hrmPayrollPeriod)
     .where(
       and(
-        eq(hrmPayrollAnomaly.organizationId, organizationId),
-        eq(hrmPayrollAnomaly.periodId, periodId)
+        eq(hrmPayrollPeriod.organizationId, organizationId),
+        eq(hrmPayrollPeriod.id, periodId)
       )
     )
-    .groupBy(hrmPayrollAnomaly.severity)
+    .limit(1)
+
+  if (!period) return { blocking: 0, warning: 0 }
+
+  const rows = await listPayrollVarianceRows({
+    organizationId,
+    periodId,
+    periodStart: String(period.periodStart).slice(0, 10),
+  })
 
   let blocking = 0
   let warning = 0
   for (const row of rows) {
-    if (row.severity === "blocking") blocking = row.count
-    else if (row.severity === "warning") warning = row.count
+    if (row.severity === "blocking") blocking += 1
+    else if (row.severity === "warning") warning += 1
   }
   return { blocking, warning }
 }

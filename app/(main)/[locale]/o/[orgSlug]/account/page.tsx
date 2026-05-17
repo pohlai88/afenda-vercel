@@ -1,13 +1,12 @@
 import { getTranslations } from "next-intl/server"
 
-import { WorkbenchSurface } from "#components/workbench"
+import { AppShellSurface } from "#app-shell"
 import { organizationAccountPath } from "#lib/dashboard-module-paths"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 
 import { AccountContextBand } from "../../../(iam)/account/_components/account-context-band"
 import { getAccountShellData } from "../../../(iam)/account/_components/account-shell-data.server"
 
-export const dynamic = "force-dynamic"
 
 function formatRecentTimestamp(
   locale: string,
@@ -46,7 +45,7 @@ export default async function OrganizationAccountIndexPage({
   const recentItems = shellData.securityActivity.slice(0, 3)
 
   return (
-    <WorkbenchSurface
+    <AppShellSurface
       breadcrumbs={[
         {
           label: t("breadcrumbs.personal"),
@@ -113,6 +112,6 @@ export default async function OrganizationAccountIndexPage({
           </p>
         )}
       </AccountContextBand>
-    </WorkbenchSurface>
+    </AppShellSurface>
   )
 }

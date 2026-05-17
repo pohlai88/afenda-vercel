@@ -3,10 +3,10 @@
 import { useActionState } from "react"
 import { useTranslations } from "next-intl"
 
-import { Button } from "#components/ui/button"
-import { Field, FieldLabel } from "#components/ui/field"
-import { Input } from "#components/ui/input"
-import { Textarea } from "#components/ui/textarea"
+import { Button } from "#components2/ui/button"
+import { Field, FieldLabel } from "#components2/ui/field"
+import { Input } from "#components2/ui/input"
+import { Textarea } from "#components2/ui/textarea"
 
 import { initiateOffboardingAction } from "#features/hrm/client"
 import type { ContractMutationFormState } from "../../../types"

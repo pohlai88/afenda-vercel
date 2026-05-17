@@ -8,7 +8,7 @@ import {
   requireAuthShellSignedInSession,
 } from "#lib/auth"
 
-import { WorkbenchSurface } from "#components/workbench"
+import { AppShellSurface } from "#app-shell"
 import { organizationNexusPath } from "#features/nexus"
 import { organizationAccountPath } from "#lib/dashboard-module-paths"
 import { AccountIdentityClient } from "../../../../(iam)/account/identity/identity-client"
@@ -44,7 +44,7 @@ export default async function OrganizationAccountIdentityPage({
   ])
 
   return (
-    <WorkbenchSurface
+    <AppShellSurface
       breadcrumbs={[
         {
           label: tSurface("breadcrumbs.personal"),
@@ -67,6 +67,6 @@ export default async function OrganizationAccountIdentityPage({
         securityPath={organizationAccountPath(orgSlug, "security")}
         dashboardPath={organizationNexusPath(orgSlug)}
       />
-    </WorkbenchSurface>
+    </AppShellSurface>
   )
 }

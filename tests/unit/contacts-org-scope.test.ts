@@ -28,11 +28,8 @@ import { createContact } from "#features/contacts/actions/create-contact"
 import { listContactsForOrganization } from "#features/contacts/data/contacts.queries"
 import { db } from "#lib/db"
 
-vi.mock("#lib/tenant", () => ({
-  requireOrgSession: vi.fn(),
-}))
-
 vi.mock("#lib/auth", () => ({
+  requireOrgSession: vi.fn(),
   writeIamAuditEventFromNextHeaders: vi.fn().mockResolvedValue(undefined),
 }))
 
@@ -44,7 +41,7 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }))
 
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 describe("contacts org isolation", () => {
   beforeEach(() => {

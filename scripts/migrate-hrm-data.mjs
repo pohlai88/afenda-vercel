@@ -63,8 +63,8 @@ function classify(relFromData) {
   }
 
   const rules = [
-    [/^(attendance|time-report)/, "workforce-time-attendance/data"],
-    [/^leave/, "workforce-time-attendance/data"],
+    [/^(attendance|time-report)/, "time-attendance/leave-attendance-management/data"],
+    [/^leave/, "time-attendance/leave-attendance-management/data"],
     [/^boarding|^onboarding|^probation-watch/, "employee-management/employee-lifecycle-management/data"],
     [/^offboarding/, "employee-management/offboarding-exit-management/data"],
     [/^compliance|^statutory|^bureau-reliability/, "employee-management/compliance-regulatory-tracking/data"],
@@ -83,7 +83,7 @@ function classify(relFromData) {
       return { target }
   }
   if (norm.startsWith("leave-rules/"))
-    return { target: "workforce-time-attendance/data/leave-rules" }
+    return { target: "time-attendance/leave-attendance-management/data/leave-rules" }
 
   return null
 }

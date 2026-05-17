@@ -1,7 +1,6 @@
 import type { Route } from "next"
 
-import type { AppPath } from "#lib/i18n/locales.shared"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 import {
   CAPABILITY_CATEGORIES,
@@ -12,10 +11,9 @@ import {
 /**
  * Capability Registry — runtime constants.
  *
- * Doctrinal anchor: the Marketplace surface (`/{locale}/marketplace`)
- * is the chain-wide capability registry. URL surface and category
- * vocabulary live here so tests, paths, and i18n keys pull from one
- * source.
+ * Canonical surface: `/{locale}/o/{orgSlug}/marketplace` (org-scoped under
+ * the authenticated app shell). Category vocabulary lives here so tests,
+ * paths, and i18n keys pull from one source.
  */
 
 // ---------------------------------------------------------------------------
@@ -23,31 +21,24 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
- * Locale-internal pathname for the Marketplace surface. Pass the
- * result to `Link` / `router.push` from `#i18n/navigation`; do not
- * prefix `/{locale}` manually.
+ * Locale-internal pathname for the org-scoped Marketplace surface. Pass the
+ * result to `Link` / `router.push` from `#i18n/navigation`; do not prefix
+ * `/{locale}` manually.
  *
  * Categories:
- *   - `marketplacePath()`               → `/marketplace`
- *   - `marketplacePath("utilities")`    → `/marketplace/utilities`
- *   - `marketplacePath("admin")`        → `/marketplace/admin`
- *   - `marketplacePath("plugins")`      → `/marketplace/plugins`
+ *   - `organizationMarketplacePath(slug)`           → `/o/{slug}/marketplace`
+ *   - `organizationMarketplacePath(slug, "utilities")` → `/o/{slug}/marketplace/utilities`
+ *   - `organizationMarketplacePath(slug, "admin")`    → `/o/{slug}/marketplace/admin`
  *
- * `admin` is reserved for the governance surface (org-admin gate +
- * step-up); it is not a `CapabilityCategory` because it does not list
- * capabilities. Future categories register in `CAPABILITY_CATEGORIES`
- * (see `marketplace.contract.ts`).
+ * `admin` is reserved for the governance surface (org-admin gate + step-up);
+ * it is not a `CapabilityCategory`. Future categories register in
+ * `CAPABILITY_CATEGORIES` (see `marketplace.contract.ts`).
  */
 export type MarketplaceRoute = "admin" | CapabilityCategory
 
 let cachedMarketplaceRoutes: Set<string> | null = null
 
 function getMarketplaceRoutes(): Set<string> {
-  // Lazy initialization avoids a circular-dependency hazard: this module
-  // is loaded transitively from `actions/*.ts`, whose import graph reaches
-  // `marketplace.contract.ts` via several entry points. Reading
-  // `CAPABILITY_CATEGORIES` at module-eval time can observe the binding
-  // before `marketplace.contract.ts` has finished evaluating.
   if (cachedMarketplaceRoutes) return cachedMarketplaceRoutes
   cachedMarketplaceRoutes = new Set<string>(["admin", ...CAPABILITY_CATEGORIES])
   return cachedMarketplaceRoutes
@@ -57,13 +48,8 @@ export function isMarketplaceRoute(value: string): value is MarketplaceRoute {
   return getMarketplaceRoutes().has(value)
 }
 
-export function marketplacePath(target?: MarketplaceRoute): AppPath {
-  if (!target) return "/marketplace" as AppPath
-  return `/marketplace/${target}` as AppPath
-}
-
 /**
- * Canonical org-scoped marketplace path under the authenticated workbench.
+ * Canonical org-scoped marketplace path under the authenticated app shell.
  */
 export function organizationMarketplacePath(
   orgSlug: string,
@@ -76,14 +62,6 @@ export function organizationMarketplacePath(
   const base = `/o/${slug}/marketplace`
   if (!target) return base as Route
   return `${base}/${target}` as Route
-}
-
-/**
- * Typed-route variant for callers that need a `Route` (statically
- * typed by `next typedRoutes`). Identical content to `marketplacePath`.
- */
-export function marketplaceRoute(target?: MarketplaceRoute): Route {
-  return marketplacePath(target) as unknown as Route
 }
 
 // ---------------------------------------------------------------------------

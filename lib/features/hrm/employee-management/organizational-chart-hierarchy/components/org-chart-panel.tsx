@@ -6,8 +6,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/card"
+import { requireOrgSession } from "#lib/auth"
 
 import type { OrgStructureSurfaceCapabilities } from "../data/org-structure-capabilities.shared"
 import { listOrgChartNodes } from "../data/org-structure.queries.server"

@@ -5,9 +5,9 @@ import { and, eq } from "drizzle-orm"
 import { db } from "#lib/db"
 import { hrmBoardingInstance, hrmBoardingTask } from "#lib/db/schema"
 
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
 
 export type EmployeeLifecycleMutationFunction = "read" | "update" | "create"
@@ -65,7 +65,11 @@ export async function requireEmployeeLifecycleRecordGate(
   formData: FormData,
   functionName: EmployeeLifecycleMutationFunction = "update"
 ) {
-  return requireEmployeeLifecycleMutationGate(formData, functionName, "employee")
+  return requireEmployeeLifecycleMutationGate(
+    formData,
+    functionName,
+    "employee"
+  )
 }
 
 /**

@@ -5,8 +5,8 @@ import { useFormStatus } from "react-dom"
 
 import { useTranslations } from "next-intl"
 
-import { Button } from "#components/ui/button"
-import { Spinner } from "#components/ui/spinner"
+import { Button } from "#components2/ui/button"
+import { Spinner } from "#components2/ui/spinner"
 
 import {
   cancelOrgImportJob,

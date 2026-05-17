@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { ORG_DASHBOARD_SALE } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import { saleFilterSchema } from "../schemas/sale-filter.schema"
 import type { SaleActionState } from "../types"
 

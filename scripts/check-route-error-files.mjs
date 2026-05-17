@@ -55,8 +55,8 @@ const APPROVED_BOUNDARIES = new Set([
   "app/(main)/[locale]/console/error.tsx",
   // Portal shell (PortalShell chrome — separate from WorkbenchShell)
   "app/(main)/[locale]/p/[portalSlug]/error.tsx",
-  // Employee portal self-service segment (14 sections under PortalShell)
-  "app/(main)/[locale]/p/[portalSlug]/employee/error.tsx",
+  // Employee portal self-service segment (under PortalShell + portal-auth group)
+  "app/(main)/[locale]/p/[portalSlug]/(portal-auth)/employee/error.tsx",
   // Orbit (Planner) surface — org workspace with dedicated WorkbenchCommandLayer
   "app/(main)/[locale]/o/[orgSlug]/dashboard/orbit/error.tsx",
   // Orbit (Planner) surface — account/personal planning surface under (iam)

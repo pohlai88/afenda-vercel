@@ -14,7 +14,8 @@ import {
   hrmSignatureRequest,
 } from "#lib/db/schema"
 
-import { transitionBoardingTask } from "#features/hrm/server"
+import { stableJsonStringify } from "#lib/erp/stable-json.shared"
+import type { SignedEnvelopeV1 } from "../schemas/signature.schema"
 import {
   hashStableSignatureEnvelope,
   payloadHashSuffix,
@@ -22,8 +23,6 @@ import {
 import { auditActionForSignatureEvent } from "./signature-event-types.shared"
 import { insertSignatureEvent } from "./signature-request.mutations.server"
 import { triggerSignatureWebhook } from "./signature-webhook.server"
-import { stablePayrollCloseStringify } from "#features/hrm/server"
-import type { SignedEnvelopeV1 } from "../schemas/signature.schema"
 
 function signatureEnvelopeBlobPath(
   organizationId: string,
@@ -154,7 +153,7 @@ async function sealSignatureRequestStep(payload: SignatureSealPayload) {
   }
 
   const payloadHash = hashStableSignatureEnvelope(envelope)
-  const jsonBody = stablePayrollCloseStringify(envelope)
+  const jsonBody = stableJsonStringify(envelope)
 
   const blob = await put(
     signatureEnvelopeBlobPath(
@@ -252,26 +251,15 @@ async function sealSignatureRequestStep(payload: SignatureSealPayload) {
   })
 
   if (request.kind === "boarding_task" && envelopeDocumentId) {
-    const [task] = await db
-      .select({ status: hrmBoardingTask.status })
-      .from(hrmBoardingTask)
-      .where(
-        and(
-          eq(hrmBoardingTask.organizationId, payload.organizationId),
-          eq(hrmBoardingTask.id, request.subjectId)
-        )
-      )
-      .limit(1)
-
-    if (task && task.status !== "completed" && task.status !== "waived") {
-      await transitionBoardingTask({
-        organizationId: payload.organizationId,
-        taskId: request.subjectId,
-        actorUserId,
-        action: "complete",
-        evidenceDocumentId: envelopeDocumentId,
-      })
-    }
+    const { onSignatureRequestSealedForBoardingTask } = await import(
+      "#features/hrm/server"
+    )
+    await onSignatureRequestSealedForBoardingTask({
+      organizationId: payload.organizationId,
+      taskId: request.subjectId,
+      actorUserId,
+      evidenceDocumentId: envelopeDocumentId,
+    })
   }
 
   await triggerSignatureWebhook({

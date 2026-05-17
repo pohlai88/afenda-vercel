@@ -4,6 +4,7 @@
 export type OffboardingChecklistTask = {
   readonly taskKey: string
   readonly assignedRole: "admin" | "owner"
+  readonly dueDate?: string | null
   readonly completedAt: string | null
 }
 

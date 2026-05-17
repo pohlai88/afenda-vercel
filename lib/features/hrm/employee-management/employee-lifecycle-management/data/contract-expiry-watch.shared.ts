@@ -10,6 +10,10 @@ export const CONTRACT_EXPIRY_WARN_DAYS = 30
 export const CONTRACT_EXPIRY_WARNING_AUDIT_ACTION =
   HRM_EMPLOYEE_LIFECYCLE_AUDIT.contract.expiry_warning
 
+/** IAM audit action for contract expiry enforcement transitions. HRM-LCY-020. */
+export const CONTRACT_EXPIRY_REACHED_AUDIT_ACTION =
+  HRM_EMPLOYEE_LIFECYCLE_AUDIT.contract.expiry_reached
+
 export type ContractExpiryCandidate = {
   readonly contractId: string
   readonly organizationId: string

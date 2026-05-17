@@ -12,7 +12,7 @@ vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/
   getEmployeePortalContext: mocks.getEmployeePortalContext,
 }))
 vi.mock(
-  "../../lib/features/hrm/workforce-time-attendance/data/attendance-correction-mutation.server.ts",
+  "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-correction-mutation.server.ts",
   () => ({
     applyAttendanceEventCorrection: mocks.applyAttendanceEventCorrection,
   })

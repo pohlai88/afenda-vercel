@@ -61,10 +61,5 @@ export const portalAcknowledgementFormSchema = z.object({
   portalSlug: z.string().min(1),
   policyId: z.string().min(1),
   policyTitle: z.string().min(1),
-  policyVersion: z
-    .preprocess(
-      (v) => (v === null || v === "" ? null : v),
-      z.string().trim().max(64).nullable()
-    )
-    .optional(),
+  policyVersion: z.string().trim().max(64).nullable().optional(),
 })

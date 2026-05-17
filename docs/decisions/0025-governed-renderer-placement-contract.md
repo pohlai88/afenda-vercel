@@ -1,5 +1,7 @@
 # ADR-0025: Governed Renderer Placement Contract
 
+> **Canonical architecture:** [ADR-0026](./0026-metadata-driven-ui-architecture.md). Placement rules are summarized in ADR-0026 §Placement contract.
+
 **Status:** Accepted  
 **Date:** 2026-05-17  
 **Extends:** ADR-0011 (schema kernel), ADR-0021 (renderer registry)

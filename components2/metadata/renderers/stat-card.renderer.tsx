@@ -108,16 +108,16 @@ function StatTile({
       <CardContent
         className={cn("flex flex-col", TILE_DENSITY_CLASS[density])}
       >
-        <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <span className="text-label-small font-medium tracking-wide text-muted-foreground uppercase">
           {stat.label}
         </span>
-        <span className="text-2xl font-semibold tracking-tight text-foreground">
+        <span className="text-headline-small font-semibold tracking-tight text-foreground">
           {stat.value}
         </span>
         {stat.delta !== undefined ? (
           <span
             className={cn(
-              "text-xs font-medium",
+              "text-label-small font-medium",
               DELTA_TONE_CLASS[stat.tone]
             )}
           >

@@ -4,7 +4,7 @@ import {
   PlatformAdminOrganizationsTable,
   listOrganizationsForPlatformAdmin,
 } from "#features/platform-admin"
-import { requireGlobalAdminSession } from "#lib/tenant"
+import { requireGlobalAdminSession } from "#lib/auth"
 
 export default async function OrganizationPlatformAdminOrganizationsPage() {
   await requireGlobalAdminSession()

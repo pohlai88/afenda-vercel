@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, eq, isNull } from "drizzle-orm"
+import { and, desc, eq, isNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { hrmEmployeeEmergencyContact } from "#lib/db/schema"
@@ -30,5 +30,5 @@ export async function listEmergencyContactsForEmployee(
         isNull(hrmEmployeeEmergencyContact.archivedAt)
       )
     )
-    .orderBy(hrmEmployeeEmergencyContact.isPrimary)
+    .orderBy(desc(hrmEmployeeEmergencyContact.isPrimary))
 }

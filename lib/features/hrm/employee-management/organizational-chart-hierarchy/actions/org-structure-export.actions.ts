@@ -1,6 +1,6 @@
 "use server"
 
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import { buildOrganizationStructureExportCsv } from "../data/org-structure-export.server"

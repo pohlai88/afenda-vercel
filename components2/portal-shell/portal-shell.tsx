@@ -2,10 +2,10 @@ import "server-only"
 
 import type { ReactNode } from "react"
 
-import { DevSignInPanelGate } from "#components/dev/dev-signin-panel-gate"
-import { RouteEnvelopeProvider } from "#components/route-envelope-context"
+import { DevSignInPanelGate } from "#components2/dev/dev-signin-panel-gate"
+import { RouteEnvelopeProvider } from "#components2/route-envelope-context.client"
 import type { PortalContext } from "#lib/portal"
-import type { RouteEnvelope } from "#lib/route-envelope.shared"
+import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 
 export type PortalShellProps = {
   envelope: RouteEnvelope

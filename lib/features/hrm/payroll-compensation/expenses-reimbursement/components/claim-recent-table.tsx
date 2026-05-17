@@ -1,8 +1,9 @@
 import { getTranslations } from "next-intl/server"
 
+import { GovernedEmpty } from "#features/governed-surface"
 import { ListSurfaceRenderer } from "#components2/metadata/renderers/list-surface.renderer"
 import { logUnexpectedServerError } from "#lib/logger.server"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import type { ClaimSurfaceAccess } from "../data/claim-access.server"
 import { buildClaimRecentListSurfaceConfiguration } from "../data/claim-recent-list-surface.server"
@@ -38,9 +39,12 @@ export async function ClaimRecentTable({
       organizationId: orgSession.organizationId,
     })
     return (
-      <p className="text-sm text-destructive" role="status" aria-live="polite">
-        {t("recentLoadFailed")}
-      </p>
+      <GovernedEmpty
+        model={{
+          variant: "error",
+          title: t("recentLoadFailed"),
+        }}
+      />
     )
   }
 
@@ -71,10 +75,6 @@ export async function ClaimRecentTable({
       stateLabels,
     }
   )
-
-  if (rows.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("recentEmpty")}</p>
-  }
 
   return (
     <ListSurfaceRenderer

@@ -7,9 +7,8 @@ import {
 } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { listEffectiveErpPermissionsForUser } from "#features/erp-rbac/server"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
-export const dynamic = "force-dynamic"
 
 export default async function OrgDashboardHrmSegmentPage({
   params,

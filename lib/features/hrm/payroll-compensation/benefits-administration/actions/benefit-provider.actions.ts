@@ -12,12 +12,12 @@ import {
   updateBenefitProviderRow,
 } from "../data/benefit-provider.mutations.server"
 import { getBenefitProviderForOrganization } from "../data/benefit-provider.queries.server"
-import { requireHrmAdmin } from "../../../hrm-admin-guard.server"
+import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
 import {
   createBenefitProviderFormSchema,
   updateBenefitProviderFormSchema,
 } from "../schema/benefit.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { BenefitPlanMutationFormState } from "../../../types"
 
 function revalidateBenefits() {
@@ -168,7 +168,8 @@ export async function updateBenefitProviderAction(
       resourceId: data.providerId,
       metadata: {
         code: data.code.trim(),
-        previousCode: existing.code !== data.code.trim() ? existing.code : undefined,
+        previousCode:
+          existing.code !== data.code.trim() ? existing.code : undefined,
       },
     })
   )

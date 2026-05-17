@@ -5,7 +5,7 @@ import {
   publishOrgNotification,
   publishOrgNotificationIfMissing,
 } from "#features/org-notifications/server"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 import { organizationOrbitPath } from "../constants"
 import {
   buildPlannerReminderNotice,

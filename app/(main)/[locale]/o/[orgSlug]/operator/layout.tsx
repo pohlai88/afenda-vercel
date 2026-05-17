@@ -1,15 +1,15 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 
-import { WorkbenchSubLayoutShellSkeleton } from "#components/workbench"
+import { AppSubLayoutShellSkeleton } from "#app-shell"
 import { requireRecentAuthStepUp } from "#lib/auth"
-import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
+import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
-import { requireGlobalAdminSession, requireOrgSession } from "#lib/tenant"
+import { requireGlobalAdminSession, requireOrgSession } from "#lib/auth"
 import { organizationOperatorPath } from "#features/platform-admin"
 
-import { OrgOperatorDeferredWorkbench } from "./_components/org-operator-deferred-workbench"
+import { OrgOperatorDeferredShell } from "./_components/org-operator-deferred-shell"
 
 export const metadata: Metadata = {
   title: "Operator",
@@ -17,7 +17,27 @@ export const metadata: Metadata = {
   openGraph: { title: `Operator | ${SITE_NAME}` },
 }
 
-export default async function OrganizationOperatorLayout({
+export default function OrganizationOperatorLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ locale: string; orgSlug: string }>
+}) {
+  return (
+    <Suspense
+      fallback={
+        <AppSubLayoutShellSkeleton statusLabel="Loading operator console" />
+      }
+    >
+      <OrganizationOperatorLayoutInner params={params}>
+        {children}
+      </OrganizationOperatorLayoutInner>
+    </Suspense>
+  )
+}
+
+async function OrganizationOperatorLayoutInner({
   children,
   params,
 }: {
@@ -35,19 +55,13 @@ export default async function OrganizationOperatorLayout({
   })
 
   return (
-    <Suspense
-      fallback={
-        <WorkbenchSubLayoutShellSkeleton statusLabel="Loading operator console" />
-      }
+    <OrgOperatorDeferredShell
+      locale={locale}
+      orgSlug={orgSlug}
+      globalAdmin={globalAdmin}
+      orgSession={orgSession}
     >
-      <OrgOperatorDeferredWorkbench
-        locale={locale}
-        orgSlug={orgSlug}
-        globalAdmin={globalAdmin}
-        orgSession={orgSession}
-      >
-        {children}
-      </OrgOperatorDeferredWorkbench>
-    </Suspense>
+      {children}
+    </OrgOperatorDeferredShell>
   )
 }

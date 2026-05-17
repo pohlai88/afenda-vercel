@@ -36,11 +36,8 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-vi.mock("#lib/tenant", () => ({
-  requireOrgSession: vi.fn(),
-}))
-
 vi.mock("#lib/auth", () => ({
+  requireOrgSession: vi.fn(),
   writeIamAuditEventFromNextHeaders: vi.fn().mockResolvedValue(undefined),
 }))
 
@@ -55,7 +52,7 @@ vi.mock("next/server", () => ({
 
 import { setUserCapabilityPreferenceAction } from "#features/marketplace/actions/user-preference.actions"
 import { db } from "#lib/db"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 describe("setUserCapabilityPreferenceAction — IDOR contract", () => {
   beforeEach(() => {

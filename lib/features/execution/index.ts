@@ -5,6 +5,7 @@ import type { PlannerRecurrenceRunPayload } from "./schemas/planner-recurrence-r
 import type { PlannerReminderRunPayload } from "./schemas/planner-reminder-run-payload.schema"
 import type { PayrollFinalizePayload } from "./schemas/payroll-finalize-payload.schema"
 import type { SignatureSealPayload } from "./schemas/signature-seal-payload.schema"
+import type { HrmImportApplyPayload } from "./schemas/hrm-import-apply-payload.schema"
 
 export {
   EXECUTION_AUDIT_ACTIONS,
@@ -39,6 +40,10 @@ export {
   signatureSealPayloadSchema,
   type SignatureSealPayload,
 } from "./schemas/signature-seal-payload.schema"
+export {
+  hrmImportApplyPayloadSchema,
+  type HrmImportApplyPayload,
+} from "./schemas/hrm-import-apply-payload.schema"
 
 async function enqueueWorkflowWithOtelSpan(
   spanName: string,
@@ -46,7 +51,7 @@ async function enqueueWorkflowWithOtelSpan(
   attributes: Record<string, string | number | boolean | undefined>,
   run: () => Promise<void>
 ): Promise<void> {
-  const { runWithNodeOtelSpan } = await import("#lib/otel-span.server")
+  const { runWithNodeOtelSpan } = await import("#lib/observability/otel-span.server")
   await runWithNodeOtelSpan(
     spanName,
     {
@@ -103,6 +108,26 @@ export async function enqueueHrmSignatureSealWorkflowRun(
         import("workflow/api"),
       ])
       await start(hrmSignatureSealWorkflow, [payload])
+    }
+  )
+}
+
+export async function enqueueHrmImportApplyWorkflowRun(
+  payload: HrmImportApplyPayload
+): Promise<void> {
+  await enqueueWorkflowWithOtelSpan(
+    "execution.workflow.hrm_import_apply.enqueue",
+    payload.organizationId,
+    {
+      "erp.workflow": "hrm_import_apply",
+      "erp.import.session.id": payload.sessionId,
+    },
+    async () => {
+      const [{ hrmImportApplyWorkflow }, { start }] = await Promise.all([
+        import("./data/hrm-import-apply-run-entry"),
+        import("workflow/api"),
+      ])
+      await start(hrmImportApplyWorkflow, [payload])
     }
   )
 }

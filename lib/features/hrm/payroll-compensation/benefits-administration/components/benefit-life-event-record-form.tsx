@@ -4,22 +4,22 @@ import { useActionState, useEffect, useId, useMemo, useRef } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
-import { Button } from "#components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
+import { Button } from "#components2/ui/button"
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldLabel,
-} from "#components/ui/field"
-import { Input } from "#components/ui/input"
-import { Textarea } from "#components/ui/textarea"
+} from "#components2/ui/field"
+import { Input } from "#components2/ui/input"
+import { Textarea } from "#components2/ui/textarea"
 
 import { recordLifeEventAction } from "../actions/benefit-life-event.actions"
 import type { RecordLifeEventFormState } from "../../../types"
 
 import { BENEFIT_LIFE_EVENT_TYPES } from "../data/benefit-helpers.shared"
-import type { LeaveEmployeeChoiceRow } from "../../../workforce-time-attendance/data/leave-request.queries.server"
+import type { LeaveEmployeeChoiceRow } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
 
 const SELECT_CLASS =
   "h-9 w-full rounded border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"

@@ -30,6 +30,18 @@ export const SIGNATURE_EVENT_TO_AUDIT_ACTION: Record<
     object: "signature",
     verb: "update",
   }),
+  "consent.presented": buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "signature",
+    verb: "audit",
+  }),
+  "consent.accepted": buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "signature",
+    verb: "audit",
+  }),
   "signature_request.recipient_completed": buildCrudSapAuditAction({
     area: "erp",
     module: "hrm",
@@ -66,6 +78,12 @@ export const SIGNATURE_EVENT_TO_AUDIT_ACTION: Record<
     object: "signature",
     verb: "update",
   }),
+  "signature_request.resent": buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "signature",
+    verb: "update",
+  }),
   "signature_request.seal_failed": buildCrudSapAuditAction({
     area: "erp",
     module: "hrm",
@@ -86,7 +104,7 @@ export function auditActionForSignatureEvent(
   return SIGNATURE_EVENT_TO_AUDIT_ACTION[eventType]
 }
 
-/** Outbound webhook event names (Phase 2 provider adapter). */
+/** Outbound webhook event names for org_event_delivery. */
 export const SIGNATURE_EVENT_TO_WEBHOOK_EVENT: Record<
   SignatureEventType,
   string
@@ -95,6 +113,8 @@ export const SIGNATURE_EVENT_TO_WEBHOOK_EVENT: Record<
   "signature_request.sent": "signature_request.sent",
   "signature_request.opened": "signature_request.opened",
   "signature_request.viewed": "signature_request.viewed",
+  "consent.presented": "consent.presented",
+  "consent.accepted": "consent.accepted",
   "signature_request.recipient_completed":
     "signature_request.recipient_completed",
   "signature_request.completed": "signature_request.completed",
@@ -102,6 +122,7 @@ export const SIGNATURE_EVENT_TO_WEBHOOK_EVENT: Record<
   "signature_request.cancelled": "signature_request.cancelled",
   "signature_request.expired": "signature_request.expired",
   "signature_request.reminder_sent": "signature_request.reminder_sent",
+  "signature_request.resent": "signature_request.resent",
   "signature_request.seal_failed": "signature_request.seal_failed",
   "signature_request.provider_callback": "signature_request.provider_callback",
 }

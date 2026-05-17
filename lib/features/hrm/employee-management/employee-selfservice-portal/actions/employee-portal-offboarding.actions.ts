@@ -12,9 +12,10 @@ import { toLocalePortalRevalidatePattern } from "#lib/portal"
 import { getEmployeePortalContext } from "../data/employee-portal-access.server"
 import { withEmployeePortalActionSpan } from "../data/portal-mutation-tracing.server"
 import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../data/employee-portal-access.shared"
+import { HRM_ESS_AUDIT } from "../ess.contract"
 import type { OffboardingChecklistTask } from "../../offboarding-exit-management/data/offboarding-defaults.shared"
 import { completeOffboardingTaskFormSchema } from "../../offboarding-exit-management/schemas/offboarding.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
 
 function revalidatePortalOffboarding() {
@@ -98,7 +99,7 @@ export async function completePortalOffboardingTaskAction(
 
       after(() =>
         writeIamAuditEventFromNextHeaders({
-          action: "erp.hrm.employee.offboarding.task.complete",
+          action: HRM_ESS_AUDIT.offboarding.completeTask,
           actorUserId: userId,
           actorSessionId: context.portal.sessionId,
           organizationId,

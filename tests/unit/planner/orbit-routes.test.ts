@@ -14,7 +14,7 @@ const {
 
 vi.mock("server-only", () => ({}))
 
-vi.mock("#lib/tenant", () => ({
+vi.mock("#lib/auth", () => ({
   requireOrgSession: requireOrgSessionMock,
 }))
 

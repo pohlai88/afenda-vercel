@@ -90,14 +90,14 @@ export type {
 } from "./org-audit.server"
 export { assertOrgInviteRateAllowed } from "./org-invite-rate.server"
 export {
-  fetchOrgWorkbenchIdentity,
-  fetchOrgWorkbenchMembers,
-  fetchOrgWorkbenchPendingInvitations,
-} from "./org-workbench.server"
+  fetchOrgAdminIdentity,
+  fetchOrgAdminMembers,
+  fetchOrgAdminPendingInvitations,
+} from "./org-admin-data.server"
 export type {
-  OrgWorkbenchInvitationRow,
-  OrgWorkbenchMemberRow,
-} from "./org-workbench.server"
+  OrgAdminInvitationRow,
+  OrgAdminMemberRow,
+} from "./org-admin-data.server"
 export {
   AFENDA_PATHNAME_HEADER,
   AFENDA_SEARCH_HEADER,
@@ -116,3 +116,17 @@ export type {
   AuthShellOrgSession,
   AuthShellSignedInSession,
 } from "./auth-shell-session.server"
+export {
+  getOrgSessionFromRequest,
+  getOrgTenantContext,
+  getSignedInSessionFromRequest,
+  requireGlobalAdminSession,
+  requireOrgSession,
+  requireSignedInSession,
+  setActiveOrganizationForSession,
+} from "./tenant-session.server"
+export type {
+  GlobalAdminSession,
+  OrgSession,
+  SignedInSession,
+} from "./tenant-session.server"

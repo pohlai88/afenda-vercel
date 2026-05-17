@@ -15,7 +15,7 @@ const a11yRules = {
 
 /** Addon may contain `<button>`; outer `<button>` would be invalid nesting. */
 const inputGroupAddonException = {
-  files: ["components/ui/input-group.tsx"],
+  files: ["components2/ui/input-group.tsx"],
   rules: {
     "jsx-a11y/click-events-have-key-events": "off",
     "jsx-a11y/no-noninteractive-element-interactions": "off",

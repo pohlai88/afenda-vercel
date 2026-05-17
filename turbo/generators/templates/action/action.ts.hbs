@@ -52,7 +52,7 @@ import { revalidatePath } from "next/cache"
 import { canActInOrganization } from "#lib/auth"
 {{/if}}
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import { ORG_DASHBOARD_{{constantCase slug}} } from "../constants"
 import { {{camelCase slug}}Schema } from "../schemas/{{slug}}.schema"

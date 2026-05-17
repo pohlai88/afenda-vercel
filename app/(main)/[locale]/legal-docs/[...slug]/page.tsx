@@ -2,8 +2,10 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { renderStandaloneDeclarationPage } from "../../legal-declaration-page.shared"
-import { StatusControlSurface } from "#components/marketing/status-control-surface"
-import { TrustControlSurface } from "#components/marketing/trust-control-surface"
+import {
+  StatusControlSurface,
+  TrustControlSurface,
+} from "#components2/marketing"
 import {
   buildLegalDeclarationMetadata,
   declarationDocuments,

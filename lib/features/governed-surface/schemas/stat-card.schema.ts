@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import type { SchemaStability } from "./_stability.shared"
 
+import { refineStatCardDisplayStrings } from "./display-string.shared"
 import { governedSurfaceChromeSchema } from "./surface-chrome.schema"
 
 export const SCHEMA_STABILITY: SchemaStability = "beta"
@@ -61,6 +62,7 @@ export const statCardConfigurationSchema = z
           'KPI stat-card supports at most 4 tiles. Use dataNature: "snapshot-summary" for 5–6 figures or split into multiple stat-cards.',
       })
     }
+    refineStatCardDisplayStrings(config, ctx)
   })
 
 export type StatCardTone = z.infer<typeof statCardToneSchema>

@@ -2,7 +2,10 @@ import "server-only"
 
 import { and, asc, desc, eq, isNull } from "drizzle-orm"
 
-import { listAccessMembersForOrganization } from "#features/erp-rbac/server"
+import {
+  canUseErpPermissionForCurrentOrg,
+  listAccessMembersForOrganization,
+} from "#features/erp-rbac/server"
 import { db } from "#lib/db"
 import {
   hrmEmployee,
@@ -18,6 +21,7 @@ import { resolveEmployeeOrgContextReference } from "./employee-org-context.queri
 import { getEmployeeForOrganization } from "./employee.queries.server"
 import { listEmploymentContractsForEmployee } from "./employment-contract.queries.server"
 import { listEmergencyContactsForEmployee } from "./emergency-contact.queries.server"
+import { maskEmployeeMasterSnapshotSensitiveFields } from "./employee-master-sensitive-view.shared"
 import { listEmployeeAssignmentHistory } from "../../organizational-chart-hierarchy/data/org-structure.queries.server"
 import { listHrmDocumentsForEmployee } from "../../documents-management/data/hrm-document.queries.server"
 import {
@@ -35,6 +39,7 @@ import type {
   EmployeeMasterSnapshot,
   EmployeePersonalProfileRow,
 } from "../../../types"
+import type { EmployeeRecordsFieldKey } from "./employee-records-field-catalog.shared"
 
 export async function getEmployeeMasterRecordForOrganization(input: {
   organizationId: string
@@ -130,6 +135,24 @@ export async function getEmployeeMasterRecordForOrganization(input: {
   }
 }
 
+export async function getEmployeeMasterRecordViewForOrganization(input: {
+  organizationId: string
+  employeeId: string
+}): Promise<EmployeeMasterSnapshot | null> {
+  const [snapshot, canReadSensitive] = await Promise.all([
+    getEmployeeMasterRecordForOrganization(input),
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "employee_sensitive",
+      function: "read",
+    }),
+  ])
+
+  return snapshot
+    ? maskEmployeeMasterSnapshotSensitiveFields(snapshot, { canReadSensitive })
+    : null
+}
+
 export async function listEmployeeMasterPlacementOptions(
   organizationId: string
 ): Promise<EmployeeMasterPlacementOptions> {
@@ -202,12 +225,31 @@ export function deriveEmployeeMasterCompleteness(input: {
   const documents = input.documentCount > 0
 
   const missingFields: string[] = []
-  if (!identity) missingFields.push("identity")
-  if (!contact) missingFields.push("contact")
-  if (!emergencyContact) missingFields.push("emergencyContact")
-  if (!employment) missingFields.push("employment")
-  if (!statutory) missingFields.push("statutory")
-  if (!documents) missingFields.push("documents")
+  const missingFieldKeys: EmployeeRecordsFieldKey[] = []
+  if (!identity) {
+    missingFields.push("identity")
+    missingFieldKeys.push("identityDocument.documentNumber")
+  }
+  if (!contact) {
+    missingFields.push("contact")
+    missingFieldKeys.push("workEmail")
+  }
+  if (!emergencyContact) {
+    missingFields.push("emergencyContact")
+    missingFieldKeys.push("emergencyContact.phone")
+  }
+  if (!employment) {
+    missingFields.push("employment")
+    missingFieldKeys.push("currentDepartmentId")
+  }
+  if (!statutory) {
+    missingFields.push("statutory")
+    missingFieldKeys.push("taxIdentifierNumber")
+  }
+  if (!documents) {
+    missingFields.push("documents")
+    missingFieldKeys.push("document.documentType")
+  }
 
   // Weighted score: identity 20 + contact 15 + emergencyContact 10 + employment 25 + statutory 20 + documents 10
   const score =
@@ -242,6 +284,7 @@ export function deriveEmployeeMasterCompleteness(input: {
     documents,
     score,
     missingFields,
+    missingFieldKeys,
     payrollReady,
     complianceReady,
   }

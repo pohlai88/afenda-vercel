@@ -71,8 +71,8 @@ export async function getPayrollProcessingPeriodSnapshot(
   return {
     periodId: period.id,
     state: period.state,
-    cutoffDate: period.cutoffDate,
-    payrollGroupCode: period.payrollGroupCode,
+    cutoffDate: period.paymentDate,
+    payrollGroupCode: null,
     runCount: runs.length,
     attendanceReady,
     lockApprovalPresent,

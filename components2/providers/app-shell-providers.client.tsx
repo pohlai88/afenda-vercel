@@ -19,13 +19,13 @@ type AppShellProvidersProps = {
  * Add new providers here (e.g. QueryClientProvider) without touching
  * AppShellClient — one file to change, one place to reason about.
  *
- * Theme: `ThemeProvider` from `#components/theme-provider` wraps the app in
- * `app/layout.tsx`. `AppShellThemeBridge` mirrors `useTheme()` into
- * `useAppShellStore` for shell consumers.
+ * Theme: {@link AppShellRootThemeProvider} in `app/layout.tsx` owns `next-themes`.
+ * {@link AppShellThemeBridge} mirrors `useTheme()` into {@link useAppShellStore}.
  *
  * Mount order (outer → inner):
- *   AppShellTooltipProvider  (shadcn tooltip delay)
- *   AppShellSidebarProvider  (rail collapse / expand state)
+ *   AppShellTooltipProvider  (shadcn tooltip — 300ms delay in shell subtree)
+ *   AppShellSidebarProvider  (rail collapse / expand + shell viewport column)
+ *   AppShellThemeBridge      (null — syncs theme into Zustand)
  */
 export function AppShellProviders({
   sidebarDefaultOpen = true,

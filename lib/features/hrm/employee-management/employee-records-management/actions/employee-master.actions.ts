@@ -27,16 +27,22 @@ import {
   buildEmployeeMasterChangeRows,
   isEmployeeMasterSensitiveField,
 } from "../data/employee-master-history.shared"
+import { upsertEmployeeEffectiveAssignment } from "../data/employee-assignment-command.server"
+import { recordEmployeeLifecycleEvent } from "../data/employee-record-history.server"
 import {
   calendarDayBeforeIso,
   isoDateOnlyToUtcDate,
-} from "../../../hrm-calendar-dates.server"
+} from "../../../_module-governance/hrm-calendar-dates.server"
 import { requireEmployeeRecordMutationGate } from "../data/employee-record-action-guard.server"
 import {
   assertNoEmployeeDuplicates,
   duplicateMatchErrorMessage,
 } from "../data/employee-duplicate-check.server"
-import { assertOptionalHrmPlacementFkBelongsToOrg } from "../../../hrm-org-fk.server"
+import {
+  mutableEmployeeRecordErrorMessage,
+  requireMutableEmployeeRecord,
+} from "../data/employee-record-mutability.server"
+import { assertOptionalHrmPlacementFkBelongsToOrg } from "../../../_internal-cross-cutting/hrm-org-fk.server"
 import {
   employeeContactFormSchema,
   employeeEmploymentFormSchema,
@@ -47,13 +53,24 @@ import {
   employeeStatutoryProfileFormSchema,
   employeeWorkAuthorizationFormSchema,
 } from "../schemas/employee.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { EmployeeMasterMutationFormState } from "../../../types"
+import { HRM_EMPLOYEE_RECORDS_AUDIT } from "../employee-records.contract"
 
 type Change = {
   fieldName: string
   oldValue: unknown
   newValue: unknown
+}
+
+async function requireMutableEmployeeMasterAction(input: {
+  organizationId: string
+  employeeId: string
+}): Promise<EmployeeMasterMutationFormState | null> {
+  const mutable = await requireMutableEmployeeRecord(input)
+  return mutable.ok
+    ? null
+    : hrmActionFailure({ form: mutableEmployeeRecordErrorMessage(mutable) })
 }
 
 function field(
@@ -164,9 +181,23 @@ function auditEmployeeMasterUpdate(input: {
   section: string
   changedFields: string[]
 }): void {
+  const action =
+    input.section === "identity"
+      ? HRM_EMPLOYEE_RECORDS_AUDIT.identity.update
+      : input.section === "contact"
+        ? HRM_EMPLOYEE_RECORDS_AUDIT.contact.update
+        : input.section === "employment"
+          ? HRM_EMPLOYEE_RECORDS_AUDIT.employment.update
+          : input.section === "identity_document"
+            ? HRM_EMPLOYEE_RECORDS_AUDIT.identityDocument.update
+            : input.section === "work_authorization"
+              ? HRM_EMPLOYEE_RECORDS_AUDIT.workAuthorization.update
+              : input.section === "statutory"
+                ? HRM_EMPLOYEE_RECORDS_AUDIT.statutory.update
+                : HRM_EMPLOYEE_RECORDS_AUDIT.employee.update
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.employee.master.update",
+      action,
       organizationId: input.organizationId,
       actorUserId: input.userId,
       actorSessionId: input.sessionId,
@@ -267,6 +298,12 @@ export async function updateEmployeeIdentityAction(
   }
 
   const data = parsed.data
+  const mutableFailure = await requireMutableEmployeeMasterAction({
+    organizationId: gate.organizationId,
+    employeeId: data.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
+
   const dob = optionalDate(data.dateOfBirth)
   const nextPreferredName = data.preferredName ?? null
   const nextGender = data.gender ?? null
@@ -483,6 +520,12 @@ export async function updateEmployeeContactAction(
   }
 
   const data = parsed.data
+  const mutableFailure = await requireMutableEmployeeMasterAction({
+    organizationId: gate.organizationId,
+    employeeId: data.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
+
   const address = buildAddress(data)
   const mailingAddress = data.mailingAddressSameAsResidential
     ? address
@@ -500,16 +543,20 @@ export async function updateEmployeeContactAction(
   const personalPhone = data.personalPhone ?? null
   const changeMeta = parseChangeHistoryMeta(formData)
 
-  const duplicateCheck = await assertNoEmployeeDuplicates({
-    organizationId: gate.organizationId,
-    email: workEmail ?? personalEmail,
-    phone: workPhone ?? personalPhone,
-    excludeEmployeeId: data.employeeId,
-  })
-  if (!duplicateCheck.ok) {
-    return hrmActionFailure({
-      form: duplicateMatchErrorMessage(duplicateCheck.matches),
+  for (const duplicateInput of [
+    { email: workEmail, phone: workPhone },
+    { email: personalEmail, phone: personalPhone },
+  ]) {
+    const duplicateCheck = await assertNoEmployeeDuplicates({
+      organizationId: gate.organizationId,
+      ...duplicateInput,
+      excludeEmployeeId: data.employeeId,
     })
+    if (!duplicateCheck.ok) {
+      return hrmActionFailure({
+        form: duplicateMatchErrorMessage(duplicateCheck.matches),
+      })
+    }
   }
 
   let changedFields: string[] = []
@@ -705,6 +752,12 @@ export async function updateEmployeeEmploymentAction(
   }
 
   const data = parsed.data
+  const mutableFailure = await requireMutableEmployeeMasterAction({
+    organizationId: gate.organizationId,
+    employeeId: data.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
+
   const fk = await assertOptionalHrmPlacementFkBelongsToOrg(
     gate.organizationId,
     {
@@ -840,10 +893,7 @@ export async function updateEmployeeEmploymentAction(
             .from(hrmEmploymentContract)
             .where(
               and(
-                eq(
-                  hrmEmploymentContract.organizationId,
-                  gate.organizationId
-                ),
+                eq(hrmEmploymentContract.organizationId, gate.organizationId),
                 eq(
                   hrmEmploymentContract.id,
                   employee.currentEmploymentContractId
@@ -854,11 +904,6 @@ export async function updateEmployeeEmploymentAction(
         : [null]
 
       const changes: Change[] = [
-        {
-          fieldName: "employmentType",
-          oldValue: employee.employmentType,
-          newValue: next.employmentType,
-        },
         {
           fieldName: "employmentStatus",
           oldValue: employee.employmentStatus,
@@ -878,46 +923,6 @@ export async function updateEmployeeEmploymentAction(
           fieldName: "confirmationDate",
           oldValue: dateIso(employee.confirmationDate),
           newValue: data.confirmationDate ?? null,
-        },
-        {
-          fieldName: "currentDepartmentId",
-          oldValue: employee.currentDepartmentId,
-          newValue: next.currentDepartmentId,
-        },
-        {
-          fieldName: "currentPositionId",
-          oldValue: employee.currentPositionId,
-          newValue: next.currentPositionId,
-        },
-        {
-          fieldName: "currentJobGradeId",
-          oldValue: employee.currentJobGradeId,
-          newValue: next.currentJobGradeId,
-        },
-        {
-          fieldName: "managerEmployeeId",
-          oldValue: employee.managerEmployeeId,
-          newValue: next.managerEmployeeId,
-        },
-        {
-          fieldName: "dottedLineManagerId",
-          oldValue: employee.dottedLineManagerId,
-          newValue: next.dottedLineManagerId,
-        },
-        {
-          fieldName: "hrOwnerEmployeeId",
-          oldValue: employee.hrOwnerEmployeeId,
-          newValue: next.hrOwnerEmployeeId,
-        },
-        {
-          fieldName: "workerCategory",
-          oldValue: employee.workerCategory,
-          newValue: next.workerCategory,
-        },
-        {
-          fieldName: "employeeLevel",
-          oldValue: employee.employeeLevel,
-          newValue: next.employeeLevel,
         },
         {
           fieldName: "linkedUserId",
@@ -971,10 +976,38 @@ export async function updateEmployeeEmploymentAction(
           )
       }
 
+      const assignmentChangedFields = await upsertEmployeeEffectiveAssignment(
+        {
+          organizationId: gate.organizationId,
+          employeeId: data.employeeId,
+          actorUserId: gate.userId,
+          effectiveFrom: changeMeta.effectiveDate ?? new Date(),
+          next: {
+            employmentType: next.employmentType,
+            currentDepartmentId: next.currentDepartmentId,
+            currentPositionId: next.currentPositionId,
+            currentJobGradeId: next.currentJobGradeId,
+            managerEmployeeId: next.managerEmployeeId,
+            dottedLineManagerId: next.dottedLineManagerId,
+            hrOwnerEmployeeId: next.hrOwnerEmployeeId,
+            workerCategory: next.workerCategory,
+            employeeLevel: next.employeeLevel,
+          },
+          meta: changeMeta,
+        },
+        tx
+      )
+
       await tx
         .update(hrmEmployee)
         .set({
-          ...next,
+          employmentStatus: next.employmentStatus,
+          employmentStartDate: next.employmentStartDate,
+          probationEndDate: next.probationEndDate,
+          confirmationDate: next.confirmationDate,
+          linkedUserId: next.linkedUserId,
+          countryCode: next.countryCode,
+          workStateCode: next.workStateCode,
           updatedAt: new Date(),
           updatedByUserId: gate.userId,
         })
@@ -990,7 +1023,27 @@ export async function updateEmployeeEmploymentAction(
       if (historyRows.length > 0) {
         await tx.insert(hrmEmployeeChangeHistory).values(historyRows)
       }
-      return historyRows.map((row) => row.fieldName)
+      if (employee.employmentStatus !== next.employmentStatus) {
+        await recordEmployeeLifecycleEvent(
+          {
+            organizationId: gate.organizationId,
+            employeeId: data.employeeId,
+            kind: "status_change",
+            previousStatus: employee.employmentStatus,
+            newStatus: next.employmentStatus,
+            effectiveDate: changeMeta.effectiveDate,
+            reason: changeMeta.reason,
+            approvalReference: changeMeta.approvalReference,
+            actorUserId: gate.userId,
+            isEffectiveDated: Boolean(changeMeta.effectiveDate),
+          },
+          tx
+        )
+      }
+      return [
+        ...assignmentChangedFields.changedFields,
+        ...historyRows.map((row) => row.fieldName),
+      ]
     })
   } catch (err) {
     if (err instanceof Error && err.message === "employee_not_found") {
@@ -999,7 +1052,10 @@ export async function updateEmployeeEmploymentAction(
     if (err instanceof Error && err.message === "employee_archived") {
       return hrmActionFailure({ form: "Archived employees cannot be edited." })
     }
-    if (err instanceof Error && err.message === "employment_contract_not_found") {
+    if (
+      err instanceof Error &&
+      err.message === "employment_contract_not_found"
+    ) {
       return hrmActionFailure({
         form: "No active employment contract exists to update contract dates.",
       })
@@ -1052,6 +1108,12 @@ export async function upsertEmployeeIdentityDocumentAction(
   }
 
   const data = parsed.data
+  const mutableFailure = await requireMutableEmployeeMasterAction({
+    organizationId: gate.organizationId,
+    employeeId: data.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
+
   const changeMeta = parseChangeHistoryMeta(formData)
 
   const duplicateCheck = await assertNoEmployeeDuplicates({
@@ -1296,6 +1358,12 @@ export async function upsertEmployeeWorkAuthorizationAction(
   }
 
   const data = parsed.data
+  const mutableFailure = await requireMutableEmployeeMasterAction({
+    organizationId: gate.organizationId,
+    employeeId: data.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
+
   const changeMeta = parseChangeHistoryMeta(formData)
   let changedFields: string[] = []
   try {
@@ -1488,6 +1556,12 @@ export async function updateEmployeeStatutoryProfileAction(
   }
 
   const data = parsed.data
+  const mutableFailure = await requireMutableEmployeeMasterAction({
+    organizationId: gate.organizationId,
+    employeeId: data.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
+
   const changeMeta = parseChangeHistoryMeta(formData)
   const nextEffective = isoDateOnlyToUtcDate(data.effectiveFrom)
 
@@ -1679,7 +1753,7 @@ export async function updateEmployeeStatutoryProfileAction(
             data.countryCode === "MY"
               ? (data.workStateCode ?? null)
               : data.countryCode === "VN"
-                ? ((data.workProvinceCode ?? data.workRegionCode) ?? null)
+                ? (data.workProvinceCode ?? data.workRegionCode ?? null)
                 : data.countryCode === "ID"
                   ? (data.workCityCode ?? null)
                   : null,
@@ -1748,6 +1822,12 @@ export async function updateEmployeeProfilePhotoAction(
   }
 
   const data = parsed.data
+  const mutableFailure = await requireMutableEmployeeMasterAction({
+    organizationId: gate.organizationId,
+    employeeId: data.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
+
   const changeMeta = parseChangeHistoryMeta(formData)
   const now = new Date()
 

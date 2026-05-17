@@ -39,7 +39,7 @@ Owns **only** what the shell needs before first render:
 // Tier A — blocks; Tier B — streams
 const [adminLink, identity, t] = await Promise.all([
   canActInOrganization(org.userId, org.user.role, org.organizationId, "admin"),
-  fetchOrgWorkbenchIdentity(org.organizationId),
+  fetchOrgAdminIdentity(org.organizationId),
   getTranslations("Dashboard.nav"),
 ])
 // Tier B example:
@@ -59,7 +59,7 @@ const controlPlane = (
 Bridge layout-resolved authority to client `error.tsx` boundaries:
 
 ```ts
-// lib/route-envelope.shared.ts
+// lib/erp/route-envelope.shared.ts
 export interface RouteEnvelope { surface: RouteSurface; locale: string; orgSlug?: string; orgId?: string }
 ```
 
@@ -73,7 +73,7 @@ Wraps both `page.tsx` **and** `not-found.tsx` in a Suspense boundary. Layout ren
 
 ```tsx
 // Simplest canonical pattern
-export { default } from "#components/nexus-route-loading"
+export { default } from "#components2/route-loading/nexus-route-loading"
 ```
 
 **Do not use** to hide a layout that fetches too much — fix the Tier A/B split instead.
@@ -97,10 +97,10 @@ If #4 is yes → **fix the root cause**, not the boundary.
 
 ```tsx
 "use client"
-import { useRouteEnvelope } from "#components/route-envelope-context"
-import { useReportRouteError } from "#components/use-report-route-error"
-import type { NextAppErrorPageProps } from "#lib/next-app-error-page-props.shared"
-import { resolveErrorBoundaryRetryCallbacks } from "#lib/next-app-error-page-props.shared"
+import { useRouteEnvelope } from "#components2/route-envelope-context.client"
+import { useReportRouteError } from "#components2/route-error/use-report-route-error"
+import type { NextAppErrorPageProps } from "#components2/route-error/error-page-props.shared"
+import { resolveErrorBoundaryRetryCallbacks } from "#components2/route-error/error-page-props.shared"
 
 export default function OrgDashboardError(props: NextAppErrorPageProps) {
   const { error } = props

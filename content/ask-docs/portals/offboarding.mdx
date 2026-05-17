@@ -1,0 +1,62 @@
+---
+title: Employee portal exit checklist
+description: Complete offboarding checklist tasks after HR initiates exit from the employee portal.
+audience: employee
+status: draft
+icon: DoorOpen
+---
+
+## Overview
+
+**My exit checklist** at `/{locale}/p/{portalSlug}/employee/offboarding` shows tasks HR assigned when your offboarding case is active. Complete each item you are responsible for; HR tracks overall progress in HRM.
+
+## Before you start
+
+- Employee portal session with audience `employee`.
+- The checklist appears only after HR **initiates** offboarding for your employee record.
+
+## Complete checklist tasks
+
+<Steps>
+  <Step>
+    ### Open My exit checklist
+
+    From the employee portal, open **Offboarding** (exit checklist) in the section navigation.
+  </Step>
+  <Step>
+    ### Review tasks
+
+    Each row describes what you must return, acknowledge, or confirm. Due dates may appear when configured.
+  </Step>
+  <Step>
+    ### Mark tasks complete
+
+    Use the complete action on tasks assigned to you. Some tasks may require evidence or HR verification before they close.
+
+    <Callout type="info" title="HR-owned tasks">
+      Items owned by HR or IT may stay open until those teams confirm in HRM. You cannot skip system-enforced gates.
+    </Callout>
+  </Step>
+</Steps>
+
+## Authority and audit
+
+Task completion audits with `erp.hrm.*` offboarding actions and `metadata.surface = employee_portal` where applicable.
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Checklist is empty">
+    Offboarding may not be initiated yet, or your portal access may have been revoked early. Contact HR.
+  </Accordion>
+  <Accordion title="Complete button is disabled">
+    A dependency task may be open, or HR may require manual verification first.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/portals/employee" title="Employee portal hub" />
+  <Card href="/ask-docs/hrm/offboarding" title="Offboarding (HRM)" />
+</Cards>

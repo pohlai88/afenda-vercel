@@ -16,8 +16,8 @@ import {
 import {
   listAttendanceDaysForEmployee,
   listAttendanceDaysForPayroll,
-} from "../../../workforce-time-attendance/data/attendance.queries.server"
-import { isAttendanceDayReadyForPayroll } from "../../../workforce-time-attendance/data/attendance-display.shared"
+} from "../../../time-attendance/leave-attendance-management/data/attendance.queries.server"
+import { isAttendanceDayReadyForPayroll } from "../../../time-attendance/leave-attendance-management/data/attendance-display.shared"
 import { listBenefitPayrollProjectionEnrollmentsForPeriod } from "../../benefits-administration/data/benefit-enterprise.queries.server"
 import { listApprovedUnpaidClaimsForPeriod } from "../../expenses-reimbursement/data/claim.queries.server"
 import { listDueSalaryAdvanceInstallmentsForEmployeePayroll } from "./salary-advance.queries.server"
@@ -25,7 +25,7 @@ import { PAYROLL_PERIOD_LOCK_SUBJECT_KIND } from "../schemas/payroll-period.sche
 import { parseMalaysiaPcbStatutoryExtras } from "../schemas/malaysia-pcb-statutory-extras.shared"
 
 import type { PayrollEngineInput } from "./payroll-engine.server"
-import type { AttendanceDayRow } from "../../../workforce-time-attendance/data/attendance.queries.server"
+import type { AttendanceDayRow } from "../../../time-attendance/leave-attendance-management/data/attendance.queries.server"
 
 // ---------------------------------------------------------------------------
 // Period queries

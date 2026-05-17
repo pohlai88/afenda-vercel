@@ -1,6 +1,6 @@
 import "server-only"
 
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import type { ErpPermissionTuple, TenantAuthorityRole } from "../types"
 import {

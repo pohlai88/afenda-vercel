@@ -42,8 +42,6 @@ export {
   CAPABILITY_CATEGORIES,
   isCapabilityCategory,
   isMarketplaceRoute,
-  marketplacePath,
-  marketplaceRoute,
   organizationMarketplacePath,
   MARKETPLACE_RAIL_VISIBLE_LIMIT,
 } from "./constants"

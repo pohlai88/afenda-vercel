@@ -1,75 +1,98 @@
 ---
 title: Lynx
-description: Afenda's machine layer for resolving truth, preparing work, and recommending controlled action.
+description: Afenda's ERP machine layer — truth retrieval, operator assist, knowledge substrate, and governed read-only tools over tenant evidence.
+audience: admin
+status: stable
 icon: Sparkles
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-**Lynx** is Afenda's **machine layer** — not a generic chatbot or copilot. It resolves truth from your organisation's evidence, prepares work through structured layers, and recommends **read-only, governed** actions where policy allows.
+**Lynx** is Afenda's **machine layer** — not a generic chatbot or copilot. It resolves truth from organisational evidence, streams governed recommendations, and exposes read-only tools where policy allows. Product copy uses **Lynx** and the eyebrow **The Machine**.
 
-Product copy uses **Lynx** and the eyebrow **The Machine**. Lynx composes the **Knowledge** substrate (pgvector chunks and embeddings); it does not replace ERP modules such as [Orbit](../orbit) or [HRM](../hrm).
+Lynx composes the **Knowledge** substrate (`#features/knowledge`) for pgvector chunks; it does not replace ERP modules such as [Orbit](/ask-docs/orbit) or [HRM](/ask-docs/hrm).
 
-<DocsIndexCards />
+## Before you start
+
+- ERP permission **`lynx.workspace.search`** to open `/{locale}/o/{orgSlug}/dashboard/lynx` and use truth retrieval.
+- ERP permission **`lynx.workspace.predict`** for **Operator assist** (`POST /api/erp/lynx/operator`).
+- AI Gateway auth (`AI_GATEWAY_API_KEY` locally or Vercel OIDC in production) for embedding-backed flows.
+- Feature flags may hide operator assist or the NL→SQL demo — contact your administrator if sections show policy notices.
+
+<Callout type="info" title="Public vs ERP Lynx">
+  **Ask Lynx** on `/{locale}/ask-docs` is a separate public stack — no org session, no tenant chunks. See [Ask Lynx on docs](/ask-docs/lynx/ask-docs-chat).
+</Callout>
 
 ## Where Lynx appears
 
-| Surface | Audience | Purpose |
-|---|---|---|
-| [Lynx console](./truth-retrieval) | Signed-in operators | Full module at `/o/{orgSlug}/dashboard/lynx` |
-| [Nexus summon](./nexus-summon) | Signed-in operators | Grounded truth on the item in focus |
-| [Ask Lynx on docs](./ask-docs-chat) | Public visitors | Product help from ask-docs content only |
+| Surface | Path / entry | Purpose |
+| --- | --- | --- |
+| **Lynx console** | `/{locale}/o/{orgSlug}/dashboard/lynx` | Full module — truth, operator, substrate, structured demo |
+| **Nexus summon** | `/{locale}/o/{orgSlug}/nexus` (FAB overlay) | Grounded truth for the focused field atom |
+| **Utility bar panel** | Top utility bar | Shortcut to truth search; links to full console |
+| **Ask Lynx (docs)** | `/{locale}/ask-docs` | Public product help — not ERP Lynx |
 
-ERP Lynx and **Ask Lynx** share branding but use **separate stacks** — never mix tenant ERP data into the public chat route.
-
-## Four product layers
-
-Lynx is organised into four layers (see [Core concepts](./concepts)):
-
-1. **Truth retrieval** — evidence-grounded answers from knowledge chunks
-2. **Operating briefs** — structured summaries (contract reserved; shipping incrementally)
-3. **Canonical intake** — structured capture (`structured` in code; NL→SQL demo today)
-4. **Decision operator** — governed read-only tools over org facts
-
-## How to open the Lynx console
+## Open the Lynx console
 
 <Steps>
   <Step>
-    Sign in and open your organisation workspace from **Nexus**.
+    Sign in and open Nexus at `/{locale}/o/{orgSlug}/nexus`.
   </Step>
   <Step>
-    In the left rail, select **Lynx** (`/o/{orgSlug}/dashboard/lynx`).
+    Select **Lynx** in the left rail (`/dashboard/lynx`).
   </Step>
   <Step>
-    Use **Truth retrieval** for policy and process questions, **Operator assist** for cross-module read-only questions, and the **Knowledge substrate** section to add or debug chunks.
+    Use **Truth retrieval** for document-centric questions, **Operator assist** for live cross-module facts, and **Knowledge substrate** to add or debug chunks.
+  </Step>
+  <Step>
+    When enabled, try **Structured query (demo)** for read-only NL→SQL against the demo table only.
   </Step>
 </Steps>
 
-## Permissions and feature flags
+## Four product layers
 
-- **Layout access:** ERP RBAC **`lynx.workspace.search`**
-- **Operator assist:** `FLAG_LYNX_OPERATOR_ENABLED` (hidden with a policy notice when off)
-- **Structured query demo:** `FLAG_LYNX_STRUCTURED_QUERY_DEMO_ENABLED`
-- **Orbit operator tools:** `FLAG_LYNX_OPERATOR_ORBIT_TOOLS_ENABLED` (default on when operator is enabled)
+| Layer | Code slug | Status |
+| --- | --- | --- |
+| Truth retrieval | `truth` | **Live** — `POST /api/erp/lynx/truth-search` |
+| Operating briefs | `briefs` | Contract reserved — no UI yet |
+| Canonical intake | `structured` | NL→SQL **demo** when flag enabled |
+| Decision operator | `operator` | **Live (preview)** — `POST /api/erp/lynx/operator` |
 
-Contact your administrator if Lynx is missing or sections show as disabled.
+Canonical metadata: `lib/features/lynx/lynx.contract.ts` (`LYNX_LAYERS`, `LYNX_AUDIT_ACTIONS`).
 
 ## Audit trail
 
-ERP Lynx emits **`erp.lynx.*`** events, including:
+| Action | Audit string | Emitted today |
+| --- | --- | --- |
+| Truth query | `erp.lynx.truth.query` | Yes |
+| Operator recommendation | `erp.lynx.operator.recommend` | Yes |
+| NL→SQL demo query | `erp.lynx.nl_demo.query` | Yes |
+| Brief generate | `erp.lynx.brief.generate` | Reserved |
+| Intake commit | `erp.lynx.intake.commit` | Reserved |
 
-| Action | Audit string |
-|---|---|
-| Truth query | `erp.lynx.truth.query` |
-| Operator recommendation | `erp.lynx.operator.recommend` |
-| NL→SQL demo query | `erp.lynx.nl_demo.query` |
-| Brief generate (reserved) | `erp.lynx.brief.generate` |
-| Intake commit (reserved) | `erp.lynx.intake.commit` |
+Public Ask Lynx does not write `iam_audit_event` rows.
 
-Public **Ask Lynx** does not write IAM audit rows — it has no organisation session.
+## Troubleshooting
 
-## Related reading
+<Accordions type="single">
+  <Accordion title="Lynx is missing from the rail">
+    Grant `lynx.workspace.search` through ERP RBAC. Better Auth org role alone does not surface the module.
+  </Accordion>
+  <Accordion title="Operator assist shows a policy notice">
+    `FLAG_LYNX_OPERATOR_ENABLED` may be off, or you lack `lynx.workspace.predict`. Orbit tools additionally require `FLAG_LYNX_OPERATOR_ORBIT_TOOLS_ENABLED`.
+  </Accordion>
+  <Accordion title="Truth retrieval returns empty evidence">
+    Add chunks on the same page under [Knowledge substrate](/ask-docs/lynx/knowledge-substrate) and confirm gateway auth for embeddings.
+  </Accordion>
+</Accordions>
 
-- [Core concepts](./concepts) — layers, vocabulary, boundaries
-- [Knowledge substrate](./knowledge-substrate) — chunks and embeddings
-- [Orbit](../orbit) — operational execution Lynx can read via operator tools
+## Related
+
+<Cards>
+  <Card href="/ask-docs/lynx/truth-retrieval" title="Truth retrieval" description="Evidence-grounded Q&A with answer, evidence, limitations, and next safe action." />
+  <Card href="/ask-docs/lynx/operator-assist" title="Operator assist" description="Read-only governed tools over contacts, knowledge, imports, and Orbit." />
+  <Card href="/ask-docs/lynx/knowledge-substrate" title="Knowledge substrate" description="Chunk CRUD, similarity search, and org-admin sources pipeline." />
+  <Card href="/ask-docs/lynx/ask-docs-chat" title="Ask Lynx on docs" description="Public documentation chat — separate from ERP Lynx." />
+  <Card href="/ask-docs/lynx/concepts" title="Core concepts" description="Machine layer doctrine, layers, and HTTP boundaries." />
+</Cards>

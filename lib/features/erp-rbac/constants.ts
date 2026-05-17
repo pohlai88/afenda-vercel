@@ -139,6 +139,13 @@ export const ERP_PERMISSION_REGISTRY = [
   }),
   ...buildPermissionSet({
     module: "hrm",
+    object: "employee_sensitive",
+    label: "HRM workforce sensitive fields",
+    sensitivity: "restricted",
+    functions: ["read"],
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
     object: "organization",
     label: "HRM organization",
     sensitivity: "sensitive",

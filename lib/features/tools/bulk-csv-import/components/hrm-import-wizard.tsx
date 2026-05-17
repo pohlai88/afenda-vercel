@@ -3,16 +3,16 @@
 import { useCallback, useId, useState } from "react"
 import { useTranslations } from "next-intl"
 
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
-import { Button } from "#components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
+import { Button } from "#components2/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Label } from "#components/ui/label"
+} from "#components2/ui/card"
+import { Label } from "#components2/ui/label"
 
 import {
   hrmImportDryRunSuccessResponseSchema,

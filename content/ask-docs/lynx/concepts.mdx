@@ -1,8 +1,39 @@
 ---
 title: Core concepts
-description: Machine layer doctrine, four Lynx layers, Knowledge vs Lynx, and ERP vs public Ask Lynx.
+description: Machine layer doctrine, four Lynx layers, Knowledge vs Lynx boundaries, and ERP vs public Ask Lynx separation.
+audience: admin
+status: stable
 icon: Layers
+lastReviewedAt: "2026-05-18"
 ---
+
+## Overview
+
+Lynx is Afenda's **machine layer** for resolving truth, preparing work, and recommending controlled action. It is an ERP module (`lib/features/lynx`) with the same tenancy and audit expectations as HRM or Contacts. Inference providers (Vercel AI Gateway, OpenAI embeddings) are implementation details — not separate product brands.
+
+## Before you start
+
+- Read [Lynx overview](/ask-docs/lynx) for surface inventory and permission keys.
+- Distinguish **ERP Lynx** (`#features/lynx`, org session) from **Public Ask Lynx** (`lib/ask-docs/public-lynx*`, no tenant data).
+- Review banned vocabulary before writing product copy or internal runbooks.
+
+<Callout type="info" title="Public vs ERP Lynx">
+  Ask Lynx on `/{locale}/ask-docs` uses public docs search only. ERP Lynx routes under `app/api/erp/lynx/*` require org session and ERP permissions (`lynx.workspace.search`, `lynx.workspace.predict`).
+</Callout>
+
+## Explore Lynx layers
+
+<Steps>
+  <Step>
+    Open the Lynx console at `/{locale}/o/{orgSlug}/dashboard/lynx` with `lynx.workspace.search` permission.
+  </Step>
+  <Step>
+    Start with **Truth retrieval** when you need evidence-grounded answers from knowledge chunks.
+  </Step>
+  <Step>
+    Use **Operator assist** (`lynx.workspace.predict`) for cross-module read-only questions — never for mutations.
+  </Step>
+</Steps>
 
 ## Machine layer doctrine
 
@@ -10,96 +41,78 @@ icon: Layers
 Lynx is Afenda's machine layer for resolving truth, preparing work, and recommending controlled action.
 ```
 
-Lynx is an **ERP module** (`lib/features/lynx`) with the same tenancy and audit expectations as HRM or Contacts. Inference providers (Vercel AI Gateway, OpenAI embeddings) are **implementation details** — not separate product brands.
-
 ### What Lynx is not
 
 | Misconception | Reality |
-|---|---|
+| --- | --- |
 | Generic AI assistant / chatbot | Governed **Lynx** with evidence and audit |
 | Workflow automation | Durable runs belong in **execution** / Workflow DevKit |
 | Replacement for Orbit | Lynx **reads** operational state; Orbit **owns** execution |
-| Public docs chat | Separate route — see [Ask Lynx on docs](./ask-docs-chat) |
+| Public docs chat | Separate route — [Ask Lynx on docs](/ask-docs/lynx/ask-docs-chat) |
 
 ## Banned user-facing vocabulary
 
-Do not use in product copy or navigation:
+Do not use in product copy or navigation: **AI assistant**, **chatbot**, **copilot**, **AI mode**, **Thinking**, **Processing**, **Generating** (as status labels).
 
-- AI assistant, chatbot, copilot, AI mode, AI active
-- Thinking, Processing, Generating (as status labels)
-
-Prefer:
-
-- **Lynx**, **The Machine**
-- **Resolving**, **listening**, **high confidence**
-- Section titles from `Dashboard.Lynx.*` in the message catalog
+Prefer: **Lynx**, **The Machine**, **Resolving**, **listening**, **high confidence**, and `Dashboard.Lynx.*` section titles.
 
 ## Knowledge vs Lynx
 
 | Module | Role |
-|---|---|
+| --- | --- |
 | **`#features/knowledge`** | Substrate — `knowledge_chunk`, embeddings, chunk CRUD, similarity search |
-| **`#features/lynx`** | Product — truth stream, operator tools, NL→SQL demo, future briefs/intake |
+| **`#features/lynx`** | Product — truth stream, operator tools, NL→SQL demo, reserved briefs/intake |
 
-**Rules:**
-
-- Lynx imports Knowledge only through `#features/knowledge` (no deep imports into `knowledge/data/*`).
-- Adapters list documents; only the pipeline commits chunks to Postgres.
-- Retrieval is **source-blind** — ranking uses embeddings and tenant scope, not adapter kind.
+Lynx imports Knowledge only through `#features/knowledge`. Adapters list documents; only the pipeline commits chunks. Retrieval is **source-blind** — ranking uses embeddings and tenant scope.
 
 ## Four layers
 
 | Layer | Code slug | Status in product |
-|---|---|---|
+| --- | --- | --- |
 | Truth retrieval | `truth` | **Live** — `/api/erp/lynx/truth-search` |
-| Operating briefs | `briefs` | Contract + audit reserved |
+| Operating briefs | `briefs` | Contract + audit reserved — no UI |
 | Canonical intake | `structured` | NL→SQL **demo** when flag enabled |
-| Decision operator | `operator` | **Live** (preview) — `/api/erp/lynx/operator` |
+| Decision operator | `operator` | **Live (preview)** — `/api/erp/lynx/operator` |
 
-Canonical metadata lives in `lib/features/lynx/lynx.contract.ts` (`LYNX_LAYERS`, `LYNX_AUDIT_ACTIONS`).
+Canonical metadata: `lib/features/lynx/lynx.contract.ts` (`LYNX_LAYERS`, `LYNX_AUDIT_ACTIONS`).
 
 ## Truth response shape
 
-Every truth UI must surface four blocks:
+Every truth UI surfaces four blocks:
 
-1. **Answer** — model synthesis from retrieved passages only
+1. **Answer** — synthesis from retrieved passages only
 2. **Evidence used** — chunk titles, excerpts, cosine distance
-3. **Limitations** — coverage gaps (e.g. no chunks retrieved)
-4. **Next safe action** — operator guidance that does not bypass policy
+3. **Limitations** — coverage gaps
+4. **Next safe action** — operator guidance without bypassing policy
 
-Evidence comes from server retrieval metadata, not from trusting free-form model citations alone.
-
-## Governed operator tools
-
-Operator assist uses a **registry** of tools with explicit metadata:
-
-| Field | Meaning |
-|---|---|
-| `risk` | low · medium · high |
-| `category` | knowledge · contacts · operations · governance |
-| `access` | read (no write tools in v1) |
-| `dataSensitivity` | none · low · medium · high |
-| `audit` | silent · record |
-
-`organizationId` is always taken from the **session** — never from model-supplied arguments. Maximum **five** tool round-trips per request (`LYNX_OPERATOR_MAX_STEPS`).
-
-## HTTP boundaries
+## HTTP and import boundaries
 
 | Route family | Purpose |
-|---|---|
+| --- | --- |
 | `app/api/erp/lynx/*` | Authenticated streaming (truth, operator) |
 | `app/api/chat/*` | Public Ask Lynx — **no** `#features/lynx` import |
 
 Client islands use `#features/lynx/client` only (`LYNX_ERP_HTTP_ROUTES`, `parseLynxTruthMarkdown`).
 
-## Environment configuration
+## Troubleshooting
 
-| Variable | Effect |
-|---|---|
-| `LYNX_GENERATION_MODEL` | Chat model for truth/operator (gateway id or OpenAI id) |
-| `LYNX_MAX_OUTPUT_TOKENS` | Truth stream cap (default 4096) |
-| `LYNX_OPERATOR_MAX_OUTPUT_TOKENS` | Operator stream cap (default 2048) |
-| `AI_GATEWAY_API_KEY` / Vercel OIDC | Embedding and generation auth |
-| `FLAG_LYNX_*` | Feature policy toggles |
+<Accordions type="single">
+  <Accordion title="Which Lynx should I document or build against?">
+    Tenant features use `#features/lynx` and `app/api/erp/lynx/*`. Public docs AI uses `lib/ask-docs/public-lynx*` and `app/api/chat/route.ts` — never cross-import.
+  </Accordion>
+  <Accordion title="Why are briefs and intake in the contract but not in UI?">
+    `erp.lynx.brief.generate` and `erp.lynx.intake.commit` are reserved audit strings for future layers — do not document them as shipped product surfaces.
+  </Accordion>
+  <Accordion title="Operator tool called with wrong tenant">
+    Impossible by design — `organizationId` is injected from session in the tool registry, not from model arguments.
+  </Accordion>
+</Accordions>
 
-Requires AI Gateway auth for embedding-backed flows; without it, knowledge search tools fail with a clear error.
+## Related
+
+<Cards>
+  <Card href="/ask-docs/lynx" title="Lynx overview" description="Surfaces, permissions, and audit summary." />
+  <Card href="/ask-docs/lynx/truth-retrieval" title="Truth retrieval" description="Evidence-first Q&A workflow." />
+  <Card href="/ask-docs/lynx/structured-query-demo" title="Structured query (demo)" description="NL→SQL preview against lynx_demo_unicorn only." />
+  <Card href="/ask-docs/lynx/ask-docs-chat" title="Ask Lynx on docs" description="Public documentation chat boundary." />
+</Cards>

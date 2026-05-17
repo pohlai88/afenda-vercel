@@ -18,6 +18,9 @@ export type {
   PortalResolverPortalRow,
 } from "./context.shared"
 export {
+  candidatePortalApplicationPath,
+  candidatePortalCareersApplyPath,
+  candidatePortalCareersDetailPath,
   candidatePortalPath,
   employeePortalPath,
   employeePortalPerformanceGoalPath,

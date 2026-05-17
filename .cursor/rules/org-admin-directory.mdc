@@ -18,7 +18,7 @@ Mirrors **AGENTS.md §5 → Organizational control plane**. If this rule and `AG
 - All allowed segments, sidebar nav items, audit prefixes, and route helpers derive from **`ORG_ADMIN_CAPABILITIES`** in [`lib/features/org-admin/constants.ts`](lib/features/org-admin/constants.ts). Adding or renaming a section means **registering the capability**; do not add parallel constants.
 - Reuse:
  - **Path:** [`organizationAdminPath(orgSlug, segment | "overview")`](lib/features/org-admin/constants.ts).
- - **Sanitizer:** [`isAllowedOrgAdminSegment`](lib/features/org-admin/constants.ts) (consumed by [`sanitizePathAfterOrgSlug`](lib/dashboard-org-path.shared.ts)).
+ - **Sanitizer:** [`isAllowedOrgAdminSegment`](lib/features/org-admin/constants.ts) (consumed by [`sanitizePathAfterOrgSlug`](lib/i18n/dashboard-org-path.shared.ts)).
  - **Sidebar:** [`buildOrgAdminNav(orgSlug)`](lib/features/org-admin/constants.ts) → [`OrgAdminSidebar`](lib/features/org-admin/components/org-admin-sidebar.tsx) renders one item per registered capability with nav metadata.
  - **Audit gate:** [`isAllowedAuditAction`](lib/features/org-admin/constants.ts) checks the prefix matches **`ORG_ADMIN_EVENT_NAMESPACES`** before write.
 

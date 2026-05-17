@@ -1,9 +1,11 @@
+import { HRM_EMPLOYEE_LIFECYCLE_AUDIT } from "../employee-lifecycle.contract"
+
 /** Bounded batch for the daily probation watch cron tick. */
 export const PROBATION_WATCH_BATCH_LIMIT = 300
 
 /** IAM audit action — idempotent per `hrm_employment_contract` row. */
 export const PROBATION_REVIEW_DUE_AUDIT_ACTION =
-  "erp.hrm.contract.probation_review_due" as const
+  HRM_EMPLOYEE_LIFECYCLE_AUDIT.probation.review_due
 
 export type ProbationReviewCandidate = {
   readonly contractId: string

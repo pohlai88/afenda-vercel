@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 
 import { Link } from "#i18n/navigation"
 
@@ -16,7 +16,7 @@ import {
   organizationOperatorPath,
   PLATFORM_ADMIN_NAV_ITEMS,
 } from "#features/platform-admin"
-import { requireGlobalAdminSession } from "#lib/tenant"
+import { requireGlobalAdminSession } from "#lib/auth"
 
 export default async function OrganizationPlatformAdminHomePage({
   params,

@@ -1,0 +1,76 @@
+---
+description: HARD DELETED — the entire repo-root components/ directory must never exist again. Any agent that recreates it commits a VIOLATION.
+alwaysApply: true
+---
+
+# HARD DELETED: entire `components/` directory
+
+```txt
+C:\JackProject\afenda-vercel\components   ← GONE. THE WHOLE TREE.
+```
+
+The operator **hard-deleted the entire repo-root `components/` folder** — not a subfolder, not “mostly migrated,” **the full directory**.
+
+**Recreating `components/` or any path under it is a VIOLATION** for every agent, IDE, merge tool, generator, and human — no exceptions, no “just ui,” no “just one file,” no “temporary until build passes.”
+
+---
+
+## The one sentence rule
+
+```txt
+components/ MUST NOT EXIST ON DISK. Fix imports forward into components2/ (and feature modules). Never mkdir components.
+```
+
+---
+
+## Forbidden (all VIOLATIONS)
+
+| Action | Status |
+|---|---|
+| `mkdir components` or restoring `components/` from git / another branch | **VIOLATION** |
+| Re-adding `components/ui/**`, `components/workbench/**`, `components/nexus/**`, `components/auth/**`, … | **VIOLATION** |
+| `shadcn add` or CLI output targeting `components/` | **VIOLATION** — redirect output to `components2/ui/` |
+| “I'll only restore `components/ui` for the build” | **VIOLATION** |
+| Copying one deleted file back “to unblock typecheck” | **VIOLATION** |
+| Keeping `#components/*` imports while recreating the folder | **VIOLATION** — change imports, do not recreate the tree |
+
+---
+
+## Canonical homes (fix forward)
+
+| Was under deleted `components/` | Use instead |
+|---|---|
+| Shell / workbench chrome | `components2/app-shell/**` · `#app-shell` · `#app-shell/client` |
+| UI primitives (shadcn shelf) | `components2/ui/**` · `#components2/ui/*` |
+| Portal chrome | `components2/portal-shell/**` |
+| Metadata renderers | `components2/metadata/**` · `#components2/metadata` |
+| Marketing / dev overlays | `components2/marketing/**` · `components2/dev/**` |
+| ERP feature UI | `lib/features/<module>/components/**` |
+| Ask-docs Lynx / feedback (if still needed) | `components2/**` or `lib/ask-docs/**` — **not** `components/` |
+
+**Do not consult old docs that say `components/ui` or `#components/ui/*` as current — that path is retired with the deleted directory.**
+
+---
+
+## Required behavior before creating ANY path
+
+1. If the path starts with `components/` → **stop**. You are violating this rule.
+2. Broken `#components/...` import → **retarget** to `components2/` or the feature module; **never** recreate `components/` to satisfy the alias.
+3. User asks to “bring back components” → **refuse by default**; only a deliberate **`git revert` of the deletion commit** is allowed, not hand-written re-creation.
+4. Merge conflict: one side deleted `components/` → **keep deleted**; fix callers in the winning migration.
+
+---
+
+## Mechanical enforcement
+
+`scripts/check-agent-contract.mjs` **fails CI** if `components/` exists at repo root.
+
+Treat any PR that adds `components/` as **block merge** — delete the directory again, fix imports forward, run ESLint on touched paths + `pnpm typecheck`.
+
+---
+
+## Related rules
+
+- `no-dead-code-no-aliases.mdc` — no compatibility shims after deletion
+- `components2-directory.mdc` — naming and layout for the replacement tree
+- `shell-directory.mdc` — shell wiring lives under `components2/app-shell/`

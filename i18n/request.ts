@@ -3,7 +3,11 @@ import "server-only"
 import { IntlErrorCode } from "next-intl"
 import { getRequestConfig } from "next-intl/server"
 
-import { isAppLocale, type AppLocale } from "#lib/i18n/locales.shared"
+import {
+  isAfendaSingleLocaleRefactorMode,
+  isAppLocale,
+  type AppLocale,
+} from "#lib/i18n/locales.shared"
 
 import { routing } from "./routing"
 
@@ -48,6 +52,12 @@ export default getRequestConfig(async ({ requestLocale }) => {
     timeZone: "UTC",
     formats,
     onError(error: { code: IntlErrorCode | (string & {}); message?: string }) {
+      if (
+        isAfendaSingleLocaleRefactorMode() &&
+        error.code === IntlErrorCode.MISSING_MESSAGE
+      ) {
+        return
+      }
       // next-intl onError runs on Edge (no Pino); console is the only safe channel here.
       if (error.code === IntlErrorCode.MISSING_MESSAGE) {
         // eslint-disable-next-line no-console
@@ -64,6 +74,9 @@ export default getRequestConfig(async ({ requestLocale }) => {
       namespace?: string
       key: string
     }) {
+      if (isAfendaSingleLocaleRefactorMode()) {
+        return namespace ? `${namespace}.${key}` : key
+      }
       return process.env.NODE_ENV !== "production"
         ? `[${namespace ?? "?"}.${key}]`
         : key

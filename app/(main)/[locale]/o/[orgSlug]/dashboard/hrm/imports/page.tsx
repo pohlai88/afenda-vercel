@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation"
 
-import { getHrmCapabilityById, HrmImportsPage } from "#features/hrm"
+import { getHrmCapabilityById } from "#features/hrm"
+import { HrmImportsPage } from "#features/tools"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getErpPermissionDefinition } from "#features/erp-rbac"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
-export const dynamic = "force-dynamic"
 
 export default async function OrgDashboardHrmImportsPage({
   params,

@@ -1,15 +1,13 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
-import { AppShell } from "#components/workbench"
+import { AppShell, buildAppShellConsoleUtilityBarSlots } from "#app-shell"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
-import type { RouteEnvelope } from "#lib/route-envelope.shared"
+import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 import { SITE_NAME } from "#lib/site"
-import { requireSignedInSession } from "#lib/tenant"
+import { requireSignedInSession } from "#lib/auth"
 
-// Session auth reads cookies — declare dynamic so Next.js skips the static
-// prerender attempt and avoids noisy DYNAMIC_SERVER_USAGE error logs in CI.
-export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Console",
@@ -17,14 +15,24 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default async function ConsoleLayout({
+export default function ConsoleLayout({
+  children,
+  params,
+}: LayoutProps<"/[locale]/console">) {
+  return (
+    <Suspense fallback={null}>
+      <ConsoleLayoutInner params={params}>{children}</ConsoleLayoutInner>
+    </Suspense>
+  )
+}
+
+async function ConsoleLayoutInner({
   children,
   params,
 }: LayoutProps<"/[locale]/console">) {
   const { locale: localeRaw } = await params
   const locale = ensureAppLocale(localeRaw)
 
-  // Tier A — blocking authority for the console route contract (no org required).
   const session = await requireSignedInSession()
   const tConsole = await getTranslations("Console")
 
@@ -33,14 +41,16 @@ export default async function ConsoleLayout({
     locale,
   }
 
+  const utilityBar = await buildAppShellConsoleUtilityBarSlots({
+    locale,
+    userEmail: session.user.email,
+  })
+
   return (
     <AppShell
       envelope={envelope}
       skipToMainLabel={tConsole("skipToMain")}
-      utilityBar={{
-        mode: "no-org",
-        userEmail: session.user.email,
-      }}
+      utilityBar={utilityBar}
       rail={null}
     >
       {children}

@@ -1,6 +1,6 @@
 "use server"
 
-import { requireHrmAdmin } from "../../../hrm-admin-guard.server"
+import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
 import {
   buildBenefitCensusReport,
   buildBenefitDeductionReconciliationReport,
@@ -30,8 +30,8 @@ export async function exportBenefitCensusCsvAction(): Promise<
 
   const asOf = new Date().toISOString().slice(0, 10)
   const periodStart = `${asOf.slice(0, 7)}-01`
-  const [plans, enrollments, lifeEvents, payrollEnrollments] = await Promise.all(
-    [
+  const [plans, enrollments, lifeEvents, payrollEnrollments] =
+    await Promise.all([
       listBenefitPlansForOrganization(organizationId, { limit: 500 }),
       listBenefitEnrollmentsForOrganization(organizationId, { limit: 2000 }),
       listLifeEventsForOrganization(organizationId, { limit: 500 }),
@@ -40,8 +40,7 @@ export async function exportBenefitCensusCsvAction(): Promise<
         periodStart,
         periodEnd: asOf,
       }),
-    ]
-  )
+    ])
 
   const census = buildBenefitCensusReport({
     plans,
@@ -102,17 +101,16 @@ export async function exportBenefitDeductionReconciliationCsvAction(
 
   const lines = [
     "enrollmentId,benefitCode,benefitName,employeeId,projectedEmployeeAmount,projectedEmployerAmount,payrollLineCount",
-    ...rows.map(
-      (row) =>
-        [
-          row.enrollmentId,
-          csvEscape(row.benefitCode),
-          csvEscape(row.benefitName),
-          row.employeeId,
-          row.projectedEmployeeAmount,
-          row.projectedEmployerAmount,
-          row.payrollLineCount,
-        ].join(",")
+    ...rows.map((row) =>
+      [
+        row.enrollmentId,
+        csvEscape(row.benefitCode),
+        csvEscape(row.benefitName),
+        row.employeeId,
+        row.projectedEmployeeAmount,
+        row.projectedEmployerAmount,
+        row.payrollLineCount,
+      ].join(",")
     ),
   ]
 

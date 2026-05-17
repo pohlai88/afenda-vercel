@@ -1,31 +1,57 @@
 ---
 title: Signals
 description: Detected operational pressure — triage, suppress, promote, or dismiss before execution.
+audience: admin
+status: stable
 icon: Radio
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-**Orbit Signals** (`/o/{orgSlug}/dashboard/orbit/signals`) lists **detected operational pressure** awaiting triage, suppression, promotion, or dismissal.
+**Orbit Signals** (`/{locale}/o/{orgSlug}/dashboard/orbit/signals`) lists **detected operational pressure** awaiting triage, suppression, promotion, or dismissal.
 
 Use Signals when you need to answer: *what does the system (or operators) believe needs attention, before it becomes owned work?*
 
-See [Core concepts](./concepts) for signal classes and lifecycle states.
+## Before you start
+
+- You need an active org session and ERP permissions for the planner module.
+- Signals represent **pressure**, not owned work — promote only when schedule, ownership, and verification are required.
+- See [Core concepts](/ask-docs/orbit/concepts) for signal classes and lifecycle states.
 
 ## Signal vs item
 
 | | Signal | Item |
-|---|---|---|
+| --- | --- | --- |
 | **Purpose** | Represent pressure | Represent executable work |
 | **Typical end states** | Promoted, suppressed, dismissed, auto-resolved | Verified, resolved, deprecated, cancelled |
 | **Creation** | Detection, import, manual capture | Promotion from signal or direct create |
 
-Do not treat signals as lightweight todos — promote only when ownership, schedule, and verification are required.
+<Callout type="info" title="Not a todo list">
+  Do not treat signals as lightweight todos. Promotion creates a `PlannerItem` and begins the verification-aware execution lifecycle.
+</Callout>
+
+## Triage a signal
+
+<Steps>
+  <Step>
+    Open **Signals** at `/{locale}/o/{orgSlug}/dashboard/orbit/signals` or jump from **Triage** when routing signal intake.
+  </Step>
+  <Step>
+    Select a row and review class, derived pressure, ERP links, and resolution policy in the detail pane.
+  </Step>
+  <Step>
+    **Promote** to create an execution item, **correlate** to an existing item, or **defer**, **suppress**, or **dismiss** when policy allows closing without promotion.
+  </Step>
+  <Step>
+    After promotion, continue execution from [Queue](/ask-docs/orbit/queue) or schedule on [Today](/ask-docs/orbit/today) / [Timeline](/ask-docs/orbit/timeline).
+  </Step>
+</Steps>
 
 ## Signal classes in practice
 
 | Class | Operator guidance |
-|---|---|
+| --- | --- |
 | `deadline` | Check schedule slack; promote if commitment is real |
 | `escalation` | Assign escalation owner; often promote immediately |
 | `verification` | Confirm whether evidence already exists in ERP |
@@ -36,7 +62,7 @@ Do not treat signals as lightweight todos — promote only when ownership, sched
 ## Lifecycle actions
 
 | Action | When to use |
-|---|---|
+| --- | --- |
 | **Promote** | Create `PlannerItem` and begin execution lifecycle |
 | **Correlate** | Attach to existing item; avoid duplicate work |
 | **Defer** | Valid pressure but not now |
@@ -54,8 +80,25 @@ Operators can **capture signals** from Queue or Signals quick-create with a shor
 
 Signals may carry resolution policies (`none`, `auto_resolve`, `suppress`) governing automation behaviour when linked ERP state changes. Policies are configured per signal type and integration — not a generic tag field.
 
-## Related surfaces
+## Troubleshooting
 
-- [Triage](./triage) — lane-based intake and automation attention
-- [Queue](./queue) — after promotion, execute from ranked queue
-- [Links](./links) — ERP records tied to signal pressure
+<Accordions type="single">
+  <Accordion title="I cannot promote a signal">
+    Confirm the signal is not already promoted, dismissed, or auto-resolved. Check ERP links if promotion policy requires business context.
+  </Accordion>
+  <Accordion title="The same pressure keeps reappearing">
+    Consider **suppress** with an explicit policy, or **correlate** to an existing item instead of promoting duplicates.
+  </Accordion>
+  <Accordion title="Manual capture lacks ERP context">
+    Open the signal detail pane and add **links** with causality reason before promotion — audit and Lynx briefs depend on this field.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/orbit/triage" title="Triage" description="Lane-based intake and automation attention." />
+  <Card href="/ask-docs/orbit/queue" title="Queue" description="Execute ranked work after promotion." />
+  <Card href="/ask-docs/orbit/links" title="Links" description="ERP records tied to signal pressure." />
+  <Card href="/ask-docs/orbit/concepts" title="Core concepts" description="Signal classes, lifecycle, and temporal model." />
+</Cards>

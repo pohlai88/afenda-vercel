@@ -4,7 +4,7 @@ import { useActionState, useState } from "react"
 import { upload as uploadBlob } from "@vercel/blob/client"
 import { Loader2, Paperclip } from "lucide-react"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 
 import { addPlannerAttachmentAction } from "../commands/add-planner-attachment"
 import type { OrbitDashboardSurface, PlannerScopeInput } from "../types"

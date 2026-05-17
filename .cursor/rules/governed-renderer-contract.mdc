@@ -63,6 +63,8 @@ export const <name>ConfigurationSchema = z
 | `action-bar` | `"actions"` |
 | `audit-panel` | `"audit-trail"` |
 | `detail-tabs` | `"tabbed-detail"` |
+| `chart` | `"time-series"` · `"categorical"` |
+| `approval-timeline` | `"approval-flow"` |
 
 `section` and `stack` are container-only and are exempt.
 

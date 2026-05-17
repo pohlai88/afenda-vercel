@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest"
 
-// Bypass the `#components/workbench` barrel — see neighboring
+// Import kernel parsers from `#app-shell` — see neighboring
 // `org-admin-rail-inbox.test.ts` for the rationale.
-import { parseWorkbenchRailSlotsData } from "#components/workbench/left-nav-rail/workbench-rail.schema"
+import { parseAppShellPrimaryLeftRailSlotsData } from "#app-shell"
 import type {
-  WorkbenchRailInbox,
-  WorkbenchRailPin,
-  WorkbenchRailRecent,
-  WorkbenchRailView,
-} from "#components/workbench/left-nav-rail/workbench-rail.schema"
+  AppShellPrimaryLeftRailInbox,
+  AppShellPrimaryLeftRailPin,
+  AppShellPrimaryLeftRailRecent,
+  AppShellPrimaryLeftRailView,
+} from "#app-shell"
 
 import { buildOrgAdminRailSlots } from "#features/org-admin/data/org-admin-rail-slots"
 
@@ -23,17 +23,17 @@ import { buildOrgAdminRailSlots } from "#features/org-admin/data/org-admin-rail-
  *
  *   2. **Conditional density** is enforced at the builder boundary:
  *      empty arrays collapse to `undefined` so the kernel
- *      `workbenchRailSlotsDataSchema` never sees a `pinned: []`. The
+ *      `appShellPrimaryLeftRailSlotsDataSchema` never sees a `pinned: []`. The
  *      kernel rejects empty arrays at parse time, but the builder
  *      proactively avoids triggering the rejection so callers can pass
  *      `[]` without crashing.
  *
- *   3. The mapped output must round-trip through `parseWorkbenchRailSlotsData`.
- *      This is the contract every workbench layout depends on; if the
+ *   3. The mapped output must round-trip through `parseAppShellPrimaryLeftRailSlotsData`.
+ *      This is the contract every org sub-layout depends on; if the
  *      builder ever drifts from the kernel schema, this test fails first.
  */
 
-const PIN: WorkbenchRailPin = {
+const PIN: AppShellPrimaryLeftRailPin = {
   id: "pin-1",
   label: "Aisha Khan",
   href: "/o/acme/admin/members/aisha",
@@ -41,13 +41,13 @@ const PIN: WorkbenchRailPin = {
   resourceId: "user-1",
 }
 
-const VIEW: WorkbenchRailView = {
+const VIEW: AppShellPrimaryLeftRailView = {
   id: "view-1",
   label: "Pending only",
   href: "/o/acme/admin/audit?status=pending",
 }
 
-const RECENT: WorkbenchRailRecent = {
+const RECENT: AppShellPrimaryLeftRailRecent = {
   id: "recent-1",
   label: "Members & invitations",
   href: "/o/acme/admin/members",
@@ -55,7 +55,7 @@ const RECENT: WorkbenchRailRecent = {
   occurredAt: "2026-05-12T11:55:00.000Z",
 }
 
-const INBOX: WorkbenchRailInbox = {
+const INBOX: AppShellPrimaryLeftRailInbox = {
   label: "3 pending invitations",
   count: 3,
   href: "/o/acme/admin/members",
@@ -115,7 +115,7 @@ describe("buildOrgAdminRailSlots — Phase 3d memory slots", () => {
     expect(slots.inbox).toBeUndefined()
   })
 
-  it("round-trips through the kernel `workbenchRailSlotsDataSchema`", () => {
+  it("round-trips through the kernel `appShellPrimaryLeftRailSlotsDataSchema`", () => {
     // Strict-mode parser rejects unknown keys + empty memory arrays.
     // If the builder ever leaks a stray field, this test catches it
     // before any RSC layout crashes at render time.
@@ -132,7 +132,7 @@ describe("buildOrgAdminRailSlots — Phase 3d memory slots", () => {
     })
     // `footer` is on the composed type, not the data schema; the
     // builder never emits it, so the data schema parse must succeed.
-    expect(() => parseWorkbenchRailSlotsData(slots)).not.toThrow()
+    expect(() => parseAppShellPrimaryLeftRailSlotsData(slots)).not.toThrow()
   })
 
   it("preserves the order of memory arrays (insertion stability)", () => {

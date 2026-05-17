@@ -1,4 +1,4 @@
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 
 /**
@@ -6,7 +6,7 @@ import { Link } from "#i18n/navigation"
  *
  * The locale operator `layout.tsx` only redirects to the org-scoped operator
  * route (`/o/{orgSlug}/operator`); it does **not** mount `AppShell`. Full
- * workbench chrome lives under `app/[locale]/o/[orgSlug]/layout.tsx` after that
+ * app shell chrome lives under `app/[locale]/o/[orgSlug]/layout.tsx` after that
  * navigation. Keep this file as lightweight inline recovery UI.
  *
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/not-found

@@ -4,21 +4,35 @@ description: Maintain skill categories and map competencies to employees with pr
 icon: Sparkles
 audience: admin
 status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 The **Skills** workbench maintains your organisation's competency catalog and maps skills to employees with proficiency levels. Use it for workforce planning, gap analysis, and tying training assignments to required competencies.
 
-## Workbench surface
+## Before you start
 
-Navigate to **HRM → Skills** (`/o/{orgSlug}/dashboard/hrm/skills`).
+- You need `hrm.skill.search` to view the catalog and assignments; `hrm.skill.update` to create or change mappings.
+- Align skill categories with HR and L&D stakeholders before bulk imports — renames after assignments create review overhead.
+- Link competency requirements to **training** courses when compliance or recertification depends on proficiency.
 
-Typical workflows:
+## Managing the skills catalog
 
-1. Define or import **skill categories** and individual skills.
-2. Assign skills to employees with a proficiency level (e.g. beginner, proficient, expert).
-3. Review coverage when building training plans or recruitment scorecards.
+<Steps>
+  <Step>
+    Navigate to **HRM → Skills** (`/o/{orgSlug}/dashboard/hrm/skills`).
+  </Step>
+  <Step>
+    Define or import **skill categories** and individual skills in the catalog.
+  </Step>
+  <Step>
+    Assign skills to employees with a proficiency level (e.g. beginner, proficient, expert).
+  </Step>
+  <Step>
+    Review coverage when building training plans or recruitment scorecards.
+  </Step>
+</Steps>
 
 ## Permissions
 
@@ -31,8 +45,34 @@ Typical workflows:
 
 Mutations emit `erp.hrm.skill.*` audit events after successful commit. Bulk changes should go through governed import surfaces when available rather than ad-hoc SQL.
 
+<Callout type="info" title="Governed writes">
+  Skill mappings are durable workforce facts. Prefer intentional edits with audit context over deleting history when correcting mistakes.
+</Callout>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Cannot assign a skill to an employee">
+    Confirm you hold `hrm.skill.update` and the employee row is active in the workforce master.
+  </Accordion>
+  <Accordion title="Catalog skill missing from pickers">
+    Verify the skill is active in the category and that your search filters are not excluding it.
+  </Accordion>
+</Accordions>
+
 ## Related
 
-- [Training & development](/ask-docs/hrm/training) — courses, sessions, and completion records
-- [Performance](/ask-docs/hrm/performance) — review cycles and objectives
-- [Employees](/ask-docs/hrm/employees) — workforce master records
+<Cards>
+  <Card href="/ask-docs/hrm/training" title="Training & development">
+    Courses, sessions, and completion records tied to competencies.
+  </Card>
+  <Card href="/ask-docs/hrm/performance" title="Performance">
+    Review cycles and objectives that reference skill growth.
+  </Card>
+  <Card href="/ask-docs/hrm/employees" title="Employees">
+    Workforce master records for skill assignments.
+  </Card>
+  <Card href="/ask-docs/hrm/recruitment" title="Recruitment">
+    Scorecards and requisitions that reference required skills.
+  </Card>
+</Cards>

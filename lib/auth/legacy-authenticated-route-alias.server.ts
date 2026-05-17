@@ -14,20 +14,16 @@ import {
   toLocalePath,
   type AppLocale,
 } from "#lib/i18n/locales.shared"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
-import { ORBIT_DASHBOARD_SURFACE_SEGMENT_SET } from "#lib/planner-dashboard.shared"
-import { requireOrgSession } from "#lib/tenant"
-import {
-  isMarketplaceRoute,
-  organizationMarketplacePath,
-} from "#features/marketplace"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
+import { ORBIT_DASHBOARD_SURFACE_SEGMENT_SET } from "#features/planner/planner-dashboard-path.shared"
+import { requireOrgSession } from "./tenant-session.server"
 import {
   PLATFORM_ADMIN_ALLOWED_SEGMENTS,
   organizationOperatorPath,
 } from "#features/platform-admin"
 import { organizationOrbitPath } from "#features/planner"
 
-type LegacySurface = "account" | "marketplace" | "operator"
+type LegacySurface = "account" | "operator"
 
 function withForwardedSearch(pathname: string, search: string | null): string {
   const trimmed = search?.trim() ?? ""
@@ -55,17 +51,6 @@ function resolveAccountAliasPath(orgSlug: string, pathname: string): Route {
   return organizationAccountPath(orgSlug)
 }
 
-function resolveMarketplaceAliasPath(orgSlug: string, pathname: string): Route {
-  if (pathname === "/marketplace") {
-    return organizationMarketplacePath(orgSlug)
-  }
-  const match = pathname.match(/^\/marketplace\/([^/]+)$/)
-  if (match && isMarketplaceRoute(match[1]!)) {
-    return organizationMarketplacePath(orgSlug, match[1] as never)
-  }
-  return organizationMarketplacePath(orgSlug)
-}
-
 function resolveOperatorAliasPath(orgSlug: string, pathname: string): Route {
   if (pathname === "/operator") {
     return organizationOperatorPath(orgSlug) as Route
@@ -85,8 +70,6 @@ function resolveAliasPath(
   switch (surface) {
     case "account":
       return resolveAccountAliasPath(orgSlug, pathname)
-    case "marketplace":
-      return resolveMarketplaceAliasPath(orgSlug, pathname)
     case "operator":
       return resolveOperatorAliasPath(orgSlug, pathname)
   }

@@ -3,16 +3,19 @@ import { describe, expect, it } from "vitest"
 import {
   FORM_EVENTS,
   governedComponentRegistrySchema,
-  governedComponentSchema,
+  parseGovernedComponentData,
   parseEventHandlerMetadata,
 } from "#features/governed-surface"
 
 describe("governed-surface kernel extensions", () => {
   it("parses governed component metadata", () => {
-    const parsed = governedComponentSchema.safeParse({
-      type: "button-primary",
-      serverType: "create",
-      configuration: { variant: "default" },
+    const parsed = parseGovernedComponentData({
+      type: "governed:empty",
+      serverType: "governed:empty",
+      configuration: {
+        variant: "muted",
+        title: "No data",
+      },
     })
     expect(parsed.success).toBe(true)
   })

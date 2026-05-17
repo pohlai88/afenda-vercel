@@ -9,8 +9,8 @@ import {
   generateLynxNlDemoSqlAction,
   suggestLynxNlDemoChartAction,
 } from "../actions/nl-sql-demo.actions"
-import { Button } from "#components/ui/button"
-import { Input } from "#components/ui/input"
+import { Button } from "#components2/ui/button"
+import { Input } from "#components2/ui/input"
 import {
   Table,
   TableBody,
@@ -18,8 +18,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "#components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs"
+} from "#components2/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components2/ui/tabs"
 
 import {
   stableNlDemoExplanationKeys,

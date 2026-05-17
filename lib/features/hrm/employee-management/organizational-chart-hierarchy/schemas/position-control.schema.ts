@@ -40,6 +40,7 @@ export const createPositionControlFormSchema = z.object({
   title: orgStructureNameSchema,
   departmentId: z.string().uuid(),
   defaultGradeId: optionalOrgStructureUuidSchema,
+  positionOwnerEmployeeId: optionalOrgStructureUuidSchema,
   reportsToPositionId: optionalOrgStructureUuidSchema,
   employmentType: positionEmploymentTypeSchema,
   headcountBudget: optionalNonNegativeIntegerSchema,
@@ -47,6 +48,8 @@ export const createPositionControlFormSchema = z.object({
   costCenterCode: optionalOrgStructureTextSchema,
   workLocationCode: optionalOrgStructureTextSchema,
   effectiveFrom: optionalIsoDateOnly,
+  reason: optionalOrgStructureTextSchema,
+  approvalReference: optionalOrgStructureTextSchema,
 })
 
 export const updatePositionControlFormSchema =
@@ -57,12 +60,18 @@ export const updatePositionControlFormSchema =
 export const archivePositionControlFormSchema = z.object({
   orgSlug: z.string().min(1),
   positionId: z.string().uuid(),
+  effectiveFrom: optionalIsoDateOnly,
+  reason: optionalOrgStructureTextSchema,
+  approvalReference: optionalOrgStructureTextSchema,
 })
 
 export const setPositionReportingLineFormSchema = z.object({
   orgSlug: z.string().min(1),
   positionId: z.string().uuid(),
   reportsToPositionId: optionalOrgStructureUuidSchema,
+  effectiveFrom: optionalIsoDateOnly,
+  reason: optionalOrgStructureTextSchema,
+  approvalReference: optionalOrgStructureTextSchema,
 })
 
 export type CreatePositionControlFormInput = z.infer<

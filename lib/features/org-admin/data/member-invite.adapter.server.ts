@@ -18,7 +18,7 @@ import type {
 } from "./import-adapter.server"
 import { hrmPayrollProfileImportAdapter } from "./hrm-payroll-profile-import.adapter.server"
 import { hrmEmployeeHireAdapter } from "./hrm-employee-hire.adapter.server"
-import { attendanceImportAdapter } from "../../hrm/workforce-time-attendance/data/attendance-import.adapter.server"
+import { attendanceImportAdapter } from "../../hrm/time-attendance/leave-attendance-management/data/attendance-import.adapter.server"
 
 function invitationIdFromCreateResult(result: unknown): string | null {
   if (!result || typeof result !== "object") return null

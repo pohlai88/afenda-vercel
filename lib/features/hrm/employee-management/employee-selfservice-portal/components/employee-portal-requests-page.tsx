@@ -1,13 +1,13 @@
 import { getTranslations } from "next-intl/server"
 
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 import {
   Table,
   TableBody,
@@ -15,14 +15,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "#components/ui/table"
+} from "#components2/ui/table"
 
 import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 import { listEmployeePortalOpenRequests } from "../data/employee-portal-requests.queries.server"
 import type { EmployeePortalOpenRequestKind } from "../data/employee-portal-requests.queries.server"
 
-import { EmployeePortalSectionNav } from "../../../components/employee-portal-section-nav"
+import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalRequestsPageProps = {
   portalSlug: string
@@ -35,6 +35,12 @@ function requestKindLabel(kind: EmployeePortalOpenRequestKind): string {
     salary_advance: "Salary advance",
     benefit_enrollment: "Benefit enrollment",
     signature: "Signature",
+    profile_update: "Profile update",
+    document_request: "Document request",
+    attendance_correction: "Attendance correction",
+    training: "Training",
+    onboarding_task: "Onboarding task",
+    offboarding_task: "Offboarding task",
   }
   return labels[kind]
 }

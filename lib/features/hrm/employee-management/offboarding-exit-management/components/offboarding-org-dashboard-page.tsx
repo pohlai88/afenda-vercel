@@ -3,15 +3,15 @@ import { getFormatter, getTranslations } from "next-intl/server"
 import type { Route } from "next"
 
 import { Link } from "#i18n/navigation"
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/card"
+import { requireOrgSession } from "#lib/auth"
 
 import { organizationHrmEmployeePath } from "../../../constants"
 import { listOffboardingInstancesForOrgDashboard } from "../data/offboarding-org-dashboard.queries.server"

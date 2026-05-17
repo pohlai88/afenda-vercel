@@ -3,8 +3,8 @@
 import { useId } from "react"
 import { useTranslations } from "next-intl"
 
-import { Button } from "#components/ui/button"
-import { Field, FieldLabel } from "#components/ui/field"
+import { Button } from "#components2/ui/button"
+import { Field, FieldLabel } from "#components2/ui/field"
 
 import {
   HRM_DOCUMENT_CLASSIFICATIONS,

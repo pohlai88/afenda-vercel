@@ -1,63 +1,83 @@
 ---
 title: Workspace navigation
-description: A guide to the Afenda shell — the sidebar, utility bar, command palette, and module routing.
+description: Afenda Workbench shell — left rail, utility bar, command palette, org switcher, and module URL patterns.
+audience: admin
+status: stable
 icon: LayoutDashboard
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-The Afenda shell is persistent across all modules. Once you reach the Nexus workspace, the same chrome — left rail, utility bar, and command layer — stays in place as you navigate between HRM, Contacts, Orbit, and other surfaces.
+The Afenda shell is persistent across ERP modules. Once you reach Nexus at `/{locale}/o/{orgSlug}/nexus`, the same chrome — left rail, utility bar, and command layer — stays mounted as you move between HRM, Contacts, Orbit, Lynx, and other surfaces.
+
+## Before you start
+
+- An active org session after [Quick start](/ask-docs/getting-started/quick-start).
+- At least one ERP module permission for the surfaces you plan to open (module visibility follows ERP RBAC, not Better Auth role labels alone).
+
+<Callout type="info" title="Nexus is the org root">
+  `/{locale}/o/{orgSlug}/nexus` is the canonical org landing surface. Legacy `/dashboard` paths may redirect — bookmark Nexus or a concrete module leaf.
+</Callout>
 
 ## Shell elements
 
 | Element | What it does |
-|---|---|
-| **Left rail** | Primary module navigation — HRM, Contacts, Orbit, and more. Collapses to icon-only mode. |
-| **Utility bar** | Organisation switcher, notifications, and account menu — always visible in the top-right corner. |
-| **Command palette** | Global search and quick actions. Searches pages, contacts, employees, and settings in one place. |
-| **Working Memory rail** | Pinned pages and recent visits. Pin any page with the bookmark icon for instant re-access. |
+| --- | --- |
+| **Left rail** | Primary module navigation — HRM, Contacts, Orbit, Lynx, Admin, and more. Collapses to icon-only mode. |
+| **Utility bar** | Organisation switcher, notifications, Lynx panel shortcut, and account menu — top-right. |
+| **Command palette** | Global search and quick actions across pages, records, and settings. |
+| **Working Memory rail** | Pinned pages and recent visits per workbench — bookmark any page for instant re-access. |
 
-## Opening the command palette
+## Open the command palette
 
 <Steps>
   <Step>
-    Press `Ctrl K` (Windows / Linux) or `⌘ K` (macOS) from anywhere in the workspace.
+    Press `Ctrl K` (Windows / Linux) or `⌘ K` (macOS) from anywhere in the signed-in workspace.
   </Step>
   <Step>
-    Start typing — results appear instantly across modules, settings, and help topics.
+    Start typing — results stream across modules, settings, and help topics without a full page reload.
   </Step>
   <Step>
-    Use the arrow keys to navigate results and `Enter` to open. Press `Escape` to dismiss.
+    Use arrow keys to highlight a result and `Enter` to navigate. Press `Escape` to dismiss.
   </Step>
 </Steps>
 
-## Switching organisations
+## Switch organisations
 
-If you are a member of more than one organisation, click your **organisation name** in the utility bar to open the org switcher. Selecting a different organisation navigates you to that workspace immediately.
-
-<Callout type="info">
-  Afenda switches organisations with a single click and preserves your session — no re-authentication is required unless your step-up policy requires it.
-</Callout>
+If you belong to more than one organisation, click your **organisation name** in the utility bar to open the org switcher. Selecting a different organisation navigates to that workspace immediately and emits `iam.session.org_switch` when applicable.
 
 ## Module URLs
 
-Every module lives under `/{locale}/o/{orgSlug}/dashboard/{module}`. You can bookmark any page — Afenda preserves your position after sign-in via the `callbackUrl` parameter.
+ERP modules live under `/{locale}/o/{orgSlug}/dashboard/{module}` (for example `/dashboard/hrm/employees`, `/dashboard/lynx`, `/dashboard/orbit`). Org admin uses `/{locale}/o/{orgSlug}/admin/{section}`.
 
 ## Keyboard shortcuts
 
 | Shortcut | Action |
-|---|---|
+| --- | --- |
 | `Ctrl K` / `⌘ K` | Open command palette |
 | `Ctrl /` / `⌘ /` | Focus sidebar search |
 | `Escape` | Close dialogs and panels |
 
-## Next steps
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="A module is missing from the left rail">
+    Your administrator must grant ERP permissions for that module. Better Auth `member` role does not imply module visibility.
+  </Accordion>
+  <Accordion title="Org switcher shows wrong organisation">
+    Select the correct org explicitly — active organisation is session-scoped and drives all tenant queries.
+  </Accordion>
+  <Accordion title="Command palette returns no results">
+    Confirm you typed at least one character and that your session is still valid. Step-up may be required on sensitive surfaces.
+  </Accordion>
+</Accordions>
+
+## Related
 
 <Cards>
-  <Card href="./quick-start" title="Quick start">
-    Review the full account and organisation creation steps.
-  </Card>
-  <Card href="./inviting-your-team" title="Inviting your team">
-    Add colleagues and assign them roles so they can log in.
-  </Card>
+  <Card href="/ask-docs/getting-started/quick-start" title="Quick start" description="Account and organisation creation through Nexus landing." />
+  <Card href="/ask-docs/getting-started/inviting-your-team" title="Inviting your team" description="Onboard colleagues who will use this shell." />
+  <Card href="/ask-docs/orbit" title="Orbit" description="Operational execution module in the left rail." />
+  <Card href="/ask-docs/lynx" title="Lynx" description="Machine layer console at /dashboard/lynx." />
 </Cards>

@@ -33,7 +33,7 @@ vi.mock("../../lib/features/hrm/hrm-admin-guard.server.ts", () => ({
   requireHrmPermission: mocks.requireHrmPermission,
 }))
 
-vi.mock("../../lib/features/hrm/workforce-time-attendance/data/attendance.queries.server.ts", () => ({
+vi.mock("../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance.queries.server.ts", () => ({
   getAttendanceEvent: mocks.getAttendanceEvent,
   hasAttendanceEventRawPayloadHash: mocks.hasAttendanceEventRawPayloadHash,
   hasCorrectionEventForOriginal: mocks.hasCorrectionEventForOriginal,
@@ -46,14 +46,14 @@ vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/pay
     mocks.listClosedPayrollPeriodsOverlappingRange,
 }))
 
-vi.mock("../../lib/features/hrm/workforce-time-attendance/data/attendance-aggregator.server.ts", () => ({
+vi.mock("../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-aggregator.server.ts", () => ({
   regenerateAttendanceDayFromEvents: mocks.regenerateAttendanceDayFromEvents,
 }))
 
 import {
   correctAttendanceEventAction,
   recordAttendanceEventAction,
-} from "../../lib/features/hrm/workforce-time-attendance/actions/attendance-correction.actions"
+} from "../../lib/features/hrm/time-attendance/leave-attendance-management/actions/attendance-correction.actions"
 
 function recordFormData() {
   const formData = new FormData()

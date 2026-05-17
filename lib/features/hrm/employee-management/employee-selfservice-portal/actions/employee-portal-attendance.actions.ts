@@ -1,10 +1,10 @@
 "use server"
 
-import { applyAttendanceEventCorrection } from "../../../workforce-time-attendance/data/attendance-correction-mutation.server"
+import { applyAttendanceEventCorrection } from "../../../time-attendance/leave-attendance-management/data/attendance-correction-mutation.server"
 import { getEmployeePortalContext } from "../data/employee-portal-access.server"
 import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../data/employee-portal-access.shared"
-import { correctAttendanceEventSchema } from "../../../workforce-time-attendance/schemas/attendance-event.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { correctAttendanceEventSchema } from "../../../time-attendance/leave-attendance-management/schemas/attendance-event.schema"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { AttendanceCorrectionFormState } from "../../../types"
 
 export async function requestPortalEmployeeAttendanceCorrectionAction(

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { ORG_DASHBOARD_INVENTORY } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import { inventoryFilterSchema } from "../schemas/inventory-filter.schema"
 import type { InventoryActionState } from "../types"
 

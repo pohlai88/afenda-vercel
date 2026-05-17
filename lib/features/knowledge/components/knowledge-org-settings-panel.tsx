@@ -1,14 +1,14 @@
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Label } from "#components/ui/label"
+} from "#components2/ui/card"
+import { Label } from "#components2/ui/label"
 
 import { updateKnowledgeOrgSettingsFormAction } from "../actions/update-org-settings"
 import { getKnowledgeOrgSetting } from "../data/settings.queries.server"

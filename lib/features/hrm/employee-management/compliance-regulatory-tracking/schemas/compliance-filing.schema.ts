@@ -35,7 +35,11 @@ export const createComplianceFilingFormSchema = z.object({
   filingCategory: z.enum(HRM_COMPLIANCE_FILING_CATEGORIES),
   /** ISO-2 country code (e.g. "MY", "SG"). */
   countryCode: z.string().length(2).toUpperCase().optional(),
+  legalEntityCode: z.string().max(100).optional(),
   legalEntityName: z.string().max(200).optional(),
+  workLocationCode: z.string().max(100).optional(),
+  employmentType: z.string().max(100).optional(),
+  workerCategory: z.string().max(100).optional(),
   /** Statutory authority name (e.g. "LHDN", "KWSP", "SOCSO"). */
   filingAuthority: z.string().max(200).optional(),
   /** Form number or act reference (e.g. "CP8D", "Form E"). */

@@ -14,11 +14,11 @@ import { db } from "#lib/db"
 import { hrmEmploymentContract } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
-import { requireHrmAdmin } from "../../../hrm-admin-guard.server"
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
 import { completeOnboardingStepFormSchema } from "../schemas/onboarding.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
+import { requireEmployeeLifecycleMutationGate } from "../data/employee-lifecycle-action-guard.server"
+import { HRM_EMPLOYEE_LIFECYCLE_AUDIT } from "../employee-lifecycle.contract"
 
 function revalidateOnboardingSurfaces() {
   revalidatePath(
@@ -54,15 +54,13 @@ export async function completeOnboardingStepAction(
   _prev: ContractMutationFormState | undefined,
   formData: FormData
 ): Promise<ContractMutationFormState> {
-  const gate = await requireHrmOrgTenantFromForm(formData)
+  const gate = await requireEmployeeLifecycleMutationGate(
+    formData,
+    "update",
+    "onboarding"
+  )
   if (!gate.ok) return gate.response
-  const { session } = gate
-  const { organizationId, userId, sessionId } = session
-
-  const admin = await requireHrmAdmin()
-  if (!admin.ok) {
-    return hrmActionFailure({ form: admin.error })
-  }
+  const { organizationId, userId, sessionId } = gate
 
   const parsed = completeOnboardingStepFormSchema.safeParse({
     orgSlug: formData.get("orgSlug"),
@@ -123,7 +121,7 @@ export async function completeOnboardingStepAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.onboarding.step.complete",
+      action: HRM_EMPLOYEE_LIFECYCLE_AUDIT.onboarding.step_complete,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,

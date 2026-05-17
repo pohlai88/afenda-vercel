@@ -65,15 +65,15 @@ vi.mock("next-intl", () => ({
       ),
 }))
 
-import { WorkbenchUtilityUpload } from "#components/workbench/utility-bar/right-utility-bar/workbench-utility-upload"
-import { TooltipProvider } from "#components/ui/tooltip"
+import { AppShellNexusUtilityUpload } from "#app-shell/client"
+import { TooltipProvider } from "#components2/ui/tooltip"
 
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
 })
 
-describe("WorkbenchUtilityUpload", () => {
+describe("AppShellNexusUtilityUpload", () => {
   beforeEach(() => {
     window.history.replaceState({}, "", "/en/o/acme/dashboard/home")
   })
@@ -92,7 +92,7 @@ describe("WorkbenchUtilityUpload", () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityUpload orgId="org-1" />
+        <AppShellNexusUtilityUpload orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -130,7 +130,7 @@ describe("WorkbenchUtilityUpload", () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityUpload orgId="org-1" />
+        <AppShellNexusUtilityUpload orgId="org-1" />
       </TooltipProvider>
     )
 

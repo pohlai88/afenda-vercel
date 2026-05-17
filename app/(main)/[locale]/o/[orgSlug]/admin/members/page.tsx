@@ -5,10 +5,10 @@ import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 import { GovernedSurface } from "#features/governed-surface"
 
 import {
-  fetchOrgWorkbenchMembers,
-  fetchOrgWorkbenchPendingInvitations,
+  fetchOrgAdminMembers,
+  fetchOrgAdminPendingInvitations,
 } from "#lib/auth"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 export default async function OrgAdminMembersPage({
   params,
@@ -17,8 +17,8 @@ export default async function OrgAdminMembersPage({
   const orgSession = await requireOrgSession()
   const t = await getTranslations("OrgAdmin.members")
   const [members, invitations] = await Promise.all([
-    fetchOrgWorkbenchMembers(orgSession.organizationId),
-    fetchOrgWorkbenchPendingInvitations(orgSession.organizationId),
+    fetchOrgAdminMembers(orgSession.organizationId),
+    fetchOrgAdminPendingInvitations(orgSession.organizationId),
   ])
 
   // Working Memory Rail — record this page in the operator's recents.

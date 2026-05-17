@@ -6,8 +6,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/card"
+import { requireOrgSession } from "#lib/auth"
 
 import { resolveEmployeeRecordCapabilities } from "../data/employee-record-capabilities.server"
 import { listEmployeesForOrganization } from "../data/employee.queries.server"

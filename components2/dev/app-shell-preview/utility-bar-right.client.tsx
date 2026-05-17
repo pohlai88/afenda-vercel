@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 
-import { AppShellUtilityBarRight } from "#components2/app-shell/client"
+import { AppShellUtilityBarRight } from "#app-shell/client"
 import { useUtilityBarStore } from "#components2/stores/utility-bar.store"
 
 import {

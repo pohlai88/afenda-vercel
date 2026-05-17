@@ -1,67 +1,78 @@
 ---
 title: Nexus summon
-description: Grounded Lynx on the Nexus Field — truth retrieval for the atom in focus without leaving the canvas.
+description: Grounded Lynx on the Nexus Field — truth retrieval for the atom in focus without leaving the org root canvas.
+audience: admin
+status: stable
 icon: Focus
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-**Summon Lynx** is the Nexus Field companion: a floating panel that runs **grounded truth retrieval** on whatever operational **atom** you have in focus on the canvas.
+**Summon Lynx** is the Nexus Field companion: a floating panel that runs **grounded truth retrieval** on whatever operational **atom** you have in focus on the canvas at `/{locale}/o/{orgSlug}/nexus`.
 
-It is optimized for *while I am working on this record, what does our evidence say?* — not for full cross-module operator questions (use the [Lynx console](./truth-retrieval) for those).
+It answers *while I am working on this record, what does our evidence say?* — not full cross-module operator questions (use the [Lynx console](/ask-docs/lynx/truth-retrieval) for those).
+
+## Before you start
+
+- ERP permission **`lynx.workspace.search`** — summon calls `POST /api/erp/lynx/truth-search` via `#features/lynx/client`.
+- Knowledge chunks with embeddings for the topics you expect to retrieve.
+- An atom in focus on the Nexus field — summon idles without a focused entity.
+
+<Callout type="info" title="Shell overlay">
+  `LynxSummon` mounts from the org layout on all `/{locale}/o/{orgSlug}/**` routes — the FAB persists while you navigate within the org shell.
+</Callout>
 
 ## Opening summon
 
 <Steps>
   <Step>
-    Open **Nexus** (`/o/{orgSlug}`) and focus an item or record on the field.
+    Open **Nexus** at `/{locale}/o/{orgSlug}/nexus` and focus an item or record on the field.
   </Step>
   <Step>
     Click the **Summon Lynx** control (round Lynx brand mark in the shell).
   </Step>
   <Step>
-    The panel shows **Grounded on** with the focused title, then streams truth for that context.
+    Read the **Grounded on** label, then review the streamed truth sections as retrieval completes.
+  </Step>
+  <Step>
+    Use deep links to **Knowledge substrate** or the **Lynx console** when you need chunk edits or operator tools.
   </Step>
 </Steps>
-
-Drag the panel to reposition; use **Close** to dismiss. Keyboard and screen-reader labels use *Summon Lynx* / *Close Lynx*.
 
 ## Grounding behavior
 
 | State | Behavior |
-|---|---|
+| --- | --- |
 | **Atom in focus** | Truth runs (or refreshes) with a grounded query label tied to the focused entity |
-| **No atom in focus** | Idle message: focus an item on the canvas to retrieve grounded truth |
+| **No atom in focus** | Idle message — focus an item on the canvas to retrieve grounded truth |
 | **Refresh** | Re-run retrieval after the underlying record changes |
 
-Grounded truth uses the same evidence contract as the Lynx console:
-
-- Answer
-- Evidence
-- Limitations
-- Next safe action
-
-## Deep dive links
-
-From summon you can jump to:
-
-- **Knowledge substrate →** — add or debug chunks on `/dashboard/lynx`
-- **Lynx console (full tools) →** — operator assist and structured query demo
-
-Summon does not expose the full operator tool registry — only grounded truth for the current focus.
+Grounded truth uses the same four-block contract as the Lynx console: **Answer**, **Evidence used**, **Limitations**, and **Next safe action**.
 
 ## Copy and branding
 
-Summon uses the **The Machine** eyebrow and Lynx title from `Dashboard.LynxSummon.*`. Status strings use *Working…* and *Retrieving grounded truth…* — not banned labels like *Processing* or *Generating*.
+Summon uses the **The Machine** eyebrow and Lynx title from `Dashboard.LynxSummon.*`. Status strings use *Working…* and *Retrieving grounded truth…* — not banned labels like *Processing* or *Generating*. Icons use brand PNGs under `public/icons/lynx/`.
 
-Icons use brand PNGs under `public/icons/lynx/` — not generic chat glyphs.
+## Troubleshooting
 
-## Permissions
-
-Summon inherits the same org session and Lynx access expectations as the Nexus shell. Users without Lynx workspace search cannot use ERP Lynx surfaces.
+<Accordions type="single">
+  <Accordion title="Summon control is missing">
+    Confirm `lynx.workspace.search` and that you are inside the org shell layout (not a public or portal surface).
+  </Accordion>
+  <Accordion title="Panel says focus an item first">
+    Select or focus an operational atom on the Nexus field — summon does not run ungrounded truth in this overlay.
+  </Accordion>
+  <Accordion title="Evidence is empty for a focused record">
+    Add or expand chunks in [Knowledge substrate](/ask-docs/lynx/knowledge-substrate) covering that policy domain.
+  </Accordion>
+</Accordions>
 
 ## Related
 
-- [Truth retrieval](./truth-retrieval) — full console experience
-- [Operator assist](./operator-assist) — cross-module read-only tools
-- [Orbit](../orbit) — execution substrate summon may ground against
+<Cards>
+  <Card href="/ask-docs/lynx/truth-retrieval" title="Truth retrieval" description="Full console experience and streaming API details." />
+  <Card href="/ask-docs/lynx/operator-assist" title="Operator assist" description="Cross-module read-only tools not exposed in summon." />
+  <Card href="/ask-docs/orbit" title="Orbit" description="Execution substrate records summon may ground against." />
+  <Card href="/ask-docs/getting-started/workspace-navigation" title="Workspace navigation" description="Nexus org root and shell chrome." />
+</Cards>

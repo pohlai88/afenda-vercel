@@ -1,1 +1,1 @@
-export { default } from "#components/console/console-loading"
+export { default } from "#components2/console/console-loading"

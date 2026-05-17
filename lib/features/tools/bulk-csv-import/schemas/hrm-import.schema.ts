@@ -1,6 +1,7 @@
 import { z } from "zod"
 
-export const HRM_IMPORT_TYPES = ["employees", "attendance", "payroll"] as const
+/** Wizard/API supported types — attendance/payroll dry-run helpers remain internal until commit paths ship. */
+export const HRM_IMPORT_TYPES = ["employees"] as const
 export type HrmImportType = (typeof HRM_IMPORT_TYPES)[number]
 
 export const hrmImportTypeSchema = z.enum(HRM_IMPORT_TYPES)
@@ -8,7 +9,9 @@ export const hrmImportTypeSchema = z.enum(HRM_IMPORT_TYPES)
 export const hrmImportSessionStatusSchema = z.enum([
   "pending",
   "dry_run",
+  "processing",
   "committed",
+  "failed",
   "rolled_back",
 ])
 
@@ -52,7 +55,8 @@ export const hrmImportRollbackJsonSchema = z.discriminatedUnion("kind", [
     kind: z.literal("hrm_import_v1"),
     importType: z.literal("employees"),
     contentSha256: z.string(),
-    sourceCsv: z.string(),
+    sourceCsv: z.string().optional(),
+    blobUrl: z.string().url().optional(),
     appliedEmployeeIds: z.array(z.string().uuid()).optional(),
     appliedAt: z.string().optional(),
     appliedByUserId: z.string().optional(),

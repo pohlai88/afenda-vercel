@@ -1,11 +1,11 @@
 import type { Route } from "next"
 
-import { ORG_ADMIN_PATH_SEGMENTS } from "#lib/dashboard-org-path.shared"
+import { ORG_ADMIN_PATH_SEGMENTS } from "#lib/i18n/dashboard-org-path.shared"
 import {
   ORG_DASHBOARD_MODULES,
   type OrgDashboardModule,
-} from "#lib/dashboard-org-path.shared"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+} from "#lib/i18n/dashboard-org-path.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 const ACCOUNT_PATH_SEGMENTS = new Set(["identity", "security"])
 
@@ -129,7 +129,7 @@ export function organizationDashboardPath(
 /**
  * Single source for ERP module chrome order under `/o/{slug}/dashboard`.
  * Excludes `home` (Nexus field). Keep aligned with {@link ORG_DASHBOARD_MODULES}
- * in `dashboard-org-path.shared.ts` and `Dashboard.nav` in `messages/*`.
+ * in `lib/i18n/dashboard-org-path.shared.ts` and `Dashboard.nav` in `messages/*`.
  */
 export const DASHBOARD_NAV_MODULES = [
   ...ORG_DASHBOARD_MODULES,

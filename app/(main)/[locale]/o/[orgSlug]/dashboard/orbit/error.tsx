@@ -1,21 +1,21 @@
 "use client"
 
-import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
+import { RouteErrorDebugPanel } from "#components2/dev/route-error-debug-panel"
 import {
   RouteErrorActions,
   RouteErrorDigest,
   RouteErrorShell,
-} from "#components/route-error-primitives"
-import { RouteErrorRetryButton } from "#components/route-error-retry-button"
-import { useRouteEnvelope } from "#components/route-envelope-context"
-import { useReportRouteError } from "#components/use-report-route-error"
+} from "#components2/route-error/route-error-primitives"
+import { RouteErrorRetryButton } from "#components2/route-error/route-error-retry-button"
+import { useRouteEnvelope } from "#components2/route-envelope-context.client"
+import { useReportRouteError } from "#components2/route-error/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
-} from "#lib/next-app-error-page-props.shared"
+} from "#components2/route-error/error-page-props.shared"
 
 /**
- * Orbit surface error boundary — keeps the org WorkbenchCommandLayer and orbit
+ * Orbit surface error boundary — keeps the org AppShellCommandPalette and orbit
  * chrome mounted while the Orbit page content recovers.
  *
  * Reads RouteEnvelope from context (set by orbit/layout.tsx) for observability.

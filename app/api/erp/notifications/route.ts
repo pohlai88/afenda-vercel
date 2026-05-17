@@ -13,10 +13,9 @@ import {
   routeJsonError,
   routeJsonOk,
   routePublicErrorMessage,
-} from "#lib/route-handler-json.shared"
-import { getOrgSessionFromRequest } from "#lib/tenant"
+} from "#lib/api/route-handler-json.shared"
+import { getOrgSessionFromRequest } from "#lib/auth"
 
-export const runtime = "nodejs"
 
 export async function GET(request: Request) {
   const orgSession = await getOrgSessionFromRequest(request)

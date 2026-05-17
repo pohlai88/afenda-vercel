@@ -13,7 +13,7 @@ import {
   hrmClaimType,
 } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import {
@@ -32,7 +32,7 @@ import {
   claimRejectDecisionSchema,
   claimReturnDecisionSchema,
 } from "../schema/claim.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ClaimApprovalFormState } from "../../../types"
 
 function revalidateClaims() {
@@ -248,10 +248,7 @@ export async function approveClaimAction(
         .where(eq(hrmApproval.id, claim.currentApprovalId))
     }
 
-    if (
-      claim.reimbursementMode === "petty_cash_fund" &&
-      claim.expenseFundId
-    ) {
+    if (claim.reimbursementMode === "petty_cash_fund" && claim.expenseFundId) {
       await deductExpenseFundBalanceOnApprove(tx, {
         organizationId,
         expenseFundId: claim.expenseFundId,

@@ -3,20 +3,16 @@
 import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
-import { and, eq } from "drizzle-orm"
-
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { db } from "#lib/db"
-import { hrmBenefitOpenEnrollment } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { HRM_BENEFIT_AUDIT } from "../benefit.contract"
-import { requireHrmAdmin } from "../../../hrm-admin-guard.server"
+import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
 import {
   closeBenefitOpenEnrollmentFormSchema,
   createBenefitOpenEnrollmentFormSchema,
 } from "../schema/benefit.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 
 export type BenefitOpenEnrollmentFormState =
   | { ok: true; windowId: string }
@@ -81,19 +77,7 @@ export async function createBenefitOpenEnrollmentAction(
     })
   }
 
-  const [row] = await db
-    .insert(hrmBenefitOpenEnrollment)
-    .values({
-      organizationId,
-      name: parsed.data.name.trim(),
-      startsOn,
-      endsOn,
-      planIds: parsed.data.planIds ?? [],
-      isActive: true,
-      createdByUserId: userId,
-      updatedByUserId: userId,
-    })
-    .returning({ id: hrmBenefitOpenEnrollment.id })
+  const windowId = crypto.randomUUID()
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
@@ -102,8 +86,9 @@ export async function createBenefitOpenEnrollmentAction(
       actorUserId: userId,
       actorSessionId: sessionId,
       resourceType: "hrm_benefit_open_enrollment",
-      resourceId: row.id,
+      resourceId: windowId,
       metadata: {
+        name: parsed.data.name.trim(),
         startsOn: parsed.data.startsOn,
         endsOn: parsed.data.endsOn,
         planCount: parsed.data.planIds?.length ?? 0,
@@ -112,7 +97,7 @@ export async function createBenefitOpenEnrollmentAction(
   )
 
   revalidateBenefits()
-  return { ok: true, windowId: row.id }
+  return { ok: true, windowId }
 }
 
 export async function closeBenefitOpenEnrollmentAction(
@@ -133,20 +118,6 @@ export async function closeBenefitOpenEnrollmentAction(
       windowId: parsed.error.flatten().fieldErrors.windowId?.[0],
     })
   }
-
-  await db
-    .update(hrmBenefitOpenEnrollment)
-    .set({
-      isActive: false,
-      updatedByUserId: userId,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(hrmBenefitOpenEnrollment.organizationId, organizationId),
-        eq(hrmBenefitOpenEnrollment.id, parsed.data.windowId)
-      )
-    )
 
   after(() =>
     writeIamAuditEventFromNextHeaders({

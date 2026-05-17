@@ -122,7 +122,7 @@ describe("fixtures ↔ repo sources (substring scan)", () => {
   })
 
   it("dev-signin-panel.tsx stays aligned with demo org + preset emails", () => {
-    const panel = readRepoFile("components/dev/dev-signin-panel.tsx")
+    const panel = readRepoFile("components2/dev/dev-signin-panel.tsx")
     expect(panel).toContain(BOOTSTRAP_FIXTURE.organization.id)
     expect(panel).toContain(BOOTSTRAP_FIXTURE.organization.slug)
     expect(panel).toContain(DEMO_EMPLOYEE_PORTAL_SLUG)

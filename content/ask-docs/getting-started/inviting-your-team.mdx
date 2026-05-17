@@ -1,12 +1,27 @@
 ---
 title: Inviting your team
-description: Send invitations to colleagues and assign them organisation roles so they can log in and collaborate.
+description: Send email invitations, assign organisation roles, and manage pending invites on Org admin → Members.
+audience: admin
+status: stable
 icon: UserPlus
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-Organisation members join Afenda through an email invitation. Each invitation carries a role that controls what the member can see and do across all modules. Only **Admin** or **Owner** members can send invitations.
+Organisation members join Afenda through an email invitation. Each invitation carries a Better Auth organisation role that controls membership metadata. **ERP business authorization** is separate — assign tenant overlays and ERP permissions after members join.
+
+Only members who can act as organisation **admin** or **owner** in Better Auth can send invitations from Org admin → Members.
+
+## Before you start
+
+- Tenant authority to open Org admin (`tenant_owner`, `tenant_key_admin`, or `tenant_support_admin`).
+- The invitee's correct email address.
+- A planned Better Auth role (Member, Admin, or Owner) — not a substitute for ERP RBAC.
+
+<Callout type="info" title="Invitation rate limit">
+  Afenda allows up to **30 invitations per hour** per organisation (`ORG_INVITE_MAX_PER_HOUR`). Spread bulk onboarding across multiple hours if needed.
+</Callout>
 
 ## Sending an invitation
 
@@ -14,7 +29,7 @@ Organisation members join Afenda through an email invitation. Each invitation ca
   <Step>
     ### Open Members
 
-    Go to **Org admin → Members** (`/o/{orgSlug}/admin/members`).
+    Go to **Org admin → Members** at `/{locale}/o/{orgSlug}/admin/members`.
   </Step>
   <Step>
     ### Initiate the invite
@@ -24,47 +39,48 @@ Organisation members join Afenda through an email invitation. Each invitation ca
   <Step>
     ### Choose a role
 
-    Select the appropriate role for the new member:
+    Select the appropriate Better Auth organisation role:
 
     | Role | Access level |
-    |---|---|
-    | **Member** | Standard workspace access — read and contribute within assigned modules |
-    | **Admin** | Can manage members, integrations, and settings on behalf of the organisation |
-    | **Owner** | Full control including destructive actions (delete org, transfer ownership) |
+    | --- | --- |
+    | **Member** | Standard membership — does not grant Org admin or ERP permissions by itself |
+    | **Admin** | Can manage members and organisation settings in Better Auth |
+    | **Owner** | Full membership control including destructive org actions |
 
-    <Callout type="warn" title="Role cannot be changed by the invitee">
-      The invitee accepts the role you assign. Only an Admin or Owner can change a member's role after they join — members cannot self-promote.
+    <Callout type="warn" title="Role cannot be self-promoted">
+      The invitee accepts the role you assign. Only an Admin or Owner can change a member's role after they join.
     </Callout>
   </Step>
   <Step>
     ### Send the invitation
 
-    Click **Send invitation**. The recipient receives an email with a time-limited invitation link. They must click the link and complete sign-up (or sign in if they already have an account) to join your organisation.
+    Click **Send invitation**. The recipient receives an email with a time-limited link to `/{locale}/accept-invitation`. They complete sign-up or sign in, then join your organisation.
   </Step>
 </Steps>
 
-## Invitation limits
-
-<Callout type="info" title="Rate limit">
-  Afenda allows up to **30 invitations per hour** per organisation to prevent abuse. If you need to onboard a large team at once, spread invitations across multiple hours or contact support.
-</Callout>
-
 ## Managing pending invitations
 
-Pending invitations appear in the **Members** table with a `Pending` badge. You can:
+Pending invitations appear in the **Members** table with a `Pending` badge. From the row actions menu you can **Resend** or **Revoke** before acceptance. Successful invites emit `org.member.invite` audit events after commit.
 
-- **Resend** — send the invitation email again if the recipient missed it
-- **Revoke** — cancel the invitation before it is accepted
+## Troubleshooting
 
-Both actions are available from the actions menu (`…`) next to each pending row.
+<Accordions type="single">
+  <Accordion title="Invite button is missing">
+    Confirm you hold Better Auth admin/owner membership and tenant authority for Org admin. ERP permissions alone do not unlock the Members UI.
+  </Accordion>
+  <Accordion title="Rate limit exceeded">
+    Wait until the hourly window resets or contact your platform operator if you need a temporary exception for a large migration.
+  </Accordion>
+  <Accordion title="Invitee joined but cannot open HRM or Lynx">
+    Assign ERP roles and `lynx.workspace.search` (and module permissions) on **Org admin → Access** — membership role is not business authorization.
+  </Accordion>
+</Accordions>
 
-## Next steps
+## Related
 
 <Cards>
-  <Card href="./quick-start" title="Quick start">
-    Review the account creation flow your team members will go through when they accept their invitation.
-  </Card>
-  <Card href="./workspace-navigation" title="Workspace navigation">
-    Share this guide with new members so they can orient themselves quickly.
-  </Card>
+  <Card href="/ask-docs/org-admin" title="Org admin" description="Control plane sections, audit namespaces, and tenant authority." />
+  <Card href="/ask-docs/getting-started/quick-start" title="Quick start" description="Account flow invitees follow when accepting." />
+  <Card href="/ask-docs/getting-started/workspace-navigation" title="Workspace navigation" description="Share with new members for shell orientation." />
+  <Card href="/ask-docs/lynx" title="Lynx" description="Grant Lynx workspace permissions after onboarding." />
 </Cards>

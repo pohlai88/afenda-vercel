@@ -1,17 +1,17 @@
 import { getTranslations } from "next-intl/server"
 
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Separator } from "#components/ui/separator"
+} from "#components2/ui/card"
+import { Separator } from "#components2/ui/separator"
 
 import { InitiateOffboardingForm } from "../../offboarding-exit-management/components/initiate-offboarding-form"
-import { OffboardingPanel } from "../../../components/offboarding-panel"
+import { OffboardingPanel } from "../../offboarding-exit-management/components/offboarding-panel"
 import {
   RecordExitInterviewFeedbackForm,
   ScheduleExitInterviewForm,

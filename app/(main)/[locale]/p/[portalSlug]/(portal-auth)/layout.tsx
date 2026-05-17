@@ -2,7 +2,6 @@ import type { ReactNode } from "react"
 
 import { requirePortalContext } from "#lib/portal/server"
 
-export const dynamic = "force-dynamic"
 
 type PortalAuthLayoutProps = {
   children: ReactNode

@@ -1,0 +1,90 @@
+---
+title: Employee portal leave
+description: View leave balances, submit time-off requests, and cancel pending leave before approval from the employee portal.
+audience: employee
+status: draft
+icon: CalendarDays
+---
+
+## Overview
+
+Use **My leave** at `/{locale}/p/{portalSlug}/employee/leave` to review balances by leave type, submit requests, and cancel rows that are still pending. Policies, accrual, and manager approval live in HRM; the portal only exposes self-service actions for your own employee record.
+
+## Before you start
+
+- Sign in with a user linked to your **employee** record (or an active portal access grant).
+- Your organisation must publish an employee portal with audience `employee`.
+- You can **cancel** only requests that have not been approved yet.
+
+## Submit or cancel leave
+
+<Steps>
+  <Step>
+    ### Open My leave
+
+    From the employee portal, open **Leave** in the section navigation (`/employee/leave` under your portal slug).
+  </Step>
+  <Step>
+    ### Review balances
+
+    The balances card lists each active leave type for the current year. Balances update when requests are **approved** in HRM — not when you submit.
+  </Step>
+  <Step>
+    ### Request leave
+
+    In the request form, choose **leave type**, **start date**, **end date**, optional **half day**, and an optional **reason**, then submit.
+
+    Your manager reviews the request in **HRM → Leave**. Balance is not deducted until approval.
+
+    <Callout type="info" title="Portal vs Workbench">
+      Managers approve, reject, or request changes in the Workbench. Employees only submit and cancel their own pending requests here.
+    </Callout>
+  </Step>
+  <Step>
+    ### Cancel a pending request
+
+    For a row still awaiting approval, use **Cancel**. Approved leave must be reversed by your manager in HRM, not from the portal.
+  </Step>
+</Steps>
+
+## Portal vs HRM
+
+| Action | Employee portal | HRM (admin / manager) |
+| --- | --- | --- |
+| Submit leave | Yes | — |
+| Cancel pending | Yes | — |
+| Approve / reject | — | Yes |
+| Configure leave types | — | Yes |
+
+## Authority and audit
+
+- `organizationId` and `employeeId` come from `getEmployeePortalContext(portalSlug)` — never from form fields.
+- Successful leave mutations audit inside `lib/features/hrm/data/*-mutation.server.ts` with `erp.hrm.*` actions.
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Why can't I cancel approved leave?">
+    After approval, balance is committed. Ask your manager to reverse or adjust the request in HRM → Leave.
+  </Accordion>
+  <Accordion title="My balance did not change after I submitted">
+    Submission does not deduct balance. Wait for manager approval, then refresh the balances card.
+  </Accordion>
+  <Accordion title="A leave type is missing from the form">
+    Only **active** leave types configured for your organisation appear. Contact HR if you expect a type that is not listed.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/portals/employee" title="Employee portal hub">
+    Access model, section index, and step-up gates.
+  </Card>
+  <Card href="/ask-docs/hrm/leave" title="Leave management (HRM)">
+    Approval workflow, carry-over, and policy configuration.
+  </Card>
+  <Card href="/ask-docs/portals/attendance" title="Employee portal attendance">
+    Approved leave suppresses attendance anomaly flags for covered dates.
+  </Card>
+</Cards>

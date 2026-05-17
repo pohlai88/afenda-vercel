@@ -1,9 +1,8 @@
 import { OrbitPage } from "#features/planner/server"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
-export const dynamic = "force-dynamic"
 
 export default async function OrbitQueuePage({
   params,

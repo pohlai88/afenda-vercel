@@ -1,8 +1,8 @@
 import "server-only"
 
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 
 export type EmployeeRecordMutationPermission = "create" | "update" | "delete"
 
@@ -24,7 +24,10 @@ export async function requireEmployeeRecordMutationGate(
       userId: string
       sessionId: string
     }
-  | { ok: false; response: { ok: false; errors: Record<string, string | undefined> } }
+  | {
+      ok: false
+      response: { ok: false; errors: Record<string, string | undefined> }
+    }
 > {
   const tenant = await requireHrmOrgTenantFromForm(formData)
   if (!tenant.ok) return { ok: false, response: tenant.response }

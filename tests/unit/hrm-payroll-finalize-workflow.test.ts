@@ -57,7 +57,7 @@ vi.mock("#lib/i18n/locales.shared", () => ({
   ),
 }))
 
-vi.mock("#lib/org-slug.server", () => ({
+vi.mock("#lib/auth/org-slug.server", () => ({
   getOrganizationSlugById: vi.fn(),
 }))
 

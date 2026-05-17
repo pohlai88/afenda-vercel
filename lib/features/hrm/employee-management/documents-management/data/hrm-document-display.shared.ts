@@ -71,6 +71,70 @@ export function isHrmDocumentType(value: string): value is HrmDocumentType {
   return (HRM_DOCUMENT_TYPES as readonly string[]).includes(value)
 }
 
+export const HRM_DOCUMENT_GROUPS = [
+  "employment",
+  "identity",
+  "qualification",
+  "payroll",
+  "policy",
+  "hr_letter",
+  "medical_leave",
+  "compliance",
+  "system",
+  "other",
+] as const
+
+export type HrmDocumentGroup = (typeof HRM_DOCUMENT_GROUPS)[number]
+
+export function isHrmDocumentGroup(value: string): value is HrmDocumentGroup {
+  return (HRM_DOCUMENT_GROUPS as readonly string[]).includes(value)
+}
+
+const DOCUMENT_GROUP_BY_TYPE: Readonly<Record<HrmDocumentType, HrmDocumentGroup>> = {
+  offer_letter: "employment",
+  contract: "employment",
+  appointment_letter: "employment",
+  contract_renewal_letter: "employment",
+  ic: "identity",
+  passport: "identity",
+  work_permit: "identity",
+  visa: "identity",
+  national_id: "identity",
+  certification: "qualification",
+  degree_certificate: "qualification",
+  professional_license: "qualification",
+  training_certificate: "qualification",
+  bank_form: "payroll",
+  tax_form: "payroll",
+  statutory_pack: "payroll",
+  payslip: "payroll",
+  payroll_declaration: "payroll",
+  policy_acknowledgement: "policy",
+  hr_letter: "hr_letter",
+  confirmation_letter: "hr_letter",
+  promotion_letter: "hr_letter",
+  transfer_letter: "hr_letter",
+  warning_letter: "hr_letter",
+  disciplinary_letter: "hr_letter",
+  medical_cert: "medical_leave",
+  fitness_cert: "medical_leave",
+  hospitalization_cert: "medical_leave",
+  maternity_cert: "medical_leave",
+  compliance_form: "compliance",
+  consent_form: "compliance",
+  right_to_work: "compliance",
+  signature_proof: "system",
+  other: "other",
+}
+
+export function hrmDocumentGroupForType(
+  documentType: string
+): HrmDocumentGroup {
+  return isHrmDocumentType(documentType)
+    ? DOCUMENT_GROUP_BY_TYPE[documentType]
+    : "other"
+}
+
 /** Typed next-intl key — every `HrmDocumentType` must exist under `documentTypes.*`. */
 export function hrmDocumentTypeLabelKey(
   value: HrmDocumentType
@@ -126,6 +190,29 @@ export function hrmDocumentVerificationTone(
     default:
       return "neutral"
   }
+}
+
+export const HRM_DOCUMENT_LIFECYCLE_STATUSES = [
+  "active",
+  "archived",
+  "deleted",
+] as const
+
+export type HrmDocumentLifecycleStatus =
+  (typeof HRM_DOCUMENT_LIFECYCLE_STATUSES)[number]
+
+export function isHrmDocumentLifecycleStatus(
+  value: string
+): value is HrmDocumentLifecycleStatus {
+  return (
+    HRM_DOCUMENT_LIFECYCLE_STATUSES as readonly string[]
+  ).includes(value)
+}
+
+export function isSensitiveHrmDocumentClassification(
+  classification: string
+): boolean {
+  return classification === "confidential" || classification === "restricted"
 }
 
 /**

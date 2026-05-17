@@ -1,20 +1,22 @@
 import { getTranslations } from "next-intl/server"
 
-import { Badge } from "#components/ui/badge"
-import { Button } from "#components/ui/button"
+import { Badge } from "#components2/ui/badge"
+import { Button } from "#components2/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Input } from "#components/ui/input"
-import { Textarea } from "#components/ui/textarea"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/card"
+import { Input } from "#components2/ui/input"
+import { Textarea } from "#components2/ui/textarea"
+import { requireOrgSession } from "#lib/auth"
 
 import {
+  assignComplianceCorrectiveActionFormAction,
   resolveComplianceExceptionFormAction,
+  updateComplianceCorrectiveActionProgressFormAction,
   waiveComplianceExceptionFormAction,
 } from "../actions/compliance-exception.actions"
 import { listComplianceExceptionsForOrg } from "../data/compliance-exception.queries.server"
@@ -57,7 +59,53 @@ export async function ComplianceExceptionsPanel({
                   {row.legalName ?? t("orgLevel")} · {row.severity}
                 </p>
                 {capabilities.canUpdate ? (
-                  <div className="grid gap-2 lg:grid-cols-2">
+                  <div className="grid gap-2 lg:grid-cols-4">
+                    <form
+                      action={assignComplianceCorrectiveActionFormAction}
+                      className="flex flex-col gap-2"
+                    >
+                      <input type="hidden" name="orgSlug" value={orgSlug} />
+                      <input type="hidden" name="exceptionId" value={row.id} />
+                      <Input
+                        name="correctiveActionOwnerUserId"
+                        required
+                        placeholder="Owner user id"
+                      />
+                      <Input
+                        name="correctiveActionDueDate"
+                        required
+                        type="date"
+                      />
+                      <Textarea
+                        name="correctiveActionDescription"
+                        required
+                        placeholder="Corrective action"
+                        rows={2}
+                      />
+                      <Button type="submit" size="sm">
+                        Assign
+                      </Button>
+                    </form>
+                    <form
+                      action={updateComplianceCorrectiveActionProgressFormAction}
+                      className="flex flex-col gap-2"
+                    >
+                      <input type="hidden" name="orgSlug" value={orgSlug} />
+                      <input type="hidden" name="exceptionId" value={row.id} />
+                      <Textarea
+                        name="progressNote"
+                        required
+                        placeholder="Progress note"
+                        rows={2}
+                      />
+                      <Input
+                        name="evidenceDocumentId"
+                        placeholder="Evidence document id"
+                      />
+                      <Button type="submit" size="sm" variant="secondary">
+                        Progress
+                      </Button>
+                    </form>
                     <form
                       action={resolveComplianceExceptionFormAction}
                       className="flex flex-col gap-2"

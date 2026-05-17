@@ -135,11 +135,15 @@ export async function generatePayrollPaymentBatch(input: {
     contentType: "application/json",
   })
 
+  const documentId = crypto.randomUUID()
   const inserted = await db
     .insert(hrmDocument)
     .values({
+      id: documentId,
       organizationId: input.organizationId,
+      documentSetId: documentId,
       documentType: "payroll_payment_batch",
+      documentGroup: "payroll",
       subjectKind: "payroll_payment_batch",
       subjectId: batchId,
       title: `Payment batch ${reference}`,
@@ -149,6 +153,9 @@ export async function generatePayrollPaymentBatch(input: {
       sizeBytes: new TextEncoder().encode(payload).byteLength,
       classification: "confidential",
       retentionPolicyCode: "payroll_payment_batch",
+      documentLifecycleStatus: "active",
+      isLatestVersion: true,
+      versionNumber: 1,
       effectiveFrom: new Date(`${period.periodEnd}T00:00:00.000Z`),
       uploadedByUserId: input.actorUserId,
     })

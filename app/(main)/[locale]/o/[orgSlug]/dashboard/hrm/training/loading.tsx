@@ -1,1 +1,1 @@
-export { default } from "#components/nexus-route-loading"
+export { default } from "#components2/route-loading/nexus-route-loading"

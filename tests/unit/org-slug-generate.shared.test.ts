@@ -4,8 +4,8 @@ import {
   isReservedOrgSlug,
   RESERVED_ORG_SLUGS,
   slugifyOrganizationName,
-} from "#lib/org-slug-generate.shared"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+} from "#lib/auth/org-slug-generate.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 describe("slugifyOrganizationName", () => {
   it("slugifies simple names", () => {

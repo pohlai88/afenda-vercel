@@ -4,14 +4,14 @@ import { useActionState, useEffect, useId, useRef } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
-import { Alert, AlertDescription } from "#components/ui/alert"
-import { Button } from "#components/ui/button"
+import { Alert, AlertDescription } from "#components2/ui/alert"
+import { Button } from "#components2/ui/button"
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldLabel,
-} from "#components/ui/field"
+} from "#components2/ui/field"
 
 import { returnClaimAction } from "../actions/claim-approval.actions"
 import type { ClaimApprovalFormState } from "../../../types"

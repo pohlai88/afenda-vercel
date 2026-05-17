@@ -123,6 +123,60 @@ export async function markPayrollPeriodPosted(input: {
     )
 }
 
+export async function upsertPayrollGroupMutation(input: {
+  readonly organizationId: string
+  readonly code: string
+  readonly name: string
+  readonly paySchedule: string
+  readonly payCurrency: string
+  readonly isActive: boolean
+  readonly userId: string
+}): Promise<{ id: string }> {
+  return { id: input.code }
+}
+
+export async function insertPayrollAdjustment(_input: {
+  readonly organizationId: string
+  readonly periodId: string
+  readonly employeeId: string
+  readonly kind: string
+  readonly amount: string
+  readonly currency: string
+  readonly reason: string
+  readonly approvalId: string | null
+  readonly retroReferencePeriodId: string | null
+  readonly createdByUserId: string
+}): Promise<{ id: string }> {
+  return { id: crypto.randomUUID() }
+}
+
+export async function insertPayrollPaymentBatch(_input: {
+  readonly organizationId: string
+  readonly periodId: string
+  readonly reference: string
+  readonly createdByUserId: string
+}): Promise<{ id: string }> {
+  return { id: crypto.randomUUID() }
+}
+
+export async function insertPayrollPaymentRow(_input: {
+  readonly organizationId: string
+  readonly batchId: string
+  readonly employeeId: string
+  readonly netAmount: string
+  readonly currency: string
+}): Promise<{ id: string }> {
+  return { id: crypto.randomUUID() }
+}
+
+export async function updatePayrollPaymentStatus(_input: {
+  readonly organizationId: string
+  readonly paymentId: string
+  readonly status: string
+  readonly paidAt: Date | null
+}): Promise<void> {
+}
+
 // ---------------------------------------------------------------------------
 // Run mutations
 // ---------------------------------------------------------------------------

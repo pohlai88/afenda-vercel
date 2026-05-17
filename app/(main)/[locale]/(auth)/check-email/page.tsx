@@ -1,4 +1,4 @@
-import { AuthPageFrame } from "#components/auth/auth-page-frame"
+import { AuthPageFrame } from "#components2/auth/auth-page-frame"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 
 import {
@@ -6,7 +6,7 @@ import {
   parsePostAuthPath,
   parsePrefillEmail,
 } from "../auth-flow.shared"
-import { CheckEmailClient } from "./check-email-client"
+import { CheckEmailClient } from "#components2/auth/check-email-client"
 
 export default async function CheckEmailPage({
   params,

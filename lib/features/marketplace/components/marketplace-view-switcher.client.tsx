@@ -3,7 +3,7 @@
 import { LayoutGrid, Rows3 } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import { useRouter } from "#i18n/navigation"
 import { cn } from "#lib/utils"
 

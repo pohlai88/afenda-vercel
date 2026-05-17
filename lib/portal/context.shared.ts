@@ -1,4 +1,4 @@
-import type { SignedInSession } from "#lib/tenant"
+import type { SignedInSession } from "#lib/auth"
 
 import {
   portalAccessStatusSchema,

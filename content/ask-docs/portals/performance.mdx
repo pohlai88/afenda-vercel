@@ -1,0 +1,66 @@
+---
+title: Employee portal performance
+description: View assigned KPI goals and goal detail in read-only mode from the employee portal.
+audience: employee
+status: draft
+icon: Target
+---
+
+## Overview
+
+**My performance** at `/{locale}/p/{portalSlug}/employee/performance` lists KPI goals assigned to you and opens read-only detail at `/employee/performance/goals/{goalId}`. You cannot edit goal targets or review scores from the portal — managers own the review cycle in HRM.
+
+## Before you start
+
+- Employee portal session with audience `employee`.
+- Goals appear only after HR or your manager publishes them to your employee record.
+
+## View goals
+
+<Steps>
+  <Step>
+    ### Open My performance
+
+    From the employee portal, open **Performance** in the section navigation.
+  </Step>
+  <Step>
+    ### Review the goal list
+
+    Scan period, status, and progress indicators shown for each assigned goal.
+  </Step>
+  <Step>
+    ### Open goal detail
+
+    Select a goal to read description, metrics, and manager comments available to employees.
+
+    <Callout type="warn" title="Read-only surface">
+      The portal does not accept goal edits or self-ratings unless a future release adds an explicit employee action. Use HRM or manager conversation for disputes.
+    </Callout>
+  </Step>
+</Steps>
+
+## Portal vs HRM
+
+| Action | Employee portal | HRM |
+| --- | --- | --- |
+| View assigned goals | Yes | Yes (full) |
+| Edit goals / finalize review | — | Yes (manager / HR) |
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="No goals listed">
+    Your review cycle may not be published yet. Contact your manager or HR.
+  </Accordion>
+  <Accordion title="Progress looks stale">
+    Refresh the page after manager updates. Lag may occur until the next sync from HRM.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/portals/employee" title="Employee portal hub" />
+  <Card href="/ask-docs/hrm/performance" title="Performance (HRM)" />
+  <Card href="/ask-docs/hrm/kpi" title="KPI (HRM)" />
+</Cards>

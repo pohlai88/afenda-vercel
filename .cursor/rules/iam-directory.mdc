@@ -12,7 +12,8 @@ alwaysApply: true
 
 ## Import rules
 
-- **Public server door:** `#lib/auth` → [`lib/auth/index.ts`](lib/auth/index.ts). Import `auth`, `requireRecentAuthStepUp`, and all guards from here.
+- **Public server door:** `#lib/auth` → [`lib/auth/index.ts`](lib/auth/index.ts). Import `auth`, `requireRecentAuthStepUp`, and **all session/org guards** (`requireOrgSession`, `getOrgTenantContext`, `requireSignedInSession`, `requireGlobalAdminSession`, …) from here.
+- **Forbidden:** `#lib/tenant` and `lib/tenant.ts` — session/org guards live in `lib/auth/tenant-session.server.ts` and are exported from `#lib/auth`. See **AGENTS.md §6.1–6.3**.
 - **Do not** deep-import `lib/auth/neon.server.ts` from `app/` or ERP features. **Exception:** low-level `lib` modules that load the Neon instance before the barrel (e.g. [`lib/session-cache.ts`](lib/session-cache.ts)) may use `#lib/auth/neon.server` only.
 - **Shared helpers** (Edge/client-safe, no React, no `server-only`):
   - `#lib/auth/callback-path` — post-auth URL validation
@@ -21,10 +22,15 @@ alwaysApply: true
   - `lib/auth/auth-interruption-url.shared.ts` — bookmarkable interruption URLs (requires `locale: AppLocale`)
   - `lib/auth/auth-client-error.shared.ts` — `normalizeAuthClientError`, `AUTH_CLIENT_ERROR_CODE` (client sign-in error normalization; not for server interruption URLs)
   - `lib/auth/auth-status-copy.ts` — UI copy resolver
-- **Server-only helpers** (import via `#lib/auth` barrel):
+  - `#lib/auth/org-slug.shared` — `normalizeOrgSlugParam`, `ORG_SLUG_MAX_LENGTH` (URL `[orgSlug]` validation)
+  - `#lib/auth/org-slug-generate.shared` — `slugifyOrganizationName`, `isReservedOrgSlug`, `RESERVED_ORG_SLUGS`
+- **Server-only helpers** (deep import or `#lib/auth` barrel):
+  - `#lib/auth/tenant-session.server` — `requireOrgSession`, `getOrgTenantContext`, `requireSignedInSession`, `setActiveOrganizationForSession`, route-handler session readers (also re-exported from `#lib/auth`)
+  - `#lib/auth/org-slug.server` — slug DB lookups + `allocateUniqueOrganizationSlug` (`server-only`)
   - `interruption-redirect.server.ts` + `intended-path.server.ts` — server redirect + path capture
   - `audit.server.ts` — `writeIamAuditEvent`, `writeIamAuditEventFromNextHeaders`
   - `iam-audit-telemetry.shared.ts` — `resolveIamAuditTelemetryEnabled` (Vercel log drain gate)
+- **IAM email (deep import, not barrel):** `#lib/auth/auth-mail.server.ts` — `sendAuthEmail`, `authMailContext` (intentionally no `server-only` for test importability)
 
 ## Proxy and open-redirect validation
 

@@ -5,7 +5,7 @@ import { Link } from "#i18n/navigation"
 import { KnowledgeSourcesAdminPanel } from "#features/knowledge"
 import { organizationAdminPath } from "#features/org-admin"
 
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 export default async function OrgAdminKnowledgeSourcesPage({
   params,

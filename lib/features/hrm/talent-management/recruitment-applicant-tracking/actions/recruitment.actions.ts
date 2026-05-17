@@ -18,10 +18,10 @@ import { neonAuthMember } from "#lib/db/schema-neon-auth"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { ORG_DASHBOARD_HRM_RECRUITMENT } from "#lib/dashboard-module-paths"
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
 import { createEmployeeMutation } from "../../../employee-management/employee-records-management/data/employee.mutations.server"
-import { assertOptionalHrmPlacementFkBelongsToOrg } from "../../../hrm-org-fk.server"
+import { assertOptionalHrmPlacementFkBelongsToOrg } from "../../../_internal-cross-cutting/hrm-org-fk.server"
 import {
   canTransitionApplicationStage,
   canTransitionOfferStatus,
@@ -44,7 +44,7 @@ import {
   type HrmJobOfferStatus,
   type HrmJobRequisitionStatus,
 } from "../schemas/recruitment.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { RecruitmentMutationFormState } from "../../../types"
 import { HRM_RECRUITMENT_AUDIT } from "../recruitment.contract"
 

@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
-import { Input } from "#components/ui/input"
+import { Button } from "#components2/ui/button"
+import { Input } from "#components2/ui/input"
 
 import { reviewOffboardingApprovalFormAction } from "../actions/offboarding.actions"
 import type { OffboardingSurfaceCapabilities } from "../data/offboarding-capabilities.shared"

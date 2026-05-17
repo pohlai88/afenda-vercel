@@ -10,7 +10,7 @@ import {
   listOrgFeedbackEvents,
   resolveOrgFeedbackInboxSearchParams,
 } from "#features/org-feedback/server"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 export default async function OrgAdminFeedbackPage({
   searchParams,
@@ -33,7 +33,7 @@ export default async function OrgAdminFeedbackPage({
     title: t("title"),
     description: t("description"),
     backHref: organizationAdminPath(orgSlug, "overview"),
-    backLabel: t("backToWorkbench"),
+    backLabel: t("backToAdminOverview"),
   })
   if (!headerParsed.success) {
     throw new Error(

@@ -16,12 +16,6 @@ export {
   terminateContractAction,
 } from "./employee-management/employee-records-management/actions/employment-contract.actions"
 export {
-  cancelSignatureRequestAction,
-  createSignatureRequestAction,
-  resendSignaturePartyAction,
-  sendSignatureRequestAction,
-} from "../tools/electronic-signatures/actions/signature-request.actions"
-export {
   declinePortalSignatureAction,
   recordPortalSignatureViewAction,
   submitPortalSignatureAction,
@@ -121,11 +115,18 @@ export {
   updatePositionAction,
 } from "./employee-management/organizational-chart-hierarchy/actions/org-structure.actions"
 export { exportOrgStructureCsvAction } from "./employee-management/organizational-chart-hierarchy/actions/org-structure-export.actions"
-export { attachEmployeeDocumentAction } from "./employee-management/documents-management/actions/hrm-document.actions"
+export {
+  archiveDocumentAction,
+  attachEmployeeDocumentAction,
+  deleteDocumentAction,
+  rejectDocumentAction,
+  replaceDocumentAction,
+  verifyDocumentAction,
+} from "./employee-management/documents-management/actions/hrm-document.actions"
 export {
   approveLeaveAction,
   rejectLeaveAction,
-} from "./workforce-time-attendance/actions/leave-approval.actions"
+} from "./time-attendance/leave-attendance-management/actions/leave-approval.actions"
 export {
   cancelPortalEmployeeLeaveAction,
   requestPortalEmployeeLeaveAction,
@@ -156,6 +157,18 @@ export {
 } from "./employee-management/employee-selfservice-portal/actions/employee-portal-profile.actions"
 export { completePortalOffboardingTaskAction } from "./employee-management/employee-selfservice-portal/actions/employee-portal-offboarding.actions"
 export {
+  completeOffboardingTaskAction,
+  completeOffboardingTaskFormAction,
+  initiateOffboardingAction,
+  initiateOffboardingFormAction,
+  recordExitInterviewFeedbackAction,
+  reviewOffboardingApprovalAction,
+  reviewOffboardingApprovalFormAction,
+  scheduleExitInterviewAction,
+  setRehireEligibilityAction,
+  updateSettlementReadinessAction,
+} from "./employee-management/offboarding-exit-management/client"
+export {
   portalSelfAttestTrainingAction,
   portalSubmitTrainingFeedbackAction,
   type PortalTrainingFormState,
@@ -163,7 +176,7 @@ export {
 export {
   TrainingRecordDetailForm,
   type TrainingRecordDetailFormProps,
-} from "./components/training-record-detail-form"
+} from "./talent-management/training-development/components/training-record-detail-form"
 export {
   adjustLeaveBalanceAction,
   applyLeaveAction,
@@ -171,7 +184,7 @@ export {
   cancelLeaveAction,
   requestOwnLeaveAction,
   runLeaveCarryForwardAction,
-} from "./workforce-time-attendance/actions/leave-request.actions"
+} from "./time-attendance/leave-attendance-management/actions/leave-request.actions"
 export type {
   EmployeePortalAccessFormState,
   LeaveBalanceAdjustmentFormState,
@@ -185,7 +198,7 @@ export {
   updateLeaveTypeAction,
   seedMalaysiaEa2023LeaveTypesAction,
   createLeavePolicyAction,
-} from "./workforce-time-attendance/actions/leave-policy.actions"
+} from "./time-attendance/leave-attendance-management/actions/leave-policy.actions"
 export type {
   LeaveTypeMutationFormState,
   LeavePolicyMutationFormState,
@@ -197,11 +210,11 @@ export {
   correctAttendanceEventAction,
   recordAttendanceEventAction,
   regenerateAttendanceDayAction,
-} from "./workforce-time-attendance/actions/attendance-correction.actions"
+} from "./time-attendance/leave-attendance-management/actions/attendance-correction.actions"
 export {
   assignEmployeeShiftAction,
   createShiftTemplateAction,
-} from "./workforce-time-attendance/actions/attendance-shift.actions"
+} from "./time-attendance/leave-attendance-management/actions/attendance-shift.actions"
 export type {
   AssignEmployeeShiftFormState,
   AttendanceRecordFormState,
@@ -246,7 +259,7 @@ export {
   PayrollTraceabilityPanel,
   CreatePayrollPeriodForm,
   PreparePayrollRunsButton,
-} from "./components/payroll-console"
+} from "./payroll-compensation/payroll-processing/components/payroll-console"
 
 export {
   EMPLOYEE_RECORDS_DETAIL_SURFACE_ID,
@@ -307,8 +320,20 @@ export type { AcknowledgementSource } from "./employee-management/compliance-reg
 
 /** Manual bureau acknowledgement (`submitted` → `acknowledged`, stamps actor metadata). */
 export { acknowledgeStatutoryEvidenceAction } from "./employee-management/compliance-regulatory-tracking/actions/statutory-acknowledgement.actions"
+export {
+  archiveComplianceObligationAction,
+  assignComplianceCorrectiveActionAction,
+  completeFilingAction,
+  createComplianceExceptionAction,
+  createFilingAction,
+  updateComplianceCorrectiveActionProgressAction,
+  updateFilingAction,
+  upsertComplianceObligationAction,
+  waiveComplianceExceptionAction,
+  waiveFilingAction,
+} from "./employee-management/compliance-regulatory-tracking/client"
 
-export { CompliancePage } from "./components/compliance-page"
+export { CompliancePage } from "./employee-management/compliance-regulatory-tracking/components/compliance-page"
 
 /** Benefits administration (Phase 5) — plan catalog + enrollments + life events. */
 export {
@@ -389,19 +414,13 @@ export type {
 export {
   submitTimeReportAction,
   cancelTimeReportAction,
-} from "./workforce-time-attendance/actions/time-report.actions"
+} from "./time-attendance/leave-attendance-management/actions/time-report.actions"
 export {
   approveTimeReportAction,
   rejectTimeReportAction,
-} from "./workforce-time-attendance/actions/time-report-approval.actions"
+} from "./time-attendance/leave-attendance-management/actions/time-report-approval.actions"
 export type {
   CancelTimeReportFormState,
   TimeReportApprovalFormState,
   TimeReportMutationFormState,
 } from "./types"
-
-/** Bulk HR import — commit and rollback governed sessions. */
-export {
-  commitImportSessionAction,
-  rollbackImportSessionAction,
-} from "../tools/bulk-csv-import/actions/hrm-import.actions"

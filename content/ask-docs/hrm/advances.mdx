@@ -2,11 +2,37 @@
 title: Salary advances
 description: Request, approve, and repay advances with payroll deduction lines on period lock.
 icon: Banknote
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 **Salary advances** give employees a governed path to request cash-flow support. Org administrators approve or reject requests; approved amounts can appear on payroll previews and clear automatically when a period locks with matching deduction lines.
+
+## Before you start
+
+- Employees submit requests from the [employee portal](/ask-docs/portals/advances) or HR may file on behalf with proper authorization.
+- Approved advances tie to payroll deduction lines — confirm pay period is open before expecting clearance on lock.
+- Validation is server-side — tampered forms cannot pick another employee.
+
+## Approving or rejecting requests
+
+<Steps>
+  <Step>
+    Open **HRM → Salary advances** and review the pending queue.
+  </Step>
+  <Step>
+    Open a request to verify amount, employee binding, and optional reason.
+  </Step>
+  <Step>
+    **Approve** or **reject** with an optional note surfaced back to the requester.
+  </Step>
+  <Step>
+    On payroll lock, confirm deduction lines cleared the advance balance.
+  </Step>
+</Steps>
 
 ## Requesting
 
@@ -20,13 +46,34 @@ Approvals write durable audit metadata; rejections capture an optional note surf
 
 Repayment links to payroll artefacts so finance can prove clearance. Never edit repayment IDs manually — let the payroll lock workflow stamp them.
 
+<Callout type="info" title="Portal parity">
+  Employees request and cancel pending advances at [Employee portal salary advances](/ask-docs/portals/advances).
+</Callout>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Advance still shows open after payroll lock">
+    Verify the deduction line posted in the same period and that the pay run reached locked state.
+  </Accordion>
+  <Accordion title="Employee cannot submit a request">
+    Confirm portal access and that no conflicting pending request exists for the same employee.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
-  <Card href="./payroll" title="Payroll">
+  <Card href="/ask-docs/portals/advances" title="Employee portal salary advances">
+    Self-service advance requests.
+  </Card>
+  <Card href="/ask-docs/hrm/payroll" title="Payroll">
     Deduction lines reconcile advances on lock.
   </Card>
-  <Card href="./employees" title="Employees">
+  <Card href="/ask-docs/hrm/employees" title="Employees">
     Requests always bind to a workforce employee row.
+  </Card>
+  <Card href="/ask-docs/hrm/claims" title="Claims">
+    Reimbursable spend follows a separate approval path.
   </Card>
 </Cards>

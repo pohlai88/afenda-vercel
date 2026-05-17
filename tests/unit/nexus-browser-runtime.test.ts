@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   isBrowserConnectionSlow,
   type BrowserConnectionSnapshot,
-} from "../../components/workbench/utility-bar/workbench-browser-runtime"
+} from "#components2/app-shell/top-utils-bar/appshell-browser-runtime.shared"
 
 function snap(
   partial: Partial<BrowserConnectionSnapshot>

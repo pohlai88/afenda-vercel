@@ -2,17 +2,17 @@
 
 import Link from "next/link"
 
-import { AfendaBrandLockup } from "#components/afenda-brand"
-import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
-import { RouteErrorActions } from "#components/route-error-primitives"
-import { RouteErrorRetryButton } from "#components/route-error-retry-button"
-import { Button } from "#components/ui/button"
+import { AfendaBrandLockup } from "#components2/marketing"
+import { RouteErrorDebugPanel } from "#components2/dev/route-error-debug-panel"
+import { RouteErrorActions } from "#components2/route-error/route-error-primitives"
+import { RouteErrorRetryButton } from "#components2/route-error/route-error-retry-button"
+import { Button } from "#components2/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
-import { useReportRouteError } from "#components/use-report-route-error"
+import { useReportRouteError } from "#components2/route-error/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
-} from "#lib/next-app-error-page-props.shared"
+} from "#components2/route-error/error-page-props.shared"
 
 /**
  * Next.js 16+ error boundaries receive `unstable_retry` (canonical) instead of `reset`.

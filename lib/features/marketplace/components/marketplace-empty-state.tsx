@@ -6,7 +6,7 @@ import {
   EmptyDescription,
   EmptyHeader,
   EmptyTitle,
-} from "#components/ui/empty"
+} from "#components2/ui/empty"
 
 export type MarketplaceEmptyStateProps = {
   title: string
@@ -18,7 +18,7 @@ export type MarketplaceEmptyStateProps = {
 /**
  * Calm empty-state for non-Utilities marketplace categories.
  *
- * Shown by `/marketplace/[category]` for `plugins | mcp | integrations |
+ * Shown by `/o/{orgSlug}/marketplace/[category]` for `plugins | mcp | integrations |
  * automations | operators | surfaces`. The category exists in the
  * registry contract (so future capabilities can be added without a
  * route migration), but the Marketplace v1 ships only Utilities.

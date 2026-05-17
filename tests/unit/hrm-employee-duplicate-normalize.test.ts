@@ -13,7 +13,7 @@ describe("employee duplicate normalization", () => {
   })
 
   it("collapses phone whitespace", () => {
-    expect(normalizeEmployeeDuplicatePhone(" +60 12 345 6789 ")).toBe(
+    expect(normalizeEmployeeDuplicatePhone(" +60 (12) 345-6789 ")).toBe(
       "+60123456789"
     )
   })

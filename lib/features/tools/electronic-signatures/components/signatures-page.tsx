@@ -1,18 +1,19 @@
 import { getFormatter, getTranslations } from "next-intl/server"
 
-import { ModulePageHeader } from "#components/module-page-header"
-import { Badge } from "#components/ui/badge"
+import { GovernedSurface } from "#features/governed-surface"
+import { Badge } from "#components2/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 import { Link } from "#i18n/navigation"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
-import { organizationHrmSignatureRequestPath } from "../../../hrm/constants"
+import { buildGovernedToolsWorkbenchHeader } from "../../_module-governance/tools-governed-page-header.server"
+import { toolsSignatureRequestPath } from "../../constants"
 import { listSignatureRequestsForOrganization } from "../data/signature-request.queries.server"
 
 type SignaturesPageProps = {
@@ -20,21 +21,20 @@ type SignaturesPageProps = {
 }
 
 export async function SignaturesPage({ orgSlug }: SignaturesPageProps) {
-  const session = await requireOrgSession()
-  const [t, format, rows] = await Promise.all([
+  const { organizationId } = await requireOrgSession()
+  const [t, format, rows, header] = await Promise.all([
     getTranslations("Dashboard.Hrm.signatures"),
     getFormatter(),
-    listSignatureRequestsForOrganization(session.organizationId),
+    listSignatureRequestsForOrganization(organizationId),
+    buildGovernedToolsWorkbenchHeader(orgSlug, "Dashboard.Hrm.signatures", {
+      eyebrow: "eyebrow",
+      title: "pageTitle",
+      description: "pageDescription",
+    }),
   ])
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <ModulePageHeader
-        eyebrow={t("eyebrow")}
-        title={t("pageTitle")}
-        description={t("pageDescription")}
-      />
-
+    <GovernedSurface header={header} className="flex flex-col gap-6 p-6">
       <Card size="sm">
         <CardHeader>
           <CardTitle className="text-base">{t("listTitle")}</CardTitle>
@@ -47,10 +47,7 @@ export async function SignaturesPage({ orgSlug }: SignaturesPageProps) {
             rows.map((row) => (
               <Link
                 key={row.id}
-                href={organizationHrmSignatureRequestPath(
-                  orgSlug,
-                  row.publicSlug
-                )}
+                href={toolsSignatureRequestPath(orgSlug, row.publicSlug)}
                 prefetch={false}
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-4 transition-colors hover:bg-muted/40"
               >
@@ -75,6 +72,6 @@ export async function SignaturesPage({ orgSlug }: SignaturesPageProps) {
           )}
         </CardContent>
       </Card>
-    </div>
+    </GovernedSurface>
   )
 }

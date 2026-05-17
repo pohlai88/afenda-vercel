@@ -7,11 +7,10 @@ import {
   readRequestJson,
   routeJsonError,
   routeJsonOk,
-} from "#lib/route-handler-json.shared"
+} from "#lib/api/route-handler-json.shared"
 import { logUnexpectedServerError } from "#lib/logger.server"
-import { getOrgSessionFromRequest } from "#lib/tenant"
+import { getOrgSessionFromRequest } from "#lib/auth"
 
-export const runtime = "nodejs"
 
 export async function POST(request: Request) {
   const orgSession = await getOrgSessionFromRequest(request)

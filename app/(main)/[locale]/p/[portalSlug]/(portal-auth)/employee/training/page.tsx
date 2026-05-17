@@ -2,9 +2,8 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { EmployeePortalTrainingPage } from "#features/hrm"
-import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
+import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
-export const dynamic = "force-dynamic"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Dashboard.Hrm.training")

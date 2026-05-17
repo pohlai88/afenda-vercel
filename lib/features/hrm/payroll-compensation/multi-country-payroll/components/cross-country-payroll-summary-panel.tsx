@@ -9,7 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 
 import { getCrossCountryPayrollReport } from "../data/cross-country-payroll-report.queries.server"
 import { requireMultiCountryPayrollSearchSession } from "../data/multi-country-payroll-access.server"

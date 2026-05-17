@@ -3,7 +3,7 @@ import { Sparkles } from "lucide-react"
 import type {
   AppShellCommandPaletteProps,
   AppShellCommandPaletteSection,
-} from "#components2/app-shell/client"
+} from "#app-shell/client"
 
 import { SHELL_PREVIEW_HREF } from "./preview-href.shared"
 

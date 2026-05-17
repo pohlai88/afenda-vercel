@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server"
 
 import { Link } from "#i18n/navigation"
 import { getEvalRunById } from "#features/knowledge"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 export default async function OrgAdminKnowledgeRunDetailPage({
   params,

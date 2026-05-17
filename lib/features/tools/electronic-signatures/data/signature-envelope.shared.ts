@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto"
 
-import { stablePayrollCloseStringify } from "#features/hrm/server"
+import { stableJsonStringify } from "#lib/erp/stable-json.shared"
 import type { SignedEnvelopeV1 } from "../schemas/signature.schema"
 
 export function hashStableSignatureEnvelope(
@@ -11,7 +11,7 @@ export function hashStableSignatureEnvelope(
     parties: [...envelope.parties].sort((a, b) => a.order - b.order),
   }
   return createHash("sha256")
-    .update(stablePayrollCloseStringify(canonical))
+    .update(stableJsonStringify(canonical))
     .digest("hex")
 }
 

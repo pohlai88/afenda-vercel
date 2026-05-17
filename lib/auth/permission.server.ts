@@ -29,7 +29,7 @@ function parseBetterAuthAdminUserIdsFromEnv(): string[] {
 /**
  * Global admin: `admin` appears in the user's `role` field (comma-separated)
  * or the user id is listed in `BETTER_AUTH_ADMIN_USER_IDS`.
- * Must stay aligned with `requireGlobalAdminSession` in `lib/tenant.ts`.
+ * Must stay aligned with `requireGlobalAdminSession` in `tenant-session.server.ts`.
  */
 export function isGlobalAdminUser(
   userId: string,

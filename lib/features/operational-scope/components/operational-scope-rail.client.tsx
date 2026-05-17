@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useMemo, useState, useTransition } from "react"
+import { Fragment, useMemo, useTransition } from "react"
 import { useParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
@@ -248,7 +248,11 @@ export function OperationalScopePath({
   operationalContext,
 }: OperationalScopePathProps) {
   const params = useParams()
-  const [openItem, setOpenItem] = useState<string | null>(null)
+  const openPopoverScopeType = useOperationalScopeUiStore(
+    (s) => s.openPopoverScopeType
+  )
+  const openPopover = useOperationalScopeUiStore((s) => s.openPopover)
+  const closePopover = useOperationalScopeUiStore((s) => s.closePopover)
 
   const mergedContext = useMemo(() => {
     if (!operationalContext) return null
@@ -286,8 +290,10 @@ export function OperationalScopePath({
             source={scope.source}
             authority={scope.authority}
             pinned={scope.pinned}
-            isOpen={openItem === scope.scopeType}
-            onOpenChange={(open) => setOpenItem(open ? scope.scopeType : null)}
+            isOpen={openPopoverScopeType === scope.scopeType}
+            onOpenChange={(open) =>
+              open ? openPopover(scope.scopeType) : closePopover()
+            }
           />
         </Fragment>
       ))}

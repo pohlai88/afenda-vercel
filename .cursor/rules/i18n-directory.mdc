@@ -19,6 +19,10 @@ alwaysApply: true
 - **`toLocaleOrgDashboardRevalidatePattern("/contacts")`** → `"/[locale]/o/[orgSlug]/dashboard/contacts"` for ERP **`revalidatePath`** (all locales + org slugs).
 - **`ensureAppLocale(params.locale)`** for `app/[locale]/…` **RSC** `params`.
 - **`getRequestAppLocale()`** in [`lib/i18n/request-locale.server.ts`](../../lib/i18n/request-locale.server.ts) for **Server Actions** / guards without route `params` (wraps `getLocale()`).
+- **`sanitizePathAfterOrgSlug`** in [`lib/i18n/dashboard-org-path.shared.ts`](../../lib/i18n/dashboard-org-path.shared.ts) — forwarded-path tail sanitizer for `/o/{slug}/…` redirects.
+- **`localePrefixedOrgDashboardRedirect`** in [`lib/i18n/dashboard-org-redirect.server.ts`](../../lib/i18n/dashboard-org-redirect.server.ts) — canonical org slug redirect preserving sanitized tail.
+- **`searchParamFirst` / `searchParamPositiveInt`** in [`lib/i18n/app-search-params.shared.ts`](../../lib/i18n/app-search-params.shared.ts) — awaited `searchParams` parsing for RSC pages.
+- **`PRIVATE_SURFACE_ROBOTS`** in [`lib/i18n/private-surface-robots.shared.ts`](../../lib/i18n/private-surface-robots.shared.ts) — `metadata.robots` for auth/IAM/private shells.
 
 Forbidden:
 
@@ -52,5 +56,18 @@ revalidatePath("/en/o/acme/dashboard/contacts")  // only one locale — use patt
 ## Messages
 
 - Catalogs: **`messages/<locale>.json`**. Add namespaces incrementally; auth shell uses **`Auth`**, **`AuthStatus`**, **`CheckEmail`**, **`VerifyEmail`** where wired.
+
+## Refactor gate (temporary)
+
+English-only **active** locales during large refactors — **not** a routing disable. Canonical: **`docs/decisions/0028-single-locale-refactor-gate.md`**.
+
+```env
+# .env.config → pnpm env:sync — local dev only; never CI/Vercel production
+AFENDA_I18N_SINGLE_LOCALE=1
+NEXT_PUBLIC_AFENDA_I18N_SINGLE_LOCALE=1
+```
+
+- Shrinks **`APP_LOCALES`** to `["en"]`; **`FULL_APP_LOCALES`** stays four for types/Orama.
+- Before deploy: turn off both vars, sync env, backfill `messages/zh-CN.json` / `vi` / `ms`, run **`pnpm lint:fixtures-parity`** and **`pnpm verify:parallel`**.
 
 When unsure, follow **Context7** `/amannn/next-intl` and **Next.js** `revalidatePath` docs for dynamic `[locale]` segments.

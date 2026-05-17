@@ -4,9 +4,9 @@ import { useActionState, useEffect, useId, useMemo, useRef } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
-import { Button } from "#components/ui/button"
-import { FieldError } from "#components/ui/field"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
+import { Button } from "#components2/ui/button"
+import { FieldError } from "#components2/ui/field"
 import { useRouter } from "#i18n/navigation"
 
 import { archiveBenefitPlanAction } from "../actions/benefit-plan.actions"

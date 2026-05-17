@@ -3,7 +3,7 @@
 import { useTransition } from "react"
 import { useTranslations } from "next-intl"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 
 import { useRouter } from "#i18n/navigation"
 

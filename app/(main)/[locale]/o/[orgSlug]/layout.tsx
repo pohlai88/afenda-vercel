@@ -1,20 +1,21 @@
 import type { Metadata, Route } from "next"
+import { Suspense } from "react"
 import { redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
-import { AppShell } from "#components/workbench"
-import { Button } from "#components/ui/button"
+import { AppShell, buildAppShellOrgUtilityBarSlots } from "#app-shell"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
-import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
-import { localePrefixedOrgDashboardRedirect } from "#lib/dashboard-org-redirect.server"
+import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
+import { localePrefixedOrgDashboardRedirect } from "#lib/i18n/dashboard-org-redirect.server"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 import {
   getOrganizationIdBySlug,
   getOrganizationSlugById,
-} from "#lib/org-slug.server"
-import type { RouteEnvelope } from "#lib/route-envelope.shared"
-import { requireOrgSession } from "#lib/tenant"
+} from "#lib/auth/org-slug.server"
+import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
+import { requireOrgSession } from "#lib/auth"
 
 /** Tenant ERP shell: keep org-scoped URLs out of public search indexes by default. */
 export async function generateMetadata({
@@ -24,7 +25,18 @@ export async function generateMetadata({
   return { robots: PRIVATE_SURFACE_ROBOTS }
 }
 
-export default async function OrgSlugLayout({
+export default function OrgSlugLayout({
+  children,
+  params,
+}: LayoutProps<"/[locale]/o/[orgSlug]">) {
+  return (
+    <Suspense fallback={null}>
+      <OrgSlugLayoutInner params={params}>{children}</OrgSlugLayoutInner>
+    </Suspense>
+  )
+}
+
+async function OrgSlugLayoutInner({
   children,
   params,
 }: LayoutProps<"/[locale]/o/[orgSlug]">) {
@@ -45,7 +57,6 @@ export default async function OrgSlugLayout({
   }
 
   if (resolvedOrgId !== session.organizationId) {
-    // Cross-tenant correction — the URL org slug doesn't match the session's active org.
     const canonicalSlug = await getOrganizationSlugById(session.organizationId)
     if (!canonicalSlug) {
       return <OrgSlugUnavailable />
@@ -57,9 +68,6 @@ export default async function OrgSlugLayout({
     redirect(target as Route)
   }
 
-  // `orgName` for the utility bar is provisional (`orgSlug`); the async
-  // `WorkbenchUtilityBarRow` (already under Suspense) resolves the display
-  // name from `listUserOrganizationsForSwitcher` without blocking this layout.
   const tShell = await getTranslations("Dashboard.shell")
 
   const envelope: RouteEnvelope = {
@@ -69,27 +77,23 @@ export default async function OrgSlugLayout({
     orgId: session.organizationId,
   }
 
-  // AppShell mounts here so L1 utility bar, command palette, and Lynx
-  // summon persist across surfaces — Spatial OS continuity.
-  // No rail at this level: Nexus Field (org root) renders rail-less.
-  // Rail is added by sub-layouts (org-admin, HRM, etc.) when needed.
-  // Nexus field content lives under `nexus/page.tsx` (`/o/{slug}/nexus`).
-  // See AGENTS.md §5 → Nexus runtime (org root).
+  const utilityBar = await buildAppShellOrgUtilityBarSlots({
+    locale,
+    orgSlug,
+    orgName: orgSlug,
+    orgId: session.organizationId,
+    userId: session.userId,
+    userEmail: session.user.email,
+  })
+
   return (
     <AppShell
       envelope={envelope}
       skipToMainLabel={tShell("skipToMain")}
-      utilityBar={{
-        mode: "org",
-        orgSlug,
-        orgName: orgSlug,
-        orgId: session.organizationId,
-        userId: session.userId,
-        userEmail: session.user.email,
-      }}
-      rail={null}
       enableLynxSummon
       orgSlug={orgSlug}
+      utilityBar={utilityBar}
+      rail={null}
     >
       {children}
     </AppShell>

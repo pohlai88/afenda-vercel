@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, desc, eq, lt } from "drizzle-orm"
+import { and, desc, eq, inArray, lt } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { hrmEmployeeChangeHistory } from "#lib/db/schema"
@@ -55,6 +55,9 @@ export async function listEmployeeChangeHistory(input: {
     eq(hrmEmployeeChangeHistory.organizationId, input.organizationId),
     eq(hrmEmployeeChangeHistory.employeeId, input.employeeId),
     ...(cursorDate ? [lt(hrmEmployeeChangeHistory.changedAt, cursorDate)] : []),
+    ...(input.fieldNames && input.fieldNames.length > 0
+      ? [inArray(hrmEmployeeChangeHistory.fieldName, input.fieldNames)]
+      : []),
   ]
 
   const rows = await db
@@ -74,13 +77,8 @@ export async function listEmployeeChangeHistory(input: {
     .orderBy(desc(hrmEmployeeChangeHistory.changedAt))
     .limit(fetchLimit)
 
-  const filteredRows =
-    input.fieldNames && input.fieldNames.length > 0
-      ? rows.filter((r) => input.fieldNames!.includes(r.fieldName))
-      : rows
-
-  const hasNextPage = filteredRows.length > limit
-  const pageRows = hasNextPage ? filteredRows.slice(0, limit) : filteredRows
+  const hasNextPage = rows.length > limit
+  const pageRows = hasNextPage ? rows.slice(0, limit) : rows
 
   const nextCursor =
     hasNextPage && pageRows.length > 0

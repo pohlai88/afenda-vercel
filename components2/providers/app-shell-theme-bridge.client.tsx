@@ -3,11 +3,11 @@
 import { useEffect } from "react"
 import { useTheme } from "next-themes"
 
-import { useAppShellStore } from "../stores/app-shell.store"
-import type {
-  ResolvedAppearance,
-  ThemePreference,
-} from "../stores/app-shell.store"
+import {
+  useAppShellStore,
+  type ResolvedAppearance,
+  type ThemePreference,
+} from "#components2/stores"
 
 function normalizePreference(raw: string | undefined): ThemePreference {
   if (raw === "light" || raw === "dark" || raw === "system") return raw
@@ -25,8 +25,8 @@ function normalizeResolved(raw: string | undefined): ResolvedAppearance {
  * {@link useAppShellStore} so shell code can read appearance without calling
  * `useTheme()` everywhere.
  *
- * Mount inside {@link AppShellProviders} — the real `ThemeProvider` stays in
- * `app/layout.tsx` so auth and org surfaces share one provider tree.
+ * Mount inside {@link AppShellProviders} — {@link AppShellRootThemeProvider}
+ * stays in `app/layout.tsx` so every route shares one `next-themes` tree.
  */
 export function AppShellThemeBridge() {
   const { theme, resolvedTheme } = useTheme()

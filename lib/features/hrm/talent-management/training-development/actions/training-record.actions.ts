@@ -7,9 +7,9 @@ import { requireErpPermission } from "#features/erp-rbac/server"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { ORG_DASHBOARD_HRM_TRAINING } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import type { OrgSession } from "#lib/tenant"
+import type { OrgSession } from "#lib/auth"
 
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import { completeBoardingTasksForTrainingRecord } from "../data/training-boarding-bridge.server"
 import { appendTrainingEvent } from "../data/training-event-log.server"
 import {
@@ -24,8 +24,8 @@ import {
   completeTrainingRecordFormSchema,
   verifyTrainingRecordFormSchema,
 } from "../schemas/training.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
-import { HRM_TRAINING_AUDIT } from "../../../training.contract"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
+import { HRM_TRAINING_AUDIT } from "../training.contract"
 import type { TrainingMutationFormState } from "../data/training.types.shared"
 
 const TRAINING_PERMISSION = {

@@ -1,1 +1,1 @@
-export { default } from "#components/employee-portal-route-loading-detail"
+export { default } from "#components2/route-loading/employee-portal-route-loading-detail"

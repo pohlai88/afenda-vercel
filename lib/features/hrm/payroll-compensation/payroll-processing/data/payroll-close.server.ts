@@ -680,12 +680,16 @@ export async function persistPayrollPayslipSnapshots(
       }
     )
 
+    const documentId = crypto.randomUUID()
     const inserted = await db
       .insert(hrmDocument)
       .values({
+        id: documentId,
         organizationId: input.organizationId,
+        documentSetId: documentId,
         employeeId: snapshot.employeeId,
         documentType: "payslip",
+        documentGroup: "payroll",
         subjectKind: "payroll_run",
         subjectId: snapshot.runId,
         title: payrollPayslipTitle(snapshot),
@@ -695,18 +699,21 @@ export async function persistPayrollPayslipSnapshots(
         sizeBytes: new TextEncoder().encode(payload).byteLength,
         classification: "confidential",
         retentionPolicyCode: "payroll_payslip",
+        documentLifecycleStatus: "active",
+        isLatestVersion: true,
+        versionNumber: 1,
         effectiveFrom: new Date(`${snapshot.periodEnd}T00:00:00.000Z`),
         uploadedByUserId: input.actorUserId,
       })
       .returning({ id: hrmDocument.id })
 
-    const documentId = inserted[0]?.id
-    if (!documentId) {
+    const insertedDocumentId = inserted[0]?.id
+    if (!insertedDocumentId) {
       throw new Error("payslip_snapshot_document_insert_failed")
     }
 
     createdCount += 1
-    documentIds.push(documentId)
+    documentIds.push(insertedDocumentId)
   }
 
   return {

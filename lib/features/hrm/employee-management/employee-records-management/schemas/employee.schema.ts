@@ -57,6 +57,11 @@ export const createEmployeeFormSchema = z
     currentDepartmentId: optionalUuid,
     currentPositionId: optionalUuid,
     currentJobGradeId: optionalUuid,
+    dateOfBirth: optionalIsoDateOnly,
+    gender: optionalTrimmed,
+    nationality: optionalShortCode,
+    identityDocumentType: optionalTrimmed,
+    identityDocumentNumber: optionalIdentifier,
   })
   .superRefine((data, ctx) => {
     const hasPlacement =
@@ -76,6 +81,20 @@ export const createEmployeeFormSchema = z
         message:
           "At least one placement reference (department, position, or grade) is required.",
         path: ["currentDepartmentId"],
+      })
+    }
+    if (data.identityDocumentType && !data.identityDocumentNumber) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Identity document number is required when type is provided.",
+        path: ["identityDocumentNumber"],
+      })
+    }
+    if (!data.identityDocumentType && data.identityDocumentNumber) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Identity document type is required when number is provided.",
+        path: ["identityDocumentType"],
       })
     }
   })

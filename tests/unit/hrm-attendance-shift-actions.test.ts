@@ -34,7 +34,7 @@ vi.mock("../../lib/features/hrm/hrm-admin-guard.server.ts", () => ({
   requireHrmPermission: mocks.requireHrmPermission,
 }))
 
-vi.mock("../../lib/features/hrm/workforce-time-attendance/data/attendance-shift.queries.server.ts", () => ({
+vi.mock("../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-shift.queries.server.ts", () => ({
   getActiveShiftTemplateForOrg: mocks.getActiveShiftTemplateForOrg,
 }))
 
@@ -43,11 +43,11 @@ vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/pay
     mocks.listClosedPayrollPeriodsOverlappingRange,
 }))
 
-vi.mock("../../lib/features/hrm/workforce-time-attendance/data/attendance-aggregator.server.ts", () => ({
+vi.mock("../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-aggregator.server.ts", () => ({
   regenerateAttendanceDayFromEvents: mocks.regenerateAttendanceDayFromEvents,
 }))
 
-import { assignEmployeeShiftAction } from "../../lib/features/hrm/workforce-time-attendance/actions/attendance-shift.actions"
+import { assignEmployeeShiftAction } from "../../lib/features/hrm/time-attendance/leave-attendance-management/actions/attendance-shift.actions"
 
 function employeeSelect(rows: unknown[]) {
   return {

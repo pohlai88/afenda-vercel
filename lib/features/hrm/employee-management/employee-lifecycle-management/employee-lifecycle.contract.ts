@@ -152,6 +152,30 @@ export const HRM_EMPLOYEE_LIFECYCLE_AUDIT = {
     }),
   },
 
+  transition: {
+    /** Future-dated lifecycle transition was queued. HRM-LCY-024. */
+    scheduled: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "lifecycle.transition",
+      verb: "create",
+    }),
+    /** Pending lifecycle transition became effective and was applied. HRM-LCY-024/026. */
+    applied: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "lifecycle.transition",
+      verb: "update",
+    }),
+    /** Pending lifecycle transition was cancelled before its effective date. HRM-LCY-024. */
+    cancelled: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "lifecycle.transition",
+      verb: "deprecate",
+    }),
+  },
+
   // ── Employee movement ────────────────────────────────────────────────────
   movement: {
     /** Promotion, transfer, demotion, department/location/manager change. HRM-LCY-011–014. */
@@ -171,6 +195,13 @@ export const HRM_EMPLOYEE_LIFECYCLE_AUDIT = {
       module: "hrm",
       object: "lifecycle.contract",
       verb: "audit",
+    }),
+    /** Contract has reached expiry and lifecycle transition is initiated. HRM-LCY-020. */
+    expiry_reached: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "lifecycle.contract",
+      verb: "update",
     }),
     /** Contract renewal approved. HRM-LCY-015. */
     renewed: buildCrudSapAuditAction({

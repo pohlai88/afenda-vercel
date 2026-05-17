@@ -29,7 +29,9 @@ export {
 } from "./actions/employee-portal-claim.actions"
 
 export {
+  downloadPortalEmployeeDocumentAction,
   requestPortalEmployeeDocumentAction,
+  submitPortalEmployeeDocumentAction,
   type PortalDocumentRequestFormState,
 } from "./actions/employee-portal-document.actions"
 

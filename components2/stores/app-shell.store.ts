@@ -14,7 +14,7 @@ import type { UiDensity } from "#lib/design-system"
  * - `collapsed` — icon-only; never expands unless the user changes mode
  * - `hover`     — icon-only at rest, expands while the cursor is over it
  *
- * **SidebarProvider `open`:** `RailController` (app-shell.client) calls
+ * **SidebarProvider `open`:** `RailController` (`appshell.client.tsx`) calls
  * `setOpen(railMode === "expanded")` whenever `railMode` changes. The shadcn
  * sidebar still exposes **`open`** as the source of truth for **icon strip vs
  * full width** (`collapsible="icon"`): `open === false` means icon strip.

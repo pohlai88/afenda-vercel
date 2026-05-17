@@ -1,8 +1,10 @@
 # ADR-0011: Governed Surface Metadata Kernel
 
+> **Canonical architecture:** [ADR-0026](./0026-metadata-driven-ui-architecture.md). This ADR records the original schema-kernel decision.
+
 ## Status
 
-Accepted
+Accepted (see ADR-0026 for consolidated architecture)
 
 ## Context
 

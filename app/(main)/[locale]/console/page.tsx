@@ -1,10 +1,9 @@
 import { Suspense } from "react"
 
-import ConsoleLoading from "#components/console/console-loading"
-import { ConsoleOrgListSlot } from "#components/console/console-org-list-slot"
+import ConsoleLoading from "#components2/console/console-loading"
+import { ConsoleOrgListSlot } from "#components2/console/console-org-list-slot"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 
-export const dynamic = "force-dynamic"
 
 export default async function ConsolePage({
   params,

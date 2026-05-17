@@ -9,7 +9,7 @@ import {
   PLATFORM_ADMIN_ALLOWED_SEGMENTS,
   PLATFORM_ADMIN_CAPABILITIES,
 } from "#features/platform-admin"
-import { HRM_DASHBOARD_CAPABILITY_SEGMENTS } from "#lib/hrm-dashboard.shared"
+import { HRM_DASHBOARD_CAPABILITY_SEGMENTS } from "#features/hrm/hrm-dashboard-path.shared"
 
 describe("capability registry SSOT", () => {
   it("ORG_ADMIN_PATH_SEGMENTS matches ORG_ADMIN_CAPABILITIES segments", () => {

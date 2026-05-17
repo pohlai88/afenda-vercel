@@ -6,19 +6,19 @@ import type { Route } from "next"
 import type { ReactNode } from "react"
 
 import { Link } from "#i18n/navigation"
-import { ModulePageHeader } from "#components/module-page-header"
+import { ModulePageHeader } from "#features/governed-surface"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Input } from "#components/ui/input"
-import { Badge } from "#components/ui/badge"
-import { Button } from "#components/ui/button"
-import { Separator } from "#components/ui/separator"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/card"
+import { Input } from "#components2/ui/input"
+import { Badge } from "#components2/ui/badge"
+import { Button } from "#components2/ui/button"
+import { Separator } from "#components2/ui/separator"
+import { requireOrgSession } from "#lib/auth"
 
 import {
   submitArchiveDependent,
@@ -50,7 +50,7 @@ import { EmployeeDetailOffboardingSection } from "./employee-detail-offboarding-
 import { EmployeeDetailPayrollContract } from "./employee-detail-payroll-contract"
 import { EmployeeDetailTrainingSection } from "./employee-detail-training-section"
 import { EmployeeMasterForms } from "./employee-master-forms"
-import { EmployeePortalAccessCard } from "../../../components/employee-portal-access-card"
+import { EmployeePortalAccessCard } from "../../employee-selfservice-portal/components/employee-portal-access-card"
 import { EmployeeTimeline } from "./employee-timeline"
 
 type EmployeeDetailPageProps = {

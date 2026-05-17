@@ -19,8 +19,6 @@ export type {
   SignatureReminderTickSummary,
 } from "./electronic-signatures/data/signature-expiry-watch.server"
 
-export { hrmSignatureSealWorkflow } from "./electronic-signatures/data/hrm-signature-seal.workflow"
-
 export {
   listSignatureRequestsForOrganization,
   getSignatureRequestByPublicSlug,
@@ -38,8 +36,11 @@ export {
   createSignatureRequest,
   completeSignatureParty,
   recordSignaturePartyView,
+  recordSignatureConsentPresented,
   rejectSignatureParty,
 } from "./electronic-signatures/data/signature-request.mutations.server"
+
+export { buildSignatureEvidenceExport } from "./electronic-signatures/data/signature-evidence-export.server"
 
 export {
   deriveSignatureRequestStatus,

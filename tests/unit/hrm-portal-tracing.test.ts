@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("server-only", () => ({}))
 
-vi.mock("#lib/otel-span.server", () => ({
+vi.mock("#lib/observability/otel-span.server", () => ({
   runWithNodeOtelSpan: mocks.runWithNodeOtelSpan,
 }))
 

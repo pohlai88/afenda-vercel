@@ -3,7 +3,8 @@ import "server-only"
 import { createHash } from "node:crypto"
 
 import { get as getBlob } from "@vercel/blob"
-import { and, desc, eq, inArray } from "drizzle-orm"
+import { and, desc, eq, gte, inArray, isNull, lte, or } from "drizzle-orm"
+import type { SQL } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -19,15 +20,33 @@ import {
   stablePayrollCloseStringify,
 } from "../../../payroll-compensation/payroll-processing/data/payroll-close.shared"
 
+import {
+  canEmployeeAccessDocument,
+  deriveEffectiveDocumentVerificationStatus,
+  deriveHrmDocumentExpiryState,
+  deriveHrmDocumentGroup,
+} from "./hrm-document-governance.shared"
+import { listActiveDocumentRequirements } from "./hrm-document-governance.server"
+
 import type { HrmDocumentSummary } from "../../../types"
 import type { PayrollPayslipSnapshot } from "../../../payroll-compensation/payroll-processing/data/payroll-close.shared"
 
 function mapHrmDocumentSummaryRow(
-  row: Omit<HrmDocumentSummary, "isMandatory"> & { isMandatory: boolean | number }
+  row: Omit<HrmDocumentSummary, "isMandatory" | "versionNumber"> & {
+    isMandatory: boolean | number
+    versionNumber: number | null
+  }
 ): HrmDocumentSummary {
   return {
     ...row,
     isMandatory: Boolean(row.isMandatory),
+    versionNumber: row.versionNumber ?? 1,
+  }
+}
+
+function pushSqlPredicate(predicates: SQL[], predicate: SQL | undefined): void {
+  if (predicate) {
+    predicates.push(predicate)
   }
 }
 
@@ -55,7 +74,12 @@ export async function listHrmDocumentsForEmployee(
     .where(
       and(
         eq(hrmDocument.organizationId, organizationId),
-        eq(hrmDocument.employeeId, employeeId)
+        eq(hrmDocument.employeeId, employeeId),
+        eq(hrmDocument.isLatestVersion, true),
+        or(
+          eq(hrmDocument.documentLifecycleStatus, "active"),
+          eq(hrmDocument.documentLifecycleStatus, "archived")
+        )
       )
     )
     .orderBy(desc(hrmDocument.uploadedAt))
@@ -114,6 +138,7 @@ export async function listPayslipDocumentsForEmployee(
         eq(hrmDocument.employeeId, employeeId),
         eq(hrmDocument.documentType, "payslip"),
         eq(hrmDocument.subjectKind, "payroll_run"),
+        eq(hrmDocument.documentLifecycleStatus, "active"),
         eq(hrmPayrollRun.organizationId, organizationId),
         eq(hrmPayrollRun.employeeId, employeeId)
       )
@@ -157,6 +182,7 @@ export async function getPayslipDocumentForEmployee(input: {
         eq(hrmDocument.id, input.documentId),
         eq(hrmDocument.documentType, "payslip"),
         eq(hrmDocument.subjectKind, "payroll_run"),
+        eq(hrmDocument.documentLifecycleStatus, "active"),
         eq(hrmPayrollRun.organizationId, input.organizationId),
         eq(hrmPayrollRun.employeeId, input.employeeId)
       )
@@ -277,11 +303,36 @@ export type OrgHrmDocumentRow = HrmDocumentSummary & {
   readonly employeeId: string | null
   readonly employeeNumber: string | null
   readonly employeeFullName: string | null
+  readonly legalEntityId: string | null
+  readonly documentGroup: string | null
   readonly subjectKind: string | null
   readonly subjectId: string | null
   readonly effectiveFrom: Date
   readonly effectiveTo: Date | null
   readonly uploadedByUserId: string | null
+  readonly documentSetId: string | null
+  readonly previousDocumentId: string | null
+  readonly replacedByDocumentId: string | null
+  readonly isLatestVersion: boolean
+  readonly documentLifecycleStatus: string
+  readonly retentionPolicyCode: string | null
+  readonly retentionUntil: Date | null
+  readonly archivedAt: Date | null
+  readonly deletedAt: Date | null
+  readonly expiryState: "none" | "valid" | "expiring_soon" | "expired"
+  readonly effectiveVerificationStatus: string
+}
+
+export type EmployeeVisibleDocumentSummary = Omit<
+  HrmDocumentSummary,
+  "blobUrl"
+> & {
+  readonly documentGroup: string | null
+  readonly effectiveTo: Date | null
+  readonly documentLifecycleStatus: string
+  readonly expiryState: "none" | "valid" | "expiring_soon" | "expired"
+  readonly effectiveVerificationStatus: string
+  readonly canDownload: boolean
 }
 
 /** Lightweight identity tuple for the employee filter on the documents vault. */
@@ -294,10 +345,19 @@ export type DocumentEmployeeChoiceRow = {
 export type ListHrmDocumentsForOrgOptions = {
   readonly limit?: number
   readonly documentType?: string
+  readonly documentGroup?: string
   readonly classification?: string
   readonly employeeId?: string
+  readonly legalEntityId?: string
   /** HRM-DOC-020: filter by verification lifecycle state. */
   readonly verificationStatus?: string
+  readonly documentLifecycleStatus?: string
+  readonly expiryStatus?: "expiring_soon" | "expired" | "valid"
+  readonly uploadedFrom?: Date
+  readonly uploadedTo?: Date
+  readonly isMandatory?: boolean
+  readonly latestOnly?: boolean
+  readonly includeDeleted?: boolean
 }
 
 /**
@@ -314,10 +374,33 @@ export async function listHrmDocumentsForOrg(
   options: ListHrmDocumentsForOrgOptions = {}
 ): Promise<OrgHrmDocumentRow[]> {
   const limit = Math.min(Math.max(options.limit ?? 100, 1), 500)
+  const now = new Date()
 
-  const predicates = [eq(hrmDocument.organizationId, organizationId)]
+  const predicates: SQL[] = [eq(hrmDocument.organizationId, organizationId)]
+  if (!options.includeDeleted) {
+    pushSqlPredicate(
+      predicates,
+      or(
+        isNull(hrmDocument.documentLifecycleStatus),
+        eq(hrmDocument.documentLifecycleStatus, "active"),
+        eq(hrmDocument.documentLifecycleStatus, "archived")
+      )
+    )
+  }
   if (options.documentType) {
     predicates.push(eq(hrmDocument.documentType, options.documentType))
+  }
+  if (options.documentGroup) {
+    pushSqlPredicate(
+      predicates,
+      or(
+        eq(hrmDocument.documentGroup, options.documentGroup),
+        inArray(
+          hrmDocument.documentType,
+          documentTypesForGroup(options.documentGroup)
+        )
+      )
+    )
   }
   if (options.classification) {
     predicates.push(eq(hrmDocument.classification, options.classification))
@@ -325,8 +408,41 @@ export async function listHrmDocumentsForOrg(
   if (options.employeeId) {
     predicates.push(eq(hrmDocument.employeeId, options.employeeId))
   }
+  if (options.legalEntityId) {
+    predicates.push(eq(hrmDocument.legalEntityId, options.legalEntityId))
+  }
   if (options.verificationStatus) {
     predicates.push(eq(hrmDocument.verificationStatus, options.verificationStatus))
+  }
+  if (options.documentLifecycleStatus) {
+    predicates.push(
+      eq(hrmDocument.documentLifecycleStatus, options.documentLifecycleStatus)
+    )
+  }
+  if (options.uploadedFrom) {
+    predicates.push(gte(hrmDocument.uploadedAt, options.uploadedFrom))
+  }
+  if (options.uploadedTo) {
+    predicates.push(lte(hrmDocument.uploadedAt, options.uploadedTo))
+  }
+  if (options.isMandatory !== undefined) {
+    predicates.push(eq(hrmDocument.isMandatory, options.isMandatory))
+  }
+  if (options.latestOnly !== false) {
+    predicates.push(eq(hrmDocument.isLatestVersion, true))
+  }
+  if (options.expiryStatus === "expired") {
+    predicates.push(lte(hrmDocument.effectiveTo, now))
+  } else if (options.expiryStatus === "expiring_soon") {
+    const cutoff = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    predicates.push(gte(hrmDocument.effectiveTo, now))
+    predicates.push(lte(hrmDocument.effectiveTo, cutoff))
+  } else if (options.expiryStatus === "valid") {
+    const cutoff = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    pushSqlPredicate(
+      predicates,
+      or(isNull(hrmDocument.effectiveTo), gte(hrmDocument.effectiveTo, cutoff))
+    )
   }
 
   const documents = await db
@@ -345,11 +461,22 @@ export async function listHrmDocumentsForOrg(
       isMandatory: hrmDocument.isMandatory,
       uploadedAt: hrmDocument.uploadedAt,
       employeeId: hrmDocument.employeeId,
+      legalEntityId: hrmDocument.legalEntityId,
+      documentGroup: hrmDocument.documentGroup,
       subjectKind: hrmDocument.subjectKind,
       subjectId: hrmDocument.subjectId,
       effectiveFrom: hrmDocument.effectiveFrom,
       effectiveTo: hrmDocument.effectiveTo,
       uploadedByUserId: hrmDocument.uploadedByUserId,
+      documentSetId: hrmDocument.documentSetId,
+      previousDocumentId: hrmDocument.previousDocumentId,
+      replacedByDocumentId: hrmDocument.replacedByDocumentId,
+      isLatestVersion: hrmDocument.isLatestVersion,
+      documentLifecycleStatus: hrmDocument.documentLifecycleStatus,
+      retentionPolicyCode: hrmDocument.retentionPolicyCode,
+      retentionUntil: hrmDocument.retentionUntil,
+      archivedAt: hrmDocument.archivedAt,
+      deletedAt: hrmDocument.deletedAt,
     })
     .from(hrmDocument)
     .where(and(...predicates))
@@ -393,15 +520,165 @@ export async function listHrmDocumentsForOrg(
     return {
       ...summary,
       employeeId: d.employeeId,
+      legalEntityId: d.legalEntityId,
+      documentGroup: d.documentGroup,
       subjectKind: d.subjectKind,
       subjectId: d.subjectId,
       effectiveFrom: d.effectiveFrom,
       effectiveTo: d.effectiveTo,
       uploadedByUserId: d.uploadedByUserId,
+      documentSetId: d.documentSetId,
+      previousDocumentId: d.previousDocumentId,
+      replacedByDocumentId: d.replacedByDocumentId,
+      isLatestVersion: d.isLatestVersion,
+      documentLifecycleStatus: d.documentLifecycleStatus,
+      retentionPolicyCode: d.retentionPolicyCode,
+      retentionUntil: d.retentionUntil,
+      archivedAt: d.archivedAt,
+      deletedAt: d.deletedAt,
+      expiryState: deriveHrmDocumentExpiryState({
+        effectiveTo: d.effectiveTo,
+        now,
+      }),
+      effectiveVerificationStatus: deriveEffectiveDocumentVerificationStatus({
+        verificationStatus: d.verificationStatus,
+        documentLifecycleStatus: d.documentLifecycleStatus,
+        effectiveTo: d.effectiveTo,
+        now,
+      }),
       employeeNumber: identity?.number ?? null,
       employeeFullName: identity?.name ?? null,
     }
   })
+}
+
+function documentTypesForGroup(documentGroup: string): string[] {
+  return [
+    "offer_letter",
+    "contract",
+    "appointment_letter",
+    "contract_renewal_letter",
+    "ic",
+    "passport",
+    "work_permit",
+    "visa",
+    "national_id",
+    "certification",
+    "degree_certificate",
+    "professional_license",
+    "training_certificate",
+    "bank_form",
+    "tax_form",
+    "statutory_pack",
+    "payslip",
+    "payroll_declaration",
+    "policy_acknowledgement",
+    "hr_letter",
+    "confirmation_letter",
+    "promotion_letter",
+    "transfer_letter",
+    "warning_letter",
+    "disciplinary_letter",
+    "medical_cert",
+    "fitness_cert",
+    "hospitalization_cert",
+    "maternity_cert",
+    "compliance_form",
+    "consent_form",
+    "right_to_work",
+    "signature_proof",
+    "other",
+  ].filter((documentType) => deriveHrmDocumentGroup(documentType) === documentGroup)
+}
+
+export async function listEmployeeVisibleDocuments(input: {
+  organizationId: string
+  employeeId: string
+  now?: Date
+}): Promise<EmployeeVisibleDocumentSummary[]> {
+  const now = input.now ?? new Date()
+  const rows = await db
+    .select({
+      id: hrmDocument.id,
+      documentType: hrmDocument.documentType,
+      title: hrmDocument.title,
+      payloadHash: hrmDocument.payloadHash,
+      mimeType: hrmDocument.mimeType,
+      sizeBytes: hrmDocument.sizeBytes,
+      classification: hrmDocument.classification,
+      verificationStatus: hrmDocument.verificationStatus,
+      rejectionReason: hrmDocument.rejectionReason,
+      versionNumber: hrmDocument.versionNumber,
+      isMandatory: hrmDocument.isMandatory,
+      uploadedAt: hrmDocument.uploadedAt,
+      documentGroup: hrmDocument.documentGroup,
+      effectiveTo: hrmDocument.effectiveTo,
+      documentLifecycleStatus: hrmDocument.documentLifecycleStatus,
+    })
+    .from(hrmDocument)
+    .where(
+      and(
+        eq(hrmDocument.organizationId, input.organizationId),
+        eq(hrmDocument.employeeId, input.employeeId),
+        eq(hrmDocument.isLatestVersion, true),
+        or(
+          eq(hrmDocument.documentLifecycleStatus, "active"),
+          eq(hrmDocument.documentLifecycleStatus, "archived")
+        )
+      )
+    )
+    .orderBy(desc(hrmDocument.uploadedAt))
+
+  if (rows.length === 0) return []
+
+  const requirements = await listActiveDocumentRequirements({
+    organizationId: input.organizationId,
+    now,
+  })
+  const employeeAccessTypes = new Set(
+    requirements
+      .filter((requirement) => requirement.allowEmployeeAccess)
+      .map((requirement) => requirement.documentType)
+  )
+
+  return rows
+    .filter((row) =>
+      canEmployeeAccessDocument({
+        classification: row.classification,
+        requirementAllowsEmployeeAccess: employeeAccessTypes.has(row.documentType),
+      })
+    )
+    .map((row) => {
+      const expiryState = deriveHrmDocumentExpiryState({
+        effectiveTo: row.effectiveTo,
+        now,
+      })
+      return {
+        id: row.id,
+        documentType: row.documentType,
+        title: row.title,
+        payloadHash: row.payloadHash,
+        mimeType: row.mimeType,
+        sizeBytes: row.sizeBytes,
+        classification: row.classification,
+        verificationStatus: row.verificationStatus,
+        rejectionReason: row.rejectionReason,
+        versionNumber: row.versionNumber ?? 1,
+        isMandatory: Boolean(row.isMandatory),
+        uploadedAt: row.uploadedAt,
+        documentGroup: row.documentGroup,
+        effectiveTo: row.effectiveTo,
+        documentLifecycleStatus: row.documentLifecycleStatus,
+        expiryState,
+        effectiveVerificationStatus: deriveEffectiveDocumentVerificationStatus({
+          verificationStatus: row.verificationStatus,
+          documentLifecycleStatus: row.documentLifecycleStatus,
+          effectiveTo: row.effectiveTo,
+          now,
+        }),
+        canDownload: row.documentLifecycleStatus !== "deleted",
+      }
+    })
 }
 
 /**

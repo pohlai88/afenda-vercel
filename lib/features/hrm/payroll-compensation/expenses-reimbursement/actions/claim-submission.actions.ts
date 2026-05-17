@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmApproval, hrmClaim, hrmClaimEvidence } from "#lib/db/schema"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import { isClaimCancellable } from "../data/claim-helpers.shared"
@@ -19,14 +19,14 @@ import {
   submitClaimForEmployee,
   revalidateClaims,
 } from "../data/claim-submission-mutation.server"
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
 import {
   attachClaimEvidenceFormSchema,
   cancelClaimFormSchema,
   requestOwnClaimFormSchema,
   submitClaimFormSchema,
 } from "../schema/claim.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   AttachClaimEvidenceFormState,
   CancelClaimFormState,

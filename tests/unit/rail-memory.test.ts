@@ -469,7 +469,7 @@ describe("recentRowToDto", () => {
 // ---------------------------------------------------------------------------
 
 describe("pinDtoToSlot", () => {
-  it("emits a kernel WorkbenchRailPin shape", () => {
+  it("emits a kernel AppShellPrimaryLeftRailPin shape", () => {
     const slot = pinDtoToSlot({
       id: "p1",
       workbenchId: "hrm",
@@ -510,7 +510,7 @@ describe("pinDtoToSlot", () => {
 })
 
 describe("viewDtoToSlot", () => {
-  it("emits a kernel WorkbenchRailView shape", () => {
+  it("emits a kernel AppShellPrimaryLeftRailView shape", () => {
     const slot = viewDtoToSlot({
       id: "v1",
       workbenchId: "org-admin",

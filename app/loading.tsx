@@ -1,4 +1,4 @@
-import { SegmentRouteSpinner } from "#components/segment-route-spinner"
+import { SegmentRouteSpinner } from "#components2/route-loading/segment-route-spinner"
 
 /**
  * Root `loading.tsx` — keep aligned with `app/[locale]/loading.tsx` so the first

@@ -1,14 +1,23 @@
 ---
 title: Triage
 description: Route unprocessed signals, automation failures, and imported pressure before execution.
+audience: admin
+status: stable
 icon: GitBranch
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-**Orbit Triage** (`/o/{orgSlug}/dashboard/orbit/triage`) is the intake surface for **unprocessed signals**, **automation failures**, and **imported operational pressure** that still needs operator routing.
+**Orbit Triage** (`/{locale}/o/{orgSlug}/dashboard/orbit/triage`) is the intake surface for **unprocessed signals**, **automation failures**, and **imported operational pressure** that still needs operator routing.
 
 Use Triage when you need to answer: *what just arrived, and where should it go?*
+
+## Before you start
+
+- You need an active org session and ERP permissions for the planner module.
+- Triage applies **priority-ordered rules** to suggest routing targets (Queue, Signals, Today, Timeline, and other surfaces).
+- After triage, work usually moves to execution surfaces — Triage is not a long-term holding area.
 
 ## What appears in Triage
 
@@ -20,36 +29,32 @@ Typical records include:
 - High **pressure score** subjects escalated from rules
 - Items in **blocked** recovery lanes
 
-Triage applies **priority-ordered rules** to suggest routing targets (Queue, Signals, Today, and other surfaces).
-
 ## Operating lanes
 
 Triage summaries group work into lanes such as:
 
 | Lane | Operator action |
-|---|---|
+| --- | --- |
 | **Automation attention** | Fix or acknowledge failed automation; reschedule or close notices |
 | **Blocked recovery** | Unblock items or reassign ownership |
 | **High pressure** | Promote, schedule, or escalate |
 | **Signal intake** | Promote to item, correlate, defer, suppress, or dismiss |
 | **Manual follow-up** | Complete deferred operator commitments |
 
-## Signal actions
-
-For signals in intake:
+## Triage a signal
 
 <Steps>
   <Step>
-    Open the signal in the detail pane and review class, pressure, and ERP links.
+    Open **Triage** at `/{locale}/o/{orgSlug}/dashboard/orbit/triage` or use the command quick link **Automation attention** / **Signals awaiting triage**.
   </Step>
   <Step>
-    **Promote** to create an execution item when work must be owned and tracked.
+    Select a record and review class, pressure, ERP links, and suggested routing lane in the detail pane.
   </Step>
   <Step>
-    **Correlate** to an existing item when the pressure duplicates known work.
+    **Promote** to create an execution item when work must be owned and tracked, or **correlate** to an existing item when pressure duplicates known work.
   </Step>
   <Step>
-    **Defer**, **suppress**, or **dismiss** when policy allows closing without promotion.
+    **Defer**, **suppress**, or **dismiss** when policy allows closing without promotion — then confirm routed work appears on [Queue](/ask-docs/orbit/queue) or the target schedule surface.
   </Step>
 </Steps>
 
@@ -59,10 +64,29 @@ Promotion emits `erp.planner.signal.promote` and creates the linked item lifecyc
 
 Failed reminders and recurrence ticks surface here with explicit automation kinds. Operators should resolve the underlying schedule or notice before pressure re-accumulates in Queue.
 
-<Callout type="info">
+<Callout type="info" title="Command shortcut">
   The command quick link **Automation attention** opens Triage with an automation filter pre-applied.
 </Callout>
 
-## Related surfaces
+## Troubleshooting
 
-After triage, work usually moves to [Queue](./queue) for execution, [Today](./today) or [Timeline](./timeline) for scheduling, or [Signals](./signals) for signal-specific review.
+<Accordions type="single">
+  <Accordion title="The same signal keeps returning to Triage">
+    **Correlate** to an existing item or **suppress** with policy if the pressure is recurring noise. Check ERP links for stale causality.
+  </Accordion>
+  <Accordion title="Automation attention will not clear">
+    Resolve the failed reminder or recurrence from the detail pane — closing the notice without fixing the schedule causes the lane to refill.
+  </Accordion>
+  <Accordion title="Promoted work is not on Queue">
+    New items may need assignment or scheduling first. Check [Today](/ask-docs/orbit/today) or [Timeline](/ask-docs/orbit/timeline) if the item was scheduled into a future bucket.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/orbit/signals" title="Signals" description="Signal-specific lifecycle and classes." />
+  <Card href="/ask-docs/orbit/queue" title="Queue" description="Execute ranked work after triage." />
+  <Card href="/ask-docs/orbit/today" title="Today" description="Schedule work for the current day." />
+  <Card href="/ask-docs/orbit/concepts" title="Core concepts" description="Triage lanes, pressure, and lifecycles." />
+</Cards>

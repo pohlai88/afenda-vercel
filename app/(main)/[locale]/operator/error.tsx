@@ -1,13 +1,13 @@
 "use client"
 
-import { useRouteEnvelope } from "#components/route-envelope-context"
-import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
-import { RouteErrorRetryButton } from "#components/route-error-retry-button"
-import { useReportRouteError } from "#components/use-report-route-error"
+import { useRouteEnvelope } from "#components2/route-envelope-context.client"
+import { RouteErrorDebugPanel } from "#components2/dev/route-error-debug-panel"
+import { RouteErrorRetryButton } from "#components2/route-error/route-error-retry-button"
+import { useReportRouteError } from "#components2/route-error/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
-} from "#lib/next-app-error-page-props.shared"
+} from "#components2/route-error/error-page-props.shared"
 
 /**
  * Platform admin (operator) tier error boundary — keeps the operator shell mounted

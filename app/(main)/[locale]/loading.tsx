@@ -1,4 +1,4 @@
-import { SegmentRouteSpinner } from "#components/segment-route-spinner"
+import { SegmentRouteSpinner } from "#components2/route-loading/segment-route-spinner"
 
 /**
  * Immediate feedback while any direct child segment under `[locale]` suspends

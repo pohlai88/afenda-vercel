@@ -13,7 +13,7 @@
  */
 import type { Route } from "next"
 
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 /** Locale-internal dashboard tail for `{{slug}}` (`toLocaleOrgDashboardRevalidatePattern`). */
 export const ORG_DASHBOARD_{{constantCase slug}} = "/{{slug}}" as const

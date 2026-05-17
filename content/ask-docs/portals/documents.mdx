@@ -1,0 +1,67 @@
+---
+title: Employee portal documents
+description: Request HR documents and view governed uploads available to you in the employee portal.
+audience: employee
+status: draft
+icon: FileText
+---
+
+## Overview
+
+**My documents** at `/{locale}/p/{portalSlug}/employee/documents` lists documents shared with you and lets you **request** new HR documents (contracts, letters, certificates). Uploads and expiry tracking for compliance vault files are managed in HRM; the portal focuses on self-service requests and downloads you are allowed to see.
+
+## Before you start
+
+- Employee portal session with audience `employee`.
+- Some document types require HR to fulfil the request manually after submission.
+
+## Request a document
+
+<Steps>
+  <Step>
+    ### Open My documents
+
+    From the employee portal, open **Documents** in the section navigation.
+  </Step>
+  <Step>
+    ### Review available files
+
+    Download or open rows your organisation has published to your employee record.
+  </Step>
+  <Step>
+    ### Submit a document request
+
+    Use the request form to choose **document type**, add context, and submit. HR processes the queue in HRM.
+
+    <Callout type="info" title="Vault vs portal">
+      Compliance vault uploads and expiry watches are configured in HRM → Documents. The portal does not bypass vault permissions.
+    </Callout>
+  </Step>
+</Steps>
+
+## Portal vs HRM
+
+| Action | Employee portal | HRM |
+| --- | --- | --- |
+| Request document | Yes | Fulfil request |
+| Upload to compliance vault | — | Yes (permissioned) |
+| Expiry notifications | — | Yes (cron / settings) |
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="I cannot see a document HR mentioned">
+    The file may not be published to your portal visibility yet, or your role may not include that document type. Contact HR.
+  </Accordion>
+  <Accordion title="My request is still open">
+    HR fulfils requests asynchronously. Check status on the documents page or contact HR for SLA expectations.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/portals/employee" title="Employee portal hub" />
+  <Card href="/ask-docs/hrm/documents" title="Documents vault (HRM)" />
+  <Card href="/ask-docs/portals/payslips" title="Employee portal payslips" />
+</Cards>

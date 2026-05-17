@@ -12,10 +12,10 @@ import {
 import { db } from "#lib/db"
 import { hrmApproval } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { organizationHrmPath } from "../../../constants"
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
 import { getPayrollPeriod } from "../data/payroll.queries.server"
 import {
   PAYROLL_PERIOD_LOCK_SUBJECT_KIND,
@@ -23,7 +23,7 @@ import {
   payrollLockApprovalRequestSchema,
   payrollLockRejectDecisionSchema,
 } from "../schemas/payroll-period.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { PayrollLockApprovalFormState } from "../../../types"
 
 /**

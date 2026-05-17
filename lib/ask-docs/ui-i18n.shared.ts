@@ -1,6 +1,6 @@
 import { defineI18nUI } from "fumadocs-ui/i18n"
 
-import { askDocsI18n } from "#lib/ask-docs-source"
+import { askDocsI18n } from "#lib/ask-docs/source"
 
 /**
  * Fumadocs UI translations for the ask-docs language switcher and search chrome.

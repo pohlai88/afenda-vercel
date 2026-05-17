@@ -1,35 +1,78 @@
 ---
 title: Orbit
-description: Forward operational execution — signals, planning items, and Afenda's delivery substrate.
+description: Forward operational execution — signals, queue, timeline, and Afenda's delivery substrate.
+audience: admin
+status: stable
 icon: Compass
+lastReviewedAt: "2026-05-18"
 ---
 
-## What is Orbit?
+## Overview
 
-Orbit is Afenda's operational execution substrate. It brings together forward planning, signal detection, and structured delivery into a single workspace layer.
+**Orbit** is Afenda's operational execution substrate. It coordinates detected operational pressure (`PlannerSignal`), executable work (`PlannerItem`), and ERP-linked causality along a **Past · Now · Next** temporal spine.
 
-<Callout type="info" title="Coming soon">
-  Detailed Orbit documentation — signals, planning items, and execution workflows — is being written and will appear here soon.
+Primary surfaces live under `/{locale}/o/{orgSlug}/dashboard/orbit/*` — queue-first, not board-first.
+
+## Before you start
+
+- You need an active org session and ERP permissions for the planner module.
+- Orbit appears in the left-hand rail from the Nexus workspace.
+- Signals and items are separate primitives — promote pressure to items only when ownership and verification are required.
+
+<Callout type="info" title="Product vs domain">
+  **Orbit** is the product name; the internal module is **Planner** (`lib/features/planner/`). Documentation and UI use Orbit.
 </Callout>
+
+## Open Orbit
+
+<Steps>
+  <Step>
+    Sign in and open your organisation Nexus at `/{locale}/o/{orgSlug}/nexus`.
+  </Step>
+  <Step>
+    Select **Orbit** from the left-hand rail. The default landing surface is **Queue** (`/dashboard/orbit`).
+  </Step>
+  <Step>
+    Use surface tabs or navigation to move between Queue, Today, Timeline, Signals, Sessions, and Links.
+  </Step>
+</Steps>
 
 ## Core concepts
 
 | Concept | Description |
-|---|---|
-| **Signals** | Structured observations that indicate an item needs attention or action |
-| **Planning items** | Forward-looking tasks with ownership, priority, and temporal status |
-| **Execution** | Durable delivery runs tied to planning items — tracked to completion |
+| --- | --- |
+| **Signals** | Structured operational pressure awaiting triage, promotion, or dismissal |
+| **Planning items** | Executable work with ownership, schedule, and verification lifecycle |
+| **Links** | Typed ERP attachments with mandatory causality reason |
+| **Temporal model** | Past (archived) · Now (active) · Next (committed) |
 
-## Temporal model
+## Primary surfaces
 
-Orbit organises work along a **Past · Now · Next** axis:
+| Surface | Path segment | Use when |
+| --- | --- | --- |
+| Queue | `/dashboard/orbit` | Ranked execution — default entry |
+| Today | `/dashboard/orbit/today` | Period-focused active work |
+| Timeline | `/dashboard/orbit/timeline` | Temporal spine across periods |
+| Signals | `/dashboard/orbit/signals` | Triage detected pressure |
+| Sessions | `/dashboard/orbit/sessions` | Execution continuity and worklog |
+| Links | `/dashboard/orbit/links` | ERP records tied to items |
 
-- **Past** — completed or archived items; the permanent record
-- **Now** — items in active execution this period
-- **Next** — committed items planned for upcoming periods
+## Troubleshooting
 
-This model is embedded throughout the UI: filters, boards, and dashboards all surface items by temporal position.
+<Accordions type="single">
+  <Accordion title="Orbit is missing from the rail">
+    Your administrator must grant ERP planner permissions. Orbit is not visible from Better Auth org role alone.
+  </Accordion>
+  <Accordion title="I cannot promote a signal">
+    Confirm the signal is not already correlated or dismissed. Promotion creates a `PlannerItem` and begins the execution lifecycle.
+  </Accordion>
+</Accordions>
 
-## Access
+## Related
 
-Orbit is available from the left-hand rail in the Nexus workspace under **Orbit**. Access is governed by your organisation's ERP permissions. Contact your administrator if the module is not visible.
+<Cards>
+  <Card href="/ask-docs/orbit/signals" title="Signals" description="Triage, promote, and dismiss operational pressure." />
+  <Card href="/ask-docs/orbit/queue" title="Queue" description="Execute ranked work from the default Orbit surface." />
+  <Card href="/ask-docs/orbit/concepts" title="Core concepts" description="Signal classes, item lifecycle, and temporal spine." />
+  <Card href="/ask-docs/getting-started/workspace-navigation" title="Workspace navigation" description="Shell, rail, and command palette orientation." />
+</Cards>

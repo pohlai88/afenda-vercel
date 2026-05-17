@@ -25,7 +25,7 @@ vi.mock("#i18n/navigation", () => ({
   }),
 }))
 
-import { SignOutButton } from "#components/sign-out-button"
+import { SignOutButton } from "#components2/sign-out-button"
 
 describe("SignOutButton", () => {
   it("calls auth signOut then navigates home and refreshes", async () => {

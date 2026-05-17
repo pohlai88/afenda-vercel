@@ -71,12 +71,12 @@ const nextConfig: NextConfig = {
       { pathname: "/erp-icon/**", search: "" },
     ],
   },
+  /**
+   * Cache Components — ADR-0023 Phase 2. ERP routes no longer export `force-dynamic`;
+   * ask-docs uses `'use cache'` + `cacheLife` instead of segment `revalidate`.
+   */
+  cacheComponents: true,
   experimental: {
-    /**
-     * Cache Components deferred — ADR-0023. ERP/portal still use `force-dynamic` (~70 routes).
-     * Ask-docs uses `generateStaticParams` + `revalidate` (previous-model ISR).
-     */
-    // cacheComponents: true,
     /**
      * `lucide-react`, `date-fns`, and `recharts` are barrel-optimized by default in Next.js 16.2+
      * (@see nextjs_docs optimizePackageImports). Omit redundant entries; add packages here only when

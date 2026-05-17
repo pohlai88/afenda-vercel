@@ -1,9 +1,9 @@
 import type {
-  WorkbenchRailNavIconId,
-  WorkbenchRailPin,
-  WorkbenchRailRecent,
-  WorkbenchRailView,
-} from "#components/workbench/left-nav-rail/workbench-rail.schema"
+  AppShellPrimaryLeftRailNavIconId,
+  AppShellPrimaryLeftRailPin,
+  AppShellPrimaryLeftRailRecent,
+  AppShellPrimaryLeftRailView,
+} from "#app-shell"
 
 import { isWorkbenchId } from "../constants"
 import type { PinLane } from "../schemas/pin-input.schema"
@@ -16,7 +16,7 @@ import type {
 
 /**
  * DB row → `RailMemory*` DTO mappers (server-internal) and DTO →
- * kernel `WorkbenchRail*` slot mappers (RSC ↔ client boundary).
+ * kernel `AppShellPrimaryLeftRail*` slot mappers (RSC ↔ client boundary).
  *
  * Pure functions, no DB / headers / clock. Lives under `data/` (not at
  * module root) because callers are exclusively the queries module +
@@ -25,7 +25,7 @@ import type {
  * pin / view / recent payloads ad hoc — that's exactly the rail
  * schema drift the kernel doctrine prevents.
  *
- * `WorkbenchRailNavIconId` validation: the DB column is free-form
+ * `AppShellPrimaryLeftRailNavIconId` validation: the DB column is free-form
  * `text` (per the migration design), so the mapper falls back to
  * `null` when the stored value is not a recognized icon id. This is
  * intentional — a stale icon token from before a UI refactor should
@@ -39,21 +39,21 @@ import type {
 /**
  * Module-internal icon allowlist mirror. We cannot import the kernel
  * `WORKBENCH_RAIL_NAV_ICON_IDS` tuple here without dragging the entire
- * client `WorkbenchRail` graph into server bundles — instead we mirror
+ * client `AppShellPrimaryLeftRail` graph into server bundles — instead we mirror
  * the *narrow* check ("is it a non-empty string under 64 chars?") and
  * defer the precise enum check to the kernel parser. The mapper
  * returns the icon as-is when it looks plausible; the kernel's
- * `parseWorkbenchRailPin` (called from the RSC layout) is the
+ * `parseAppShellPrimaryLeftRailPin` (called from the RSC layout) is the
  * authoritative gate.
  */
-function coerceIcon(raw: string | null): WorkbenchRailNavIconId | null {
+function coerceIcon(raw: string | null): AppShellPrimaryLeftRailNavIconId | null {
   if (typeof raw !== "string") return null
   const trimmed = raw.trim()
   if (trimmed.length === 0 || trimmed.length > 64) return null
   // Type assertion is safe: the kernel parser at the slot boundary
   // re-validates against the closed enum, so a stale token here just
   // gets rejected during parse rather than crashing the mapper.
-  return trimmed as WorkbenchRailNavIconId
+  return trimmed as AppShellPrimaryLeftRailNavIconId
 }
 
 // ---------------------------------------------------------------------------
@@ -175,7 +175,7 @@ export function recentRowToDto(row: RecentRow): RailMemoryRecent | null {
 // DTO → kernel slot
 // ---------------------------------------------------------------------------
 
-export function pinDtoToSlot(pin: RailMemoryPin): WorkbenchRailPin {
+export function pinDtoToSlot(pin: RailMemoryPin): AppShellPrimaryLeftRailPin {
   return {
     id: pin.id,
     label: pin.label,
@@ -186,7 +186,7 @@ export function pinDtoToSlot(pin: RailMemoryPin): WorkbenchRailPin {
   }
 }
 
-export function viewDtoToSlot(view: RailMemorySavedView): WorkbenchRailView {
+export function viewDtoToSlot(view: RailMemorySavedView): AppShellPrimaryLeftRailView {
   return {
     id: view.id,
     label: view.label,
@@ -202,7 +202,7 @@ export function viewDtoToSlot(view: RailMemorySavedView): WorkbenchRailView {
  * this string at hydration time so the server response stays
  * deterministic.
  */
-export function recentDtoToSlot(recent: RailMemoryRecent): WorkbenchRailRecent {
+export function recentDtoToSlot(recent: RailMemoryRecent): AppShellPrimaryLeftRailRecent {
   return {
     id: recent.id,
     label: recent.label,

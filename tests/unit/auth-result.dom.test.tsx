@@ -10,7 +10,7 @@ vi.mock("#i18n/navigation", () => ({
   ),
 }))
 
-import { AuthResult } from "#components/auth/auth-result"
+import { AuthResult } from "#components2/auth/auth-result"
 
 describe("AuthResult", () => {
   it("renders title, description, and primary link", () => {

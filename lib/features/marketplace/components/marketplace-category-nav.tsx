@@ -1,4 +1,4 @@
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import { Link } from "#i18n/navigation"
 import { cn } from "#lib/utils"
 

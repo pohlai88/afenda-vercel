@@ -4,9 +4,8 @@ import { getTranslations } from "next-intl/server"
 import { HrmPerformancePage } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
-import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
+import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
-export const dynamic = "force-dynamic"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Dashboard.Hrm.performance")

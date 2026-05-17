@@ -9,14 +9,14 @@ import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   allocateUniqueOrganizationSlug,
   getOrganizationSlugById,
-} from "#lib/org-slug.server"
+} from "#lib/auth/org-slug.server"
 import {
   toLocaleOrgAdminRevalidatePattern,
   toLocaleOrgDashboardRevalidatePattern,
   toLocaleOrgNexusRevalidatePattern,
 } from "#lib/i18n/locales.shared"
-import { requireSignedInSession } from "#lib/tenant"
-import type { requireOrgSession } from "#lib/tenant"
+import { requireSignedInSession } from "#lib/auth"
+import type { requireOrgSession } from "#lib/auth"
 
 const nameSchema = z
   .string()

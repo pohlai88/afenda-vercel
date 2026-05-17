@@ -22,19 +22,19 @@
  *   - no DB, no `server-only`, no clock reads
  *   - no `getTranslations` — the layout pre-resolves the locale-aware
  *     label and passes it in via `resolveLabel(key, count)`
- *   - the kernel `WorkbenchRailInbox` shape is the wire contract; this
+ *   - the kernel `AppShellPrimaryLeftRailInbox` shape is the wire contract; this
  *     deriver returns either a fully-formed slot value or `null`
  *
  * Returning `null` is the conditional-density doctrine in action — a
  * calm rail (no pending invitations, no failed integrations) does NOT
- * render an inbox row at all. Empty memory hides; the workbench-rail
+ * render an inbox row at all. Empty memory hides; the primary left rail
  * UI section also short-circuits when `inbox` is omitted.
  */
 
 import type {
-  WorkbenchRailBadgeTone,
-  WorkbenchRailInbox,
-} from "#components/workbench/left-nav-rail"
+  AppShellPrimaryLeftRailBadgeTone,
+  AppShellPrimaryLeftRailInbox,
+} from "#app-shell"
 
 import type { OrgAdminNavKey, OrgAdminRailPressureMap } from "../types"
 
@@ -47,7 +47,7 @@ import type { OrgAdminNavKey, OrgAdminRailPressureMap } from "../types"
  * decorative chrome the rail doctrine forbids (§10 anti-pattern: *no
  * permanent chrome that earns nothing*).
  */
-const TONE_PRIORITY: Record<WorkbenchRailBadgeTone, number> = {
+const TONE_PRIORITY: Record<AppShellPrimaryLeftRailBadgeTone, number> = {
   critical: 3,
   attention: 2,
   default: 1,
@@ -90,7 +90,7 @@ export type OrgAdminInboxDeriverInput = {
  *   - The pressure helpers refuse to emit `count: 0` (see
  *     `org-admin-rail-pressure.shared.ts`). This deriver re-asserts
  *     `count >= 1` defensively because the kernel
- *     `workbenchRailInboxSchema` rejects non-positive counts and would
+ *     `appShellPrimaryLeftRailInboxSchema` rejects non-positive counts and would
  *     crash the layout if a future pressure helper ever produced one.
  *
  *   - When two candidates tie on tone priority + count, ordering is
@@ -101,11 +101,11 @@ export type OrgAdminInboxDeriverInput = {
  */
 export function deriveOrgAdminInbox(
   input: OrgAdminInboxDeriverInput
-): WorkbenchRailInbox | null {
+): AppShellPrimaryLeftRailInbox | null {
   let best: {
     key: OrgAdminNavKey
     href: string
-    tone: WorkbenchRailBadgeTone
+    tone: AppShellPrimaryLeftRailBadgeTone
     count: number
     priority: number
   } | null = null

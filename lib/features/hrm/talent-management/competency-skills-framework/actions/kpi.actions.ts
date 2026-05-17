@@ -17,11 +17,11 @@ import {
   hrmKpiScore,
 } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import type { OrgSession } from "#lib/tenant"
+import type { OrgSession } from "#lib/auth"
 
 import { buildKpiEvidenceSnapshotForPeriod } from "../data/kpi.queries.server"
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
-import { isoDateOnlyToUtcDate } from "../../../hrm-calendar-dates.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
+import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
 import {
   activateKpiPeriodFormSchema,
   archiveKpiMetricFormSchema,
@@ -39,7 +39,7 @@ import {
   upsertTypedKpiScoreFormSchema,
   type HrmKpiDirection,
 } from "../schemas/kpi.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
 
 const KPI_PERMISSION = {

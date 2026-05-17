@@ -2,6 +2,10 @@ const REDACTED_VALUE = "[redacted]"
 
 const SENSITIVE_FIELD_MARKERS = [
   "documentNumber",
+  "dateOfBirth",
+  "profilePhotoBlobUrl",
+  "address",
+  "mailingAddress",
   "taxIdentifierNumber",
   "epfNumber",
   "socsoNumber",
@@ -11,6 +15,10 @@ const SENSITIVE_FIELD_MARKERS = [
   "bankAccount",
   "personalEmail",
   "personalPhone",
+  "emergencyContact.phone",
+  "emergencyContact.alternatePhone",
+  "emergencyContact.email",
+  "workAuthorization.notes",
 ] as const
 
 type EmployeeMasterChange = {

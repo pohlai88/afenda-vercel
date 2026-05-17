@@ -10,8 +10,8 @@ import { db } from "#lib/db"
 import { hrmEmployee, hrmSalaryAdvance } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import {
   insertSalaryAdvanceRow,
   materializeSalaryAdvanceInstallments,
@@ -20,7 +20,7 @@ import {
   decideSalaryAdvanceFormSchema,
   requestSalaryAdvanceFormSchema,
 } from "../schemas/salary-advance.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
 
 function revalidateAdvances() {

@@ -16,7 +16,7 @@ import {
   confirmComplianceFilingFormSchema,
   waiveComplianceFilingFormSchema,
 } from "../schemas/compliance-filing.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import { HRM_COMPLIANCE_REGULATORY_AUDIT } from "../compliance-regulatory.contract"
 import type { ContractMutationFormState } from "../../../types"
 
@@ -46,7 +46,11 @@ export async function createFilingAction(
     title: formData.get("title"),
     filingCategory: formData.get("filingCategory"),
     countryCode: formData.get("countryCode") || undefined,
+    legalEntityCode: formData.get("legalEntityCode") || undefined,
     legalEntityName: formData.get("legalEntityName") || undefined,
+    workLocationCode: formData.get("workLocationCode") || undefined,
+    employmentType: formData.get("employmentType") || undefined,
+    workerCategory: formData.get("workerCategory") || undefined,
     filingAuthority: formData.get("filingAuthority") || undefined,
     referenceCode: formData.get("referenceCode") || undefined,
     dueDate: formData.get("dueDate"),
@@ -66,7 +70,11 @@ export async function createFilingAction(
     title: parsed.data.title,
     filingCategory: parsed.data.filingCategory,
     countryCode: parsed.data.countryCode ?? null,
+    legalEntityCode: parsed.data.legalEntityCode ?? null,
     legalEntityName: parsed.data.legalEntityName ?? null,
+    workLocationCode: parsed.data.workLocationCode ?? null,
+    employmentType: parsed.data.employmentType ?? null,
+    workerCategory: parsed.data.workerCategory ?? null,
     filingAuthority: parsed.data.filingAuthority ?? null,
     referenceCode: parsed.data.referenceCode ?? null,
     dueDate: new Date(`${parsed.data.dueDate}T00:00:00.000Z`),
@@ -89,6 +97,7 @@ export async function createFilingAction(
         filingCategory: parsed.data.filingCategory,
         dueDate: parsed.data.dueDate,
         countryCode: parsed.data.countryCode ?? null,
+        legalEntityCode: parsed.data.legalEntityCode ?? null,
       },
     })
   )
@@ -301,6 +310,8 @@ export async function waiveFilingAction(
     .update(hrmComplianceFiling)
     .set({
       status: "waived",
+      waivedAt: now,
+      waivedByUserId: userId,
       waiverReason: `${parsed.data.waiverReason} [Approval: ${parsed.data.approvalReference}]`,
       updatedAt: now,
       updatedByUserId: userId,
@@ -309,7 +320,7 @@ export async function waiveFilingAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: HRM_COMPLIANCE_REGULATORY_AUDIT.exception.waived,
+      action: HRM_COMPLIANCE_REGULATORY_AUDIT.filing.waived,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,
@@ -323,4 +334,22 @@ export async function waiveFilingAction(
 
   revalidateComplianceSurfaces()
   return { ok: true }
+}
+
+export async function createFilingFormAction(formData: FormData): Promise<void> {
+  void (await createFilingAction(undefined, formData))
+}
+
+export async function updateFilingFormAction(formData: FormData): Promise<void> {
+  void (await updateFilingAction(undefined, formData))
+}
+
+export async function completeFilingFormAction(
+  formData: FormData
+): Promise<void> {
+  void (await completeFilingAction(undefined, formData))
+}
+
+export async function waiveFilingFormAction(formData: FormData): Promise<void> {
+  void (await waiveFilingAction(undefined, formData))
 }

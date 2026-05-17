@@ -46,7 +46,7 @@ export function AppShellPreviewContent() {
           <li>
             <strong className="text-foreground">Primary rail</strong> —{" "}
             <code>AppShell</code> with <code>mode=&quot;primary&quot;</code>:{" "}
-            <code>PrimaryNavItem</code> / <code>SidebarMenuButton</code> —
+            <code>AppShellPrimaryLeftRailRaw</code> / <code>SidebarMenuButton</code> —
             collapse and tooltips via <code>SidebarProvider</code>. Persist key:{" "}
             <code>dev-shell-preview-rail</code>.
           </li>
@@ -77,7 +77,7 @@ export function AppShellPreviewContent() {
             </strong>{" "}
             — The <strong>building + name</strong> chip is the active{" "}
             <em>organization</em> (workspace tenant), same role as{" "}
-            <code>WorkbenchOrgCompanySwitch</code> on real ERP routes. The{" "}
+            <code>AppShellOrgCompanySwitch</code> on real ERP routes. The{" "}
             <strong>operational scope</strong> rail (project, team, …) is{" "}
             <em>inside</em> that tenant — ADR-0019 does not model organization
             as a scope dimension, so it will not appear as a fifth row in{" "}

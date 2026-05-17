@@ -7,12 +7,16 @@
  * compile-time narrowing for transition guards and status badges.
  */
 export const HRM_EMPLOYMENT_STATUSES = [
+  "pre_boarding",
+  "onboarding",
   "active",
   "probation",
   "confirmed",
   "suspended",
   /** Employee has submitted resignation and is serving out their notice period. HRM-LCY-018/019. */
   "notice_period",
+  "offboarding",
+  "separated",
   /** Employment has been formally ended (resigned, terminated, contract-end). HRM-LCY-003/021. */
   "terminated",
   /** Employee has retired from active service. HRM-LCY-022. */
@@ -20,6 +24,25 @@ export const HRM_EMPLOYMENT_STATUSES = [
 ] as const
 
 export type HrmEmploymentStatus = (typeof HRM_EMPLOYMENT_STATUSES)[number]
+
+export const HRM_LIFECYCLE_TRANSITION_STATUSES = [
+  "pending",
+  "applied",
+  "cancelled",
+  "rejected",
+  "failed",
+] as const
+
+export type HrmLifecycleTransitionStatus =
+  (typeof HRM_LIFECYCLE_TRANSITION_STATUSES)[number]
+
+export function normalizeHrmEmploymentStatusForRead(
+  status: string
+): Exclude<HrmEmploymentStatus, "terminated"> {
+  return status === "terminated"
+    ? "separated"
+    : (status as Exclude<HrmEmploymentStatus, "terminated">)
+}
 
 /**
  * Derived UI/dashboard lifecycle band.
@@ -33,13 +56,15 @@ export type HrmEmploymentStatus = (typeof HRM_EMPLOYMENT_STATUSES)[number]
  */
 export type EmployeeLifecycleStage =
   | "pre_hire"
+  | "pre_boarding"
   | "onboarding"
   | "probation"
+  | "confirmed"
   | "active"
   | "suspended"
   | "notice_period"
   | "offboarding"
-  | "terminated"
+  | "separated"
   | "retired"
   | "archived"
 
@@ -60,21 +85,40 @@ const ALLOWED_EMPLOYMENT_TRANSITIONS: Record<
   HrmEmploymentStatus,
   readonly HrmEmploymentStatus[]
 > = {
+  pre_boarding: ["onboarding", "probation", "active", "separated"],
+  onboarding: [
+    "probation",
+    "confirmed",
+    "active",
+    "suspended",
+    "notice_period",
+    "offboarding",
+    "separated",
+  ],
   active: [
     "probation",
     "confirmed",
     "suspended",
     "notice_period",
-    "terminated",
+    "offboarding",
+    "separated",
     "retired",
   ],
-  probation: ["active", "confirmed", "suspended", "terminated"],
+  probation: [
+    "active",
+    "confirmed",
+    "suspended",
+    "notice_period",
+    "offboarding",
+    "separated",
+  ],
   confirmed: [
     "active",
     "probation",
     "suspended",
     "notice_period",
-    "terminated",
+    "offboarding",
+    "separated",
     "retired",
   ],
   suspended: [
@@ -82,12 +126,15 @@ const ALLOWED_EMPLOYMENT_TRANSITIONS: Record<
     "probation",
     "confirmed",
     "notice_period",
-    "terminated",
+    "offboarding",
+    "separated",
     "retired",
   ],
-  notice_period: ["active", "confirmed", "terminated", "retired"],
-  terminated: [],
+  notice_period: ["active", "confirmed", "offboarding", "separated", "retired"],
+  offboarding: ["separated", "retired"],
+  separated: [],
   retired: [],
+  terminated: [],
 }
 
 /**
@@ -133,18 +180,22 @@ export function deriveLifecycleStage(input: {
 }): EmployeeLifecycleStage {
   if (input.archivedAt) return "archived"
   if (input.employmentStatus === "retired") return "retired"
-  if (input.employmentStatus === "terminated") return "terminated"
+  if (
+    input.employmentStatus === "separated" ||
+    input.employmentStatus === "terminated"
+  ) {
+    return "separated"
+  }
   if (input.hasOpenOffboarding) return "offboarding"
+  if (input.employmentStatus === "offboarding") return "offboarding"
   if (input.employmentStatus === "notice_period") return "notice_period"
   if (input.employmentStatus === "suspended") return "suspended"
   if (input.hasOpenOnboarding) return "onboarding"
+  if (input.employmentStatus === "onboarding") return "onboarding"
   if (input.employmentStatus === "probation") return "probation"
-  if (
-    input.employmentStatus === "active" ||
-    input.employmentStatus === "confirmed"
-  ) {
-    return "active"
-  }
+  if (input.employmentStatus === "pre_boarding") return "pre_boarding"
+  if (input.employmentStatus === "confirmed") return "confirmed"
+  if (input.employmentStatus === "active") return "active"
   return "pre_hire"
 }
 
@@ -211,12 +262,18 @@ export const HRM_LIFECYCLE_EVENT_KINDS = [
   "manager_change",
   "grade_change",
   "job_change",
+  "assignment_change",
   // Contract
+  "contract_activate",
   "contract_renewal",
   "contract_expiry_warning",
   // Offboarding
   "offboarding_start",
   "offboarding_complete",
+  // Effective-dated work queue
+  "transition_scheduled",
+  "transition_applied",
+  "transition_cancelled",
 ] as const
 
 export type HrmLifecycleEventKind = (typeof HRM_LIFECYCLE_EVENT_KINDS)[number]

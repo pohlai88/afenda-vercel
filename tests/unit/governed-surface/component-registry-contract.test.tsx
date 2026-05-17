@@ -76,17 +76,37 @@ describe("governed component registry contract", () => {
     expect(screen.getByText("Ada Lovelace")).toBeTruthy()
   })
 
-  it("falls back to GovernedEmpty for an unknown component type", () => {
+  it("falls back to GovernedEmpty for a design-reserve type without a shipped renderer", () => {
     const component = {
-      type: "governed:unknown-widget",
-      serverType: "governed:unknown-widget",
-      configuration: {},
+      type: "governed:chart",
+      serverType: "governed:chart",
+      configuration: {
+        chartKind: "bar",
+        series: [
+          {
+            id: "revenue",
+            label: "Revenue",
+            points: [{ x: "Q1", y: 100 }],
+          },
+        ],
+      },
     }
     const parsed = parseGovernedComponentData(component)
     expect(parsed.success).toBe(true)
     if (!parsed.success) return
 
     render(<GovernedComponentRenderer component={parsed.data} />)
-    expect(screen.getByText("Unsupported component")).toBeTruthy()
+    expect(
+      screen.getByText("This section is not available in the current surface.")
+    ).toBeTruthy()
+  })
+
+  it("rejects envelopes with types outside the governed component enum", () => {
+    const parsed = parseGovernedComponentData({
+      type: "governed:unknown-widget",
+      serverType: "governed:unknown-widget",
+      configuration: {},
+    })
+    expect(parsed.success).toBe(false)
   })
 })

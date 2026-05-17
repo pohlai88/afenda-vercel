@@ -1,32 +1,83 @@
 ---
 title: Org admin
-description: Manage members, roles, integrations, audit logs, and organisation-wide settings.
+description: Organisational control plane — members, access, audit, integrations, feedback, and settings under tenant authority overlays.
+audience: admin
+status: stable
 icon: Settings
+lastReviewedAt: "2026-05-18"
 ---
 
-## What is Org admin?
+## Overview
 
-Org admin is the control plane for your Afenda organisation. It covers everything an organisation owner or administrator needs to govern access, review compliance, and configure workspace-wide settings.
+**Org admin** is Afenda's organisational control plane at `/{locale}/o/{orgSlug}/admin`. It governs membership, tenant access overlays, compliance audit, outbound integrations, product feedback, and organisation profile settings.
 
-<Callout type="info" title="Coming soon">
-  Detailed per-section documentation — members & roles, integrations, audit log, and settings — is being written and will appear here soon.
+Capabilities derive from `ORG_ADMIN_CAPABILITIES` in `lib/features/org-admin/` — routes, sidebar nav, audit prefixes, and cache invalidation all share one registry.
+
+## Before you start
+
+- You need an active org session and a **tenant authority** overlay: `tenant_owner`, `tenant_key_admin`, or `tenant_support_admin` (enforced in `admin/layout.tsx`).
+- Recent **step-up authentication** and verified email are required before the admin shell renders.
+- ERP business permissions are separate from Better Auth org roles (`member` / `admin` / `owner`). Tenant governance uses `lib/features/erp-rbac/` overlays.
+
+<Callout type="warn" title="Not ERP module RBAC">
+  Org admin access is gated by **tenant authority**, not by `canActInOrganization(..., "admin")` alone. Grant overlays on **Org admin → Access** when operators need the control plane.
 </Callout>
 
-## Capabilities
+## Open Org admin
 
-| Section | Description |
-|---|---|
-| **Members & roles** | Invite team members, assign roles (Member / Admin / Owner), and manage pending invitations |
-| **Audit log** | Immutable chronological record of every data access and mutation across all modules |
-| **Integrations** | Connect third-party services and configure webhooks for your organisation |
-| **Settings** | Organisation name, timezone, branding, and data retention configuration |
+<Steps>
+  <Step>
+    Sign in and open your organisation Nexus at `/{locale}/o/{orgSlug}/nexus`.
+  </Step>
+  <Step>
+    In the left-hand rail, select **Admin** — or navigate directly to `/{locale}/o/{orgSlug}/admin`.
+  </Step>
+  <Step>
+    Use the admin sidebar to move between registered sections (Members, Access, Audit, Feedback, Integrations, Settings).
+  </Step>
+</Steps>
 
-## Who can access Org admin?
+## Registered sections
 
-The Org admin area is accessible to members with the **Admin** or **Owner** role. Platform-level controls are reserved for the **Owner** role only.
+| Section | Path segment | Audit prefix | Purpose |
+| --- | --- | --- | --- |
+| **Members** | `/admin/members` | `org.member.*` | Invitations, roles, pending invites |
+| **Access** | `/admin/access` | `org.access.*` | Tenant authority overlays (`tenant_owner`, `tenant_key_admin`, `tenant_support_admin`) |
+| **Audit** | `/admin/audit` | `org.governance.*` | Immutable IAM and org event ledger; CSV export |
+| **Feedback** | `/admin/feedback` | `org.feedback.*` | Organisation-scoped product feedback intake |
+| **Integrations** | `/admin/integrations` | `org.integration.*` | Webhook endpoints, delivery state, import jobs |
+| **Settings** | `/admin/settings` | `org.profile.*` | Organisation profile, slug, timezone, branding |
 
-To reach Org admin, open the left-hand rail and select **Admin**, or navigate directly to `/o/{orgSlug}/admin`.
+Knowledge source pipeline management lives at `/{locale}/o/{orgSlug}/admin/knowledge/sources` (org operations capability) — see [Knowledge substrate](/ask-docs/lynx/knowledge-substrate).
 
 ## Audit trail
 
-Every action taken in Org admin is logged to the immutable audit trail with the actor's identity, timestamp, and affected resource. The audit log is accessible under **Org admin → Audit** and is available for export.
+Every durable mutation in Org admin writes `iam_audit_event` rows after successful commit. Event names must match `ORG_ADMIN_EVENT_NAMESPACES` (`iam.*`, `org.*`, `erp.*`, `governance.*`, `integration.*`, `workflow.*`, `system.*`).
+
+Server Actions revalidate via `toLocaleOrgAdminRevalidatePattern` so all locales refresh — never hand-write a single-locale `revalidatePath`.
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Admin redirects me to Nexus">
+    Your user lacks a tenant authority overlay. An existing `tenant_owner` or `tenant_key_admin` must grant access on **Org admin → Access**.
+  </Accordion>
+  <Accordion title="Step-up loop on admin entry">
+    Complete re-authentication when prompted. Org admin layout calls `requireRecentAuthStepUp` before rendering children.
+  </Accordion>
+  <Accordion title="I invited a member but they cannot reach ERP modules">
+    Better Auth membership is not ERP authorization. Assign ERP roles and permissions separately after the member joins.
+  </Accordion>
+  <Accordion title="Audit export is empty for a date range">
+    Confirm the filter window and that events used allowed namespaces. Governance reads are read-only — they do not mutate state.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/getting-started/inviting-your-team" title="Inviting your team" description="Email invitations, roles, and pending-invite management." />
+  <Card href="/ask-docs/lynx/knowledge-substrate" title="Knowledge substrate" description="Chunk ingestion UI and org-admin knowledge sources pipeline." />
+  <Card href="/ask-docs/getting-started/workspace-navigation" title="Workspace navigation" description="Shell, rail, and command palette orientation." />
+  <Card href="/ask-docs/hrm" title="HRM" description="Workforce modules governed alongside org admin policies." />
+</Cards>

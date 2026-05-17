@@ -1,7 +1,7 @@
 import "server-only"
 
-import { getOrganizationIdBySlug } from "#lib/org-slug.server"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+import { getOrganizationIdBySlug } from "#lib/auth/org-slug.server"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 export async function validateEinvoiceOrgSlugMatchesSession(
   orgSlugRaw: string,

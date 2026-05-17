@@ -9,13 +9,13 @@ import {
   buildAttendanceShiftPolicySnapshot,
   buildScheduledShiftWindow,
   normalizeShiftCode,
-} from "../../lib/features/hrm/workforce-time-attendance/data/attendance-shift.shared.ts"
+} from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-shift.shared.ts"
 import {
   attendanceSnapshotHasPayrollBlockingException,
   isAttendanceDayReadyForPayroll,
   readAttendanceShiftSnapshot,
-} from "../../lib/features/hrm/workforce-time-attendance/data/attendance-display.shared.ts"
-import type { AttendanceShiftTemplatePolicy } from "../../lib/features/hrm/workforce-time-attendance/data/attendance-shift.shared.ts"
+} from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-display.shared.ts"
+import type { AttendanceShiftTemplatePolicy } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-shift.shared.ts"
 
 const TEMPLATE: AttendanceShiftTemplatePolicy = {
   id: "shift-template-1",

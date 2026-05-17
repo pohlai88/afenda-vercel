@@ -9,21 +9,21 @@ import {
 } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
-import { ModulePageHeader } from "#components/module-page-header"
+import { ModulePageHeader } from "#features/governed-surface"
 import { isOrbitAdvancedOperatorControlsEnabled } from "#flags"
-import { Badge } from "#components/ui/badge"
-import { Button } from "#components/ui/button"
+import { Badge } from "#components2/ui/badge"
+import { Button } from "#components2/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Empty, EmptyDescription, EmptyTitle } from "#components/ui/empty"
-import { Input } from "#components/ui/input"
-import { Separator } from "#components/ui/separator"
-import { Textarea } from "#components/ui/textarea"
+} from "#components2/ui/card"
+import { Empty, EmptyDescription, EmptyTitle } from "#components2/ui/empty"
+import { Input } from "#components2/ui/input"
+import { Separator } from "#components2/ui/separator"
+import { Textarea } from "#components2/ui/textarea"
 import { Link } from "#i18n/navigation"
 import { describeOrgNotificationBadge } from "#features/org-notifications"
 

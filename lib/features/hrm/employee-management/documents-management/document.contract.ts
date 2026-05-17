@@ -77,6 +77,14 @@ export const HRM_DOCUMENT_AUDIT = {
     verb: "search",
   }),
 
+  /** Document soft-deleted after retention authorization. HRM-DOC-021/023. */
+  delete: buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "document",
+    verb: "deprecate",
+  }),
+
   /** Document expiry alert tiers — kept in document-expiry-watch.shared.ts via DOCUMENT_EXPIRY_TIER_AUDIT_ACTIONS. */
   expiryWarning30d: "erp.hrm.document.expiry_warning_30d",
   expiryWarning14d: "erp.hrm.document.expiry_warning_14d",

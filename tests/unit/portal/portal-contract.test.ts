@@ -15,8 +15,8 @@ import type {
   PortalResolverAccessRow,
   PortalResolverPortalRow,
 } from "#lib/portal"
-import type { RouteEnvelope } from "#lib/route-envelope.shared"
-import type { SignedInSession } from "#lib/tenant"
+import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
+import type { SignedInSession } from "#lib/auth"
 
 const session: SignedInSession = {
   userId: "user_01",
@@ -219,7 +219,7 @@ describe("portal foundation contract", () => {
 
     expect(source).not.toContain("WorkbenchShell")
     expect(source).not.toContain("WorkbenchSubLayout")
-    expect(source).not.toContain("#components/workbench")
+    expect(source).not.toContain("#components/")
     expect(source).not.toContain("#app-shell")
     expect(source).not.toContain("requireOrgSession")
   })

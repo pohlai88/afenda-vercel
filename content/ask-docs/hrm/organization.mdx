@@ -2,11 +2,37 @@
 title: Organization structure
 description: Departments, positions, and job grades — master data that anchors placements, contracts, and reporting lines.
 icon: Network
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 The **organization** surface models how work is structured: departments form a tree, positions describe accountable roles, and job grades express compensation bands. HRM consumes this master data when you assign employees and when downstream modules (leave, payroll, recruitment) resolve context.
+
+## Before you start
+
+- Plan department hierarchy before bulk employee imports — moving nodes later requires careful placement updates.
+- Positions and reporting lines drive approval routing; confirm manager relationships match real org chart.
+- Structural changes write to the IAM audit ledger — prefer small, intentional edits over bulk rewrites.
+
+## Maintaining org structure
+
+<Steps>
+  <Step>
+    Open **HRM → Organization** (`/o/{orgSlug}/dashboard/hrm/organization`).
+  </Step>
+  <Step>
+    Create or adjust **departments** in the parent/child tree (cost centre codes optional for finance alignment).
+  </Step>
+  <Step>
+    Define **positions** with reporting lines so manager relationships stay explicit.
+  </Step>
+  <Step>
+    Maintain **job grades** referenced from contracts and policy eligibility rules.
+  </Step>
+</Steps>
 
 ## Departments
 
@@ -24,13 +50,30 @@ Job grades group roles that share a compensation philosophy. They are referenced
   Structural changes write to the IAM audit ledger. Prefer small, intentional edits over bulk rewrites so reviewers can trace intent.
 </Callout>
 
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Cannot delete a department">
+    Active employee placements or open requisitions may still reference the node — reassign or close dependents first.
+  </Accordion>
+  <Accordion title="Approval routing picks the wrong manager">
+    Verify position reporting lines and the employee's current placement, not only department membership.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
-  <Card href="./employees" title="Employees">
+  <Card href="/ask-docs/hrm/employees" title="Employees">
     Placements link employees to departments and positions.
   </Card>
-  <Card href="./recruitment" title="Recruitment">
+  <Card href="/ask-docs/hrm/recruitment" title="Recruitment">
     Requisitions reference departments and headcount targets.
+  </Card>
+  <Card href="/ask-docs/hrm/payroll" title="Payroll">
+    Cost centre codes can align payroll reporting dimensions.
+  </Card>
+  <Card href="/ask-docs/hrm/leave" title="Leave management">
+    Department context resolves approver queues.
   </Card>
 </Cards>

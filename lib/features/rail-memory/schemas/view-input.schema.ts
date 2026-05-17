@@ -5,7 +5,7 @@ import { WORKBENCH_IDS } from "../constants"
 /**
  * Server-side trust boundary for save / update / delete view Server
  * Actions. Same drift-prevention pattern as `pin-input.schema.ts`:
- * the kernel rail schema (`workbenchRailViewSchema`) describes what
+ * the kernel rail schema (`appShellPrimaryLeftRailViewSchema`) describes what
  * the rail can render; this file describes what the writer accepts.
  */
 

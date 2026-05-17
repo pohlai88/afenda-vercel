@@ -22,14 +22,14 @@ import { organizationHrmEmployeePath } from "../../../constants"
 import { seedNewHireBenefitEnrollments } from "../../../payroll-compensation/benefits-administration/data/benefit-employment-bridge.server"
 
 import { createOnboardingInstanceForContract } from "../../employee-lifecycle-management/data/boarding.mutations.server"
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
-import { assertOptionalHrmPlacementFkBelongsToOrg } from "../../../hrm-org-fk.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
+import { assertOptionalHrmPlacementFkBelongsToOrg } from "../../../_internal-cross-cutting/hrm-org-fk.server"
 import {
   calendarDayBeforeIso,
   formatUtcDateOnly,
   isoDateOnlyToUtcDate,
-} from "../../../hrm-calendar-dates.server"
+} from "../../../_module-governance/hrm-calendar-dates.server"
 import {
   activateContractFormSchema,
   createDraftContractFormSchema,
@@ -39,10 +39,21 @@ import {
 import {
   hrmActionFailure,
   hrmTransactionFailure,
-} from "../../../hrm-action-result.shared"
+} from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
+import { HRM_EMPLOYEE_RECORDS_AUDIT } from "../employee-records.contract"
+import {
+  recordEmployeeLifecycleEvent,
+  recordEmployeeRecordChangeHistory,
+} from "../data/employee-record-history.server"
+import {
+  mutableEmployeeRecordErrorMessage,
+  requireMutableEmployeeRecord,
+} from "../data/employee-record-mutability.server"
 
-async function requireEmploymentContractMutationGate(formData: FormData): Promise<
+async function requireEmploymentContractMutationGate(
+  formData: FormData
+): Promise<
   | {
       ok: true
       orgSlug: string
@@ -92,6 +103,16 @@ function revalidateHrmEmployeeSurfaces() {
   )
 }
 
+async function requireMutableContractEmployee(input: {
+  organizationId: string
+  employeeId: string
+}): Promise<ContractMutationFormState | null> {
+  const mutable = await requireMutableEmployeeRecord(input)
+  return mutable.ok
+    ? null
+    : hrmActionFailure({ form: mutableEmployeeRecordErrorMessage(mutable) })
+}
+
 export async function createDraftContractAction(
   _prev: ContractMutationFormState | undefined,
   formData: FormData
@@ -122,6 +143,12 @@ export async function createDraftContractAction(
   }
 
   const d = parsed.data
+  const mutableFailure = await requireMutableContractEmployee({
+    organizationId,
+    employeeId: d.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
+
   const deptId =
     d.departmentId && d.departmentId.length > 0 ? d.departmentId : undefined
   const posId =
@@ -204,12 +231,42 @@ export async function createDraftContractAction(
       updatedByUserId: userId,
     })
 
+    await recordEmployeeRecordChangeHistory(
+      {
+        organizationId,
+        employeeId: d.employeeId,
+        changedByUserId: userId,
+        changes: [
+          {
+            fieldName: "contract.versionNumber",
+            oldValue: null,
+            newValue: versionNumber,
+          },
+          {
+            fieldName: "contract.state",
+            oldValue: null,
+            newValue: "draft",
+          },
+          {
+            fieldName: "contract.effectiveFrom",
+            oldValue: null,
+            newValue: d.effectiveFrom,
+          },
+        ],
+        meta: {
+          effectiveDate: isoDateOnlyToUtcDate(d.effectiveFrom),
+          reason: "Draft employment contract",
+        },
+      },
+      tx
+    )
+
     return { contractId: id, versionNumber }
   })
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.contract.create",
+      action: HRM_EMPLOYEE_RECORDS_AUDIT.contract.create,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,
@@ -251,6 +308,11 @@ export async function createSalaryRevisionDraftAction(
   }
 
   const d = parsed.data
+  const mutableFailure = await requireMutableContractEmployee({
+    organizationId,
+    employeeId: d.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
 
   const [emp] = await db
     .select({ id: hrmEmployee.id, archivedAt: hrmEmployee.archivedAt })
@@ -333,6 +395,36 @@ export async function createSalaryRevisionDraftAction(
       updatedByUserId: userId,
     })
 
+    await recordEmployeeRecordChangeHistory(
+      {
+        organizationId,
+        employeeId: d.employeeId,
+        changedByUserId: userId,
+        changes: [
+          {
+            fieldName: "contract.versionNumber",
+            oldValue: active.versionNumber,
+            newValue: versionNumber,
+          },
+          {
+            fieldName: "contract.baseSalaryAmount",
+            oldValue: active.baseSalaryAmount,
+            newValue: d.newBaseSalaryAmount,
+          },
+          {
+            fieldName: "contract.effectiveFrom",
+            oldValue: null,
+            newValue: d.effectiveFrom,
+          },
+        ],
+        meta: {
+          effectiveDate: isoDateOnlyToUtcDate(d.effectiveFrom),
+          reason: "Salary revision draft",
+        },
+      },
+      tx
+    )
+
     return {
       ok: true as const,
       contractId: id,
@@ -348,7 +440,7 @@ export async function createSalaryRevisionDraftAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.contract.create",
+      action: HRM_EMPLOYEE_RECORDS_AUDIT.contract.create,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,
@@ -389,6 +481,26 @@ export async function activateContractAction(
 
   const { contractId } = parsed.data
 
+  const [pre] = await db
+    .select({ employeeId: hrmEmploymentContract.employeeId })
+    .from(hrmEmploymentContract)
+    .where(
+      and(
+        eq(hrmEmploymentContract.organizationId, organizationId),
+        eq(hrmEmploymentContract.id, contractId)
+      )
+    )
+    .limit(1)
+
+  if (!pre) {
+    return hrmActionFailure({ form: "Contract not found." })
+  }
+  const mutableFailure = await requireMutableContractEmployee({
+    organizationId,
+    employeeId: pre.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
+
   const result = await db.transaction(async (tx) => {
     const [row] = await tx
       .select({
@@ -421,7 +533,11 @@ export async function activateContractAction(
     }
 
     const [emp] = await tx
-      .select({ archivedAt: hrmEmployee.archivedAt })
+      .select({
+        archivedAt: hrmEmployee.archivedAt,
+        currentEmploymentContractId: hrmEmployee.currentEmploymentContractId,
+        employmentStatus: hrmEmployee.employmentStatus,
+      })
       .from(hrmEmployee)
       .where(
         and(
@@ -500,6 +616,42 @@ export async function activateContractAction(
         )
       )
 
+    await recordEmployeeLifecycleEvent(
+      {
+        organizationId,
+        employeeId: row.employeeId,
+        kind: "contract_activate",
+        previousStatus: emp.employmentStatus,
+        newStatus: emp.employmentStatus,
+        effectiveDate: row.effectiveFrom,
+        metadata: { contractId: row.id, versionNumber: row.versionNumber },
+        actorUserId: userId,
+        isEffectiveDated: true,
+      },
+      tx
+    )
+    await recordEmployeeRecordChangeHistory(
+      {
+        organizationId,
+        employeeId: row.employeeId,
+        changedByUserId: userId,
+        changes: [
+          {
+            fieldName: "currentEmploymentContractId",
+            oldValue: emp.currentEmploymentContractId,
+            newValue: row.id,
+          },
+          {
+            fieldName: "contract.state",
+            oldValue: row.state,
+            newValue: "active",
+          },
+        ],
+        meta: { effectiveDate: row.effectiveFrom },
+      },
+      tx
+    )
+
     await createOnboardingInstanceForContract(tx, {
       organizationId,
       employeeId: row.employeeId,
@@ -528,7 +680,7 @@ export async function activateContractAction(
       createdByUserId: userId,
     })
     await writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.contract.activate",
+      action: HRM_EMPLOYEE_RECORDS_AUDIT.contract.update,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,
@@ -600,6 +752,11 @@ export async function terminateContractAction(
       form: "Only active contracts can be terminated.",
     })
   }
+  const mutableFailure = await requireMutableContractEmployee({
+    organizationId,
+    employeeId: pre.employeeId,
+  })
+  if (mutableFailure) return mutableFailure
 
   const locale = await getRequestAppLocale()
   await requireRecentAuthStepUp({
@@ -632,7 +789,30 @@ export async function terminateContractAction(
       return hrmTransactionFailure("Only active contracts can be terminated.")
     }
 
+    const [emp] = await tx
+      .select({
+        archivedAt: hrmEmployee.archivedAt,
+        currentEmploymentContractId: hrmEmployee.currentEmploymentContractId,
+        employmentStatus: hrmEmployee.employmentStatus,
+      })
+      .from(hrmEmployee)
+      .where(
+        and(
+          eq(hrmEmployee.organizationId, organizationId),
+          eq(hrmEmployee.id, row.employeeId)
+        )
+      )
+      .limit(1)
+
+    if (!emp) return hrmTransactionFailure("Employee not found.")
+    if (emp.archivedAt) {
+      return hrmTransactionFailure(
+        "Cannot terminate a contract for an archived employee."
+      )
+    }
+
     const term = isoDateOnlyToUtcDate(terminationDate)
+    const isCurrentContract = emp.currentEmploymentContractId === row.id
 
     await tx
       .update(hrmEmploymentContract)
@@ -651,6 +831,7 @@ export async function terminateContractAction(
       .update(hrmEmployee)
       .set({
         currentEmploymentContractId: null,
+        ...(isCurrentContract ? { employmentStatus: "terminated" } : {}),
         updatedAt: new Date(),
         updatedByUserId: userId,
       })
@@ -662,6 +843,65 @@ export async function terminateContractAction(
         )
       )
 
+    await recordEmployeeLifecycleEvent(
+      {
+        organizationId,
+        employeeId: row.employeeId,
+        kind: "contract_terminate",
+        previousStatus: emp.employmentStatus,
+        newStatus: isCurrentContract ? "terminated" : emp.employmentStatus,
+        effectiveDate: term,
+        reason: terminationReason ?? null,
+        metadata: { contractId: row.id },
+        actorUserId: userId,
+        isEffectiveDated: true,
+      },
+      tx
+    )
+    await recordEmployeeRecordChangeHistory(
+      {
+        organizationId,
+        employeeId: row.employeeId,
+        changedByUserId: userId,
+        changes: [
+          {
+            fieldName: "contract.state",
+            oldValue: "active",
+            newValue: "terminated",
+          },
+          {
+            fieldName: "contractEndDate",
+            oldValue: null,
+            newValue: terminationDate,
+          },
+          {
+            fieldName: "contract.terminationReason",
+            oldValue: null,
+            newValue: terminationReason ?? null,
+          },
+          {
+            fieldName: "currentEmploymentContractId",
+            oldValue: isCurrentContract
+              ? row.id
+              : emp.currentEmploymentContractId,
+            newValue: isCurrentContract
+              ? null
+              : emp.currentEmploymentContractId,
+          },
+          {
+            fieldName: "employmentStatus",
+            oldValue: emp.employmentStatus,
+            newValue: isCurrentContract ? "terminated" : emp.employmentStatus,
+          },
+        ],
+        meta: {
+          effectiveDate: term,
+          reason: terminationReason ?? null,
+        },
+      },
+      tx
+    )
+
     return { ok: true as const, employeeId: row.employeeId }
   })
 
@@ -671,7 +911,7 @@ export async function terminateContractAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.contract.terminate",
+      action: HRM_EMPLOYEE_RECORDS_AUDIT.contract.deprecate,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,

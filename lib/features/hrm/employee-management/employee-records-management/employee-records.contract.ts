@@ -166,6 +166,44 @@ export const HRM_EMPLOYEE_RECORDS_AUDIT = {
     }),
   },
 
+  /** Dependents carried on the employee master snapshot for statutory/tax context. */
+  dependent: {
+    create: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "employee.dependent",
+      verb: "create",
+    }),
+    deprecate: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "employee.dependent",
+      verb: "deprecate",
+    }),
+  },
+
+  /** Employment contract references linked to the employee master record. HRM-EMP-REC-013. */
+  contract: {
+    create: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "employee.contract",
+      verb: "create",
+    }),
+    update: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "employee.contract",
+      verb: "update",
+    }),
+    deprecate: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "employee.contract",
+      verb: "deprecate",
+    }),
+  },
+
   /** Statutory / payroll profile: tax ID, EPF, SOCSO, insurance. */
   statutory: {
     update: buildCrudSapAuditAction({

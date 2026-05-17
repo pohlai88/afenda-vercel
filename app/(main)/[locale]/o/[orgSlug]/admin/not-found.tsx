@@ -2,12 +2,12 @@
 
 import { useParams } from "next/navigation"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 
 /**
  * Admin 404 — rendered inside nested `AppSubLayout` (org admin rail)
- * while the parent org layout keeps the workbench shell mounted when
+ * while the parent org layout keeps the app shell mounted when
  * `notFound()` fires within the admin segment.
  *
  * Uses useParams() to resolve orgSlug for contextual recovery links since
@@ -24,7 +24,7 @@ export default function OrgAdminNotFound() {
         <p className="text-sm font-medium text-muted-foreground">404</p>
         <h1 className="text-lg font-medium text-foreground">Page not found</h1>
         <p className="max-w-md text-sm text-muted-foreground">
-          The admin workbench is still available — use the sidebar to navigate
+          The organization admin surface is still available — use the sidebar to navigate
           to another section.
         </p>
       </div>

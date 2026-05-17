@@ -12,7 +12,7 @@ import {
   cancelClaimFormSchema,
   requestOwnClaimFormSchema,
 } from "../../../payroll-compensation/expenses-reimbursement/schema/claim.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   AttachClaimEvidenceFormState,
   CancelClaimFormState,

@@ -10,6 +10,11 @@ export const GOVERNED_APPROVAL_TIMELINE_SCHEMA_ID =
 export const GOVERNED_APPROVAL_TIMELINE_SCHEMA_STABILITY: SchemaStability =
   "beta"
 
+export const approvalTimelineDataNatureSchema = z.enum(["approval-flow"])
+export type ApprovalTimelineDataNature = z.infer<
+  typeof approvalTimelineDataNatureSchema
+>
+
 export const approvalTimelineStepStatusSchema = z.enum([
   "pending",
   "active",
@@ -31,6 +36,7 @@ export const approvalTimelineStepSchema = z
 
 export const governedApprovalTimelineConfigurationSchema = z
   .object({
+    dataNature: approvalTimelineDataNatureSchema,
     title: z.string().trim().min(1).optional(),
     steps: z.array(approvalTimelineStepSchema).min(1),
     chrome: governedSurfaceChromeSchema.optional(),

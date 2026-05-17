@@ -1,25 +1,25 @@
 import { getTranslations } from "next-intl/server"
 
-import { ModulePageHeader } from "#components/module-page-header"
+import { ModulePageHeader } from "#features/governed-surface"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/card"
+import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
-  listBenefitClaimReferencesForOrganization,
   listBenefitEnrollmentsForOrganization,
-  listBenefitOpenEnrollmentsForOrg,
   listBenefitPlansForOrganization,
-  listBenefitProvidersForOrganization,
   listLifeEventsForOrganization,
-} from "../server"
-import { listActiveEmployeeChoicesForLeave } from "../../../server"
+} from "../data/benefit.queries.server"
+import { listBenefitClaimReferencesForOrganization } from "../data/benefit-claim-reference.queries.server"
+import { listBenefitOpenEnrollmentsForOrg } from "../data/benefit-open-enrollment.queries.server"
+import { listBenefitProvidersForOrganization } from "../data/benefit-provider.queries.server"
+import { listActiveEmployeeChoicesForLeave } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
 import { listDependentsForOrganization } from "../../../employee-management/employee-records-management/data/dependent.queries.server"
 
 import {
@@ -112,7 +112,7 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
     label: `${enrollment.employeeLegalName} — ${enrollment.benefitName} (${enrollment.state})`,
   }))
 
-  const enrollmentLabels = new Map(
+  const enrollmentLabels = new Map<string, string>(
     enrollmentChoices.map((choice) => [choice.id, choice.label])
   )
 
@@ -160,8 +160,10 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
       {activeTab === "providers" ? (
         <Card size="sm">
           <CardHeader>
-            <CardTitle>{t("tabProvidersTitle")}</CardTitle>
-            <CardDescription>{t("tabProvidersDescription")}</CardDescription>
+            <CardTitle>{t("tabProvidersTitle" as never)}</CardTitle>
+            <CardDescription>
+              {t("tabProvidersDescription" as never)}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <BenefitProvidersTable
@@ -212,9 +214,9 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
       {activeTab === "claimReferences" ? (
         <Card size="sm">
           <CardHeader>
-            <CardTitle>{t("tabClaimReferencesTitle")}</CardTitle>
+            <CardTitle>{t("tabClaimReferencesTitle" as never)}</CardTitle>
             <CardDescription>
-              {t("tabClaimReferencesDescription")}
+              {t("tabClaimReferencesDescription" as never)}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -232,8 +234,10 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
       {activeTab === "openEnrollment" ? (
         <Card size="sm">
           <CardHeader>
-            <CardTitle>{t("tabOpenEnrollmentTitle")}</CardTitle>
-            <CardDescription>{t("tabOpenEnrollmentDescription")}</CardDescription>
+            <CardTitle>{t("tabOpenEnrollmentTitle" as never)}</CardTitle>
+            <CardDescription>
+              {t("tabOpenEnrollmentDescription" as never)}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <BenefitOpenEnrollmentPanel

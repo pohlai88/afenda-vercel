@@ -16,6 +16,9 @@ globs:
   - "components/ask-docs-mermaid.tsx"
   - "components/feedback/**"
   - "scripts/validate-ask-docs-links.ts"
+  - "scripts/lint-ask-docs-quality.mjs"
+  - "scripts/audit-ask-docs-quality.mjs"
+  - ".agents/skills/adqs/**"
 alwaysApply: false
 ---
 
@@ -63,7 +66,7 @@ export const docs = defineDocs({
 
 ```ts
 // ✅ always scope source to the active locale
-import { askDocsSource } from "#lib/ask-docs-source"
+import { askDocsSource } from "#lib/ask-docs/source"
 const page = askDocsSource.getPage(slug, locale)
 const tree = askDocsSource.getPageTree(locale)
 
@@ -92,7 +95,31 @@ icon: BookOpen
 - Every directory needs a `meta.json` to control sidebar order and titles.
 - Run `pnpm lint:ask-docs-links` after adding or changing internal links (`[text](/ask-docs/…)`).
 - Run `pnpm lint:ask-docs-prose` after substantive MDX edits (markdownlint-cli2; config `.config/markdownlint-ask-docs.jsonc`).
-- Scaffold new pages with `pnpm gen ask-doc` (enforces frontmatter + section skeleton).
+- Run `pnpm lint:ask-docs-quality` after substantive MDX edits (stub strings, Related graph, stable frontmatter).
+- Scaffold new pages with `pnpm gen ask-doc` (enforces frontmatter + section skeleton; use `--archetype` when available).
+
+### ADQS — Ask-Docs Quality Standard (target ≥95% = 47.5/50)
+
+**Mandatory agent workflow:** apply `.agents/skills/adqs/SKILL.md` automatically when authoring or improving `content/ask-docs/**`. Do not invoke `documentation-audit`, `technical-writing`, or Fumadocs skills separately — ADQS composes them:
+
+1. **Phase 1 — Accuracy audit** (`.agents/skills/documentation-audit/`) — grep routes, permissions, audit strings; remove stubs.
+2. **Phase 2 — Prose** (`.agents/skills/technical-writing/`, mode `internal-guide`) — Overview → Before you start → workflow → Troubleshooting → Related.
+3. **Phase 3 — Gates** — `pnpm lint:ask-docs-links` · `lint:ask-docs-prose` · `lint:ask-docs-quality` · `node scripts/audit-ask-docs-quality.mjs`.
+
+Score each page before merge. Do not ship generator stubs.
+
+| # | Dimension | /10 | 95% requires |
+| --- | --- | --- | --- |
+| 1 | Frontmatter | 10 | `title`, `description` (≥8 chars, not duplicate of first paragraph), `audience`, `status`, contextual Lucide `icon`; `lastReviewedAt` when `status: stable` |
+| 2 | Structure | 10 | `Overview` → `Before you start` → workflow → optional `## Troubleshooting` → `Related` |
+| 3 | Fumadocs components | 10 | Non-placeholder `<Steps>` (≥3 when workflow exists); ≥1 `<Callout>`; `<Cards>` in `Related`; `<Tabs>` / `<Accordions>` when multi-path or FAQ |
+| 4 | Code-verified accuracy | 10 | Paths match App Router; read-only vs mutate correct; step-up and audit match implementation |
+| 5 | Link graph | 10 | ≥2 `/ask-docs/…` links; hub + module doc where applicable; passes `lint:ask-docs-links` |
+| 6 | LLM / search | 10 | No stub comments; clear `##` headings; no “relevant workspace” on `audience: employee` portal pages |
+
+**Gold patterns:** `content/ask-docs/getting-started/quick-start.mdx` (nested `<Step>` + in-step `<Callout>`), `content/ask-docs/hrm/documents.mdx` (audit Callout + tables), `content/ask-docs/portals/employee.mdx` (hub).
+
+**Archetypes:** `workflow` · `readonly` · `stepup` · `hub` — pass to `pnpm gen ask-doc --archetype …` when scaffolding.
 - Internal links in MDX must use the `/ask-docs/…` authoring form (no locale prefix). The link validator expands them to `/{locale}/ask-docs/…` automatically.
 - **Inline code syntax highlighting:** append `{:lang}` to inline code — e.g. `` `const x = 1{:ts}` `` or `` `SELECT *{:sql}` ``. Plain inline code without the suffix renders as-is (backward-compatible).
 
@@ -106,7 +133,7 @@ icon: BookOpen
 
 ## OG images
 
-- Helper: `getAskDocsOgImagePath(locale, slugs)` from `#lib/ask-docs-og.shared`.
+- Helper: `getAskDocsOgImagePath(locale, slugs)` from `#lib/ask-docs/og.shared`.
 - Endpoint: `app/og/ask-docs/[locale]/[...slug]/route.tsx` — `next/og` `ImageResponse`, `revalidate = false`.
 - The `/og` path segment is excluded from the `proxy.ts` intl matcher so next-intl never rewrites it.
 - Trailing segment is `image.png` (`ASK_DOCS_OG_IMAGE_FILENAME`).
@@ -119,10 +146,10 @@ icon: BookOpen
 
 ## Public Lynx (Ask AI)
 
-- UI: `#components/ai/search` — `AISearch`, `AISearchPanel`, `AISearchTrigger` wired in `app/(ask-docs)/[locale]/ask-docs/layout.tsx` (label **Ask Lynx**).
+- UI: `#components2/ai/search` — `AISearch`, `AISearchPanel`, `AISearchTrigger` wired in `app/(ask-docs)/[locale]/ask-docs/layout.tsx` (label **Ask Lynx**).
 - API: `app/api/chat/route.ts` — Vercel AI SDK `streamText` + flexsearch tool over ask-docs processed markdown. **No** `#features/lynx` import.
 - Requires `AI_GATEWAY_API_KEY` locally (or `VERCEL_OIDC_TOKEN` on Vercel) and `UPSTASH_REDIS_REST_*` for production rate limits. Parse POST via `readPublicLynxChatRequestBody` — not `req.json()`.
-- Lint: `pnpm lint:public-lynx-contract` after changes to `app/api/chat`, `components/ai/search`, or `lib/ask-docs/public-lynx*`.
+- Lint: `pnpm lint:public-lynx-contract` after changes to `app/api/chat`, `components2/ai/search`, or `lib/ask-docs/public-lynx*`.
 - Rule: `.cursor/rules/public-lynx.mdc`.
 
 ## LLM export endpoints
@@ -258,7 +285,7 @@ Do **not** migrate to an alternative content source without a named trigger:
 | **`@fumadocs/local-md`** | Content must update without a redeploy AND imports/image-opt can be dropped | Bundleless runtime — loses build-time image optimisation and MDX import/export. All our MDX components (`TypeTable`, `Mermaid`, `ImageZoom`) depend on the bundler pass. |
 | **`@fumadocs/mdx-remote`** | Content is fetched from a remote API at runtime, not committed to the repo | Same tradeoffs as local-md. No upside while content lives in `content/ask-docs/`. |
 | **`@fumadocs/sanity`** | A Sanity project and studio exist AND non-engineering authors need a CMS UI | Requires full Sanity infra (project, studio, schema types, API keys). No current infrastructure. |
-| **Custom Loader API** (`fumadocs-core/source`) | A content source exists that has no Fumadocs adapter | Already used — `lib/ask-docs-source.ts` calls `loader()`. No further custom implementation needed unless pulling from a novel source. |
+| **Custom Loader API** (`fumadocs-core/source`) | A content source exists that has no Fumadocs adapter | Already used — `lib/ask-docs/source.ts` calls `loader()`. No further custom implementation needed unless pulling from a novel source. |
 
 ## Deferred integrations
 
@@ -297,7 +324,12 @@ Config: `cli.json` at repo root — already initialised. Do not re-run `pnpm dlx
 ## Lint gates
 
 ```bash
-pnpm lint:ask-docs-links   # after editing content/ask-docs MDX or internal links
+pnpm lint:ask-docs-links      # internal URLs in MDX
+pnpm lint:ask-docs-prose      # markdownlint-cli2
+pnpm lint:ask-docs-quality    # ADQS stubs, Related graph, frontmatter (ADR-0027)
+pnpm audit:ask-docs-quality   # optional corpus tier report → .artifacts/ask-docs-quality-audit.txt
 pnpm exec eslint --max-warnings=0 "app/(ask-docs)" app/og/ask-docs app/api/ask-docs-search app/api/chat components/ai lib/ask-docs source.config.ts
 pnpm typecheck
 ```
+
+Canonical decision: `docs/decisions/0027-ask-docs-quality-standard.md`.

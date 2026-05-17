@@ -1,17 +1,21 @@
 ---
 title: Quick start
-description: Go from zero to a working Afenda workspace in under five minutes.
+description: Go from zero to a working Afenda workspace in under five minutes — account, organisation, and Nexus landing.
+audience: admin
+status: stable
 icon: CirclePlay
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-This guide takes you through the three setup steps every new Afenda user completes: creating an account, creating an organisation, and reaching the Nexus workspace where all modules live.
+This guide takes you through the three setup steps every new Afenda user completes: creating an account, creating an organisation, and reaching the Nexus workspace where all ERP modules live.
 
-## Prerequisites
+## Before you start
 
-- A valid email address
-- A modern browser (Chrome, Firefox, Edge, or Safari — latest two major versions)
+- A valid email address you control for verification.
+- A modern browser (Chrome, Firefox, Edge, or Safari — latest two major versions).
+- Your chosen organisation slug — permanent after creation.
 
 ## Setup steps
 
@@ -19,39 +23,51 @@ This guide takes you through the three setup steps every new Afenda user complet
   <Step>
     ### Create your account
 
-    Visit the Afenda sign-up page and enter your email address. Check your inbox for a verification email and click the confirmation link. Set a strong password and complete your profile.
+    Visit `/{locale}/sign-up` and enter your email address. Check your inbox for a verification email and click the confirmation link. Set a strong password and complete your profile.
   </Step>
   <Step>
     ### Create your organisation
 
-    After email verification you land on the **console** loading bay. Afenda will prompt you to create your first organisation:
+    After email verification you land on the **console** loading bay at `/{locale}/console`. Afenda prompts you to create your first organisation:
 
-    1. Enter your **organisation name** — this becomes your workspace URL slug (e.g. `acme`).
+    1. Enter your **organisation name** — this becomes your workspace URL slug (for example `acme`).
     2. Choose your **timezone** — used for attendance, leave, and payroll calculations.
     3. Click **Create organisation**.
 
     <Callout type="warn" title="Org slug is permanent">
-      Your organisation slug (`acme` in `/o/acme/`) cannot be changed after creation. Choose carefully — it appears in all bookmarked URLs shared with your team.
+      Your organisation slug (`acme` in `/en/o/acme/nexus`) cannot be changed after creation. Choose carefully — it appears in bookmarked URLs shared with your team.
     </Callout>
   </Step>
   <Step>
     ### Reach the Nexus workspace
 
-    Once your organisation is created, Afenda redirects you automatically to `/{locale}/o/{orgSlug}/nexus` — the org root. From here you can access every module via the left-hand rail.
+    Once your organisation is created, Afenda redirects you to `/{locale}/o/{orgSlug}/nexus` — the org root. From here you access every module via the left-hand rail.
 
     <Callout type="info" title="Bookmark your workspace">
-      Afenda preserves your last position after sign-out via the `callbackUrl` parameter, so any page you bookmark will bring you back to exactly where you were.
+      Afenda preserves your last position after sign-out via the `callbackUrl` parameter, so bookmarked pages return you to the same surface after sign-in.
     </Callout>
   </Step>
 </Steps>
 
-## Next steps
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Sign-up says email already exists">
+    Use **Sign in** instead and complete verification if prompted. Invitation links also route through the auth shell.
+  </Accordion>
+  <Accordion title="Console shows no organisation">
+    Complete the create-organisation form on the console loading bay. You need at least one organisation before Nexus is reachable.
+  </Accordion>
+  <Accordion title="Redirect lands on sign-in again">
+    Confirm the session cookie is allowed in your browser and that you completed email verification.
+  </Accordion>
+</Accordions>
+
+## Related
 
 <Cards>
-  <Card href="./workspace-navigation" title="Workspace navigation">
-    Learn the shell, sidebar, and command palette so you can move efficiently between modules.
-  </Card>
-  <Card href="./inviting-your-team" title="Inviting your team">
-    Bring colleagues in and assign them roles so everyone can log in and collaborate.
-  </Card>
+  <Card href="/ask-docs/getting-started/workspace-navigation" title="Workspace navigation" description="Shell, sidebar, command palette, and module URLs." />
+  <Card href="/ask-docs/getting-started/inviting-your-team" title="Inviting your team" description="Bring colleagues in and assign organisation roles." />
+  <Card href="/ask-docs/getting-started" title="Getting started hub" description="Ordered first-week guides for administrators." />
+  <Card href="/ask-docs/org-admin" title="Org admin" description="Members, audit, and organisation settings." />
 </Cards>

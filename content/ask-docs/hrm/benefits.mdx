@@ -2,11 +2,37 @@
 title: Benefits
 description: Plans, enrollments, qualifying life events, and open-enrollment windows — admin-gated with IAM audits.
 icon: HeartPulse
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 **Benefits** covers plan catalogs, employee enrollments, and the time windows when changes are allowed. Enrollment mutations are **Server Actions** — there is no shadow REST API — so every commit is attributable.
+
+## Before you start
+
+- Maintain the plan catalog and tiers before opening enrollment to employees.
+- Configure **open enrollment** windows with explicit start and end dates.
+- Life-event changes require evidence when policy demands it — prepare review queues for HR.
+
+## Managing enrollments
+
+<Steps>
+  <Step>
+    Navigate to **HRM → Benefits** and review the active plan catalog.
+  </Step>
+  <Step>
+    Open or schedule an **open enrollment** window when self-service changes should be allowed.
+  </Step>
+  <Step>
+    Process employee enrollments, waivers, or life-event requests with evidence attached.
+  </Step>
+  <Step>
+    Confirm deduction previews in **payroll** reflect enrolled benefits where configured.
+  </Step>
+</Steps>
 
 ## Plans & tiers
 
@@ -20,13 +46,34 @@ Open enrollment windows unlock self-service changes. Outside the window, employe
 
 Qualifying life events (marriage, birth, loss of coverage) can unlock mid-year changes when policy allows. Evidence requirements stay explicit to support compliance reviews.
 
+<Callout type="info" title="Portal parity">
+  Open enrollment actions for employees live at [Employee portal benefits](/ask-docs/portals/benefits) when a window is active.
+</Callout>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Employee cannot enroll during open enrollment">
+    Confirm the window is active, the plan is eligible for their population, and portal access is granted.
+  </Accordion>
+  <Accordion title="Payroll preview missing a deduction">
+    Verify enrollment committed successfully and the benefit tier maps to a payroll component.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
-  <Card href="./payroll" title="Payroll">
+  <Card href="/ask-docs/portals/benefits" title="Employee portal benefits">
+    Enroll, waive, and life-event self-service.
+  </Card>
+  <Card href="/ask-docs/hrm/payroll" title="Payroll">
     Deduction previews consume enrolled benefits where configured.
   </Card>
-  <Card href="./employees" title="Employees">
+  <Card href="/ask-docs/hrm/employees" title="Employees">
     Enrollment rows always resolve to a workforce subject.
+  </Card>
+  <Card href="/ask-docs/hrm/policies" title="Policies">
+    Handbook rules may gate eligibility by population.
   </Card>
 </Cards>

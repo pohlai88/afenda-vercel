@@ -22,6 +22,7 @@ import { summarizeBenefitEligibilityFailure } from "../../../payroll-compensatio
 import { getEmployeePortalContext } from "../data/employee-portal-access.server"
 import { withEmployeePortalActionSpan } from "../data/portal-mutation-tracing.server"
 import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../data/employee-portal-access.shared"
+import { HRM_ESS_AUDIT } from "../ess.contract"
 import {
   getBenefitEnrollmentForOrganization,
   listBenefitEnrollmentCoverageRowsForEmployeePlan,
@@ -31,7 +32,7 @@ import {
   portalRecordLifeEventSchema,
   portalWaiveBenefitEnrollmentSchema,
 } from "../../../payroll-compensation/benefits-administration/schema/benefit.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   BenefitEnrollFormState,
   BenefitEnrollmentTransitionFormState,
@@ -173,7 +174,7 @@ export async function submitEmployeePortalEnrollBenefit(
 
       after(() =>
         writeIamAuditEventFromNextHeaders({
-          action: "erp.hrm.benefit.enrollment.enroll",
+          action: HRM_ESS_AUDIT.benefit.enroll,
           actorUserId: userId,
           actorSessionId: sessionId,
           organizationId,
@@ -248,7 +249,7 @@ export async function submitEmployeePortalCancelPendingEnrollment(
 
       after(() =>
         writeIamAuditEventFromNextHeaders({
-          action: "erp.hrm.benefit.enrollment.waive",
+          action: HRM_ESS_AUDIT.benefit.cancel,
           actorUserId: context.portal.userId,
           actorSessionId: context.portal.sessionId,
           organizationId: context.portal.organizationId,
@@ -319,7 +320,7 @@ export async function submitEmployeePortalRecordLifeEvent(
 
       after(() =>
         writeIamAuditEventFromNextHeaders({
-          action: "erp.hrm.benefit.life_event.record",
+          action: HRM_ESS_AUDIT.benefit.lifeEvent,
           actorUserId: context.portal.userId,
           actorSessionId: context.portal.sessionId,
           organizationId: context.portal.organizationId,

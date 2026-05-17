@@ -1,100 +1,102 @@
 ---
 title: Operator assist
-description: Read-only governed tools over contacts, knowledge, imports, and Orbit — streaming recommendations without mutating data.
+description: Read-only governed tools over contacts, knowledge, imports, and Orbit — streaming recommendations without ERP mutations.
+audience: admin
+status: stable
 icon: Bot
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 **Operator assist** (preview) lets operators ask cross-module questions in natural language. Lynx may call **governed read-only tools**, then stream a recommendation. **Nothing in this layer writes ERP data** — mutations remain Server Actions in feature modules.
 
-Route: **`POST /api/erp/lynx/operator`** · Audit: **`erp.lynx.operator.recommend`**
+Route: **`POST /api/erp/lynx/operator`** · Audit: **`erp.lynx.operator.recommend`** · Permission: **`lynx.workspace.predict`**
 
-## Enabling operator assist
+## Before you start
 
-Operator assist appears on the Lynx console when **`FLAG_LYNX_OPERATOR_ENABLED`** is on. When disabled, the section shows a policy notice instead of the form.
+- ERP permission **`lynx.workspace.predict`** on the operator route (page entry still requires **`lynx.workspace.search`**).
+- **`FLAG_LYNX_OPERATOR_ENABLED`** — when off, the Lynx page shows a policy notice instead of the form.
+- **`FLAG_LYNX_OPERATOR_ORBIT_TOOLS_ENABLED`** for Orbit-specific tools (defaults on when operator is enabled).
+- AI Gateway auth for embedding-backed `org_search_knowledge`.
 
-Orbit-specific tools additionally require **`FLAG_LYNX_OPERATOR_ORBIT_TOOLS_ENABLED`** (defaults to enabled).
+<Callout type="warn" title="Read-only by design">
+  Operator tools declare `access: "read"` in v1. Lynx does not create signals, edit contacts, or post payroll from this layer.
+</Callout>
 
-## How to use it
+## How to use operator assist
 
 <Steps>
   <Step>
-    Open **Lynx** in the workspace and scroll to **Operator assist (preview)**.
+    Open **Lynx** at `/{locale}/o/{orgSlug}/dashboard/lynx` and scroll to **Operator assist (preview)**.
   </Step>
   <Step>
     Enter a request — for example: *What is highest pressure in Orbit right now, and which blocked items need recovery first?*
   </Step>
   <Step>
-    Click **Ask Lynx**. The response streams as it is produced; tool calls may run in the background (up to **5** steps per request).
+    Click **Ask Lynx**. The response streams as produced; up to **five** tool round-trips run per request (`LYNX_OPERATOR_MAX_STEPS`).
   </Step>
   <Step>
-    Review the answer against your permissions. Follow up in Orbit, Contacts, or imports modules to **act** on recommendations.
+    Verify critical facts in the ERP UI, then act via the relevant module (Orbit, Contacts, imports) using normal Server Actions.
   </Step>
 </Steps>
 
 ## Governed tools
 
-Tools are tenant-bound: `organizationId` always comes from your session.
+Tools are tenant-bound: `organizationId` always comes from your session — never from model-supplied arguments.
 
 ### Contacts and knowledge
 
 | Tool id | Purpose |
-|---|---|
+| --- | --- |
 | `org_contact_count` | Total contacts in the directory |
-| `org_recent_contacts` | Recently created contacts (name, email, id) |
+| `org_recent_contacts` | Recently created contacts |
 | `org_recent_knowledge_chunks` | Recent chunk titles and excerpts |
 | `org_search_knowledge` | Semantic search over knowledge chunks |
 
 ### Operations
 
 | Tool id | Purpose |
-|---|---|
-| `org_active_import_jobs` | Count of CSV import jobs still in progress |
+| --- | --- |
+| `org_active_import_jobs` | CSV import jobs still in progress |
 
 ### Orbit (when orbit tools flag is on)
 
 | Tool id | Purpose |
-|---|---|
+| --- | --- |
 | `org_orbit_high_pressure` | Highest-pressure items and signals |
 | `org_orbit_triage_snapshot` | Pending triage items and incoming signals |
-| `org_orbit_blocked_items` | Blocked items with duration and operational facts |
-| `org_orbit_item_detail` | Full item snapshot by UUID (schedule, links, notices, sessions) |
-| `org_orbit_signal_detail` | Full signal snapshot by UUID (links, related items, activity) |
-
-For Orbit concepts, see [Orbit documentation](../orbit).
-
-## Tool governance metadata
-
-Each tool declares:
-
-- **Risk** and **data sensitivity** for policy review
-- **Category** (knowledge, contacts, operations, governance)
-- **Access** — v1 tools are **read** only
-- **Audit** — `record` tools leave tool-use evidence; `silent` tools do not
-
-## Example questions
-
-| Question | Likely tools |
-|---|---|
-| How many contacts do we have? | `org_contact_count` |
-| What did we add to the directory this week? | `org_recent_contacts` |
-| What is our return policy for damaged goods? | `org_search_knowledge` |
-| Are any bulk imports still running? | `org_active_import_jobs` |
-| What should we triage first in Orbit? | `org_orbit_triage_snapshot`, `org_orbit_high_pressure` |
-| Why is item `{uuid}` blocked? | `org_orbit_item_detail` |
-
-## Limitations
-
-- Operator assist does **not** create signals, transition items, or edit contacts.
-- Tool output is summarised for the model — always verify critical decisions in the ERP UI.
-- Requires AI Gateway auth for embedding-backed knowledge search.
-- PII may appear in tool results when querying contacts — handle per your org policy.
+| `org_orbit_blocked_items` | Blocked items with duration and facts |
+| `org_orbit_item_detail` | Full item snapshot by UUID |
+| `org_orbit_signal_detail` | Full signal snapshot by UUID |
 
 ## Truth retrieval vs operator assist
 
 | Use truth retrieval when… | Use operator assist when… |
-|---|---|
+| --- | --- |
 | Answer should cite **written** policy chunks | You need **live** counts, lists, or Orbit state |
 | Question is document-centric | Question spans modules or needs tabular facts |
 | You are debugging chunk coverage | You are coordinating operations across systems |
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Operator section is dashed / disabled">
+    Check `FLAG_LYNX_OPERATOR_ENABLED` and `lynx.workspace.predict`. The API returns 403 when policy blocks the feature.
+  </Accordion>
+  <Accordion title="Orbit tools never appear in answers">
+    Confirm `FLAG_LYNX_OPERATOR_ORBIT_TOOLS_ENABLED` — without it, the registry omits Orbit tool ids.
+  </Accordion>
+  <Accordion title="Knowledge search tool errors">
+    Gateway auth and chunk embeddings must be available — fix substrate first, then retry operator assist.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/lynx/truth-retrieval" title="Truth retrieval" description="Document-centric evidence Q&A layer." />
+  <Card href="/ask-docs/lynx/knowledge-substrate" title="Knowledge substrate" description="Chunks powering org_search_knowledge." />
+  <Card href="/ask-docs/orbit" title="Orbit" description="Operational execution tools can read from." />
+  <Card href="/ask-docs/lynx/concepts" title="Core concepts" description="Tool registry metadata and HTTP boundaries." />
+</Cards>

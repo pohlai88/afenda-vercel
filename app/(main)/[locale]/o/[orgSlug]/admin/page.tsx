@@ -1,13 +1,13 @@
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 
 import { Link } from "#i18n/navigation"
 
@@ -15,11 +15,11 @@ import { organizationAdminPath } from "#features/org-admin"
 import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 
 import {
-  fetchOrgWorkbenchMembers,
-  fetchOrgWorkbenchPendingInvitations,
+  fetchOrgAdminMembers,
+  fetchOrgAdminPendingInvitations,
 } from "#lib/auth"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 export default async function OrgAdminOverviewPage({
   params,
@@ -28,8 +28,8 @@ export default async function OrgAdminOverviewPage({
   const t = await getTranslations("OrgAdmin.overview")
   const orgSession = await requireOrgSession()
   const [members, invitations] = await Promise.all([
-    fetchOrgWorkbenchMembers(orgSession.organizationId),
-    fetchOrgWorkbenchPendingInvitations(orgSession.organizationId),
+    fetchOrgAdminMembers(orgSession.organizationId),
+    fetchOrgAdminPendingInvitations(orgSession.organizationId),
   ])
 
   // Working Memory Rail — record this page in the operator's recents.

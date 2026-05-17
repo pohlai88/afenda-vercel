@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { PlusIcon } from "lucide-react"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -12,9 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "#components/ui/dialog"
+} from "#components2/ui/dialog"
 
-import type { LeaveEmployeeChoiceRow } from "../../../workforce-time-attendance/data/leave-request.queries.server"
+import type { LeaveEmployeeChoiceRow } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
 import type { DependentRow } from "../../../employee-management/employee-records-management/data/dependent.queries.server"
 
 import {

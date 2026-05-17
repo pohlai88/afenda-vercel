@@ -3,45 +3,89 @@ import "server-only"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { hrmPosition } from "#lib/db/schema"
+import { hrmPosition, hrmPositionVersion } from "#lib/db/schema"
 
-import { isoDateOnlyToUtcDate } from "../../../hrm-calendar-dates.server"
+import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
 import {
   buildOrgStructureFieldChanges,
   DEPARTMENT_CHANGE_FIELDS,
   POSITION_CHANGE_FIELDS,
 } from "./org-structure-change-history.shared"
 import { insertOrgStructureChangeHistoryRows } from "./org-structure-change-history.mutations.server"
+import { chooseEffectiveVersion } from "./org-structure-versioning.shared"
 import type { CreateOrgUnitFormInput } from "../schemas/org-unit.schema"
 import type { CreatePositionControlFormInput } from "../schemas/position-control.schema"
 
 export async function assertPositionAcceptsPlacement(
   organizationId: string,
-  positionId: string
+  positionId: string,
+  asOfDate: Date = new Date()
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  const [position] = await db
-    .select({
-      id: hrmPosition.id,
-      archivedAt: hrmPosition.archivedAt,
-      positionStatus: hrmPosition.positionStatus,
-    })
-    .from(hrmPosition)
-    .where(
-      and(
-        eq(hrmPosition.organizationId, organizationId),
-        eq(hrmPosition.id, positionId)
+  const [positionRows, versions] = await Promise.all([
+    db
+      .select({
+        id: hrmPosition.id,
+        archivedAt: hrmPosition.archivedAt,
+        positionStatus: hrmPosition.positionStatus,
+        effectiveFrom: hrmPosition.effectiveFrom,
+      })
+      .from(hrmPosition)
+      .where(
+        and(
+          eq(hrmPosition.organizationId, organizationId),
+          eq(hrmPosition.id, positionId)
+        )
       )
-    )
-    .limit(1)
+      .limit(1),
+    db
+      .select({
+        positionStatus: hrmPositionVersion.positionStatus,
+        effectiveFrom: hrmPositionVersion.effectiveFrom,
+        effectiveTo: hrmPositionVersion.effectiveTo,
+      })
+      .from(hrmPositionVersion)
+      .where(
+        and(
+          eq(hrmPositionVersion.organizationId, organizationId),
+          eq(hrmPositionVersion.positionId, positionId)
+        )
+      ),
+  ])
+  const position = positionRows[0]
 
   if (!position || position.archivedAt) {
     return { ok: false, message: "Position is not active." }
   }
-  if (position.positionStatus === "frozen") {
-    return { ok: false, message: "Position is frozen and cannot accept placements." }
+  const effectiveVersion = chooseEffectiveVersion(versions, asOfDate)
+  const positionStatus =
+    effectiveVersion?.positionStatus ?? position.positionStatus
+  if (
+    !effectiveVersion &&
+    position.effectiveFrom &&
+    position.effectiveFrom > asOfDate
+  ) {
+    return {
+      ok: false,
+      message: "Position is not effective for the placement date.",
+    }
   }
-  if (position.positionStatus === "closed") {
-    return { ok: false, message: "Position is closed and cannot accept placements." }
+  if (positionStatus === "planned") {
+    return {
+      ok: false,
+      message: "Position is planned and cannot accept placements yet.",
+    }
+  }
+  if (positionStatus === "frozen") {
+    return {
+      ok: false,
+      message: "Position is frozen and cannot accept placements.",
+    }
+  }
+  if (positionStatus === "closed") {
+    return {
+      ok: false,
+      message: "Position is closed and cannot accept placements.",
+    }
   }
   return { ok: true }
 }
@@ -51,6 +95,7 @@ export function departmentSnapshotFromParsed(parsed: CreateOrgUnitFormInput) {
     code: parsed.code,
     name: parsed.name,
     orgUnitType: parsed.orgUnitType,
+    orgUnitStatus: parsed.orgUnitStatus,
     parentDepartmentId: parsed.parentDepartmentId,
     headEmployeeId: parsed.headEmployeeId,
     costCenterCode: parsed.costCenterCode ?? null,
@@ -61,12 +106,15 @@ export function departmentSnapshotFromParsed(parsed: CreateOrgUnitFormInput) {
   }
 }
 
-export function positionSnapshotFromParsed(parsed: CreatePositionControlFormInput) {
+export function positionSnapshotFromParsed(
+  parsed: CreatePositionControlFormInput
+) {
   return {
     code: parsed.code,
     title: parsed.title,
     departmentId: parsed.departmentId,
     defaultGradeId: parsed.defaultGradeId,
+    positionOwnerEmployeeId: parsed.positionOwnerEmployeeId,
     reportsToPositionId: parsed.reportsToPositionId,
     employmentType: parsed.employmentType,
     headcountBudget: parsed.headcountBudget ?? null,

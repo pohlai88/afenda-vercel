@@ -8,7 +8,7 @@ import {
   hasAiGatewayAuth,
   resolveAiGateway,
 } from "#lib/ai/gateway.server"
-import { runWithNodeOtelSpan } from "#lib/otel-span.server"
+import { runWithNodeOtelSpan } from "#lib/observability/otel-span.server"
 
 import { getOrgProviderApiKey } from "./credential.queries.server"
 

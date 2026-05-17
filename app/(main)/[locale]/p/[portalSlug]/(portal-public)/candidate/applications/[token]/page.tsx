@@ -1,6 +1,5 @@
 import { CandidatePortalStatusPage } from "#features/hrm"
 
-export const dynamic = "force-dynamic"
 
 type CandidateApplicationStatusRouteProps = {
   params: Promise<{ portalSlug: string; token: string }>

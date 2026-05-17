@@ -1,16 +1,16 @@
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Input } from "#components/ui/input"
-import { Label } from "#components/ui/label"
-import { Textarea } from "#components/ui/textarea"
+} from "#components2/ui/card"
+import { Input } from "#components2/ui/input"
+import { Label } from "#components2/ui/label"
+import { Textarea } from "#components2/ui/textarea"
 
 import { KNOWLEDGE_SOURCE_KINDS } from "#features/knowledge/constants"
 

@@ -4,6 +4,7 @@ description: Course catalog, scheduled sessions, assignments, completion records
 icon: GraduationCap
 audience: admin
 status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
@@ -11,6 +12,12 @@ status: stable
 **Training & development** covers the full learning loop: catalog courses, schedule sessions, assign employees, record completions, and track recertification deadlines. Compliance-sensitive training can bridge to statutory evidence where your jurisdiction pack requires it.
 
 Employees view assignments and submit feedback from the [employee portal](/ask-docs/portals/employee) **My training** section when portal access is active.
+
+## Before you start
+
+- You need `hrm.training.search` to view catalog and assignments; `hrm.training.update` to create or change artifacts.
+- Define renewal rules on courses when recertification feeds **compliance** evidence.
+- Align course catalog with **skills** competencies when gap analysis drives assignments.
 
 ## Workbench surface
 
@@ -24,6 +31,15 @@ Navigate to **HRM → Training & development** (`/o/{orgSlug}/dashboard/hrm/trai
 | Completions | Record pass/fail and evidence |
 | Recertification | Surface upcoming expiries for compliance follow-up |
 
+## Running the learning loop
+
+<Steps>
+  <Step>Create or select a course in the catalog.</Step>
+  <Step>Schedule a session (optional) or assign directly to employees.</Step>
+  <Step>Record completion when evidence is received.</Step>
+  <Step>Monitor recertification widgets on the compliance or snapshot surfaces.</Step>
+</Steps>
+
 ## Permissions
 
 | Action | ERP permission |
@@ -35,15 +51,34 @@ Navigate to **HRM → Training & development** (`/o/{orgSlug}/dashboard/hrm/trai
 
 Training mutations write `erp.hrm.training.*` events. Completion records are durable — correct mistakes through governed reversal flows rather than deleting audit history.
 
-<Steps>
-  <Step>Create or select a course in the catalog.</Step>
-  <Step>Schedule a session (optional) or assign directly to employees.</Step>
-  <Step>Record completion when evidence is received.</Step>
-  <Step>Monitor recertification widgets on the compliance or snapshot surfaces.</Step>
-</Steps>
+<Callout type="info" title="Portal parity">
+  Employees view assignments in the employee portal; administrators own catalog, scheduling, and completion recording in HRM.
+</Callout>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Cannot record completion">
+    Confirm the assignment is active and you hold `hrm.training.update`.
+  </Accordion>
+  <Accordion title="Recertification widget shows overdue rows">
+    Record a new completion or schedule remediation before compliance evidence generation.
+  </Accordion>
+</Accordions>
 
 ## Related
 
-- [Skills](/ask-docs/hrm/skills) — competency mapping
-- [Compliance](/ask-docs/hrm/compliance) — statutory evidence packs
-- [Employee portal](/ask-docs/portals/employee) — self-service training list
+<Cards>
+  <Card href="/ask-docs/hrm/skills" title="Skills">
+    Competency mapping tied to training requirements.
+  </Card>
+  <Card href="/ask-docs/hrm/compliance" title="Statutory compliance">
+    Statutory evidence packs when training bridges apply.
+  </Card>
+  <Card href="/ask-docs/portals/employee" title="Employee portal">
+    Self-service training list and feedback.
+  </Card>
+  <Card href="/ask-docs/hrm/employees" title="Employees">
+    Assignments always resolve to workforce subjects.
+  </Card>
+</Cards>

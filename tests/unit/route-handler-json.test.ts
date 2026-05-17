@@ -6,7 +6,7 @@ import {
   routeJsonOk,
   routePublicErrorMessage,
   routeTextError,
-} from "#lib/route-handler-json.shared"
+} from "#lib/api/route-handler-json.shared"
 
 describe("route-handler-json.shared", () => {
   it("routeJsonOk sets security headers and status", async () => {

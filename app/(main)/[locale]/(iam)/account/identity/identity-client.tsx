@@ -9,9 +9,9 @@ import { Link, useRouter } from "#i18n/navigation"
 import type { SafeLinkedAccount } from "#lib/auth/accounts.types.shared"
 import { authClient } from "#lib/auth-client"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
-import { Button } from "#components/ui/button"
-import { Input } from "#components/ui/input"
-import { Label } from "#components/ui/label"
+import { Button } from "#components2/ui/button"
+import { Input } from "#components2/ui/input"
+import { Label } from "#components2/ui/label"
 
 function providerLabel(providerId: string) {
   if (providerId === "credential") return "Email & password"

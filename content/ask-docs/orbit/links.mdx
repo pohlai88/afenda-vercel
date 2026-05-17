@@ -1,39 +1,55 @@
 ---
 title: Links
 description: ERP-linked execution objects grouped by business truth in Orbit.
+audience: admin
+status: stable
 icon: Link2
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-**Orbit Links** (`/o/{orgSlug}/dashboard/orbit/links`) groups **ERP-linked execution objects by business truth** — every signal and item tied to the same contact, employee, import job, or other module record appears together.
+**Orbit Links** (`/{locale}/o/{orgSlug}/dashboard/orbit/links`) groups **ERP-linked execution objects by business truth** — every signal and item tied to the same contact, employee, import job, or other module record appears together.
 
 Use Links when you need to answer: *what operational pressure exists on this ERP object?*
+
+## Before you start
+
+- You need an active org session and ERP permissions for the planner module.
+- Links are read-oriented on this surface — creating links happens from item or signal detail workflows.
+- Every link requires a **causality reason**; free-form tags are not a substitute for typed ERP attachment.
 
 ## Links vs relations
 
 Orbit uses two graph concepts:
 
 | Concept | Connects | Requires |
-|---|---|---|
+| --- | --- | --- |
 | **Link** (`PlannerLink`) | Planner entity → ERP module record | **Causality reason** — why this attachment exists |
 | **Relation** | Planner entity → planner entity | Typed edge (`parent`, `blocks`, `duplicate`, …) |
 
-Links are how Orbit stays **ERP-first**: free-form tags are not a substitute for typed attachment.
+Links are how Orbit stays **ERP-first**: operators attach execution to business records auditors and Lynx briefs can explain.
 
-## Causality reason
+<Callout type="info" title="Audit trail">
+  Creating links emits `erp.planner.link.create`. Relations emit `erp.planner.relation.create`.
+</Callout>
 
-Every link records why execution is tied to business data — for example "payroll period close blocked on employee record" or "import validation failure on job". This field is mandatory in the product model so audit and Lynx briefs remain explainable.
+## Browse linked pressure
 
-Creating links emits `erp.planner.link.create`.
-
-## Links surface layout
-
-The feed groups records by linked module and entity:
-
-- Open a group to see all signals and items referencing that record
-- Select a row for full detail — lifecycle, pressure, schedule, comments, sessions
-- Jump to the underlying ERP surface when your role has read access
+<Steps>
+  <Step>
+    Open **Orbit** from the left-hand rail and select **Links**, or navigate to `/{locale}/o/{orgSlug}/dashboard/orbit/links`.
+  </Step>
+  <Step>
+    Scan the feed grouped by linked module and entity — each group shows all signals and items referencing that ERP record.
+  </Step>
+  <Step>
+    Select a row to inspect lifecycle, pressure, schedule, comments, and sessions in the detail pane.
+  </Step>
+  <Step>
+    Jump to the underlying ERP surface when your role has read access on the linked module.
+  </Step>
+</Steps>
 
 ## Common patterns
 
@@ -43,14 +59,31 @@ Link items to **employee** or **organisation** records when pressure originates 
 
 ### Imports and tools
 
-Bulk import sessions and signature workflows generate signals — Links surface clusters them by **import job** or document so operators resolve root cause once.
+Bulk import sessions and signature workflows generate signals — Links surfaces clusters them by **import job** or document so operators resolve root cause once.
 
 ### Cross-module escalation
 
 When pressure spans modules, use **relations** between planner items plus **links** to each ERP record rather than duplicating items.
 
-## Related surfaces
+## Troubleshooting
 
-- [Core concepts](./concepts) — relation types and evidence groups
-- [Triage](./triage) — ERP-linked lane for intake
-- [Signals](./signals) — pressure before promotion
+<Accordions type="single">
+  <Accordion title="A linked ERP record shows no pressure">
+    Confirm the link was created with a causality reason and the signal or item is not dismissed or resolved. Filter the Links feed by module if the list is long.
+  </Accordion>
+  <Accordion title="I cannot open the underlying ERP record">
+    Links display pressure for any module your org uses; read access on the target module is enforced separately by ERP RBAC.
+  </Accordion>
+  <Accordion title="Should I add a link or a relation?">
+    Use a **link** when execution must cite an ERP business record. Use a **relation** when connecting two planner entities (parent item, duplicate cluster, blocking edge).
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/orbit/concepts" title="Core concepts" description="Relation types, evidence groups, and ERP attachment model." />
+  <Card href="/ask-docs/orbit/triage" title="Triage" description="ERP-linked lane for intake before execution." />
+  <Card href="/ask-docs/orbit/signals" title="Signals" description="Operational pressure before promotion to items." />
+  <Card href="/ask-docs/orbit" title="Orbit overview" description="Hub for queue-first execution surfaces." />
+</Cards>

@@ -3,7 +3,7 @@
 import { useActionState } from "react"
 import { useTranslations } from "next-intl"
 
-import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
 
 import {
   commitImportSessionAction,

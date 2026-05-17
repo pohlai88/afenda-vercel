@@ -2,8 +2,8 @@ import "server-only"
 
 import { requireErpPermission } from "#features/erp-rbac/server"
 
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { OrgStructureFormState } from "../../../types"
 
 export type OrgStructureMutationFunction = "create" | "update" | "delete"

@@ -5,7 +5,7 @@ import { useState, useTransition } from "react"
 
 import { Loader2, Pin, RotateCcw, ShieldCheck, ShieldOff } from "lucide-react"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 
 import {
   deleteOrgCapabilityPolicyAction,

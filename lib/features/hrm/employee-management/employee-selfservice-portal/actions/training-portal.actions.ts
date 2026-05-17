@@ -18,7 +18,7 @@ import {
   completeTrainingRecordFormSchema,
   submitTrainingFeedbackFormSchema,
 } from "../../../talent-management/training-development/schemas/training.schema"
-import { HRM_TRAINING_AUDIT } from "../../../training.contract"
+import { HRM_TRAINING_AUDIT } from "../../../talent-management/training-development/training.contract"
 
 export type PortalTrainingFormState =
   | { ok: true; id?: string }

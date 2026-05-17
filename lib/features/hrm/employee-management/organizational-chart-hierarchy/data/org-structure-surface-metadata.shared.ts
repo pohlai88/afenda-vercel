@@ -60,6 +60,63 @@ export const ORG_STRUCTURE_TAB_SURFACE_IDS = [
 export type OrgStructureTabSurfaceKey =
   (typeof ORG_STRUCTURE_TAB_SURFACE_IDS)[number]
 
+export const ORG_STRUCTURE_METADATA_COLUMNS = [
+  "orgUnitCode",
+  "orgUnitName",
+  "orgUnitType",
+  "orgUnitStatus",
+  "parentOrgUnitCode",
+  "costCenterCode",
+  "workLocationCode",
+  "positionCode",
+  "positionTitle",
+  "positionStatus",
+  "positionHeadcountBudget",
+  "positionOccupancyCount",
+  "pendingHireCount",
+  "openHeadcountAfterPending",
+  "employeeNumber",
+  "employeeLabel",
+  "managerLabel",
+  "dottedLineManagerLabel",
+  "matrixManagerLabels",
+  "effectiveFrom",
+  "effectiveTo",
+  "reason",
+  "approvalReference",
+] as const
+
+export const ORG_STRUCTURE_METADATA_FILTERS = [
+  "asOfDate",
+  "includeFuture",
+  "includeArchived",
+  "orgUnitType",
+  "orgUnitStatus",
+  "positionStatus",
+  "legalEntityId",
+  "businessUnitId",
+  "departmentId",
+  "teamId",
+  "managerEmployeeId",
+  "positionId",
+  "workLocationCode",
+  "costCenterCode",
+] as const
+
+export const ORG_STRUCTURE_METADATA_ROW_ACTIONS = [
+  "read",
+  "search",
+  "create-org-unit",
+  "update-org-unit",
+  "archive-org-unit",
+  "create-position",
+  "update-position",
+  "archive-position",
+  "assign-placement",
+  "set-reporting-relationship",
+  "export-csv",
+] as const
+
 export function orgStructureSurfaceIdForTab(
   tab: OrgStructureTabSurfaceKey
 ): OrgStructureListSurfaceId {

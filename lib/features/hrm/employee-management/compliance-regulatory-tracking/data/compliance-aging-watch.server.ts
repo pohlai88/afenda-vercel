@@ -6,7 +6,7 @@ import { writeIamAuditEvent } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmComplianceEvidence, iamAuditEvent } from "#lib/db/schema"
 import { EXECUTION_AUDIT_ACTIONS } from "#features/execution"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 import type {
   CronTickInput,
   CronTickScannedEmittedSummary,

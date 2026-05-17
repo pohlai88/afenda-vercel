@@ -1,22 +1,35 @@
 ---
 title: Core concepts
 description: Signals, execution items, pressure, lifecycles, temporal model, and ERP attachment in Orbit.
+audience: admin
+status: stable
 icon: Layers
+lastReviewedAt: "2026-05-18"
 ---
+
+## Overview
+
+Orbit separates **attention** from **execution** using two primitives — **signals** (`PlannerSignal`) for detected pressure and **items** (`PlannerItem`) for owned, verifiable work. Surfaces under `/{locale}/o/{orgSlug}/dashboard/orbit/*` compose these primitives along Afenda's **Past · Now · Next** temporal spine.
+
+Use this page when you need shared vocabulary before operating Queue, Triage, or Links.
+
+## Before you start
+
+- You need an active org session and ERP permissions for the planner module.
+- **Orbit** is the product name; the internal module is **Planner** (`lib/features/planner/`).
+- Default entry is **Queue** at `/{locale}/o/{orgSlug}/dashboard/orbit` — not a board-first layout.
 
 ## Two primitives
 
-Orbit deliberately separates **attention** from **execution**:
-
 | Primitive | Role |
-|---|---|
+| --- | --- |
 | **Signal** (`PlannerSignal`) | Structured observation that operational pressure exists — detected, imported, or manually captured |
 | **Item** (`PlannerItem`) | Executable work with ownership, schedule, lifecycle, and verification |
 
 Signals are triaged first. When work must be owned and tracked to completion, a signal is **promoted** to an execution item. Items never replace signals in the detection layer; they carry the execution contract.
 
-<Callout type="info">
-  Orbit is not a todo app: there is no `todo / doing / done` lifecycle on items, and boards are not the primary identity of the module.
+<Callout type="info" title="Not a todo app">
+  Orbit has no `todo / doing / done` lifecycle on items, and boards are not the primary identity of the module.
 </Callout>
 
 ## Signal classes
@@ -24,7 +37,7 @@ Signals are triaged first. When work must be owned and tracked to completion, a 
 Signals are typed by **class**, which informs routing and triage rules:
 
 | Class | Typical meaning |
-|---|---|
+| --- | --- |
 | `anomaly` | Unexpected deviation from expected operational state |
 | `deadline` | Time-bound obligation approaching or breached |
 | `escalation` | Elevated attention requiring human decision |
@@ -39,7 +52,7 @@ Signals are typed by **class**, which informs routing and triage rules:
 ## Signal lifecycle
 
 | State | Meaning |
-|---|---|
+| --- | --- |
 | `detected` | New pressure recorded |
 | `correlated` | Linked to existing context or duplicate cluster |
 | `promoted` | Converted to an execution item |
@@ -54,7 +67,7 @@ Signals are typed by **class**, which informs routing and triage rules:
 Execution items use a **verification-aware** lifecycle — not a simple done checkbox:
 
 | State | Meaning |
-|---|---|
+| --- | --- |
 | `triaged` | Classified and ready for assignment or scheduling |
 | `assigned` | Ownership established |
 | `scheduled` | Placed on a calendar or horizon |
@@ -92,14 +105,28 @@ Links and relations connect Orbit work to ERP truth:
 - **Links** (`PlannerLink`) — typed attachment to a module record (contact, employee, import job, and so on) with mandatory **causality reason**
 - **Relations** — graph edges between planner entities (`parent`, `subtask`, `blocks`, `blocked_by`, `duplicate`, `related`)
 
-The [Links](./links) surface groups execution by business object so operators can see all pressure tied to one ERP record.
+The [Links](/ask-docs/orbit/links) surface groups execution by business object so operators can see all pressure tied to one ERP record.
+
+## Apply concepts in practice
+
+<Steps>
+  <Step>
+    Route new pressure through [Triage](/ask-docs/orbit/triage) — classify signals, resolve automation attention, and promote when ownership is required.
+  </Step>
+  <Step>
+    Execute ranked work from [Queue](/ask-docs/orbit/queue) and attach ERP **links** with causality reason on items that cite business records.
+  </Step>
+  <Step>
+    Schedule and horizon-check on [Today](/ask-docs/orbit/today) and [Timeline](/ask-docs/orbit/timeline); log focused time with [Sessions](/ask-docs/orbit/sessions).
+  </Step>
+</Steps>
 
 ## Triage lanes
 
 **Triage** classifies subjects into operating lanes, including:
 
 | Lane | Typical contents |
-|---|---|
+| --- | --- |
 | Automation attention | Reminder or recurrence failures needing intervention |
 | Blocked recovery | Items in `blocked` state |
 | High pressure | Elevated derived pressure score |
@@ -131,9 +158,32 @@ The detail pane groups context into evidence sections:
 While focused on an Orbit list:
 
 | Key | Action |
-|---|---|
+| --- | --- |
 | `j` | Next row |
 | `k` | Previous row |
 | `Esc` | Clear detail selection |
 | `/` | Focus search |
 | `Ctrl+Enter` | Apply batch action (when batch form is open) |
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Should I create a signal or an item?">
+    Create a **signal** when recording pressure without committed ownership. **Promote** or **create an item** when work must be scheduled, assigned, and verified to completion.
+  </Accordion>
+  <Accordion title="Can I skip verification?">
+    Only when org policy does not require it. Verification-aware lifecycles must pass through `ready_for_review` and `verified` before `resolved`.
+  </Accordion>
+  <Accordion title="Link vs relation — which do I need?">
+    **Links** attach planner entities to ERP module records with causality reason. **Relations** connect planner entities to each other (parent, blocks, duplicate).
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/orbit" title="Orbit overview" description="Hub for queue-first execution surfaces." />
+  <Card href="/ask-docs/orbit/triage" title="Triage" description="Intake lanes and signal routing." />
+  <Card href="/ask-docs/orbit/signals" title="Signals" description="Pressure classes and lifecycle actions." />
+  <Card href="/ask-docs/orbit/links" title="Links" description="ERP-linked pressure grouped by business truth." />
+</Cards>

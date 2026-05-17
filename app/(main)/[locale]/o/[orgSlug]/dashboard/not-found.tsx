@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 import { organizationNexusPath } from "#features/nexus"
 

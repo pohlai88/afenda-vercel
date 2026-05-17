@@ -2,14 +2,13 @@ import { and, eq, gt } from "drizzle-orm"
 
 import * as Sentry from "@sentry/nextjs"
 
-import { authMailContext, sendAuthEmail } from "#lib/auth-mail"
+import { authMailContext, sendAuthEmail } from "#lib/auth/auth-mail.server"
 import { verifyNeonAuthWebhookSignature, writeIamAuditEvent } from "#lib/auth"
 import { db } from "#lib/db"
 import { neonAuthInvitation } from "#lib/db/schema-neon-auth"
 import { logUnexpectedServerError } from "#lib/logger.server"
-import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
+import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 
-export const runtime = "nodejs"
 
 export async function POST(request: Request) {
   let rawBody: string

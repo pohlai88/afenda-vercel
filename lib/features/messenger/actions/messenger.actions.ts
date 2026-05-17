@@ -10,7 +10,7 @@ import {
   messengerRoom,
   messengerRoomMember,
 } from "#lib/db/schema"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import { MESSENGER_ROOM_MEMBER_LIMIT } from "../constants"
 import { MESSENGER_AUDIT_ACTIONS } from "../messenger.contract"

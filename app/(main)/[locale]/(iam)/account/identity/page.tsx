@@ -8,7 +8,7 @@ import {
   requireAuthShellSignedInSession,
 } from "#lib/auth"
 
-import { WorkbenchSurface } from "#components/workbench"
+import { AppShellSurface } from "#app-shell"
 import { AccountIdentityClient } from "./identity-client"
 import { generateAccountIdentityMetadata } from "../account-metadata"
 
@@ -39,7 +39,7 @@ export default async function AccountIdentityPage({
   ])
 
   return (
-    <WorkbenchSurface
+    <AppShellSurface
       breadcrumbs={[
         { label: tSurface("breadcrumbs.personal"), href: "/account" },
         { label: t("title") },
@@ -59,6 +59,6 @@ export default async function AccountIdentityPage({
         securityPath={"/account/security" as Route}
         dashboardPath={"/o" as Route}
       />
-    </WorkbenchSurface>
+    </AppShellSurface>
   )
 }

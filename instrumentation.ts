@@ -1,6 +1,6 @@
 import type { Instrumentation } from "next"
 
-import type { NextRequestErrorReportContext } from "#lib/request-error-context.shared"
+import type { NextRequestErrorReportContext } from "#lib/observability/request-error-context.shared"
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
@@ -37,7 +37,7 @@ export const onRequestError: Instrumentation.onRequestError = async (
 
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const { emitNodeRequestErrorTelemetry } =
-      await import("#lib/request-error-telemetry.server")
+      await import("#lib/observability/request-error-telemetry.server")
     await emitNodeRequestErrorTelemetry(err, reportCtx)
   } else {
     const line = JSON.stringify({

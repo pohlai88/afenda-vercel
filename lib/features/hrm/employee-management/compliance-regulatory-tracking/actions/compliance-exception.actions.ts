@@ -7,19 +7,23 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
-import { isoDateOnlyToUtcDate } from "../../../hrm-calendar-dates.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
 import { requireComplianceMutationGate } from "../data/compliance-action-guard.server"
 import {
+  assignComplianceCorrectiveAction,
   insertComplianceException,
   resolveComplianceException,
+  updateComplianceCorrectiveActionProgress,
   waiveComplianceException,
 } from "../data/compliance-exception.mutations.server"
 import { HRM_COMPLIANCE_REGULATORY_AUDIT } from "../compliance-regulatory.contract"
 import {
+  assignCorrectiveActionFormSchema,
   createComplianceExceptionFormSchema,
   resolveComplianceExceptionFormSchema,
+  updateCorrectiveActionProgressFormSchema,
   waiveComplianceExceptionFormSchema,
 } from "../schemas/compliance-exception.schema"
 
@@ -142,6 +146,8 @@ export async function resolveComplianceExceptionAction(
       organizationId: gate.organizationId,
       exceptionId: parsed.data.exceptionId,
       resolvedByUserId: gate.userId,
+      resolutionNote: parsed.data.resolutionNote,
+      resolvedEvidenceDocumentId: parsed.data.evidenceDocumentId ?? null,
     })
   })
   if (!ok) {
@@ -158,6 +164,120 @@ export async function resolveComplianceExceptionAction(
       resourceId: parsed.data.exceptionId,
       metadata: {
         resolutionNote: parsed.data.resolutionNote,
+        evidenceDocumentId: parsed.data.evidenceDocumentId ?? null,
+      },
+    })
+  )
+
+  revalidateComplianceSurfaces()
+  return { ok: true }
+}
+
+export async function assignComplianceCorrectiveActionAction(
+  _prev: ContractMutationFormState | undefined,
+  formData: FormData
+): Promise<ContractMutationFormState> {
+  const gate = await requireComplianceMutationGate(formData, "update")
+  if (!gate.ok) return gate.response
+
+  const parsed = assignCorrectiveActionFormSchema.safeParse({
+    orgSlug: formData.get("orgSlug"),
+    exceptionId: formData.get("exceptionId"),
+    correctiveActionOwnerUserId: formData.get("correctiveActionOwnerUserId"),
+    correctiveActionDueDate: formData.get("correctiveActionDueDate"),
+    correctiveActionDescription: formData.get("correctiveActionDescription"),
+  })
+  if (!parsed.success) {
+    return hrmActionFailure({
+      form:
+        firstFieldError(parsed.error.flatten().fieldErrors) ??
+        "Invalid corrective action fields.",
+    })
+  }
+
+  let ok = false
+  await db.transaction(async (tx) => {
+    ok = await assignComplianceCorrectiveAction(tx, {
+      organizationId: gate.organizationId,
+      exceptionId: parsed.data.exceptionId,
+      correctiveActionOwnerUserId: parsed.data.correctiveActionOwnerUserId,
+      correctiveActionDueDate: isoDateOnlyToUtcDate(
+        parsed.data.correctiveActionDueDate
+      ),
+      correctiveActionDescription: parsed.data.correctiveActionDescription,
+      actorUserId: gate.userId,
+    })
+  })
+  if (!ok) {
+    return hrmActionFailure({ form: "Exception not found or already closed." })
+  }
+
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action:
+        HRM_COMPLIANCE_REGULATORY_AUDIT.exception.corrective_action_assigned,
+      actorUserId: gate.userId,
+      actorSessionId: gate.sessionId,
+      organizationId: gate.organizationId,
+      resourceType: "hrm_compliance_exception",
+      resourceId: parsed.data.exceptionId,
+      metadata: {
+        correctiveActionOwnerUserId: parsed.data.correctiveActionOwnerUserId,
+        correctiveActionDueDate: parsed.data.correctiveActionDueDate,
+      },
+    })
+  )
+
+  revalidateComplianceSurfaces()
+  return { ok: true }
+}
+
+export async function updateComplianceCorrectiveActionProgressAction(
+  _prev: ContractMutationFormState | undefined,
+  formData: FormData
+): Promise<ContractMutationFormState> {
+  const gate = await requireComplianceMutationGate(formData, "update")
+  if (!gate.ok) return gate.response
+
+  const parsed = updateCorrectiveActionProgressFormSchema.safeParse({
+    orgSlug: formData.get("orgSlug"),
+    exceptionId: formData.get("exceptionId"),
+    progressNote: formData.get("progressNote"),
+    evidenceDocumentId: formData.get("evidenceDocumentId") || undefined,
+  })
+  if (!parsed.success) {
+    return hrmActionFailure({
+      form:
+        firstFieldError(parsed.error.flatten().fieldErrors) ??
+        "Invalid corrective action progress fields.",
+    })
+  }
+
+  let ok = false
+  await db.transaction(async (tx) => {
+    ok = await updateComplianceCorrectiveActionProgress(tx, {
+      organizationId: gate.organizationId,
+      exceptionId: parsed.data.exceptionId,
+      progressNote: parsed.data.progressNote,
+      evidenceDocumentId: parsed.data.evidenceDocumentId ?? null,
+      actorUserId: gate.userId,
+    })
+  })
+  if (!ok) {
+    return hrmActionFailure({ form: "Exception not found or already closed." })
+  }
+
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action:
+        HRM_COMPLIANCE_REGULATORY_AUDIT.exception.corrective_action_updated,
+      actorUserId: gate.userId,
+      actorSessionId: gate.sessionId,
+      organizationId: gate.organizationId,
+      resourceType: "hrm_compliance_exception",
+      resourceId: parsed.data.exceptionId,
+      metadata: {
+        progressNote: parsed.data.progressNote,
         evidenceDocumentId: parsed.data.evidenceDocumentId ?? null,
       },
     })
@@ -227,4 +347,16 @@ export async function waiveComplianceExceptionFormAction(
   formData: FormData
 ): Promise<void> {
   void (await waiveComplianceExceptionAction(undefined, formData))
+}
+
+export async function assignComplianceCorrectiveActionFormAction(
+  formData: FormData
+): Promise<void> {
+  void (await assignComplianceCorrectiveActionAction(undefined, formData))
+}
+
+export async function updateComplianceCorrectiveActionProgressFormAction(
+  formData: FormData
+): Promise<void> {
+  void (await updateComplianceCorrectiveActionProgressAction(undefined, formData))
 }

@@ -1,27 +1,65 @@
 ---
 title: Getting started
-description: Set up your Afenda account and learn the basics of the workspace in a few minutes.
+description: Set up your Afenda account, create an organisation, orient in the Workbench shell, and invite colleagues — ordered guides for first-week operators.
+audience: admin
+status: stable
 icon: Rocket
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-This section walks you through everything you need to get your organisation up and running on Afenda. Follow the guides in order for the fastest setup experience.
+This section walks administrators and operators through first-week setup on Afenda: account creation, organisation bootstrap, Nexus orientation, and team invitations. Follow the guides in order for the fastest path to a working workspace.
+
+## Before you start
+
+- A valid email address you can verify immediately.
+- A modern browser (Chrome, Firefox, Edge, or Safari — latest two major versions).
+- Your intended organisation slug in mind — it is permanent after creation (for example `acme` in `/en/o/acme/nexus`).
+
+<Callout type="info" title="Post-login loading bay">
+  After verification, Afenda routes you to `/{locale}/console`. Single-org users redirect to Nexus automatically; multi-org users pick an active organisation first.
+</Callout>
+
+## Recommended path
+
+<Steps>
+  <Step>
+    ### Quick start
+
+    Complete [Quick start](/ask-docs/getting-started/quick-start) — sign-up, first organisation, and Nexus landing in under five minutes.
+  </Step>
+  <Step>
+    ### Workspace navigation
+
+    Read [Workspace navigation](/ask-docs/getting-started/workspace-navigation) — left rail, utility bar, command palette, and module URL patterns.
+  </Step>
+  <Step>
+    ### Invite your team
+
+    Follow [Inviting your team](/ask-docs/getting-started/inviting-your-team) — email invites, roles, and pending-invite management on Org admin → Members.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Verification email did not arrive">
+    Check spam folders and retry from the sign-in page. Corporate filters may block automated mail — allowlist Afenda sender domains with your IT team.
+  </Accordion>
+  <Accordion title="Console does not redirect to Nexus">
+    You may belong to zero organisations (create one) or multiple (select active org in the console loading bay).
+  </Accordion>
+  <Accordion title="Slug I want is unavailable">
+    Organisation slugs are globally unique. Choose an alternate slug; display name can differ from the URL segment.
+  </Accordion>
+</Accordions>
+
+## Related
 
 <Cards>
-  <Card href="./quick-start" title="Quick start">
-    Sign up, create your organisation, and reach the Nexus workspace in under five minutes.
-  </Card>
-  <Card href="./workspace-navigation" title="Workspace navigation">
-    Understand the shell, sidebar, command palette, and how to move between modules.
-  </Card>
-  <Card href="./inviting-your-team" title="Inviting your team">
-    Bring colleagues in, assign them roles, and manage pending invitations.
-  </Card>
+  <Card href="/ask-docs/getting-started/quick-start" title="Quick start" description="Account, organisation, and Nexus in under five minutes." />
+  <Card href="/ask-docs/getting-started/workspace-navigation" title="Workspace navigation" description="Shell chrome, shortcuts, and module routing." />
+  <Card href="/ask-docs/getting-started/inviting-your-team" title="Inviting your team" description="Invitations, roles, and rate limits." />
+  <Card href="/ask-docs/org-admin" title="Org admin" description="Control plane for members, audit, and settings." />
 </Cards>
-
-## Prerequisites
-
-- A valid email address
-- A modern browser (Chrome, Firefox, Edge, or Safari — latest two major versions)
-- An internet connection

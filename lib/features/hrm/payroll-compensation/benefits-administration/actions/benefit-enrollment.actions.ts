@@ -29,16 +29,14 @@ import {
   buildBenefitEnrollmentChangeAuditMetadata,
   toBenefitEnrollmentAuditSnapshot,
 } from "../data/benefit-audit-metadata.shared"
-import {
-  resolveBenefitEnrollmentContributions,
-} from "../data/benefit-contribution.shared"
+import { resolveBenefitEnrollmentContributions } from "../data/benefit-contribution.shared"
 import {
   planRequiresEnrollmentApproval,
   resolveInitialBenefitEnrollmentState,
 } from "../data/benefit-enrollment-state.shared"
 import { isBenefitCoverageLevel } from "../data/benefit-helpers.shared"
 import { getEmployeeForOrganization } from "../../../employee-management/employee-records-management/data/employee.queries.server"
-import { requireHrmAdmin } from "../../../hrm-admin-guard.server"
+import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
 import {
   listClosedPayrollPeriodsOverlappingRange,
   type ClosedPayrollPeriodRow,
@@ -56,7 +54,7 @@ import {
   terminateBenefitEnrollmentFormSchema,
   waiveBenefitEnrollmentFormSchema,
 } from "../schema/benefit.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   BenefitEnrollFormState,
   BenefitEnrollmentTransitionFormState,
@@ -227,7 +225,9 @@ export async function enrollBenefitAction(
     })
   }
 
-  const initialState = resolveInitialBenefitEnrollmentState(plan.eligibilityRules)
+  const initialState = resolveInitialBenefitEnrollmentState(
+    plan.eligibilityRules
+  )
 
   let row: { id: string; contributionSource: string }
   try {
@@ -810,7 +810,8 @@ export async function changeBenefitEnrollmentAction(
 
   const coverageLevel =
     parsed.data.coverageLevel ??
-    (enrollment.coverageLevel && isBenefitCoverageLevel(enrollment.coverageLevel)
+    (enrollment.coverageLevel &&
+    isBenefitCoverageLevel(enrollment.coverageLevel)
       ? enrollment.coverageLevel
       : "employee_only")
 
@@ -822,9 +823,7 @@ export async function changeBenefitEnrollmentAction(
     : enrollment.effectiveTo
 
   const dependentCount =
-    parsed.data.dependentIds !== undefined
-      ? parsed.data.dependentIds.length
-      : 0
+    parsed.data.dependentIds !== undefined ? parsed.data.dependentIds.length : 0
 
   if (parsed.data.dependentIds !== undefined) {
     const dependentError = await validateEnrollmentDependents({
@@ -876,7 +875,8 @@ export async function changeBenefitEnrollmentAction(
     enrollmentId: enrollment.id,
     coverageLevel,
     effectiveFrom: parsed.data.effectiveFrom ? effectiveFrom : undefined,
-    effectiveTo: parsed.data.effectiveTo !== undefined ? effectiveTo : undefined,
+    effectiveTo:
+      parsed.data.effectiveTo !== undefined ? effectiveTo : undefined,
     employerContributionAmount: resolved.employerContributionAmount,
     employeeContributionAmount: resolved.employeeContributionAmount,
     updatedByUserId: userId,

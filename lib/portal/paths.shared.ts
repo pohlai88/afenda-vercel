@@ -29,6 +29,7 @@ export type EmployeePortalSection =
   | "attendance"
   | "documents"
   | "signatures"
+  | "requests"
   | "profile"
   | "performance"
   | "offboarding"
@@ -47,6 +48,42 @@ export function candidatePortalPath(
   }
 
   return `/p/${normalized}/candidate/${section}` as Route
+}
+
+export function candidatePortalCareersDetailPath(
+  portalSlug: string,
+  requisitionId: string
+): Route {
+  const normalized = normalizePortalSlugParam(portalSlug)
+  if (!normalized) {
+    throw new Error("candidatePortalCareersDetailPath: invalid portal slug")
+  }
+
+  return `/p/${normalized}/candidate/careers/${requisitionId}` as Route
+}
+
+export function candidatePortalCareersApplyPath(
+  portalSlug: string,
+  requisitionId: string
+): Route {
+  const normalized = normalizePortalSlugParam(portalSlug)
+  if (!normalized) {
+    throw new Error("candidatePortalCareersApplyPath: invalid portal slug")
+  }
+
+  return `/p/${normalized}/candidate/careers/${requisitionId}/apply` as Route
+}
+
+export function candidatePortalApplicationPath(
+  portalSlug: string,
+  token: string
+): Route {
+  const normalized = normalizePortalSlugParam(portalSlug)
+  if (!normalized) {
+    throw new Error("candidatePortalApplicationPath: invalid portal slug")
+  }
+
+  return `/p/${normalized}/candidate/applications/${token}` as Route
 }
 
 export function employeePortalPath(

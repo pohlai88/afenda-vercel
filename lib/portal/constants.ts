@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 export const PORTAL_AUDIENCES = [
+  "candidate",
   "employee",
   "supplier",
   "customer",

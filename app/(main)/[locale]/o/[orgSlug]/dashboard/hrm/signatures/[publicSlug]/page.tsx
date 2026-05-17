@@ -1,8 +1,7 @@
-import { SignatureRequestDetailPage } from "#features/hrm"
+import { SignatureRequestDetailPage } from "#features/tools"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
-export const dynamic = "force-dynamic"
 
 export default async function OrgDashboardHrmSignatureDetailPage({
   params,

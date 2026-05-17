@@ -1,30 +1,36 @@
 import { createHash } from "node:crypto"
 
+import { put } from "@vercel/blob"
+
 import { writeIamAuditEventFromHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmImportSession } from "#lib/db/schema"
 import { logUnexpectedServerError } from "#lib/logger.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 import {
   ROUTE_JSON_HEADERS,
   routeJsonError,
-} from "#lib/route-handler-json.shared"
-import { getOrgSessionFromRequest } from "#lib/tenant"
+} from "#lib/api/route-handler-json.shared"
+import { getOrgSessionFromRequest } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import {
-  dryRunAttendance,
   dryRunEmployees,
-  dryRunPayroll,
   parseCsv,
-} from "#features/hrm/server"
-import { HRM_IMPORT_TYPES, hrmImportTypeSchema } from "#features/hrm"
+} from "#features/tools/server"
+import {
+  HRM_IMPORT_TYPES,
+  hrmImportTypeSchema,
+} from "#features/tools"
+import { HRM_BULK_IMPORT_AUDIT } from "#features/tools"
 
-export const runtime = "nodejs"
+/** Max upload body for inline CSV staging (bytes). */
+const HRM_IMPORT_MAX_BYTES = 5_000_000
 
-/** Cap inline CSV stored for employee commit/rollback (chars). */
-const HRM_IMPORT_MAX_SOURCE_CHARS = 900_000
-
-type RowErr = { line: number; message: string }
+function importSourceBlobPath(organizationId: string, sessionId: string): string {
+  return `hrm/imports/${organizationId}/${sessionId}/source.csv`
+}
 
 export async function POST(request: Request) {
   try {
@@ -60,6 +66,14 @@ export async function POST(request: Request) {
       return routeJsonError("orgSlug required", 400)
     }
 
+    const sessionOrgSlug = await getOrganizationSlugById(org.organizationId)
+    if (
+      !sessionOrgSlug ||
+      normalizeOrgSlugParam(orgSlug) !== sessionOrgSlug
+    ) {
+      return routeJsonError("orgSlug does not match active organization", 400)
+    }
+
     const importParsed = hrmImportTypeSchema.safeParse(importTypeRaw)
     if (!importParsed.success) {
       return routeJsonError(
@@ -73,39 +87,58 @@ export async function POST(request: Request) {
       return routeJsonError("file required", 400)
     }
 
-    const text = await file.text()
-    const rows = parseCsv(text)
-    let summary: { rowCount: number; errors: RowErr[] }
-    if (importType === "employees") {
-      summary = dryRunEmployees(rows)
-    } else if (importType === "attendance") {
-      summary = dryRunAttendance(rows)
-    } else {
-      summary = dryRunPayroll(rows)
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    if (bytes.byteLength > HRM_IMPORT_MAX_BYTES) {
+      return routeJsonError(
+        `CSV exceeds maximum size (${HRM_IMPORT_MAX_BYTES} bytes)`,
+        413
+      )
     }
+
+    const text = new TextDecoder().decode(bytes)
+    const rows = parseCsv(text)
+    const summary = dryRunEmployees(rows)
 
     const errorJson =
       summary.errors.length > 0 ? { rows: summary.errors } : null
     const contentSha256 = createHash("sha256").update(text).digest("hex")
 
-    const rollbackJson =
-      importType === "employees" &&
-      summary.errors.length === 0 &&
-      summary.rowCount > 0 &&
-      text.length <= HRM_IMPORT_MAX_SOURCE_CHARS
-        ? {
-            kind: "hrm_import_v1" as const,
-            importType: "employees" as const,
-            contentSha256,
-            sourceCsv: text,
-          }
-        : {
-            kind: "hrm_import_placeholder" as const,
-            importType,
-            contentSha256,
-          }
-
     const id = crypto.randomUUID()
+
+    let rollbackJson:
+      | {
+          kind: "hrm_import_v1"
+          importType: "employees"
+          contentSha256: string
+          blobUrl: string
+        }
+      | {
+          kind: "hrm_import_placeholder"
+          importType: string
+          contentSha256: string
+        }
+
+    if (summary.errors.length === 0 && summary.rowCount > 0) {
+      const blob = await put(importSourceBlobPath(org.organizationId, id), text, {
+        access: "private",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+        contentType: "text/csv",
+      })
+      rollbackJson = {
+        kind: "hrm_import_v1",
+        importType: "employees",
+        contentSha256,
+        blobUrl: blob.url,
+      }
+    } else {
+      rollbackJson = {
+        kind: "hrm_import_placeholder",
+        importType,
+        contentSha256,
+      }
+    }
+
     await db.insert(hrmImportSession).values({
       id,
       organizationId: org.organizationId,
@@ -118,7 +151,7 @@ export async function POST(request: Request) {
     })
 
     await writeIamAuditEventFromHeaders(request.headers, {
-      action: "erp.hrm.import.session.dry_run",
+      action: HRM_BULK_IMPORT_AUDIT.sessionDryRun,
       actorUserId: org.userId,
       actorSessionId: org.sessionId,
       organizationId: org.organizationId,

@@ -5,8 +5,8 @@ import type {
   TemporalNow,
   TemporalPast,
 } from "#lib/erp/temporal-spine.shared"
-export type { OrbitDashboardSurface } from "#lib/planner-dashboard.shared"
-import type { OrbitDashboardSurface } from "#lib/planner-dashboard.shared"
+export type { OrbitDashboardSurface } from "./planner-dashboard-path.shared"
+import type { OrbitDashboardSurface } from "./planner-dashboard-path.shared"
 
 import type {
   PLANNER_DISPLAY_PRIORITIES,

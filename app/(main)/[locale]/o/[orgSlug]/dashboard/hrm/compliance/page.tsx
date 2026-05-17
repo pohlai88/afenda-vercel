@@ -2,10 +2,10 @@ import { Suspense } from "react"
 
 import { getTranslations } from "next-intl/server"
 
-import { ModulePageHeader } from "#components/module-page-header"
+import { ModulePageHeader } from "#features/governed-surface"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import {
   listOrgEventDeliveriesByIds,
@@ -17,9 +17,13 @@ import { listComplianceEvidenceForPeriod } from "#features/hrm/server"
 import type { ComplianceEvidenceRow } from "#features/hrm/server"
 import { listPayrollPeriodsForOrg } from "#features/hrm/server"
 import type { PayrollPeriodRow } from "#features/hrm/server"
+import { resolveComplianceSurfaceCapabilities } from "#features/hrm/server"
 import {
   BureauReliabilityCard,
   BureauReliabilityCardSkeleton,
+  ComplianceEmployeeStatusPanel,
+  ComplianceExceptionsPanel,
+  ComplianceFilingsPanel,
   ComplianceOperationalHealth,
   ComplianceOperationalHealthSkeleton,
 } from "#features/hrm"
@@ -28,7 +32,6 @@ import {
   STATUTORY_PACK_TO_EVENT_TYPE,
 } from "#features/hrm/client"
 
-export const dynamic = "force-dynamic"
 
 type PageSearchParams = {
   periodId?: string
@@ -58,6 +61,7 @@ export default async function OrgDashboardHrmCompliancePage({
   const t = await getTranslations("Dashboard.Hrm.compliance")
   const { orgSlug } = await params
   const { periodId } = await searchParams
+  const capabilities = await resolveComplianceSurfaceCapabilities()
 
   // Tier A authority resolved by `requireOrgSession`. Parallelize the two
   // independent reads that always run for this surface (Next.js best practice
@@ -144,6 +148,16 @@ export default async function OrgDashboardHrmCompliancePage({
         packTypesWithSubscribedEndpoint={packTypesWithSubscribedEndpoint}
         deliveryById={deliveryById}
         orgSlug={orgSlug}
+      />
+      <ComplianceEmployeeStatusPanel organizationId={session.organizationId} />
+      <ComplianceFilingsPanel
+        organizationId={session.organizationId}
+        orgSlug={orgSlug}
+        capabilities={capabilities}
+      />
+      <ComplianceExceptionsPanel
+        orgSlug={orgSlug}
+        capabilities={capabilities}
       />
     </div>
   )

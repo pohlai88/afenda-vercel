@@ -49,12 +49,23 @@ export const HRM_ORG_UNIT_TYPES = [
 
 export type HrmOrgUnitType = (typeof HRM_ORG_UNIT_TYPES)[number]
 
+export const HRM_ORG_UNIT_STATUSES = [
+  "active",
+  "planned",
+  "frozen",
+  "closed",
+] as const
+
+export type HrmOrgUnitStatus = (typeof HRM_ORG_UNIT_STATUSES)[number]
+
 export const createOrgUnitFormSchema = z.object({
   orgSlug: z.string().min(1),
   code: orgStructureCodeSchema,
   name: orgStructureNameSchema,
   /** Structural type of this org unit (HRM-ORG-002). */
   orgUnitType: z.enum(HRM_ORG_UNIT_TYPES).default("department"),
+  /** Lifecycle status for effective-dated structure planning. */
+  orgUnitStatus: z.enum(HRM_ORG_UNIT_STATUSES).default("active"),
   parentDepartmentId: optionalOrgStructureUuidSchema,
   headEmployeeId: optionalOrgStructureUuidSchema,
   costCenterCode: optionalOrgStructureTextSchema,
@@ -62,6 +73,8 @@ export const createOrgUnitFormSchema = z.object({
   workLocationCode: optionalOrgStructureTextSchema,
   /** When this org unit structure becomes effective. Null means immediately (HRM-ORG-012/014). */
   effectiveFrom: optionalIsoDateOnly,
+  reason: optionalOrgStructureTextSchema,
+  approvalReference: optionalOrgStructureTextSchema,
 })
 
 export const updateOrgUnitFormSchema = createOrgUnitFormSchema.extend({
@@ -71,6 +84,9 @@ export const updateOrgUnitFormSchema = createOrgUnitFormSchema.extend({
 export const archiveOrgUnitFormSchema = z.object({
   orgSlug: z.string().min(1),
   departmentId: z.string().uuid(),
+  effectiveFrom: optionalIsoDateOnly,
+  reason: optionalOrgStructureTextSchema,
+  approvalReference: optionalOrgStructureTextSchema,
 })
 
 export type CreateOrgUnitFormInput = z.infer<typeof createOrgUnitFormSchema>

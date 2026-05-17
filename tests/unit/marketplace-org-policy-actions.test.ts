@@ -28,6 +28,10 @@ vi.mock("#lib/i18n/request-locale.server", () => ({
   getRequestAppLocale: mocks.getRequestAppLocale,
 }))
 
+vi.mock("#lib/auth/org-slug.server", () => ({
+  getOrganizationSlugById: vi.fn().mockResolvedValue("demo-org"),
+}))
+
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
@@ -79,7 +83,7 @@ describe("setOrgCapabilityPolicyAction — step-up callback", () => {
 
     expect(result.ok).toBe(true)
     expect(mocks.requireRecentAuthStepUp).toHaveBeenCalledWith({
-      returnTo: "/en/marketplace/admin",
+      returnTo: "/en/o/demo-org/marketplace/admin",
     })
   })
 

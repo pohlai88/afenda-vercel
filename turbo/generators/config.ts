@@ -88,6 +88,38 @@ function postGenLintAction(
   }
 }
 
+function wireGovernedRendererAction(args: {
+  readonly kebabId: string
+  readonly pascalId: string
+  readonly camelId: string
+  readonly natures: readonly string[]
+  readonly minContainerPx: number
+}): PlopTypes.CustomActionFunction {
+  return async () => {
+    const { execSync } = await import("node:child_process")
+    const root = path.resolve(import.meta.dirname, "..", "..")
+    const naturesArg = args.natures.join(",")
+    execSync(
+      [
+        "node",
+        "scripts/wire-governed-renderer.mjs",
+        "--id",
+        args.kebabId,
+        "--pascal",
+        args.pascalId,
+        "--camel",
+        args.camelId,
+        "--natures",
+        naturesArg,
+        "--min-container-px",
+        String(args.minContainerPx),
+      ].join(" "),
+      { cwd: root, stdio: "inherit" }
+    )
+    return `Wired governed:${args.kebabId} into registry, dispatch, schema union, and contract scripts.`
+  }
+}
+
 /**
  * Print a checklist of remaining wires after `pnpm gen governed-renderer`.
  *
@@ -620,11 +652,26 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
         choices: ["draft", "beta", "stable"],
         default: "draft",
       },
+      {
+        type: "list",
+        name: "archetype",
+        message: "Page archetype (ADQS skeleton):",
+        choices: ["workflow", "readonly", "stepup"],
+        default: "workflow",
+      },
     ],
     actions: (answers) => {
       const a = answers ?? {}
       const section = String(a.section)
       const slug = String(a.slug)
+      const archetype = String(a.archetype ?? "workflow")
+      const templateByArchetype: Record<string, string> = {
+        workflow: "templates/ask-doc/page-workflow.mdx.hbs",
+        readonly: "templates/ask-doc/page-readonly.mdx.hbs",
+        stepup: "templates/ask-doc/page-stepup.mdx.hbs",
+      }
+      const templateFile =
+        templateByArchetype[archetype] ?? "templates/ask-doc/page-workflow.mdx.hbs"
       const mdxPath = `content/ask-docs/${section}/${slug}.mdx`
       const metaPath = `content/ask-docs/${section}/meta.json`
 
@@ -632,7 +679,7 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
         {
           type: "add",
           path: path.join("{{turbo.paths.root}}", mdxPath),
-          templateFile: "templates/ask-doc/page.mdx.hbs",
+          templateFile,
         },
         appendAskDocMetaJsonAction(),
         postGenLintAction(() => [mdxPath, metaPath], {
@@ -753,6 +800,13 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
           templateFile: "templates/governed-renderer/renderer.test.tsx.hbs",
           data: templateData,
         },
+        wireGovernedRendererAction({
+          kebabId,
+          pascalId,
+          camelId,
+          natures,
+          minContainerPx,
+        }),
         printGovernedRendererNextStepsAction({
           kebabId,
           pascalId,
@@ -760,7 +814,18 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
           natures,
           minContainerPx,
         }),
-        postGenLintAction(() => [rendererFile, schemaFile, testFile]),
+        postGenLintAction(() => [
+          rendererFile,
+          schemaFile,
+          testFile,
+          "components2/metadata/registry.ts",
+          "components2/metadata/governed-renderer-dispatch.tsx",
+          "components2/metadata/governed-component-skeleton.tsx",
+          "lib/features/governed-surface/schemas/component.schema.ts",
+          "lib/features/governed-surface/index.ts",
+          "scripts/check-renderer-contracts.mjs",
+          ".cursor/rules/governed-renderer-contract.mdc",
+        ]),
       ]
     },
   })

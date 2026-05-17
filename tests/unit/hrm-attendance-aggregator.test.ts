@@ -11,9 +11,9 @@ import {
   aggregateAttendanceDay,
   attendanceSnapshotHasPayrollBlockingException,
   computeEventChecksum,
-} from "../../lib/features/hrm/workforce-time-attendance/data/attendance-aggregator.server.ts"
-import type { HrmAttendanceEventForAggregation } from "../../lib/features/hrm/workforce-time-attendance/data/attendance-aggregator.server.ts"
-import type { AttendanceShiftContext } from "../../lib/features/hrm/workforce-time-attendance/data/attendance-shift.shared.ts"
+} from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-aggregator.server.ts"
+import type { HrmAttendanceEventForAggregation } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-aggregator.server.ts"
+import type { AttendanceShiftContext } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-shift.shared.ts"
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -8,6 +8,11 @@ export {
 } from "./schemas/page-header.schema"
 
 export {
+  erpPermissionRequirementSchema,
+  type ErpPermissionRequirement,
+} from "./schemas/erp-permission-requirement.schema"
+
+export {
   SCHEMA_STABILITY as LIST_SURFACE_SCHEMA_STABILITY,
   emptyStateSchema,
   listColumnSchema,
@@ -111,6 +116,10 @@ export {
   type GovernedSurfaceInputAssertionError,
 } from "./schemas/dev-assert.shared"
 
+export {
+  ModulePageHeader,
+  type ModulePageHeaderProps,
+} from "./components/module-page-header"
 export {
   GovernedSurface,
   type GovernedSurfaceProps,

@@ -3,15 +3,15 @@
 import Link from "next/link"
 
 import "./globals.css"
-import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
-import { RouteErrorActions } from "#components/route-error-primitives"
-import { Button } from "#components/ui/button"
+import { RouteErrorDebugPanel } from "#components2/dev/route-error-debug-panel"
+import { RouteErrorActions } from "#components2/route-error/route-error-primitives"
+import { Button } from "#components2/ui/button"
 import { DEFAULT_LOCALE_HOME_PATH } from "#lib/i18n/root-default-locale-href.shared"
-import { useReportRouteError } from "#components/use-report-route-error"
+import { useReportRouteError } from "#components2/route-error/use-report-route-error"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
-} from "#lib/next-app-error-page-props.shared"
+} from "#components2/route-error/error-page-props.shared"
 
 /**
  * Root fatal-error UI — must include `<html>` / `<body>` (replaces root layout when active).

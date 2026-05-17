@@ -129,7 +129,7 @@ describe("orbit surface contract", () => {
       "layout.tsx"
     )
 
-    expect(content).toContain("WorkbenchCommandLayer")
+    expect(content).toContain("AppShellCommandPalette")
     expect(content).toContain('organizationOrbitPath(orgSlug, "triage")')
     expect(content).toContain('organizationOrbitPath(orgSlug, "sessions")')
     expect(content).toContain("commandQuickLinks.automationAttention.label")

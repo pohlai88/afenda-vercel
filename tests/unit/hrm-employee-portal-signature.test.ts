@@ -24,15 +24,10 @@ vi.mock("next/headers", () => ({
   headers: vi.fn(async () => new Headers()),
 }))
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }))
-vi.mock("../../lib/features/tools/electronic-signatures/data/signature-request.queries.server.ts", () => ({
+vi.mock("#features/tools/server", () => ({
   getSignaturePartyByToken: mocks.getSignaturePartyByToken,
+  completeSignatureParty: mocks.completeSignatureParty,
 }))
-vi.mock(
-  "../../lib/features/tools/electronic-signatures/data/signature-request.mutations.server.ts",
-  () => ({
-    completeSignatureParty: mocks.completeSignatureParty,
-  })
-)
 vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/signature-portal-access.shared.ts", () => ({
   signaturePartyMatchesPortalSession: vi.fn(() => true),
 }))

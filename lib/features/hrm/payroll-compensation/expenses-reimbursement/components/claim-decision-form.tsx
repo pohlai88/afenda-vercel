@@ -4,7 +4,7 @@ import { useActionState, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -12,9 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "#components/ui/dialog"
-import { Input } from "#components/ui/input"
-import { Label } from "#components/ui/label"
+} from "#components2/ui/dialog"
+import { Input } from "#components2/ui/input"
+import { Label } from "#components2/ui/label"
 
 import { approveClaimAction } from "../actions/claim-approval.actions"
 import type { ClaimApprovalFormState } from "../../../types"

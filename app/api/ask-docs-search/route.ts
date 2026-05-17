@@ -1,7 +1,7 @@
 import { createFromSource } from "fumadocs-core/search/server"
 
 import { ASK_DOCS_ORAMA_LOCALE_MAP } from "#lib/ask-docs/orama-locale-map.server"
-import { askDocsSource } from "#lib/ask-docs-source"
+import { askDocsSource } from "#lib/ask-docs/source"
 
 /**
  * Orama full-text search for the ask-docs surface.

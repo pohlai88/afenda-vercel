@@ -10,10 +10,10 @@ import {
 } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
-import { requireHrmOrgTenantFromForm } from "../../../hrm-action-guard.server"
+import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import { upsertPayrollProfileMutation } from "../data/payroll-profile.mutations.server"
 import { upsertPayrollProfileFormSchema } from "../schemas/payroll-profile.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { PayrollProfileMutationFormState } from "../../../types"
 
 function revalidateHrmEmployeeSurfaces() {

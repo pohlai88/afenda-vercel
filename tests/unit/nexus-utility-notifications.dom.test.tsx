@@ -100,8 +100,8 @@ vi.mock("#i18n/navigation", () => ({
   ),
 }))
 
-import { WorkbenchUtilityNotifications } from "#components/workbench/utility-bar/right-utility-bar/workbench-utility-notifications"
-import { TooltipProvider } from "#components/ui/tooltip"
+import { AppShellNexusUtilityNotifications } from "#app-shell/client"
+import { TooltipProvider } from "#components2/ui/tooltip"
 
 function jsonResponse(body: unknown, status = 200) {
   return Promise.resolve(
@@ -187,7 +187,7 @@ describe("NexusUtilityNotifications", () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityNotifications canManage={false} />
+        <AppShellNexusUtilityNotifications canManage={false} />
       </TooltipProvider>
     )
 
@@ -257,7 +257,7 @@ describe("NexusUtilityNotifications", () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityNotifications canManage />
+        <AppShellNexusUtilityNotifications canManage />
       </TooltipProvider>
     )
 

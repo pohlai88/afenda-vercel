@@ -5,16 +5,16 @@ import Ably from "ably"
 import { MessageCircle, Plus, Send } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "#components/ui/dialog"
-import { Input } from "#components/ui/input"
-import { ScrollArea } from "#components/ui/scroll-area"
+} from "#components2/ui/dialog"
+import { Input } from "#components2/ui/input"
+import { ScrollArea } from "#components2/ui/scroll-area"
 import {
   Sheet,
   SheetContent,
@@ -22,9 +22,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "#components/ui/sheet"
-import { Spinner } from "#components/ui/spinner"
-import { Textarea } from "#components/ui/textarea"
+} from "#components2/ui/sheet"
+import { Spinner } from "#components2/ui/spinner"
+import { Textarea } from "#components2/ui/textarea"
 import { cn } from "#lib/utils"
 import { uiRadius, uiSurfaceElevation, uiTracking } from "#lib/design-system"
 

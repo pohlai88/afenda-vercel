@@ -47,8 +47,6 @@ const DESIGN_RESERVE_RENDERER_IDS = new Set([
   "kanban-board",
   "multi-step-form",
   "scorecard-form",
-  "approval-timeline",
-  "chart",
 ])
 
 /** Renderer ids that are pure containers and never declare a dataNature. */
@@ -65,6 +63,8 @@ const RENDERER_SCHEMA_FILES = {
   "action-bar": "action-bar.schema.ts",
   "audit-panel": "audit-panel.schema.ts",
   "detail-tabs": "detail-tabs.schema.ts",
+  "approval-timeline": "approval-timeline.schema.ts",
+  "chart": "chart.schema.ts",
   // Future entries: add when the renderer's schema introduces a dataNature enum.
 }
 

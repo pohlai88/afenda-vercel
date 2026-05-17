@@ -28,10 +28,9 @@ import {
   readRequestJson,
   ROUTE_JSON_HEADERS,
   routeJsonError,
-} from "#lib/route-handler-json.shared"
-import { getOrgSessionFromRequest } from "#lib/tenant"
+} from "#lib/api/route-handler-json.shared"
+import { getOrgSessionFromRequest } from "#lib/auth"
 
-export const runtime = "nodejs"
 export const maxDuration = 60
 
 function lynxMaxOutputTokens(): number {

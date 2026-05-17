@@ -10,6 +10,9 @@ import {
 describe("employee records field catalog", () => {
   it("exposes ERP permission keys for read and update", () => {
     expect(EMPLOYEE_RECORDS_SURFACE_PERMISSION.read).toBe("hrm.employee.read")
+    expect(EMPLOYEE_RECORDS_SURFACE_PERMISSION.readSensitive).toBe(
+      "hrm.employee_sensitive.read"
+    )
     expect(EMPLOYEE_RECORDS_SURFACE_PERMISSION.update).toBe(
       "hrm.employee.update"
     )
@@ -18,6 +21,9 @@ describe("employee records field catalog", () => {
   it("marks PII fields as sensitive", () => {
     expect(isEmployeeRecordsSensitiveField("personalEmail")).toBe(true)
     expect(isEmployeeRecordsSensitiveField("profilePhotoBlobUrl")).toBe(true)
+    expect(isEmployeeRecordsSensitiveField("identityDocument.documentNumber")).toBe(
+      true
+    )
     expect(isEmployeeRecordsSensitiveField("employeeNumber")).toBe(false)
   })
 
@@ -26,6 +32,11 @@ describe("employee records field catalog", () => {
       const policy = employeeRecordsFieldPolicyForKey(fieldKey)
       expect(policy?.fieldKey).toBe(fieldKey)
       expect(policy?.readPermission).toBe(EMPLOYEE_RECORDS_SURFACE_PERMISSION.read)
+      if (policy?.sensitive) {
+        expect(policy.sensitiveReadPermission).toBe(
+          EMPLOYEE_RECORDS_SURFACE_PERMISSION.readSensitive
+        )
+      }
     }
   })
 })

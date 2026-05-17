@@ -8,11 +8,16 @@ export type { ComplianceSurfaceCapabilities } from "./compliance-capabilities.sh
 
 /** ERP RBAC flags for the compliance dashboard and exception panel. */
 export async function resolveComplianceSurfaceCapabilities(): Promise<ComplianceSurfaceCapabilities> {
-  const [canSearch, canUpdate, canAudit] = await Promise.all([
+  const [canSearch, canCreate, canUpdate, canAudit] = await Promise.all([
     canUseErpPermissionForCurrentOrg({
       module: "hrm",
       object: "compliance",
       function: "search",
+    }),
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "compliance",
+      function: "create",
     }),
     canUseErpPermissionForCurrentOrg({
       module: "hrm",
@@ -26,5 +31,5 @@ export async function resolveComplianceSurfaceCapabilities(): Promise<Compliance
     }),
   ])
 
-  return { canSearch, canUpdate, canAudit }
+  return { canSearch, canCreate, canUpdate, canAudit }
 }

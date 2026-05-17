@@ -5,8 +5,8 @@ import { canUseErpPermission } from "#features/erp-rbac/server"
 import {
   routeJsonError,
   ROUTE_JSON_HEADERS,
-} from "#lib/route-handler-json.shared"
-import { getOrgSessionFromRequest } from "#lib/tenant"
+} from "#lib/api/route-handler-json.shared"
+import { getOrgSessionFromRequest } from "#lib/auth"
 
 import {
   buildStatutoryPackFromRuns,

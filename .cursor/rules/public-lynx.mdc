@@ -2,15 +2,15 @@
 description: "Public Lynx" — the public docs AI chat on /{locale}/ask-docs. Architecture constraints, branding contract, and change checklist.
 globs:
   - "app/api/chat/**"
-  - "components/ai/chat*"
-  - "components/ai/search*"
+  - "components2/ai/chat*"
+  - "components2/ai/search*"
   - "app/(ask-docs)/[locale]/ask-docs/layout.tsx"
 alwaysApply: false
 ---
 
 # Public Lynx — public docs AI chat
 
-> **Status: active.** `app/api/chat/route.ts` + `#components/ai/search` on `/{locale}/ask-docs`. Vercel AI SDK + AI Gateway (`@ai-sdk/gateway` via `#lib/ai/gateway.server`); no org session; no `#features/lynx` import.
+> **Status: active.** `app/api/chat/route.ts` + `#components2/ai/search` on `/{locale}/ask-docs`. Vercel AI SDK + AI Gateway (`@ai-sdk/gateway` via `#lib/ai/gateway.server`); no org session; no `#features/lynx` import.
 
 ---
 
@@ -99,14 +99,14 @@ Install via Fumadocs CLI:
 pnpm dlx @fumadocs/cli add ai/openrouter
 ```
 
-This installs `components/ai/search.tsx` (AI search panel + trigger).
+This installs `components2/ai/search.tsx` (AI search panel + trigger).
 
 Wire into `app/(ask-docs)/[locale]/ask-docs/layout.tsx`:
 
 ```tsx
-import { AISearch, AISearchPanel, AISearchTrigger } from "#components/ai/search"
+import { AISearch, AISearchPanel, AISearchTrigger } from "#components2/ai/search"
 import { MessageCircleIcon } from "lucide-react"
-import { buttonVariants } from "#components/ui/fumadocs-button"
+import { buttonVariants } from "#components2/ui/fumadocs-button"
 
 // Inside DocsLayout:
 <AISearch>

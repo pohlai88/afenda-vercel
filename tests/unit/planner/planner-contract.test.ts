@@ -12,7 +12,7 @@ import { DASHBOARD_NAV_MODULES } from "#lib/dashboard-module-paths"
 import {
   ORBIT_DASHBOARD_SURFACE_SEGMENT_SET,
   isOrbitDashboardSurfaceSegment,
-} from "#lib/planner-dashboard.shared"
+} from "#features/planner/planner-dashboard-path.shared"
 
 describe("planner contract", () => {
   it("registers orbit in dashboard nav and messages", () => {

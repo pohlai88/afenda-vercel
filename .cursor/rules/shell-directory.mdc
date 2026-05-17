@@ -19,25 +19,28 @@ Shell-level **React providers** live in **`components2/providers/`** (sibling of
 
 ### Public exports
 
-| Symbol | File | Usage |
-|---|---|---|
-| `AppShell` | `app-shell.tsx` | Org root layout.tsx (RSC entry) |
-| `AppShellClient` | `app-shell.client.tsx` | Client chrome — mounts AppShellProviders, utility bar |
-| `AppSubLayout` | `sub-layout.tsx` | Nested layout.tsx (admin, HRM) — in-flow aside |
-| `AppSubLayoutClient` | `sub-layout.client.tsx` | Client chrome — in-flow aside, local collapse state |
-| `AppShellRail` | `nav-rail.client.tsx` | Navigation rail renderer (both modes) |
-| `PrimaryNavItem` / `AppShellNavItem` | `nav-item.client.tsx` | Individual nav items (SidebarMenuButton vs standalone) |
-| `AppShellSurface` | `surface.tsx` | Page content region (breadcrumbs + body) |
-| `AppShellUtilityBar` | `utility-bar.tsx` | L1 top bar (slots only, no business logic) |
-| `AppShellRailConfig` | `rail.schema.ts` | Zod schemas + typed rail config |
+| Symbol                                           | File                                                         | Usage                                                 |
+| ------------------------------------------------ | ------------------------------------------------------------ | ----------------------------------------------------- |
+| `AppShell`                                       | `appshell.tsx`                                               | Org root layout.tsx (RSC entry)                       |
+| `AppShellClient`                                 | `appshell.client.tsx`                                        | Client chrome — mounts AppShellProviders, utility bar |
+| `AppSubLayout`                                   | `surface/appshell-sub-layout.tsx`                            | Nested layout.tsx (admin, HRM) — in-flow aside        |
+| `AppSubLayoutClient`                             | `surface/appshell-sub-layout.client.tsx`                     | Client chrome — in-flow aside, local collapse state   |
+| `AppShellPrimaryLeftRail`                        | `left-rail-bar/appshell-primary-left-rail.client.tsx`        | Primary left rail (search, lanes, nav sections)       |
+| `AppShellSubNav` / `AppShellSubNavFloatingPanel` | `surface/appshell-sub-layout-left-rail.client.tsx`           | AppSubLayout tree rail + floating overlay             |
+| `AppShellPrimaryLeftRailRaw`                     | `left-rail-bar/appshell-primary-left-rail-raw.client.tsx`    | Primary sidebar nav rows (`SidebarMenuButton`)        |
+| `AppShellContextMenu`                            | `left-rail-bar/appshell-context-menu.client.tsx`             | Right-click add-to-memory wrapper                     |
+| `AppShellPrimaryLeftRailFooter`                  | `left-rail-bar/appshell-primary-left-rail-footer.client.tsx` | Rail mode control (expanded / hover / collapsed)      |
+| `AppShellSurface`                                | `surface/appshell-sub-layout-surface.tsx`                    | Page content region (breadcrumbs + body)              |
+| `AppShellUtilityBar`                             | `top-utils-bar/appshell-utility-bar.tsx`                     | L1 top bar (slots only, no business logic)            |
+| `AppShellPrimaryLeftRailConfig`                  | `left-rail-bar/appshell-primary-left-rail.schema.ts`         | Zod schemas + typed rail config                       |
 
 ### `components2/providers/` — individual React context providers
 
-| Symbol | File | Purpose |
-|---|---|---|
-| `AppShellTooltipProvider` | `components2/providers/tooltip-provider.client.tsx` | shadcn Tooltip delay, shell-scoped |
-| `AppShellSidebarProvider` | `components2/providers/sidebar-provider.client.tsx` | shadcn SidebarProvider with shell CSS vars + wraps full column |
-| `AppShellProviders` | `components2/providers/app-shell-providers.client.tsx` | Composes all providers — mount once in `AppShellClient` |
+| Symbol                    | File                                                   | Purpose                                                        |
+| ------------------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
+| `AppShellTooltipProvider` | `components2/providers/tooltip-provider.client.tsx`    | shadcn Tooltip delay, shell-scoped                             |
+| `AppShellSidebarProvider` | `components2/providers/sidebar-provider.client.tsx`    | shadcn SidebarProvider with shell CSS vars + wraps full column |
+| `AppShellProviders`       | `components2/providers/app-shell-providers.client.tsx` | Composes all providers — mount once in `AppShellClient`        |
 
 **Key invariant:** `AppShellSidebarProvider` wraps the **entire shell column** including the utility bar header. This is intentional — utility-bar components can call `useSidebar()` to control rail collapse without a separate context.
 
@@ -45,50 +48,34 @@ Adding a new provider: create `components2/providers/<concept>-provider.client.t
 
 ### `components2/stores/` — Zustand state (cross-cutting, context-free)
 
-| Symbol | File | State owned |
-|---|---|---|
+| Symbol             | File                                    | State owned                        |
+| ------------------ | --------------------------------------- | ---------------------------------- |
 | `useAppShellStore` | `components2/stores/app-shell.store.ts` | `commandOpen`, `notificationCount` |
 
-Zustand stores need no `<Provider>` — import `useAppShellStore` in any Client Component inside the shell (prefer `#app-shell` re-export).
+Zustand stores need no `<Provider>` — import `useAppShellStore` from `#app-shell/client` (not `#app-shell`; the server barrel is `server-only`).
 
 Adding new shell state: extend `AppShellStore` in `app-shell.store.ts`. If the store grows beyond ~6 actions, split into a new file under `components2/stores/`.
 
-**Import alias:** `#app-shell` → `./components2/app-shell/index.ts` (server-only barrel)
+**Import aliases:** `#app-shell` → `./components2/app-shell/index.ts` (server-only barrel) · `#app-shell/client` → `./components2/app-shell/client.ts`.
 **Import alias:** `#components2/*` → `./components2/*` (direct access to components2 primitives). **`#components2`** (barrel) exports only `GovernedComponentRenderer` + registry — not shell or UI. Metadata kernel: `components2/metadata/` (ADR-0021). Dev preview: `components2/dev/app-shell-preview/`.
 
 ---
 
-## File naming convention for `components2/`
+## File naming
 
-Every file in `components2/` follows a **three-part** `<entity>.<aspect>.<layer>` pattern, where aspect and layer are optional:
+Full `components2/` naming (stores, providers, layer suffixes, forbidden words): **`.cursor/rules/components2-directory.mdc`**.
 
-| Pattern | Meaning | Examples |
-|---|---|---|
-| `<entity>.schema.ts` | Zod schemas + `z.infer<>` TypeScript types | `rail.schema.ts` |
-| `<entity>.tsx` | RSC entry — `server-only`, no `"use client"` | `app-shell.tsx`, `sub-layout.tsx` |
-| `<entity>.client.tsx` | Client component — `"use client"` at top | `app-shell.client.tsx`, `nav-rail.client.tsx`, `nav-item.client.tsx` |
-| `<entity>.tsx` (shared) | No server/client directive — pure layout / composition | `utility-bar.tsx`, `surface.tsx` |
+App-shell quick map:
 
-### Rules
+| Pattern | Example |
+| --- | --- |
+| RSC entry | `appshell.tsx` |
+| Client chrome | `appshell.client.tsx` |
+| Shared types | `appshell-props.shared.ts` |
+| Zod | `left-rail-bar/appshell-primary-left-rail.schema.ts` |
+| Region file | `top-utils-bar/appshell-utility-bar-messenger.client.tsx` |
 
-1. **File name = primary export name.** `app-shell.tsx` exports `AppShell`; `nav-rail.client.tsx` exports `AppShellRail`. A reader maps the file to the component without opening it.
-
-2. **`*.schema.ts` for all Zod contracts.** Never name a schema file `schema.ts` (too generic). Use `<domain>.schema.ts` so it's identifiable in search results across the repo.
-
-3. **RSC entry is the public face.** The `.tsx` entry owns the public API type (`AppShellProps`, `AppSubLayoutProps`). The `.client.tsx` sibling is an implementation detail — it is not re-exported from `index.ts`.
-
-4. **`*.client.tsx` never imported from RSC entry files via `"server-only"` modules.** The `.client.tsx` is imported only from its paired `.tsx` RSC entry or another client file.
-
-5. **No bare `shell.tsx` / `rail.tsx` / `schema.ts` inside `components2/`.** These names are too generic. Qualify with the concept they represent (`app-shell`, `nav-rail`, `rail.schema`).
-
-### Forbidden
-
-```
-schema.ts            → must be <domain>.schema.ts
-shell.tsx            → must be <entity>.tsx (e.g. app-shell.tsx)
-shell.client.tsx     → must be <entity>.client.tsx (e.g. app-shell.client.tsx)
-rail.tsx             → must be nav-rail.tsx or <specific-concept>.tsx
-```
+Stores: `components2/stores/<domain>.store.ts` → `use<Domain>Store` (see `components2-directory.mdc`).
 
 ---
 
@@ -96,45 +83,53 @@ rail.tsx             → must be nav-rail.tsx or <specific-concept>.tsx
 
 - `AppShell` uses `AppShellProviders` (tooltip + sidebar) wrapping the **entire column** — utility bar is inside the provider tree.
 - `AppSubLayout` uses an **in-flow `<aside>`** (not fixed-position) to avoid escaping the parent `SidebarInset` scroll container.
-- `AppShellRail` uses **`mode: "primary" | "sub"`**:
-  - `"primary"` → `PrimaryNavItem` uses `SidebarMenuButton` (auto tooltip + collapse); requires `SidebarProvider` context.
-  - `"sub"` → `AppShellNavItem` is context-free; works in `AppSubLayout`'s `<aside>` without a provider.
-- Schema Zod contract lives in `rail.schema.ts`. Builders are pure mappers (same governance kernel as legacy).
+- **Primary vs sub rails are separate modules** (no `mode` prop):
+  - **Primary** → `AppShellPrimaryLeftRail` + `AppShellPrimaryLeftRailRaw` (`SidebarMenuButton`; requires `SidebarProvider`).
+  - **Sub** → `AppShellSubNav` / `AppShellSubNavFloatingPanel` in `AppSubLayout` (`surface/appshell-sub-layout-left-rail.client.tsx`).
+- Schema Zod contract lives in `left-rail-bar/appshell-primary-left-rail.schema.ts`. Builders are pure mappers (same governance kernel as legacy).
 - Providers live in `components2/providers/` (individual + composed). Stores live in `components2/stores/` (Zustand). Never mix the two.
+
+### Zustand vs providers
+
+**Not either/or.** See **`.cursor/rules/client-state-management.mdc`** for the decision matrix.
+
+- **Zustand** (`components2/stores/`) — Afenda client UI state; module `create()` stores need no `<Provider>`.
+- **React providers** (`components2/providers/`) — shadcn / `next-themes` / future QueryClient; **not** replaceable by Zustand.
+- **`AppShellThemeBridge`** — intentional bridge only: `useTheme()` mirrors into `useAppShellStore`; `next-themes` remains authoritative.
 
 ---
 
 ## Route layout facade (`AppShell` / `AppSubLayout`)
 
-- **`app/**/layout.tsx`** should import **`AppShell`** and **`AppSubLayout`** from **`#components/workbench`** — they are **re-exports** of `WorkbenchShell` / `WorkbenchSubLayout` in [`app-shell.ts`](../../components/workbench/app-shell.ts) with **no wrapper component** (same function reference).
-- **Filesystem and implementation** stay under `workbench-*.tsx`; **`WorkbenchShell` / `WorkbenchSubLayout` remain exported** from the workbench barrel for compatibility and tests.
+- **Production org/console layouts** import **`AppShell`** from **`#app-shell`** (`components2/app-shell/appshell.tsx`) with slot props: `utilityBar`, `rail`, `command`, `overlay`, `envelope`.
+- **Client chrome** (command palette, utility controls, rail footer): **`#app-shell/client`** only — never import `#app-shell` from Client Components (`server-only` barrel).
+- **Server composers:** `buildAppShellOrgUtilityBarSlots` / `buildAppShellConsoleUtilityBarSlots` in `components2/app-shell/compose/`.
+- **No** `components2/app-shell/workbench/` — deleted; no `WorkbenchShell` alias on the public barrel.
 
 ---
 
 ## Boundary split
 
-| Directory | Owns | Does NOT own |
-|---|---|---|
-| **`components/workbench/`** | All post-login layout chrome: `WorkbenchShell`, `WorkbenchSubLayout`, `WorkbenchSurface`, utility bar, `WorkbenchRail`, command layer, dock, mobile rail, skip-to-main | Product surfaces, ERP logic, DB access, Server Actions |
-| **`components/nexus/`** | Nexus Field product surface (`nexus-page.tsx` + zone components) and Lynx summon UI (`nexus-lynx-summon*.tsx`) | Shell chrome (belongs in `components/workbench/`) |
-| **`components/auth/`** | IAM surfaces (sign-in, interruption flows) | — |
+| Directory                      | Owns                                                                                                                                                                   | Does NOT own                                           |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **`components2/app-shell/`**   | Post-login shell: `AppShell`, `AppSubLayout`, utility bar, primary left rail, command layer, dock, skip-to-main, CRUD-SAP bar                                          | Product surfaces, ERP logic, DB access, Server Actions |
+| **`components/nexus/`**        | Nexus Field product surface and Lynx summon UI                                                                                                                         | Shell chrome                                           |
+| **`components2/portal-shell/`**| Portal-only chrome (`/p/{portalSlug}`)                                                                                                                                 | Workbench `AppShell`                                   |
 
-> `components/nexus/` is no longer the shell host. **`AppShell`** (alias of `WorkbenchShell`) is the single canonical post-login mount from `app/**/layout.tsx`.
+> `components/nexus/` is not the shell host. **Post-login shell** mounts at `app/[locale]/o/[orgSlug]/layout.tsx` via **`#app-shell`**.
 
 ---
 
-## Component map (`components/workbench/`)
+## Component map (`components2/app-shell/`)
 
 | Component | File | Mount point |
-|---|---|---|
-| `AppShell` | `app-shell.ts` (re-export) | **`app/**/layout.tsx`** — preferred import name |
-| `WorkbenchShell` | `workbench-shell.tsx` | Same component as `AppShell`; implementation symbol |
-| `AppSubLayout` | `app-shell.ts` (re-export) | Nested `layout.tsx` (admin, HRM, dashboard envelope) — preferred import |
-| `WorkbenchSubLayout` | `workbench-sub-layout.tsx` | Same component as `AppSubLayout` |
-| `WorkbenchSurface` | `workbench-surface.tsx` | Page-level content region |
-| `WorkbenchUtilityBar` | `utility-bar/workbench-utility-bar.tsx` | L1 top bar |
-| `WorkbenchRail` | `left-nav-rail/workbench-rail.tsx` | L2 left nav rail |
-| `WorkbenchCommandLayer` | `workbench-command.tsx` | L3 command palette |
+| --- | --- | --- |
+| `AppShell` | `appshell.tsx` | `app/**/layout.tsx` — org/console post-login root |
+| `AppSubLayout` | `surface/appshell-sub-layout-rsc.tsx` | Nested `layout.tsx` (admin, HRM, dashboard envelope) |
+| `AppShellSurface` | `surface/appshell-sub-layout-surface.tsx` | Page-level content region |
+| `AppShellUtilityBar` | `top-utils-bar/appshell-utility-bar.tsx` | L1 top bar |
+| `AppShellPrimaryLeftRail` | `left-rail-bar/appshell-primary-left-rail.client.tsx` | L2 left nav rail |
+| `AppShellCommandPalette` | `top-utils-bar/appshell-utility-bar-command.client.tsx` | L3 command palette |
 
 ---
 
@@ -142,17 +137,17 @@ rail.tsx             → must be nav-rail.tsx or <specific-concept>.tsx
 
 - **Single shell.** **`AppShell`** mounts once per org (or other post-login root). Use **`AppSubLayout`** for inner rails (admin, HRM) — never nest a second full shell.
 - **Registry-aligned nav.** Rail slots built from capability registries (`ORG_ADMIN_CAPABILITIES`, `HRM_CAPABILITIES`, `PLATFORM_ADMIN_CAPABILITIES`) or typed data contracts. No orphaned `NAV_ITEMS` arrays.
-- **L1 widgets.** Use `WorkbenchUtilityRoundTooltipButton` / `WorkbenchUtilityRoundTooltipLink` / `WorkbenchUtilityTriggerTooltip`. Do not import `#components/ui/tooltip` directly inside `components/workbench/**`.
+- **L1 widgets.** Use `AppShellIconButton` / `AppShellIconLink` / `AppShellUtilityTriggerTooltip`. Do not import `#components2/ui/tooltip` via filesystem-relative paths inside `components2/app-shell/**` — use the `#components2/ui/*` alias.
 - **Boring shell.** No animated chrome for novelty. Density and calm ERP posture beat marketing energy.
-- **Feature two-pane layouts** (Orbit queue+detail) live **inside** `WorkbenchSurface.children` under `lib/features/<module>/components/` — not confused with shell components.
+- **Feature two-pane layouts** (Orbit queue+detail) live **inside** `AppShellSurface` children under `lib/features/<module>/components/` — not confused with shell components.
 
 ## Forbidden
 
-- Tenant/ERP/domain logic inside `components/workbench/**`.
+- Tenant/ERP/domain logic inside `components2/app-shell/**`.
 - Deep imports into `lib/features/<module>/data/...` from shell — use `#features/<module>` or `#features/<module>/client`.
 - Cross-tenant or slug-from-client assumptions — org slug comes from server guards + path builders.
-- Reviving `nexus-shell.tsx` / `nexus-surface-chrome.tsx` (deleted — `WorkbenchShell` replaced them).
-- New shell chrome inside `components/nexus/` — shell belongs in `components/workbench/`.
+- Reviving deleted repo-root `components/workbench/` or `components2/app-shell/workbench/`.
+- New shell chrome inside `components/nexus/` — shell belongs in `components2/app-shell/`.
 - Creating `components/dashboard/` shell directory — there is no second shell stack.
 
 ---
@@ -161,17 +156,17 @@ rail.tsx             → must be nav-rail.tsx or <specific-concept>.tsx
 
 Shell surfaces accepting structured slot data follow the **kernel-first** discipline:
 
-> _The shell Zod schema is the kernel. Per-workbench builders are pure mappers. Structural changes use ts-morph codemods, not hand-edits._
+> _The shell Zod schema is the kernel. Per-surface builders are pure mappers. Structural changes use ts-morph codemods, not hand-edits._
 
 ### Rules
 
-1. **Single source of truth.** Rail contract lives in `components/workbench/left-nav-rail/workbench-rail.schema.ts`. TypeScript types in `*.types.ts` are derived via `z.infer<>` — never hand-extended with fields the schema does not declare.
+1. **Single source of truth.** Rail contract lives in `components2/app-shell/left-rail-bar/appshell-primary-left-rail.schema.ts`. TypeScript types are derived via `z.infer<>` — never hand-extended with fields the schema does not declare.
 
 2. **Builders are pure mappers.** `buildAccountRailSlotsV2`, `buildHrmRailSlots`, `buildOrgAdminRailSlots`, `buildPlatformAdminRailSlots` map domain inputs to kernel shape only. They must not synthesize undeclared fields.
 
 3. **Cross-cutting changes use codemods.** When a kernel field changes, propagate via `scripts/refactors/<date>-<slug>.ts` (idempotent, `--dry-run` default + `--apply`).
 
-4. **Governed page chrome follows the same rule.** `lib/features/governed-surface/` is the sibling kernel for repeated post-login page chrome (`GovernedSurface`, `GovernedSection`, `ActionFormErrors`). Renderers compose approved primitives only; they must not fetch domain data, own business logic, or render arbitrary JSON/JSX trees. Doctrine: `docs/decisions/0011-governed-surface-metadata-kernel.md`. Listing URLs that mix **nuqs** loaders in `schemas/` with **server-only** IAM or tenant normalization must resolve the server side in `data/*` and export from `#features/<module>/server` only (see ADR-0011 *URL state* boundary).
+4. **Governed page chrome follows the same rule.** `lib/features/governed-surface/` is the sibling kernel for repeated post-login page chrome (`GovernedSurface`, `GovernedSection`, `ActionFormErrors`). Renderers compose approved primitives only; they must not fetch domain data, own business logic, or render arbitrary JSON/JSX trees. Doctrine: `docs/decisions/0011-governed-surface-metadata-kernel.md`. Listing URLs that mix **nuqs** loaders in `schemas/` with **server-only** IAM or tenant normalization must resolve the server side in `data/*` and export from `#features/<module>/server` only (see ADR-0011 _URL state_ boundary).
 
 ### Anti-pattern guardrails (permanent)
 

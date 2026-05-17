@@ -2,7 +2,6 @@
 
 import type { Route } from "next"
 import { redirect } from "next/navigation"
-import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 import { and, eq } from "drizzle-orm"
 
@@ -13,10 +12,10 @@ import {
   ORG_DASHBOARD_HRM_EMPLOYEES,
 } from "#lib/dashboard-module-paths"
 import { db } from "#lib/db"
-import { hrmDocument, hrmEmployee, hrmEmploymentContract } from "#lib/db/schema"
+import { hrmDocument, hrmEmploymentContract } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
-import { isoDateOnlyToUtcDate } from "../../../hrm-calendar-dates.server"
+import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
 import { requireHrmDocumentMutationGate } from "../data/hrm-document-action-guard.server"
 import {
   attachEmployeeDocumentFormSchema,
@@ -24,9 +23,20 @@ import {
   rejectDocumentFormSchema,
   verifyDocumentFormSchema,
 } from "../schemas/hrm-document.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import { HRM_DOCUMENT_AUDIT } from "../document.contract"
+import { getSecureHrmDocumentDownload } from "../data/hrm-document-guarded.server"
+import {
+  addUtcDays,
+  blobUrlMatchesOrgHrmEmployeePath,
+  deriveHrmDocumentGroup,
+} from "../data/hrm-document-governance.shared"
+import { findRetentionRule } from "../data/hrm-document-governance.server"
 import type { HrmDocumentMutationFormState } from "../../../types"
+import {
+  mutableEmployeeRecordErrorMessage,
+  requireMutableEmployeeRecord,
+} from "../../employee-records-management/data/employee-record-mutability.server"
 
 function revalidateHrmDocumentSurfaces() {
   revalidatePath(
@@ -41,20 +51,6 @@ function revalidateHrmDocumentSurfaces() {
     toLocaleOrgDashboardRevalidatePattern("/hrm/documents"),
     "page"
   )
-}
-
-function blobUrlMatchesOrgHrmEmployeePath(
-  blobUrl: string,
-  organizationId: string,
-  employeeId: string
-): boolean {
-  try {
-    const path = decodeURIComponent(new URL(blobUrl).pathname)
-    const needle = `/orgs/${organizationId}/hrm/${employeeId}/`
-    return path.includes(needle)
-  } catch {
-    return false
-  }
 }
 
 export async function attachEmployeeDocumentAction(
@@ -75,6 +71,9 @@ export async function attachEmployeeDocumentAction(
     title: formData.get("title"),
     documentType: formData.get("documentType"),
     classification: formData.get("classification"),
+    documentGroup: formData.get("documentGroup") || undefined,
+    legalEntityId: formData.get("legalEntityId") || undefined,
+    retentionPolicyCode: formData.get("retentionPolicyCode") || undefined,
     effectiveFrom: formData.get("effectiveFrom"),
     expiryDate: formData.get("expiryDate"),
     versionNumber: formData.get("versionNumber"),
@@ -105,47 +104,66 @@ export async function attachEmployeeDocumentAction(
     })
   }
 
-  const [emp] = await db
-    .select({ id: hrmEmployee.id, archivedAt: hrmEmployee.archivedAt })
-    .from(hrmEmployee)
-    .where(
-      and(
-        eq(hrmEmployee.organizationId, organizationId),
-        eq(hrmEmployee.id, d.employeeId)
-      )
-    )
-    .limit(1)
-
-  if (!emp) {
-    return hrmActionFailure({ form: "Employee not found." })
-  }
-  if (emp.archivedAt) {
+  const mutable = await requireMutableEmployeeRecord({
+    organizationId,
+    employeeId: d.employeeId,
+  })
+  if (!mutable.ok) {
     return hrmActionFailure({
-      form: "Cannot attach documents to an archived employee.",
+      form:
+        mutable.code === "archived"
+          ? "Cannot attach documents to an archived employee."
+          : mutableEmployeeRecordErrorMessage(mutable),
     })
   }
 
   let documentId: string | null = null
+  const sizeBytes = Number(d.sizeBytes)
+  const versionNumber =
+    d.versionNumber === null || d.versionNumber === undefined
+      ? 1
+      : Number(d.versionNumber)
+  const documentGroup = d.documentGroup ?? deriveHrmDocumentGroup(d.documentType)
+  const effectiveFrom = isoDateOnlyToUtcDate(d.effectiveFrom)
+  const effectiveTo = d.expiryDate ? isoDateOnlyToUtcDate(d.expiryDate) : null
+  const retentionRule = await findRetentionRule({
+    organizationId,
+    retentionPolicyCode: d.retentionPolicyCode ?? null,
+    documentType: d.documentType,
+    documentGroup,
+  })
+  const retentionPolicyCode = d.retentionPolicyCode ?? retentionRule?.code ?? null
+  const retentionUntil = retentionRule
+    ? addUtcDays(effectiveTo ?? effectiveFrom, retentionRule.retentionPeriodDays)
+    : null
+
   try {
     documentId = await db.transaction(async (tx) => {
       const id = crypto.randomUUID()
       await tx.insert(hrmDocument).values({
         id,
         organizationId,
+        documentSetId: id,
         employeeId: d.employeeId,
+        legalEntityId: d.legalEntityId ?? null,
         documentType: d.documentType,
+        documentGroup,
         subjectKind: d.draftContractId ? "contract" : null,
         subjectId: d.draftContractId ?? null,
         title: d.title,
         blobUrl: d.blobUrl,
         payloadHash: d.payloadHash,
         mimeType: d.mimeType,
-        sizeBytes: d.sizeBytes,
+        sizeBytes,
         classification: d.classification,
-        effectiveFrom: isoDateOnlyToUtcDate(d.effectiveFrom),
-        effectiveTo: d.expiryDate ? isoDateOnlyToUtcDate(d.expiryDate) : null,
-        versionNumber: d.versionNumber ?? null,
+        retentionPolicyCode,
+        effectiveFrom,
+        effectiveTo,
+        versionNumber,
+        isLatestVersion: true,
         isMandatory: d.isMandatory ?? false,
+        retentionUntil,
+        documentLifecycleStatus: "active",
         uploadedByUserId: userId,
       })
 
@@ -203,23 +221,23 @@ export async function attachEmployeeDocumentAction(
     })
   }
 
-  after(() =>
-    writeIamAuditEventFromNextHeaders({
-      action: HRM_DOCUMENT_AUDIT.attach,
-      actorUserId: userId,
-      actorSessionId: sessionId,
-      organizationId,
-      resourceType: "hrm_document",
-      resourceId: documentId,
-      metadata: {
-        employeeId: d.employeeId,
-        documentType: d.documentType,
-        classification: d.classification,
-        payloadHashSuffix: d.payloadHash.slice(-12),
-        linkedDraftContractId: d.draftContractId ?? null,
-      },
-    })
-  )
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_DOCUMENT_AUDIT.attach,
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_document",
+    resourceId: documentId,
+    metadata: {
+      employeeId: d.employeeId,
+      documentType: d.documentType,
+      documentGroup,
+      classification: d.classification,
+      payloadHashSuffix: d.payloadHash.slice(-12),
+      linkedDraftContractId: d.draftContractId ?? null,
+      retentionPolicyCode,
+    },
+  })
 
   revalidateHrmDocumentSurfaces()
   return { ok: true }
@@ -247,7 +265,11 @@ export async function verifyDocumentAction(
   }
 
   const [doc] = await db
-    .select({ id: hrmDocument.id, verificationStatus: hrmDocument.verificationStatus })
+    .select({
+      id: hrmDocument.id,
+      verificationStatus: hrmDocument.verificationStatus,
+      documentLifecycleStatus: hrmDocument.documentLifecycleStatus,
+    })
     .from(hrmDocument)
     .where(
       and(
@@ -260,7 +282,11 @@ export async function verifyDocumentAction(
   if (!doc) {
     return hrmActionFailure({ form: "Document not found." })
   }
-  if (doc.verificationStatus === "archived") {
+  if (
+    doc.verificationStatus === "archived" ||
+    doc.documentLifecycleStatus === "archived" ||
+    doc.documentLifecycleStatus === "deleted"
+  ) {
     return hrmActionFailure({ form: "Cannot verify an archived document." })
   }
 
@@ -269,6 +295,7 @@ export async function verifyDocumentAction(
     .update(hrmDocument)
     .set({
       verificationStatus: "verified",
+      documentLifecycleStatus: "active",
       verifiedByUserId: userId,
       verifiedAt: now,
       rejectionReason: null,
@@ -276,17 +303,15 @@ export async function verifyDocumentAction(
     })
     .where(eq(hrmDocument.id, doc.id))
 
-  after(() =>
-    writeIamAuditEventFromNextHeaders({
-      action: HRM_DOCUMENT_AUDIT.verify,
-      actorUserId: userId,
-      actorSessionId: sessionId,
-      organizationId,
-      resourceType: "hrm_document",
-      resourceId: doc.id,
-      metadata: { reviewNote: parsed.data.reviewNote ?? null },
-    })
-  )
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_DOCUMENT_AUDIT.verify,
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_document",
+    resourceId: doc.id,
+    metadata: { reviewNote: parsed.data.reviewNote ?? null },
+  })
 
   revalidateHrmDocumentSurfaces()
   return { ok: true }
@@ -318,7 +343,11 @@ export async function rejectDocumentAction(
   }
 
   const [doc] = await db
-    .select({ id: hrmDocument.id, verificationStatus: hrmDocument.verificationStatus })
+    .select({
+      id: hrmDocument.id,
+      verificationStatus: hrmDocument.verificationStatus,
+      documentLifecycleStatus: hrmDocument.documentLifecycleStatus,
+    })
     .from(hrmDocument)
     .where(
       and(
@@ -331,7 +360,11 @@ export async function rejectDocumentAction(
   if (!doc) {
     return hrmActionFailure({ form: "Document not found." })
   }
-  if (doc.verificationStatus === "archived") {
+  if (
+    doc.verificationStatus === "archived" ||
+    doc.documentLifecycleStatus === "archived" ||
+    doc.documentLifecycleStatus === "deleted"
+  ) {
     return hrmActionFailure({ form: "Cannot reject an archived document." })
   }
 
@@ -340,6 +373,7 @@ export async function rejectDocumentAction(
     .update(hrmDocument)
     .set({
       verificationStatus: "rejected",
+      documentLifecycleStatus: "active",
       rejectionReason: parsed.data.rejectionReason,
       verifiedByUserId: userId,
       verifiedAt: now,
@@ -347,17 +381,15 @@ export async function rejectDocumentAction(
     })
     .where(eq(hrmDocument.id, doc.id))
 
-  after(() =>
-    writeIamAuditEventFromNextHeaders({
-      action: HRM_DOCUMENT_AUDIT.reject,
-      actorUserId: userId,
-      actorSessionId: sessionId,
-      organizationId,
-      resourceType: "hrm_document",
-      resourceId: doc.id,
-      metadata: { rejectionReason: parsed.data.rejectionReason },
-    })
-  )
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_DOCUMENT_AUDIT.reject,
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_document",
+    resourceId: doc.id,
+    metadata: { rejectionReason: parsed.data.rejectionReason },
+  })
 
   revalidateHrmDocumentSurfaces()
   return { ok: true }
@@ -385,7 +417,11 @@ export async function archiveDocumentAction(
   }
 
   const [doc] = await db
-    .select({ id: hrmDocument.id, verificationStatus: hrmDocument.verificationStatus })
+    .select({
+      id: hrmDocument.id,
+      verificationStatus: hrmDocument.verificationStatus,
+      documentLifecycleStatus: hrmDocument.documentLifecycleStatus,
+    })
     .from(hrmDocument)
     .where(
       and(
@@ -398,8 +434,14 @@ export async function archiveDocumentAction(
   if (!doc) {
     return hrmActionFailure({ form: "Document not found." })
   }
-  if (doc.verificationStatus === "archived") {
+  if (
+    doc.verificationStatus === "archived" ||
+    doc.documentLifecycleStatus === "archived"
+  ) {
     return { ok: true }
+  }
+  if (doc.documentLifecycleStatus === "deleted") {
+    return hrmActionFailure({ form: "Cannot archive a deleted document." })
   }
 
   const now = new Date()
@@ -407,6 +449,10 @@ export async function archiveDocumentAction(
     .update(hrmDocument)
     .set({
       verificationStatus: "archived",
+      documentLifecycleStatus: "archived",
+      isLatestVersion: false,
+      archivedAt: now,
+      archivedByUserId: userId,
       updatedAt: now,
       ...(parsed.data.archiveReason
         ? { rejectionReason: parsed.data.archiveReason }
@@ -414,17 +460,87 @@ export async function archiveDocumentAction(
     })
     .where(eq(hrmDocument.id, doc.id))
 
-  after(() =>
-    writeIamAuditEventFromNextHeaders({
-      action: HRM_DOCUMENT_AUDIT.archive,
-      actorUserId: userId,
-      actorSessionId: sessionId,
-      organizationId,
-      resourceType: "hrm_document",
-      resourceId: doc.id,
-      metadata: { archiveReason: parsed.data.archiveReason ?? null },
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_DOCUMENT_AUDIT.archive,
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_document",
+    resourceId: doc.id,
+    metadata: { archiveReason: parsed.data.archiveReason ?? null },
+  })
+
+  revalidateHrmDocumentSurfaces()
+  return { ok: true }
+}
+
+/**
+ * Soft-deletes a document after retention authorization. The blob pointer is
+ * kept for legal hold/audit continuity; governed reads hide lifecycle=deleted.
+ */
+export async function deleteDocumentAction(
+  _prev: HrmDocumentMutationFormState | undefined,
+  formData: FormData
+): Promise<HrmDocumentMutationFormState> {
+  const gate = await requireHrmDocumentMutationGate(formData, "delete")
+  if (!gate.ok) return gate.response
+  const { organizationId, userId, sessionId } = gate
+
+  const parsed = archiveDocumentFormSchema.safeParse({
+    orgSlug: formData.get("orgSlug"),
+    documentId: formData.get("documentId"),
+    archiveReason: formData.get("deleteReason") || formData.get("archiveReason") || null,
+  })
+  if (!parsed.success) {
+    return hrmActionFailure({ form: parsed.error.issues[0]?.message })
+  }
+
+  const [doc] = await db
+    .select({
+      id: hrmDocument.id,
+      documentLifecycleStatus: hrmDocument.documentLifecycleStatus,
     })
-  )
+    .from(hrmDocument)
+    .where(
+      and(
+        eq(hrmDocument.organizationId, organizationId),
+        eq(hrmDocument.id, parsed.data.documentId)
+      )
+    )
+    .limit(1)
+
+  if (!doc) {
+    return hrmActionFailure({ form: "Document not found." })
+  }
+  if (doc.documentLifecycleStatus === "deleted") {
+    return { ok: true }
+  }
+
+  const now = new Date()
+  await db
+    .update(hrmDocument)
+    .set({
+      documentLifecycleStatus: "deleted",
+      verificationStatus: "archived",
+      isLatestVersion: false,
+      deletedAt: now,
+      deletedByUserId: userId,
+      updatedAt: now,
+      ...(parsed.data.archiveReason
+        ? { rejectionReason: parsed.data.archiveReason }
+        : {}),
+    })
+    .where(eq(hrmDocument.id, doc.id))
+
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_DOCUMENT_AUDIT.delete,
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_document",
+    resourceId: doc.id,
+    metadata: { deleteReason: parsed.data.archiveReason ?? null },
+  })
 
   revalidateHrmDocumentSurfaces()
   return { ok: true }
@@ -466,7 +582,16 @@ export async function replaceDocumentAction(
 
   const [oldDoc, newDoc] = await Promise.all([
     db
-      .select({ id: hrmDocument.id, verificationStatus: hrmDocument.verificationStatus })
+      .select({
+        id: hrmDocument.id,
+        employeeId: hrmDocument.employeeId,
+        documentType: hrmDocument.documentType,
+        subjectKind: hrmDocument.subjectKind,
+        documentSetId: hrmDocument.documentSetId,
+        versionNumber: hrmDocument.versionNumber,
+        verificationStatus: hrmDocument.verificationStatus,
+        documentLifecycleStatus: hrmDocument.documentLifecycleStatus,
+      })
       .from(hrmDocument)
       .where(
         and(
@@ -477,7 +602,14 @@ export async function replaceDocumentAction(
       .limit(1)
       .then((rows) => rows[0] ?? null),
     db
-      .select({ id: hrmDocument.id })
+      .select({
+        id: hrmDocument.id,
+        employeeId: hrmDocument.employeeId,
+        documentType: hrmDocument.documentType,
+        subjectKind: hrmDocument.subjectKind,
+        versionNumber: hrmDocument.versionNumber,
+        documentLifecycleStatus: hrmDocument.documentLifecycleStatus,
+      })
       .from(hrmDocument)
       .where(
         and(
@@ -498,31 +630,79 @@ export async function replaceDocumentAction(
   if (oldDoc.verificationStatus === "archived") {
     return hrmActionFailure({ form: "Document is already archived." })
   }
+  if (
+    oldDoc.documentLifecycleStatus === "deleted" ||
+    newDoc.documentLifecycleStatus === "deleted"
+  ) {
+    return hrmActionFailure({ form: "Deleted documents cannot be replaced." })
+  }
+  if (
+    oldDoc.employeeId !== newDoc.employeeId ||
+    oldDoc.documentType !== newDoc.documentType ||
+    oldDoc.subjectKind !== newDoc.subjectKind
+  ) {
+    return hrmActionFailure({
+      form: "Replacement must belong to the same employee, document type, and subject.",
+    })
+  }
 
   const now = new Date()
-  await db
-    .update(hrmDocument)
-    .set({
-      replacedByDocumentId: parsed.data.replacementDocumentId,
-      verificationStatus: "archived",
-      updatedAt: now,
-    })
-    .where(eq(hrmDocument.id, oldDoc.id))
-
-  after(() =>
-    writeIamAuditEventFromNextHeaders({
-      action: HRM_DOCUMENT_AUDIT.replace,
-      actorUserId: userId,
-      actorSessionId: sessionId,
-      organizationId,
-      resourceType: "hrm_document",
-      resourceId: oldDoc.id,
-      metadata: {
-        replacementDocumentId: parsed.data.replacementDocumentId,
-        reviewNote: parsed.data.reviewNote ?? null,
-      },
-    })
+  const documentSetId = oldDoc.documentSetId ?? oldDoc.id
+  const nextVersionNumber = Math.max(
+    (oldDoc.versionNumber ?? 1) + 1,
+    newDoc.versionNumber ?? 1
   )
+  await db.transaction(async (tx) => {
+    await tx
+      .update(hrmDocument)
+      .set({ isLatestVersion: false, updatedAt: now })
+      .where(
+        and(
+          eq(hrmDocument.organizationId, organizationId),
+          eq(hrmDocument.documentSetId, documentSetId)
+        )
+      )
+
+    await tx
+      .update(hrmDocument)
+      .set({
+        replacedByDocumentId: parsed.data.replacementDocumentId,
+        verificationStatus: "archived",
+        documentLifecycleStatus: "archived",
+        isLatestVersion: false,
+        archivedAt: now,
+        archivedByUserId: userId,
+        updatedAt: now,
+      })
+      .where(eq(hrmDocument.id, oldDoc.id))
+
+    await tx
+      .update(hrmDocument)
+      .set({
+        previousDocumentId: oldDoc.id,
+        documentSetId,
+        versionNumber: nextVersionNumber,
+        isLatestVersion: true,
+        documentLifecycleStatus: "active",
+        updatedAt: now,
+      })
+      .where(eq(hrmDocument.id, newDoc.id))
+  })
+
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_DOCUMENT_AUDIT.replace,
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_document",
+    resourceId: oldDoc.id,
+    metadata: {
+      replacementDocumentId: parsed.data.replacementDocumentId,
+      reviewNote: parsed.data.reviewNote ?? null,
+      documentSetId,
+      nextVersionNumber,
+    },
+  })
 
   revalidateHrmDocumentSurfaces()
   return { ok: true }
@@ -540,7 +720,9 @@ const downloadDocumentFormSchema = verifyDocumentFormSchema.pick({
  * The server action model ensures every download is captured in
  * `iam_audit_event` before the blob URL is returned to the browser.
  */
-export async function downloadDocumentAction(formData: FormData): Promise<never> {
+export async function downloadDocumentAction(
+  formData: FormData
+): Promise<never> {
   const gate = await requireHrmDocumentMutationGate(formData, "read")
   if (!gate.ok) {
     redirect("/")
@@ -555,32 +737,23 @@ export async function downloadDocumentAction(formData: FormData): Promise<never>
     redirect("/")
   }
 
-  const [doc] = await db
-    .select({ id: hrmDocument.id, blobUrl: hrmDocument.blobUrl })
-    .from(hrmDocument)
-    .where(
-      and(
-        eq(hrmDocument.organizationId, organizationId),
-        eq(hrmDocument.id, parsed.data.documentId)
-      )
-    )
-    .limit(1)
+  const doc = await getSecureHrmDocumentDownload({
+    documentId: parsed.data.documentId,
+  })
 
-  if (!doc) {
+  if (!doc.ok || doc.organizationId !== organizationId) {
     redirect("/")
   }
 
-  after(() =>
-    writeIamAuditEventFromNextHeaders({
-      action: HRM_DOCUMENT_AUDIT.download,
-      actorUserId: userId,
-      actorSessionId: sessionId,
-      organizationId,
-      resourceType: "hrm_document",
-      resourceId: doc.id,
-      metadata: {},
-    })
-  )
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_DOCUMENT_AUDIT.download,
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_document",
+    resourceId: doc.documentId,
+    metadata: {},
+  })
 
   redirect(doc.blobUrl as Route)
 }

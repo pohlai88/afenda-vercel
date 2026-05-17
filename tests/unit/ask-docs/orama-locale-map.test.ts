@@ -2,13 +2,13 @@ import { describe, expect, it, vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
 
-import { APP_LOCALES } from "#lib/i18n/locales.shared"
+import { FULL_APP_LOCALES } from "#lib/i18n/locales.shared"
 
 describe("ASK_DOCS_ORAMA_LOCALE_MAP", () => {
-  it("defines an entry for every AppLocale", async () => {
+  it("defines an entry for every FullAppLocale", async () => {
     const { ASK_DOCS_ORAMA_LOCALE_MAP } =
       await import("#lib/ask-docs/orama-locale-map.server")
-    for (const locale of APP_LOCALES) {
+    for (const locale of FULL_APP_LOCALES) {
       expect(ASK_DOCS_ORAMA_LOCALE_MAP[locale]).toBeDefined()
     }
   })

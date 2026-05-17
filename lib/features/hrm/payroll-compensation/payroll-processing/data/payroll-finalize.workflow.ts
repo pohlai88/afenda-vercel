@@ -8,7 +8,7 @@ import {
 } from "#features/planner/server"
 import { writeIamAuditEvent } from "#lib/auth"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { organizationHrmPath } from "../../../constants"
 import { computePayrollRun } from "./payroll-engine.server"

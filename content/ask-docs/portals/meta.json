@@ -4,6 +4,18 @@
   "icon": "Globe",
   "root": true,
   "pages": [
-    "employee"
+    "employee",
+    "leave",
+    "payslips",
+    "attendance",
+    "claims",
+    "documents",
+    "benefits",
+    "advances",
+    "training",
+    "signatures",
+    "profile",
+    "performance",
+    "offboarding"
   ]
 }

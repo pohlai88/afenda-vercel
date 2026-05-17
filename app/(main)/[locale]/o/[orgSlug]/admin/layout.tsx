@@ -3,27 +3,42 @@ import { Suspense } from "react"
 
 import { notFound, redirect } from "next/navigation"
 
-import { WorkbenchSubLayoutShellSkeleton } from "#components/workbench"
+import { AppSubLayoutShellSkeleton } from "#app-shell"
 import {
-  fetchOrgWorkbenchIdentity,
+  fetchOrgAdminIdentity,
   requireRecentAuthStepUp,
   requireVerifiedEmailForAccount,
 } from "#lib/auth"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { organizationAdminPath } from "#features/org-admin"
 
-import { OrgAdminDeferredWorkbench } from "./_components/org-admin-deferred-workbench"
+import { OrgAdminDeferredShell } from "./_components/org-admin-deferred-shell"
 
 export const metadata: Metadata = {
   title: "Admin",
   openGraph: { title: `Organization admin | ${SITE_NAME}` },
 }
 
-export default async function OrgAdminWorkbenchLayout({
+export default function OrgAdminLayout({
+  children,
+  params,
+}: LayoutProps<"/[locale]/o/[orgSlug]/admin">) {
+  return (
+    <Suspense
+      fallback={
+        <AppSubLayoutShellSkeleton statusLabel="Loading organization admin" />
+      }
+    >
+      <OrgAdminLayoutInner params={params}>{children}</OrgAdminLayoutInner>
+    </Suspense>
+  )
+}
+
+async function OrgAdminLayoutInner({
   children,
   params,
 }: LayoutProps<"/[locale]/o/[orgSlug]/admin">) {
@@ -45,7 +60,7 @@ export default async function OrgAdminWorkbenchLayout({
       "tenant_key_admin",
       "tenant_support_admin",
     ]),
-    fetchOrgWorkbenchIdentity(orgSession.organizationId),
+    fetchOrgAdminIdentity(orgSession.organizationId),
   ])
 
   if (!tenantAuthorityGate.ok) {
@@ -56,19 +71,13 @@ export default async function OrgAdminWorkbenchLayout({
   }
 
   return (
-    <Suspense
-      fallback={
-        <WorkbenchSubLayoutShellSkeleton statusLabel="Loading organization admin" />
-      }
+    <OrgAdminDeferredShell
+      locale={locale}
+      orgSlug={orgSlug}
+      orgSession={orgSession}
+      identity={identity}
     >
-      <OrgAdminDeferredWorkbench
-        locale={locale}
-        orgSlug={orgSlug}
-        orgSession={orgSession}
-        identity={identity}
-      >
-        {children}
-      </OrgAdminDeferredWorkbench>
-    </Suspense>
+      {children}
+    </OrgAdminDeferredShell>
   )
 }

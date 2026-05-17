@@ -1298,6 +1298,8 @@ export const hrmDepartment = pgTable(
     code: text("code").notNull(),
     name: text("name").notNull(),
     orgUnitType: text("orgUnitType").notNull().default("department"),
+    /** Lifecycle: active | planned | frozen | closed (HRM-ORG-010/012/014). */
+    orgUnitStatus: text("orgUnitStatus").notNull().default("active"),
     parentDepartmentId: text("parentDepartmentId"),
     headEmployeeId: text("headEmployeeId"),
     costCenterCode: text("costCenterCode"),
@@ -1326,6 +1328,10 @@ export const hrmDepartment = pgTable(
       t.organizationId,
       t.parentDepartmentId
     ),
+    index("hrm_department_organizationId_orgUnitStatus_idx").on(
+      t.organizationId,
+      t.orgUnitStatus
+    ),
   ]
 )
 
@@ -1342,6 +1348,7 @@ export const hrmPosition = pgTable(
       .notNull()
       .references(() => hrmDepartment.id),
     defaultGradeId: text("defaultGradeId").references(() => hrmJobGrade.id),
+    positionOwnerEmployeeId: text("positionOwnerEmployeeId"),
     reportsToPositionId: text("reportsToPositionId"),
     employmentType: text("employmentType").notNull().default("permanent"),
     headcountBudget: integer("headcountBudget"),
@@ -1376,6 +1383,10 @@ export const hrmPosition = pgTable(
     index("hrm_position_organizationId_reportsToPositionId_idx").on(
       t.organizationId,
       t.reportsToPositionId
+    ),
+    index("hrm_position_organizationId_positionOwnerEmployeeId_idx").on(
+      t.organizationId,
+      t.positionOwnerEmployeeId
     ),
   ]
 )
@@ -1560,6 +1571,191 @@ export const hrmEmployeeAssignment = pgTable(
   ]
 )
 
+/** Effective-dated org unit source of truth; `hrm_department` remains the current projection. */
+export const hrmOrgUnitVersion = pgTable(
+  "hrm_org_unit_version",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    orgUnitId: text("orgUnitId")
+      .notNull()
+      .references(() => hrmDepartment.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    orgUnitType: text("orgUnitType").notNull().default("department"),
+    parentOrgUnitId: text("parentOrgUnitId").references(
+      () => hrmDepartment.id,
+      {
+        onDelete: "set null",
+      }
+    ),
+    managerEmployeeId: text("managerEmployeeId").references(
+      () => hrmEmployee.id,
+      {
+        onDelete: "set null",
+      }
+    ),
+    costCenterCode: text("costCenterCode"),
+    workLocationCode: text("workLocationCode"),
+    status: text("status").notNull().default("active"),
+    effectiveFrom: date("effectiveFrom", { mode: "date" }).notNull(),
+    effectiveTo: date("effectiveTo", { mode: "date" }),
+    reason: text("reason"),
+    approvalReference: text("approvalReference"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_org_unit_version_org_unit_effective_idx").on(
+      t.organizationId,
+      t.orgUnitId,
+      t.effectiveFrom
+    ),
+    uniqueIndex("hrm_org_unit_version_org_unit_effective_uidx").on(
+      t.organizationId,
+      t.orgUnitId,
+      t.effectiveFrom
+    ),
+    index("hrm_org_unit_version_org_parent_idx").on(
+      t.organizationId,
+      t.parentOrgUnitId
+    ),
+    index("hrm_org_unit_version_org_status_idx").on(t.organizationId, t.status),
+    index("hrm_org_unit_version_org_manager_idx").on(
+      t.organizationId,
+      t.managerEmployeeId
+    ),
+  ]
+)
+
+/** Effective-dated position source of truth; `hrm_position` remains the current projection. */
+export const hrmPositionVersion = pgTable(
+  "hrm_position_version",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    positionId: text("positionId")
+      .notNull()
+      .references(() => hrmPosition.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    title: text("title").notNull(),
+    orgUnitId: text("orgUnitId")
+      .notNull()
+      .references(() => hrmDepartment.id, { onDelete: "restrict" }),
+    positionOwnerEmployeeId: text("positionOwnerEmployeeId").references(
+      () => hrmEmployee.id,
+      { onDelete: "set null" }
+    ),
+    reportsToPositionId: text("reportsToPositionId").references(
+      () => hrmPosition.id,
+      { onDelete: "set null" }
+    ),
+    defaultGradeId: text("defaultGradeId").references(() => hrmJobGrade.id, {
+      onDelete: "set null",
+    }),
+    employmentType: text("employmentType").notNull().default("permanent"),
+    headcountBudget: integer("headcountBudget"),
+    positionStatus: text("positionStatus").notNull().default("active"),
+    costCenterCode: text("costCenterCode"),
+    workLocationCode: text("workLocationCode"),
+    effectiveFrom: date("effectiveFrom", { mode: "date" }).notNull(),
+    effectiveTo: date("effectiveTo", { mode: "date" }),
+    reason: text("reason"),
+    approvalReference: text("approvalReference"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_position_version_org_position_effective_idx").on(
+      t.organizationId,
+      t.positionId,
+      t.effectiveFrom
+    ),
+    uniqueIndex("hrm_position_version_org_position_effective_uidx").on(
+      t.organizationId,
+      t.positionId,
+      t.effectiveFrom
+    ),
+    index("hrm_position_version_org_unit_idx").on(
+      t.organizationId,
+      t.orgUnitId
+    ),
+    index("hrm_position_version_org_reports_to_idx").on(
+      t.organizationId,
+      t.reportsToPositionId
+    ),
+    index("hrm_position_version_org_owner_idx").on(
+      t.organizationId,
+      t.positionOwnerEmployeeId
+    ),
+    index("hrm_position_version_org_status_idx").on(
+      t.organizationId,
+      t.positionStatus
+    ),
+  ]
+)
+
+/** Effective-dated employee reporting lines: direct, dotted-line, and matrix. */
+export const hrmEmployeeReportingRelationship = pgTable(
+  "hrm_employee_reporting_relationship",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "cascade" }),
+    managerEmployeeId: text("managerEmployeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    relationshipType: text("relationshipType").notNull(),
+    effectiveFrom: date("effectiveFrom", { mode: "date" }).notNull(),
+    effectiveTo: date("effectiveTo", { mode: "date" }),
+    status: text("status").notNull().default("active"),
+    reason: text("reason"),
+    approvalReference: text("approvalReference"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_employee_reporting_org_employee_type_effective_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.relationshipType,
+      t.effectiveFrom
+    ),
+    uniqueIndex(
+      "hrm_employee_reporting_org_employee_manager_type_effective_uidx"
+    ).on(
+      t.organizationId,
+      t.employeeId,
+      t.managerEmployeeId,
+      t.relationshipType,
+      t.effectiveFrom
+    ),
+    index("hrm_employee_reporting_org_manager_type_idx").on(
+      t.organizationId,
+      t.managerEmployeeId,
+      t.relationshipType
+    ),
+    index("hrm_employee_reporting_org_status_idx").on(
+      t.organizationId,
+      t.status
+    ),
+  ]
+)
+
 /** Normalized employee personal profile. `hrm_employee` keeps compatibility mirrors during cutover. */
 export const hrmEmployeePersonalProfile = pgTable(
   "hrm_employee_personal_profile",
@@ -1725,10 +1921,14 @@ export const hrmDocument = pgTable(
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     organizationId: text("organizationId").notNull(),
+    documentSetId: text("documentSetId"),
+    previousDocumentId: text("previousDocumentId"),
     employeeId: text("employeeId").references(() => hrmEmployee.id, {
       onDelete: "set null",
     }),
+    legalEntityId: text("legalEntityId"),
     documentType: text("documentType").notNull(),
+    documentGroup: text("documentGroup"),
     subjectKind: text("subjectKind"),
     subjectId: text("subjectId"),
     title: text("title").notNull(),
@@ -1749,11 +1949,20 @@ export const hrmDocument = pgTable(
       .defaultNow(),
     /** pending | verified | rejected */
     verificationStatus: text("verificationStatus").notNull().default("pending"),
+    documentLifecycleStatus: text("documentLifecycleStatus")
+      .notNull()
+      .default("active"),
     verifiedByUserId: text("verifiedByUserId"),
     verifiedAt: timestamp("verifiedAt", { mode: "date" }),
     rejectionReason: text("rejectionReason"),
     versionNumber: integer("versionNumber"),
+    isLatestVersion: boolean("isLatestVersion").notNull().default(true),
     isMandatory: boolean("isMandatory").notNull().default(false),
+    retentionUntil: date("retentionUntil", { mode: "date" }),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    archivedByUserId: text("archivedByUserId"),
+    deletedAt: timestamp("deletedAt", { mode: "date" }),
+    deletedByUserId: text("deletedByUserId"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
@@ -1762,10 +1971,19 @@ export const hrmDocument = pgTable(
       columns: [t.replacedByDocumentId],
       foreignColumns: [t.id],
     }).onDelete("set null"),
+    foreignKey({
+      columns: [t.previousDocumentId],
+      foreignColumns: [t.id],
+    }).onDelete("set null"),
     index("hrm_document_organizationId_employeeId_documentType_idx").on(
       t.organizationId,
       t.employeeId,
       t.documentType
+    ),
+    uniqueIndex("hrm_document_org_set_version_uidx").on(
+      t.organizationId,
+      t.documentSetId,
+      t.versionNumber
     ),
     index("hrm_document_organizationId_subjectKind_subjectId_idx").on(
       t.organizationId,
@@ -1775,6 +1993,127 @@ export const hrmDocument = pgTable(
     index("hrm_document_organizationId_effectiveTo_idx").on(
       t.organizationId,
       t.effectiveTo
+    ),
+    index("hrm_document_org_employee_latest_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.isLatestVersion
+    ),
+    index("hrm_document_org_lifecycle_status_idx").on(
+      t.organizationId,
+      t.documentLifecycleStatus,
+      t.verificationStatus
+    ),
+    index("hrm_document_org_group_type_idx").on(
+      t.organizationId,
+      t.documentGroup,
+      t.documentType
+    ),
+    index("hrm_document_org_legal_entity_idx").on(
+      t.organizationId,
+      t.legalEntityId
+    ),
+    index("hrm_document_org_uploadedAt_idx").on(
+      t.organizationId,
+      t.uploadedAt
+    ),
+    index("hrm_document_org_retentionUntil_idx").on(
+      t.organizationId,
+      t.retentionUntil
+    ),
+  ]
+)
+
+export const hrmDocumentRequirement = pgTable(
+  "hrm_document_requirement",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    documentType: text("documentType").notNull(),
+    documentGroup: text("documentGroup").notNull(),
+    legalEntityId: text("legalEntityId"),
+    employmentType: text("employmentType"),
+    isMandatory: boolean("isMandatory").notNull().default(true),
+    allowEmployeeSubmission: boolean("allowEmployeeSubmission")
+      .notNull()
+      .default(false),
+    allowEmployeeAccess: boolean("allowEmployeeAccess").notNull().default(false),
+    requiresExpiryDate: boolean("requiresExpiryDate").notNull().default(false),
+    retentionPolicyCode: text("retentionPolicyCode"),
+    status: text("status").notNull().default("active"),
+    effectiveFrom: date("effectiveFrom", { mode: "date" }),
+    effectiveTo: date("effectiveTo", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_document_requirement_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_document_requirement_org_type_status_idx").on(
+      t.organizationId,
+      t.documentType,
+      t.status
+    ),
+    index("hrm_document_requirement_org_group_status_idx").on(
+      t.organizationId,
+      t.documentGroup,
+      t.status
+    ),
+    index("hrm_document_requirement_org_legal_entity_idx").on(
+      t.organizationId,
+      t.legalEntityId
+    ),
+  ]
+)
+
+export const hrmDocumentRetentionRule = pgTable(
+  "hrm_document_retention_rule",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    documentGroup: text("documentGroup"),
+    documentType: text("documentType"),
+    retentionPeriodDays: integer("retentionPeriodDays").notNull(),
+    archiveAfterSeparation: boolean("archiveAfterSeparation")
+      .notNull()
+      .default(true),
+    deleteAfterRetention: boolean("deleteAfterRetention")
+      .notNull()
+      .default(false),
+    anonymizeAfterRetention: boolean("anonymizeAfterRetention")
+      .notNull()
+      .default(false),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_document_retention_rule_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_document_retention_rule_org_status_idx").on(
+      t.organizationId,
+      t.status
+    ),
+    index("hrm_document_retention_rule_org_group_type_idx").on(
+      t.organizationId,
+      t.documentGroup,
+      t.documentType
     ),
   ]
 )
@@ -2156,6 +2495,79 @@ export const hrmLifecycleEvent = pgTable(
     index("hrm_lifecycle_event_org_effective_date_idx").on(
       t.organizationId,
       t.effectiveDate
+    ),
+  ]
+)
+
+/**
+ * Effective-dated lifecycle transition work queue.
+ *
+ * Immediate lifecycle actions update `hrm_employee` and write
+ * `hrm_lifecycle_event` in the same transaction. Future-dated actions are
+ * stored here first, then applied by the lifecycle due-transition cron when
+ * their effective date is reached.
+ */
+export const hrmLifecycleTransition = pgTable(
+  "hrm_lifecycle_transition",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    transitionKind: text("transitionKind").notNull(),
+    fromStatus: text("fromStatus"),
+    toStatus: text("toStatus"),
+    effectiveDate: date("effectiveDate", { mode: "date" }).notNull(),
+    status: text("status").notNull().default("pending"),
+    payload: jsonb("payload")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    reason: text("reason"),
+    approvalReference: text("approvalReference"),
+    lifecycleEventId: text("lifecycleEventId").references(
+      () => hrmLifecycleEvent.id,
+      { onDelete: "set null" }
+    ),
+    iamAuditEventId: text("iamAuditEventId"),
+    actorUserId: text("actorUserId"),
+    actorSessionId: text("actorSessionId"),
+    appliedAt: timestamp("appliedAt", { mode: "date" }),
+    cancelledAt: timestamp("cancelledAt", { mode: "date" }),
+    rejectedAt: timestamp("rejectedAt", { mode: "date" }),
+    failureReason: text("failureReason"),
+    auditOrigin: text("auditOrigin").notNull().default("production"),
+    simulationRunId: text("simulationRunId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_lifecycle_transition_org_status_effective_idx").on(
+      t.organizationId,
+      t.status,
+      t.effectiveDate
+    ),
+    index("hrm_lifecycle_transition_org_employee_status_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.status
+    ),
+    index("hrm_lifecycle_transition_org_kind_status_idx").on(
+      t.organizationId,
+      t.transitionKind,
+      t.status
+    ),
+    uniqueIndex("hrm_lifecycle_transition_org_emp_kind_eff_status_uidx").on(
+      t.organizationId,
+      t.employeeId,
+      t.transitionKind,
+      t.effectiveDate,
+      t.status
     ),
   ]
 )
@@ -4163,6 +4575,38 @@ export const hrmAttendanceDay = pgTable(
 // Phase 3A — Payroll preparation
 // ---------------------------------------------------------------------------
 
+export const hrmPayrollExchangeRate = pgTable(
+  "hrm_payroll_exchange_rate",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId"),
+    fromCurrency: text("fromCurrency").notNull(),
+    toCurrency: text("toCurrency").notNull(),
+    rate: decimal("rate", { precision: 18, scale: 8 }).notNull(),
+    effectiveDate: date("effectiveDate", { mode: "date" }).notNull(),
+    source: text("source").notNull().default("manual"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_payroll_exchange_rate_org_pair_date_uidx").on(
+      t.organizationId,
+      t.fromCurrency,
+      t.toCurrency,
+      t.effectiveDate
+    ),
+    index("hrm_payroll_exchange_rate_pair_effective_idx").on(
+      t.fromCurrency,
+      t.toCurrency,
+      t.effectiveDate
+    ),
+  ]
+)
+
 /** Monthly payroll cycle envelope. Snapshots rulePackVersion at lock so past periods
  *  recompute identically. State machine: open → preparing → locked → finalized → posted.
  */
@@ -4562,7 +5006,7 @@ export const hrmClaim = pgTable(
     fxRateSource: text("fxRateSource"),
     fxSnapshot: jsonb("fxSnapshot"),
     eligibilitySnapshot: jsonb("eligibilitySnapshot"),
-    validationFlags: jsonb("validationFlags").$type<string[]>(),
+    validationFlags: jsonb("validationFlags").$type<unknown[]>(),
     requiresExceptionApproval: boolean("requiresExceptionApproval")
       .notNull()
       .default(false),
@@ -4895,6 +5339,66 @@ export const hrmComplianceEvidence = pgTable(
   ]
 )
 
+export const hrmComplianceObligation = pgTable(
+  "hrm_compliance_obligation",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    complianceArea: text("complianceArea").notNull(),
+    requirementKind: text("requirementKind").notNull(),
+    status: text("status").notNull().default("active"),
+    countryCode: text("countryCode"),
+    legalEntityCode: text("legalEntityCode"),
+    departmentId: text("departmentId").references(() => hrmDepartment.id, {
+      onDelete: "set null",
+    }),
+    workLocationCode: text("workLocationCode"),
+    employmentType: text("employmentType"),
+    workerCategory: text("workerCategory"),
+    policyId: text("policyId"),
+    policyVersion: text("policyVersion"),
+    acknowledgementDeadline: date("acknowledgementDeadline", { mode: "date" }),
+    dueDate: date("dueDate", { mode: "date" }),
+    alertLeadDays: integer("alertLeadDays").notNull().default(7),
+    sourceReferenceId: text("sourceReferenceId"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    effectiveFrom: date("effectiveFrom", { mode: "date" }),
+    effectiveTo: date("effectiveTo", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_compliance_obligation_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_compliance_obligation_org_kind_status_idx").on(
+      t.organizationId,
+      t.requirementKind,
+      t.status
+    ),
+    index("hrm_compliance_obligation_org_area_status_idx").on(
+      t.organizationId,
+      t.complianceArea,
+      t.status
+    ),
+    index("hrm_compliance_obligation_org_scope_idx").on(
+      t.organizationId,
+      t.countryCode,
+      t.legalEntityCode,
+      t.departmentId,
+      t.workLocationCode
+    ),
+  ]
+)
+
 export const hrmComplianceFiling = pgTable(
   "hrm_compliance_filing",
   {
@@ -4905,7 +5409,11 @@ export const hrmComplianceFiling = pgTable(
     title: text("title").notNull(),
     filingCategory: text("filingCategory").notNull(),
     countryCode: text("countryCode"),
+    legalEntityCode: text("legalEntityCode"),
     legalEntityName: text("legalEntityName"),
+    workLocationCode: text("workLocationCode"),
+    employmentType: text("employmentType"),
+    workerCategory: text("workerCategory"),
     filingAuthority: text("filingAuthority"),
     referenceCode: text("referenceCode"),
     dueDate: date("dueDate", { mode: "date" }).notNull(),
@@ -4920,6 +5428,8 @@ export const hrmComplianceFiling = pgTable(
       () => hrmDocument.id,
       { onDelete: "set null" }
     ),
+    waivedAt: timestamp("waivedAt", { mode: "date" }),
+    waivedByUserId: text("waivedByUserId"),
     waiverReason: text("waiverReason"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
@@ -4954,7 +5464,19 @@ export const hrmComplianceException = pgTable(
     correctiveActionOwnerUserId: text("correctiveActionOwnerUserId"),
     correctiveActionDueDate: date("correctiveActionDueDate", { mode: "date" }),
     correctiveActionDescription: text("correctiveActionDescription"),
+    correctiveActionProgressNote: text("correctiveActionProgressNote"),
+    correctiveActionEvidenceDocumentId: text(
+      "correctiveActionEvidenceDocumentId"
+    ).references(() => hrmDocument.id, { onDelete: "set null" }),
+    correctiveActionUpdatedAt: timestamp("correctiveActionUpdatedAt", {
+      mode: "date",
+    }),
     isAutoGenerated: boolean("isAutoGenerated").notNull().default(false),
+    resolutionNote: text("resolutionNote"),
+    resolvedEvidenceDocumentId: text("resolvedEvidenceDocumentId").references(
+      () => hrmDocument.id,
+      { onDelete: "set null" }
+    ),
     resolvedAt: timestamp("resolvedAt", { mode: "date" }),
     resolvedByUserId: text("resolvedByUserId"),
     waivedAt: timestamp("waivedAt", { mode: "date" }),
@@ -4974,6 +5496,11 @@ export const hrmComplianceException = pgTable(
       t.organizationId,
       t.employeeId
     ),
+    index("hrm_compliance_exception_org_owner_due_idx").on(
+      t.organizationId,
+      t.correctiveActionOwnerUserId,
+      t.correctiveActionDueDate
+    ),
   ]
 )
 
@@ -4989,6 +5516,15 @@ export const hrmPolicyAcknowledgement = pgTable(
       .references(() => hrmEmployee.id, { onDelete: "cascade" }),
     policyId: text("policyId").notNull(),
     policyVersion: text("policyVersion").notNull(),
+    policyTitle: text("policyTitle"),
+    acknowledgementMethod: text("acknowledgementMethod")
+      .notNull()
+      .default("employee_portal"),
+    acknowledgementSource: text("acknowledgementSource")
+      .notNull()
+      .default("employee_self_service"),
+    acknowledgedByUserId: text("acknowledgedByUserId"),
+    actorSessionId: text("actorSessionId"),
     acknowledgedAt: timestamp("acknowledgedAt", { mode: "date" }).notNull(),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
@@ -4999,6 +5535,91 @@ export const hrmPolicyAcknowledgement = pgTable(
       t.employeeId,
       t.policyId,
       t.policyVersion
+    ),
+    index("hrm_policy_ack_org_policy_version_idx").on(
+      t.organizationId,
+      t.policyId,
+      t.policyVersion
+    ),
+  ]
+)
+
+export const hrmEssProfileUpdateRequest = pgTable(
+  "hrm_ess_profile_update_request",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "cascade" }),
+    section: text("section").notNull(),
+    requestedChanges: jsonb("requestedChanges")
+      .$type<Record<string, unknown>>()
+      .notNull(),
+    status: text("status").notNull().default("pending"),
+    submittedByUserId: text("submittedByUserId").notNull(),
+    submittedAt: timestamp("submittedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    reviewedByUserId: text("reviewedByUserId"),
+    reviewedAt: timestamp("reviewedAt", { mode: "date" }),
+    reviewNote: text("reviewNote"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_ess_profile_update_request_org_employee_status_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.status
+    ),
+    index("hrm_ess_profile_update_request_org_status_created_idx").on(
+      t.organizationId,
+      t.status,
+      t.createdAt
+    ),
+  ]
+)
+
+export const hrmEssDocumentRequest = pgTable(
+  "hrm_ess_document_request",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    notes: text("notes"),
+    status: text("status").notNull().default("pending"),
+    submittedByUserId: text("submittedByUserId").notNull(),
+    submittedAt: timestamp("submittedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    reviewedByUserId: text("reviewedByUserId"),
+    reviewedAt: timestamp("reviewedAt", { mode: "date" }),
+    reviewNote: text("reviewNote"),
+    fulfilledDocumentId: text("fulfilledDocumentId").references(
+      () => hrmDocument.id,
+      { onDelete: "set null" }
+    ),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_ess_document_request_org_employee_status_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.status
+    ),
+    index("hrm_ess_document_request_org_status_created_idx").on(
+      t.organizationId,
+      t.status,
+      t.createdAt
     ),
   ]
 )
@@ -5029,7 +5650,8 @@ export const hrmExpenseFund = pgTable(
     defaultTaxTreatment: text("defaultTaxTreatment")
       .notNull()
       .default("non_taxable_reimbursement"),
-    eligibilityRules: jsonb("eligibilityRules").$type<Record<string, unknown>>(),
+    eligibilityRules:
+      jsonb("eligibilityRules").$type<Record<string, unknown>>(),
     policyRules: jsonb("policyRules").$type<Record<string, unknown>>(),
     policyVersion: text("policyVersion"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),

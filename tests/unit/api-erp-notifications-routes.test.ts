@@ -22,11 +22,8 @@ const {
   writeIamAuditEventFromHeadersMock: vi.fn(),
 }))
 
-vi.mock("#lib/tenant", () => ({
-  getOrgSessionFromRequest: getOrgSessionFromRequestMock,
-}))
-
 vi.mock("#lib/auth", () => ({
+  getOrgSessionFromRequest: getOrgSessionFromRequestMock,
   canActInOrganization: canActInOrganizationMock,
   writeIamAuditEventFromHeaders: writeIamAuditEventFromHeadersMock,
 }))

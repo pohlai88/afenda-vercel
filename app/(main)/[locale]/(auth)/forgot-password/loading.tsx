@@ -1,4 +1,4 @@
-import { AuthRouteLoading } from "#components/auth/auth-route-loading"
+import { AuthRouteLoading } from "#components2/auth/auth-route-loading"
 
 export default function ForgotPasswordLoading() {
   return (

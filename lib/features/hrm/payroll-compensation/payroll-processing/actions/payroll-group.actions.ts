@@ -10,7 +10,7 @@ import { HRM_PAYROLL_PROCESSING_AUDIT } from "../payroll-processing.contract"
 import { upsertPayrollGroupFormSchema } from "../schemas/payroll-group.schema"
 import { upsertPayrollGroupMutation } from "../data/payroll.mutations.server"
 import { requirePayrollSessionMutationGate } from "../data/payroll-action-guard.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { PayrollGroupUpsertFormState } from "../payroll-form-states"
 
 function revalidatePayrollPages() {
@@ -31,7 +31,8 @@ export async function upsertPayrollGroupAction(
     code: formData.get("code"),
     name: formData.get("name"),
     paySchedule: formData.get("paySchedule"),
-    payCurrency: formData.get("payCurrency") ?? formData.get("currency") ?? "MYR",
+    payCurrency:
+      formData.get("payCurrency") ?? formData.get("currency") ?? "MYR",
     isActive: formData.get("isActive") ?? "true",
   })
   if (!parsed.success) {

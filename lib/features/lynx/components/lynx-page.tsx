@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server"
 
-import { ModulePageHeader } from "#components/module-page-header"
+import { ModulePageHeader } from "#features/governed-surface"
 import { isLynxOperatorEnabled, isLynxStructuredQueryDemoEnabled } from "#flags"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 import {
   AddKnowledgeChunkForm,

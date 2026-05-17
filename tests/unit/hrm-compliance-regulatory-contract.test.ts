@@ -51,4 +51,24 @@ describe("HRM compliance regulatory tracking contracts", () => {
     expect(compliance).toContain('object: "compliance"')
     expect(compliance).not.toContain("buildCrudSapAuditAction")
   })
+
+  it("uses filing audit strings and obligation actions through the compliance contract", () => {
+    const filing = readFileSync(
+      join(COMPLIANCE_ROOT, "actions", "compliance-filing.actions.ts"),
+      "utf8"
+    )
+    const obligations = readFileSync(
+      join(COMPLIANCE_ROOT, "actions", "compliance-obligation.actions.ts"),
+      "utf8"
+    )
+
+    expect(filing).toContain("HRM_COMPLIANCE_REGULATORY_AUDIT.filing.waived")
+    expect(filing).not.toContain("HRM_COMPLIANCE_REGULATORY_AUDIT.exception.waived")
+    expect(obligations).toContain(
+      "HRM_COMPLIANCE_REGULATORY_AUDIT.obligation.configured"
+    )
+    expect(obligations).toContain(
+      "HRM_COMPLIANCE_REGULATORY_AUDIT.obligation.archived"
+    )
+  })
 })

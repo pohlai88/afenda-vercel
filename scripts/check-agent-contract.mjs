@@ -12,6 +12,7 @@ const root = path.join(import.meta.dirname, "..")
 const REQUIRED_FILES = [
   "AGENTS.md",
   ".cursor/rules/agents-md-mandatory.mdc",
+  ".cursor/rules/never-restore-deleted-components.mdc",
   ".cursor/rules/design-system.mdc",
   ".cursor/rules/i18n-directory.mdc",
   ".cursor/rules/lynx-knowledge.mdc",
@@ -56,7 +57,6 @@ const TOP_LEVEL_DIR_ALLOWLIST = new Set([
   ".vscode",
   ".source",
   "app",
-  "components",
   "components2",
   "docs",
   "drizzle",
@@ -135,6 +135,21 @@ const DEFAULT_ALLOWED_MODULE_ROOT_ENTRIES = new Set([
 
 const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
   [
+    "hrm",
+    new Set([
+      ...DEFAULT_ALLOWED_MODULE_ROOT_ENTRIES,
+      "employee-management",
+      "industry-specific-hrm",
+      "payroll-compensation",
+      "talent-management",
+      "time-attendance",
+      "_hrm_landing_page",
+      "_internal-cross-cutting",
+      "_module-governance",
+      "hrm-dashboard-path.shared.ts",
+    ]),
+  ],
+  [
     "planner",
     new Set([
       "domain",
@@ -164,13 +179,53 @@ const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
       "types.ts",
       "index.ts",
       "README.md",
+      "planner-dashboard-path.shared.ts",
+    ]),
+  ],
+  [
+    "tools",
+    new Set([
+      ...DEFAULT_ALLOWED_MODULE_ROOT_ENTRIES,
+      "bulk-csv-import",
+      "electronic-signatures",
+      "_module-governance",
     ]),
   ],
 ])
 
+/** Cross-boundary deep imports documented in AGENTS.md §6.2 (not module barrels). */
+function isAllowedDeepFeatureImport(importedModule, subpath) {
+  if (importedModule === "hrm" && subpath === "hrm-dashboard-path.shared") {
+    return true
+  }
+  if (importedModule === "planner" && subpath === "planner-dashboard-path.shared") {
+    return true
+  }
+  if (
+    importedModule === "governed-surface" &&
+    (subpath.startsWith("schemas/") || subpath.startsWith("components/"))
+  ) {
+    return true
+  }
+  return false
+}
+
 const CODE_EXT_RE = /\.(ts|tsx|js|jsx|mjs|cjs)$/
 /** Second segment `server` / `client` are allowed composition barrels. */
-const DEEP_FEATURE_IMPORT_RE = /from\s+["']#features\/([^/"']+)\/([^"']+)["']/g
+const DEEP_FEATURE_IMPORT_RE =
+  /from\s+["']#features\/([^/"']+)\/(.+?)["']/g
+
+/** AGENTS.md §6.1 — only these files may live at lib/*.ts / lib/*.tsx root. */
+const LIB_ROOT_ALLOWLIST = new Set([
+  "auth-client.ts",
+  "auth-client-neon-compat.ts",
+  "dashboard-module-paths.ts",
+  "design-system.ts",
+  "logger.server.ts",
+  "session-cache.ts",
+  "site.ts",
+  "utils.ts",
+])
 
 let failed = false
 
@@ -210,6 +265,15 @@ function assertRequiredFiles() {
   }
 }
 
+function assertRepoRootComponentsDeleted() {
+  const legacyComponents = path.join(root, "components")
+  if (fs.existsSync(legacyComponents)) {
+    fail(
+      "repo-root components/ must not exist (hard-deleted). Delete the directory and fix imports to components2/ — see .cursor/rules/never-restore-deleted-components.mdc"
+    )
+  }
+}
+
 function assertRuleStrength() {
   if (!exists(".cursor/rules/agents-md-mandatory.mdc")) return
   if (!exists("eslint.config.mjs")) return
@@ -220,6 +284,14 @@ function assertRuleStrength() {
   if (!/alwaysApply:\s*true/.test(mandatory)) {
     fail("agents-md-mandatory.mdc must keep alwaysApply: true")
   }
+
+  if (exists(".cursor/rules/never-restore-deleted-components.mdc")) {
+    const neverRestore = read(".cursor/rules/never-restore-deleted-components.mdc")
+    if (!/alwaysApply:\s*true/.test(neverRestore)) {
+      fail("never-restore-deleted-components.mdc must keep alwaysApply: true")
+    }
+  }
+
   if (!/#features\/\*\/actions/.test(eslintConfig)) {
     fail(
       "eslint must restrict deep feature imports (explicit #features/*/… patterns)"
@@ -237,7 +309,14 @@ function assertNoDumpDirsAtRoot() {
   }
 }
 
+function shouldRunGitDiffContractChecks() {
+  return Boolean(process.env.GITHUB_ACTIONS || process.env.GITHUB_BASE_REF)
+}
+
 function getAddedPathsFromGitDiff() {
+  if (!shouldRunGitDiffContractChecks()) {
+    return []
+  }
   try {
     const baseRef = process.env.GITHUB_BASE_REF
     const cmd = baseRef
@@ -277,6 +356,12 @@ function assertNoUnexpectedTopLevelDirsInDiff() {
     const topLevel = parts[0]
     if (seenDirs.has(topLevel)) continue
     seenDirs.add(topLevel)
+
+    if (topLevel === "components") {
+      fail(
+        "repo-root components/ is hard-deleted — do not add files under components/ (fix imports to components2/). See .cursor/rules/never-restore-deleted-components.mdc"
+      )
+    }
 
     if (!TOP_LEVEL_DIR_ALLOWLIST.has(topLevel)) {
       fail(
@@ -342,8 +427,47 @@ function assertModuleRootShape() {
   }
 }
 
+function assertLibRootAllowlist() {
+  const libRoot = path.join(root, "lib")
+  if (!fs.existsSync(libRoot)) return
+
+  const onDisk = []
+  for (const entry of fs.readdirSync(libRoot, { withFileTypes: true })) {
+    if (!entry.isFile()) continue
+    if (!/\.tsx?$/.test(entry.name)) continue
+    onDisk.push(entry.name)
+    if (!LIB_ROOT_ALLOWLIST.has(entry.name)) {
+      fail(
+        `forbidden lib root file: lib/${entry.name} (nest under a §6.2 subtree; only AGENTS.md §6.1 files may live at lib/ root)`
+      )
+    }
+  }
+
+  for (const name of LIB_ROOT_ALLOWLIST) {
+    if (!fs.existsSync(path.join(libRoot, name))) {
+      fail(`AGENTS.md §6.1 allowlisted file missing on disk: lib/${name}`)
+    }
+  }
+
+  if (onDisk.length !== LIB_ROOT_ALLOWLIST.size) {
+    fail(
+      `lib/ root must contain exactly ${LIB_ROOT_ALLOWLIST.size} allowlisted .ts/.tsx files (found ${onDisk.length}: ${onDisk.sort().join(", ")})`
+    )
+  }
+}
+
+function assertAgentsLibRootTableParity() {
+  if (!exists("AGENTS.md")) return
+  const agents = read("AGENTS.md")
+  for (const name of LIB_ROOT_ALLOWLIST) {
+    if (!agents.includes(`| \`${name}\` |`)) {
+      fail(`AGENTS.md §6.1 table missing row for lib/${name}`)
+    }
+  }
+}
+
 function assertNoDeepFeatureImports() {
-  const scanDirs = ["app", "components", "hooks", "lib"]
+  const scanDirs = ["app", "components2", "hooks", "lib"]
   const files = scanDirs.flatMap((dir) => walk(path.join(root, dir)))
 
   for (const absPath of files) {
@@ -358,6 +482,7 @@ function assertNoDeepFeatureImports() {
         const importedModule = match[1]
         const subpath = match[2]
         if (subpath === "server" || subpath === "client") continue
+        if (isAllowedDeepFeatureImport(importedModule, subpath)) continue
 
         const fromModuleMatch = rel.match(/^lib\/features\/([^/]+)\//)
         const fromModule = fromModuleMatch ? fromModuleMatch[1] : null
@@ -376,12 +501,15 @@ function assertNoDeepFeatureImports() {
 }
 
 assertRequiredFiles()
+assertRepoRootComponentsDeleted()
 assertRuleStrength()
 assertNoDumpDirsAtRoot()
 assertNoNewDumpDirsInDiff()
 assertNoUnexpectedTopLevelDirsInDiff()
 assertNoUnexpectedTopLevelFilesInDiff()
 assertModuleRootShape()
+assertLibRootAllowlist()
+assertAgentsLibRootTableParity()
 assertNoDeepFeatureImports()
 
 if (failed) {

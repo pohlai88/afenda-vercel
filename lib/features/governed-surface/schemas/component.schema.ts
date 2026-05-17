@@ -16,8 +16,7 @@ import { governedSectionConfigurationSchema } from "./section.schema"
 import { governedStackConfigurationSchema } from "./stack.schema"
 import { statCardConfigurationSchema } from "./stat-card.schema"
 
-export const GOVERNED_COMPONENT_SCHEMA_ID =
-  "governed.component" as const
+export const GOVERNED_COMPONENT_SCHEMA_ID = "governed.component" as const
 
 export const GOVERNED_COMPONENT_SCHEMA_STABILITY: SchemaStability = "beta"
 

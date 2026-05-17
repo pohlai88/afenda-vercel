@@ -2,7 +2,7 @@ import type { Route } from "next"
 import { notFound, redirect } from "next/navigation"
 
 import { organizationNexusPath } from "#features/nexus"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 /**
  * Org URL root — redirects to the Nexus field (`/o/{slug}/nexus`).

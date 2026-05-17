@@ -50,6 +50,41 @@
       "when": 1778998797584,
       "tag": "0006_pale_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779028038609,
+      "tag": "0007_fine_deathbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779034063818,
+      "tag": "0008_hard_omega_sentinel",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779037626509,
+      "tag": "0009_chunky_colossus",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1779044196123,
+      "tag": "0010_furry_silhouette",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1779050373508,
+      "tag": "0011_short_cable",
+      "breakpoints": true
     }
   ]
 }

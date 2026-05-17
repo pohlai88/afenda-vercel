@@ -8,12 +8,12 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmClaim, hrmClaimDuplicateSignal } from "#lib/db/schema"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import { HRM_EXPENSE_REIMBURSEMENT_AUDIT } from "../expense-reimbursement.contract"
 import { claimDuplicateOverrideSchema } from "../schema/claim.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ClaimApprovalFormState } from "../../../types"
 
 function revalidateClaims() {

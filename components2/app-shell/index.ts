@@ -1,52 +1,52 @@
 import "server-only"
 
-// Public door for the new app-shell.
-// Import via `#app-shell` — the alias is registered in package.json imports.
-//
-// Server Components: import AppShell, AppSubLayout directly.
-// Client Components: import AppShellSurface and schema types only.
-//                    Actions / path builders live in `#app-shell/client`.
+// ---------------------------------------------------------------------------
+// App-shell public barrel (`#app-shell`)
+// ---------------------------------------------------------------------------
 
-export { AppShell } from "./app-shell"
-export type { AppShellProps, AppShellUtilityBarSlots } from "./app-shell"
+export { AppShell, type AppShellProps } from "./appshell"
+export { AppSubLayout, type AppSubLayoutProps } from "./surface/appshell-sub-layout-rsc"
+export { AppSubLayoutShellSkeleton } from "./surface/appshell-sub-layout-shell-skeleton"
+export { AppShellSurface, type AppShellSurfaceProps } from "./surface/appshell-sub-layout-surface"
+export { AppShellUtilityBar, type AppShellUtilityBarProps } from "./top-utils-bar/appshell-utility-bar"
 
-export { AppSubLayout } from "./sub-layout"
-export type { AppSubLayoutProps } from "./sub-layout.client"
-
-export { AppShellSurface } from "./surface"
-export type { AppShellSurfaceProps } from "./surface"
-
-export { AppShellUtilityBar } from "./utility-bar"
+export { buildAppShellOrgUtilityBarSlots } from "./compose/appshell-utility-bar-org.server"
+export { buildAppShellConsoleUtilityBarSlots } from "./compose/appshell-utility-bar-console.server"
 
 export type {
-  AppShellRailConfig,
-  AppShellRailSlots,
-  AppShellLabels,
-  AppShellRailNavSection,
-  AppShellRailNavItem,
-  AppShellRailNavChildItem,
-  AppShellRailView,
-  AppShellRailRecent,
-  AppShellRailNavIconId,
-  AppShellRailBadgeTone,
-} from "./rail.schema"
+  AppShellChromeProps,
+  AppShellChromePropsInput,
+  AppShellUtilityBarSlots,
+} from "./appshell-props.shared"
+
+export type {
+  AppShellPrimaryLeftRailConfig,
+  AppShellPrimaryLeftRailSlots,
+  AppShellPrimaryLeftRailSlotsData,
+  AppShellPrimaryLeftRailLabels,
+  AppShellPrimaryLeftRailNavSection,
+  AppShellPrimaryLeftRailNavItem,
+  AppShellPrimaryLeftRailNavChildItem,
+  AppShellPrimaryLeftRailInbox,
+  AppShellPrimaryLeftRailPin,
+  AppShellPrimaryLeftRailView,
+  AppShellPrimaryLeftRailRecent,
+  AppShellPrimaryLeftRailIdentity,
+  AppShellPrimaryLeftRailNavIconId,
+  AppShellPrimaryLeftRailBadgeTone,
+} from "./left-rail-bar/appshell-primary-left-rail.schema"
 
 export {
-  appShellRailSlotsDataSchema,
-  appShellRailLabelsSchema,
-  APP_SHELL_RAIL_NAV_ICON_IDS,
-} from "./rail.schema"
+  appShellPrimaryLeftRailSlotsDataSchema,
+  appShellPrimaryLeftRailLabelsSchema,
+  APP_SHELL_PRIMARY_LEFT_RAIL_NAV_ICON_IDS,
+  APP_SHELL_PRIMARY_LEFT_RAIL_FORBIDDEN_LABEL_NAMESPACES,
+  parseAppShellPrimaryLeftRailSlotsData,
+  parseAppShellPrimaryLeftRailLabels,
+  parseAppShellPrimaryLeftRailInbox,
+  parseAppShellPrimaryLeftRailPin,
+  parseAppShellPrimaryLeftRailView,
+  parseAppShellPrimaryLeftRailRecent,
+} from "./left-rail-bar/appshell-primary-left-rail.schema"
 
-// ---------------------------------------------------------------------------
-// Shell store — context-free Zustand store for cross-cutting shell state.
-// Import in Client Components to control command palette, notification badge, etc.
-// ---------------------------------------------------------------------------
-export { useAppShellStore } from "../stores/app-shell.store"
-export type {
-  AppShellState,
-  AppShellStore,
-  AppShellThemeSnapshot,
-  RailMode,
-  ResolvedAppearance,
-  ThemePreference,
-} from "../stores/app-shell.store"
+export { filterAppShellPrimaryLeftRailNavSections } from "./left-rail-bar/appshell-primary-left-rail.shared"

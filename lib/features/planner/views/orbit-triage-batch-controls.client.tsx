@@ -2,9 +2,9 @@
 
 import { useEffect, useEffectEvent, useId, useState } from "react"
 
-import { Badge } from "#components/ui/badge"
-import { Button } from "#components/ui/button"
-import { Input } from "#components/ui/input"
+import { Badge } from "#components2/ui/badge"
+import { Button } from "#components2/ui/button"
+import { Input } from "#components2/ui/input"
 
 const SIGNAL_OPERATIONS = [
   "promote_signals",

@@ -2,17 +2,17 @@
 
 import { useActionState } from "react"
 
-import { Button } from "#components/ui/button"
-import { Input } from "#components/ui/input"
-import { Label } from "#components/ui/label"
-import { Textarea } from "#components/ui/textarea"
+import { Button } from "#components2/ui/button"
+import { Input } from "#components2/ui/input"
+import { Label } from "#components2/ui/label"
+import { Textarea } from "#components2/ui/textarea"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "#components/ui/select"
+} from "#components2/ui/select"
 
 import {
   scheduleExitInterviewAction,
@@ -207,7 +207,7 @@ export function SetRehireEligibilityForm({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="eligible">Eligible</SelectItem>
-            <SelectItem value="ineligible">Ineligible</SelectItem>
+            <SelectItem value="not_eligible">Ineligible</SelectItem>
             <SelectItem value="conditional">Conditional</SelectItem>
           </SelectContent>
         </Select>

@@ -9,6 +9,7 @@ import {
   assertNoEmployeeDuplicates,
   duplicateMatchErrorMessage,
 } from "./employee-duplicate-check.server"
+import { upsertEmployeeEffectiveAssignment } from "./employee-assignment-command.server"
 
 export type EmployeeCoreFieldSnapshot = {
   employeeNumber: string
@@ -26,6 +27,8 @@ export type UpdateEmployeeCoreFieldsInput = {
   actorUserId: string
   existing: EmployeeCoreFieldSnapshot & { archivedAt: Date | null }
   next: EmployeeCoreFieldSnapshot
+  effectiveFrom?: Date | null
+  reason?: string | null
 }
 
 export type UpdateEmployeeCoreFieldsResult =
@@ -77,28 +80,6 @@ function buildChangeHistoryRows(
       newValue: next.email,
     })
   }
-  if (existing.currentDepartmentId !== next.currentDepartmentId) {
-    rows.push({
-      fieldName: "currentDepartmentId",
-      oldValue: existing.currentDepartmentId,
-      newValue: next.currentDepartmentId,
-    })
-  }
-  if (existing.currentPositionId !== next.currentPositionId) {
-    rows.push({
-      fieldName: "currentPositionId",
-      oldValue: existing.currentPositionId,
-      newValue: next.currentPositionId,
-    })
-  }
-  if (existing.currentJobGradeId !== next.currentJobGradeId) {
-    rows.push({
-      fieldName: "currentJobGradeId",
-      oldValue: existing.currentJobGradeId,
-      newValue: next.currentJobGradeId,
-    })
-  }
-
   return rows
 }
 
@@ -124,6 +105,10 @@ export async function updateEmployeeCoreFieldsWithHistory(
 
   const historyRows = buildChangeHistoryRows(input.existing, input.next)
   const changedFields = historyRows.map((row) => row.fieldName)
+  const assignmentChanged =
+    input.existing.currentDepartmentId !== input.next.currentDepartmentId ||
+    input.existing.currentPositionId !== input.next.currentPositionId ||
+    input.existing.currentJobGradeId !== input.next.currentJobGradeId
 
   try {
     await db.transaction(async (tx) => {
@@ -134,9 +119,6 @@ export async function updateEmployeeCoreFieldsWithHistory(
           legalName: input.next.legalName,
           preferredName: input.next.preferredName,
           email: input.next.email,
-          currentDepartmentId: input.next.currentDepartmentId,
-          currentPositionId: input.next.currentPositionId,
-          currentJobGradeId: input.next.currentJobGradeId,
           updatedByUserId: input.actorUserId,
         })
         .where(
@@ -156,6 +138,28 @@ export async function updateEmployeeCoreFieldsWithHistory(
           newValue: row.newValue === undefined ? null : row.newValue,
           changedByUserId: input.actorUserId,
         })
+      }
+
+      if (assignmentChanged) {
+        const assignment = await upsertEmployeeEffectiveAssignment(
+          {
+            organizationId: input.organizationId,
+            employeeId: input.employeeId,
+            actorUserId: input.actorUserId,
+            effectiveFrom: input.effectiveFrom ?? new Date(),
+            next: {
+              currentDepartmentId: input.next.currentDepartmentId,
+              currentPositionId: input.next.currentPositionId,
+              currentJobGradeId: input.next.currentJobGradeId,
+            },
+            meta: {
+              effectiveDate: input.effectiveFrom ?? null,
+              reason: input.reason ?? "Core employee placement update",
+            },
+          },
+          tx
+        )
+        changedFields.push(...assignment.changedFields)
       }
     })
   } catch (err) {

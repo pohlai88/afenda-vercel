@@ -1,7 +1,7 @@
 import type {
-  WorkbenchRailNavIconId,
-  WorkbenchRailSlots,
-} from "#components/workbench/left-nav-rail"
+  AppShellPrimaryLeftRailNavIconId,
+  AppShellPrimaryLeftRailSlots,
+} from "#app-shell"
 
 import { PLATFORM_ADMIN_NAV_ITEMS, platformAdminPath } from "../constants"
 import type {
@@ -9,14 +9,14 @@ import type {
   PlatformAdminRailPressureMap,
 } from "../types"
 
-const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
+const NAV_KEY_ICONS: Record<string, AppShellPrimaryLeftRailNavIconId> = {
   users: "users",
   organizations: "building-2",
   overview: "list",
 }
 
 /**
- * Builds WorkbenchRailSlots v2 from PLATFORM_ADMIN_CAPABILITIES.
+ * Builds AppShellPrimaryLeftRailSlots v2 from PLATFORM_ADMIN_CAPABILITIES.
  *
  * **Pure mapper** — no DB calls, no IO. The shell schema is the kernel;
  * this function only maps from registry + optional pressure into the
@@ -35,7 +35,7 @@ export function buildPlatformAdminRailSlots({
   /** Optional pressure map produced by `getPlatformAdminRailPressureCounts`. */
   pressure?: PlatformAdminRailPressureMap
   pathForSegment?: (segment?: string) => string
-}): WorkbenchRailSlots {
+}): AppShellPrimaryLeftRailSlots {
   const allNavItems = [
     {
       id: "overview",

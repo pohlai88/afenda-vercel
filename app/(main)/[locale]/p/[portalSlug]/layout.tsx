@@ -2,12 +2,11 @@ import type { Metadata } from "next"
 import type { ReactNode } from "react"
 
 import { PortalShell } from "#components2/portal-shell"
-import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
+import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { requirePortalContext } from "#lib/portal/server"
-import type { RouteEnvelope } from "#lib/route-envelope.shared"
+import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 
-export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   robots: PRIVATE_SURFACE_ROBOTS,

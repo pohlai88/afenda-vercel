@@ -1,16 +1,16 @@
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
-import { ModulePageHeader } from "#components/module-page-header"
+import { ModulePageHeader } from "#features/governed-surface"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Skeleton } from "#components/ui/skeleton"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/card"
+import { Skeleton } from "#components2/ui/skeleton"
+import { requireOrgSession } from "#lib/auth"
 
 import {
   isHrmDocumentClassification,

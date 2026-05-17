@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   assertEmploymentStatusTransition,
   deriveLifecycleStage,
+  normalizeHrmEmploymentStatusForRead,
 } from "../../lib/features/hrm/employee-management/employee-lifecycle-management/data/employee-lifecycle-stage.shared"
 
 describe("deriveLifecycleStage", () => {
@@ -38,6 +39,29 @@ describe("deriveLifecycleStage", () => {
       })
     ).toBe("offboarding")
   })
+
+  it("keeps confirmed distinct from active", () => {
+    expect(
+      deriveLifecycleStage({
+        archivedAt: null,
+        employmentStatus: "confirmed",
+        hasOpenOnboarding: false,
+        hasOpenOffboarding: false,
+      })
+    ).toBe("confirmed")
+  })
+
+  it("normalizes legacy terminated rows to separated on reads", () => {
+    expect(normalizeHrmEmploymentStatusForRead("terminated")).toBe("separated")
+    expect(
+      deriveLifecycleStage({
+        archivedAt: null,
+        employmentStatus: "terminated",
+        hasOpenOnboarding: false,
+        hasOpenOffboarding: false,
+      })
+    ).toBe("separated")
+  })
 })
 
 describe("assertEmploymentStatusTransition", () => {
@@ -51,5 +75,11 @@ describe("assertEmploymentStatusTransition", () => {
     expect(() =>
       assertEmploymentStatusTransition("terminated", "active")
     ).toThrow(/Invalid employment status transition/)
+  })
+
+  it("allows notice period to separated", () => {
+    expect(() =>
+      assertEmploymentStatusTransition("notice_period", "separated")
+    ).not.toThrow()
   })
 })

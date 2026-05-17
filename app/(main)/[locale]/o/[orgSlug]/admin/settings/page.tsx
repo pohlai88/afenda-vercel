@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 
 import {
   OrganizationSlugSettingsForm,
@@ -18,7 +18,7 @@ import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 import { GovernedSurface } from "#features/governed-surface"
 
 import { Link } from "#i18n/navigation"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 export default async function OrgAdminSettingsPage({
   params,

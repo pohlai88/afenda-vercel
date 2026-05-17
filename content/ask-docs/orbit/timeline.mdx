@@ -1,57 +1,79 @@
 ---
 title: Timeline
 description: Upcoming, overdue, and scheduled operational pressure across the execution horizon.
+audience: admin
+status: stable
 icon: GanttChart
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-**Orbit Timeline** (`/o/{orgSlug}/dashboard/orbit/timeline`) shows **upcoming, overdue, and scheduled pressure** across the execution horizon — beyond the single-day lens of [Today](./today).
+**Orbit Timeline** (`/{locale}/o/{orgSlug}/dashboard/orbit/timeline`) shows **upcoming, overdue, and scheduled pressure** across the execution horizon — beyond the single-day lens of [Today](/ask-docs/orbit/today).
 
 Use Timeline when you need to answer: *what is coming, and what is already late?*
+
+## Before you start
+
+- You need an active org session and ERP permissions for the planner module.
+- Timeline emphasises **Next** and overdue bands on Afenda's Past · Now · Next temporal spine.
+- Items without schedule context may still appear when pressure rules elevate them (for example `blocked` or automation-attention states).
 
 ## Horizon semantics
 
 Timeline organises work along Afenda's **Past · Now · Next** model:
 
 | Band | Contents |
-|---|---|
+| --- | --- |
 | **Overdue** | Scheduled work whose time window has passed without resolution |
 | **Now** | Active and blocked execution in the current operating period |
 | **Upcoming** | Scheduled items on future dates or recurrence instances |
 
-Items without meaningful schedule context may still appear when pressure rules elevate them (for example blocked or automation-attention states).
-
-## Typical workflows
-
-### Clear overdue backlog
+## Clear overdue backlog
 
 <Steps>
   <Step>
-    Sort and filter Timeline to surface overdue items first (due ascending / pressure descending depending on saved view).
+    Open **Timeline** at `/{locale}/o/{orgSlug}/dashboard/orbit/timeline` and sort or filter to surface overdue items first.
   </Step>
   <Step>
-    For each item, either **reschedule**, **assign**, **unblock**, or **transition** toward review and verification.
+    For each item, **reschedule**, **assign**, **unblock**, or **transition** toward review and verification.
   </Step>
   <Step>
-    Promote or correlate signals if overdue pressure originated as untriaged signals.
+    Return to [Triage](/ask-docs/orbit/triage) to promote or correlate signals if overdue pressure originated as untriaged intake.
   </Step>
 </Steps>
 
-### Plan the next period
+## Plan the next period
 
 Use Timeline with **Today** to commit work: schedule items from triage into concrete dates, then confirm the next seven to fourteen days look achievable.
 
+<Callout type="info" title="Saved views">
+  Persist sort and filter combinations as **saved views** (`erp.planner.view.upsert` / `erp.planner.view.delete`) — for example "overdue critical" or "unassigned next week".
+</Callout>
+
 ## Recurrence and reminders
 
-Recurring items and reminder policies appear on Timeline through their next instances. When automation fails, the failure also surfaces in [Triage](./triage) under automation attention.
+Recurring items and reminder policies appear on Timeline through their next instances. When automation fails, the failure also surfaces in [Triage](/ask-docs/orbit/triage) under automation attention.
 
-## Saved views
+## Troubleshooting
 
-Operators can persist sort and filter combinations as **saved views** (`erp.planner.view.upsert` / `erp.planner.view.delete`) to reuse horizon slices — for example "overdue critical" or "unassigned next week".
+<Accordions type="single">
+  <Accordion title="An item is overdue but not on Timeline">
+    Confirm the item has a schedule bound and is not resolved or cancelled. Pressure-only elevation still lists some blocked items without calendar dates.
+  </Accordion>
+  <Accordion title="Recurrence stopped generating instances">
+    Check **Triage** under automation attention for failed reminder or recurrence runs before rescheduling manually.
+  </Accordion>
+  <Accordion title="Timeline and Today show different sets">
+    **Today** filters to the current calendar day; **Timeline** spans the full horizon including overdue and future buckets.
+  </Accordion>
+</Accordions>
 
-## Related surfaces
+## Related
 
-- [Today](./today) — intraday execution focus
-- [Queue](./queue) — immediate ranked work
-- [Triage](./triage) — intake before items enter the horizon
+<Cards>
+  <Card href="/ask-docs/orbit/today" title="Today" description="Intraday execution focus for the current day." />
+  <Card href="/ask-docs/orbit/queue" title="Queue" description="Immediate ranked work regardless of calendar." />
+  <Card href="/ask-docs/orbit/triage" title="Triage" description="Intake before items enter the horizon." />
+  <Card href="/ask-docs/orbit/concepts" title="Core concepts" description="Temporal model and scheduling primitives." />
+</Cards>

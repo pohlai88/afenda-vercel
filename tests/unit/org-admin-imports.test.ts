@@ -33,7 +33,7 @@ vi.mock(
     },
   })
 )
-vi.mock("../../lib/features/hrm/workforce-time-attendance/data/attendance-import.adapter.server.ts", () => ({
+vi.mock("../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-import.adapter.server.ts", () => ({
   attendanceImportAdapter: {
     id: "hrm_attendance_import",
     requiredHeaders: [],

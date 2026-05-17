@@ -38,11 +38,8 @@ vi.mock("#lib/db", () => ({
 import { {{camelCase verb}}{{pascalCase slug}} } from "#features/{{slug}}/actions/{{verb}}-{{slug}}"
 import { listFor{{pascalCase slug}}Organization } from "#features/{{slug}}/data/{{slug}}.queries"
 
-vi.mock("#lib/tenant", () => ({
-  requireOrgSession: vi.fn(),
-}))
-
 vi.mock("#lib/auth", () => ({
+  requireOrgSession: vi.fn(),
   writeIamAuditEventFromNextHeaders: vi.fn().mockResolvedValue(undefined),
   canActInOrganization: vi.fn().mockResolvedValue(true),
 }))
@@ -51,7 +48,7 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }))
 
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 describe("{{slug}} org isolation", () => {
   beforeEach(() => {

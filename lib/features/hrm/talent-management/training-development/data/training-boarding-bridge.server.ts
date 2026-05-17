@@ -5,7 +5,7 @@ import { and, eq, inArray, sql } from "drizzle-orm"
 import { db } from "#lib/db"
 import { hrmBoardingInstance, hrmBoardingTask } from "#lib/db/schema"
 
-import { transitionBoardingTask } from "./boarding.mutations.server"
+import { transitionBoardingTask } from "../../../employee-management/employee-lifecycle-management/data/boarding.mutations.server"
 import { getTrainingCourseById } from "./training.queries.server"
 
 export async function completeBoardingTasksForTrainingRecord(input: {

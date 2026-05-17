@@ -33,8 +33,8 @@ import {
   getPayrollPeriodPrimaryCountryCode,
 } from "../data/payroll.queries.server"
 import { resolveRulePack } from "../../multi-country-payroll/data/payroll-rule-pack.server"
-import { requireHrmPermission } from "../../../hrm-admin-guard.server"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   PayrollPeriodCreateFormState,
   PayrollPeriodUpdateFormState,

@@ -19,12 +19,12 @@ import {
   dryRunPayroll,
   listValidEmployeeImportRows,
   parseCsv,
-} from "../../lib/features/hrm/employee-management/employee-records-management/data/hrm-import-csv.shared.ts"
+} from "#features/tools/server"
 import {
   HRM_IMPORT_TYPES,
   hrmImportRollbackJsonSchema,
   hrmImportSessionStatusSchema,
-} from "../../lib/features/tools/bulk-csv-import/schemas/hrm-import.schema"
+} from "#features/tools"
 
 // ---------------------------------------------------------------------------
 // parseCsv
@@ -159,6 +159,17 @@ describe("dryRunEmployees", () => {
       e.message.includes("employee_number")
     )
     expect(missingNumError?.line).toBe(3) // header is line 1, first data row is 2, second data row is 3
+  })
+
+  it("flags duplicate employee_number within the same CSV", () => {
+    const grid = parseCsv(
+      `${EMPLOYEE_HEADER}\nEMP001,Alice\nEMP001,Bob Duplicate`
+    )
+    const result = dryRunEmployees(grid)
+    expect(
+      result.errors.some((e) => e.message.includes("Duplicate employee_number"))
+    ).toBe(true)
+    expect(result.rowCount).toBe(1)
   })
 })
 
@@ -334,6 +345,20 @@ describe("hrmImportRollbackJsonSchema", () => {
     expect(result.success).toBe(true)
   })
 
+  it("parses hrm_import_v1 kind with blob staging fields", () => {
+    const result = hrmImportRollbackJsonSchema.safeParse({
+      kind: "hrm_import_v1",
+      importType: "employees",
+      contentSha256: "abc123",
+      blobUrl: "https://example.blob.vercel-storage.com/hrm/imports/org/session/source.csv",
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.blobUrl).toContain("blob")
+      expect(result.data.sourceCsv).toBeUndefined()
+    }
+  })
+
   it("rejects unknown kind", () => {
     const result = hrmImportRollbackJsonSchema.safeParse({
       kind: "hrm_import_v99",
@@ -362,7 +387,9 @@ describe("hrmImportSessionStatusSchema", () => {
   const VALID_STATUSES = [
     "pending",
     "dry_run",
+    "processing",
     "committed",
+    "failed",
     "rolled_back",
   ] as const
 
@@ -402,9 +429,7 @@ describe("hrmImportSessionStatusSchema", () => {
 // ---------------------------------------------------------------------------
 
 describe("HRM_IMPORT_TYPES", () => {
-  it("contains employees, attendance, and payroll", () => {
-    expect(HRM_IMPORT_TYPES).toContain("employees")
-    expect(HRM_IMPORT_TYPES).toContain("attendance")
-    expect(HRM_IMPORT_TYPES).toContain("payroll")
+  it("exposes employees only until attendance/payroll commit paths ship", () => {
+    expect(HRM_IMPORT_TYPES).toEqual(["employees"])
   })
 })

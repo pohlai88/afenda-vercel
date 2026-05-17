@@ -6,7 +6,7 @@ import {
   parsePageHeaderData,
 } from "#features/governed-surface"
 import { organizationOperatorPath } from "#features/platform-admin"
-import { requireGlobalAdminSession } from "#lib/tenant"
+import { requireGlobalAdminSession } from "#lib/auth"
 
 export default async function OrganizationPlatformAdminAuditPage({
   params,

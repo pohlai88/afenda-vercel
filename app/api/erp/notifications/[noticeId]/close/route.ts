@@ -1,10 +1,9 @@
 import { writeIamAuditEventFromHeaders } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 import { closeOrgNotification } from "#features/org-notifications/server"
-import { routeJsonError, routeJsonOk } from "#lib/route-handler-json.shared"
-import { getOrgSessionFromRequest } from "#lib/tenant"
+import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
+import { getOrgSessionFromRequest } from "#lib/auth"
 
-export const runtime = "nodejs"
 
 export async function POST(
   request: Request,

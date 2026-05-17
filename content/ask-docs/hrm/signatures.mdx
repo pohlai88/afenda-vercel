@@ -4,6 +4,7 @@ description: Multi-party in-app signature ceremonies produce signed JSON envelop
 icon: PenLine
 audience: admin
 status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
@@ -12,19 +13,36 @@ status: stable
 
 Employees act on pending ceremonies from **HRM → Signatures** in the [employee portal](/ask-docs/portals/employee) when they are a party on the request.
 
-## Workbench surface
+## Before you start
 
-Navigate to **HRM → Signatures** (`/o/{orgSlug}/dashboard/hrm/signatures`).
+- Confirm the underlying HR artifact (contract, boarding task, policy version) exists before creating a ceremony.
+- Parties must have active workforce or portal access to complete their signing step.
+- High-impact completions may require **recent authentication step-up** — ensure signers can complete step-up on the device they use.
 
-Administrators can:
+## Creating and monitoring ceremonies
 
-- Create signature requests linked to HR artifacts
-- Monitor party status (pending, completed, declined)
-- Open ceremony detail by public slug for support
+<Steps>
+  <Step>
+    Navigate to **HRM → Signatures** (`/o/{orgSlug}/dashboard/hrm/signatures`).
+  </Step>
+  <Step>
+    Create a signature request linked to the HR artifact (contract, boarding task, or policy acknowledgement).
+  </Step>
+  <Step>
+    Monitor party status (pending, completed, declined) from the workbench list or ceremony detail by public slug.
+  </Step>
+  <Step>
+    After all required parties complete, store the signed envelope evidence in the **documents vault** when your process requires retention.
+  </Step>
+</Steps>
 
 ## Tier A — step-up authentication
 
 Submitting a signature as a party may require **recent authentication step-up** (`requireRecentAuthStepUp`) before the ceremony completes. This protects high-impact HR documents from session hijack on shared machines.
+
+<Callout type="warn" title="Step-up on completion">
+  If a signer sees a session-expired or step-up interruption, they must re-authenticate and return to the pending ceremony — partial saves do not count as signed.
+</Callout>
 
 ## Permissions
 
@@ -37,9 +55,30 @@ Submitting a signature as a party may require **recent authentication step-up** 
 
 Signature lifecycle events use `erp.hrm.signature.*` prefixes. Declines and completions are immutable business facts — use governed cancellation flows instead of deleting rows.
 
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Party cannot open the ceremony">
+    Confirm they are listed on the request, portal access is active, and the ceremony has not already completed or been declined.
+  </Accordion>
+  <Accordion title="Completion blocked by step-up">
+    Ask the signer to complete recent authentication, then retry from the pending ceremony link.
+  </Accordion>
+</Accordions>
+
 ## Related
 
-- [Documents vault](/ask-docs/hrm/documents) — stored evidence files
-- [Policies](/ask-docs/hrm/policies) — handbook acknowledgements
-- [Onboarding](/ask-docs/hrm/onboarding) — boarding tasks that reference ceremonies
-- [Employee portal](/ask-docs/portals/employee) — party actions on pending signatures
+<Cards>
+  <Card href="/ask-docs/hrm/documents" title="Documents vault">
+    Stored evidence files after ceremonies complete.
+  </Card>
+  <Card href="/ask-docs/hrm/policies" title="Policies">
+    Handbook acknowledgements that may require signatures.
+  </Card>
+  <Card href="/ask-docs/hrm/onboarding" title="Onboarding">
+    Boarding tasks that reference ceremonies.
+  </Card>
+  <Card href="/ask-docs/portals/employee" title="Employee portal">
+    Party actions on pending signatures.
+  </Card>
+</Cards>

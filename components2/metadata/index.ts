@@ -1,3 +1,8 @@
+export {
+  GovernedListSurfaceWithTrailingColumn,
+  type ListSurfaceTableTrailingColumn,
+} from "./list-surface-with-trailing-column"
+
 export { GovernedComponentRenderer } from "./render-governed-component"
 export type { GovernedComponentRendererProps } from "./render-governed-component"
 

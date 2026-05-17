@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { nextSignatureReminderAt } from "#features/tools/electronic-signatures/data/signature-reminder.shared"
+import { nextSignatureReminderAt } from "#features/tools/server"
 
 describe("signature reminder schedule", () => {
   it("schedules first reminder three days after send", () => {

@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
-import { ModulePageHeader } from "#components/module-page-header"
+import { ModulePageHeader } from "#features/governed-surface"
 import {
   Card,
   CardAction,
@@ -9,8 +9,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Skeleton } from "#components/ui/skeleton"
+} from "#components2/ui/card"
+import { Skeleton } from "#components2/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -18,8 +18,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "#components/ui/table"
-import { requireOrgSession } from "#lib/tenant"
+} from "#components2/ui/table"
+import { requireOrgSession } from "#lib/auth"
 
 import { normalizeOrgStructureTab } from "../data/org-structure-display.shared"
 import type { OrgStructureSurfaceCapabilities } from "../data/org-structure-capabilities.shared"

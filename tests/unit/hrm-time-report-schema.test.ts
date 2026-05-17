@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { submitTimeReportFormSchema } from "../../lib/features/hrm/workforce-time-attendance/schemas/time-report.schema"
+import { submitTimeReportFormSchema } from "../../lib/features/hrm/time-attendance/leave-attendance-management/schemas/time-report.schema"
 
 describe("submitTimeReportFormSchema", () => {
   it("accepts valid overtime payload", () => {

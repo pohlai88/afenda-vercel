@@ -2,11 +2,11 @@
 
 | Field | Value |
 | ----- | ----- |
-| **Status** | Accepted |
+| **Status** | Accepted (Phase 2 enablement in progress — `cacheComponents: true` since 2026-05-17) |
 | **Date** | 2026-05-16 |
 | **Supersedes** | Nothing |
 | **Does not supersede** | Next.js 16 App Router, `connection()` for request-time routes, `revalidatePath` / `revalidateTag` for ERP mutations, ask-docs ISR (`generateStaticParams` + segment `revalidate`) |
-| **Implements in code** | `next.config.ts` (`cacheComponents` left off), `app/(ask-docs)/**`, `app/llms*.txt`, `app/llms.mdx/**`, `app/api/chat/route.ts` (`connection()`), ~70 ERP/portal/IAM routes retaining `export const dynamic = "force-dynamic"` |
+| **Implements in code** | `next.config.ts` (`experimental.cacheComponents: true`), ask-docs + LLM routes (`'use cache'` + `cacheLife`), segment `dynamic`/`revalidate`/`runtime` exports removed (`scripts/strip-force-dynamic-route-exports.mjs`), ERP/portal/IAM dynamic by default |
 | **Related docs** | [Next.js: cacheComponents](https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents) · [Migrating to Cache Components](https://nextjs.org/docs/app/guides/migrating-to-cache-components) · [Caching without Cache Components](https://nextjs.org/docs/app/guides/caching-without-cache-components) · `.cursor/rules/nextjs-best-practices.mdc` |
 
 ---
@@ -33,11 +33,13 @@ Approximately **70** route files under `app/(main)/` and related trees still exp
 
 ## 2. Decision
 
-**Defer enabling Cache Components repo-wide.** Stay on the [Caching and Revalidating (Previous Model)](https://nextjs.org/docs/app/guides/caching-without-cache-components) until a dedicated platform migration meets the triggers in §5.
+**Phase 2 (2026-05-17):** `experimental.cacheComponents: true` is enabled; segment configs stripped; ask-docs migrated to `'use cache'` + `cacheLife`. Remaining work: green `pnpm build -- --debug-prerender` and Suspense/`connection()` boundaries where build reports blocking routes.
+
+**Historical (pre-2026-05-17):** Cache Components was deferred until app/source boundary + bulk `force-dynamic` removal could land without breaking ask-docs.
 
 ### 2.1 Configuration
 
-- `next.config.ts`: **`cacheComponents` remains disabled** (commented / omitted).
+- `next.config.ts`: **`experimental.cacheComponents: true`** (enabled Phase 2 after app/source boundary + segment-config removal).
 - Do **not** run automated `enable_cache_components` MCP migration without an explicit platform sprint and regression plan.
 
 ### 2.2 Ask-docs (public MDX)
@@ -53,7 +55,7 @@ On-demand invalidation via `cacheTag('ask-docs:{locale}')` is **not required** w
 ### 2.3 Request-time and dynamic surfaces
 
 - **Route handlers** that must not be statically prerendered: `await connection()` (e.g. `app/api/chat/route.ts`).
-- **ERP / portal / IAM**: keep `export const dynamic = "force-dynamic"` until a coordinated removal under Cache Components migration (Next.js: with `cacheComponents`, `force-dynamic` is unnecessary — pages are dynamic by default; removal is a **bulk refactor**, not a docs-only change).
+- **ERP / portal / IAM**: `export const dynamic = "force-dynamic"` removed — dynamic by default under Cache Components; session/tenant reads stay in layouts with `<Suspense>` or uncached server boundaries as build verification requires.
 
 ### 2.4 Mutation invalidation
 
@@ -81,6 +83,7 @@ Enabling the flag early is **speculative infrastructure**: high cost, unproven g
 2. **Agents and reviewers** must not enable `cacheComponents` in drive-by PRs; any enablement needs this ADR amended or superseded.
 3. **Next.js MCP / docs** remain the source of truth for a future migration ([migrating guide](https://nextjs.org/docs/app/guides/migrating-to-cache-components)).
 4. `scripts/strip-force-dynamic-route-exports.mjs` stays a **human-only helper** for a future sprint — not run in CI until the migration is scheduled.
+5. **App/source boundary refactor** (thin `app/` pages, `#app-shell` migration) is a prerequisite to Cache Components enablement — see AGENTS.md §6 *App vs source*.
 
 ---
 

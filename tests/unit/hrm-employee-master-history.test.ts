@@ -28,6 +28,16 @@ describe("employee master change redaction", () => {
           oldValue: "old@example.com",
           newValue: "new@example.com",
         },
+        {
+          fieldName: "dateOfBirth",
+          oldValue: "1990-01-01",
+          newValue: "1991-01-01",
+        },
+        {
+          fieldName: "address",
+          oldValue: { line1: "Old" },
+          newValue: { line1: "New" },
+        },
       ],
     })
 
@@ -44,6 +54,16 @@ describe("employee master change redaction", () => {
       }),
       expect.objectContaining({
         fieldName: "personalEmail",
+        oldValue: "[redacted]",
+        newValue: "[redacted]",
+      }),
+      expect.objectContaining({
+        fieldName: "dateOfBirth",
+        oldValue: "[redacted]",
+        newValue: "[redacted]",
+      }),
+      expect.objectContaining({
+        fieldName: "address",
         oldValue: "[redacted]",
         newValue: "[redacted]",
       }),

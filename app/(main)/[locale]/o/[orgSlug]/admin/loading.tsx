@@ -1,4 +1,4 @@
-import { Spinner } from "#components/ui/spinner"
+import { Spinner } from "#components2/ui/spinner"
 
 export default function OrgAdminLoading() {
   return (

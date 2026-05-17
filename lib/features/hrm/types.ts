@@ -1,6 +1,7 @@
-import type { WorkbenchRailBadgeTone } from "#components/workbench/left-nav-rail"
+import type { AppShellPrimaryLeftRailBadgeTone } from "#app-shell"
 import type { ErpPermissionKey } from "#features/erp-rbac/client"
-import type { HrmDashboardCapabilitySegment } from "#lib/hrm-dashboard.shared"
+import type { EmployeeRecordsFieldKey } from "./employee-management/employee-records-management/data/employee-records-field-catalog.shared"
+import type { HrmDashboardCapabilitySegment } from "./hrm-dashboard-path.shared"
 
 export type HrmCapabilityId =
   | "workforce"
@@ -45,13 +46,13 @@ export const HRM_NAV_NAMESPACE = "Dashboard.Hrm.nav" as const
 /**
  * Semantic urgency carried by every HRM rail nav badge. Re-exports the
  * shell-level tone vocabulary so callers in `lib/features/hrm/` never
- * deep-import `#components/workbench/left-nav-rail`.
+ * deep-import `#app-shell` rail schema internals.
  *
  * Operators read tone (color) before number — the threshold helpers in
  * `hrm-rail-pressure.shared.ts` are the only legitimate source of
  * `attention` / `critical`. UI components must not invent new tones.
  */
-export type HrmRailPressureTone = WorkbenchRailBadgeTone
+export type HrmRailPressureTone = AppShellPrimaryLeftRailBadgeTone
 
 /**
  * Single nav badge payload. `count` is the integer surfaced in the UI
@@ -67,7 +68,7 @@ export type HrmRailPressureBadge = {
 /**
  * Per-nav-key pressure map produced by `getHrmRailPressureCounts`.
  * Sparse by design — empty slots hide. The rail-slot builder is a pure
- * mapper from this shape onto `WorkbenchRailNavItem.badge`.
+ * mapper from this shape onto `AppShellPrimaryLeftRailNavItem.badge`.
  *
  * Keyed by `HrmNavKey` (e.g. `leave`, `payroll`, `compliance`); other
  * keys are absent unless wired in a later phase.
@@ -200,6 +201,7 @@ export type EmployeeMasterCompleteness = {
   documents: boolean
   score: number
   missingFields: string[]
+  missingFieldKeys: EmployeeRecordsFieldKey[]
   payrollReady: boolean
   complianceReady: boolean
 }
@@ -320,6 +322,10 @@ export type HrmDocumentSummary = {
   mimeType: string
   sizeBytes: number
   classification: string
+  verificationStatus: string
+  rejectionReason: string | null
+  versionNumber: number
+  isMandatory: boolean
   uploadedAt: Date
 }
 
@@ -427,7 +433,12 @@ export type HrmDocumentMutationFormState =
   | { ok: true }
   | {
       ok: false
-      errors: { form?: string; blobUrl?: string; payloadHash?: string }
+      errors: {
+        form?: string
+        blobUrl?: string
+        payloadHash?: string
+        rejectionReason?: string
+      }
     }
 
 export type EmployeeMutationFormState =
@@ -460,6 +471,16 @@ export type EmployeeMasterMutationFormState =
         authorizationType?: string
         countryCode?: string
         effectiveFrom?: string
+      }
+    }
+
+export type EssAcknowledgementFormState =
+  | { ok: true }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        policyId?: string
       }
     }
 
@@ -772,7 +793,12 @@ export type ClaimApprovalFormState =
   | { ok: true; claimId: string }
   | {
       ok: false
-      errors: { form?: string; claimId?: string; rejectedReason?: string }
+      errors: {
+        form?: string
+        claimId?: string
+        rejectedReason?: string
+        returnedReason?: string
+      }
     }
 
 export type AttachClaimEvidenceFormState =
@@ -828,6 +854,7 @@ export type BenefitEnrollFormState =
         planId?: string
         coverageLevel?: string
         effectiveFrom?: string
+        effectiveTo?: string
       }
     }
 

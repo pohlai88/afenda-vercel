@@ -2,31 +2,74 @@
 title: Policies & acknowledgements
 description: Handbook versions, acknowledgement workflows, and policy-bound execution hooks.
 icon: BookOpen
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 **Policies** connect narrative rules (handbooks, codes of conduct) to workforce execution. Versions are immutable once published; acknowledgements capture *who saw which revision at what time* for disputes and inspections.
 
-## Publishing
+## Before you start
 
-Authors draft revisions, publish when ready, and optionally require acknowledgement campaigns. Employees see only the active version for their population.
+- You need ERP permissions to search and update policy artifacts (`hrm.policy.*` family — confirm effective keys with your administrator).
+- Decide population scope (all employees, department, or grade) before publishing a campaign.
+- Coordinate with **documents** and **onboarding** owners when policies attach to boarding tasks or vault evidence.
+
+## Publishing a policy version
+
+<Steps>
+  <Step>
+    Navigate to **HRM → Policies** and open the handbook or policy family you maintain.
+  </Step>
+  <Step>
+    Draft the revision — narrative content and effective date — without publishing until legal or HR review completes.
+  </Step>
+  <Step>
+    Click **Publish** when ready. Published versions are immutable; corrections require a new revision.
+  </Step>
+  <Step>
+    Optionally launch an **acknowledgement campaign** so affected employees must explicitly confirm receipt.
+  </Step>
+</Steps>
 
 ## Acknowledgements
 
 Acknowledgements are explicit user actions — no silent auto-consent. Missing acknowledgements surface in manager queues where configured.
 
+<Callout type="warn" title="Explicit consent only">
+  Afenda never records an acknowledgement without a deliberate user action. Audit rows include actor, revision ID, and timestamp for inspection readiness.
+</Callout>
+
 ## Execution hooks
 
 Downstream modules (leave, expenses, devices) can consult acknowledgement state to gate risky actions. Hooks stay declarative: business rules live in HRM Server Actions, not client guesswork.
 
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Employee cannot acknowledge the active version">
+    Confirm the employee is in the campaign population and that a newer revision has not superseded the assigned version.
+  </Accordion>
+  <Accordion title="Downstream module still blocks an action">
+    Verify the hook references the correct policy family and that acknowledgements completed after the published effective date.
+  </Accordion>
+</Accordions>
+
 ## Related
 
 <Cards>
-  <Card href="./employees" title="Employees">
+  <Card href="/ask-docs/hrm/employees" title="Employees">
     Acknowledgement status can appear on employee profiles.
   </Card>
-  <Card href="./leave" title="Leave management">
+  <Card href="/ask-docs/hrm/leave" title="Leave management">
     Policy windows may constrain leave types by population.
+  </Card>
+  <Card href="/ask-docs/hrm/onboarding" title="Onboarding">
+    Boarding templates often include policy acknowledgement tasks.
+  </Card>
+  <Card href="/ask-docs/hrm/documents" title="Documents vault">
+    Signed handbook PDFs can be stored with expiry metadata.
   </Card>
 </Cards>

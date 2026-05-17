@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm"
 import { db } from "#lib/db"
 import { hrmTrainingAssignment, hrmTrainingRecord } from "#lib/db/schema"
 
-import { isoDateOnlyToUtcDate } from "../../../hrm-calendar-dates.server"
+import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
 import { computeTrainingExpiresAtDate } from "./training-recertification.server"
 import { getTrainingCourseById } from "./training.queries.server"
 import { canTransitionTrainingAssignment } from "../schemas/training.schema"

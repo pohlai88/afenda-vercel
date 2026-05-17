@@ -6,7 +6,7 @@ import {
   type ActionResponse,
   type PageFeedback,
   pageFeedback,
-} from "#components/feedback/schema"
+} from "#components2/feedback/schema"
 import { auth, writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { askDocsFeedback } from "#lib/db/schema"

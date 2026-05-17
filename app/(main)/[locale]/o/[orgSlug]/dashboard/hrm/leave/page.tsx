@@ -1,8 +1,7 @@
 import { LeavePage, resolveLeaveSurfaceAccess } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
-export const dynamic = "force-dynamic"
 
 export default async function OrgDashboardHrmLeavePage({
   params,

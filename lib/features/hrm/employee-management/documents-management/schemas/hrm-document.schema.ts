@@ -2,23 +2,31 @@ import { z } from "zod"
 
 export {
   HRM_DOCUMENT_TYPES,
+  HRM_DOCUMENT_GROUPS,
   HRM_DOCUMENT_CLASSIFICATIONS,
   HRM_DOCUMENT_VERIFICATION_STATUSES,
+  HRM_DOCUMENT_LIFECYCLE_STATUSES,
   isHrmDocumentType,
+  isHrmDocumentGroup,
   isHrmDocumentClassification,
   isHrmDocumentVerificationStatus,
+  isHrmDocumentLifecycleStatus,
 } from "../data/hrm-document-display.shared"
 
 import {
   HRM_DOCUMENT_TYPES,
+  HRM_DOCUMENT_GROUPS,
   HRM_DOCUMENT_CLASSIFICATIONS,
   HRM_DOCUMENT_VERIFICATION_STATUSES,
+  HRM_DOCUMENT_LIFECYCLE_STATUSES,
 } from "../data/hrm-document-display.shared"
 
 export type {
   HrmDocumentType,
+  HrmDocumentGroup,
   HrmDocumentClassification,
   HrmDocumentVerificationStatus,
+  HrmDocumentLifecycleStatus,
 } from "../data/hrm-document-display.shared"
 
 const uuid = z.string().uuid()
@@ -33,7 +41,7 @@ const isoDateOnly = z
  *
  * `expiryDate` maps to `hrm_document.effectiveTo` — the field that the
  * document-expiry-watch cron uses to drive HRM-DOC-011/012/013 alerts.
- * `versionNumber` is a human-readable version string (e.g. "v2", "2026-01").
+ * `versionNumber` is the document revision number stored with the vault row.
  * `isMandatory` flags whether this document type is required for the employee.
  */
 export const attachEmployeeDocumentFormSchema = z.object({
@@ -49,7 +57,20 @@ export const attachEmployeeDocumentFormSchema = z.object({
     .max(80 * 1024 * 1024),
   title: z.string().min(1).max(512),
   documentType: z.enum(HRM_DOCUMENT_TYPES),
+  documentGroup: z.enum(HRM_DOCUMENT_GROUPS).optional(),
   classification: z.enum(HRM_DOCUMENT_CLASSIFICATIONS),
+  legalEntityId: z
+    .preprocess(
+      (v) => (v === "" || v === null || v === undefined ? undefined : v),
+      uuid.optional()
+    )
+    .optional(),
+  retentionPolicyCode: z
+    .preprocess(
+      (v) => (v === "" || v === null || v === undefined ? undefined : v),
+      z.string().trim().min(1).max(128).optional()
+    )
+    .optional(),
   effectiveFrom: isoDateOnly,
   /**
    * Expiry date (maps to effectiveTo). Required for identity docs, work
@@ -60,12 +81,12 @@ export const attachEmployeeDocumentFormSchema = z.object({
     isoDateOnly.optional()
   ),
   /**
-   * Human-readable version label (e.g. "v2", "2026-01"). HRM-DOC-005.
+   * Numeric revision label. HRM-DOC-005.
    * Stored in `versionNumber`; HR can see "Version 2" in the vault.
    */
   versionNumber: z.preprocess(
     (v) => (v === "" || v === null || v === undefined ? undefined : v),
-    z.string().trim().max(64).optional()
+    z.coerce.number().int().min(1).max(999).optional()
   ),
   /**
    * Whether this document is mandatory for the employee. HRM-DOC-004.
@@ -135,9 +156,16 @@ export type ArchiveDocumentFormInput = z.infer<typeof archiveDocumentFormSchema>
 export const documentVaultFilterSchema = z.object({
   orgSlug: z.string().min(1),
   documentType: z.enum(HRM_DOCUMENT_TYPES).optional(),
+  documentGroup: z.enum(HRM_DOCUMENT_GROUPS).optional(),
   classification: z.enum(HRM_DOCUMENT_CLASSIFICATIONS).optional(),
   verificationStatus: z.enum(HRM_DOCUMENT_VERIFICATION_STATUSES).optional(),
+  documentLifecycleStatus: z.enum(HRM_DOCUMENT_LIFECYCLE_STATUSES).optional(),
   employeeId: uuid.optional(),
+  legalEntityId: uuid.optional(),
+  uploadedFrom: isoDateOnly.optional(),
+  uploadedTo: isoDateOnly.optional(),
+  isMandatory: z.coerce.boolean().optional(),
+  latestOnly: z.coerce.boolean().optional(),
   /**
    * Filter by expiry proximity: "expiring_soon" = within 30 days, "expired" = past effectiveTo.
    * HRM-DOC-012/013.

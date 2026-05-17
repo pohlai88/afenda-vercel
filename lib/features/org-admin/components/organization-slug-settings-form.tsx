@@ -3,10 +3,10 @@
 import { useActionState, useEffect, useId } from "react"
 import { useTranslations } from "next-intl"
 
-import { Button } from "#components/ui/button"
-import { Input } from "#components/ui/input"
-import { Label } from "#components/ui/label"
-import { Spinner } from "#components/ui/spinner"
+import { Button } from "#components2/ui/button"
+import { Input } from "#components2/ui/input"
+import { Label } from "#components2/ui/label"
+import { Spinner } from "#components2/ui/spinner"
 import { useRouter } from "#i18n/navigation"
 import { ActionFormErrors } from "#features/governed-surface"
 

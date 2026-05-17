@@ -4,11 +4,32 @@ description: Self-service surface for employees — access model, fourteen secti
 audience: employee
 status: stable
 icon: Users
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
 The employee portal (`/{locale}/p/{portalSlug}/employee/*`) is the workforce self-service boundary. It runs inside **PortalShell** (not WorkbenchShell) and resolves tenant + subject context through `organization_portal` and `organization_portal_access`.
+
+## Before you start
+
+- Your organisation must provision an **employee** portal and link your user to an `hrm_employee` row via `organization_portal_access`.
+- Bookmark your portal URL (`/{locale}/p/{portalSlug}/employee/*`) — it is separate from the Workbench.
+- Banking and signature actions require a fresh **step-up** authentication window.
+
+## Open the portal
+
+<Steps>
+  <Step>
+    Sign in with the account linked to your employee record.
+  </Step>
+  <Step>
+    Open your organisation portal at `/{locale}/p/{portalSlug}/employee` (your HR team provides the slug).
+  </Step>
+  <Step>
+    Choose a section from the portal navigation — leave, payslips, profile, and other self-service areas.
+  </Step>
+</Steps>
 
 ## Access model
 
@@ -47,7 +68,43 @@ Portal mutations emit `iam_audit_event` rows with `erp.hrm.*` actions after succ
 
 Each section ships `loading.tsx` skeletons; the employee segment provides `error.tsx` and `not-found.tsx` while **PortalShell** stays mounted.
 
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Portal shows access denied">
+    Confirm `organization_portal_access` links your user to the employee row and the portal audience is `employee`.
+  </Accordion>
+  <Accordion title="Step-up loops on banking or signatures">
+    Complete re-authentication when prompted; banking and signature ceremonies require a fresh step-up window.
+  </Accordion>
+</Accordions>
+
+## Section guides
+
+<Cards>
+  <Card href="/ask-docs/portals/leave" title="Leave" />
+  <Card href="/ask-docs/portals/payslips" title="Payslips" />
+  <Card href="/ask-docs/portals/attendance" title="Attendance" />
+  <Card href="/ask-docs/portals/claims" title="Claims" />
+  <Card href="/ask-docs/portals/documents" title="Documents" />
+  <Card href="/ask-docs/portals/benefits" title="Benefits" />
+  <Card href="/ask-docs/portals/advances" title="Salary advances" />
+  <Card href="/ask-docs/portals/training" title="Training" />
+  <Card href="/ask-docs/portals/signatures" title="Signatures" />
+  <Card href="/ask-docs/portals/profile" title="Profile" />
+  <Card href="/ask-docs/portals/performance" title="Performance" />
+  <Card href="/ask-docs/portals/offboarding" title="Exit checklist" />
+</Cards>
+
+<Callout type="info" title="Portal vs Workbench">
+  Employees use this portal under `/{locale}/p/{portalSlug}/employee/*`. Managers and HR configure policy and approvals in **HRM** under the Workbench — not in the portal shell.
+</Callout>
+
 ## Related
 
-- [HRM capabilities index](/ask-docs/hrm)
-- [Leave](/ask-docs/hrm/leave)
+<Cards>
+  <Card href="/ask-docs/hrm" title="HRM capabilities index">
+    Administrator and manager workflows for workforce data.
+  </Card>
+  <Card href="/ask-docs/hrm/leave" title="Leave management (HRM)" />
+</Cards>

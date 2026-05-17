@@ -1,16 +1,16 @@
 import type {
-  WorkbenchRailInbox,
-  WorkbenchRailNavIconId,
-  WorkbenchRailPin,
-  WorkbenchRailRecent,
-  WorkbenchRailSlots,
-  WorkbenchRailView,
-} from "#components/workbench/left-nav-rail"
+  AppShellPrimaryLeftRailInbox,
+  AppShellPrimaryLeftRailNavIconId,
+  AppShellPrimaryLeftRailPin,
+  AppShellPrimaryLeftRailRecent,
+  AppShellPrimaryLeftRailSlotsData,
+  AppShellPrimaryLeftRailView,
+} from "#app-shell"
 
 import { ORG_ADMIN_CAPABILITIES, organizationAdminPath } from "../constants"
 import type { OrgAdminNavKey, OrgAdminRailPressureMap } from "../types"
 
-const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
+const NAV_KEY_ICONS: Record<string, AppShellPrimaryLeftRailNavIconId> = {
   members: "users",
   access: "shield",
   audit: "shield",
@@ -20,7 +20,7 @@ const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
 }
 
 /**
- * Builds `WorkbenchRailSlots` for the organizational control plane.
+ * Builds `AppShellPrimaryLeftRailSlotsData` for the organizational control plane.
  *
  * Pure function — no DB, no headers, no clock reads. Accepts:
  *
@@ -45,10 +45,10 @@ const NAV_KEY_ICONS: Record<string, WorkbenchRailNavIconId> = {
  *   - Memory slots are passed straight through to the kernel parser.
  *     The same conditional-density rule applies: callers MUST pass an
  *     empty array (or `undefined`) when they have no memory to surface;
- *     the kernel `workbenchRailSlotsDataSchema` rejects empty arrays at
+ *     the kernel `appShellPrimaryLeftRailSlotsDataSchema` rejects empty arrays at
  *     parse time so a builder regression cannot leak a hollow section.
  *   - The builder converts empty arrays to `undefined` for the same
- *     reason: the `WorkbenchRail` UI sections short-circuit on
+ *     reason: the `AppShellPrimaryLeftRail` UI sections short-circuit on
  *     `slot === undefined`, but treating `[]` as "present-but-empty"
  *     would render a heading-less wrapper. Centralizing the conversion
  *     here means every caller stays simple.
@@ -75,26 +75,26 @@ export function buildOrgAdminRailSlots({
    * `undefined` means no concern is at surfaceable pressure right now;
    * the rail omits the inbox row entirely.
    */
-  inbox?: WorkbenchRailInbox | null
+  inbox?: AppShellPrimaryLeftRailInbox | null
   /**
    * Pinned records, already mapped to kernel slot shape via
    * `pinDtoToSlot` in the layout. Pass `undefined` or `[]` when the
    * operator has no pins — both collapse to "no pinned section."
    */
-  pinned?: ReadonlyArray<WorkbenchRailPin>
+  pinned?: ReadonlyArray<AppShellPrimaryLeftRailPin>
   /**
    * Saved views, already mapped to kernel slot shape via
    * `viewDtoToSlot`. Same `undefined`/`[]` semantics as `pinned`.
    */
-  views?: ReadonlyArray<WorkbenchRailView>
+  views?: ReadonlyArray<AppShellPrimaryLeftRailView>
   /**
    * Recent visits, already deduped and capped to
    * `RAIL_RECENT_SURFACE_LIMIT` (5) by `listRecentsForUser`, then
    * mapped to kernel slot shape via `recentDtoToSlot`. Same
    * `undefined`/`[]` semantics as `pinned`.
    */
-  recents?: ReadonlyArray<WorkbenchRailRecent>
-}): WorkbenchRailSlots {
+  recents?: ReadonlyArray<AppShellPrimaryLeftRailRecent>
+}): AppShellPrimaryLeftRailSlotsData {
   const navItems = ORG_ADMIN_CAPABILITIES.filter((c) => c.nav != null).map(
     (capability) => {
       const nav = capability.nav!

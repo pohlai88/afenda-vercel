@@ -3,22 +3,22 @@
 import { useParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 
-import { useRouteEnvelope } from "#components/route-envelope-context"
-import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
+import { useRouteEnvelope } from "#components2/route-envelope-context.client"
+import { RouteErrorDebugPanel } from "#components2/dev/route-error-debug-panel"
 import {
   RouteErrorActions,
   RouteErrorDigest,
   RouteErrorShell,
-} from "#components/route-error-primitives"
-import { RouteErrorRetryButton } from "#components/route-error-retry-button"
-import { useReportRouteError } from "#components/use-report-route-error"
-import { Button } from "#components/ui/button"
+} from "#components2/route-error/route-error-primitives"
+import { RouteErrorRetryButton } from "#components2/route-error/route-error-retry-button"
+import { useReportRouteError } from "#components2/route-error/use-report-route-error"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 import { employeePortalPath } from "#lib/portal"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,
-} from "#lib/next-app-error-page-props.shared"
+} from "#components2/route-error/error-page-props.shared"
 
 /**
  * Employee portal segment error — PortalShell stays mounted; recovery stays in

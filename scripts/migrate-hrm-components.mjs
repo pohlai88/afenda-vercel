@@ -61,7 +61,7 @@ function resolveTarget(name) {
     n.startsWith("employee-portal-leave") ||
     n.startsWith("employee-portal-attendance")
   ) {
-    return "workforce-time-attendance/components"
+    return "time-attendance/leave-attendance-management/components"
   }
   if (
     n.startsWith("training-") ||
@@ -151,7 +151,7 @@ function listSubmoduleComponentDirs() {
 
 /** Fix relative imports when moving from hrm/components to hrm/<sub>/components */
 function fixImports(content, subPath) {
-  const depth = subPath.split("/").length // e.g. workforce-time-attendance = 1
+  const depth = subPath.split("/").length // e.g. time-attendance/leave-attendance-management = 1
   const extra = "../".repeat(depth) // ../../ for one segment submodule
 
   let out = content

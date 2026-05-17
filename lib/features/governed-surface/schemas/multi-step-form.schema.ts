@@ -7,8 +7,7 @@ import { governedSurfaceChromeSchema } from "./surface-chrome.schema"
 export const GOVERNED_MULTI_STEP_FORM_SCHEMA_ID =
   "governed.multi-step-form.configuration" as const
 
-export const GOVERNED_MULTI_STEP_FORM_SCHEMA_STABILITY: SchemaStability =
-  "beta"
+export const GOVERNED_MULTI_STEP_FORM_SCHEMA_STABILITY: SchemaStability = "beta"
 
 export const governedFormFieldKindSchema = z.enum([
   "text",

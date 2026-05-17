@@ -131,7 +131,7 @@ vi.mock("#i18n/navigation", () => ({
   usePathname: () => "/en/o/acme/dashboard/home",
 }))
 
-import { TooltipProvider } from "#components/ui/tooltip"
+import { TooltipProvider } from "#components2/ui/tooltip"
 
 type ContextRow = {
   id: string
@@ -371,8 +371,8 @@ describe("OperationalCoordinationConsole", { timeout: 20_000 }, () => {
       }
     )
     document.body.innerHTML = `
-      <div data-workbench-capture-root="workspace">workspace</div>
-      <main id="dashboard-main" data-workbench-capture-root="content">content</main>
+      <div data-appshell-capture-root="workspace">workspace</div>
+      <main id="dashboard-main" data-appshell-capture-root="content">content</main>
     `
     window.history.replaceState({}, "", "/en/o/acme/dashboard/home")
     uploadMock.mockResolvedValue({

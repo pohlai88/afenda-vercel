@@ -59,15 +59,18 @@ export function NexusDock() { return null }
 - New symbol used only internally → do not export from the module barrel.
 - Cross-module deep import added "temporarily" → resolve before closing the task.
 
-### 4. Dead imports
+### 4. Never restore deleted files
+- If a component/route/file was deleted in this repo, **do not recreate it** — fix imports forward (`never-restore-deleted-components.mdc`).
+
+### 5. Dead imports
 - After moving or deleting a component, scan all import sites.
 - `pnpm lint` catches ESLint-level unused imports immediately.
 
-### 5. Message catalog parity
+### 6. Message catalog parity
 - New i18n key used in a component → must exist in `messages/en.json`.
 - Key removed from all components → remove from catalog (or confirm another component still uses it).
 
-### 6. Generated / ephemeral paths
+### 7. Generated / ephemeral paths
 - `.next/types/**` — never import manually; Next.js generates these.
 
 ---
@@ -110,7 +113,7 @@ After any Workbench/Nexus phase work:
 
 - `organizationDashboardPath(slug, "home")` resolves to Nexus root `/o/${slug}`.
 - `switchActiveOrgAction` redirect goes to `/o/${slug}`, not `/o/${slug}/dashboard`.
-- Shell chrome is **`components/workbench/`** (canonical). `components/nexus/` = Nexus Field + Lynx summon only. No `components/dashboard/` shell folder.
+- Shell chrome is **`components2/app-shell/`** (`#app-shell`). `components2/nexus/` = Nexus Field + Lynx summon only. No repo-root `components/` or `components/dashboard/`.
 
 ```powershell
 # Phantom typecheck errors after a route deletion? Clear Next.js type cache:

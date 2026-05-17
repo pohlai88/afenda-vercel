@@ -101,7 +101,7 @@ export async function submitPublicApplicationAction(
 
   const candidateId = crypto.randomUUID()
   const applicationId = crypto.randomUUID()
-  const token = crypto.randomUUID()
+  const token = applicationId
   const expiresAt = new Date(Date.now() + MAGIC_LINK_TTL_MS)
   const now = new Date()
 
@@ -114,10 +114,6 @@ export async function submitPublicApplicationAction(
         email: structuredProfile.email ?? null,
         phone: structuredProfile.phone ?? null,
         source: parsed.data.source?.trim() || "careers_portal",
-        structuredProfile,
-        magicLinkToken: token,
-        magicLinkExpiresAt: expiresAt,
-        consentedTermsAt: now,
       })
 
       await tx.insert(hrmApplication).values({
@@ -127,6 +123,9 @@ export async function submitPublicApplicationAction(
         requisitionId: parsed.data.requisitionId,
         stage: "applied",
         audit7w1h: {
+          candidatePortalTokenExpiresAt: expiresAt.toISOString(),
+          consentedTermsAt: now.toISOString(),
+          structuredProfile,
           selfDeclaredSkills: structuredProfile.skills,
         },
       })

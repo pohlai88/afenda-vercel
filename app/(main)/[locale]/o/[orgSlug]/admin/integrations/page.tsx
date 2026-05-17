@@ -7,17 +7,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Button } from "#components/ui/button"
+} from "#components2/ui/card"
+import { Button } from "#components2/ui/button"
 import {
   IntegrationsEndpointsPanel,
   IntegrationsImportsPanel,
   organizationAdminPath,
 } from "#features/org-admin"
 import { recordOrgAdminPageVisit } from "#features/org-admin/server"
-import { marketplacePath } from "#features/marketplace"
+import { organizationMarketplacePath } from "#features/marketplace"
 import { Link } from "#i18n/navigation"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 export default async function OrgAdminIntegrationsPage({
   params,
@@ -61,7 +61,7 @@ export default async function OrgAdminIntegrationsPage({
           </CardHeader>
           <CardFooter className="border-t border-border/50 pt-surface-md">
             <Button asChild variant="outline" size="sm">
-              <Link href={marketplacePath("admin")}>
+              <Link href={organizationMarketplacePath(orgSlug, "admin")}>
                 {t("marketplaceLinkAction")}
               </Link>
             </Button>

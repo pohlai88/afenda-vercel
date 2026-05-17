@@ -10,7 +10,7 @@ import {
 } from "#features/planner/server"
 import { writeIamAuditEvent } from "#lib/auth"
 import { organizationDashboardPath } from "#lib/dashboard-module-paths"
-import { getOrganizationSlugById } from "#lib/org-slug.server"
+import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { getKnowledgeSourceAdapter } from "./source-adapter-registry.server"
 import { getKnowledgeSourceForOrganization } from "./source.queries.server"

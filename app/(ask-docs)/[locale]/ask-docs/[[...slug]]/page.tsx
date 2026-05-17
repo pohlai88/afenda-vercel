@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { cacheLife } from "next/cache"
 import { notFound } from "next/navigation"
 import { createRelativeLink } from "fumadocs-ui/mdx"
 import {
@@ -11,10 +12,10 @@ import {
   ViewOptionsPopover,
 } from "fumadocs-ui/layouts/notebook/page"
 
-import { Feedback } from "#components/feedback/client"
-import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card"
-import { getAskDocsOgImagePath } from "#lib/ask-docs-og.shared"
-import { loadAskDocsPage } from "#lib/ask-docs-source"
+import { Feedback } from "#components2/feedback/client"
+import { Card, CardContent, CardHeader, CardTitle } from "#components2/ui/card"
+import { getAskDocsOgImagePath } from "#lib/ask-docs/og.shared"
+import { loadAskDocsPage } from "#lib/ask-docs/source"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { getAskDocsGithubUrl } from "#lib/site"
 
@@ -24,12 +25,12 @@ import { submitAskDocsFeedback } from "./actions"
 import { getAskDocsProcessedMarkdownPath } from "../_lib/markdown-path"
 import { askDocsSource } from "../_lib/source"
 
-/** Pre-render all locale × slug pairs; hourly ISR (ADR-0023 — Cache Components deferred). */
-export const revalidate = 3600
-
 export default async function AskDocsPage({
   params,
 }: PageProps<"/[locale]/ask-docs/[[...slug]]">) {
+  "use cache"
+  cacheLife("hours")
+
   const { locale: localeRaw, slug } = await params
   const locale = ensureAppLocale(localeRaw)
 

@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 import { employeePortalPath } from "#lib/portal"
 

@@ -1,0 +1,79 @@
+---
+title: Employee portal profile
+description: Update personal, emergency contact, and banking details from the employee portal.
+audience: employee
+status: draft
+icon: UserCircle
+---
+
+## Overview
+
+**My profile** at `/{locale}/p/{portalSlug}/employee/profile` links to three self-service areas: **personal**, **emergency contact**, and **banking**. Each sub-route has its own form; banking updates require **step-up authentication**.
+
+## Before you start
+
+- Employee portal session with audience `employee`.
+- Only fields your organisation exposes to employees are editable.
+
+## Profile areas
+
+<Tabs items={["Personal", "Emergency", "Banking"]}>
+  <Tab value="Personal">
+    ### Personal (`/employee/profile/personal`)
+
+    Update name, contact, and other personal fields allowed by policy. Submit the form to save; changes audit as `erp.hrm.employee.profile.update` with `metadata.surface = employee_portal`.
+  </Tab>
+  <Tab value="Emergency">
+    ### Emergency (`/employee/profile/emergency`)
+
+    Maintain emergency contact name, relationship, and phone numbers. Required fields depend on org configuration.
+  </Tab>
+  <Tab value="Banking">
+    ### Banking (`/employee/profile/banking`)
+
+    Update payroll banking details. Saving triggers **recent authentication (step-up)** before the mutation runs.
+
+    <Callout type="warn" title="Step-up required">
+      Banking profile updates call `requireRecentAuthStepUp` — Tier A sensitive data. Complete MFA or password re-entry when prompted.
+    </Callout>
+  </Tab>
+</Tabs>
+
+## Common workflow
+
+<Steps>
+  <Step>
+    ### Open My profile
+
+    From the employee portal, open **Profile** in the section navigation.
+  </Step>
+  <Step>
+    ### Choose a sub-area
+
+    Navigate to **Personal**, **Emergency**, or **Banking** using the profile sub-nav or direct URL.
+  </Step>
+  <Step>
+    ### Save changes
+
+    Submit the form. Resolve validation errors inline; successful saves refresh the snapshot on the page.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Banking save asks me to sign in again">
+    This is expected step-up behavior. Complete re-authentication, then retry save within the allowed window.
+  </Accordion>
+  <Accordion title="A field is read-only">
+    HR may lock fields after verification. Contact HR to change locked legal name or ID fields.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/portals/employee" title="Employee portal hub" />
+  <Card href="/ask-docs/hrm/employees" title="Employees (HRM)" />
+  <Card href="/ask-docs/portals/payslips" title="Employee portal payslips" />
+</Cards>

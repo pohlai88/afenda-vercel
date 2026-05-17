@@ -16,7 +16,7 @@ import {
 import { isOperationalSimulationEnabled } from "#features/simulation"
 
 import { listOrganizationIamAuditEvents } from "#lib/auth"
-import { requireOrgSession } from "#lib/tenant"
+import { requireOrgSession } from "#lib/auth"
 
 export default async function OrgAdminAuditPage({
   searchParams,
@@ -111,7 +111,7 @@ export default async function OrgAdminAuditPage({
       }
       viewLinks={[...viewLinks]}
       backHref={organizationAdminPath(orgSlug, "overview")}
-      backLabel={t("backToWorkbench")}
+      backLabel={t("backToAdminOverview")}
       result={result}
       prevHref={prevHref}
       nextHref={nextHref}

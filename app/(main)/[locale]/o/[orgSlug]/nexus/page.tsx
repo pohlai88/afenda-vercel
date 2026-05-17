@@ -1,11 +1,11 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
-import { NexusPage } from "#components/nexus/nexus-page"
+import { NexusPage } from "#components2/nexus/nexus-page"
 import { getNexusSnapshot } from "#features/nexus/server"
-import { PRIVATE_SURFACE_ROBOTS } from "#lib/app-metadata-surface.shared"
-import { normalizeOrgSlugParam } from "#lib/org-slug.shared"
-import { requireOrgSession } from "#lib/tenant"
+import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
+import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
+import { requireOrgSession } from "#lib/auth"
 
 /**
  * **Nexus field** — operational origin at `/[locale]/o/[orgSlug]/nexus`.

@@ -1,14 +1,14 @@
 import { getTranslations } from "next-intl/server"
 
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
-import { Separator } from "#components/ui/separator"
+} from "#components2/ui/card"
+import { Separator } from "#components2/ui/separator"
 
 import { listOpenBoardingInstancesForEmployee } from "../data/boarding.queries.server"
 
@@ -32,6 +32,10 @@ export async function EmployeeDetailBoardingSection({
     getTranslations("Dashboard.Hrm.boarding"),
     listOpenBoardingInstancesForEmployee(organizationId, employeeId),
   ])
+  const copy = (
+    key: string,
+    values?: Record<string, string | number>
+  ): string => t(key as never, values as never)
 
   if (instances.length === 0) {
     return null
@@ -40,21 +44,23 @@ export async function EmployeeDetailBoardingSection({
   return (
     <Card id="boarding" size="sm">
       <CardHeader>
-        <CardTitle className="text-base">{t("employeeSectionTitle")}</CardTitle>
-        <CardDescription>{t("employeeSectionDescription")}</CardDescription>
+        <CardTitle className="text-base">
+          {copy("employeeSectionTitle")}
+        </CardTitle>
+        <CardDescription>{copy("employeeSectionDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         {instances.map((instance) => (
           <div key={instance.id} className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-sm font-medium">
-                {t("instanceLabel", {
+                {copy("instanceLabel", {
                   kind: instance.kind,
                   status: instance.status,
                 })}
               </p>
               <Badge variant="outline">
-                {t("instanceProgress", {
+                {copy("instanceProgress", {
                   completed: instance.completedRequiredTaskCount,
                   total: instance.requiredTaskCount,
                 })}

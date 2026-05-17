@@ -1,26 +1,52 @@
 ---
 title: Queue
 description: Ranked operational work requiring execution now — Orbit's default surface.
+audience: admin
+status: stable
 icon: ListOrdered
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-**Orbit Queue** is the default Orbit surface (`/o/{orgSlug}/dashboard/orbit`). It shows **ranked operational work that requires execution now** — active items ordered by derived pressure and policy, not by a manual P1–P4 picker.
+**Orbit Queue** is the default Orbit surface (`/{locale}/o/{orgSlug}/dashboard/orbit`). It shows **ranked operational work that requires execution now** — active items ordered by derived pressure and policy, not by a manual P1–P4 picker.
 
 Use Queue when you need to answer: *what must we execute next?*
+
+## Before you start
+
+- You need an active org session and ERP permissions for the planner module.
+- Queue is the default landing surface when you open Orbit from the left-hand rail.
+- Unprocessed inbound pressure usually starts in [Triage](/ask-docs/orbit/triage) before it ranks here.
 
 ## Layout
 
 Queue uses the standard Orbit three-pane pattern:
 
 | Pane | Contents |
-|---|---|
+| --- | --- |
 | **Execution feed** | Selectable list of signals, items, or mixed records for the surface |
 | **Detail** | Lifecycle state, pressure, schedule, ownership, evidence groups, activity |
 | **Pressure overview** | Summary metrics for the current view |
 
 Select a row to load detail. With nothing selected, the detail pane prompts you to choose a record.
+
+## Execute from Queue
+
+<Steps>
+  <Step>
+    Open **Orbit** — Queue loads by default at `/{locale}/o/{orgSlug}/dashboard/orbit`.
+  </Step>
+  <Step>
+    Review the execution feed sorted by derived pressure. Select the highest-attention row to inspect lifecycle, schedule, and evidence.
+  </Step>
+  <Step>
+    Transition lifecycle states, **start a session**, or apply a **batch operation** when multiple items need the same change.
+  </Step>
+  <Step>
+    Use quick-create to **capture a signal** or **create an item** when new pressure arrives during execution.
+  </Step>
+</Steps>
 
 ## Quick create
 
@@ -35,7 +61,7 @@ From Queue you can:
 When the feed shows execution **items**, you can select multiple rows and apply one atomic batch operation:
 
 | Operation | Effect |
-|---|---|
+| --- | --- |
 | **Activate** | Move selected items toward active execution |
 | **Block** | Mark selected items as blocked |
 | **Review** | Move items to ready for review |
@@ -44,7 +70,7 @@ When the feed shows execution **items**, you can select multiple rows and apply 
 
 Batch actions require at least one selected row. Use `Ctrl+Enter` to submit when the batch form is focused.
 
-<Callout type="warn">
+<Callout type="warn" title="Lifecycle policy">
   Batch transitions respect lifecycle policy — you cannot verify items that have not completed required prior states.
 </Callout>
 
@@ -60,11 +86,25 @@ Open the Orbit command layer (`Ctrl K` / `⌘ K`) for shortcuts including:
 
 When no records exist yet, Queue shows a ready state: capture a signal or create an execution item to begin building operational continuity.
 
-## Related surfaces
+## Troubleshooting
 
-| If you need… | Go to… |
-|---|---|
-| Unprocessed inbound pressure | [Triage](./triage) |
-| Calendar-bound work today | [Today](./today) |
-| Horizon and overdue schedule | [Timeline](./timeline) |
-| Signal-only lifecycle | [Signals](./signals) |
+<Accordions type="single">
+  <Accordion title="Queue is empty but Triage has pressure">
+    Promote or schedule signals from Triage first — Queue ranks executable items and elevated pressure, not every detected signal.
+  </Accordion>
+  <Accordion title="Batch verify is disabled">
+    Selected items may lack required prior lifecycle states. Open item detail and confirm the path through `ready_for_review` when verification is mandatory.
+  </Accordion>
+  <Accordion title="An item ranks lower than expected">
+    Pressure is derived from class, schedule slack, ERP linkage, and triage rules — not a manual priority picker. Review links and lifecycle on the detail pane.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/orbit/triage" title="Triage" description="Route unprocessed signals and automation failures." />
+  <Card href="/ask-docs/orbit/today" title="Today" description="Calendar-bound work for the current day." />
+  <Card href="/ask-docs/orbit/timeline" title="Timeline" description="Horizon and overdue scheduled pressure." />
+  <Card href="/ask-docs/orbit/signals" title="Signals" description="Pressure before promotion to items." />
+</Cards>

@@ -4,6 +4,7 @@ description: Initiate exit workflows, approve checklists, and complete clearance
 icon: DoorOpen
 audience: admin
 status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
@@ -11,6 +12,12 @@ status: stable
 The **Offboarding** workbench tracks exit instances from initiation through clearance. HR sees who is leaving, exit type, task progress, settlement state, and approval actions in one table — each transition writes `erp.hrm.offboarding.*` to the IAM audit ledger.
 
 Employees complete assigned checklist tasks in the [employee portal](/ask-docs/portals/employee) under **My exit checklist** when portal access is granted.
+
+## Before you start
+
+- Confirm exit type and last working day with the employee's manager before activating the checklist.
+- Settlement rows must resolve before archiving the instance — coordinate with **payroll** for final pay.
+- Portal checklist tasks require active portal access for the leaver.
 
 ## Workbench surface
 
@@ -48,9 +55,34 @@ Offboarding mirrors onboarding: templates materialise **task instances** with du
   <Step>Resolve settlement rows before archiving the instance.</Step>
 </Steps>
 
+<Callout type="warn" title="Irreversible transitions">
+  Some exit approvals commit durable workforce state. Use governed reversal flows instead of deleting audit history when corrections are required.
+</Callout>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Employee cannot see the portal exit checklist">
+    Confirm portal access is still active and the exit instance is in a state that exposes self-service tasks.
+  </Accordion>
+  <Accordion title="Settlement row will not clear">
+    Open linked payroll artefacts — final pay may still be in draft or awaiting lock.
+  </Accordion>
+</Accordions>
+
 ## Related
 
-- [Onboarding](/ask-docs/hrm/onboarding) — hire-side checklist templates and instances
-- [Employees](/ask-docs/hrm/employees) — master record and employment contracts
-- [Payroll](/ask-docs/hrm/payroll) — final pay runs and payslip evidence
-- [Employee portal](/ask-docs/portals/employee) — self-service exit checklist
+<Cards>
+  <Card href="/ask-docs/hrm/onboarding" title="Onboarding">
+    Hire-side checklist templates and instances.
+  </Card>
+  <Card href="/ask-docs/hrm/employees" title="Employees">
+    Master record and employment contracts.
+  </Card>
+  <Card href="/ask-docs/hrm/payroll" title="Payroll">
+    Final pay runs and payslip evidence.
+  </Card>
+  <Card href="/ask-docs/portals/employee" title="Employee portal">
+    Self-service exit checklist.
+  </Card>
+</Cards>

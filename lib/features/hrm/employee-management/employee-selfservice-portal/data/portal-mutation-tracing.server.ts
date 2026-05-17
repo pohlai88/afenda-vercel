@@ -2,7 +2,7 @@ import "server-only"
 
 import * as Sentry from "@sentry/nextjs"
 
-import { runWithNodeOtelSpan } from "#lib/otel-span.server"
+import { runWithNodeOtelSpan } from "#lib/observability/otel-span.server"
 import { rootLogger } from "#lib/logger.server"
 
 export type PortalMutationTraceContext = {

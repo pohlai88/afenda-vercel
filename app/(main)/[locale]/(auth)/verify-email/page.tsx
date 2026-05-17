@@ -2,7 +2,7 @@ import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 
 import { parsePostAuthPath, parsePrefillEmail } from "../auth-flow.shared"
-import { VerifyEmailForm } from "./verify-email-form"
+import { VerifyEmailForm } from "#components2/auth/verify-email-form.client"
 
 export default async function VerifyEmailPage({
   params,

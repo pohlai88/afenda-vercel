@@ -1,32 +1,74 @@
 ---
 title: Welcome to Afenda
-description: Everything you need to get up and running with Afenda — your all-in-one platform for workforce management, operations, and organisational intelligence.
+description: Product documentation for workforce management, operations, org administration, and Lynx — locale-first ERP guidance for administrators and builders.
+audience: admin
+status: stable
+icon: Home
+lastReviewedAt: "2026-05-18"
 ---
 
-## What is Afenda?
+## Overview
 
-Afenda is an integrated ERP platform built for modern organisations. It brings together HR & workforce management, operational planning, contact management, and AI-powered knowledge tools into a single, locale-first workspace.
+Afenda is an integrated ERP platform for modern organisations. It brings together HRM, operational execution (Orbit), contacts, org administration, and Lynx — Afenda's machine layer for evidence-grounded answers — in a single locale-first workspace at `/{locale}/o/{orgSlug}/…`.
 
-## Explore the docs
+This documentation site (`/{locale}/ask-docs`) is public and does not require sign-in. Signed-in operators use the same product surfaces described here inside the Workbench shell.
+
+## Before you start
+
+- Use a modern browser (Chrome, Firefox, Edge, or Safari — latest two major versions).
+- Bookmark your organisation Nexus at `/{locale}/o/{orgSlug}/nexus` after first sign-in.
+- For tenant-specific policy answers, use **ERP Lynx** inside the workspace — not the public **Ask Lynx** chat on this site.
+
+<Callout type="info" title="Locale-first URLs">
+  Every public and Workbench URL includes a locale prefix (for example `/en/ask-docs` or `/en/o/acme/nexus`). Bare `/o/…` or `/ask-docs/…` paths are invalid in bookmarks and emails.
+</Callout>
+
+## Explore the documentation
+
+<Steps>
+  <Step>
+    ### New to Afenda
+
+    Start with [Quick start](/ask-docs/getting-started/quick-start) — account creation, first organisation, and reaching Nexus.
+  </Step>
+  <Step>
+    ### Day-to-day operators
+
+    Open module hubs for [HRM](/ask-docs/hrm), [Orbit](/ask-docs/orbit), [Contacts](/ask-docs/contacts), and [Lynx](/ask-docs/lynx).
+  </Step>
+  <Step>
+    ### Organisation administrators
+
+    Review [Org admin](/ask-docs/org-admin) for members, audit, integrations, and settings under `/{locale}/o/{orgSlug}/admin`.
+  </Step>
+  <Step>
+    ### Product help without sign-in
+
+    Use **Ask Lynx** on any ask-docs page — see [Ask Lynx on docs](/ask-docs/lynx/ask-docs-chat). It searches public documentation only.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="I cannot find my organisation after sign-in">
+    Complete email verification, then land on `/{locale}/console`. If you belong to multiple organisations, use the utility-bar org switcher after sign-in.
+  </Accordion>
+  <Accordion title="Search returns no results">
+    Confirm you are on the correct locale (`/en/ask-docs`, `/zh-CN/ask-docs`, etc.). Orama search indexes processed MDX for configured locales.
+  </Accordion>
+  <Accordion title="Ask Lynx cannot answer a tenant-specific question">
+    Public Ask Lynx has no org session. Sign in and use ERP [Truth retrieval](/ask-docs/lynx/truth-retrieval) or [Operator assist](/ask-docs/lynx/operator-assist) for live tenant data.
+  </Accordion>
+</Accordions>
+
+## Related
 
 <Cards>
-  <Card href="./getting-started" title="Getting started">
-    Account setup, inviting your team, and navigating the workspace for the first time.
-  </Card>
-  <Card href="./hrm" title="HRM">
-    Employees, attendance, leave, payroll, performance reviews, and the documents vault.
-  </Card>
-  <Card href="./contacts" title="Contacts">
-    Creating and managing your organisation's contact directory — people, companies, and relationships.
-  </Card>
-  <Card href="./orbit" title="Orbit">
-    Forward planning, operational signals, and execution tracking for your team.
-  </Card>
-  <Card href="./org-admin" title="Org admin">
-    Members, roles, integrations, audit log, and organisation-wide settings.
-  </Card>
+  <Card href="/ask-docs/getting-started" title="Getting started" description="Account setup, workspace navigation, and inviting your team." />
+  <Card href="/ask-docs/hrm" title="HRM" description="Employees, attendance, leave, payroll, and compliance." />
+  <Card href="/ask-docs/orbit" title="Orbit" description="Signals, queue, and operational execution." />
+  <Card href="/ask-docs/org-admin" title="Org admin" description="Members, audit, integrations, and organisation settings." />
+  <Card href="/ask-docs/lynx" title="Lynx" description="ERP machine layer — truth retrieval, operator assist, and knowledge substrate." />
+  <Card href="/ask-docs/portals/employee" title="Employee portal" description="Self-service boundary for workforce users under /p/{portalSlug}/employee." />
 </Cards>
-
-## Getting help
-
-If you can't find what you're looking for, use the **search bar** at the top of any page for instant answers, or contact your organisation administrator.

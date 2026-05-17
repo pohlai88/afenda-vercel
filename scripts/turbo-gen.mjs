@@ -39,6 +39,7 @@ function buildTurboArgv() {
     const description = pick("--description")
     const audience = pick("--audience")
     const status = pick("--status")
+    const archetype = pick("--archetype") ?? "workflow"
     if (section && slug && title && description && audience && status) {
       return [
         "gen",
@@ -55,6 +56,8 @@ function buildTurboArgv() {
         audience,
         "--args",
         status,
+        "--args",
+        archetype,
       ]
     }
     return ["gen", ...argv]
@@ -120,11 +123,38 @@ function buildTurboArgv() {
 }
 
 const turboArgv = buildTurboArgv()
-const result = spawnSync("pnpm", ["exec", "turbo", ...turboArgv], {
-  stdio: "inherit",
-  cwd: process.cwd(),
-  shell: true,
-  env: process.env,
-})
+
+/** Quote for `cmd.exe` when `shell: true` must preserve spaces inside one `--args` value. */
+function quoteCmdArg(value) {
+  const s = String(value)
+  if (!/[\s"]/u.test(s)) return s
+  return `"${s.replace(/"/g, '""')}"`
+}
+
+function spawnTurbo() {
+  const isAskDocWithArgs =
+    turboArgv[0] === "gen" &&
+    turboArgv[1] === "ask-doc" &&
+    turboArgv.includes("--args")
+
+  if (process.platform === "win32" && isAskDocWithArgs) {
+    const cmd = ["pnpm", "exec", "turbo", ...turboArgv].map(quoteCmdArg).join(" ")
+    return spawnSync(cmd, {
+      stdio: "inherit",
+      cwd: process.cwd(),
+      shell: true,
+      env: process.env,
+    })
+  }
+
+  return spawnSync("pnpm", ["exec", "turbo", ...turboArgv], {
+    stdio: "inherit",
+    cwd: process.cwd(),
+    shell: true,
+    env: process.env,
+  })
+}
+
+const result = spawnTurbo()
 
 process.exit(result.status ?? 1)

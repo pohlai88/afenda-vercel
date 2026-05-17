@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation"
 
-import { Button } from "#components/ui/button"
+import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 import { organizationHrmPath } from "#features/hrm/client"
 
@@ -10,7 +10,7 @@ import { organizationHrmPath } from "#features/hrm/client"
  * Phase 3K — Evidence-specific 404.
  *
  * Triggered when {@link listComplianceEvidenceTimeline} resolves to `null`
- * (evidence row missing OR belongs to a different org). Workbench shell
+ * (evidence row missing OR belongs to a different org). App shell
  * stays mounted; we only restate the recovery target so the operator
  * doesn't lose context inside HR's drill-down flow.
  *

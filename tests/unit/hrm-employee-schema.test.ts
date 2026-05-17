@@ -13,7 +13,8 @@ describe("HRM employee form schemas", () => {
       legalName: "Jane Doe",
       preferredName: "",
       email: "",
-      currentDepartmentId: "",
+      employmentStartDate: "2026-01-15",
+      currentDepartmentId: "00000000-0000-4000-8000-000000000001",
       currentPositionId: "",
       currentJobGradeId: "",
     })
@@ -23,7 +24,10 @@ describe("HRM employee form schemas", () => {
       expect(r.data.legalName).toBe("Jane Doe")
       expect(r.data.preferredName).toBeUndefined()
       expect(r.data.email).toBeUndefined()
-      expect(r.data.currentDepartmentId).toBeUndefined()
+      expect(r.data.employmentStartDate).toBe("2026-01-15")
+      expect(r.data.currentDepartmentId).toBe(
+        "00000000-0000-4000-8000-000000000001"
+      )
     }
   })
 
@@ -72,6 +76,8 @@ describe("HRM employee form schemas", () => {
       employeeId: id,
       employeeNumber: "1",
       legalName: "Jane",
+      employmentStartDate: "2026-01-15",
+      currentDepartmentId: "00000000-0000-4000-8000-000000000001",
     })
     expect(r.success).toBe(true)
     if (r.success) {

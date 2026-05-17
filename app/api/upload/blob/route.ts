@@ -8,11 +8,14 @@ import {
   routeJsonError,
   routeJsonOk,
   routePublicErrorMessage,
-} from "#lib/route-handler-json.shared"
-import { getOrgSessionFromRequest } from "#lib/tenant"
-import { canUploadClaimEvidenceForUser } from "#features/hrm/server"
+} from "#lib/api/route-handler-json.shared"
+import { getOrgSessionFromRequest } from "#lib/auth"
+import {
+  canUploadClaimEvidenceForUser,
+  canUploadHrmDocumentForUser,
+  canUploadPortalEmployeeDocument,
+} from "#features/hrm/server"
 
-export const runtime = "nodejs"
 
 const WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES = [
   "image/jpeg",
@@ -27,7 +30,7 @@ const NEXUS_ALLOWED_UPLOAD_PREFIXES = [
   "nexus-coordination",
 ] as const
 
-type WorkbenchUtilityUploadClientPayload = {
+type AppShellNexusUtilityUploadClientPayload = {
   source?: string | null
   captureMode?: "workspace" | "content" | null
   contextId?: string | null
@@ -41,22 +44,23 @@ type WorkbenchUtilityUploadClientPayload = {
   linkedEntityId?: string | null
   /** When `source` is `hrm-workforce-document`, echoed for observability only. */
   hrmEmployeeId?: string | null
+  portalSlug?: string | null
 }
 
-type WorkbenchUtilityUploadTokenPayload = {
+type AppShellNexusUtilityUploadTokenPayload = {
   userId?: string
   sessionId?: string
   organizationId?: string
   pathname?: string
-  clientPayload?: WorkbenchUtilityUploadClientPayload | null
+  clientPayload?: AppShellNexusUtilityUploadClientPayload | null
 }
 
 function parseClientPayload(
   raw: string | null
-): WorkbenchUtilityUploadClientPayload | null {
+): AppShellNexusUtilityUploadClientPayload | null {
   if (!raw) return null
   try {
-    const parsed = JSON.parse(raw) as WorkbenchUtilityUploadClientPayload
+    const parsed = JSON.parse(raw) as AppShellNexusUtilityUploadClientPayload
     return parsed && typeof parsed === "object" ? parsed : null
   } catch {
     return null
@@ -66,7 +70,7 @@ function parseClientPayload(
 function parseTokenPayload(raw: string | null | undefined) {
   if (!raw) return null
   try {
-    const parsed = JSON.parse(raw) as WorkbenchUtilityUploadTokenPayload
+    const parsed = JSON.parse(raw) as AppShellNexusUtilityUploadTokenPayload
     return parsed && typeof parsed === "object" ? parsed : null
   } catch {
     return null
@@ -83,8 +87,24 @@ const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 type HrmUploadPath = {
+  organizationId: string
   employeeId: string
   claimId: string | null
+}
+
+function parseAnyHrmUploadPath(pathname: string): HrmUploadPath | null {
+  const parts = pathname.split("/").filter(Boolean)
+  if (parts.length < 5) return null
+  if (parts[0] !== "orgs" || parts[2] !== "hrm") return null
+  const organizationId = parts[1] ?? ""
+  const employeeId = parts[3] ?? ""
+  if (!UUID_RE.test(organizationId) || !UUID_RE.test(employeeId)) return null
+  if (parts[4] !== "claims") {
+    return { organizationId, employeeId, claimId: null }
+  }
+  const claimId = parts[5] ?? ""
+  if (parts.length < 7 || !UUID_RE.test(claimId)) return null
+  return { organizationId, employeeId, claimId }
 }
 
 /** Tenant-scoped HR evidence: `orgs/{orgId}/hrm/{employeeId}/…`. */
@@ -92,30 +112,25 @@ function parseHrmUploadPath(
   orgId: string,
   pathname: string
 ): HrmUploadPath | null {
-  const parts = pathname.split("/").filter(Boolean)
-  if (parts.length < 5) return null
-  if (parts[0] !== "orgs" || parts[1] !== orgId || parts[2] !== "hrm") {
-    return null
-  }
-  const employeeId = parts[3] ?? ""
-  if (!UUID_RE.test(employeeId)) return null
-  if (parts[4] !== "claims") {
-    return { employeeId, claimId: null }
-  }
-  const claimId = parts[5] ?? ""
-  if (parts.length < 7 || !UUID_RE.test(claimId)) return null
-  return { employeeId, claimId }
+  const parsed = parseAnyHrmUploadPath(pathname)
+  return parsed?.organizationId === orgId ? parsed : null
 }
 
 async function isAllowedHrmUploadPath(input: {
   orgId: string
   userId: string
   pathname: string
-  clientPayload: WorkbenchUtilityUploadClientPayload | null
+  clientPayload: AppShellNexusUtilityUploadClientPayload | null
 }): Promise<boolean> {
   const parsed = parseHrmUploadPath(input.orgId, input.pathname)
   if (!parsed) return false
-  if (!parsed.claimId) return true
+  if (!parsed.claimId) {
+    return canUploadHrmDocumentForUser({
+      organizationId: input.orgId,
+      userId: input.userId,
+      employeeId: parsed.employeeId,
+    })
+  }
   if (
     input.clientPayload?.linkedEntityType &&
     input.clientPayload.linkedEntityType !== "hrm_claim"
@@ -136,6 +151,22 @@ async function isAllowedHrmUploadPath(input: {
   })
 }
 
+async function isAllowedPortalHrmUploadPath(input: {
+  pathname: string
+  clientPayload: AppShellNexusUtilityUploadClientPayload | null
+}): Promise<{ ok: true; organizationId: string } | { ok: false }> {
+  const parsed = parseAnyHrmUploadPath(input.pathname)
+  const portalSlug = input.clientPayload?.portalSlug?.trim()
+  if (!parsed || parsed.claimId || !portalSlug) return { ok: false }
+
+  const allowed = await canUploadPortalEmployeeDocument({
+    portalSlug,
+    organizationId: parsed.organizationId,
+    employeeId: parsed.employeeId,
+  })
+  return allowed ? { ok: true, organizationId: parsed.organizationId } : { ok: false }
+}
+
 function isAllowedOrbitUploadPath(orgId: string, pathname: string): boolean {
   const parts = pathname.split("/").filter(Boolean)
   if (parts.length < 5) return false
@@ -149,7 +180,7 @@ async function isAllowedOrgWorkspaceUploadPath(input: {
   orgId: string
   userId: string
   pathname: string
-  clientPayload: WorkbenchUtilityUploadClientPayload | null
+  clientPayload: AppShellNexusUtilityUploadClientPayload | null
 }): Promise<boolean> {
   return (
     isAllowedNexusUploadPath(input.orgId, input.pathname) ||
@@ -168,10 +199,6 @@ export async function POST(request: Request) {
     ? await getOrgSessionFromRequest(request)
     : null
 
-  if (isGenerateTokenEvent && !orgSession) {
-    return routeJsonError("Unauthorized", 401)
-  }
-
   const organizationId = orgSession?.organizationId ?? null
 
   try {
@@ -180,7 +207,28 @@ export async function POST(request: Request) {
       request,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
         if (!orgSession) {
-          throw new Error("Unauthorized")
+          const parsedClientPayload = parseClientPayload(clientPayload)
+          const portalUpload = await isAllowedPortalHrmUploadPath({
+            pathname,
+            clientPayload: parsedClientPayload,
+          })
+          if (!portalUpload.ok) {
+            throw new Error("Unauthorized")
+          }
+          return {
+            allowedContentTypes: [
+              ...WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES,
+            ],
+            maximumSizeInBytes: WORKBENCH_UTILITY_UPLOAD_MAX_SIZE_BYTES,
+            addRandomSuffix: true,
+            tokenPayload: JSON.stringify({
+              userId: null,
+              sessionId: null,
+              organizationId: portalUpload.organizationId,
+              pathname,
+              clientPayload: parsedClientPayload,
+            }),
+          }
         }
 
         const parsedClientPayload = parseClientPayload(clientPayload)

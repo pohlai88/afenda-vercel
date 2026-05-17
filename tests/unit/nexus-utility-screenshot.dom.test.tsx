@@ -78,8 +78,8 @@ vi.mock("next-intl", () => ({
       ),
 }))
 
-import { WorkbenchUtilityScreenshot } from "#components/workbench/utility-bar/right-utility-bar/workbench-utility-screenshot"
-import { TooltipProvider } from "#components/ui/tooltip"
+import { AppShellNexusUtilityScreenshot } from "#app-shell/client"
+import { TooltipProvider } from "#components2/ui/tooltip"
 
 afterEach(() => {
   cleanup()
@@ -87,7 +87,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe("WorkbenchUtilityScreenshot", () => {
+describe("AppShellNexusUtilityScreenshot", () => {
   beforeEach(() => {
     toBlobMock.mockReset()
     toBlobMock.mockResolvedValue(new Blob(["png"], { type: "image/png" }))
@@ -100,8 +100,8 @@ describe("WorkbenchUtilityScreenshot", () => {
       }
     )
     document.body.innerHTML = `
-      <div data-workbench-capture-root="workspace">workspace</div>
-      <main id="dashboard-main" data-workbench-capture-root="content">content</main>
+      <div data-appshell-capture-root="workspace">workspace</div>
+      <main id="dashboard-main" data-appshell-capture-root="content">content</main>
     `
     window.history.replaceState({}, "", "/en/o/acme/dashboard/home")
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:preview")
@@ -119,7 +119,7 @@ describe("WorkbenchUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityScreenshot orgId="org-1" />
+        <AppShellNexusUtilityScreenshot orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -130,7 +130,7 @@ describe("WorkbenchUtilityScreenshot", () => {
       await screen.findByText("Workspace capture ready for upload.")
     ).toBeTruthy()
     expect(toBlobMock).toHaveBeenCalledWith(
-      document.querySelector('[data-workbench-capture-root="workspace"]'),
+      document.querySelector('[data-appshell-capture-root="workspace"]'),
       expect.objectContaining({
         pixelRatio: expect.any(Number),
       })
@@ -155,7 +155,7 @@ describe("WorkbenchUtilityScreenshot", () => {
   it("captures the content view when content mode is selected", async () => {
     render(
       <TooltipProvider>
-        <WorkbenchUtilityScreenshot orgId="org-1" />
+        <AppShellNexusUtilityScreenshot orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -167,7 +167,7 @@ describe("WorkbenchUtilityScreenshot", () => {
       await screen.findByText("Content capture ready for upload.")
     ).toBeTruthy()
     expect(toBlobMock).toHaveBeenCalledWith(
-      document.querySelector('[data-workbench-capture-root="content"]'),
+      document.querySelector('[data-appshell-capture-root="content"]'),
       expect.any(Object)
     )
   })
@@ -177,7 +177,7 @@ describe("WorkbenchUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityScreenshot orgId="org-1" />
+        <AppShellNexusUtilityScreenshot orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -192,7 +192,7 @@ describe("WorkbenchUtilityScreenshot", () => {
   it("resets the preview when cleared", async () => {
     render(
       <TooltipProvider>
-        <WorkbenchUtilityScreenshot orgId="org-1" />
+        <AppShellNexusUtilityScreenshot orgId="org-1" />
       </TooltipProvider>
     )
 
@@ -221,7 +221,7 @@ describe("WorkbenchUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <WorkbenchUtilityScreenshot orgId="org-1" />
+        <AppShellNexusUtilityScreenshot orgId="org-1" />
       </TooltipProvider>
     )
 

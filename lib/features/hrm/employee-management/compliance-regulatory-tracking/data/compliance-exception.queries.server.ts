@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, desc, eq, inArray, isNull } from "drizzle-orm"
+import { and, desc, eq, inArray, isNull, lte } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { hrmComplianceException, hrmEmployee } from "#lib/db/schema"
@@ -15,10 +15,20 @@ export type ComplianceExceptionListRow = {
   readonly legalName: string | null
   readonly complianceArea: string
   readonly itemType: string
+  readonly sourceReferenceId: string | null
   readonly title: string
   readonly severity: string
   readonly status: string
+  readonly correctiveActionOwnerUserId: string | null
   readonly correctiveActionDueDate: Date | null
+  readonly correctiveActionDescription: string | null
+  readonly correctiveActionProgressNote: string | null
+  readonly correctiveActionEvidenceDocumentId: string | null
+  readonly correctiveActionUpdatedAt: Date | null
+  readonly resolutionNote: string | null
+  readonly resolvedEvidenceDocumentId: string | null
+  readonly waivedAt: Date | null
+  readonly waiverReason: string | null
   readonly createdAt: Date
 }
 
@@ -47,6 +57,22 @@ export async function listComplianceExceptionsForOrg(
   if (filter.employeeId) {
     predicates.push(eq(hrmComplianceException.employeeId, filter.employeeId))
   }
+  if (filter.correctiveActionOwnerUserId) {
+    predicates.push(
+      eq(
+        hrmComplianceException.correctiveActionOwnerUserId,
+        filter.correctiveActionOwnerUserId
+      )
+    )
+  }
+  if (filter.overdueAsOf) {
+    predicates.push(
+      lte(
+        hrmComplianceException.correctiveActionDueDate,
+        new Date(`${filter.overdueAsOf}T00:00:00.000Z`)
+      )
+    )
+  }
 
   const rows = await db
     .select({
@@ -56,11 +82,27 @@ export async function listComplianceExceptionsForOrg(
       legalName: hrmEmployee.legalName,
       complianceArea: hrmComplianceException.complianceArea,
       itemType: hrmComplianceException.itemType,
+      sourceReferenceId: hrmComplianceException.sourceReferenceId,
       title: hrmComplianceException.title,
       severity: hrmComplianceException.severity,
       status: hrmComplianceException.status,
+      correctiveActionOwnerUserId:
+        hrmComplianceException.correctiveActionOwnerUserId,
       correctiveActionDueDate:
         hrmComplianceException.correctiveActionDueDate,
+      correctiveActionDescription:
+        hrmComplianceException.correctiveActionDescription,
+      correctiveActionProgressNote:
+        hrmComplianceException.correctiveActionProgressNote,
+      correctiveActionEvidenceDocumentId:
+        hrmComplianceException.correctiveActionEvidenceDocumentId,
+      correctiveActionUpdatedAt:
+        hrmComplianceException.correctiveActionUpdatedAt,
+      resolutionNote: hrmComplianceException.resolutionNote,
+      resolvedEvidenceDocumentId:
+        hrmComplianceException.resolvedEvidenceDocumentId,
+      waivedAt: hrmComplianceException.waivedAt,
+      waiverReason: hrmComplianceException.waiverReason,
       createdAt: hrmComplianceException.createdAt,
     })
     .from(hrmComplianceException)

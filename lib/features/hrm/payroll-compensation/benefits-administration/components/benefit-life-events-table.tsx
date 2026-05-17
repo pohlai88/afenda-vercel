@@ -1,14 +1,14 @@
 import { getTranslations } from "next-intl/server"
 
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 
-import type { BenefitLifeEventRow } from "../payroll-compensation/benefits-administration/data/benefit-model.shared"
+import type { BenefitLifeEventRow } from "../data/benefit-model.shared"
 import {
   isBenefitLifeEventType,
   isBenefitLifeEventVerificationStatus,
   type BenefitLifeEventType,
   type BenefitLifeEventVerificationStatus,
-} from "../payroll-compensation/benefits-administration/data/benefit-helpers.shared"
+} from "../data/benefit-helpers.shared"
 
 import { BenefitLifeEventVerifyActions } from "./benefit-life-event-verify-actions"
 

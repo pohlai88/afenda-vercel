@@ -639,7 +639,7 @@
   /* Afenda shell aliases */
 
   --af-nexus-utility-bar-surface: var(--sidebar);
-  --af-account-workbench-chrome: var(--md-sys-color-surface-container);
+  --af-account-appshell-chrome: var(--md-sys-color-surface-container);
 
   /* ERP density / surface rhythm */
 
@@ -1136,9 +1136,9 @@
   color: var(--foreground);
 }
 
-.af-account-workbench-chrome,
-.af-workbench-chrome {
-  background: var(--af-account-workbench-chrome);
+.af-account-appshell-chrome,
+.af-appshell-chrome {
+  background: var(--af-account-appshell-chrome);
   color: var(--foreground);
 }
 
@@ -1158,7 +1158,7 @@
 }
 
 .af-surface-header,
-.af-workbench-surface-header {
+.af-appshell-surface-header {
   min-height: var(--af-topnav-height);
   background: var(--md-sys-color-surface-container-low);
   color: var(--md-sys-color-on-surface);
@@ -1328,9 +1328,9 @@
   box-shadow: var(--md-sys-elevation-level1);
 }
 
-/* Workbench flush disc */
+/* App shell flush disc */
 
-.af-workbench-flush-disc {
+.af-appshell-flush-disc {
   transition:
     transform var(--md-sys-motion-duration-short4)
       var(--md-sys-motion-easing-standard),
@@ -1340,17 +1340,17 @@
       var(--md-sys-motion-easing-standard);
 }
 
-.af-workbench-flush-disc:hover {
+.af-appshell-flush-disc:hover {
   filter: brightness(1.04) saturate(1.02);
   box-shadow: var(--md-sys-elevation-level2);
 }
 
-.af-workbench-flush-disc:active {
+.af-appshell-flush-disc:active {
   transform: scale(0.96);
 }
 
-.af-workbench-flush-disc[aria-expanded="true"],
-.af-workbench-flush-disc[data-state="open"] {
+.af-appshell-flush-disc[aria-expanded="true"],
+.af-appshell-flush-disc[data-state="open"] {
   filter: brightness(0.96);
 }
 
@@ -1422,12 +1422,12 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* Workbench scrollbars                                                       */
+/* App shell scrollbars                                                       */
 /* -------------------------------------------------------------------------- */
 
-.af-workbench-main-scroll,
-.af-workbench-surface-scroll,
-.af-workbench-rail-scroll {
+.af-appshell-main-scroll,
+.af-appshell-surface-scroll,
+.af-appshell-rail-scroll {
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: color-mix(
@@ -1438,30 +1438,30 @@
     transparent;
 }
 
-.af-workbench-main-scroll::-webkit-scrollbar,
-.af-workbench-surface-scroll::-webkit-scrollbar,
-.af-workbench-rail-scroll::-webkit-scrollbar {
+.af-appshell-main-scroll::-webkit-scrollbar,
+.af-appshell-surface-scroll::-webkit-scrollbar,
+.af-appshell-rail-scroll::-webkit-scrollbar {
   width: 10px;
 }
 
-.af-workbench-main-scroll::-webkit-scrollbar-track,
-.af-workbench-surface-scroll::-webkit-scrollbar-track,
-.af-workbench-rail-scroll::-webkit-scrollbar-track {
+.af-appshell-main-scroll::-webkit-scrollbar-track,
+.af-appshell-surface-scroll::-webkit-scrollbar-track,
+.af-appshell-rail-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.af-workbench-main-scroll::-webkit-scrollbar-thumb,
-.af-workbench-surface-scroll::-webkit-scrollbar-thumb,
-.af-workbench-rail-scroll::-webkit-scrollbar-thumb {
+.af-appshell-main-scroll::-webkit-scrollbar-thumb,
+.af-appshell-surface-scroll::-webkit-scrollbar-thumb,
+.af-appshell-rail-scroll::-webkit-scrollbar-thumb {
   border-radius: 9999px;
   background: color-mix(in oklab, var(--md-sys-color-outline) 45%, transparent);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
-.af-workbench-main-scroll::-webkit-scrollbar-thumb:hover,
-.af-workbench-surface-scroll::-webkit-scrollbar-thumb:hover,
-.af-workbench-rail-scroll::-webkit-scrollbar-thumb:hover {
+.af-appshell-main-scroll::-webkit-scrollbar-thumb:hover,
+.af-appshell-surface-scroll::-webkit-scrollbar-thumb:hover,
+.af-appshell-rail-scroll::-webkit-scrollbar-thumb:hover {
   background: color-mix(in oklab, var(--md-sys-color-outline) 58%, transparent);
 }
 
@@ -1478,11 +1478,11 @@
 
   .af-material,
   .af-state-hover,
-  .af-workbench-flush-disc {
+  .af-appshell-flush-disc {
     transition: none;
   }
 
-  .af-workbench-flush-disc:active {
+  .af-appshell-flush-disc:active {
     transform: none;
   }
 }

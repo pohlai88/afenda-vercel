@@ -15,17 +15,17 @@ import { getEmployeePortalContext } from "../data/employee-portal-access.server"
 import { withEmployeePortalActionSpan } from "../data/portal-mutation-tracing.server"
 import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../data/employee-portal-access.shared"
 import { signaturePartyMatchesPortalSession } from "../data/signature-portal-access.shared"
-import { getSignaturePartyByToken } from "../../../../tools/electronic-signatures/data/signature-request.queries.server"
-import {
-  completeSignatureParty,
-  recordSignaturePartyView,
-  rejectSignatureParty,
-} from "../../../../tools/electronic-signatures/data/signature-request.mutations.server"
 import {
   portalSignatureDeclineSchema,
   portalSignatureIntentSchema,
-} from "../../../../tools/electronic-signatures/schemas/signature.schema"
-import { hrmActionFailure } from "../../../hrm-action-result.shared"
+} from "#features/tools"
+import {
+  completeSignatureParty,
+  getSignaturePartyByToken,
+  recordSignaturePartyView,
+  rejectSignatureParty,
+} from "#features/tools/server"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { SignatureMutationFormState } from "../../../types"
 
 function revalidateSignaturePortalSurfaces() {

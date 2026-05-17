@@ -43,12 +43,15 @@ export const SIGNATURE_EVENT_TYPES = [
   "signature_request.sent",
   "signature_request.opened",
   "signature_request.viewed",
+  "consent.presented",
+  "consent.accepted",
   "signature_request.recipient_completed",
   "signature_request.completed",
   "signature_request.rejected",
   "signature_request.cancelled",
   "signature_request.expired",
   "signature_request.reminder_sent",
+  "signature_request.resent",
   "signature_request.seal_failed",
   "signature_request.provider_callback",
 ] as const
@@ -147,6 +150,18 @@ export const zSignatureEventDataV1 = z.discriminatedUnion("type", [
     data: z.object({ partyId: z.string(), recipientEmail: z.string() }),
   }),
   signatureEventBaseSchema.extend({
+    type: z.literal("consent.presented"),
+    data: z.object({ partyId: z.string(), recipientEmail: z.string() }),
+  }),
+  signatureEventBaseSchema.extend({
+    type: z.literal("consent.accepted"),
+    data: z.object({
+      partyId: z.string(),
+      recipientEmail: z.string(),
+      consentAt: z.string().datetime(),
+    }),
+  }),
+  signatureEventBaseSchema.extend({
     type: z.literal("signature_request.recipient_completed"),
     data: z.object({
       partyId: z.string(),
@@ -178,6 +193,10 @@ export const zSignatureEventDataV1 = z.discriminatedUnion("type", [
   signatureEventBaseSchema.extend({
     type: z.literal("signature_request.reminder_sent"),
     data: z.object({ partyId: z.string(), reminderIndex: z.number().int() }),
+  }),
+  signatureEventBaseSchema.extend({
+    type: z.literal("signature_request.resent"),
+    data: z.object({ partyId: z.string(), recipientEmail: z.string() }),
   }),
   signatureEventBaseSchema.extend({
     type: z.literal("signature_request.seal_failed"),

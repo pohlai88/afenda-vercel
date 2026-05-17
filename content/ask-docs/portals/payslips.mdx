@@ -1,0 +1,66 @@
+---
+title: Employee portal payslips
+description: Browse and download payslip PDFs issued for your employee record from the employee portal.
+audience: employee
+status: draft
+icon: Banknote
+---
+
+## Overview
+
+**My payslips** at `/{locale}/p/{portalSlug}/employee/payslips` lists payslip documents published for your employee record. Open a row to view detail and download the PDF when your organisation allows it. Amounts respect your locale formatting. This surface is **read-only** — payroll posting happens in HRM.
+
+## Before you start
+
+- Active employee portal session with audience `employee`.
+- Payslips appear only after payroll has published documents for your record.
+
+## View and download payslips
+
+<Steps>
+  <Step>
+    ### Open My payslips
+
+    From the employee portal, open **Payslips** in the section navigation.
+  </Step>
+  <Step>
+    ### Select a period
+
+    Choose a payslip row from the list to open the detail view (`/employee/payslips/{documentId}`).
+  </Step>
+  <Step>
+    ### Download the PDF
+
+    Use the download action on the detail page when enabled. If a period is missing, contact HR — you cannot create or edit payslips from the portal.
+
+    <Callout type="warn" title="Read-only surface">
+      Payslips are issued by payroll in HRM. The portal never mutates pay amounts or posting state.
+    </Callout>
+  </Step>
+</Steps>
+
+## Portal vs HRM
+
+| Action | Employee portal | HRM |
+| --- | --- | --- |
+| View / download payslip | Yes | Yes (admin) |
+| Run payroll / post payslips | — | Yes |
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="No payslips appear in the list">
+    Payroll may not have published documents for your employee yet, or your portal access may not be linked to the correct employee row. Contact HR.
+  </Accordion>
+  <Accordion title="Download is disabled">
+    Your organisation may restrict employee download. HR can provide the document through the documents vault or another channel.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/portals/employee" title="Employee portal hub" />
+  <Card href="/ask-docs/hrm/payroll" title="Payroll (HRM)" />
+  <Card href="/ask-docs/portals/documents" title="Employee portal documents" />
+</Cards>

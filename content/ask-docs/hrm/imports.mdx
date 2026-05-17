@@ -1,20 +1,29 @@
 ---
 title: Bulk HR import
-description: Dry-run CSV uploads for employees, attendance, or payroll rows before committing — governed sessions with IAM audits.
+description: Dry-run CSV uploads for employee rows before committing — governed sessions with IAM audits.
 icon: Upload
+audience: admin
+status: stable
+lastReviewedAt: "2026-05-18"
 ---
 
 ## Overview
 
-The bulk HR import surface lets administrators stage large data sets from CSV files before any rows are written to the database. Every session follows a **dry-run → review → commit** workflow. Commits and rollbacks each write an immutable audit event to the IAM ledger (`erp.hrm.import.session.*`).
+The bulk HR import surface lets administrators stage employee data from CSV files before any rows are written to the database. Every session follows a **dry-run → review → commit** workflow. Commits and rollbacks each write an immutable audit event to the IAM ledger (`erp.hrm.import.session.*`).
+
+## Before you start
+
+- You need `hrm.import.search` to view the page; `hrm.import.update` to commit or roll back sessions.
+- Prepare UTF-8 encoded CSV files with required columns (see table below).
+- Run a dry run and fix all validation errors before commit — partial commits are not supported.
 
 ## Supported import types
 
 | Import type | What it creates | Required CSV columns |
 |---|---|---|
-| **Employees** | New `hrmEmployee` records | `employeeNumber`, `legalName` |
-| **Attendance** | Attendance event rows | Validated against active employees |
-| **Payroll** | Payroll profile rows | Validated against pay periods |
+| **Employees** | New `hrmEmployee` records | `employee_number`, `display_name` |
+
+Attendance and payroll bulk import are not available in the wizard yet — use module-specific surfaces until those commit paths ship.
 
 ## Running a dry run
 
@@ -23,10 +32,7 @@ The bulk HR import surface lets administrators stage large data sets from CSV fi
     Navigate to **HRM → Bulk HR import**.
   </Step>
   <Step>
-    Select the **import type** from the dropdown.
-  </Step>
-  <Step>
-    Upload a UTF-8 encoded `.csv` file using the file picker.
+    Upload a UTF-8 encoded `.csv` file using the file picker (import type is **Employees**).
   </Step>
   <Step>
     Click **Run dry run**.
@@ -46,7 +52,7 @@ After the dry run completes, the wizard displays:
 - **Row count** — the number of successfully parsed rows.
 - **Validation errors** — any row-level problems, including the line number and the specific error message.
 
-Fix any errors in your CSV and re-upload before proceeding.
+Fix any errors in your CSV and re-upload before proceeding. Duplicate `employee_number` values **within the same file** are rejected with line-level errors before commit.
 
 ## Committing an import session
 
@@ -59,10 +65,10 @@ Once the dry run shows zero validation errors:
   <Step>
     Click **Commit**.
 
-    The server re-validates the stored CSV and inserts the rows. For employee imports, each inserted employee ID is recorded in the session's rollback manifest.
+    The server re-validates the stored CSV, stages apply via a durable workflow, and inserts employee rows in batches. Each inserted employee ID is recorded in the session's rollback manifest.
   </Step>
   <Step>
-    The session status changes to `committed`. An `erp.hrm.import.session.commit` audit event is written.
+    The session status moves through `processing` to `committed`. An `erp.hrm.import.session.commit` audit event is written.
   </Step>
 </Steps>
 
@@ -88,10 +94,6 @@ Employee import sessions can be rolled back if the employees have not yet been a
   </Step>
 </Steps>
 
-<Callout type="warn" title="Attendance and payroll rollback">
-  Attendance and payroll import sessions do not support automatic rollback. Contact your system administrator if you need to revert those rows.
-</Callout>
-
 ## Required permission
 
 The bulk HR import surface requires the `hrm.import` ERP permission set. Only users with at least `hrm.import.search` can view the page. Committing and rolling back sessions additionally require `hrm.import.update`.
@@ -109,3 +111,25 @@ Every dry-run, commit, and rollback writes to the IAM audit ledger:
 | `erp.hrm.import.session.rollback` | Successful rollback — includes `importType` and rows removed |
 
 Access the full audit history from **Org Admin → Audit**.
+
+## Troubleshooting
+
+<Accordions type="single">
+  <Accordion title="Dry run reports encoding errors">
+    Re-save the CSV as UTF-8 without BOM and remove smart quotes from header cells.
+  </Accordion>
+  <Accordion title="Rollback button is disabled">
+    Dependent payroll or leave rows may reference imported employees — resolve those links before rollback.
+  </Accordion>
+</Accordions>
+
+## Related
+
+<Cards>
+  <Card href="/ask-docs/hrm/employees" title="Employees">
+    Employee import creates workforce master rows.
+  </Card>
+  <Card href="/ask-docs/org-admin" title="Org admin">
+    IAM audit export for import session events.
+  </Card>
+</Cards>

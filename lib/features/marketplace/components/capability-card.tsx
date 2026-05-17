@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from "react"
 
-import { Badge } from "#components/ui/badge"
+import { Badge } from "#components2/ui/badge"
 import {
   Card,
   CardContent,
@@ -8,7 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "#components/ui/card"
+} from "#components2/ui/card"
 
 import type { ResolvedCapability } from "../types"
 import {

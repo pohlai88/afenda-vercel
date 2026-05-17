@@ -10,7 +10,7 @@ import {
 } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-import { RouteErrorDebugPanel } from "#components/dev/route-error-debug-panel"
+import { RouteErrorDebugPanel } from "#components2/dev/route-error-debug-panel"
 
 describe("RouteErrorDebugPanel", () => {
   beforeEach(() => {

@@ -50,6 +50,7 @@ export function dryRunEmployees(rows: string[][]): {
     return { rowCount: 0, errors }
   }
   let dataRows = 0
+  const seenEmployeeNumbers = new Map<string, number>()
   for (let i = 1; i < rows.length; i++) {
     const lineNo = i + 1
     const r = rows[i]
@@ -68,8 +69,22 @@ export function dryRunEmployees(rows: string[][]): {
     if (name && name.length > 200) {
       errors.push({ line: lineNo, message: "display_name too long (max 200)" })
     }
+    if (num && num.length <= 64) {
+      const firstLine = seenEmployeeNumbers.get(num)
+      if (firstLine !== undefined) {
+        errors.push({
+          line: lineNo,
+          message: `Duplicate employee_number (first on line ${firstLine})`,
+        })
+      } else {
+        seenEmployeeNumbers.set(num, lineNo)
+      }
+    }
     if (num && name && num.length <= 64 && name.length <= 200) {
-      dataRows += 1
+      const firstLine = seenEmployeeNumbers.get(num)
+      if (firstLine === lineNo) {
+        dataRows += 1
+      }
     }
   }
   return { rowCount: dataRows, errors }
