@@ -1,0 +1,14 @@
+import { CandidatePortalStatusPage } from "#features/hrm"
+
+export const dynamic = "force-dynamic"
+
+type CandidateApplicationStatusRouteProps = {
+  params: Promise<{ portalSlug: string; token: string }>
+}
+
+export default async function CandidateApplicationStatusRoute({
+  params,
+}: CandidateApplicationStatusRouteProps) {
+  const { portalSlug, token } = await params
+  return <CandidatePortalStatusPage portalSlug={portalSlug} token={token} />
+}

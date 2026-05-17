@@ -35,6 +35,20 @@ export type EmployeePortalSection =
 
 export type EmployeePortalProfileSection = "personal" | "emergency" | "banking"
 
+export type CandidatePortalSection = "careers"
+
+export function candidatePortalPath(
+  portalSlug: string,
+  section: CandidatePortalSection = "careers"
+): Route {
+  const normalized = normalizePortalSlugParam(portalSlug)
+  if (!normalized) {
+    throw new Error("candidatePortalPath: invalid portal slug")
+  }
+
+  return `/p/${normalized}/candidate/${section}` as Route
+}
+
 export function employeePortalPath(
   portalSlug: string,
   section?: EmployeePortalSection

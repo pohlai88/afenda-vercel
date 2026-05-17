@@ -10,13 +10,13 @@ export {
   malaysiaEmployeeStatutoryProfileSchema,
   updateEmployeeFormSchema,
   vietnamEmployeeStatutoryProfileSchema,
-} from "./schemas/employee.schema"
+} from "./employee-management/employee-records-management/schemas/employee.schema"
 
 export {
   createLeaveTypeFormSchema,
   updateLeaveTypeFormSchema,
   createLeavePolicyFormSchema,
-} from "./schemas/leave-policy.schema"
+} from "./workforce-time-attendance/schemas/leave-policy.schema"
 
 export {
   adjustLeaveBalanceFormSchema,
@@ -26,7 +26,7 @@ export {
   leaveRejectDecisionSchema,
   requestOwnLeaveFormSchema,
   runLeaveCarryForwardFormSchema,
-} from "./schemas/leave-request.schema"
+} from "./workforce-time-attendance/schemas/leave-request.schema"
 
 export {
   attachClaimEvidenceFormSchema,
@@ -35,7 +35,7 @@ export {
   claimRejectDecisionSchema,
   requestOwnClaimFormSchema,
   submitClaimFormSchema,
-} from "./schemas/claim.schema"
+} from "./payroll-compensation/expenses-reimbursement/schema/claim.schema"
 
 export {
   HRM_IMPORT_TYPES,
@@ -44,12 +44,12 @@ export {
   hrmImportRollbackJsonSchema,
   hrmImportTypeSchema,
   parseHrmImportDryRunErrorMessage,
-} from "./schemas/hrm-import.schema"
+} from "../tools/bulk-csv-import/schemas/hrm-import.schema"
 export type {
   HrmImportDryRunSuccessResponse,
   HrmImportRollbackJson,
   HrmImportType,
-} from "./schemas/hrm-import.schema"
+} from "../tools/bulk-csv-import/schemas/hrm-import.schema"
 
 export {
   archiveOrgUnitFormSchema,
@@ -61,7 +61,7 @@ export {
   updateJobGradeArchitectureFormSchema,
   updateOrgUnitFormSchema,
   updatePositionControlFormSchema,
-} from "./schemas/org-structure.schema"
+} from "./employee-management/organizational-chart-hierarchy/schemas/org-structure.schema"
 
 export type {
   AttachClaimEvidenceFormValues,
@@ -70,7 +70,7 @@ export type {
   ClaimRejectDecisionValues,
   RequestOwnClaimFormValues,
   SubmitClaimFormValues,
-} from "./schemas/claim.schema"
+} from "./payroll-compensation/expenses-reimbursement/schema/claim.schema"
 
 export {
   recordAttendanceEventSchema,
@@ -79,19 +79,19 @@ export {
   createShiftTemplateSchema,
   assignEmployeeShiftSchema,
   attendanceCsvRowSchema,
-} from "./schemas/attendance-event.schema"
+} from "./workforce-time-attendance/schemas/attendance-event.schema"
 
 export {
   createPayrollPeriodFormSchema,
   updatePayrollPeriodFormSchema,
   preparePayrollRunsFormSchema,
-} from "./schemas/payroll-period.schema"
+} from "./payroll-compensation/payroll-processing/schemas/payroll-period.schema"
 
 export type {
   CreatePayrollPeriodFormValues,
   UpdatePayrollPeriodFormValues,
   PreparePayrollRunsFormValues,
-} from "./schemas/payroll-period.schema"
+} from "./payroll-compensation/payroll-processing/schemas/payroll-period.schema"
 
 export {
   HRM_REVIEW_CYCLE_STATES,
@@ -102,19 +102,19 @@ export {
   HRM_REVIEW_ROW_STATES,
   HRM_REVIEW_ROW_STATE,
   hrmReviewRowStateSchema,
-} from "./schemas/performance.schema"
+} from "./talent-management/performance-management/schemas/performance.schema"
 export type {
   HrmReviewCycleState,
   HrmReviewPipeline,
   HrmReviewRowState,
-} from "./schemas/performance.schema"
+} from "./talent-management/performance-management/schemas/performance.schema"
 
 export type {
   LeaveAccrualMethodValue,
   CreateLeaveTypeFormValues,
   UpdateLeaveTypeFormValues,
   CreateLeavePolicyFormValues,
-} from "./schemas/leave-policy.schema"
+} from "./workforce-time-attendance/schemas/leave-policy.schema"
 
 export type {
   HalfDayOption,
@@ -125,7 +125,7 @@ export type {
   LeaveRejectDecisionValues,
   RequestOwnLeaveFormValues,
   RunLeaveCarryForwardFormValues,
-} from "./schemas/leave-request.schema"
+} from "./workforce-time-attendance/schemas/leave-request.schema"
 
 export type {
   RecordAttendanceEventInput,
@@ -134,7 +134,7 @@ export type {
   CreateShiftTemplateInput,
   AssignEmployeeShiftInput,
   AttendanceCsvRow,
-} from "./schemas/attendance-event.schema"
+} from "./workforce-time-attendance/schemas/attendance-event.schema"
 
 export type {
   EmployeeMasterSnapshot,
@@ -181,7 +181,7 @@ export {
   isClaimDateInRange,
   isClaimEvidenceType,
   isClaimState,
-} from "./data/claim-helpers.shared"
+} from "./payroll-compensation/expenses-reimbursement/data/claim-helpers.shared"
 export type {
   ClaimApprovalSnapshot,
   ClaimEvidenceType,
@@ -189,10 +189,10 @@ export type {
   ClaimsCountsSummary,
   ClaimStateValue,
   PerClaimLimitOutcome,
-} from "./data/claim-helpers.shared"
+} from "./payroll-compensation/expenses-reimbursement/data/claim-helpers.shared"
 
-export { buildBenefitPlanEnterpriseVersion } from "./data/benefit-plan-version.shared"
-export type { BenefitPlanEnterpriseVersion } from "./data/benefit-plan-version.shared"
+export { buildBenefitPlanEnterpriseVersion } from "./payroll-compensation/benefits-administration/data/benefit-plan-version.shared"
+export type { BenefitPlanEnterpriseVersion } from "./payroll-compensation/benefits-administration/data/benefit-plan-version.shared"
 export {
   buildBenefitCensusReportForOrganization,
   evaluateBenefitEligibilityForEmployee,
@@ -200,19 +200,19 @@ export {
   listBenefitPayrollProjectionEnrollmentsForPeriod,
   listBenefitPlanEnterpriseVersionsForOrganization,
   projectBenefitPayrollLinesForEmployeePeriod,
-} from "./data/benefit-enterprise.queries.server"
+} from "./payroll-compensation/benefits-administration/data/benefit-enterprise.queries.server"
 export type {
   BenefitEligibilityEvaluation,
   BenefitPayrollProjectionQueryOptions,
   BuildBenefitCensusReportForOrganizationOptions,
   EvaluateBenefitEligibilityForEmployeeOptions,
   ListBenefitPlanEnterpriseVersionsForOrganizationOptions,
-} from "./data/benefit-enterprise.queries.server"
+} from "./payroll-compensation/benefits-administration/data/benefit-enterprise.queries.server"
 export {
   evaluateBenefitEligibility,
   parseBenefitEligibilityRules,
   summarizeBenefitEligibilityFailure,
-} from "./data/benefit-eligibility.shared"
+} from "./payroll-compensation/benefits-administration/data/benefit-eligibility.shared"
 export type {
   BenefitEligibilityEmployee,
   BenefitEligibilityPlan,
@@ -221,30 +221,30 @@ export type {
   BenefitEligibilityResult,
   BenefitEligibilityRules,
   EvaluateBenefitEligibilityInput,
-} from "./data/benefit-eligibility.shared"
+} from "./payroll-compensation/benefits-administration/data/benefit-eligibility.shared"
 export {
   buildLifeEventEnrollmentWindow,
   isBenefitEnrollmentWindowOpen,
   resolveBenefitElectionAccess,
-} from "./data/benefit-self-service.shared"
+} from "./payroll-compensation/benefits-administration/data/benefit-self-service.shared"
 export type {
   BenefitElectionAccessReason,
   BenefitElectionAccessReasonCode,
   BenefitElectionAccessResult,
   BenefitEnrollmentWindow,
   BenefitEnrollmentWindowKind,
-} from "./data/benefit-self-service.shared"
+} from "./payroll-compensation/benefits-administration/data/benefit-self-service.shared"
 export {
   projectBenefitPayrollLines,
   projectBenefitPayrollLinesForPeriod,
-} from "./data/benefit-payroll-projection.shared"
+} from "./payroll-compensation/benefits-administration/data/benefit-payroll-projection.shared"
 export type {
   BenefitPayrollProjectedLine,
   BenefitPayrollProjectionEnrollment,
-} from "./data/benefit-payroll-projection.shared"
-export { buildBenefitCensusReport } from "./data/benefit-reporting.shared"
-export type { BenefitCensusReport } from "./data/benefit-reporting.shared"
-export { payrollPayslipSnapshotFromDocumentPayload } from "./data/payroll-close.shared"
+} from "./payroll-compensation/benefits-administration/data/benefit-payroll-projection.shared"
+export { buildBenefitCensusReport } from "./payroll-compensation/benefits-administration/data/benefit-reporting.shared"
+export type { BenefitCensusReport } from "./payroll-compensation/benefits-administration/data/benefit-reporting.shared"
+export { payrollPayslipSnapshotFromDocumentPayload } from "./payroll-compensation/payroll-processing/data/payroll-close.shared"
 export { HRM_NAV_NAMESPACE } from "./types"
 
 export {
@@ -270,10 +270,10 @@ export {
   HrmOverviewPage,
 } from "./components/hrm-pages"
 
-export { resolveLeaveSurfaceAccess } from "./data/leave-access.server"
-export type { LeaveSurfaceAccess } from "./data/leave-access.server"
+export { resolveLeaveSurfaceAccess } from "./workforce-time-attendance/data/leave-access.server"
+export type { LeaveSurfaceAccess } from "./workforce-time-attendance/data/leave-access.server"
 
-export { buildHrmRailSlots } from "./data/hrm-rail-slots"
+export { buildHrmRailSlots } from "./hrm-rail-slots"
 
 /** Rail pressure badge types (`getHrmRailPressureCounts` lives in `#features/hrm/server`). */
 export type {
@@ -284,7 +284,7 @@ export type {
 
 export { AttendancePage } from "./components/attendance-page"
 export { ClaimDetailPage } from "./components/claim-detail-page"
-export { ClaimsPage } from "./components/claims-page"
+export { ClaimsPage } from "./payroll-compensation/expenses-reimbursement/components/claims-page"
 export { DocumentsPage } from "./components/documents-page"
 export { EmployeeDetailPage } from "./components/employee-detail-page"
 export { EmployeePortalLeavePage } from "./components/employee-portal-leave-page"
@@ -302,7 +302,7 @@ export { SignaturesPage } from "./components/signatures-page"
 export { SignatureRequestDetailPage } from "./components/signature-request-detail-page"
 export { LeavePage } from "./components/leave-page"
 export { PoliciesPage } from "./components/policies-page"
-export { OrganizationPage } from "./components/organization-page"
+export { OrganizationPage } from "./employee-management/organizational-chart-hierarchy/components/organization-page"
 export { HrmOnboardingPage } from "./components/hrm-onboarding-page"
 export { HrmPerformancePage } from "./components/hrm-performance-page"
 export { HrmKpiPage } from "./components/hrm-kpi-page"
@@ -315,6 +315,12 @@ export { EmployeePortalProfileBankingPage } from "./components/employee-portal-p
 export { EmployeePortalPerformancePage } from "./components/employee-portal-performance-page"
 export { EmployeePortalPerformanceGoalPage } from "./components/employee-portal-performance-goal-page"
 export { EmployeePortalOffboardingPage } from "./components/employee-portal-offboarding-page"
+export { EmployeePortalRequestsPage } from "./employee-management/employee-selfservice-portal/components/employee-portal-requests-page"
+export { OffboardingOrgDashboardPage } from "./employee-management/offboarding-exit-management/components/offboarding-org-dashboard-page"
+export { CandidatePortalApplyPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-apply-page"
+export { CandidatePortalCareersDetailPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-careers-detail-page"
+export { CandidatePortalCareersPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-careers-page"
+export { CandidatePortalStatusPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-status-page"
 export { HrmSkillsPage } from "./components/hrm-skills-page"
 /** P3: Training analytics + feedback widgets — usable as RSC slots inside org admin layouts. */
 export { TrainingAnalyticsPanel } from "./components/training-analytics-panel"
@@ -331,7 +337,7 @@ export { CompliancePage } from "./components/compliance-page"
 export { ComplianceEvidenceDetailPage } from "./components/compliance-evidence-detail-page"
 export { BenefitsPage } from "./components/benefits-page"
 export { HrmImportsPage } from "./components/hrm-imports-page"
-export { RecruitmentPage } from "./components/recruitment-page"
+export { RecruitmentPage } from "./talent-management/recruitment-applicant-tracking/components/recruitment-page"
 export {
   HRM_APPLICATION_STAGES,
   HRM_INTERVIEW_OUTCOMES,
@@ -347,13 +353,13 @@ export {
   scheduleInterviewFormSchema,
   submitInterviewFeedbackFormSchema,
   updateJobOfferStatusFormSchema,
-} from "./schemas/recruitment.schema"
+} from "./talent-management/recruitment-applicant-tracking/schemas/recruitment.schema"
 export type {
   HrmApplicationStage,
   HrmInterviewOutcome,
   HrmJobOfferStatus,
   HrmJobRequisitionStatus,
-} from "./schemas/recruitment.schema"
+} from "./talent-management/recruitment-applicant-tracking/schemas/recruitment.schema"
 export {
   APPLICATION_STAGE_TRANSITIONS,
   OFFER_STATUS_TRANSITIONS,
@@ -362,7 +368,7 @@ export {
   canTransitionOfferStatus,
   canTransitionRequisitionStatus,
   nextApplicationStageLabel,
-} from "./data/recruitment-workflow.shared"
+} from "./talent-management/recruitment-applicant-tracking/data/recruitment-workflow.shared"
 /** Cross-period compliance operational health (Suspense-streamed). */
 export { ComplianceOperationalHealth } from "./components/compliance-operational-health"
 export { ComplianceOperationalHealthSkeleton } from "./components/compliance-operational-health-skeleton"

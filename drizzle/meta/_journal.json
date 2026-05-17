@@ -36,6 +36,20 @@
       "when": 1778935391995,
       "tag": "0004_next_jackal",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778994740398,
+      "tag": "0005_lush_white_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778998797584,
+      "tag": "0006_pale_norrin_radd",
+      "breakpoints": true
     }
   ]
 }

@@ -4,14 +4,14 @@ import {
   evaluateBenefitEligibility,
   parseBenefitEligibilityRules,
   summarizeBenefitEligibilityFailure,
-} from "../../lib/features/hrm/data/benefit-eligibility.shared"
-import { buildBenefitPlanEnterpriseVersion } from "../../lib/features/hrm/data/benefit-plan-version.shared"
-import { projectBenefitPayrollLinesForPeriod } from "../../lib/features/hrm/data/benefit-payroll-projection.shared"
-import { buildBenefitCensusReport } from "../../lib/features/hrm/data/benefit-reporting.shared"
+} from "../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit-eligibility.shared.ts"
+import { buildBenefitPlanEnterpriseVersion } from "../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit-plan-version.shared.ts"
+import { projectBenefitPayrollLinesForPeriod } from "../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit-payroll-projection.shared.ts"
+import { buildBenefitCensusReport } from "../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit-reporting.shared.ts"
 import {
   buildLifeEventEnrollmentWindow,
   resolveBenefitElectionAccess,
-} from "../../lib/features/hrm/data/benefit-self-service.shared"
+} from "../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit-self-service.shared.ts"
 
 describe("HRM benefits enterprise primitives", () => {
   it("parses persisted eligibility rules defensively", () => {

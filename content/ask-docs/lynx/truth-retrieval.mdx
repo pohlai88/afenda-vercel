@@ -1,0 +1,88 @@
+---
+title: Truth retrieval
+description: Ask questions grounded in your organisation's knowledge chunks — answer, evidence, limitations, and next safe action.
+icon: Search
+---
+
+## Overview
+
+**Truth retrieval** is Lynx's evidence-first Q&A layer. You ask a question; Lynx embeds the query, retrieves the top matching **knowledge chunks** for your organisation, and streams an answer constrained to that evidence.
+
+Use truth retrieval when you need: *what does our written evidence say about this?*
+
+## Where to use it
+
+| Surface | How |
+|---|---|
+| **Lynx console** | Truth retrieval section on `/o/{orgSlug}/dashboard/lynx` |
+| **Nexus summon** | Auto-runs when an atom is in focus — [Nexus summon](./nexus-summon) |
+
+## How it works
+
+<Steps>
+  <Step>
+    Enter a natural-language **question** (for example: "Why was this return rejected?").
+  </Step>
+  <Step>
+    Lynx embeds the question and runs similarity search over `knowledge_chunk` rows scoped to your `organizationId` (default top **8** passages — `LYNX_TRUTH_TOP_K`).
+  </Step>
+  <Step>
+    The model receives a system prompt built from retrieved passages and streams markdown back over **`POST /api/erp/lynx/truth-search`**.
+  </Step>
+  <Step>
+    The UI parses the stream into **Answer**, **Evidence used**, **Limitations**, and **Next safe action**.
+  </Step>
+</Steps>
+
+## Response sections
+
+### Answer
+
+Synthesis from retrieved passages only. If no chunks match, the answer should state that coverage is insufficient rather than inventing policy.
+
+### Evidence used
+
+Each passage shows:
+
+- Chunk **title** and excerpt
+- **Cosine distance** (lower = closer match)
+
+Evidence is listed from server retrieval — not parsed from model prose alone.
+
+### Limitations
+
+When retrieval is thin, Lynx explains that answers are limited to stored chunks. Default guidance: add knowledge chunks for broader coverage.
+
+### Next safe action
+
+Actionable, policy-safe guidance — for example open the Lynx console to add evidence, or escalate to an owner. This is not an automatic ERP mutation.
+
+## Prerequisites
+
+Truth retrieval needs **knowledge chunks** with embeddings. If the evidence list is empty:
+
+1. Open [Knowledge substrate](./knowledge-substrate) on the same Lynx page.
+2. Add title + body text and save (embedding runs on commit).
+3. Retry the question.
+
+Embeddings use the AI Gateway (`openai/text-embedding-3-small`, 1536 dimensions) via `#features/knowledge`.
+
+## Permissions and audit
+
+- Requires **`lynx.workspace.search`** (and truth route permission checks on POST).
+- Successful queries emit **`erp.lynx.truth.query`** with a hashed query fingerprint — not the full question text in metadata when PII-sensitive.
+
+## Streaming errors
+
+| Symptom | Typical cause |
+|---|---|
+| "Something went wrong" | Gateway auth, model config, or server error |
+| "Could not read the response stream" | Client disconnect or malformed stream |
+| Empty evidence | No chunks or embedding unavailable |
+
+## Tips for better answers
+
+- Write chunks as **complete policy paragraphs**, not bullet fragments.
+- Use descriptive **titles** — they appear in evidence lists.
+- Split unrelated topics into separate chunks so retrieval stays precise.
+- For operational state (blocked Orbit items, contact counts), use [Operator assist](./operator-assist) instead of truth retrieval.

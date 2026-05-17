@@ -1,0 +1,61 @@
+---
+title: Signals
+description: Detected operational pressure — triage, suppress, promote, or dismiss before execution.
+icon: Radio
+---
+
+## Overview
+
+**Orbit Signals** (`/o/{orgSlug}/dashboard/orbit/signals`) lists **detected operational pressure** awaiting triage, suppression, promotion, or dismissal.
+
+Use Signals when you need to answer: *what does the system (or operators) believe needs attention, before it becomes owned work?*
+
+See [Core concepts](./concepts) for signal classes and lifecycle states.
+
+## Signal vs item
+
+| | Signal | Item |
+|---|---|---|
+| **Purpose** | Represent pressure | Represent executable work |
+| **Typical end states** | Promoted, suppressed, dismissed, auto-resolved | Verified, resolved, deprecated, cancelled |
+| **Creation** | Detection, import, manual capture | Promotion from signal or direct create |
+
+Do not treat signals as lightweight todos — promote only when ownership, schedule, and verification are required.
+
+## Signal classes in practice
+
+| Class | Operator guidance |
+|---|---|
+| `deadline` | Check schedule slack; promote if commitment is real |
+| `escalation` | Assign escalation owner; often promote immediately |
+| `verification` | Confirm whether evidence already exists in ERP |
+| `anomaly` | Correlate to known incidents before promoting |
+| `manual_capture` | Review free-text summary; add links before promotion |
+| `prediction` / `recommendation` | May suppress or defer if policy treats as advisory |
+
+## Lifecycle actions
+
+| Action | When to use |
+|---|---|
+| **Promote** | Create `PlannerItem` and begin execution lifecycle |
+| **Correlate** | Attach to existing item; avoid duplicate work |
+| **Defer** | Valid pressure but not now |
+| **Suppress** | Policy allows muting recurring noise |
+| **Dismiss** | False positive or irrelevant pressure |
+| **Transition** | Move between detected, correlated, deferred, etc. |
+
+Audit examples: `erp.planner.signal.create`, `erp.planner.signal.promote`, `erp.planner.signal.transition`.
+
+## Manual capture
+
+Operators can **capture signals** from Queue or Signals quick-create with a short summary. Manual capture is classed `manual_capture` — add ERP **links** with causality reason so downstream execution has business context.
+
+## Resolution policies
+
+Signals may carry resolution policies (`none`, `auto_resolve`, `suppress`) governing automation behaviour when linked ERP state changes. Policies are configured per signal type and integration — not a generic tag field.
+
+## Related surfaces
+
+- [Triage](./triage) — lane-based intake and automation attention
+- [Queue](./queue) — after promotion, execute from ranked queue
+- [Links](./links) — ERP records tied to signal pressure

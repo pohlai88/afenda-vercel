@@ -1,6 +1,6 @@
 "use client"
 
-import { OperationalScopeRail } from "#components2/app-shell/operational-scope-rail.client"
+import { OperationalScopeRail } from "#features/operational-scope/client"
 
 import { SHELL_PREVIEW_OPERATIONAL_CONTEXT } from "../fixtures/operational-scope.fixture"
 

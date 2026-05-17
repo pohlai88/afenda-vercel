@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildAdvanceInstallmentPlan,
   isInstallmentDueOnOrBefore,
-} from "../../lib/features/hrm/data/salary-advance-installment.shared"
+} from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/salary-advance-installment.shared.ts"
 
 describe("buildAdvanceInstallmentPlan", () => {
   it("returns empty when total is zero", () => {

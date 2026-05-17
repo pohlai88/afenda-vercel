@@ -19,7 +19,7 @@ import {
   STATUTORY_PACK_TO_EVENT_TYPE,
   authorityForStatutoryPack,
   isAcknowledgementSource,
-} from "../../lib/features/hrm/data/statutory-event-types.shared"
+} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/statutory-event-types.shared.ts"
 
 describe("Statutory pack -> external authority mapping", () => {
   it("covers the same set of pack types as the submission mapping", () => {

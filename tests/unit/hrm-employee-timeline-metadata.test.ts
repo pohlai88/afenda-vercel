@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { buildEmployeeTimelineMetadataView } from "../../lib/features/hrm/data/employee-timeline-metadata.shared"
+import { buildEmployeeTimelineMetadataView } from "../../lib/features/hrm/employee-management/employee-records-management/data/employee-timeline-metadata.shared.ts"
 
 describe("buildEmployeeTimelineMetadataView", () => {
   it("returns empty view for invalid JSON", () => {

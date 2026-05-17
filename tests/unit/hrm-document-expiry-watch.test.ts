@@ -26,7 +26,7 @@ import {
   documentExpiryTiersCrossed,
   partitionDocumentExpiryEmissions,
   type DocumentExpiryCandidate,
-} from "../../lib/features/hrm/data/document-expiry-watch.shared"
+} from "../../lib/features/hrm/employee-management/documents-management/data/document-expiry-watch.shared.ts"
 
 const FIXED_NOW = new Date("2026-05-12T06:00:00.000Z")
 const MS_PER_DAY = 24 * 60 * 60 * 1000

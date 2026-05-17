@@ -30,3 +30,9 @@ export type {
   UserOperationalScopeRow,
   OrgOperationalScopePolicyRow,
 } from "./types"
+
+export { OperationalScopeRail } from "./components/operational-scope-rail.client"
+export {
+  OperationalScopeAdminConfigContent,
+  type ActiveScopeEntry,
+} from "./components/operational-scope-admin-config.client"

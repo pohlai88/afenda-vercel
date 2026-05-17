@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   assignEmployeeSkillFormSchema,
   createSkillFormSchema,
-} from "../../lib/features/hrm/schemas/skill.schema"
+} from "../../lib/features/hrm/talent-management/competency-skills-framework/schemas/skill.schema"
 
 describe("HRM skill schemas", () => {
   it("accepts kebab-case skill codes", () => {

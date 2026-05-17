@@ -1,0 +1,38 @@
+---
+title: Skills
+description: Maintain skill categories and map competencies to employees with proficiency levels.
+icon: Sparkles
+audience: admin
+status: stable
+---
+
+## Overview
+
+The **Skills** workbench maintains your organisation's competency catalog and maps skills to employees with proficiency levels. Use it for workforce planning, gap analysis, and tying training assignments to required competencies.
+
+## Workbench surface
+
+Navigate to **HRM → Skills** (`/o/{orgSlug}/dashboard/hrm/skills`).
+
+Typical workflows:
+
+1. Define or import **skill categories** and individual skills.
+2. Assign skills to employees with a proficiency level (e.g. beginner, proficient, expert).
+3. Review coverage when building training plans or recruitment scorecards.
+
+## Permissions
+
+| Action | ERP permission |
+| --- | --- |
+| View skills catalog and assignments | `hrm.skill.search` |
+| Create or update skills / mappings | `hrm.skill.update` |
+
+## Audits
+
+Mutations emit `erp.hrm.skill.*` audit events after successful commit. Bulk changes should go through governed import surfaces when available rather than ad-hoc SQL.
+
+## Related
+
+- [Training & development](/ask-docs/hrm/training) — courses, sessions, and completion records
+- [Performance](/ask-docs/hrm/performance) — review cycles and objectives
+- [Employees](/ask-docs/hrm/employees) — workforce master records

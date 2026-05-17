@@ -11,8 +11,8 @@ import {
   buildEmployeePortalSlugCandidates,
   resolveEmployeePortalContextFromRows,
   type EmployeePortalSubjectRow,
-} from "../../lib/features/hrm/data/employee-portal-access.shared"
-import { payrollPayslipSnapshotFromDocumentPayload } from "../../lib/features/hrm/data/payroll-close.shared"
+} from "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.shared.ts"
+import { payrollPayslipSnapshotFromDocumentPayload } from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-close.shared.ts"
 
 const basePortalContext: PortalContext = {
   portalId: "portal_01",

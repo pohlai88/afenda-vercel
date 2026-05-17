@@ -1,20 +1,74 @@
-import { cn } from "#lib/utils"
+import { Card, CardContent } from "#components2/ui/card"
+import { GovernedEmpty } from "#features/governed-surface"
+import {
+  parse{{pascalId}}Configuration,
+  type {{pascalId}}DataNature,
+} from "#features/governed-surface/schemas/{{kebabId}}.schema"
+
+import type { GovernedComponentRendererDiagnostics } from "../registry"
 
 /**
- * @experimental — governed renderer shape may evolve after list/form renderers ship.
- * governed:{{id}}
+ * Maps the schema dataNature enum to per-variant classNames. Typed as
+ * `Record<{{pascalId}}DataNature, string>` so a new enum value forces a
+ * compile error here before runtime (ADR-0025 §4).
+ *
+ * Adjust the className map to your renderer's actual layout requirements.
+ * Default scaffolding uses container queries (`@container`) — never
+ * viewport breakpoints — per ADR-0025 §1.
  */
-export type {{pascalId}}RendererProps = {
-  configuration: unknown
+const DATA_NATURE_CONTAINER_CLASS: Record<{{pascalId}}DataNature, string> = {
+{{#each natures}}
+  "{{this}}": "grid grid-cols-1 gap-3 @sm:grid-cols-2",
+{{/each}}
 }
 
-export function {{pascalId}}Renderer({ configuration }: {{pascalId}}RendererProps) {
-  void configuration
+export type {{pascalId}}RendererProps = {
+  configuration: unknown
+  diagnostics?: GovernedComponentRendererDiagnostics
+}
+
+/**
+ * `governed:{{kebabId}}` — {{title}} renderer.
+ *
+ * Geometry is fully container-relative; the renderer is correct in any
+ * placement that gives it ≥ {{minContainerPx}} px of inline space (see
+ * `AFENDA_GOVERNED_RENDERER_CONTRACTS["{{kebabId}}"].minContainerPx`).
+ */
+export function {{pascalId}}Renderer({
+  configuration,
+  diagnostics = "user",
+}: {{pascalId}}RendererProps) {
+  const parsed = parse{{pascalId}}Configuration(configuration)
+
+  if (!parsed.success) {
+    return (
+      <GovernedEmpty
+        model={{
+          variant: "error",
+          title: "{{title}} unavailable",
+          description:
+            diagnostics === "operator"
+              ? "The {{kebabId}} configuration failed validation."
+              : "This section could not be loaded safely.",
+        }}
+      />
+    )
+  }
+
+  const { dataNature } = parsed.data
+
   return (
-    <section aria-label="{{title}}">
-      <p className={cn("text-sm text-muted-foreground")}>
-        {{title}} renderer scaffold — wire configuration schema and UI.
-      </p>
+    <section aria-label="{{title}}" className="@container">
+      <Card>
+        <CardContent
+          className={DATA_NATURE_CONTAINER_CLASS[dataNature]}
+        >
+          {/* TODO: render parsed.data here */}
+          <p className="text-sm text-muted-foreground">
+            {{title}} renderer scaffold — wire UI off `parsed.data`.
+          </p>
+        </CardContent>
+      </Card>
     </section>
   )
 }

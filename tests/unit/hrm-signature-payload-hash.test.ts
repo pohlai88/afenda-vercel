@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { hashStableSignatureEnvelope } from "../../lib/features/hrm/data/signature-envelope.shared"
-import type { SignedEnvelopeV1 } from "../../lib/features/hrm/schemas/signature.schema"
+import { hashStableSignatureEnvelope } from "../../lib/features/tools/electronic-signatures/data/signature-envelope.shared.ts"
+import type { SignedEnvelopeV1 } from "../../lib/features/tools/electronic-signatures/schemas/signature.schema"
 
 const BASE_ENVELOPE = {
   version: "1",

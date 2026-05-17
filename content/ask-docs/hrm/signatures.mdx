@@ -1,0 +1,45 @@
+---
+title: Electronic signatures
+description: Multi-party in-app signature ceremonies produce signed JSON envelopes wired to contracts and boarding tasks.
+icon: PenLine
+audience: admin
+status: stable
+---
+
+## Overview
+
+**Signatures** orchestrates multi-party electronic signature ceremonies inside Afenda. Signed envelopes attach to employment contracts, boarding tasks, and policy acknowledgements. Ceremonies are in-app — external e-sign vendors integrate only where explicitly configured.
+
+Employees act on pending ceremonies from **HRM → Signatures** in the [employee portal](/ask-docs/portals/employee) when they are a party on the request.
+
+## Workbench surface
+
+Navigate to **HRM → Signatures** (`/o/{orgSlug}/dashboard/hrm/signatures`).
+
+Administrators can:
+
+- Create signature requests linked to HR artifacts
+- Monitor party status (pending, completed, declined)
+- Open ceremony detail by public slug for support
+
+## Tier A — step-up authentication
+
+Submitting a signature as a party may require **recent authentication step-up** (`requireRecentAuthStepUp`) before the ceremony completes. This protects high-impact HR documents from session hijack on shared machines.
+
+## Permissions
+
+| Action | ERP permission |
+| --- | --- |
+| Search and view ceremonies | `hrm.signature.search` |
+| Create or manage requests | `hrm.signature.update` (and related keys per action) |
+
+## Audits
+
+Signature lifecycle events use `erp.hrm.signature.*` prefixes. Declines and completions are immutable business facts — use governed cancellation flows instead of deleting rows.
+
+## Related
+
+- [Documents vault](/ask-docs/hrm/documents) — stored evidence files
+- [Policies](/ask-docs/hrm/policies) — handbook acknowledgements
+- [Onboarding](/ask-docs/hrm/onboarding) — boarding tasks that reference ceremonies
+- [Employee portal](/ask-docs/portals/employee) — party actions on pending signatures

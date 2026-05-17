@@ -4,7 +4,7 @@ import {
   buildEmployeeMasterBackfillRows,
   buildEmployeeMasterChangeRows,
   redactEmployeeMasterChangeValue,
-} from "#features/hrm/data/employee-master-history.shared"
+} from "#features/hrm/employee-management/employee-records-management/data/employee-master-history.shared"
 
 describe("employee master change redaction", () => {
   it("redacts sensitive identifiers in history rows", () => {

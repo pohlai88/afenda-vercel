@@ -119,6 +119,39 @@
         "scripts/check-components2-renderers.mjs"
       ]
     },
+    "lint:renderer-contracts": {
+      "inputs": [
+        "components2/metadata/registry.ts",
+        "lib/features/governed-surface/schemas/component.schema.ts",
+        "lib/features/governed-surface/schemas/stat-card.schema.ts",
+        "lib/features/governed-surface/schemas/list-surface-renderer.schema.ts",
+        "lib/features/governed-surface/schemas/action-bar.schema.ts",
+        "lib/features/governed-surface/schemas/audit-panel.schema.ts",
+        "lib/features/governed-surface/schemas/detail-tabs.schema.ts",
+        ".cursor/rules/governed-renderer-contract.mdc",
+        "scripts/check-renderer-contracts.mjs"
+      ]
+    },
+    "lint:renderer-container-queries": {
+      "inputs": [
+        "components2/metadata/renderers/**/*.tsx",
+        "components2/metadata/registry.ts",
+        "scripts/check-renderer-container-queries.mjs"
+      ]
+    },
+    "lint:renderer-skeleton-parity": {
+      "inputs": [
+        "components2/metadata/governed-component-skeleton.tsx",
+        "components2/metadata/registry.ts",
+        "scripts/check-renderer-skeleton-parity.mjs"
+      ]
+    },
+    "lint:renderer-fixtures": {
+      "inputs": [
+        "components2/dev/metadata-renderer-gallery/**",
+        "scripts/check-renderer-fixtures.mjs"
+      ]
+    },
     "typecheck": {
       "inputs": [
         "$TURBO_DEFAULT$",

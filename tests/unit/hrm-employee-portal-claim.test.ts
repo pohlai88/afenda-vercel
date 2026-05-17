@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../../lib/features/hrm/data/employee-portal-access.shared"
+import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.shared.ts"
 
 const mocks = vi.hoisted(() => ({
   getEmployeePortalContext: vi.fn(),
@@ -10,11 +10,11 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("server-only", () => ({}))
 
-vi.mock("../../lib/features/hrm/data/employee-portal-access.server", () => ({
+vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts", () => ({
   getEmployeePortalContext: mocks.getEmployeePortalContext,
 }))
 
-vi.mock("../../lib/features/hrm/data/claim-submission-mutation.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/expenses-reimbursement/data/claim-submission-mutation.server.ts", () => ({
   submitClaimForEmployee: mocks.submitClaimForEmployee,
   cancelClaimForPortalEmployee: mocks.cancelClaimForPortalEmployee,
 }))
@@ -22,7 +22,7 @@ vi.mock("../../lib/features/hrm/data/claim-submission-mutation.server", () => ({
 import {
   cancelPortalEmployeeClaimAction,
   submitPortalEmployeeClaimAction,
-} from "../../lib/features/hrm/actions/employee-portal-claim.actions"
+} from "../../lib/features/hrm/employee-management/employee-selfservice-portal/actions/employee-portal-claim.actions"
 
 const claimTypeId = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
 const claimId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"

@@ -88,6 +88,68 @@ function postGenLintAction(
   }
 }
 
+/**
+ * Print a checklist of remaining wires after `pnpm gen governed-renderer`.
+ *
+ * The generator scaffolds the renderer + schema + test deterministically.
+ * The remaining wires touch four shared registries whose anchor positions
+ * shift over time; running `pnpm lint:renderer-contracts` after pasting these
+ * snippets will surface anything still missing.
+ */
+function printGovernedRendererNextStepsAction(args: {
+  readonly kebabId: string
+  readonly pascalId: string
+  readonly camelId: string
+  readonly natures: readonly string[]
+  readonly minContainerPx: number
+}): PlopTypes.CustomActionFunction {
+  return async () => {
+    const { kebabId, pascalId, camelId, natures, minContainerPx } = args
+    const naturesLiteralUnion = natures.map((n) => `"${n}"`).join(" | ")
+    const naturesArray = natures.map((n) => `"${n}"`).join(", ")
+    const lines: readonly string[] = [
+      "",
+      `Next steps to wire "governed:${kebabId}" (parity script will block on each):`,
+      "",
+      `  1. components2/metadata/registry.ts — AFENDA_GOVERNED_COMPONENT_REGISTRY:`,
+      `       "governed:${kebabId}": "${kebabId}",`,
+      "",
+      "  2. components2/metadata/registry.ts — add to AfendaGovernedRendererId union:",
+      `       | "${kebabId}"`,
+      "",
+      "  3. components2/metadata/registry.ts — AFENDA_GOVERNED_RENDERER_CONTRACTS entry:",
+      `       "${kebabId}": { acceptedNatures: [${naturesArray}], minContainerPx: ${minContainerPx} },`,
+      "",
+      "  4. components2/metadata/governed-renderer-dispatch.tsx — import + dispatch arm:",
+      `       import { ${pascalId}Renderer } from "./renderers/${kebabId}.renderer"`,
+      `       case "${kebabId}":`,
+      `         return <${pascalId}Renderer configuration={input.configuration} diagnostics={diagnostics} />`,
+      "",
+      `  5. components2/metadata/governed-component-skeleton.tsx — skeleton case:`,
+      `       case "${kebabId}":`,
+      "         return (/* match renderer @container layout */)",
+      "",
+      "  6. lib/features/governed-surface/schemas/component.schema.ts —",
+      "     governedComponentTypeSchema literal + discriminated variant:",
+      `       "governed:${kebabId}",`,
+      `       z.object({ type: z.literal("governed:${kebabId}"), configuration: ${camelId}ConfigurationSchema }).strict(),`,
+      "",
+      "  7. lib/features/governed-surface/index.ts — export the new schema + types.",
+      "",
+      "  8. .cursor/rules/governed-renderer-contract.mdc — append the table row:",
+      `       | \`governed:${kebabId}\` | ${naturesLiteralUnion} | ${minContainerPx} |`,
+      "",
+      "  9. scripts/check-renderer-contracts.mjs — add to RENDERER_SCHEMA_FILES:",
+      `       "${kebabId}": "${kebabId}.schema.ts",`,
+      "",
+      "Then run:  pnpm lint:renderer-contracts && pnpm lint:renderer-container-queries",
+      "",
+    ]
+    console.log(lines.join("\n"))
+    return "next-steps checklist printed above"
+  }
+}
+
 /** Append `slug` to `pages` in `content/ask-docs/<section>/meta.json` when missing. */
 function appendAskDocMetaJsonAction(): PlopTypes.CustomActionFunction {
   return async (answers) => {
@@ -581,28 +643,63 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
   })
 
   // -------------------------------------------------------------------------
-  // GENERATOR 7 — governed-renderer (@experimental)
+  // GENERATOR 7 — governed-renderer (ADR-0025)
   //
-  // Scaffolds components2/metadata/renderers/<id>.renderer.tsx + unit test
-  // and appends registry entry in components2/metadata/registry.ts.
+  // Scaffolds the renderer + its Zod schema + a unit test, prints the
+  // remaining wires the parity script will require. The remaining manual
+  // steps are intentional — they touch shared registries / cursor rules /
+  // discriminated unions whose anchor patterns shift over time, and the
+  // parity script (`pnpm lint:renderer-contracts`) names each missing slot.
   // -------------------------------------------------------------------------
 
   p.setGenerator("governed-renderer", {
     description:
-      "@experimental — scaffold a governed metadata renderer (components2/metadata/renderers/).",
+      "Scaffold a governed metadata renderer (ADR-0025) — schema + renderer + test.",
     prompts: [
       {
         type: "input",
         name: "id",
         message:
-          "Renderer id without governed: prefix (kebab-case, e.g. stat-card):",
+          "Renderer id without governed: prefix (kebab-case, e.g. activity-log):",
         validate: validateModuleSlug,
       },
       {
         type: "input",
         name: "title",
-        message: "Human title for aria-label / docs:",
+        message: "Human title (used for aria-label, docs, fallback empty):",
         validate: validateTitle,
+      },
+      {
+        type: "input",
+        name: "naturesRaw",
+        message:
+          "Accepted dataNature values (comma-separated, e.g. 'audit-trail,change-log'):",
+        default: "default",
+        validate: (input: string) => {
+          const parts = String(input)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+          if (parts.length === 0) return "At least one dataNature is required."
+          for (const p of parts) {
+            if (!/^[a-z][a-z0-9-]*$/.test(p)) {
+              return `Invalid dataNature "${p}" — kebab-case, lowercase only.`
+            }
+          }
+          return true
+        },
+      },
+      {
+        type: "input",
+        name: "minContainerPx",
+        message: "minContainerPx for the registry contract (numeric, e.g. 320):",
+        default: "320",
+        validate: (input: string) => {
+          const n = Number(input)
+          return Number.isFinite(n) && n >= 0
+            ? true
+            : "minContainerPx must be a non-negative number."
+        },
       },
     ],
     actions: (answers) => {
@@ -610,30 +707,60 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
       const kebabId = String(a.id)
       const pascalId = kebabId
         .split("-")
-        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join("")
+      const camelId = pascalId.charAt(0).toLowerCase() + pascalId.slice(1)
+      const constantId = kebabId.toUpperCase().replace(/-/g, "_")
+      const natures = String(a.naturesRaw)
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+      const defaultNature = natures[0]
+      const minContainerPx = Number(a.minContainerPx)
+      const title = String(a.title)
+
       const rendererFile = `components2/metadata/renderers/${kebabId}.renderer.tsx`
+      const schemaFile = `lib/features/governed-surface/schemas/${kebabId}.schema.ts`
       const testFile = `tests/unit/components2/metadata/renderers/${kebabId}.test.tsx`
+
+      const templateData = {
+        kebabId,
+        pascalId,
+        camelId,
+        constantId,
+        title,
+        natures,
+        defaultNature,
+        minContainerPx,
+      }
 
       return [
         {
           type: "add",
+          path: path.join("{{turbo.paths.root}}", schemaFile),
+          templateFile: "templates/governed-renderer/schema.ts.hbs",
+          data: templateData,
+        },
+        {
+          type: "add",
           path: path.join("{{turbo.paths.root}}", rendererFile),
           templateFile: "templates/governed-renderer/renderer.tsx.hbs",
-          data: { kebabId, pascalId, title: String(a.title) },
+          data: templateData,
         },
         {
           type: "add",
           path: path.join("{{turbo.paths.root}}", testFile),
           templateFile: "templates/governed-renderer/renderer.test.tsx.hbs",
-          data: { kebabId, pascalId, title: String(a.title) },
+          data: templateData,
         },
-        postGenLintAction(() => [
-          rendererFile,
-          testFile,
-          "components2/metadata/registry.ts",
-          "components2/metadata/render-governed-component.tsx",
-        ]),
+        printGovernedRendererNextStepsAction({
+          kebabId,
+          pascalId,
+          camelId,
+          natures,
+          minContainerPx,
+        }),
+        postGenLintAction(() => [rendererFile, schemaFile, testFile]),
       ]
     },
   })

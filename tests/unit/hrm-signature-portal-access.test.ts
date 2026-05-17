@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { signaturePartyMatchesPortalSession } from "../../lib/features/hrm/data/signature-portal-access.shared"
-import type { EmployeePortalContext } from "../../lib/features/hrm/data/employee-portal-access.shared"
+import { signaturePartyMatchesPortalSession } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/signature-portal-access.shared.ts"
+import type { EmployeePortalContext } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.shared.ts"
 
 function portalContext(input: {
   employeeId: string

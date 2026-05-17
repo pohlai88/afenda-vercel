@@ -19,7 +19,7 @@ describe("GovernedComponentRenderer", () => {
         }}
       />
     )
-    expect(screen.getByText("Invalid component metadata")).toBeTruthy()
+    expect(screen.getByText("Section unavailable")).toBeTruthy()
   })
 })
 

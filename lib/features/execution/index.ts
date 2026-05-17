@@ -85,7 +85,7 @@ export async function enqueueOrgImportJobWorkflowRun(
 
 /**
  * Enqueues durable payroll preview computation for every draft run in a period.
- * Workflow implementation: `lib/features/hrm/data/payroll-finalize.workflow.ts`.
+ * Workflow implementation: `lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-finalize.workflow.ts`.
  */
 export async function enqueueHrmSignatureSealWorkflowRun(
   payload: SignatureSealPayload

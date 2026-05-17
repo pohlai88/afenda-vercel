@@ -257,6 +257,7 @@ export function GovernedDetailTabs({ model }: GovernedDetailTabsProps) {
           <TabsContent value="audit" data-test="tab-panel-audit">
             <GovernedAuditPanel
               model={{
+                dataNature: "audit-trail",
                 headerTitle: `${normalizedModel.entityLabel} — audit`,
                 headerDescription: `${normalizedModel.entityKind} · ${normalizedModel.entityId}`,
                 rows: auditRows,

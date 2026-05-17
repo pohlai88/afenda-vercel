@@ -1,0 +1,130 @@
+---
+description: Placement, data-nature, and primitive contracts for components2/metadata/renderers — prevents layout overflow, wrong-renderer drift, and raw-div geometry divergence.
+globs: "components2/metadata/renderers/**,lib/features/governed-surface/schemas/**"
+alwaysApply: false
+---
+
+# Governed renderer placement contract
+
+**Canonical authority:** [ADR-0025](../../docs/decisions/0025-governed-renderer-placement-contract.md)
+
+Three rules. Each closes a specific drift path. All three must hold in every PR that touches a renderer or its configuration schema.
+
+---
+
+## Rule 1 — Container queries, never viewport breakpoints
+
+Viewport breakpoints (`sm:`, `md:`, `lg:`) fire on the viewport width.
+A renderer placed inside a narrow column will overflow even on a wide screen.
+
+```tsx
+// ❌ viewport-relative — breaks in any constrained container
+<div className="grid grid-cols-2 sm:grid-cols-4">
+
+// ✅ container-relative — correct at every placement
+<section className="@container">
+  <div className="grid grid-cols-2 @sm:grid-cols-4">
+```
+
+Every renderer that lays out children in a grid or flex row must declare `@container` on its
+outermost element and use `@sm:` / `@md:` / `@lg:` / `@xl:` / `@2xl:` breakpoints.
+
+Tailwind v4 container queries require no plugin — they are core.
+
+---
+
+## Rule 2 — Every configuration schema declares `dataNature`
+
+Every non-container renderer schema must export a `dataNatureSchema` enum and require it as a
+field in the configuration schema.
+
+**Required exports for every renderer schema (ADR-0025 §2):**
+
+```ts
+// 1. Named enum
+export const <name>DataNatureSchema = z.enum(["..."])
+export type <Name>DataNature = z.infer<typeof <name>DataNatureSchema>
+
+// 2. Field in configuration schema
+export const <name>ConfigurationSchema = z
+  .object({
+    dataNature: <name>DataNatureSchema,   // required; add .default("...") for backwards compat only
+    ...
+  })
+  .strict()
+```
+
+**Accepted data natures per renderer (AFENDA_GOVERNED_RENDERER_CONTRACTS in registry.ts):**
+
+| Renderer | dataNatures |
+|---|---|
+| `stat-card` | `"kpi"` · `"snapshot-summary"` |
+| `list-surface` | `"table"` · `"document-lines"` |
+| `action-bar` | `"actions"` |
+| `audit-panel` | `"audit-trail"` |
+| `detail-tabs` | `"tabbed-detail"` |
+
+`section` and `stack` are container-only and are exempt.
+
+**Builder authoring gate:**
+
+- `dataNature: "kpi"` → aggregated operational metric; `delta` field = trend annotation ("+5%", "−50 MYR")
+- `dataNature: "snapshot-summary"` → document figure; `delta` field = contextual label or omit entirely; ISO dates and raw decimal strings are not valid display values
+- Never mix natures in a single stat-card instance
+
+---
+
+## Rule 3 — No raw `<div>` at the tile or leaf level
+
+Every leaf UI element (tile, row badge, status chip, value cell) must be a shadcn primitive
+from `#components2/ui/*`. Structural wrappers (`<section>`, `<ul>`, `<li>`) are exempt.
+
+```tsx
+// ❌ raw div with ad-hoc geometry — diverges across renderers over time
+<div className="flex flex-col gap-1 rounded-2xl border border-border/60 bg-card px-4 py-3.5 shadow-xs">
+  <span className="text-[11px] font-medium ...">
+
+// ✅ shadcn Card + token typography classes
+import { Card, CardContent } from "#components2/ui/card"
+
+<Card>
+  <CardContent className="flex flex-col gap-1 p-4">
+    <span className="text-label-small text-muted-foreground uppercase tracking-wide">
+```
+
+Variant geometry (padding, gap, font size) belongs in a `cva` table or a
+`const VARIANT_CLASS: Record<SchemaEnum, string>` map — **never** as inline ad-hoc values.
+Each map must be typed as `Record<SchemaEnum, string>` so TypeScript catches missing enum members.
+
+```ts
+// ✅ exhaustive map — new enum value = compile error in the renderer
+const DENSITY_CLASS: Record<StatCardDensity, string> = {
+  compact: "gap-0.5 p-3",
+  comfortable: "gap-1 p-4",
+}
+
+// ❌ inline ternary — silently misses new enum values
+className={density === "compact" ? "gap-0.5 p-3" : "gap-1 p-4"}
+```
+
+---
+
+## Checklist — applies to every renderer PR
+
+- [ ] Outermost layout element uses `@container`; no `sm:` / `md:` / `lg:` breakpoints inside renderer
+- [ ] Configuration schema exports `dataNature` enum + field
+- [ ] `dataNature` registered in `AFENDA_GOVERNED_RENDERER_CONTRACTS` in `registry.ts`
+- [ ] `GovernedComponentSkeleton` has a `case` for the new renderer id
+- [ ] All variant maps are typed as `Record<SchemaEnum, string>` — no inline ternaries
+- [ ] No raw `<div>` at tile/leaf level — shadcn primitives from `#components2/ui/*`
+- [ ] ESLint `pnpm exec eslint --max-warnings=0 components2/metadata/renderers/` passes
+- [ ] `pnpm typecheck` passes
+
+---
+
+## Cross-references
+
+- Schema authoring: `.cursor/rules/governed-surface-schema-contract.mdc`
+- Governance handbook: `docs/governance/governed-surface-zod-schema-contract.md` (rows 11–13)
+- ADR authority: `docs/decisions/0025-governed-renderer-placement-contract.md`
+- Registry: `components2/metadata/registry.ts` → `AFENDA_GOVERNED_RENDERER_CONTRACTS`

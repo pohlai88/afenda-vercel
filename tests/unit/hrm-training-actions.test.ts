@@ -25,7 +25,7 @@ import {
   completeTrainingRecordFormSchema,
   verifyTrainingRecordFormSchema,
   normalizeTrainingCourseCode,
-} from "../../lib/features/hrm/schemas/training.schema"
+} from "../../lib/features/hrm/talent-management/training-development/schemas/training.schema"
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111"
 const ORG_SLUG = "acme"

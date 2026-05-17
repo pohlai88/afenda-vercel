@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { computePayrollRun } from "../../lib/features/hrm/data/payroll-engine.server"
-import type { PayrollEngineInput } from "../../lib/features/hrm/data/payroll-engine.server"
+import { computePayrollRun } from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-engine.server.ts"
+import type { PayrollEngineInput } from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-engine.server.ts"
 
 function baseInput(
   overrides: Partial<PayrollEngineInput> = {}

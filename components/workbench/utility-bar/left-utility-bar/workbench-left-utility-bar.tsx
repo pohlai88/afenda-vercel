@@ -4,7 +4,7 @@ import type { ReactNode } from "react"
 
 import type { UserOrgSummary } from "#features/org-admin/client"
 import type { ResolvedOperationalContext } from "#lib/erp/operational-context.shared"
-import { OperationalScopeRail } from "#components2/app-shell/operational-scope-rail.client"
+import { OperationalScopeRail } from "#features/operational-scope/client"
 
 import { WorkbenchAppLauncher } from "./workbench-app-launcher"
 import { WorkbenchOrgCompanySwitch } from "./workbench-org-company-switch.client"

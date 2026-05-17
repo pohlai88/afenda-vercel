@@ -5,7 +5,7 @@ import {
   MY_STATUTORY_EXTRAS_PCB_TP3_KEY,
   mergeMalaysiaPcbIntoStatutoryProfileExtras,
   parseMalaysiaPcbStatutoryExtras,
-} from "../../lib/features/hrm/schemas/malaysia-pcb-statutory-extras.shared"
+} from "../../lib/features/hrm/payroll-compensation/payroll-processing/schemas/malaysia-pcb-statutory-extras.shared"
 
 describe("parseMalaysiaPcbStatutoryExtras", () => {
   it("returns zeros for null / invalid JSON", () => {

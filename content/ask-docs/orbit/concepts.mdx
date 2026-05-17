@@ -1,0 +1,139 @@
+---
+title: Core concepts
+description: Signals, execution items, pressure, lifecycles, temporal model, and ERP attachment in Orbit.
+icon: Layers
+---
+
+## Two primitives
+
+Orbit deliberately separates **attention** from **execution**:
+
+| Primitive | Role |
+|---|---|
+| **Signal** (`PlannerSignal`) | Structured observation that operational pressure exists — detected, imported, or manually captured |
+| **Item** (`PlannerItem`) | Executable work with ownership, schedule, lifecycle, and verification |
+
+Signals are triaged first. When work must be owned and tracked to completion, a signal is **promoted** to an execution item. Items never replace signals in the detection layer; they carry the execution contract.
+
+<Callout type="info">
+  Orbit is not a todo app: there is no `todo / doing / done` lifecycle on items, and boards are not the primary identity of the module.
+</Callout>
+
+## Signal classes
+
+Signals are typed by **class**, which informs routing and triage rules:
+
+| Class | Typical meaning |
+|---|---|
+| `anomaly` | Unexpected deviation from expected operational state |
+| `deadline` | Time-bound obligation approaching or breached |
+| `escalation` | Elevated attention requiring human decision |
+| `dependency` | Blocked or waiting on another entity |
+| `verification` | Outcome must be confirmed before closure |
+| `review` | Human review requested |
+| `alert` | Operational alert requiring acknowledgement |
+| `recommendation` | Suggested action from rules or analytics |
+| `prediction` | Forward-looking risk or opportunity |
+| `manual_capture` | Operator-captured pressure |
+
+## Signal lifecycle
+
+| State | Meaning |
+|---|---|
+| `detected` | New pressure recorded |
+| `correlated` | Linked to existing context or duplicate cluster |
+| `promoted` | Converted to an execution item |
+| `deferred` | Acknowledged but not yet actionable |
+| `suppressed` | Intentionally muted with policy |
+| `expired` | No longer actionable by time or policy |
+| `auto_resolved` | Closed by automation without promotion |
+| `dismissed` | Closed by operator without promotion |
+
+## Item lifecycle
+
+Execution items use a **verification-aware** lifecycle — not a simple done checkbox:
+
+| State | Meaning |
+|---|---|
+| `triaged` | Classified and ready for assignment or scheduling |
+| `assigned` | Ownership established |
+| `scheduled` | Placed on a calendar or horizon |
+| `active` | In progress |
+| `blocked` | Cannot proceed — requires recovery |
+| `awaiting_external` | Waiting on a third party or ERP event |
+| `ready_for_review` | Work complete pending verification |
+| `verified` | Outcome confirmed per policy |
+| `resolved` | Closed successfully |
+| `deprecated` | Superseded or no longer relevant |
+| `cancelled` | Closed without completion |
+
+When policy requires verification, operators must move through **`ready_for_review`** and **`verified`** — not skip directly to resolved.
+
+## Pressure and priority
+
+**Pressure** is multi-dimensional — derived from signal class, ERP linkage, automation state, schedule slack, and triage rules. **`displayPriority`** (`low` · `medium` · `high` · `critical`) is a **derived presentation** rank for lists and queues; it is not stored as the source of truth.
+
+Orbit surfaces sort and filter by pressure and lifecycle so the highest-attention work surfaces first in **Queue** and **Triage**.
+
+## Temporal model (Past · Now · Next)
+
+Orbit composes Afenda's shared temporal spine:
+
+- **Past** — completed, verified, deprecated, or cancelled records; audit-grade history
+- **Now** — active, blocked, and in-review execution in the current operating period
+- **Next** — scheduled and upcoming work on the execution horizon
+
+**Today** and **Timeline** surfaces emphasise Now and Next; **Queue** emphasises what must execute immediately regardless of calendar bucket.
+
+## ERP attachment
+
+Links and relations connect Orbit work to ERP truth:
+
+- **Links** (`PlannerLink`) — typed attachment to a module record (contact, employee, import job, and so on) with mandatory **causality reason**
+- **Relations** — graph edges between planner entities (`parent`, `subtask`, `blocks`, `blocked_by`, `duplicate`, `related`)
+
+The [Links](./links) surface groups execution by business object so operators can see all pressure tied to one ERP record.
+
+## Triage lanes
+
+**Triage** classifies subjects into operating lanes, including:
+
+| Lane | Typical contents |
+|---|---|
+| Automation attention | Reminder or recurrence failures needing intervention |
+| Blocked recovery | Items in `blocked` state |
+| High pressure | Elevated derived pressure score |
+| Signal intake | New or correlated signals awaiting promotion or suppression |
+| Manual follow-up | Operator-owned deferrals and follow-ups |
+
+Rules are priority-ordered; the first matching rule routes work to the appropriate surface.
+
+## Sessions and worklog
+
+**Sessions** record focused execution time against items — start, stop, and continuity across the worklog. Sessions support operational reporting and evidence, not just time tracking for its own sake.
+
+## Scheduling, recurrence, and automation
+
+Items can be **scheduled**; **recurrence** and **reminder** entities are first-class (not ad-hoc date columns). Failed automation surfaces in **Triage** under automation attention. Durable runs are orchestrated through Afenda's execution layer (`erp.execution.planner_*` audit family).
+
+## Evidence panels
+
+The detail pane groups context into evidence sections:
+
+- **ERP causality** — links and related records
+- **Operator evidence** — comments, attachments, assignments
+- **Execution record** — lifecycle transitions and session history
+- **Activity stream** — telemetry-style activity
+- **Automation and notices** — reminders, recurrence, operator notices
+
+## Keyboard shortcuts
+
+While focused on an Orbit list:
+
+| Key | Action |
+|---|---|
+| `j` | Next row |
+| `k` | Previous row |
+| `Esc` | Clear detail selection |
+| `/` | Focus search |
+| `Ctrl+Enter` | Apply batch action (when batch form is open) |

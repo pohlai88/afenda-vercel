@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../../lib/features/hrm/data/employee-portal-access.shared"
+import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.shared.ts"
 
 const mocks = vi.hoisted(() => ({
   getEmployeePortalContext: vi.fn(),
@@ -20,17 +20,17 @@ vi.mock("#lib/i18n/request-locale.server", () => ({
 vi.mock("#lib/db", () => ({
   db: { transaction: mocks.dbTransaction },
 }))
-vi.mock("../../lib/features/hrm/data/employee-portal-access.server", () => ({
+vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts", () => ({
   getEmployeePortalContext: mocks.getEmployeePortalContext,
 }))
-vi.mock("../../lib/features/hrm/data/payroll-profile.queries.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-profile.queries.server.ts", () => ({
   getCurrentPayrollProfileForEmployee: vi.fn(),
 }))
-vi.mock("../../lib/features/hrm/data/payroll-profile.mutations.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-profile.mutations.server.ts", () => ({
   upsertPayrollProfileMutation: vi.fn(),
 }))
 
-import { updatePortalPersonalProfileAction } from "../../lib/features/hrm/actions/employee-portal-profile.actions"
+import { updatePortalPersonalProfileAction } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/actions/employee-portal-profile.actions"
 
 const portalContext = {
   portal: {

@@ -19,12 +19,12 @@ import {
   dryRunPayroll,
   listValidEmployeeImportRows,
   parseCsv,
-} from "../../lib/features/hrm/data/hrm-import-csv.shared"
+} from "../../lib/features/hrm/employee-management/employee-records-management/data/hrm-import-csv.shared.ts"
 import {
   HRM_IMPORT_TYPES,
   hrmImportRollbackJsonSchema,
   hrmImportSessionStatusSchema,
-} from "../../lib/features/hrm/schemas/hrm-import.schema"
+} from "../../lib/features/tools/bulk-csv-import/schemas/hrm-import.schema"
 
 // ---------------------------------------------------------------------------
 // parseCsv

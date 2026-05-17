@@ -6,11 +6,9 @@ import { describe, expect, it } from "vitest"
 import { StatCardRenderer } from "#components2/metadata/renderers/stat-card.renderer"
 
 describe("StatCardRenderer", () => {
-  it("renders nothing when configuration is invalid", () => {
-    const { container } = render(
-      <StatCardRenderer configuration={{ stats: [] }} />
-    )
-    expect(container.firstChild).toBeNull()
+  it("renders governed error empty state when configuration is invalid", () => {
+    render(<StatCardRenderer configuration={{ stats: [] }} />)
+    expect(screen.getByText("Card unavailable")).toBeTruthy()
   })
 
   it("renders stat tiles for valid configuration", () => {

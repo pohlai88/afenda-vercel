@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { buildRecertificationSourceReference } from "../../lib/features/hrm/data/training-recertification.server"
+import { buildRecertificationSourceReference } from "../../lib/features/hrm/talent-management/training-development/data/training-recertification.server.ts"
 
 describe("training bridge contracts", () => {
   it("recertification source reference is stable for idempotency", () => {

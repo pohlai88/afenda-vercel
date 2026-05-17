@@ -1,5 +1,5 @@
 import type { ResolvedOperationalContext } from "#lib/erp/operational-context.shared"
-import type { ActiveScopeEntry } from "#components2/app-shell/operational-scope-admin-config.client"
+import type { ActiveScopeEntry } from "#features/operational-scope/client"
 import type {
   OperationalScopeCatalogEntry,
   OrgOperationalScopePolicyRow,

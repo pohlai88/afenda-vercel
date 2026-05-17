@@ -61,21 +61,21 @@ vi.mock("#lib/org-slug.server", () => ({
   getOrganizationSlugById: vi.fn(),
 }))
 
-vi.mock("../../lib/features/hrm/data/payroll-engine.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-engine.server.ts", () => ({
   computePayrollRun: vi.fn(),
 }))
 
-vi.mock("../../lib/features/hrm/data/payroll-rule-pack.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server.ts", () => ({
   resolveRulePack: vi.fn(),
 }))
 
-vi.mock("../../lib/features/hrm/data/payroll.queries.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts", () => ({
   getPayrollPeriod: vi.fn(),
   getPayrollRunInputSnapshot: vi.fn(),
   listPayrollRunsForPeriod: vi.fn(),
 }))
 
-vi.mock("../../lib/features/hrm/data/payroll.mutations.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.mutations.server.ts", () => ({
   deletePayrollLinesForRun: vi.fn(),
   insertPayrollLines: vi.fn(),
   updatePayrollRun: vi.fn(),
@@ -85,24 +85,24 @@ import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEvent } from "#lib/auth"
 
-import { computePayrollRun } from "../../lib/features/hrm/data/payroll-engine.server"
+import { computePayrollRun } from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-engine.server.ts"
 import type {
   PayrollEngineInput,
   PayrollEngineResult,
-} from "../../lib/features/hrm/data/payroll-engine.server"
+} from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-engine.server.ts"
 import {
   getPayrollPeriod,
   getPayrollRunInputSnapshot,
   listPayrollRunsForPeriod,
   type PayrollPeriodRow,
-} from "../../lib/features/hrm/data/payroll.queries.server"
+} from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts"
 import {
   deletePayrollLinesForRun,
   insertPayrollLines,
   updatePayrollRun,
-} from "../../lib/features/hrm/data/payroll.mutations.server"
-import { resolveRulePack } from "../../lib/features/hrm/data/payroll-rule-pack.server"
-import { payrollFinalizeWorkflow } from "../../lib/features/hrm/data/payroll-finalize.workflow"
+} from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.mutations.server.ts"
+import { resolveRulePack } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server.ts"
+import { payrollFinalizeWorkflow } from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-finalize.workflow.ts"
 
 const PAYLOAD = {
   organizationId: "org-payroll",

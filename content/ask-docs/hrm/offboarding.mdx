@@ -1,0 +1,56 @@
+---
+title: Offboarding
+description: Initiate exit workflows, approve checklists, and complete clearance tasks with erp.hrm.offboarding audits on every transition.
+icon: DoorOpen
+audience: admin
+status: stable
+---
+
+## Overview
+
+The **Offboarding** workbench tracks exit instances from initiation through clearance. HR sees who is leaving, exit type, task progress, settlement state, and approval actions in one table — each transition writes `erp.hrm.offboarding.*` to the IAM audit ledger.
+
+Employees complete assigned checklist tasks in the [employee portal](/ask-docs/portals/employee) under **My exit checklist** when portal access is granted.
+
+## Workbench surface
+
+Navigate to **HRM → Offboarding** in the org dashboard (`/o/{orgSlug}/dashboard/hrm/offboarding`).
+
+The dashboard lists active exit instances with:
+
+| Column | Meaning |
+| --- | --- |
+| Employee | Link to the workforce master record |
+| Exit type | Resignation, termination, or other governed category |
+| Status | Workflow state for the exit instance |
+| Last working day | Planned final day |
+| Tasks | Completed vs total checklist tasks |
+| Settlement | Payroll / final pay hand-off state |
+| Actions | Approve or advance when your role permits |
+
+## Permissions
+
+| Action | Typical ERP permission |
+| --- | --- |
+| View the offboarding dashboard | `hrm.employee.search` |
+| Approve or mutate exit workflows | Capability-specific `update` keys resolved per org |
+
+If the surface shows **access denied**, your role lacks workforce search or the offboarding mutation keys your administrator assigned.
+
+## Checklist discipline
+
+Offboarding mirrors onboarding: templates materialise **task instances** with due ordering and evidence. Tasks are designed to **close access paths** (IT, payroll profile, policy returns) rather than open new ones.
+
+<Steps>
+  <Step>Open the employee record or the Offboarding dashboard row for the leaver.</Step>
+  <Step>Confirm exit type and last working day before activating the checklist.</Step>
+  <Step>Complete or approve tasks as evidence arrives — blocked tasks show why work stopped.</Step>
+  <Step>Resolve settlement rows before archiving the instance.</Step>
+</Steps>
+
+## Related
+
+- [Onboarding](/ask-docs/hrm/onboarding) — hire-side checklist templates and instances
+- [Employees](/ask-docs/hrm/employees) — master record and employment contracts
+- [Payroll](/ask-docs/hrm/payroll) — final pay runs and payslip evidence
+- [Employee portal](/ask-docs/portals/employee) — self-service exit checklist

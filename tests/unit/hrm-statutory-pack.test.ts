@@ -8,9 +8,9 @@ import { describe, expect, it, vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
 
-import { buildStatutoryPackFromRuns } from "../../lib/features/hrm/data/statutory-pack.server"
-import { malaysia2026_01RulePack } from "../../lib/features/hrm/data/rule-packs/malaysia/my-2026-01.rule-pack"
-import type { StatutoryPackRunInput } from "../../lib/features/hrm/data/statutory-pack.server"
+import { buildStatutoryPackFromRuns } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/statutory-pack.server.ts"
+import { malaysia2026_01RulePack } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/my-2026-01.rule-pack.ts"
+import type { StatutoryPackRunInput } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/statutory-pack.server.ts"
 
 // ---------------------------------------------------------------------------
 // Fixture helpers

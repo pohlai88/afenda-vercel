@@ -50,7 +50,12 @@ export {
   SCHEMA_STABILITY as STAT_CARD_SCHEMA_STABILITY,
   parseStatCardConfiguration,
   statCardConfigurationSchema,
+  statCardDataNatureSchema,
+  statCardDensitySchema,
   type StatCardConfiguration,
+  type StatCardConfigurationInput,
+  type StatCardDataNature,
+  type StatCardDensity,
   type StatCardItem,
   type StatCardTone,
 } from "./schemas/stat-card.schema"
@@ -60,14 +65,18 @@ export {
   listSurfaceRendererConfigurationSchema,
   parseListSurfaceRendererConfiguration,
   type ListSurfaceRendererConfiguration,
+  type ListSurfaceRendererConfigurationInput,
   type ListSurfaceRow,
 } from "./schemas/list-surface-renderer.schema"
 
 export {
-  SCHEMA_STABILITY as GOVERNED_COMPONENT_SCHEMA_STABILITY,
-  governedComponentSchema,
+  GOVERNED_COMPONENT_SCHEMA_ID,
+  GOVERNED_COMPONENT_SCHEMA_STABILITY,
+  governedComponentDiscriminatedSchema,
+  governedComponentTypeSchema,
   parseGovernedComponentData,
   type GovernedComponent,
+  type GovernedComponentType,
 } from "./schemas/component.schema"
 
 export {
@@ -94,6 +103,13 @@ export {
   isActionFailure,
   isActionResultSuccess,
 } from "./schemas/action-result.shared"
+
+export {
+  assertGovernedSurfaceInput,
+  tryGovernedSurfaceInput,
+  type GovernedSurfaceInputAssertion,
+  type GovernedSurfaceInputAssertionError,
+} from "./schemas/dev-assert.shared"
 
 export {
   GovernedSurface,

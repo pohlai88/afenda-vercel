@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { computeVnPitMonthlyV202401 } from "../../lib/features/hrm/data/rule-packs/vietnam/pit/v2024-01.monthly"
+import { computeVnPitMonthlyV202401 } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/vietnam/pit/v2024-01.monthly.ts"
 
 describe("computeVnPitMonthlyV202401", () => {
   it("applies dependent relief against gross after employee insurance", () => {

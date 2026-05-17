@@ -6,7 +6,7 @@ import {
   deriveSignatureRequestStatus,
   isPartysTurnToSign,
   signaturePartyIntentComplete,
-} from "../../lib/features/hrm/data/signature-request-status.shared"
+} from "../../lib/features/tools/electronic-signatures/data/signature-request-status.shared.ts"
 
 describe("deriveSignatureRequestStatus", () => {
   it("returns signed when all actionable parties signed", () => {

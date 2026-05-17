@@ -9,8 +9,8 @@ vi.mock("#lib/db", () => ({
 import {
   summarizeKpiScores,
   type KpiScoreListRow,
-} from "../../lib/features/hrm/data/kpi.queries.server"
-import { calculateTypedKpiScore } from "../../lib/features/hrm/schemas/kpi.schema"
+} from "../../lib/features/hrm/talent-management/competency-skills-framework/data/kpi.queries.server.ts"
+import { calculateTypedKpiScore } from "../../lib/features/hrm/talent-management/competency-skills-framework/schemas/kpi.schema"
 
 const baseRow = {
   id: "s1",

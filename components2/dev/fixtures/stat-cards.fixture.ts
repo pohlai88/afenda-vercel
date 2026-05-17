@@ -1,7 +1,13 @@
-import type { StatCardConfiguration } from "#features/governed-surface"
+import {
+  assertGovernedSurfaceInput,
+  statCardConfigurationSchema,
+} from "#features/governed-surface"
 
-export const SHELL_PREVIEW_STAT_CARDS = {
-  stats: [
+export const SHELL_PREVIEW_STAT_CARDS = assertGovernedSurfaceInput(
+  statCardConfigurationSchema,
+  {
+    dataNature: "kpi",
+    stats: [
     {
       label: "Total employees",
       value: "248",
@@ -27,4 +33,6 @@ export const SHELL_PREVIEW_STAT_CARDS = {
       tone: "critical",
     },
   ],
-} as const satisfies StatCardConfiguration
+  },
+  "shell-preview-stat-cards"
+)

@@ -1,7 +1,10 @@
 import { ClaimsPage } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { requireOrgSession } from "#lib/tenant"
-import { resolveClaimSurfaceAccess } from "#features/hrm/server"
+import {
+  resolveClaimSurfaceAccess,
+  type ClaimSurfaceAccess,
+} from "#features/hrm/server"
 
 export const dynamic = "force-dynamic"
 
@@ -12,7 +15,7 @@ export default async function OrgDashboardHrmClaimsPage({
     params,
     requireOrgSession(),
   ])
-  const access = await resolveClaimSurfaceAccess({
+  const access: ClaimSurfaceAccess = await resolveClaimSurfaceAccess({
     organizationId: session.organizationId,
     userId: session.userId,
   })

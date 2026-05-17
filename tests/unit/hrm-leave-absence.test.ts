@@ -5,8 +5,8 @@ import {
   computeCarryForwardExpiry,
   computeLeaveRequestDuration,
   validateLeavePolicyForRequest,
-} from "../../lib/features/hrm/data/leave-absence.shared"
-import { applyLeaveFormSchema } from "../../lib/features/hrm/schemas/leave-request.schema"
+} from "../../lib/features/hrm/workforce-time-attendance/data/leave-absence.shared.ts"
+import { applyLeaveFormSchema } from "../../lib/features/hrm/workforce-time-attendance/schemas/leave-request.schema"
 
 describe("computeLeaveRequestDuration", () => {
   it("counts working days and skips weekends", () => {

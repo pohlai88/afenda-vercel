@@ -4,7 +4,7 @@ import {
   ORG_CHART_ROOT_ID,
   layoutOrgChartNodes,
   type OrgChartNode,
-} from "../../lib/features/hrm/data/org-chart.shared"
+} from "../../lib/features/hrm/employee-management/organizational-chart-hierarchy/data/org-chart.shared"
 
 const FIXTURE_NODES = [
   {

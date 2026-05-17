@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../../lib/features/hrm/data/employee-portal-access.shared"
+import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.shared.ts"
 
 const mocks = vi.hoisted(() => ({
   getEmployeePortalContext: vi.fn(),
@@ -9,10 +9,10 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock("server-only", () => ({}))
-vi.mock("../../lib/features/hrm/data/employee-portal-access.server", () => ({
+vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts", () => ({
   getEmployeePortalContext: mocks.getEmployeePortalContext,
 }))
-vi.mock("../../lib/features/hrm/data/leave-request-commands.server", () => ({
+vi.mock("../../lib/features/hrm/workforce-time-attendance/data/leave-request-commands.server.ts", () => ({
   submitLeaveRequest: mocks.submitLeaveRequest,
   cancelLeaveRequestForContext: mocks.cancelLeaveRequestForContext,
 }))
@@ -20,7 +20,7 @@ vi.mock("../../lib/features/hrm/data/leave-request-commands.server", () => ({
 import {
   cancelPortalEmployeeLeaveAction,
   requestPortalEmployeeLeaveAction,
-} from "../../lib/features/hrm/actions/employee-portal-leave.actions"
+} from "../../lib/features/hrm/employee-management/employee-selfservice-portal/actions/employee-portal-leave.actions"
 
 const leaveTypeId = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
 

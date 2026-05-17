@@ -18,6 +18,7 @@ export type {
   PortalResolverPortalRow,
 } from "./context.shared"
 export {
+  candidatePortalPath,
   employeePortalPath,
   employeePortalPerformanceGoalPath,
   employeePortalProfilePath,
@@ -25,6 +26,7 @@ export {
   toLocalePortalRevalidatePattern,
 } from "./paths.shared"
 export type {
+  CandidatePortalSection,
   EmployeePortalProfileSection,
   EmployeePortalSection,
 } from "./paths.shared"

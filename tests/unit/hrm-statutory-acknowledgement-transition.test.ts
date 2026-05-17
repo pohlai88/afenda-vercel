@@ -17,8 +17,8 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import type { ComplianceEvidenceRow } from "../../lib/features/hrm/data/compliance.queries.server"
-import type { UpdateComplianceSubmissionStateOpts } from "../../lib/features/hrm/data/compliance.mutations.server"
+import type { ComplianceEvidenceRow } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance.queries.server.ts"
+import type { UpdateComplianceSubmissionStateOpts } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance.mutations.server.ts"
 
 // ---------------------------------------------------------------------------
 // Mock the db boundary BEFORE importing the SUT.
@@ -43,11 +43,11 @@ const mockUpdateState =
 const mockWriteAudit = vi.fn<(input: unknown) => Promise<void>>()
 
 vi.mock(
-  "../../lib/features/hrm/data/compliance.queries.server",
+  "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance.queries.server.ts",
   async (importOriginal) => {
     const actual =
       await importOriginal<
-        typeof import("../../lib/features/hrm/data/compliance.queries.server")
+        typeof import("../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance.queries.server.ts")
       >()
     return {
       ...actual,
@@ -58,11 +58,11 @@ vi.mock(
 )
 
 vi.mock(
-  "../../lib/features/hrm/data/compliance.mutations.server",
+  "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance.mutations.server.ts",
   async (importOriginal) => {
     const actual =
       await importOriginal<
-        typeof import("../../lib/features/hrm/data/compliance.mutations.server")
+        typeof import("../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance.mutations.server.ts")
       >()
     return {
       ...actual,
@@ -83,7 +83,7 @@ vi.mock("#lib/auth", async (importOriginal) => {
 
 // SUT must be imported AFTER mocks are declared.
 const { acknowledgeEvidenceTransition } =
-  await import("../../lib/features/hrm/data/compliance-acknowledgement.server")
+  await import("../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-acknowledgement.server.ts")
 
 // ---------------------------------------------------------------------------
 // Fixture helpers

@@ -1,6 +1,12 @@
-import type { ListSurfaceRendererConfiguration } from "#features/governed-surface"
+import {
+  assertGovernedSurfaceInput,
+  listSurfaceRendererConfigurationSchema,
+} from "#features/governed-surface"
 
-export const SHELL_PREVIEW_LIST_SURFACE = {
+export const SHELL_PREVIEW_LIST_SURFACE = assertGovernedSurfaceInput(
+  listSurfaceRendererConfigurationSchema,
+  {
+    dataNature: "table",
   surface: {
     header: {
       eyebrow: "HRM",
@@ -50,4 +56,6 @@ export const SHELL_PREVIEW_LIST_SURFACE = {
       },
     },
   ],
-} as const satisfies ListSurfaceRendererConfiguration
+  },
+  "shell-preview-list-surface"
+)

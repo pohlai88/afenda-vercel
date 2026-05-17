@@ -18,7 +18,7 @@ import {
   INDIVIDUAL_RELIEF_2026,
   EPF_RELIEF_MAX_2026,
   PROGRESSIVE_BANDS_2026,
-} from "../../lib/features/hrm/data/rule-packs/malaysia/pcb/v2026-01.bands"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/pcb/v2026-01.bands.ts"
 
 describe("PCB v2026-01 — LHDN MTD 2026 golden tests", () => {
   it("exports correct version code", () => {

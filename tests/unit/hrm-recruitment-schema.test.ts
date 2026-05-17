@@ -11,7 +11,7 @@ import {
   scheduleInterviewFormSchema,
   submitInterviewFeedbackFormSchema,
   updateJobOfferStatusFormSchema,
-} from "../../lib/features/hrm/schemas/recruitment.schema"
+} from "../../lib/features/hrm/talent-management/recruitment-applicant-tracking/schemas/recruitment.schema"
 
 const ORG = "acme"
 const UUID = "11111111-1111-4111-8111-111111111111"

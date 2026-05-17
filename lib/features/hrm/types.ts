@@ -105,6 +105,11 @@ export type EmployeeDetailRow = EmployeeRow & {
   currentPositionId: string | null
   currentJobGradeId: string | null
   managerEmployeeId: string | null
+  dottedLineManagerId: string | null
+  hrOwnerEmployeeId: string | null
+  employmentType: string | null
+  workerCategory: string | null
+  employeeLevel: string | null
   archivedReason: string | null
   currentEmploymentContractId: string | null
 }
@@ -115,7 +120,10 @@ export type EmployeePersonalProfileRow = {
   gender: string | null
   nationality: string | null
   maritalStatus: string | null
+  languagePreference: string | null
   primaryIdentityDocumentId: string | null
+  profilePhotoBlobUrl: string | null
+  profilePhotoUpdatedAt: Date | null
 }
 
 export type EmployeeContactProfileRow = {
@@ -125,6 +133,17 @@ export type EmployeeContactProfileRow = {
   personalEmail: string | null
   personalPhone: string | null
   address: Record<string, unknown> | null
+  mailingAddress: Record<string, unknown> | null
+}
+
+export type EmergencyContactRow = {
+  id: string
+  legalName: string
+  relationship: string
+  phone: string
+  alternatePhone: string | null
+  email: string | null
+  isPrimary: boolean
 }
 
 export type EmployeeIdentityDocumentRow = {
@@ -175,10 +194,81 @@ export type EmployeeMasterPlacementOptions = {
 export type EmployeeMasterCompleteness = {
   identity: boolean
   contact: boolean
+  emergencyContact: boolean
   employment: boolean
   statutory: boolean
   documents: boolean
+  score: number
+  missingFields: string[]
+  payrollReady: boolean
+  complianceReady: boolean
 }
+
+export type EmployeeOrgContextReference = {
+  legalEntity: EmployeeMasterPlacementOption | null
+  businessUnit: EmployeeMasterPlacementOption | null
+  department: EmployeeMasterPlacementOption | null
+  team: EmployeeMasterPlacementOption | null
+  branch: EmployeeMasterPlacementOption | null
+  workLocationCode: string | null
+  costCenterCode: string | null
+}
+
+export type EmployeeAssignmentHistoryRow = {
+  id: string
+  employeeId: string
+  departmentId: string | null
+  departmentCode: string | null
+  positionId: string | null
+  positionCode: string | null
+  jobGradeId: string | null
+  jobGradeCode: string | null
+  managerEmployeeId: string | null
+  managerLabel: string | null
+  costCenterCode: string | null
+  workLocationCode: string | null
+  effectiveFrom: Date
+  effectiveTo: Date | null
+  status: string
+  reason: string | null
+  createdAt: Date
+}
+
+export type EmployeeEmploymentHistoryEntry =
+  | {
+      readonly kind: "lifecycle"
+      readonly id: string
+      readonly occurredAt: Date
+      readonly effectiveDate: Date | null
+      readonly eventKind: string
+      readonly previousStatus: string | null
+      readonly newStatus: string | null
+      readonly reason: string | null
+      readonly approvalReference: string | null
+    }
+  | {
+      readonly kind: "assignment"
+      readonly id: string
+      readonly occurredAt: Date
+      readonly effectiveFrom: Date
+      readonly effectiveTo: Date | null
+      readonly departmentCode: string | null
+      readonly positionCode: string | null
+      readonly jobGradeCode: string | null
+      readonly managerLabel: string | null
+      readonly costCenterCode: string | null
+      readonly workLocationCode: string | null
+      readonly reason: string | null
+    }
+  | {
+      readonly kind: "field_change"
+      readonly id: string
+      readonly occurredAt: Date
+      readonly effectiveDate: Date | null
+      readonly fieldName: string
+      readonly reason: string | null
+      readonly approvalReference: string | null
+    }
 
 export type EmployeeMasterSnapshot = {
   employee: EmployeeDetailRow
@@ -186,12 +276,16 @@ export type EmployeeMasterSnapshot = {
   contactProfile: EmployeeContactProfileRow | null
   identityDocuments: EmployeeIdentityDocumentRow[]
   workAuthorizations: EmployeeWorkAuthorizationRow[]
+  emergencyContacts: EmergencyContactRow[]
   payrollProfile: PayrollProfileCurrentRow | null
   dependents: DependentRow[]
   documents: HrmDocumentSummary[]
   contracts: EmploymentContractSummary[]
   placementLabels: EmployeeMasterPlacementLabels
   placementOptions: EmployeeMasterPlacementOptions
+  orgContext: EmployeeOrgContextReference
+  assignmentHistory: EmployeeAssignmentHistoryRow[]
+  employmentHistory: EmployeeEmploymentHistoryEntry[]
   completeness: EmployeeMasterCompleteness
 }
 

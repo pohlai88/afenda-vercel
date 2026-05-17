@@ -48,8 +48,22 @@ export const governedRevisionEntrySchema = z
   })
   .strict()
 
+/**
+ * Detail-tabs data nature (ADR-0025 §2).
+ *
+ * `tabbed-detail` — primary entity-detail surface with overview /
+ *                    relations / referrers / revisions / audit tabs.
+ *                    Single-member enum reserves the discriminator for
+ *                    future variants (e.g. `wizard-detail`, `viewer-only`).
+ */
+export const governedDetailTabsDataNatureSchema = z.enum(["tabbed-detail"])
+export type GovernedDetailTabsDataNature = z.infer<
+  typeof governedDetailTabsDataNatureSchema
+>
+
 export const governedDetailTabsSchema = z
   .object({
+    dataNature: governedDetailTabsDataNatureSchema.default("tabbed-detail"),
     entityLabel: z.string().min(1),
     entityKind: z.string().min(1),
     entityId: z.string().min(1),

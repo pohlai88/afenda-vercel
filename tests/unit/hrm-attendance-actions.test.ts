@@ -29,11 +29,11 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-vi.mock("../../lib/features/hrm/data/hrm-admin-guard.server", () => ({
+vi.mock("../../lib/features/hrm/hrm-admin-guard.server.ts", () => ({
   requireHrmPermission: mocks.requireHrmPermission,
 }))
 
-vi.mock("../../lib/features/hrm/data/attendance.queries.server", () => ({
+vi.mock("../../lib/features/hrm/workforce-time-attendance/data/attendance.queries.server.ts", () => ({
   getAttendanceEvent: mocks.getAttendanceEvent,
   hasAttendanceEventRawPayloadHash: mocks.hasAttendanceEventRawPayloadHash,
   hasCorrectionEventForOriginal: mocks.hasCorrectionEventForOriginal,
@@ -41,19 +41,19 @@ vi.mock("../../lib/features/hrm/data/attendance.queries.server", () => ({
     mocks.listLockedAttendanceDatesForEmployee,
 }))
 
-vi.mock("../../lib/features/hrm/data/payroll.queries.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts", () => ({
   listClosedPayrollPeriodsOverlappingRange:
     mocks.listClosedPayrollPeriodsOverlappingRange,
 }))
 
-vi.mock("../../lib/features/hrm/data/attendance-aggregator.server", () => ({
+vi.mock("../../lib/features/hrm/workforce-time-attendance/data/attendance-aggregator.server.ts", () => ({
   regenerateAttendanceDayFromEvents: mocks.regenerateAttendanceDayFromEvents,
 }))
 
 import {
   correctAttendanceEventAction,
   recordAttendanceEventAction,
-} from "../../lib/features/hrm/actions/attendance-correction.actions"
+} from "../../lib/features/hrm/workforce-time-attendance/actions/attendance-correction.actions"
 
 function recordFormData() {
   const formData = new FormData()

@@ -11,8 +11,8 @@ import { describe, expect, it } from "vitest"
 vi.mock("server-only", () => ({}))
 import { vi } from "vitest"
 
-import { computePayrollRun } from "../../lib/features/hrm/data/payroll-engine.server"
-import { resolveRulePack } from "../../lib/features/hrm/data/payroll-rule-pack.server"
+import { computePayrollRun } from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-engine.server.ts"
+import { resolveRulePack } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server.ts"
 
 const PERIOD_END_2026 = "2026-03-31"
 

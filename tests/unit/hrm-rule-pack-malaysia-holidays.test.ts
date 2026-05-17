@@ -12,13 +12,13 @@ import {
   countHolidaysV2026,
   HOLIDAYS_2026_CODE,
   MALAYSIA_HOLIDAYS_2026,
-} from "../../lib/features/hrm/data/rule-packs/malaysia/holidays/v2026.holidays"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/holidays/v2026.holidays.ts"
 import {
   getHolidaysV2027,
   countHolidaysV2027,
   HOLIDAYS_2027_CODE,
-} from "../../lib/features/hrm/data/rule-packs/malaysia/holidays/v2027.holidays"
-import { resolveMalaysiaPublicHolidayDates } from "../../lib/features/hrm/data/rule-packs/malaysia/holidays/resolve-malaysia-public-holidays"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/holidays/v2027.holidays.ts"
+import { resolveMalaysiaPublicHolidayDates } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/holidays/resolve-malaysia-public-holidays.ts"
 
 describe("Malaysia Holidays 2026 — golden tests", () => {
   it("exports correct version code", () => {

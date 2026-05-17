@@ -31,38 +31,38 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-vi.mock("../../lib/features/hrm/data/hrm-admin-guard.server", () => ({
+vi.mock("../../lib/features/hrm/hrm-admin-guard.server.ts", () => ({
   requireHrmAdmin: mocks.requireHrmAdmin,
 }))
 
-vi.mock("../../lib/features/hrm/data/benefit.queries.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit.queries.server.ts", () => ({
   getBenefitEnrollmentForOrganization:
     mocks.getBenefitEnrollmentForOrganization,
   listBenefitEnrollmentCoverageRowsForEmployeePlan:
     mocks.listBenefitEnrollmentCoverageRowsForEmployeePlan,
 }))
 
-vi.mock("../../lib/features/hrm/data/payroll.queries.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts", () => ({
   listClosedPayrollPeriodsOverlappingRange:
     mocks.listClosedPayrollPeriodsOverlappingRange,
 }))
 
 vi.mock(
-  "../../lib/features/hrm/data/benefit-enterprise.queries.server",
+  "../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit-enterprise.queries.server.ts",
   () => ({
     evaluateBenefitEligibilityForEmployee:
       mocks.evaluateBenefitEligibilityForEmployee,
   })
 )
 
-vi.mock("../../lib/features/hrm/data/employee.queries.server", () => ({
+vi.mock("../../lib/features/hrm/employee-management/employee-records-management/data/employee.queries.server.ts", () => ({
   getEmployeeForOrganization: mocks.getEmployeeForOrganization,
 }))
 
 import {
   activateBenefitEnrollmentAction,
   terminateBenefitEnrollmentAction,
-} from "../../lib/features/hrm/actions/benefit-enrollment.actions"
+} from "../../lib/features/hrm/payroll-compensation/benefits-administration/actions/benefit-enrollment.actions"
 
 function buildTransitionFormData(fields: Record<string, string>) {
   const formData = new FormData()

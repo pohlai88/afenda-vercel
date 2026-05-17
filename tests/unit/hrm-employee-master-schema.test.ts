@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   malaysiaEmployeeStatutoryProfileSchema,
   vietnamEmployeeStatutoryProfileSchema,
-} from "#features/hrm/schemas/employee.schema"
+} from "#features/hrm/employee-management/employee-records-management/schemas/employee.schema"
 
 const EMPLOYEE_ID = "11111111-1111-4111-8111-111111111111"
 

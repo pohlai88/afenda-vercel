@@ -1,31 +1,119 @@
 export {
   createEmployeeMutation,
+  rehireEmployeeMutation,
   updateEmployeeMutation,
-} from "./data/employee.mutations.server"
+} from "./employee-management/employee-records-management/data/employee.mutations.server"
 
 export type {
   CreateEmployeeMutationInput,
   CreateEmployeeMutationResult,
+  RehireEmployeeMutationInput,
+  RehireEmployeeMutationResult,
   UpdateEmployeeMutationInput,
   UpdateEmployeeMutationResult,
-} from "./data/employee.mutations.server"
+} from "./employee-management/employee-records-management/data/employee.mutations.server"
 
 export {
   deriveEmployeeMasterCompleteness,
   getEmployeeMasterRecordForOrganization,
-} from "./data/employee-master.queries.server"
+  listEmployeeMasterPlacementOptions,
+} from "./employee-management/employee-records-management/data/employee-master.queries.server"
+
+export {
+  assertNoEmployeeDuplicates,
+  checkEmployeeDuplicates,
+  duplicateMatchErrorMessage,
+} from "./employee-management/employee-records-management/data/employee-duplicate-check.server"
+
+export type {
+  AssertNoEmployeeDuplicatesInput,
+  EmployeeDuplicateMatch,
+} from "./employee-management/employee-records-management/data/employee-duplicate-check.server"
+
+export { listEmployeeEmploymentHistory } from "./employee-management/employee-records-management/data/employee-employment-history.queries.server"
+
+export { resolveEmployeeOrgContextReference } from "./employee-management/employee-records-management/data/employee-org-context.queries.server"
+
+export {
+  EMPLOYEE_RECORDS_DETAIL_SURFACE_ID,
+  EMPLOYEE_RECORDS_LIST_SURFACE_IDS,
+  EMPLOYEE_RECORDS_SURFACE_PERMISSION,
+} from "./employee-management/employee-records-management/data/employee-records-surface-metadata.shared"
+
+export type { EmployeeRecordsListSurfaceId } from "./employee-management/employee-records-management/data/employee-records-surface-metadata.shared"
+
+export { buildEmployeeMasterDetailPageHeader } from "./employee-management/employee-records-management/data/employee-records-surface-builders.server"
+
+export {
+  listEmployeeChangeHistory,
+} from "./employee-management/employee-records-management/data/employee-change-history.queries.server"
+
+export type {
+  EmployeeChangeHistoryRow,
+  ListEmployeeChangeHistoryResult,
+} from "./employee-management/employee-records-management/data/employee-change-history.queries.server"
+
+export { HRM_EMPLOYEE_RECORDS_AUDIT } from "./employee-management/employee-records-management/employee-records.contract"
+
+export type { HrmEmployeeRecordsAuditSection } from "./employee-management/employee-records-management/employee-records.contract"
+
+export {
+  EMPLOYEE_RECORDS_FIELD_KEYS,
+  EMPLOYEE_RECORDS_FIELD_POLICIES,
+  EMPLOYEE_RECORDS_SECTIONS,
+  employeeRecordsFieldPolicyForKey,
+  isEmployeeRecordsSensitiveField,
+} from "./employee-management/employee-records-management/data/employee-records-field-catalog.shared"
+
+export type {
+  EmployeeRecordsFieldKey,
+  EmployeeRecordsFieldPolicy,
+  EmployeeRecordsSection,
+} from "./employee-management/employee-records-management/data/employee-records-field-catalog.shared"
 
 export {
   listDepartmentsForOrg,
   listEmployeeAssignmentHistory,
   listJobGradesForOrg,
+  listOrgChartNodes,
+  listOrgReportingChain,
   listOrgStructureEmployeePlacements,
+  listOrgStructureHeadcountByManager,
   listOrgStructureSnapshot,
+  listOrgUnitsAsOf,
   listOrgUnitTree,
   listPositionControlRows,
   listPositionsForOrg,
+  listVacantPositions,
+  buildOrgStructureExportRows,
   validateOrgStructureHealth,
-} from "./data/org-structure.queries.server"
+} from "./employee-management/organizational-chart-hierarchy/data/org-structure.queries.server"
+
+export {
+  listOrgStructureChangeHistory,
+} from "./employee-management/organizational-chart-hierarchy/data/org-structure-change-history.queries.server"
+
+export {
+  resolveManagerApproverUserId,
+  resolveOrgReportingApproverUserId,
+  resolveOrgEscalationApproverUserIds,
+} from "./employee-management/organizational-chart-hierarchy/data/org-structure-approval.server"
+
+export { buildOrganizationStructureExportCsv } from "./employee-management/organizational-chart-hierarchy/data/org-structure-export.server"
+
+export { HRM_ORG_STRUCTURE_AUDIT } from "./employee-management/organizational-chart-hierarchy/org-structure.contract"
+
+export {
+  ORG_STRUCTURE_LIST_SURFACE_IDS,
+  ORG_STRUCTURE_SURFACE_PERMISSION,
+  ORG_STRUCTURE_TAB_SURFACE_IDS,
+  orgStructureSurfaceIdForTab,
+} from "./employee-management/organizational-chart-hierarchy/data/org-structure-surface-metadata.shared"
+
+export type {
+  OrgStructureListSurfaceId,
+  OrgStructureTabSurfaceKey,
+} from "./employee-management/organizational-chart-hierarchy/data/org-structure-surface-metadata.shared"
 
 export type {
   DepartmentListRow,
@@ -37,9 +125,9 @@ export type {
   OrgUnitTreeRow,
   PositionControlRow,
   PositionListRow,
-} from "./data/org-structure.queries.server"
+} from "./employee-management/organizational-chart-hierarchy/data/org-structure.queries.server"
 
-export { upsertPayrollProfileMutation } from "./data/payroll-profile.mutations.server"
+export { upsertPayrollProfileMutation } from "./payroll-compensation/payroll-processing/data/payroll-profile.mutations.server"
 
 export type {
   ClaimTypeSeed,
@@ -54,12 +142,12 @@ export type {
   StatutoryRuleVersion,
   TaxResult,
   ValidationIssue,
-} from "./data/payroll-rule-pack.server"
+} from "./payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server"
 
 export {
   resolveRulePack,
   RULE_PACK_REGISTRY,
-} from "./data/payroll-rule-pack.server"
+} from "./payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server"
 
 export {
   computeLeaveBalanceSummary,
@@ -67,34 +155,34 @@ export {
   buildLeaveApprovalSnapshot,
   recomputeLeaveBalance,
   readLeaveBalance,
-} from "./data/leave-balance.server"
+} from "./workforce-time-attendance/data/leave-balance.server"
 
 export {
   buildLeaveRequestPolicySnapshot,
   computeCarryForwardExpiry,
   computeLeaveRequestDuration,
   validateLeavePolicyForRequest,
-} from "./data/leave-absence.shared"
+} from "./workforce-time-attendance/data/leave-absence.shared"
 
-export { resolveLeaveSurfaceAccess } from "./data/leave-access.server"
-export type { LeaveSurfaceAccess } from "./data/leave-access.server"
+export { resolveLeaveSurfaceAccess } from "./workforce-time-attendance/data/leave-access.server"
+export type { LeaveSurfaceAccess } from "./workforce-time-attendance/data/leave-access.server"
 
-export { resolveLeaveRequestCalendar } from "./data/leave-calendar.server"
-export type { LeaveRequestCalendar } from "./data/leave-calendar.server"
+export { resolveLeaveRequestCalendar } from "./workforce-time-attendance/data/leave-calendar.server"
+export type { LeaveRequestCalendar } from "./workforce-time-attendance/data/leave-calendar.server"
 
 export type {
   LeavePolicyIssue,
   LeavePolicyIssueCode,
   LeavePolicyValidationResult,
   LeaveRequestPolicySnapshot,
-} from "./data/leave-absence.shared"
+} from "./workforce-time-attendance/data/leave-absence.shared"
 
 export type {
   LeaveRequestStateValue,
   HalfDayValue,
   LeaveApprovalSnapshot,
   LeaveBalanceSummary,
-} from "./data/leave-balance.server"
+} from "./workforce-time-attendance/data/leave-balance.server"
 
 export {
   listLeaveRequestsForEmployee,
@@ -108,8 +196,7 @@ export {
   getLeaveEmployeeForOrg,
   getLeaveTypeForRequest,
   resolveLeaveApproverUserId,
-  resolveManagerApproverUserId,
-} from "./data/leave-request.queries.server"
+} from "./workforce-time-attendance/data/leave-request.queries.server"
 
 export type {
   LeaveRequestRow,
@@ -120,18 +207,18 @@ export type {
   LeaveTypeChoiceRow,
   LeaveEmployeeContextRow,
   LeaveTypeContextRow,
-} from "./data/leave-request.queries.server"
+} from "./workforce-time-attendance/data/leave-request.queries.server"
 
 export {
   isLeaveHalfDayOption,
   LEAVE_HALF_DAY_OPTIONS,
   leaveRequestStateTone,
-} from "./data/leave-display.shared"
+} from "./workforce-time-attendance/data/leave-display.shared"
 
 export type {
   LeaveHalfDayOption,
   LeaveRequestStateLabelTone,
-} from "./data/leave-display.shared"
+} from "./workforce-time-attendance/data/leave-display.shared"
 
 /** Attendance aggregation + queries (events, day rollups). */
 export {
@@ -139,7 +226,7 @@ export {
   attendanceSnapshotHasPayrollBlockingException,
   computeEventChecksum,
   regenerateAttendanceDayFromEvents,
-} from "./data/attendance-aggregator.server"
+} from "./workforce-time-attendance/data/attendance-aggregator.server"
 
 export type {
   AttendanceEventType,
@@ -151,7 +238,7 @@ export type {
   AttendanceException,
   AttendanceExceptionCode,
   AttendanceExceptionSeverity,
-} from "./data/attendance-aggregator.server"
+} from "./workforce-time-attendance/data/attendance-aggregator.server"
 
 export {
   listAttendanceEventsForDate,
@@ -161,7 +248,7 @@ export {
   listAttendanceDaysForPayroll,
   listRecentAttendanceEventsForOrg,
   listActiveEmployeeChoicesForAttendance,
-} from "./data/attendance.queries.server"
+} from "./workforce-time-attendance/data/attendance.queries.server"
 
 export type {
   AttendanceEventRow,
@@ -169,12 +256,12 @@ export type {
   OrgAttendanceEventRow,
   OrgAttendanceDayRow,
   AttendanceEmployeeChoiceRow,
-} from "./data/attendance.queries.server"
+} from "./workforce-time-attendance/data/attendance.queries.server"
 
 export {
   assignEmployeeShiftAction,
   createShiftTemplateAction,
-} from "./actions/attendance-shift.actions"
+} from "./workforce-time-attendance/actions/attendance-shift.actions"
 
 export {
   getShiftAssignmentForEmployeeDate,
@@ -182,12 +269,12 @@ export {
   resolveAttendanceShiftContext,
   shiftAssignmentRowToView,
   shiftTemplateRowToOption,
-} from "./data/attendance-shift.queries.server"
+} from "./workforce-time-attendance/data/attendance-shift.queries.server"
 
 export type {
   ShiftAssignmentRow,
   ShiftTemplateRow,
-} from "./data/attendance-shift.queries.server"
+} from "./workforce-time-attendance/data/attendance-shift.queries.server"
 
 export type {
   AttendanceShiftAssignmentView,
@@ -195,7 +282,7 @@ export type {
   AttendanceShiftContext,
   RegenerateAttendanceDayResult,
   ShiftHolidayBehavior,
-} from "./data/attendance-shift.shared"
+} from "./workforce-time-attendance/data/attendance-shift.shared"
 
 export {
   ATTENDANCE_MANUAL_EVENT_TYPES,
@@ -205,26 +292,26 @@ export {
   isAttendanceManualEventType,
   isIsoDate,
   todayIsoDate,
-} from "./data/attendance-display.shared"
+} from "./workforce-time-attendance/data/attendance-display.shared"
 
 export type {
   AttendanceDayStateTone,
   AttendanceEventTypeTone,
   AttendanceManualEventType,
-} from "./data/attendance-display.shared"
+} from "./workforce-time-attendance/data/attendance-display.shared"
 
 /** HR documents vault reads (org library + employee filter choices). */
 export {
   listEmployeeChoicesForDocumentFilter,
   listHrmDocumentsForEmployee,
   listHrmDocumentsForOrg,
-} from "./data/hrm-document.queries.server"
+} from "./employee-management/documents-management/data/hrm-document.queries.server"
 
 export type {
   DocumentEmployeeChoiceRow,
   ListHrmDocumentsForOrgOptions,
   OrgHrmDocumentRow,
-} from "./data/hrm-document.queries.server"
+} from "./employee-management/documents-management/data/hrm-document.queries.server"
 
 export {
   HRM_DOCUMENT_CLASSIFICATIONS,
@@ -235,27 +322,27 @@ export {
   isHrmDocumentClassification,
   isHrmDocumentType,
   shortenPayloadHash,
-} from "./data/hrm-document-display.shared"
+} from "./employee-management/documents-management/data/hrm-document-display.shared"
 
 export type {
   HrmDocumentClassification,
   HrmDocumentClassificationTone,
   HrmDocumentType,
   HrmDocumentTypeTone,
-} from "./data/hrm-document-display.shared"
+} from "./employee-management/documents-management/data/hrm-document-display.shared"
 
 /** Payroll preparation engine + period/run reads. */
 export {
   computePayrollRun,
   derivePayrollTraceability,
-} from "./data/payroll-engine.server"
+} from "./payroll-compensation/payroll-processing/data/payroll-engine.server"
 
 export type {
   PayrollEngineInput,
   PayrollEngineResult,
   PayrollLineInput,
   PayrollPeriodTraceability,
-} from "./data/payroll-engine.server"
+} from "./payroll-compensation/payroll-processing/data/payroll-engine.server"
 
 export {
   listPayrollPeriodsForOrg,
@@ -269,14 +356,14 @@ export {
   getApprovedPayrollPeriodLockApproval,
   getPendingPayrollPeriodLockApprovalId,
   getPayrollPeriodPrimaryCountryCode,
-} from "./data/payroll.queries.server"
+} from "./payroll-compensation/payroll-processing/data/payroll.queries.server"
 
 export type {
   PayrollPeriodRow,
   PayrollRunRow,
   PayrollLineRow,
   PayrollPeriodLockApprovalRow,
-} from "./data/payroll.queries.server"
+} from "./payroll-compensation/payroll-processing/data/payroll.queries.server"
 
 export {
   buildPayrollCloseSnapshot,
@@ -284,7 +371,7 @@ export {
   buildPayslipSnapshotForRun,
   listPayrollCloseExceptions,
   persistPayrollPayslipSnapshots,
-} from "./data/payroll-close.server"
+} from "./payroll-compensation/payroll-processing/data/payroll-close.server"
 
 export type {
   PayrollCloseActionFormState,
@@ -293,20 +380,20 @@ export type {
   PayrollCloseSnapshot,
   PayrollPayslipSnapshot,
   PayrollPostingPreview,
-} from "./data/payroll-close.shared"
+} from "./payroll-compensation/payroll-processing/data/payroll-close.shared"
 
 export {
   buildPayrollPostingRecord,
   getPayrollPostingRecord,
   postPayrollPeriod,
-} from "./data/payroll-posting.server"
+} from "./payroll-compensation/payroll-processing/data/payroll-posting.server"
 
 export type {
   PayrollPostingRecord,
   PayrollPostingRecordLine,
   PayrollPostingResult,
   PayrollPostingState,
-} from "./data/payroll-posting.shared"
+} from "./payroll-compensation/payroll-processing/data/payroll-posting.shared"
 
 /** Compliance evidence reads (period/org scope, delivery lookup). */
 export {
@@ -315,20 +402,20 @@ export {
   getComplianceEvidence,
   fetchRunsForStatutoryPack,
   findEvidenceByDeliveryId,
-} from "./data/compliance.queries.server"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance.queries.server"
 
-export type { ComplianceEvidenceRow } from "./data/compliance.queries.server"
+export type { ComplianceEvidenceRow } from "./employee-management/compliance-regulatory-tracking/data/compliance.queries.server"
 
 /** Shared `submitted` → `acknowledged` transition (manual action + bureau webhook). */
-export { acknowledgeEvidenceTransition } from "./data/compliance-acknowledgement.server"
+export { acknowledgeEvidenceTransition } from "./employee-management/compliance-regulatory-tracking/data/compliance-acknowledgement.server"
 
 export type {
   AcknowledgeEvidenceTransitionInput,
   AcknowledgeEvidenceTransitionResult,
-} from "./data/compliance-acknowledgement.server"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance-acknowledgement.server"
 
 /** Per-evidence compliance timeline read + shared kind mapping (client-safe re-exports). */
-export { listComplianceEvidenceTimeline } from "./data/compliance-timeline.queries.server"
+export { listComplianceEvidenceTimeline } from "./employee-management/compliance-regulatory-tracking/data/compliance-timeline.queries.server"
 
 export {
   COMPLIANCE_TIMELINE_KINDS,
@@ -338,20 +425,20 @@ export {
   STATUTORY_PACK_REGENERATE_AUDIT_ACTION,
   complianceTimelineKindForAuditAction,
   isComplianceTimelineKind,
-} from "./data/compliance-timeline.shared"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance-timeline.shared"
 
 export type {
   ComplianceTimelineEntry,
   ComplianceTimelineKind,
-} from "./data/compliance-timeline.shared"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance-timeline.shared"
 
 /** Cross-period compliance operational health snapshot + pure classifiers. */
-export { getComplianceOperationalHealthSnapshot } from "./data/compliance-operational-health.queries.server"
+export { getComplianceOperationalHealthSnapshot } from "./employee-management/compliance-regulatory-tracking/data/compliance-operational-health.queries.server"
 
 export type {
   ComplianceHealthSampleRow,
   ComplianceHealthSnapshot,
-} from "./data/compliance-operational-health.queries.server"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance-operational-health.queries.server"
 
 export {
   ageInDays,
@@ -366,7 +453,7 @@ export {
   highestComplianceAgingTier,
   isAttentionBucket,
   isComplianceOperationalHealthBucket,
-} from "./data/compliance-operational-health.shared"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance-operational-health.shared"
 
 export type {
   ComplianceAgingTier,
@@ -374,15 +461,15 @@ export type {
   ComplianceHealthClassifierRow,
   ComplianceHealthDisplayedBucket,
   ComplianceOperationalHealthBucket,
-} from "./data/compliance-operational-health.shared"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance-operational-health.shared"
 
-export { buildStatutoryPackFromRuns } from "./data/statutory-pack.server"
+export { buildStatutoryPackFromRuns } from "./employee-management/compliance-regulatory-tracking/data/statutory-pack.server"
 
 export type {
   StatutoryPackRunInput,
   StatutoryPackLineInput,
   StatutoryPackResult,
-} from "./data/statutory-pack.server"
+} from "./employee-management/compliance-regulatory-tracking/data/statutory-pack.server"
 
 export {
   STATUTORY_PACK_HASH_HEADER,
@@ -391,9 +478,9 @@ export {
   formatStatutoryPackHashHeader,
   serializeStatutoryPackToCsv,
   statutoryPackFilename,
-} from "./data/statutory-pack-csv.shared"
+} from "./employee-management/compliance-regulatory-tracking/data/statutory-pack-csv.shared"
 
-export type { StatutoryPackCsvResult } from "./data/statutory-pack-csv.shared"
+export type { StatutoryPackCsvResult } from "./employee-management/compliance-regulatory-tracking/data/statutory-pack-csv.shared"
 
 export {
   STATUTORY_PACK_TO_EVENT_TYPE,
@@ -404,8 +491,8 @@ export {
   authorityForStatutoryPack,
   eventTypeForStatutoryPack,
   isAcknowledgementSource,
-} from "./data/statutory-event-types.shared"
-export type { AcknowledgementSource } from "./data/statutory-event-types.shared"
+} from "./employee-management/compliance-regulatory-tracking/data/statutory-event-types.shared"
+export type { AcknowledgementSource } from "./employee-management/compliance-regulatory-tracking/data/statutory-event-types.shared"
 
 /** Auto-retry of failed statutory submissions (`app/api/cron/hrm-statutory-retry`). */
 export {
@@ -419,23 +506,23 @@ export {
   runStatutoryRetryTick,
   shouldRetryStatutorySubmission,
   statutoryRetryDelayMs,
-} from "./data/statutory-retry.server"
+} from "./employee-management/compliance-regulatory-tracking/data/statutory-retry.server"
 
 export {
   runSignatureExpiryTick,
   runSignatureReminderTick,
-} from "./data/signature-expiry-watch.server"
+} from "../tools/electronic-signatures/data/signature-expiry-watch.server"
 
 export type {
   SignatureExpiryTickSummary,
   SignatureReminderTickSummary,
-} from "./data/signature-expiry-watch.server"
+} from "../tools/electronic-signatures/data/signature-expiry-watch.server"
 
 export type {
   StatutoryRetryCandidate,
   StatutoryRetryOutcome,
   StatutoryRetryTickSummary,
-} from "./data/statutory-retry.server"
+} from "./employee-management/compliance-regulatory-tracking/data/statutory-retry.server"
 
 /** Per-bureau reliability snapshot + pure classifier (HTTP delivery signals). */
 export {
@@ -450,16 +537,16 @@ export {
   computeMedian,
   dayAge,
   isBureauReliabilityHealth,
-} from "./data/bureau-reliability.shared"
+} from "./employee-management/compliance-regulatory-tracking/data/bureau-reliability.shared"
 
 export type {
   BureauReliabilityClassifierRow,
   BureauReliabilityHealth,
   BureauReliabilityRow,
   BureauReliabilitySnapshot,
-} from "./data/bureau-reliability.shared"
+} from "./employee-management/compliance-regulatory-tracking/data/bureau-reliability.shared"
 
-export { getBureauReliabilitySnapshot } from "./data/bureau-reliability.queries.server"
+export { getBureauReliabilitySnapshot } from "./employee-management/compliance-regulatory-tracking/data/bureau-reliability.queries.server"
 
 /** System-observed compliance aging watch (`app/api/cron/hrm-compliance-aging-watch`). */
 export {
@@ -472,13 +559,13 @@ export {
   partitionAgingTierEmissions,
   runComplianceAgingWatchTick,
   tierEmissionsForCandidate,
-} from "./data/compliance-aging-watch.server"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance-aging-watch.server"
 
 export type {
   AgingTierEmission,
   AgingWatchCandidate,
   AgingWatchTickSummary,
-} from "./data/compliance-aging-watch.server"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance-aging-watch.server"
 
 /** Compliance aging tier fanout — signed outbound delivery after tier audit writes. */
 export {
@@ -494,7 +581,7 @@ export {
   tallyAgingCriticalFanoutOutcome,
   tallyAgingTierFanoutOutcome,
   tallyAgingTierFanoutOutcomeByTier,
-} from "./data/compliance-aging-fanout.server"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance-aging-fanout.server"
 
 export type {
   AgingCriticalFanoutCounters,
@@ -502,29 +589,29 @@ export type {
   AgingTierFanoutCounters,
   AgingTierFanoutCountersByTier,
   AgingTierFanoutOutcome,
-} from "./data/compliance-aging-fanout.server"
+} from "./employee-management/compliance-regulatory-tracking/data/compliance-aging-fanout.server"
 
 /** HRM rail pressure counts (`React.cache` in layout). */
 export {
   getCompliancePressureAggregateForOrg,
   getHrmRailPressureCounts,
-} from "./data/hrm-rail-pressure.queries.server"
+} from "./hrm-rail-pressure.queries.server"
 
-export { getHrmSnapshotBoard } from "./data/hrm-snapshot.queries.server"
-export type { HrmSnapshotBoard } from "./data/hrm-snapshot.queries.server"
+export { getHrmSnapshotBoard } from "./hrm-snapshot.queries.server"
+export type { HrmSnapshotBoard } from "./hrm-snapshot.queries.server"
 
 /** Leave policy + leave type catalog reads (admin policies workbench). */
 export {
   getLeaveTypeForOrg,
   listAllLeaveTypesForOrg,
   listLeavePoliciesForOrg,
-} from "./data/leave-policy.queries.server"
+} from "./workforce-time-attendance/data/leave-policy.queries.server"
 
 export type {
   LeavePolicyAdminRow,
   LeaveTypeAdminRow,
   ListLeavePoliciesForOrgOptions,
-} from "./data/leave-policy.queries.server"
+} from "./workforce-time-attendance/data/leave-policy.queries.server"
 
 export {
   HRM_LEAVE_ACCRUAL_METHODS,
@@ -536,7 +623,7 @@ export {
   isHrmLeaveAccrualMethod,
   isHrmPolicyTab,
   isMyEa2023LeaveTypeCode,
-} from "./data/leave-policy-display.shared"
+} from "./workforce-time-attendance/data/leave-policy-display.shared"
 
 export type {
   HrmLeaveAccrualMethod,
@@ -544,7 +631,7 @@ export type {
   HrmLeaveTypeStatusTone,
   HrmPolicyTab,
   MyEa2023LeaveTypeCode,
-} from "./data/leave-policy-display.shared"
+} from "./workforce-time-attendance/data/leave-policy-display.shared"
 
 /** Claims reads (org scope, approvals, payroll bridge). */
 export {
@@ -566,8 +653,10 @@ export {
   listPendingClaimApprovalsForOrg,
   resolveClaimApproverUserId,
   sumClaimsForEmployeeClaimTypeWindow,
-} from "./data/claim.queries.server"
-export { resolveClaimSurfaceAccess } from "./data/claim-access.server"
+} from "./payroll-compensation/expenses-reimbursement/data/claim.queries.server"
+export {
+  resolveClaimSurfaceAccess,
+} from "./payroll-compensation/expenses-reimbursement/data/claim-access.server"
 
 /** Benefits administration reads (plans, enrollments, life events). */
 export {
@@ -577,7 +666,7 @@ export {
   listBenefitPayrollProjectionEnrollmentsForPeriod,
   listBenefitPlanEnterpriseVersionsForOrganization,
   projectBenefitPayrollLinesForEmployeePeriod,
-} from "./data/benefit-enterprise.queries.server"
+} from "./payroll-compensation/benefits-administration/data/benefit-enterprise.queries.server"
 
 export type {
   BenefitEligibilityEvaluation,
@@ -585,7 +674,7 @@ export type {
   BuildBenefitCensusReportForOrganizationOptions,
   EvaluateBenefitEligibilityForEmployeeOptions,
   ListBenefitPlanEnterpriseVersionsForOrganizationOptions,
-} from "./data/benefit-enterprise.queries.server"
+} from "./payroll-compensation/benefits-administration/data/benefit-enterprise.queries.server"
 
 export {
   countPendingBenefitEnrollmentsForOrganization,
@@ -598,13 +687,13 @@ export {
   listEnrollmentsForPlan,
   listLifeEventsForEmployee,
   listLifeEventsForOrganization,
-} from "./data/benefit.queries.server"
+} from "./payroll-compensation/benefits-administration/data/benefit.queries.server"
 
 export type {
   BenefitEnrollmentListRow,
   BenefitLifeEventRow,
   BenefitPlanRow,
-} from "./data/benefit-model.shared"
+} from "./payroll-compensation/benefits-administration/data/benefit-model.shared"
 
 export type {
   ClaimDetailRow,
@@ -612,8 +701,8 @@ export type {
   ClaimEvidenceRow,
   ClaimRow,
   ClaimTypeRow,
-} from "./data/claim.queries.server"
-export type { ClaimSurfaceAccess } from "./data/claim-access.server"
+} from "./payroll-compensation/expenses-reimbursement/data/claim.queries.server"
+export type { ClaimSurfaceAccess } from "./payroll-compensation/expenses-reimbursement/data/claim-access.server"
 
 /** Document expiry watch pure helpers + cron tick summary types. */
 export {
@@ -627,78 +716,84 @@ export {
   DOCUMENT_EXPIRY_WATCH_BATCH_LIMIT,
   documentExpiryTiersCrossed,
   partitionDocumentExpiryEmissions,
-} from "./data/document-expiry-watch.shared"
+} from "./employee-management/documents-management/data/document-expiry-watch.shared"
 
 export type {
   DocumentExpiryCandidate,
   DocumentExpiryTier,
   DocumentExpiryTierEmission,
-} from "./data/document-expiry-watch.shared"
+} from "./employee-management/documents-management/data/document-expiry-watch.shared"
 
 export {
   listDocumentExpiryCandidates,
   runDocumentExpiryWatchTick,
-} from "./data/document-expiry-watch.server"
+} from "./employee-management/documents-management/data/document-expiry-watch.server"
 
-export type { DocumentExpiryWatchTickSummary } from "./data/document-expiry-watch.server"
+export type { DocumentExpiryWatchTickSummary } from "./employee-management/documents-management/data/document-expiry-watch.server"
 
 export {
   PROBATION_REVIEW_DUE_AUDIT_ACTION,
   PROBATION_WATCH_BATCH_LIMIT,
   probationReviewWindowBounds,
-} from "./data/probation-watch.shared"
+} from "./employee-management/employee-lifecycle-management/data/probation-watch.shared"
 
-export type { ProbationReviewCandidate } from "./data/probation-watch.shared"
+export type { ProbationReviewCandidate } from "./employee-management/employee-lifecycle-management/data/probation-watch.shared"
 
 export {
   listProbationReviewCandidates,
   runProbationWatchTick,
-} from "./data/probation-watch.server"
+} from "./employee-management/employee-lifecycle-management/data/probation-watch.server"
 
-export type { ProbationWatchTickSummary } from "./data/probation-watch.server"
+export type { ProbationWatchTickSummary } from "./employee-management/employee-lifecycle-management/data/probation-watch.server"
 
-export { runHrmSnapshotDeliveryTick } from "./data/hrm-snapshot-delivery.server"
+export { runHrmSnapshotDeliveryTick } from "./hrm-snapshot-delivery.server"
 
-export type { HrmSnapshotDeliveryTickSummary } from "./data/hrm-snapshot-delivery.server"
+export type { HrmSnapshotDeliveryTickSummary } from "./hrm-snapshot-delivery.server"
 
 export {
   HRM_SNAPSHOT_DELIVERY_AUDIT_ACTION,
   shouldRunHrmSnapshotDelivery,
-} from "./data/hrm-snapshot-delivery.shared"
+} from "./hrm-snapshot-delivery.shared"
 
-export { runTrainingExpiryWatchTick } from "./data/training-expiry-watch.server"
+export { runContractExpiryWatchTick } from "./employee-management/employee-lifecycle-management/data/contract-expiry-watch.server"
+export type { ContractExpiryWatchTickSummary } from "./employee-management/employee-lifecycle-management/data/contract-expiry-watch.server"
+export { runOffboardingTaskOverdueTick } from "./employee-management/offboarding-exit-management/data/offboarding-overdue-watch.server"
+export type { OffboardingOverdueWatchTickSummary } from "./employee-management/offboarding-exit-management/data/offboarding-overdue-watch.server"
+export { resolveOffboardingSurfaceCapabilities } from "./employee-management/offboarding-exit-management/data/offboarding-capabilities.server"
+export type { OffboardingSurfaceCapabilities } from "./employee-management/offboarding-exit-management/data/offboarding-capabilities.shared"
+export { runTrainingExpiryWatchTick } from "./talent-management/training-development/data/training-expiry-watch.server"
 
-export type { TrainingExpiryWatchTickSummary } from "./data/training-expiry-watch.server"
+export type { TrainingExpiryWatchTickSummary } from "./talent-management/training-development/data/training-expiry-watch.server"
 
 export {
   getTrainingAnalyticsSummary,
   listTrainingFeedbackAggregatesForOrg,
-} from "./data/training-analytics.queries.server"
+} from "./talent-management/training-development/data/training-analytics.queries.server"
 
 export type {
   TrainingAnalyticsSummary,
   TrainingFeedbackAggregate,
-} from "./data/training-analytics.queries.server"
+} from "./talent-management/training-development/data/training-analytics.queries.server"
 
-export { listTrainingFeedbackForCourse } from "./data/training.queries.server"
+export { listTrainingFeedbackForCourse } from "./talent-management/training-development/data/training.queries.server"
 
-export type { TrainingFeedbackForCourseRow } from "./data/training.queries.server"
+export type { TrainingFeedbackForCourseRow } from "./talent-management/training-development/data/training.queries.server"
 
 export {
   listAllPrerequisitesForOrg,
   listPrerequisitesForCourse,
   validateTrainingPrerequisitesMet,
-} from "./data/training-prerequisite.server"
+} from "./talent-management/training-development/data/training-prerequisite.server"
 
-export type { TrainingPrerequisiteRow } from "./data/training-prerequisite.server"
+export type { TrainingPrerequisiteRow } from "./talent-management/training-development/data/training-prerequisite.server"
 
-export { listSkillMatrixForOrg } from "./data/skill.queries.server"
+export { listSkillMatrixForOrg } from "./talent-management/competency-skills-framework/data/skill.queries.server"
 
 export type {
   SkillMatrixData,
   SkillMatrixRow,
   SkillMatrixSkill,
-} from "./data/skill.queries.server"
+} from "./talent-management/competency-skills-framework/data/skill.queries.server"
 
 /** HR pressure rows merged into Nexus snapshot (pure rank helpers + server read). */
 export {
@@ -706,18 +801,25 @@ export {
   documentPriorityForTier,
   leavePriorityForAge,
   mergeAndTrimPressureRows,
-} from "./data/hrm-nexus-pressure.shared"
+} from "./hrm-nexus-pressure.shared"
 
-export type { HrmPressureRowForNexus } from "./data/hrm-nexus-pressure.shared"
+export type { HrmPressureRowForNexus } from "./hrm-nexus-pressure.shared"
 
-export { listHrmHighPressureForNexus } from "./data/hrm-nexus-pressure.queries.server"
+export { listHrmHighPressureForNexus } from "./hrm-nexus-pressure.queries.server"
 
 export {
   parseCsv,
   dryRunAttendance,
   dryRunEmployees,
   dryRunPayroll,
-} from "./data/hrm-import-csv.shared"
+} from "./employee-management/employee-records-management/data/hrm-import-csv.shared"
 
-export { listTimeReportsForOrg } from "./data/time-report.queries.server"
-export type { OrgTimeReportRow } from "./data/time-report.queries.server"
+export { listTimeReportsForOrg } from "./workforce-time-attendance/data/time-report.queries.server"
+export type { OrgTimeReportRow } from "./workforce-time-attendance/data/time-report.queries.server"
+
+export { requireHrmOrgTenantFromForm } from "./hrm-action-guard.server"
+export { requireHrmPermission, requireHrmAdmin } from "./hrm-admin-guard.server"
+export { hrmActionFailure } from "./hrm-action-result.shared"
+export { buildGovernedHrmWorkbenchHeader } from "./hrm-governed-page-header.server"
+export { stablePayrollCloseStringify } from "./payroll-compensation/payroll-processing/data/payroll-close.shared"
+export { transitionBoardingTask } from "./employee-management/employee-lifecycle-management/data/boarding.mutations.server"

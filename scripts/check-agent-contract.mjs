@@ -25,6 +25,8 @@ const REQUIRED_FILES = [
   "scripts/check-route-error-files.mjs",
   "scripts/check-public-lynx-contract.mjs",
   ".cursor/rules/public-lynx.mdc",
+  ".cursor/rules/governed-renderer-contract.mdc",
+  "scripts/check-renderer-contracts.mjs",
   "tests/unit/fixtures-i18n-parity.test.ts",
   "turbo.json",
   "turbo/generators/config.ts",

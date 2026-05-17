@@ -8,25 +8,30 @@ export type {
 export {
   grantEmployeePortalAccessAction,
   revokeEmployeePortalAccessAction,
-} from "./actions/employee-portal-access.actions"
+} from "./employee-management/employee-selfservice-portal/actions/employee-portal-access.actions"
 export {
   activateContractAction,
   createDraftContractAction,
   createSalaryRevisionDraftAction,
   terminateContractAction,
-} from "./actions/employment-contract.actions"
+} from "./employee-management/employee-records-management/actions/employment-contract.actions"
 export {
   cancelSignatureRequestAction,
   createSignatureRequestAction,
   resendSignaturePartyAction,
   sendSignatureRequestAction,
-} from "./actions/signature-request.actions"
+} from "../tools/electronic-signatures/actions/signature-request.actions"
 export {
   declinePortalSignatureAction,
   recordPortalSignatureViewAction,
   submitPortalSignatureAction,
-} from "./actions/employee-portal-signature.actions"
-export { completeOnboardingStepAction } from "./actions/onboarding.actions"
+} from "./employee-management/employee-selfservice-portal/actions/employee-portal-signature.actions"
+export { completeOnboardingStepAction } from "./employee-management/employee-lifecycle-management/actions/onboarding.actions"
+export {
+  completeBoardingTaskAction,
+  startBoardingTaskAction,
+  waiveBoardingTaskAction,
+} from "./employee-management/employee-lifecycle-management/actions/boarding.actions"
 export {
   acknowledgeReviewAction,
   activateReviewCycleAction,
@@ -34,7 +39,7 @@ export {
   closeReviewCycleAction,
   createReviewCycleAction,
   submitReviewAction,
-} from "./actions/performance.actions"
+} from "./talent-management/performance-management/actions/performance.actions"
 export {
   acceptJobOfferAction,
   advanceApplicationStageAction,
@@ -60,11 +65,11 @@ export {
   submitInterviewFeedbackFormAction,
   updateJobOfferStatusAction,
   withdrawJobOfferAction,
-} from "./actions/recruitment.actions"
+} from "./talent-management/recruitment-applicant-tracking/actions/recruitment.actions"
 export {
   createKpiPeriodAction,
   upsertKpiScoreAction,
-} from "./actions/kpi.actions"
+} from "./talent-management/competency-skills-framework/actions/kpi.actions"
 export {
   submitAddKpiGoalMilestoneAction,
   submitCloseKpiGoalAction,
@@ -75,29 +80,31 @@ export {
   submitRemoveKpiGoalMilestoneAction,
   submitUpdateKpiGoalAction,
   submitUpdateKpiGoalMilestoneAction,
-} from "./actions/kpi-goal.actions"
+} from "./talent-management/competency-skills-framework/actions/kpi-goal.actions"
 export {
   decideSalaryAdvanceAction,
   requestSalaryAdvanceAction,
-} from "./actions/salary-advance.actions"
-export { createSkillAction, updateSkillAction } from "./actions/skill.actions"
+} from "./payroll-compensation/payroll-processing/actions/salary-advance.actions"
+export { createSkillAction, updateSkillAction } from "./talent-management/competency-skills-framework/actions/skill.actions"
 export {
   archiveDependentAction,
   createDependentAction,
-} from "./actions/dependent.actions"
+} from "./employee-management/employee-records-management/actions/dependent.actions"
 export {
   archiveEmployeeAction,
   createEmployeeAction,
+  rehireEmployeeAction,
   updateEmployeeAction,
-} from "./actions/employee.actions"
+} from "./employee-management/employee-records-management/actions/employee.actions"
 export {
   updateEmployeeContactAction,
   updateEmployeeEmploymentAction,
   updateEmployeeIdentityAction,
+  updateEmployeeProfilePhotoAction,
   updateEmployeeStatutoryProfileAction,
   upsertEmployeeIdentityDocumentAction,
   upsertEmployeeWorkAuthorizationAction,
-} from "./actions/employee-master.actions"
+} from "./employee-management/employee-records-management/actions/employee-master.actions"
 export {
   archiveDepartmentAction,
   archiveOrgUnitAction,
@@ -112,46 +119,47 @@ export {
   updateJobGradeAction,
   updateOrgUnitAction,
   updatePositionAction,
-} from "./actions/org-structure.actions"
-export { attachEmployeeDocumentAction } from "./actions/hrm-document.actions"
+} from "./employee-management/organizational-chart-hierarchy/actions/org-structure.actions"
+export { exportOrgStructureCsvAction } from "./employee-management/organizational-chart-hierarchy/actions/org-structure-export.actions"
+export { attachEmployeeDocumentAction } from "./employee-management/documents-management/actions/hrm-document.actions"
 export {
   approveLeaveAction,
   rejectLeaveAction,
-} from "./actions/leave-approval.actions"
+} from "./workforce-time-attendance/actions/leave-approval.actions"
 export {
   cancelPortalEmployeeLeaveAction,
   requestPortalEmployeeLeaveAction,
-} from "./actions/employee-portal-leave.actions"
+} from "./employee-management/employee-selfservice-portal/actions/employee-portal-leave.actions"
 export {
   submitEmployeePortalRequestAdvance,
   submitEmployeePortalCancelPendingAdvance,
-} from "./actions/employee-portal-advance.actions"
+} from "./employee-management/employee-selfservice-portal/actions/employee-portal-advance.actions"
 export {
   submitEmployeePortalEnrollBenefit,
   submitEmployeePortalCancelPendingEnrollment,
   submitEmployeePortalRecordLifeEvent,
-} from "./actions/employee-portal-benefit.actions"
+} from "./employee-management/employee-selfservice-portal/actions/employee-portal-benefit.actions"
 export {
   attachPortalEmployeeClaimEvidenceAction,
   cancelPortalEmployeeClaimAction,
   submitPortalEmployeeClaimAction,
-} from "./actions/employee-portal-claim.actions"
-export { requestPortalEmployeeAttendanceCorrectionAction } from "./actions/employee-portal-attendance.actions"
+} from "./employee-management/employee-selfservice-portal/actions/employee-portal-claim.actions"
+export { requestPortalEmployeeAttendanceCorrectionAction } from "./employee-management/employee-selfservice-portal/actions/employee-portal-attendance.actions"
 export {
   requestPortalEmployeeDocumentAction,
   type PortalDocumentRequestFormState,
-} from "./actions/employee-portal-document.actions"
+} from "./employee-management/employee-selfservice-portal/actions/employee-portal-document.actions"
 export {
   updatePortalPersonalProfileAction,
   updatePortalEmergencyContactAction,
   updatePortalBankingProfileAction,
-} from "./actions/employee-portal-profile.actions"
-export { completePortalOffboardingTaskAction } from "./actions/employee-portal-offboarding.actions"
+} from "./employee-management/employee-selfservice-portal/actions/employee-portal-profile.actions"
+export { completePortalOffboardingTaskAction } from "./employee-management/employee-selfservice-portal/actions/employee-portal-offboarding.actions"
 export {
   portalSelfAttestTrainingAction,
   portalSubmitTrainingFeedbackAction,
   type PortalTrainingFormState,
-} from "./actions/training-portal.actions"
+} from "./employee-management/employee-selfservice-portal/actions/training-portal.actions"
 export {
   TrainingRecordDetailForm,
   type TrainingRecordDetailFormProps,
@@ -163,7 +171,7 @@ export {
   cancelLeaveAction,
   requestOwnLeaveAction,
   runLeaveCarryForwardAction,
-} from "./actions/leave-request.actions"
+} from "./workforce-time-attendance/actions/leave-request.actions"
 export type {
   EmployeePortalAccessFormState,
   LeaveBalanceAdjustmentFormState,
@@ -177,23 +185,23 @@ export {
   updateLeaveTypeAction,
   seedMalaysiaEa2023LeaveTypesAction,
   createLeavePolicyAction,
-} from "./actions/leave-policy.actions"
+} from "./workforce-time-attendance/actions/leave-policy.actions"
 export type {
   LeaveTypeMutationFormState,
   LeavePolicyMutationFormState,
   OrgStructureFormState,
   SeedLeaveTypesFormState,
 } from "./types"
-export { upsertPayrollProfileAction } from "./actions/payroll-profile.actions"
+export { upsertPayrollProfileAction } from "./payroll-compensation/payroll-processing/actions/payroll-profile.actions"
 export {
   correctAttendanceEventAction,
   recordAttendanceEventAction,
   regenerateAttendanceDayAction,
-} from "./actions/attendance-correction.actions"
+} from "./workforce-time-attendance/actions/attendance-correction.actions"
 export {
   assignEmployeeShiftAction,
   createShiftTemplateAction,
-} from "./actions/attendance-shift.actions"
+} from "./workforce-time-attendance/actions/attendance-shift.actions"
 export type {
   AssignEmployeeShiftFormState,
   AttendanceRecordFormState,
@@ -207,14 +215,14 @@ export {
   updatePayrollPeriodAction,
   preparePayrollRunsAction,
   lockPayrollPeriodAction,
-} from "./actions/payroll-period.actions"
+} from "./payroll-compensation/payroll-processing/actions/payroll-period.actions"
 
 export {
   generatePayrollPayslipsAction,
   postPayrollPeriodAction,
   publishPayrollPayslipsAction,
   refreshPayrollCloseSnapshotAction,
-} from "./actions/payroll-close.actions"
+} from "./payroll-compensation/payroll-processing/actions/payroll-close.actions"
 
 export type {
   PayrollCloseActionFormState,
@@ -223,13 +231,13 @@ export type {
   PayrollCloseSnapshot,
   PayrollPayslipSnapshot,
   PayrollPostingPreview,
-} from "./data/payroll-close.shared"
+} from "./payroll-compensation/payroll-processing/data/payroll-close.shared"
 
 export {
   requestPayrollPeriodLockApprovalAction,
   approvePayrollPeriodLockApprovalAction,
   rejectPayrollPeriodLockApprovalAction,
-} from "./actions/payroll-lock-approval.actions"
+} from "./payroll-compensation/payroll-processing/actions/payroll-lock-approval.actions"
 
 export {
   PayrollConsolePage,
@@ -239,6 +247,24 @@ export {
   CreatePayrollPeriodForm,
   PreparePayrollRunsButton,
 } from "./components/payroll-console"
+
+export {
+  EMPLOYEE_RECORDS_DETAIL_SURFACE_ID,
+  EMPLOYEE_RECORDS_FIELD_KEYS,
+  EMPLOYEE_RECORDS_FIELD_POLICIES,
+  EMPLOYEE_RECORDS_LIST_SURFACE_IDS,
+  EMPLOYEE_RECORDS_SECTIONS,
+  EMPLOYEE_RECORDS_SURFACE_PERMISSION,
+  employeeRecordsFieldPolicyForKey,
+  isEmployeeRecordsSensitiveField,
+} from "./employee-management/employee-records-management/data/employee-records-surface-metadata.shared"
+
+export type {
+  EmployeeRecordsFieldKey,
+  EmployeeRecordsFieldPolicy,
+  EmployeeRecordsListSurfaceId,
+  EmployeeRecordsSection,
+} from "./employee-management/employee-records-management/data/employee-records-surface-metadata.shared"
 
 export {
   buildHrmNav,
@@ -263,10 +289,10 @@ export {
   generateAllStatutoryPacksAction,
   generateStatutoryPackAction,
   markEvidenceSubmittedAction,
-} from "./actions/compliance.actions"
+} from "./employee-management/compliance-regulatory-tracking/actions/compliance.actions"
 
 /** Outbound statutory submission via org event delivery. */
-export { submitStatutoryEvidenceForDeliveryAction } from "./actions/statutory-submission.actions"
+export { submitStatutoryEvidenceForDeliveryAction } from "./employee-management/compliance-regulatory-tracking/actions/statutory-submission.actions"
 export {
   STATUTORY_PACK_TO_EVENT_TYPE,
   STATUTORY_PACK_TO_ACK_EVENT_TYPE,
@@ -276,11 +302,11 @@ export {
   authorityForStatutoryPack,
   eventTypeForStatutoryPack,
   isAcknowledgementSource,
-} from "./data/statutory-event-types.shared"
-export type { AcknowledgementSource } from "./data/statutory-event-types.shared"
+} from "./employee-management/compliance-regulatory-tracking/data/statutory-event-types.shared"
+export type { AcknowledgementSource } from "./employee-management/compliance-regulatory-tracking/data/statutory-event-types.shared"
 
 /** Manual bureau acknowledgement (`submitted` → `acknowledged`, stamps actor metadata). */
-export { acknowledgeStatutoryEvidenceAction } from "./actions/statutory-acknowledgement.actions"
+export { acknowledgeStatutoryEvidenceAction } from "./employee-management/compliance-regulatory-tracking/actions/statutory-acknowledgement.actions"
 
 export { CompliancePage } from "./components/compliance-page"
 
@@ -289,17 +315,17 @@ export {
   createBenefitPlanAction,
   updateBenefitPlanAction,
   archiveBenefitPlanAction,
-} from "./actions/benefit-plan.actions"
+} from "./payroll-compensation/benefits-administration/actions/benefit-plan.actions"
 export {
   enrollBenefitAction,
   activateBenefitEnrollmentAction,
   waiveBenefitEnrollmentAction,
   terminateBenefitEnrollmentAction,
-} from "./actions/benefit-enrollment.actions"
+} from "./payroll-compensation/benefits-administration/actions/benefit-enrollment.actions"
 export {
   recordLifeEventAction,
   verifyLifeEventAction,
-} from "./actions/benefit-life-event.actions"
+} from "./payroll-compensation/benefits-administration/actions/benefit-life-event.actions"
 export type {
   BenefitPlanMutationFormState,
   BenefitArchiveFormState,
@@ -320,11 +346,11 @@ export {
   cancelClaimAction,
   submitClaimOnBehalfAction,
   submitOwnClaimAction,
-} from "./actions/claim-submission.actions"
+} from "./payroll-compensation/expenses-reimbursement/actions/claim-submission.actions"
 export {
   approveClaimAction,
   rejectClaimAction,
-} from "./actions/claim-approval.actions"
+} from "./payroll-compensation/expenses-reimbursement/actions/claim-approval.actions"
 export type {
   AttachClaimEvidenceFormState,
   CancelClaimFormState,
@@ -338,7 +364,7 @@ export {
   claimRejectDecisionSchema,
   requestOwnClaimFormSchema,
   submitClaimFormSchema,
-} from "./schemas/claim.schema"
+} from "./payroll-compensation/expenses-reimbursement/schema/claim.schema"
 export type {
   AttachClaimEvidenceFormValues,
   CancelClaimFormValues,
@@ -346,28 +372,28 @@ export type {
   ClaimRejectDecisionValues,
   RequestOwnClaimFormValues,
   SubmitClaimFormValues,
-} from "./schemas/claim.schema"
+} from "./payroll-compensation/expenses-reimbursement/schema/claim.schema"
 export {
   CLAIM_EVIDENCE_TYPES,
   CLAIM_STATES,
   isClaimEvidenceType,
   isClaimState,
-} from "./data/claim-helpers.shared"
+} from "./payroll-compensation/expenses-reimbursement/data/claim-helpers.shared"
 export type {
   ClaimApprovalSnapshot,
   ClaimEvidenceType,
   ClaimsCountsSummary,
   ClaimStateValue,
-} from "./data/claim-helpers.shared"
+} from "./payroll-compensation/expenses-reimbursement/data/claim-helpers.shared"
 
 export {
   submitTimeReportAction,
   cancelTimeReportAction,
-} from "./actions/time-report.actions"
+} from "./workforce-time-attendance/actions/time-report.actions"
 export {
   approveTimeReportAction,
   rejectTimeReportAction,
-} from "./actions/time-report-approval.actions"
+} from "./workforce-time-attendance/actions/time-report-approval.actions"
 export type {
   CancelTimeReportFormState,
   TimeReportApprovalFormState,
@@ -378,4 +404,4 @@ export type {
 export {
   commitImportSessionAction,
   rollbackImportSessionAction,
-} from "./actions/hrm-import.actions"
+} from "../tools/bulk-csv-import/actions/hrm-import.actions"

@@ -4,14 +4,14 @@ import {
   CPF_ORDINARY_WAGE_CEILING_2026_01,
   CPF_V2026_01_CODE,
   computeCpfV202601,
-} from "../../lib/features/hrm/data/rule-packs/singapore/cpf/v2026-01.table"
-import { singapore2026_01RulePack } from "../../lib/features/hrm/data/rule-packs/singapore/sg-2026-01.rule-pack"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/singapore/cpf/v2026-01.table.ts"
+import { singapore2026_01RulePack } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/singapore/sg-2026-01.rule-pack.ts"
 import {
   SDL_MAXIMUM_2026_01,
   SDL_MINIMUM_2026_01,
   SDL_V2026_01_CODE,
   computeSdlV202601,
-} from "../../lib/features/hrm/data/rule-packs/singapore/sdl/v2026-01.levy"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/singapore/sdl/v2026-01.levy.ts"
 
 const baseInput = {
   organizationId: "org-1",

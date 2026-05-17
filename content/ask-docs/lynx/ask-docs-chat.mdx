@@ -1,0 +1,81 @@
+---
+title: Ask Lynx on docs
+description: Public product help on ask-docs — separate from ERP Lynx, no tenant data, no IAM audit.
+icon: MessageCircle
+---
+
+## Overview
+
+**Ask Lynx** is the AI chat on **`/{locale}/ask-docs`** — the documentation site you are reading now. It answers questions about Afenda's product using **public ask-docs content** only.
+
+<Callout type="info" title="Not ERP Lynx">
+  This chat does **not** import `#features/lynx` and does **not** access your organisation's ERP data, knowledge chunks, or Orbit state.
+</Callout>
+
+## ERP Lynx vs Ask Lynx
+
+| | ERP Lynx | Ask Lynx (docs) |
+|---|---|---|
+| **Auth** | `requireOrgSession()` | None — public |
+| **Data scope** | Your org's chunks + governed tools | ask-docs MDX / search index |
+| **Routes** | `app/api/erp/lynx/*` | `app/api/chat/route.ts` |
+| **Audit** | `erp.lynx.*` | No IAM audit subject |
+| **Import rule** | `#features/lynx` | Vercel AI SDK + `lib/ask-docs/public-lynx*` |
+
+Never route public chat through the ERP Lynx module — that would create an IDOR risk or corrupt the audit contract.
+
+## How to use it
+
+<Steps>
+  <Step>
+    Browse to any ask-docs page (for example `/en/ask-docs`).
+  </Step>
+  <Step>
+    Click the round **Lynx** trigger (bottom of the layout).
+  </Step>
+  <Step>
+    Ask a product question — suggested prompts appear on first open.
+  </Step>
+  <Step>
+    Read the streamed reply. Answers are grounded in indexed documentation, not your tenant database.
+  </Step>
+</Steps>
+
+## Knowledge sources
+
+Ask Lynx retrieves from public docs infrastructure:
+
+- Fumadocs **Orama** search (`/api/ask-docs-search`)
+- Processed markdown endpoints (`/llms.mdx/ask-docs/…`)
+- Full corpus exports (`/llms-full.txt`) where configured
+
+Locale-aware search supports configured ask-docs locales (for example `en`, `zh-CN`, `vi`, `ms`).
+
+## Safety and abuse controls
+
+Public endpoints have no org session, so defenses include:
+
+- **Body size cap** via `readPublicLynxChatRequestBody` — not raw `req.json()`
+- **Rate limiting** when Upstash (or equivalent) is configured
+- **CI contract** — `pnpm lint:public-lynx-contract` blocks ERP Lynx imports in the public stack
+
+## Branding
+
+- UI label: **Ask Lynx** or **Lynx** — consistent with ERP surfaces
+- Avoid: chatbot, copilot, AI assistant
+- Icons: `public/icons/lynx/Lynx-transfrom-*.png` via `LynxBrandMark`
+
+## When to use which Lynx
+
+| Question type | Use |
+|---|---|
+| How do I configure leave in Afenda? | **Ask Lynx** (this page) |
+| What does our written return policy say? | **ERP truth retrieval** (signed in) |
+| How many blocked Orbit items do we have? | **ERP operator assist** (signed in) |
+| What is in our contact directory? | **ERP operator assist** — not public chat |
+
+## Related
+
+- [Lynx overview](/ask-docs/lynx) — ERP machine layer
+- [Truth retrieval](./truth-retrieval) — tenant-scoped evidence Q&A
+- Getting started docs under **ask-docs** root index

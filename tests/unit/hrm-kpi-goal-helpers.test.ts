@@ -5,7 +5,7 @@ import {
   canEditMilestone,
   createKpiGoalFormSchema,
   derivePercentCompleteFromMilestones,
-} from "../../lib/features/hrm/schemas/kpi-goal.schema"
+} from "../../lib/features/hrm/talent-management/competency-skills-framework/schemas/kpi-goal.schema"
 
 describe("KPI goal helpers", () => {
   it("derivePercentCompleteFromMilestones counts completed milestones", () => {

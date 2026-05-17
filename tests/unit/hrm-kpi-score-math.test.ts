@@ -4,7 +4,7 @@ import {
   calculateTypedKpiScore,
   formatKpiDecimal,
   normalizeKpiMetricCode,
-} from "../../lib/features/hrm/schemas/kpi.schema"
+} from "../../lib/features/hrm/talent-management/competency-skills-framework/schemas/kpi.schema"
 
 describe("calculateTypedKpiScore", () => {
   it("higher_is_better: ratio when target > 0", () => {

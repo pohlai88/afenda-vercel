@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   setTrainingPrerequisiteFormSchema,
   submitTrainingFeedbackFormSchema,
-} from "#features/hrm/schemas/training.schema"
+} from "#features/hrm/talent-management/training-development/schemas/training.schema"
 
 const ORG_ID = "00000000-0000-4000-8000-000000000001"
 const RECORD_ID = "00000000-0000-4000-8000-000000000002"

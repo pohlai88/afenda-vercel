@@ -1,0 +1,26 @@
+---
+description: Zod authoring contract for lib/features/governed-surface/schemas — identity, hygiene, defaults, parsers, circular imports.
+globs: "lib/features/governed-surface/schemas/**"
+alwaysApply: false
+---
+
+# Governed-surface Zod schemas
+
+**Canonical authority:** [ADR-0011 § Schema Design Principles](../docs/decisions/0011-governed-surface-metadata-kernel.md)
+
+**Implementation handbook (derived):** `docs/governance/governed-surface-zod-schema-contract.md`
+
+When the handbook and ADR-0011 diverge, **ADR-0011 governs**. Fix the handbook in the same PR.
+
+**Doctrine:** Kernel validates **metadata only** — not domain fetching, biz rules, or renderer logic.
+
+Quick gate when adding or extending a schema:
+
+- Export **`YOUR_FEATURE_SCHEMA_ID`** + **`YOUR_FEATURE_SCHEMA_STABILITY`** (`SchemaStability` from `./_stability.shared`). No bare `SCHEMA_STABILITY`.
+- Strings for display IDs: **`z.string().trim().min(1)`** unless empty is intentional history.
+- Objects: **`.strict()`**; defaults on Zod fields, not duplicated in UI.
+- Export nested **`xxxKindSchema`** / enums + **`z.infer`** types + **`parseXxx*`** using **`safeParse`**.
+- Cross-field rules: **`.superRefine()`** · audit/revision times: **`z.string().datetime({ offset: true })`** · numerics: **`.finite()`** (ints: **`.int()`** too).
+- Class-name / Tailwind mappers belong in **`*.classes.ts` or renderer code**, not schema modules (unless a legacy shim is being retired in the same PR).
+
+If `component.schema.ts` circular import blocks typed `children`, use **`z.unknown()`** at the nesting layer and document cross-validation ownership (see governance doc § circular composition).

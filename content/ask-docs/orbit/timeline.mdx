@@ -1,0 +1,57 @@
+---
+title: Timeline
+description: Upcoming, overdue, and scheduled operational pressure across the execution horizon.
+icon: GanttChart
+---
+
+## Overview
+
+**Orbit Timeline** (`/o/{orgSlug}/dashboard/orbit/timeline`) shows **upcoming, overdue, and scheduled pressure** across the execution horizon — beyond the single-day lens of [Today](./today).
+
+Use Timeline when you need to answer: *what is coming, and what is already late?*
+
+## Horizon semantics
+
+Timeline organises work along Afenda's **Past · Now · Next** model:
+
+| Band | Contents |
+|---|---|
+| **Overdue** | Scheduled work whose time window has passed without resolution |
+| **Now** | Active and blocked execution in the current operating period |
+| **Upcoming** | Scheduled items on future dates or recurrence instances |
+
+Items without meaningful schedule context may still appear when pressure rules elevate them (for example blocked or automation-attention states).
+
+## Typical workflows
+
+### Clear overdue backlog
+
+<Steps>
+  <Step>
+    Sort and filter Timeline to surface overdue items first (due ascending / pressure descending depending on saved view).
+  </Step>
+  <Step>
+    For each item, either **reschedule**, **assign**, **unblock**, or **transition** toward review and verification.
+  </Step>
+  <Step>
+    Promote or correlate signals if overdue pressure originated as untriaged signals.
+  </Step>
+</Steps>
+
+### Plan the next period
+
+Use Timeline with **Today** to commit work: schedule items from triage into concrete dates, then confirm the next seven to fourteen days look achievable.
+
+## Recurrence and reminders
+
+Recurring items and reminder policies appear on Timeline through their next instances. When automation fails, the failure also surfaces in [Triage](./triage) under automation attention.
+
+## Saved views
+
+Operators can persist sort and filter combinations as **saved views** (`erp.planner.view.upsert` / `erp.planner.view.delete`) to reuse horizon slices — for example "overdue critical" or "unassigned next week".
+
+## Related surfaces
+
+- [Today](./today) — intraday execution focus
+- [Queue](./queue) — immediate ranked work
+- [Triage](./triage) — intake before items enter the horizon

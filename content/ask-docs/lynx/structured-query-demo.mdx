@@ -1,0 +1,69 @@
+---
+title: Structured query (demo)
+description: Plain-English questions against the org-scoped lynx_demo_unicorn dataset — read-only SQL and chart suggestions.
+icon: Database
+---
+
+## Overview
+
+**Structured query (demo)** is Lynx's **Canonical intake** layer preview: ask in plain English, receive **read-only SQL** against a governed demo table, see results in a table or chart, and optionally explain the SQL.
+
+<Callout type="warn" title="Demo only">
+  This layer queries **`lynx_demo_unicorn` only** — not your live ERP tables. It exists to validate NL→SQL guardrails before production intake ships.
+</Callout>
+
+## Enabling the demo
+
+The section appears when **`FLAG_LYNX_STRUCTURED_QUERY_DEMO_ENABLED`** is on. When disabled, Lynx shows a policy notice instead.
+
+## How to use it
+
+<Steps>
+  <Step>
+    Open **Lynx** → **Structured query (demo)**.
+  </Step>
+  <Step>
+    Enter a question — for example: *Average valuation by industry in the United States*.
+  </Step>
+  <Step>
+    Click **Run query**. Lynx generates SQL, validates it, executes against Postgres, and returns rows (cap **200** — `LYNX_NL_DEMO_ROW_CAP`).
+  </Step>
+  <Step>
+    Review **Generated SQL**, switch between **Table** and **Chart** tabs, or click **Explain SQL** for a prose walkthrough.
+  </Step>
+</Steps>
+
+## Safety guardrails
+
+Generated SQL must pass static validation:
+
+| Rule | Reason |
+|---|---|
+| `SELECT` only | No mutations via NL→SQL |
+| `FROM` must be exactly `"lynx_demo_unicorn"` | Prevents cross-table access |
+| `LIMIT` required and capped at 200 | Protects database and UI |
+| No DDL/DML keywords | Blocks destructive statements |
+
+Failed validation returns an expected error — not a silent fallback query.
+
+## Demo dataset
+
+Table **`lynx_demo_unicorn`** holds org-scoped sample company rows (unicorn-style demo dimensions such as industry, country, valuation). **Seed rows** in your environment before first use — without seed data, queries return empty results.
+
+Audit event: **`erp.lynx.nl_demo.query`**
+
+## Chart tab
+
+When the result shape supports visualization, Lynx suggests a chart configuration. If the shape is ambiguous, the UI shows *Chart suggestion unavailable — try a broader question.*
+
+## When to use something else
+
+| Need | Use instead |
+|---|---|
+| Policy answers from documents | [Truth retrieval](./truth-retrieval) |
+| Live Orbit or contact facts | [Operator assist](./operator-assist) |
+| Production ERP reporting | Governed dashboards and modules — not this demo |
+
+## Future: Canonical intake
+
+The product layer **Canonical intake** (`structured` slug in code) will generalise governed structured capture beyond this demo table. Until then, treat NL→SQL as a **preview** of intake guardrails, not production analytics.

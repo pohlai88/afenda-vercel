@@ -5,10 +5,10 @@ vi.mock("server-only", () => ({}))
 import {
   VN_EMPLOYMENT_LEAVE_V2024_01_CODE,
   VN_EMPLOYMENT_LEAVE_TYPES_2024,
-} from "../../lib/features/hrm/data/rule-packs/vietnam/employment/v2024-01.leave"
-import { HOLIDAYS_VN_2024_CODE } from "../../lib/features/hrm/data/rule-packs/vietnam/holidays/v2024.holidays"
-import { computeVnPitMonthlyV202401 } from "../../lib/features/hrm/data/rule-packs/vietnam/pit/v2024-01.monthly"
-import { vietnam2024_01RulePack } from "../../lib/features/hrm/data/rule-packs/vietnam/vn-2024-01.rule-pack"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/vietnam/employment/v2024-01.leave.ts"
+import { HOLIDAYS_VN_2024_CODE } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/vietnam/holidays/v2024.holidays.ts"
+import { computeVnPitMonthlyV202401 } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/vietnam/pit/v2024-01.monthly.ts"
+import { vietnam2024_01RulePack } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/vietnam/vn-2024-01.rule-pack.ts"
 
 describe("Vietnam VN-2024-01 rule pack", () => {
   it("exposes stable identity + manifest pins", () => {

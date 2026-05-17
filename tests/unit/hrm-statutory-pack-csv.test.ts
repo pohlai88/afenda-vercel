@@ -1,5 +1,5 @@
 /**
- * Phase 3R — Golden tests for `lib/features/hrm/data/statutory-pack-csv.shared.ts`.
+ * Phase 3R — Golden tests for `lib/features/hrm/employee-management/compliance-regulatory-tracking/data/statutory-pack-csv.shared.ts`.
  *
  * Locks down the operator-friendly CSV serializer, the SHA-256 response
  * hash anchor, and the filename / header-format helpers consumed by
@@ -24,8 +24,8 @@ import {
   STATUTORY_PACK_HASH_HEADER,
   STATUTORY_PACK_HASH_PREFIX,
   statutoryPackFilename,
-} from "../../lib/features/hrm/data/statutory-pack-csv.shared"
-import type { StatutoryPackPayload } from "../../lib/features/hrm/data/payroll-rule-pack.server"
+} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/statutory-pack-csv.shared.ts"
+import type { StatutoryPackPayload } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server.ts"
 
 const CRLF = "\r\n"
 

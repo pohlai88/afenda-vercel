@@ -1,0 +1,68 @@
+---
+title: Triage
+description: Route unprocessed signals, automation failures, and imported pressure before execution.
+icon: GitBranch
+---
+
+## Overview
+
+**Orbit Triage** (`/o/{orgSlug}/dashboard/orbit/triage`) is the intake surface for **unprocessed signals**, **automation failures**, and **imported operational pressure** that still needs operator routing.
+
+Use Triage when you need to answer: *what just arrived, and where should it go?*
+
+## What appears in Triage
+
+Typical records include:
+
+- Newly **detected** or **correlated** signals not yet promoted or dismissed
+- ERP-linked pressure with module and entity context
+- **Automation attention** — reminder or recurrence runs that failed or need intervention
+- High **pressure score** subjects escalated from rules
+- Items in **blocked** recovery lanes
+
+Triage applies **priority-ordered rules** to suggest routing targets (Queue, Signals, Today, and other surfaces).
+
+## Operating lanes
+
+Triage summaries group work into lanes such as:
+
+| Lane | Operator action |
+|---|---|
+| **Automation attention** | Fix or acknowledge failed automation; reschedule or close notices |
+| **Blocked recovery** | Unblock items or reassign ownership |
+| **High pressure** | Promote, schedule, or escalate |
+| **Signal intake** | Promote to item, correlate, defer, suppress, or dismiss |
+| **Manual follow-up** | Complete deferred operator commitments |
+
+## Signal actions
+
+For signals in intake:
+
+<Steps>
+  <Step>
+    Open the signal in the detail pane and review class, pressure, and ERP links.
+  </Step>
+  <Step>
+    **Promote** to create an execution item when work must be owned and tracked.
+  </Step>
+  <Step>
+    **Correlate** to an existing item when the pressure duplicates known work.
+  </Step>
+  <Step>
+    **Defer**, **suppress**, or **dismiss** when policy allows closing without promotion.
+  </Step>
+</Steps>
+
+Promotion emits `erp.planner.signal.promote` and creates the linked item lifecycle starting at triage/assignment stages.
+
+## Automation attention
+
+Failed reminders and recurrence ticks surface here with explicit automation kinds. Operators should resolve the underlying schedule or notice before pressure re-accumulates in Queue.
+
+<Callout type="info">
+  The command quick link **Automation attention** opens Triage with an automation filter pre-applied.
+</Callout>
+
+## Related surfaces
+
+After triage, work usually moves to [Queue](./queue) for execution, [Today](./today) or [Timeline](./timeline) for scheduling, or [Signals](./signals) for signal-specific review.

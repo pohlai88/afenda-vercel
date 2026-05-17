@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   describeBenefitEnrollmentCoverageConflict,
   detectBenefitEnrollmentCoverageConflict,
-} from "../../lib/features/hrm/data/benefit-enrollment-guard.shared"
+} from "../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit-enrollment-guard.shared.ts"
 
 describe("benefit enrollment coverage guard", () => {
   it("allows reenrollment after a terminated coverage window ends", () => {

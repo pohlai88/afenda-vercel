@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest"
 import {
   computeEpfV202510,
   EPF_V2025_10_CODE,
-} from "../../lib/features/hrm/data/rule-packs/malaysia/epf/v2025-10.table"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/epf/v2025-10.table.ts"
 
 describe("EPF v2025-10 — KWSP Third Schedule golden tests", () => {
   it("exports the correct version code", () => {

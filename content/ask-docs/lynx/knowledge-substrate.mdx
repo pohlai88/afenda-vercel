@@ -1,0 +1,82 @@
+---
+title: Knowledge substrate
+description: Add, search, and debug knowledge chunks — the pgvector evidence layer behind Lynx truth retrieval.
+icon: BookOpen
+---
+
+## Overview
+
+The **Knowledge substrate** is Afenda's pgvector store for organisational evidence. Lynx **truth retrieval** and operator **knowledge tools** read from the same `knowledge_chunk` rows you manage here.
+
+Module owner: `#features/knowledge` · UI entry: bottom sections of `/o/{orgSlug}/dashboard/lynx`
+
+## Chunks
+
+Each chunk has:
+
+| Field | Purpose |
+|---|---|
+| **Title** | Short label shown in evidence lists |
+| **Body** | Text embedded and stored for similarity search |
+
+On save, Afenda:
+
+1. Persists the chunk for your `organizationId`
+2. Computes an embedding via AI Gateway
+3. Stores the vector on `knowledge_chunk` (HNSW index for similarity)
+
+## Add a chunk
+
+<Steps>
+  <Step>
+    Open **Lynx** → **Knowledge substrate** → **Add text chunks with embeddings**.
+  </Step>
+  <Step>
+    Enter **title** and **body** (paste full paragraphs — not single keywords).
+  </Step>
+  <Step>
+    Click **Save chunk**. Wait for confirmation — embedding requires gateway auth.
+  </Step>
+  <Step>
+    Retry [Truth retrieval](./truth-retrieval) with a question that should match the new text.
+  </Step>
+</Steps>
+
+## Similarity search (debug)
+
+The **Similarity search** form runs the same retrieval substrate as truth search but shows raw **cosine distance** per hit. Use it to:
+
+- Tune chunk boundaries before relying on truth answers
+- Confirm a query retrieves the passage you expect
+- Diagnose empty results (no chunks, wrong tenant, or embed unavailable)
+
+## Recent chunks
+
+The **Recent chunks** list shows the latest rows saved for your organisation (default list on the Lynx page). Empty state: *No chunks yet.*
+
+## Architecture rules
+
+| Rule | Detail |
+|---|---|
+| Adapter purity | Source adapters list documents only — they do not write chunks |
+| Single writer | Only the knowledge pipeline commits `knowledge_document` / `knowledge_chunk` |
+| Source-blind retrieval | Ranking does not branch on adapter kind |
+| Tenant scope | All queries filter by `organizationId` from session |
+
+Long-running ingestion should use **durable workflows**, not inline route-handler loops.
+
+## Embeddings
+
+- Model: `openai/text-embedding-3-small` (1536 dimensions) via Vercel AI Gateway
+- Extension: `vector` on Neon Postgres
+- Lynx truth default top-K: **8** passages
+
+## Permissions
+
+Chunk forms run under org session guards in the Lynx page. Users without Lynx workspace access cannot reach the substrate UI.
+
+## Related
+
+- [Truth retrieval](./truth-retrieval) — consumer of chunks
+- [Operator assist](./operator-assist) — `org_search_knowledge` and `org_recent_knowledge_chunks` tools
+- [Core concepts](./concepts) — Knowledge vs Lynx boundary

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../../lib/features/hrm/data/employee-portal-access.shared"
+import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.shared.ts"
 
 const mocks = vi.hoisted(() => ({
   getEmployeePortalContext: vi.fn(),
@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock("server-only", () => ({}))
-vi.mock("../../lib/features/hrm/data/employee-portal-access.server", () => ({
+vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts", () => ({
   getEmployeePortalContext: mocks.getEmployeePortalContext,
 }))
 vi.mock("#lib/auth", () => ({
@@ -24,20 +24,20 @@ vi.mock("next/headers", () => ({
   headers: vi.fn(async () => new Headers()),
 }))
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }))
-vi.mock("../../lib/features/hrm/data/signature-request.queries.server", () => ({
+vi.mock("../../lib/features/tools/electronic-signatures/data/signature-request.queries.server.ts", () => ({
   getSignaturePartyByToken: mocks.getSignaturePartyByToken,
 }))
 vi.mock(
-  "../../lib/features/hrm/data/signature-request.mutations.server",
+  "../../lib/features/tools/electronic-signatures/data/signature-request.mutations.server.ts",
   () => ({
     completeSignatureParty: mocks.completeSignatureParty,
   })
 )
-vi.mock("../../lib/features/hrm/data/signature-portal-access.shared", () => ({
+vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/signature-portal-access.shared.ts", () => ({
   signaturePartyMatchesPortalSession: vi.fn(() => true),
 }))
 
-import { submitPortalSignatureAction } from "../../lib/features/hrm/actions/employee-portal-signature.actions"
+import { submitPortalSignatureAction } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/actions/employee-portal-signature.actions"
 
 const portalContext = {
   portal: {

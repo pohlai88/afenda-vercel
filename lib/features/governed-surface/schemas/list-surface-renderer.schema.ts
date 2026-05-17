@@ -21,8 +21,29 @@ export const listSurfaceRowSchema = z
   })
   .strict()
 
+/**
+ * List-surface data nature (ADR-0025 §2).
+ *
+ * `table`           — entity-list table (default). Rows are independently
+ *                     navigable records (Contacts, Employees, Requisitions).
+ * `document-lines`  — document-internal line items (payslip lines, journal
+ *                     lines, invoice lines). Rows do not navigate; the
+ *                     surface lives inside a parent document context.
+ *
+ * Renderer placement: `minContainerPx: 480` — list-surface must not live in
+ * a workbench rail. Use stat-card or a denser primitive in narrow regions.
+ */
+export const listSurfaceRendererDataNatureSchema = z.enum([
+  "table",
+  "document-lines",
+])
+export type ListSurfaceRendererDataNature = z.infer<
+  typeof listSurfaceRendererDataNatureSchema
+>
+
 export const listSurfaceRendererConfigurationSchema = z
   .object({
+    dataNature: listSurfaceRendererDataNatureSchema.default("table"),
     surface: listSurfaceSchema,
     columns: z.array(listColumnSchema).min(1),
     rows: z.array(listSurfaceRowSchema),
@@ -31,6 +52,9 @@ export const listSurfaceRendererConfigurationSchema = z
 
 export type ListSurfaceRow = z.infer<typeof listSurfaceRowSchema>
 export type ListSurfaceRendererConfiguration = z.infer<
+  typeof listSurfaceRendererConfigurationSchema
+>
+export type ListSurfaceRendererConfigurationInput = z.input<
   typeof listSurfaceRendererConfigurationSchema
 >
 

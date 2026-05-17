@@ -10,7 +10,7 @@ import {
   computeLeaveBalanceSummary,
   detectLeaveOverlap,
   type LeaveRequestStateValue,
-} from "../../lib/features/hrm/data/leave-balance.shared"
+} from "../../lib/features/hrm/workforce-time-attendance/data/leave-balance.shared.ts"
 
 // ---------------------------------------------------------------------------
 // computeLeaveBalanceSummary

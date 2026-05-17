@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { buildAdvanceInstallmentPlan } from "../../lib/features/hrm/data/salary-advance-installment.shared"
+import { buildAdvanceInstallmentPlan } from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/salary-advance-installment.shared.ts"
 
 describe("salary advance installment schedule", () => {
   it("splits evenly with remainder on the final installment", () => {

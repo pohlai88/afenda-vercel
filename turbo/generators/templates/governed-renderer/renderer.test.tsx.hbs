@@ -6,8 +6,17 @@ import { describe, expect, it } from "vitest"
 import { {{pascalId}}Renderer } from "#components2/metadata/renderers/{{kebabId}}.renderer"
 
 describe("{{pascalId}}Renderer", () => {
-  it("renders scaffold placeholder", () => {
-    render(<{{pascalId}}Renderer configuration={{}} />)
+  it("renders {{title}} surface with a valid dataNature", () => {
+    render(
+      <{{pascalId}}Renderer
+        configuration={{ dataNature: "{{defaultNature}}" }}
+      />,
+    )
     expect(screen.getByLabelText("{{title}}")).toBeTruthy()
+  })
+
+  it("renders error empty-state for invalid configuration", () => {
+    render(<{{pascalId}}Renderer configuration={{ dataNature: "__invalid" }} diagnostics="operator" />)
+    expect(screen.getByText("{{title}} unavailable")).toBeTruthy()
   })
 })

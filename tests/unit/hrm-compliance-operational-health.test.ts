@@ -15,7 +15,7 @@ import {
   isComplianceOperationalHealthBucket,
   type ComplianceHealthClassifierRow,
   type ComplianceOperationalHealthBucket,
-} from "../../lib/features/hrm/data/compliance-operational-health.shared"
+} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-operational-health.shared.ts"
 
 /**
  * Phase 3L — golden tests for the operational health classifier.

@@ -34,11 +34,11 @@ import {
   STATUTORY_AGING_WATCH_BATCH_LIMIT,
   tierEmissionsForCandidate,
   type AgingWatchCandidate,
-} from "../../lib/features/hrm/data/compliance-aging-watch.server"
+} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-aging-watch.server.ts"
 import {
   COMPLIANCE_AGING_TIERS,
   COMPLIANCE_OPERATIONAL_HEALTH_AGING,
-} from "../../lib/features/hrm/data/compliance-operational-health.shared"
+} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-operational-health.shared.ts"
 import { EXECUTION_AUDIT_ACTIONS } from "../../lib/features/execution/execution.contract"
 
 const FIXED_NOW = new Date("2026-05-12T06:00:00.000Z")

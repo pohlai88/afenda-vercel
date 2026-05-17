@@ -32,20 +32,20 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-vi.mock("../../lib/features/hrm/data/hrm-action-guard.server", () => ({
+vi.mock("../../lib/features/hrm/hrm-action-guard.server.ts", () => ({
   requireHrmOrgTenantFromForm: mocks.requireHrmOrgTenantFromForm,
 }))
 
-vi.mock("../../lib/features/hrm/data/hrm-admin-guard.server", () => ({
+vi.mock("../../lib/features/hrm/hrm-admin-guard.server.ts", () => ({
   requireHrmPermission: mocks.requireHrmPermission,
 }))
 
-vi.mock("../../lib/features/hrm/data/hrm-org-fk.server", () => ({
+vi.mock("../../lib/features/hrm/hrm-org-fk.server.ts", () => ({
   assertOptionalHrmPlacementFkBelongsToOrg:
     mocks.assertOptionalHrmPlacementFkBelongsToOrg,
 }))
 
-import { createJobRequisitionAction } from "../../lib/features/hrm/actions/recruitment.actions"
+import { createJobRequisitionAction } from "../../lib/features/hrm/talent-management/recruitment-applicant-tracking/actions/recruitment.actions"
 
 function buildForm(fields: Record<string, string>) {
   const formData = new FormData()

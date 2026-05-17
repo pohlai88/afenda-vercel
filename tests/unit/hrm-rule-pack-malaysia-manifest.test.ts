@@ -17,13 +17,13 @@ import { vi } from "vitest"
 import {
   RULE_PACK_REGISTRY,
   resolveRulePack,
-} from "../../lib/features/hrm/data/payroll-rule-pack.server"
-import { EPF_V2025_10_CODE } from "../../lib/features/hrm/data/rule-packs/malaysia/epf/v2025-10.table"
-import { SOCSO_V2024_10_CODE } from "../../lib/features/hrm/data/rule-packs/malaysia/socso/v2024-10.table"
-import { EIS_V2024_10_CODE } from "../../lib/features/hrm/data/rule-packs/malaysia/eis/v2024-10.table"
-import { PCB_V2026_01_CODE } from "../../lib/features/hrm/data/rule-packs/malaysia/pcb/v2026-01.bands"
-import { HOLIDAYS_2026_CODE } from "../../lib/features/hrm/data/rule-packs/malaysia/holidays/v2026.holidays"
-import { EA_LEAVE_V2023_01_CODE } from "../../lib/features/hrm/data/rule-packs/malaysia/ea-leave/v2023-01.tiers"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server.ts"
+import { EPF_V2025_10_CODE } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/epf/v2025-10.table.ts"
+import { SOCSO_V2024_10_CODE } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/socso/v2024-10.table.ts"
+import { EIS_V2024_10_CODE } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/eis/v2024-10.table.ts"
+import { PCB_V2026_01_CODE } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/pcb/v2026-01.bands.ts"
+import { HOLIDAYS_2026_CODE } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/holidays/v2026.holidays.ts"
+import { EA_LEAVE_V2023_01_CODE } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/ea-leave/v2023-01.tiers.ts"
 
 describe("MY-2026-01 composite rule pack manifest", () => {
   describe("RULE_PACK_REGISTRY", () => {

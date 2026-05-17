@@ -1,0 +1,56 @@
+---
+title: Links
+description: ERP-linked execution objects grouped by business truth in Orbit.
+icon: Link2
+---
+
+## Overview
+
+**Orbit Links** (`/o/{orgSlug}/dashboard/orbit/links`) groups **ERP-linked execution objects by business truth** — every signal and item tied to the same contact, employee, import job, or other module record appears together.
+
+Use Links when you need to answer: *what operational pressure exists on this ERP object?*
+
+## Links vs relations
+
+Orbit uses two graph concepts:
+
+| Concept | Connects | Requires |
+|---|---|---|
+| **Link** (`PlannerLink`) | Planner entity → ERP module record | **Causality reason** — why this attachment exists |
+| **Relation** | Planner entity → planner entity | Typed edge (`parent`, `blocks`, `duplicate`, …) |
+
+Links are how Orbit stays **ERP-first**: free-form tags are not a substitute for typed attachment.
+
+## Causality reason
+
+Every link records why execution is tied to business data — for example "payroll period close blocked on employee record" or "import validation failure on job". This field is mandatory in the product model so audit and Lynx briefs remain explainable.
+
+Creating links emits `erp.planner.link.create`.
+
+## Links surface layout
+
+The feed groups records by linked module and entity:
+
+- Open a group to see all signals and items referencing that record
+- Select a row for full detail — lifecycle, pressure, schedule, comments, sessions
+- Jump to the underlying ERP surface when your role has read access
+
+## Common patterns
+
+### HR and workforce
+
+Link items to **employee** or **organisation** records when pressure originates from HRM workflows (leave approval backlog, payroll preparation, compliance evidence).
+
+### Imports and tools
+
+Bulk import sessions and signature workflows generate signals — Links surface clusters them by **import job** or document so operators resolve root cause once.
+
+### Cross-module escalation
+
+When pressure spans modules, use **relations** between planner items plus **links** to each ERP record rather than duplicating items.
+
+## Related surfaces
+
+- [Core concepts](./concepts) — relation types and evidence groups
+- [Triage](./triage) — ERP-linked lane for intake
+- [Signals](./signals) — pressure before promotion

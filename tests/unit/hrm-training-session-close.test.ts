@@ -16,8 +16,8 @@ import { describe, expect, it } from "vitest"
 import {
   computeTrainingExpiresAtDate,
   classifyRecertificationDueBand,
-} from "../../lib/features/hrm/data/training-recertification.server"
-import type { HrmTrainingSessionState } from "../../lib/features/hrm/schemas/training.schema"
+} from "../../lib/features/hrm/talent-management/training-development/data/training-recertification.server.ts"
+import type { HrmTrainingSessionState } from "../../lib/features/hrm/talent-management/training-development/schemas/training.schema"
 
 // ---------------------------------------------------------------------------
 // Simulate the close-session record-creation selection logic

@@ -1,0 +1,44 @@
+import { z } from "zod"
+
+import type { SchemaStability } from "./_stability.shared"
+
+import { governedSurfaceChromeSchema } from "./surface-chrome.schema"
+
+export const GOVERNED_{{constantId}}_CONFIGURATION_SCHEMA_ID =
+  "governed.{{kebabId}}.configuration" as const
+
+export const GOVERNED_{{constantId}}_CONFIGURATION_SCHEMA_STABILITY: SchemaStability =
+  "experimental"
+
+/**
+ * `governed:{{kebabId}}` data nature (ADR-0025 §2).
+ *
+ * Add a comment per nature describing what it represents. Renderer placement
+ * (`minContainerPx`) lives in `components2/metadata/registry.ts` →
+ * `AFENDA_GOVERNED_RENDERER_CONTRACTS["{{kebabId}}"]`.
+ */
+export const {{camelId}}DataNatureSchema = z.enum([
+{{#each natures}}
+  "{{this}}",
+{{/each}}
+])
+export type {{pascalId}}DataNature = z.infer<typeof {{camelId}}DataNatureSchema>
+
+export const {{camelId}}ConfigurationSchema = z
+  .object({
+    dataNature: {{camelId}}DataNatureSchema.default("{{defaultNature}}"),
+    // TODO: add your domain fields here.
+    chrome: governedSurfaceChromeSchema.optional(),
+  })
+  .strict()
+
+export type {{pascalId}}Configuration = z.infer<
+  typeof {{camelId}}ConfigurationSchema
+>
+export type {{pascalId}}ConfigurationInput = z.input<
+  typeof {{camelId}}ConfigurationSchema
+>
+
+export function parse{{pascalId}}Configuration(raw: unknown) {
+  return {{camelId}}ConfigurationSchema.safeParse(raw)
+}

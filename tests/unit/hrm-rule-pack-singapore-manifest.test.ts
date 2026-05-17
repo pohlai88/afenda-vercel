@@ -4,17 +4,17 @@ import { describe, expect, it, vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
 
-import { RULE_PACK_REGISTRY } from "../../lib/features/hrm/data/payroll-rule-pack.server"
+import { RULE_PACK_REGISTRY } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server.ts"
 
-import { CPF_V2026_01_CODE } from "../../lib/features/hrm/data/rule-packs/singapore/cpf/v2026-01.table"
+import { CPF_V2026_01_CODE } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/singapore/cpf/v2026-01.table.ts"
 import {
   SG_EMPLOYMENT_LEAVE_TYPES_2026,
   SG_EMPLOYMENT_LEAVE_V2026_01_CODE,
   SG_HOSPITALIZATION_LEAVE_DAYS,
   SG_OUTPATIENT_SICK_LEAVE_DAYS,
-} from "../../lib/features/hrm/data/rule-packs/singapore/employment/v2026-01.leave"
-import { singapore2026_01RulePack } from "../../lib/features/hrm/data/rule-packs/singapore/sg-2026-01.rule-pack"
-import { SDL_V2026_01_CODE } from "../../lib/features/hrm/data/rule-packs/singapore/sdl/v2026-01.levy"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/singapore/employment/v2026-01.leave.ts"
+import { singapore2026_01RulePack } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/singapore/sg-2026-01.rule-pack.ts"
+import { SDL_V2026_01_CODE } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/singapore/sdl/v2026-01.levy.ts"
 
 function readSingaporeSeedManifest(): Record<string, unknown> {
   const sql = readFileSync(

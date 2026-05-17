@@ -4,7 +4,7 @@ import {
   portalBankingProfileFormSchema,
   portalEmergencyContactFormSchema,
   portalPersonalProfileFormSchema,
-} from "../../lib/features/hrm/schemas/employee-portal-profile.schema"
+} from "../../lib/features/hrm/employee-management/employee-selfservice-portal/schemas/employee-portal-profile.schema"
 
 describe("employee portal profile schemas", () => {
   it("accepts minimal personal profile payload", () => {

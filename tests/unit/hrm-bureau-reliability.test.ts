@@ -34,8 +34,8 @@ import {
   dayAge,
   isBureauReliabilityHealth,
   type BureauReliabilityClassifierRow,
-} from "../../lib/features/hrm/data/bureau-reliability.shared"
-import { STATUTORY_PACK_TO_AUTHORITY } from "../../lib/features/hrm/data/statutory-event-types.shared"
+} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/bureau-reliability.shared.ts"
+import { STATUTORY_PACK_TO_AUTHORITY } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/statutory-event-types.shared.ts"
 
 const FIXED_NOW = new Date("2026-05-12T06:00:00.000Z")
 

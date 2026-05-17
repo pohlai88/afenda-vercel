@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   signedEnvelopeV1Schema,
   zSignatureEventDataV1,
-} from "../../lib/features/hrm/schemas/signature.schema"
+} from "../../lib/features/tools/electronic-signatures/schemas/signature.schema"
 
 describe("signedEnvelopeV1Schema", () => {
   it("accepts a minimal valid envelope", () => {

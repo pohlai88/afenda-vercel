@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { allActionablePartiesSigned } from "../../lib/features/hrm/data/signature-request-status.shared"
+import { allActionablePartiesSigned } from "../../lib/features/tools/electronic-signatures/data/signature-request-status.shared.ts"
 
 vi.mock("workflow", () => ({
   FatalError: class FatalError extends Error {},

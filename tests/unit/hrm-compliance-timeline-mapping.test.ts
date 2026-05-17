@@ -25,11 +25,11 @@ import {
   STATUTORY_PACK_REGENERATE_AUDIT_ACTION,
   complianceTimelineKindForAuditAction,
   isComplianceTimelineKind,
-} from "../../lib/features/hrm/data/compliance-timeline.shared"
+} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-timeline.shared.ts"
 import {
   STATUTORY_PACK_TO_ACK_EVENT_TYPE,
   STATUTORY_PACK_TO_EVENT_TYPE,
-} from "../../lib/features/hrm/data/statutory-event-types.shared"
+} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/statutory-event-types.shared.ts"
 import { EXECUTION_AUDIT_ACTIONS } from "../../lib/features/execution/execution.contract"
 
 describe("Compliance timeline kind enumeration", () => {

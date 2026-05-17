@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { boardingTaskRequiresSignature } from "../../lib/features/hrm/data/boarding-signature-bridge.shared"
+import { boardingTaskRequiresSignature } from "../../lib/features/hrm/employee-management/employee-lifecycle-management/data/boarding-signature-bridge.shared.ts"
 
 describe("boardingTaskRequiresSignature", () => {
   it("returns false for empty metadata", () => {

@@ -18,8 +18,8 @@ import {
   computeYearsOfService,
   resolveTierDays,
   type LeaveTypeEngineConfig,
-} from "../../lib/features/hrm/data/leave-entitlement-engine.server"
-import { MY_EA_2023_LEAVE_TYPES } from "../../lib/features/hrm/data/leave-rules/my-ea-2023-01"
+} from "../../lib/features/hrm/workforce-time-attendance/data/leave-entitlement-engine.server.ts"
+import { MY_EA_2023_LEAVE_TYPES } from "../../lib/features/hrm/workforce-time-attendance/data/leave-rules/my-ea-2023-01.ts"
 
 // ---------------------------------------------------------------------------
 // Helpers — grab engine config from the MY-EA-2023 seed

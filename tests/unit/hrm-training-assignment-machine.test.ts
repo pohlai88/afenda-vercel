@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { canTransitionTrainingAssignment } from "../../lib/features/hrm/schemas/training.schema"
-import type { HrmTrainingAssignmentState } from "../../lib/features/hrm/schemas/training.schema"
+import { canTransitionTrainingAssignment } from "../../lib/features/hrm/talent-management/training-development/schemas/training.schema"
+import type { HrmTrainingAssignmentState } from "../../lib/features/hrm/talent-management/training-development/schemas/training.schema"
 
 const transitions: Array<{
   from: HrmTrainingAssignmentState

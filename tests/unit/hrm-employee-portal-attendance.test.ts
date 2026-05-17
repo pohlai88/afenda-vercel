@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../../lib/features/hrm/data/employee-portal-access.shared"
+import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.shared.ts"
 
 const mocks = vi.hoisted(() => ({
   getEmployeePortalContext: vi.fn(),
@@ -8,17 +8,17 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock("server-only", () => ({}))
-vi.mock("../../lib/features/hrm/data/employee-portal-access.server", () => ({
+vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts", () => ({
   getEmployeePortalContext: mocks.getEmployeePortalContext,
 }))
 vi.mock(
-  "../../lib/features/hrm/data/attendance-correction-mutation.server",
+  "../../lib/features/hrm/workforce-time-attendance/data/attendance-correction-mutation.server.ts",
   () => ({
     applyAttendanceEventCorrection: mocks.applyAttendanceEventCorrection,
   })
 )
 
-import { requestPortalEmployeeAttendanceCorrectionAction } from "../../lib/features/hrm/actions/employee-portal-attendance.actions"
+import { requestPortalEmployeeAttendanceCorrectionAction } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/actions/employee-portal-attendance.actions"
 
 const portalContext = {
   portal: {

@@ -1,0 +1,9 @@
+{
+  "$schema": "..\\..\\..\\.source\\json-schema\\docs.meta.json",
+  "title": "Portals",
+  "icon": "Globe",
+  "root": true,
+  "pages": [
+    "employee"
+  ]
+}

@@ -1,0 +1,105 @@
+---
+title: Core concepts
+description: Machine layer doctrine, four Lynx layers, Knowledge vs Lynx, and ERP vs public Ask Lynx.
+icon: Layers
+---
+
+## Machine layer doctrine
+
+```txt
+Lynx is Afenda's machine layer for resolving truth, preparing work, and recommending controlled action.
+```
+
+Lynx is an **ERP module** (`lib/features/lynx`) with the same tenancy and audit expectations as HRM or Contacts. Inference providers (Vercel AI Gateway, OpenAI embeddings) are **implementation details** — not separate product brands.
+
+### What Lynx is not
+
+| Misconception | Reality |
+|---|---|
+| Generic AI assistant / chatbot | Governed **Lynx** with evidence and audit |
+| Workflow automation | Durable runs belong in **execution** / Workflow DevKit |
+| Replacement for Orbit | Lynx **reads** operational state; Orbit **owns** execution |
+| Public docs chat | Separate route — see [Ask Lynx on docs](./ask-docs-chat) |
+
+## Banned user-facing vocabulary
+
+Do not use in product copy or navigation:
+
+- AI assistant, chatbot, copilot, AI mode, AI active
+- Thinking, Processing, Generating (as status labels)
+
+Prefer:
+
+- **Lynx**, **The Machine**
+- **Resolving**, **listening**, **high confidence**
+- Section titles from `Dashboard.Lynx.*` in the message catalog
+
+## Knowledge vs Lynx
+
+| Module | Role |
+|---|---|
+| **`#features/knowledge`** | Substrate — `knowledge_chunk`, embeddings, chunk CRUD, similarity search |
+| **`#features/lynx`** | Product — truth stream, operator tools, NL→SQL demo, future briefs/intake |
+
+**Rules:**
+
+- Lynx imports Knowledge only through `#features/knowledge` (no deep imports into `knowledge/data/*`).
+- Adapters list documents; only the pipeline commits chunks to Postgres.
+- Retrieval is **source-blind** — ranking uses embeddings and tenant scope, not adapter kind.
+
+## Four layers
+
+| Layer | Code slug | Status in product |
+|---|---|---|
+| Truth retrieval | `truth` | **Live** — `/api/erp/lynx/truth-search` |
+| Operating briefs | `briefs` | Contract + audit reserved |
+| Canonical intake | `structured` | NL→SQL **demo** when flag enabled |
+| Decision operator | `operator` | **Live** (preview) — `/api/erp/lynx/operator` |
+
+Canonical metadata lives in `lib/features/lynx/lynx.contract.ts` (`LYNX_LAYERS`, `LYNX_AUDIT_ACTIONS`).
+
+## Truth response shape
+
+Every truth UI must surface four blocks:
+
+1. **Answer** — model synthesis from retrieved passages only
+2. **Evidence used** — chunk titles, excerpts, cosine distance
+3. **Limitations** — coverage gaps (e.g. no chunks retrieved)
+4. **Next safe action** — operator guidance that does not bypass policy
+
+Evidence comes from server retrieval metadata, not from trusting free-form model citations alone.
+
+## Governed operator tools
+
+Operator assist uses a **registry** of tools with explicit metadata:
+
+| Field | Meaning |
+|---|---|
+| `risk` | low · medium · high |
+| `category` | knowledge · contacts · operations · governance |
+| `access` | read (no write tools in v1) |
+| `dataSensitivity` | none · low · medium · high |
+| `audit` | silent · record |
+
+`organizationId` is always taken from the **session** — never from model-supplied arguments. Maximum **five** tool round-trips per request (`LYNX_OPERATOR_MAX_STEPS`).
+
+## HTTP boundaries
+
+| Route family | Purpose |
+|---|---|
+| `app/api/erp/lynx/*` | Authenticated streaming (truth, operator) |
+| `app/api/chat/*` | Public Ask Lynx — **no** `#features/lynx` import |
+
+Client islands use `#features/lynx/client` only (`LYNX_ERP_HTTP_ROUTES`, `parseLynxTruthMarkdown`).
+
+## Environment configuration
+
+| Variable | Effect |
+|---|---|
+| `LYNX_GENERATION_MODEL` | Chat model for truth/operator (gateway id or OpenAI id) |
+| `LYNX_MAX_OUTPUT_TOKENS` | Truth stream cap (default 4096) |
+| `LYNX_OPERATOR_MAX_OUTPUT_TOKENS` | Operator stream cap (default 2048) |
+| `AI_GATEWAY_API_KEY` / Vercel OIDC | Embedding and generation auth |
+| `FLAG_LYNX_*` | Feature policy toggles |
+
+Requires AI Gateway auth for embedding-backed flows; without it, knowledge search tools fail with a clear error.

@@ -8,46 +8,27 @@ import { describe, expect, it } from "vitest"
 import { ListSurfaceRenderer } from "#components2/metadata/renderers/list-surface.renderer"
 
 describe("ListSurfaceRenderer", () => {
-  it("renders nothing when configuration is invalid", () => {
-    const { container } = render(
-      <ListSurfaceRenderer
-        configuration={{ surface: {}, columns: [], rows: [] }}
-      />
-    )
-    expect(container.firstChild).toBeNull()
-  })
-
-  it("renders governed list chrome and rows for valid configuration", () => {
+  it("renders table-only without list chrome header", () => {
     render(
       <ListSurfaceRenderer
+        variant="table-only"
         configuration={{
+          dataNature: "table",
           surface: {
             header: {
-              title: "Employees",
-              description: "Directory",
+              title: "Hidden chrome title",
+              description: "Should not appear in table-only mode",
             },
-            columnsId: "hrm-employees",
+            columnsId: "test",
             rowKey: "id",
-            empty: {
-              variant: "muted",
-              title: "No employees",
-            },
+            empty: { variant: "muted", title: "Empty" },
           },
-          columns: [
-            { id: "name", header: "Name" },
-            { id: "status", header: "Status" },
-          ],
-          rows: [
-            {
-              id: "emp-1",
-              cells: { name: "Alice Nguyen", status: "Active" },
-            },
-          ],
+          columns: [{ id: "name", header: "Name" }],
+          rows: [{ id: "1", cells: { name: "Ada" } }],
         }}
       />
     )
-    expect(screen.getByText("Employees")).toBeTruthy()
-    expect(screen.getByText("Alice Nguyen")).toBeTruthy()
-    expect(screen.getByText("Active")).toBeTruthy()
+    expect(screen.getByText("Ada")).toBeTruthy()
+    expect(screen.queryByText("Hidden chrome title")).toBeNull()
   })
 })

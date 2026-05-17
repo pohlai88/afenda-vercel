@@ -29,7 +29,7 @@ vi.mock("#lib/logger.server", () => ({
 import {
   withEmployeePortalActionSpan,
   withPortalMutationSpan,
-} from "../../lib/features/hrm/data/portal-mutation-tracing.server"
+} from "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/portal-mutation-tracing.server.ts"
 
 describe("withPortalMutationSpan", () => {
   beforeEach(() => {

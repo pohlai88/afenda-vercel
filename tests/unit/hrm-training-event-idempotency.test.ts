@@ -12,7 +12,7 @@
  */
 import { describe, expect, it } from "vitest"
 
-import type { HrmTrainingEventAction } from "../../lib/features/hrm/schemas/training.schema"
+import type { HrmTrainingEventAction } from "../../lib/features/hrm/talent-management/training-development/schemas/training.schema"
 
 // ---------------------------------------------------------------------------
 // Simulate the idempotency check guard (mirrors appendTrainingEvent guard)
@@ -173,7 +173,7 @@ describe("training event scope snapshot payload", () => {
 // HRM_TRAINING_EVENT_ACTIONS constant contract
 // ---------------------------------------------------------------------------
 
-import { HRM_TRAINING_EVENT_ACTIONS } from "../../lib/features/hrm/schemas/training.schema"
+import { HRM_TRAINING_EVENT_ACTIONS } from "../../lib/features/hrm/talent-management/training-development/schemas/training.schema"
 
 describe("HRM_TRAINING_EVENT_ACTIONS constant", () => {
   it("includes all lifecycle actions", () => {

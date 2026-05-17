@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { buildCriticalAgingOrbitSignal } from "../../lib/features/hrm/data/compliance-aging-orbit.shared"
+import { buildCriticalAgingOrbitSignal } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-aging-orbit.shared.ts"
 
 describe("Compliance aging Orbit signal descriptor", () => {
   it("builds a critical escalation payload with compliance linkage", () => {

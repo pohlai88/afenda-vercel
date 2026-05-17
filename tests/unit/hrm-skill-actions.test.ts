@@ -6,7 +6,7 @@ describe("skill Server Actions RBAC", () => {
   it("gates mutations with requireHrmPermission on skill object", () => {
     const source = readFileSync(
       new URL(
-        "../../lib/features/hrm/actions/skill.actions.ts",
+        "../../lib/features/hrm/talent-management/competency-skills-framework/actions/skill.actions.ts",
         import.meta.url
       ),
       "utf8"

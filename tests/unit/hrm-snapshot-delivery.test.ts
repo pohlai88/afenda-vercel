@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { shouldRunHrmSnapshotDelivery } from "../../lib/features/hrm/data/hrm-snapshot-delivery.shared"
-import { isInstallmentDueOnOrBefore } from "../../lib/features/hrm/data/salary-advance-installment.shared"
+import { shouldRunHrmSnapshotDelivery } from "../../lib/features/hrm/hrm-snapshot-delivery.shared.ts"
+import { isInstallmentDueOnOrBefore } from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/salary-advance-installment.shared.ts"
 
 describe("hrm snapshot delivery schedule", () => {
   it("runs weekly on Monday UTC", () => {

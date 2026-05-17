@@ -5,7 +5,7 @@ import {
   computeTrainingExpiresAt,
   createTrainingCourseFormSchema,
   normalizeTrainingCourseCode,
-} from "../../lib/features/hrm/schemas/training.schema"
+} from "../../lib/features/hrm/talent-management/training-development/schemas/training.schema"
 
 describe("training schema helpers", () => {
   it("normalizes course codes", () => {

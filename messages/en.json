@@ -1176,7 +1176,10 @@
             "open": "Open",
             "filled": "Filled",
             "over_budget": "Over budget",
-            "unbudgeted": "Unbudgeted"
+            "unbudgeted": "Unbudgeted",
+            "planned": "Planned",
+            "frozen": "Frozen",
+            "closed": "Closed"
           },
           "create": "Add position",
           "createTitle": "New position",
@@ -1289,6 +1292,11 @@
         "colRecord": "Record a step",
         "stepPlaceholder": "step_key",
         "recordStep": "Record step"
+      },
+      "offboarding": {
+        "eyebrow": "Lifecycle",
+        "pageTitle": "Offboarding",
+        "pageDescription": "Track exit checklists, approvals, and overdue tasks across active separations."
       },
       "performance": {
         "metaTitle": "Performance reviews",
@@ -3189,8 +3197,12 @@
           "errorTitle": "Could not save",
           "submit": "Submit",
           "submitting": "Submitting…",
+          "inboxTitle": "Pending time reports",
+          "inboxDescription": "Submitted overtime and business-trip reports awaiting a decision.",
           "inboxLoadFailed": "Could not load pending reports.",
           "inboxEmpty": "No pending time reports.",
+          "recentTitle": "Recent time reports",
+          "recentDescription": "Latest overtime and trip reports across the organization.",
           "recentLoadFailed": "Could not load recent reports.",
           "recentEmpty": "No recent time reports.",
           "cancelling": "Cancelling…",
@@ -3604,6 +3616,18 @@
             "csv": "CSV",
             "description": "Operator-friendly export — re-derived deterministically and audited as erp.hrm.compliance_pack.export. The response carries an X-Afenda-Pack-Hash anchor so an offline reviewer can prove the file was not modified in transit. Bureau-spec submission files (KWSP / PERKESO / LHDN column orders) ship per rule pack later."
           }
+        },
+        "exceptions": {
+          "title": "Compliance exceptions",
+          "description": "Open corrective actions and waivers tracked against workforce compliance areas.",
+          "empty": "No open compliance exceptions.",
+          "orgLevel": "Organization",
+          "resolvePlaceholder": "Resolution note…",
+          "resolveSubmit": "Resolve",
+          "waiveReasonPlaceholder": "Waiver reason…",
+          "waiveRefPlaceholder": "Approval reference",
+          "waiveSubmit": "Waive",
+          "readOnlyActions": "You can view exceptions but cannot resolve or waive them."
         },
         "operationalHealth": {
           "title": "Operational health",

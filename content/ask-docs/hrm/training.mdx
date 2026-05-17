@@ -1,0 +1,49 @@
+---
+title: Training & development
+description: Course catalog, scheduled sessions, assignments, completion records, and recertification with statutory compliance bridges.
+icon: GraduationCap
+audience: admin
+status: stable
+---
+
+## Overview
+
+**Training & development** covers the full learning loop: catalog courses, schedule sessions, assign employees, record completions, and track recertification deadlines. Compliance-sensitive training can bridge to statutory evidence where your jurisdiction pack requires it.
+
+Employees view assignments and submit feedback from the [employee portal](/ask-docs/portals/employee) **My training** section when portal access is active.
+
+## Workbench surface
+
+Navigate to **HRM → Training & development** (`/o/{orgSlug}/dashboard/hrm/training`).
+
+| Area | Purpose |
+| --- | --- |
+| Course catalog | Define courses, duration, and renewal rules |
+| Sessions | Schedule classroom or virtual sessions with capacity |
+| Assignments | Attach employees to courses or sessions |
+| Completions | Record pass/fail and evidence |
+| Recertification | Surface upcoming expiries for compliance follow-up |
+
+## Permissions
+
+| Action | ERP permission |
+| --- | --- |
+| View catalog, sessions, and assignments | `hrm.training.search` |
+| Create or update training artifacts | `hrm.training.update` |
+
+## Audits
+
+Training mutations write `erp.hrm.training.*` events. Completion records are durable — correct mistakes through governed reversal flows rather than deleting audit history.
+
+<Steps>
+  <Step>Create or select a course in the catalog.</Step>
+  <Step>Schedule a session (optional) or assign directly to employees.</Step>
+  <Step>Record completion when evidence is received.</Step>
+  <Step>Monitor recertification widgets on the compliance or snapshot surfaces.</Step>
+</Steps>
+
+## Related
+
+- [Skills](/ask-docs/hrm/skills) — competency mapping
+- [Compliance](/ask-docs/hrm/compliance) — statutory evidence packs
+- [Employee portal](/ask-docs/portals/employee) — self-service training list

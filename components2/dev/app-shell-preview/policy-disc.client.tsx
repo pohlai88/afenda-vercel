@@ -1,7 +1,7 @@
 "use client"
 
 import { AppShellPolicyDisc } from "#components2/app-shell/utility-bar.client"
-import { OperationalScopeAdminConfigContent } from "#components2/app-shell/operational-scope-admin-config.client"
+import { OperationalScopeAdminConfigContent } from "#features/operational-scope/client"
 
 import {
   SHELL_PREVIEW_ACTIVE_SCOPES,

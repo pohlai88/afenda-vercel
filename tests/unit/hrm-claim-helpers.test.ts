@@ -22,7 +22,7 @@ import {
   isClaimDateInRange,
   isClaimEvidenceType,
   isClaimState,
-} from "../../lib/features/hrm/data/claim-helpers.shared"
+} from "../../lib/features/hrm/payroll-compensation/expenses-reimbursement/data/claim-helpers.shared.ts"
 
 describe("CLAIM_STATES / CLAIM_EVIDENCE_TYPES", () => {
   it("freezes the canonical claim states list", () => {

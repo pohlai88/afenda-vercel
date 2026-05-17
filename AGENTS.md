@@ -6,6 +6,40 @@
 
 ---
 
+## PRIORITY #1 — Drizzle migrations (agents own local; humans do not)
+
+```txt
+YOU (IDE / agent) run local schema migrations end-to-end.
+The human operator will NOT run pnpm db:generate.
+The human operator will NOT run pnpm db:migrate:local.
+The human operator will NOT reset, nuke, or “help fix” the database for you.
+
+Do not ask. Do not defer. Do not output “manual steps for the human.”
+```
+
+**Your only allowed local migration path:**
+
+1. Edit `lib/db/schema.ts`
+2. `pnpm db:generate` (abort if drizzle-kit prompts for rename disambiguation — stop and fix schema without spawning parallel migrations)
+3. `pnpm lint:drizzle-journal` — **must pass** before migrate
+4. `pnpm db:migrate:local`
+5. Commit `lib/db/schema.ts` + `drizzle/*.sql` + `drizzle/meta/*` together
+
+**Never destroy the ledger again.** The 21-SQL / 7-journal incident (duplicate `0005_*` / `0006_*`, orphan files, snapshot `prevId` collisions) was caused by bypassing this pipeline. That class of damage is **unacceptable** — agents are accountable for keeping SQL ↔ journal ↔ snapshots consistent.
+
+**Forbidden (instant failure):**
+
+- `pnpm db:push` / `pnpm db:push:local` — overwrites DB, bypasses journal
+- Hand-editing `drizzle/*.sql` or `drizzle/meta/*` (except: never — use `db:generate` only)
+- Bulk-deleting orphan SQL or “repairing” snapshots without a single coherent `db:generate` outcome
+- `node scripts/nuke-db-public.mjs` or asking the human to reset Neon
+- Running `db:generate` repeatedly in one session without committing (creates competing migrations)
+- Neon MCP / raw DDL for app-owned tables
+
+Full rules: [§3 Drizzle migrations](#drizzle-migrations).
+
+---
+
 ## Non-negotiable boundaries
 
 | Boundary             | Rule                                                                                                                        |
@@ -21,6 +55,7 @@
 | UI primitives        | Import only via `#components/ui/*` — never filesystem-relative. `radix-ui`/`@base-ui/react` stay inside `components/ui`     |
 | Design tokens        | `@theme inline var(--)` must resolve to `:root`/`.dark` definitions                                                         |
 | Change governance    | New architectural category → update **this file first**, then implement                                                     |
+| Schema migrations    | **PRIORITY #1:** Agent runs `pnpm db:generate` → `lint:drizzle-journal` → `pnpm db:migrate:local`. Human **never** runs generate/migrate/reset. No `db:push*`, no hand-edited `drizzle/`, no ledger destruction. See [PRIORITY #1](#priority-1--drizzle-migrations-agents-own-local-humans-do-not). |
 
 ---
 
@@ -46,7 +81,7 @@
 | Operational simulation | `#features/simulation` · `AFENDA_ENABLE_SIMULATION=1` · rule `.cursor/rules/simulation-directory.mdc`                                                                                                                                                                                             |
 | Working Memory Rail    | `#features/rail-memory` · `WorkbenchRail` slots · `iam.workbench.*` audits                                                                                                                                                                                                                        |
 | i18n                   | `#i18n/navigation` (client) · `toLocalePath` (server) · `localePrefix: "always"` · rule `.cursor/rules/i18n-directory.mdc`                                                                                                                                                                        |
-| DB / Drizzle           | `lib/db/schema.ts` · `pnpm db:migrate:local` · `pnpm db:generate` in TTY · rule `.cursor/rules/drizzle-migration-ledger.mdc`                                                                                                                                                                      |
+| DB / Drizzle           | `lib/db/schema.ts` · **agents:** `pnpm db:generate` → `pnpm db:migrate:local` only · rule `.cursor/rules/drizzle-migration-ledger.mdc`                                                                                                                                                            |
 | Auth / IAM             | `#lib/auth` (server-only) · `#lib/auth-client` (browser) · rule `.cursor/rules/iam-directory.mdc`                                                                                                                                                                                                 |
 | Scaffold               | `pnpm gen [capability\|action\|adr\|audit-contract\|workflow-job\|ask-doc]` — see §3                                                                                                                                                                                                                       |
 | UI / design            | `#components/ui/*` · `#lib/design-system` · `app/globals.css` tokens · rule `.cursor/rules/design-system.mdc`                                                                                                                                                                                     |
@@ -117,10 +152,10 @@
 | `pnpm test:ci`                      | `vitest run --coverage` → `.artifacts/coverage/`                                                                    |
 | `pnpm test:e2e`                     | `pnpm build` → Playwright on port 3001                                                                              |
 | `pnpm env:sync`                     | `.env.config` → `.env.local`                                                                                        |
-| `pnpm db:migrate:local`             | **HUMAN-ONLY.** Apply `drizzle/*.sql` via `scripts/drizzle-migrate-logged.mjs` + `with-env` (prints Postgres errors), then `lint:fixtures-parity`. Never run from agents/CI. |
-| `pnpm db:migrate:vercel`            | **HUMAN-ONLY.** Same with `with-env --env-file=.env.vercel` after `pnpm env:pull-vercel`. Never run from agents/CI. |
-| `pnpm db:generate`                  | **AGENT-PERMITTED** for additive schema only (`lib/db/schema.ts` edits). Abort if `drizzle-kit` prompts for rename disambiguation (no TTY). **Never** run from CI. Apply SQL via human-only `db:migrate*`. |
-| `pnpm db:push:local`                | **HUMAN-ONLY.** Schema push for throwaway branches only. Never run from agents/CI.                                  |
+| `pnpm db:generate`                  | **Agent-owned (required).** After `lib/db/schema.ts` edits — additive only; **abort** if rename disambiguation prompts (no TTY). Commit SQL + meta with schema. **Never** ask human to run. **Never** from CI. |
+| `pnpm db:migrate:local`             | **Agent-owned (required).** After `lint:drizzle-journal` passes on local `.env.local`. **Never** ask human to run. **Never** from CI. |
+| `pnpm db:migrate:vercel`            | Out of scope for agents; do not ask human to run as a substitute for local discipline. |
+| `pnpm db:push` / `pnpm db:push:local` | **Forbidden for agents/IDE** — overwrites DB from schema without journal discipline. Human throwaway branches only, if ever. |
 | `pnpm simulate:replay`              | Replay scenario (`AFENDA_ENABLE_SIMULATION=1` required)                                                             |
 | `pnpm simulate:clear`               | Delete simulation rows for a run                                                                                    |
 
@@ -222,22 +257,50 @@ Each generator runs `pnpm lint:agent-contract + pnpm lint:eslint --fix` on touch
 
 ### Drizzle migrations
 
-> **HUMAN-ONLY GATE — AI agents must NEVER run any of the following commands:**
-> `pnpm db:migrate:local`, `pnpm db:migrate:vercel`, `pnpm db:migrate`,
-> `pnpm db:push`, `pnpm db:push:local`,
-> `node scripts/drizzle-migrate-logged.mjs`, `node scripts/nuke-db-public.mjs`.
->
-> **Agents may run `pnpm db:generate`** after editing `lib/db/schema.ts` only when the diff is additive and `drizzle-kit` does not prompt for interactive rename disambiguation. Commit generated SQL + `drizzle/meta/` together; the human operator applies migrations.
->
-> These commands write to or destroy a real database. Only the **human operator** may
-> execute them in their own terminal. If a task requires schema changes, stop, output
-> the required manual steps, and wait for the human to run them.
+See **[PRIORITY #1](#priority-1--drizzle-migrations-agents-own-local-humans-do-not)** first.
 
-- `lib/db/schema.ts` = schema source of truth (no `neon_auth.*` DDL — use `lib/db/schema-neon-auth.ts` for query-only mirrors).
-- `drizzle-kit generate` → SQL + `drizzle/meta/` (run in a **real TTY** for ambiguous renames).
-- `drizzle-kit migrate` applies **only** SQL registered in `_journal.json` — orphan `.sql` files are silently skipped.
-- `pnpm db:push*` = throwaway local branches only (still human-only).
-- Never delete `drizzle/meta/` while legacy migrations exist — Drizzle will baseline the whole schema.
+**Agent-owned (local). Human does not run generate, migrate, or DB reset.**
+
+| Who | Responsibility |
+| --- | --- |
+| **IDE / agent** | `lib/db/schema.ts` → `pnpm db:generate` → `pnpm lint:drizzle-journal` → `pnpm db:migrate:local` → commit atomically |
+| **Human operator** | **Does not** run `db:generate`, `db:migrate:local`, `db:push*`, or nuke/reset scripts for agents. Do not ask. |
+
+**Agent workflow (local dev) — you run this, not the human:**
+
+```bash
+# 1. Edit lib/db/schema.ts only (no neon_auth.* DDL — query mirror: lib/db/schema-neon-auth.ts)
+pnpm db:generate                    # abort if rename prompts — never spawn parallel 0005/0006-style duplicates
+pnpm lint:drizzle-journal           # MUST pass (SQL count === journal count)
+pnpm db:migrate:local               # fixes local "relation does not exist"
+# 2. Commit schema + drizzle/*.sql + drizzle/meta/* in one change
+```
+
+**Ledger discipline (non-negotiable)**
+
+- One schema change → one `db:generate` → one new journal entry. Commit before the next generate.
+- If `lint:drizzle-journal` fails, **stop** — fix by reverting mistaken SQL/meta or regenerating from a clean schema diff; do **not** bulk-delete files and do **not** hand-patch `prevId` in snapshots.
+- If `db:generate` reports snapshot collision, you broke the chain — fix without asking human to reset DB.
+
+**Forbidden for agents**
+
+| Command / action | Why |
+| --- | --- |
+| Asking human to run `db:generate` / `db:migrate:local` | Agent-owned per PRIORITY #1 |
+| Asking human to nuke or reset Neon | Human will not help; you must not destroy the ledger |
+| `pnpm db:push` / `pnpm db:push:local` | Overwrites DB — caused drift class |
+| `node scripts/drizzle-migrate-logged.mjs` | Use `pnpm db:migrate:local` only |
+| `node scripts/nuke-db-public.mjs` | Destructive — never |
+| Hand-edit `drizzle/*.sql`, `drizzle/meta/_journal.json`, `*_snapshot.json` | Corrupts drizzle-kit baseline |
+| Bulk orphan SQL cleanup without journal parity | Caused 21-vs-7 incident |
+| `drizzle-kit` CLI except via `pnpm db:generate` | Bypass |
+| Neon MCP / SQL DDL for app tables | Not in journal |
+
+**Doctrine**
+
+- `lib/db/schema.ts` = schema source of truth (no `neon_auth.*` DDL).
+- `pnpm db:generate` → SQL + `drizzle/meta/`; `pnpm db:migrate:local` applies **only** journal SQL.
+- Never delete `drizzle/meta/` while migrations exist.
 
 ---
 
@@ -524,7 +587,7 @@ await writeAuditEvent7W1H({
 1. `vercel link --scope jacks-projects-7b3cfe94`
 2. Provision Neon via Vercel Marketplace → get pooled `DATABASE_URL`.
 3. Set `DATABASE_URL_UNPOOLED` (direct endpoint) for migrations.
-4. Run `pnpm db:migrate:local` (or `:vercel`) for every Neon branch that serves traffic.
+4. Local dev: agents run `pnpm db:migrate:local` after schema changes (see PRIORITY #1). Do not ask the operator to migrate or reset.
 5. Enable **Neon Auth** in Neon Console for each branch (creates `neon_auth` schema).
 6. Add `AI_GATEWAY_API_KEY` for local dev (+ optional `EMBEDDING_MODEL`). On Vercel, `VERCEL_OIDC_TOKEN` is auto-injected — no static key required.
 7. Redeploy.

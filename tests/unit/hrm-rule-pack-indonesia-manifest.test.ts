@@ -8,17 +8,17 @@ vi.mock("server-only", () => ({}))
 import {
   RULE_PACK_REGISTRY,
   resolveRulePack,
-} from "../../lib/features/hrm/data/payroll-rule-pack.server"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server.ts"
 import {
   ID_BPJS_V2026_01_CODE,
   computeIndonesiaBpjsV202601,
-} from "../../lib/features/hrm/data/rule-packs/indonesia/bpjs/v2026-01.contributions"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/indonesia/bpjs/v2026-01.contributions.ts"
 import {
   ID_ANNUAL_LEAVE_DAYS_AFTER_TWELVE_MONTHS,
   ID_EMPLOYMENT_LEAVE_TYPES_2026,
   ID_EMPLOYMENT_LEAVE_V2026_01_CODE,
-} from "../../lib/features/hrm/data/rule-packs/indonesia/employment/v2026-01.leave"
-import { indonesia2026_01RulePack } from "../../lib/features/hrm/data/rule-packs/indonesia/id-2026-01.rule-pack"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/indonesia/employment/v2026-01.leave.ts"
+import { indonesia2026_01RulePack } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/indonesia/id-2026-01.rule-pack.ts"
 
 function readIndonesiaSeedManifest(): Record<string, unknown> {
   const sql = readFileSync(

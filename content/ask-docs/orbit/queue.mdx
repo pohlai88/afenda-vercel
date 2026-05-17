@@ -1,0 +1,70 @@
+---
+title: Queue
+description: Ranked operational work requiring execution now — Orbit's default surface.
+icon: ListOrdered
+---
+
+## Overview
+
+**Orbit Queue** is the default Orbit surface (`/o/{orgSlug}/dashboard/orbit`). It shows **ranked operational work that requires execution now** — active items ordered by derived pressure and policy, not by a manual P1–P4 picker.
+
+Use Queue when you need to answer: *what must we execute next?*
+
+## Layout
+
+Queue uses the standard Orbit three-pane pattern:
+
+| Pane | Contents |
+|---|---|
+| **Execution feed** | Selectable list of signals, items, or mixed records for the surface |
+| **Detail** | Lifecycle state, pressure, schedule, ownership, evidence groups, activity |
+| **Pressure overview** | Summary metrics for the current view |
+
+Select a row to load detail. With nothing selected, the detail pane prompts you to choose a record.
+
+## Quick create
+
+From Queue you can:
+
+- **Capture signal** — record manual operational pressure (`manual_capture` class)
+- **Create item** — add executable work directly when no signal is needed
+- **Start session** — begin a work session against selected execution context
+
+## Batch operations on items
+
+When the feed shows execution **items**, you can select multiple rows and apply one atomic batch operation:
+
+| Operation | Effect |
+|---|---|
+| **Activate** | Move selected items toward active execution |
+| **Block** | Mark selected items as blocked |
+| **Review** | Move items to ready for review |
+| **Verify** | Apply verification transition where policy allows |
+| **Assign** | Set assignee on selected items |
+
+Batch actions require at least one selected row. Use `Ctrl+Enter` to submit when the batch form is focused.
+
+<Callout type="warn">
+  Batch transitions respect lifecycle policy — you cannot verify items that have not completed required prior states.
+</Callout>
+
+## Command quick links
+
+Open the Orbit command layer (`Ctrl K` / `⌘ K`) for shortcuts including:
+
+- **Blocked execution** — Queue filtered to `blocked` lifecycle
+- **Automation attention** — Triage with automation failures
+- **Signals awaiting triage** — jump to Triage for signal intake
+
+## Empty state
+
+When no records exist yet, Queue shows a ready state: capture a signal or create an execution item to begin building operational continuity.
+
+## Related surfaces
+
+| If you need… | Go to… |
+|---|---|
+| Unprocessed inbound pressure | [Triage](./triage) |
+| Calendar-bound work today | [Today](./today) |
+| Horizon and overdue schedule | [Timeline](./timeline) |
+| Signal-only lifecycle | [Signals](./signals) |

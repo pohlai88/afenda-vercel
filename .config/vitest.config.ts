@@ -166,8 +166,8 @@ export default defineConfig({
         "lib/features/execution/index.ts",
         // HRM workforce: Server Actions + Drizzle queries + RSC/client islands;
         // unit tests cover schemas, path sanitizer, registry; Playwright `hrm-workforce-isolation.spec.ts`.
-        "lib/features/hrm/actions/**",
-        "lib/features/hrm/data/**",
+        "lib/features/hrm/**/actions/**",
+        "lib/features/hrm/**/data/**",
         "lib/features/hrm/components/**/*.tsx",
         // Planner: Server Actions + modules under `commands/` + IO-heavy `data/` (ADR-0006 / ADR-0008).
         // Same doctrine as HRM `actions/**` + `data/**`: mutation + DB graphs are Playwright / runtime gates;

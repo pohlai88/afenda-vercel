@@ -11,7 +11,7 @@ import {
   EIS_V2024_10_CODE,
   EIS_WAGE_CEILING_2024_10,
   EIS_RATE_EACH,
-} from "../../lib/features/hrm/data/rule-packs/malaysia/eis/v2024-10.table"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/malaysia/eis/v2024-10.table.ts"
 
 describe("EIS v2024-10 — PERKESO golden tests", () => {
   it("exports correct version code", () => {

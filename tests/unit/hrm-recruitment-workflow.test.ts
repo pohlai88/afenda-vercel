@@ -5,13 +5,13 @@ import {
   canTransitionApplicationStage,
   canTransitionOfferStatus,
   canTransitionRequisitionStatus,
-} from "../../lib/features/hrm/data/recruitment-workflow.shared"
+} from "../../lib/features/hrm/talent-management/recruitment-applicant-tracking/data/recruitment-workflow.shared.ts"
 import type {
   HrmApplicationStage,
   HrmInterviewOutcome,
   HrmJobOfferStatus,
   HrmJobRequisitionStatus,
-} from "../../lib/features/hrm/schemas/recruitment.schema"
+} from "../../lib/features/hrm/talent-management/recruitment-applicant-tracking/schemas/recruitment.schema"
 
 describe("INTERVIEW_OUTCOME_TO_EVENT", () => {
   it("maps every canonical interview outcome", () => {

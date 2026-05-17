@@ -3,16 +3,16 @@ import { describe, expect, it } from "vitest"
 import {
   DEFAULT_OFFBOARDING_TEMPLATE,
   DEFAULT_ONBOARDING_TEMPLATE,
-} from "../../lib/features/hrm/data/boarding-defaults.shared"
+} from "../../lib/features/hrm/employee-management/employee-lifecycle-management/data/boarding-defaults.shared.ts"
 import {
   deriveBoardingInstanceStatus,
   isOpenBoardingStatus,
   requiredBoardingTasksSatisfied,
-} from "../../lib/features/hrm/data/boarding-status.shared"
+} from "../../lib/features/hrm/employee-management/employee-lifecycle-management/data/boarding-status.shared.ts"
 import {
   scoreBoardingTemplate,
   selectBestBoardingTemplate,
-} from "../../lib/features/hrm/data/boarding-template-matching.shared"
+} from "../../lib/features/hrm/employee-management/employee-lifecycle-management/data/boarding-template-matching.shared.ts"
 
 describe("boarding template matching", () => {
   it("scores null appliesTo as 0 and still selects a single candidate", () => {

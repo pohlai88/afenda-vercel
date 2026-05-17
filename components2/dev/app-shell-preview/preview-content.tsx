@@ -1,5 +1,9 @@
+import type { Route } from "next"
+import Link from "next/link"
+
 import { GovernedComponentRenderer } from "#components2/metadata"
 
+import { METADATA_RENDERER_GALLERY_HREF } from "../fixtures/preview-href.shared"
 import { SHELL_PREVIEW_LIST_SURFACE } from "../fixtures/list-surface.fixture"
 import { SHELL_PREVIEW_STAT_CARDS } from "../fixtures/stat-cards.fixture"
 
@@ -21,6 +25,17 @@ export function AppShellPreviewContent() {
           configuration: SHELL_PREVIEW_LIST_SURFACE,
         }}
       />
+
+      <p className="text-sm text-muted-foreground">
+        Full renderer catalog:{" "}
+        <Link
+          href={METADATA_RENDERER_GALLERY_HREF as Route}
+          prefetch={false}
+          className="text-primary hover:underline"
+        >
+          Metadata renderer gallery
+        </Link>
+      </p>
 
       <section
         aria-label="Dev notes"

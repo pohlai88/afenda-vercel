@@ -5,7 +5,7 @@ import {
   classifyRecertificationDueBand,
   computeTrainingExpiresAtDate,
   isRecertificationAssignmentDuplicate,
-} from "../../lib/features/hrm/data/training-recertification.server"
+} from "../../lib/features/hrm/talent-management/training-development/data/training-recertification.server.ts"
 
 describe("training recertification helpers", () => {
   it("classifies due bands", () => {

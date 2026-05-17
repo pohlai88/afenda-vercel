@@ -5,18 +5,18 @@ import {
   classifyPayrollCloseExceptions,
   computePayrollCloseReadinessScore,
   stablePayrollCloseStringify,
-} from "../../lib/features/hrm/data/payroll-close.shared"
+} from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-close.shared.ts"
 import {
   buildPayrollPostingRecordFromSnapshot,
   isPayrollPostingRecordEquivalent,
   resolvePayrollPostingState,
-} from "../../lib/features/hrm/data/payroll-posting.shared"
+} from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-posting.shared.ts"
 
 import type {
   PayrollCloseApprovalSummary,
   PayrollCloseChecklistItem,
   PayrollCloseSnapshot,
-} from "../../lib/features/hrm/data/payroll-close.shared"
+} from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-close.shared.ts"
 
 const approvedMakerChecker: PayrollCloseApprovalSummary = {
   hasApprovedLock: true,

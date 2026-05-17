@@ -7,13 +7,13 @@ import {
   isVnHolidayYmd,
   parseVnLiteraryDate,
   parseVnd,
-} from "../../lib/features/hrm/data/rule-packs/vietnam/format/vnd-and-date.shared"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/vietnam/format/vnd-and-date.shared.ts"
 import {
   capContributoryWageVnd202401,
   estimateVnSickLeaveAllowanceV202401,
   projectVnMaternityBenefitV202401,
   VN_SOCIAL_INSURANCE_SALARY_CAP_VND_2024,
-} from "../../lib/features/hrm/data/rule-packs/vietnam/leave-benefits/v2024-01.shared"
+} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/vietnam/leave-benefits/v2024-01.shared.ts"
 
 describe("formatVnd / parseVnd", () => {
   it("formats with dot grouping and ₫ suffix", () => {

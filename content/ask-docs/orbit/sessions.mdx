@@ -1,0 +1,56 @@
+---
+title: Sessions
+description: Active and recent execution sessions with worklog continuity in Orbit.
+icon: Timer
+---
+
+## Overview
+
+**Orbit Sessions** (`/o/{orgSlug}/dashboard/orbit/sessions`) shows **active and recent execution sessions** — focused work periods logged against planner items with worklog continuity.
+
+Use Sessions when you need to answer: *who is executing what right now, and what time was spent?*
+
+## What is a session?
+
+A **planner session** is a bounded period of execution:
+
+- **Started** with an explicit operator action (`erp.planner.session.start`)
+- **Stopped** when work pauses or completes (`erp.planner.session.stop`)
+- Linked to one or more execution items for evidence and reporting
+
+Sessions are first-class entities — not a hidden column on items.
+
+## Starting and stopping
+
+<Steps>
+  <Step>
+    From [Queue](./queue) or item detail, click **Start session** (or use Sessions quick-create when no item is pre-selected).
+  </Step>
+  <Step>
+    Work the item — comments, attachments, and lifecycle transitions accrue as operator evidence.
+  </Step>
+  <Step>
+    **Stop session** when pausing or finishing the focused block.
+  </Step>
+</Steps>
+
+Only one active session pattern should be used per operator policy; stopping prevents orphaned running sessions.
+
+## Sessions surface
+
+The Sessions feed lists:
+
+- **Active** sessions — currently running
+- **Recent** sessions — stopped within the retention window shown in the UI
+
+Select a session to inspect linked items, duration evidence, and related activity in the detail pane.
+
+## Worklog continuity
+
+Session history rolls into execution evidence groups (**Execution record**, **Activity stream**) on items. This supports audits and handoffs — the next operator can see that work was in progress even if lifecycle state is still `active`.
+
+## Related surfaces
+
+- [Queue](./queue) — start sessions while executing ranked work
+- [Today](./today) — sessions tied to the day's plan
+- [Core concepts](./concepts) — evidence panel groupings

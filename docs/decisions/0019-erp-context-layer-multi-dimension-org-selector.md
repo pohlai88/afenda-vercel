@@ -6,7 +6,7 @@
 | **Date** | 2026-05-14 |
 | **Supersedes** | Nothing — first treatment of operational scope resolution |
 | **Does not supersede** | `neon_auth.session.activeOrganizationId` (identity/auth concern — untouched). `lib/features/erp-rbac/` permission gates (still the single authority for what a user *may do* inside one org). ADR-0009 generators. |
-| **Implements in code** | `lib/erp/operational-context.shared.ts` · `lib/erp/operational-scope-registry.shared.ts` · `lib/erp/with-operational-context.server.ts` · `lib/features/operational-scope/` · `lib/db/schema.ts` (`orgOperationalScopePolicy`, `userOperationalScope`) · `drizzle/0038_operational_scope.sql` · `components2/stores/operational-scope.store.ts` · `components2/app-shell/operational-scope-rail.client.tsx` |
+| **Implements in code** | `lib/erp/operational-context.shared.ts` · `lib/erp/operational-scope-registry.shared.ts` · `lib/erp/with-operational-context.server.ts` · `lib/features/operational-scope/` (incl. `components/operational-scope-rail.client.tsx`, `components/operational-scope-admin-config.client.tsx`) · `lib/db/schema.ts` (`orgOperationalScopePolicy`, `userOperationalScope`) · `drizzle/0000_opposite_onslaught.sql` (`user_operational_scope`) · `components2/stores/operational-scope.store.ts` |
 | **Related docs** | `AGENTS.md §5` (auth/IAM split) · `AGENTS.md §6` (directory contract) · `lib/features/erp-rbac/` · `lib/erp/crud-sap.shared.ts` · `lib/erp/audit-7w1h.server.ts` · ADR-0001 (spatial OS shell) |
 
 ---
@@ -302,9 +302,9 @@ Every audit row, workflow run, and AI brief inherits resolved context automatica
 Feature modules do not wire scope separately — they call `withOperationalContext`
 and the resolver has already done the work.
 
-### 2.9 Shell visualization — `operational-scope-rail.client.tsx`
+### 2.9 Shell visualization — `lib/features/operational-scope/components/operational-scope-rail.client.tsx`
 
-The shell component is a **read-only projection** of `ResolvedOperationalContext`.
+The shell component is a **read-only projection** of `ResolvedOperationalContext`. Workbench imports it via `#features/operational-scope/client` (`OperationalScopeRail`).
 
 **Calm-shell rules** baked in:
 
@@ -398,8 +398,8 @@ No PII in either.
 - New `lib/erp/with-operational-context.server.ts` — audit enrichment helper.
 - New `lib/features/operational-scope/` module — resolver, DB access, Server Actions, v1 scope registrations.
 - New `components2/stores/operational-scope.store.ts` — UI-ephemeral store (no persist).
-- New `components2/app-shell/operational-scope-rail.client.tsx`.
-- New `components2/app-shell/operational-scope-admin-config.client.tsx`.
+- New `lib/features/operational-scope/components/operational-scope-rail.client.tsx` (exported as `OperationalScopeRail` from `#features/operational-scope/client`).
+- New `lib/features/operational-scope/components/operational-scope-admin-config.client.tsx`.
 - `lib/route-envelope.shared.ts` — `operationalContext?: ResolvedOperationalContext | null` added to `RouteEnvelope`.
 - `components2/stores/index.ts` — exports `useOperationalScopeUiStore`.
 - `app/[locale]/o/[orgSlug]/layout.tsx` — calls `resolveOperationalContext()`, attaches to envelope.

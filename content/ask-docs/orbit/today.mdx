@@ -1,0 +1,57 @@
+---
+title: Today
+description: Scheduled and active operational work for the current calendar day.
+icon: CalendarDays
+---
+
+## Overview
+
+**Orbit Today** (`/o/{orgSlug}/dashboard/orbit/today`) focuses on **scheduled and active operational work for the current day** — the operating window operators care about right now on the calendar.
+
+Use Today when you need to answer: *what is supposed to happen today?*
+
+## What Today shows
+
+Today aggregates items and pressure that intersect the **current day**, including:
+
+- Items in **`scheduled`** or **`active`** lifecycle with a schedule bound to today
+- Work that became due or started today
+- Sessions and transitions that affect today's execution plan
+
+Pressure ranking still applies within the day — critical blocked work may appear even when it was scheduled earlier.
+
+## Working the day
+
+<Steps>
+  <Step>
+    Open **Today** from the Orbit rail or command layer.
+  </Step>
+  <Step>
+    Review the execution feed sorted by priority and schedule slack.
+  </Step>
+  <Step>
+    Select a row to inspect schedule, owner, and evidence in the detail pane.
+  </Step>
+  <Step>
+    Transition lifecycle states (activate, block, move to review) or **start a session** for focused execution.
+  </Step>
+</Steps>
+
+## Scheduling changes
+
+To move work across days, use item scheduling actions from the detail pane (or create/upsert schedule from the item workflow). Scheduling emits planner audit events and updates how the item appears on **Timeline**.
+
+## Today vs Queue
+
+| Surface | Emphasis |
+|---|---|
+| **Today** | Calendar day commitment — what the organisation planned for this date |
+| **Queue** | Immediate execution rank — what must run now regardless of calendar bucket |
+
+An item can appear in both when it is high pressure and scheduled today.
+
+## Related surfaces
+
+- [Timeline](./timeline) — multi-day horizon and overdue work
+- [Queue](./queue) — ranked immediate execution
+- [Sessions](./sessions) — time spent executing today's items

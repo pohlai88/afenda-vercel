@@ -43,14 +43,14 @@ import {
   type AgingCriticalFanoutCounters,
   type AgingCriticalFanoutOutcome,
   type AgingTierFanoutOutcome,
-} from "../../lib/features/hrm/data/compliance-aging-fanout.server"
-import type { AgingWatchCandidate } from "../../lib/features/hrm/data/compliance-aging-watch.server"
+} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-aging-fanout.server.ts"
+import type { AgingWatchCandidate } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-aging-watch.server.ts"
 import {
   COMPLIANCE_AGING_TIERS,
   COMPLIANCE_OPERATIONAL_HEALTH_AGING,
   complianceAgingTierThresholdDays,
   type ComplianceAgingTier,
-} from "../../lib/features/hrm/data/compliance-operational-health.shared"
+} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-operational-health.shared.ts"
 import { ORG_EVENT_TYPES } from "../../lib/features/org-admin/constants"
 
 const FIXED_SUBMITTED_AT = new Date("2026-04-01T06:00:00.000Z") // ~41 days before 2026-05-12

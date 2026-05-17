@@ -1,0 +1,16 @@
+{
+  "$schema": "..\\..\\..\\.source\\json-schema\\docs.meta.json",
+  "title": "Lynx",
+  "icon": "Sparkles",
+  "root": true,
+  "pages": [
+    "index",
+    "concepts",
+    "truth-retrieval",
+    "operator-assist",
+    "structured-query-demo",
+    "knowledge-substrate",
+    "nexus-summon",
+    "ask-docs-chat"
+  ]
+}

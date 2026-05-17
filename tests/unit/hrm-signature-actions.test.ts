@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { deriveSignatureRequestStatus } from "#features/hrm/data/signature-request-status.shared"
+import { deriveSignatureRequestStatus } from "#features/tools/electronic-signatures/data/signature-request-status.shared"
 
 vi.mock("server-only", () => ({}))
 

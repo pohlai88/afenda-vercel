@@ -6,13 +6,19 @@ import {
   ORG_STRUCTURE_DEFAULT_TAB,
   ORG_STRUCTURE_TABS,
   normalizeOrgStructureTab,
-} from "../../lib/features/hrm/data/org-structure-display.shared"
+} from "../../lib/features/hrm/employee-management/organizational-chart-hierarchy/data/org-structure-display.shared"
 import {
   assignEmployeePlacementFormSchema,
   createJobGradeArchitectureFormSchema,
   createOrgUnitFormSchema,
   createPositionControlFormSchema,
-} from "../../lib/features/hrm/schemas/org-structure.schema"
+} from "../../lib/features/hrm/employee-management/organizational-chart-hierarchy/schemas/org-structure.schema"
+import {
+  isOrgRecordEffectiveAsOf,
+  isOrgRecordPlannedForFuture,
+} from "../../lib/features/hrm/employee-management/organizational-chart-hierarchy/data/org-structure-effective.shared"
+import { serializeOrgStructureExportCsv } from "../../lib/features/hrm/employee-management/organizational-chart-hierarchy/data/org-structure-export.shared"
+import { ORG_STRUCTURE_SURFACE_PERMISSION } from "../../lib/features/hrm/employee-management/organizational-chart-hierarchy/data/org-structure-surface-metadata.shared"
 
 const ORG_SLUG = "acme-co"
 const DEPARTMENT_ID = "550e8400-e29b-41d4-a716-446655440001"
@@ -124,12 +130,58 @@ describe("HRM organization structure remodel contracts", () => {
 
   it("uses ERP RBAC as the org-structure mutation gate", () => {
     const source = readFileSync(
-      "lib/features/hrm/actions/org-structure.actions.ts",
+      "lib/features/hrm/employee-management/organizational-chart-hierarchy/data/org-structure-action-guard.server.ts",
       "utf8"
     )
 
     expect(source).toContain("requireErpPermission")
     expect(source).toContain('object: "organization"')
     expect(source).not.toContain("canActInOrganization")
+  })
+
+  it("filters org records by as-of effective dating", () => {
+    const asOf = new Date("2026-06-01T00:00:00.000Z")
+    expect(
+      isOrgRecordEffectiveAsOf(new Date("2026-05-01T00:00:00.000Z"), asOf)
+    ).toBe(true)
+    expect(
+      isOrgRecordEffectiveAsOf(new Date("2026-07-01T00:00:00.000Z"), asOf)
+    ).toBe(false)
+    expect(isOrgRecordPlannedForFuture(null, asOf)).toBe(false)
+    expect(
+      isOrgRecordPlannedForFuture(new Date("2026-12-01T00:00:00.000Z"), asOf)
+    ).toBe(true)
+  })
+
+  it("serializes org structure export CSV with header row", () => {
+    const csv = serializeOrgStructureExportCsv([
+      {
+        orgUnitCode: "FIN",
+        orgUnitName: "Finance",
+        parentOrgUnitCode: null,
+        costCenterCode: "CC-1",
+        workLocationCode: null,
+        positionCode: "FIN-MGR",
+        positionTitle: "Finance Manager",
+        positionHeadcountBudget: 2,
+        positionOccupancyCount: 1,
+        occupancyState: "open",
+        employeeNumber: "E001",
+        employeeLabel: "E001 · Alex",
+        managerLabel: null,
+      },
+    ])
+    expect(csv.split("\n")[0]).toContain("orgUnitCode")
+    expect(csv).toContain("FIN")
+    expect(csv).toContain("Finance Manager")
+  })
+
+  it("exposes governed-surface ERP permission keys for organization", () => {
+    expect(ORG_STRUCTURE_SURFACE_PERMISSION.read).toContain(
+      "hrm.organization.read"
+    )
+    expect(ORG_STRUCTURE_SURFACE_PERMISSION.search).toContain(
+      "hrm.organization.search"
+    )
   })
 })

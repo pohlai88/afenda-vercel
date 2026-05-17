@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
 
-import { buildStatutoryPackFromRuns } from "../../lib/features/hrm/data/statutory-pack.server"
-import type { StatutoryPackRunInput } from "../../lib/features/hrm/data/statutory-pack.server"
-import { singapore2026_01RulePack } from "../../lib/features/hrm/data/rule-packs/singapore/sg-2026-01.rule-pack"
+import { buildStatutoryPackFromRuns } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/statutory-pack.server.ts"
+import type { StatutoryPackRunInput } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/statutory-pack.server.ts"
+import { singapore2026_01RulePack } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/rule-packs/singapore/sg-2026-01.rule-pack.ts"
 
 function makeSgRun(
   overrides?: Partial<StatutoryPackRunInput>

@@ -16,16 +16,16 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-vi.mock("../../lib/features/hrm/data/attendance-shift.queries.server", () => ({
+vi.mock("../../lib/features/hrm/workforce-time-attendance/data/attendance-shift.queries.server.ts", () => ({
   resolveAttendanceShiftContext: mocks.resolveAttendanceShiftContext,
 }))
 
-vi.mock("../../lib/features/hrm/data/payroll.queries.server", () => ({
+vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts", () => ({
   listClosedPayrollPeriodsOverlappingRange:
     mocks.listClosedPayrollPeriodsOverlappingRange,
 }))
 
-import { regenerateAttendanceDayFromEvents } from "../../lib/features/hrm/data/attendance-aggregator.server"
+import { regenerateAttendanceDayFromEvents } from "../../lib/features/hrm/workforce-time-attendance/data/attendance-aggregator.server.ts"
 
 function eventSelect(rows: unknown[]) {
   return {

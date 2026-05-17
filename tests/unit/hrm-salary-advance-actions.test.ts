@@ -6,7 +6,7 @@ describe("salary advance Server Actions RBAC", () => {
   it("uses ERP salary_advance permissions instead of Better Auth org admin", () => {
     const source = readFileSync(
       new URL(
-        "../../lib/features/hrm/actions/salary-advance.actions.ts",
+        "../../lib/features/hrm/payroll-compensation/payroll-processing/actions/salary-advance.actions.ts",
         import.meta.url
       ),
       "utf8"

@@ -32,7 +32,7 @@ import {
   HRM_REVIEW_ROW_STATES,
   hrmReviewCycleStateSchema,
   hrmReviewRowStateSchema,
-} from "../../lib/features/hrm/schemas/performance.schema"
+} from "../../lib/features/hrm/talent-management/performance-management/schemas/performance.schema"
 
 const HRM_MESSAGES = (
   enMessages as unknown as {

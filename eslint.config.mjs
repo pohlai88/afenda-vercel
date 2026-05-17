@@ -566,6 +566,87 @@ const eslintConfig = defineConfig([
   },
 
   // -------------------------------------------------------------------------
+  // § components2/metadata/renderers — placement contract (ADR-0025 §1, §4)
+  //
+  // Renderers must be placement-correct in any container ≥ minContainerPx —
+  // they do not own viewport geometry. This rule bans viewport breakpoints
+  // (`sm:`, `md:`, `lg:`, `xl:`, `2xl:`) inside renderer files; renderers must
+  // use container-query breakpoints (`@sm:`, `@md:`, `@lg:`, ...) instead.
+  //
+  // It also bans template-literal `className` in renderers, which silently
+  // bypasses the exhaustive `Record<SchemaEnum, string>` map pattern that
+  // forces a TypeScript error when a new tone/density/dataNature ships.
+  // -------------------------------------------------------------------------
+  {
+    name: "afenda/renderer-placement-contract",
+    files: ["components2/metadata/renderers/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "JSXAttribute[name.name='className'] Literal[value=/(?:^|\\s)(?:sm|md|lg|xl|2xl):(?!\\[)/]",
+          message:
+            "Use container-query breakpoints (@sm:, @md:, @lg:) — not viewport breakpoints (sm:, md:) — inside renderer files (ADR-0025 §1).",
+        },
+        {
+          selector: "JSXAttribute[name.name='className'] TemplateLiteral",
+          message:
+            "Avoid template-literal className in renderers — use cn() with a Record<SchemaEnum, string> map so a new enum value forces a TypeScript error (ADR-0025 §4).",
+        },
+      ],
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // § Governed-surface builders — return the Zod *input* type
+  //
+  // Builder functions and fixtures must declare the Zod input type
+  // (`*ConfigurationInput`), not the Zod output type (`*Configuration`).
+  // Using the output type forces every default-bearing field
+  // (e.g. `dataNature`, `density`, `tone`) to be supplied at the call site,
+  // which is the wrong contract for a builder. ADR-0025 §4.
+  // -------------------------------------------------------------------------
+  {
+    name: "afenda/governed-surface-builder-return",
+    files: [
+      "**/*surface-builders*.{ts,tsx}",
+      "**/*-builders.server.{ts,tsx}",
+      "components2/dev/**/*.{ts,tsx}",
+      "lib/features/**/payslip-metadata.shared.ts",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "FunctionDeclaration[returnType.typeAnnotation.typeName.name=/^(StatCard|ListSurfaceRenderer|GovernedActionBar|GovernedSection|GovernedStack|GovernedKanbanBoard|GovernedMultiStepForm|GovernedScorecardForm|GovernedApprovalTimeline|GovernedChart)Configuration$/]",
+          message:
+            "Builders must declare the Zod input type. Use `<Schema>ConfigurationInput` (not `<Schema>Configuration`) so default-bearing fields stay optional at the call site (ADR-0025 §4).",
+        },
+        {
+          selector:
+            "ArrowFunctionExpression[returnType.typeAnnotation.typeName.name=/^(StatCard|ListSurfaceRenderer|GovernedActionBar|GovernedSection|GovernedStack|GovernedKanbanBoard|GovernedMultiStepForm|GovernedScorecardForm|GovernedApprovalTimeline|GovernedChart)Configuration$/]",
+          message:
+            "Builders must declare the Zod input type. Use `<Schema>ConfigurationInput` (not `<Schema>Configuration`) so default-bearing fields stay optional at the call site (ADR-0025 §4).",
+        },
+        {
+          selector:
+            "FunctionExpression[returnType.typeAnnotation.typeName.name=/^(StatCard|ListSurfaceRenderer|GovernedActionBar|GovernedSection|GovernedStack|GovernedKanbanBoard|GovernedMultiStepForm|GovernedScorecardForm|GovernedApprovalTimeline|GovernedChart)Configuration$/]",
+          message:
+            "Builders must declare the Zod input type. Use `<Schema>ConfigurationInput` (not `<Schema>Configuration`) so default-bearing fields stay optional at the call site (ADR-0025 §4).",
+        },
+        {
+          selector:
+            "TSSatisfiesExpression > TSTypeReference[typeName.name=/^(StatCard|ListSurfaceRenderer|GovernedActionBar|GovernedSection|GovernedStack|GovernedKanbanBoard|GovernedMultiStepForm|GovernedScorecardForm|GovernedApprovalTimeline|GovernedChart)Configuration$/]",
+          message:
+            "Fixtures must satisfy the Zod input type. Use `as const satisfies <Schema>ConfigurationInput` so default-bearing fields stay optional (ADR-0025 §4).",
+        },
+      ],
+    },
+  },
+
+  // -------------------------------------------------------------------------
   // § Scripts — relax production rules for Node CLI scripts
   //
   // scripts/** run outside the Next.js runtime: no browser globals, no

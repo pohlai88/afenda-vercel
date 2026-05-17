@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { parseAllowanceLineInputsFromForm } from "../../lib/features/hrm/schemas/contract-compensation.shared"
+import { parseAllowanceLineInputsFromForm } from "../../lib/features/hrm/payroll-compensation/compensation-planning-modeling/schema/contract-compensation.shared"
 
 describe("parseAllowanceLineInputsFromForm", () => {
   it("returns lines for valid decimals", () => {

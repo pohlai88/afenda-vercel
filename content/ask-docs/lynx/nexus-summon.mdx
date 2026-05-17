@@ -1,0 +1,67 @@
+---
+title: Nexus summon
+description: Grounded Lynx on the Nexus Field — truth retrieval for the atom in focus without leaving the canvas.
+icon: Focus
+---
+
+## Overview
+
+**Summon Lynx** is the Nexus Field companion: a floating panel that runs **grounded truth retrieval** on whatever operational **atom** you have in focus on the canvas.
+
+It is optimized for *while I am working on this record, what does our evidence say?* — not for full cross-module operator questions (use the [Lynx console](./truth-retrieval) for those).
+
+## Opening summon
+
+<Steps>
+  <Step>
+    Open **Nexus** (`/o/{orgSlug}`) and focus an item or record on the field.
+  </Step>
+  <Step>
+    Click the **Summon Lynx** control (round Lynx brand mark in the shell).
+  </Step>
+  <Step>
+    The panel shows **Grounded on** with the focused title, then streams truth for that context.
+  </Step>
+</Steps>
+
+Drag the panel to reposition; use **Close** to dismiss. Keyboard and screen-reader labels use *Summon Lynx* / *Close Lynx*.
+
+## Grounding behavior
+
+| State | Behavior |
+|---|---|
+| **Atom in focus** | Truth runs (or refreshes) with a grounded query label tied to the focused entity |
+| **No atom in focus** | Idle message: focus an item on the canvas to retrieve grounded truth |
+| **Refresh** | Re-run retrieval after the underlying record changes |
+
+Grounded truth uses the same evidence contract as the Lynx console:
+
+- Answer
+- Evidence
+- Limitations
+- Next safe action
+
+## Deep dive links
+
+From summon you can jump to:
+
+- **Knowledge substrate →** — add or debug chunks on `/dashboard/lynx`
+- **Lynx console (full tools) →** — operator assist and structured query demo
+
+Summon does not expose the full operator tool registry — only grounded truth for the current focus.
+
+## Copy and branding
+
+Summon uses the **The Machine** eyebrow and Lynx title from `Dashboard.LynxSummon.*`. Status strings use *Working…* and *Retrieving grounded truth…* — not banned labels like *Processing* or *Generating*.
+
+Icons use brand PNGs under `public/icons/lynx/` — not generic chat glyphs.
+
+## Permissions
+
+Summon inherits the same org session and Lynx access expectations as the Nexus shell. Users without Lynx workspace search cannot use ERP Lynx surfaces.
+
+## Related
+
+- [Truth retrieval](./truth-retrieval) — full console experience
+- [Operator assist](./operator-assist) — cross-module read-only tools
+- [Orbit](../orbit) — execution substrate summon may ground against
