@@ -1,6 +1,7 @@
 import "server-only"
 
 import {
+  GOVERNED_METADATA_SCHEMA_VERSION,
   listSurfaceRowTrailingActionHidden,
   resolveListSurfaceRowTrailingAction,
   type ListSurfaceRendererConfigurationInput,
@@ -18,6 +19,11 @@ const LEAVE_READ_PERMISSION = {
   module: "hrm" as const,
   object: "leave" as const,
   function: "read" as const,
+}
+
+const PRESENTATION = {
+  variant: "table-only" as const,
+  tableDensity: "compact" as const,
 }
 
 type LeavePendingListCopy = {
@@ -84,12 +90,10 @@ export function buildLeavePendingListSurfaceConfiguration(
 ): ListSurfaceRendererConfigurationInput {
   const columnsId = copy.columnsId ?? LEAVE_LIST_SURFACE_IDS.pendingInbox
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     requiresErpPermission: LEAVE_READ_PERMISSION,
-    presentation: {
-      variant: "table-only",
-      tableDensity: "compact",
-    },
+    presentation: PRESENTATION,
     surface: {
       header: listSurfaceHeader(columnsId),
       columnsId,
@@ -125,7 +129,14 @@ export function buildLeavePendingListSurfaceConfiguration(
           requested: row.requestedAt.toISOString(),
         },
         trailingAction: canDecide
-          ? { state: "ready" as const }
+          ? resolveListSurfaceRowTrailingAction({
+              allowed: true,
+              descriptor: {
+                id: "erp.hrm.leave.decide",
+                label: "Decide",
+                intent: "default",
+              },
+            })
           : listSurfaceRowTrailingActionHidden(),
       }
     }),
@@ -138,12 +149,10 @@ export function buildLeaveRecentListSurfaceConfiguration(
 ): ListSurfaceRendererConfigurationInput {
   const columnsId = copy.columnsId ?? LEAVE_LIST_SURFACE_IDS.recent
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     requiresErpPermission: LEAVE_READ_PERMISSION,
-    presentation: {
-      variant: "table-only",
-      tableDensity: "compact",
-    },
+    presentation: PRESENTATION,
     surface: {
       header: listSurfaceHeader(columnsId),
       columnsId,
@@ -181,6 +190,17 @@ export function buildLeaveRecentListSurfaceConfiguration(
         state: copy.stateLabelFor(row.state),
         updated: (row.approvedAt ?? row.updatedAt).toISOString(),
       },
+      trailingAction:
+        row.state === "approved" || row.state === "submitted"
+          ? resolveListSurfaceRowTrailingAction({
+              allowed: true,
+              descriptor: {
+                id: "erp.hrm.leave.cancel",
+                label: "Cancel",
+                intent: "destructive",
+              },
+            })
+          : listSurfaceRowTrailingActionHidden(),
     })),
   }
 }
@@ -203,6 +223,26 @@ type LeaveMyHistoryListCopy = {
   colDuration: string
   colState: string
   stateLabelFor: (state: string) => string
+}
+
+export type LeaveAbsenceCalendarDisplayRow = {
+  id: string
+  employee: string
+  employeeNumber: string | null
+  leaveType: string
+  dates: string
+  duration: string
+  state: string
+}
+
+type LeaveAbsenceCalendarCopy = {
+  columnsId?: string
+  empty: string
+  colEmployee: string
+  colLeaveType: string
+  colDates: string
+  colDuration: string
+  colState: string
 }
 
 function formatDaysValue(value: number | string): string {
@@ -240,12 +280,10 @@ export function buildLeaveBalanceListSurfaceConfiguration(
 ): ListSurfaceRendererConfigurationInput {
   const columnsId = copy.columnsId ?? LEAVE_LIST_SURFACE_IDS.myBalances
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     requiresErpPermission: LEAVE_READ_PERMISSION,
-    presentation: {
-      variant: "table-only",
-      tableDensity: "compact",
-    },
+    presentation: PRESENTATION,
     surface: {
       header: listSurfaceHeader(columnsId),
       columnsId,
@@ -282,12 +320,10 @@ export function buildLeaveMyHistoryListSurfaceConfiguration(
 ): ListSurfaceRendererConfigurationInput {
   const columnsId = copy.columnsId ?? LEAVE_LIST_SURFACE_IDS.myHistory
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     requiresErpPermission: LEAVE_READ_PERMISSION,
-    presentation: {
-      variant: "table-only",
-      tableDensity: "compact",
-    },
+    presentation: PRESENTATION,
     surface: {
       header: listSurfaceHeader(columnsId),
       columnsId,
@@ -328,6 +364,52 @@ export function buildLeaveMyHistoryListSurfaceConfiguration(
               },
             })
           : listSurfaceRowTrailingActionHidden(),
+    })),
+  }
+}
+
+export function buildLeaveAbsenceCalendarListSurfaceConfiguration(
+  rows: readonly LeaveAbsenceCalendarDisplayRow[],
+  copy: LeaveAbsenceCalendarCopy
+): ListSurfaceRendererConfigurationInput {
+  const columnsId = copy.columnsId ?? LEAVE_LIST_SURFACE_IDS.absenceCalendar
+  return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
+    dataNature: "table",
+    requiresErpPermission: LEAVE_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: listSurfaceHeader(columnsId),
+      columnsId,
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "employee", header: copy.colEmployee },
+      {
+        id: "leaveType",
+        header: copy.colLeaveType,
+        cellKind: { kind: "badge", tone: "default" },
+      },
+      { id: "dates", header: copy.colDates },
+      { id: "duration", header: copy.colDuration },
+      {
+        id: "state",
+        header: copy.colState,
+        cellKind: { kind: "badge", tone: "attention" },
+      },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        employee: row.employeeNumber
+          ? `${row.employee} · ${row.employeeNumber}`
+          : row.employee,
+        leaveType: row.leaveType,
+        dates: row.dates,
+        duration: row.duration,
+        state: row.state,
+      },
     })),
   }
 }

@@ -12,6 +12,7 @@ export { AppShellUtilityBar, type AppShellUtilityBarProps } from "./top-utils-ba
 
 export { buildAppShellOrgUtilityBarSlots } from "./compose/appshell-utility-bar-org.server"
 export { buildAppShellConsoleUtilityBarSlots } from "./compose/appshell-utility-bar-console.server"
+export { buildAppShellPlatformUtilityBarSlots } from "./compose/appshell-utility-bar-platform.server"
 
 export type {
   AppShellChromeProps,

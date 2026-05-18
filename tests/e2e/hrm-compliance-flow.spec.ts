@@ -19,7 +19,7 @@ test.describe("HRM compliance UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/compliance`)
+      await page.goto(`/en/o/${slug}/apps/hrm/compliance`)
 
       await expect(
         page.getByRole("heading", {
@@ -40,7 +40,7 @@ test.describe("HRM compliance UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/compliance`)
+      await page.goto(`/en/o/${slug}/apps/hrm/compliance`)
       const btn = page.getByTestId("hrm-compliance-generate-all-packs")
       await expect(btn).toBeVisible()
     }
@@ -54,7 +54,7 @@ test.describe("HRM compliance UI surface", () => {
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
       await page.goto(
-        `/en/o/${slug}/dashboard/hrm/compliance/00000000-0000-4000-8000-000000000002`
+        `/en/o/${slug}/apps/hrm/compliance/00000000-0000-4000-8000-000000000002`
       )
       await expect(
         page.getByRole("heading", {

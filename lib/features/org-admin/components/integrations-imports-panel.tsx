@@ -11,7 +11,7 @@ import {
 import { listJobFailures, listOrgImportJobs } from "../data/import-jobs.queries"
 
 import { IntegrationsImportJobForm } from "./integrations-import-job-form"
-import { IntegrationsImportJobRow } from "./integrations-import-job-row"
+import { OrgAdminIntegrationsImportsListSection } from "./org-admin-integrations-imports-list-section"
 
 /**
  * Server-rendered list of organizational ingestion jobs. Job state is
@@ -36,7 +36,7 @@ export async function IntegrationsImportsPanel({
   )
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("createTitle")}</CardTitle>
@@ -47,29 +47,17 @@ export async function IntegrationsImportsPanel({
         </CardContent>
       </Card>
 
-      <section className="space-y-3">
+      <section className="flex flex-col gap-3">
         <div>
           <h3 className="text-sm font-medium">{t("listTitle")}</h3>
           <p className="text-sm text-muted-foreground">
             {t("listDescription")}
           </p>
         </div>
-        {jobs.length === 0 ? (
-          <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-            {t("listEmpty")}
-          </p>
-        ) : (
-          <ul className="divide-y rounded-md border">
-            {jobs.map((job) => (
-              <li key={job.id} className="px-4 py-4">
-                <IntegrationsImportJobRow
-                  job={job}
-                  recentFailures={failureMap.get(job.id) ?? []}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
+        <OrgAdminIntegrationsImportsListSection
+          jobs={jobs}
+          failuresByJobId={failureMap}
+        />
       </section>
     </div>
   )

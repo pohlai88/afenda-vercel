@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache"
 import { and, eq } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { ORG_DASHBOARD_HRM } from "#lib/dashboard-module-paths"
+import { ORG_APPS_HRM } from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import { hrmEmployeeSkill, hrmSkill } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
 import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
@@ -25,7 +25,7 @@ import type { ContractMutationFormState } from "../../../types"
 
 function revalidateSkills() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(`${ORG_DASHBOARD_HRM}/skills`),
+    toLocaleOrgAppsRevalidatePattern(`${ORG_APPS_HRM}/skills`),
     "page"
   )
 }

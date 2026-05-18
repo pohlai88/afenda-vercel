@@ -6,7 +6,7 @@ import { and, eq } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmApproval, hrmEmployee, hrmTimeReport } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { buildTimeReportApprovalSnapshot } from "../data/time-report-approval-snapshot.shared"
 import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
@@ -22,9 +22,9 @@ import type {
 } from "../../../types"
 
 function revalidateLeaveAndTimeReports() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/leave"), "layout")
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/employees/[employeeId]"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/employees/[employeeId]"),
     "page"
   )
 }

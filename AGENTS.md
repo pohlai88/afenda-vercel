@@ -62,6 +62,7 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 | Deleted `components/` | **Entire repo-root `components/` directory is hard-deleted** — never mkdir or restore any file under it; fix forward in `components2/` (`.cursor/rules/never-restore-deleted-components.mdc`, always on) |
 | `app/` page thickness | `page.tsx` ≤ params + guards + single feature RSC export; no domain fetch graphs in `app/` |
 | Cache Components | `cacheComponents: true` in `next.config.ts` (ADR-0023 Phase 2). No segment `dynamic`/`revalidate`/`runtime` exports under `app/`. Ask-docs uses `'use cache'` + `cacheLife`. Verify with `pnpm build -- --debug-prerender`. |
+| Client vs server barrels | **`"use client"` / `*.client.tsx`** import **`#features/<module>/client`** (or allowed `schemas/` / `*.shared` paths) — **not** `#features/<module>` when `index.ts` is a server barrel. See **ADR-0030** · `.cursor/rules/module-client-server-barrels.mdc`. |
 
 ---
 
@@ -82,7 +83,7 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 | Org Messenger (Ably)           | `lib/features/messenger/` · `#features/messenger/client` (panel) · `#features/messenger/server` (token mint) · `ABLY_API_KEY` in `.env.config` → `pnpm env:sync` · workbench rail `right.messenger` (chat) + `right.coordination` (operational console) · `POST /api/erp/messenger/auth`          |
 | Org admin                      | `lib/features/org-admin/` · `ORG_ADMIN_CAPABILITIES` registry · `/o/{orgSlug}/admin/*` · rule `.cursor/rules/org-admin-directory.mdc`                                                                                                                                                             |
 | Portals                        | `app/[locale]/p/[portalSlug]/` · `lib/portal/` · `components2/portal-shell/` · rule `.cursor/rules/portal-directory.mdc`                                                                                                                                                                          |
-| Platform admin                 | `lib/features/platform-admin/` · `PLATFORM_ADMIN_CAPABILITIES` · `/operator/*`                                                                                                                                                                                                                    |
+| Platform admin                 | `lib/features/platform-admin/` · `PLATFORM_ADMIN_CAPABILITIES` · `/platform/*` (legacy `/operator/*` → 308)                                                                                                                                                                                       |
 | Operational primitives         | `#lib/erp/temporal-spine.shared` · `#lib/erp/crud-sap.shared` · `#lib/erp/audit-7w1h.{shared,server}`                                                                                                                                                                                             |
 | Workflow DevKit                | `#features/execution` contract · `enqueueOrgImportJobWorkflowRun` · [useworkflow.dev](https://useworkflow.dev/)                                                                                                                                                                                   |
 | Operational simulation         | `#features/simulation` · `AFENDA_ENABLE_SIMULATION=1` · rule `.cursor/rules/simulation-directory.mdc`                                                                                                                                                                                             |
@@ -95,7 +96,7 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 | Tests                          | `pnpm test:fast` (unit) · `pnpm test:e2e` (Playwright port 3001) · rule `.cursor/rules/testing.mdc`                                                                                                                                                                                               |
 | Green CI                       | **Targeted (concurrent agents):** `pnpm exec eslint --max-warnings=0 <path> && pnpm typecheck` · **Full (solo):** `pnpm typecheck && pnpm lint` · **Pre-push:** `pnpm verify:parallel` · Rule: `.cursor/rules/targeted-verification.mdc`                                                          |
 | Neon / Vercel MCP              | Configure in `.cursor/mcp.json` · see §5 [MCP validation](#validating-with-neon-and-vercel-mcp)                                                                                                                                                                                                   |
-| Ask docs                       | `app/(ask-docs)/[locale]/ask-docs/` · `content/ask-docs/` · `pnpm gen ask-doc` · `pnpm lint:ask-docs-links` · `pnpm lint:ask-docs-prose` · `pnpm lint:ask-docs-quality` · `pnpm audit:ask-docs-quality` · ADR-0027 · `.agents/skills/adqs/` · rule `.cursor/rules/ask-docs-directory.mdc` |
+| Ask docs                       | `app/(ask-docs)/[locale]/ask-docs/` · `content/ask-docs/` · **`pnpm ask-docs:preflight`** · **`pnpm ask-docs:check`** · **`pnpm ask-docs:validate-manifest`** · **`pnpm ask-docs:scaffold`** · `pnpm gen ask-doc` · ADR-0027 · `.agents/skills/adqs/` · rule `.cursor/rules/ask-docs-directory.mdc` |
 | Ask docs AI chat (Public Lynx) | `app/api/chat/route.ts` · `#components2/ai/search` on `/{locale}/ask-docs` · `pnpm lint:public-lynx-contract` · rule `.cursor/rules/public-lynx.mdc` — **never** import `#features/lynx`                                                                                                           |
 
 ## Contents
@@ -129,7 +130,7 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 - `ask-docs-directory.mdc` · `design-system.mdc` · `erp-primitives.mdc` · `planner-directory.mdc`
 - `lynx-knowledge.mdc` · `public-lynx.mdc` · `simulation-directory.mdc` · `org-admin-directory.mdc`
 - `drizzle-migration-ledger.mdc` · `app-router-contracts.mdc` · `testing.mdc`
-- `portal-directory.mdc` · `dev-directory.mdc` · `components2-directory.mdc` · `client-state-management.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
+- `portal-directory.mdc` · `dev-directory.mdc` · `components2-directory.mdc` · `client-state-management.mdc` · `module-client-server-barrels.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
 
 ---
 
@@ -145,6 +146,11 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 | `pnpm lint:route-error-files`         | `error.tsx` files ↔ approved operational shell allowlist (`scripts/check-route-error-files.mjs`)                                                                                                                     |
 | `pnpm lint:public-lynx-contract`      | Public Lynx boundary — no `#features/lynx`, raw POST cap, shared transcript helpers (`scripts/check-public-lynx-contract.mjs`)                                                                                       |
 | `pnpm lint:fixtures-parity`           | `tests/fixtures/*` ↔ `messages/en.json` + auth surfaces + seed script                                                                                                                                                |
+| `pnpm ask-docs:check`                 | Ask-docs quality pipeline (Turbo meta task via `scripts/ask-docs-check-gate.mjs`) — `lint:ask-docs-links` + `lint:ask-docs-prose` + `lint:ask-docs-quality` (after editing `content/ask-docs/**`; in `pnpm verify*`) |
+| `pnpm ask-docs:validate-manifest`     | Validate `content/ask-docs/scaffold.manifest.json` (or `--manifest`) — no file writes                                                                                                                                    |
+| `pnpm ask-docs:scaffold:dry-run`      | Dry-run fixture manifest (`tests/fixtures/ask-docs-scaffold-dry-run.manifest.json`) — proves scaffold wiring                                                                                                              |
+| `pnpm ask-docs:preflight`             | Pre-PR docs workflow: `validate-manifest` + fixture `scaffold:dry-run` + `ask-docs:check`                                                                                                                                 |
+| `pnpm ask-docs:scaffold`              | Batch-scaffold new MDX from `content/ask-docs/scaffold.manifest.json` via `pnpm gen ask-doc` (idempotent; **not** part of `pnpm build`; supports `--dry-run`, `--json`)                                                  |
 | `pnpm lint:ask-docs-links`            | `next-validate-link` — validates internal URLs in `content/ask-docs/**/*.mdx` (Fumadocs)                                                                                                                             |
 | `pnpm lint:ask-docs-prose`            | `markdownlint-cli2` — narrow prose/style gate on `content/ask-docs/**/*.mdx` (config `.config/markdownlint-ask-docs.jsonc`)                                                                                          |
 | `pnpm lint:ask-docs-quality`          | ADQS mechanical gate — stub strings, Related graph, stable frontmatter on `content/ask-docs/**/*.mdx` (`scripts/lint-ask-docs-quality.mjs`; ADR-0027)                                                                  |
@@ -192,9 +198,11 @@ pnpm typecheck && pnpm lint
 
 ```bash
 pnpm lint:drizzle-journal # after drizzle/*.sql changes
-pnpm lint:ask-docs-links # after edits to content/ask-docs MDX/internal links
-pnpm lint:ask-docs-prose # after edits to content/ask-docs MDX prose/style
-pnpm lint:ask-docs-quality # after substantive MDX edits (ADQS skeleton + stubs)
+pnpm ask-docs:preflight # before docs PR: validate manifest + fixture dry-run + quality
+pnpm ask-docs:check # after edits to content/ask-docs (links + prose + ADQS quality)
+pnpm ask-docs:validate-manifest # after editing scaffold.manifest.json
+pnpm ask-docs:scaffold -- --dry-run # preview production manifest without writes
+pnpm ask-docs:scaffold # batch new pages from scaffold.manifest.json (on demand)
 pnpm audit:ask-docs-quality # optional corpus tier report before PR
 pnpm lint:fixtures-parity # after messages/en.json or fixture changes
 pnpm lint:public-lynx-contract # after app/api/chat, components2/ai/search, lib/ask-docs/public-lynx*
@@ -346,6 +354,8 @@ AGENTS.md
 .cursor/rules/simulation-directory.mdc
 .cursor/rules/shell-directory.mdc
 .cursor/rules/portal-directory.mdc
+.cursor/rules/module-client-server-barrels.mdc
+docs/decisions/0030-module-client-server-barrel-boundary.md
 eslint.config.mjs
 scripts/check-design-contract.mjs
 scripts/check-route-error-files.mjs
@@ -392,7 +402,7 @@ turbo/generators/config.ts
 - **Browser door:** `#lib/auth-client` ([`lib/auth-client.ts`](lib/auth-client.ts)) — Neon Auth client only; never import `#lib/auth` from Client Components.
 - **Retired:** `#lib/tenant` and `lib/tenant.ts` — use `#lib/auth` only (`lib/auth/tenant-session.server.ts`).
 - **HTTP:** `/api/auth/[...path]`. Neon webhooks: `app/api/integrations/neon-auth-webhooks/`.
-- **Session guards** (use in layouts): `requireSignedInSession()` for `/console`/`/account`; `requireOrgSession()` + `getOrgTenantContext()` for ERP; `requireGlobalAdminSession()` for `/operator`.
+- **Session guards** (use in layouts): `requireSignedInSession()` for `/console`/`/account`; `requireOrgSession()` + `getOrgTenantContext()` for ERP; `requireGlobalAdminSession()` for `/platform`.
 - **IDOR:** `organizationId` is authoritative **only** from `requireOrgSession` / `getOrgTenantContext` / `getOrgSessionFromRequest` — never trust it from `FormData`, JSON, or query strings.
 - **Step-up:** `requireRecentAuthStepUp` with `disableCookieCache: true` → `AUTH_STATUS.SESSION_EXPIRED` or `AUTH_STATUS.STEP_UP_REQUIRED`.
 - **Invites:** `ORG_INVITE_MAX_PER_HOUR` (default 30); Upstash Redis ratelimit when env set, otherwise `iam_audit_event` rolling counts.
@@ -406,12 +416,12 @@ turbo/generators/config.ts
 
 ### Tenant routing
 
-- **Canonical Workbench URLs:** `/{locale}/o/{orgSlug}/dashboard/...`
+- **Canonical Workbench URLs:** `/{locale}/o/{orgSlug}/apps/{module}` (ADR-0029; legacy `/dashboard/*` 308 → `/apps/*`)
 - **Canonical portal URLs:** `/{locale}/p/{portalSlug}/...` for org-owned external/constrained portals.
-- **Path builders:** `organizationDashboardPath`, `organizationNexusPath`, `organizationHrmPath`, `organizationAdminPath`, `platformAdminPath`; portal helpers live in `lib/portal/` — use these, never hard-code paths.
-- **revalidatePath:** `toLocaleOrgDashboardRevalidatePattern("/contacts")` for ERP; `toLocaleRoutePattern("/path")` for static locale routes. Never revalidate a single locale.
+- **Path builders:** `organizationAppsPath`, `organizationNexusPath`, `organizationHrmPath`, `organizationAdminPath`, `platformPath`; portal helpers live in `lib/portal/` — use these, never hard-code paths.
+- **revalidatePath:** `toLocaleOrgAppsRevalidatePattern("/contacts")` for ERP; `toLocaleRoutePattern("/path")` for static locale routes. Never revalidate a single locale.
 - **Slug params:** validate org slugs with `normalizeOrgSlugParam` before DB resolution; portal slugs must use `normalizePortalSlugParam` from `lib/portal/`.
-- **Client shell** imports `#lib/dashboard-module-paths` (not feature barrels) to avoid pulling `server-only` into the client bundle.
+- **Client shell** imports `#lib/org-apps-module-paths` (not feature barrels) to avoid pulling `server-only` into the client bundle.
 
 ### Portal routing
 
@@ -425,7 +435,7 @@ turbo/generators/config.ts
 ### Locale-first routing
 
 - `localePrefix: "always"` — all public URLs include `/{locale}/`.
-- **Edge entry:** `proxy.ts` runs `createIntlMiddleware` then presence-only cookie check for `/o`, `/p`, `/account`, `/operator`, `/accept-invitation`, `/console`. Matcher excludes `api`, `_next`, `_vercel`, `.well-known`, static assets.
+- **Edge entry:** `proxy.ts` runs `createIntlMiddleware` then presence-only cookie check for `/o`, `/p`, `/account`, `/platform`, legacy `/operator`, `/accept-invitation`, `/console`. Matcher excludes `api`, `_next`, `_vercel`, `.well-known`, static assets.
 - **Never emit bare `/sign-in`, `/o`, or `/p` from server** — use `toLocalePath(locale, path)`.
 - **Post-login:** `/{locale}/console` is the loading bay (single-org → redirect to nexus immediately).
 - **`callbackUrl`** must be locale-prefixed + validated via `resolvePostAuthCallbackUrl`.
@@ -521,7 +531,7 @@ await writeAuditEvent7W1H({
 
 - Module: `lib/features/hrm/` — `HRM_CAPABILITIES` registry drives routes, nav, audit prefixes, sanitizer.
 - Barrels: `#features/hrm` (RSC + registry) · `#features/hrm/client` (path helpers + Server Actions for forms) · `#features/hrm/server` (payroll rule-pack).
-- Routes: `/dashboard/hrm/employees`, `/dashboard/hrm/employees/[employeeId]`, `/dashboard/hrm/[segment]`.
+- Routes: `/apps/hrm/employees`, `/apps/hrm/employees/[employeeId]`, `/apps/hrm/[segment]`.
 - **ESLint rule `afenda/hrm-pii-audit-metadata`**: blocks PII keys inside `writeIamAuditEvent*` calls within `lib/features/hrm/`.
 - Narrative: `docs/_draft/hrm-draft-v2.md`.
 - **Authorization doctrine:** `minimumOrgRole` is retired as business authorization. HRM page entry, nav visibility, data loads, and mutations must resolve from ERP RBAC permission keys, not Better Auth org roles.
@@ -556,10 +566,12 @@ await writeAuditEvent7W1H({
 | `organization` | `settings` | `org.profile.*` |
 | `operations` | _(reserved)_ | `org.operations.*` |
 
-### Platform admin (`/operator`)
+### Platform admin (`/platform`)
 
 - Module: `lib/features/platform-admin/` — `PLATFORM_ADMIN_CAPABILITIES` drives nav + sanitizer.
+- Routes: `app/(main)/[locale]/platform/*` — `AppShell` + `AppSubLayout`; not under `/o/{orgSlug}` (ADR-0031).
 - Guards: `requireGlobalAdminSession()` + `requireRecentAuthStepUp` in layout.
+- Path: `platformPath(segment?)`; revalidate via `toLocalePlatformRevalidatePattern`.
 - Capability registry:
 
 | Capability      | Segment         | Audit prefix         |
@@ -683,7 +695,7 @@ Only these files may exist directly under `lib/` (`lib/*.ts` / `lib/*.tsx`). **N
 |------|-------------|-------|
 | `auth-client.ts` | `#lib/auth-client` | Client (`"use client"`) — browser IAM |
 | `auth-client-neon-compat.ts` | `#lib/auth-client-neon-compat` | Client — Neon Auth typings extension |
-| `dashboard-module-paths.ts` | `#lib/dashboard-module-paths` | Shared — client-safe ERP path builders |
+| `org-apps-module-paths.ts` | `#lib/org-apps-module-paths` | Shared — client-safe ERP app path builders |
 | `design-system.ts` | `#lib/design-system` | Shared — token/Zod contract |
 | `logger.server.ts` | `#lib/logger.server` | Server (Node) — structured logs |
 | `session-cache.ts` | `#lib/session-cache` | Server — `React.cache()` session dedupe |
@@ -721,7 +733,7 @@ FORBIDDEN without updating this table in the same PR:
 
 - `#lib/tenant` → `#lib/auth` only
 - `#lib/dashboard-org-path.shared`, `#lib/dashboard-org-redirect.server`, `#lib/app-search-params.shared`, `#lib/app-metadata-surface.shared` → `#lib/i18n/*` (`private-surface-robots.shared.ts` for metadata robots)
-- `#lib/hrm-dashboard.shared`, `#lib/planner-dashboard.shared` → `#features/hrm/hrm-dashboard-path.shared`, `#features/planner/planner-dashboard-path.shared` (not the module barrel — avoids `constants` ↔ `dashboard-module-paths` cycle)
+- `#lib/hrm-dashboard.shared`, `#lib/planner-dashboard.shared` → `#features/hrm/hrm-apps-path.shared`, `#features/planner/planner-orbit-path.shared` (not the module barrel — avoids `constants` ↔ `org-apps-module-paths` cycle)
 - `#lib/route-handler-json.shared` → `#lib/api/route-handler-json.shared`
 - `#lib/route-envelope.shared` → `#lib/erp/route-envelope.shared`
 - `#lib/otel-span.server`, `#lib/request-error-context.shared`, `#lib/request-error-telemetry.server` → `#lib/observability/*`
@@ -780,6 +792,17 @@ Cross-module imports: #features/<module> only — never deep paths into lib/feat
 - **`/{locale}/ask-docs`** — canonical public locale-first documentation (Fumadocs MDX), **no auth cookie gate** — naming parallel to **`/{locale}/legal-docs`**.
 - **`content/ask-docs/`** — MDX authoring root; **`source.config.ts`** + **`.source/`** (generated by `fumadocs-mdx` / `next build`) feed `lib/ask-docs/source.ts`.
 
+**Three pipelines** (keep separate — do not run `pnpm gen ask-doc` on every `build`):
+
+| Pipeline | Command | When |
+| --- | --- | --- |
+| **Compile** | `pnpm dev` / `pnpm build` | Fumadocs MDX → `.source/` → `askDocsSource` → `app/(ask-docs)/…/[[...slug]]` (automatic; no `gen` required for existing MDX) |
+| **Quality** | `pnpm ask-docs:check` | After editing `content/ask-docs/**`; also in `pnpm verify*` and path-filtered CI [`.github/workflows/ask-docs.yml`](.github/workflows/ask-docs.yml) |
+| **Validate** | `pnpm ask-docs:validate-manifest` | Parse/check `scaffold.manifest.json`; warns on missing `meta.json` sidebar entries |
+| **Scaffold** | `pnpm ask-docs:scaffold` or `pnpm gen ask-doc …` | New stub pages only; `pnpm ask-docs:scaffold:dry-run` uses committed fixture manifest |
+
+Do **not** commit `.source/` — it is regenerated by Next/Fumadocs. Do **not** add scaffold or `gen ask-doc` to `prebuild` by default.
+
 **Surface inventory** (split into a dedicated repo/package when content volume warrants it):
 
 | File / dir                                                | Role                                                                                                                                                                                                               |
@@ -815,6 +838,11 @@ Cross-module imports: #features/<module> only — never deep paths into lib/feat
 | `components2/feedback/schema.ts`                          | Zod schema for feedback payload                                                                                                                                                                                    |
 | `content/ask-docs/`                                       | MDX pages + `meta.json` files (sidebar order)                                                                                                                                                                      |
 | `scripts/validate-ask-docs-links.ts`                      | `next-validate-link` — internal URL validation for MDX content                                                                                                                                                     |
+| `scripts/ask-docs-check-gate.mjs`                       | User entry for `pnpm ask-docs:check` — invokes Turbo `ask-docs:check` (lint deps + noop leaf when `TURBO_HASH` is set)                                                                                           |
+| `scripts/ask-docs-scaffold-from-manifest.mjs`           | `pnpm ask-docs:scaffold` — batch `gen ask-doc` from manifest (`--dry-run`, `--validate-only`, `--json`, `--manifest`)                                                                                            |
+| `scripts/lib/ask-docs-scaffold-manifest.shared.mjs`     | Shared manifest validation/planning (unit-tested)                                                                                                                                                                  |
+| `content/ask-docs/scaffold.manifest.json`               | Planned pages for batch scaffold (JSON array; empty `[]` when unused)                                                                                                                                              |
+| `tests/fixtures/ask-docs-scaffold-dry-run.manifest.json`| Fixture for `pnpm ask-docs:scaffold:dry-run` (pipeline smoke; slug must not exist on disk)                                                                                                                         |
 
 **Split trigger:** when `content/ask-docs/` exceeds ~50 MDX files or requires a CMS, extract as a standalone Fumadocs Next.js app and serve under a subdomain (`docs.afenda.com`). Until then, keep it co-located.
 
@@ -849,21 +877,32 @@ constants.ts · types.ts · index.ts · server.ts (optional) · client.ts (optio
 
 **`index.ts` is required.** Do not add categories not in this list without updating AGENTS.md first.
 
-**Barrels:**
+**Barrels (ADR-0030):**
 
-- `index.ts` — primary door for Server Components (constants, schemas, async server UI, Server Actions). Do not import from Client Components if the module re-exports async server panels.
-- `client.ts` — types + Server Actions only, for Client Components.
+- `index.ts` — **server door** for RSC pages, layouts, `*.server.ts`, Server Actions. Evaluating this module runs **all** re-exports — never import from `"use client"` / `*.client.tsx` when the index re-exports server RSC sections or `./data/`.
+- `client.ts` — **client door** for `"use client"` modules: client components, Zod schemas, pure `.shared.ts` helpers, and Server Actions invoked from client forms.
 - `server.ts` — `server-only` re-exports for layouts/shells that need server-only query graphs.
+
+**Client import rule:** If a file has `"use client"` or is named `*.client.tsx`, use `#features/<module>/client` (or same-module relative / allowed deep `schemas/` paths). Using `#features/<module>` pulls the entire `index.ts` graph into the browser bundle and can surface `next/headers` / `#lib/auth` build failures.
 
 ### Import boundary (enforced by ESLint + `check-agent-contract.mjs`)
 
 ```ts
-// ✅ Allowed
+// ✅ Server (RSC page, layout, *.server.ts)
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { listContactsForOrganization } from "#features/contacts"
+
+// ✅ Client (*.client.tsx, "use client")
+import { GovernedTrailingActionSlot, isListSurfaceTrailingActionRenderable } from "#features/governed-surface/client"
 import { archiveContactAction } from "#features/contacts/client"
+
+// ✅ Server-only graph
 import { listOrgImportJobs } from "#features/org-admin/server"
 
-// ❌ Forbidden
+// ❌ Client file importing server barrel (entire index.ts graph loads)
+import { isListSurfaceTrailingActionRenderable } from "#features/governed-surface"
+
+// ❌ Deep cross-module internals
 import { listContactsForOrganization } from "#features/contacts/data/contacts.queries"
 ```
 
@@ -936,7 +975,7 @@ components2/
   portal-shell/   ← portal chrome only
 
 lib/
-  auth-client.ts · auth-client-neon-compat.ts · dashboard-module-paths.ts
+  auth-client.ts · auth-client-neon-compat.ts · org-apps-module-paths.ts
   design-system.ts · logger.server.ts · session-cache.ts · site.ts · utils.ts  ← §6.1 allowlist only
   auth/           ← IAM control plane (index.ts = public door)
   db/             ← schema.ts + index.ts
@@ -986,6 +1025,7 @@ May contain only `components/` (under `lib/features/governed-surface/`), `schema
 | **A** | Page chrome + bespoke forms | `GovernedSurface`, `ModulePageHeader`, `GovernedSection` from `#features/governed-surface` |
 | **B** | Serializable list/KPI via full renderer tree | `GovernedComponentRenderer` from `#components2/metadata` + manual section `Card` when header actions needed (contacts ceiling) |
 | **C** | Pattern B list + trailing forms/actions | `GovernedPatternCListSection` from `#features/governed-surface`; trailing UI: `GovernedTrailingActionSlot` from `#features/governed-surface/client` |
+| **K** | Kanban workflow boards | `GovernedKanbanFooterSection` / `GovernedKanbanDragSection` + `GovernedKanbanFooterBoard` or `GovernedKanbanDragBoard` from `#features/governed-surface/client`; read-only via `GovernedComponentRenderer` (`governed:kanban-board`) |
 
 **Recipe (Pattern B):**
 
@@ -1001,6 +1041,8 @@ May contain only `components/` (under `lib/features/governed-surface/`), `schema
 3. `trailingColumn.render` + `GovernedTrailingActionSlot` + domain form component.
 4. `loadError` for query failures; `layout="embedded"` when parent `Card` already owns the header.
 5. `parentAccessAllowed` / `resolveConfiguredPermission` when the page already resolved ERP read (see claim inboxes).
+
+**Recipe (Pattern K):** builder → `GovernedKanbanFooterSection` + client bridge by `interactionMode` (`footer-actions` | `drag-reorder`); do not render footer/drag boards through `KanbanBoardRenderer` alone. Reference: `recruitment-pipeline-kanban-section.tsx`.
 
 **Pattern C checklist:**
 

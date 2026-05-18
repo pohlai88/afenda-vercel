@@ -18,7 +18,7 @@ test.describe("HRM performance surface", () => {
     async ({ page }) => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
-      await page.goto(`/en/o/${slug}/dashboard/hrm/performance`)
+      await page.goto(`/en/o/${slug}/apps/hrm/performance`)
       await expect(
         page.getByRole("heading", { name: "Performance reviews", exact: true })
       ).toBeVisible()

@@ -31,7 +31,6 @@ import {
 } from "../actions/training-session.actions"
 import {
   submitCompleteTrainingRecord,
-  submitVerifyTrainingRecord,
 } from "../actions/training-record.actions"
 import { listActiveEmployeeChoicesForLeave } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
 import { listSkillsForOrg } from "../../competency-skills-framework/data/skill.queries.server"
@@ -48,6 +47,8 @@ import { TrainingAnalyticsSection } from "./training-analytics-section"
 import { TrainingAssignmentSection } from "./training-assignment-section"
 import { TrainingCatalogSection } from "./training-catalog-section"
 import { TrainingFeedbackSection } from "./training-feedback-section"
+import { TrainingOrgRecordsListSection } from "./training-org-records-list-section"
+import { TrainingPrerequisitesListSection } from "./training-prerequisites-list-section"
 import { TrainingSessionRosterSection } from "./training-session-roster-section"
 
 type HrmTrainingPageProps = {
@@ -89,7 +90,7 @@ export async function HrmTrainingPage({
   ])
 
   const courseNameById = Object.fromEntries(
-    courses.map((c) => [c.id, `${c.code} ÔÇö ${c.name}`])
+    courses.map((c) => [c.id, `${c.code} — ${c.name}`])
   )
 
   const activeCourses = courses.filter((c) => c.state === "active")
@@ -254,7 +255,7 @@ export async function HrmTrainingPage({
                     <option value="">{t("noGrantsSkill")}</option>
                     {skills.map((skill) => (
                       <option key={skill.id} value={skill.id}>
-                        {skill.code} ÔÇö {skill.label}
+                        {skill.code} — {skill.label}
                       </option>
                     ))}
                   </select>
@@ -306,82 +307,14 @@ export async function HrmTrainingPage({
             <CardDescription>{t("prerequisiteDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-6">
-            {/* Existing prerequisites table */}
-            {prerequisites.length > 0 ? (
-              <div className="overflow-x-auto rounded-md border">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/40">
-                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                        {t("prerequisiteColCourse")}
-                      </th>
-                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                        {t("prerequisiteColRequires")}
-                      </th>
-                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                        {t("prerequisiteColRequired")}
-                      </th>
-                      <th className="w-16 px-3 py-2" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {prerequisites.map((prereq) => (
-                      <tr key={prereq.id} className="border-b last:border-0">
-                        <td className="px-3 py-2">
-                          {courseNameById[prereq.courseId] ?? prereq.courseId}
-                        </td>
-                        <td className="px-3 py-2">
-                          {prereq.prerequisiteCourseCode} ÔÇö{" "}
-                          {prereq.prerequisiteCourseName}
-                        </td>
-                        <td className="px-3 py-2">
-                          <span
-                            className={
-                              prereq.required
-                                ? "text-destructive"
-                                : "text-muted-foreground"
-                            }
-                          >
-                            {prereq.required
-                              ? t("prerequisiteRequired")
-                              : t("prerequisiteOptional")}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2">
-                          <form action={submitRemoveTrainingPrerequisite}>
-                            <input
-                              type="hidden"
-                              name="organizationId"
-                              value={organizationId}
-                            />
-                            <input
-                              type="hidden"
-                              name="orgSlug"
-                              value={orgSlug}
-                            />
-                            <input
-                              type="hidden"
-                              name="prerequisiteId"
-                              value={prereq.id}
-                            />
-                            <button
-                              type="submit"
-                              className="text-xs text-destructive hover:underline"
-                            >
-                              {t("prerequisiteRemove")}
-                            </button>
-                          </form>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t("prerequisiteEmpty")}
-              </p>
-            )}
+            <TrainingPrerequisitesListSection
+              prerequisites={prerequisites}
+              courseNameById={courseNameById}
+              organizationId={organizationId}
+              orgSlug={orgSlug}
+              isHrmAdmin={isHrmAdmin}
+              removeAction={submitRemoveTrainingPrerequisite}
+            />
 
             {/* Add prerequisite form */}
             <form
@@ -405,7 +338,7 @@ export async function HrmTrainingPage({
                 >
                   {activeCourses.map((course) => (
                     <option key={course.id} value={course.id}>
-                      {course.code} ÔÇö {course.name}
+                      {course.code} — {course.name}
                     </option>
                   ))}
                 </select>
@@ -421,7 +354,7 @@ export async function HrmTrainingPage({
                 >
                   {activeCourses.map((course) => (
                     <option key={course.id} value={course.id}>
-                      {course.code} ÔÇö {course.name}
+                      {course.code} — {course.name}
                     </option>
                   ))}
                 </select>
@@ -465,7 +398,7 @@ export async function HrmTrainingPage({
                 >
                   {activeCourses.map((course) => (
                     <option key={course.id} value={course.id}>
-                      {course.code} ÔÇö {course.name}
+                      {course.code} — {course.name}
                     </option>
                   ))}
                 </select>
@@ -589,61 +522,24 @@ export async function HrmTrainingPage({
           <CardDescription>{t("recordsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {records.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("recordsEmpty")}</p>
-          ) : (
-            <ul className="divide-y rounded-md border">
-              {records.map((record) => (
-                <li
-                  key={record.id}
-                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
-                >
-                  <div>
-                    <span className="font-medium">{record.employeeName}</span>
-                    <span className="text-muted-foreground">
-                      {" "}
-                      ┬À {record.courseName}
-                    </span>
-                    <p className="text-xs text-muted-foreground">
-                      {format.dateTime(record.completedAt, {
-                        dateStyle: "medium",
-                      })}
-                      {record.expiresAt
-                        ? ` ┬À ${t("expires")} ${format.dateTime(record.expiresAt, { dateStyle: "medium" })}`
-                        : null}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full border px-2 py-0.5 text-xs">
-                      {record.verificationState}
-                    </span>
-                    {isHrmAdmin &&
-                    record.verificationState === "self_attested" ? (
-                      <form action={submitVerifyTrainingRecord}>
-                        <input
-                          type="hidden"
-                          name="organizationId"
-                          value={organizationId}
-                        />
-                        <input type="hidden" name="orgSlug" value={orgSlug} />
-                        <input
-                          type="hidden"
-                          name="recordId"
-                          value={record.id}
-                        />
-                        <button
-                          type="submit"
-                          className="text-xs font-medium text-primary underline-offset-4 hover:underline"
-                        >
-                          {t("verifyRecord")}
-                        </button>
-                      </form>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          <TrainingOrgRecordsListSection
+            records={records}
+            orgSlug={orgSlug}
+            organizationId={organizationId}
+            isHrmAdmin={isHrmAdmin}
+            formatDate={(value) =>
+              format.dateTime(value, { dateStyle: "medium" })
+            }
+            labels={{
+              empty: t("recordsEmpty"),
+              colEmployee: t("colEmployee"),
+              colCourse: t("colCourse"),
+              colCompleted: t("colCompleted"),
+              colVerification: t("colState"),
+              colExpires: t("expires"),
+              verifyRecord: t("verifyRecord"),
+            }}
+          />
         </CardContent>
       </Card>
     </div>

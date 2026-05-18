@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 
-import { ORG_DASHBOARD_INVENTORY } from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { ORG_APPS_INVENTORY } from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/auth"
 import { inventoryFilterSchema } from "../schemas/inventory-filter.schema"
 import type { InventoryActionState } from "../types"
@@ -28,7 +28,7 @@ export async function reserveStock(
   }
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_INVENTORY),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_INVENTORY),
     "page"
   )
   return { ok: true }

@@ -5,7 +5,7 @@ import {
   insertPlannerSignal,
 } from "#features/planner/server"
 import { writeIamAuditEvent } from "#lib/auth"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { KNOWLEDGE_AUDIT_ACTIONS } from "../constants"
@@ -175,7 +175,7 @@ async function evalFailedStep(
     entityType: "eval_set",
     entityId: payload.evalSetId,
     displayLabel: `Eval set ${payload.evalSetId}`,
-    href: orgSlug ? organizationDashboardPath(orgSlug, "knowledge") : null,
+    href: orgSlug ? organizationAppsPath(orgSlug, "knowledge") : null,
     causalityReason: "Knowledge evaluation workflow failed.",
     actorUserId: payload.actorUserId,
   })
@@ -190,7 +190,7 @@ async function evalFailedStep(
     linkedEntityId: payload.evalSetId,
     linkedEntityLabel: `Eval set ${payload.evalSetId}`,
     linkedPath: orgSlug
-      ? organizationDashboardPath(orgSlug, "knowledge")
+      ? organizationAppsPath(orgSlug, "knowledge")
       : null,
   })
 

@@ -3,21 +3,25 @@ description: Rules for the public Fumadocs ask-docs surface (`/{locale}/ask-docs
 globs:
   - "app/(ask-docs)/**"
   - "app/og/ask-docs/**"
-  - "app/api/search/**"
   - "app/api/ask-docs-search/**"
   - "app/api/chat/**"
-  - "components/ai/**"
+  - "components2/ai/search.tsx"
+  - "components2/ask-docs-mermaid.tsx"
+  - "components2/feedback/**"
   - "app/llms.txt/**"
   - "app/llms-full.txt/**"
   - "app/llms.mdx/**"
   - "content/ask-docs/**"
-  - "lib/ask-docs-*.ts"
-  - "lib/ask-docs-*.shared.ts"
-  - "components/ask-docs-mermaid.tsx"
-  - "components/feedback/**"
+  - "lib/ask-docs/**"
   - "scripts/validate-ask-docs-links.ts"
+  - "scripts/lint-ask-docs-prose.mjs"
   - "scripts/lint-ask-docs-quality.mjs"
   - "scripts/audit-ask-docs-quality.mjs"
+  - "scripts/ask-docs-check-gate.mjs"
+  - "scripts/ask-docs-scaffold-from-manifest.mjs"
+  - "scripts/lib/ask-docs-scaffold-manifest.shared.mjs"
+  - "tests/fixtures/ask-docs-scaffold-dry-run.manifest.json"
+  - "tests/unit/ask-docs/**"
   - ".agents/skills/adqs/**"
 alwaysApply: false
 ---
@@ -96,7 +100,10 @@ icon: BookOpen
 - Run `pnpm lint:ask-docs-links` after adding or changing internal links (`[text](/ask-docs/…)`).
 - Run `pnpm lint:ask-docs-prose` after substantive MDX edits (markdownlint-cli2; config `.config/markdownlint-ask-docs.jsonc`).
 - Run `pnpm lint:ask-docs-quality` after substantive MDX edits (stub strings, Related graph, stable frontmatter).
-- Scaffold new pages with `pnpm gen ask-doc` (enforces frontmatter + section skeleton; use `--archetype` when available).
+- Scaffold new pages with `pnpm gen ask-doc` (enforces frontmatter + section skeleton; use `--archetype` when available) or batch via `pnpm ask-docs:scaffold` + `content/ask-docs/scaffold.manifest.json`.
+- Before a docs PR: `pnpm ask-docs:preflight` (`validate-manifest` + fixture `scaffold:dry-run` + `ask-docs:check`).
+- After substantive edits: `pnpm ask-docs:check` (links + prose + ADQS quality). Compile is automatic on `pnpm dev` / `pnpm build` via Fumadocs — do not add `gen ask-doc` to `prebuild`.
+- Preview scaffold: `pnpm ask-docs:validate-manifest` then `pnpm ask-docs:scaffold -- --dry-run` (production manifest) or `pnpm ask-docs:scaffold:dry-run` (fixture).
 
 ### ADQS — Ask-Docs Quality Standard (target ≥95% = 47.5/50)
 
@@ -324,11 +331,17 @@ Config: `cli.json` at repo root — already initialised. Do not re-run `pnpm dlx
 ## Lint gates
 
 ```bash
+pnpm ask-docs:preflight       # validate manifest + fixture dry-run + quality (pre-PR)
+pnpm ask-docs:check           # links + prose + quality (after content edits)
+pnpm ask-docs:validate-manifest
+pnpm ask-docs:scaffold -- --dry-run
+pnpm ask-docs:scaffold:dry-run
+pnpm ask-docs:scaffold        # batch gen from scaffold.manifest.json (on demand)
 pnpm lint:ask-docs-links      # internal URLs in MDX
 pnpm lint:ask-docs-prose      # markdownlint-cli2
 pnpm lint:ask-docs-quality    # ADQS stubs, Related graph, frontmatter (ADR-0027)
 pnpm audit:ask-docs-quality   # optional corpus tier report → .artifacts/ask-docs-quality-audit.txt
-pnpm exec eslint --max-warnings=0 "app/(ask-docs)" app/og/ask-docs app/api/ask-docs-search app/api/chat components/ai lib/ask-docs source.config.ts
+pnpm exec eslint --max-warnings=0 "app/(ask-docs)" app/og/ask-docs app/api/ask-docs-search app/api/chat components2/ai/search.tsx components2/ask-docs-mermaid.tsx lib/ask-docs source.config.ts scripts/ask-docs-check-gate.mjs scripts/ask-docs-scaffold-from-manifest.mjs scripts/lib/ask-docs-scaffold-manifest.shared.mjs
 pnpm typecheck
 ```
 

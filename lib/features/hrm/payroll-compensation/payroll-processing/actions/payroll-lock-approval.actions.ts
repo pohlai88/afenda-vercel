@@ -11,7 +11,7 @@ import {
 } from "#features/planner/server"
 import { db } from "#lib/db"
 import { hrmApproval } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { organizationHrmPath } from "../../../constants"
@@ -34,7 +34,7 @@ import type { PayrollLockApprovalFormState } from "../../../types"
  */
 function revalidatePayrollPages() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/payroll"),
     "layout"
   )
 }

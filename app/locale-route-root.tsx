@@ -1,12 +1,12 @@
 import { Suspense } from "react"
 import { hasLocale, NextIntlClientProvider } from "next-intl"
-import { getMessages, setRequestLocale } from "next-intl/server"
+import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
 
 import { LocaleRouteDevGate } from "#components2/dev/locale-route-dev-gate.client"
 import { HtmlLangSync } from "#components2/html-lang-sync.client"
 import { RouteEnvelopeProvider } from "#components2/route-envelope-context.client"
-import { ensureAppLocale } from "#lib/i18n/locales.shared"
+import { bindRequestLocale } from "#lib/i18n/bind-request-locale.server"
 import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 import { routing } from "../i18n/routing"
 
@@ -33,8 +33,7 @@ async function LocaleRouteRootInner({
   if (!hasLocale(routing.locales, localeRaw)) {
     notFound()
   }
-  const locale = ensureAppLocale(localeRaw)
-  setRequestLocale(locale)
+  const locale = bindRequestLocale(localeRaw)
   const messages = await getMessages()
 
   const envelope: RouteEnvelope = {

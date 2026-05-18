@@ -5,11 +5,11 @@ import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import {
-  ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL,
-  ORG_DASHBOARD_HRM_EMPLOYEES,
-  ORG_DASHBOARD_HRM_ONBOARDING,
-} from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+  ORG_APPS_HRM_EMPLOYEE_DETAIL,
+  ORG_APPS_HRM_EMPLOYEES,
+  ORG_APPS_HRM_ONBOARDING,
+} from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { requireBoardingTaskMutationGate } from "../data/employee-lifecycle-action-guard.server"
 import { transitionBoardingTask } from "../data/boarding.mutations.server"
@@ -21,23 +21,23 @@ import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.
 import { HRM_EMPLOYEE_LIFECYCLE_AUDIT } from "../employee-lifecycle.contract"
 import type { ContractMutationFormState } from "../../../types"
 
-const ORG_DASHBOARD_HRM_OFFBOARDING = "/hrm/offboarding" as const
+const ORG_APPS_HRM_OFFBOARDING = "/hrm/offboarding" as const
 
 function revalidateBoardingSurfaces() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_ONBOARDING),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_ONBOARDING),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_OFFBOARDING),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_OFFBOARDING),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEES),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
 }

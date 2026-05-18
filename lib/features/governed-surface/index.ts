@@ -75,6 +75,47 @@ export {
 } from "./schemas/list-surface-renderer.schema"
 
 export {
+  GOVERNED_KANBAN_BOARD_SCHEMA_ID,
+  GOVERNED_KANBAN_BOARD_SCHEMA_STABILITY,
+  governedKanbanBoardConfigurationSchema,
+  parseGovernedKanbanBoardConfiguration,
+  type GovernedKanbanBoardConfiguration,
+  type GovernedKanbanBoardConfigurationInput,
+  type KanbanBadgeTone,
+  type KanbanBoardCopy,
+  type KanbanCard,
+  type KanbanCardTransitionAvailability,
+  type KanbanColumn,
+  type KanbanInteractionMode,
+  type KanbanWorkflowTransition,
+} from "./schemas/kanban-board.schema"
+
+export {
+  buildKanbanWorkflowFromColumnTransitions,
+  indexKanbanWorkflowTransitions,
+  isKanbanTransitionAllowed,
+  kanbanTransitionId,
+  validateKanbanCardTransitions,
+} from "./kanban-workflow.shared"
+
+export {
+  buildKanbanOutgoingTransitionHints,
+  isKanbanCardTransitionRenderable,
+  kanbanCardTransitionHidden,
+  resolveKanbanCardTransition,
+  type KanbanOutgoingTransitionTargetInput,
+  type ResolveKanbanCardTransitionInput,
+} from "./kanban-card-transition.shared"
+
+export {
+  buildKanbanCardMovePayload,
+  isKanbanCardDraggable,
+  resolveKanbanCardDropState,
+  type KanbanCardDropState,
+  type KanbanCardMovePayload,
+} from "./kanban-card-drop.shared"
+
+export {
   SCHEMA_STABILITY as LIST_SURFACE_ROW_TRAILING_ACTION_SCHEMA_STABILITY,
   listSurfaceRowTrailingActionSchema,
   parseListSurfaceRowTrailingAction,
@@ -146,6 +187,35 @@ export {
 } from "./schemas/dev-assert.shared"
 
 export {
+  GOVERNED_METADATA_SCHEMA_VERSION,
+  governedMetadataSchemaVersionSchema,
+  type GovernedMetadataSchemaVersion,
+} from "./schemas/schema-version.shared"
+
+export {
+  GOVERNED_FORM_RULES_SCHEMA_ID,
+  GOVERNED_FORM_RULES_SCHEMA_STABILITY,
+  formRuleConditionSchema,
+  formRuleEffectSchema,
+  formRuleFieldConditionSchema,
+  formRuleSchema,
+  parseFormRuleData,
+  type FormRule,
+  type FormRuleCondition,
+  type FormRuleEffect,
+  type FormRuleFieldCondition,
+} from "./schemas/form-rules.schema"
+
+export {
+  evaluateFormRuleCondition,
+  resolveFormFieldRuleState,
+  type FormFieldRuleState,
+  type FormRuleValues,
+} from "./form-rules.evaluate.shared"
+
+export { migrateGovernedConfiguration } from "./migrate-governed-configuration.shared"
+
+export {
   ModulePageHeader,
   type ModulePageHeaderProps,
 } from "./components/module-page-header"
@@ -167,6 +237,28 @@ export {
   type GovernedPatternCListSectionLayout,
   type GovernedPatternCListSectionProps,
 } from "./components/governed-pattern-c-list-section"
+export {
+  GovernedPatternBListSection,
+  type GovernedPatternBListSectionLayout,
+  type GovernedPatternBListSectionProps,
+} from "./components/governed-pattern-b-list-section"
+export {
+  GovernedKanbanFooterSection,
+  type GovernedKanbanFooterSectionLayout,
+  type GovernedKanbanFooterSectionProps,
+} from "./components/governed-kanban-footer-section"
+/** Same RSC shell — pass `GovernedKanbanDragBoard` as children for `drag-reorder`. */
+export {
+  GovernedKanbanFooterSection as GovernedKanbanDragSection,
+  type GovernedKanbanFooterSectionLayout as GovernedKanbanDragSectionLayout,
+  type GovernedKanbanFooterSectionProps as GovernedKanbanDragSectionProps,
+} from "./components/governed-kanban-footer-section"
+export {
+  governedKanbanBoardTestId,
+  governedKanbanCardTestId,
+  resolveKanbanBoardDomProps,
+  governedKanbanSectionTestId,
+} from "./kanban-surface-identity.shared"
 export {
   GovernedEmpty,
   type GovernedEmptyProps,

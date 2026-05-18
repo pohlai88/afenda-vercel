@@ -50,8 +50,8 @@ Generated: 2026-05-17
 - `lib/features/hrm/payroll-compensation/expenses-reimbursement/components/claim-pending-inbox.tsx`
 - `lib/features/hrm/payroll-compensation/expenses-reimbursement/components/claim-recent-table.tsx`
 - `lib/features/hrm/talent-management/competency-skills-framework/components/hrm-skills-page.tsx`
-- `lib/features/hrm/talent-management/performance-management/components/hrm-performance-page.tsx`
-- `lib/features/hrm/talent-management/recruitment-applicant-tracking/components/recruitment-page.tsx`
+- `lib/features/hrm/talent-management/performance-appraisals/components/hrm-performance-page.tsx`
+- `lib/features/hrm/talent-management/recruitment-onboarding/components/recruitment-page.tsx`
 - `lib/features/hrm/talent-management/training-development/components/training-analytics-section.tsx`
 - `lib/features/hrm/talent-management/training-development/components/training-assignment-section.tsx`
 - `lib/features/hrm/talent-management/training-development/components/training-catalog-section.tsx`

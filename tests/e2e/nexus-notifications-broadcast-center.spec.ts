@@ -26,7 +26,7 @@ test.describe("nexus notifications broadcast center (optional credentials)", () 
         "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
       )
 
-      await page.goto(`/en/o/${slug}/dashboard`)
+      await page.goto(`/en/o/${slug}/nexus`)
       await expect(
         page.getByRole("banner", { name: "Afenda system utility bar" })
       ).toBeVisible({ timeout: 15_000 })

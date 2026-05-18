@@ -24,8 +24,8 @@ import {
   submitDeleteKpiGoalAction,
   submitDeleteKpiGoalCommentAction,
   submitPostKpiGoalCommentAction,
-  submitRemoveKpiGoalMilestoneAction,
 } from "../actions/kpi-goal.actions"
+import { KpiGoalMilestonesListSection } from "./kpi-goal-milestones-list-section"
 import { organizationHrmPath } from "../../../constants"
 import {
   listKpiGoalAggregateForOrganization,
@@ -153,37 +153,14 @@ export async function KpiGoalList({
               <p className="mb-2 text-sm font-medium">
                 {t("goalMilestonesTitle")}
               </p>
-              {milestones.length === 0 ? (
-                <p className="text-sm text-muted-foreground">ÔÇö</p>
-              ) : (
-                <ul className="divide-y divide-border rounded-md border border-border text-sm">
-                  {milestones.map((m) => (
-                    <li
-                      key={m.id}
-                      className="flex flex-wrap items-center justify-between gap-2 px-3 py-2"
-                    >
-                      <span>{m.title}</span>
-                      {isHrmAdmin ? (
-                        <form
-                          action={asVoidKpiGoalAction(
-                            submitRemoveKpiGoalMilestoneAction
-                          )}
-                        >
-                          <input type="hidden" name="orgSlug" value={orgSlug} />
-                          <input
-                            type="hidden"
-                            name="milestoneId"
-                            value={m.id}
-                          />
-                          <Button type="submit" variant="ghost" size="sm">
-                            {t("goalMilestoneRemove")}
-                          </Button>
-                        </form>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <KpiGoalMilestonesListSection
+                orgSlug={orgSlug}
+                milestones={milestones.map((m) => ({
+                  id: m.id,
+                  title: m.title,
+                }))}
+                isHrmAdmin={isHrmAdmin}
+              />
               {isHrmAdmin ? (
                 <form
                   action={asVoidKpiGoalAction(submitAddKpiGoalMilestoneAction)}

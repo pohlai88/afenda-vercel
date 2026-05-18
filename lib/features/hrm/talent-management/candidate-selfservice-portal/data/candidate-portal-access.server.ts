@@ -89,7 +89,7 @@ export async function listOpenRequisitionsForPublicCareers(
   organizationId: string
 ) {
   const { listOpenJobRequisitionsForOrganization } = await import(
-    "../../recruitment-applicant-tracking/data/recruitment.queries.server"
+    "../../recruitment-onboarding/data/recruitment.queries.server"
   )
   return listOpenJobRequisitionsForOrganization(organizationId)
 }

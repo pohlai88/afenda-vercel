@@ -13,18 +13,16 @@ import type { PortalAudience } from "#lib/portal"
 
 export type RouteSurface =
   | "locale"
-  | "dashboard"
+  | "apps"
   | "admin"
-  | "operator"
+  | "platform"
   | "auth"
   | "iam"
   | "account"
   /** Cross-org picker (`/{locale}/console`) — signed-in, no active org required. */
   | "console"
-  /** Tenant slug segment (`/{locale}/o/{orgSlug}`) before dashboard/admin shells. */
+  /** Tenant slug segment (`/{locale}/o/{orgSlug}`) before apps/admin shells. */
   | "org"
-  /** Capability registry (`/{locale}/o/{orgSlug}/marketplace`) — org-scoped. */
-  | "marketplace"
   /** Portal boundary (`/{locale}/p/{portalSlug}`) for org-owned external surfaces. */
   | "portal"
 

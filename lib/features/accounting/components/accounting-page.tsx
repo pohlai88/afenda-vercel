@@ -5,7 +5,7 @@ import {
   GovernedSurface,
   parsePageHeaderData,
 } from "#features/governed-surface"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
 
 const ACCOUNTING_FOUNDATION_STEPS = [
   "chartOfAccounts",
@@ -18,7 +18,7 @@ export async function AccountingPage({ orgSlug }: { orgSlug: string }) {
     getTranslations("Accounting.foundation"),
     getTranslations("Dashboard.nav"),
   ])
-  const nexusHref = organizationDashboardPath(orgSlug, "home")
+  const nexusHref = organizationAppsPath(orgSlug, "home")
 
   const headerParsed = parsePageHeaderData({
     eyebrow: t("eyebrow"),

@@ -26,7 +26,7 @@ const appDir = path.join(root, "app")
  *
  * Each entry is a forward-slash path relative to the repo root.
  * Add only at durable operational ownership boundaries (org shell,
- * dashboard shell, admin/operator workbench, auth/IAM shell, major
+ * dashboard shell, org admin / platform console, auth/IAM shell, major
  * product surface with independent recovery ownership).
  *
  * Do NOT add module-level boundaries (widgets, cards, tables, forms,
@@ -43,12 +43,12 @@ const APPROVED_BOUNDARIES = new Set([
   "app/(main)/[locale]/(auth)/error.tsx",
   // IAM shell
   "app/(main)/[locale]/(iam)/error.tsx",
-  // Operator workbench (global admin)
-  "app/(main)/[locale]/operator/error.tsx",
+  // Platform console (Afenda global admin)
+  "app/(main)/[locale]/platform/error.tsx",
   // Org shell (all tenant surfaces)
   "app/(main)/[locale]/o/[orgSlug]/error.tsx",
   // Dashboard shell (all ERP modules)
-  "app/(main)/[locale]/o/[orgSlug]/dashboard/error.tsx",
+  "app/(main)/[locale]/o/[orgSlug]/apps/error.tsx",
   // Org admin workbench
   "app/(main)/[locale]/o/[orgSlug]/admin/error.tsx",
   // Multi-org console (org picker)
@@ -57,10 +57,8 @@ const APPROVED_BOUNDARIES = new Set([
   "app/(main)/[locale]/p/[portalSlug]/error.tsx",
   // Employee portal self-service segment (under PortalShell + portal-auth group)
   "app/(main)/[locale]/p/[portalSlug]/(portal-auth)/employee/error.tsx",
-  // Orbit (Planner) surface — org workspace with dedicated WorkbenchCommandLayer
-  "app/(main)/[locale]/o/[orgSlug]/dashboard/orbit/error.tsx",
-  // Orbit (Planner) surface — account/personal planning surface under (iam)
-  "app/(main)/[locale]/(iam)/account/orbit/error.tsx",
+  // Orbit (Planner) surface — org apps segment with dedicated command layer
+  "app/(main)/[locale]/o/[orgSlug]/apps/orbit/error.tsx",
 ])
 
 const SERVER_ONLY_PKG_RE =

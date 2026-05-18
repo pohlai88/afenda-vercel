@@ -6,7 +6,7 @@ import { eq, and, inArray } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmLeavePolicy, hrmLeaveType } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import {
   MY_EA_2023_LEAVE_TYPES,
@@ -26,8 +26,8 @@ import type {
 } from "../../../types"
 
 function revalidateLeave() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "page")
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/policies"), "page")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/leave"), "page")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/policies"), "page")
 }
 
 // ---------------------------------------------------------------------------

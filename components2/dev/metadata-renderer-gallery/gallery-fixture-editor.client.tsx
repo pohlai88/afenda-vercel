@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { z } from "zod"
 
-import type { GovernedComponent } from "#features/governed-surface"
+import type { GovernedComponent } from "#features/governed-surface/client"
 import { governedComponentDiscriminatedSchema } from "#features/governed-surface/schemas/component.schema"
 import { GovernedComponentRenderer } from "#components2/metadata"
 import type { GovernedComponentRendererDiagnostics } from "#components2/metadata/registry"

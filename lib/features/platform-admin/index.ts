@@ -9,8 +9,7 @@ export {
   PLATFORM_ADMIN_USERS_SEARCH_MAX_LENGTH,
   getPlatformAdminCapabilityById,
   isAllowedPlatformAdminSegment,
-  organizationOperatorPath,
-  platformAdminPath,
+  platformPath,
 } from "./constants"
 export type { RegisteredPlatformAdminCapability } from "./constants"
 
@@ -45,7 +44,7 @@ export {
 export { listOrganizationsForPlatformAdmin } from "./data/organizations.queries.server"
 
 // Phase 2 — Working Memory Rail pressure. Server-only query wrapped in
-// `React.cache` so the layout (`app/[locale]/operator/layout.tsx`) and
+// `React.cache` so the layout (`app/[locale]/platform/layout.tsx`) and
 // any future RSC consumers share a single round trip per request.
 export { getPlatformAdminRailPressureCounts } from "./data/platform-admin-rail-pressure.queries.server"
 
@@ -62,5 +61,5 @@ export { buildPlatformAdminRailSlots } from "./data/platform-admin-rail-slots"
 
 // UI components
 export { PlatformAdminUsersSearch } from "./components/platform-admin-users-search"
-export { PlatformAdminUsersTable } from "./components/platform-admin-users-table"
-export { PlatformAdminOrganizationsTable } from "./components/platform-admin-organizations-table"
+export { PlatformAdminUsersListSection } from "./components/platform-admin-users-list-section"
+export { PlatformAdminOrganizationsListSection } from "./components/platform-admin-organizations-list-section"

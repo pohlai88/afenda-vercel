@@ -2,12 +2,18 @@ import { z } from "zod"
 
 import type { SchemaStability } from "./_stability.shared"
 
+import { formRuleSchema } from "./form-rules.schema"
+import { governedMetadataSchemaVersionSchema } from "./schema-version.shared"
 import { governedSurfaceChromeSchema } from "./surface-chrome.schema"
 
 export const GOVERNED_MULTI_STEP_FORM_SCHEMA_ID =
   "governed.multi-step-form.configuration" as const
 
 export const GOVERNED_MULTI_STEP_FORM_SCHEMA_STABILITY: SchemaStability = "beta"
+
+/** Multi-step wizard data nature (ADR-0025 §2). */
+export const multiStepFormDataNatureSchema = z.literal("wizard")
+export type MultiStepFormDataNature = z.infer<typeof multiStepFormDataNatureSchema>
 
 export const governedFormFieldKindSchema = z.enum([
   "text",
@@ -32,6 +38,8 @@ export const governedFormFieldSchema = z
     required: z.boolean().default(false),
     placeholder: z.string().trim().min(1).optional(),
     options: z.array(governedFormFieldOptionSchema).optional(),
+    /** Conditional visibility/enablement (JSON Forms–style; evaluated server + client). */
+    rules: z.array(formRuleSchema).optional(),
   })
   .strict()
   .superRefine((field, ctx) => {
@@ -79,15 +87,16 @@ export const governedFormStepSchema = z
     }
   })
 
-export const governedMultiStepFormConfigurationSchema = z
-  .object({
+export const governedMultiStepFormConfigurationSchema =
+  governedMetadataSchemaVersionSchema
+    .extend({
+    dataNature: multiStepFormDataNatureSchema.default("wizard"),
     formId: z.string().trim().min(1),
     actionId: z.string().trim().min(1),
     steps: z.array(governedFormStepSchema).min(1),
     submitLabel: z.string().trim().min(1).default("Submit"),
     chrome: governedSurfaceChromeSchema.optional(),
-  })
-  .strict()
+    })
   .superRefine((form, ctx) => {
     const seen = new Set<string>()
 

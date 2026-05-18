@@ -13,7 +13,7 @@
 ## 1. Context
 
 Recruitment needs an external candidate boundary separate from the internal
-Workbench ATS (`recruitment-applicant-tracking/`). Employee self-service already
+Workbench ATS (`recruitment-onboarding/`). Employee self-service already
 uses a dedicated portal feature slice under `/p/{portalSlug}/employee/*` with
 session-backed guards.
 
@@ -31,7 +31,7 @@ Add a **`candidate`** portal audience mirroring the ESS slice pattern:
 | ------------------ | --------------------------------------------------------------------------------- |
 | Portal feature     | `candidate-selfservice-portal/`                                                   |
 | Portal audit       | `cssp.contract.ts` → `erp.hrm.cssp.*`                                             |
-| Workbench ATS      | `recruitment-applicant-tracking/` → `erp.hrm.recruitment.*`                       |
+| Workbench ATS      | `recruitment-onboarding/` → `erp.hrm.recruitment.*`                       |
 | Public careers     | `/{locale}/p/{portalSlug}/candidate/careers/*` — no signed-in session             |
 | Application status | `/{locale}/p/{portalSlug}/candidate/applications/[token]/*` — magic-link gated    |
 

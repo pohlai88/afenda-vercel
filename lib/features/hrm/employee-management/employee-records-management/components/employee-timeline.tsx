@@ -7,11 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 
-import {
-  buildEmployeeTimelineMetadataView,
-  type EmployeeTimelineFacetLabelKey,
-} from "../data/employee-timeline-metadata.shared"
+import type { EmployeeTimelineFacetLabelKey } from "../data/employee-timeline-metadata.shared"
+import { buildEmployeeTimelineListSurfaceConfiguration } from "../data/employee-timeline-list-surface.server"
 import type { EmployeeIamAuditTimelineRow } from "../../../types"
 
 function resolveTimelineActionLabel(
@@ -68,6 +67,24 @@ export async function EmployeeTimeline({ rows }: EmployeeTimelineProps) {
     getFormatter(),
   ])
 
+  const listConfiguration = buildEmployeeTimelineListSurfaceConfiguration(rows, {
+    empty: t("timelineEmpty"),
+    colAction: t("timelineColEvent"),
+    colWhen: t("timelineColWhen"),
+    colActor: t("timelineActorLabel"),
+    colDetails: t("timelineColDetails"),
+    actionLabelFor: (action) => resolveTimelineActionLabel(action, t),
+    formatWhen: (value) =>
+      format.dateTime(value, { dateStyle: "medium", timeStyle: "short" }),
+    actorLabelFor: (row) =>
+      row.actorEmail?.trim() ||
+      (row.actorUserId ? shortId(row.actorUserId) : null) ||
+      t("timelineActorUnknown"),
+    facetLabelFor: (labelKey) => t(labelKey),
+    formatFacetValue: (labelKey, value) => formatFacetValue(labelKey, value, t),
+    actorUnknown: t("timelineActorUnknown"),
+  })
+
   return (
     <Card size="sm">
       <CardHeader>
@@ -75,72 +92,12 @@ export async function EmployeeTimeline({ rows }: EmployeeTimelineProps) {
         <CardDescription>{t("timelineDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
-        {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("timelineEmpty")}</p>
-        ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border">
-            {rows.map((row) => {
-              const metaView = buildEmployeeTimelineMetadataView(row.metadata)
-              const when = format.dateTime(row.createdAt, {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })
-              const actor =
-                row.actorEmail?.trim() ||
-                (row.actorUserId ? shortId(row.actorUserId) : null) ||
-                t("timelineActorUnknown")
-              const resourceBits = [row.resourceType, shortId(row.resourceId)]
-                .filter(Boolean)
-                .join(" · ")
-
-              return (
-                <li key={row.id} className="flex flex-col gap-2 px-3 py-3">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      {resolveTimelineActionLabel(row.action, t)}
-                    </p>
-                    <time
-                      className="shrink-0 text-xs text-muted-foreground tabular-nums"
-                      dateTime={row.createdAt.toISOString()}
-                    >
-                      {when}
-                    </time>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("timelineActorLabel")}: {actor}
-                  </p>
-                  {resourceBits ? (
-                    <p className="font-mono text-[11px] text-muted-foreground">
-                      {t("timelineResourceLabel")}: {resourceBits}
-                    </p>
-                  ) : null}
-                  {metaView.narrative ? (
-                    <p className="text-sm leading-snug text-foreground">
-                      {metaView.narrative}
-                    </p>
-                  ) : null}
-                  {metaView.facets.length > 0 ? (
-                    <dl className="grid gap-1 text-xs sm:grid-cols-2">
-                      {metaView.facets.map((f) => (
-                        <div
-                          key={`${row.id}-${f.labelKey}`}
-                          className="min-w-0"
-                        >
-                          <dt className="text-muted-foreground">
-                            {t(f.labelKey)}
-                          </dt>
-                          <dd className="font-medium wrap-break-word">
-                            {formatFacetValue(f.labelKey, f.value, t)}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
-                  ) : null}
-                </li>
-              )
-            })}
-          </ul>
-        )}
+        <GovernedPatternCListSection
+          layout="embedded"
+          title=""
+          listConfiguration={listConfiguration}
+          surfaceKey="hrm:employee:timeline"
+        />
       </CardContent>
     </Card>
   )

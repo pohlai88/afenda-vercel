@@ -17,14 +17,14 @@ import {
 import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 import { organizationMarketplacePath } from "#features/marketplace"
 import { Link } from "#i18n/navigation"
-import { requireOrgSession } from "#lib/auth"
+import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminIntegrationsPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/admin/integrations">) {
   const { orgSlug } = await params
   const t = await getTranslations("OrgAdmin.integrations")
-  const orgSession = await requireOrgSession()
+  const orgSession = await getOrgTenantContext()
 
   // Working Memory Rail — record this page in the operator's recents.
   await recordOrgAdminPageVisit({

@@ -24,6 +24,7 @@ type OrgAuditEventsViewProps = {
   }
   prevHref: Route | null
   nextHref: Route | null
+  listSlot?: ReactNode
 }
 
 export function OrgAuditEventsView({
@@ -36,9 +37,9 @@ export function OrgAuditEventsView({
   result,
   prevHref,
   nextHref,
+  listSlot,
 }: OrgAuditEventsViewProps) {
   const t = useTranslations("OrgAdmin.audit.events")
-  const noValue = t("noValue")
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-6">
@@ -89,50 +90,10 @@ export function OrgAuditEventsView({
         ) : null}
       </p>
 
-      {result.rows.length === 0 ? (
+      {listSlot ?? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
           {t("empty")}
         </p>
-      ) : (
-        <div className="overflow-x-auto rounded-md border">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b bg-muted/40">
-              <tr>
-                <th className="px-3 py-2 font-medium">{t("headerWhen")}</th>
-                <th className="px-3 py-2 font-medium">{t("headerOrigin")}</th>
-                <th className="px-3 py-2 font-medium">{t("headerAction")}</th>
-                <th className="px-3 py-2 font-medium">{t("headerActor")}</th>
-                <th className="px-3 py-2 font-medium">{t("headerResource")}</th>
-                <th className="px-3 py-2 font-medium">{t("headerDetails")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {result.rows.map((r) => (
-                <tr key={r.id}>
-                  <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">
-                    {r.createdAt.toISOString().replace("T", " ").slice(0, 19)}{" "}
-                    {t("timestampSuffix")}
-                  </td>
-                  <td className="px-3 py-2 font-mono text-xs">
-                    {r.auditOrigin}
-                  </td>
-                  <td className="px-3 py-2 font-mono text-xs">{r.action}</td>
-                  <td className="max-w-[180px] truncate px-3 py-2">
-                    {r.actorEmail ?? r.actorUserId ?? noValue}
-                  </td>
-                  <td className="max-w-[200px] truncate px-3 py-2 text-xs">
-                    {r.resourceType && r.resourceId
-                      ? `${r.resourceType}:${r.resourceId}`
-                      : noValue}
-                  </td>
-                  <td className="max-w-[280px] truncate px-3 py-2 text-xs text-muted-foreground">
-                    {r.metadataSummary ?? r.path ?? noValue}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-2">

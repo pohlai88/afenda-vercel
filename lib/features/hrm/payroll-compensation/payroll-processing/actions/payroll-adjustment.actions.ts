@@ -4,7 +4,7 @@ import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { HRM_PAYROLL_PROCESSING_AUDIT } from "../payroll-processing.contract"
 import { recordPayrollAdjustmentFormSchema } from "../schemas/payroll-adjustment.schema"
@@ -16,7 +16,7 @@ import type { PayrollAdjustmentFormState } from "../payroll-form-states"
 
 function revalidatePayrollPages() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/payroll"),
     "layout"
   )
 }

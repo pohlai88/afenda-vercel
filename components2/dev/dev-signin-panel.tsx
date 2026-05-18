@@ -10,7 +10,7 @@ import { useDevSignInPanelDrag } from "./dev-signin-panel-drag"
 
 import { usePathname } from "#i18n/navigation"
 import { neonAuthClient } from "#lib/auth-client-neon-compat"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { employeePortalPath } from "#lib/portal"
 import {
   uiRadius,
@@ -36,7 +36,7 @@ const DEMO_ORG_SLUG = "demo-org"
 /** Must match `DEMO_EMPLOYEE_PORTAL_SLUG` in `tests/fixtures/bootstrap-mocks.ts`. */
 const DEMO_EMPLOYEE_PORTAL_SLUG = "demo-org-employee"
 
-const DEMO_DASHBOARD_HOME = organizationDashboardPath(DEMO_ORG_SLUG, "home")
+const DEMO_NEXUS_HOME = organizationAppsPath(DEMO_ORG_SLUG, "home")
 const DEMO_PORTAL_LEAVE = employeePortalPath(DEMO_EMPLOYEE_PORTAL_SLUG, "leave")
 
 /**
@@ -136,7 +136,7 @@ const DEV_SIGNIN_PRESETS: ReadonlyArray<{
     role: "Member",
     tone: "neutral",
     description: "Standard ERP member — demo org dashboard home.",
-    postAuthRoute: DEMO_DASHBOARD_HOME,
+    postAuthRoute: DEMO_NEXUS_HOME,
   },
 ]
 

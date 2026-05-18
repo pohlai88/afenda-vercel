@@ -1,0 +1,11 @@
+[
+  {
+    "section": "hrm",
+    "slug": "zz-pipeline-dry-run",
+    "title": "Pipeline dry run",
+    "description": "Fixture manifest entry for scaffold pipeline validation only.",
+    "audience": "admin",
+    "status": "draft",
+    "archetype": "workflow"
+  }
+]

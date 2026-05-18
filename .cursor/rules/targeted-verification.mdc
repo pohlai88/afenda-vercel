@@ -21,7 +21,7 @@ pnpm typecheck
 
 | What you touched | Path to pass |
 |---|---|
-| One file | `app/[locale]/o/[orgSlug]/dashboard/contacts/page.tsx` |
+| One file | `app/[locale]/o/[orgSlug]/apps/contacts/page.tsx` |
 | A feature module | `lib/features/contacts/` |
 | Shell components | `components2/app-shell/` |
 | Multiple dirs | `lib/features/hrm/ components2/app-shell/` |

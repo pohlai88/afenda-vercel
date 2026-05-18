@@ -5,7 +5,7 @@ import { BOOTSTRAP_FIXTURE } from "../fixtures/bootstrap-mocks"
 /**
  * Capability Registry — org-scoped marketplace proxy gate.
  *
- * Auth-gated proxy contract for `/{locale}/o/{orgSlug}/marketplace/*`.
+ * Auth-gated proxy contract for legacy `/{locale}/o/{orgSlug}/marketplace/*` (308 → nexus after sign-in).
  * Mirrors `smoke.spec.ts`: unauthenticated users redirect to locale-prefixed
  * `/sign-in` with a `callbackUrl` preserving the full target path.
  */

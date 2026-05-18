@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { auth, writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { toLocaleRoutePattern } from "#lib/i18n/locales.shared"
+import { toLocalePlatformRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireGlobalAdminSession } from "#lib/auth"
 
 const userIdSchema = z.string().min(1).max(255)
@@ -28,7 +28,7 @@ export type PlatformAdminUserActionState =
   | { ok: false; error: string }
   | null
 
-const USERS_REVALIDATE_PATTERN = toLocaleRoutePattern("/operator/users")
+const USERS_REVALIDATE_PATTERN = toLocalePlatformRevalidatePattern("/users")
 
 /**
  * Revalidates at **layout** scope so the operator workbench rail's

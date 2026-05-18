@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
@@ -24,7 +24,7 @@ const COMPLIANCE_REVALIDATE_PATH = "/hrm/compliance" as const
 
 function revalidateComplianceSurfaces() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(COMPLIANCE_REVALIDATE_PATH),
+    toLocaleOrgAppsRevalidatePattern(COMPLIANCE_REVALIDATE_PATH),
     "page"
   )
 }

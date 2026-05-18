@@ -1,3 +1,4 @@
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
@@ -18,7 +19,7 @@ describe("HRM documents management contracts", () => {
     expect(actions).toContain("requireHrmDocumentMutationGate")
     expect(actions).toContain("HRM_DOCUMENT_AUDIT")
     expect(actions).toContain("revalidateHrmDocumentSurfaces")
-    expect(actions).toContain('toLocaleOrgDashboardRevalidatePattern("/hrm/documents")')
+    expect(actions).toContain('toLocaleOrgAppsRevalidatePattern("/hrm/documents")')
     expect(actions).toContain("logUnexpectedServerError")
     expect(actions).not.toContain("canActInOrganization")
     expect(actions).not.toContain("requireHrmOrgTenantFromForm")

@@ -9,7 +9,7 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { userCapabilityPreference } from "#lib/db/schema"
 import {
-  toLocaleMarketplaceRevalidatePattern,
+  toLocaleOrgNexusRevalidatePattern,
   toLocaleRoutePattern,
 } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/auth"
@@ -137,7 +137,7 @@ export async function setUserCapabilityPreferenceAction(
 
   // Refresh the marketplace utility list AND the locale layout so the
   // L1 rail (mounted in the locale root layout) re-runs the resolver.
-  revalidatePath(toLocaleMarketplaceRevalidatePattern("/utilities"), "page")
+  revalidatePath(toLocaleOrgNexusRevalidatePattern(), "page")
   revalidatePath(toLocaleRoutePattern("/" as `/${string}`), "layout")
 
   return {

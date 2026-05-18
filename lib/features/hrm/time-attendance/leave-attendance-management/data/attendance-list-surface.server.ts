@@ -1,6 +1,11 @@
 import "server-only"
 
-import type { ListSurfaceRendererConfigurationInput } from "#features/governed-surface"
+import {
+  GOVERNED_METADATA_SCHEMA_VERSION,
+  listSurfaceRowTrailingActionHidden,
+  resolveListSurfaceRowTrailingAction,
+  type ListSurfaceRendererConfigurationInput,
+} from "#features/governed-surface"
 
 import { ATTENDANCE_LIST_SURFACE_IDS } from "./attendance-surface-metadata.shared"
 
@@ -22,6 +27,7 @@ export type AttendanceEventDisplayRow = {
   occurredAt: string
   source: string
   correction: string
+  canCorrect?: boolean
 }
 
 export type AttendanceDayDisplayRow = {
@@ -60,6 +66,7 @@ export function buildAttendanceRecentListSurfaceConfiguration(
   const columnsId =
     copy.columnsId ?? ATTENDANCE_LIST_SURFACE_IDS.recentEvents
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     requiresErpPermission: ATTENDANCE_READ_PERMISSION,
     presentation: PRESENTATION,
@@ -97,6 +104,16 @@ export function buildAttendanceRecentListSurfaceConfiguration(
         source: row.source,
         correction: row.correction,
       },
+      trailingAction: row.canCorrect
+        ? resolveListSurfaceRowTrailingAction({
+            allowed: true,
+            descriptor: {
+              id: "erp.hrm.attendance.correct",
+              label: "Correct",
+              intent: "default",
+            },
+          })
+        : listSurfaceRowTrailingActionHidden(),
     })),
   }
 }
@@ -107,6 +124,7 @@ export function buildAttendancePortalDaysListSurfaceConfiguration(
 ): ListSurfaceRendererConfigurationInput {
   const columnsId = copy.columnsId ?? ATTENDANCE_LIST_SURFACE_IDS.portalDays
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     presentation: PRESENTATION,
     surface: {

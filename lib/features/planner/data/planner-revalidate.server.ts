@@ -3,7 +3,7 @@ import "server-only"
 import { revalidatePath } from "next/cache"
 
 import {
-  toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgAppsRevalidatePattern,
   toLocaleOrgNexusRevalidatePattern,
 } from "#lib/i18n/locales.shared"
 
@@ -16,7 +16,7 @@ function orbitOrgTail(surface: (typeof ORBIT_PRIMARY_SURFACES)[number]) {
 export function revalidateOrgOrbitRoutes(): void {
   for (const surface of ORBIT_PRIMARY_SURFACES) {
     revalidatePath(
-      toLocaleOrgDashboardRevalidatePattern(orbitOrgTail(surface)),
+      toLocaleOrgAppsRevalidatePattern(orbitOrgTail(surface)),
       "page"
     )
   }

@@ -8,7 +8,7 @@ import { and, eq } from "drizzle-orm"
 
 import { requireErpPermission } from "#features/erp-rbac/server"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { ORG_DASHBOARD_HRM_KPI } from "#lib/dashboard-module-paths"
+import { ORG_APPS_HRM_KPI } from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import {
   hrmEmployee,
@@ -16,7 +16,7 @@ import {
   hrmKpiPeriod,
   hrmKpiScore,
 } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import type { OrgSession } from "#lib/auth"
 
 import { buildKpiEvidenceSnapshotForPeriod } from "../data/kpi.queries.server"
@@ -49,7 +49,7 @@ const KPI_PERMISSION = {
 
 function revalidateKpi() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_KPI),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_KPI),
     "page"
   )
 }

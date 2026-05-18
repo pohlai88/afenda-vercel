@@ -106,17 +106,18 @@ Client Components may only import:
 - Client-safe UI primitives (**`#components2/ui/*`** only for the design-system shelf — never a filesystem-relative path into `components/ui`; **`#components2/nexus/*`** for Nexus chrome)
 - Client-safe hooks (`#hooks/*`)
 - Shared types and constants (no `server-only` transitive imports)
-- Designated client barrels: `#features/<module>/client`
+- Designated client barrels: `#features/<module>/client` (**ADR-0030** · `.cursor/rules/module-client-server-barrels.mdc`)
 
 ```tsx
-// ❌ imports server barrel from a Client Component — pulls server-only into the client bundle
-import { listContacts } from '#features/contacts';
+// ❌ imports server barrel from a Client Component — entire index.ts graph loads (next/headers, #lib/auth, …)
+import { isListSurfaceTrailingActionRenderable } from '#features/governed-surface';
 
 // ✅ use the explicit client barrel
 import { archiveContactAction } from '#features/contacts/client';
+import { isListSurfaceTrailingActionRenderable } from '#features/governed-surface/client';
 ```
 
-Client Components must not import feature `index.ts` barrels unless the barrel is explicitly verified as client-safe (no `server-only`, no DB, no `next/headers`).
+Client Components must not import `#features/<module>` (index.ts) when that module's index re-exports server RSC sections or `./data/` — ESLint rule `afenda/feature-client-server-barrel` enforces this on `*.client.tsx`.
 
 ---
 
@@ -406,7 +407,7 @@ Components must live inside the shell contract; they must not renegotiate the sh
 | Layer | Afenda files | Owns | Must not own |
 | --- | --- | --- | --- |
 | Shell | `components2/app-shell/appshell.tsx`, utility bar, command layer, dock | viewport flex column for org layout, `main` scroll contract | Business content width inside workspace routes, feature-level overflow |
-| Route layout | `app/[locale]/o/[orgSlug]/dashboard/layout.tsx`, etc. | `DashboardShell {children}` slot, Tier A session gates, `RouteEnvelope` | Any CSS applied to the `{children}` slot that resizes the shell |
+| Route layout | `app/[locale]/o/[orgSlug]/apps/layout.tsx`, etc. | `DashboardShell {children}` slot, Tier A session gates, `RouteEnvelope` | Any CSS applied to the `{children}` slot that resizes the shell |
 | Page | `page.tsx` leaves | `flex flex-col gap-6`, `ModulePageHeader`, card/section sequence | `h-screen`, `min-h-screen`, viewport overflow |
 | Section | Stat card grids, filter toolbars, list panels | `grid gap-3 sm:grid-cols-3`, `divide-y`, local Tailwind spacing | Shell sidebar width, parent scroll context |
 | Component | `Card`, `Button`, `Input`, `Avatar`, feature components | Internal padding, alignment, variant states, `rounded-*`, `shadow-*` | Sibling geometry, scroll regions, viewport dimensions |

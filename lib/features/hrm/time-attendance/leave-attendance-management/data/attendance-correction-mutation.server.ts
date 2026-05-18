@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache"
 import { sql } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { toLocalePortalRevalidatePattern } from "#lib/portal"
 
 import { regenerateAttendanceDayFromEvents } from "./attendance-aggregator.server"
@@ -24,10 +24,10 @@ import type { AttendanceCorrectionFormState } from "../../../types"
 
 export function revalidateAttendanceAndPayroll() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/attendance"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/attendance"),
     "layout"
   )
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"), "page")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "page")
   revalidatePath(
     toLocalePortalRevalidatePattern("/employee/attendance"),
     "page"

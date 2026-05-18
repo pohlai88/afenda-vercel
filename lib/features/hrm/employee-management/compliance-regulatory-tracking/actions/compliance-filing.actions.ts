@@ -7,7 +7,7 @@ import { and, eq } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmComplianceFiling } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { requireComplianceMutationGate } from "../data/compliance-action-guard.server"
 import {
@@ -24,7 +24,7 @@ const COMPLIANCE_REVALIDATE_PATH = "/hrm/compliance" as const
 
 function revalidateComplianceSurfaces() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(COMPLIANCE_REVALIDATE_PATH),
+    toLocaleOrgAppsRevalidatePattern(COMPLIANCE_REVALIDATE_PATH),
     "page"
   )
 }

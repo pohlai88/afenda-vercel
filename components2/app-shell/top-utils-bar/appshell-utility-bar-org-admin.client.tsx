@@ -14,7 +14,7 @@ import type { Route } from "next"
 import type { ReactNode } from "react"
 
 import { cn } from "#lib/utils"
-import { organizationAdminPath } from "#lib/dashboard-module-paths"
+import { organizationAdminPath } from "#lib/org-apps-module-paths"
 
 import { Link } from "#i18n/navigation"
 import {

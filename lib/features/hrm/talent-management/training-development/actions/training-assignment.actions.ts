@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache"
 
 import { requireErpPermission } from "#features/erp-rbac/server"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { ORG_DASHBOARD_HRM_TRAINING } from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { ORG_APPS_HRM_TRAINING } from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import type { OrgSession } from "#lib/auth"
 
 import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
@@ -34,7 +34,7 @@ const TRAINING_PERMISSION = {
 
 function revalidateTraining() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_TRAINING),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_TRAINING),
     "page"
   )
 }

@@ -28,6 +28,7 @@ import { listExpenseFundsForOrg } from "../data/expense-fund.queries.server"
 import { listActiveEmployeeChoicesForLeave } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
 
 import { ClaimExceptionInbox } from "./claim-exception-inbox"
+import { ClaimKanbanSection } from "./claim-kanban-section"
 import { ClaimPendingInbox } from "./claim-pending-inbox"
 import { ClaimRecentTable } from "./claim-recent-table"
 import { ClaimSubmitDialog } from "./claim-submit-dialog"
@@ -115,6 +116,12 @@ export async function ClaimsPage({ orgSlug, access }: ClaimsPageProps) {
         </Card>
       ) : null}
 
+      {resolvedAccess.canReadOrgClaims ? (
+        <Suspense fallback={<ClaimKanbanSkeleton />}>
+          <ClaimKanbanSection orgSlug={orgSlug} access={resolvedAccess} />
+        </Suspense>
+      ) : null}
+
       <Card size="sm">
         <CardHeader>
           <CardTitle>{t("inboxTitle")}</CardTitle>
@@ -172,6 +179,21 @@ function ClaimSectionSkeleton() {
       <Skeleton className="h-8 w-full" />
       <Skeleton className="h-8 w-full" />
       <Skeleton className="h-8 w-full" />
+    </div>
+  )
+}
+
+function ClaimKanbanSkeleton() {
+  return (
+    <div className="flex flex-col gap-3">
+      <Skeleton className="h-5 w-48" />
+      <Skeleton className="h-4 w-full max-w-md" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-40 w-full" />
+      </div>
     </div>
   )
 }

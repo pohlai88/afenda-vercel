@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import { GovernedEmpty } from "#features/governed-surface"
 
 import {
   listTrainingAssignmentsForOrg,
@@ -16,10 +15,17 @@ import {
 } from "../../../talent-management/training-development/data/training.queries.server"
 import { submitPortalSelfAttestTraining } from "../actions/training-portal.actions"
 import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
-import { buildEmployeePortalTrainingDueListSurfaceConfiguration } from "../data/employee-portal-list-surface.server"
+import {
+  buildEmployeePortalTrainingDueListSurfaceConfiguration,
+  buildEmployeePortalTrainingHistoryListSurfaceConfiguration,
+} from "../data/employee-portal-list-surface.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import {
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 import { EmployeePortalTrainingFeedbackForm } from "./employee-portal-training-feedback-form"
 
@@ -47,6 +53,8 @@ export async function EmployeePortalTrainingPage({
 
   const today = new Date().toISOString().slice(0, 10)
 
+  const trailingContext = { showRowActions: true } as const
+
   const dueConfiguration = buildEmployeePortalTrainingDueListSurfaceConfiguration(
     assignments,
     {
@@ -58,10 +66,29 @@ export async function EmployeePortalTrainingPage({
         value
           ? format.dateTime(value, { dateStyle: "medium" })
           : "—",
-    }
+    },
+    trailingContext
   )
 
   const assignmentById = new Map(assignments.map((row) => [row.id, row]))
+  const recordById = new Map(records.map((row) => [row.id, row]))
+
+  const historyConfiguration =
+    buildEmployeePortalTrainingHistoryListSurfaceConfiguration(
+      records,
+      {
+        empty: t("portalHistoryEmpty"),
+        colCourse: t("colCourse"),
+        colCompleted: t("colCompleted"),
+        colVerification: t("colState"),
+        colFeedback: t("portalFeedbackRating"),
+        formatCompleted: (value) =>
+          format.dateTime(value, { dateStyle: "medium" }),
+        feedbackGivenLabel: (rating) =>
+          t("portalFeedbackGiven", { rating }),
+      },
+      trailingContext
+    )
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -94,15 +121,25 @@ export async function EmployeePortalTrainingPage({
           <CardDescription>{t("portalDueDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <EmployeePortalGovernedTable
-            configuration={dueConfiguration}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={dueConfiguration}
             surfaceKey="hrm:portal:training-due"
+            resolveConfiguredPermission={false}
             trailingColumn={{
               header: " ",
               render: (surfaceRow) => {
+                const trailingAction = surfaceRow.trailingAction
                 const row = assignmentById.get(surfaceRow.id)
-                if (!row) return null
+                if (
+                  !row ||
+                  !isListSurfaceTrailingActionRenderable(trailingAction)
+                ) {
+                  return null
+                }
                 return (
+                  <GovernedTrailingActionSlot trailingAction={trailingAction}>
                   <form
                     action={submitPortalSelfAttestTraining}
                     className="flex flex-wrap items-end gap-2"
@@ -127,6 +164,7 @@ export async function EmployeePortalTrainingPage({
                       {t("portalAttest")}
                     </button>
                   </form>
+                  </GovernedTrailingActionSlot>
                 )
               },
             }}
@@ -140,40 +178,37 @@ export async function EmployeePortalTrainingPage({
           <CardDescription>{t("portalHistoryDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {records.length === 0 ? (
-            <GovernedEmpty
-              model={{
-                variant: "muted",
-                title: t("portalHistoryEmpty"),
-              }}
-            />
-          ) : (
-            <ul className="divide-y rounded-md border text-sm">
-              {records.map((record) => (
-                <li key={record.id} className="px-4 py-3">
-                  <p className="font-medium">{record.courseName}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {format.dateTime(record.completedAt, {
-                      dateStyle: "medium",
-                    })}
-                    {" · "}
-                    {record.verificationState}
-                    {record.feedbackRating
-                      ? ` · ${t("portalFeedbackGiven", { rating: record.feedbackRating })}`
-                      : null}
-                  </p>
-                  {!record.feedbackRating ? (
-                    <EmployeePortalTrainingFeedbackForm
-                      portalSlug={portalSlug}
-                      organizationId={organizationId}
-                      recordId={record.id}
-                      courseName={record.courseName}
-                    />
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={historyConfiguration}
+            surfaceKey="hrm:portal:training-history"
+            resolveConfiguredPermission={false}
+            trailingColumn={{
+              header: " ",
+              render: (surfaceRow) => {
+                const trailingAction = surfaceRow.trailingAction
+                const record = recordById.get(surfaceRow.id)
+                if (
+                  !record ||
+                  record.feedbackRating ||
+                  !isListSurfaceTrailingActionRenderable(trailingAction)
+                ) {
+                  return null
+                }
+                return (
+                  <GovernedTrailingActionSlot trailingAction={trailingAction}>
+                  <EmployeePortalTrainingFeedbackForm
+                    portalSlug={portalSlug}
+                    organizationId={organizationId}
+                    recordId={record.id}
+                    courseName={record.courseName}
+                  />
+                  </GovernedTrailingActionSlot>
+                )
+              },
+            }}
+          />
         </CardContent>
       </Card>
     </div>

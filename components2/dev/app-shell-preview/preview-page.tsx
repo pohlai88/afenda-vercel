@@ -244,7 +244,7 @@ export default async function AppShellPreviewPage({
 
   return (
     <AppShell
-      envelope={{ surface: "dashboard", locale }}
+      envelope={{ surface: "apps", locale }}
       rail={rail}
       utilityBar={{
         left: <UtilityBarLeft />,

@@ -223,10 +223,10 @@ describe("HRM Nexus pressure — mapper", () => {
     ]
     const items = mapHrmPressureRowsToOperationalPressureItems(TEST_SLUG, rows)
     expect(items.map((i) => i.primaryAction.command)).toEqual([
-      `/o/${TEST_SLUG}/dashboard/hrm/claims`,
-      `/o/${TEST_SLUG}/dashboard/hrm/leave`,
-      `/o/${TEST_SLUG}/dashboard/hrm/documents`,
-      `/o/${TEST_SLUG}/dashboard/hrm`,
+      `/o/${TEST_SLUG}/apps/hrm/claims`,
+      `/o/${TEST_SLUG}/apps/hrm/leave`,
+      `/o/${TEST_SLUG}/apps/hrm/documents`,
+      `/o/${TEST_SLUG}/apps/hrm`,
     ])
   })
 

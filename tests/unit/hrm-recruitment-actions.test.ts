@@ -32,20 +32,29 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-vi.mock("../../lib/features/hrm/hrm-action-guard.server.ts", () => ({
-  requireHrmOrgTenantFromForm: mocks.requireHrmOrgTenantFromForm,
-}))
+vi.mock(
+  "../../lib/features/hrm/_module-governance/hrm-action-guard.server.ts",
+  () => ({
+    requireHrmOrgTenantFromForm: mocks.requireHrmOrgTenantFromForm,
+  })
+)
 
-vi.mock("../../lib/features/hrm/hrm-admin-guard.server.ts", () => ({
-  requireHrmPermission: mocks.requireHrmPermission,
-}))
+vi.mock(
+  "../../lib/features/hrm/_module-governance/hrm-admin-guard.server.ts",
+  () => ({
+    requireHrmPermission: mocks.requireHrmPermission,
+  })
+)
 
-vi.mock("../../lib/features/hrm/hrm-org-fk.server.ts", () => ({
-  assertOptionalHrmPlacementFkBelongsToOrg:
-    mocks.assertOptionalHrmPlacementFkBelongsToOrg,
-}))
+vi.mock(
+  "../../lib/features/hrm/_internal-cross-cutting/hrm-org-fk.server.ts",
+  () => ({
+    assertOptionalHrmPlacementFkBelongsToOrg:
+      mocks.assertOptionalHrmPlacementFkBelongsToOrg,
+  })
+)
 
-import { createJobRequisitionAction } from "../../lib/features/hrm/talent-management/recruitment-applicant-tracking/actions/recruitment.actions"
+import { createJobRequisitionAction } from "../../lib/features/hrm/talent-management/recruitment-onboarding/actions/recruitment.actions"
 
 function buildForm(fields: Record<string, string>) {
   const formData = new FormData()

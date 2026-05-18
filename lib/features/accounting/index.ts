@@ -7,7 +7,7 @@ export {
   listAccountingJournalBatchesForOrg,
 } from "#features/accounting/data/accounting-journal.server"
 export { accountingFilterSchema } from "#features/accounting/schemas/accounting-filter.schema"
-export { ORG_DASHBOARD_ACCOUNTING } from "#features/accounting/constants"
+export { ORG_APPS_ACCOUNTING } from "#features/accounting/constants"
 export type {
   AccountingActionState,
   AccountingOverviewItem,

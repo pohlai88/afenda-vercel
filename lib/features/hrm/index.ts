@@ -88,12 +88,12 @@ export {
   HRM_REVIEW_ROW_STATES,
   HRM_REVIEW_ROW_STATE,
   hrmReviewRowStateSchema,
-} from "./talent-management/performance-management/schemas/performance.schema"
+} from "./talent-management/performance-appraisals/schemas/performance.schema"
 export type {
   HrmReviewCycleState,
   HrmReviewPipeline,
   HrmReviewRowState,
-} from "./talent-management/performance-management/schemas/performance.schema"
+} from "./talent-management/performance-appraisals/schemas/performance.schema"
 
 export type {
   LeaveAccrualMethodValue,
@@ -231,31 +231,48 @@ export type {
 export { buildBenefitCensusReport } from "./payroll-compensation/benefits-administration/data/benefit-reporting.shared"
 export type { BenefitCensusReport } from "./payroll-compensation/benefits-administration/data/benefit-reporting.shared"
 export { HRM_BENEFIT_AUDIT } from "./payroll-compensation/benefits-administration/benefit.contract"
+export {
+  calculateBonusPayout,
+  evaluateBonusEligibility,
+  HRM_BONUS_INCENTIVE_AUDIT,
+  HRM_BONUS_INCENTIVE_SPEC_MAP,
+  listHrmBonusIncentiveSpecCodes,
+} from "./payroll-compensation/bonus-incentive-management"
+export type {
+  BonusCalculationInput,
+  BonusCalculationResult,
+  BonusEligibilityRules,
+  BonusFormulaConfig,
+  BonusPlanType,
+} from "./payroll-compensation/bonus-incentive-management"
 export { payrollPayslipSnapshotFromDocumentPayload } from "./payroll-compensation/payroll-processing/data/payroll-close.shared"
 export { HRM_NAV_NAMESPACE } from "./types"
 
 export {
   buildHrmNav,
-  getAllowedHrmDashboardSubsegments,
+  getAllowedHrmAppsSubsegments,
   getHrmAuditPrefixes,
   getHrmCapabilityById,
   getHrmCapabilityForSegment,
   hrmNavLabelKey,
   HRM_CAPABILITIES,
-  isAllowedHrmDashboardSubsegment,
+  isAllowedHrmAppsSubsegment,
   organizationHrmComplianceDetailPath,
   organizationHrmClaimPath,
   organizationHrmClaimsPath,
   organizationHrmEmployeePath,
   organizationHrmPath,
   organizationHrmRootPath,
-  ORG_DASHBOARD_HRM,
+  ORG_APPS_HRM,
 } from "./constants"
 
 export {
   HrmCapabilityPlaceholderPage,
   HrmOverviewPage,
 } from "./_hrm_landing_page/hrm-pages"
+
+export { HrmSegmentCapabilityRoutePage } from "./components/hrm-segment-capability-route-page"
+export { HrmOverviewRoutePage } from "./components/hrm-overview-route-page"
 
 export { resolveLeaveSurfaceAccess } from "./time-attendance/leave-attendance-management/data/leave-access.server"
 export type { LeaveSurfaceAccess } from "./time-attendance/leave-attendance-management/data/leave-access.server"
@@ -298,8 +315,11 @@ export {
 export { LeavePage } from "./time-attendance/leave-attendance-management/components/leave-page"
 export { PoliciesPage } from "./time-attendance/leave-attendance-management/components/policies-page"
 export { OrganizationPage } from "./employee-management/organizational-chart-hierarchy/components/organization-page"
-export { HrmOnboardingPage } from "./employee-management/employee-lifecycle-management"
-export { HrmPerformancePage } from "./talent-management/performance-management/components/hrm-performance-page"
+export {
+  HrmLifecycleOverviewPage,
+  HrmOnboardingPage,
+} from "./employee-management/employee-lifecycle-management"
+export { HrmPerformancePage } from "./talent-management/performance-appraisals/components/hrm-performance-page"
 export { HrmKpiPage } from "./talent-management/competency-skills-framework/components/hrm-kpi-page"
 export { HrmTrainingPage } from "./talent-management/training-development/components/hrm-training-page"
 export { EmployeePortalRequestsPage } from "./employee-management/employee-selfservice-portal/components/employee-portal-requests-page"
@@ -318,45 +338,83 @@ export { WorkforcePage } from "./employee-management/employee-records-management
 export { PayrollConsolePage } from "./payroll-compensation/payroll-processing/components/payroll-console"
 export { HrmSnapshotPage } from "./_internal-cross-cutting/hrm-snapshot-page"
 export { CompliancePage } from "./employee-management/compliance-regulatory-tracking/components/compliance-page"
+export { HrmComplianceWorkbenchPage } from "./employee-management/compliance-regulatory-tracking/components/hrm-compliance-workbench-page"
+export { OrgHrmDeferredShell } from "./components/org-hrm-deferred-shell"
 /** Compliance evidence detail route surface. */
 export { ComplianceEvidenceDetailPage } from "./employee-management/compliance-regulatory-tracking/components/compliance-evidence-detail-page"
 export { ComplianceExceptionsPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-exceptions-panel"
 export { ComplianceFilingsPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-filings-panel"
 export { ComplianceEmployeeStatusPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-employee-status-panel"
 export { BenefitsPage } from "./payroll-compensation/benefits-administration/components/benefits-page"
-export { RecruitmentPage } from "./talent-management/recruitment-applicant-tracking/components/recruitment-page"
+export { BonusIncentivesPage } from "./payroll-compensation/bonus-incentive-management"
+export { SalaryBenchmarkingPage } from "./payroll-compensation/salary-benchmarking-survey"
+export {
+  FlexibleWorkPage,
+  resolveFwaSurfaceAccess,
+} from "./time-attendance/flexible-work-arrangement-tracking"
+export { RecruitmentPage } from "./talent-management/recruitment-onboarding/components/recruitment-page"
 export {
   HRM_APPLICATION_STAGES,
+  HRM_ASSESSMENT_STATUSES,
   HRM_INTERVIEW_OUTCOMES,
+  HRM_JOB_POSTING_CHANNELS,
   HRM_JOB_OFFER_STATUSES,
   HRM_JOB_REQUISITION_STATUSES,
+  HRM_JOB_REQUISITION_TYPES,
+  HRM_PRE_EMPLOYMENT_CHECK_STATUSES,
+  HRM_PRE_EMPLOYMENT_CHECK_TYPES,
+  HRM_RECRUITMENT_APPROVAL_STATES,
+  HRM_RECRUITMENT_COMMUNICATION_TYPES,
+  HRM_SCORECARD_RECOMMENDATIONS,
+  HRM_SCREENING_OUTCOMES,
   advanceApplicationStageFormSchema,
   cancelJobRequisitionFormSchema,
   convertAcceptedOfferFormSchema,
   createCandidateApplicationFormSchema,
   createJobOfferFormSchema,
   createJobRequisitionFormSchema,
+  decideRequisitionApprovalFormSchema,
+  evaluateScreeningFormSchema,
   publishJobRequisitionFormSchema,
+  recordAssessmentResultFormSchema,
+  recordPreEmploymentCheckFormSchema,
+  recordRecruitmentCommunicationFormSchema,
+  requestRequisitionApprovalFormSchema,
   scheduleInterviewFormSchema,
+  submitInterviewScorecardFormSchema,
   submitInterviewFeedbackFormSchema,
   updateJobOfferStatusFormSchema,
-} from "./talent-management/recruitment-applicant-tracking/schemas/recruitment.schema"
+} from "./talent-management/recruitment-onboarding/schemas/recruitment.schema"
 export type {
   HrmApplicationStage,
+  HrmAssessmentStatus,
   HrmInterviewOutcome,
+  HrmJobPostingChannel,
   HrmJobOfferStatus,
   HrmJobRequisitionStatus,
-} from "./talent-management/recruitment-applicant-tracking/schemas/recruitment.schema"
+  HrmJobRequisitionType,
+  HrmPreEmploymentCheckStatus,
+  HrmPreEmploymentCheckType,
+  HrmRecruitmentApprovalState,
+  HrmRecruitmentCommunicationType,
+  HrmScorecardRecommendation,
+  HrmScreeningOutcome,
+} from "./talent-management/recruitment-onboarding/schemas/recruitment.schema"
 export {
   APPLICATION_STAGE_TRANSITIONS,
   OFFER_STATUS_TRANSITIONS,
   REQUISITION_STATUS_TRANSITIONS,
+  canPublishRequisition,
   canTransitionApplicationStage,
   canTransitionOfferStatus,
   canTransitionRequisitionStatus,
+  evaluateScreeningAnswers,
   nextApplicationStageLabel,
-} from "./talent-management/recruitment-applicant-tracking/data/recruitment-workflow.shared"
+  preEmploymentChecksReadyForHire,
+  summarizeInterviewScorecards,
+} from "./talent-management/recruitment-onboarding/data/recruitment-workflow.shared"
 /** Cross-period compliance operational health (Suspense-streamed). */
+export { ComplianceEvidenceRegisterPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-evidence-register-list-section"
 export { ComplianceOperationalHealth } from "./employee-management/compliance-regulatory-tracking/components/compliance-operational-health"
 export { ComplianceOperationalHealthSkeleton } from "./employee-management/compliance-regulatory-tracking/components/compliance-operational-health-skeleton"
 

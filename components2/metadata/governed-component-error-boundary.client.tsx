@@ -2,7 +2,7 @@
 
 import { Component, type ErrorInfo, type ReactNode } from "react"
 
-import { GovernedEmpty } from "#features/governed-surface"
+import { GovernedEmpty } from "#features/governed-surface/client"
 
 import { emitGovernedTelemetry } from "./governed-telemetry.client"
 

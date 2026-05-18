@@ -10,111 +10,32 @@ function readRepoFile(...segments: string[]) {
 }
 
 describe("orbit surface contract", () => {
-  it("defines org and account route segment boundaries for Orbit", () => {
-    expect(
-      existsSync(
-        join(
-          ROOT,
-          "app",
-          "(main)",
-          "[locale]",
-          "o",
-          "[orgSlug]",
-          "dashboard",
-          "orbit",
-          "triage",
-          "page.tsx"
+  it("defines org apps route segment boundaries for Orbit", () => {
+    for (const leaf of [
+      ["apps", "orbit", "triage", "page.tsx"],
+      ["apps", "orbit", "layout.tsx"],
+      ["apps", "orbit", "loading.tsx"],
+      ["apps", "orbit", "error.tsx"],
+    ] as const) {
+      expect(
+        existsSync(
+          join(ROOT, "app", "(main)", "[locale]", "o", "[orgSlug]", ...leaf)
         )
-      )
-    ).toBe(true)
-    expect(
-      existsSync(
-        join(
-          ROOT,
-          "app",
-          "(main)",
-          "[locale]",
-          "(iam)",
-          "account",
-          "orbit",
-          "triage",
-          "page.tsx"
-        )
-      )
-    ).toBe(true)
-    expect(
-      existsSync(
-        join(
-          ROOT,
-          "app",
-          "(main)",
-          "[locale]",
-          "o",
-          "[orgSlug]",
-          "dashboard",
-          "orbit",
-          "layout.tsx"
-        )
-      )
-    ).toBe(true)
-    expect(
-      existsSync(
-        join(
-          ROOT,
-          "app",
-          "(main)",
-          "[locale]",
-          "o",
-          "[orgSlug]",
-          "dashboard",
-          "orbit",
-          "loading.tsx"
-        )
-      )
-    ).toBe(true)
-    expect(
-      existsSync(
-        join(
-          ROOT,
-          "app",
-          "(main)",
-          "[locale]",
-          "o",
-          "[orgSlug]",
-          "dashboard",
-          "orbit",
-          "error.tsx"
-        )
-      )
-    ).toBe(true)
-    expect(
-      existsSync(
-        join(
-          ROOT,
-          "app",
-          "(main)",
-          "[locale]",
-          "(iam)",
-          "account",
-          "orbit",
-          "loading.tsx"
-        )
-      )
-    ).toBe(true)
-    expect(
-      existsSync(
-        join(
-          ROOT,
-          "app",
-          "(main)",
-          "[locale]",
-          "(iam)",
-          "account",
-          "orbit",
-          "error.tsx"
-        )
-      )
-    ).toBe(true)
+      ).toBe(true)
+    }
+  })
+
+  it("aliases legacy /account/orbit URLs to org apps Orbit paths", () => {
+    const content = readRepoFile(
+      "lib",
+      "auth",
+      "legacy-authenticated-route-alias.server.ts"
+    )
+
+    expect(content).toContain('pathname === "/account/orbit"')
+    expect(content).toContain("organizationOrbitPath(orgSlug)")
+    expect(content).toContain("^\\/account\\/orbit\\/")
+    expect(content).not.toContain("/dashboard/orbit")
   })
 
   it("mounts an Orbit command layer inside the org route segment", () => {
@@ -124,7 +45,7 @@ describe("orbit surface contract", () => {
       "[locale]",
       "o",
       "[orgSlug]",
-      "dashboard",
+      "apps",
       "orbit",
       "layout.tsx"
     )

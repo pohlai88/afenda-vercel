@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache"
 import { and, eq, isNull } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { ORG_DASHBOARD_HRM_ORGANIZATION } from "#lib/dashboard-module-paths"
+import { ORG_APPS_HRM_ORGANIZATION } from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import {
   hrmDepartment,
@@ -17,7 +17,7 @@ import {
   hrmPositionVersion,
 } from "#lib/db/schema"
 import {
-  toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgAppsRevalidatePattern,
   toLocaleOrgNexusRevalidatePattern,
 } from "#lib/i18n/locales.shared"
 
@@ -103,15 +103,15 @@ function shouldApplyProjection(effectiveFrom: Date): boolean {
 
 function revalidateOrganizationSurface() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_ORGANIZATION),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_ORGANIZATION),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/employees"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/employees"),
     "page"
   )
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"), "page")
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/snapshot"), "page")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "page")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/snapshot"), "page")
   revalidatePath(toLocaleOrgNexusRevalidatePattern(), "page")
 }
 

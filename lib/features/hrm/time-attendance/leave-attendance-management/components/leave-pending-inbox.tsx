@@ -4,6 +4,7 @@ import {
   GovernedPatternCListSection,
   isListSurfaceTrailingActionRenderable,
 } from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
@@ -98,10 +99,14 @@ export async function LeavePendingInbox({
             return null
           }
           return (
-            <LeaveDecisionForms
-              requestId={row.id}
-              dateRange={`${row.startDate} → ${row.endDate}`}
-            />
+            <GovernedTrailingActionSlot
+              trailingAction={surfaceRow.trailingAction}
+            >
+              <LeaveDecisionForms
+                requestId={row.id}
+                dateRange={`${row.startDate} → ${row.endDate}`}
+              />
+            </GovernedTrailingActionSlot>
           )
         },
       }}

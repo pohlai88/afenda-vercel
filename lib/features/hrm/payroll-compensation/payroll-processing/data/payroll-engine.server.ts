@@ -10,6 +10,7 @@ import {
   projectBenefitPayrollLinesForPeriod,
   type BenefitPayrollProjectionEnrollment,
 } from "../../benefits-administration/data/benefit-payroll-projection.shared"
+import type { BonusPayrollProjectionInput } from "../../bonus-incentive-management"
 
 // ---------------------------------------------------------------------------
 // Input / output contracts
@@ -82,6 +83,12 @@ export type PayrollEngineInput = {
    */
   readonly approvedUnpaidClaims: ReadonlyArray<PayrollClaimInput>
   /**
+   * Approved, payroll-exported bonus and incentive payouts for this employee.
+   * Emitted as earnings with `bonusPayoutId` so period lock can settle them
+   * idempotently without taking over payroll finalization ownership.
+   */
+  readonly approvedBonusPayouts?: ReadonlyArray<BonusPayrollProjectionInput>
+  /**
    * Pending salary-advance installments due on or before `periodEnd` — one
    * deduction line per installment with `salaryAdvanceInstallmentId`.
    */
@@ -138,6 +145,7 @@ export type PayrollLineInput = {
   readonly claimId?: string | null
   readonly salaryAdvanceId?: string | null
   readonly salaryAdvanceInstallmentId?: string | null
+  readonly bonusPayoutId?: string | null
 }
 
 export type PayrollEngineResult = {
@@ -309,8 +317,28 @@ export async function computePayrollRun(
     })
   }
 
-  // 3. Gross pay = BASIC + contract allowances + claim earnings (before deductions)
-  const grossPay = basicAmount + contractAllowanceTotal + claimsTotal
+  let bonusPayoutTotal = 0
+  for (const payout of input.approvedBonusPayouts ?? []) {
+    const amount = parseAmount(payout.amount)
+    if (amount <= 0) continue
+    bonusPayoutTotal += amount
+    lines.push({
+      lineKind: "earning",
+      code: payout.payrollLineCode,
+      description: payout.description,
+      amount: formatAmount(amount),
+      bonusPayoutId: payout.payoutId,
+      metadata: {
+        currency: payout.currency,
+        source: "bonus_incentive_payout",
+        sourceBonusPayoutId: payout.payoutId,
+      },
+    })
+  }
+
+  // 3. Gross pay = BASIC + contract allowances + claim/bonus earnings (before deductions)
+  const grossPay =
+    basicAmount + contractAllowanceTotal + claimsTotal + bonusPayoutTotal
   const grossPayFormatted = formatAmount(grossPay)
 
   // 4. Statutory contributions via rule pack

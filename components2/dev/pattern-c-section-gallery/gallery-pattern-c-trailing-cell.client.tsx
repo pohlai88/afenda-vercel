@@ -1,9 +1,11 @@
 "use client"
 
 import { Button } from "#components2/ui/button"
-import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
-import { isListSurfaceTrailingActionRenderable } from "#features/governed-surface"
-import type { ListSurfaceRowTrailingAction } from "#features/governed-surface"
+import {
+  GovernedTrailingActionSlot,
+  isListSurfaceTrailingActionRenderable,
+  type ListSurfaceRowTrailingAction,
+} from "#features/governed-surface/client"
 
 type GalleryPatternCTrailingCellProps = {
   trailingAction?: ListSurfaceRowTrailingAction

@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 
 import {
   OrgAdminSimulationToolbar,
+  OrgAuditEventsListSection,
   OrgAuditEventsView,
   OrganizationAuditCsvExport,
   organizationAdminPath,
@@ -16,14 +17,14 @@ import {
 import { isOperationalSimulationEnabled } from "#features/simulation"
 
 import { listOrganizationIamAuditEvents } from "#lib/auth"
-import { requireOrgSession } from "#lib/auth"
+import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminAuditPage({
   searchParams,
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/admin/audit">) {
   const { orgSlug } = await params
-  const orgSession = await requireOrgSession()
+  const orgSession = await getOrgTenantContext()
   const t = await getTranslations("OrgAdmin.audit")
   const simulationEnabled = isOperationalSimulationEnabled()
 
@@ -113,6 +114,7 @@ export default async function OrgAdminAuditPage({
       backHref={organizationAdminPath(orgSlug, "overview")}
       backLabel={t("backToAdminOverview")}
       result={result}
+      listSlot={<OrgAuditEventsListSection rows={result.rows} />}
       prevHref={prevHref}
       nextHref={nextHref}
     />

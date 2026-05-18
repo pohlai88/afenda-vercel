@@ -20,7 +20,7 @@ Afenda is a single-package Next.js 16 App Router repository with **strict** boun
 - scope every read/write with `organizationId` from a trusted server-side source (`requireOrgSession` / `requireOrgSession`'s downstream guards) — never `FormData`,
 - write IAM audit events only after a successful commit, using stable `erp.<module>.<object>.<verb>` strings,
 - ship with a tenant-isolation Vitest spec under `tests/unit/`,
-- mount a locale-prefixed route under `app/[locale]/o/[orgSlug]/dashboard/<module>/page.tsx`.
+- mount a locale-prefixed route under `app/[locale]/o/[orgSlug]/apps/<module>/page.tsx`.
 
 The cost of getting these wrong is high:
 

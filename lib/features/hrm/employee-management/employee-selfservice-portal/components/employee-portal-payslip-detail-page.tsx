@@ -20,7 +20,7 @@ import { requireEmployeePortalContext } from "../data/employee-portal-access.ser
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 import { buildPayslipLinesSurfaceConfiguration } from "../data/payslip-surface-builders.server"
 
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalPayslipDetailPageProps = {
@@ -132,9 +132,12 @@ export async function EmployeePortalPayslipDetailPage({
             <CardDescription>{document.title}</CardDescription>
           </CardHeader>
           <CardContent>
-            <EmployeePortalGovernedTable
-              configuration={linesConfiguration}
+            <GovernedPatternCListSection
+              layout="embedded"
+              title=""
+              listConfiguration={linesConfiguration}
               surfaceKey="hrm:portal:payslip-lines"
+              resolveConfiguredPermission={false}
             />
           </CardContent>
         </Card>

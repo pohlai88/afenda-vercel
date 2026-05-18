@@ -44,7 +44,6 @@ const SCHEMAS_DIR = path.join(ROOT, "lib/features/governed-surface/schemas")
  * in `governedComponentTypeSchema` so builders can declare the discriminator.
  */
 const DESIGN_RESERVE_RENDERER_IDS = new Set([
-  "kanban-board",
   "multi-step-form",
   "scorecard-form",
 ])
@@ -65,7 +64,7 @@ const RENDERER_SCHEMA_FILES = {
   "detail-tabs": "detail-tabs.schema.ts",
   "approval-timeline": "approval-timeline.schema.ts",
   "chart": "chart.schema.ts",
-  // Future entries: add when the renderer's schema introduces a dataNature enum.
+  "kanban-board": "kanban-board.schema.ts",
 }
 
 const errors = []
@@ -136,7 +135,7 @@ const contractEntries = {}
 if (contractsBlockMatch) {
   // Capture both "stat-card": { ... } and section: { ... } forms (bare ident allowed for container ids).
   const entryRegex =
-    /(?:"([^"]+)"|([a-zA-Z][\w-]*))\s*:\s*\{\s*acceptedNatures\s*:\s*\[([^\]]*)\]\s*,\s*minContainerPx\s*:\s*(\d+)\s*,?\s*\}/g
+    /(?:"([^"]+)"|([a-zA-Z][\w-]*))\s*:\s*\{\s*acceptedNatures\s*:\s*\[([^\]]*)\]\s*,\s*minContainerPx\s*:\s*(\d+)[^}]*\}/g
   for (const match of contractsBlockMatch[1].matchAll(entryRegex)) {
     const id = match[1] ?? match[2]
     const naturesRaw = match[3]
@@ -159,19 +158,26 @@ for (const [rendererId, fileName] of Object.entries(RENDERER_SCHEMA_FILES)) {
     continue
   }
   const src = readFile(schemaPath)
-  // Find any `xxxDataNatureSchema = z.enum([...])` declaration.
-  const dataNatureMatch = src.match(
+  // Find `xxxDataNatureSchema = z.enum([...])` or `z.literal("...")`.
+  const dataNatureEnumMatch = src.match(
     /[A-Za-z]+DataNatureSchema\s*=\s*z\.enum\(\[([\s\S]*?)\]\)/
   )
-  if (!dataNatureMatch) {
-    reportError(
-      `${fileName}: no *DataNatureSchema = z.enum([...]) declaration (expected per ADR-0025 §2)`
-    )
+  const dataNatureLiteralMatch = src.match(
+    /[A-Za-z]+DataNatureSchema\s*=\s*z\.literal\("([^"]+)"\)/
+  )
+  if (dataNatureEnumMatch) {
+    schemaDataNatures[rendererId] = [
+      ...dataNatureEnumMatch[1].matchAll(/"([^"]+)"/g),
+    ].map((m) => m[1])
     continue
   }
-  schemaDataNatures[rendererId] = [
-    ...dataNatureMatch[1].matchAll(/"([^"]+)"/g),
-  ].map((m) => m[1])
+  if (dataNatureLiteralMatch) {
+    schemaDataNatures[rendererId] = [dataNatureLiteralMatch[1]]
+    continue
+  }
+  reportError(
+    `${fileName}: no *DataNatureSchema = z.enum([...]) or z.literal("...") declaration (expected per ADR-0025 §2)`
+  )
 }
 
 // ---------------------------------------------------------------------------

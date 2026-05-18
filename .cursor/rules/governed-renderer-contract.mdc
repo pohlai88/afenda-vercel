@@ -65,8 +65,17 @@ export const <name>ConfigurationSchema = z
 | `detail-tabs` | `"tabbed-detail"` |
 | `chart` | `"time-series"` · `"categorical"` |
 | `approval-timeline` | `"approval-flow"` |
+| `kanban-board` | `"kanban"` (contract `maturity: "production"` — HRM recruitment pipeline) |
 
 `section` and `stack` are container-only and are exempt.
+
+**Kanban ERP gate (production maturity):**
+
+- Builders must supply `copy.boardAriaLabel` and `copy.emptyColumn` (locale-resolved on the server).
+- Declare `workflow.transitions` for allowed column edges; per-card hints via `resolveKanbanCardTransition` only in `read-only` mode.
+- `interactionMode: "read-only"` — transition hints via `availableTransitions` (badges only).
+- `interactionMode: "footer-actions"` — mutations via `renderCardFooter` (Server Actions).
+- `interactionMode: "drag-reorder"` — HTML5 drag; domain owns `onCardMove` via `GovernedKanbanDragBoard`; requires `workflow`, per-card `availableTransitions`, and `copy.dragHandleAriaLabel`. No kernel mutation.
 
 **Builder authoring gate:**
 

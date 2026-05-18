@@ -20,10 +20,7 @@ import { Button } from "#components2/ui/button"
 import { Separator } from "#components2/ui/separator"
 import { requireOrgSession } from "#lib/auth"
 
-import {
-  submitArchiveDependent,
-  submitCreateDependent,
-} from "../actions/dependent.actions"
+import { submitCreateDependent } from "../actions/dependent.actions"
 import { organizationHrmPath } from "../../../constants"
 import { listEmployeeChangeHistory } from "../data/employee-change-history.queries.server"
 import { resolveEmployeeRecordCapabilities } from "../data/employee-record-capabilities.server"
@@ -51,6 +48,11 @@ import { EmployeeDetailPayrollContract } from "./employee-detail-payroll-contrac
 import { EmployeeDetailTrainingSection } from "./employee-detail-training-section"
 import { EmployeeMasterForms } from "./employee-master-forms"
 import { EmployeePortalAccessCard } from "../../employee-selfservice-portal/components/employee-portal-access-card"
+import {
+  EmployeeDetailDependentsListSection,
+  type EmployeeDetailDependentsListSectionProps,
+} from "./employee-detail-dependents-list-section"
+import { EmployeeChangeHistoryListSection } from "./employee-change-history-list-section"
 import { EmployeeTimeline } from "./employee-timeline"
 
 type EmployeeDetailPageProps = {
@@ -454,50 +456,13 @@ export async function EmployeeDetailPage({
           <CardDescription>{t("dependentsSectionDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {dependents.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("dependentsEmpty")}
-            </p>
-          ) : (
-            <ul className="divide-y divide-border rounded-md border border-border text-sm">
-              {dependents.map((d) => (
-                <li
-                  key={d.id}
-                  className="flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div>
-                    <p className="font-medium">{d.legalName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t(
-                        DEPENDENT_RELATIONSHIP_MESSAGE_KEY[
-                          relationshipKey(d.relationship)
-                        ]
-                      )}{" "}
-                      ·{" "}
-                      {d.dateOfBirth
-                        ? format.dateTime(d.dateOfBirth, {
-                            dateStyle: "medium",
-                          })
-                        : "—"}{" "}
-                      ·{" "}
-                      {d.taxDependent
-                        ? t("dependentTaxYes")
-                        : t("dependentTaxNo")}
-                    </p>
-                  </div>
-                  {!employee.archivedAt && capabilities.canUpdate ? (
-                    <form action={submitArchiveDependent}>
-                      <input type="hidden" name="orgSlug" value={orgSlug} />
-                      <input type="hidden" name="dependentId" value={d.id} />
-                      <Button type="submit" variant="outline" size="sm">
-                        {t("dependentArchiveSubmit")}
-                      </Button>
-                    </form>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
+          <EmployeeDetailDependentsListSection
+            orgSlug={orgSlug}
+            dependents={
+              dependents satisfies EmployeeDetailDependentsListSectionProps["dependents"]
+            }
+            canArchive={!employee.archivedAt && capabilities.canUpdate}
+          />
 
           {!employee.archivedAt && capabilities.canUpdate ? (
             <div className="border-t border-border pt-4">
@@ -580,64 +545,7 @@ export async function EmployeeDetailPage({
         </CardContent>
       </Card>
 
-      <Card id="history" size="sm">
-        <CardHeader>
-          <CardTitle className="text-base">{t("changeHistoryTitle")}</CardTitle>
-          <CardDescription>{t("changeHistoryDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {changeHistory.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("changeHistoryEmpty")}
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[32rem] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
-                    <th className="py-2 pr-3 font-medium">
-                      {t("changeHistoryColField")}
-                    </th>
-                    <th className="py-2 pr-3 font-medium">
-                      {t("changeHistoryColOld")}
-                    </th>
-                    <th className="py-2 pr-3 font-medium">
-                      {t("changeHistoryColNew")}
-                    </th>
-                    <th className="py-2 font-medium">
-                      {t("changeHistoryColWhen")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {changeHistory.map((row) => (
-                    <tr
-                      key={row.id}
-                      className="border-b border-border last:border-0"
-                    >
-                      <td className="py-2 pr-3 font-mono text-xs">
-                        {row.fieldName}
-                      </td>
-                      <td className="max-w-[10rem] truncate py-2 pr-3 font-mono text-xs">
-                        {serializeChangeValue(row.oldValue)}
-                      </td>
-                      <td className="max-w-[10rem] truncate py-2 pr-3 font-mono text-xs">
-                        {serializeChangeValue(row.newValue)}
-                      </td>
-                      <td className="py-2 text-xs whitespace-nowrap text-muted-foreground">
-                        {format.dateTime(row.changedAt, {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <EmployeeChangeHistoryListSection rows={changeHistory} />
 
       {!employee.archivedAt && capabilities.canUpdate ? (
         <>
@@ -657,21 +565,6 @@ export async function EmployeeDetailPage({
       <EmployeeTimeline rows={timelineRows} />
     </div>
   )
-}
-
-function serializeChangeValue(value: unknown): string {
-  if (value === null || value === undefined) {
-    return "—"
-  }
-  if (typeof value === "string") {
-    return value.length > 120 ? `${value.slice(0, 117)}…` : value
-  }
-  try {
-    const serialized = JSON.stringify(value)
-    return serialized.length > 120 ? `${serialized.slice(0, 117)}…` : serialized
-  } catch {
-    return String(value)
-  }
 }
 
 function MasterSection({
@@ -714,18 +607,4 @@ function placementLabel(
 function maskIdentifier(value: string): string {
   if (value.length <= 4) return "••••"
   return `•••• ${value.slice(-4)}`
-}
-
-function relationshipKey(
-  value: string
-): keyof typeof DEPENDENT_RELATIONSHIP_MESSAGE_KEY {
-  if (
-    value === "spouse" ||
-    value === "child" ||
-    value === "parent" ||
-    value === "other"
-  ) {
-    return value
-  }
-  return "other"
 }

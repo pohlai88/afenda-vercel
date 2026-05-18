@@ -12,13 +12,13 @@ import {
 } from "#components2/ui/card"
 import { Skeleton } from "#components2/ui/skeleton"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
+  OrganizationAssignmentsListSection,
+  OrganizationGradesListSection,
+  OrganizationOrgUnitsListSection,
+  OrganizationHealthIssuesListSection,
+  OrganizationPositionsListSection,
+  OrganizationReportingListSection,
+} from "./organization-structure-list-sections"
 import { requireOrgSession } from "#lib/auth"
 
 import { normalizeOrgStructureTab } from "../data/org-structure-display.shared"
@@ -36,11 +36,8 @@ import { OrgChartPanel } from "./org-chart-panel"
 import { OrganizationTabNav } from "./organization-tab-nav"
 import {
   OrganizationAssignmentDialog,
-  OrganizationDepartmentArchiveForm,
   OrganizationDepartmentCreateDialog,
-  OrganizationJobGradeArchiveForm,
   OrganizationJobGradeCreateDialog,
-  OrganizationPositionArchiveForm,
   OrganizationPositionCreateDialog,
 } from "./organization-structure-forms"
 
@@ -235,7 +232,6 @@ async function OrgUnitsTable({
   includeArchived: boolean
   capabilities: OrgStructureSurfaceCapabilities
 }) {
-  const showActions = capabilities.canCreate || capabilities.canDelete
   const { organizationId } = await requireOrgSession()
   const [rows, t] = await Promise.all([
     listOrgUnitTree(organizationId, { includeArchived }),
@@ -260,65 +256,11 @@ async function OrgUnitsTable({
         ) : null}
       </CardHeader>
       <CardContent>
-        {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("colCode")}</TableHead>
-                <TableHead>{t("colName")}</TableHead>
-                <TableHead>{t("colParent")}</TableHead>
-                <TableHead>{t("colHead")}</TableHead>
-                <TableHead>{t("colCostCenter")}</TableHead>
-                <TableHead className="text-end">{t("colPositions")}</TableHead>
-                <TableHead className="text-end">{t("colEmployees")}</TableHead>
-                <TableHead>{t("colStatus")}</TableHead>
-                {showActions ? (
-                  <TableHead className="text-end">{t("colActions")}</TableHead>
-                ) : null}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-medium">{row.code}</TableCell>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.parentCode)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.headEmployeeLabel)}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {dash(row.costCenterCode)}
-                  </TableCell>
-                  <TableCell className="text-end tabular-nums">
-                    {row.activePositionCount}
-                  </TableCell>
-                  <TableCell className="text-end tabular-nums">
-                    {row.activeEmployeeCount}
-                  </TableCell>
-                  <TableCell>
-                    {row.archivedAt ? t("statusArchived") : t("statusActive")}
-                  </TableCell>
-                  {showActions ? (
-                    <TableCell className="text-end">
-                      {!row.archivedAt && capabilities.canDelete ? (
-                        <OrganizationDepartmentArchiveForm
-                          orgSlug={orgSlug}
-                          departmentId={row.id}
-                        />
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                  ) : null}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <OrganizationOrgUnitsListSection
+          orgSlug={orgSlug}
+          rows={rows}
+          capabilities={capabilities}
+        />
       </CardContent>
     </Card>
   )
@@ -333,7 +275,6 @@ async function OrgGradesTable({
   includeArchived: boolean
   capabilities: OrgStructureSurfaceCapabilities
 }) {
-  const showActions = capabilities.canCreate || capabilities.canDelete
   const { organizationId } = await requireOrgSession()
   const [rows, t] = await Promise.all([
     listJobGradesForOrg(organizationId, { includeArchived }),
@@ -352,57 +293,11 @@ async function OrgGradesTable({
         ) : null}
       </CardHeader>
       <CardContent>
-        {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("colCode")}</TableHead>
-                <TableHead>{t("colName")}</TableHead>
-                <TableHead className="text-end">{t("colOrdinal")}</TableHead>
-                <TableHead>{t("colSalaryBand")}</TableHead>
-                <TableHead>{t("colBenefitTier")}</TableHead>
-                <TableHead>{t("colStatus")}</TableHead>
-                {showActions ? (
-                  <TableHead className="text-end">{t("colActions")}</TableHead>
-                ) : null}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-medium">{row.code}</TableCell>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell className="text-end tabular-nums">
-                    {row.ordinal}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {salaryBand(row)}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {dash(row.benefitTierCode)}
-                  </TableCell>
-                  <TableCell>
-                    {row.archivedAt ? t("statusArchived") : t("statusActive")}
-                  </TableCell>
-                  {showActions ? (
-                    <TableCell className="text-end">
-                      {!row.archivedAt && capabilities.canDelete ? (
-                        <OrganizationJobGradeArchiveForm
-                          orgSlug={orgSlug}
-                          gradeId={row.id}
-                        />
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                  ) : null}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <OrganizationGradesListSection
+          orgSlug={orgSlug}
+          rows={rows}
+          capabilities={capabilities}
+        />
       </CardContent>
     </Card>
   )
@@ -417,7 +312,6 @@ async function OrgPositionsTable({
   includeArchived: boolean
   capabilities: OrgStructureSurfaceCapabilities
 }) {
-  const showActions = capabilities.canCreate || capabilities.canDelete
   const { organizationId } = await requireOrgSession()
   const [positions, departments, grades, t] = await Promise.all([
     listPositionControlRows(organizationId, { includeArchived }),
@@ -447,67 +341,11 @@ async function OrgPositionsTable({
         ) : null}
       </CardHeader>
       <CardContent>
-        {positions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("colCode")}</TableHead>
-                <TableHead>{t("colTitle")}</TableHead>
-                <TableHead>{t("colDepartment")}</TableHead>
-                <TableHead>{t("colReportsTo")}</TableHead>
-                <TableHead>{t("colGrade")}</TableHead>
-                <TableHead className="text-end">{t("colBudget")}</TableHead>
-                <TableHead className="text-end">{t("colOccupied")}</TableHead>
-                <TableHead>{t("colStatus")}</TableHead>
-                {showActions ? (
-                  <TableHead className="text-end">{t("colActions")}</TableHead>
-                ) : null}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {positions.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-medium">{row.code}</TableCell>
-                  <TableCell>{row.title}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.departmentCode)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.reportsToPositionCode)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.defaultGradeCode)}
-                  </TableCell>
-                  <TableCell className="text-end tabular-nums">
-                    {row.headcountBudget ?? "-"}
-                  </TableCell>
-                  <TableCell className="text-end tabular-nums">
-                    {row.occupancyCount}
-                  </TableCell>
-                  <TableCell>
-                    {row.archivedAt
-                      ? t("statusArchived")
-                      : t(`occupancy.${row.occupancyState}`)}
-                  </TableCell>
-                  {showActions ? (
-                    <TableCell className="text-end">
-                      {!row.archivedAt && capabilities.canDelete ? (
-                        <OrganizationPositionArchiveForm
-                          orgSlug={orgSlug}
-                          positionId={row.id}
-                        />
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                  ) : null}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <OrganizationPositionsListSection
+          orgSlug={orgSlug}
+          rows={positions}
+          capabilities={capabilities}
+        />
       </CardContent>
     </Card>
   )
@@ -560,40 +398,7 @@ async function OrgAssignmentsTable({
         ) : null}
       </CardHeader>
       <CardContent>
-        {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("colEmployee")}</TableHead>
-                <TableHead>{t("colDepartment")}</TableHead>
-                <TableHead>{t("colPosition")}</TableHead>
-                <TableHead>{t("colGrade")}</TableHead>
-                <TableHead>{t("colManager")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-medium">{row.label}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.departmentCode)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.positionCode)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.jobGradeCode)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.managerLabel)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <OrganizationAssignmentsListSection rows={rows} />
       </CardContent>
     </Card>
   )
@@ -617,38 +422,7 @@ async function OrgReportingTable({
         <CardDescription>{t("tableDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
-        {positions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("colPosition")}</TableHead>
-                <TableHead>{t("colReportsTo")}</TableHead>
-                <TableHead>{t("colDepartment")}</TableHead>
-                <TableHead className="text-end">{t("colOccupied")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {positions.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-medium">
-                    {row.code} - {row.title}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.reportsToPositionCode)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dash(row.departmentCode)}
-                  </TableCell>
-                  <TableCell className="text-end tabular-nums">
-                    {row.occupancyCount}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <OrganizationReportingListSection rows={positions} />
       </CardContent>
     </Card>
   )
@@ -668,48 +442,9 @@ async function OrgHealthPanel() {
         <CardDescription>{t("tableDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
-        {snapshot.health.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("colSeverity")}</TableHead>
-                <TableHead>{t("colIssue")}</TableHead>
-                <TableHead>{t("colDetail")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {snapshot.health.map((issue) => (
-                <TableRow key={issue.id}>
-                  <TableCell className="font-mono text-xs uppercase">
-                    {issue.severity}
-                  </TableCell>
-                  <TableCell className="font-medium">{issue.title}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {issue.detail}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <OrganizationHealthIssuesListSection rows={snapshot.health} />
       </CardContent>
     </Card>
   )
 }
 
-function dash(value: string | null | undefined): string {
-  return value && value.length > 0 ? value : "-"
-}
-
-function salaryBand(row: {
-  minSalaryAmount: string | null
-  maxSalaryAmount: string | null
-  currency: string
-}): string {
-  if (!row.minSalaryAmount && !row.maxSalaryAmount) return "-"
-  return `${row.currency} ${row.minSalaryAmount ?? "0"} - ${
-    row.maxSalaryAmount ?? "open"
-  }`
-}

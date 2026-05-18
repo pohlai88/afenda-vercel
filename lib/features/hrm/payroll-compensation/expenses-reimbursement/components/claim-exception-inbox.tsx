@@ -16,45 +16,10 @@ type ClaimExceptionInboxProps = {
   orgSlug: string
 }
 
-export async function ClaimExceptionInbox({
-  orgSlug,
-}: ClaimExceptionInboxProps) {
-  const orgSession = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.claims")
-
-  let rows: ReadonlyArray<ClaimRow>
-  try {
-    rows = await listExceptionPendingClaimsForOrg(orgSession.organizationId)
-  } catch (err) {
-    logUnexpectedServerError("claim-exception-inbox: query failed", err, {
-      organizationId: orgSession.organizationId,
-    })
-    return (
-      <GovernedPatternCListSection
-        layout="embedded"
-        title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: "hrm-claims-exception" },
-            columnsId: "hrm-claims-exception",
-            rowKey: "id",
-            empty: { variant: "muted", title: t("exceptionQueueEmpty") },
-          },
-          columns: [{ id: "employee", header: t("colEmployee") }],
-          rows: [],
-        }}
-        surfaceKey="hrm:claims:exception:error"
-        resolveConfiguredPermission={false}
-        loadError={{
-          variant: "error",
-          title: t("exceptionQueueLoadFailed"),
-        }}
-      />
-    )
-  }
-
-  const stateLabels = {
+function claimExceptionStateLabels(
+  t: Awaited<ReturnType<typeof getTranslations<"Dashboard.Hrm.claims">>>
+) {
+  return {
     draft: t("state.draft"),
     submitted: t("state.submitted"),
     under_review: t("state.under_review"),
@@ -64,24 +29,73 @@ export async function ClaimExceptionInbox({
     cancelled: t("state.cancelled"),
     paid: t("state.paid"),
   } as const
+}
 
-  const listConfiguration = buildClaimExceptionListSurfaceConfiguration(
-    rows,
+export async function ClaimExceptionInbox({
+  orgSlug,
+}: ClaimExceptionInboxProps) {
+  const orgSession = await requireOrgSession()
+
+  const [t, rowsResult] = await Promise.all([
+    getTranslations("Dashboard.Hrm.claims"),
+    (async (): Promise<
+      | { ok: true; rows: ReadonlyArray<ClaimRow> }
+      | { ok: false; error: unknown }
+    > => {
+      try {
+        const rows = await listExceptionPendingClaimsForOrg(
+          orgSession.organizationId
+        )
+        return { ok: true, rows }
+      } catch (error) {
+        return { ok: false, error }
+      }
+    })(),
+  ])
+
+  const copy = {
+    columnsId: "hrm-claims-exception",
+    empty: t("exceptionQueueEmpty"),
+    colEmployee: t("colEmployee"),
+    colClaimType: t("colClaimType"),
+    colClaimDate: t("colClaimDate"),
+    colAmount: t("colAmount"),
+    colEvidence: t("colEvidence"),
+    colSubmitted: t("colSubmitted"),
+    evidenceCountLabel: (count: number) => t("evidenceCount", { count }),
+    stateLabels: claimExceptionStateLabels(t),
+  }
+
+  let listConfiguration = buildClaimExceptionListSurfaceConfiguration(
+    [],
     orgSlug,
-    {
-      columnsId: "hrm-claims-exception",
-      empty: t("exceptionQueueEmpty"),
-      colEmployee: t("colEmployee"),
-      colClaimType: t("colClaimType"),
-      colClaimDate: t("colClaimDate"),
-      colAmount: t("colAmount"),
-      colEvidence: t("colEvidence"),
-      colSubmitted: t("colSubmitted"),
-      evidenceCountLabel: (count) => t("evidenceCount", { count }),
-      stateLabels,
-    }
+    copy
   )
+  let surfaceKey = "hrm:claims:exception-inbox"
+  let loadError:
+    | { variant: "error"; title: string }
+    | undefined
 
+  if (!rowsResult.ok) {
+    logUnexpectedServerError(
+      "claim-exception-inbox: query failed",
+      rowsResult.error,
+      { organizationId: orgSession.organizationId }
+    )
+    surfaceKey = "hrm:claims:exception:error"
+    loadError = {
+      variant: "error",
+      title: t("exceptionQueueLoadFailed"),
+    }
+  } else {
+    listConfiguration = buildClaimExceptionListSurfaceConfiguration(
+      rowsResult.rows,
+      orgSlug,
+      copy
+    )
+  }
+
+  const rows = rowsResult.ok ? rowsResult.rows : []
   const claimById = new Map(rows.map((row) => [row.id, row]))
 
   return (
@@ -89,8 +103,9 @@ export async function ClaimExceptionInbox({
       layout="embedded"
       title=""
       listConfiguration={listConfiguration}
-      surfaceKey="hrm:claims:exception-inbox"
+      surfaceKey={surfaceKey}
       resolveConfiguredPermission={false}
+      loadError={loadError}
       invalid={{
         variant: "error",
         title: t("exceptionQueueLoadFailed"),

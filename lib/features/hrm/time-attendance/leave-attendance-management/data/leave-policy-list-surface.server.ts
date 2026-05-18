@@ -1,6 +1,11 @@
 import "server-only"
 
-import type { ListSurfaceRendererConfigurationInput } from "#features/governed-surface"
+import {
+  GOVERNED_METADATA_SCHEMA_VERSION,
+  listSurfaceRowTrailingActionHidden,
+  resolveListSurfaceRowTrailingAction,
+  type ListSurfaceRendererConfigurationInput,
+} from "#features/governed-surface"
 
 import {
   isHrmLeaveAccrualMethod,
@@ -17,6 +22,10 @@ const LEAVE_READ_PERMISSION = {
 const PRESENTATION = {
   variant: "table-only" as const,
   tableDensity: "compact" as const,
+}
+
+type LeaveTypesListContext = {
+  canUpdate: boolean
 }
 
 type LeaveTypesListCopy = {
@@ -82,9 +91,11 @@ function formatCarryForwardSummary(
 
 export function buildLeaveTypesPolicyListSurfaceConfiguration(
   rows: readonly LeaveTypeAdminRow[],
-  copy: LeaveTypesListCopy
+  copy: LeaveTypesListCopy,
+  context: LeaveTypesListContext = { canUpdate: false }
 ): ListSurfaceRendererConfigurationInput {
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     requiresErpPermission: LEAVE_READ_PERMISSION,
     presentation: PRESENTATION,
@@ -128,6 +139,16 @@ export function buildLeaveTypesPolicyListSurfaceConfiguration(
           status:
             row.archivedAt === null ? copy.statusActive : copy.statusArchived,
         },
+        trailingAction: context.canUpdate
+          ? resolveListSurfaceRowTrailingAction({
+              allowed: true,
+              descriptor: {
+                id: "erp.hrm.leave_type.edit",
+                label: "Edit",
+                intent: "default",
+              },
+            })
+          : listSurfaceRowTrailingActionHidden(),
       }
     }),
   }

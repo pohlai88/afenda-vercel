@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import { logUnexpectedServerError } from "#lib/logger.server"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 
 import {
@@ -185,7 +185,7 @@ export async function POST(
   // Successful transition or already-acknowledged: revalidate compliance
   // dashboards so HR sees the new state on next render.
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/compliance"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/compliance"),
     "page"
   )
 

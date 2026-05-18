@@ -1,16 +1,9 @@
 import { getTranslations } from "next-intl/server"
 
 import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "#components2/ui/card"
-import { GovernedComponentRenderer } from "#components2/metadata"
-import { GovernedEmpty, ModulePageHeader } from "#features/governed-surface"
-import { resolveGovernedErpPermissionAllowed } from "#features/governed-surface/server"
+  GovernedPatternBListSection,
+  ModulePageHeader,
+} from "#features/governed-surface"
 import { requireOrgSession } from "#lib/auth"
 
 import { buildContactsListSurfaceConfiguration } from "../data/contacts-surface-builders.server"
@@ -45,10 +38,6 @@ export async function ContactsPage() {
     }
   )
 
-  const canRead = await resolveGovernedErpPermissionAllowed(
-    listConfiguration.requiresErpPermission
-  )
-
   return (
     <div className="flex flex-col gap-6">
       <ModulePageHeader
@@ -57,35 +46,19 @@ export async function ContactsPage() {
         eyebrow={t("eyebrow")}
       />
 
-      <Card size="sm">
-        <CardHeader>
-          <CardTitle>{t("directoryTitle")}</CardTitle>
-          <CardDescription>{t("directoryDescription")}</CardDescription>
-          <CardAction>
-            <AddContactDialog />
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          {canRead ? (
-            <GovernedComponentRenderer
-              component={{
-                type: "governed:list-surface",
-                serverType: "governed:list-surface",
-                configuration: listConfiguration,
-              }}
-              surfaceKey="contacts:directory"
-            />
-          ) : (
-            <GovernedEmpty
-              model={{
-                variant: "forbidden",
-                title: t("forbiddenTitle"),
-                description: t("forbiddenDescription"),
-              }}
-            />
-          )}
-        </CardContent>
-      </Card>
+      <GovernedPatternBListSection
+        title={t("directoryTitle")}
+        description={t("directoryDescription")}
+        listConfiguration={listConfiguration}
+        surfaceKey="contacts:directory"
+        cardClassName="mt-0 border-solid border-border"
+        headerAction={<AddContactDialog />}
+        forbidden={{
+          variant: "forbidden",
+          title: t("forbiddenTitle"),
+          description: t("forbiddenDescription"),
+        }}
+      />
     </div>
   )
 }

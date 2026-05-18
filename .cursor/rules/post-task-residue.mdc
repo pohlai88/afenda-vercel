@@ -111,7 +111,7 @@ This includes knip, format check, all typechecks, and behavior tests. Run it onc
 
 After any Workbench/Nexus phase work:
 
-- `organizationDashboardPath(slug, "home")` resolves to Nexus root `/o/${slug}`.
+- `organizationAppsPath(slug, "home")` resolves to Nexus root `/o/${slug}`.
 - `switchActiveOrgAction` redirect goes to `/o/${slug}`, not `/o/${slug}/dashboard`.
 - Shell chrome is **`components2/app-shell/`** (`#app-shell`). `components2/nexus/` = Nexus Field + Lynx summon only. No repo-root `components/` or `components/dashboard/`.
 

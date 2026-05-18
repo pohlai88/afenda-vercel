@@ -13,7 +13,7 @@ import type {
  * Returns a typed {@link Route} for `Link` / `redirect` from `#i18n/navigation`
  * and Next.js typed routes.
  *
- * Prefer this over `organizationDashboardPath(orgSlug, "home")` and over bare
+ * Prefer this over `organizationAppsPath(orgSlug, "home")` and over bare
  * `/o/{slug}` (org root redirects here). See AGENTS.md §5 → Nexus runtime.
  * Client-safe.
  */
@@ -26,7 +26,7 @@ export function organizationNexusPath(orgSlug: string): Route {
 }
 
 /** Internal: same shape as {@link organizationNexusPath}, but free of the throw. */
-export function ORG_DASHBOARD_HOME_HREF(orgSlug: string): Route {
+export function ORG_APPS_HOME_HREF(orgSlug: string): Route {
   return organizationNexusPath(orgSlug)
 }
 

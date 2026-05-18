@@ -8,15 +8,15 @@ import {
   PLANNER_SIGNAL_CLASSES,
   organizationOrbitPath,
 } from "#features/planner/constants"
-import { DASHBOARD_NAV_MODULES } from "#lib/dashboard-module-paths"
+import { APPS_NAV_MODULES } from "#lib/org-apps-module-paths"
 import {
-  ORBIT_DASHBOARD_SURFACE_SEGMENT_SET,
-  isOrbitDashboardSurfaceSegment,
-} from "#features/planner/planner-dashboard-path.shared"
+  ORBIT_SURFACE_SEGMENT_SET,
+  isOrbitSurfaceSegment,
+} from "#features/planner/planner-orbit-path.shared"
 
 describe("planner contract", () => {
-  it("registers orbit in dashboard nav and messages", () => {
-    expect(DASHBOARD_NAV_MODULES.includes("orbit")).toBe(true)
+  it("registers orbit in apps nav and messages", () => {
+    expect(APPS_NAV_MODULES.includes("orbit")).toBe(true)
     expect(
       (enMessages as { Dashboard: { nav: Record<string, string> } }).Dashboard
         .nav.orbit
@@ -24,9 +24,9 @@ describe("planner contract", () => {
   })
 
   it("builds stable orbit path helpers", () => {
-    expect(organizationOrbitPath("acme")).toBe("/o/acme/dashboard/orbit")
+    expect(organizationOrbitPath("acme")).toBe("/o/acme/apps/orbit")
     expect(organizationOrbitPath("acme", "signals")).toBe(
-      "/o/acme/dashboard/orbit/signals"
+      "/o/acme/apps/orbit/signals"
     )
   })
 
@@ -40,10 +40,10 @@ describe("planner contract", () => {
       "sessions",
       "links",
     ])
-    expect(isOrbitDashboardSurfaceSegment("queue")).toBe(false)
-    expect(isOrbitDashboardSurfaceSegment("triage")).toBe(true)
-    expect(isOrbitDashboardSurfaceSegment("signals")).toBe(true)
-    expect(ORBIT_DASHBOARD_SURFACE_SEGMENT_SET.has("links")).toBe(true)
+    expect(isOrbitSurfaceSegment("queue")).toBe(false)
+    expect(isOrbitSurfaceSegment("triage")).toBe(true)
+    expect(isOrbitSurfaceSegment("signals")).toBe(true)
+    expect(ORBIT_SURFACE_SEGMENT_SET.has("links")).toBe(true)
   })
 
   it("exposes ERP-grade planner doctrines", () => {

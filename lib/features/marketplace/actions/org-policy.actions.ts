@@ -13,7 +13,7 @@ import { db } from "#lib/db"
 import { orgCapabilityPolicy } from "#lib/db/schema"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
-  toLocaleMarketplaceRevalidatePattern,
+  toLocaleOrgNexusRevalidatePattern,
   toLocalePath,
   type AppPath,
 } from "#lib/i18n/locales.shared"
@@ -115,8 +115,7 @@ function denied(): {
 }
 
 function revalidateMarketplaceForPolicy(capabilityId: string): void {
-  revalidatePath(toLocaleMarketplaceRevalidatePattern("/utilities"), "page")
-  revalidatePath(toLocaleMarketplaceRevalidatePattern("/admin"), "page")
+  revalidatePath(toLocaleOrgNexusRevalidatePattern(), "page")
   revalidatePath("/[locale]/o/[orgSlug]" as AppPath, "layout")
   revalidateTag(capabilityMetricsTag(capabilityId), "max")
 }

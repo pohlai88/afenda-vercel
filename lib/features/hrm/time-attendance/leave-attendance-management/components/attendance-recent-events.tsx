@@ -1,6 +1,10 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedPatternCListSection } from "#features/governed-surface"
+import {
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
@@ -48,6 +52,7 @@ function toDisplayRow(
     eventLabelFor: (eventType: string) => string
     sourceLabelFor: (source: string) => string
     correctionShort: string
+    canCorrect: boolean
   }
 ): AttendanceEventDisplayRow {
   const isCorrection = row.correctionOfEventId !== null
@@ -58,6 +63,7 @@ function toDisplayRow(
     occurredAt: row.occurredAt.toISOString(),
     source: labels.sourceLabelFor(row.source),
     correction: isCorrection ? labels.correctionShort : "—",
+    canCorrect: labels.canCorrect && !isCorrection && row.eventType !== "correction",
   }
 }
 
@@ -118,6 +124,7 @@ export async function AttendanceRecentEvents({
       eventLabelFor,
       sourceLabelFor,
       correctionShort: t("correctionShort"),
+      canCorrect: isAdmin,
     })
   )
 
@@ -152,17 +159,24 @@ export async function AttendanceRecentEvents({
               header: t("colActions"),
               render: (surfaceRow) => {
                 const row = rowById.get(surfaceRow.id)
-                if (!row) return null
-                const isCorrection = row.correctionOfEventId !== null
-                const isLockedOrCorrection =
-                  isCorrection || row.eventType === "correction"
-                if (isLockedOrCorrection) return null
+                if (
+                  !row ||
+                  !isListSurfaceTrailingActionRenderable(
+                    surfaceRow.trailingAction
+                  )
+                ) {
+                  return null
+                }
                 return (
-                  <AttendanceCorrectionDialog
-                    originalEventId={row.id}
-                    occurredAtIso={row.occurredAt.toISOString()}
-                    eventType={row.eventType}
-                  />
+                  <GovernedTrailingActionSlot
+                    trailingAction={surfaceRow.trailingAction}
+                  >
+                    <AttendanceCorrectionDialog
+                      originalEventId={row.id}
+                      occurredAtIso={row.occurredAt.toISOString()}
+                      eventType={row.eventType}
+                    />
+                  </GovernedTrailingActionSlot>
                 )
               },
             }

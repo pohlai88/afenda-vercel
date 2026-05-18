@@ -4,7 +4,7 @@ import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { HRM_COMPLIANCE_REGULATORY_AUDIT } from "../compliance-regulatory.contract"
 import {
@@ -45,7 +45,7 @@ import type {
  */
 function revalidateCompliancePages(): void {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/compliance"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/compliance"),
     "layout"
   )
 }

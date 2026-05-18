@@ -1,5 +1,8 @@
 import {
   assertGovernedSurfaceInput,
+  buildKanbanOutgoingTransitionHints,
+  buildKanbanWorkflowFromColumnTransitions,
+  resolveKanbanCardTransition,
   statCardConfigurationSchema,
 } from "#features/governed-surface"
 import { governedActionBarConfigurationSchema } from "#features/governed-surface/schemas/action-bar.schema"
@@ -10,6 +13,9 @@ import { listSurfaceRendererConfigurationSchema } from "#features/governed-surfa
 import { governedSectionConfigurationSchema } from "#features/governed-surface/schemas/section.schema"
 import { governedApprovalTimelineConfigurationSchema } from "#features/governed-surface/schemas/approval-timeline.schema"
 import { governedChartConfigurationSchema } from "#features/governed-surface/schemas/chart.schema"
+import { governedKanbanBoardConfigurationSchema } from "#features/governed-surface/schemas/kanban-board.schema"
+import { governedMultiStepFormConfigurationSchema } from "#features/governed-surface/schemas/multi-step-form.schema"
+import { governedScorecardFormConfigurationSchema } from "#features/governed-surface/schemas/scorecard-form.schema"
 import { governedStackConfigurationSchema } from "#features/governed-surface/schemas/stack.schema"
 
 import { SHELL_PREVIEW_LIST_SURFACE } from "../fixtures/list-surface.fixture"
@@ -216,6 +222,316 @@ export const GALLERY_CHART_TIME_SERIES = assertGovernedSurfaceInput(
     ],
   },
   "gallery-chart-time-series"
+)
+
+const GALLERY_KANBAN_WORKFLOW = buildKanbanWorkflowFromColumnTransitions({
+  applied: ["screening"],
+  screening: ["interview"],
+  interview: ["offer"],
+})
+
+export const GALLERY_KANBAN_RECRUITMENT = assertGovernedSurfaceInput(
+  governedKanbanBoardConfigurationSchema,
+  {
+    dataNature: "kanban",
+    interactionMode: "read-only",
+    copy: {
+      boardAriaLabel: "Recruitment pipeline",
+      emptyColumn: "No candidates in this stage",
+    },
+    workflow: GALLERY_KANBAN_WORKFLOW,
+    columns: [
+      { id: "applied", label: "Applied", badgeTone: "default" },
+      { id: "screening", label: "Screening", badgeTone: "attention" },
+      { id: "interview", label: "Interview", badgeTone: "attention" },
+      { id: "offer", label: "Offer", badgeTone: "positive" },
+    ],
+    columnOrder: ["applied", "screening", "interview", "offer"],
+    cards: [
+      {
+        id: "app-1",
+        columnId: "applied",
+        title: "Jordan Lee",
+        subtitle: "Product designer",
+        badges: ["New"],
+        availableTransitions: buildKanbanOutgoingTransitionHints("applied", [
+          {
+            toColumnId: "screening",
+            label: "Move to screening",
+            allowed: false,
+            disabledReason: "Requires recruiter assignment",
+          },
+        ]),
+      },
+      {
+        id: "app-2",
+        columnId: "screening",
+        title: "Sam Rivera",
+        subtitle: "Engineer",
+        badges: ["2 interviews"],
+        availableTransitions: [
+          resolveKanbanCardTransition({
+            fromColumnId: "screening",
+            toColumnId: "interview",
+            label: "Move to interview",
+            allowed: true,
+          }),
+        ],
+      },
+      {
+        id: "app-3",
+        columnId: "offer",
+        title: "Alex Kim",
+        subtitle: "Ops lead",
+        badges: ["Offer sent"],
+      },
+    ],
+  },
+  "gallery-kanban-recruitment"
+)
+
+export const GALLERY_KANBAN_RECRUITMENT_FOOTER_ACTIONS = assertGovernedSurfaceInput(
+  governedKanbanBoardConfigurationSchema,
+  {
+    dataNature: "kanban",
+    interactionMode: "footer-actions",
+    copy: {
+      boardAriaLabel: "Recruitment pipeline",
+      emptyColumn: "No candidates in this stage",
+    },
+    workflow: GALLERY_KANBAN_WORKFLOW,
+    columns: [
+      { id: "applied", label: "Applied", badgeTone: "default" },
+      { id: "screening", label: "Screening", badgeTone: "attention" },
+      { id: "interview", label: "Interview", badgeTone: "attention" },
+      { id: "offer", label: "Offer", badgeTone: "positive" },
+    ],
+    columnOrder: ["applied", "screening", "interview", "offer"],
+    cards: [
+      {
+        id: "app-1",
+        columnId: "applied",
+        title: "Jordan Lee",
+        subtitle: "Product designer",
+        badges: ["New"],
+      },
+      {
+        id: "app-2",
+        columnId: "screening",
+        title: "Sam Rivera",
+        subtitle: "Engineer",
+        badges: ["2 interviews"],
+      },
+      {
+        id: "app-3",
+        columnId: "offer",
+        title: "Alex Kim",
+        subtitle: "Ops lead",
+        badges: ["Offer sent"],
+      },
+    ],
+  },
+  "gallery-kanban-recruitment-footer"
+)
+
+export const GALLERY_KANBAN_RECRUITMENT_DRAG = assertGovernedSurfaceInput(
+  governedKanbanBoardConfigurationSchema,
+  {
+    dataNature: "kanban",
+    interactionMode: "drag-reorder",
+    copy: {
+      boardAriaLabel: "Recruitment pipeline (drag)",
+      emptyColumn: "No candidates in this stage",
+      dragHandleAriaLabel: "Move candidate card",
+    },
+    workflow: GALLERY_KANBAN_WORKFLOW,
+    columns: [
+      { id: "applied", label: "Applied", badgeTone: "default" },
+      { id: "screening", label: "Screening", badgeTone: "attention" },
+      { id: "interview", label: "Interview", badgeTone: "attention" },
+      { id: "offer", label: "Offer", badgeTone: "positive" },
+    ],
+    columnOrder: ["applied", "screening", "interview", "offer"],
+    cards: [
+      {
+        id: "app-1",
+        columnId: "applied",
+        title: "Jordan Lee",
+        subtitle: "Product designer",
+        badges: ["New"],
+        availableTransitions: buildKanbanOutgoingTransitionHints("applied", [
+          {
+            toColumnId: "screening",
+            label: "Move to screening",
+            allowed: true,
+          },
+        ]),
+      },
+      {
+        id: "app-2",
+        columnId: "screening",
+        title: "Sam Rivera",
+        subtitle: "Engineer",
+        badges: ["2 interviews"],
+        availableTransitions: [
+          resolveKanbanCardTransition({
+            fromColumnId: "screening",
+            toColumnId: "interview",
+            label: "Move to interview",
+            allowed: true,
+          }),
+        ],
+      },
+      {
+        id: "app-3",
+        columnId: "offer",
+        title: "Alex Kim",
+        subtitle: "Ops lead",
+        badges: ["Offer sent"],
+        availableTransitions: [],
+      },
+    ],
+  },
+  "gallery-kanban-recruitment-drag"
+)
+
+const GALLERY_KANBAN_CLAIMS_WORKFLOW = buildKanbanWorkflowFromColumnTransitions({
+  submitted: ["approved", "rejected", "returned", "cancelled"],
+  returned: ["submitted", "cancelled"],
+  approved: ["paid", "cancelled"],
+  rejected: [],
+  paid: [],
+  cancelled: [],
+})
+
+export const GALLERY_KANBAN_CLAIMS_FOOTER = assertGovernedSurfaceInput(
+  governedKanbanBoardConfigurationSchema,
+  {
+    dataNature: "kanban",
+    interactionMode: "footer-actions",
+    copy: {
+      boardAriaLabel: "Claims lifecycle",
+      emptyColumn: "No claims in this column",
+    },
+    workflow: GALLERY_KANBAN_CLAIMS_WORKFLOW,
+    columns: [
+      { id: "submitted", label: "Submitted", badgeTone: "attention" },
+      { id: "returned", label: "Returned", badgeTone: "attention" },
+      { id: "approved", label: "Approved (unpaid)", badgeTone: "positive" },
+      { id: "rejected", label: "Rejected", badgeTone: "critical" },
+      { id: "paid", label: "Paid", badgeTone: "positive" },
+      { id: "cancelled", label: "Cancelled", badgeTone: "critical" },
+    ],
+    columnOrder: [
+      "submitted",
+      "returned",
+      "approved",
+      "rejected",
+      "paid",
+      "cancelled",
+    ],
+    cards: [
+      {
+        id: "claim-1",
+        columnId: "submitted",
+        title: "Aminah Rahman",
+        subtitle: "TRAVEL · 420.00 MYR",
+        badges: ["2 files", "Under review"],
+      },
+      {
+        id: "claim-2",
+        columnId: "approved",
+        title: "Lee Wei",
+        subtitle: "MEDICAL · 180.00 MYR",
+        badges: ["1 file"],
+      },
+      {
+        id: "claim-3",
+        columnId: "paid",
+        title: "Jordan Tan",
+        subtitle: "MEAL · 45.50 MYR",
+      },
+    ],
+  },
+  "gallery-kanban-claims-footer"
+)
+
+export const GALLERY_MULTI_STEP_ONBOARDING = assertGovernedSurfaceInput(
+  governedMultiStepFormConfigurationSchema,
+  {
+    dataNature: "wizard",
+    formId: "gallery-onboarding",
+    actionId: "hrm.onboarding.submit",
+    submitLabel: "Submit onboarding",
+    steps: [
+      {
+        id: "profile",
+        title: "Profile",
+        fields: [
+          { id: "legalName", label: "Legal name", kind: "text", required: true },
+          { id: "workEmail", label: "Work email", kind: "email", required: true },
+        ],
+      },
+      {
+        id: "equipment",
+        title: "Equipment",
+        fields: [
+          {
+            id: "laptop",
+            label: "Laptop preference",
+            kind: "select",
+            required: true,
+            options: [
+              { value: "mac", label: "MacBook" },
+              { value: "win", label: "Windows" },
+            ],
+          },
+          {
+            id: "assetTag",
+            label: "Asset tag (Mac only)",
+            kind: "text",
+            rules: [
+              {
+                effect: "SHOW",
+                condition: {
+                  scope: "field",
+                  fieldId: "laptop",
+                  equals: "mac",
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  "gallery-multi-step-onboarding"
+)
+
+export const GALLERY_SCORECARD_INTERVIEW = assertGovernedSurfaceInput(
+  governedScorecardFormConfigurationSchema,
+  {
+    dataNature: "scoring",
+    formId: "gallery-interview-scorecard",
+    actionId: "hrm.interview.score",
+    title: "Interview scorecard",
+    criteria: [
+      {
+        id: "communication",
+        label: "Communication",
+        description: "Clarity and structure in answers",
+        maxScore: 5,
+      },
+      {
+        id: "role-fit",
+        label: "Role fit",
+        maxScore: 5,
+      },
+    ],
+    notesFieldId: "notes",
+    submitLabel: "Save scorecard",
+  },
+  "gallery-scorecard-interview"
 )
 
 export const GALLERY_APPROVAL_TIMELINE = assertGovernedSurfaceInput(

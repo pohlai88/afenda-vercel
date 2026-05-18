@@ -103,7 +103,7 @@ describe("AppShellNexusUtilityScreenshot", () => {
       <div data-appshell-capture-root="workspace">workspace</div>
       <main id="dashboard-main" data-appshell-capture-root="content">content</main>
     `
-    window.history.replaceState({}, "", "/en/o/acme/dashboard/home")
+    window.history.replaceState({}, "", "/en/o/acme/apps/home")
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:preview")
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {})
   })
@@ -148,7 +148,7 @@ describe("AppShellNexusUtilityScreenshot", () => {
       source: "nexus-utility-screenshot",
       captureMode: "workspace",
       mimeType: "image/png",
-      routePath: "/en/o/acme/dashboard/home",
+      routePath: "/en/o/acme/apps/home",
     })
   })
 

@@ -1,48 +1,12 @@
 import type { AppShellPrimaryLeftRailBadgeTone } from "#app-shell"
-import type { ErpPermissionKey } from "#features/erp-rbac/client"
 import type { EmployeeRecordsFieldKey } from "./employee-management/employee-records-management/data/employee-records-field-catalog.shared"
-import type { HrmDashboardCapabilitySegment } from "./hrm-dashboard-path.shared"
-
-export type HrmCapabilityId =
-  | "workforce"
-  | "organization"
-  | "onboarding"
-  | "offboarding"
-  | "recruitment"
-  | "leave"
-  | "attendance"
-  | "benefits"
-  | "claims"
-  | "imports"
-  | "payroll"
-  | "performance"
-  | "kpi"
-  | "skills"
-  | "training"
-  | "advances"
-  | "compliance"
-  | "documents"
-  | "policies"
-  | "signatures"
-  | "snapshot"
+import type { HrmAppsCapabilitySegment } from "./hrm-apps-path.shared"
 
 /** next-intl keys under `Dashboard.Hrm.nav.*` — must match message catalog. */
-export type HrmNavKey = HrmDashboardCapabilitySegment
+export type HrmNavKey = HrmAppsCapabilitySegment
 
-export type HrmCapability = {
-  readonly id: HrmCapabilityId
-  readonly segments: readonly HrmDashboardCapabilitySegment[]
-  /** Prefix for `erp.hrm.*` IAM audit actions owned by this capability (no trailing dot). */
-  readonly auditPrefix: `erp.hrm.${string}`
-  readonly nav: {
-    readonly navKey: HrmNavKey
-    readonly order: number
-    readonly primarySegment: HrmDashboardCapabilitySegment
-  }
-  readonly requiredPermission: ErpPermissionKey
-}
-
-export const HRM_NAV_NAMESPACE = "Dashboard.Hrm.nav" as const
+export type { HrmCapability, HrmCapabilityId } from "./constants"
+export { HRM_NAV_NAMESPACE } from "./constants"
 
 /**
  * Semantic urgency carried by every HRM rail nav badge. Re-exports the
@@ -602,6 +566,50 @@ export type LeaveApprovalFormState =
         rejectedReason?: string
       }
     }
+
+export type FwaRequestMutationFormState =
+  | { ok: true; requestId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        arrangementTypeId?: string
+        startDate?: string
+        endDate?: string
+        reason?: string
+        remoteLocation?: string
+        evidenceDocumentId?: string
+      }
+    }
+
+export type FwaApprovalFormState =
+  | { ok: true; requestId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        requestId?: string
+        rejectedReason?: string
+        returnedReason?: string
+      }
+    }
+
+export type CreateFwaTypeFormState =
+  | { ok: true; typeId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        code?: string
+        label?: string
+        arrangementKind?: string
+      }
+    }
+
+export type SeedFwaTypesFormState =
+  | { ok: true; seeded: string[]; skipped: string[] }
+  | { ok: false; errors: { form?: string } }
 
 // ---------------------------------------------------------------------------
 // Phase 2C: Attendance form states

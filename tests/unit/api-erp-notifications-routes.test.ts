@@ -125,7 +125,7 @@ describe("api/erp/notifications routes", () => {
           linkedEntityType: "Vendor",
           linkedEntityId: "vendor-1",
           linkedEntityLabel: "Vendor ACME",
-          linkedPath: "/en/o/acme/dashboard/vendors/vendor-1",
+          linkedPath: "/en/o/acme/apps/vendors/vendor-1",
         }),
       })
     )

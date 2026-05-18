@@ -25,7 +25,7 @@ describe("platform operator users nuqs search params", () => {
 
   it("serializes q + page", () => {
     const href = serializePlatformOperatorUsersSearchParams(
-      "/en/o/acme/operator/users",
+      "/en/platform/users",
       { q: "admin", page: 2 }
     )
     expect(href).toContain("q=admin")

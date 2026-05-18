@@ -6,8 +6,8 @@ import type { HrmImportApplyPayload } from "#features/execution"
 import { writeIamAuditEvent } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmImportSession } from "#lib/db/schema"
-import { ORG_DASHBOARD_HRM_IMPORTS } from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { ORG_APPS_HRM_IMPORTS } from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { HRM_BULK_IMPORT_AUDIT } from "../bulk-import.contract"
 import {
@@ -114,7 +114,7 @@ async function applyEmployeeImportBatchStep(
     })
 
     revalidatePath(
-      toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_IMPORTS),
+      toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_IMPORTS),
       "page"
     )
     return { done: true }

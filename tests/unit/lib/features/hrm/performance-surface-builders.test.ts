@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import { parseListSurfaceRendererConfiguration } from "#features/governed-surface/schemas/list-surface-renderer.schema"
 
-import { buildPerformanceCycleListSurfaceConfiguration } from "#features/hrm/talent-management/performance-management/data/performance-cycle-list-surface.server"
-import { buildPerformanceReviewListSurfaceConfiguration } from "#features/hrm/talent-management/performance-management/data/performance-review-list-surface.server"
+import { buildPerformanceCycleListSurfaceConfiguration } from "#features/hrm/talent-management/performance-appraisals/data/performance-cycle-list-surface.server"
+import { buildPerformanceReviewListSurfaceConfiguration } from "#features/hrm/talent-management/performance-appraisals/data/performance-review-list-surface.server"
 
 const REVIEW_ROW = {
   reviewId: "rev-1",

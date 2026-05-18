@@ -6,7 +6,7 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   toLocaleOrgAdminRevalidatePattern,
-  toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgAppsRevalidatePattern,
 } from "#lib/i18n/locales.shared"
 
 import { isOperationalSimulationEnabled } from "../constants"
@@ -56,7 +56,7 @@ export async function clearOrgOperationalSimulationRunAction(
   })
 
   revalidatePath(toLocaleOrgAdminRevalidatePattern("/audit"), "page")
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/orbit"), "page")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/orbit"), "page")
 
   return {
     ok: true,

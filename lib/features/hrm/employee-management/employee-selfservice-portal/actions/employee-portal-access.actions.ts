@@ -5,10 +5,10 @@ import { and, eq, ne } from "drizzle-orm"
 import { z } from "zod"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL } from "#lib/dashboard-module-paths"
+import { ORG_APPS_HRM_EMPLOYEE_DETAIL } from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import { organizationPortalAccess } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { toLocalePortalRevalidatePattern } from "#lib/portal"
 
 import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
@@ -108,7 +108,7 @@ async function requireEmployeePortalAccessGate(
 
 function revalidateEmployeePortalAccess(): void {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
   revalidatePath(toLocalePortalRevalidatePattern("/employee/leave"), "page")

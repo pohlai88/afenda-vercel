@@ -1,4 +1,5 @@
 export { HrmOnboardingPage } from "./components/hrm-onboarding-page"
+export { HrmLifecycleOverviewPage } from "./components/hrm-lifecycle-overview-page"
 export { HrmOnboardingStepForm } from "./components/hrm-onboarding-step-form"
 export { EmployeeDetailBoardingSection } from "./components/employee-detail-boarding-section"
 export { HRM_EMPLOYEE_LIFECYCLE_AUDIT } from "./employee-lifecycle.contract"

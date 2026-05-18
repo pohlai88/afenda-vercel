@@ -13,6 +13,7 @@ export const BENEFIT_LIST_SURFACE_IDS = {
   openEnrollment: "hrm-benefit-open-enrollment",
   providers: "hrm-benefit-providers",
   claimReferences: "hrm-benefit-claim-references",
+  lifeEvents: "hrm-benefit-life-events",
 } as const
 
 export const BENEFIT_SURFACE_PERMISSION = {

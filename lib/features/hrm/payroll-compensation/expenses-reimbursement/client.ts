@@ -13,6 +13,11 @@ export {
 
 export { recordClaimApPaymentAction } from "./actions/claim-payment.actions"
 
+export {
+  moveClaimKanbanCardAction,
+  type MoveClaimKanbanCardResult,
+} from "./actions/claim-kanban.actions"
+
 export { overrideDuplicateClaimAction } from "./actions/claim-duplicate.actions"
 
 export {

@@ -5,37 +5,89 @@ import {
   isListSurfaceTrailingActionRenderable,
 } from "#features/governed-surface"
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
+import { logUnexpectedServerError } from "#lib/logger.server"
 
 import { buildOnboardingListSurfaceConfiguration } from "../data/onboarding-list-surface.server"
-import type { OnboardingContractRow } from "../data/onboarding.queries.server"
+import { ONBOARDING_LIST_SURFACE_IDS } from "../data/onboarding-surface-metadata.shared"
+import {
+  type OnboardingContractRow,
+  listActiveContractsForOnboardingDashboard,
+} from "../data/onboarding.queries.server"
 
 import { HrmOnboardingStepForm } from "./hrm-onboarding-step-form"
 
 type HrmOnboardingSectionProps = {
   orgSlug: string
-  rows: readonly OnboardingContractRow[]
+  organizationId: string
   canRead: boolean
   canUpdate: boolean
 }
 
 export async function HrmOnboardingSection({
   orgSlug,
-  rows,
+  organizationId,
   canRead,
   canUpdate,
 }: HrmOnboardingSectionProps) {
-  const t = await getTranslations("Dashboard.Hrm.onboarding")
+  const [t, rowsResult] = await Promise.all([
+    getTranslations("Dashboard.Hrm.onboarding"),
+    canRead
+      ? (async (): Promise<
+          | { ok: true; rows: ReadonlyArray<OnboardingContractRow> }
+          | { ok: false; error: unknown }
+        > => {
+          try {
+            const rows = await listActiveContractsForOnboardingDashboard(
+              organizationId
+            )
+            return { ok: true, rows }
+          } catch (error) {
+            return { ok: false, error }
+          }
+        })()
+      : Promise.resolve({ ok: true as const, rows: [] }),
+  ])
 
-  const listConfiguration = buildOnboardingListSurfaceConfiguration(
-    rows,
-    {
-      empty: t("emptyBody"),
-      colEmployee: t("colEmployee"),
-      colCompleted: t("colCompleted"),
-      readOnlyUpdateReason: t("readOnlyUpdateReason"),
-    },
+  const copy = {
+    empty: t("emptyBody"),
+    colEmployee: t("colEmployee"),
+    colCompleted: t("colCompleted"),
+    readOnlyUpdateReason: t("readOnlyUpdateReason"),
+  }
+
+  let listConfiguration = buildOnboardingListSurfaceConfiguration(
+    [],
+    copy,
     { canUpdate }
   )
+  let surfaceKey: string = ONBOARDING_LIST_SURFACE_IDS.contracts
+  let loadError:
+    | {
+        variant: "error"
+        title: string
+      }
+    | undefined
+
+  if (!rowsResult.ok) {
+    logUnexpectedServerError(
+      "hrm-onboarding-section: query failed",
+      rowsResult.error,
+      { organizationId }
+    )
+    surfaceKey = ONBOARDING_LIST_SURFACE_IDS.contractsError
+    loadError = {
+      variant: "error",
+      title: t("tableLoadFailed"),
+    }
+  } else {
+    listConfiguration = buildOnboardingListSurfaceConfiguration(
+      rowsResult.rows,
+      copy,
+      { canUpdate }
+    )
+  }
+
+  const rows = rowsResult.ok ? rowsResult.rows : []
   const rowById = new Map(rows.map((row) => [row.contractId, row]))
   const allowed = canRead
 
@@ -46,8 +98,9 @@ export async function HrmOnboardingSection({
         rows.length === 0 && allowed ? t("emptyBody") : t("tableDescription")
       }
       listConfiguration={listConfiguration}
-      surfaceKey="hrm:onboarding:contracts"
+      surfaceKey={surfaceKey}
       parentAccessAllowed={allowed}
+      loadError={loadError}
       forbidden={{
         variant: "forbidden",
         title: t("forbiddenTitle"),

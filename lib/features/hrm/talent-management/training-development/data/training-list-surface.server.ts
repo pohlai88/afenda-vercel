@@ -12,6 +12,7 @@ import type { TrainingCourseCompletionStat } from "./training-analytics.queries.
 import type {
   HrmTrainingAssignmentRow,
   HrmTrainingCourseRow,
+  HrmTrainingRecord,
 } from "./training.types.shared"
 
 const PRESENTATION = {
@@ -203,6 +204,145 @@ type TrainingSessionRosterListCopy = {
   colEmployee: string
   colAttendance: string
   colState: string
+}
+
+type TrainingRecordListCopy = {
+  empty: string
+  colCourse: string
+  colCompleted: string
+  colVerification: string
+  colExpires: string
+  formatDate: (value: Date) => string
+}
+
+type EmployeeDetailTrainingAssignmentListCopy = {
+  empty: string
+  colCourse: string
+  colDue: string
+  colState: string
+  formatDue: (value: Date) => string
+}
+
+export function buildEmployeeDetailTrainingAssignmentListSurfaceConfiguration(
+  assignments: readonly HrmTrainingAssignmentRow[],
+  copy: EmployeeDetailTrainingAssignmentListCopy
+): ListSurfaceRendererConfigurationInput {
+  return {
+    dataNature: "table",
+    requiresErpPermission: TRAINING_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: { title: "hrm-employee-training-assignments" },
+      columnsId: "hrm-employee-training-assignments",
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "course", header: copy.colCourse },
+      { id: "due", header: copy.colDue, cellKind: { kind: "date" } },
+      { id: "state", header: copy.colState },
+    ],
+    rows: assignments.map((row) => ({
+      id: row.id,
+      cells: {
+        course: row.courseName,
+        due: row.dueAt ? copy.formatDue(row.dueAt as Date) : "—",
+        state: row.state,
+      },
+    })),
+  }
+}
+
+type TrainingOrgRecordListCopy = TrainingRecordListCopy & {
+  colEmployee: string
+}
+
+export function buildTrainingOrgRecordsListSurfaceConfiguration(
+  records: readonly HrmTrainingRecord[],
+  copy: TrainingOrgRecordListCopy
+): ListSurfaceRendererConfigurationInput {
+  return {
+    dataNature: "table",
+    requiresErpPermission: TRAINING_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: { title: "hrm-training-org-records" },
+      columnsId: "hrm-training-org-records",
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "employee", header: copy.colEmployee },
+      { id: "course", header: copy.colCourse },
+      {
+        id: "completed",
+        header: copy.colCompleted,
+        cellKind: { kind: "date" },
+      },
+      {
+        id: "verification",
+        header: copy.colVerification,
+        cellKind: { kind: "badge", tone: "default" },
+      },
+      { id: "expires", header: copy.colExpires },
+    ],
+    rows: records.map((record) => ({
+      id: record.id,
+      cells: {
+        employee: `${record.employeeName} (${record.employeeNumber})`,
+        course: record.courseName,
+        completed: copy.formatDate(record.completedAt),
+        verification: record.verificationState,
+        expires: record.expiresAt ? copy.formatDate(record.expiresAt) : "—",
+      },
+      trailingAction:
+        record.verificationState === "self_attested"
+          ? { state: "ready" as const }
+          : { state: "hidden" as const },
+    })),
+  }
+}
+
+export function buildTrainingRecordListSurfaceConfiguration(
+  records: readonly HrmTrainingRecord[],
+  copy: TrainingRecordListCopy
+): ListSurfaceRendererConfigurationInput {
+  return {
+    dataNature: "table",
+    requiresErpPermission: TRAINING_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: { title: "hrm-training-records" },
+      columnsId: "hrm-training-records",
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "course", header: copy.colCourse },
+      {
+        id: "completed",
+        header: copy.colCompleted,
+        cellKind: { kind: "date" },
+      },
+      {
+        id: "verification",
+        header: copy.colVerification,
+        cellKind: { kind: "badge", tone: "default" },
+      },
+      { id: "expires", header: copy.colExpires },
+    ],
+    rows: records.map((record) => ({
+      id: record.id,
+      cells: {
+        course: record.courseName,
+        completed: copy.formatDate(record.completedAt),
+        verification: record.verificationState,
+        expires: record.expiresAt
+          ? copy.formatDate(record.expiresAt)
+          : "—",
+      },
+    })),
+  }
 }
 
 export function buildTrainingSessionRosterListSurfaceConfiguration(

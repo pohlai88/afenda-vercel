@@ -9,7 +9,7 @@ import {
   candidatePortalCareersDetailPath,
 } from "#lib/portal"
 
-import type { JobRequisitionRow } from "../../recruitment-applicant-tracking/data/recruitment.queries.server"
+import type { JobRequisitionRow } from "../../recruitment-onboarding/data/recruitment.queries.server"
 
 type CareersListCopy = {
   pageTitle: string
@@ -28,6 +28,11 @@ export function buildCandidateCareersListSurfaceConfiguration(
   copy: CareersListCopy
 ): ListSurfaceRendererConfigurationInput {
   return {
+    dataNature: "table",
+    presentation: {
+      variant: "table-only",
+      tableDensity: "comfortable",
+    },
     surface: {
       header: {
         eyebrow: copy.pageTitle,

@@ -1,5 +1,5 @@
 import type {
-  OrbitDashboardSurface,
+  OrbitSurface,
   OrbitPageData,
   PlannerSurfaceRecordKind,
 } from "../types"
@@ -11,7 +11,7 @@ export type OrbitKeyboardNavEntry = {
 
 /** Row order matches `OrbitPage` list rendering (for j/k focus navigation). */
 export function buildOrbitKeyboardNavList(
-  surface: OrbitDashboardSurface,
+  surface: OrbitSurface,
   page: Pick<OrbitPageData, "items" | "signals" | "sessions" | "links">
 ): OrbitKeyboardNavEntry[] {
   if (surface === "signals") {

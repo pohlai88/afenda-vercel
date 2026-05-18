@@ -506,34 +506,6 @@ export function LockPayrollPeriodButton({
 // Payroll close passport
 // ---------------------------------------------------------------------------
 
-function ChecklistStatusBadge({
-  status,
-}: {
-  status: PayrollCloseSnapshot["checklist"][number]["status"]
-}) {
-  const t = useTranslations("Dashboard.Hrm.payroll")
-  const label = {
-    passed: t("close.status.passed"),
-    warning: t("close.status.warning"),
-    blocked: t("close.status.blocked"),
-    pending: t("close.status.pending"),
-  }[status]
-  const variant =
-    status === "blocked"
-      ? "destructive"
-      : status === "passed"
-        ? "default"
-        : status === "warning"
-          ? "secondary"
-          : "outline"
-
-  return (
-    <Badge variant={variant} className="text-xs">
-      {label}
-    </Badge>
-  )
-}
-
 function PostingStateBadge({ state }: { state: PayrollPostingState }) {
   const t = useTranslations("Dashboard.Hrm.payroll")
   const variant =
@@ -601,11 +573,13 @@ export function PayrollClosePassport({
   snapshot,
   postingRecord,
   canUpdate,
+  closeChecklistList,
 }: {
   periodId: string
   snapshot: PayrollCloseSnapshot | null
   postingRecord: PayrollPostingRecord | null
   canUpdate: boolean
+  closeChecklistList: React.ReactNode | null
 }) {
   const t = useTranslations("Dashboard.Hrm.payroll")
 
@@ -689,22 +663,7 @@ export function PayrollClosePassport({
           <div className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
             {t("close.checklist")}
           </div>
-          <div className="divide-y divide-border rounded-md border border-border bg-background">
-            {snapshot.checklist.map((item) => (
-              <div
-                key={item.id}
-                className="grid gap-2 px-3 py-2 sm:grid-cols-[1fr_auto]"
-              >
-                <div>
-                  <div className="text-sm font-medium">{item.label}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {item.detail}
-                  </div>
-                </div>
-                <ChecklistStatusBadge status={item.status} />
-              </div>
-            ))}
-          </div>
+          {closeChecklistList}
         </div>
 
         <div className="space-y-4">
@@ -897,196 +856,6 @@ export function PayrollClosePassport({
   )
 }
 
-// ---------------------------------------------------------------------------
-// Traceability panel (7 questions)
-// ---------------------------------------------------------------------------
-
-function TraceabilityRow({
-  label,
-  ok,
-  value,
-}: {
-  label: string
-  ok: boolean
-  value: string
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-2">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-2">
-        <span
-          className={`text-sm font-medium ${ok ? "text-foreground" : "text-amber-600 dark:text-amber-400"}`}
-        >
-          {value}
-        </span>
-        <span
-          className={`inline-flex size-2 rounded-full ${ok ? "bg-green-500" : "bg-amber-400"}`}
-          aria-hidden
-        />
-      </div>
-    </div>
-  )
-}
-
-export function PayrollTraceabilityPanel({
-  traceability,
-}: {
-  traceability: PayrollPeriodTraceability
-}) {
-  const t = useTranslations("Dashboard.Hrm.payroll")
-
-  return (
-    <div className="divide-y divide-border">
-      <TraceabilityRow
-        label={t("trace.q1")}
-        ok={traceability.employeeCount > 0}
-        value={String(traceability.employeeCount)}
-      />
-      <TraceabilityRow
-        label={t("trace.q2")}
-        ok={traceability.allContractsSnapshotted}
-        value={
-          traceability.allContractsSnapshotted
-            ? t("trace.complete")
-            : t("trace.missing")
-        }
-      />
-      <TraceabilityRow
-        label={t("trace.q3")}
-        ok={traceability.allProfilesSnapshotted}
-        value={
-          traceability.allProfilesSnapshotted
-            ? t("trace.complete")
-            : t("trace.missing")
-        }
-      />
-      <TraceabilityRow
-        label={t("trace.q4")}
-        ok={traceability.attendanceComplete}
-        value={
-          traceability.attendanceComplete
-            ? t("trace.complete")
-            : t("trace.pending")
-        }
-      />
-      <TraceabilityRow
-        label={t("trace.q5")}
-        ok={traceability.rulePackVersion !== null}
-        value={traceability.rulePackVersion ?? t("trace.notPinned")}
-      />
-      <TraceabilityRow
-        label={t("trace.q6")}
-        ok={traceability.runsWithBlockers === 0}
-        value={
-          traceability.runsWithBlockers === 0
-            ? t("trace.none")
-            : t("trace.blockerCount", {
-                count: traceability.runsWithBlockers,
-              })
-        }
-      />
-      <TraceabilityRow
-        label={t("trace.q7")}
-        ok={traceability.approvalExists}
-        value={
-          traceability.approvalExists ? t("trace.approved") : t("trace.pending")
-        }
-      />
-      <TraceabilityRow
-        label={t("trace.q8")}
-        ok={traceability.approvedUnpaidClaimCount === 0}
-        value={
-          traceability.approvedUnpaidClaimCount === 0
-            ? t("trace.noUnpaidClaims")
-            : t("trace.unpaidClaimsCount", {
-                count: traceability.approvedUnpaidClaimCount,
-              })
-        }
-      />
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Run summary table
-// ---------------------------------------------------------------------------
-
-export function PayrollRunTable({ runs }: { runs: PayrollConsoleRun[] }) {
-  const t = useTranslations("Dashboard.Hrm.payroll")
-  if (runs.length === 0) {
-    return (
-      <p className="py-6 text-center text-sm text-muted-foreground">
-        {t("noRuns")}
-      </p>
-    )
-  }
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border text-muted-foreground">
-            <th className="py-2 pr-4 text-left font-medium">
-              {t("colEmployee")}
-            </th>
-            <th className="py-2 pr-4 text-left font-medium">{t("colState")}</th>
-            <th className="py-2 pr-4 text-right font-medium">
-              {t("colGrossPay")}
-            </th>
-            <th className="py-2 pr-4 text-right font-medium">
-              {t("colNetPay")}
-            </th>
-            <th className="py-2 text-right font-medium">
-              {t("colEmployerCost")}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {runs.map((run) => (
-            <tr
-              key={run.id}
-              className="border-b border-border/50 last:border-0"
-            >
-              <td className="py-2 pr-4">
-                <span className="font-medium">{run.employeeLegalName}</span>
-                <span className="ml-2 text-xs text-muted-foreground">
-                  {run.employeeNumber}
-                </span>
-              </td>
-              <td className="py-2 pr-4">
-                <Badge
-                  variant={
-                    run.state === "computed"
-                      ? "default"
-                      : run.state === "locked"
-                        ? "outline"
-                        : "secondary"
-                  }
-                  className="text-xs"
-                >
-                  {run.state}
-                </Badge>
-                {run.validationIssues.length > 0 && (
-                  <Badge variant="destructive" className="ml-1 text-xs">
-                    {t("hasIssues", { count: run.validationIssues.length })}
-                  </Badge>
-                )}
-              </td>
-              <td className="py-2 pr-4 text-right tabular-nums">
-                {run.grossPay}
-              </td>
-              <td className="py-2 pr-4 text-right tabular-nums">
-                {run.netPay}
-              </td>
-              <td className="py-2 text-right tabular-nums">
-                {run.employerCost}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Period detail card (with traceability + runs)
@@ -1096,16 +865,22 @@ export function PayrollPeriodDetailCard({
   capabilities,
   period,
   runs,
+  runsList,
+  closeChecklistList,
   closeSnapshot,
   postingRecord,
+  traceabilityList,
   traceability,
   pendingLockApprovalId,
 }: {
   capabilities: PayrollSurfaceCapabilities
   period: PayrollConsolePeriodCard
   runs: PayrollConsoleRun[]
+  runsList: React.ReactNode | null
+  closeChecklistList: React.ReactNode | null
   closeSnapshot: PayrollCloseSnapshot | null
   postingRecord: PayrollPostingRecord | null
+  traceabilityList: React.ReactNode | null
   traceability: PayrollPeriodTraceability
   pendingLockApprovalId: string | null
 }) {
@@ -1178,24 +953,25 @@ export function PayrollPeriodDetailCard({
           snapshot={closeSnapshot}
           postingRecord={postingRecord}
           canUpdate={capabilities.canUpdate}
+          closeChecklistList={closeChecklistList}
         />
         <div>
           <Label className="mb-1 block text-xs font-semibold tracking-widest text-muted-foreground uppercase">
             {t("traceabilityTitle")}
           </Label>
-          <PayrollTraceabilityPanel traceability={traceability} />
+          {traceabilityList}
         </div>
-        {(isPreparing || !isOpen) && runs.length > 0 && (
+        {runsList ? (
           <>
             <Separator />
             <div>
               <Label className="mb-3 block text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                 {t("runsTitle")}
               </Label>
-              <PayrollRunTable runs={runs} />
+              {runsList}
             </div>
           </>
-        )}
+        ) : null}
         {isPreparing && !isLocked && (
           <div className="space-y-4 rounded-md border border-border bg-muted/30 px-4 py-4">
             <p className="text-sm text-muted-foreground">
@@ -1276,8 +1052,11 @@ export function PayrollConsolePage({
           capabilities={capabilities}
           period={view.period}
           runs={view.runs}
+          runsList={view.runsList}
+          closeChecklistList={view.closeChecklistList}
           closeSnapshot={view.closeSnapshot}
           postingRecord={view.postingRecord}
+          traceabilityList={view.traceabilityList}
           traceability={view.traceability}
           pendingLockApprovalId={view.pendingLockApprovalId}
         />

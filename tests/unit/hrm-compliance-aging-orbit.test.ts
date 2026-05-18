@@ -39,7 +39,7 @@ describe("Compliance aging Orbit signal descriptor", () => {
         entityType: "compliance_evidence",
         entityId: "evidence-critical",
         displayLabel: "pcb_2 evidence",
-        href: "/o/acme/dashboard/hrm/compliance",
+        href: "/o/acme/apps/hrm/compliance",
         causalityReason:
           "Compliance evidence crossed the critical aging threshold.",
       },

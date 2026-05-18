@@ -36,7 +36,7 @@ test.describe("HRM payroll preparation UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/payroll`, {
+      await page.goto(`/en/o/${slug}/apps/hrm/payroll`, {
         waitUntil: "domcontentloaded",
       })
 
@@ -57,7 +57,7 @@ test.describe("HRM payroll preparation UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/payroll`, {
+      await page.goto(`/en/o/${slug}/apps/hrm/payroll`, {
         waitUntil: "domcontentloaded",
       })
 
@@ -91,7 +91,7 @@ test.describe("HRM payroll preparation UI surface", () => {
     { tag: "@hrm" },
     async ({ page }) => {
       await page.goto(
-        "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/payroll"
+        "/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/payroll"
       )
       await expect(
         page.getByRole("heading", {
@@ -122,7 +122,7 @@ test.describe("HRM payroll preparation UI surface", () => {
         const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
         test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-        await page.goto(`/en/o/${slug}/dashboard/hrm/payroll`, {
+        await page.goto(`/en/o/${slug}/apps/hrm/payroll`, {
           waitUntil: "domcontentloaded",
         })
 
@@ -172,7 +172,7 @@ test.describe("HRM payroll preparation UI surface", () => {
             runStates: ["computed"],
           })
 
-        await page.goto(`/en/o/${slug}/dashboard/hrm/payroll`, {
+        await page.goto(`/en/o/${slug}/apps/hrm/payroll`, {
           waitUntil: "domcontentloaded",
         })
 
@@ -207,7 +207,7 @@ test.describe("HRM payroll preparation UI surface", () => {
           })
           .toMatchObject({ approvalStates: ["approved"] })
 
-        await page.goto(`/en/o/${slug}/dashboard/hrm/payroll`, {
+        await page.goto(`/en/o/${slug}/apps/hrm/payroll`, {
           waitUntil: "domcontentloaded",
         })
 

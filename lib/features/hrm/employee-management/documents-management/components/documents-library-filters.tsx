@@ -49,7 +49,7 @@ export function DocumentsLibraryFilters({
   const documentTypeId = useId()
   const classificationId = useId()
   const employeeId = useId()
-  const action = `/o/${orgSlug}/dashboard/hrm/documents`
+  const action = `/o/${orgSlug}/apps/hrm/documents`
 
   return (
     <form

@@ -25,7 +25,7 @@ export {
   toolsSignatureRequestPath,
   toolsSignatureCeremonyPath,
   toolsHrmWorkbenchPath,
-  ORG_DASHBOARD_HRM_IMPORTS,
+  ORG_APPS_HRM_IMPORTS,
 } from "./constants"
 
 export { HrmImportsPage } from "./bulk-csv-import/components/hrm-imports-page"

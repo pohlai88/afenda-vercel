@@ -1,13 +1,22 @@
 import "server-only"
 
-import type { ListSurfaceRendererConfiguration } from "#features/governed-surface"
+import type { ListSurfaceRendererConfigurationInput } from "#features/governed-surface"
 
 import { organizationHrmEmployeePath } from "../../../constants"
 import type { EmployeeRow } from "../../../types"
 
+const EMPLOYEE_READ_PERMISSION = {
+  module: "hrm" as const,
+  object: "employee" as const,
+  function: "read" as const,
+}
+
+const PRESENTATION = {
+  variant: "table-only" as const,
+  tableDensity: "comfortable" as const,
+}
+
 type WorkforceListCopy = {
-  pageTitle: string
-  pageDescription: string
   empty: string
   colNumber: string
   colName: string
@@ -18,18 +27,16 @@ type WorkforceListCopy = {
 }
 
 export function buildWorkforceListSurfaceConfiguration(
-  rows: EmployeeRow[],
+  rows: readonly EmployeeRow[],
   orgSlug: string,
   copy: WorkforceListCopy
-): ListSurfaceRendererConfiguration {
+): ListSurfaceRendererConfigurationInput {
   return {
     dataNature: "table",
+    requiresErpPermission: EMPLOYEE_READ_PERMISSION,
+    presentation: PRESENTATION,
     surface: {
-      header: {
-        eyebrow: copy.pageTitle,
-        title: copy.pageTitle,
-        description: copy.pageDescription,
-      },
+      header: { title: "hrm-workforce" },
       columnsId: "hrm-workforce",
       rowKey: "id",
       empty: {

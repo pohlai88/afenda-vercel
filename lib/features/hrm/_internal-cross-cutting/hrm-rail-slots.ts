@@ -18,6 +18,7 @@ const NAV_KEY_ICONS: Record<string, AppShellPrimaryLeftRailNavIconId> = {
   leave: "calendar",
   attendance: "clock",
   benefits: "shield",
+  "bonus-incentives": "shopping-bag",
   claims: "file-text",
   payroll: "shopping-bag",
   performance: "activity",

@@ -33,7 +33,7 @@ test.describe("HRM documents vault UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/documents`)
+      await page.goto(`/en/o/${slug}/apps/hrm/documents`)
 
       await expect(
         page.getByRole("heading", {
@@ -51,7 +51,7 @@ test.describe("HRM documents vault UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/documents`)
+      await page.goto(`/en/o/${slug}/apps/hrm/documents`)
 
       await expect(page.getByText("Filters", { exact: true })).toBeVisible()
       await expect(
@@ -68,7 +68,7 @@ test.describe("HRM documents vault UI surface", () => {
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
       await page.goto(
-        `/en/o/${slug}/dashboard/hrm/documents?documentType=contract&classification=confidential`
+        `/en/o/${slug}/apps/hrm/documents?documentType=contract&classification=confidential`
       )
 
       // The page composer re-validates the URL filters against the
@@ -86,7 +86,7 @@ test.describe("HRM documents vault UI surface", () => {
     { tag: "@hrm" },
     async ({ page }) => {
       await page.goto(
-        "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/documents"
+        "/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/documents"
       )
       await expect(
         page.getByRole("heading", {

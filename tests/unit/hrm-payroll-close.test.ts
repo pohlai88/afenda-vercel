@@ -60,6 +60,7 @@ function makeSnapshot(
       employerContributions: "650.00",
       taxDeductions: "145.00",
       claimSettlements: "100.00",
+      apClaimAccruals: "0.00",
       advanceSettlements: "50.00",
     },
     exceptions: [],

@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
 import { Badge } from "#components2/ui/badge"
 import {
   Card,
@@ -9,6 +10,7 @@ import {
   CardTitle,
 } from "#components2/ui/card"
 import { Separator } from "#components2/ui/separator"
+import { logUnexpectedServerError } from "#lib/logger.server"
 
 import { listOpenBoardingInstancesForEmployee } from "../data/boarding.queries.server"
 
@@ -28,14 +30,59 @@ export async function EmployeeDetailBoardingSection({
   employeeId,
   canManageTasks,
 }: EmployeeDetailBoardingSectionProps) {
-  const [t, instances] = await Promise.all([
+  const [t, instancesResult] = await Promise.all([
     getTranslations("Dashboard.Hrm.boarding"),
-    listOpenBoardingInstancesForEmployee(organizationId, employeeId),
+    (async (): Promise<
+      | {
+          ok: true
+          instances: Awaited<
+            ReturnType<typeof listOpenBoardingInstancesForEmployee>
+          >
+        }
+      | { ok: false; error: unknown }
+    > => {
+      try {
+        const instances = await listOpenBoardingInstancesForEmployee(
+          organizationId,
+          employeeId
+        )
+        return { ok: true, instances }
+      } catch (error) {
+        return { ok: false, error }
+      }
+    })(),
   ])
+
   const copy = (
     key: string,
     values?: Record<string, string | number>
   ): string => t(key as never, values as never)
+
+  if (!instancesResult.ok) {
+    logUnexpectedServerError(
+      "employee-detail-boarding-section: query failed",
+      instancesResult.error,
+      { organizationId, employeeId }
+    )
+    return (
+      <Card id="boarding" size="sm">
+        <CardHeader>
+          <CardTitle className="text-base">
+            {copy("employeeSectionTitle")}
+          </CardTitle>
+          <CardDescription>{copy("employeeSectionDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertTitle>{copy("errorTitle")}</AlertTitle>
+            <AlertDescription>{copy("sectionLoadFailed")}</AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const instances = instancesResult.instances
 
   if (instances.length === 0) {
     return null

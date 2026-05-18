@@ -6,8 +6,8 @@ import { revalidatePath } from "next/cache"
 
 import { requireErpPermission } from "#features/erp-rbac/server"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { ORG_DASHBOARD_HRM_KPI } from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { ORG_APPS_HRM_KPI } from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import type { OrgSession } from "#lib/auth"
 
 import {
@@ -62,7 +62,7 @@ const KPI_PERMISSION = {
 
 function revalidateKpi() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_KPI),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_KPI),
     "page"
   )
 }

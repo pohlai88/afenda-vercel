@@ -14,7 +14,7 @@ import {
   SheetTitle,
 } from "#components2/ui/sheet"
 import { Link } from "#i18n/navigation"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { LYNX_SUMMON_MASCOT_PNG } from "#lib/site"
 import { cn } from "#lib/utils"
 
@@ -90,14 +90,14 @@ function DeepDiveLinks() {
       </p>
       <div className="flex flex-col gap-2 text-sm">
         <Link
-          href={organizationDashboardPath(slug, "knowledge")}
+          href={organizationAppsPath(slug, "knowledge")}
           prefetch={false}
           className="text-primary underline-offset-4 hover:underline"
         >
           {t("openKnowledge")}
         </Link>
         <Link
-          href={organizationDashboardPath(slug, "lynx")}
+          href={organizationAppsPath(slug, "lynx")}
           prefetch={false}
           className="text-primary underline-offset-4 hover:underline"
         >

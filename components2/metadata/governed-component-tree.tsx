@@ -75,10 +75,7 @@ export function GovernedComponentTree({
   }
 
   const data: GovernedComponent = parsed.data
-  // Component types are a wider union than registry keys: design-reserve types
-  // (kanban-board, multi-step-form, scorecard-form, approval-timeline, chart)
-  // declare a contract via AfendaGovernedRendererId but do not yet have a
-  // shipped renderer mapped. The runtime lookup must therefore be safe.
+  // Registry lookup is safe when a component type has no renderer mapping.
   const rendererId = (
     registry as Readonly<Record<string, AfendaGovernedRendererId | undefined>>
   )[data.type]

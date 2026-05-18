@@ -7,7 +7,7 @@ import { Loader2, Paperclip } from "lucide-react"
 import { Button } from "#components2/ui/button"
 
 import { addPlannerAttachmentAction } from "../commands/add-planner-attachment"
-import type { OrbitDashboardSurface, PlannerScopeInput } from "../types"
+import type { OrbitSurface, PlannerScopeInput } from "../types"
 
 const ORBIT_UPLOAD_ACCEPT =
   "image/jpeg,image/png,image/webp,application/pdf" as const
@@ -49,7 +49,7 @@ export function OrbitAttachmentForm({
   itemId,
 }: {
   scope: PlannerScopeInput
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
   orgSlug?: string
   itemId: string
 }) {

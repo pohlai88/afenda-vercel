@@ -1,0 +1,882 @@
+---
+description: Verdict-grade scoped Afenda refactor contract — auto-loads on feature/app/metadata edits. Paste TARGET_SCOPE for explicit runs, or infer scope from glob-matched paths. ADR-0026, App Router, residue cleanup, enterprise quality.
+globs: "lib/features/**,app/(main)/**,components2/metadata/**,components2/app-shell/**,lib/portal/**,content/ask-docs/**,messages/**,tests/unit/**,tests/e2e/**"
+alwaysApply: false
+---
+
+# Afenda Scoped Refactor — Cursor Agent Verdict Prompt
+
+**Sibling prompt:** `.cursor/rules/cursor-scoped-development-prompt.mdc` — use for **greenfield development** from `ARCHITECTURE.md`. Use **this file** for **refactoring existing code** with `PRESERVE_UI: yes`.
+
+**Canonical path:** `.cursor/rules/cursor-scoped-refactor-prompt.mdc` (this file). Docs mirror: `docs/cursor-scoped-refactor-prompt.mdc`.
+
+**Version:** reusable across ERP modules, org admin, platform admin, portals, shell, metadata renderers, and shared infrastructure.
+
+**Authority order:** `AGENTS.md` > peer `.cursor/rules/*.mdc` > this rule (when active) > ADRs > comments.
+
+**Execution verdict:** This is a **production refactor**, not a design exploration, not a recommendation memo, and not a plan-only task. Implement, verify, report.
+
+---
+
+## Activation modes
+
+### A — Explicit run (recommended for large refactors)
+
+User `@`-mentions this rule and pastes `TARGET_SCOPE` (+ optional knobs). Treat pasted scope as **hard boundary**.
+
+### B — Auto-load (glob-triggered)
+
+This rule loads when editing paths matched by `globs` above. If the user did **not** paste `TARGET_SCOPE`:
+
+```txt
+1. Infer TARGET_SCOPE from the module/feature tree containing the file(s) being edited.
+2. Default REFACTOR_KIND to metadata-ui when UI/components/builders are involved; boundary-cleanup for barrels/routes only.
+3. Default PRESERVE_UI to yes unless the user explicitly requests visual change.
+4. Ask at most ONE scope confirmation question if inference would span multiple modules.
+5. Apply all verdicts below to inferred scope — do not wait for a paste block.
+```
+
+**Verdict:** Auto-load is not permission to repo-wide refactor. Stay inside the inferred module tree unless [Scope expansion rules](#scope-expansion-rules) apply.
+
+---
+
+## How to use in Cursor
+
+### IDE mode
+
+| Mode | When |
+| --- | --- |
+| **Ask** | Scope is ambiguous, multiple valid pattern families, or you need a pre-flight audit before touching code |
+| **Agent** | Scope is pasted or glob-inferred and boundaries are clear — default for this rule |
+
+If scope is unclear: ask at most **3** questions, then proceed with the **smallest safe interpretation** inside `TARGET_SCOPE`.
+
+### Paste block (explicit runs)
+
+```txt
+@.cursor/rules/cursor-scoped-refactor-prompt.mdc
+
+TARGET_SCOPE:
+<concrete paths — see examples>
+
+REFACTOR_KIND: metadata-ui | boundary-cleanup | full-stack | schema | tests-only | mixed
+MODULE: contacts | hrm | org-admin | platform-admin | planner | portal | shell | metadata | ask-docs | auth | nexus | <other>
+PRESERVE_UI: yes
+```
+
+Only `TARGET_SCOPE` is mandatory for explicit runs. Other knobs help the agent pick skills and gold references faster.
+
+### Recommended @ attachments
+
+| Attachment | When |
+| --- | --- |
+| `@AGENTS.md` | Always (often already loaded) |
+| `@.cursor/rules/cursor-scoped-refactor-prompt.mdc` | Re-anchor full verdict mid-run (this file) |
+| `@docs/decisions/0026-metadata-driven-ui-architecture.md` | Metadata UI, renderers, Pattern A/B/C/K |
+| `@.agents/skills/metadata-eui-polish/SKILL.md` | Surface builders, governed sections, kanban, renderer work |
+| `@.agents/skills/codebase-cleanup-refactor-clean/SKILL.md` | Post-refactor cleanup — barrels, duplication, reviewable diffs |
+| `@.agents/skills/knip-deadcode/SKILL.md` | Unused exports/files/deps — run `pnpm knip` when barrels or routes change |
+| `@.agents/skills/dead-code/SKILL.md` | Heuristic unused-code audit inside scope (Afenda: prefer knip over `tldr`) |
+| `@.cursor/rules/post-task-residue.mdc` | Close-of-run residue sweep (always on refactors) |
+| `@docs/architecture/org-operational-surface-map.md` | Route/surface boundary questions |
+| `@.cursor/rules/i18n-directory.mdc` | Any `app/(main)/[locale]/**`, `messages/**`, redirects |
+| `@.cursor/rules/iam-directory.mdc` | Auth, session guards, org/account/operator routes |
+| `@.cursor/rules/portal-directory.mdc` | `app/[locale]/p/**`, `lib/portal/**` |
+| `@.cursor/rules/shell-directory.mdc` | `components2/app-shell/**`, utility bar, rails |
+| `@.cursor/rules/governed-renderer-contract.mdc` | `components2/metadata/**`, renderer bridges |
+| `@.cursor/rules/drizzle-migration-ledger.mdc` | `lib/db/schema.ts`, `drizzle/**` |
+| Gold reference file | Same pattern family as your scope (see [Gold references](#gold-references-by-pattern)) |
+| Module `ARCHITECTURE.md` | When present under `lib/features/<module>/**` |
+
+### What this prompt is for
+
+```txt
+✅ Scoped refactors inside one module, route tree, renderer family, or contract boundary
+✅ ADR-0026 metadata-driven UI migration while preserving rendered output
+✅ Server/client boundary cleanup, barrel hygiene, action/query/schema alignment
+✅ Targeted test repair/addition tied to the scoped contract
+✅ Compile/type/lint repair caused by the scoped refactor
+
+❌ Greenfield features with no existing UI to preserve (use pnpm gen + module ADRs instead)
+❌ Repo-wide migrations without an explicit expanded TARGET_SCOPE
+❌ Visual redesign, copy rewrite, or workflow change unless explicitly requested outside PRESERVE_UI
+❌ Architectural category invention without AGENTS.md update first
+```
+
+---
+
+## Mission
+
+Refactor the pasted scope into a **stable, Next.js-native, enterprise-quality** implementation aligned with Afenda's operating contract.
+
+When `REFACTOR_KIND` includes metadata UI (default for ERP surfaces): move hardcoded, page-specific, or locally invented UI wiring toward the **matured metadata-driven architecture (ADR-0026)** where canonical patterns already exist on disk.
+
+**Prime directive (ADR-0026):**
+
+```txt
+Metadata declares intent. Runtime owns authority. Renderers compose primitives. Domain owns truth.
+No runtime JSON-to-JSX. No tenant/session in client metadata. No low-code in production ERP paths.
+```
+
+**UI verdict when `PRESERVE_UI: yes` (default):**
+
+```txt
+MUST preserve rendered layout, visual structure, styling, spacing, typography, icons, copy, and interaction flow.
+MAY rewire the same UI through metadata contracts, builders, and canonical renderers when output is visually identical.
+MUST NOT treat refactor as a redesign opportunity.
+```
+
+---
+
+## Target scope (authoritative boundary)
+
+Paste **one** concrete scope per run. The agent MUST treat it as the hard boundary unless [Scope expansion rules](#scope-expansion-rules) apply.
+
+### Scope template
+
+```txt
+TARGET_SCOPE:
+lib/features/<module>/<area>/**
+app/(main)/[locale]/o/[orgSlug]/apps/<module>/<segment>/**
+tests/unit/<matching>*.test.ts
+tests/e2e/<matching>*.spec.ts
+```
+
+### Implicit scope inference (Mode B — auto-load)
+
+When `TARGET_SCOPE` is not pasted, derive scope from the edited file path:
+
+| Editing under… | Infer `TARGET_SCOPE` as… | Infer `MODULE` as… |
+| --- | --- | --- |
+| `lib/features/hrm/<area>/...` | `lib/features/hrm/<area>/**` + matching `app/.../apps/hrm/<segment>/**` + `tests/**/hrm*` | `hrm` |
+| `lib/features/contacts/...` | `lib/features/contacts/**` + `app/.../apps/contacts/**` + `tests/**/contacts*` | `contacts` |
+| `lib/features/org-admin/...` | `lib/features/org-admin/**` + `app/.../admin/**` + `tests/**/org-admin*` | `org-admin` |
+| `components2/metadata/renderers/<slug>/...` | `components2/metadata/renderers/<slug>/**` + related fixture tests | `metadata` |
+| `components2/app-shell/...` | `components2/app-shell/**` + shell unit tests if any | `shell` |
+| `app/.../p/[portalSlug]/...` | portal route segment + `lib/portal/**` + consumed feature public doors only | `portal` |
+| `content/ask-docs/...` | `content/ask-docs/**` + `app/(ask-docs)/**` + ask-docs tests | `ask-docs` |
+
+```txt
+MUST NOT infer scope wider than the nearest feature/module root.
+MUST include matching route + test globs when those files exist on disk for the module.
+MAY ask one confirmation question if inference crosses module boundaries.
+```
+
+### Example — Contacts (Pattern B ceiling)
+
+```txt
+TARGET_SCOPE:
+lib/features/contacts/**
+app/(main)/[locale]/o/[orgSlug]/apps/contacts/**
+tests/unit/contacts*.test.ts
+tests/e2e/contacts*.spec.ts
+REFACTOR_KIND: metadata-ui
+MODULE: contacts
+PRESERVE_UI: yes
+```
+
+### Example — HRM payroll
+
+```txt
+TARGET_SCOPE:
+lib/features/hrm/payroll-compensation/payroll-processing/**
+app/(main)/[locale]/o/[orgSlug]/apps/hrm/payroll/**
+tests/unit/hrm-payroll*.test.ts
+tests/e2e/hrm-payroll-flow.spec.ts
+REFACTOR_KIND: full-stack
+MODULE: hrm
+PRESERVE_UI: yes
+```
+
+### Example — Org admin
+
+```txt
+TARGET_SCOPE:
+lib/features/org-admin/**
+app/(main)/[locale]/o/[orgSlug]/admin/**
+tests/unit/org-admin*.test.ts
+REFACTOR_KIND: boundary-cleanup
+MODULE: org-admin
+PRESERVE_UI: yes
+```
+
+### Example — Metadata renderer only
+
+```txt
+TARGET_SCOPE:
+components2/metadata/renderers/list-surface-table/**
+tests/unit/list-surface-table*.test.ts
+REFACTOR_KIND: metadata-ui
+MODULE: metadata
+PRESERVE_UI: yes
+```
+
+### Example — Portal surface
+
+```txt
+TARGET_SCOPE:
+app/(main)/[locale]/p/[portalSlug]/<segment>/**
+lib/portal/**
+lib/features/<consumed-module>/**  # only if directly consumed by portal scope
+REFACTOR_KIND: mixed
+MODULE: portal
+PRESERVE_UI: yes
+```
+
+### Example — Platform admin
+
+```txt
+TARGET_SCOPE:
+lib/features/platform-admin/**
+app/(main)/[locale]/operator/**
+tests/unit/platform-admin*.test.ts
+REFACTOR_KIND: boundary-cleanup
+MODULE: platform-admin
+PRESERVE_UI: yes
+```
+
+### Surface routing verdict (do not guess URLs)
+
+| Surface | Canonical route prefix | Business logic home | Shell |
+| --- | --- | --- | --- |
+| Nexus | `/{locale}/o/{orgSlug}/nexus` | `#features/nexus` | `AppShell` @ org layout |
+| ERP apps | `/{locale}/o/{orgSlug}/apps/{module}` | `lib/features/<module>/` | `AppShell` |
+| Org admin | `/{locale}/o/{orgSlug}/admin/*` | `lib/features/org-admin/` | `AppSubLayout` |
+| Org account | `/{locale}/o/{orgSlug}/account/*` | `app/(iam)/account/` + `#lib/auth` | `AppSubLayout` |
+| Platform admin | `/{locale}/platform/*` | `lib/features/platform-admin/` | platform layout (`AppShell` + `AppSubLayout`) |
+| Portal | `/{locale}/p/{portalSlug}/*` | feature modules via public doors | `PortalShell` |
+| Ask docs | `/{locale}/ask-docs/*` | `lib/ask-docs/`, `content/ask-docs/` | docs layout |
+| Auth | `/{locale}/(auth)/*` | `#lib/auth`, `components2/auth/` | auth shell |
+
+**Forbidden paths in new code:** bare `/sign-in`, `/o/...`, retired `/dashboard/*`, retired `/marketplace/*` as navigational targets. See `docs/architecture/org-operational-surface-map.md`.
+
+**Revalidation verdict:** ERP module paths → `toLocaleOrgAppsRevalidatePattern("/<segment>")`. Static locale routes → `toLocaleRoutePattern("/segment")`. Never revalidate a single locale path string.
+
+---
+
+## Scope expansion rules
+
+Touch files **outside** `TARGET_SCOPE` only when one of these is true:
+
+1. **Compile repair** — scoped change breaks types or imports outside the boundary
+2. **Export repair** — barrel, registry, or public door must align for scoped consumers
+3. **Test repair** — test encodes the scoped contract but lives outside scope
+4. **Route integration** — thin `app/` wiring must import corrected feature export
+5. **Registry integration** — metadata/renderer/feature registry entry consumed by scope
+6. **ADR alignment** — shared governed-surface or renderer contract requires minimal shared edit
+7. **Migration repair** — schema change for scoped persistence (Drizzle rules apply)
+8. **Directly consumed shared contract** — type/schema shared by scope and one upstream producer
+
+When expanding:
+
+```txt
+MUST keep out-of-scope edits minimal.
+MUST explain every out-of-scope file in the final report with one classification from the list above.
+MUST NOT use expansion as scope creep for unrelated cleanup.
+```
+
+---
+
+## Read order (mandatory)
+
+```txt
+1. AGENTS.md — operating contract, boundaries, verify commands
+2. ADR-0026 — when REFACTOR_KIND includes metadata-ui
+3. This prompt — TARGET_SCOPE, REFACTOR_KIND, PRESERVE_UI, verdict sections
+4. Required skills — full SKILL.md for each triggered skill (decision tree below)
+5. Path-matched .cursor/rules/*.mdc for every directory touched
+6. Current implementation inside TARGET_SCOPE — disk is truth
+7. Gold reference — same pattern family, preferably same MODULE if available
+8. Module ARCHITECTURE.md — when present under scoped feature tree
+```
+
+### Document map
+
+| Question | Read |
+| --- | --- |
+| Boundaries, commands, module doors, Drizzle ownership | `AGENTS.md` |
+| Metadata-driven UI architecture | `docs/decisions/0026-metadata-driven-ui-architecture.md` |
+| Platform maturity (≥90 before mass default) | `docs/architecture/metadata-maturity-score.md` |
+| Pattern C section quality (≥9.4/10) | `docs/architecture/governed-section-composition-score.md` |
+| Org surface / route cutover | `docs/architecture/org-operational-surface-map.md` |
+| Path-specific enforcement | `.cursor/rules/*.mdc` |
+| Metadata UI workflow | `.agents/skills/metadata-eui-polish/SKILL.md` |
+| Locale-first routing | `.cursor/rules/i18n-directory.mdc` |
+| Post-task residue / dead code | `.cursor/rules/post-task-residue.mdc`, `no-dead-code-no-aliases.mdc`, `never-restore-deleted-components.mdc` |
+| Residue cleanup skills | `.agents/skills/codebase-cleanup-refactor-clean/`, `knip-deadcode/`, `dead-code/` |
+| Concurrent-agent verify | `.cursor/rules/targeted-verification.mdc` |
+
+**Verdict:** Generic Next.js or next-intl tutorials do **not** override Afenda rules.
+
+---
+
+## Agent skills stack
+
+Skills are **executable workflows**. For each skill marked **Required** for your scope, read the full `SKILL.md` before writing code in that concern area.
+
+### Load order
+
+```txt
+1. AGENTS.md + ADR-0026 (if metadata-ui)
+2. This prompt
+3. Required skills — full SKILL.md each
+4. Matching .cursor/rules/*.mdc
+5. TARGET_SCOPE implementation
+6. Gold reference(s)
+7. Close — residue cleanup skills + post-task-residue sweep (every run)
+```
+
+### Primary skills (most scoped refactors)
+
+| Skill | Path | Verdict |
+| --- | --- | --- |
+| **metadata-eui-polish** | `.agents/skills/metadata-eui-polish/SKILL.md` | **Required** when scope includes components, `*-surface*.server.ts`, `*-builders*.server.ts`, Pattern A/B/C/K, kanban bridges, `components2/metadata/**`, or ERP pages wiring governed lists/kanban/stats |
+| **typescript-react-reviewer** | `~/.claude/skills/typescript-react-reviewer/SKILL.md` | **Required** when any `*.client.tsx`, hooks, drag/footer kanban bridges, forms, Server Action consumers change |
+| **next-intl-app-router** | `~/.claude/skills/next-intl-app-router/SKILL.md` | **Required** when `app/(main)/[locale]/**`, `messages/**`, Link/redirect/revalidatePath, or new i18n keys change |
+
+**metadata-eui-polish composes** shadcn-metadata, web-design-guidelines, and vercel-composition-patterns. Do **not** invoke those separately for the same task.
+
+Announce at metadata work start: *Applying metadata EUI polish to `{surfaceKey}`.*
+
+### Complementary skills (load when scope matches)
+
+| Skill | Path | Load when |
+| --- | --- | --- |
+| **vercel-react-best-practices** | `~/.claude/skills/vercel-react-best-practices/SKILL.md` | RSC pages, waterfalls, bundle size, serialization |
+| **nextjs-app-router-patterns** | `~/.claude/skills/nextjs-app-router-patterns/SKILL.md` | Layout/page structure, Suspense, Server Actions |
+| **accelint-nextjs-best-practices** | `~/.claude/skills/accelint-nextjs-best-practices/SKILL.md` | Auth on Server Actions, Suspense boundaries |
+| **react-hooks** | `~/.claude/skills/react-hooks/SKILL.md` | Client islands — derived state in render, not `useEffect` |
+| **playwright-best-practices** | `~/.claude/skills/playwright-best-practices/SKILL.md` | `tests/e2e/**` added/changed |
+| **web-accessibility** | `~/.claude/skills/web-accessibility/SKILL.md` | Kanban drag, tables, keyboard focus |
+| **drizzle-orm** | `~/.claude/skills/drizzle-orm/SKILL.md` | **Required** if `lib/db/schema.ts` or `drizzle/**` in scope |
+| **adqs** | `.agents/skills/adqs/SKILL.md` | `content/ask-docs/**` in scope |
+| **dry / kiss / yagni** | `.agents/skills/{dry,kiss,yagni}/SKILL.md` | Duplicate builders, speculative renderer modes, over-abstraction |
+
+### Residue cleanup skills (required at close of every run)
+
+Read all three `SKILL.md` files **before declaring the run complete**. Afenda `.cursor/rules/*.mdc` override generic skill advice when they conflict.
+
+| Skill | Path | Source |
+| --- | --- | --- |
+| **codebase-cleanup-refactor-clean** | `.agents/skills/codebase-cleanup-refactor-clean/SKILL.md` | [skills.sh](https://skills.sh/sickn33/antigravity-awesome-skills/codebase-cleanup-refactor-clean) |
+| **knip-deadcode** | `.agents/skills/knip-deadcode/SKILL.md` | [skills.sh](https://skills.sh/pproenca/dot-skills/knip-deadcode) |
+| **dead-code** | `.agents/skills/dead-code/SKILL.md` | [skills.sh](https://skills.sh/parcadei/continuous-claude-v3/dead-code) |
+
+**Verdict:** **Required** on every scoped refactor — apply after feature work, before the final report.
+
+**Afenda residue authority (non-optional):**
+
+- `.cursor/rules/post-task-residue.mdc`
+- `.cursor/rules/no-dead-code-no-aliases.mdc`
+- `.cursor/rules/never-restore-deleted-components.mdc`
+
+**Residue sweep checklist:**
+
+```txt
+□ No redirect/alias targets a deleted route or export
+□ Deleted symbol removed from index.ts / client.ts / server.ts barrels
+□ No unreachable branches (retired types, scope kinds, feature flags)
+□ No "Phase N will…" comments where Phase N already shipped
+□ No imports to paths that do not exist on disk
+□ messages/en.json: new keys added; orphaned keys removed if unused
+□ pnpm exec eslint --max-warnings=0 <touched-paths> && pnpm typecheck
+□ pnpm knip — when barrels, public doors, or app routes changed (pre-push / full verify)
+```
+
+**Afenda override for dead-code skill:** Use `pnpm knip` as the mechanical TypeScript export graph gate. Use the dead-code skill for heuristic passes inside `TARGET_SCOPE` only. Do not install `tldr` solely for this prompt unless already on PATH.
+
+**Skip:** `react-composition-2026` when vercel-composition-patterns is already composed via metadata-eui-polish.
+
+### Scope → skill suitability matrix
+
+| If `TARGET_SCOPE` includes… | Required skills | Primary Cursor rules |
+| --- | --- | --- |
+| `lib/features/*/components/**` | metadata-eui-polish, typescript-react-reviewer | `frontend-quality-contract`, `design-system`, `governed-renderer-contract` |
+| `lib/features/*/data/*-surface*.server.ts` or `*-builders*.server.ts` | metadata-eui-polish | `governed-surface-schema-contract`, `erp-primitives` |
+| `components2/metadata/**` | metadata-eui-polish | `governed-renderer-contract`, `design-system` |
+| `components2/app-shell/**` | typescript-react-reviewer (if client), vercel-react-best-practices | `shell-directory`, `frontend-quality-contract` |
+| `app/(main)/[locale]/o/**/apps/**` | metadata-eui-polish (if UI), next-intl-app-router, typescript-react-reviewer (if client) | `nextjs-best-practices`, `app-router-contracts`, `i18n-directory` |
+| `app/(main)/[locale]/o/**/admin/**` | next-intl-app-router, org-admin-directory | `org-admin-directory`, `iam-directory` |
+| `app/(main)/[locale]/platform/**` | next-intl-app-router | `iam-directory` |
+| `app/(main)/[locale]/p/**` | next-intl-app-router | `portal-directory` |
+| `content/ask-docs/**` | adqs | `ask-docs-directory` |
+| `messages/en.json` or fixtures | next-intl-app-router | `i18n-directory`, `pnpm lint:fixtures-parity` |
+| `lib/db/schema.ts` / `drizzle/**` | drizzle-orm + AGENTS Priority #1 | `drizzle-migration-ledger` |
+| `tests/e2e/**` | playwright-best-practices | `testing.mdc` |
+| `tests/unit/**` (DOM) | typescript-react-reviewer | `testing.mdc` |
+| Kanban (`*kanban*`, Pattern K) | metadata-eui-polish | `GovernedKanbanFooterBoard` / `GovernedKanbanDragBoard`; `interactionMode` must match bridge |
+| Pattern C lists | metadata-eui-polish | `GovernedPatternCListSection`; no empty fork via bare `GovernedComponentRenderer` in feature code |
+| Deletes/moves, route removal, barrel trim | **All three residue skills** | Same-PR alias/redirect removal; never restore `components/` |
+| `index.ts` / `client.ts` / `server.ts` export changes | knip-deadcode, codebase-cleanup-refactor-clean | Trace usage before removing exports |
+| `app/(main)/[locale]/**` route delete or rename | residue stack + next-intl-app-router | Fix `toLocalePath` / `revalidatePath` patterns |
+
+**Default for full-stack ERP scope** (feature + route + tests): all three **primary** skills **Required**, plus all three **residue cleanup** skills **Required** at close.
+
+### Skill execution rules
+
+1. **metadata-eui-polish:** Run checklist §3–4 for each migrated `surfaceKey`. Post-task: targeted ESLint + `pnpm typecheck`. Registry/skeleton/fixture changes → renderer lint gates from that skill.
+2. **typescript-react-reviewer:** Block on critical issues — `useEffect` derived state, missing cleanup, `key={index}` on business rows, `useFormStatus` in same component as `<form>`, state mutation, server barrel imports in client files.
+3. **next-intl-app-router (Afenda profile):** Client links via `#i18n/navigation`; server `redirect` + `toLocalePath(locale, …)`; ERP `revalidatePath` via `toLocaleOrgAppsRevalidatePattern`. New keys → `messages/en.json`.
+4. **codebase-cleanup-refactor-clean:** Small reviewable steps; remove duplication inside `TARGET_SCOPE` without broad rewrites; keep UI frozen when `PRESERVE_UI: yes`.
+5. **knip-deadcode:** Run `pnpm knip` when exports, barrels, or route files changed; trace export usage before removal; fix unused files before dependencies (per skill references).
+6. **dead-code:** Manual orphan pass inside scope; defer to knip for the export graph; do not add CLI tools solely for `tldr dead`.
+
+---
+
+## Gold references by pattern
+
+Pick the closest on-disk reference **before coding**. Do not invent a new pattern family when one already exists.
+
+| Pattern | When | Reference |
+| --- | --- | --- |
+| **A** | Page chrome + bespoke forms | `#features/governed-surface` — `GovernedSurface`, `ModulePageHeader`, `GovernedSection` |
+| **B** | Lists/KPI/stats without trailing row forms | `lib/features/contacts/components/contacts-page.tsx` |
+| **C** | List + trailing forms/actions | `lib/features/hrm/employee-management/employee-lifecycle-management/components/hrm-onboarding-section.tsx` |
+| **K (footer-actions)** | Kanban with footer actions | `lib/features/hrm/talent-management/recruitment-onboarding/components/recruitment-pipeline-kanban-section.tsx` |
+| **K (drag / claims)** | Kanban drag or claims pipeline | `lib/features/hrm/payroll-compensation/expenses-reimbursement/components/claim-kanban-section.tsx` |
+| **Thin app route** | ERP page wiring only | `app/(main)/[locale]/o/[orgSlug]/apps/contacts/page.tsx` |
+| **Org admin** | Admin workbench surface | `lib/features/org-admin/` + matching `app/.../admin/` page |
+| **Portal** | External/constrained audience | `components2/portal-shell/` + `lib/portal/` guards |
+
+**Pattern selection verdict:**
+
+```txt
+MUST match existing UI shape — do not swap Pattern B for C (or vice versa) if output changes.
+MUST use GovernedComponentRenderer / GovernedPatternCListSection / Kanban sections only when ADR-0026 + gold reference support that shape.
+MUST NOT deep-import renderer internals when a public door exists.
+```
+
+---
+
+## Non-negotiable verdicts (Afenda contract)
+
+These apply to **every** scoped refactor regardless of module.
+
+### Architecture
+
+```txt
+MUST keep ERP/domain business logic in lib/features/<module>/ — never in app/, proxy.ts, or lib/erp/ (primitives only).
+MUST keep app/ thin: params, guards, single feature RSC export or equivalent wiring.
+MUST import cross-module code only via #features/<module> public doors — no deep cross-module imports.
+MUST use #lib/auth for session/org guards — never #lib/tenant.
+MUST use Server Actions for internal mutations unless AGENTS.md explicitly allows a Route Handler family.
+MUST respect module barrels: index.ts (RSC/server), client.ts (client-safe), server.ts (server-only) where they exist.
+```
+
+### UI shelf and design system
+
+```txt
+MUST import UI primitives via #components2/ui/* only.
+MUST NOT recreate or mkdir repo-root components/ — hard-deleted; forward-only.
+MUST use semantic design tokens — no hardcoded hex or one-off geometry outside the design contract.
+MUST follow layout ownership: shell owns viewport; route layout owns surface; page owns content flow (frontend-quality-contract §11).
+```
+
+### Metadata-driven UI (when REFACTOR_KIND includes metadata-ui)
+
+```txt
+MUST treat ADR-0026 as architectural authority for renderer contracts, schema ownership, and feature integration.
+MUST use existing governed-surface schemas, renderer registries, and section primitives.
+MUST keep feature builders as pure server builders returning validated renderer configuration inputs.
+MUST NOT build runtime JSON-to-JSX or low-code ERP surfaces.
+MUST NOT put tenant, session, or permission authority in client metadata.
+MUST NOT emit design-reserve renderer types without shipped renderer + registry/contract parity.
+MUST NOT create a second metadata architecture inside any module.
+```
+
+### Next.js runtime
+
+```txt
+MUST default to Server Components.
+MUST keep client islands narrow — interactivity, browser APIs, form state, optimistic UI only.
+MUST pass only serializable props server → client.
+MUST await params, searchParams, cookies(), headers() in App Router surfaces.
+MUST parallelize independent fetches (Promise.all) — no avoidable waterfalls.
+MUST NOT fetch initial ERP data from Client Components.
+MUST NOT add segment dynamic/revalidate/runtime exports under app/ (Cache Components doctrine).
+```
+
+### Quality and discipline
+
+```txt
+MUST apply DRY, KISS, YAGNI — no speculative abstractions.
+MUST NOT add new dependencies unless strictly necessary and justified in the report.
+MUST NOT leave dead exports, compatibility shims, or redirects to deleted routes (no-dead-code-no-aliases).
+MUST NOT use banned directory categories: services, utils, helpers, repositories, controllers (except lib/utils.ts cn() door).
+MUST NOT ask the human to run db:generate, db:migrate:local, or DB reset — agent-owned per AGENTS Priority #1.
+```
+
+Full boundary table: `AGENTS.md` § Non-negotiable boundaries.
+
+---
+
+## Strict UI freeze (when PRESERVE_UI: yes)
+
+### MUST NOT change intentionally
+
+- Rendered layout and visual structure
+- Component presentation hierarchy
+- Styling, spacing, typography, icons
+- Wording, copy, labels (unless fixing encoding corruption)
+- Interaction flow and user workflow
+
+### ALLOWED UI-adjacent changes
+
+- Rewire existing UI through ADR-0026 metadata contracts
+- Replace hardcoded configuration with metadata-backed configuration when visually identical
+- Normalize view models consumed by the same UI
+- Minimal prop/interface adjustments required by the refactor
+- Wire existing UI to corrected data, actions, and contracts
+- Add missing accessibility attributes when correctness requires it and visual impact is none
+
+### If a visual change is unavoidable
+
+```txt
+MUST keep it minimal.
+MUST explain exact reason, affected files, and why redesign was not chosen.
+MUST flag in final report under UI preservation row.
+```
+
+---
+
+## Required audit before editing
+
+Build an **internal** implementation plan from repo evidence. Do **not** stop to output the plan unless blocked.
+
+Audit checklist:
+
+1. [ ] Required skills identified and `SKILL.md` files read
+2. [ ] ADR-0026 requirements mapped to scope (if metadata-ui)
+3. [ ] Current routes, pages, components, actions, queries, schemas, contracts, exports inside `TARGET_SCOPE`
+4. [ ] Existing governed-surface/metadata patterns in nearby modules
+5. [ ] Server/client boundary risks (typescript-react-reviewer critical patterns)
+6. [ ] Serializable prop risks across server → client boundaries
+7. [ ] Locale/i18n — hard-coded paths, missing `messages/en.json` keys, wrong `revalidatePath` patterns
+8. [ ] Schema, action, query, export mismatches
+9. [ ] Fake persistence, stubs, or false runtime completeness claims
+10. [ ] Targeted verification commands from `package.json` / `targeted-verification.mdc`
+11. [ ] ERP RBAC — scoped surfaces using permission keys, not retired org-role shortcuts (when applicable)
+12. [ ] Residue risk — dead exports, stale redirects, barrel orphans, compatibility shims ([residue cleanup skills](#residue-cleanup-skills-required-at-close-of-every-run))
+
+---
+
+## Refactor objectives (by concern)
+
+### 1. Architecture
+
+- Domain logic stays in `lib/features/<module>/`
+- Route files stay thin
+- Public exports intentional and aligned with repo patterns
+- No circular imports
+- Separate server, client, shared, schema, metadata, and component exports per module convention
+
+### 2. Metadata-driven UI contracts (when applicable)
+
+- Move hardcoded renderer configuration into ADR-0026-aligned contracts
+- Normalize view models for metadata-driven rendering
+- Add or align renderer configuration schemas only when required
+- Validate metadata inputs with existing Zod patterns
+- Preserve existing UI while changing configuration source
+
+### 3. Next.js boundaries
+
+- RSC default; narrow client islands
+- Serializable server → client props
+- Server Actions for mutations unless route handler explicitly required
+- No server-only imports in client files
+
+### 4. Data flow
+
+- Normalize queries, mutations, actions, view models
+- Remove invalid UI ↔ persistence coupling
+- Isolate stubs that imply false runtime completeness
+- Typed, predictable action result envelopes
+- Metadata consumes normalized data — not raw DB rows unless already canonical
+
+### 5. Schemas and contracts
+
+- Align schemas with runtime behavior
+- Validate at mutation boundaries
+- Keep shared schema files safe for client + server imports
+- Separate domain schemas from renderer configuration schemas when ADR-0026 requires it
+
+### 6. Persistence and runtime integrity
+
+- Eliminate fake persistence where real persistence is expected
+- Align schema, actions, queries, mutations, metadata, view models
+- Migrations only when schema actually changes
+- Do not mark runtime behavior `complete` unless implemented and verified
+
+### 7. Performance and stability
+
+- Avoid unnecessary client rendering and duplicate fetches
+- Cache/revalidation consistent with Next.js 16 Cache Components setup
+- Correctness before optimization
+- Deterministic, cheap metadata resolution
+
+### 8. Tests
+
+Update or add **targeted** tests only — no broad unrelated scaffolding.
+
+Prioritize:
+
+- Schema parsing and metadata configuration validation
+- Action result envelopes
+- Renderer/view-model boundaries
+- Server/client serialization boundaries
+- Changed query/action behavior
+
+### 9. Residue and dead-code cleanup
+
+- Run [residue cleanup skills](#residue-cleanup-skills-required-at-close-of-every-run) at end of every run.
+- Remove exports, redirects, and branches that exist only for deleted surfaces (same PR, no shims).
+- Prefer `pnpm knip` for mechanical unused-code detection in this monorepo.
+- Classify any out-of-scope file touched for residue repair in the final report.
+
+---
+
+## Drizzle migration rules
+
+**Only when** `lib/db/schema.ts` changes:
+
+```bash
+pnpm db:generate          # abort if rename disambiguation prompts
+pnpm lint:drizzle-journal
+pnpm db:migrate:local
+```
+
+Commit atomically: `lib/db/schema.ts` + `drizzle/*.sql` + `drizzle/meta/*`.
+
+**Forbidden:** `db:push*`, hand-edited SQL/meta, bulk orphan SQL cleanup, manual snapshot repair, `node scripts/nuke-db-public.mjs`, asking human to migrate/reset, Neon MCP DDL for app-owned tables.
+
+If no schema change is required: **do not** generate a migration.
+
+---
+
+## Execution workflow
+
+Complete the job **end-to-end in one pass**.
+
+```txt
+1. Read authoritative inputs + required skills for TARGET_SCOPE / REFACTOR_KIND
+2. Audit current implementation (internal — output only if blocked)
+3. Make smallest safe change set that satisfies verdicts while preserving UI
+4. Update actions, queries, schemas, metadata, exports, routes, tests together when same contract
+5. Repair compile, type, lint, test failures caused by the refactor
+6. Run verification as far as environment allows
+7. Residue close — [residue sweep checklist](#residue-cleanup-skills-required-at-close-of-every-run); `pnpm knip` when barrels, exports, or routes changed
+8. Produce required final report with honest status vocabulary
+```
+
+**Verdict:** Do not stop at analysis. Do not deliver recommendations without code. Do not abandon the task because one sub-area is hard — continue elsewhere and classify gaps.
+
+---
+
+## Verification
+
+Follow `.cursor/rules/targeted-verification.mdc` when other agents may be running.
+
+### Minimum (always)
+
+```bash
+pnpm exec eslint --max-warnings=0 <touched-paths>
+pnpm typecheck
+```
+
+### When applicable
+
+```bash
+pnpm test:fast -- tests/unit/<matching>.test.ts
+pnpm typecheck:test                              # if tests/unit/ touched
+pnpm typecheck:scripts                           # if scripts/ touched
+pnpm lint:fixtures-parity                        # if messages/en.json touched
+pnpm lint:public-lynx-contract                   # if public Lynx stack touched
+pnpm ask-docs:check                              # if content/ask-docs/ touched
+pnpm lint:components2-renderers                  # if renderers touched
+pnpm lint:renderer-contracts
+pnpm lint:renderer-container-queries
+pnpm lint:renderer-skeleton-parity
+pnpm lint:renderer-fixtures
+pnpm lint:list-surface-table-imports
+pnpm knip                                        # when barrels, index/client/server exports, or app routes changed
+pnpm build                                       # when time/env allow
+```
+
+If schema changed: full Drizzle pipeline from [Drizzle migration rules](#drizzle-migration-rules).
+
+---
+
+## Blocked behavior
+
+If blocked:
+
+```txt
+MUST continue as far as possible within TARGET_SCOPE.
+MUST NOT abandon the whole task because one sub-area failed.
+MUST report exact blocker at end: command, output, or error proof.
+MUST classify affected requirements as blocked — not complete, not silently omitted.
+```
+
+---
+
+## Completion standard (verdict)
+
+The refactor is **complete** only when all are true:
+
+1. Required agent skills read and followed (including residue cleanup stack at close)
+2. Residue sweep completed — no dead aliases, barrel orphans, or stale redirects in scope
+3. ADR-0026 applied when REFACTOR_KIND includes metadata-ui
+4. Clean server/client/shared boundaries inside scope
+5. Metadata contracts align with repo architecture (when applicable)
+6. Existing UI output preserved (when `PRESERVE_UI: yes`)
+7. Actions, queries, schemas, metadata, exports, tests consistent
+8. Locale/i18n keys and paths follow Afenda locale-first rules when routes/copy changed
+9. Verification run as far as environment allows (`pnpm knip` when exports/routes changed)
+10. Remaining gaps classified honestly — no false `complete`
+
+---
+
+## Status vocabulary (strict)
+
+For every requirement, use **exactly one**:
+
+| Status | Meaning |
+| --- | --- |
+| `prepared` | Structure/contracts ready; runtime/engine/integration not fully implemented |
+| `partial` | Some runtime behavior exists; gaps remain |
+| `complete` | Runtime behavior implemented **and** verified |
+| `blocked` | Concrete blocker outside task control — evidence required |
+
+```txt
+MUST NOT collapse prepared into partial.
+MUST NOT mark complete without verified runtime behavior.
+MUST separate structural refactor completeness from runtime/integration completeness.
+```
+
+---
+
+## Required final report
+
+Use this **exact** structure. Verbose is required — brevity that hides gaps is a failure mode.
+
+### 1. Summary
+
+- Scope restated (`TARGET_SCOPE`, `REFACTOR_KIND`, `MODULE`, `PRESERVE_UI`)
+- What was completed
+- **Skills applied:** list every `SKILL.md` path read
+- **Residue sweep:** codebase-cleanup-refactor-clean | knip-deadcode | dead-code — checklist cleared (yes/no per item)
+- UI preserved: yes/no + notes
+- ADR-0026 followed: yes/no/na + notes
+
+### 2. Architectural alignment
+
+- What the operating contract requires for this scope
+- How implementation now aligns
+- Items intentionally deferred or blocked
+
+### 3. ADR-0026 alignment (when applicable)
+
+- Metadata/renderer requirements for this scope
+- Pattern A/B/C/K choices and why
+- Registry/schema/export changes
+- Deferred or blocked ADR items
+
+### 4. What changed
+
+Group by:
+
+- Architecture
+- Metadata-driven UI contracts
+- Server/client boundaries
+- Data flow
+- Schemas/contracts
+- Actions/queries
+- Exports/barrels
+- Routes/integration
+- Tests
+- Migrations
+- Residue cleanup (removed exports, redirects, barrels, stale comments)
+
+### 5. What was intentionally not touched
+
+List UI areas, modules, engines, integrations, schema areas, renderer areas left unchanged.
+
+### 6. Files changed
+
+List **every** changed file.
+
+For files outside `TARGET_SCOPE`, include classification:
+
+- ADR-0026 alignment
+- compile repair
+- export repair
+- test repair
+- route integration
+- metadata/renderer registry integration
+- migration repair
+- directly consumed shared contract repair
+
+### 7. Verification run
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| … | passed / failed / skipped / blocked | important output |
+
+### 8. Requirement matrix
+
+| Requirement | Status | Evidence | Notes |
+| --- | --- | --- | --- |
+| Agent skills stack applied | prepared/partial/complete/blocked | SKILL paths read | … |
+| Residue cleanup (3 skills + rules) | prepared/partial/complete/blocked | checklist + knip/eslint | codebase-cleanup-refactor-clean / knip-deadcode / dead-code |
+| Operating contract (AGENTS.md) | … | files/commands | … |
+| ADR-0026 alignment | … | files/tests | na if not metadata-ui |
+| Metadata-driven UI contracts | … | files/tests | … |
+| i18n / locale-first routing | … | messages/tests | … |
+| Next.js server/client boundaries | … | files/tests | … |
+| Serializable props | … | files/tests | … |
+| Server Actions / mutations | … | files/tests | … |
+| Schema and validation contracts | … | files/tests | … |
+| Query/data flow integrity | … | files/tests | … |
+| Persistence/runtime behavior | … | files/tests | … |
+| UI preservation | … | files/tests | … |
+| Typecheck | … | command output | … |
+| Targeted tests | … | command output | … |
+| Build | … | command output | … |
+
+### 9. Completeness report
+
+#### A. Refactor / contract preparation completeness
+
+- Architecture:
+- ADR-0026 alignment:
+- Metadata contracts:
+- Renderer configuration:
+- Schemas:
+- Exports:
+- Server/client boundaries:
+- Tests:
+
+#### B. Runtime / engine / integration completeness
+
+Adjust lines to match scoped module (examples):
+
+- Persistence:
+- Domain engine/runtime behavior:
+- Workflow/finalization behavior:
+- Approval/lock behavior:
+- External/posting integration:
+- Cross-module input integration:
+- Audit/evidence behavior:
+- ERP RBAC enforcement:
+
+### 10. Remaining gaps
+
+- Real gaps only — no placeholder filler
+- Recommended next step for each
+- Separate `prepared`-but-not-runtime-complete from `blocked`
+
+---
+
+## Final instruction
+
+Preserve the current UI when `PRESERVE_UI: yes`. Refactor `TARGET_SCOPE` into an Afenda-contract-aligned implementation with clean App Router boundaries and ADR-0026 metadata patterns where applicable. Do not stop until code changes and verification are complete as far as the environment allows. Deliver the full final report.

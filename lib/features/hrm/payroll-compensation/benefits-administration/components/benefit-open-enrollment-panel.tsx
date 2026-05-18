@@ -5,34 +5,23 @@ import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
 import { Alert, AlertDescription } from "#components2/ui/alert"
-import { Badge } from "#components2/ui/badge"
 import { Button } from "#components2/ui/button"
 import { Field, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 import { useRouter } from "#i18n/navigation"
 
-import {
-  closeBenefitOpenEnrollmentAction,
-  createBenefitOpenEnrollmentAction,
-} from "../actions/benefit-open-enrollment.actions"
+import { createBenefitOpenEnrollmentAction } from "../actions/benefit-open-enrollment.actions"
 import type { BenefitOpenEnrollmentFormState } from "../actions/benefit-open-enrollment.actions"
 
-import type { BenefitOpenEnrollmentRow } from "../data/benefit-model.shared"
 import type { BenefitPlanChoiceRow } from "./benefit-enrollment-form"
 
 type BenefitOpenEnrollmentPanelProps = {
   isAdmin: boolean
-  windows: readonly BenefitOpenEnrollmentRow[]
   plans: readonly BenefitPlanChoiceRow[]
-}
-
-function isoDay(value: Date): string {
-  return value.toISOString().slice(0, 10)
 }
 
 export function BenefitOpenEnrollmentPanel({
   isAdmin,
-  windows,
   plans,
 }: BenefitOpenEnrollmentPanelProps) {
   const t = useTranslations("Dashboard.Hrm.benefits")
@@ -43,12 +32,7 @@ export function BenefitOpenEnrollmentPanel({
     )
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <CreateOpenEnrollmentForm plans={plans} />
-      <OpenEnrollmentWindowsTable windows={windows} />
-    </div>
-  )
+  return <CreateOpenEnrollmentForm plans={plans} />
 }
 
 function CreateOpenEnrollmentForm({
@@ -142,85 +126,6 @@ function CreateOpenEnrollmentForm({
         ) : (
           t("openEnrollment.createSubmit")
         )}
-      </Button>
-    </form>
-  )
-}
-
-function OpenEnrollmentWindowsTable({
-  windows,
-}: {
-  windows: readonly BenefitOpenEnrollmentRow[]
-}) {
-  const t = useTranslations("Dashboard.Hrm.benefits")
-
-  if (windows.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("openEnrollment.empty")}</p>
-  }
-
-  return (
-    <div className="overflow-x-auto rounded-md border border-border">
-      <table className="w-full min-w-[640px] caption-bottom text-sm">
-        <thead className="border-b border-border bg-muted/40">
-          <tr>
-            <th className="px-3 py-2 text-start font-medium">{t("openEnrollment.colName")}</th>
-            <th className="px-3 py-2 text-start font-medium">
-              {t("openEnrollment.colPeriod")}
-            </th>
-            <th className="px-3 py-2 text-start font-medium">{t("openEnrollment.colPlans")}</th>
-            <th className="px-3 py-2 text-start font-medium">
-              {t("openEnrollment.colStatus")}
-            </th>
-            <th className="px-3 py-2 text-end font-medium">{t("openEnrollment.colActions")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {windows.map((row) => (
-            <tr key={row.id} className="border-b border-border last:border-0">
-              <td className="px-3 py-2 align-top font-medium">{row.name}</td>
-              <td className="px-3 py-2 align-top text-muted-foreground">
-                {isoDay(row.startsOn)} — {isoDay(row.endsOn)}
-              </td>
-              <td className="px-3 py-2 align-top text-muted-foreground">
-                {row.planIds.length > 0 ? row.planIds.length : t("openEnrollment.allPlans")}
-              </td>
-              <td className="px-3 py-2 align-top">
-                <Badge variant={row.isActive ? "success" : "secondary"}>
-                  {row.isActive ? t("openEnrollment.statusActive") : t("openEnrollment.statusClosed")}
-                </Badge>
-              </td>
-              <td className="px-3 py-2 text-end align-top">
-                {row.isActive ? <CloseWindowButton windowId={row.id} /> : "—"}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-function CloseWindowButton({ windowId }: { windowId: string }) {
-  const t = useTranslations("Dashboard.Hrm.benefits")
-  const [state, formAction, pending] = useActionState(
-    closeBenefitOpenEnrollmentAction,
-    undefined
-  )
-  const router = useRouter()
-  const did = useRef(false)
-
-  useEffect(() => {
-    if (state?.ok && !did.current) {
-      did.current = true
-      router.refresh()
-    }
-  }, [state, router])
-
-  return (
-    <form action={formAction}>
-      <input type="hidden" name="windowId" value={windowId} />
-      <Button size="sm" type="submit" variant="outline" disabled={pending}>
-        {pending ? t("openEnrollment.closing") : t("openEnrollment.close")}
       </Button>
     </form>
   )

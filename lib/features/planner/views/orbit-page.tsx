@@ -81,7 +81,7 @@ import {
   getPlannerSignalDetail,
 } from "../server"
 import type {
-  OrbitDashboardSurface,
+  OrbitSurface,
   PlannerBlockedState,
   PlannerEvidenceGraph,
   PlannerLinkRow,
@@ -134,7 +134,7 @@ function toDatetimeLocalValue(date: Date | null | undefined) {
 function plannerBasePath(input: {
   scope: PlannerScopeInput
   orgSlug?: string
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
 }) {
   if (input.scope.scopeKind !== "organization") {
     throw new Error("OrbitPage requires organization scope")
@@ -256,7 +256,7 @@ export async function OrbitPage({
   canManageNotices = false,
 }: {
   scope: PlannerScopeInput
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
   orgSlug?: string
   searchParams?: OrbitSearchParams
   viewerUserId?: string | null
@@ -904,7 +904,7 @@ function OrbitFilterAndViewBar({
 }: {
   basePath: string
   currentSearchParams?: OrbitSearchParams
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
   scope: PlannerScopeInput
   orgSlug?: string
   activeFilter: PlannerViewFilterState
@@ -1370,7 +1370,7 @@ function QuickSignalForm({
 }: {
   scope: PlannerScopeInput
   orgSlug?: string
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
 }) {
   return (
     <form action={createPlannerSignalAction} className="space-y-3">
@@ -1402,7 +1402,7 @@ function QuickItemForm({
 }: {
   scope: PlannerScopeInput
   orgSlug?: string
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
 }) {
   return (
     <form action={capturePlannerItemAction} className="space-y-3">
@@ -1661,7 +1661,7 @@ function HiddenPlannerScopeFields({
   orgSlug,
 }: {
   scope: PlannerScopeInput
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
   orgSlug?: string
 }) {
   return (
@@ -1684,7 +1684,7 @@ function ItemDetailPanel({
 }: {
   detail: Awaited<ReturnType<typeof getPlannerItemDetail>>
   scope: PlannerScopeInput
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
   orgSlug?: string
   canManageNotices: boolean
   evidenceGroupTitles: Record<PlannerEvidenceLane, string>
@@ -2356,7 +2356,7 @@ function SignalDetailPanel({
 }: {
   detail: Awaited<ReturnType<typeof getPlannerSignalDetail>>
   scope: PlannerScopeInput
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
   orgSlug?: string
   evidenceGroupTitles: Record<PlannerEvidenceLane, string>
   formatEvidenceMoreInGroup: (shown: number, total: number) => string
@@ -2484,7 +2484,7 @@ function SessionDetailPanel({
 }: {
   detail: Awaited<ReturnType<typeof getPlannerSessionDetail>>
   scope: PlannerScopeInput
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
   orgSlug?: string
   evidenceGroupTitles: Record<PlannerEvidenceLane, string>
   formatEvidenceMoreInGroup: (shown: number, total: number) => string

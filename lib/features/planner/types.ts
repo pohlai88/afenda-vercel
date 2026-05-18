@@ -5,8 +5,8 @@ import type {
   TemporalNow,
   TemporalPast,
 } from "#lib/erp/temporal-spine.shared"
-export type { OrbitDashboardSurface } from "./planner-dashboard-path.shared"
-import type { OrbitDashboardSurface } from "./planner-dashboard-path.shared"
+export type { OrbitSurface } from "./planner-orbit-path.shared"
+import type { OrbitSurface } from "./planner-orbit-path.shared"
 
 import type {
   PLANNER_DISPLAY_PRIORITIES,
@@ -267,7 +267,7 @@ export type PlannerViewRow = {
   ownerUserId: string | null
   slug: string
   name: string
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
   filterState: PlannerViewFilterState
   sortMode: PlannerViewSortMode | null
   createdAt: Date
@@ -343,7 +343,7 @@ export type OrbitSummary = {
 }
 
 export type OrbitPageData = {
-  surface: OrbitDashboardSurface
+  surface: OrbitSurface
   items: PlannerItemRow[]
   signals: PlannerSignalRow[]
   sessions: PlannerSessionRow[]

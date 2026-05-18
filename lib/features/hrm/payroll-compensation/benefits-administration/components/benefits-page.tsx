@@ -12,26 +12,17 @@ import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import {
-  listBenefitEnrollmentsForOrganization,
-  listBenefitPlansForOrganization,
-  listLifeEventsForOrganization,
-} from "../data/benefit.queries.server"
-import { listBenefitClaimReferencesForOrganization } from "../data/benefit-claim-reference.queries.server"
-import { listBenefitOpenEnrollmentsForOrg } from "../data/benefit-open-enrollment.queries.server"
-import { listBenefitProvidersForOrganization } from "../data/benefit-provider.queries.server"
-import { listActiveEmployeeChoicesForLeave } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
-import { listDependentsForOrganization } from "../../../employee-management/employee-records-management/data/dependent.queries.server"
-
-import {
   HRM_BENEFITS_DEFAULT_TAB,
   isHrmBenefitsTab,
 } from "../data/benefit-display.shared"
+import { loadBenefitsPageTabData } from "../data/benefits-page-data.server"
 
 import { BenefitEnrollmentDialog } from "./benefit-enrollment-dialog"
-import { BenefitEnrollmentTable } from "./benefit-enrollment-table"
+import { BenefitEnrollmentsSection } from "./benefit-enrollments-section"
 import { BenefitLifeEventRecordDialog } from "./benefit-life-event-record-dialog"
-import { BenefitLifeEventsTable } from "./benefit-life-events-table"
+import { BenefitLifeEventsSection } from "./benefit-life-events-section"
 import { BenefitOpenEnrollmentPanel } from "./benefit-open-enrollment-panel"
+import { BenefitOpenEnrollmentWindowsSection } from "./benefit-open-enrollment-windows-section"
 import { BenefitClaimReferencesSection } from "./benefit-claim-references-section"
 import { BenefitPlansSection } from "./benefit-plans-section"
 import { BenefitProvidersSection } from "./benefit-providers-section"
@@ -46,8 +37,8 @@ type BenefitsPageProps = {
 /**
  * Benefits administration surface (Phase 5). Authority is established by
  * the parent HRM layout; this page re-checks the org-admin gate for UX
- * parity with Policies and Claims. Data loads in a single Tier A
- * `Promise.all` so tab switches stay server-driven via the URL.
+ * parity with Policies and Claims. Tab-specific data loads avoid fetching
+ * every tab on each navigation.
  */
 export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
   const orgSession = await requireOrgSession()
@@ -55,9 +46,17 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
   const activeTab =
     tabParam && isHrmBenefitsTab(tabParam) ? tabParam : HRM_BENEFITS_DEFAULT_TAB
 
-  const [
-    t,
-    isAdmin,
+  const [t, isAdmin, tabData] = await Promise.all([
+    getTranslations("Dashboard.Hrm.benefits"),
+    canUseErpPermissionForCurrentOrg({
+      module: "hrm",
+      object: "benefit",
+      function: "update",
+    }),
+    loadBenefitsPageTabData(orgSession.organizationId, activeTab),
+  ])
+
+  const {
     employees,
     plans,
     enrollments,
@@ -67,32 +66,7 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
     benefitProviders,
     allBenefitProviders,
     claimReferences,
-  ] = await Promise.all([
-    getTranslations("Dashboard.Hrm.benefits"),
-    canUseErpPermissionForCurrentOrg({
-      module: "hrm",
-      object: "benefit",
-      function: "update",
-    }),
-    listActiveEmployeeChoicesForLeave(orgSession.organizationId),
-    listBenefitPlansForOrganization(orgSession.organizationId, {
-      limit: 200,
-    }),
-    listBenefitEnrollmentsForOrganization(orgSession.organizationId, {
-      limit: 500,
-    }),
-    listLifeEventsForOrganization(orgSession.organizationId, { limit: 300 }),
-    listBenefitOpenEnrollmentsForOrg(orgSession.organizationId),
-    listDependentsForOrganization(orgSession.organizationId),
-    listBenefitProvidersForOrganization(orgSession.organizationId, {
-      isActive: true,
-      limit: 200,
-    }),
-    listBenefitProvidersForOrganization(orgSession.organizationId, {
-      limit: 200,
-    }),
-    listBenefitClaimReferencesForOrganization(orgSession.organizationId, 500),
-  ])
+  } = tabData
 
   const providerChoices = benefitProviders.map((provider) => ({
     id: provider.id,
@@ -142,40 +116,19 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
       <BenefitsTabNav orgSlug={orgSlug} activeTab={activeTab} />
 
       {activeTab === "plans" ? (
-        <Card size="sm">
-          <CardHeader>
-            <CardTitle>{t("tabPlansTitle")}</CardTitle>
-            <CardDescription>{t("tabPlansDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <BenefitPlansSection
-              isAdmin={isAdmin}
-              plans={plans}
-              providers={providerChoices}
-            />
-          </CardContent>
-        </Card>
+        <BenefitPlansSection
+          isAdmin={isAdmin}
+          plans={plans}
+          providers={providerChoices}
+        />
       ) : null}
 
       {activeTab === "providers" ? (
-        <Card size="sm">
-          <CardHeader>
-            <CardTitle>{t("tabProvidersTitle" as never)}</CardTitle>
-            <CardDescription>
-              {t("tabProvidersDescription" as never)}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <BenefitProvidersSection
-              isAdmin={isAdmin}
-              providers={allBenefitProviders}
-            />
-          </CardContent>
-        </Card>
+        <BenefitProvidersSection isAdmin={isAdmin} providers={allBenefitProviders} />
       ) : null}
 
       {activeTab === "enrollments" ? (
-        <Card size="sm">
+        <Card size="sm" className="border-solid border-border">
           <CardHeader>
             <CardTitle>{t("tabEnrollmentsTitle")}</CardTitle>
             <CardDescription>{t("tabEnrollmentsDescription")}</CardDescription>
@@ -206,44 +159,34 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
                 </CardHeader>
               </Card>
             ) : null}
-            <BenefitEnrollmentTable isAdmin={isAdmin} rows={enrollments} />
+            <BenefitEnrollmentsSection isAdmin={isAdmin} rows={enrollments} />
           </CardContent>
         </Card>
       ) : null}
 
       {activeTab === "claimReferences" ? (
-        <Card size="sm">
-          <CardHeader>
-            <CardTitle>{t("tabClaimReferencesTitle" as never)}</CardTitle>
-            <CardDescription>
-              {t("tabClaimReferencesDescription" as never)}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <BenefitClaimReferencesSection
-              isAdmin={isAdmin}
-              rows={claimReferences}
-              enrollments={enrollmentChoices}
-              providers={providerCatalogChoices}
-              enrollmentLabels={enrollmentLabels}
-            />
-          </CardContent>
-        </Card>
+        <BenefitClaimReferencesSection
+          isAdmin={isAdmin}
+          rows={claimReferences}
+          enrollments={enrollmentChoices}
+          providers={providerCatalogChoices}
+          enrollmentLabels={enrollmentLabels}
+        />
       ) : null}
 
       {activeTab === "openEnrollment" ? (
-        <Card size="sm">
+        <Card size="sm" className="border-solid border-border">
           <CardHeader>
             <CardTitle>{t("tabOpenEnrollmentTitle" as never)}</CardTitle>
             <CardDescription>
               {t("tabOpenEnrollmentDescription" as never)}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <BenefitOpenEnrollmentPanel
+          <CardContent className="flex flex-col gap-6">
+            <BenefitOpenEnrollmentPanel isAdmin={isAdmin} plans={planChoices} />
+            <BenefitOpenEnrollmentWindowsSection
               isAdmin={isAdmin}
               windows={openEnrollmentWindows}
-              plans={planChoices}
             />
           </CardContent>
         </Card>
@@ -259,7 +202,7 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
       ) : null}
 
       {activeTab === "life" ? (
-        <Card size="sm">
+        <Card size="sm" className="border-solid border-border">
           <CardHeader>
             <CardTitle>{t("tabLifeTitle")}</CardTitle>
             <CardDescription>{t("tabLifeDescription")}</CardDescription>
@@ -278,7 +221,7 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
                 </CardHeader>
               </Card>
             ) : null}
-            <BenefitLifeEventsTable isAdmin={isAdmin} rows={lifeEvents} />
+            <BenefitLifeEventsSection isAdmin={isAdmin} rows={lifeEvents} />
           </CardContent>
         </Card>
       ) : null}

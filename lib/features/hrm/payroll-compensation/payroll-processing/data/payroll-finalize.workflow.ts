@@ -7,7 +7,7 @@ import {
   insertPlannerSignal,
 } from "#features/planner/server"
 import { writeIamAuditEvent } from "#lib/auth"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { organizationHrmPath } from "../../../constants"
@@ -158,7 +158,7 @@ async function payrollPrepareCompletedStep(payload: PayrollFinalizePayload) {
 
   // Period stays `preparing` until an admin locks via `lockPayrollPeriodAction`.
 
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"), "page")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "page")
 
   await writeIamAuditEvent({
     action: "erp.hrm.payroll_run.preview",

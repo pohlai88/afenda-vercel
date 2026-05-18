@@ -4,7 +4,7 @@ import { buildCrudSapAuditAction } from "#lib/erp/crud-sap.shared"
  * Canonical audit strings for the Candidate Self-Service Portal (external).
  *
  * Internal recruiter/workbench events remain in
- * `recruitment-applicant-tracking/recruitment.contract.ts`.
+ * `recruitment-onboarding/recruitment.contract.ts`.
  */
 export const HRM_CSSP_AUDIT = {
   application: {

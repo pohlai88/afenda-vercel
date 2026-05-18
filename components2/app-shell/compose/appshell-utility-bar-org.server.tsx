@@ -11,9 +11,10 @@ import {
 } from "#features/marketplace/server"
 import { resolveOperationalContext } from "#features/operational-scope"
 import {
+  organizationAccountPath,
   organizationAdminPath,
-  organizationDashboardPath,
-} from "#lib/dashboard-module-paths"
+  organizationAppsPath,
+} from "#lib/org-apps-module-paths"
 import { APP_LOCALES, ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 
@@ -66,9 +67,9 @@ export async function buildAppShellOrgUtilityBarSlots({
   })
 
   const accountHrefs = {
-    account: toLocalePath(appLocale, "/account") as Route,
-    identity: toLocalePath(appLocale, "/account/identity") as Route,
-    security: toLocalePath(appLocale, "/account/security") as Route,
+    account: organizationAccountPath(orgSlug) as Route,
+    identity: organizationAccountPath(orgSlug, "identity") as Route,
+    security: organizationAccountPath(orgSlug, "security") as Route,
   }
 
   return {
@@ -94,16 +95,16 @@ export async function buildAppShellOrgUtilityBarSlots({
         orgSlug={orgSlug}
         workspaceBlobOrganizationId={orgId}
         hrefs={{
-          insight: organizationDashboardPath(orgSlug, "lynx") as Route,
+          insight: organizationAppsPath(orgSlug, "lynx") as Route,
           help: toLocalePath(appLocale, "/ask-docs") as Route,
           settings: (showOrgAdminSettings
             ? organizationAdminPath(orgSlug, "settings")
-            : organizationDashboardPath(orgSlug, "home")) as Route,
+            : organizationAppsPath(orgSlug, "home")) as Route,
         }}
         account={{
           userEmail,
           hrefs: accountHrefs,
-          workspaceHomeHref: organizationDashboardPath(orgSlug, "home"),
+          workspaceHomeHref: organizationAppsPath(orgSlug, "home"),
         }}
       />
     ),

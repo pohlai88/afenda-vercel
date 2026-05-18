@@ -8,12 +8,12 @@ import { and, eq } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import {
-  ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL,
-  ORG_DASHBOARD_HRM_EMPLOYEES,
-} from "#lib/dashboard-module-paths"
+  ORG_APPS_HRM_EMPLOYEE_DETAIL,
+  ORG_APPS_HRM_EMPLOYEES,
+} from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import { hrmDocument, hrmEmploymentContract } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
 import { requireHrmDocumentMutationGate } from "../data/hrm-document-action-guard.server"
@@ -40,15 +40,15 @@ import {
 
 function revalidateHrmDocumentSurfaces() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEES),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/documents"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/documents"),
     "page"
   )
 }

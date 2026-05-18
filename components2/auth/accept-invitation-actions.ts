@@ -18,7 +18,7 @@ import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import type { AppPath } from "#lib/i18n/locales.shared"
 import {
   toLocaleOrgAdminRevalidatePattern,
-  toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgAppsRevalidatePattern,
   toLocaleOrgNexusRevalidatePattern,
   toLocalePath,
   toLocaleRoutePattern,
@@ -94,7 +94,7 @@ export async function acceptOrganizationInvitationAction(
     resourceType: "invitation",
     resourceId: invitationId,
   })
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern(""), "page")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(""), "page")
   revalidatePath(toLocaleOrgAdminRevalidatePattern(""), "layout")
   revalidatePath(toLocaleOrgNexusRevalidatePattern(), "page")
   revalidatePath(toLocaleRoutePattern("/account"), "page")

@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache"
 import { and, eq } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL } from "#lib/dashboard-module-paths"
+import { ORG_APPS_HRM_EMPLOYEE_DETAIL } from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import { hrmDependent } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { requireEmployeeRecordMutationGate } from "../data/employee-record-action-guard.server"
 import {
@@ -26,7 +26,7 @@ import { recordEmployeeRecordChangeHistory } from "../data/employee-record-histo
 
 function revalidateEmployeeDetailSurface() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
 }

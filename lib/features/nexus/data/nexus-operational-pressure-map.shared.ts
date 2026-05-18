@@ -4,7 +4,7 @@ import {
 } from "#features/planner"
 import type { PlannerPressureRowForNexus } from "#features/planner/server"
 import type { HrmPressureRowForNexus } from "#features/hrm/server"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
 
 import type { OperationalPressureItem } from "../types"
 
@@ -16,7 +16,7 @@ import type { OperationalPressureItem } from "../types"
  * `#features/hrm/client` for the segments we link to here.
  */
 function nexusHrmDeepLink(orgSlug: string, segment: "" | string): string {
-  const base = organizationDashboardPath(orgSlug, "hrm")
+  const base = organizationAppsPath(orgSlug, "hrm")
   return segment ? `${base}/${segment}` : base
 }
 
@@ -197,7 +197,7 @@ export function mapHrmPressureRowsToOperationalPressureItems(
       evidenceCount: 0,
       primaryAction: {
         label: "Open compliance",
-        command: organizationDashboardPath(orgSlug, "hrm"),
+        command: organizationAppsPath(orgSlug, "hrm"),
       },
       stageBadge: { label: "Failed", tone: "critical" },
     }

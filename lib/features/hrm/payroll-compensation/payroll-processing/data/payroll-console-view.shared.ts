@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 import type { PayrollSurfaceCapabilities } from "./payroll-capabilities.shared"
 import type { PayrollPeriodTraceability } from "./payroll-engine.server"
 import type { PayrollCloseSnapshot } from "./payroll-close.shared"
@@ -48,6 +50,12 @@ export type PayrollConsoleRun = {
 export type PayrollPeriodConsoleView = {
   readonly period: PayrollConsolePeriod
   readonly runs: PayrollConsoleRun[]
+  /** Server-rendered Pattern C run directory when runs are visible in the period card. */
+  readonly runsList: ReactNode | null
+  /** Server-rendered Pattern C close checklist when a close snapshot exists. */
+  readonly closeChecklistList: ReactNode | null
+  /** Server-rendered Pattern C traceability questions for the period card. */
+  readonly traceabilityList: ReactNode | null
   readonly traceability: PayrollPeriodTraceability
   readonly closeSnapshot: PayrollCloseSnapshot | null
   readonly postingRecord: PayrollPostingRecord | null

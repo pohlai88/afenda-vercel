@@ -1,6 +1,6 @@
 ---
 name: Metadata UI Maturity Audit
-overview: Unified metadata-driven UI architecture (consolidating ADR-0011/0021/0025), maturity scoring with per-dimension DoD, competitor strength adoption, deferred low-code playground path, and reusable in-repo tooling inventory—before mass ERP rollout.
+overview: Unified metadata-driven UI architecture (ADR-0026). Program **closed 2026-05-18** at 91/100 (mass ERP default Go). This plan is the historical execution record; live scores and section inventory live in docs/architecture/*.md.
 todos:
   - id: adr-consolidation
     content: Author ADR-0026 (or docs/architecture/metadata-driven-ui.md) merging 0011+0021+0025; mark 0011/0021/0025 as superseded-by-reference
@@ -26,7 +26,63 @@ todos:
   - id: p1-re-score
     content: Re-run maturity score after P0+P1; target ≥72 before mass ERP default
     status: completed
+  - id: wave-c-pattern-c
+    content: Wave C1–C6 HRM/org-admin/platform-admin Pattern C rollout + trailing metadata
+    status: completed
+  - id: score-90-gate
+    content: Ship chart + approval-timeline renderers; gallery playground; re-score ≥90
+    status: completed
+  - id: p2-reserve-renderers
+    content: Ship governed:multi-step-form, governed:kanban-board, governed:scorecard-form renderers
+    status: completed
+  - id: p2-rules-inferencer
+    content: P2 rules layer on form configs; __schemaVersion; draft surface-draft inferencer
+    status: completed
+  - id: mass-adoption-sweep
+    content: Remaining Pattern B/A ERP lists → Pattern C where trailing or unified section path applies
+    status: completed
+  - id: pattern-k-kanban-kernel
+    content: "Pattern K: kanban presentation split, footer/drag bridges, interaction modes, renderer guards, gallery scenarios"
+    status: completed
+  - id: production-kanban-pilots
+    content: "Production kanban pilots — hrm:recruitment:pipeline + hrm:claims:kanban on live routes"
+    status: completed
+  - id: program-closure
+    content: Re-score 91/100; sync plan + composition score docs with disk truth
+    status: completed
 isProject: false
+---
+
+## Status (2026-05-18) — program closed; scores live in docs
+
+| Source | Score / verdict |
+| --- | --- |
+| [`docs/architecture/metadata-maturity-score.md`](docs/architecture/metadata-maturity-score.md) | **91/100** — mature platform; **mass ERP default: Go** |
+| [`docs/architecture/governed-section-composition-score.md`](docs/architecture/governed-section-composition-score.md) | Wave **C1–C6** + Pattern **K** pilots; ≥9.4/10 target per section |
+
+**All plan phases (P0, P1, P2, Wave C, mass adoption, Pattern K) are complete.** Treat this file as the **historical playbook**. For day-to-day work, use ADR-0026, `metadata-eui-polish` skill, and the architecture score docs above.
+
+### Disk truth (quick reference)
+
+| Area | On disk today |
+| --- | --- |
+| **Renderers** | **13/13** `governed:*` types have `components2/metadata/renderers/*.renderer.tsx` + registry entries |
+| **Kanban kernel** | `kanban-board-presentation.tsx` (shared geometry) · `kanban-board-view.tsx` (read-only + footer) · `kanban-board-drag-view.client.tsx` (drag-reorder) |
+| **Pattern K shells** | `GovernedKanbanFooterSection` (+ `GovernedKanbanDragSection` alias) · `GovernedKanbanFooterBoard` · `GovernedKanbanDragBoard` |
+| **Pattern K production** | `hrm:recruitment:pipeline` · `hrm:claims:kanban` |
+| **Gallery** | **16** scenarios incl. four kanban: `kanban-recruitment`, `kanban-recruitment-footer`, `kanban-recruitment-drag`, `kanban-claims-footer` |
+| **P2 foundations** | `form-rules.schema.ts` + `form-rules.evaluate.shared.ts` · `schema-version.shared.ts` + `migrateGovernedConfiguration` · `requiresErpPermission` on list/kanban/action-bar |
+| **Draft inferencer** | `scripts/gen-surface-draft.mjs` (scaffold only — not wired to `pnpm gen` yet) |
+
+### Maintenance-only (do not reopen as “active program”)
+
+- HRM pages that are **chrome + bespoke forms only** (no list/kanban surface to migrate)
+- **Benefit enrollment row workflow** (`benefit-enrollment-table.tsx` client forms — enrollments *list* is already Pattern C)
+- **Skill matrix / leave calendar** — specialized layouts, not list-surface candidates
+- **Figma Code Connect** per renderer
+- **Production low-code** / stored layout JSON
+- Second production **drag-reorder** module beyond gallery (claims uses **footer-actions** by design)
+
 ---
 
 # Metadata-Driven UI — Architecture, Maturity, and Rollout Plan
@@ -104,8 +160,8 @@ flowchart TB
 
 **Public doors:**
 
-- `#features/governed-surface` — schemas, parsers, `GovernedSurface`, `GovernedSection`, `GovernedEmpty`, list/audit/detail chrome
-- `#features/governed-surface/client` — `GovernedDataTableClient` only
+- `#features/governed-surface` — schemas, parsers, `GovernedSurface`, `GovernedPatternCListSection`, `GovernedKanbanFooterSection` / `GovernedKanbanDragSection`, chrome
+- `#features/governed-surface/client` — `GovernedTrailingActionSlot`, `GovernedKanbanFooterBoard`, `GovernedKanbanDragBoard`
 
 **Envelope shape** ([`component.schema.ts`](lib/features/governed-surface/schemas/component.schema.ts)):
 
@@ -158,17 +214,21 @@ flowchart TB
 | **Variant maps**      | `Record<SchemaEnum, string>` for density/tone—no inline ternaries on enums                           |
 | **minContainerPx**    | Informational in contract map; operator diagnostics when layout fails                                |
 
-**Shipped renderer ↔ dataNature map:**
+**Shipped renderer ↔ dataNature map** ([`components2/metadata/registry.ts`](components2/metadata/registry.ts)):
 
-| Renderer                                                                | dataNatures           | minContainerPx |
-| ----------------------------------------------------------------------- | --------------------- | -------------- |
-| stat-card                                                               | kpi, snapshot-summary | 280            |
-| list-surface                                                            | table, document-lines | 480            |
-| action-bar                                                              | actions               | 320            |
-| audit-panel                                                             | audit-trail           | 360            |
-| detail-tabs                                                             | tabbed-detail         | 480            |
-| section / stack / empty                                                 | _(container)_         | 0              |
-| chart, kanban-board, multi-step-form, scorecard-form, approval-timeline | _(design-reserve)_    | per registry   |
+| Renderer | dataNatures | minContainerPx | Notes |
+| --- | --- | --- | --- |
+| stat-card | kpi, snapshot-summary | 280 | Production |
+| list-surface | table, document-lines | 480 | Production |
+| action-bar | actions | 320 | `requiresErpPermission` optional |
+| audit-panel | audit-trail | 360 | Production |
+| detail-tabs | tabbed-detail | 480 | Production |
+| chart | time-series, categorical | 360 | Shipped; gallery `chart-time-series` |
+| approval-timeline | approval-flow | 320 | Shipped |
+| kanban-board | kanban | 720 | `maturity: production`; bridges for footer-actions / drag-reorder |
+| multi-step-form | wizard | 480 | Shipped; gallery `multi-step-onboarding` |
+| scorecard-form | scoring | 360 | Shipped; gallery `scorecard-interview` |
+| section / stack / empty | _(container)_ | 0 | Recurse children |
 
 ### Authoring conventions
 
@@ -180,11 +240,14 @@ flowchart TB
 
 ### Patterns (rollout)
 
-| Pattern                    | When                                       | Imports                                |
-| -------------------------- | ------------------------------------------ | -------------------------------------- |
-| **A — Chrome only**        | Forms, bespoke layouts, org-admin settings | `GovernedSurface`, `GovernedSection`   |
-| **B — Full metadata tree** | KPI grids, directory tables, audit panels  | `GovernedComponentRenderer` + builders |
-| **C — Forbidden hybrid**   | Direct `ListSurfaceTable` bypassing tree   | Migrate to B or document escape hatch  |
+| Pattern | When | Imports / primitives |
+| --- | --- | --- |
+| **A — Chrome only** | Forms, bespoke layouts, settings | `GovernedSurface`, `GovernedSection`, `ModulePageHeader` |
+| **B — Full metadata tree** | KPI grids, tables without row forms | `GovernedComponentRenderer` + `*-surface-builders.server.ts` |
+| **C — List + trailing** | Inbox tables with row actions/forms | `GovernedPatternCListSection` + `GovernedTrailingActionSlot` (`#features/governed-surface/client`) |
+| **K — Kanban** | Stage columns + card footers or drag | `GovernedKanbanFooterSection` / `GovernedKanbanDragSection` + `GovernedKanbanFooterBoard` or `GovernedKanbanDragBoard` |
+
+**Hybrid rule:** `ListSurfaceTable` is **only** imported from `lib/features/governed-surface/` (Pattern C kernel). Feature modules must not deep-import it.
 
 ---
 
@@ -238,14 +301,14 @@ What a compliance-heavy ERP actually needs from metadata UI, and what we **enhan
 | **Detail tabs**          | Record drill-down sections        | `governed:detail-tabs`                 | Yes                 | —                                   |
 | **Action bars**          | Primary/secondary CTAs            | `governed:action-bar`                  | Yes                 | —                                   |
 | **Layout composition**   | Section/stack nesting             | `governed:section`, `governed:stack`   | Yes                 | —                                   |
-| **Charts / trends**      | Payroll, attendance analytics     | Reserve `governed:chart`               | Schema only         | Ship renderer P1 or block emit      |
-| **Multi-step forms**     | Wizards, onboarding               | Reserve `governed:multi-step-form`     | Schema only         | P2 + rules layer                    |
-| **Approval timelines**   | HRM claims, workflows             | Reserve `governed:approval-timeline`   | Schema only         | P2                                  |
-| **Kanban**               | Recruitment pipeline              | Reserve `governed:kanban-board`        | Schema only         | P2 or bespoke                       |
-| **Conditional fields**   | SHOW/HIDE on form state           | —                                      | No                  | P2 rules ADR (JSON Forms–style)     |
-| **Permission-aware UI**  | Hide actions by ERP RBAC          | Layout/guards today                    | Partial             | `requiresPermission` on envelope P2 |
-| **Schema versioning**    | Cached/stored metadata            | —                                      | No                  | `__schemaVersion` P2                |
-| **CRUD inferencer**      | Fast scaffold from Drizzle        | `pnpm gen capability`                  | Manual builders     | Draft inferencer P2 + human review  |
+| **Charts / trends**      | Payroll, attendance analytics     | `governed:chart`                       | **Shipped**         | Production module adoption optional |
+| **Multi-step forms**     | Wizards, onboarding               | `governed:multi-step-form`             | **Shipped**         | Wire rules layer on forms when needed |
+| **Approval timelines**   | HRM claims, workflows             | `governed:approval-timeline`           | **Shipped**         | Gallery + module builders           |
+| **Kanban**               | Pipeline / claims lifecycle       | `governed:kanban-board` + Pattern K    | **Shipped**         | Pilots: recruitment + claims        |
+| **Conditional fields**   | SHOW/HIDE on form state           | `form-rules.schema.ts` + evaluate      | **Kernel shipped**  | Wire on multi-step/scorecard configs |
+| **Permission-aware UI**  | Hide actions by ERP RBAC          | `requiresErpPermission` on list/kanban | **Partial**         | Layout/guards + builder fields      |
+| **Schema versioning**    | Cached/stored metadata            | `migrateGovernedConfiguration`         | **Kernel shipped**  | Not persisted in prod               |
+| **CRUD inferencer**      | Fast scaffold from Drizzle        | `scripts/gen-surface-draft.mjs`        | **Draft script**    | Not in `pnpm gen` yet               |
 | **Low-code editor**      | Non-dev authoring                 | —                                      | **Refused in prod** | Playground only (Part 2)            |
 
 **Enhance core (P0–P1):** stat-card, list-surface, tree dispatch integrity, generator, display strings, tests, gallery/playground foundation.
@@ -256,43 +319,43 @@ What a compliance-heavy ERP actually needs from metadata UI, and what we **enhan
 
 ## Part 4 — Maturity scoring and per-dimension Definition of Done
 
-### Scoring model (unchanged weights)
+### Scoring model (weights unchanged — scores synced to docs)
 
-**Current score: 66/100 — Controlled Beta.** Target for mass default: **≥72**.
+**Authoritative score: 91/100** — see [`metadata-maturity-score.md`](docs/architecture/metadata-maturity-score.md). Original gate was **≥72** (passed at P1 re-score); score-90 gate passed with chart + approval-timeline + gallery.
 
-| Dimension                 | Weight | Current | Target | DoD (all must pass to score 10)                                                                                                   |
-| ------------------------- | ------ | ------- | ------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| Architecture & boundaries | 15%    | 9       | 10     | ADR-0026 published; AGENTS.md links; zero hybrid bypass without allowlist; four-layer imports enforced by ESLint                  |
-| Schema kernel             | 12%    | 8       | 9      | All 13 types in discriminated union; reserve types blocked OR shipped; `SchemaStability` on every schema; handbook row compliance |
-| Renderer coverage         | 10%    | 6       | 8      | ≥10/13 renderers shipped OR reserve types removed from `governedComponentTypeSchema`; chart + multi-step-form prioritized         |
-| Automation & CI           | 12%    | 8       | 10     | All 5 `lint:renderer-*` green; contract script covers component-type ↔ registry; no manual quartet drift                          |
-| Generator & DX            | 10%    | 5       | 9      | `pnpm gen governed-renderer` patches registry+dispatch+skeleton+schema variant; ≤1 manual step                                    |
-| Testing                   | 12%    | 4       | 8      | Unit test per shipped renderer; Playwright visual matrix 3 widths × top 2 dataNatures; builder test per pilot module              |
-| Documentation             | 8%     | 9       | 10     | ADR-0026 + rollout playbook in AGENTS.md; stale ADR tables updated                                                                |
-| Production adoption       | 10%    | 4       | 8      | ≥3 non-HRM modules on Pattern B; 0 unapproved Pattern C                                                                           |
-| Feature completeness      | 6%     | 5       | 7      | Display-string gate; optional dispatch telemetry; rules/versioning still deferred                                                 |
-| Design enforcement        | 5%     | 7       | 9      | All renderers+skeletons pass container-query lint; no raw div tiles in shipped renderers                                          |
-
-**Recalculation after P0+P1:** expect **72–78** if generator, hybrid migration, tests, and 2 reserve renderers land.
+| Dimension                 | Weight | Score (2026-05-18) | Notes |
+| ------------------------- | ------ | ------------------ | ----- |
+| Architecture & boundaries | 15%    | 10                 | ADR-0026; Pattern C allowlist; four-layer ESLint |
+| Schema kernel             | 12%    | 9                  | 13-type union; kanban interaction modes; form-rules kernel |
+| Renderer coverage         | 10%    | 9                  | **13/13** renderer files on disk; mass default uses 10 most often |
+| Automation & CI           | 12%    | 10                 | Full `lint:renderer-*` + `lint:list-surface-table-imports` |
+| Generator & DX            | 10%    | 9                  | `pnpm gen governed-renderer` + gallery fixture editor |
+| Testing                   | 12%    | 9                  | Renderer/kanban unit tests; gallery E2E smoke (280/480/720) |
+| Documentation             | 8%     | 10                 | ADR-0026 + AGENTS + composition score doc |
+| Production adoption       | 10%    | 8                  | Contacts B; HRM C waves; org/platform-admin C; Pattern K pilots |
+| Feature completeness      | 6%     | 8                  | `requiresErpPermission`; OTEL dispatch; rules/version helpers |
+| Design enforcement        | 5%     | 9                  | Container-query lint; `@container` in presentation layer |
 
 ### Maturity bands
 
 | Score  | Label                      | Mass ERP default?                   |
 | ------ | -------------------------- | ----------------------------------- |
 | 0–40   | Experimental               | No                                  |
-| 41–55  | Early beta                 | HRM pilot only                      |
-| 56–70  | Controlled beta            | **Current** — module-by-module      |
-| 71–85  | Production-ready (bounded) | **Yes** for list/KPI/audit/detail   |
-| 86–100 | Mature platform            | Default for all repeatable surfaces |
+| 41–55  | Early beta                 | Pilot modules only                  |
+| 56–70  | Controlled beta            | Module-by-module                    |
+| 71–85  | Production-ready (bounded) | Yes for list/KPI/audit/detail       |
+| 86–100 | Mature platform            | **Current (91)** — default for repeatable surfaces |
 
-### Go / no-go checklist (unchanged thresholds)
+### Go / no-go checklist (mass rollout — **all passed**)
 
-- Weighted score ≥ **72**
-- **0** unapproved `ListSurfaceTable` bypasses
-- Reserve types blocked OR implemented
-- One `pnpm gen governed-renderer` → green `lint:renderer-*`
-- **8** renderer unit tests + visual smoke
-- **≥3** non-HRM modules on full tree
+| Gate | Status |
+| --- | --- |
+| Weighted score ≥ **90** (plan originally ≥72) | **Pass (91)** |
+| **0** unapproved `ListSurfaceTable` bypasses in features | **Pass** |
+| Reserve renderers shipped or blocked from emit | **Pass (13/13 shipped)** |
+| `pnpm gen governed-renderer` → green `lint:renderer-*` | **Pass** |
+| Renderer unit tests + gallery visual smoke | **Pass** |
+| ≥3 modules on Pattern B/C | **Pass** (contacts, HRM, org-admin, platform-admin) |
 
 ---
 
@@ -388,7 +451,7 @@ Map **what to steal** from OSS, **how**, and **what stays forbidden**.
 | **Turbo generators**                                | Extend `turbo/generators/config.ts` GENERATOR 7                   | Wire full registry patches                                                       |
 | **Vitest**                                          | `tests/unit/components2/metadata/`                                | Template from `governed-renderer` gen                                            |
 | **Playwright**                                      | Port 3001 E2E                                                     | Visual matrix for renderers                                                      |
-| **Figma Code Connect**                              | P2 per-renderer `.figma.ts`                                       | After geometry stable                                                            |
+| **Figma Code Connect**                              | Deferred per-renderer `.figma.ts`                                  | Post program closure                                                             |
 | **shadcn MCP / registry**                           | `components2/registry.json`, `pnpm gen:registry`                  | New primitives into `#components2/ui` before renderer uses them                  |
 | **OpenTelemetry**                                   | `lib/otel-span.server.ts`                                         | Dispatch spans in tree (P1)                                                      |
 
@@ -399,48 +462,41 @@ Map **what to steal** from OSS, **how**, and **what stays forbidden**.
 | `@jsonforms/core`        | Rules/runtime dispatch         | **No** — conflicts with static registry        |
 | Zod 4 `z.toJSONSchema()` | Playground + docs export       | **Yes** (dev/docs only; repo already on Zod 4) |
 | `@tanstack/react-table`  | Already in list-surface cells? | Reuse via existing `list-surface-table` path   |
-| `react-hook-form` + Zod  | Form renderers (reserve)       | **P2** inside `multi-step-form` renderer only  |
+| `react-hook-form` + Zod  | `multi-step-form` / `scorecard-form` renderers | **Shipped** — wire rules when product needs SHOW/HIDE |
 
 ---
 
-## Part 7 — Execution phases (updated)
+## Part 7 — Execution phases (historical — **complete**)
 
 ```mermaid
 flowchart TD
-  Doc[ADR-0026 consolidate docs] --> P0[P0 core hardening]
-  P0 --> P1[P1 competitor lifts + playground shell]
-  P1 --> Score{Score >= 72?}
-  Score -->|yes| Mass[Mass Pattern B rollout]
-  Score -->|no| P1
-  Mass --> P2[P2 rules versioning inferencer]
-  P2 --> Play[Playground features only in dev]
+  Doc[ADR-0026] --> P0[P0 core]
+  P0 --> P1[P1 gallery + tests]
+  P1 --> Score[Score 91]
+  Score --> Mass[Wave C + mass adoption]
+  Mass --> P2[P2 renderers + rules kernel]
+  P2 --> PK[Pattern K kanban pilots]
+  PK --> Closed[Program closed]
 ```
 
-### P0 — Core (block mass) — ~2 weeks
+| Phase | Status | Delivered (disk) |
+| --- | --- | --- |
+| **P0** | Done | ADR-0026; hybrid ESLint; generator; display strings |
+| **P1** | Done | Gallery playground; Playwright smoke; OTEL dispatch |
+| **Wave C** | Done | HRM/org-admin/platform-admin Pattern C sections |
+| **Score 90** | Done | chart + approval-timeline renderers |
+| **P2 renderers** | Done | kanban-board, multi-step-form, scorecard-form |
+| **P2 kernel** | Done | form-rules; schema version migrate; `requiresErpPermission` |
+| **Mass adoption** | Done | Workforce, recruitment lists, benefits, compliance, etc. |
+| **Pattern K** | Done | Kanban kernel + recruitment pipeline + claims kanban |
 
-1. Publish ADR-0026 (merge 0011/0021/0025)
-2. Hybrid migration or escape hatch + ESLint
-3. Full `governed-renderer` generator wiring
-4. Reserve-type emit policy
-5. Display-string validation
-6. Builder path ESLint
+### Post-closure maintenance (optional, low priority)
 
-### P1 — Maturity lift — ~2 weeks
-
-1. Playground: extend gallery (width presets, operator mode, fixture copy)
-2. Visual Playwright matrix
-3. Unit tests for all 8 renderers
-4. Ship **chart** OR **multi-step-form** renderer (pick one ERP-critical)
-5. OTEL dispatch telemetry
-6. Playground JSON Schema export via **Zod 4 native** `z.toJSONSchema()` (repo on `zod@^4.4.3`) — not a runtime dependency for dispatch
-
-### P2 — Deferred features
-
-- Rules layer, `__schemaVersion`, `requiresErpPermission`
-- Draft Drizzle inferencer
-- Full playground editor (no prod persistence)
-- Remaining design-reserve renderers
-- Figma Code Connect
+- Wire `pnpm gen surface-draft` from `scripts/gen-surface-draft.mjs`
+- Figma Code Connect per stable renderer
+- Additional **drag-reorder** production module (only gallery + kernel today)
+- Form **rules** wired into first production multi-step/scorecard route
+- HRM chrome-only pages and bespoke enrollment workflow UIs
 
 ---
 
@@ -486,16 +542,29 @@ flowchart TD
 
 ---
 
+## Part 9 — Pattern K production pilots (codebase inventory)
+
+| `surfaceKey` | Route / module | Interaction | Key files |
+| --- | --- | --- | --- |
+| `hrm:recruitment:pipeline` | HRM recruitment page | `footer-actions` | `recruitment-pipeline-kanban-section.tsx`, `recruitment-pipeline-kanban.client.tsx`, `recruitment-pipeline-card-actions.client.tsx`, `recruitment-surface-builders.server.ts` |
+| `hrm:claims:kanban` | `/dashboard/hrm/claims` | `footer-actions` | `claim-kanban-section.tsx`, `claim-kanban-board.client.tsx`, `claim-kanban-card-footer.client.tsx`, `claim-kanban-surface.server.ts`, `moveClaimKanbanAction` |
+
+**Gallery validation:** `/{locale}/dev/metadata-renderer-gallery` — kanban scenarios above plus `kanban-claims-footer` (preview modes `kanban-footer-actions`, `kanban-drag-reorder`).
+
+**Renderer entry points:** `KanbanBoardRenderer` serves **read-only** only; `footer-actions` and `drag-reorder` must use domain bridges (`GovernedKanbanFooterBoard` / `GovernedKanbanDragBoard`) — enforced with muted `GovernedEmpty` on the static renderer path.
+
+---
+
 ## Summary
 
-| Topic            | Decision                                                                                                            |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Architecture** | Merge into **ADR-0026**; two kernels + four layers unchanged                                                        |
-| **Low-code**     | **Deferred** for prod; **playground** reuses gallery + fixtures in dev only                                         |
-| **DoD**          | Per-dimension table in Part 4; mass default at **≥72**                                                              |
-| **ERP needs**    | Part 3 matrix — enhance list/KPI/audit now; chart/forms/rules later                                                 |
-| **Competitors**  | Adopt rules, access, inferencer, devtools **patterns**—reject dataProvider, tester, stored JSON                     |
-| **Reuse**        | Part 6 inventory — generators, lint gates, governed-surface types, dev gallery, Fumadocs + Zod 4 JSON Schema export |
-| **Context7**     | Part 8 — architecture and competitor map **validated**; inferencer/RBAC/rules scoping **refined**                   |
+| Topic | Decision |
+| --- | --- |
+| **Architecture** | **ADR-0026**; metadata + renderer kernels; Patterns A/B/C/K |
+| **Low-code** | **Refused in prod**; dev gallery + fixture editor only |
+| **Score** | **91/100 — Go** ([`metadata-maturity-score.md`](docs/architecture/metadata-maturity-score.md)) |
+| **Renderers** | **13/13 shipped** on disk; all in gallery or production pilots |
+| **Pattern C** | Wave C1–C6 + org/platform-admin; see composition score doc |
+| **Pattern K** | Recruitment + claims kanban in production |
+| **Maintenance** | Bespoke forms, Figma, surface-draft CLI wiring, optional drag adopters |
 
-**Current verdict:** Controlled beta (66/100). Execute P0 + ADR-0026 consolidation before mass ERP adoption; P1 competitor lifts target production-ready bounded (**72+**).
+**Verdict:** Program **closed**. New ERP lists → use Pattern C recipe; new stage boards → Pattern K recipe + `metadata-eui-polish` skill. Do not re-open P0/P1 unless a lint gate or ADR change requires kernel work.

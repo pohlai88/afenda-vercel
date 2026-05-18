@@ -98,7 +98,7 @@ Use `error.tsx` only for uncaught exceptions at approved route shell boundaries.
 All links must be locale-prefixed. Use:
 - Client: `Link`, `useRouter`, `usePathname` from `#i18n/navigation`
 - Server: `redirect` from `next/navigation` + `toLocalePath(locale, "/path")`
-- `revalidatePath`: `toLocaleRoutePattern` (static) or `toLocaleOrgDashboardRevalidatePattern` (ERP modules)
+- `revalidatePath`: `toLocaleRoutePattern` (static) or `toLocaleOrgAppsRevalidatePattern` (ERP modules)
 
 Callback URLs must be locale-prefixed and validated via `resolvePostAuthCallbackUrl`.
 

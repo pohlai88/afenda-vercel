@@ -7,7 +7,7 @@ import { and, eq } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmBenefitEnrollment } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { HRM_BENEFIT_AUDIT } from "../benefit.contract"
 import { evaluateBenefitEligibilityForEmployee } from "../data/benefit-enterprise.queries.server"
@@ -72,7 +72,7 @@ function isUniqueViolation(err: unknown): boolean {
 
 function revalidateBenefits() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/benefits"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/benefits"),
     "layout"
   )
 }

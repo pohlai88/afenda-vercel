@@ -5,6 +5,12 @@ import {
   GALLERY_APPROVAL_TIMELINE,
   GALLERY_AUDIT_PANEL,
   GALLERY_CHART_TIME_SERIES,
+  GALLERY_KANBAN_CLAIMS_FOOTER,
+  GALLERY_KANBAN_RECRUITMENT,
+  GALLERY_KANBAN_RECRUITMENT_DRAG,
+  GALLERY_KANBAN_RECRUITMENT_FOOTER_ACTIONS,
+  GALLERY_MULTI_STEP_ONBOARDING,
+  GALLERY_SCORECARD_INTERVIEW,
   GALLERY_DETAIL_TABS,
   GALLERY_EMPTY,
   GALLERY_LIST_SURFACE_DOCUMENT_LINES,
@@ -15,6 +21,11 @@ import {
   GALLERY_STAT_CARD_SNAPSHOT,
 } from "./gallery-fixtures"
 
+export type GalleryPreviewMode =
+  | "default"
+  | "kanban-footer-actions"
+  | "kanban-drag-reorder"
+
 export type GalleryScenario = {
   id: string
   title: string
@@ -22,6 +33,8 @@ export type GalleryScenario = {
   minWidthPx?: number
   component: GovernedComponent
   diagnostics?: "user" | "operator"
+  /** When set, preview uses the client footer bridge instead of `GovernedComponentRenderer`. */
+  previewMode?: GalleryPreviewMode
 }
 
 export const GALLERY_SCENARIOS: readonly GalleryScenario[] = [
@@ -154,6 +167,79 @@ export const GALLERY_SCENARIOS: readonly GalleryScenario[] = [
       type: "governed:approval-timeline",
       serverType: "governed:approval-timeline",
       configuration: GALLERY_APPROVAL_TIMELINE,
+    },
+  },
+  {
+    id: "kanban-recruitment",
+    title: "Kanban — recruitment pipeline (read-only)",
+    description:
+      "dataNature: kanban · read-only · transition hints via availableTransitions",
+    minWidthPx: 720,
+    component: {
+      type: "governed:kanban-board",
+      serverType: "governed:kanban-board",
+      configuration: GALLERY_KANBAN_RECRUITMENT,
+    },
+  },
+  {
+    id: "kanban-recruitment-drag",
+    title: "Kanban — recruitment pipeline (drag reorder)",
+    description:
+      "dataNature: kanban · drag-reorder · GovernedKanbanDragBoard bridge",
+    minWidthPx: 720,
+    previewMode: "kanban-drag-reorder",
+    component: {
+      type: "governed:kanban-board",
+      serverType: "governed:kanban-board",
+      configuration: GALLERY_KANBAN_RECRUITMENT_DRAG,
+    },
+  },
+  {
+    id: "kanban-recruitment-footer",
+    title: "Kanban — recruitment pipeline (footer actions)",
+    description:
+      "dataNature: kanban · footer-actions · GovernedKanbanFooterBoard bridge",
+    minWidthPx: 720,
+    previewMode: "kanban-footer-actions",
+    component: {
+      type: "governed:kanban-board",
+      serverType: "governed:kanban-board",
+      configuration: GALLERY_KANBAN_RECRUITMENT_FOOTER_ACTIONS,
+    },
+  },
+  {
+    id: "kanban-claims-footer",
+    title: "Kanban — claims lifecycle (footer actions)",
+    description:
+      "dataNature: kanban · footer-actions · hrm:claims:kanban · ClaimKanbanCardFooter bridge",
+    minWidthPx: 720,
+    previewMode: "kanban-footer-actions",
+    component: {
+      type: "governed:kanban-board",
+      serverType: "governed:kanban-board",
+      configuration: GALLERY_KANBAN_CLAIMS_FOOTER,
+    },
+  },
+  {
+    id: "multi-step-onboarding",
+    title: "Multi-step form — onboarding",
+    description: "dataNature: wizard",
+    minWidthPx: 480,
+    component: {
+      type: "governed:multi-step-form",
+      serverType: "governed:multi-step-form",
+      configuration: GALLERY_MULTI_STEP_ONBOARDING,
+    },
+  },
+  {
+    id: "scorecard-interview",
+    title: "Scorecard — interview feedback",
+    description: "dataNature: scoring",
+    minWidthPx: 360,
+    component: {
+      type: "governed:scorecard-form",
+      serverType: "governed:scorecard-form",
+      configuration: GALLERY_SCORECARD_INTERVIEW,
     },
   },
 ]

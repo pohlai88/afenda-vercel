@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import {
-  ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL,
-  ORG_DASHBOARD_HRM_EMPLOYEES,
-} from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+  ORG_APPS_HRM_EMPLOYEE_DETAIL,
+  ORG_APPS_HRM_EMPLOYEES,
+} from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { upsertPayrollProfileMutation } from "../data/payroll-profile.mutations.server"
 import { requirePayrollMutationGate } from "../data/payroll-action-guard.server"
@@ -19,11 +19,11 @@ import type { PayrollProfileMutationFormState } from "../../../types"
 
 function revalidateHrmEmployeeSurfaces() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEES),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
 }

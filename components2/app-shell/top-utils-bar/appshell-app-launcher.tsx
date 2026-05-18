@@ -32,15 +32,15 @@ import {
 } from "#components2/ui/sheet"
 import { Link, usePathname } from "#i18n/navigation"
 import {
-  DASHBOARD_NAV_MODULES,
-  organizationDashboardPath,
-  type DashboardNavModule,
-} from "#lib/dashboard-module-paths"
+  APPS_NAV_MODULES,
+  organizationAppsPath,
+  type AppsNavModule,
+} from "#lib/org-apps-module-paths"
 import { ui } from "#lib/design-system"
 import { APP_ICON_512_PNG } from "#lib/site"
 import { cn } from "#lib/utils"
 
-import { organizationNexusPath } from "#features/nexus"
+import { organizationNexusPath } from "#features/nexus/client"
 
 import { AppShellAppLauncherTrigger } from "./appshell-app-launcher-trigger"
 import {
@@ -48,7 +48,7 @@ import {
   APP_SHELL_UTILITY_DISC_33_PX,
 } from "./appshell-utility-chrome.shared"
 
-const MODULE_ICONS: Record<DashboardNavModule, LucideIcon> = {
+const MODULE_ICONS: Record<AppsNavModule, LucideIcon> = {
   orbit: Activity,
   contacts: Users,
   knowledge: BookOpen,
@@ -82,10 +82,10 @@ export function AppShellAppLauncher({
 
   const navItems = useMemo(
     () =>
-      DASHBOARD_NAV_MODULES.map((module) => ({
+      APPS_NAV_MODULES.map((module) => ({
         module,
         label: tNav(module),
-        href: organizationDashboardPath(orgSlug, module),
+        href: organizationAppsPath(orgSlug, module),
         Icon: MODULE_ICONS[module],
       })),
     [tNav, orgSlug]
@@ -198,7 +198,7 @@ export function AppShellAppLauncher({
 }
 
 type NavItem = {
-  module: DashboardNavModule
+  module: AppsNavModule
   label: string
   href: Route
   Icon: LucideIcon

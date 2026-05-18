@@ -17,6 +17,7 @@ import {
   hrmSalaryAdvanceInstallment,
 } from "#lib/db/schema"
 
+import { markBonusPayoutsPaidForPayrollPeriod } from "../../bonus-incentive-management/server"
 import type { PayrollLineInput } from "./payroll-engine.server"
 import type { HrmCompensationSnapshotEntry } from "../../compensation-planning-modeling"
 
@@ -384,6 +385,7 @@ export async function insertPayrollLines(
       claimId: l.claimId ?? null,
       salaryAdvanceId: l.salaryAdvanceId ?? null,
       salaryAdvanceInstallmentId: l.salaryAdvanceInstallmentId ?? null,
+      bonusPayoutId: l.bonusPayoutId ?? null,
     }))
   )
 }
@@ -429,6 +431,10 @@ export async function lockPayrollPeriodAndRunsMutation(opts: {
 }): Promise<{
   readonly paidClaims: ReadonlyArray<{
     readonly claimId: string
+    readonly payrollLineId: string
+  }>
+  readonly paidBonusPayouts: ReadonlyArray<{
+    readonly payoutId: string
     readonly payrollLineId: string
   }>
 }> {
@@ -601,5 +607,11 @@ export async function lockPayrollPeriodAndRunsMutation(opts: {
       )
   }
 
-  return { paidClaims }
+  const paidBonusPayouts = await markBonusPayoutsPaidForPayrollPeriod({
+    organizationId: opts.organizationId,
+    periodId: opts.periodId,
+    actorUserId: opts.lockedByUserId,
+  })
+
+  return { paidClaims, paidBonusPayouts }
 }

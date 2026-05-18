@@ -15,8 +15,8 @@ export const HRM_COMPENSATION_PLANNING_SPEC_MAP = {
   meritIncreasePlanning: { status: "missing", codes: ["HRM-CPM-008"] },
   salaryAdjustmentModeling: {
     status: "partial",
-    codes: ["HRM-CPM-010", "HRM-CPM-011", "HRM-CPM-012"],
-    note: "Ad-hoc contract salary revision in employee-records-management only",
+    codes: ["HRM-CPM-010", "HRM-CPM-011", "HRM-CPM-012", "HRM-CPM-013"],
+    note: "Shared proposed salary and exception model exists; persisted workflow is not shipped",
   },
   promotionIncreaseModeling: { status: "missing", codes: ["HRM-CPM-009"] },
   totalCompensationModeling: {
@@ -26,8 +26,9 @@ export const HRM_COMPENSATION_PLANNING_SPEC_MAP = {
   },
   compensationScenarioModeling: { status: "missing", codes: ["HRM-CPM-015"] },
   compensationEligibility: {
-    status: "missing",
-    codes: ["HRM-CPM-004", "HRM-CPM-005"],
+    status: "partial",
+    codes: ["HRM-CPM-004", "HRM-CPM-005", "HRM-CPM-006"],
+    note: "Shared eligibility contract exists; cycle assignment persistence is not shipped",
   },
   salaryStructureReference: {
     status: "partial",
@@ -38,8 +39,19 @@ export const HRM_COMPENSATION_PLANNING_SPEC_MAP = {
   marketBenchmarkReference: { status: "missing", codes: [] },
   managerRecommendation: { status: "missing", codes: ["HRM-CPM-021"] },
   hrReview: { status: "missing", codes: ["HRM-CPM-022"] },
-  approvalWorkflow: { status: "missing", codes: ["HRM-CPM-023", "HRM-CPM-024"] },
-  budgetControl: { status: "missing", codes: ["HRM-CPM-020"] },
+  approvalWorkflow: {
+    status: "missing",
+    codes: ["HRM-CPM-023", "HRM-CPM-024"],
+  },
+  budgetControl: {
+    status: "partial",
+    codes: ["HRM-CPM-020"],
+    note: "Shared model requires exception justification for over-budget and outside-band recommendations",
+  },
+  approvalLocking: { status: "missing", codes: ["HRM-CPM-025"] },
+  compensationChangeRecord: { status: "missing", codes: ["HRM-CPM-026"] },
+  employeeHistoryLink: { status: "missing", codes: ["HRM-CPM-028"] },
+  compensationReporting: { status: "missing", codes: ["HRM-CPM-029"] },
   compensationLetterReference: { status: "missing", codes: [] },
   payrollIntegration: {
     status: "partial",

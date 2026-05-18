@@ -10,7 +10,7 @@ import {
 
 import { AppShellSurface } from "#app-shell"
 import { organizationNexusPath } from "#features/nexus"
-import { organizationAccountPath } from "#lib/dashboard-module-paths"
+import { organizationAccountPath } from "#lib/org-apps-module-paths"
 import { AccountIdentityClient } from "../../../../(iam)/account/identity/identity-client"
 import { generateAccountIdentityMetadata } from "../../../../(iam)/account/account-metadata"
 

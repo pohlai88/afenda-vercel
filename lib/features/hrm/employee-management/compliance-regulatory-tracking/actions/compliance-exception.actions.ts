@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
@@ -27,11 +27,11 @@ import {
   waiveComplianceExceptionFormSchema,
 } from "../schemas/compliance-exception.schema"
 
-const ORG_DASHBOARD_HRM_COMPLIANCE = "/hrm/compliance" as const
+const ORG_APPS_HRM_COMPLIANCE = "/hrm/compliance" as const
 
 function revalidateComplianceSurfaces() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_COMPLIANCE),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_COMPLIANCE),
     "page"
   )
 }

@@ -10,6 +10,7 @@ import {
   hrmApplication,
   hrmCandidate,
   hrmJobRequisition,
+  hrmRecruitmentEvent,
 } from "#lib/db/schema"
 import {
   candidatePortalApplicationPath,
@@ -129,6 +130,20 @@ export async function submitPublicApplicationAction(
           selfDeclaredSkills: structuredProfile.skills,
         },
       })
+      await tx.insert(hrmRecruitmentEvent).values({
+        id: crypto.randomUUID(),
+        organizationId: portal.organizationId,
+        subjectKind: "application",
+        subjectId: applicationId,
+        eventType: "application.submitted_from_portal",
+        actorUserId: null,
+        toState: "applied",
+        metadata: {
+          candidateId,
+          requisitionId: parsed.data.requisitionId,
+          source: parsed.data.source?.trim() || "careers_portal",
+        },
+      })
     })
   } catch {
     return {
@@ -156,10 +171,7 @@ export async function submitPublicApplicationAction(
     metadata: { applicationId },
   })
 
-  revalidatePath(
-    toLocalePortalRevalidatePattern(`/candidate/careers`),
-    "page"
-  )
+  revalidatePath(toLocalePortalRevalidatePattern(`/candidate/careers`), "page")
 
   const locale = await getRequestAppLocale()
   redirect(
@@ -197,6 +209,17 @@ export async function withdrawApplicationFromPortalAction(
       )
     )
 
+  await db.insert(hrmRecruitmentEvent).values({
+    id: crypto.randomUUID(),
+    organizationId: context.portal.organizationId,
+    subjectKind: "application",
+    subjectId: context.applicationId,
+    eventType: "application.withdrawn_from_portal",
+    actorUserId: null,
+    toState: "withdrawn",
+    metadata: { candidateId: context.candidate.id },
+  })
+
   await writeIamAuditEventFromNextHeaders({
     action: HRM_CSSP_AUDIT.application.withdraw,
     organizationId: context.portal.organizationId,
@@ -206,9 +229,7 @@ export async function withdrawApplicationFromPortalAction(
   })
 
   revalidatePath(
-    toLocalePortalRevalidatePattern(
-      `/candidate/applications/${token.trim()}`
-    ),
+    toLocalePortalRevalidatePattern(`/candidate/applications/${token.trim()}`),
     "page"
   )
 

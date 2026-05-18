@@ -9,7 +9,7 @@ import {
 } from "#app-shell/client"
 import { organizationNexusPath } from "#features/nexus"
 import { organizationOrbitPath } from "#features/planner"
-import { organizationAccountPath } from "#lib/dashboard-module-paths"
+import { organizationAccountPath } from "#lib/org-apps-module-paths"
 import type { AppLocale } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 import type { OrgSession } from "#lib/auth"
@@ -51,7 +51,7 @@ export async function OrgAccountDeferredShell({
       label: t("rail.orbit"),
       description: t("rail.orbitDescription"),
       href: organizationOrbitPath(orgSlug),
-      matchPath: `/o/${orgSlug}/dashboard/orbit`,
+      matchPath: `/o/${orgSlug}/apps/orbit`,
     },
     {
       id: "sessions" as const,

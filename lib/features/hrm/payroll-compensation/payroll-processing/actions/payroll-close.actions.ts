@@ -6,7 +6,7 @@ import { z } from "zod"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { buildCrudSapAuditAction } from "#lib/erp/crud-sap.shared"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import {
   buildPayrollCloseSnapshot,
@@ -29,7 +29,7 @@ const payrollClosePeriodActionSchema = z.object({
 
 function revalidatePayrollPages() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/payroll"),
     "layout"
   )
 }

@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedComponentRenderer } from "#components2/metadata"
+import { ModulePageHeader } from "#features/governed-surface"
 import {
   Card,
   CardDescription,
@@ -11,9 +11,9 @@ import { requireOrgSession } from "#lib/auth"
 
 import { resolveEmployeeRecordCapabilities } from "../data/employee-record-capabilities.server"
 import { listEmployeesForOrganization } from "../data/employee.queries.server"
-import { buildWorkforceListSurfaceConfiguration } from "../data/workforce-list-surface.server"
 
 import { AddEmployeeDialog } from "./add-employee-dialog"
+import { WorkforceListSection } from "./workforce-list-section"
 
 type WorkforcePageProps = {
   orgSlug: string
@@ -27,24 +27,12 @@ export async function WorkforcePage({ orgSlug }: WorkforcePageProps) {
     resolveEmployeeRecordCapabilities(),
   ])
 
-  const listConfiguration = buildWorkforceListSurfaceConfiguration(
-    rows,
-    orgSlug,
-    {
-      pageTitle: t("pageTitle"),
-      pageDescription: t("pageDescription"),
-      empty: t("empty"),
-      colNumber: t("colNumber"),
-      colName: t("colName"),
-      colEmail: t("colEmail"),
-      colStatus: t("colStatus"),
-      statusActive: t("statusActive"),
-      statusArchived: t("statusArchived"),
-    }
-  )
-
   return (
     <div className="flex flex-col gap-6">
+      <ModulePageHeader
+        title={t("pageTitle")}
+        description={t("pageDescription")}
+      />
       {!capabilities.canCreate && !capabilities.canUpdate ? (
         <Card size="sm">
           <CardHeader>
@@ -58,13 +46,7 @@ export async function WorkforcePage({ orgSlug }: WorkforcePageProps) {
           <AddEmployeeDialog orgSlug={orgSlug} />
         </div>
       ) : null}
-      <GovernedComponentRenderer
-        component={{
-          type: "governed:list-surface",
-          serverType: "governed:list-surface",
-          configuration: listConfiguration,
-        }}
-      />
+      <WorkforceListSection orgSlug={orgSlug} rows={rows} />
     </div>
   )
 }

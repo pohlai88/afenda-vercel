@@ -7,6 +7,9 @@ import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { requireOrgSession } from "#lib/auth"
 
 import { PayrollConsolePage } from "./payroll-console"
+import { PayrollCloseChecklistListSection } from "./payroll-close-checklist-list-section"
+import { PayrollRunListSection } from "./payroll-run-list-section"
+import { PayrollTraceabilityListSection } from "./payroll-traceability-list-section"
 import { resolvePayrollSurfaceCapabilities } from "../data/payroll-capabilities.server"
 import {
   getPendingPayrollPeriodLockApprovalId,
@@ -135,9 +138,23 @@ async function buildPeriodConsoleView(input: {
     approvedUnpaidApClaimCount,
   })
 
+  const serializedRuns = runs.map(serializeRun)
+  const showRunsList =
+    (input.period.state === "preparing" || input.period.state !== "open") &&
+    serializedRuns.length > 0
+
   return {
     period: serializePeriod(input.period),
-    runs: runs.map(serializeRun),
+    runs: serializedRuns,
+    runsList: showRunsList ? (
+      <PayrollRunListSection runs={serializedRuns} />
+    ) : null,
+    closeChecklistList: closeSnapshot ? (
+      <PayrollCloseChecklistListSection items={closeSnapshot.checklist} />
+    ) : null,
+    traceabilityList: (
+      <PayrollTraceabilityListSection traceability={traceability} />
+    ),
     traceability,
     closeSnapshot: closeSnapshot as PayrollCloseSnapshot | null,
     postingRecord: postingRecord as PayrollPostingRecord | null,

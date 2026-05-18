@@ -220,7 +220,7 @@ function OrgChartFlow({
                 {selected.kind === "employee" ? (
                   <Button asChild variant="outline" size="sm">
                     <Link
-                      href={`/o/${orgSlug}/dashboard/hrm/employees/${selected.resourceId}`}
+                      href={`/o/${orgSlug}/apps/hrm/employees/${selected.resourceId}`}
                     >
                       {t("openEmployee")}
                     </Link>
@@ -229,7 +229,7 @@ function OrgChartFlow({
                 {selected.kind === "employee" ? (
                   <Button asChild variant="ghost" size="sm">
                     <Link
-                      href={`/o/${orgSlug}/dashboard/hrm/organization?tab=assignments`}
+                      href={`/o/${orgSlug}/apps/hrm/organization?tab=assignments`}
                     >
                       {t("openAssignments")}
                     </Link>

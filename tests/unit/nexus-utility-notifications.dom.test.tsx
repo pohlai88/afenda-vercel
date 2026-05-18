@@ -122,7 +122,7 @@ function makeNotice(overrides: Partial<Record<string, unknown>> = {}) {
     linkedEntityType: "Vendor",
     linkedEntityId: "vendor-1",
     linkedEntityLabel: "Vendor ACME",
-    linkedPath: "/en/o/acme/dashboard/vendors/vendor-1",
+    linkedPath: "/en/o/acme/apps/vendors/vendor-1",
     publishedAt: "2026-05-11T10:00:00.000Z",
     expiresAt: null,
     closedAt: null,
@@ -217,7 +217,7 @@ describe("NexusUtilityNotifications", () => {
         screen
           .getByRole("link", { name: "Open linked record" })
           .getAttribute("href")
-      ).toBe("/en/o/acme/dashboard/vendors/vendor-1")
+      ).toBe("/en/o/acme/apps/vendors/vendor-1")
     })
   })
 
@@ -274,7 +274,7 @@ describe("NexusUtilityNotifications", () => {
       target: { value: "Policy register" },
     })
     fireEvent.change(screen.getByLabelText("Linked record path (optional)"), {
-      target: { value: "/en/o/acme/dashboard/policies/quarter-close" },
+      target: { value: "/en/o/acme/apps/policies/quarter-close" },
     })
 
     fireEvent.click(screen.getByRole("button", { name: "Publish notice" }))

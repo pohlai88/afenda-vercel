@@ -213,6 +213,38 @@ describe("Payroll engine — MY-2026-01 integration", () => {
       })
     })
 
+    it("projects exported bonus payouts into earning lines with provenance", async () => {
+      const result = await computePayrollRun(
+        baseInput({
+          approvedBonusPayouts: [
+            {
+              payoutId: "bonus-payout-001",
+              payrollLineCode: "BONUS_PERFORMANCE",
+              description: "Performance bonus (BON-2026-0001)",
+              amount: "1200.00",
+              currency: "MYR",
+            },
+          ],
+        }),
+        null
+      )
+
+      expect(result.grossPay).toBe("6200.00")
+      expect(result.netPay).toBe("6200.00")
+      expect(result.employerCost).toBe("6200.00")
+      expect(
+        result.lines.find((line) => line.code === "BONUS_PERFORMANCE")
+      ).toMatchObject({
+        lineKind: "earning",
+        amount: "1200.00",
+        bonusPayoutId: "bonus-payout-001",
+        metadata: {
+          source: "bonus_incentive_payout",
+          sourceBonusPayoutId: "bonus-payout-001",
+        },
+      })
+    })
+
     it("flags and skips contract allowances in a different currency", async () => {
       const result = await computePayrollRun(
         baseInput({
@@ -230,9 +262,9 @@ describe("Payroll engine — MY-2026-01 integration", () => {
       )
 
       expect(result.grossPay).toBe("5000.00")
-      expect(
-        result.lines.some((line) => line.code === "PHONE_ALLOWANCE")
-      ).toBe(false)
+      expect(result.lines.some((line) => line.code === "PHONE_ALLOWANCE")).toBe(
+        false
+      )
       expect(result.validationIssues).toContainEqual({
         code: "PAYROLL_CONTRACT_ALLOWANCE_CURRENCY_MISMATCH",
         message:

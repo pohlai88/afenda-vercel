@@ -6,7 +6,7 @@ import { and, eq, inArray } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmLeaveBalance, hrmLeaveType } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/auth"
 
 import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
@@ -37,7 +37,7 @@ import type {
 } from "../../../types"
 
 function revalidateLeaveRequests() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/leave"), "layout")
 }
 
 // ---------------------------------------------------------------------------

@@ -1,11 +1,13 @@
 import "server-only"
 
 import {
+  GOVERNED_METADATA_SCHEMA_VERSION,
   resolveListSurfaceRowTrailingAction,
   type ListSurfaceRendererConfigurationInput,
 } from "#features/governed-surface"
 
 import type { OnboardingContractRow } from "./onboarding.queries.server"
+import { ONBOARDING_LIST_SURFACE_IDS } from "./onboarding-surface-metadata.shared"
 
 const PRESENTATION = {
   variant: "table-only" as const,
@@ -35,9 +37,11 @@ type OnboardingListContext = {
 export function buildOnboardingListSurfaceConfiguration(
   rows: readonly OnboardingContractRow[],
   copy: OnboardingListCopy,
-  context: OnboardingListContext
+  context: OnboardingListContext,
+  columnsId: string = ONBOARDING_LIST_SURFACE_IDS.contracts
 ): ListSurfaceRendererConfigurationInput {
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     requiresErpPermission: {
       module: "hrm",
@@ -46,8 +50,8 @@ export function buildOnboardingListSurfaceConfiguration(
     },
     presentation: PRESENTATION,
     surface: {
-      header: { title: "hrm-onboarding" },
-      columnsId: "hrm-onboarding",
+      header: { title: columnsId },
+      columnsId,
       rowKey: "id",
       empty: { variant: "muted", title: copy.empty },
     },

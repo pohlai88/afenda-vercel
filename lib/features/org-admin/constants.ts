@@ -1,4 +1,4 @@
-import { organizationAdminPath } from "#lib/dashboard-module-paths"
+import { organizationAdminPath } from "#lib/org-apps-module-paths"
 
 import type {
   OrgAdminCapability,

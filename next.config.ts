@@ -163,6 +163,49 @@ const nextConfig: NextConfig = {
         destination: "/:locale/console",
         permanent: true,
       },
+      // ERP module URLs: /dashboard → /apps (ADR-0029).
+      {
+        source: "/:locale/o/:orgSlug/dashboard/:path*",
+        destination: "/:locale/o/:orgSlug/apps/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:locale/o/:orgSlug/dashboard",
+        destination: "/:locale/o/:orgSlug/nexus",
+        permanent: true,
+      },
+      // Capability registry UI retired — utility resolution stays in #features/marketplace (ADR-0029).
+      {
+        source: "/:locale/o/:orgSlug/marketplace/:path*",
+        destination: "/:locale/o/:orgSlug/nexus",
+        permanent: true,
+      },
+      {
+        source: "/:locale/o/:orgSlug/marketplace",
+        destination: "/:locale/o/:orgSlug/nexus",
+        permanent: true,
+      },
+      // Platform console: legacy operator URLs → /platform (vendor-internal).
+      {
+        source: "/:locale/operator",
+        destination: "/:locale/platform",
+        permanent: true,
+      },
+      {
+        source: "/:locale/operator/:path*",
+        destination: "/:locale/platform/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:locale/o/:orgSlug/operator",
+        destination: "/:locale/platform",
+        permanent: true,
+      },
+      {
+        source: "/:locale/o/:orgSlug/operator/:path*",
+        destination: "/:locale/platform/:path*",
+        permanent: true,
+      },
     ]
   },
 }

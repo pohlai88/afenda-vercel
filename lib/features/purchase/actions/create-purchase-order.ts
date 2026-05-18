@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 
-import { ORG_DASHBOARD_PURCHASE } from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { ORG_APPS_PURCHASE } from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/auth"
 import { purchaseFilterSchema } from "../schemas/purchase-filter.schema"
 import type { PurchaseActionState } from "../types"
@@ -28,7 +28,7 @@ export async function createPurchaseOrder(
   }
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_PURCHASE),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_PURCHASE),
     "page"
   )
   return { ok: true }

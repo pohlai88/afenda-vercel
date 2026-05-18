@@ -52,10 +52,27 @@ test.describe("@smoke Pattern C section gallery", () => {
 })
 
 test.describe("HRM Pattern C production mounts", () => {
-  test.skip(
-    !process.env.E2E_ORG_ADMIN_EMAIL?.trim() ||
-      !process.env.E2E_ORG_ADMIN_PASSWORD?.trim(),
-    "Set E2E_ORG_ADMIN_EMAIL and E2E_ORG_ADMIN_PASSWORD for org-scoped HRM flows."
+  test(
+    "lifecycle overview mounts governed list section shell",
+    { tag: "@hrm" },
+    async ({ page }) => {
+      const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
+      test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
+
+      await page.goto(`/en/o/${slug}/apps/hrm/lifecycle`)
+
+      const section = page.locator(
+        '[data-testid="governed-list-section:hrm:lifecycle:overview"]'
+      )
+      await expect(section).toBeVisible()
+      await expect(
+        section.getByRole("table").or(
+          section.getByText("No active employees in this organization yet.", {
+            exact: true,
+          })
+        )
+      ).toBeVisible()
+    }
   )
 
   test(
@@ -65,7 +82,7 @@ test.describe("HRM Pattern C production mounts", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/onboarding`)
+      await page.goto(`/en/o/${slug}/apps/hrm/onboarding`)
 
       const section = page.locator(
         '[data-testid="governed-list-section:hrm:onboarding:contracts"]'
@@ -86,7 +103,7 @@ test.describe("HRM Pattern C production mounts", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/leave`)
+      await page.goto(`/en/o/${slug}/apps/hrm/leave`)
 
       await expect(
         page.getByRole("heading", { name: "Leave management", exact: true })
@@ -111,7 +128,7 @@ test.describe("HRM Pattern C production mounts", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/performance`)
+      await page.goto(`/en/o/${slug}/apps/hrm/performance`)
 
       await expect(
         page.getByRole("heading", {
@@ -139,7 +156,7 @@ test.describe("HRM Pattern C production mounts", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/skills`)
+      await page.goto(`/en/o/${slug}/apps/hrm/skills`)
 
       await expect(
         page.getByRole("heading", { name: "Skills", exact: true })
@@ -149,6 +166,39 @@ test.describe("HRM Pattern C production mounts", () => {
         '[data-testid="governed-list-section:hrm:skills:catalog"]'
       )
       await expect(catalog).toBeVisible()
+    }
+  )
+
+  test(
+    "claims page mounts governed recent activity section",
+    { tag: "@hrm" },
+    async ({ page }) => {
+      const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
+      test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
+
+      await page.goto(`/en/o/${slug}/apps/hrm/claims`)
+
+      await expect(
+        page.getByRole("heading", { name: "Claims", exact: true })
+      ).toBeVisible()
+
+      const kanban = page.locator(
+        '[data-testid="governed-list-section:hrm:claims:kanban"]'
+      )
+      await expect(kanban).toBeVisible()
+      await expect(
+        kanban.getByRole("region").first().or(kanban.getByText("temporarily unavailable"))
+      ).toBeVisible()
+
+      const recent = page.locator(
+        '[data-testid="governed-list-section:hrm:claims:recent-activity"]'
+      )
+      await expect(recent).toBeVisible()
+      await expect(
+        recent.getByRole("table").or(
+          recent.getByText("No claim activity yet", { exact: false })
+        )
+      ).toBeVisible()
     }
   )
 })

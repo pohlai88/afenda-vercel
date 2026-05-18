@@ -8,3 +8,8 @@ export type OnboardingSurfaceCapabilities = {
 export type BoardingTaskSurfaceCapabilities = {
   readonly canManage: boolean
 }
+
+/** Org lifecycle overview (readiness counters + governed overview table). */
+export type LifecycleOverviewSurfaceCapabilities = {
+  readonly canRead: boolean
+}

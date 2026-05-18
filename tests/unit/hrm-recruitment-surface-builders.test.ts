@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest"
 
+import { buildCandidateCareersListSurfaceConfiguration } from "#features/hrm/talent-management/candidate-selfservice-portal/data/candidate-portal-surface-builders.server"
+import { parseGovernedKanbanBoardConfiguration } from "#features/governed-surface/schemas/kanban-board.schema"
 import {
-  buildCandidateCareersListSurfaceConfiguration,
-} from "#features/hrm/talent-management/candidate-selfservice-portal/data/candidate-portal-surface-builders.server"
-import {
+  buildRecruitmentPipelineKanbanConfiguration,
   buildRecruitmentPipelineStatConfiguration,
   buildRecruitmentRequisitionsListSurfaceConfiguration,
-} from "#features/hrm/talent-management/recruitment-applicant-tracking/data/recruitment-surface-builders.server"
+} from "#features/hrm/talent-management/recruitment-onboarding/data/recruitment-surface-builders.server"
+import { buildRecruitmentReportListSurfaceConfiguration } from "#features/hrm/talent-management/recruitment-onboarding/data/recruitment-report-list-surface.server"
 
 describe("recruitment surface builders", () => {
   it("builds pipeline stat configuration", () => {
@@ -36,6 +37,8 @@ describe("recruitment surface builders", () => {
           departmentName: "Product",
           headcount: 1,
           status: "open",
+          requisitionType: "new_headcount",
+          approvalState: "not_required",
           requiredSkillCodes: ["typescript"],
           createdAt: new Date("2026-01-01"),
         },
@@ -54,6 +57,68 @@ describe("recruitment surface builders", () => {
     expect(config.rows).toHaveLength(1)
     expect(config.rows[0]?.cells.title).toBe("Engineer")
   })
+
+  it("builds pipeline kanban configuration with footer-actions and workflow", () => {
+    const config = buildRecruitmentPipelineKanbanConfiguration(
+      [
+        {
+          id: "app-1",
+          stage: "screening",
+          candidateId: "cand-1",
+          candidateName: "Alex Kim",
+          candidateEmail: null,
+          requisitionTitle: "Engineer",
+          requisitionId: "req-1",
+          convertedEmployeeId: null,
+          screeningOutcome: null,
+        },
+      ],
+      new Map([["app-1", 2]]),
+      {
+        boardAriaLabel: "Pipeline",
+        stageLabels: {
+          applied: "Applied",
+          screening: "Screening",
+          shortlisted: "Shortlisted",
+          interview: "Interview",
+          assessment: "Assessment",
+          offer: "Offer",
+          hired: "Hired",
+          rejected: "Rejected",
+          withdrawn: "Withdrawn",
+          archived: "Archived",
+        },
+        pipelineEmpty: "Empty",
+        interviewCount: (count) => `${count} interviews`,
+        convertedEmployee: "Employee",
+      }
+    )
+
+    const parsed = parseGovernedKanbanBoardConfiguration(config)
+    expect(parsed.success).toBe(true)
+    if (!parsed.success) return
+
+    expect(parsed.data.interactionMode).toBe("footer-actions")
+    expect(parsed.data.columns).toHaveLength(10)
+    expect(parsed.data.cards[0]?.badges).toContain("2 interviews")
+    expect(parsed.data.workflow?.transitions.length).toBeGreaterThan(0)
+  })
+
+  it("builds operational report list surface rows", () => {
+    const config = buildRecruitmentReportListSurfaceConfiguration(
+      [{ id: "screening", area: "Screening", count: 3, status: "Configured" }],
+      {
+        empty: "Empty",
+        colArea: "Area",
+        colCount: "Count",
+        colStatus: "Status",
+        areaLabel: (row) => row.area,
+        statusLabel: (row) => row.status,
+      }
+    )
+    expect(config.rows[0]?.cells.area).toBe("Screening")
+    expect(config.rows[0]?.cells.count).toBe(3)
+  })
 })
 
 describe("candidate portal surface builders", () => {
@@ -67,6 +132,8 @@ describe("candidate portal surface builders", () => {
           departmentName: null,
           headcount: 2,
           status: "open",
+          requisitionType: "new_headcount",
+          approvalState: "not_required",
           requiredSkillCodes: [],
           createdAt: new Date("2026-01-01"),
         },
@@ -83,6 +150,8 @@ describe("candidate portal surface builders", () => {
         statusOpen: "Open",
       }
     )
-    expect(config.rows[0]?.rowHref).toContain("/p/acme-careers/candidate/careers/req-1")
+    expect(config.rows[0]?.rowHref).toContain(
+      "/p/acme-careers/candidate/careers/req-1"
+    )
   })
 })

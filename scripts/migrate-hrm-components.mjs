@@ -71,7 +71,7 @@ function resolveTarget(name) {
     return "talent-management/training-development/components"
   }
   if (n.startsWith("hrm-performance") || n.startsWith("employee-portal-performance")) {
-    return "talent-management/performance-management/components"
+    return "talent-management/performance-appraisals/components"
   }
   if (
     n.startsWith("skill-") ||

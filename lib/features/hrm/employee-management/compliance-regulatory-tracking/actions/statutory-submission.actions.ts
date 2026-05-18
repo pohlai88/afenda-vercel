@@ -14,7 +14,7 @@ import {
   findEnabledEndpointForEventType,
   getOrgEventEndpointSigningKey,
 } from "#features/org-admin/server"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import { HRM_COMPLIANCE_REGULATORY_AUDIT } from "../compliance-regulatory.contract"
@@ -55,7 +55,7 @@ function isStatutoryPackType(value: string): value is StatutoryPackType {
  */
 function revalidateCompliancePages(): void {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/compliance"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/compliance"),
     "layout"
   )
 }

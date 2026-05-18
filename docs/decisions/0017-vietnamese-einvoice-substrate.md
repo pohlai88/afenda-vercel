@@ -27,7 +27,7 @@ retries for long-running provider round-trips when we add them.
 
 ## Consequences
 
-- UI routes can be added later under `app/[locale]/o/[orgSlug]/dashboard/…`
+- UI routes can be added later under `app/[locale]/o/[orgSlug]/apps/…`
   without changing the persistence contract.
 - Additional providers extend a narrow interface under
   `data/providers/` — no new architectural folders.

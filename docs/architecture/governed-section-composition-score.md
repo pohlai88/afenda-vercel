@@ -52,10 +52,31 @@ Canonical recipe: [ADR-0026 § Pattern C](../decisions/0026-metadata-driven-ui-a
 | --- | --- | --- |
 | Onboarding | `hrm-onboarding-section.tsx` | 9.8 |
 | Claims recent | `claim-recent-table.tsx` | 9.8 |
+| Claims kanban | `claim-kanban-section.tsx` (`hrm:claims:kanban`, Pattern K) | 9.5 |
 | Leave pending | `leave-pending-inbox.tsx` | 9.8 |
 | Benefits / training / offboarding dashboard | C2 migrations | 9.5–9.8 |
 | Performance cycles / reviews | `performance-cycles-section.tsx`, `performance-reviews-section.tsx` | 9.8 |
 | Skills catalog | `hrm-skills-catalog-section.tsx` | 9.8 |
+| Workforce employees | `workforce-list-section.tsx` (`hrm:workforce:employees`) | 9.5 |
+| Recruitment requisitions | `recruitment-requisitions-list-section.tsx` (`hrm:recruitment:requisitions`) | 9.5 |
+| Recruitment applications | `recruitment-applications-list-section.tsx` (`hrm:recruitment:applications`) | 9.5 |
+| Recruitment interviews | `recruitment-interviews-list-section.tsx` (`hrm:recruitment:interviews`) | 9.8 |
+| Recruitment offers | `recruitment-offers-list-section.tsx` (`hrm:recruitment:offers`) | 9.8 |
+| Recruitment events | `recruitment-recent-events-list-section.tsx` (`hrm:recruitment:events`) | 9.5 |
+| Recruitment pipeline kanban | `recruitment-pipeline-kanban-section.tsx` (`hrm:recruitment:pipeline`) | 9.5 |
+
+| Candidate portal careers | `candidate-portal-careers-list-section.tsx` (`portal:candidate:careers`) | 9.5 |
+| Employee change history | `employee-change-history-list-section.tsx` (`hrm:employee:change-history`) | 9.5 |
+| Training prerequisites | `training-prerequisites-list-section.tsx` (`hrm:training:prerequisites`) | 9.8 |
+| Benefits enrollments | `benefit-enrollments-section.tsx` (`hrm:benefits:enrollments`) | 9.8 |
+| Benefits open enrollment | `benefit-open-enrollment-windows-section.tsx` (`hrm:benefits:open-enrollment`) | 9.8 |
+| Bureau reliability | `bureau-reliability-list-section.tsx` (`hrm:compliance:bureau-reliability`) | 9.5 |
+| Organization health issues | `organization-structure-list-sections.tsx` (`hrm:organization:health`) | 9.5 |
+| Claims lifecycle kanban | `claim-kanban-section.tsx` (`hrm:claims:kanban`) | 9.5 |
+
+**Recruitment pipeline kanban** uses `GovernedKanbanFooterSection` + `GovernedKanbanFooterBoard` + `RecruitmentPipelineCardActions` (`footer-actions`, `hrm:recruitment:pipeline`); validate at `/{locale}/dev/metadata-renderer-gallery` (`kanban-recruitment` read-only + `kanban-recruitment-footer` + `kanban-recruitment-drag` scenarios).
+
+**Claims kanban** uses the same Pattern K shell with `ClaimKanbanCardFooter` (approve/reject + detail link on submitted cards); `loadError` when `listClaimsForOrg` fails. Dev gallery: `kanban-claims-footer` at `/en/dev/metadata-renderer-gallery`.
 
 ---
 
@@ -81,6 +102,9 @@ Canonical recipe: [ADR-0026 § Pattern C](../decisions/0026-metadata-driven-ui-a
 | C4 — gallery + Playwright + composition score doc | Done |
 | C5 — performance + skills Pattern C completion | Done |
 | C6 — claim-recent-table + portal embedded helper alignment | Done |
+| C7 — claim pending/exception inboxes: builder `loadError` + parallel fetch | Done |
+| K1 — claims kanban Pattern K pilot on `/dashboard/hrm/claims` | Done |
+| K2 — claims + recruitment kanban gallery fixtures; board `surfaceKey` diagnostics | Done |
 
 ### Onboarding empty header UX
 

@@ -3,7 +3,10 @@ import type {
   AppShellPrimaryLeftRailSlots,
 } from "#app-shell"
 
-import { PLATFORM_ADMIN_NAV_ITEMS, platformAdminPath } from "../constants"
+import {
+  getPlatformAdminCapabilityById,
+  PLATFORM_ADMIN_NAV_ITEMS,
+} from "../constants"
 import type {
   PlatformAdminNavKey,
   PlatformAdminRailPressureMap,
@@ -30,11 +33,12 @@ const NAV_KEY_ICONS: Record<string, AppShellPrimaryLeftRailNavIconId> = {
  */
 export function buildPlatformAdminRailSlots({
   pressure,
-  pathForSegment = platformAdminPath,
+  pathForSegment,
 }: {
   /** Optional pressure map produced by `getPlatformAdminRailPressureCounts`. */
   pressure?: PlatformAdminRailPressureMap
-  pathForSegment?: (segment?: string) => string
+  /** Platform href builder — `(s) => platformPath(s)`. */
+  pathForSegment: (segment?: string) => string
 }): AppShellPrimaryLeftRailSlots {
   const allNavItems = [
     {
@@ -45,10 +49,12 @@ export function buildPlatformAdminRailSlots({
     },
     ...PLATFORM_ADMIN_NAV_ITEMS.map((item) => {
       const badge = pressure?.[item.navKey as PlatformAdminNavKey]
+      const capability = getPlatformAdminCapabilityById(item.capabilityId)
+      const segment = capability?.nav?.primarySegment
       return {
         id: item.capabilityId,
         label: item.navKey.charAt(0).toUpperCase() + item.navKey.slice(1),
-        href: pathForSegment(item.href.replace(/^\/operator\/?/, "")),
+        href: pathForSegment(segment),
         icon: NAV_KEY_ICONS[item.navKey] ?? "list",
         ...(badge ? { badge } : {}),
       }

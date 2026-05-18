@@ -23,7 +23,11 @@ import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-l
 
 import { EmployeePortalAdvanceCancelButton } from "./employee-portal-advance-cancel-button"
 import { EmployeePortalAdvanceRequestForm } from "./employee-portal-advance-request-form"
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import {
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalAdvancesPageProps = {
@@ -65,6 +69,8 @@ export async function EmployeePortalAdvancesPage({
   const stateLabelFor = (state: string) =>
     STATE_KEY_MAP[state] ? t(STATE_KEY_MAP[state]!) : state
 
+  const trailingContext = { showRowActions: true } as const
+
   const advanceConfiguration = buildEmployeePortalAdvanceListSurfaceConfiguration(
     advances,
     {
@@ -74,7 +80,8 @@ export async function EmployeePortalAdvancesPage({
       colRequested: t("colRequested"),
       colReason: t("colReason"),
       stateLabelFor,
-    }
+    },
+    trailingContext
   )
 
   const advanceById = new Map(advances.map((row) => [row.id, row]))
@@ -164,19 +171,31 @@ export async function EmployeePortalAdvancesPage({
           <CardDescription>{t("listDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
-          <EmployeePortalGovernedTable
-            configuration={advanceConfiguration}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={advanceConfiguration}
             surfaceKey="hrm:portal:advances"
+            resolveConfiguredPermission={false}
             trailingColumn={{
               header: t("colActions"),
               render: (surfaceRow) => {
+                const trailingAction = surfaceRow.trailingAction
                 const row = advanceById.get(surfaceRow.id)
-                if (!row || row.state !== "pending") return null
+                if (
+                  !row ||
+                  row.state !== "pending" ||
+                  !isListSurfaceTrailingActionRenderable(trailingAction)
+                ) {
+                  return null
+                }
                 return (
-                  <EmployeePortalAdvanceCancelButton
-                    portalSlug={portalSlug}
-                    advanceId={row.id}
-                  />
+                  <GovernedTrailingActionSlot trailingAction={trailingAction}>
+                    <EmployeePortalAdvanceCancelButton
+                      portalSlug={portalSlug}
+                      advanceId={row.id}
+                    />
+                  </GovernedTrailingActionSlot>
                 )
               },
             }}
@@ -202,9 +221,12 @@ export async function EmployeePortalAdvancesPage({
                 <p className="mb-2 text-xs font-medium text-muted-foreground">
                   {t("installmentsTitle")}
                 </p>
-                <EmployeePortalGovernedTable
-                  configuration={nestedConfiguration}
+                <GovernedPatternCListSection
+                  layout="embedded"
+                  title=""
+                  listConfiguration={nestedConfiguration}
                   surfaceKey={`hrm:portal:advance-installments:${advance.id}`}
+                  resolveConfiguredPermission={false}
                 />
               </div>
             )
@@ -221,9 +243,12 @@ export async function EmployeePortalAdvancesPage({
             <CardDescription>{t("installmentsDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <EmployeePortalGovernedTable
-              configuration={installmentConfiguration}
+            <GovernedPatternCListSection
+              layout="embedded"
+              title=""
+              listConfiguration={installmentConfiguration}
               surfaceKey="hrm:portal:advance-installments-all"
+              resolveConfiguredPermission={false}
             />
           </CardContent>
         </Card>

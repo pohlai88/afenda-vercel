@@ -7,6 +7,7 @@ import { isBenefitClaimStatus } from "./benefit-helpers.shared"
 import type { BenefitClaimReferenceRow } from "./benefit-claim-reference.queries.server"
 import type {
   BenefitEnrollmentListRow,
+  BenefitLifeEventRow,
   BenefitOpenEnrollmentRow,
   BenefitPlanRow,
 } from "./benefit-model.shared"
@@ -85,13 +86,29 @@ type BenefitEnrollmentsListCopy = {
   empty: string
   colEmployee: string
   colPlan: string
-  colState: string
   colCoverage: string
+  colState: string
+  colEffective: string
+  formatEmployee: (row: BenefitEnrollmentListRow) => string
+  formatPlan: (row: BenefitEnrollmentListRow) => string
+  formatCoverage: (row: BenefitEnrollmentListRow) => string
+  formatState: (row: BenefitEnrollmentListRow) => string
+  formatEffective: (row: BenefitEnrollmentListRow) => string
+}
+
+function enrollmentTrailingState(
+  state: string
+): "ready" | "hidden" {
+  if (state === "pending" || state === "active" || state === "suspended") {
+    return "ready"
+  }
+  return "hidden"
 }
 
 export function buildBenefitEnrollmentsListSurfaceConfiguration(
   rows: readonly BenefitEnrollmentListRow[],
-  copy: BenefitEnrollmentsListCopy
+  copy: BenefitEnrollmentsListCopy,
+  options: { showTrailing: boolean }
 ): ListSurfaceRendererConfigurationInput {
   return {
     dataNature: "table",
@@ -106,21 +123,30 @@ export function buildBenefitEnrollmentsListSurfaceConfiguration(
     columns: [
       { id: "employee", header: copy.colEmployee },
       { id: "plan", header: copy.colPlan },
+      { id: "coverage", header: copy.colCoverage },
       {
         id: "state",
         header: copy.colState,
         cellKind: { kind: "badge", tone: "attention" },
       },
-      { id: "coverage", header: copy.colCoverage },
+      {
+        id: "effective",
+        header: copy.colEffective,
+        cellKind: { kind: "date" },
+      },
     ],
     rows: rows.map((row) => ({
       id: row.enrollmentId,
       cells: {
-        employee: row.employeeLegalName,
-        plan: row.benefitName,
-        state: row.state,
-        coverage: row.coverageLevel ?? "—",
+        employee: copy.formatEmployee(row),
+        plan: copy.formatPlan(row),
+        coverage: copy.formatCoverage(row),
+        state: copy.formatState(row),
+        effective: copy.formatEffective(row),
       },
+      trailingAction: options.showTrailing
+        ? { state: enrollmentTrailingState(row.state) }
+        : { state: "hidden" },
     })),
   }
 }
@@ -129,14 +155,17 @@ type BenefitOpenEnrollmentListCopy = {
   empty: string
   colName: string
   colPeriod: string
+  colPlans: string
   colStatus: string
   activeLabel: string
   closedLabel: string
+  allPlansLabel: string
 }
 
 export function buildBenefitOpenEnrollmentListSurfaceConfiguration(
   rows: readonly BenefitOpenEnrollmentRow[],
-  copy: BenefitOpenEnrollmentListCopy
+  copy: BenefitOpenEnrollmentListCopy,
+  options: { showTrailing: boolean }
 ): ListSurfaceRendererConfigurationInput {
   return {
     dataNature: "table",
@@ -151,6 +180,7 @@ export function buildBenefitOpenEnrollmentListSurfaceConfiguration(
     columns: [
       { id: "name", header: copy.colName },
       { id: "period", header: copy.colPeriod },
+      { id: "plans", header: copy.colPlans },
       {
         id: "status",
         header: copy.colStatus,
@@ -162,8 +192,16 @@ export function buildBenefitOpenEnrollmentListSurfaceConfiguration(
       cells: {
         name: row.name,
         period: `${formatPlanDate(row.startsOn)} — ${formatPlanDate(row.endsOn)}`,
+        plans:
+          row.planIds.length > 0
+            ? String(row.planIds.length)
+            : copy.allPlansLabel,
         status: row.isActive ? copy.activeLabel : copy.closedLabel,
       },
+      trailingAction:
+        options.showTrailing && row.isActive
+          ? { state: "ready" as const }
+          : { state: "hidden" as const },
     })),
   }
 }
@@ -229,6 +267,57 @@ type BenefitClaimReferencesListCopy = {
   colPaymentRef: string
   claimStatusLabel: (status: string) => string
   enrollmentLabel: (enrollmentId: string) => string
+}
+
+type BenefitLifeEventsListCopy = {
+  empty: string
+  colDate: string
+  colEmployee: string
+  colEvent: string
+  colStatus: string
+  eventTypeLabel: (eventType: string) => string
+  verificationStatusLabel: (status: string) => string
+  formatEventDate: (value: Date) => string
+}
+
+export function buildBenefitLifeEventsListSurfaceConfiguration(
+  rows: readonly BenefitLifeEventRow[],
+  copy: BenefitLifeEventsListCopy
+): ListSurfaceRendererConfigurationInput {
+  return {
+    dataNature: "table",
+    requiresErpPermission: BENEFIT_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: { title: "hrm-benefit-life-events" },
+      columnsId: BENEFIT_LIST_SURFACE_IDS.lifeEvents,
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      {
+        id: "date",
+        header: copy.colDate,
+        cellKind: { kind: "date" },
+      },
+      { id: "employee", header: copy.colEmployee },
+      { id: "event", header: copy.colEvent },
+      {
+        id: "status",
+        header: copy.colStatus,
+        cellKind: { kind: "badge", tone: "attention" },
+      },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        date: copy.formatEventDate(row.eventDate),
+        employee: row.employeeLegalName,
+        event: copy.eventTypeLabel(row.eventType),
+        status: copy.verificationStatusLabel(row.verificationStatus),
+      },
+    })),
+  }
 }
 
 export function buildBenefitClaimReferencesListSurfaceConfiguration(

@@ -6,7 +6,7 @@ import {
   parseEmptyStateData,
   parsePageHeaderData,
 } from "#features/governed-surface"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
 
 /** ERP dashboard segments reserved for Phase 3 operational surfaces (see AGENTS.md Nexus roadmap). */
 export type Phase3ErpSurface = "accounting" | "sale" | "purchase" | "inventory"
@@ -26,7 +26,7 @@ export async function ErpSurfaceComingSoon({
   )
   const tShared = await getTranslations("Dashboard.surfaceComingSoon")
 
-  const nexusHref = organizationDashboardPath(orgSlug, "home")
+  const nexusHref = organizationAppsPath(orgSlug, "home")
 
   const headerParsed = parsePageHeaderData({
     title: tNav(surface),

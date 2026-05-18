@@ -89,6 +89,19 @@ const serverOnlyPatterns = [
 ]
 
 /**
+ * Server feature index barrels (#features/<module>) pull the whole module graph
+ * into the client bundle. Client files must use #features/<module>/client instead.
+ * @see ADR-0030 · .cursor/rules/module-client-server-barrels.mdc
+ */
+const serverFeatureIndexBarrelPatterns = [
+  {
+    group: ["#features/*"],
+    message:
+      "Do not import the server feature index barrel from Client Components. Use #features/<module>/client, #features/<module>/server, or an allowed schemas/*.shared deep path (ADR-0030).",
+  },
+]
+
+/**
  * Public Lynx (ask-docs AI chat) must stay separate from ERP Lynx and IAM.
  * @see .cursor/rules/public-lynx.mdc · scripts/check-public-lynx-contract.mjs
  */
@@ -430,7 +443,47 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": [
         "error",
         {
-          patterns: [...serverOnlyPatterns],
+          patterns: [...serverFeatureIndexBarrelPatterns, ...serverOnlyPatterns],
+        },
+      ],
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // § Feature modules — client files must not import server index barrels
+  // @see ADR-0030 · bundle-barrel-imports (Vercel React best practices)
+  // -------------------------------------------------------------------------
+  {
+    name: "afenda/feature-client-server-barrel",
+    files: [
+      "lib/features/**/*.client.{ts,tsx}",
+      "hooks/**/*.client.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [...serverFeatureIndexBarrelPatterns, ...serverOnlyPatterns],
+        },
+      ],
+    },
+  },
+
+  // App Router client special files (not always *.client.tsx)
+  // @see ADR-0030 · scripts/scan-client-barrel-imports.mjs
+  {
+    name: "afenda/app-client-server-barrel",
+    files: [
+      "app/**/error.tsx",
+      "app/**/not-found.tsx",
+      "app/**/global-error.tsx",
+      "app/**/*-client.tsx",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [...serverFeatureIndexBarrelPatterns, ...serverOnlyPatterns],
         },
       ],
     },

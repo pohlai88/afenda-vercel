@@ -5,14 +5,14 @@ import { Link } from "#i18n/navigation"
 import { KnowledgeSourcesAdminPanel } from "#features/knowledge"
 import { organizationAdminPath } from "#features/org-admin"
 
-import { requireOrgSession } from "#lib/auth"
+import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminKnowledgeSourcesPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/admin/knowledge/sources">) {
   const { orgSlug } = await params
   const t = await getTranslations("OrgAdmin.knowledge")
-  const session = await requireOrgSession()
+  const session = await getOrgTenantContext()
 
   return (
     <div className="space-y-6">

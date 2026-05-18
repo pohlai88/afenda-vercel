@@ -1,0 +1,557 @@
+---
+description: Verdict-grade Cursor Agent prompt for developing Afenda feature slices from ARCHITECTURE.md. Paste DEVELOPMENT_SCOPE + architecture path + DELIVERY_PHASE. ADR-0026 UI, phased MVP, skills stack.
+globs: "lib/features/**/ARCHITECTURE.md,lib/features/**/actions/**,lib/features/**/schemas/**,lib/features/**/data/**"
+alwaysApply: false
+---
+
+# Afenda Scoped Development — Cursor Agent Verdict Prompt
+
+**Canonical path:** `.cursor/rules/cursor-scoped-development-prompt.mdc` (this file). Docs mirror: `docs/cursor-scoped-development-prompt.mdc`.
+
+**Sibling prompt:** `.cursor/rules/cursor-scoped-refactor-prompt.mdc` — use for **migrating existing UI** to ADR-0026. Use **this prompt** for **building new capability** from `ARCHITECTURE.md`.
+
+**Authority order:** `AGENTS.md` > `ARCHITECTURE.md` (scoped) > ADR-0026 > this prompt > `.cursor/rules/*.mdc` > comments.
+
+**Execution verdict:** Phases **1–4** are production implementation runs. **Phase 0 defaults to clarify-first** — plan and align before any code. Implement Phase 0 foundation only when `PHASE_0_MODE: implement` is set.
+
+---
+
+## How to use in Cursor
+
+### Recommended two-run workflow (greenfield)
+
+```txt
+Run A — clarify (always first for new ARCHITECTURE.md slices):
+  DELIVERY_PHASE: 0
+  PHASE_0_MODE: clarify          ← default; no code
+
+Run B — after you approve the plan:
+  DELIVERY_PHASE: 0 + PHASE_0_MODE: implement   → contracts, registry, scaffold
+  OR
+  DELIVERY_PHASE: 1                            → skip to MVP if Phase 0 foundation already exists
+```
+
+### IDE mode
+
+| Mode | When |
+| --- | --- |
+| **Ask** | Same as Phase 0 clarify — plan, entity model, phase map |
+| **Agent** | `DELIVERY_PHASE: 1+` or `PHASE_0_MODE: implement` — write code |
+
+If unclear during clarify: ask at most **3** questions, then deliver the Phase 0 plan with stated assumptions.
+
+### Paste block (every run)
+
+```txt
+@.cursor/rules/cursor-scoped-development-prompt.mdc
+@<path-to-ARCHITECTURE.md>
+
+DEVELOPMENT_SCOPE:
+<feature directory glob — see template>
+
+ARCHITECTURE: lib/features/<module>/<path>/ARCHITECTURE.md
+DELIVERY_PHASE: 0 | 1 | 2 | 3 | 4
+PHASE_0_MODE: clarify | implement
+MODULE: hrm | contacts | org-admin | <module>
+ROUTE_SEGMENT: <apps segment slug or "none-yet" | "tbd">
+REQUIREMENT_CODES: HRM-XXX-001,HRM-XXX-002,...   # optional on clarify run
+PATTERN: A | B | C | K | mixed | tbd
+```
+
+| Knob | Default | Meaning |
+| --- | --- | --- |
+| `DELIVERY_PHASE` | — | **Required.** Which phase this run targets |
+| `PHASE_0_MODE` | `clarify` when phase is 0 | `clarify` = plan only · `implement` = write Phase 0 artifacts |
+| `ROUTE_SEGMENT` | `tbd` on clarify | Agent proposes slug in Phase 0 report |
+| `PATTERN` | `tbd` on clarify | Agent proposes per surface in Phase 0 report |
+
+Only **`DEVELOPMENT_SCOPE`** + **`ARCHITECTURE`** are mandatory.
+
+### Recommended @ attachments
+
+| Attachment | When |
+| --- | --- |
+| `@AGENTS.md` | Always |
+| `@<feature>/ARCHITECTURE.md` | Always — requirements authority |
+| `@docs/decisions/0026-metadata-driven-ui-architecture.md` | Any UI surface |
+| `@.agents/skills/metadata-eui-polish/SKILL.md` | Pattern A/B/C/K pages |
+| `@.cursor/rules/cursor-scoped-refactor-prompt.mdc` | When also migrating adjacent legacy code |
+| `@.cursor/rules/i18n-directory.mdc` | Routes, `messages/en.json` |
+| `@.cursor/rules/drizzle-migration-ledger.mdc` | Schema work |
+| `@docs/architecture/org-operational-surface-map.md` | Route/surface placement |
+| Implemented sibling in same module | e.g. recruitment for Pattern C/K, salary-benchmarking for Pattern B lists |
+| `@.agents/skills/codebase-cleanup-refactor-clean/SKILL.md` | Close of run |
+| `@.agents/skills/knip-deadcode/SKILL.md` | New barrels/routes/exports |
+
+---
+
+## Mission
+
+Develop the scoped feature slice from **`ARCHITECTURE.md`** into a **stable, Next.js-native, ADR-0026-aligned** implementation inside Afenda's operating contract.
+
+```txt
+ARCHITECTURE.md defines WHAT and WHAT NOT.
+ADR-0026 defines HOW UI is declared and rendered.
+AGENTS.md defines WHERE code may live.
+DELIVERY_PHASE defines HOW MUCH ships this run.
+```
+
+**Prime directive (ADR-0026):**
+
+```txt
+Metadata declares intent. Runtime owns authority. Renderers compose primitives. Domain owns truth.
+No runtime JSON-to-JSX. No tenant/session in client metadata. No low-code in production ERP paths.
+```
+
+---
+
+## Development vs refactor (pick the right prompt)
+
+| Situation | Prompt |
+| --- | --- |
+| Greenfield from `ARCHITECTURE.md`, new routes, schema, actions | **This file** (development) |
+| Existing UI/code — preserve output, align to ADR-0026 | `cursor-scoped-refactor-prompt.mdc` |
+| Both in one run | Development for new slices; refactor rules apply to legacy files touched — `PRESERVE_UI: yes` on legacy |
+
+---
+
+## ARCHITECTURE.md as requirements authority
+
+Before coding, read the scoped `ARCHITECTURE.md` and extract:
+
+| Section | Use for |
+| --- | --- |
+| **Definition** | Page title, module purpose, audit object naming |
+| **Includes** | In-scope entities, workflows, surfaces to build |
+| **Does Not Include** | Hard boundaries — do not implement excluded domains; integrate via public doors only |
+| **Requirement Statement** | One-paragraph scope check |
+| **Enterprise Functional Requirements** (`HRM-XXX-NNN`) | Phase planning, contract tests, audit coverage |
+| **Enterprise Acceptance Criteria** | Definition of done per phase |
+
+**Verdict:**
+
+```txt
+MUST NOT implement rows under "Does Not Include" — reference owning module instead.
+MUST map every mutation in phase to a requirement code in the final report.
+MUST NOT mark acceptance criteria complete unless runtime behavior is verified.
+MUST treat cross-module references (payroll, attendance, shift scheduling) as integration contracts, not duplicated engines.
+```
+
+---
+
+## Delivery phases (default ladder)
+
+Adjust phase contents per `ARCHITECTURE.md`; this is the default sequencing for ERP HRM slices.
+
+| Phase | Goal | Typical deliverables |
+| --- | --- | --- |
+| **0 — Clarify** (`PHASE_0_MODE: clarify`) | **Plan gate — no code** | Phase 0–4 map, entity model, boundary/integration table, route/permission proposal, pattern per surface, open questions, disk gap analysis |
+| **0 — Foundation** (`PHASE_0_MODE: implement`) | Contracts + registry scaffold | `*.contract.ts`, Zod schema skeleton, audit strings, ERP permissions, `HRM_CAPABILITIES` + segment, directory scaffold, placeholder route |
+| **1 — MVP core** | First shippable workflow | Schema + migrations if needed, core queries/mutations, primary surface (Pattern A/B), thin route or dedicated page, loading, permission gate, empty states |
+| **2 — Operational depth** | Manager/employee workflows | Pattern C trailing actions, approval states, validation rules |
+| **3 — Advanced workflow** | Multi-step / compliance / rich workflow | Pattern C queues or Pattern K where pipeline fits — not for simple approval inboxes |
+| **4 — Integration + reporting** | Cross-module + reports | Read-only integration via `#features/hrm/server`; report surfaces; full audit coverage |
+
+**Verdict:**
+
+```txt
+WHEN DELIVERY_PHASE=0 AND PHASE_0_MODE=clarify (default):
+  MUST NOT write code, schema, migrations, or routes.
+  MUST produce Phase 0 Clarification Report (see below).
+  MAY ask up to 3 blocking questions; otherwise state assumptions explicitly.
+
+WHEN DELIVERY_PHASE=0 AND PHASE_0_MODE=implement:
+  Implement foundation artifacts only — no Phase 1 UI workflow unless user expands scope.
+
+WHEN DELIVERY_PHASE≥1:
+  Implement only that phase unless lower-phase artifacts are missing on disk.
+```
+
+### Workflow → UI pattern guide
+
+| Domain shape | Pattern | Gold reference |
+| --- | --- | --- |
+| Config + master list (types, policies) | **A + B** | `leave-page.tsx` (sections), `salary-benchmarking-survey/` |
+| Approval inbox (approve/reject/return) | **C** | `leave-pending-inbox.tsx` + `leave-decision-form` |
+| Pipeline / stage columns | **K** | `claim-kanban-section.tsx`, `recruitment-pipeline-kanban-section.tsx` |
+| Full multi-section workbench | **mixed** | `recruitment-page.tsx` |
+
+Do **not** default to Kanban for approval workflows — use Pattern C unless columns represent durable pipeline stages.
+
+---
+
+## Development scope template
+
+```txt
+DEVELOPMENT_SCOPE:
+lib/features/hrm/industry-specific-hrm/retail-seasonal-hourly-workforce-scheduling/**
+app/(main)/[locale]/o/[orgSlug]/apps/hrm/<segment>/**
+tests/unit/hrm-retail-scheduling*.test.ts
+tests/e2e/hrm-retail-scheduling*.spec.ts
+
+ARCHITECTURE: lib/features/hrm/industry-specific-hrm/retail-seasonal-hourly-workforce-scheduling/ARCHITECTURE.md
+DELIVERY_PHASE: 1
+MODULE: hrm
+ROUTE_SEGMENT: retail-scheduling
+REQUIREMENT_CODES: HRM-RWS-001,HRM-RWS-002,HRM-RWS-003,HRM-RWS-004,HRM-RWS-005
+PATTERN: mixed
+```
+
+### Boundary awareness (example — retail seasonal scheduling)
+
+From `ARCHITECTURE.md` **Does Not Include** — do **not** build in this slice:
+
+| Excluded | Owner | Integration |
+| --- | --- | --- |
+| Employee master profile | Employee Records Management | Read via `#features/hrm` employee queries |
+| Generic shift pattern engine | Shift Scheduling | Reference, do not duplicate `HRM-SFT-*` engine |
+| Daily attendance / clock-in | Leave & Attendance / Time Clock | Compare scheduled vs actual via public read contracts |
+| Payroll calculation | Payroll Processing | Expose schedule references only (`HRM-RWS-031`) |
+| Sales forecasting | Retail Operations | Optional demand **reference** field, not a forecast engine |
+
+**Sibling architecture to read for boundaries:** list every row under **Does Not Include** — at minimum the owning module's `ARCHITECTURE.md`.
+
+### Example — flexible work arrangement tracking (Phase 0 clarify — start here)
+
+```txt
+@.cursor/rules/cursor-scoped-development-prompt.mdc
+@lib/features/hrm/time-attendance/flexible-work-arrangement-tracking/ARCHITECTURE.md
+@lib/features/hrm/time-attendance/leave-attendance-management/ARCHITECTURE.md
+
+DEVELOPMENT_SCOPE:
+lib/features/hrm/time-attendance/flexible-work-arrangement-tracking/**
+
+ARCHITECTURE: lib/features/hrm/time-attendance/flexible-work-arrangement-tracking/ARCHITECTURE.md
+DELIVERY_PHASE: 0
+PHASE_0_MODE: clarify
+MODULE: hrm
+ROUTE_SEGMENT: tbd
+PATTERN: tbd
+```
+
+**Also @ read for boundaries:** shift-scheduling, geolocation-remote-checkin ARCHITECTURE.md files.
+
+**Expected output:** Phase 0 Clarification Report only — no code.
+
+### Example — flexible work (Phase 0 implement — after plan approved)
+
+```txt
+DELIVERY_PHASE: 0
+PHASE_0_MODE: implement
+ROUTE_SEGMENT: flexible-work
+REQUIREMENT_CODES: HRM-FWA-001,HRM-FWA-002,HRM-FWA-003
+PATTERN: A
+```
+
+---
+
+## Module directory shape (required)
+
+Under `DEVELOPMENT_SCOPE`, follow Afenda module vocabulary:
+
+```txt
+actions/          → Server Actions ("use server")
+data/             → server-only queries, mutations, *-surface-builders.server.ts, *-list-surface.server.ts
+components/       → RSC pages/sections + *.client.tsx islands
+schemas/          → Zod — safe for client import when shared
+*.contract.ts     → audit action strings (buildCrudSapAuditAction)
+ARCHITECTURE.md   → requirements authority (already present)
+index.ts          → public door via #features/<module> (wire exports deliberately)
+client.ts         → client-safe actions/types only
+```
+
+**Scaffold when starting Phase 0/1:**
+
+```bash
+pnpm gen audit-contract --module hrm --object <object> --verb create
+pnpm gen action --module hrm --object <object> --verb create --tier B
+```
+
+Use `pnpm gen capability` only when creating a **new top-level ERP module** — HRM sub-slices usually nest under existing `#features/hrm`.
+
+---
+
+## HRM wiring checklist (when MODULE=hrm)
+
+When `ROUTE_SEGMENT` is not `none-yet`, complete in the **same phase** as the route:
+
+1. [ ] Add segment to `lib/features/hrm/hrm-apps-path.shared.ts` (`HRM_APPS_CAPABILITY_SEGMENTS`)
+2. [ ] Add row to `HRM_CAPABILITIES` in `lib/features/hrm/constants.ts` (audit prefix, nav, `requiredPermission`)
+3. [ ] Add ERP permission keys via `#features/erp-rbac` (`buildErpPermissionKey` — object e.g. `flexible_work`, functions `search|read|create|update`)
+4. [ ] **Phase 0 route option:** register segment only — `app/.../apps/hrm/[segment]/page.tsx` serves `HrmSegmentCapabilityRoutePage` → `HrmCapabilityPlaceholderPage` until dedicated page ships
+5. [ ] **Phase 1+ route option:** dedicated thin `app/(main)/[locale]/o/[orgSlug]/apps/hrm/<segment>/page.tsx` + `loading.tsx` (overrides `[segment]` leaf)
+6. [ ] Export page component from `#features/hrm` `index.ts`
+7. [ ] i18n: `messages/en.json` under `Dashboard.Hrm.*` and `Dashboard.Hrm.cards.<segment>.*` for placeholder
+8. [ ] `revalidatePath`: `toLocaleOrgAppsRevalidatePattern("/hrm/<segment>")` in actions
+9. [ ] Update `tests/unit/hrm-contract.test.ts` (or equivalent) when touching `HRM_CAPABILITIES` / segment sets
+
+**Route verdict:** `/{locale}/o/{orgSlug}/apps/hrm/{segment}` — never `/dashboard/hrm`.
+
+### Entity model step (before schema — Phase 0/1)
+
+Document internally (report §2) the minimum entities for the phase:
+
+```txt
+ArrangementType · ArrangementRequest · ApprovedArrangement · SchedulePattern · EligibilityRule · ComplianceBreach · (integration refs only)
+```
+
+Map each entity to requirement codes. Prefer normalized tables over JSON blobs for schedule patterns unless ADR/schema precedent exists in sibling module.
+
+---
+
+## ADR-0026 surface design (new UI)
+
+Pick pattern from **UI shape**, not preference:
+
+| UI shape | Pattern | Mechanism |
+| --- | --- | --- |
+| Page header + forms + settings | **A** | `GovernedSurface`, `ModulePageHeader`, `GovernedSection` |
+| Directory table / KPI grid, no row forms | **B** | `*-surface-builders.server.ts` + `GovernedComponentRenderer` in `Card` |
+| List + per-row actions/forms | **C** | `GovernedPatternCListSection` + `GovernedTrailingActionSlot` |
+| Column workflow board | **K** | `GovernedKanbanFooterSection` or `GovernedKanbanDragSection` + client bridge |
+
+**Gold references:**
+
+| Pattern | Reference |
+| --- | --- |
+| B | `lib/features/contacts/components/contacts-page.tsx` |
+| C | `lib/features/hrm/.../hrm-onboarding-section.tsx` |
+| K | `lib/features/hrm/.../recruitment-pipeline-kanban-section.tsx` |
+| Full HRM page | `lib/features/hrm/talent-management/recruitment-onboarding/components/recruitment-page.tsx` |
+| Pattern B lists only | `lib/features/hrm/payroll-compensation/salary-benchmarking-survey/` |
+
+Announce metadata work: *Applying metadata EUI polish to `{surfaceKey}`.*
+
+---
+
+## Agent skills stack (development)
+
+Read full `SKILL.md` for each **Required** skill before coding.
+
+### Always required (typical Phase 1+ with UI)
+
+| Skill | Path |
+| --- | --- |
+| **metadata-eui-polish** | `.agents/skills/metadata-eui-polish/SKILL.md` |
+| **typescript-react-reviewer** | `~/.claude/skills/typescript-react-reviewer/SKILL.md` |
+| **next-intl-app-router** | `~/.claude/skills/next-intl-app-router/SKILL.md` |
+
+### Load when scope matches
+
+| Skill | When |
+| --- | --- |
+| **zod-schema-validation** | `schemas/**`, action parsing |
+| **drizzle-orm** | **Required** if `lib/db/schema.ts` changes |
+| **vercel-react-best-practices** | RSC page with multiple queries |
+| **nextjs-app-router-patterns** | Layout, Suspense, Server Actions |
+| **playwright-best-practices** | New e2e specs |
+| **web-accessibility** | Kanban, tables, forms |
+| **dry / kiss / yagni** | Resist building Phase 4 in Phase 1 |
+| **technical-writing** | Updating ARCHITECTURE.md only when user asks |
+
+### Close of run (required)
+
+| Skill | Path |
+| --- | --- |
+| **codebase-cleanup-refactor-clean** | `.agents/skills/codebase-cleanup-refactor-clean/SKILL.md` |
+| **knip-deadcode** | `.agents/skills/knip-deadcode/SKILL.md` |
+| **dead-code** | `.agents/skills/dead-code/SKILL.md` |
+
+Plus: `.cursor/rules/post-task-residue.mdc`, `no-dead-code-no-aliases.mdc`
+
+---
+
+## Non-negotiable verdicts
+
+```txt
+MUST keep domain logic in lib/features/<module>/ — not in app/, proxy.ts, or lib/erp/.
+MUST keep app/ thin: params, guards, single feature RSC export.
+MUST use #lib/auth for session/org; requireOrgSession in actions; requireErpPermission for business gates.
+MUST use Server Actions for mutations; write iam_audit_event after successful commit (Tier B default).
+MUST use #components2/ui/* — never recreate repo-root components/.
+MUST validate FormData/JSON with Zod at action boundary; return typed expected errors, not throws.
+MUST run Drizzle pipeline when schema changes (AGENTS.md Priority #1 — agent-owned).
+MUST NOT implement ARCHITECTURE.md "Does Not Include" domains.
+MUST NOT mark stub/mock persistence as complete runtime.
+MUST NOT add HRM capability route without registry + permission + i18n in same phase.
+```
+
+---
+
+## Phase 0 clarify workflow (mandatory read order)
+
+When `DELIVERY_PHASE: 0` and `PHASE_0_MODE: clarify`:
+
+```txt
+1. Read scoped ARCHITECTURE.md (all sections)
+2. Read every "Does Not Include" owner ARCHITECTURE.md
+3. Grep disk inside DEVELOPMENT_SCOPE — list what exists vs missing
+4. Grep registry (HRM_CAPABILITIES, hrm-apps-path, schema) for collisions
+5. Propose entity model, phase 0–4 requirement map, route segment, permissions, patterns
+6. Flag blockers / assumptions (max 3 questions)
+7. Output Phase 0 Clarification Report — STOP (no code)
+```
+
+---
+
+## Phase 0 Clarification Report (required when clarify mode)
+
+Use this structure. **No code files in this run.**
+
+### 1. Scope restatement
+
+- `DEVELOPMENT_SCOPE`, `ARCHITECTURE`, `MODULE`
+- Definition (one sentence from ARCHITECTURE.md)
+
+### 2. Disk truth
+
+| Artifact | Present? | Notes |
+| --- | --- | --- |
+| ARCHITECTURE.md | | |
+| Feature code dirs | | |
+| DB schema | | |
+| Route / registry | | |
+| Tests | | |
+
+### 3. Boundary & integration map
+
+| Includes (this slice) | Excluded (owner) | Integration door (phase) |
+| --- | --- | --- |
+
+### 4. Entity model (proposed)
+
+List entities, key fields, relationships — minimum for Phase 1.
+
+### 5. Phase plan (0–4)
+
+| Phase | Requirement codes | Surfaces | Pattern | Schema? |
+| --- | --- | --- | --- | --- |
+
+### 6. Routing & registry proposal
+
+- `ROUTE_SEGMENT` recommendation + rationale
+- `HRM_CAPABILITIES` row sketch (audit prefix, permission keys, nav order)
+- Placeholder vs dedicated route recommendation
+
+### 7. ADR-0026 surface map
+
+| Surface | Pattern | Gold reference | surfaceKey (proposed) |
+
+### 8. Open questions / assumptions
+
+- Up to 3 questions **or** explicit assumptions if proceeding without answers
+
+### 9. Recommended next run
+
+Paste block for `PHASE_0_MODE: implement` or `DELIVERY_PHASE: 1` with filled knobs.
+
+---
+
+## Phase planning workflow (implement modes — Phase 0 implement or Phase 1+)
+
+```txt
+1. Read ARCHITECTURE.md — extract Includes, Excludes, requirement codes for DELIVERY_PHASE
+2. Read **Does Not Include** owners' ARCHITECTURE.md — integration doors only
+3. Read sibling implementations + gold references for pattern family (workflow guide above)
+4. Entity model + schema/migration plan (Phase ≥ 1)
+5. Audit contract + permission keys (Phase 0/1)
+6. Implement: data → actions → schemas → components → route → tests
+7. i18n + revalidation paths
+8. Verify + residue sweep + report with requirement matrix
+```
+
+---
+
+## Drizzle (when Phase needs persistence)
+
+```bash
+pnpm db:generate
+pnpm lint:drizzle-journal
+pnpm db:migrate:local
+```
+
+Commit schema + `drizzle/*` atomically. **Forbidden:** `db:push*`, hand-edited SQL/meta, human DB reset.
+
+If Phase 0/1 can use existing tables via joins, prefer that over new schema — justify in report.
+
+---
+
+## Verification
+
+```bash
+pnpm exec eslint --max-warnings=0 <touched-paths>
+pnpm typecheck
+pnpm test:fast -- tests/unit/<matching>.test.ts   # when tests added
+pnpm lint:fixtures-parity                           # when messages/en.json changed
+pnpm lint:renderer-contracts                        # when renderers touched
+pnpm knip                                           # when new exports/routes/barrels
+```
+
+Follow `.cursor/rules/targeted-verification.mdc` when other agents run concurrently.
+
+---
+
+## Status vocabulary
+
+| Status | Meaning |
+| --- | --- |
+| `prepared` | Schema/contracts/routes scaffolded; runtime workflow incomplete |
+| `partial` | Some acceptance criteria pass; gaps remain |
+| `complete` | Requirement codes in phase implemented **and** verified |
+| `blocked` | Concrete external blocker with evidence |
+| `deferred` | Explicitly out of phase — name target phase |
+
+---
+
+## Required final report
+
+**When `PHASE_0_MODE: clarify`:** deliver **Phase 0 Clarification Report** only (section above). Skip implementation report sections below.
+
+**When implementing (Phase 0 implement or Phase 1+):**
+
+### 1. Summary
+
+- `DEVELOPMENT_SCOPE`, `ARCHITECTURE`, `DELIVERY_PHASE`, `ROUTE_SEGMENT`, `REQUIREMENT_CODES`
+- Phase goal and what shipped
+- **Skills applied** (every `SKILL.md` read)
+
+### 2. ARCHITECTURE alignment
+
+- Includes implemented this phase
+- Excludes respected (with integration doors used)
+- Requirement codes: status per code
+
+### 3. ADR-0026 / UI
+
+- Pattern A/B/C/K choices per surface
+- `surfaceKey` list
+- Loading / empty / error / forbidden states
+
+### 4. What changed
+
+Schema · migrations · queries · mutations · actions · components · routes · registry · i18n · tests
+
+### 5. Files changed
+
+All files; note out-of-scope with reason (registry integration, compile repair, etc.)
+
+### 6. Verification
+
+| Command | Result | Notes |
+
+### 7. Requirement matrix
+
+| Code | Acceptance criteria | Status | Evidence |
+
+### 8. Next phase recommendation
+
+- Suggested `DELIVERY_PHASE` + `REQUIREMENT_CODES` for follow-up run
+- Schema/integration prerequisites
+
+---
+
+## Final instruction
+
+**Clarify run (`DELIVERY_PHASE: 0`, `PHASE_0_MODE: clarify`):** Read `ARCHITECTURE.md`, analyze disk, produce **Phase 0 Clarification Report**, propose next paste block. **Do not write code.**
+
+**Implement run (`PHASE_0_MODE: implement` or `DELIVERY_PHASE ≥ 1`):** Develop the requested phase using ADR-0026 patterns and Afenda boundaries. Do not over-build future phases. Verify and report honestly.

@@ -4,11 +4,13 @@ import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import type {
   BoardingTaskSurfaceCapabilities,
+  LifecycleOverviewSurfaceCapabilities,
   OnboardingSurfaceCapabilities,
 } from "./employee-lifecycle-capabilities.shared"
 
 export type {
   BoardingTaskSurfaceCapabilities,
+  LifecycleOverviewSurfaceCapabilities,
   OnboardingSurfaceCapabilities,
 } from "./employee-lifecycle-capabilities.shared"
 
@@ -46,4 +48,15 @@ export async function resolveBoardingTaskSurfaceCapabilities(): Promise<Boarding
   ])
 
   return { canManage: canOnboarding || canEmployee }
+}
+
+/** ERP RBAC flags for the org lifecycle overview surface. */
+export async function resolveLifecycleOverviewSurfaceCapabilities(): Promise<LifecycleOverviewSurfaceCapabilities> {
+  const canRead = await canUseErpPermissionForCurrentOrg({
+    module: "hrm",
+    object: "employee",
+    function: "search",
+  })
+
+  return { canRead }
 }

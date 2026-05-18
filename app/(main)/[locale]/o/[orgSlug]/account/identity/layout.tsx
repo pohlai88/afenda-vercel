@@ -1,5 +1,5 @@
 import { requireRecentAuthStepUp } from "#lib/auth"
-import { organizationAccountPath } from "#lib/dashboard-module-paths"
+import { organizationAccountPath } from "#lib/org-apps-module-paths"
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 
 export default async function OrganizationAccountIdentityLayout({

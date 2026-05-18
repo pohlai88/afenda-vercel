@@ -5,10 +5,10 @@ import { after } from "next/server"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import {
-  ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL,
-  ORG_DASHBOARD_HRM_EMPLOYEES,
-} from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+  ORG_APPS_HRM_EMPLOYEE_DETAIL,
+  ORG_APPS_HRM_EMPLOYEES,
+} from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { organizationHrmEmployeePath } from "../../../constants"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
@@ -119,11 +119,11 @@ function parseSettlementBlockers(
 
 function revalidateOffboardingViews(orgSlug: string, employeeId: string): void {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEES),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
   revalidatePath(organizationHrmEmployeePath(orgSlug, employeeId), "page")

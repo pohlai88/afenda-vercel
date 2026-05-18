@@ -57,7 +57,7 @@ import type {
   CoordinationEvidenceItem,
   CoordinationEvidenceKind,
   CoordinationOperatorSummary,
-} from "#features/coordination"
+} from "../types"
 import { usePathname } from "#i18n/navigation"
 import { cn } from "#lib/utils"
 

@@ -6,7 +6,7 @@ const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
 const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
 const orgSlugFromEnv = process.env.E2E_ORG_SLUG?.trim()
 
-const ORG_SLUG_RE = /\/en\/o\/([^/]+)\/(?:dashboard|admin)/
+const ORG_SLUG_RE = /\/en\/o\/([^/]+)\/(?:apps|admin|nexus)/
 
 async function resolveOrgSlug(page: Page): Promise<string | null> {
   if (orgSlugFromEnv) return orgSlugFromEnv

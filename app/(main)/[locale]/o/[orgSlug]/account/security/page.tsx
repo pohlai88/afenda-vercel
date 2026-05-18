@@ -16,7 +16,7 @@ import {
 } from "../../../../(iam)/account/security/security-center-client"
 import { auth } from "#lib/auth"
 import { AppShellSurface } from "#app-shell"
-import { organizationAccountPath } from "#lib/dashboard-module-paths"
+import { organizationAccountPath } from "#lib/org-apps-module-paths"
 import { generateAccountSecurityMetadata } from "../../../../(iam)/account/account-metadata"
 
 export async function generateMetadata({

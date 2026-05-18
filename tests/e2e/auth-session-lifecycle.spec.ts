@@ -6,7 +6,7 @@ const orgAdminEmail = process.env.E2E_ORG_ADMIN_EMAIL?.trim()
 const orgAdminPassword = process.env.E2E_ORG_ADMIN_PASSWORD?.trim()
 const orgSlugFromEnv = process.env.E2E_ORG_SLUG?.trim()
 
-const ORG_SLUG_RE = /\/en\/o\/([^/]+)\/(?:dashboard|admin)/
+const ORG_SLUG_RE = /\/en\/o\/([^/]+)\/(?:apps|admin|nexus)/
 
 async function resolveOrgSlug(page: Page): Promise<string | null> {
   if (orgSlugFromEnv) return orgSlugFromEnv
@@ -59,7 +59,7 @@ test.describe("auth session lifecycle (sign-in → sign-out)", () => {
         "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
       )
 
-      await page.goto(`/en/o/${slug}/dashboard/contacts`)
+      await page.goto(`/en/o/${slug}/apps/contacts`)
       await expect(
         page.getByRole("heading", { name: "Dashboard", exact: true })
       ).toBeVisible({ timeout: 15_000 })

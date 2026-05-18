@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { requireToolsOrgTenantFromForm } from "../../_module-governance/tools-action-guard.server"
 import { requireToolsErpPermission } from "../../_module-governance/tools-admin-guard.server"
@@ -49,7 +49,7 @@ const partyInputSchema = z.array(
 
 function revalidateSignatureSurfaces() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/signatures"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/signatures"),
     "page"
   )
 }

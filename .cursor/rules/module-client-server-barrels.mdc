@@ -1,0 +1,96 @@
+---
+description: Feature module index.ts vs client.ts vs server.ts — never pull server barrels into "use client" graphs
+globs:
+  - "**/*.client.{ts,tsx}"
+  - "lib/features/**/client.ts"
+  - "components2/**/*.client.{ts,tsx}"
+alwaysApply: false
+---
+
+# Module client / server barrel boundary
+
+**Authority:** [ADR-0030](../docs/decisions/0030-module-client-server-barrel-boundary.md) · AGENTS.md §6 (barrels) · Next.js [Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
+
+If this rule and `AGENTS.md` diverge, follow **AGENTS.md**.
+
+---
+
+## Prime directive
+
+```txt
+"use client" establishes a module graph. Everything that graph imports must be client-safe.
+The server feature barrel (index.ts) is NOT tree-shaken — one import evaluates the whole barrel.
+```
+
+---
+
+## Three doors
+
+| Import | Who |
+| --- | --- |
+| `#features/<module>` | Server Components, `layout.tsx`, `page.tsx`, `*.server.ts`, Server Actions |
+| `#features/<module>/client` | `"use client"` files, `*.client.tsx` |
+| `#features/<module>/server` | Layouts needing server-only query graphs |
+
+**IAM (parallel):** `#lib/auth` server only · `#lib/auth-client` browser only.
+
+**App shell (parallel):** `#app-shell` server only · `#app-shell/client` client islands.
+
+---
+
+## Forbidden in client files
+
+```ts
+// ❌ pulls GovernedPattern* RSC → ERP permission gate → #lib/auth → next/headers
+import { isListSurfaceTrailingActionRenderable } from "#features/governed-surface"
+
+// ✅ client door (schemas + pure helpers + client components)
+import { isListSurfaceTrailingActionRenderable } from "#features/governed-surface/client"
+```
+
+```ts
+// ❌ server session barrel in client graph
+import { requireOrgSession } from "#lib/auth"
+
+// ✅ browser IAM
+import { authClient } from "#lib/auth-client"
+```
+
+---
+
+## Allowed client patterns
+
+1. **`#features/<module>/client`** — preferred public door.
+2. **Same-module relative** — `import type { X } from "../types"` inside `lib/features/<module>/`.
+3. **Deep paths** when contract allows — e.g. `#features/governed-surface/schemas/kanban-board.schema` (see `check-agent-contract.mjs` allowlist).
+4. **Server Component as `children`** — client wrapper does not import the RSC; parent passes `<GovernedPatternCListSection … />` as child/slot.
+
+---
+
+## When adding client-facing exports
+
+1. Add implementation under `components/*.client.tsx`, `schemas/`, or `*.shared.ts`.
+2. Re-export from `client.ts` (do not grow `index.ts` for client needs).
+3. Keep `index.ts` for RSC sections, server builders, and Server Actions used from server pages only.
+
+**Governed-surface reference:** `lib/features/governed-surface/client.ts` — kanban bridges, trailing helpers, Zod types, `GovernedEmpty`.
+
+---
+
+## Composition (Vercel)
+
+- **bundle-barrel-imports:** prefer `client.ts` over `index.ts` in client graphs.
+- **architecture-compound-components:** client slot + server `children`, not `import { ServerSection }` inside client.
+- **server-serialization:** pass minimal serializable configuration into client islands; resolve permissions on the server.
+
+---
+
+## Verification
+
+```bash
+pnpm exec eslint --max-warnings=0 <touched-client-paths>
+pnpm lint:agent-contract
+pnpm typecheck
+```
+
+ESLint: `afenda/feature-client-server-barrel` (`*.client.tsx`), `afenda/app-client-server-barrel` (`app/**/error.tsx`, `not-found.tsx`, `*-client.tsx`), `afenda/components2-server-boundary`. CI: `assertNoServerFeatureBarrelInClientFiles` in `check-agent-contract.mjs` (same scan as `node scripts/scan-client-barrel-imports.mjs`).

@@ -36,7 +36,7 @@ test.describe("HRM KPI workbench", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/kpi`)
+      await page.goto(`/en/o/${slug}/apps/hrm/kpi`)
 
       await expect(
         page.getByRole("heading", { name: "KPI periods", exact: true })
@@ -51,7 +51,7 @@ test.describe("HRM KPI workbench", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/kpi?tab=goals`)
+      await page.goto(`/en/o/${slug}/apps/hrm/kpi?tab=goals`)
 
       // The Goals tab text from i18n: surfaceTabGoals = "Goals"
       const goalsTab = page
@@ -68,7 +68,7 @@ test.describe("HRM KPI workbench", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/kpi`)
+      await page.goto(`/en/o/${slug}/apps/hrm/kpi`)
 
       // metricCatalogTitle = "Metric catalog"
       await expect(
@@ -84,7 +84,7 @@ test.describe("HRM KPI workbench", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/kpi`)
+      await page.goto(`/en/o/${slug}/apps/hrm/kpi`)
 
       // The description area should contain the "KPI periods" subtitle
       await expect(page.getByText("KPI periods")).toBeVisible()

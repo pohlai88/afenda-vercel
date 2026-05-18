@@ -32,7 +32,7 @@ test.describe("HRM policies workbench UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/policies`)
+      await page.goto(`/en/o/${slug}/apps/hrm/policies`)
 
       await expect(
         page.getByRole("heading", {
@@ -50,7 +50,7 @@ test.describe("HRM policies workbench UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/policies`)
+      await page.goto(`/en/o/${slug}/apps/hrm/policies`)
 
       // Tab navigator → role=tablist contains the four canonical tabs.
       const leaveTypesTab = page.getByRole("tab", {
@@ -75,7 +75,7 @@ test.describe("HRM policies workbench UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/policies?tab=statutory`)
+      await page.goto(`/en/o/${slug}/apps/hrm/policies?tab=statutory`)
 
       // The Statutory tab is the URL-active one; the Leave types tab
       // sheds its active marker. Phase 3B "coming soon" copy renders
@@ -97,7 +97,7 @@ test.describe("HRM policies workbench UI surface", () => {
     { tag: "@hrm" },
     async ({ page }) => {
       await page.goto(
-        "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/policies"
+        "/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/policies"
       )
       await expect(
         page.getByRole("heading", {

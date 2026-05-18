@@ -22,7 +22,11 @@ import {
 import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import {
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { EmployeePortalLeaveCancelButton } from "./employee-portal-leave-cancel-button"
 import { EmployeePortalLeaveRequestForm } from "./employee-portal-leave-request-form"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
@@ -113,9 +117,12 @@ export async function EmployeePortalLeavePage({
               <CardDescription>{t("myBalancesDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <EmployeePortalGovernedTable
-                configuration={balanceConfiguration}
+              <GovernedPatternCListSection
+                layout="embedded"
+                title=""
+                listConfiguration={balanceConfiguration}
                 surfaceKey="hrm:portal:leave-balances"
+                resolveConfiguredPermission={false}
               />
             </CardContent>
           </Card>
@@ -126,19 +133,31 @@ export async function EmployeePortalLeavePage({
               <CardDescription>{t("myHistoryDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <EmployeePortalGovernedTable
-                configuration={historyConfiguration}
+              <GovernedPatternCListSection
+                layout="embedded"
+                title=""
+                listConfiguration={historyConfiguration}
                 surfaceKey="hrm:portal:leave-history"
+                resolveConfiguredPermission={false}
                 trailingColumn={{
                   header: t("colActions"),
                   render: (surfaceRow) => {
+                    const trailingAction = surfaceRow.trailingAction
                     const request = requestById.get(surfaceRow.id)
-                    if (!request || request.state !== "submitted") return null
+                    if (
+                      !request ||
+                      request.state !== "submitted" ||
+                      !isListSurfaceTrailingActionRenderable(trailingAction)
+                    ) {
+                      return null
+                    }
                     return (
-                      <EmployeePortalLeaveCancelButton
-                        portalSlug={context.portal.portalSlug}
-                        requestId={request.id}
-                      />
+                      <GovernedTrailingActionSlot trailingAction={trailingAction}>
+                        <EmployeePortalLeaveCancelButton
+                          portalSlug={context.portal.portalSlug}
+                          requestId={request.id}
+                        />
+                      </GovernedTrailingActionSlot>
                     )
                   },
                 }}

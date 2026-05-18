@@ -54,7 +54,14 @@ describe("parseAllowanceLineInputsFromForm", () => {
 
 describe("HRM compensation planning spec map", () => {
   it("lists stable HRM-CPM codes from the shared spec map", () => {
-    expect(listHrmCompensationPlanningSpecCodes()).toContain("HRM-CPM-027")
+    const specCodes = listHrmCompensationPlanningSpecCodes()
+    for (let index = 1; index <= 30; index += 1) {
+      const id = `HRM-CPM-${String(index).padStart(3, "0")}`
+      expect(
+        specCodes,
+        `${id} missing from HRM_COMPENSATION_PLANNING_SPEC_MAP`
+      ).toContain(id)
+    }
     expect(HRM_COMPENSATION_PLANNING_SPEC_MAP.payrollIntegration.status).toBe(
       "partial"
     )

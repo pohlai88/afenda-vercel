@@ -33,7 +33,7 @@ vi.mock("#lib/auth", () => ({
 }))
 
 vi.mock("#lib/i18n/locales.shared", () => ({
-  toLocaleOrgDashboardRevalidatePattern: (path: string) => path,
+  toLocaleOrgAppsRevalidatePattern: (path: string) => path,
 }))
 
 vi.mock("#lib/db", () => ({

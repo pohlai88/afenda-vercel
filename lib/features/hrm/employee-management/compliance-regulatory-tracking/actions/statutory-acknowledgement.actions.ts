@@ -3,7 +3,7 @@
 import { headers as nextHeaders } from "next/headers"
 import { revalidatePath } from "next/cache"
 
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { acknowledgeEvidenceTransition } from "../data/compliance-acknowledgement.server"
 import { requireComplianceSessionMutationGate } from "../data/compliance-action-guard.server"
@@ -23,7 +23,7 @@ const EXTERNAL_REFERENCE_MAX_LENGTH = 128
  */
 function revalidateCompliancePages(): void {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/compliance"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/compliance"),
     "layout"
   )
 }

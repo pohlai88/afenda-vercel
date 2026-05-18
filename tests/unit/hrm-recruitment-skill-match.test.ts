@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   parseRequiredSkillCodesInput,
   scoreRequisitionSkillMatch,
-} from "../../lib/features/hrm/talent-management/recruitment-applicant-tracking/data/recruitment-workflow.shared.ts"
+} from "../../lib/features/hrm/talent-management/recruitment-onboarding/data/recruitment-workflow.shared.ts"
 
 describe("parseRequiredSkillCodesInput", () => {
   it("normalizes comma-separated codes", () => {

@@ -112,6 +112,32 @@
         "scripts/lint-ask-docs-prose.mjs"
       ]
     },
+    "lint:ask-docs-quality": {
+      "inputs": [
+        "content/ask-docs/**/*.mdx",
+        "content/ask-docs/**/meta.json",
+        "scripts/lint-ask-docs-quality.mjs"
+      ]
+    },
+    "ask-docs:check": {
+      "dependsOn": [
+        "lint:ask-docs-links",
+        "lint:ask-docs-prose",
+        "lint:ask-docs-quality"
+      ],
+      "inputs": [
+        "content/ask-docs/**/*.mdx",
+        "content/ask-docs/**/meta.json",
+        "scripts/validate-ask-docs-links.ts",
+        "scripts/lint-ask-docs-prose.mjs",
+        "scripts/lint-ask-docs-quality.mjs",
+        "scripts/ask-docs-check-gate.mjs",
+        ".config/markdownlint-ask-docs.jsonc",
+        "app/**/ask-docs/**",
+        "lib/ask-docs/**",
+        "source.config.ts"
+      ]
+    },
     "lint:components2-renderers": {
       "inputs": [
         "components2/metadata/registry.ts",

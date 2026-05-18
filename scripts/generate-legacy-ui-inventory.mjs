@@ -34,8 +34,8 @@ const TIER_3_ALLOWLIST = new Set([
 const ALREADY_GOVERNED = new Set([
   "lib/features/contacts/components/contacts-page.tsx",
   "lib/features/hrm/employee-management/employee-records-management/components/workforce-page.tsx",
-  "lib/features/hrm/talent-management/recruitment-applicant-tracking/components/recruitment-page.tsx",
-  "lib/features/hrm/talent-management/performance-management/components/hrm-performance-page.tsx",
+  "lib/features/hrm/talent-management/recruitment-onboarding/components/recruitment-page.tsx",
+  "lib/features/hrm/talent-management/performance-appraisals/components/hrm-performance-page.tsx",
   "lib/features/hrm/talent-management/competency-skills-framework/components/hrm-skills-page.tsx",
   "lib/features/hrm/payroll-compensation/expenses-reimbursement/components/claim-recent-table.tsx",
   "lib/features/hrm/payroll-compensation/expenses-reimbursement/components/claim-pending-inbox.tsx",

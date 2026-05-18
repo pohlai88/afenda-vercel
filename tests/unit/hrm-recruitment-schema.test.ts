@@ -7,11 +7,18 @@ import {
   createCandidateApplicationFormSchema,
   createJobOfferFormSchema,
   createJobRequisitionFormSchema,
+  decideRequisitionApprovalFormSchema,
+  evaluateScreeningFormSchema,
   publishJobRequisitionFormSchema,
+  recordAssessmentResultFormSchema,
+  recordPreEmploymentCheckFormSchema,
+  recordRecruitmentCommunicationFormSchema,
+  requestRequisitionApprovalFormSchema,
   scheduleInterviewFormSchema,
+  submitInterviewScorecardFormSchema,
   submitInterviewFeedbackFormSchema,
   updateJobOfferStatusFormSchema,
-} from "../../lib/features/hrm/talent-management/recruitment-applicant-tracking/schemas/recruitment.schema"
+} from "../../lib/features/hrm/talent-management/recruitment-onboarding/schemas/recruitment.schema"
 
 const ORG = "acme"
 const UUID = "11111111-1111-4111-8111-111111111111"
@@ -21,8 +28,10 @@ describe("recruitment Zod schemas", () => {
     const ok = createJobRequisitionFormSchema.safeParse({
       orgSlug: ORG,
       title: "Staff Engineer",
+      requisitionType: "replacement",
       departmentId: "",
       headcount: "2",
+      budgetReference: "BUD-1",
     })
     expect(ok.success).toBe(true)
     if (ok.success) {
@@ -44,12 +53,31 @@ describe("recruitment Zod schemas", () => {
       publishJobRequisitionFormSchema.safeParse({
         orgSlug: ORG,
         requisitionId: UUID,
+        channel: "career_site",
       }).success
     ).toBe(true)
     expect(
       cancelJobRequisitionFormSchema.safeParse({
         orgSlug: ORG,
         requisitionId: UUID,
+      }).success
+    ).toBe(true)
+  })
+
+  it("accepts requisition approval request and decision forms", () => {
+    expect(
+      requestRequisitionApprovalFormSchema.safeParse({
+        orgSlug: ORG,
+        requisitionId: UUID,
+        approverUserId: "",
+      }).success
+    ).toBe(true)
+    expect(
+      decideRequisitionApprovalFormSchema.safeParse({
+        orgSlug: ORG,
+        approvalId: UUID,
+        decision: "approved",
+        decisionNote: "",
       }).success
     ).toBe(true)
   })
@@ -93,6 +121,51 @@ describe("recruitment Zod schemas", () => {
         feedback: "",
       }).success
     ).toBe(true)
+
+    expect(
+      submitInterviewScorecardFormSchema.safeParse({
+        orgSlug: ORG,
+        interviewId: UUID,
+        recommendation: "yes",
+        overallRating: "4",
+        comments: "",
+      }).success
+    ).toBe(true)
+  })
+
+  it("accepts screening, assessment, communication, and check payloads", () => {
+    expect(
+      evaluateScreeningFormSchema.safeParse({
+        orgSlug: ORG,
+        applicationId: UUID,
+        outcome: "manual_review",
+      }).success
+    ).toBe(true)
+    expect(
+      recordAssessmentResultFormSchema.safeParse({
+        orgSlug: ORG,
+        applicationId: UUID,
+        assessmentType: "technical",
+        status: "completed",
+        score: "92.50",
+      }).success
+    ).toBe(true)
+    expect(
+      recordRecruitmentCommunicationFormSchema.safeParse({
+        orgSlug: ORG,
+        applicationId: UUID,
+        candidateId: "",
+        communicationType: "interview_invitation",
+      }).success
+    ).toBe(true)
+    expect(
+      recordPreEmploymentCheckFormSchema.safeParse({
+        orgSlug: ORG,
+        applicationId: UUID,
+        checkType: "right_to_work",
+        status: "passed",
+      }).success
+    ).toBe(true)
   })
 
   it("validates offer compensation amount pattern", () => {
@@ -124,6 +197,14 @@ describe("recruitment Zod schemas", () => {
         orgSlug: ORG,
         offerId: UUID,
         status: "sent",
+      }).success
+    ).toBe(true)
+
+    expect(
+      updateJobOfferStatusFormSchema.safeParse({
+        orgSlug: ORG,
+        offerId: UUID,
+        status: "declined",
       }).success
     ).toBe(true)
 

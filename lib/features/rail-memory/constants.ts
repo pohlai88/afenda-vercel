@@ -1,6 +1,6 @@
 import {
   toLocaleOrgAdminRevalidatePattern,
-  toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgAppsRevalidatePattern,
   toLocaleRoutePattern,
 } from "#lib/i18n/locales.shared"
 import type { AppPath } from "#lib/i18n/locales.shared"
@@ -53,8 +53,8 @@ import type { AppPath } from "#lib/i18n/locales.shared"
  *
  *   - `account`         → `/{locale}/account/*` (IAM personal surface)
  *   - `org-admin`       → `/{locale}/o/{orgSlug}/admin/*`
- *   - `hrm`             → `/{locale}/o/{orgSlug}/dashboard/hrm/*`
- *   - `platform-admin`  → `/{locale}/operator/*`
+ *   - `hrm`             → `/{locale}/o/{orgSlug}/apps/hrm/*`
+ *   - `platform-admin`  → `/{locale}/platform/*`
  *
  * Per-ERP-module workbenches will join this union as they adopt the
  * Working Memory Rail (PR 3e roll-out). Until then they should NOT be
@@ -198,6 +198,6 @@ export type RailMemoryResourceType =
 export const WORKBENCH_REVALIDATE_PATTERNS = {
   account: toLocaleRoutePattern("/account"),
   "org-admin": toLocaleOrgAdminRevalidatePattern(""),
-  hrm: toLocaleOrgDashboardRevalidatePattern("/hrm"),
-  "platform-admin": toLocaleRoutePattern("/operator"),
+  hrm: toLocaleOrgAppsRevalidatePattern("/hrm"),
+  "platform-admin": toLocaleRoutePattern("/platform"),
 } as const satisfies Record<WorkbenchId, AppPath>

@@ -1,68 +1,30 @@
-import { getTranslations } from "next-intl/server"
+import { getFormatter, getTranslations } from "next-intl/server"
 
-import { Badge } from "#components2/ui/badge"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
 import {
-  formatHrmDocumentSize,
-  hrmDocumentClassificationTone,
-  hrmDocumentTypeTone,
-  hrmDocumentVerificationTone,
-  isHrmDocumentClassification,
   hrmDocumentTypeLabelKey,
+  isHrmDocumentClassification,
   isHrmDocumentType,
   isHrmDocumentVerificationStatus,
-  shortenPayloadHash,
 } from "../data/hrm-document-display.shared"
-import {
-  HrmDocumentRejectForm,
-  HrmDocumentVerifyForm,
-} from "./hrm-document-review-forms"
-import { HrmDocumentDownloadForm } from "./hrm-document-download-form"
+import { buildDocumentsListSurfaceConfiguration } from "../data/documents-list-surface.server"
 import {
   type OrgHrmDocumentRow,
   listHrmDocumentsForOrg,
 } from "../data/hrm-document.queries.server"
 
-const TYPE_TONE_BADGE: Record<
-  string,
-  "default" | "outline" | "secondary" | "destructive" | "success" | "info"
-> = {
-  positive: "success",
-  info: "info",
-  muted: "outline",
-  neutral: "outline",
-}
-
-const CLASSIFICATION_TONE_BADGE: Record<
-  string,
-  "default" | "outline" | "secondary" | "destructive" | "success" | "info"
-> = {
-  muted: "outline",
-  neutral: "secondary",
-  info: "info",
-  destructive: "destructive",
-}
-
-const VERIFICATION_TONE_BADGE: Record<
-  string,
-  "default" | "outline" | "secondary" | "destructive" | "success" | "info"
-> = {
-  positive: "success",
-  info: "info",
-  muted: "outline",
-  neutral: "secondary",
-  destructive: "destructive",
-}
+import {
+  HrmDocumentRejectForm,
+  HrmDocumentVerifyForm,
+} from "./hrm-document-review-forms"
+import { HrmDocumentDownloadForm } from "./hrm-document-download-form"
 
 type DocumentsLibraryProps = {
   orgSlug: string
@@ -73,16 +35,39 @@ type DocumentsLibraryProps = {
   canReview: boolean
 }
 
-/**
- * Library view of HR documents for the active organization. Streamed
- * behind a Suspense boundary on the documents vault page so a slow
- * filter scan does not block the header / filter chips.
- *
- * Failures degrade locally to a calm inline notice; we never throw
- * out of this section so the rest of the documents surface keeps
- * rendering. Mirrors the attendance-recent-events failure-isolation
- * contract.
- */
+function documentsListCopy(
+  t: Awaited<ReturnType<typeof getTranslations<"Dashboard.Hrm.documents">>>,
+  format: Awaited<ReturnType<typeof getFormatter>>,
+  hasFilter: boolean
+) {
+  return {
+    empty: hasFilter ? t("filteredEmptyTitle") : t("noDocumentsTitle"),
+    colTitle: t("colTitle"),
+    colType: t("colType"),
+    colEmployee: t("colEmployee"),
+    colClassification: t("colClassification"),
+    colVerification: t("colVerification"),
+    colSize: t("colSize"),
+    colUploadedAt: t("colUploadedAt"),
+    colHash: t("colHash"),
+    noEmployeeBadge: t("noEmployeeBadge"),
+    typeLabelFor: (documentTypeValue: string) =>
+      isHrmDocumentType(documentTypeValue)
+        ? t(hrmDocumentTypeLabelKey(documentTypeValue))
+        : documentTypeValue,
+    classificationLabelFor: (classificationValue: string) =>
+      isHrmDocumentClassification(classificationValue)
+        ? t(`documentClassifications.${classificationValue}`)
+        : classificationValue,
+    verificationLabelFor: (status: string) =>
+      isHrmDocumentVerificationStatus(status)
+        ? t(`verificationStatuses.${status}`)
+        : status,
+    formatUploadedAt: (date: Date) =>
+      format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
+  }
+}
+
 export async function DocumentsLibrary({
   orgSlug,
   documentType,
@@ -92,7 +77,19 @@ export async function DocumentsLibrary({
   canReview,
 }: DocumentsLibraryProps) {
   const orgSession = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.documents")
+  const [t, format] = await Promise.all([
+    getTranslations("Dashboard.Hrm.documents"),
+    getFormatter(),
+  ])
+
+  const hasFilter =
+    documentType !== null || classification !== null || employeeId !== null
+  const copy = documentsListCopy(t, format, hasFilter)
+  const trailingContext = {
+    showActionsColumn: canDownload || canReview,
+    canDownload,
+    canReview,
+  }
 
   let rows: OrgHrmDocumentRow[]
   try {
@@ -106,134 +103,63 @@ export async function DocumentsLibrary({
       organizationId: orgSession.organizationId,
     })
     return (
-      <p className="text-sm text-destructive" role="status" aria-live="polite">
-        {t("libraryLoadFailed")}
-      </p>
+      <GovernedPatternCListSection
+        layout="embedded"
+        title=""
+        listConfiguration={buildDocumentsListSurfaceConfiguration(
+          [],
+          copy,
+          trailingContext
+        )}
+        surfaceKey="hrm:documents:library:error"
+        loadError={{
+          variant: "error",
+          title: t("libraryLoadFailed"),
+        }}
+      />
     )
   }
 
-  const hasFilter =
-    documentType !== null || classification !== null || employeeId !== null
+  const listConfiguration = buildDocumentsListSurfaceConfiguration(
+    rows,
+    copy,
+    trailingContext
+  )
 
-  if (rows.length === 0) {
-    return (
-      <div className="flex flex-col gap-1 py-6 text-center">
-        <p className="text-sm font-medium">
-          {hasFilter ? t("filteredEmptyTitle") : t("noDocumentsTitle")}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {hasFilter ? t("filteredEmptyBody") : t("noDocumentsBody")}
-        </p>
-      </div>
-    )
-  }
+  const documentById = new Map(rows.map((row) => [row.id, row]))
 
   return (
-    <div className="flex flex-col gap-3">
-      <p className="text-xs text-muted-foreground" aria-live="polite">
-        {hasFilter
-          ? t("filteredCount", { count: rows.length })
-          : t("totalCount", { count: rows.length })}
-      </p>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t("colTitle")}</TableHead>
-            <TableHead>{t("colType")}</TableHead>
-            <TableHead>{t("colEmployee")}</TableHead>
-            <TableHead>{t("colClassification")}</TableHead>
-            <TableHead>{t("colVerification")}</TableHead>
-            <TableHead className="text-right">{t("colSize")}</TableHead>
-            <TableHead>{t("colUploadedAt")}</TableHead>
-            <TableHead>{t("colHash")}</TableHead>
-            {canDownload || canReview ? (
-              <TableHead className="text-right">{t("colActions")}</TableHead>
-            ) : null}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((row) => {
-            const typeTone = hrmDocumentTypeTone(row.documentType)
-            const typeVariant = TYPE_TONE_BADGE[typeTone] ?? "outline"
-            const classificationTone = hrmDocumentClassificationTone(
-              row.classification
-            )
-            const classificationVariant =
-              CLASSIFICATION_TONE_BADGE[classificationTone] ?? "secondary"
-            const typeLabel = isHrmDocumentType(row.documentType)
-              ? t(hrmDocumentTypeLabelKey(row.documentType))
-              : row.documentType
-            const classificationLabel = isHrmDocumentClassification(
-              row.classification
-            )
-              ? t(`documentClassifications.${row.classification}`)
-              : row.classification
-            const verificationTone = hrmDocumentVerificationTone(
-              row.verificationStatus
-            )
-            const verificationVariant =
-              VERIFICATION_TONE_BADGE[verificationTone] ?? "outline"
-            const verificationLabel = isHrmDocumentVerificationStatus(
-              row.verificationStatus
-            )
-              ? t(`verificationStatuses.${row.verificationStatus}`)
-              : row.verificationStatus
-            const showReview =
-              canReview && row.verificationStatus === "pending"
-
-            return (
-              <TableRow key={row.id}>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-medium">{row.title}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {row.mimeType}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={typeVariant}>{typeLabel}</Badge>
-                </TableCell>
-                <TableCell>
-                  {row.employeeId ? (
-                    <div className="flex flex-col">
-                      <span className="font-medium">
-                        {row.employeeFullName ?? row.employeeId}
-                      </span>
-                      {row.employeeNumber ? (
-                        <span className="text-xs text-muted-foreground">
-                          {row.employeeNumber}
-                        </span>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <Badge variant="outline">{t("noEmployeeBadge")}</Badge>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={classificationVariant}>
-                    {classificationLabel}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={verificationVariant}>
-                    {verificationLabel}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right text-xs text-muted-foreground">
-                  {formatHrmDocumentSize(row.sizeBytes)}
-                </TableCell>
-                <TableCell className="text-xs text-muted-foreground">
-                  {row.uploadedAt.toLocaleString()}
-                </TableCell>
-                <TableCell
-                  className="font-mono text-xs text-muted-foreground"
-                  title={row.payloadHash}
-                >
-                  {shortenPayloadHash(row.payloadHash)}
-                </TableCell>
-                {canDownload || canReview ? (
-                  <TableCell className="text-right">
+    <GovernedPatternCListSection
+      layout="embedded"
+      title=""
+      listConfiguration={listConfiguration}
+      surfaceKey="hrm:documents:library"
+      contentBeforeList={
+        rows.length > 0 ? (
+          <p className="mb-3 text-xs text-muted-foreground" aria-live="polite">
+            {hasFilter
+              ? t("filteredCount", { count: rows.length })
+              : t("totalCount", { count: rows.length })}
+          </p>
+        ) : null
+      }
+      trailingColumn={
+        trailingContext.showActionsColumn
+          ? {
+              header: t("colActions"),
+              render: (surfaceRow) => {
+                const trailingAction = surfaceRow.trailingAction
+                const row = documentById.get(surfaceRow.id)
+                if (
+                  !row ||
+                  !isListSurfaceTrailingActionRenderable(trailingAction)
+                ) {
+                  return null
+                }
+                const showReview =
+                  canReview && row.verificationStatus === "pending"
+                return (
+                  <GovernedTrailingActionSlot trailingAction={trailingAction}>
                     <div className="flex flex-wrap items-center justify-end gap-1">
                       {showReview ? (
                         <>
@@ -255,13 +181,12 @@ export async function DocumentsLibrary({
                         />
                       ) : null}
                     </div>
-                  </TableCell>
-                ) : null}
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    </div>
+                  </GovernedTrailingActionSlot>
+                )
+              },
+            }
+          : undefined
+      }
+    />
   )
 }

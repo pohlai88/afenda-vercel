@@ -19,7 +19,7 @@ test.describe("HRM salary advances surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/advances`)
+      await page.goto(`/en/o/${slug}/apps/hrm/advances`)
 
       await expect(
         page.getByRole("heading", { name: "Salary advances", exact: true })

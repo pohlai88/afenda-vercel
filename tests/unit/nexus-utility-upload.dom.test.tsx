@@ -75,7 +75,7 @@ afterEach(() => {
 
 describe("AppShellNexusUtilityUpload", () => {
   beforeEach(() => {
-    window.history.replaceState({}, "", "/en/o/acme/dashboard/home")
+    window.history.replaceState({}, "", "/en/o/acme/apps/home")
   })
 
   it("uploads a selected file and shows success feedback", async () => {
@@ -121,7 +121,7 @@ describe("AppShellNexusUtilityUpload", () => {
       source: "nexus-utility-right-rail",
       fileName: "report.pdf",
       mimeType: "application/pdf",
-      routePath: "/en/o/acme/dashboard/home",
+      routePath: "/en/o/acme/apps/home",
     })
   })
 

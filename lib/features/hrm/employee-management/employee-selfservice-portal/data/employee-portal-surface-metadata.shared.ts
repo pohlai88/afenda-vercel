@@ -11,5 +11,6 @@ export const EMPLOYEE_PORTAL_LIST_SURFACE_IDS = {
   advanceInstallments: "ess-portal-advance-installments",
   performanceGoals: "ess-portal-performance-goals",
   trainingDue: "ess-portal-training-due",
+  trainingHistory: "ess-portal-training-history",
   benefitEnrollments: "ess-benefit-enrollments",
 } as const

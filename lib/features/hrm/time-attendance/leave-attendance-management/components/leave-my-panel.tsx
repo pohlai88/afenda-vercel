@@ -5,6 +5,7 @@ import {
   GovernedPatternCListSection,
   isListSurfaceTrailingActionRenderable,
 } from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { requireOrgSession } from "#lib/auth"
 
 import {
@@ -115,7 +116,13 @@ export async function LeaveMyPanel({ leaveTypes }: LeaveMyPanelProps) {
                 ) {
                   return null
                 }
-                return <LeaveCancelButton requestId={request.id} />
+                return (
+                  <GovernedTrailingActionSlot
+                    trailingAction={surfaceRow.trailingAction}
+                  >
+                    <LeaveCancelButton requestId={request.id} />
+                  </GovernedTrailingActionSlot>
+                )
               },
             }}
           />

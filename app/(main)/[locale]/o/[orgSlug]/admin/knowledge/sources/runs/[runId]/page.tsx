@@ -4,14 +4,14 @@ import { getTranslations } from "next-intl/server"
 
 import { Link } from "#i18n/navigation"
 import { getEvalRunById } from "#features/knowledge"
-import { requireOrgSession } from "#lib/auth"
+import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminKnowledgeRunDetailPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/admin/knowledge/sources/runs/[runId]">) {
   const { orgSlug, runId } = await params
   const t = await getTranslations("OrgAdmin.knowledge")
-  const session = await requireOrgSession()
+  const session = await getOrgTenantContext()
   const run = await getEvalRunById(session.organizationId, runId)
 
   if (!run) notFound()

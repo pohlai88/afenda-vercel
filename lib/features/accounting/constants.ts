@@ -1,1 +1,1 @@
-export { ORG_DASHBOARD_ACCOUNTING } from "#lib/dashboard-module-paths"
+export { ORG_APPS_ACCOUNTING } from "#lib/org-apps-module-paths"

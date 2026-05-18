@@ -2,12 +2,17 @@ import { z } from "zod"
 
 import type { SchemaStability } from "./_stability.shared"
 
+import { governedMetadataSchemaVersionSchema } from "./schema-version.shared"
 import { governedSurfaceChromeSchema } from "./surface-chrome.schema"
 
 export const GOVERNED_SCORECARD_FORM_SCHEMA_ID =
   "governed.scorecard-form.configuration" as const
 
 export const GOVERNED_SCORECARD_FORM_SCHEMA_STABILITY: SchemaStability = "beta"
+
+/** Scorecard / rubric data nature (ADR-0025 §2). */
+export const scorecardFormDataNatureSchema = z.literal("scoring")
+export type ScorecardFormDataNature = z.infer<typeof scorecardFormDataNatureSchema>
 
 export const scorecardCriterionSchema = z
   .object({
@@ -18,8 +23,9 @@ export const scorecardCriterionSchema = z
   })
   .strict()
 
-export const governedScorecardFormConfigurationSchema = z
-  .object({
+export const governedScorecardFormConfigurationSchema =
+  governedMetadataSchemaVersionSchema.extend({
+    dataNature: scorecardFormDataNatureSchema.default("scoring"),
     formId: z.string().trim().min(1),
     actionId: z.string().trim().min(1),
     title: z.string().trim().min(1),
@@ -28,7 +34,6 @@ export const governedScorecardFormConfigurationSchema = z
     submitLabel: z.string().trim().min(1).default("Submit feedback"),
     chrome: governedSurfaceChromeSchema.optional(),
   })
-  .strict()
   .superRefine((form, ctx) => {
     const seen = new Set<string>()
 

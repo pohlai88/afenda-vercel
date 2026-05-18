@@ -24,6 +24,11 @@ describe("metadata renderer gallery scenarios", () => {
       "governed:empty",
       "governed:audit-panel",
       "governed:detail-tabs",
+      "governed:chart",
+      "governed:approval-timeline",
+      "governed:kanban-board",
+      "governed:multi-step-form",
+      "governed:scorecard-form",
     ] as const
     for (const type of expected) {
       expect(shipped.has(type), `missing gallery scenario for ${type}`).toBe(

@@ -9,8 +9,8 @@ import { customers } from "#lib/db/schema"
 import { requireErpPermission } from "#features/erp-rbac/server"
 import { contactSchema } from "#features/contacts/schemas/contact.schema"
 import type { CreateContactFormState } from "#features/contacts/types"
-import { ORG_DASHBOARD_CONTACTS } from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { ORG_APPS_CONTACTS } from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 export async function createContact(
   _prevState: CreateContactFormState,
@@ -79,7 +79,7 @@ export async function createContact(
   }
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_CONTACTS),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_CONTACTS),
     "page"
   )
   return { ok: true }

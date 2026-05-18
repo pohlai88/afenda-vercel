@@ -6,7 +6,7 @@ import { and, eq } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmApproval, hrmLeaveRequest } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
@@ -26,9 +26,9 @@ import type { LeaveApprovalFormState } from "../../../types"
  * not part of the HRM dashboard layout's data envelope.
  */
 function revalidateLeaveRequests() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/leave"), "layout")
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/employees/[employeeId]"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/employees/[employeeId]"),
     "page"
   )
 }

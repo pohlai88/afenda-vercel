@@ -10,14 +10,14 @@ import {
   listOrgFeedbackEvents,
   resolveOrgFeedbackInboxSearchParams,
 } from "#features/org-feedback/server"
-import { requireOrgSession } from "#lib/auth"
+import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminFeedbackPage({
   searchParams,
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/admin/feedback">) {
   const { orgSlug } = await params
-  const orgSession = await requireOrgSession()
+  const orgSession = await getOrgTenantContext()
   const t = await getTranslations("OrgAdmin.feedback")
 
   const { page, stateFilter } =

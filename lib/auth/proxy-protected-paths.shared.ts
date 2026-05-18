@@ -12,6 +12,7 @@ const PROTECTED_PATH_PREFIXES = [
   "/p",
   "/account",
   "/operator",
+  "/platform",
   "/accept-invitation",
   "/console",
 ] as const

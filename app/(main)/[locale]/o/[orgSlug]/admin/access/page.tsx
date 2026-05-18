@@ -3,13 +3,13 @@ import { getTranslations } from "next-intl/server"
 import { GovernedSurface } from "#features/governed-surface"
 import { AccessAdminPage } from "#features/erp-rbac/server"
 import { recordOrgAdminPageVisit } from "#features/org-admin/server"
-import { requireOrgSession } from "#lib/auth"
+import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminAccessPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/admin/access">) {
   const { orgSlug } = await params
-  const orgSession = await requireOrgSession()
+  const orgSession = await getOrgTenantContext()
   const t = await getTranslations("OrgAdmin.access")
 
   await recordOrgAdminPageVisit({

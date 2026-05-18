@@ -38,10 +38,10 @@ describe("governed-surface schemas", () => {
   it("accepts optional header back navigation fields", () => {
     const r = pageHeaderSchema.parse({
       title: "Audit",
-      backHref: "/en/o/acme/operator",
+      backHref: "/en/platform",
       backLabel: "← Back",
     })
-    expect(r.backHref).toBe("/en/o/acme/operator")
+    expect(r.backHref).toBe("/en/platform")
     expect(r.backLabel).toBe("← Back")
   })
 })

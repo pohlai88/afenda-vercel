@@ -6,7 +6,7 @@ import { and, eq, sql } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmShiftTemplate } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { regenerateAttendanceDayFromEvents } from "../data/attendance-aggregator.server"
 import { getActiveShiftTemplateForOrg } from "../data/attendance-shift.queries.server"
@@ -32,10 +32,10 @@ import type {
 
 function revalidateAttendanceAndPayroll() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/attendance"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/attendance"),
     "layout"
   )
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"), "page")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "page")
 }
 
 function isUniqueViolation(error: unknown): boolean {

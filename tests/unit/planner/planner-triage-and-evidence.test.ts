@@ -250,7 +250,7 @@ describe("planner evidence graph", () => {
           linkedEntityType: "planner_item",
           linkedEntityId: "item-1",
           linkedEntityLabel: "Resolve payroll variance",
-          linkedPath: "/o/acme/dashboard/orbit?focusKind=item&focusId=item-1",
+          linkedPath: "/o/acme/apps/orbit?focusKind=item&focusId=item-1",
           publishedAt: createdAt.toISOString(),
           expiresAt: null,
           closedAt: null,

@@ -2013,10 +2013,7 @@ export const hrmDocument = pgTable(
       t.organizationId,
       t.legalEntityId
     ),
-    index("hrm_document_org_uploadedAt_idx").on(
-      t.organizationId,
-      t.uploadedAt
-    ),
+    index("hrm_document_org_uploadedAt_idx").on(t.organizationId, t.uploadedAt),
     index("hrm_document_org_retentionUntil_idx").on(
       t.organizationId,
       t.retentionUntil
@@ -2041,7 +2038,9 @@ export const hrmDocumentRequirement = pgTable(
     allowEmployeeSubmission: boolean("allowEmployeeSubmission")
       .notNull()
       .default(false),
-    allowEmployeeAccess: boolean("allowEmployeeAccess").notNull().default(false),
+    allowEmployeeAccess: boolean("allowEmployeeAccess")
+      .notNull()
+      .default(false),
     requiresExpiryDate: boolean("requiresExpiryDate").notNull().default(false),
     retentionPolicyCode: text("retentionPolicyCode"),
     status: text("status").notNull().default("active"),
@@ -3147,8 +3146,22 @@ export const hrmJobRequisition = pgTable(
     positionId: text("positionId").references(() => hrmPosition.id, {
       onDelete: "set null",
     }),
+    requisitionType: text("requisitionType").notNull().default("new_headcount"),
+    legalEntityId: text("legalEntityId"),
+    jobGradeId: text("jobGradeId").references(() => hrmJobGrade.id, {
+      onDelete: "set null",
+    }),
+    workLocationCode: text("workLocationCode"),
+    employmentType: text("employmentType"),
+    hiringManagerUserId: text("hiringManagerUserId"),
+    budgetReference: text("budgetReference"),
     headcount: integer("headcount").notNull().default(1),
     status: text("status").notNull().default("draft"),
+    approvalState: text("approvalState").notNull().default("not_required"),
+    currentApprovalId: text("currentApprovalId").references(
+      () => hrmApproval.id,
+      { onDelete: "set null" }
+    ),
     approverUserId: text("approverUserId"),
     audit7w1h: jsonb("audit7w1h"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
@@ -3166,6 +3179,14 @@ export const hrmJobRequisition = pgTable(
       t.organizationId,
       t.positionId
     ),
+    index("hrm_job_requisition_org_approval_idx").on(
+      t.organizationId,
+      t.approvalState
+    ),
+    index("hrm_job_requisition_org_manager_idx").on(
+      t.organizationId,
+      t.hiringManagerUserId
+    ),
   ]
 )
 
@@ -3180,6 +3201,8 @@ export const hrmCandidate = pgTable(
     email: text("email"),
     phone: text("phone"),
     resumeUrl: text("resumeUrl"),
+    parsedResume: jsonb("parsedResume"),
+    parsedResumeAt: timestamp("parsedResumeAt", { mode: "date" }),
     source: text("source"),
     archivedAt: timestamp("archivedAt", { mode: "date" }),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
@@ -3207,6 +3230,8 @@ export const hrmApplication = pgTable(
       .notNull()
       .references(() => hrmJobRequisition.id, { onDelete: "restrict" }),
     stage: text("stage").notNull().default("applied"),
+    screeningOutcome: text("screeningOutcome"),
+    screeningSnapshot: jsonb("screeningSnapshot"),
     convertedEmployeeId: text("convertedEmployeeId").references(
       () => hrmEmployee.id,
       { onDelete: "set null" }
@@ -3277,6 +3302,10 @@ export const hrmJobOffer = pgTable(
       .notNull()
       .references(() => hrmApplication.id, { onDelete: "cascade" }),
     status: text("status").notNull().default("draft"),
+    currentApprovalId: text("currentApprovalId").references(
+      () => hrmApproval.id,
+      { onDelete: "set null" }
+    ),
     compensationAmount: decimal("compensationAmount", {
       precision: 15,
       scale: 2,
@@ -3330,6 +3359,238 @@ export const hrmRecruitmentEvent = pgTable(
     index("hrm_recruitment_event_org_type_idx").on(
       t.organizationId,
       t.eventType
+    ),
+  ]
+)
+
+export const hrmJobPosting = pgTable(
+  "hrm_job_posting",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    requisitionId: text("requisitionId")
+      .notNull()
+      .references(() => hrmJobRequisition.id, { onDelete: "cascade" }),
+    channel: text("channel").notNull(),
+    status: text("status").notNull().default("draft"),
+    externalReference: text("externalReference"),
+    publishedAt: timestamp("publishedAt", { mode: "date" }),
+    closedAt: timestamp("closedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_job_posting_org_requisition_idx").on(
+      t.organizationId,
+      t.requisitionId
+    ),
+    index("hrm_job_posting_org_channel_status_idx").on(
+      t.organizationId,
+      t.channel,
+      t.status
+    ),
+  ]
+)
+
+export const hrmScreeningQuestion = pgTable(
+  "hrm_screening_question",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    requisitionId: text("requisitionId")
+      .notNull()
+      .references(() => hrmJobRequisition.id, { onDelete: "cascade" }),
+    prompt: text("prompt").notNull(),
+    questionType: text("questionType").notNull().default("text"),
+    isKnockout: boolean("isKnockout").notNull().default(false),
+    expectedAnswer: text("expectedAnswer"),
+    sortOrder: integer("sortOrder").notNull().default(0),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_screening_question_org_requisition_idx").on(
+      t.organizationId,
+      t.requisitionId
+    ),
+  ]
+)
+
+export const hrmScreeningResponse = pgTable(
+  "hrm_screening_response",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    applicationId: text("applicationId")
+      .notNull()
+      .references(() => hrmApplication.id, { onDelete: "cascade" }),
+    questionId: text("questionId")
+      .notNull()
+      .references(() => hrmScreeningQuestion.id, { onDelete: "cascade" }),
+    answer: text("answer"),
+    passed: boolean("passed"),
+    evaluatedAt: timestamp("evaluatedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_screening_response_org_app_question_uidx").on(
+      t.organizationId,
+      t.applicationId,
+      t.questionId
+    ),
+    index("hrm_screening_response_org_application_idx").on(
+      t.organizationId,
+      t.applicationId
+    ),
+  ]
+)
+
+export const hrmRecruitmentAssessment = pgTable(
+  "hrm_recruitment_assessment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    applicationId: text("applicationId")
+      .notNull()
+      .references(() => hrmApplication.id, { onDelete: "cascade" }),
+    assessmentType: text("assessmentType").notNull(),
+    status: text("status").notNull().default("assigned"),
+    assignedAt: timestamp("assignedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    completedAt: timestamp("completedAt", { mode: "date" }),
+    score: decimal("score", { precision: 9, scale: 2 }),
+    result: text("result"),
+    providerReference: text("providerReference"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_recruitment_assessment_org_application_idx").on(
+      t.organizationId,
+      t.applicationId
+    ),
+    index("hrm_recruitment_assessment_org_status_idx").on(
+      t.organizationId,
+      t.status
+    ),
+  ]
+)
+
+export const hrmInterviewScorecard = pgTable(
+  "hrm_interview_scorecard",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    interviewId: text("interviewId")
+      .notNull()
+      .references(() => hrmInterview.id, { onDelete: "cascade" }),
+    applicationId: text("applicationId")
+      .notNull()
+      .references(() => hrmApplication.id, { onDelete: "cascade" }),
+    interviewerUserId: text("interviewerUserId").notNull(),
+    competencyRatings: jsonb("competencyRatings").notNull().default({}),
+    overallRating: integer("overallRating"),
+    recommendation: text("recommendation").notNull(),
+    comments: text("comments"),
+    submittedAt: timestamp("submittedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_interview_scorecard_org_interview_user_uidx").on(
+      t.organizationId,
+      t.interviewId,
+      t.interviewerUserId
+    ),
+    index("hrm_interview_scorecard_org_application_idx").on(
+      t.organizationId,
+      t.applicationId
+    ),
+  ]
+)
+
+export const hrmRecruitmentCommunication = pgTable(
+  "hrm_recruitment_communication",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    applicationId: text("applicationId").references(() => hrmApplication.id, {
+      onDelete: "cascade",
+    }),
+    candidateId: text("candidateId").references(() => hrmCandidate.id, {
+      onDelete: "set null",
+    }),
+    communicationType: text("communicationType").notNull(),
+    channel: text("channel").notNull().default("email"),
+    recipient: text("recipient"),
+    status: text("status").notNull().default("recorded"),
+    providerReference: text("providerReference"),
+    sentAt: timestamp("sentAt", { mode: "date" }),
+    metadata: jsonb("metadata").notNull().default({}),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+  },
+  (t) => [
+    index("hrm_recruitment_comm_org_application_idx").on(
+      t.organizationId,
+      t.applicationId
+    ),
+    index("hrm_recruitment_comm_org_type_idx").on(
+      t.organizationId,
+      t.communicationType
+    ),
+  ]
+)
+
+export const hrmPreEmploymentCheck = pgTable(
+  "hrm_pre_employment_check",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    applicationId: text("applicationId")
+      .notNull()
+      .references(() => hrmApplication.id, { onDelete: "cascade" }),
+    checkType: text("checkType").notNull(),
+    status: text("status").notNull().default("pending"),
+    providerReference: text("providerReference"),
+    result: text("result"),
+    completedAt: timestamp("completedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_pre_employment_check_org_app_type_uidx").on(
+      t.organizationId,
+      t.applicationId,
+      t.checkType
+    ),
+    index("hrm_pre_employment_check_org_status_idx").on(
+      t.organizationId,
+      t.status
     ),
   ]
 )
@@ -4368,6 +4629,137 @@ export const hrmLeaveRequest = pgTable(
 )
 
 /**
+ * Flexible work arrangement type catalog (HRM-FWA-001/002).
+ * arrangementKind drives default schedule seeding on approval.
+ */
+export const hrmFlexibleWorkArrangementType = pgTable(
+  "hrm_flexible_work_arrangement_type",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    label: text("label").notNull(),
+    arrangementKind: text("arrangementKind").notNull(),
+    description: text("description"),
+    requiresRemoteLocation: boolean("requiresRemoteLocation")
+      .notNull()
+      .default(false),
+    requiresSupportingDocument: boolean("requiresSupportingDocument")
+      .notNull()
+      .default(false),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_fwa_type_org_code_uidx").on(t.organizationId, t.code),
+    index("hrm_fwa_type_org_archivedAt_idx").on(t.organizationId, t.archivedAt),
+  ]
+)
+
+/**
+ * Flexible work arrangement request / active record (HRM-FWA-004–012).
+ * states: draft → submitted → approved | rejected | returned;
+ * approved → active → suspended | terminated | expired.
+ */
+export const hrmFlexibleWorkRequest = pgTable(
+  "hrm_flexible_work_request",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    arrangementTypeId: text("arrangementTypeId")
+      .notNull()
+      .references(() => hrmFlexibleWorkArrangementType.id, {
+        onDelete: "restrict",
+      }),
+    requestedAt: timestamp("requestedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    reason: text("reason"),
+    startDate: date("startDate", { mode: "string" }).notNull(),
+    endDate: date("endDate", { mode: "string" }),
+    reviewDate: date("reviewDate", { mode: "string" }),
+    remoteLocation: text("remoteLocation"),
+    evidenceDocumentId: text("evidenceDocumentId"),
+    expectedWeeklyMinutes: integer("expectedWeeklyMinutes"),
+    initiatedBy: text("initiatedBy").notNull().default("employee"),
+    state: text("state").notNull().default("submitted"),
+    currentApprovalId: text("currentApprovalId").references(
+      () => hrmApproval.id,
+      { onDelete: "set null" }
+    ),
+    approvedByUserId: text("approvedByUserId"),
+    approvedAt: timestamp("approvedAt", { mode: "date" }),
+    rejectedReason: text("rejectedReason"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_fwa_request_org_employee_state_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.state
+    ),
+    index("hrm_fwa_request_org_state_start_idx").on(
+      t.organizationId,
+      t.state,
+      t.startDate
+    ),
+    index("hrm_fwa_request_org_type_idx").on(
+      t.organizationId,
+      t.arrangementTypeId
+    ),
+  ]
+)
+
+/**
+ * Weekly schedule pattern rows for an approved flexible work request (HRM-FWA-013/014).
+ * dayOfWeek: 0=Sunday … 6=Saturday. workMode: office | remote | rest.
+ */
+export const hrmFlexibleWorkSchedulePattern = pgTable(
+  "hrm_flexible_work_schedule_pattern",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    requestId: text("requestId")
+      .notNull()
+      .references(() => hrmFlexibleWorkRequest.id, { onDelete: "cascade" }),
+    dayOfWeek: integer("dayOfWeek").notNull(),
+    workMode: text("workMode").notNull(),
+    coreStart: text("coreStart"),
+    coreEnd: text("coreEnd"),
+    flexibleStart: text("flexibleStart"),
+    flexibleEnd: text("flexibleEnd"),
+    expectedMinutes: integer("expectedMinutes"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_fwa_schedule_request_day_uidx").on(
+      t.requestId,
+      t.dayOfWeek
+    ),
+    index("hrm_fwa_schedule_org_request_idx").on(
+      t.organizationId,
+      t.requestId
+    ),
+  ]
+)
+
+/**
  * Denormalised leave balance cache per (employee, leave type, year) (Phase 2B).
  * formula: available = opening + entitled + adjusted + carried_forward − taken − pending.
  * Recomputed from scratch on every leave request state change — idempotent.
@@ -5073,6 +5465,8 @@ export const hrmPayrollLine = pgTable(
       () => hrmSalaryAdvanceInstallment.id,
       { onDelete: "set null" }
     ),
+    /** Optional provenance when this earning line settles an approved bonus/incentive payout. */
+    bonusPayoutId: text("bonusPayoutId"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
@@ -5089,6 +5483,7 @@ export const hrmPayrollLine = pgTable(
     ),
     index("hrm_payroll_line_claim_id_idx").on(t.claimId),
     index("hrm_payroll_line_salary_advance_id_idx").on(t.salaryAdvanceId),
+    index("hrm_payroll_line_bonus_payout_id_idx").on(t.bonusPayoutId),
   ]
 )
 
@@ -5751,6 +6146,579 @@ export const hrmBenefitLifeEvent = pgTable(
   ]
 )
 
+// ---------------------------------------------------------------------------
+// Bonus & incentive management
+//
+// Plans define eligibility and formula policy. Cycles bind a plan to a payout
+// window. Payouts are the locked, approval-controlled rows exported into
+// payroll; payroll_line.bonusPayoutId preserves settlement provenance.
+//
+// Audit grammar: erp.hrm.bonus_incentive.{plan|cycle|assignment|target|payout|adjustment|clawback}.*
+// Approval subject kind: bonus_payout
+// ---------------------------------------------------------------------------
+
+export const hrmBonusPlan = pgTable(
+  "hrm_bonus_plan",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    planType: text("planType").notNull(),
+    payoutFormulaType: text("payoutFormulaType").notNull(),
+    payoutFormulaConfig: jsonb("payoutFormulaConfig")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    eligibilityRules: jsonb("eligibilityRules")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    targetType: text("targetType").notNull().default("individual"),
+    capAmount: decimal("capAmount", { precision: 15, scale: 2 }),
+    floorAmount: decimal("floorAmount", { precision: 15, scale: 2 }),
+    guaranteedAmount: decimal("guaranteedAmount", { precision: 15, scale: 2 }),
+    defaultCurrency: text("defaultCurrency").notNull().default("MYR"),
+    defaultPayrollLineCode: text("defaultPayrollLineCode")
+      .notNull()
+      .default("BONUS_INCENTIVE"),
+    accountingAllocation: jsonb("accountingAllocation").$type<
+      Record<string, unknown>
+    >(),
+    isActive: boolean("isActive").notNull().default(true),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_bonus_plan_org_code_uidx").on(t.organizationId, t.code),
+    index("hrm_bonus_plan_org_active_idx").on(t.organizationId, t.isActive),
+    index("hrm_bonus_plan_org_type_idx").on(t.organizationId, t.planType),
+  ]
+)
+
+export const hrmBonusCycle = pgTable(
+  "hrm_bonus_cycle",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    planId: text("planId")
+      .notNull()
+      .references(() => hrmBonusPlan.id, { onDelete: "restrict" }),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    periodStart: date("periodStart").notNull(),
+    periodEnd: date("periodEnd").notNull(),
+    cutoffDate: date("cutoffDate"),
+    approvalDate: date("approvalDate"),
+    payoutDate: date("payoutDate").notNull(),
+    payrollPeriodId: text("payrollPeriodId").references(
+      () => hrmPayrollPeriod.id,
+      { onDelete: "set null" }
+    ),
+    state: text("state").notNull().default("draft"),
+    calculationSnapshot: jsonb("calculationSnapshot").$type<
+      Record<string, unknown>
+    >(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_bonus_cycle_org_code_uidx").on(t.organizationId, t.code),
+    index("hrm_bonus_cycle_org_plan_idx").on(t.organizationId, t.planId),
+    index("hrm_bonus_cycle_org_state_idx").on(t.organizationId, t.state),
+    index("hrm_bonus_cycle_org_period_idx").on(
+      t.organizationId,
+      t.periodStart,
+      t.periodEnd
+    ),
+  ]
+)
+
+export const hrmBonusAssignment = pgTable(
+  "hrm_bonus_assignment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    planId: text("planId")
+      .notNull()
+      .references(() => hrmBonusPlan.id, { onDelete: "restrict" }),
+    cycleId: text("cycleId")
+      .notNull()
+      .references(() => hrmBonusCycle.id, { onDelete: "cascade" }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    eligibilityState: text("eligibilityState").notNull().default("eligible"),
+    eligibilitySnapshot: jsonb("eligibilitySnapshot").$type<
+      Record<string, unknown>
+    >(),
+    assignedByUserId: text("assignedByUserId"),
+    assignedAt: timestamp("assignedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_bonus_assignment_org_cycle_employee_uidx").on(
+      t.organizationId,
+      t.cycleId,
+      t.employeeId
+    ),
+    index("hrm_bonus_assignment_org_plan_idx").on(t.organizationId, t.planId),
+    index("hrm_bonus_assignment_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+  ]
+)
+
+export const hrmBonusTarget = pgTable(
+  "hrm_bonus_target",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    cycleId: text("cycleId")
+      .notNull()
+      .references(() => hrmBonusCycle.id, { onDelete: "cascade" }),
+    assignmentId: text("assignmentId").references(() => hrmBonusAssignment.id, {
+      onDelete: "cascade",
+    }),
+    employeeId: text("employeeId").references(() => hrmEmployee.id, {
+      onDelete: "restrict",
+    }),
+    targetScope: text("targetScope").notNull(),
+    targetMetric: text("targetMetric").notNull(),
+    targetValue: decimal("targetValue", { precision: 18, scale: 4 })
+      .notNull()
+      .default("0"),
+    actualValue: decimal("actualValue", { precision: 18, scale: 4 }),
+    achievementPercent: decimal("achievementPercent", {
+      precision: 9,
+      scale: 4,
+    }),
+    weight: decimal("weight", { precision: 9, scale: 4 }).default("1"),
+    sourceReference: text("sourceReference"),
+    enteredByUserId: text("enteredByUserId"),
+    enteredAt: timestamp("enteredAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_bonus_target_org_cycle_idx").on(t.organizationId, t.cycleId),
+    index("hrm_bonus_target_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_bonus_target_org_assignment_idx").on(
+      t.organizationId,
+      t.assignmentId
+    ),
+  ]
+)
+
+export const hrmBonusPayout = pgTable(
+  "hrm_bonus_payout",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    planId: text("planId")
+      .notNull()
+      .references(() => hrmBonusPlan.id, { onDelete: "restrict" }),
+    cycleId: text("cycleId")
+      .notNull()
+      .references(() => hrmBonusCycle.id, { onDelete: "restrict" }),
+    assignmentId: text("assignmentId").references(() => hrmBonusAssignment.id, {
+      onDelete: "set null",
+    }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    payoutNumber: text("payoutNumber"),
+    state: text("state").notNull().default("draft"),
+    targetAmount: decimal("targetAmount", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0"),
+    achievementPercent: decimal("achievementPercent", {
+      precision: 9,
+      scale: 4,
+    })
+      .notNull()
+      .default("0"),
+    calculatedAmount: decimal("calculatedAmount", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0"),
+    adjustedAmount: decimal("adjustedAmount", { precision: 15, scale: 2 }),
+    approvedAmount: decimal("approvedAmount", { precision: 15, scale: 2 }),
+    currency: text("currency").notNull().default("MYR"),
+    calculationSnapshot: jsonb("calculationSnapshot")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    validationFlags: jsonb("validationFlags")
+      .$type<Array<{ code: string; message: string }>>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    prorationFactor: decimal("prorationFactor", { precision: 9, scale: 6 })
+      .notNull()
+      .default("1"),
+    multiplierSnapshot:
+      jsonb("multiplierSnapshot").$type<Record<string, unknown>>(),
+    accountingAllocation: jsonb("accountingAllocation").$type<
+      Record<string, unknown>
+    >(),
+    currentApprovalId: text("currentApprovalId").references(
+      () => hrmApproval.id,
+      { onDelete: "set null" }
+    ),
+    payrollPeriodId: text("payrollPeriodId").references(
+      () => hrmPayrollPeriod.id,
+      { onDelete: "set null" }
+    ),
+    paidByPayrollLineId: text("paidByPayrollLineId"),
+    paidAt: timestamp("paidAt", { mode: "date" }),
+    lockedAt: timestamp("lockedAt", { mode: "date" }),
+    lockedByUserId: text("lockedByUserId"),
+    rejectionReason: text("rejectionReason"),
+    returnedReason: text("returnedReason"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_bonus_payout_org_number_uidx").on(
+      t.organizationId,
+      t.payoutNumber
+    ),
+    uniqueIndex("hrm_bonus_payout_org_cycle_employee_uidx").on(
+      t.organizationId,
+      t.cycleId,
+      t.employeeId
+    ),
+    index("hrm_bonus_payout_org_cycle_state_idx").on(
+      t.organizationId,
+      t.cycleId,
+      t.state
+    ),
+    index("hrm_bonus_payout_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_bonus_payout_org_payroll_period_idx").on(
+      t.organizationId,
+      t.payrollPeriodId
+    ),
+  ]
+)
+
+export const hrmBonusAdjustment = pgTable(
+  "hrm_bonus_adjustment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    payoutId: text("payoutId")
+      .notNull()
+      .references(() => hrmBonusPayout.id, { onDelete: "cascade" }),
+    adjustmentType: text("adjustmentType").notNull(),
+    amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+    currency: text("currency").notNull().default("MYR"),
+    reason: text("reason").notNull(),
+    approvalReference: text("approvalReference"),
+    adjustedByUserId: text("adjustedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_bonus_adjustment_org_payout_idx").on(
+      t.organizationId,
+      t.payoutId
+    ),
+  ]
+)
+
+export const hrmBonusClawback = pgTable(
+  "hrm_bonus_clawback",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    payoutId: text("payoutId")
+      .notNull()
+      .references(() => hrmBonusPayout.id, { onDelete: "restrict" }),
+    clawbackType: text("clawbackType").notNull(),
+    amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+    currency: text("currency").notNull().default("MYR"),
+    reason: text("reason").notNull(),
+    recoveryState: text("recoveryState").notNull().default("recorded"),
+    recoveryReference: text("recoveryReference"),
+    recordedByUserId: text("recordedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_bonus_clawback_org_payout_idx").on(t.organizationId, t.payoutId),
+    index("hrm_bonus_clawback_org_state_idx").on(
+      t.organizationId,
+      t.recoveryState
+    ),
+  ]
+)
+
+// ---------------------------------------------------------------------------
+// Salary benchmarking & surveys
+//
+// External survey references, benchmark rows, internal job mappings,
+// versioned analysis snapshots, and org-scoped audit history rows.
+//
+// Audit grammar: erp.hrm.salary_benchmarking.*
+// ---------------------------------------------------------------------------
+
+export const hrmSalaryBenchmarkSurvey = pgTable(
+  "hrm_salary_benchmark_survey",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    provider: text("provider").notNull(),
+    surveyYear: integer("surveyYear").notNull(),
+    surveyName: text("surveyName"),
+    industry: text("industry"),
+    companySizeSegment: text("companySizeSegment"),
+    revenueSegment: text("revenueSegment"),
+    countryCode: text("countryCode").notNull(),
+    location: text("location"),
+    currency: text("currency").notNull().default("MYR"),
+    effectiveDate: date("effectiveDate").notNull(),
+    sourceVersion: text("sourceVersion").notNull(),
+    confidenceLevel: decimal("confidenceLevel", { precision: 5, scale: 4 }),
+    uploadedByUserId: text("uploadedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_salary_benchmark_survey_org_year_idx").on(
+      t.organizationId,
+      t.surveyYear
+    ),
+    index("hrm_salary_benchmark_survey_org_provider_idx").on(
+      t.organizationId,
+      t.provider
+    ),
+    uniqueIndex("hrm_salary_benchmark_survey_org_version_uidx").on(
+      t.organizationId,
+      t.sourceVersion
+    ),
+  ]
+)
+
+export const hrmSalaryBenchmarkRow = pgTable(
+  "hrm_salary_benchmark_row",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    surveyId: text("surveyId")
+      .notNull()
+      .references(() => hrmSalaryBenchmarkSurvey.id, { onDelete: "cascade" }),
+    benchmarkVersion: text("benchmarkVersion").notNull(),
+    jobFamily: text("jobFamily").notNull(),
+    benchmarkJobCode: text("benchmarkJobCode").notNull(),
+    benchmarkJobTitle: text("benchmarkJobTitle").notNull(),
+    benchmarkLevel: text("benchmarkLevel").notNull(),
+    industry: text("industry"),
+    countryCode: text("countryCode").notNull(),
+    location: text("location"),
+    currency: text("currency").notNull().default("MYR"),
+    minimum: decimal("minimum", { precision: 15, scale: 2 }),
+    midpoint: decimal("midpoint", { precision: 15, scale: 2 }),
+    median: decimal("median", { precision: 15, scale: 2 }),
+    average: decimal("average", { precision: 15, scale: 2 }),
+    maximum: decimal("maximum", { precision: 15, scale: 2 }),
+    p25: decimal("p25", { precision: 15, scale: 2 }),
+    p50: decimal("p50", { precision: 15, scale: 2 }),
+    p75: decimal("p75", { precision: 15, scale: 2 }),
+    p90: decimal("p90", { precision: 15, scale: 2 }),
+    sampleSize: integer("sampleSize"),
+    effectiveDate: date("effectiveDate").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_salary_benchmark_row_org_survey_idx").on(
+      t.organizationId,
+      t.surveyId
+    ),
+    index("hrm_salary_benchmark_row_org_version_idx").on(
+      t.organizationId,
+      t.benchmarkVersion
+    ),
+    uniqueIndex("hrm_salary_benchmark_row_org_survey_job_uidx").on(
+      t.organizationId,
+      t.surveyId,
+      t.benchmarkJobCode,
+      t.benchmarkLevel
+    ),
+  ]
+)
+
+export const hrmSalaryBenchmarkMapping = pgTable(
+  "hrm_salary_benchmark_mapping",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    benchmarkId: text("benchmarkId")
+      .notNull()
+      .references(() => hrmSalaryBenchmarkRow.id, { onDelete: "cascade" }),
+    internalJobId: text("internalJobId").notNull(),
+    internalJobTitle: text("internalJobTitle").notNull(),
+    internalJobFamily: text("internalJobFamily").notNull(),
+    internalGrade: text("internalGrade").notNull(),
+    legalEntityCode: text("legalEntityCode"),
+    countryCode: text("countryCode").notNull(),
+    location: text("location"),
+    employmentCategory: text("employmentCategory"),
+    state: text("state").notNull().default("draft"),
+    approvedByUserId: text("approvedByUserId"),
+    approvedAt: timestamp("approvedAt", { mode: "date" }),
+    sourceVersion: text("sourceVersion").notNull(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_salary_benchmark_mapping_org_benchmark_idx").on(
+      t.organizationId,
+      t.benchmarkId
+    ),
+    index("hrm_salary_benchmark_mapping_org_state_idx").on(
+      t.organizationId,
+      t.state
+    ),
+    uniqueIndex("hrm_salary_benchmark_mapping_org_job_uidx").on(
+      t.organizationId,
+      t.benchmarkId,
+      t.internalJobId
+    ),
+  ]
+)
+
+export const hrmSalaryBenchmarkAnalysisSnapshot = pgTable(
+  "hrm_salary_benchmark_analysis_snapshot",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    benchmarkId: text("benchmarkId")
+      .notNull()
+      .references(() => hrmSalaryBenchmarkRow.id, { onDelete: "restrict" }),
+    mappingId: text("mappingId").references(
+      () => hrmSalaryBenchmarkMapping.id,
+      {
+        onDelete: "set null",
+      }
+    ),
+    analysisVersion: text("analysisVersion").notNull(),
+    compensationScope: text("compensationScope")
+      .notNull()
+      .default("base_salary"),
+    thresholds: jsonb("thresholds")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    result: jsonb("result")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    currencyConversionReference: text("currencyConversionReference"),
+    recommendationHandoffState: text("recommendationHandoffState")
+      .notNull()
+      .default("none"),
+    recommendationHandoffAt: timestamp("recommendationHandoffAt", {
+      mode: "date",
+    }),
+    generatedByUserId: text("generatedByUserId"),
+    generatedAt: timestamp("generatedAt", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_salary_benchmark_analysis_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    index("hrm_salary_benchmark_analysis_org_version_idx").on(
+      t.organizationId,
+      t.analysisVersion
+    ),
+    uniqueIndex("hrm_salary_benchmark_analysis_org_employee_version_uidx").on(
+      t.organizationId,
+      t.employeeId,
+      t.analysisVersion,
+      t.compensationScope
+    ),
+  ]
+)
+
+export const hrmSalaryBenchmarkAuditHistory = pgTable(
+  "hrm_salary_benchmark_audit_history",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    action: text("action").notNull(),
+    resourceType: text("resourceType").notNull(),
+    resourceId: text("resourceId").notNull(),
+    actorUserId: text("actorUserId"),
+    snapshotVersion: text("snapshotVersion"),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_salary_benchmark_audit_org_created_idx").on(
+      t.organizationId,
+      t.createdAt
+    ),
+    index("hrm_salary_benchmark_audit_org_resource_idx").on(
+      t.organizationId,
+      t.resourceType,
+      t.resourceId
+    ),
+  ]
+)
+
 /** Global registry of composite payroll rule-pack versions.
  *  No organizationId — global across all tenants.
  *  The actual rule code lives in TypeScript files under
@@ -6397,7 +7365,7 @@ export const railPinnedItem = pgTable(
 /**
  * Per-user saved view shown in the rail's `views` slot. The `href` is a
  * filtered URL inside the workbench (e.g.
- * `/o/acme/dashboard/hrm/employees?status=active&grade=L3`).
+ * `/o/acme/apps/hrm/employees?status=active&grade=L3`).
  */
 export const railSavedView = pgTable(
   "rail_saved_view",

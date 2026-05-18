@@ -18,14 +18,15 @@ import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 import { GovernedSurface } from "#features/governed-surface"
 
 import { Link } from "#i18n/navigation"
-import { requireOrgSession } from "#lib/auth"
+import { organizationAccountPath } from "#lib/org-apps-module-paths"
+import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminSettingsPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/admin/settings">) {
   const { orgSlug } = await params
   const t = await getTranslations("OrgAdmin.settings")
-  const orgSession = await requireOrgSession()
+  const orgSession = await getOrgTenantContext()
 
   // Working Memory Rail — record this page in the operator's recents.
   await recordOrgAdminPageVisit({
@@ -51,13 +52,13 @@ export default async function OrgAdminSettingsPage({
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             <Link
-              href={"/account/security" as Route}
+              href={organizationAccountPath(orgSlug, "security") as Route}
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
               {t("securityCenter")}
             </Link>
             <Link
-              href={"/account/identity" as Route}
+              href={organizationAccountPath(orgSlug, "identity") as Route}
               className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             >
               {t("identity")}

@@ -11,7 +11,7 @@ import {
   hrmClaimDuplicateSignal,
   hrmClaimEvidence,
 } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { toLocalePortalRevalidatePattern } from "#lib/portal"
 
 import { and, eq } from "drizzle-orm"
@@ -54,7 +54,7 @@ import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.
 import { withPortalMutationSpan } from "../../../employee-management/employee-selfservice-portal/data/portal-mutation-tracing.server"
 
 export function revalidateClaims() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/claims"), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/claims"), "layout")
   revalidatePath(toLocalePortalRevalidatePattern("/employee/claims"), "page")
 }
 

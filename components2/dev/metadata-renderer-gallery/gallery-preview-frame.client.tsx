@@ -2,13 +2,19 @@
 
 import { useState } from "react"
 
-import type { GovernedComponent } from "#features/governed-surface"
-import { governedComponentDiscriminatedSchema } from "#features/governed-surface/schemas/component.schema"
+import {
+  governedComponentDiscriminatedSchema,
+  type GovernedComponent,
+  type GovernedKanbanBoardConfigurationInput,
+} from "#features/governed-surface/client"
 import { GovernedComponentRenderer } from "#components2/metadata"
 import type { GovernedComponentRendererDiagnostics } from "#components2/metadata/registry"
 import { Button } from "#components2/ui/button"
 
 import { GalleryFixtureEditor } from "./gallery-fixture-editor.client"
+import { GalleryKanbanDragPreview } from "./gallery-kanban-drag-preview.client"
+import { GalleryKanbanFooterPreview } from "./gallery-kanban-footer-preview.client"
+import type { GalleryPreviewMode } from "./gallery-scenarios"
 
 const WIDTH_PRESETS = [
   { id: "full", label: "Full", px: undefined as number | undefined },
@@ -25,6 +31,7 @@ export type GalleryPreviewFrameProps = {
   minWidthPx?: number
   component: GovernedComponent
   defaultDiagnostics?: GovernedComponentRendererDiagnostics
+  previewMode?: GalleryPreviewMode
 }
 
 export function GalleryPreviewFrame({
@@ -34,6 +41,7 @@ export function GalleryPreviewFrame({
   minWidthPx,
   component,
   defaultDiagnostics = "user",
+  previewMode = "default",
 }: GalleryPreviewFrameProps) {
   const [widthPx, setWidthPx] = useState<number | undefined>(minWidthPx ?? 480)
   const [diagnostics, setDiagnostics] =
@@ -62,11 +70,27 @@ export function GalleryPreviewFrame({
         className="rounded-2xl border border-border/60 bg-card/40 p-4"
         style={widthPx != null ? { maxWidth: widthPx } : undefined}
       >
-        <GovernedComponentRenderer
-          component={component}
-          diagnostics={diagnostics}
-          surfaceKey={`gallery:${scenarioId}`}
-        />
+        {previewMode === "kanban-footer-actions" ? (
+          <GalleryKanbanFooterPreview
+            configuration={
+              component.configuration as GovernedKanbanBoardConfigurationInput
+            }
+            diagnostics={diagnostics}
+          />
+        ) : previewMode === "kanban-drag-reorder" ? (
+          <GalleryKanbanDragPreview
+            configuration={
+              component.configuration as GovernedKanbanBoardConfigurationInput
+            }
+            diagnostics={diagnostics}
+          />
+        ) : (
+          <GovernedComponentRenderer
+            component={component}
+            diagnostics={diagnostics}
+            surfaceKey={`gallery:${scenarioId}`}
+          />
+        )}
       </div>
       {showPlayground ? (
         <GalleryFixtureEditor

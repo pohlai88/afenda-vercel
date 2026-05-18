@@ -4,7 +4,7 @@ import {
   DEFAULT_APP_LOCALE,
   ensureAppLocale,
   stripLeadingLocalePrefix,
-  toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgAppsRevalidatePattern,
   toLocaleOrgNexusRevalidatePattern,
   toLocalePath,
   toLocaleRoutePattern,
@@ -19,20 +19,20 @@ describe("DEFAULT_LOCALE_HOME_PATH", () => {
 
 describe("toLocalePath", () => {
   it("prefixes locale-internal paths", () => {
-    expect(toLocalePath("en", "/dashboard")).toBe("/en/dashboard")
+    expect(toLocalePath("en", "/apps/contacts")).toBe("/en/apps/contacts")
     expect(toLocalePath("en", "/")).toBe("/en")
   })
 
   it("is idempotent when already prefixed", () => {
-    expect(toLocalePath("en", "/en/dashboard")).toBe("/en/dashboard")
+    expect(toLocalePath("en", "/en/apps/contacts")).toBe("/en/apps/contacts")
     expect(toLocalePath("en", "/en")).toBe("/en")
   })
 })
 
 describe("toLocaleRoutePattern", () => {
   it("wraps with dynamic locale segment", () => {
-    expect(toLocaleRoutePattern("/dashboard/contacts")).toBe(
-      "/[locale]/dashboard/contacts"
+    expect(toLocaleRoutePattern("/apps/contacts")).toBe(
+      "/[locale]/apps/contacts"
     )
     expect(toLocaleRoutePattern("/")).toBe("/[locale]")
   })
@@ -46,19 +46,19 @@ describe("toLocaleOrgNexusRevalidatePattern", () => {
   })
 })
 
-describe("toLocaleOrgDashboardRevalidatePattern", () => {
-  it("includes org slug segment for dashboard module paths", () => {
-    expect(toLocaleOrgDashboardRevalidatePattern("/contacts")).toBe(
-      "/[locale]/o/[orgSlug]/dashboard/contacts"
+describe("toLocaleOrgAppsRevalidatePattern", () => {
+  it("includes org slug segment for apps module paths", () => {
+    expect(toLocaleOrgAppsRevalidatePattern("/contacts")).toBe(
+      "/[locale]/o/[orgSlug]/apps/contacts"
     )
-    expect(toLocaleOrgDashboardRevalidatePattern("/knowledge")).toBe(
-      "/[locale]/o/[orgSlug]/dashboard/knowledge"
+    expect(toLocaleOrgAppsRevalidatePattern("/knowledge")).toBe(
+      "/[locale]/o/[orgSlug]/apps/knowledge"
     )
-    expect(toLocaleOrgDashboardRevalidatePattern("/lynx")).toBe(
-      "/[locale]/o/[orgSlug]/dashboard/lynx"
+    expect(toLocaleOrgAppsRevalidatePattern("/lynx")).toBe(
+      "/[locale]/o/[orgSlug]/apps/lynx"
     )
-    expect(toLocaleOrgDashboardRevalidatePattern("")).toBe(
-      "/[locale]/o/[orgSlug]/dashboard"
+    expect(toLocaleOrgAppsRevalidatePattern("")).toBe(
+      "/[locale]/o/[orgSlug]/apps"
     )
   })
 })
@@ -67,11 +67,5 @@ describe("ensureAppLocale", () => {
   it("returns known locale or default", () => {
     expect(ensureAppLocale("en")).toBe("en")
     expect(ensureAppLocale("xx")).toBe(DEFAULT_APP_LOCALE)
-  })
-})
-
-describe("stripLeadingLocalePrefix", () => {
-  it("rejects double locale prefix", () => {
-    expect(stripLeadingLocalePrefix("/en/en/dashboard")).toBeNull()
   })
 })

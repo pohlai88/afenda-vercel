@@ -6,13 +6,13 @@ import { and, eq } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import {
-  ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL,
-  ORG_DASHBOARD_HRM_EMPLOYEES,
-  ORG_DASHBOARD_HRM_ONBOARDING,
-} from "#lib/dashboard-module-paths"
+  ORG_APPS_HRM_EMPLOYEE_DETAIL,
+  ORG_APPS_HRM_EMPLOYEES,
+  ORG_APPS_HRM_ONBOARDING,
+} from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import { hrmEmploymentContract } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { completeOnboardingStepFormSchema } from "../schemas/onboarding.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
@@ -22,15 +22,15 @@ import { HRM_EMPLOYEE_LIFECYCLE_AUDIT } from "../employee-lifecycle.contract"
 
 function revalidateOnboardingSurfaces() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_ONBOARDING),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_ONBOARDING),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEES),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
 }

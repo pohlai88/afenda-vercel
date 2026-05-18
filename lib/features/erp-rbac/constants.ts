@@ -170,9 +170,27 @@ export const ERP_PERMISSION_REGISTRY = [
   }),
   ...buildPermissionSet({
     module: "hrm",
+    object: "flexible_work",
+    label: "HRM flexible work",
+    sensitivity: "sensitive",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
     object: "benefit",
     label: "HRM benefits",
     sensitivity: "sensitive",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
+    object: "bonus_incentive",
+    label: "HRM bonus & incentive",
+    sensitivity: "restricted",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
+    object: "salary_benchmarking",
+    label: "HRM salary benchmarking",
+    sensitivity: "restricted",
   }),
   ...buildPermissionSet({
     module: "hrm",

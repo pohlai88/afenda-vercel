@@ -1,11 +1,16 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedPatternCListSection } from "#features/governed-surface"
+import {
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
+import { organizationHrmPath } from "../../../constants"
 import { buildLeaveTypesPolicyListSurfaceConfiguration } from "../data/leave-policy-list-surface.server"
 import { isHrmLeaveAccrualMethod } from "../data/leave-policy-display.shared"
 import {
@@ -91,7 +96,8 @@ export async function PoliciesLeaveTypesSection({
       carryForwardExpiry: (months) =>
         t("leaveTypes.carryForwardExpiry", { months }),
       carryForwardNone: t("leaveTypes.carryForwardNone"),
-    }
+    },
+    { canUpdate: isAdmin }
   )
 
   const rowById = new Map(visibleRows.map((row) => [row.id, row]))
@@ -133,8 +139,21 @@ export async function PoliciesLeaveTypesSection({
               header: t("leaveTypes.colActions"),
               render: (surfaceRow) => {
                 const row = rowById.get(surfaceRow.id)
-                if (!row) return null
-                return <LeaveTypeEditDialog row={row} />
+                if (
+                  !row ||
+                  !isListSurfaceTrailingActionRenderable(
+                    surfaceRow.trailingAction
+                  )
+                ) {
+                  return null
+                }
+                return (
+                  <GovernedTrailingActionSlot
+                    trailingAction={surfaceRow.trailingAction}
+                  >
+                    <LeaveTypeEditDialog row={row} />
+                  </GovernedTrailingActionSlot>
+                )
               },
             }
           : undefined
@@ -163,7 +182,7 @@ function ArchiveToggleLink({
   if (!includeArchived) {
     params.set("includeArchived", "true")
   }
-  const href = `/o/${orgSlug}/dashboard/hrm/policies?${params.toString()}`
+  const href = `${organizationHrmPath(orgSlug, "policies")}?${params.toString()}`
   const wrapperClass =
     alignment === "center" ? "flex justify-center" : "flex justify-end"
 

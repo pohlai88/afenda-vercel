@@ -1,6 +1,18 @@
 {
   "version": 1,
   "skills": {
+    "codebase-cleanup-refactor-clean": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/codebase-cleanup-refactor-clean/SKILL.md",
+      "computedHash": "b474e6e47f76ca5fe6537bba30e9a062e6317caf41c239030d766c0e48d33763"
+    },
+    "dead-code": {
+      "source": "parcadei/continuous-claude-v3",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/dead-code/SKILL.md",
+      "computedHash": "a8d4f025ee6e04d925e56835c19de1446b4d7ead8e5dfe230e5d54d34a9531ec"
+    },
     "dry": {
       "source": "jordancoin/codingskills",
       "sourceType": "github",
@@ -18,6 +30,12 @@
       "sourceType": "github",
       "skillPath": ".claude/skills/kiss-dry-yagni/SKILL.md",
       "computedHash": "fe64fd54720d364789122510b794ee3f87cdd209fc8c38c91d0eac5ba148b54a"
+    },
+    "knip-deadcode": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "skillPath": "skills/.experimental/knip-deadcode/SKILL.md",
+      "computedHash": "09879fec7939329934ef2fc383a8d734b53e6500e8d7f5fd7fdad03becd51ad8"
     },
     "shadcn": {
       "source": "shadcn/ui",

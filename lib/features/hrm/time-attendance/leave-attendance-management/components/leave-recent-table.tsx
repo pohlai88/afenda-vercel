@@ -1,6 +1,10 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedPatternCListSection } from "#features/governed-surface"
+import {
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
@@ -97,11 +101,21 @@ export async function LeaveRecentTable({ isAdmin }: { isAdmin: boolean }) {
               header: t("colActions"),
               render: (surfaceRow) => {
                 const row = rowById.get(surfaceRow.id)
-                if (!row) return null
-                if (row.state !== "approved" && row.state !== "submitted") {
+                if (
+                  !row ||
+                  !isListSurfaceTrailingActionRenderable(
+                    surfaceRow.trailingAction
+                  )
+                ) {
                   return null
                 }
-                return <LeaveCancelButton requestId={row.id} />
+                return (
+                  <GovernedTrailingActionSlot
+                    trailingAction={surfaceRow.trailingAction}
+                  >
+                    <LeaveCancelButton requestId={row.id} />
+                  </GovernedTrailingActionSlot>
+                )
               },
             }
           : undefined

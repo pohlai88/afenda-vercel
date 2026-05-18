@@ -12,7 +12,7 @@ describe("proxy-protected-paths.shared", () => {
       expect(isProtectedLocaleInternalPath("/o")).toBe(true)
       expect(isProtectedLocaleInternalPath("/o/acme")).toBe(true)
       expect(isProtectedLocaleInternalPath("/o/acme/dashboard")).toBe(true)
-      expect(isProtectedLocaleInternalPath("/o/acme/dashboard/contacts")).toBe(
+      expect(isProtectedLocaleInternalPath("/o/acme/apps/contacts")).toBe(
         true
       )
     })
@@ -32,7 +32,8 @@ describe("proxy-protected-paths.shared", () => {
       expect(isProtectedLocaleInternalPath("/accept-invitation")).toBe(true)
     })
 
-    it("protects operator console", () => {
+    it("protects platform console and legacy operator bookmarks", () => {
+      expect(isProtectedLocaleInternalPath("/platform/users")).toBe(true)
       expect(isProtectedLocaleInternalPath("/operator/users")).toBe(true)
     })
 

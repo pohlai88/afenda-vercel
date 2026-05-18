@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   listOrgScopePolicies,
@@ -76,6 +76,6 @@ export async function setOrgScopePolicyAction(
     },
   })
 
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern(""), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(""), "layout")
   return { ok: true }
 }

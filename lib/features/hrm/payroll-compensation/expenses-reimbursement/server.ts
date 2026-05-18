@@ -32,7 +32,6 @@ export { buildClaimRecentListSurfaceConfiguration } from "./data/claim-recent-li
 export { buildClaimPendingListSurfaceConfiguration } from "./data/claim-pending-list-surface.server"
 export { buildClaimExceptionListSurfaceConfiguration } from "./data/claim-exception-list-surface.server"
 export { listDuplicateSignalsForClaim } from "./data/claim-duplicate.queries.server"
-export { buildClaimPortalListSurfaceConfiguration } from "./data/claim-portal-list-surface.server"
 export { evaluateClaimSubmission } from "./data/claim-evaluation.server"
 export {
   buildClaimEmployeeEligibilityProjection,

@@ -49,6 +49,7 @@ export function MetadataRendererGalleryContent() {
             minWidthPx={scenario.minWidthPx}
             component={scenario.component}
             defaultDiagnostics={scenario.diagnostics}
+            previewMode={scenario.previewMode}
           />
         ))}
       </div>

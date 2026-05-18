@@ -18,7 +18,7 @@ import {
   PLATFORM_ADMIN_USERS_SEARCH_MAX_LENGTH,
   getPlatformAdminCapabilityById,
   isAllowedPlatformAdminSegment,
-  platformAdminPath,
+  platformPath,
 } from "#features/platform-admin/constants"
 import { PLATFORM_ADMIN_NAV_NAMESPACE } from "#features/platform-admin/types"
 
@@ -99,7 +99,7 @@ describe("PLATFORM_ADMIN_ALLOWED_SEGMENTS", () => {
     expect(isAllowedPlatformAdminSegment("")).toBe(false)
   })
 
-  it("has a route page for every registered org-scoped operator segment", () => {
+  it("has a route page for every registered platform segment", () => {
     for (const segment of PLATFORM_ADMIN_ALLOWED_SEGMENTS) {
       expect(
         existsSync(
@@ -108,14 +108,22 @@ describe("PLATFORM_ADMIN_ALLOWED_SEGMENTS", () => {
             "app",
             "(main)",
             "[locale]",
-            "operator",
+            "platform",
             segment,
             "page.tsx"
           )
         ),
-        `missing operator route for ${segment}`
+        `missing platform route for ${segment}`
       ).toBe(true)
     }
+  })
+
+  it("does not ship App Router operator trees (legacy URLs use next.config 308)", () => {
+    const localeRoot = join(process.cwd(), "app", "(main)", "[locale]")
+    expect(existsSync(join(localeRoot, "operator"))).toBe(false)
+    expect(
+      existsSync(join(localeRoot, "o", "[orgSlug]", "operator"))
+    ).toBe(false)
   })
 })
 
@@ -129,11 +137,11 @@ describe("PLATFORM_ADMIN_NAV_ITEMS", () => {
     expect([...orders].sort((a, b) => a - b)).toEqual(orders)
   })
 
-  it("each nav item href matches platformAdminPath(primarySegment)", () => {
+  it("each nav item href matches platformPath(primarySegment)", () => {
     for (const item of PLATFORM_ADMIN_NAV_ITEMS) {
       const capability = getPlatformAdminCapabilityById(item.capabilityId)
       expect(capability?.nav).not.toBeNull()
-      const expected = platformAdminPath(capability!.nav!.primarySegment)
+      const expected = platformPath(capability!.nav!.primarySegment)
       expect(item.href).toBe(expected)
     }
   })
@@ -160,19 +168,19 @@ describe("PLATFORM_ADMIN_NAV_ITEMS", () => {
   })
 })
 
-describe("platformAdminPath", () => {
-  it("returns /operator without arguments", () => {
-    expect(platformAdminPath()).toBe("/operator")
+describe("platformPath", () => {
+  it("returns /platform without arguments", () => {
+    expect(platformPath()).toBe("/platform")
   })
 
-  it("returns /operator/{segment} for a non-empty segment", () => {
-    expect(platformAdminPath("users")).toBe("/operator/users")
-    expect(platformAdminPath("organizations")).toBe("/operator/organizations")
+  it("returns /platform/{segment} for a non-empty segment", () => {
+    expect(platformPath("users")).toBe("/platform/users")
+    expect(platformPath("organizations")).toBe("/platform/organizations")
   })
 
   it("strips leading slashes from the segment", () => {
-    expect(platformAdminPath("/users")).toBe("/operator/users")
-    expect(platformAdminPath("///nested")).toBe("/operator/nested")
+    expect(platformPath("/users")).toBe("/platform/users")
+    expect(platformPath("///nested")).toBe("/platform/nested")
   })
 })
 

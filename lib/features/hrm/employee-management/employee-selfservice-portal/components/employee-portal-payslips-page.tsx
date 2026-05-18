@@ -16,7 +16,7 @@ import {
   type PayslipListRowInput,
 } from "../data/payslip-surface-builders.server"
 
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalPayslipsPageProps = {
@@ -106,9 +106,12 @@ export async function EmployeePortalPayslipsPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <EmployeePortalGovernedTable
-            configuration={listConfiguration}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={listConfiguration}
             surfaceKey="hrm:portal:payslips"
+            resolveConfiguredPermission={false}
           />
         </CardContent>
       </Card>

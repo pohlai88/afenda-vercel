@@ -1,1 +1,1 @@
-export { ORG_DASHBOARD_PURCHASE } from "#lib/dashboard-module-paths"
+export { ORG_APPS_PURCHASE } from "#lib/org-apps-module-paths"

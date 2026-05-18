@@ -15,6 +15,8 @@ alwaysApply: false
 
 `components2/app-shell/` is the **replacement shell** for new route wiring. Import via `#app-shell`.
 
+**Org ERP modules** mount under `/o/{orgSlug}/apps/{module}` (ADR-0029). One `AppShell` at `o/[orgSlug]/layout.tsx` only — no `apps/layout.tsx` utility bar. `AppSubLayout` only on modules with a secondary rail (HRM, admin).
+
 Shell-level **React providers** live in **`components2/providers/`** (sibling of `app-shell/`, not nested under it). Shell-level **Zustand stores** live in **`components2/stores/`** (same). The `#app-shell` barrel still re-exports `useAppShellStore` for a single public door.
 
 ### Public exports

@@ -1,6 +1,9 @@
 import "server-only"
 
-import type { ListSurfaceRendererConfiguration } from "#features/governed-surface"
+import {
+  GOVERNED_METADATA_SCHEMA_VERSION,
+  type ListSurfaceRendererConfigurationInput,
+} from "#features/governed-surface"
 
 import type { OrgTimeReportRow } from "./time-report.queries.server"
 
@@ -9,6 +12,17 @@ import {
   formatTimeReportEmployeeCell,
 } from "./time-report-list-surface-rows.shared"
 import { TIME_REPORT_LIST_SURFACE_IDS } from "./time-report-surface-metadata.shared"
+
+const TIME_REPORT_READ_PERMISSION = {
+  module: "hrm" as const,
+  object: "attendance" as const,
+  function: "read" as const,
+}
+
+const PRESENTATION = {
+  variant: "table-only" as const,
+  tableDensity: "compact" as const,
+}
 
 function listSurfaceHeader(columnsId: string) {
   return { title: columnsId }
@@ -39,11 +53,13 @@ type TimeReportRecentListCopy = {
 export function buildTimeReportPendingListSurfaceConfiguration(
   rows: readonly OrgTimeReportRow[],
   copy: TimeReportPendingListCopy
-): ListSurfaceRendererConfiguration {
-  const columnsId =
-    copy.columnsId ?? TIME_REPORT_LIST_SURFACE_IDS.pendingInbox
+): ListSurfaceRendererConfigurationInput {
+  const columnsId = copy.columnsId ?? TIME_REPORT_LIST_SURFACE_IDS.pendingInbox
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
+    requiresErpPermission: TIME_REPORT_READ_PERMISSION,
+    presentation: PRESENTATION,
     surface: {
       header: listSurfaceHeader(columnsId),
       columnsId,
@@ -79,10 +95,13 @@ export function buildTimeReportPendingListSurfaceConfiguration(
 export function buildTimeReportRecentListSurfaceConfiguration(
   rows: readonly OrgTimeReportRow[],
   copy: TimeReportRecentListCopy
-): ListSurfaceRendererConfiguration {
+): ListSurfaceRendererConfigurationInput {
   const columnsId = copy.columnsId ?? TIME_REPORT_LIST_SURFACE_IDS.recent
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
+    requiresErpPermission: TIME_REPORT_READ_PERMISSION,
+    presentation: PRESENTATION,
     surface: {
       header: listSurfaceHeader(columnsId),
       columnsId,

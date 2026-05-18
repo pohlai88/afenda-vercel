@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/auth"
 import {
   deleteUserOperationalScope,
@@ -59,7 +59,7 @@ export async function pinScopeAction(
     },
   })
 
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern(""), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(""), "layout")
   return { ok: true }
 }
 
@@ -99,7 +99,7 @@ export async function unpinScopeAction(
     },
   })
 
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern(""), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(""), "layout")
   return { ok: true }
 }
 
@@ -146,6 +146,6 @@ export async function setUserScopeSelectionAction(
     },
   })
 
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern(""), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(""), "layout")
   return { ok: true }
 }

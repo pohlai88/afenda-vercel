@@ -4,7 +4,7 @@ import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { HRM_BENEFIT_AUDIT } from "../benefit.contract"
 import {
@@ -22,7 +22,7 @@ import type { BenefitPlanMutationFormState } from "../../../types"
 
 function revalidateBenefits() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/benefits"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/benefits"),
     "layout"
   )
 }

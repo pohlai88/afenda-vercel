@@ -30,3 +30,19 @@ export {
   parseAllowanceLineInputsFromForm,
   tryBuildAnnexSlotsFromForm,
 } from "./schema/contract-compensation.shared"
+
+export {
+  deriveCompensationRecommendationModel,
+  evaluateCompensationEligibility,
+  hrmCompensationBudgetPoolScopeSchema,
+  hrmCompensationEligibilityEmployeeSchema,
+  hrmCompensationEligibilityRulesSchema,
+  hrmCompensationRecommendationModelInputSchema,
+  hrmCompensationSalaryStructureReferenceSchema,
+} from "./schema/compensation-planning.shared"
+
+export type {
+  HrmCompensationEligibilityResult,
+  HrmCompensationRecommendationModel,
+  HrmCompensationRecommendationModelInput,
+} from "./schema/compensation-planning.shared"

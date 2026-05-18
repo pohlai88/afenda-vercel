@@ -5,9 +5,9 @@ import { revalidatePath } from "next/cache"
 import { and, eq, isNull, ne } from "drizzle-orm"
 
 import {
-  ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL,
-  ORG_DASHBOARD_HRM_EMPLOYEES,
-} from "#lib/dashboard-module-paths"
+  ORG_APPS_HRM_EMPLOYEE_DETAIL,
+  ORG_APPS_HRM_EMPLOYEES,
+} from "#lib/org-apps-module-paths"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import {
@@ -21,7 +21,7 @@ import {
   hrmPayrollProfile,
 } from "#lib/db/schema"
 import { neonAuthMember } from "#lib/db/schema-neon-auth"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import {
   buildEmployeeMasterChangeRows,
@@ -164,11 +164,11 @@ async function requireEmployeeMasterMutationGate(formData: FormData): Promise<
 
 function revalidateEmployeeMaster(): void {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEES),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
 }

@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 
 import { AppSubLayoutShellSkeleton } from "#app-shell"
-import { ensureAppLocale } from "#lib/i18n/locales.shared"
-import { requireOrgSession } from "#lib/auth"
+import { bindRequestLocale } from "#lib/i18n/bind-request-locale.server"
+import { getOrgTenantContext } from "#lib/auth"
 
 import { generateAccountOverviewMetadata } from "../../../(iam)/account/account-metadata"
 import { OrgAccountDeferredShell } from "./_components/org-account-deferred-shell"
@@ -46,8 +46,8 @@ async function OrganizationAccountLayoutInner({
   params: Promise<{ locale: string; orgSlug: string }>
 }) {
   const { locale: localeRaw, orgSlug } = await params
-  const locale = ensureAppLocale(localeRaw)
-  const session = await requireOrgSession()
+  const locale = bindRequestLocale(localeRaw)
+  const session = await getOrgTenantContext()
 
   return (
     <OrgAccountDeferredShell

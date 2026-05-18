@@ -1,7 +1,7 @@
 export {
-  organizationDashboardPath,
-  ORG_DASHBOARD_CONTACTS,
-} from "#lib/dashboard-module-paths"
+  organizationAppsPath,
+  ORG_APPS_CONTACTS,
+} from "#lib/org-apps-module-paths"
 
 // ---------------------------------------------------------------------------
 // Contact avatar helpers — deterministic initials + semantic color bucket.

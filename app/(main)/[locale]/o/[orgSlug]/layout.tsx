@@ -7,8 +7,8 @@ import { AppShell, buildAppShellOrgUtilityBarSlots } from "#app-shell"
 import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
-import { localePrefixedOrgDashboardRedirect } from "#lib/i18n/dashboard-org-redirect.server"
-import { ensureAppLocale } from "#lib/i18n/locales.shared"
+import { localePrefixedOrgAppsRedirect } from "#lib/i18n/org-apps-redirect.server"
+import { bindRequestLocale } from "#lib/i18n/bind-request-locale.server"
 import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 import {
   getOrganizationIdBySlug,
@@ -41,7 +41,7 @@ async function OrgSlugLayoutInner({
   params,
 }: LayoutProps<"/[locale]/o/[orgSlug]">) {
   const { locale: localeRaw, orgSlug: orgSlugRaw } = await params
-  const locale = ensureAppLocale(localeRaw)
+  const locale = bindRequestLocale(localeRaw)
   const orgSlug = normalizeOrgSlugParam(orgSlugRaw)
   if (!orgSlug) {
     return <OrgSlugUnavailable />
@@ -61,7 +61,7 @@ async function OrgSlugLayoutInner({
     if (!canonicalSlug) {
       return <OrgSlugUnavailable />
     }
-    const target = await localePrefixedOrgDashboardRedirect(
+    const target = await localePrefixedOrgAppsRedirect(
       locale,
       canonicalSlug
     )

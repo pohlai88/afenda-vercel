@@ -8,7 +8,6 @@ import type { Route } from "next"
 import { Link } from "#i18n/navigation"
 import { ModulePageHeader } from "#features/governed-surface"
 import { Badge } from "#components2/ui/badge"
-import { Button } from "#components2/ui/button"
 import {
   Card,
   CardContent,
@@ -16,14 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
 import { requireOrgSession } from "#lib/auth"
 
 import {
@@ -38,6 +29,7 @@ import {
 import type { ClaimStateValue } from "../data/claim-helpers.shared"
 
 import { ClaimDecisionForms } from "./claim-decision-form"
+import { ClaimDetailEvidenceSection } from "./claim-detail-evidence-section"
 
 type ClaimDetailPageProps = {
   orgSlug: string
@@ -187,47 +179,12 @@ export async function ClaimDetailPage({
           <CardDescription>{t("detailEvidenceDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {evidence.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {(claim.policyEvidenceRequired ?? claim.requiresEvidence)
-                ? t("detailEvidenceRequiredEmpty")
-                : t("detailEvidenceEmpty")}
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("detailEvidenceDocument")}</TableHead>
-                  <TableHead>{t("detailEvidenceType")}</TableHead>
-                  <TableHead>{t("detailEvidenceUploaded")}</TableHead>
-                  <TableHead>{t("detailEvidenceSize")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {evidence.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>
-                      <Button asChild variant="link" className="h-auto p-0">
-                        <a href={row.documentBlobUrl}>{row.documentTitle}</a>
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{row.evidenceType}</Badge>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {format.dateTime(row.uploadedAt, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {format.number(row.documentSizeBytes)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <ClaimDetailEvidenceSection
+            evidence={evidence}
+            emptyWhenRequired={
+              claim.policyEvidenceRequired ?? claim.requiresEvidence
+            }
+          />
         </CardContent>
       </Card>
     </div>

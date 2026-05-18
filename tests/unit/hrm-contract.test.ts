@@ -7,24 +7,24 @@ import { isAllowedAuditAction } from "#features/org-admin/constants"
 import {
   HRM_CAPABILITIES,
   buildHrmNav,
-  getAllowedHrmDashboardSubsegments,
+  getAllowedHrmAppsSubsegments,
   getHrmAuditPrefixes,
   getHrmCapabilityById,
   getHrmCapabilityForSegment,
   hrmNavLabelKey,
-  isAllowedHrmDashboardSubsegment,
+  isAllowedHrmAppsSubsegment,
   organizationHrmEmployeePath,
   organizationHrmPath,
   organizationHrmRootPath,
 } from "#features/hrm/constants"
 import { HRM_NAV_NAMESPACE } from "#features/hrm/types"
 
-import { HRM_DASHBOARD_CAPABILITY_SEGMENTS } from "#features/hrm/hrm-dashboard-path.shared"
+import { HRM_APPS_CAPABILITY_SEGMENTS } from "#features/hrm/hrm-apps-path.shared"
 
 import {
-  DASHBOARD_NAV_MODULES,
-  organizationDashboardPath,
-} from "#lib/dashboard-module-paths"
+  APPS_NAV_MODULES,
+  organizationAppsPath,
+} from "#lib/org-apps-module-paths"
 
 import {
   HRM_REVIEW_CYCLE_STATES,
@@ -32,7 +32,7 @@ import {
   HRM_REVIEW_ROW_STATES,
   hrmReviewCycleStateSchema,
   hrmReviewRowStateSchema,
-} from "../../lib/features/hrm/talent-management/performance-management/schemas/performance.schema"
+} from "../../lib/features/hrm/talent-management/performance-appraisals/schemas/performance.schema"
 
 const HRM_MESSAGES = (
   enMessages as unknown as {
@@ -42,6 +42,7 @@ const HRM_MESSAGES = (
         shell: Record<string, string>
         cards: Record<string, Record<string, string>>
         placeholders: Record<string, Record<string, string>>
+        flexibleWork?: Record<string, string>
       }
     }
   }
@@ -51,14 +52,14 @@ const TEST_SLUG = "acme-co"
 
 describe("HRM_CAPABILITIES registry", () => {
   it("covers every forwarded-path segment exactly once", () => {
-    const registry = new Set(getAllowedHrmDashboardSubsegments())
-    const shared = new Set<string>(HRM_DASHBOARD_CAPABILITY_SEGMENTS)
-    expect(registry.size).toBe(HRM_DASHBOARD_CAPABILITY_SEGMENTS.length)
+    const registry = new Set(getAllowedHrmAppsSubsegments())
+    const shared = new Set<string>(HRM_APPS_CAPABILITY_SEGMENTS)
+    expect(registry.size).toBe(HRM_APPS_CAPABILITY_SEGMENTS.length)
     expect(registry).toEqual(shared)
-    for (const segment of HRM_DASHBOARD_CAPABILITY_SEGMENTS) {
-      expect(isAllowedHrmDashboardSubsegment(segment)).toBe(true)
+    for (const segment of HRM_APPS_CAPABILITY_SEGMENTS) {
+      expect(isAllowedHrmAppsSubsegment(segment)).toBe(true)
     }
-    expect(isAllowedHrmDashboardSubsegment("evil")).toBe(false)
+    expect(isAllowedHrmAppsSubsegment("evil")).toBe(false)
   })
 
   it("uses unique capability ids and unique segments", () => {
@@ -100,6 +101,15 @@ describe("HRM_CAPABILITIES registry", () => {
     expect(imports?.requiredPermission).toBe("hrm.import.search")
   })
 
+  it("registers flexible-work capability and catalog keys", () => {
+    const flexibleWork = getHrmCapabilityById("flexibleWork")
+    expect(flexibleWork?.segments).toContain("flexible-work")
+    expect(flexibleWork?.requiredPermission).toBe("hrm.flexible_work.search")
+    expect(flexibleWork?.auditPrefix).toBe("erp.hrm.flexible_work")
+    expect(HRM_MESSAGES.nav["flexible-work"]).toBeTypeOf("string")
+    expect(HRM_MESSAGES.flexibleWork?.pageTitle).toBeTypeOf("string")
+  })
+
   it("registers onboarding and performance audit prefixes", () => {
     const prefixes = getHrmAuditPrefixes()
     expect(prefixes).toContain("erp.hrm.onboarding")
@@ -127,19 +137,19 @@ describe("HRM_CAPABILITIES registry", () => {
 })
 
 describe("HRM path helpers", () => {
-  it("organizationHrmRootPath matches organizationDashboardPath(..., hrm)", () => {
+  it("organizationHrmRootPath matches organizationAppsPath(..., hrm)", () => {
     expect(organizationHrmRootPath(TEST_SLUG)).toBe(
-      organizationDashboardPath(TEST_SLUG, "hrm")
+      organizationAppsPath(TEST_SLUG, "hrm")
     )
   })
 
-  it("organizationHrmPath builds /o/<slug>/dashboard/hrm/<segment>", () => {
+  it("organizationHrmPath builds /o/<slug>/apps/hrm/<segment>", () => {
     expect(organizationHrmPath(TEST_SLUG, "overview")).toBe(
-      `/o/${TEST_SLUG}/dashboard/hrm`
+      `/o/${TEST_SLUG}/apps/hrm`
     )
-    for (const segment of getAllowedHrmDashboardSubsegments()) {
+    for (const segment of getAllowedHrmAppsSubsegments()) {
       expect(organizationHrmPath(TEST_SLUG, segment)).toBe(
-        `/o/${TEST_SLUG}/dashboard/hrm/${segment}`
+        `/o/${TEST_SLUG}/apps/hrm/${segment}`
       )
     }
   })
@@ -152,7 +162,7 @@ describe("HRM path helpers", () => {
   it("organizationHrmEmployeePath builds employee detail URLs", () => {
     const id = "550e8400-e29b-41d4-a716-446655440000"
     expect(organizationHrmEmployeePath(TEST_SLUG, id)).toBe(
-      `/o/${TEST_SLUG}/dashboard/hrm/employees/${id}`
+      `/o/${TEST_SLUG}/apps/hrm/employees/${id}`
     )
   })
 
@@ -169,8 +179,8 @@ describe("HRM path helpers", () => {
 })
 
 describe("Dashboard nav registry parity", () => {
-  it("includes hrm in DASHBOARD_NAV_MODULES", () => {
-    expect(DASHBOARD_NAV_MODULES.includes("hrm")).toBe(true)
+  it("includes hrm in APPS_NAV_MODULES", () => {
+    expect(APPS_NAV_MODULES.includes("hrm")).toBe(true)
   })
 })
 

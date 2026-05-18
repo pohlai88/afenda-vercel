@@ -17,7 +17,7 @@ import { buildEmployeePortalDocumentsListSurfaceConfiguration } from "../data/em
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
 import { EmployeePortalDocumentRequestForm } from "./employee-portal-document-request-form.client"
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalDocumentsPageProps = {
@@ -81,9 +81,12 @@ export async function EmployeePortalDocumentsPage({
             <CardDescription>{t("portalPageDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <EmployeePortalGovernedTable
-              configuration={listConfiguration}
+            <GovernedPatternCListSection
+              layout="embedded"
+              title=""
+              listConfiguration={listConfiguration}
               surfaceKey="hrm:portal:documents"
+              resolveConfiguredPermission={false}
               trailingColumn={{
                 header: " ",
                 render: (surfaceRow) => {

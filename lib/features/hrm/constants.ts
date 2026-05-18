@@ -1,23 +1,22 @@
 import type { Route } from "next"
 
 import {
-  HRM_DASHBOARD_CAPABILITY_SEGMENT_SET,
-  type HrmDashboardCapabilitySegment,
-} from "./hrm-dashboard-path.shared"
+  HRM_APPS_CAPABILITY_SEGMENT_SET,
+  type HrmAppsCapabilitySegment,
+} from "./hrm-apps-path.shared"
 import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 import {
-  ORG_DASHBOARD_HRM,
-  organizationDashboardPath,
-} from "#lib/dashboard-module-paths"
+  ORG_APPS_HRM,
+  organizationAppsPath,
+} from "#lib/org-apps-module-paths"
 import { buildErpPermissionKey } from "#features/erp-rbac"
 
-import type { HrmCapability, HrmNavKey } from "./types"
-import { HRM_NAV_NAMESPACE } from "./types"
+export const HRM_NAV_NAMESPACE = "Dashboard.Hrm.nav" as const
 
 /**
  * Canonical HRM capability registry — routes, audit prefixes, nav order, and contract tests.
- * One row per `/dashboard/hrm/{segment}` segment (see `hrm-dashboard-path.shared.ts`).
+ * One row per `/apps/hrm/{segment}` segment (see `hrm-apps-path.shared.ts`).
  */
 export const HRM_CAPABILITIES = [
   {
@@ -40,6 +39,17 @@ export const HRM_CAPABILITIES = [
       module: "hrm",
       object: "organization",
       function: "read",
+    }),
+  },
+  {
+    id: "lifecycle",
+    segments: ["lifecycle"] as const,
+    auditPrefix: "erp.hrm.employee_lifecycle",
+    nav: { navKey: "lifecycle", order: 15.5, primarySegment: "lifecycle" },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "employee",
+      function: "search",
     }),
   },
   {
@@ -98,6 +108,21 @@ export const HRM_CAPABILITIES = [
     }),
   },
   {
+    id: "flexibleWork",
+    segments: ["flexible-work"] as const,
+    auditPrefix: "erp.hrm.flexible_work",
+    nav: {
+      navKey: "flexible-work",
+      order: 32,
+      primarySegment: "flexible-work",
+    },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "flexible_work",
+      function: "search",
+    }),
+  },
+  {
     id: "benefits",
     segments: ["benefits"] as const,
     auditPrefix: "erp.hrm.benefit",
@@ -105,6 +130,36 @@ export const HRM_CAPABILITIES = [
     requiredPermission: buildErpPermissionKey({
       module: "hrm",
       object: "benefit",
+      function: "search",
+    }),
+  },
+  {
+    id: "bonusIncentives",
+    segments: ["bonus-incentives"] as const,
+    auditPrefix: "erp.hrm.bonus_incentive",
+    nav: {
+      navKey: "bonus-incentives",
+      order: 36,
+      primarySegment: "bonus-incentives",
+    },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "bonus_incentive",
+      function: "search",
+    }),
+  },
+  {
+    id: "salaryBenchmarking",
+    segments: ["salary-benchmarking"] as const,
+    auditPrefix: "erp.hrm.salary_benchmarking",
+    nav: {
+      navKey: "salary-benchmarking",
+      order: 36.5,
+      primarySegment: "salary-benchmarking",
+    },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "salary_benchmarking",
       function: "search",
     }),
   },
@@ -251,14 +306,19 @@ export const HRM_CAPABILITIES = [
       function: "read",
     }),
   },
-] as const satisfies readonly HrmCapability[]
+] as const
 
-const SEGMENT_LIST: readonly HrmDashboardCapabilitySegment[] =
+export type HrmCapability = (typeof HRM_CAPABILITIES)[number]
+export type HrmCapabilityId = HrmCapability["id"]
+
+type HrmNavKey = HrmAppsCapabilitySegment
+
+const SEGMENT_LIST: readonly HrmAppsCapabilitySegment[] =
   HRM_CAPABILITIES.flatMap((c) => [...c.segments])
-const SEGMENT_SET = new Set<HrmDashboardCapabilitySegment>(SEGMENT_LIST)
+const SEGMENT_SET = new Set<HrmAppsCapabilitySegment>(SEGMENT_LIST)
 
 const SEGMENT_TO_CAPABILITY = new Map<
-  HrmDashboardCapabilitySegment,
+  HrmAppsCapabilitySegment,
   HrmCapability
 >()
 for (const capability of HRM_CAPABILITIES) {
@@ -267,12 +327,12 @@ for (const capability of HRM_CAPABILITIES) {
   }
 }
 
-/** Locale-internal tail after `/dashboard`, including leading slash (for `revalidatePath` patterns). */
-export { ORG_DASHBOARD_HRM }
+/** Locale-internal tail after `/apps`, including leading slash (for `revalidatePath` patterns). */
+export { ORG_APPS_HRM }
 
-/** Locale-internal URL for the HRM workspace root (`/o/{slug}/dashboard/hrm`). */
+/** Locale-internal URL for the HRM workspace root (`/o/{slug}/apps/hrm`). */
 export function organizationHrmRootPath(orgSlug: string): Route {
-  return organizationDashboardPath(orgSlug, "hrm")
+  return organizationAppsPath(orgSlug, "hrm")
 }
 
 /**
@@ -281,13 +341,13 @@ export function organizationHrmRootPath(orgSlug: string): Route {
  */
 export function organizationHrmPath(
   orgSlug: string,
-  segment: HrmDashboardCapabilitySegment | "overview"
+  segment: HrmAppsCapabilitySegment | "overview"
 ): Route {
   const slug = normalizeOrgSlugParam(orgSlug)
   if (!slug) {
     throw new Error("organizationHrmPath: invalid org slug")
   }
-  const base = `/o/${slug}/dashboard/hrm`
+  const base = `/o/${slug}/apps/hrm`
   if (segment === "overview") {
     return base as Route
   }
@@ -297,17 +357,17 @@ export function organizationHrmPath(
   return `${base}/${segment}` as Route
 }
 
-/** Locale-internal claims URL (`/dashboard/hrm/claims`). */
+/** Locale-internal claims URL (`/apps/hrm/claims`). */
 export function organizationHrmClaimsPath(orgSlug: string): Route {
   return organizationHrmPath(orgSlug, "claims")
 }
 
-/** Locale-internal signatures URL (`/dashboard/hrm/signatures`). */
+/** Locale-internal signatures URL (`/apps/hrm/signatures`). */
 export function organizationHrmSignaturesPath(orgSlug: string): Route {
   return organizationHrmPath(orgSlug, "signatures")
 }
 
-/** Locale-internal employee detail URL (`/dashboard/hrm/employees/{id}`). */
+/** Locale-internal employee detail URL (`/apps/hrm/employees/{id}`). */
 export function organizationHrmEmployeePath(
   orgSlug: string,
   employeeId: string
@@ -316,7 +376,7 @@ export function organizationHrmEmployeePath(
   if (!slug) {
     throw new Error("organizationHrmEmployeePath: invalid org slug")
   }
-  return `/o/${slug}/dashboard/hrm/employees/${employeeId}` as Route
+  return `/o/${slug}/apps/hrm/employees/${employeeId}` as Route
 }
 
 // ---------------------------------------------------------------------------
@@ -353,10 +413,10 @@ export function organizationHrmClaimPath(
   if (!isLikelyClaimId(claimId)) {
     throw new Error("organizationHrmClaimPath: claimId is not a valid UUID")
   }
-  return `/o/${slug}/dashboard/hrm/claims/${claimId}` as Route
+  return `/o/${slug}/apps/hrm/claims/${claimId}` as Route
 }
 
-/** Locale-internal compliance evidence detail URL (`/dashboard/hrm/compliance/{evidenceId}`). */
+/** Locale-internal compliance evidence detail URL (`/apps/hrm/compliance/{evidenceId}`). */
 export function organizationHrmComplianceDetailPath(
   orgSlug: string,
   evidenceId: string
@@ -370,23 +430,23 @@ export function organizationHrmComplianceDetailPath(
       "organizationHrmComplianceDetailPath: evidenceId is not a valid UUID"
     )
   }
-  return `/o/${slug}/dashboard/hrm/compliance/${evidenceId}` as Route
+  return `/o/${slug}/apps/hrm/compliance/${evidenceId}` as Route
 }
 
-export function getAllowedHrmDashboardSubsegments(): readonly HrmDashboardCapabilitySegment[] {
+export function getAllowedHrmAppsSubsegments(): readonly HrmAppsCapabilitySegment[] {
   return [...SEGMENT_SET].sort((a, b) => a.localeCompare(b))
 }
 
-export function isAllowedHrmDashboardSubsegment(
+export function isAllowedHrmAppsSubsegment(
   value: string
-): value is HrmDashboardCapabilitySegment {
-  return HRM_DASHBOARD_CAPABILITY_SEGMENT_SET.has(value)
+): value is HrmAppsCapabilitySegment {
+  return HRM_APPS_CAPABILITY_SEGMENT_SET.has(value)
 }
 
 export function getHrmCapabilityForSegment(
   segment: string
 ): HrmCapability | null {
-  if (!isAllowedHrmDashboardSubsegment(segment)) return null
+  if (!isAllowedHrmAppsSubsegment(segment)) return null
   return SEGMENT_TO_CAPABILITY.get(segment) ?? null
 }
 

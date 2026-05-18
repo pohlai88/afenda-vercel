@@ -6,7 +6,7 @@ import { and, eq } from "drizzle-orm"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmApproval, hrmLeaveRequest } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { toLocalePortalRevalidatePattern } from "#lib/portal"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
@@ -41,7 +41,7 @@ import type {
  * after every leave-request mutation.
  */
 function revalidateLeaveRequests() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/leave"), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/leave"), "layout")
 }
 
 function revalidatePortalEmployeeLeaveRequests() {

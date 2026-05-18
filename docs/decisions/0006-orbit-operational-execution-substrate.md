@@ -444,7 +444,7 @@ OneThing and iThink are **fully retired** as of the 2026-05-12 amendment.
 They are:
 
 - removed from `lib/features/`
-- removed from the App Router (`app/[locale]/o/[orgSlug]/dashboard/{onething,ithink}/**` and `app/[locale]/(iam)/account/onething/**`)
+- removed from the App Router (`app/[locale]/o/[orgSlug]/apps/{onething,ithink}/**` and `app/[locale]/(iam)/account/onething/**`)
 - removed from `lib/db/schema.ts` (the destructive drop is the next Drizzle migration after `0018_orbit_planner_substrate`)
 - removed from Workflow DevKit execution entrypoints (no `enqueueOneThing*` exports remain)
 - removed from cron (`/api/cron/onething-digest` is gone)

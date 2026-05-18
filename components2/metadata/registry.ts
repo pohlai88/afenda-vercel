@@ -4,13 +4,7 @@ import type { GovernedComponentRegistry } from "#features/governed-surface"
  * Maps governed component `type` to internal renderer id.
  *
  * Every entry here has a shipped renderer file in
- * `components2/metadata/renderers/<id>.renderer.tsx`. Design-reserve types
- * (chart, kanban-board, multi-step-form, scorecard-form, approval-timeline)
- * are intentionally NOT mapped here yet — they live in
- * `AfendaGovernedRendererId` and `AFENDA_GOVERNED_RENDERER_CONTRACTS` so
- * builders can declare the discriminator now and the contract surfaces are
- * locked, while `GovernedComponentTree` falls back to the standard "section
- * unavailable" message until a renderer ships.
+ * `components2/metadata/renderers/<id>.renderer.tsx`.
  */
 export const AFENDA_GOVERNED_COMPONENT_REGISTRY = {
   "governed:stat-card": "stat-card",
@@ -23,6 +17,9 @@ export const AFENDA_GOVERNED_COMPONENT_REGISTRY = {
   "governed:detail-tabs": "detail-tabs",
   "governed:approval-timeline": "approval-timeline",
   "governed:chart": "chart",
+  "governed:kanban-board": "kanban-board",
+  "governed:multi-step-form": "multi-step-form",
+  "governed:scorecard-form": "scorecard-form",
 } as const satisfies GovernedComponentRegistry
 
 export type AfendaGovernedComponentRegistry =
@@ -80,9 +77,16 @@ export type GovernedComponentRendererInput = {
  *                        threshold the renderer must be replaced with a
  *                        denser variant or moved to a wider surface.
  */
+export type RendererContractMaturity = "preview" | "production"
+
 export type RendererContractEntry = {
   acceptedNatures: readonly string[]
   minContainerPx: number
+  /**
+   * ERP readiness gate. `preview` renderers must not back production mutations
+   * without an explicit maturity bump in the same PR as the workflow contract.
+   */
+  maturity?: RendererContractMaturity
 }
 
 /**
@@ -123,6 +127,7 @@ export const AFENDA_GOVERNED_RENDERER_CONTRACTS = {
   "kanban-board": {
     acceptedNatures: ["kanban"],
     minContainerPx: 720,
+    maturity: "production",
   },
   "multi-step-form": {
     acceptedNatures: ["wizard"],

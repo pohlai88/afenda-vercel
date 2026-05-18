@@ -46,3 +46,33 @@ describe("GovernedComponentRenderer — stat-card template", () => {
     expect(screen.getByText("Open positions")).toBeTruthy()
   })
 })
+
+describe("GovernedComponentRenderer — kanban-board template", () => {
+  it("renders column labels from configuration", () => {
+    const parsed = parseGovernedComponentData({
+      type: "governed:kanban-board",
+      serverType: "governed:kanban-board",
+      configuration: {
+        dataNature: "kanban",
+        copy: {
+          boardAriaLabel: "Tasks board",
+          emptyColumn: "Nothing here yet.",
+        },
+        columns: [{ id: "todo", label: "To do" }],
+        cards: [
+          {
+            id: "c1",
+            columnId: "todo",
+            title: "Review offer",
+          },
+        ],
+      },
+    })
+    expect(parsed.success).toBe(true)
+    if (!parsed.success) return
+
+    render(<GovernedComponentRenderer component={parsed.data} />)
+    expect(screen.getByText("To do")).toBeTruthy()
+    expect(screen.getByText("Review offer")).toBeTruthy()
+  })
+})

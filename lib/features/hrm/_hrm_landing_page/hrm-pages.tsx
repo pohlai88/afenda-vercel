@@ -12,15 +12,15 @@ import {
 import { ui } from "#lib/design-system"
 import { cn } from "#lib/utils"
 
-import type { HrmDashboardCapabilitySegment } from "../hrm-dashboard-path.shared"
+import type { HrmAppsCapabilitySegment } from "../hrm-apps-path.shared"
 
 import { Link } from "#i18n/navigation"
 
 import { buildHrmNav } from "../constants"
 
 type HrmPlaceholderMessageKey =
-  | `${HrmDashboardCapabilitySegment}.title`
-  | `${HrmDashboardCapabilitySegment}.body`
+  | `${HrmAppsCapabilitySegment}.title`
+  | `${HrmAppsCapabilitySegment}.body`
 
 type HrmOverviewProps = {
   orgSlug: string
@@ -83,7 +83,7 @@ export async function HrmOverviewPage({ orgSlug }: HrmOverviewProps) {
 export async function HrmCapabilityPlaceholderPage({
   segment,
 }: {
-  segment: HrmDashboardCapabilitySegment
+  segment: HrmAppsCapabilitySegment
 }) {
   const tPlaceholders = await getTranslations("Dashboard.Hrm.placeholders")
   const titleKey = `${segment}.title` as HrmPlaceholderMessageKey

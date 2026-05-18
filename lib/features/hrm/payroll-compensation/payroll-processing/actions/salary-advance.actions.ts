@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache"
 import { and, eq } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { ORG_DASHBOARD_HRM_ADVANCES } from "#lib/dashboard-module-paths"
+import { ORG_APPS_HRM_ADVANCES } from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmSalaryAdvance } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
 import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
@@ -25,7 +25,7 @@ import type { ContractMutationFormState } from "../../../types"
 
 function revalidateAdvances() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_ADVANCES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_ADVANCES),
     "page"
   )
 }

@@ -7,8 +7,8 @@ import { and, eq, inArray } from "drizzle-orm"
 import { requireRecentAuthStepUp, writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmImportSession } from "#lib/db/schema"
-import { ORG_DASHBOARD_HRM_IMPORTS } from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { ORG_APPS_HRM_IMPORTS } from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 import { enqueueHrmImportApplyWorkflowRun } from "#features/execution"
@@ -35,7 +35,7 @@ export async function commitImportSessionAction(
   const { organizationId, userId, sessionId } = session
 
   await requireRecentAuthStepUp({
-    returnTo: `/o/${orgSlug}/dashboard/hrm/imports`,
+    returnTo: `/o/${orgSlug}/apps/hrm/imports`,
   })
 
   if (
@@ -121,7 +121,7 @@ export async function commitImportSessionAction(
   }
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_IMPORTS),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_IMPORTS),
     "page"
   )
   return { ok: true }
@@ -137,7 +137,7 @@ export async function rollbackImportSessionAction(
   const { organizationId, userId, sessionId } = session
 
   await requireRecentAuthStepUp({
-    returnTo: `/o/${orgSlug}/dashboard/hrm/imports`,
+    returnTo: `/o/${orgSlug}/apps/hrm/imports`,
   })
 
   if (
@@ -235,7 +235,7 @@ export async function rollbackImportSessionAction(
   )
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_IMPORTS),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_IMPORTS),
     "page"
   )
   return { ok: true }

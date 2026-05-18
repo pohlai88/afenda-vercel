@@ -21,6 +21,8 @@ const REQUIRED_FILES = [
   ".cursor/rules/simulation-directory.mdc",
   ".cursor/rules/shell-directory.mdc",
   ".cursor/rules/portal-directory.mdc",
+  ".cursor/rules/module-client-server-barrels.mdc",
+  "docs/decisions/0030-module-client-server-barrel-boundary.md",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
   "scripts/check-route-error-files.mjs",
@@ -219,7 +221,7 @@ const DEEP_FEATURE_IMPORT_RE =
 const LIB_ROOT_ALLOWLIST = new Set([
   "auth-client.ts",
   "auth-client-neon-compat.ts",
-  "dashboard-module-paths.ts",
+  "org-apps-module-paths.ts",
   "design-system.ts",
   "logger.server.ts",
   "session-cache.ts",
@@ -466,6 +468,72 @@ function assertAgentsLibRootTableParity() {
   }
 }
 
+const SERVER_FEATURE_INDEX_IMPORT_RE =
+  /from\s+["']#features\/([^/"']+)["']/g
+
+const CLIENT_FILE_RE = /\.client\.(ts|tsx)$/
+
+function isClientSourceFile(rel) {
+  if (CLIENT_FILE_RE.test(rel)) return true
+  if (!rel.endsWith(".ts") && !rel.endsWith(".tsx")) return false
+  const abs = path.join(root, rel)
+  try {
+    const head = fs.readFileSync(abs, "utf8").slice(0, 400)
+    return /^\s*["']use client["']/.test(head)
+  } catch {
+    return false
+  }
+}
+
+/** @see docs/decisions/0030-module-client-server-barrel-boundary.md */
+function featureIndexLooksServerOnly(moduleName) {
+  const indexPath = path.join(root, "lib/features", moduleName, "index.ts")
+  if (!fs.existsSync(indexPath)) return false
+  const content = fs.readFileSync(indexPath, "utf8")
+  if (/import\s+["']server-only["']/.test(content)) return true
+  if (/from\s+["']\.\/data\//.test(content)) return true
+  if (/from\s+["'][^"']*\.server["']/.test(content)) return true
+  const componentExportRe = /from\s+["']\.\/components\/([^"']+)["']/g
+  let match
+  while ((match = componentExportRe.exec(content)) !== null) {
+    const comp = match[1]
+    if (comp.includes(".client")) continue
+    const compPath = path.join(
+      root,
+      "lib/features",
+      moduleName,
+      "components",
+      comp.endsWith(".tsx") || comp.endsWith(".ts") ? comp : `${comp}.tsx`
+    )
+    if (!fs.existsSync(compPath)) continue
+    const compContent = fs.readFileSync(compPath, "utf8")
+    if (/import\s+["']server-only["']/.test(compContent)) return true
+  }
+  return false
+}
+
+function assertNoServerFeatureBarrelInClientFiles() {
+  const scanDirs = ["app", "lib/features", "components2", "hooks"]
+  const files = scanDirs
+    .flatMap((dir) => walk(path.join(root, dir)))
+    .map((absPath) => posixRel(absPath))
+    .filter((rel) => isClientSourceFile(rel))
+
+  for (const rel of files) {
+    const content = read(rel)
+    SERVER_FEATURE_INDEX_IMPORT_RE.lastIndex = 0
+    let match
+    while ((match = SERVER_FEATURE_INDEX_IMPORT_RE.exec(content)) !== null) {
+      const moduleName = match[1]
+      if (!featureIndexLooksServerOnly(moduleName)) continue
+      const line = content.slice(0, match.index).split("\n").length
+      fail(
+        `server feature barrel import in client file at ${rel}:${line} -> #features/${moduleName} (use #features/${moduleName}/client or ADR-0030)`
+      )
+    }
+  }
+}
+
 function assertNoDeepFeatureImports() {
   const scanDirs = ["app", "components2", "hooks", "lib"]
   const files = scanDirs.flatMap((dir) => walk(path.join(root, dir)))
@@ -511,6 +579,7 @@ assertModuleRootShape()
 assertLibRootAllowlist()
 assertAgentsLibRootTableParity()
 assertNoDeepFeatureImports()
+assertNoServerFeatureBarrelInClientFiles()
 
 if (failed) {
   console.error(`

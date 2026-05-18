@@ -25,7 +25,11 @@ import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-l
 
 import { EmployeePortalClaimCancelButton } from "./employee-portal-claim-cancel-button.client"
 import { EmployeePortalClaimSubmitForm } from "./employee-portal-claim-submit-form.client"
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import {
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalClaimsPageProps = {
@@ -69,6 +73,8 @@ export async function EmployeePortalClaimsPage({
     paid: tClaims("state.paid"),
   } as const
 
+  const trailingContext = { showRowActions: true } as const
+
   const listConfiguration = buildEmployeePortalClaimsListSurfaceConfiguration(
     claims,
     (claimId) => claimDetailHref(context.portal.portalSlug, claimId),
@@ -80,7 +86,8 @@ export async function EmployeePortalClaimsPage({
       colEvidence: t("colEvidence"),
       evidenceCountLabel: (count) => String(count),
       stateLabels,
-    }
+    },
+    trailingContext
   )
 
   const claimById = new Map(claims.map((row) => [row.id, row]))
@@ -117,16 +124,26 @@ export async function EmployeePortalClaimsPage({
             <CardDescription>{t("portalPageDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <EmployeePortalGovernedTable
-              configuration={listConfiguration}
+            <GovernedPatternCListSection
+              layout="embedded"
+              title=""
+              listConfiguration={listConfiguration}
               surfaceKey="hrm:portal:claims"
+              resolveConfiguredPermission={false}
               trailingColumn={{
                 header: " ",
                 render: (surfaceRow) => {
+                  const trailingAction = surfaceRow.trailingAction
                   const row = claimById.get(surfaceRow.id)
-                  if (!row) return null
+                  if (
+                    !row ||
+                    !isListSurfaceTrailingActionRenderable(trailingAction)
+                  ) {
+                    return null
+                  }
                   return (
-                    <div className="flex flex-wrap justify-end gap-2">
+                    <GovernedTrailingActionSlot trailingAction={trailingAction}>
+                      <div className="flex flex-wrap justify-end gap-2">
                       <Button variant="outline" size="sm" asChild>
                         <Link
                           href={claimDetailHref(
@@ -144,7 +161,8 @@ export async function EmployeePortalClaimsPage({
                           label={t("cancel")}
                         />
                       ) : null}
-                    </div>
+                      </div>
+                    </GovernedTrailingActionSlot>
                   )
                 },
               }}

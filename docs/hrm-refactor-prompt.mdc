@@ -1,0 +1,24 @@
+---
+description: DEPRECATED alias — use .cursor/rules/cursor-scoped-refactor-prompt.mdc for all scoped refactors.
+alwaysApply: false
+---
+
+# Deprecated — use the scoped refactor rule
+
+**Canonical:** [`.cursor/rules/cursor-scoped-refactor-prompt.mdc`](../.cursor/rules/cursor-scoped-refactor-prompt.mdc)
+
+## HRM example
+
+```txt
+@.cursor/rules/cursor-scoped-refactor-prompt.mdc
+
+TARGET_SCOPE:
+lib/features/hrm/<area>/**
+app/(main)/[locale]/o/[orgSlug]/apps/hrm/<segment>/**
+tests/unit/hrm-<matching>*.test.ts
+tests/e2e/hrm-<matching>*.spec.ts
+
+REFACTOR_KIND: full-stack
+MODULE: hrm
+PRESERVE_UI: yes
+```

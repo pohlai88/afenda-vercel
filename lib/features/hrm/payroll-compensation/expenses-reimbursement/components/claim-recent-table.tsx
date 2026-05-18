@@ -1,6 +1,10 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedPatternCListSection } from "#features/governed-surface"
+import {
+  GovernedPatternCListSection,
+  type EmptyState,
+  type ListSurfaceRendererConfigurationInput,
+} from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
@@ -17,52 +21,10 @@ type ClaimRecentTableProps = {
   access: ClaimSurfaceAccess
 }
 
-export async function ClaimRecentTable({
-  orgSlug,
-  access,
-}: ClaimRecentTableProps) {
-  const orgSession = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.claims")
-
-  let rows: ReadonlyArray<ClaimRow>
-  try {
-    rows = access.canReadOrgClaims
-      ? await listClaimsForOrgPage(orgSession.organizationId, { limit: 50 })
-      : await listClaimsForCurrentEmployee(
-          orgSession.organizationId,
-          orgSession.userId,
-          { limit: 50 }
-        )
-  } catch (err) {
-    logUnexpectedServerError("claim-recent-table: query failed", err, {
-      organizationId: orgSession.organizationId,
-    })
-    return (
-      <GovernedPatternCListSection
-        layout="embedded"
-        title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: "hrm-claims-recent" },
-            columnsId: "hrm-claims-recent",
-            rowKey: "id",
-            empty: { variant: "muted", title: t("recentEmpty") },
-          },
-          columns: [{ id: "employee", header: t("colEmployee") }],
-          rows: [],
-        }}
-        surfaceKey="hrm:claims:recent-activity:error"
-        resolveConfiguredPermission={false}
-        loadError={{
-          variant: "error",
-          title: t("recentLoadFailed"),
-        }}
-      />
-    )
-  }
-
-  const stateLabels = {
+function claimRecentStateLabels(
+  t: Awaited<ReturnType<typeof getTranslations<"Dashboard.Hrm.claims">>>
+) {
+  return {
     draft: t("state.draft"),
     submitted: t("state.submitted"),
     under_review: t("state.under_review"),
@@ -72,34 +34,89 @@ export async function ClaimRecentTable({
     cancelled: t("state.cancelled"),
     paid: t("state.paid"),
   } as const
+}
 
-  const listConfiguration = buildClaimRecentListSurfaceConfiguration(
-    rows,
-    orgSlug,
-    {
-      pageTitle: t("recentTitle"),
-      pageDescription: t("recentDescription"),
-      empty: t("recentEmpty"),
-      colEmployee: t("colEmployee"),
-      colClaimType: t("colClaimType"),
-      colClaimDate: t("colClaimDate"),
-      colAmount: t("colAmount"),
-      colState: t("colState"),
-      colSubmitted: t("colSubmitted"),
-      stateLabels,
+export async function ClaimRecentTable({
+  orgSlug,
+  access,
+}: ClaimRecentTableProps) {
+  const orgSession = await requireOrgSession()
+
+  const [t, rowsResult] = await Promise.all([
+    getTranslations("Dashboard.Hrm.claims"),
+    (async (): Promise<
+      | { ok: true; rows: ReadonlyArray<ClaimRow> }
+      | { ok: false; error: unknown }
+    > => {
+      try {
+        const rows = access.canReadOrgClaims
+          ? await listClaimsForOrgPage(orgSession.organizationId, {
+              limit: 50,
+            })
+          : await listClaimsForCurrentEmployee(
+              orgSession.organizationId,
+              orgSession.userId,
+              { limit: 50 }
+            )
+        return { ok: true, rows }
+      } catch (error) {
+        return { ok: false, error }
+      }
+    })(),
+  ])
+
+  const copy = {
+    pageTitle: t("recentTitle"),
+    pageDescription: t("recentDescription"),
+    empty: t("recentEmpty"),
+    colEmployee: t("colEmployee"),
+    colClaimType: t("colClaimType"),
+    colClaimDate: t("colClaimDate"),
+    colAmount: t("colAmount"),
+    colState: t("colState"),
+    colSubmitted: t("colSubmitted"),
+    stateLabels: claimRecentStateLabels(t),
+  }
+
+  let listConfiguration: ListSurfaceRendererConfigurationInput
+  let surfaceKey = "hrm:claims:recent-activity"
+  let loadError: EmptyState | undefined
+
+  if (!rowsResult.ok) {
+    logUnexpectedServerError(
+      "claim-recent-table: query failed",
+      rowsResult.error,
+      { organizationId: orgSession.organizationId }
+    )
+    listConfiguration = buildClaimRecentListSurfaceConfiguration(
+      [],
+      orgSlug,
+      copy
+    )
+    surfaceKey = "hrm:claims:recent-activity:error"
+    loadError = {
+      variant: "error",
+      title: t("recentLoadFailed"),
     }
-  )
+  } else {
+    listConfiguration = buildClaimRecentListSurfaceConfiguration(
+      rowsResult.rows,
+      orgSlug,
+      copy
+    )
+  }
 
   return (
     <GovernedPatternCListSection
       layout="embedded"
       title=""
       listConfiguration={listConfiguration}
-      surfaceKey="hrm:claims:recent-activity"
+      surfaceKey={surfaceKey}
       resolveConfiguredPermission={false}
       parentAccessAllowed={
         access.canReadOrgClaims || access.hasSelfServiceEmployee
       }
+      loadError={loadError}
       invalid={{
         variant: "error",
         title: t("recentLoadFailed"),

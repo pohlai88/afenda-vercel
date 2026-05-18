@@ -32,7 +32,7 @@ export function OrganizationTabNav({
         const params = new URLSearchParams()
         params.set("tab", tab)
         if (includeArchived) params.set("includeArchived", "true")
-        const href = `/o/${orgSlug}/dashboard/hrm/organization?${params.toString()}`
+        const href = `/o/${orgSlug}/apps/hrm/organization?${params.toString()}`
         const isActive = tab === activeTab
 
         return (

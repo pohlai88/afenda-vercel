@@ -104,7 +104,7 @@ describe("api/upload/blob route", () => {
           fileName: "report.pdf",
           fileSize: 1234,
           mimeType: "application/pdf",
-          routePath: "/en/o/acme/dashboard/home",
+          routePath: "/en/o/acme/apps/home",
         }),
         false
       )
@@ -125,7 +125,7 @@ describe("api/upload/blob route", () => {
           fileName: "report.pdf",
           fileSize: 1234,
           mimeType: "application/pdf",
-          routePath: "/en/o/acme/dashboard/home",
+          routePath: "/en/o/acme/apps/home",
         },
       })
 
@@ -241,7 +241,7 @@ describe("api/upload/blob route", () => {
           fileName: "workspace-123.png",
           fileSize: 222,
           mimeType: "image/png",
-          routePath: "/en/o/acme/dashboard/home",
+          routePath: "/en/o/acme/apps/home",
         }),
         false
       )
@@ -255,7 +255,7 @@ describe("api/upload/blob route", () => {
           fileName: "workspace-123.png",
           fileSize: 222,
           mimeType: "image/png",
-          routePath: "/en/o/acme/dashboard/home",
+          routePath: "/en/o/acme/apps/home",
         },
       })
 
@@ -317,7 +317,7 @@ describe("api/upload/blob route", () => {
           fileName: "report.pdf",
           fileSize: 333,
           mimeType: "application/pdf",
-          routePath: "/en/o/acme/dashboard/home",
+          routePath: "/en/o/acme/apps/home",
         }),
         false
       )
@@ -335,7 +335,7 @@ describe("api/upload/blob route", () => {
           fileName: "report.pdf",
           fileSize: 333,
           mimeType: "application/pdf",
-          routePath: "/en/o/acme/dashboard/home",
+          routePath: "/en/o/acme/apps/home",
         },
       })
 
@@ -388,7 +388,7 @@ describe("api/upload/blob route", () => {
           fileName: "receipt.pdf",
           fileSize: 1234,
           mimeType: "application/pdf",
-          routePath: "/en/o/acme/dashboard/hrm/claims",
+          routePath: "/en/o/acme/apps/hrm/claims",
         }),
         false
       )
@@ -501,7 +501,7 @@ describe("api/upload/blob route", () => {
             fileName: "report.pdf",
             fileSize: 321,
             mimeType: "application/pdf",
-            routePath: "/en/o/acme/dashboard/home",
+            routePath: "/en/o/acme/apps/home",
           },
         }),
       })
@@ -541,7 +541,7 @@ describe("api/upload/blob route", () => {
         organizationId: "org-1",
         resourceType: "blob",
         resourceId: "orgs/org-1/nexus-utility/123-report.pdf",
-        path: "/en/o/acme/dashboard/home",
+        path: "/en/o/acme/apps/home",
       })
     )
   })
@@ -567,7 +567,7 @@ describe("api/upload/blob route", () => {
             fileName: "workspace-123.png",
             fileSize: 654,
             mimeType: "image/png",
-            routePath: "/en/o/acme/dashboard/home",
+            routePath: "/en/o/acme/apps/home",
           },
         }),
       })
@@ -633,7 +633,7 @@ describe("api/upload/blob route", () => {
             fileName: "report.pdf",
             fileSize: 321,
             mimeType: "application/pdf",
-            routePath: "/en/o/acme/dashboard/home",
+            routePath: "/en/o/acme/apps/home",
           },
         }),
       })

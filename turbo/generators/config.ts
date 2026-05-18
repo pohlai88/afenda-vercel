@@ -41,7 +41,7 @@ import {
 import {
   adrFile,
   contractFile,
-  dashboardRouteDir,
+  appsRouteDir,
   moduleFile,
   unitTestFile,
 } from "./lib/paths"
@@ -289,7 +289,7 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
       Object.assign(answers ?? {}, enrichedAnswers)
 
       const moduleRoot = `lib/features/${slug}`
-      const routeRoot = dashboardRouteDir(slug)
+      const routeRoot = appsRouteDir(slug)
       const touched = [
         `${moduleRoot}/index.ts`,
         `${moduleRoot}/types.ts`,

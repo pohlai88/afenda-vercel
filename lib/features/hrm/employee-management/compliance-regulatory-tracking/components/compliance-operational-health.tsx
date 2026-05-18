@@ -8,14 +8,13 @@ import {
   CardTitle,
 } from "#components2/ui/card"
 import { Badge } from "#components2/ui/badge"
-import { Link } from "#i18n/navigation"
+import { GovernedEmpty } from "#features/governed-surface"
 
-import { organizationHrmComplianceDetailPath } from "../../../constants"
 import { getComplianceOperationalHealthSnapshot } from "../data/compliance-operational-health.queries.server"
+import { ComplianceHealthSamplesListSection } from "./compliance-health-samples-list-section"
 import {
   COMPLIANCE_OPERATIONAL_HEALTH_AGING,
   COMPLIANCE_OPERATIONAL_HEALTH_ATTENTION_BUCKETS,
-  highestComplianceAgingTier,
   type ComplianceAgingTier,
   type ComplianceHealthAttentionBucket,
   type ComplianceHealthDisplayedBucket,
@@ -41,19 +40,6 @@ import type { ComplianceHealthSampleRow } from "../data/compliance-operational-h
 type ComplianceOperationalHealthProps = {
   organizationId: string
   orgSlug: string
-}
-
-const PACK_TYPE_LABELS: Record<string, string> = {
-  epf_monthly: "EPF Monthly",
-  socso_monthly: "SOCSO Monthly",
-  eis_monthly: "EIS Monthly",
-  pcb_monthly: "PCB / MTD Monthly",
-  ea_annual: "EA Annual",
-  borang_e_annual: "Borang E Annual",
-}
-
-function packLabel(packType: string): string {
-  return PACK_TYPE_LABELS[packType] ?? packType
 }
 
 /**
@@ -108,7 +94,12 @@ export async function ComplianceOperationalHealth({
           <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">{t("emptyNoRows")}</p>
+          <GovernedEmpty
+            model={{
+              variant: "muted",
+              title: t("emptyNoRows"),
+            }}
+          />
         </CardContent>
       </Card>
     )
@@ -136,9 +127,20 @@ export async function ComplianceOperationalHealth({
     countersAria: t("countersAria"),
     samplesAria: (bucket) =>
       t("samplesAria", { bucket: t(`bucket.${bucket}`) }),
-    agingTierName: (tier) => t(`agingTier.${tier}`),
-    agingTierAria: (tier) =>
-      t("agingTierAria", { tier: t(`agingTier.${tier}`) }),
+    agingTierName: (tier) => {
+      if (tier === "detected") return t("agingTier.detected")
+      if (tier === "escalated") return t("agingTier.escalated")
+      return t("agingTier.critical")
+    },
+    agingTierAria: (tier) => {
+      const name =
+        tier === "detected"
+          ? t("agingTier.detected")
+          : tier === "escalated"
+            ? t("agingTier.escalated")
+            : t("agingTier.critical")
+      return t("agingTierAria", { tier: name })
+    },
   }
 
   return (
@@ -345,93 +347,18 @@ function AttentionBucketSection({
           {labels.bucketSubtitle(bucket)}
         </p>
       </header>
-      <ul
-        className="divide-y divide-border"
-        aria-label={labels.samplesAria(bucket)}
-      >
-        {samples.map((row) => (
-          <SampleRow
-            key={row.id}
-            row={row}
-            bucket={bucket}
-            orgSlug={orgSlug}
-            labels={labels}
-          />
-        ))}
-      </ul>
+      {samples.length > 0 ? (
+        <ComplianceHealthSamplesListSection
+          bucket={bucket}
+          samples={samples}
+          orgSlug={orgSlug}
+        />
+      ) : null}
       {remainder > 0 && (
         <p className="mt-2 text-xs text-muted-foreground">
           {labels.samplesTruncated(remainder)}
         </p>
       )}
     </section>
-  )
-}
-
-/**
- * Visual variant for a Phase 3O severity-tier badge on a stuck sample
- * row. `detected` is informational (secondary), `escalated` warrants
- * managerial follow-up (secondary, leaving destructive for true
- * regulator exposure), `critical` lights up `destructive` so it pops
- * out of the stuck list at a glance.
- */
-function tierBadgeVariant(
-  tier: ComplianceAgingTier
-): "default" | "secondary" | "destructive" | "outline" {
-  switch (tier) {
-    case "critical":
-      return "destructive"
-    case "escalated":
-    case "detected":
-      return "secondary"
-  }
-}
-
-function SampleRow({
-  row,
-  bucket,
-  orgSlug,
-  labels,
-}: {
-  row: ComplianceHealthSampleRow
-  bucket: ComplianceHealthAttentionBucket
-  orgSlug: string
-  labels: ComplianceHealthLabels
-}) {
-  const label = packLabel(row.packType)
-  const detailHref = organizationHrmComplianceDetailPath(orgSlug, row.id)
-  // Severity tier is only meaningful for stuck rows ÔÇö `failing` and
-  // `unsent` are operationally severe by classification, not by age.
-  const tier =
-    bucket === "needs_attention_stuck"
-      ? highestComplianceAgingTier(row.ageDays)
-      : null
-  return (
-    <li className="flex flex-wrap items-center gap-3 py-2 text-sm">
-      <span className="w-44 shrink-0 font-medium">{label}</span>
-      {row.periodStart && row.periodEnd && (
-        <span className="text-xs text-muted-foreground">
-          {row.periodStart} ÔÇö {row.periodEnd}
-        </span>
-      )}
-      <Badge variant="outline" className="font-mono text-[10px]">
-        {labels.age(row.ageDays)}
-      </Badge>
-      {tier && (
-        <Badge
-          variant={tierBadgeVariant(tier)}
-          aria-label={labels.agingTierAria(tier)}
-        >
-          {labels.agingTierName(tier)}
-        </Badge>
-      )}
-      <Link
-        href={detailHref}
-        className="ml-auto text-sm text-primary underline-offset-2 hover:underline"
-        aria-label={labels.inspectAria(label)}
-      >
-        {labels.inspect}
-      </Link>
-    </li>
   )
 }

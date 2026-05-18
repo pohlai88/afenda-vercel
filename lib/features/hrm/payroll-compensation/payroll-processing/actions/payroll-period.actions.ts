@@ -8,7 +8,7 @@ import {
   payrollFinalizePayloadSchema,
 } from "#features/execution"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import {
   createPayrollPeriodFormSchema,
@@ -37,6 +37,7 @@ import {
 } from "../../compensation-planning-modeling/server"
 import { resolveRulePack } from "../../multi-country-payroll/data/payroll-rule-pack.server"
 import { HRM_PAYROLL_PROCESSING_AUDIT } from "../payroll-processing.contract"
+import { HRM_BONUS_INCENTIVE_AUDIT } from "../../bonus-incentive-management/server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   PayrollPeriodCreateFormState,
@@ -66,7 +67,7 @@ import { and, eq, isNull } from "drizzle-orm"
  */
 function revalidatePayrollPages() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/payroll"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/payroll"),
     "layout"
   )
 }
@@ -451,6 +452,7 @@ export async function lockPayrollPeriodAction(
         primaryCountryCode,
         rulePackVersion,
         paidClaimCount: lockResult.paidClaims.length,
+        paidBonusPayoutCount: lockResult.paidBonusPayouts.length,
       },
     })
   )
@@ -477,9 +479,27 @@ export async function lockPayrollPeriodAction(
     )
   }
 
+  for (const entry of lockResult.paidBonusPayouts) {
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: HRM_BONUS_INCENTIVE_AUDIT.payoutPaid,
+        actorUserId: userId,
+        actorSessionId: sessionId,
+        organizationId,
+        resourceType: "hrm_bonus_payout",
+        resourceId: entry.payoutId,
+        metadata: {
+          payoutId: entry.payoutId,
+          payrollPeriodId: parsed.data.periodId,
+          payrollLineId: entry.payrollLineId,
+        },
+      })
+    )
+  }
+
   revalidatePayrollPages()
   // Refresh the claims surface so kanban / inbox / recents reflect the
   // newly-paid claims. Use the dashboard pattern so all locales rebuild.
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/claims"), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/claims"), "layout")
   return { ok: true }
 }

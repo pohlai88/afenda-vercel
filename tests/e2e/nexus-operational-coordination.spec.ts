@@ -26,12 +26,12 @@ test.describe("nexus operational coordination (optional credentials)", () => {
         "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
       )
 
-      await page.goto(`/en/o/${slug}/dashboard`)
+      await page.goto(`/en/o/${slug}/nexus`)
       await expect(
         page.getByRole("banner", { name: "Afenda workbench utility bar" })
       ).toBeVisible({ timeout: 15_000 })
 
-      await page.goto(`/en/o/${slug}/marketplace/utilities`)
+      await page.goto(`/en/o/${slug}/nexus`)
 
       const coordinationCard = page.locator("li").filter({
         has: page.getByText("Operational coordination", { exact: true }),
@@ -42,7 +42,7 @@ test.describe("nexus operational coordination (optional credentials)", () => {
       await expect(enableCoordination).toBeVisible({ timeout: 15_000 })
       await enableCoordination.click()
 
-      await page.goto(`/en/o/${slug}/dashboard`)
+      await page.goto(`/en/o/${slug}/nexus`)
       await expect(
         page.getByRole("banner", { name: "Afenda workbench utility bar" })
       ).toBeVisible({ timeout: 15_000 })

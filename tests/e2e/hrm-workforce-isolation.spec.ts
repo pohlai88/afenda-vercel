@@ -17,7 +17,7 @@ test.describe("HRM workforce tenant boundaries", () => {
     { tag: "@hrm" },
     async ({ page }) => {
       await page.goto(
-        "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/employees"
+        "/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/employees"
       )
       await expect(
         page.getByRole("heading", {
@@ -35,7 +35,7 @@ test.describe("HRM workforce tenant boundaries", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
       const fakeId = "00000000-0000-4000-8000-000000000001"
-      await page.goto(`/en/o/${slug}/dashboard/hrm/employees/${fakeId}`)
+      await page.goto(`/en/o/${slug}/apps/hrm/employees/${fakeId}`)
       await expect(
         page.getByRole("heading", { name: "Page not found", exact: true })
       ).toBeVisible()
@@ -47,7 +47,7 @@ test.describe("HRM workforce tenant boundaries", () => {
     { tag: "@hrm" },
     async ({ page }) => {
       await page.goto(
-        "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/claims"
+        "/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/claims"
       )
       await expect(
         page.getByRole("heading", {

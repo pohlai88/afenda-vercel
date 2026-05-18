@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 
-import { ORG_DASHBOARD_SALE } from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { ORG_APPS_SALE } from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/auth"
 import { saleFilterSchema } from "../schemas/sale-filter.schema"
 import type { SaleActionState } from "../types"
@@ -28,7 +28,7 @@ export async function createSaleOrder(
   }
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_SALE),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_SALE),
     "page"
   )
   return { ok: true }

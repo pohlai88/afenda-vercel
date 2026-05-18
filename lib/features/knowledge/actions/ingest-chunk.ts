@@ -8,10 +8,10 @@ import { db } from "#lib/db"
 import { knowledgeChunk } from "#lib/db/schema"
 import { requireErpPermission } from "#features/erp-rbac/server"
 import {
-  ORG_DASHBOARD_KNOWLEDGE,
-  ORG_DASHBOARD_LYNX,
-} from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+  ORG_APPS_KNOWLEDGE,
+  ORG_APPS_LYNX,
+} from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { embedKnowledgeText } from "#features/knowledge/data/embeddings.server"
 import { ingestChunkSchema } from "#features/knowledge/schemas/chunk.schema"
@@ -97,11 +97,11 @@ export async function ingestKnowledgeChunk(
   }
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_KNOWLEDGE),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_KNOWLEDGE),
     "page"
   )
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_LYNX),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_LYNX),
     "page"
   )
   return { ok: true }

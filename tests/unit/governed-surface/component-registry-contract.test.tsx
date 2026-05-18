@@ -2,17 +2,19 @@
 
 import "../../helpers/setup-mock-i18n-navigation"
 
-import { render, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import {
   AFENDA_GOVERNED_COMPONENT_REGISTRY,
   GovernedComponentRenderer,
 } from "#components2/metadata"
+import { ChartRenderer } from "#components2/metadata/renderers/chart.renderer"
 import {
   parseGovernedComponentRegistryData,
   parseGovernedComponentData,
 } from "#features/governed-surface"
+import { renderWithNextIntl } from "../../helpers/render-with-next-intl"
 
 describe("governed component registry contract", () => {
   it("round-trips AFENDA_GOVERNED_COMPONENT_REGISTRY through zod", () => {
@@ -42,7 +44,7 @@ describe("governed component registry contract", () => {
     expect(parsed.success).toBe(true)
     if (!parsed.success) return
 
-    render(<GovernedComponentRenderer component={parsed.data} />)
+    renderWithNextIntl(<GovernedComponentRenderer component={parsed.data} />)
     expect(screen.getByLabelText("Statistics")).toBeTruthy()
     expect(screen.getByText("Total employees")).toBeTruthy()
     expect(screen.getByText("248")).toBeTruthy()
@@ -53,6 +55,7 @@ describe("governed component registry contract", () => {
       type: "governed:list-surface",
       serverType: "governed:list-surface",
       configuration: {
+        dataNature: "table",
         surface: {
           header: {
             eyebrow: "HRM",
@@ -71,34 +74,22 @@ describe("governed component registry contract", () => {
     expect(parsed.success).toBe(true)
     if (!parsed.success) return
 
-    render(<GovernedComponentRenderer component={parsed.data} />)
+    renderWithNextIntl(<GovernedComponentRenderer component={parsed.data} />)
     expect(screen.getByText("Employees")).toBeTruthy()
     expect(screen.getByText("Ada Lovelace")).toBeTruthy()
   })
 
-  it("falls back to GovernedEmpty for a design-reserve type without a shipped renderer", () => {
-    const component = {
-      type: "governed:chart",
-      serverType: "governed:chart",
-      configuration: {
-        chartKind: "bar",
-        series: [
-          {
-            id: "revenue",
-            label: "Revenue",
-            points: [{ x: "Q1", y: 100 }],
-          },
-        ],
-      },
-    }
-    const parsed = parseGovernedComponentData(component)
-    expect(parsed.success).toBe(true)
-    if (!parsed.success) return
-
-    render(<GovernedComponentRenderer component={parsed.data} />)
-    expect(
-      screen.getByText("This section is not available in the current surface.")
-    ).toBeTruthy()
+  it("renders error empty state when chart configuration fails validation", () => {
+    renderWithNextIntl(
+      <ChartRenderer
+        configuration={{
+          dataNature: "categorical",
+          chartKind: "bar",
+          series: [],
+        }}
+      />
+    )
+    expect(screen.getByText("Chart unavailable")).toBeTruthy()
   })
 
   it("rejects envelopes with types outside the governed component enum", () => {

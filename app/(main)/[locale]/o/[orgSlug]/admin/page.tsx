@@ -18,15 +18,15 @@ import {
   fetchOrgAdminMembers,
   fetchOrgAdminPendingInvitations,
 } from "#lib/auth"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
-import { requireOrgSession } from "#lib/auth"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
+import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminOverviewPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/admin">) {
   const { orgSlug } = await params
   const t = await getTranslations("OrgAdmin.overview")
-  const orgSession = await requireOrgSession()
+  const orgSession = await getOrgTenantContext()
   const [members, invitations] = await Promise.all([
     fetchOrgAdminMembers(orgSession.organizationId),
     fetchOrgAdminPendingInvitations(orgSession.organizationId),
@@ -102,7 +102,7 @@ export default async function OrgAdminOverviewPage({
 
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" size="sm" asChild>
-          <Link href={organizationDashboardPath(orgSlug, "home")}>
+          <Link href={organizationAppsPath(orgSlug, "home")}>
             {t("backToErp")}
           </Link>
         </Button>

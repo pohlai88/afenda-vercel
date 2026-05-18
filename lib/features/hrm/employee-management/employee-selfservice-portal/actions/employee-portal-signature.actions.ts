@@ -7,7 +7,7 @@ import { requireRecentAuthStepUp } from "#lib/auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import {
   toLocalePath,
-  toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgAppsRevalidatePattern,
 } from "#lib/i18n/locales.shared"
 import { toLocalePortalRevalidatePattern } from "#lib/portal"
 
@@ -30,7 +30,7 @@ import type { SignatureMutationFormState } from "../../../types"
 
 function revalidateSignaturePortalSurfaces() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/signatures"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/signatures"),
     "page"
   )
   revalidatePath(

@@ -18,8 +18,8 @@ export {
   KNOWLEDGE_AUDIT_ACTIONS,
   KNOWLEDGE_EMBEDDING_DIMENSIONS,
   KNOWLEDGE_SOURCE_KINDS,
-  organizationDashboardPath,
-  ORG_DASHBOARD_KNOWLEDGE,
+  organizationAppsPath,
+  ORG_APPS_KNOWLEDGE,
   type KnowledgeSourceKind,
 } from "#features/knowledge/constants"
 export type {

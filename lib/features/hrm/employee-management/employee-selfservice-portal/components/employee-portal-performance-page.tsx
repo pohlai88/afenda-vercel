@@ -17,7 +17,11 @@ import { listKpiGoalsVisibleToEmployee } from "../data/employee-portal-kpi.queri
 import { buildEmployeePortalPerformanceGoalsListSurfaceConfiguration } from "../data/employee-portal-list-surface.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import {
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalPerformancePageProps = {
@@ -42,20 +46,26 @@ export async function EmployeePortalPerformancePage({
     }),
   ])
 
+  const trailingContext = { showRowActions: true } as const
+
   const listConfiguration =
-    buildEmployeePortalPerformanceGoalsListSurfaceConfiguration(goals, {
-      empty: t("goalsEmpty"),
-      colTitle: t("colTitle"),
-      colStatus: t("colStatus"),
-      colDue: t("colDue"),
-      colProgress: t("colProgress"),
-      formatDue: (dueDate) =>
-        dueDate
-          ? format.dateTime(new Date(`${dueDate}T00:00:00Z`), {
-              dateStyle: "medium",
-            })
-          : "—",
-    })
+    buildEmployeePortalPerformanceGoalsListSurfaceConfiguration(
+      goals,
+      {
+        empty: t("goalsEmpty"),
+        colTitle: t("colTitle"),
+        colStatus: t("colStatus"),
+        colDue: t("colDue"),
+        colProgress: t("colProgress"),
+        formatDue: (dueDate) =>
+          dueDate
+            ? format.dateTime(new Date(`${dueDate}T00:00:00Z`), {
+                dateStyle: "medium",
+              })
+            : "—",
+      },
+      trailingContext
+    )
 
   const goalById = new Map(goals.map((goal) => [goal.id, goal]))
 
@@ -80,21 +90,32 @@ export async function EmployeePortalPerformancePage({
           <CardDescription>{t("goalsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <EmployeePortalGovernedTable
-            configuration={listConfiguration}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={listConfiguration}
             surfaceKey="hrm:portal:performance-goals"
+            resolveConfiguredPermission={false}
             trailingColumn={{
               header: t("colAction"),
               render: (surfaceRow) => {
+                const trailingAction = surfaceRow.trailingAction
                 const goal = goalById.get(surfaceRow.id)
-                if (!goal) return null
+                if (
+                  !goal ||
+                  !isListSurfaceTrailingActionRenderable(trailingAction)
+                ) {
+                  return null
+                }
                 return (
-                  <Link
-                    href={goalPath(portalSlug, goal.id)}
-                    className="text-sm font-medium text-primary hover:underline"
-                  >
-                    {t("viewGoal")}
-                  </Link>
+                  <GovernedTrailingActionSlot trailingAction={trailingAction}>
+                    <Link
+                      href={goalPath(portalSlug, goal.id)}
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      {t("viewGoal")}
+                    </Link>
+                  </GovernedTrailingActionSlot>
                 )
               },
             }}

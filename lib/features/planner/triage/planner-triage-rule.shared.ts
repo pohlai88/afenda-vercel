@@ -1,5 +1,5 @@
 import type {
-  OrbitDashboardSurface,
+  OrbitSurface,
   PlannerBlockedState,
   PlannerDisplayPriority,
   PlannerSignalClass,
@@ -10,7 +10,7 @@ export type PlannerTriageRule = {
   id: string
   label: string
   priority: number
-  routeToSurface: OrbitDashboardSurface
+  routeToSurface: OrbitSurface
   signalClass?: PlannerSignalClass
   linkedModule?: string
   entityType?: string

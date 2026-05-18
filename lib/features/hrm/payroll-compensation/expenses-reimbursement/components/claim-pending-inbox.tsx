@@ -18,51 +18,10 @@ type ClaimPendingInboxProps = {
   canManage: boolean
 }
 
-export async function ClaimPendingInbox({
-  orgSlug,
-  canManage,
-}: ClaimPendingInboxProps) {
-  const orgSession = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.claims")
-
-  let rows: ReadonlyArray<ClaimRow>
-  try {
-    rows = canManage
-      ? await listPendingClaimApprovalsForOrg(orgSession.organizationId)
-      : await listPendingClaimApprovalsForActor(
-          orgSession.organizationId,
-          orgSession.userId
-        )
-  } catch (err) {
-    logUnexpectedServerError("claim-pending-inbox: query failed", err, {
-      organizationId: orgSession.organizationId,
-    })
-    return (
-      <GovernedPatternCListSection
-        layout="embedded"
-        title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: "hrm-claims-pending" },
-            columnsId: "hrm-claims-pending",
-            rowKey: "id",
-            empty: { variant: "muted", title: t("inboxEmpty") },
-          },
-          columns: [{ id: "employee", header: t("colEmployee") }],
-          rows: [],
-        }}
-        surfaceKey="hrm:claims:pending:error"
-        resolveConfiguredPermission={false}
-        loadError={{
-          variant: "error",
-          title: t("inboxLoadFailed"),
-        }}
-      />
-    )
-  }
-
-  const stateLabels = {
+function claimPendingStateLabels(
+  t: Awaited<ReturnType<typeof getTranslations<"Dashboard.Hrm.claims">>>
+) {
+  return {
     draft: t("state.draft"),
     submitted: t("state.submitted"),
     under_review: t("state.under_review"),
@@ -72,24 +31,75 @@ export async function ClaimPendingInbox({
     cancelled: t("state.cancelled"),
     paid: t("state.paid"),
   } as const
+}
 
-  const listConfiguration = buildClaimPendingListSurfaceConfiguration(
-    rows,
+export async function ClaimPendingInbox({
+  orgSlug,
+  canManage,
+}: ClaimPendingInboxProps) {
+  const orgSession = await requireOrgSession()
+
+  const [t, rowsResult] = await Promise.all([
+    getTranslations("Dashboard.Hrm.claims"),
+    (async (): Promise<
+      | { ok: true; rows: ReadonlyArray<ClaimRow> }
+      | { ok: false; error: unknown }
+    > => {
+      try {
+        const rows = canManage
+          ? await listPendingClaimApprovalsForOrg(orgSession.organizationId)
+          : await listPendingClaimApprovalsForActor(
+              orgSession.organizationId,
+              orgSession.userId
+            )
+        return { ok: true, rows }
+      } catch (error) {
+        return { ok: false, error }
+      }
+    })(),
+  ])
+
+  const copy = {
+    columnsId: "hrm-claims-pending",
+    empty: t("inboxEmpty"),
+    colEmployee: t("colEmployee"),
+    colClaimType: t("colClaimType"),
+    colClaimDate: t("colClaimDate"),
+    colAmount: t("colAmount"),
+    colEvidence: t("colEvidence"),
+    colSubmitted: t("colSubmitted"),
+    evidenceCountLabel: (count: number) => t("evidenceCount", { count }),
+    stateLabels: claimPendingStateLabels(t),
+  }
+
+  let listConfiguration = buildClaimPendingListSurfaceConfiguration(
+    [],
     orgSlug,
-    {
-      columnsId: "hrm-claims-pending",
-      empty: t("inboxEmpty"),
-      colEmployee: t("colEmployee"),
-      colClaimType: t("colClaimType"),
-      colClaimDate: t("colClaimDate"),
-      colAmount: t("colAmount"),
-      colEvidence: t("colEvidence"),
-      colSubmitted: t("colSubmitted"),
-      evidenceCountLabel: (count) => t("evidenceCount", { count }),
-      stateLabels,
-    }
+    copy
   )
+  let surfaceKey = "hrm:claims:pending-inbox"
+  let loadError:
+    | { variant: "error"; title: string }
+    | undefined
 
+  if (!rowsResult.ok) {
+    logUnexpectedServerError("claim-pending-inbox: query failed", rowsResult.error, {
+      organizationId: orgSession.organizationId,
+    })
+    surfaceKey = "hrm:claims:pending:error"
+    loadError = {
+      variant: "error",
+      title: t("inboxLoadFailed"),
+    }
+  } else {
+    listConfiguration = buildClaimPendingListSurfaceConfiguration(
+      rowsResult.rows,
+      orgSlug,
+      copy
+    )
+  }
+
+  const rows = rowsResult.ok ? rowsResult.rows : []
   const showActions = canManage || rows.length > 0
   const claimById = new Map(rows.map((row) => [row.id, row]))
 
@@ -98,8 +108,9 @@ export async function ClaimPendingInbox({
       layout="embedded"
       title=""
       listConfiguration={listConfiguration}
-      surfaceKey="hrm:claims:pending-inbox"
+      surfaceKey={surfaceKey}
       resolveConfiguredPermission={false}
+      loadError={loadError}
       invalid={{
         variant: "error",
         title: t("inboxLoadFailed"),

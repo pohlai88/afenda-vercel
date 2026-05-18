@@ -28,7 +28,7 @@ test.describe("nexus screenshot utility (optional credentials)", () => {
       )
 
       await test.step("Open dashboard shell", async () => {
-        await page.goto(`/en/o/${slug}/dashboard`)
+        await page.goto(`/en/o/${slug}/nexus`)
         await expect(
           page.getByRole("banner", { name: "Afenda system utility bar" })
         ).toBeVisible({ timeout: 15_000 })

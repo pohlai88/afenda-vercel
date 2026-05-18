@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server"
 
 import { AppShellSurface } from "#app-shell"
-import { organizationAccountPath } from "#lib/dashboard-module-paths"
+import { organizationAccountPath } from "#lib/org-apps-module-paths"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 
 import { AccountContextBand } from "../../../(iam)/account/_components/account-context-band"

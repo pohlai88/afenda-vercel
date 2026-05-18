@@ -17,7 +17,7 @@ import {
 } from "../data/employee-portal-requests.queries.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalRequestsPageProps = {
@@ -95,9 +95,12 @@ export async function EmployeePortalRequestsPage({
           <CardDescription>{t("openRequestsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <EmployeePortalGovernedTable
-            configuration={listConfiguration}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={listConfiguration}
             surfaceKey="hrm:portal:open-requests"
+            resolveConfiguredPermission={false}
           />
         </CardContent>
       </Card>

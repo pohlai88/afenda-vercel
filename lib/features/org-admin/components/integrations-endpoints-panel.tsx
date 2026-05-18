@@ -15,7 +15,7 @@ import {
 } from "../data/integrations-endpoints.queries"
 
 import { IntegrationsEndpointForm } from "./integrations-endpoint-form"
-import { IntegrationsEndpointRow } from "./integrations-endpoint-row"
+import { OrgAdminIntegrationsEndpointsListSection } from "./org-admin-integrations-endpoints-list-section"
 
 /**
  * Server-rendered list of `org_event_endpoint` rows for the active org. Form
@@ -44,7 +44,7 @@ export async function IntegrationsEndpointsPanel({
   void getOrgEventEndpoint
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("createTitle")}</CardTitle>
@@ -55,29 +55,17 @@ export async function IntegrationsEndpointsPanel({
         </CardContent>
       </Card>
 
-      <section className="space-y-3">
+      <section className="flex flex-col gap-3">
         <div>
           <h3 className="text-sm font-medium">{t("listTitle")}</h3>
           <p className="text-sm text-muted-foreground">
             {t("listDescription")}
           </p>
         </div>
-        {endpoints.length === 0 ? (
-          <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-            {t("listEmpty")}
-          </p>
-        ) : (
-          <ul className="divide-y rounded-md border">
-            {endpoints.map((endpoint) => (
-              <li key={endpoint.id} className="px-4 py-4">
-                <IntegrationsEndpointRow
-                  endpoint={endpoint}
-                  recentDeliveries={recentMap.get(endpoint.id) ?? []}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
+        <OrgAdminIntegrationsEndpointsListSection
+          endpoints={endpoints}
+          recentByEndpointId={recentMap}
+        />
       </section>
     </div>
   )

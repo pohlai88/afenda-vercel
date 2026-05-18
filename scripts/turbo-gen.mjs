@@ -7,9 +7,21 @@
  * pnpm gen action --module hrm
  * pnpm gen action --module hrm --object payroll_run --verb create --tier A
  */
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
 
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const argv = process.argv.slice(2)
+
+if (argv[0] === "surface-draft") {
+  const result = spawnSync(
+    process.execPath,
+    [path.join(ROOT, "scripts", "gen-surface-draft.mjs"), ...argv.slice(1)],
+    { stdio: "inherit", cwd: process.cwd(), env: process.env }
+  )
+  process.exit(result.status ?? 1)
+}
 
 function parseModuleFlag() {
   for (let i = 0; i < argv.length; i++) {

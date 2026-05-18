@@ -78,7 +78,7 @@ import { applyPlannerRelationPressure } from "../ranking/planner-derived-pressur
 import type {
   PlannerBlockedState,
   PlannerDisplayPriority,
-  OrbitDashboardSurface,
+  OrbitSurface,
   OrbitPageData,
   PlannerNotificationRole,
   PlannerNotificationTarget,
@@ -1711,7 +1711,7 @@ async function summarize(scope: PlannerScopeInput): Promise<OrbitSummary> {
 
 export async function getOrbitPageData(
   scope: PlannerScopeInput,
-  surface: OrbitDashboardSurface,
+  surface: OrbitSurface,
   filter: PlannerViewFilterState = {},
   activeViewSlug?: string | null,
   requestedSortMode?: PlannerViewSortMode | null

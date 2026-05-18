@@ -15,7 +15,7 @@ import { requireEmployeePortalContext } from "../data/employee-portal-access.ser
 import { buildEmployeePortalBenefitEnrollmentListSurfaceConfiguration } from "../data/employee-portal-list-surface.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalBenefitsPageProps = {
@@ -81,9 +81,12 @@ export async function EmployeePortalBenefitsPage({
           <CardDescription>{t("portalPageDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <EmployeePortalGovernedTable
-            configuration={listConfiguration}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={listConfiguration}
             surfaceKey="hrm:portal:benefits"
+            resolveConfiguredPermission={false}
           />
         </CardContent>
       </Card>

@@ -38,8 +38,8 @@ export { NlSqlDemoClient } from "#features/lynx/components/nl-sql-demo-client"
 export { TruthSearchClient } from "#features/lynx/components/truth-search-client"
 export { OperatorAssistClient } from "#features/lynx/components/operator-assist-client"
 export {
-  organizationDashboardPath,
-  ORG_DASHBOARD_LYNX,
+  organizationAppsPath,
+  ORG_APPS_LYNX,
   LYNX_OPERATOR_DEFAULT_MAX_OUTPUT_TOKENS,
   LYNX_OPERATOR_MAX_STEPS,
   LYNX_OPERATOR_TOOL_IDS,

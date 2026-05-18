@@ -18,7 +18,7 @@ import { requireEmployeePortalContext } from "../data/employee-portal-access.ser
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
 import { EmployeePortalAttendanceCorrectionForm } from "./employee-portal-attendance-correction-form.client"
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalAttendancePageProps = {
@@ -124,9 +124,12 @@ export async function EmployeePortalAttendancePage({
             <CardDescription>{t("portalPageDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <EmployeePortalGovernedTable
-              configuration={daysConfiguration}
+            <GovernedPatternCListSection
+              layout="embedded"
+              title=""
+              listConfiguration={daysConfiguration}
               surfaceKey="hrm:portal:attendance-days"
+              resolveConfiguredPermission={false}
             />
           </CardContent>
         </Card>

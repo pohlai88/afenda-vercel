@@ -52,7 +52,7 @@ vi.mock("#i18n/navigation", () => ({
       {children}
     </a>
   ),
-  usePathname: () => "/o/acme/dashboard/orbit",
+  usePathname: () => "/o/acme/apps/orbit",
 }))
 
 import { AppShellAppLauncher } from "#app-shell/client"

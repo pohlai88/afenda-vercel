@@ -1,6 +1,11 @@
 import "server-only"
 
-import type { ListSurfaceRendererConfiguration } from "#features/governed-surface"
+import {
+  GOVERNED_METADATA_SCHEMA_VERSION,
+  listSurfaceRowTrailingActionHidden,
+  resolveListSurfaceRowTrailingAction,
+  type ListSurfaceRendererConfiguration,
+} from "#features/governed-surface"
 import { employeePortalPath } from "#lib/portal"
 
 import type { BenefitEnrollmentListRow } from "../../../payroll-compensation/benefits-administration/data/benefit.queries.server"
@@ -8,10 +13,16 @@ import {
   mapClaimRowToListSurfaceRow,
   type ClaimListStateLabels,
 } from "../../../payroll-compensation/expenses-reimbursement/data/claim-list-surface-rows.shared"
-import type { ClaimEvidenceRow, ClaimRow } from "../../../payroll-compensation/expenses-reimbursement/data/claim.queries.server"
+import type {
+  ClaimEvidenceRow,
+  ClaimRow,
+} from "../../../payroll-compensation/expenses-reimbursement/data/claim.queries.server"
 import type { SalaryAdvanceListRow } from "../../../payroll-compensation/payroll-processing/data/salary-advance.queries.server"
 import type { KpiGoalRow } from "../../../talent-management/competency-skills-framework/data/kpi-goal.queries.server"
-import type { HrmTrainingAssignmentRow } from "../../../talent-management/training-development/data/training.types.shared"
+import type {
+  HrmTrainingAssignmentRow,
+  HrmTrainingRecord,
+} from "../../../talent-management/training-development/data/training.types.shared"
 import type { EmployeeVisibleDocumentSummary } from "../../documents-management/data/hrm-document.queries.server"
 import type { EmployeePortalOpenRequestRow } from "./employee-portal-requests.queries.server"
 
@@ -20,6 +31,10 @@ import { EMPLOYEE_PORTAL_LIST_SURFACE_IDS } from "./employee-portal-surface-meta
 const PRESENTATION = {
   variant: "table-only" as const,
   tableDensity: "compact" as const,
+}
+
+export type EmployeePortalListTrailingContext = {
+  showRowActions: boolean
 }
 
 function listSurfaceHeader(columnsId: string) {
@@ -40,10 +55,12 @@ type PortalClaimsListCopy = {
 export function buildEmployeePortalClaimsListSurfaceConfiguration(
   rows: readonly ClaimRow[],
   claimDetailHref: (claimId: string) => string,
-  copy: PortalClaimsListCopy
+  copy: PortalClaimsListCopy,
+  context?: EmployeePortalListTrailingContext
 ): ListSurfaceRendererConfiguration {
   const columnsId = copy.columnsId ?? EMPLOYEE_PORTAL_LIST_SURFACE_IDS.claims
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     presentation: PRESENTATION,
     surface: {
@@ -66,8 +83,8 @@ export function buildEmployeePortalClaimsListSurfaceConfiguration(
       },
       { id: "evidence", header: copy.colEvidence },
     ],
-    rows: rows.map((row) =>
-      mapClaimRowToListSurfaceRow({
+    rows: rows.map((row) => {
+      const mapped = mapClaimRowToListSurfaceRow({
         row,
         rowHref: claimDetailHref(row.id),
         linkColumnId: "claimDate",
@@ -75,7 +92,16 @@ export function buildEmployeePortalClaimsListSurfaceConfiguration(
         formatEvidenceCount: copy.evidenceCountLabel,
         includeEmployee: false,
       })
-    ),
+      return {
+        ...mapped,
+        trailingAction: context?.showRowActions
+          ? resolveListSurfaceRowTrailingAction({
+              visible: true,
+              allowed: true,
+            })
+          : undefined,
+      }
+    }),
   }
 }
 
@@ -93,6 +119,7 @@ export function buildEmployeePortalClaimEvidenceListSurfaceConfiguration(
   const columnsId =
     copy.columnsId ?? EMPLOYEE_PORTAL_LIST_SURFACE_IDS.claimEvidence
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     presentation: PRESENTATION,
     surface: {
@@ -132,6 +159,7 @@ export function buildEmployeePortalDocumentsListSurfaceConfiguration(
 ): ListSurfaceRendererConfiguration {
   const columnsId = copy.columnsId ?? EMPLOYEE_PORTAL_LIST_SURFACE_IDS.documents
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     presentation: PRESENTATION,
     surface: {
@@ -175,6 +203,7 @@ export function buildEmployeePortalOpenRequestsListSurfaceConfiguration(
   const columnsId =
     copy.columnsId ?? EMPLOYEE_PORTAL_LIST_SURFACE_IDS.openRequests
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     presentation: PRESENTATION,
     surface: {
@@ -225,10 +254,12 @@ type PortalAdvanceListCopy = {
 
 export function buildEmployeePortalAdvanceListSurfaceConfiguration(
   rows: readonly SalaryAdvanceListRow[],
-  copy: PortalAdvanceListCopy
+  copy: PortalAdvanceListCopy,
+  context?: EmployeePortalListTrailingContext
 ): ListSurfaceRendererConfiguration {
   const columnsId = copy.columnsId ?? EMPLOYEE_PORTAL_LIST_SURFACE_IDS.advances
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     presentation: PRESENTATION,
     surface: {
@@ -259,6 +290,13 @@ export function buildEmployeePortalAdvanceListSurfaceConfiguration(
         requested: row.requestedAt.toISOString().slice(0, 10),
         reason: row.reason ?? "—",
       },
+      trailingAction:
+        context?.showRowActions && row.state === "pending"
+          ? resolveListSurfaceRowTrailingAction({
+              visible: true,
+              allowed: true,
+            })
+          : listSurfaceRowTrailingActionHidden(),
     })),
   }
 }
@@ -289,6 +327,7 @@ export function buildEmployeePortalAdvanceInstallmentListSurfaceConfiguration(
   const columnsId =
     copy.columnsId ?? EMPLOYEE_PORTAL_LIST_SURFACE_IDS.advanceInstallments
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     presentation: PRESENTATION,
     surface: {
@@ -299,7 +338,11 @@ export function buildEmployeePortalAdvanceInstallmentListSurfaceConfiguration(
     },
     columns: [
       { id: "sequence", header: copy.colSequence, align: "end" },
-      { id: "periodEnd", header: copy.colPeriodEnd, cellKind: { kind: "date" } },
+      {
+        id: "periodEnd",
+        header: copy.colPeriodEnd,
+        cellKind: { kind: "date" },
+      },
       { id: "amount", header: copy.colAmount, align: "end" },
       {
         id: "state",
@@ -331,11 +374,13 @@ type PortalPerformanceGoalsListCopy = {
 
 export function buildEmployeePortalPerformanceGoalsListSurfaceConfiguration(
   rows: readonly KpiGoalRow[],
-  copy: PortalPerformanceGoalsListCopy
+  copy: PortalPerformanceGoalsListCopy,
+  context?: EmployeePortalListTrailingContext
 ): ListSurfaceRendererConfiguration {
   const columnsId =
     copy.columnsId ?? EMPLOYEE_PORTAL_LIST_SURFACE_IDS.performanceGoals
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     presentation: PRESENTATION,
     surface: {
@@ -362,6 +407,12 @@ export function buildEmployeePortalPerformanceGoalsListSurfaceConfiguration(
         due: copy.formatDue(row.dueDate),
         progress: `${row.percentComplete ?? 0}%`,
       },
+      trailingAction: context?.showRowActions
+        ? resolveListSurfaceRowTrailingAction({
+            visible: true,
+            allowed: true,
+          })
+        : undefined,
     })),
   }
 }
@@ -375,13 +426,78 @@ type PortalTrainingDueListCopy = {
   formatDue: (value: Date | null) => string
 }
 
+type PortalTrainingHistoryListCopy = {
+  columnsId?: string
+  empty: string
+  colCourse: string
+  colCompleted: string
+  colVerification: string
+  colFeedback: string
+  formatCompleted: (value: Date) => string
+  feedbackGivenLabel: (rating: number) => string
+}
+
+export function buildEmployeePortalTrainingHistoryListSurfaceConfiguration(
+  rows: readonly HrmTrainingRecord[],
+  copy: PortalTrainingHistoryListCopy,
+  context?: EmployeePortalListTrailingContext
+): ListSurfaceRendererConfiguration {
+  const columnsId =
+    copy.columnsId ?? EMPLOYEE_PORTAL_LIST_SURFACE_IDS.trainingHistory
+  return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
+    dataNature: "table",
+    presentation: PRESENTATION,
+    surface: {
+      header: listSurfaceHeader(columnsId),
+      columnsId,
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "course", header: copy.colCourse },
+      {
+        id: "completed",
+        header: copy.colCompleted,
+        cellKind: { kind: "date" },
+      },
+      {
+        id: "verification",
+        header: copy.colVerification,
+        cellKind: { kind: "badge", tone: "default" },
+      },
+      { id: "feedback", header: copy.colFeedback },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        course: row.courseName,
+        completed: copy.formatCompleted(row.completedAt),
+        verification: row.verificationState,
+        feedback: row.feedbackRating
+          ? copy.feedbackGivenLabel(row.feedbackRating)
+          : "—",
+      },
+      trailingAction:
+        context?.showRowActions && !row.feedbackRating
+          ? resolveListSurfaceRowTrailingAction({
+              visible: true,
+              allowed: true,
+            })
+          : listSurfaceRowTrailingActionHidden(),
+    })),
+  }
+}
+
 export function buildEmployeePortalTrainingDueListSurfaceConfiguration(
   rows: readonly HrmTrainingAssignmentRow[],
-  copy: PortalTrainingDueListCopy
+  copy: PortalTrainingDueListCopy,
+  context?: EmployeePortalListTrailingContext
 ): ListSurfaceRendererConfiguration {
   const columnsId =
     copy.columnsId ?? EMPLOYEE_PORTAL_LIST_SURFACE_IDS.trainingDue
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     presentation: PRESENTATION,
     surface: {
@@ -406,6 +522,12 @@ export function buildEmployeePortalTrainingDueListSurfaceConfiguration(
         due: row.dueAt ? copy.formatDue(row.dueAt) : "—",
         state: row.state,
       },
+      trailingAction: context?.showRowActions
+        ? resolveListSurfaceRowTrailingAction({
+            visible: true,
+            allowed: true,
+          })
+        : undefined,
     })),
   }
 }
@@ -436,6 +558,7 @@ export function buildEmployeePortalBenefitEnrollmentListSurfaceConfiguration(
   const columnsId =
     copy.columnsId ?? EMPLOYEE_PORTAL_LIST_SURFACE_IDS.benefitEnrollments
   return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",
     presentation: PRESENTATION,
     surface: {
@@ -452,7 +575,11 @@ export function buildEmployeePortalBenefitEnrollmentListSurfaceConfiguration(
         cellKind: { kind: "badge", tone: "default" },
       },
       { id: "coverage", header: copy.colCoverage },
-      { id: "effective", header: copy.colEffective, cellKind: { kind: "date" } },
+      {
+        id: "effective",
+        header: copy.colEffective,
+        cellKind: { kind: "date" },
+      },
     ],
     rows: rows.map((row) => ({
       id: row.enrollmentId,

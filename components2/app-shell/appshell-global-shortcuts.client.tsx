@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 
 import { useRouter } from "#i18n/navigation"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
 
 import { useAppShellStore } from "../stores/app-shell.store"
 
@@ -58,7 +58,7 @@ export function AppShellGlobalShortcuts({ orgSlug }: AppShellGlobalShortcutsProp
       if (withinGChord() && key === "h") {
         e.preventDefault()
         clearGChord()
-        router.push(organizationDashboardPath(orgSlug, "home"))
+        router.push(organizationAppsPath(orgSlug, "home"))
         return
       }
 

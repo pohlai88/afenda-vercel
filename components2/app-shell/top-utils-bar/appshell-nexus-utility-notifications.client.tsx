@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 
-import type { OrgNotificationNotice } from "#features/org-notifications"
-import { describeOrgNotificationBadge } from "#features/org-notifications"
+import {
+  describeOrgNotificationBadge,
+  type OrgNotificationNotice,
+} from "#features/org-notifications/client"
 
 import {
   AppShellNotificationsAdvancedBlock,

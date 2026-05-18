@@ -130,12 +130,12 @@ describe("auth-status-copy", () => {
       AUTH_STATUS.STEP_UP_REQUIRED,
       {
         locale: en,
-        callbackUrl: toLocalePath(en, "/operator"),
+        callbackUrl: toLocalePath(en, "/platform"),
       }
     )
     const stepUpUrl = new URL(content.primaryHref, "https://example.com")
     expect(stepUpUrl.searchParams.get("callbackUrl")).toBe(
-      toLocalePath(en, "/operator")
+      toLocalePath(en, "/platform")
     )
     expect(content.primaryHref).toContain("stepUp=1")
   })

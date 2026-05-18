@@ -209,6 +209,12 @@ export {
 export { resolveLeaveSurfaceAccess } from "./time-attendance/leave-attendance-management/data/leave-access.server"
 export type { LeaveSurfaceAccess } from "./time-attendance/leave-attendance-management/data/leave-access.server"
 
+export {
+  listActiveFwaScheduleForEmployee,
+  resolveActiveFwaForEmployee,
+} from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-integration.server"
+export type { ActiveFwaScheduleForDate } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-integration.server"
+
 export { resolveLeaveRequestCalendar } from "./time-attendance/leave-attendance-management/data/leave-calendar.server"
 export type { LeaveRequestCalendar } from "./time-attendance/leave-attendance-management/data/leave-calendar.server"
 
@@ -776,6 +782,26 @@ export {
   listLifeEventsForEmployee,
   listLifeEventsForOrganization,
 } from "./payroll-compensation/benefits-administration/data/benefit.queries.server"
+
+/** Bonus and incentive management reads + payroll bridge. */
+export {
+  getBonusReportSnapshot,
+  listApprovedBonusPayoutPayrollInputsForPeriod,
+  listBonusClawbacksForOrganization,
+  listBonusCyclesForOrganization,
+  listBonusEmployeeChoices,
+  listBonusPayrollPeriodChoices,
+  listBonusPayoutsForOrganization,
+  listBonusPlansForOrganization,
+} from "./payroll-compensation/bonus-incentive-management/server"
+export type {
+  BonusClawbackRow,
+  BonusCycleRow,
+  BonusEmployeeChoice,
+  BonusPayrollPeriodChoice,
+  BonusPayoutRow,
+  BonusReportSnapshot,
+} from "./payroll-compensation/bonus-incentive-management/server"
 
 export type {
   BenefitEnrollmentListRow,

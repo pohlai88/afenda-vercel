@@ -11,9 +11,8 @@ import {
 /**
  * Capability Registry — runtime constants.
  *
- * Canonical surface: `/{locale}/o/{orgSlug}/marketplace` (org-scoped under
- * the authenticated app shell). Category vocabulary lives here so tests,
- * paths, and i18n keys pull from one source.
+ * Route surface retired (ADR-0029): `/{locale}/o/{orgSlug}/marketplace/*` 308s to
+ * Nexus; utility-bar resolution still uses this module via `#features/marketplace/server`.
  */
 
 // ---------------------------------------------------------------------------
@@ -25,10 +24,8 @@ import {
  * result to `Link` / `router.push` from `#i18n/navigation`; do not prefix
  * `/{locale}` manually.
  *
- * Categories:
- *   - `organizationMarketplacePath(slug)`           → `/o/{slug}/marketplace`
- *   - `organizationMarketplacePath(slug, "utilities")` → `/o/{slug}/marketplace/utilities`
- *   - `organizationMarketplacePath(slug, "admin")`    → `/o/{slug}/marketplace/admin`
+ * Legacy locale-internal paths (bookmarks redirect via `next.config.ts`):
+ *   - `organizationMarketplacePath(slug)` → `/o/{slug}/marketplace` (308 → nexus)
  *
  * `admin` is reserved for the governance surface (org-admin gate + step-up);
  * it is not a `CapabilityCategory`. Future categories register in

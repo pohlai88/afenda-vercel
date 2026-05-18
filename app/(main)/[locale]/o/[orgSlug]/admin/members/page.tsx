@@ -1,6 +1,10 @@
 import { getTranslations } from "next-intl/server"
 
-import { OrganizationAdminClient } from "#features/org-admin"
+import {
+  OrgAdminMembersListSection,
+  OrgAdminPendingInvitationsListSection,
+  OrganizationAdminInviteSection,
+} from "#features/org-admin"
 import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 import { GovernedSurface } from "#features/governed-surface"
 
@@ -8,20 +12,21 @@ import {
   fetchOrgAdminMembers,
   fetchOrgAdminPendingInvitations,
 } from "#lib/auth"
-import { requireOrgSession } from "#lib/auth"
+import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminMembersPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/admin/members">) {
   const { orgSlug } = await params
-  const orgSession = await requireOrgSession()
-  const t = await getTranslations("OrgAdmin.members")
-  const [members, invitations] = await Promise.all([
+  const orgSession = await getOrgTenantContext()
+  const [t, tPending, tList, members, invitations] = await Promise.all([
+    getTranslations("OrgAdmin.members"),
+    getTranslations("OrgAdmin.pending"),
+    getTranslations("OrgAdmin.memberList"),
     fetchOrgAdminMembers(orgSession.organizationId),
     fetchOrgAdminPendingInvitations(orgSession.organizationId),
   ])
 
-  // Working Memory Rail — record this page in the operator's recents.
   await recordOrgAdminPageVisit({
     orgSession,
     orgSlug,
@@ -35,11 +40,20 @@ export default async function OrgAdminMembersPage({
         description: t("description"),
       }}
     >
-      <OrganizationAdminClient
-        members={members}
-        invitations={invitations}
-        currentUserId={orgSession.userId}
-      />
+      <div className="flex flex-col gap-8">
+        <OrganizationAdminInviteSection />
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium">{tPending("title")}</h2>
+          <OrgAdminPendingInvitationsListSection invitations={invitations} />
+        </section>
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium">{tList("title")}</h2>
+          <OrgAdminMembersListSection
+            members={members}
+            currentUserId={orgSession.userId}
+          />
+        </section>
+      </div>
     </GovernedSurface>
   )
 }

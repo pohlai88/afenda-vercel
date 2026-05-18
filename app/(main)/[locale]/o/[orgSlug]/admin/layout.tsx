@@ -9,8 +9,9 @@ import {
   requireRecentAuthStepUp,
   requireVerifiedEmailForAccount,
 } from "#lib/auth"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
-import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
+import { bindRequestLocale } from "#lib/i18n/bind-request-locale.server"
+import { toLocalePath } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
 import { requireOrgSession } from "#lib/auth"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
@@ -43,7 +44,7 @@ async function OrgAdminLayoutInner({
   params,
 }: LayoutProps<"/[locale]/o/[orgSlug]/admin">) {
   const { locale: localeRaw, orgSlug } = await params
-  const locale = ensureAppLocale(localeRaw)
+  const locale = bindRequestLocale(localeRaw)
   const resumeTo = toLocalePath(
     locale,
     organizationAdminPath(orgSlug, "overview")
@@ -64,7 +65,7 @@ async function OrgAdminLayoutInner({
   ])
 
   if (!tenantAuthorityGate.ok) {
-    redirect(toLocalePath(locale, organizationDashboardPath(orgSlug, "home")))
+    redirect(toLocalePath(locale, organizationAppsPath(orgSlug, "home")))
   }
   if (!identity) {
     notFound()

@@ -73,30 +73,32 @@ export async function requireSignedInSession(): Promise<SignedInSession> {
  * Requires a signed-in user who is a global Better Auth admin (`admin` role or
  * `BETTER_AUTH_ADMIN_USER_IDS`). Does not require an active organization.
  */
-export async function requireGlobalAdminSession(): Promise<GlobalAdminSession> {
-  const session = await getAuthSession()
+export const requireGlobalAdminSession = cache(
+  async function requireGlobalAdminSession(): Promise<GlobalAdminSession> {
+    const session = await getAuthSession()
 
-  if (!session?.user?.id || !session.session?.id) {
-    return await redirectToAuthInterruption(AUTH_STATUS.SESSION_EXPIRED)
+    if (!session?.user?.id || !session.session?.id) {
+      return await redirectToAuthInterruption(AUTH_STATUS.SESSION_EXPIRED)
+    }
+
+    const user = session.user as SessionUserWithRole
+
+    if (!isGlobalAdminUser(user.id, user.role)) {
+      const locale = await getRequestAppLocale()
+      redirect(toLocalePath(locale, "/o") as Route)
+    }
+
+    return {
+      userId: user.id,
+      sessionId: session.session.id,
+      user: {
+        email: user.email,
+        name: user.name,
+        role: user.role ?? null,
+      },
+    }
   }
-
-  const user = session.user as SessionUserWithRole
-
-  if (!isGlobalAdminUser(user.id, user.role)) {
-    const locale = await getRequestAppLocale()
-    redirect(toLocalePath(locale, "/o") as Route)
-  }
-
-  return {
-    userId: user.id,
-    sessionId: session.session.id,
-    user: {
-      email: user.email,
-      name: user.name,
-      role: user.role ?? null,
-    },
-  }
-}
+)
 
 /**
  * Requires an authenticated user with an active organization and membership.

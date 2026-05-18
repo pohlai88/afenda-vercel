@@ -19,7 +19,7 @@ import { requireEmployeePortalContext } from "../data/employee-portal-access.ser
 import { buildEmployeePortalClaimEvidenceListSurfaceConfiguration } from "../data/employee-portal-list-surface.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
-import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalClaimDetailPageProps = {
@@ -113,9 +113,12 @@ export async function EmployeePortalClaimDetailPage({
             <CardDescription>{t("colEvidence")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <EmployeePortalGovernedTable
-              configuration={evidenceConfiguration}
+            <GovernedPatternCListSection
+              layout="embedded"
+              title=""
+              listConfiguration={evidenceConfiguration}
               surfaceKey="hrm:portal:claim-evidence"
+              resolveConfiguredPermission={false}
               trailingColumn={{
                 header: " ",
                 render: (surfaceRow) => {

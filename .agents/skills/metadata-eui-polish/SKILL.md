@@ -21,7 +21,7 @@ This skill applies when editing:
 - `components2/metadata/renderers/**`
 - `lib/features/governed-surface/**` (`GovernedSurfaceSectionCard`, `GovernedPatternCListSection`)
 - `lib/features/*/data/*-surface-builders.server.ts`
-- ERP pages using `GovernedComponentRenderer`, `GovernedPatternCListSection`, or the portal `EmployeePortalGovernedTable` embedded helper
+- ERP pages using `GovernedComponentRenderer` or `GovernedPatternCListSection` (`layout="embedded"` when parent `Card` owns chrome)
 - `app/[locale]/dev/metadata-renderer-gallery/**`
 - `app/[locale]/dev/pattern-c-section-gallery/**`
 
@@ -34,6 +34,26 @@ This skill applies when editing:
 | **vercel-composition-patterns** | global — `vercel-labs/agent-skills@vercel-composition-patterns` | Compound components; avoid boolean prop bags on renderers |
 
 Optional review pass (attach manually): **frontend-design-review**, **wcag-accessibility-audit** for table keyboard/focus audits.
+
+## Complementary skills (pair with Vercel React / composition)
+
+Use these **in addition to** `vercel-react-best-practices` and `vercel-composition-patterns` — they close gaps those guides do not cover.
+
+| Priority | Skill | Install / path | Why |
+| --- | --- | --- | --- |
+| **Required** | **shadcn-metadata** | `.agents/skills/shadcn-metadata/SKILL.md` (repo) | Shelf primitives, forms, tokens — renderers must not invent tiles |
+| **Required** | **web-design-guidelines** | `npx skills add vercel-labs/agent-skills@web-design-guidelines` | Spacing, states, hierarchy — pairs with composition |
+| **High** | **typescript-react-reviewer** | `~/.claude/skills/typescript-react-reviewer` (often preinstalled) | `useEffect` abuse, hook rules, client-bridge anti-patterns |
+| **High** | **react-hooks** | `~/.claude/skills/react-hooks` | Derived state in render, event handlers vs effects — critical for drag/footer bridges |
+| **High** | **nextjs-app-router-patterns** | `~/.claude/skills/nextjs-app-router-patterns` | RSC default, Server Actions, serializable props — complements `async-*` rules |
+| **High** | **playwright-best-practices** | `~/.claude/skills/playwright-best-practices` | Gallery matrix + `governed-kanban-board:{surfaceKey}` smoke |
+| **Medium** | **web-accessibility** | `~/.claude/skills/web-accessibility` | Kanban drag handles, focus, `aria-grabbed` |
+| **Medium** | **frontend-design-review** | `~/.codex/skills/frontend-design-review` | Design-system + layout geometry review gate |
+| **Medium** | **accelint-nextjs-best-practices** | `~/.claude/skills/accelint-nextjs-best-practices` | Auth in Server Actions, Suspense — overlaps Vercel doc, good for Afenda |
+| **Repo** | **dry** / **kiss** / **yagni** | `.agents/skills/{dry,kiss,yagni}/` | Builder duplication, speculative renderer modes |
+| **Avoid duplicating** | `react-composition-2026` (patternsdev) | skills.sh | Overlaps `vercel-composition-patterns`; pick one family |
+
+**Vercel plugin (Cursor):** `next-cache-components`, `nextjs` — use when touching `use cache`, `cacheLife`, or App Router caching (ADR-0023).
 
 ## Cursor rules (non-negotiable)
 
@@ -54,10 +74,13 @@ Optional review pass (attach manually): **frontend-design-review**, **wcag-acces
 | **A** | Page chrome + bespoke forms | `GovernedSurface`, `ModulePageHeader`, `GovernedSection` from `#features/governed-surface` |
 | **B** | Tables, KPI grids, audit lists (no trailing row forms) | `GovernedComponentRenderer` from `#components2/metadata` + manual `Card` section |
 | **C** | List metadata + trailing forms/actions | `GovernedPatternCListSection` from `#features/governed-surface`; `GovernedTrailingActionSlot` from `#features/governed-surface/client` |
+| **K** | Kanban columns + card footers or drag | `GovernedKanbanFooterSection` / `GovernedKanbanDragSection` + `GovernedKanbanFooterBoard` or `GovernedKanbanDragBoard` from `#features/governed-surface/client` |
 
 **Builder recipe:** `lib/features/<module>/data/*-surface-builders.server.ts` returns `ListSurfaceRendererConfigurationInput`. Pattern C sections pass the builder output to `GovernedPatternCListSection` — do not re-parse in the feature module.
 
 **Pattern C polish:** `surfaceKey`, `requiresErpPermission`, row `trailingAction` + `disabledReason`, `data-trailing-action-state` on trailing cells, `data-testid="governed-list-section:{surfaceKey}"`. Validate states at `/[locale]/dev/pattern-c-section-gallery`.
+
+**Pattern K polish:** `interactionMode` matches bridge (`footer-actions` → `GovernedKanbanFooterBoard`; `drag-reorder` → `GovernedKanbanDragBoard`); builder owns columns/cards/transitions; query failures use empty board + section `loadError` when wired; gallery scenarios `kanban-recruitment*`.
 
 ## Polish checklist (every renderer / surface PR)
 
@@ -105,6 +128,17 @@ pnpm lint:renderer-fixtures
 ```
 
 Pre-push: `pnpm verify:parallel`.
+
+## Migration PR gate (tier-1 — required on every Pattern B/C migration)
+
+When converting a hand-rolled list/table to `GovernedPatternCListSection` or `GovernedComponentRenderer`:
+
+1. Announce: *Applying metadata EUI polish to `{surfaceKey}`.*
+2. Complete checklist sections **3–4** (builder + section) for that surface only.
+3. Spot-check `/{locale}/dev/pattern-c-section-gallery` at 280 / 480 / 720 widths when layout changes.
+4. Run `pnpm exec eslint --max-warnings=0 <touched-paths>` and `pnpm typecheck`.
+
+Do **not** re-run full renderer polish (sections 1–2) on every migration PR unless the change exposes a kernel gap — fix kernels in a separate PR.
 
 ## New renderer scaffold
 

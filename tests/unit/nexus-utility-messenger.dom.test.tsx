@@ -128,7 +128,7 @@ vi.mock("next-intl", () => ({
 }))
 
 vi.mock("#i18n/navigation", () => ({
-  usePathname: () => "/en/o/acme/dashboard/home",
+  usePathname: () => "/en/o/acme/apps/home",
 }))
 
 import { TooltipProvider } from "#components2/ui/tooltip"
@@ -374,7 +374,7 @@ describe("OperationalCoordinationConsole", { timeout: 20_000 }, () => {
       <div data-appshell-capture-root="workspace">workspace</div>
       <main id="dashboard-main" data-appshell-capture-root="content">content</main>
     `
-    window.history.replaceState({}, "", "/en/o/acme/dashboard/home")
+    window.history.replaceState({}, "", "/en/o/acme/apps/home")
     uploadMock.mockResolvedValue({
       url: "https://blob.example/evidence.pdf",
       downloadUrl: "https://blob.example/evidence.pdf?download=1",
@@ -455,7 +455,7 @@ describe("OperationalCoordinationConsole", { timeout: 20_000 }, () => {
       source: "nexus-utility-messenger",
       contextId: "ctx-1",
       evidenceKind: "file",
-      routePath: "/en/o/acme/dashboard/home",
+      routePath: "/en/o/acme/apps/home",
     })
     expect(
       fetchMock.mock.calls.some(

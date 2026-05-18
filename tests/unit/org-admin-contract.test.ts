@@ -22,7 +22,7 @@ import {
 } from "#features/org-admin/constants"
 import { ORG_ADMIN_NAV_NAMESPACE } from "#features/org-admin/types"
 
-import { sanitizePathAfterOrgSlug } from "#lib/i18n/dashboard-org-path.shared"
+import { sanitizePathAfterOrgSlug } from "#lib/i18n/org-apps-path.shared"
 
 const NAV_MESSAGES = (enMessages as Record<string, unknown>).OrgAdmin as {
   nav: Record<string, string>

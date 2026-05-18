@@ -115,9 +115,9 @@ lib/features/governed-surface/components/module-page-header.tsx
 lib/features/contacts/data/contacts-surface-builders.server.ts
 lib/features/contacts/components/contacts-page.tsx
 messages/en.json (Dashboard.Contacts)
-lib/features/hrm/talent-management/performance-management/components/hrm-performance-page.tsx
-lib/features/hrm/talent-management/performance-management/components/performance-cycle-row-actions.client.tsx
-app/(main)/[locale]/o/[orgSlug]/dashboard/hrm/performance/loading.tsx
+lib/features/hrm/talent-management/performance-appraisals/components/hrm-performance-page.tsx
+lib/features/hrm/talent-management/performance-appraisals/components/performance-cycle-row-actions.client.tsx
+app/(main)/[locale]/o/[orgSlug]/apps/hrm/performance/loading.tsx
 lib/features/hrm/payroll-compensation/expenses-reimbursement/components/claim-recent-table.tsx
 components2/metadata/renderers/list-surface-table.tsx
 components2/metadata/renderers/list-surface.renderer.tsx

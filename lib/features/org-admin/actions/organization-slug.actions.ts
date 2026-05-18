@@ -12,7 +12,7 @@ import {
 } from "#lib/auth/org-slug.server"
 import {
   toLocaleOrgAdminRevalidatePattern,
-  toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgAppsRevalidatePattern,
   toLocaleOrgNexusRevalidatePattern,
 } from "#lib/i18n/locales.shared"
 import { requireSignedInSession } from "#lib/auth"
@@ -144,7 +144,7 @@ export type UpdateOrganizationSlugState =
 
 function revalidateOrgRoutes() {
   revalidatePath(toLocaleOrgAdminRevalidatePattern(""), "layout")
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern(""), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(""), "layout")
   revalidatePath(toLocaleOrgNexusRevalidatePattern(), "page")
 }
 

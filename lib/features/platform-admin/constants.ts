@@ -1,5 +1,4 @@
 import type { AppPath } from "#lib/i18n/locales.shared"
-import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 import type {
   PlatformAdminCapability,
@@ -10,8 +9,9 @@ import type {
 
 /**
  * Canonical platform-admin capability registry — single source of truth for
- * the global `/operator/*` surface. Sidebar, breadcrumbs, route validators and
- * audit prefixes are derived from this list.
+ * Afenda internal `/platform/*`. Legacy `/operator/*` and `/o/{slug}/operator/*`
+ * redirect via `next.config.ts` (308).
+ * Sidebar, breadcrumbs, route validators and audit prefixes are derived from this list.
  *
  * IDs are stable strings (referenced from i18n + audit). Add capabilities by
  * appending to this list and updating `PlatformAdminCapabilityId`.
@@ -69,29 +69,13 @@ export function getPlatformAdminCapabilityById(
   return PLATFORM_ADMIN_CAPABILITIES.find((capability) => capability.id === id)
 }
 
-/** Build a locale-internal `/operator/{segment}` path. Strips leading slashes. */
-export function platformAdminPath(segment?: string): AppPath {
+/** Canonical locale-internal platform console path (`/{locale}/platform/...`). */
+export function platformPath(segment?: string): AppPath {
   if (!segment) {
-    return "/operator" as AppPath
+    return "/platform" as AppPath
   }
   const trimmed = segment.replace(/^\/+/, "")
-  return `/operator/${trimmed}` as AppPath
-}
-
-/** Canonical org-scoped platform admin path under the active org shell. */
-export function organizationOperatorPath(
-  orgSlug: string,
-  segment?: string
-): AppPath {
-  const slug = normalizeOrgSlugParam(orgSlug)
-  if (!slug) {
-    throw new Error("organizationOperatorPath: invalid org slug")
-  }
-  if (!segment) {
-    return `/o/${slug}/operator` as AppPath
-  }
-  const trimmed = segment.replace(/^\/+/, "")
-  return `/o/${slug}/operator/${trimmed}` as AppPath
+  return `/platform/${trimmed}` as AppPath
 }
 
 /** Sidebar nav items derived from {@link PLATFORM_ADMIN_CAPABILITIES}. */
@@ -101,7 +85,7 @@ export const PLATFORM_ADMIN_NAV_ITEMS: readonly PlatformAdminNavItem[] =
     return [
       {
         capabilityId: capability.id,
-        href: platformAdminPath(capability.nav.primarySegment),
+        href: platformPath(capability.nav.primarySegment),
         navKey: capability.nav.navKey as PlatformAdminNavKey,
         order: capability.nav.order,
       },

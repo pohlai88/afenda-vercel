@@ -127,7 +127,7 @@ describe("pinRecordInputSchema", () => {
     resourceType: "hrm_employee",
     resourceId: "00000000-0000-0000-0000-0000000000aa",
     label: "Sarah Chen",
-    href: "/o/acme/dashboard/hrm/employees/00000000-0000-0000-0000-0000000000aa",
+    href: "/o/acme/apps/hrm/employees/00000000-0000-0000-0000-0000000000aa",
     icon: "user",
   }
 
@@ -238,7 +238,7 @@ describe("saveViewInputSchema", () => {
     const parsed = saveViewInputSchema.parse({
       workbenchId: "hrm",
       label: "New hires this month",
-      href: "/o/acme/dashboard/hrm/employees?status=hired&since=30d",
+      href: "/o/acme/apps/hrm/employees?status=hired&since=30d",
     })
     expect(parsed.label).toBe("New hires this month")
   })
@@ -307,7 +307,7 @@ describe("recordRecentVisitInputSchema", () => {
     workbenchId: "hrm" as WorkbenchId,
     resourceType: "hrm_employee",
     label: "Sarah Chen",
-    href: "/o/acme/dashboard/hrm/employees/abc",
+    href: "/o/acme/apps/hrm/employees/abc",
   }
 
   it("accepts a record-level visit (resourceId present)", () => {
@@ -384,7 +384,7 @@ describe("pinRowToDto", () => {
     resourceType: "hrm_employee",
     resourceId: "emp-1",
     label: "Sarah Chen",
-    href: "/o/acme/dashboard/hrm/employees/emp-1",
+    href: "/o/acme/apps/hrm/employees/emp-1",
     icon: "user",
     lane: "pinned",
     rank: 0,
@@ -624,14 +624,14 @@ describe("dedupeRecents", () => {
         id: "r2",
         resourceType: "hrm_employee",
         resourceId: null,
-        href: "/o/acme/dashboard/hrm/employees",
+        href: "/o/acme/apps/hrm/employees",
         occurredAt: "2026-05-12T10:00:00Z",
       }),
       makeRecent({
         id: "r1",
         resourceType: "hrm_employee",
         resourceId: null,
-        href: "/o/acme/dashboard/hrm/employees",
+        href: "/o/acme/apps/hrm/employees",
         occurredAt: "2026-05-12T09:00:00Z",
       }),
     ])
@@ -716,8 +716,8 @@ describe("WORKBENCH_REVALIDATE_PATTERNS", () => {
     expect(WORKBENCH_REVALIDATE_PATTERNS).toStrictEqual({
       account: "/[locale]/account",
       "org-admin": "/[locale]/o/[orgSlug]/admin",
-      hrm: "/[locale]/o/[orgSlug]/dashboard/hrm",
-      "platform-admin": "/[locale]/operator",
+      hrm: "/[locale]/o/[orgSlug]/apps/hrm",
+      "platform-admin": "/[locale]/platform",
     })
   })
 })

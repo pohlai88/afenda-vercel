@@ -7,12 +7,12 @@ import { and, eq } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { logUnexpectedServerError } from "#lib/logger.server"
-import { ORG_DASHBOARD_HRM_EMPLOYEES } from "#lib/dashboard-module-paths"
+import { ORG_APPS_HRM_EMPLOYEES } from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import { hrmEmployee } from "#lib/db/schema"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import {
-  toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgAppsRevalidatePattern,
   toLocalePath,
 } from "#lib/i18n/locales.shared"
 
@@ -175,7 +175,7 @@ export async function createEmployeeAction(
   )
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEES),
     "page"
   )
 
@@ -329,7 +329,7 @@ export async function updateEmployeeAction(
   )
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEES),
     "page"
   )
 
@@ -488,7 +488,7 @@ export async function archiveEmployeeAction(
   })
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEES),
     "page"
   )
 
@@ -563,7 +563,7 @@ export async function rehireEmployeeAction(
   )
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEES),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEES),
     "page"
   )
 

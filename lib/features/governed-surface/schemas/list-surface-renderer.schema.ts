@@ -5,6 +5,7 @@ import type { SchemaStability } from "./_stability.shared"
 import { erpPermissionRequirementSchema } from "./erp-permission-requirement.schema"
 import { listColumnSchema, listSurfaceSchema } from "./list-surface.schema"
 import { listSurfaceRowTrailingActionSchema } from "./list-surface-row-trailing-action.schema"
+import { governedMetadataSchemaVersionSchema } from "./schema-version.shared"
 
 export const SCHEMA_STABILITY: SchemaStability = "beta"
 
@@ -57,8 +58,8 @@ export type ListSurfacePresentation = z.infer<
   typeof listSurfacePresentationSchema
 >
 
-export const listSurfaceRendererConfigurationSchema = z
-  .object({
+export const listSurfaceRendererConfigurationSchema =
+  governedMetadataSchemaVersionSchema.extend({
     dataNature: listSurfaceRendererDataNatureSchema.default("table"),
     /** When set, RSC builders must gate render via `resolveGovernedErpPermissionAllowed`. */
     requiresErpPermission: erpPermissionRequirementSchema.optional(),
@@ -67,7 +68,6 @@ export const listSurfaceRendererConfigurationSchema = z
     columns: z.array(listColumnSchema).min(1),
     rows: z.array(listSurfaceRowSchema),
   })
-  .strict()
 
 export type ListSurfaceRow = z.infer<typeof listSurfaceRowSchema>
 export type ListSurfaceRendererConfiguration = z.infer<

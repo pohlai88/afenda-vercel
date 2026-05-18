@@ -1,7 +1,7 @@
 "use server"
 
 import { requireRecentAuthStepUp, writeIamAuditEvent } from "#lib/auth"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { requireErpPermission } from "#features/erp-rbac/server"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
@@ -45,7 +45,7 @@ export async function issueEInvoiceAction(
   await requireRecentAuthStepUp({
     returnTo: toLocalePath(
       locale,
-      organizationDashboardPath(tenant.orgSlug, "home")
+      organizationAppsPath(tenant.orgSlug, "home")
     ),
   })
 

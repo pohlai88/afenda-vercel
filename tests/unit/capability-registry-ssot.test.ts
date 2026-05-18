@@ -9,7 +9,7 @@ import {
   PLATFORM_ADMIN_ALLOWED_SEGMENTS,
   PLATFORM_ADMIN_CAPABILITIES,
 } from "#features/platform-admin"
-import { HRM_DASHBOARD_CAPABILITY_SEGMENTS } from "#features/hrm/hrm-dashboard-path.shared"
+import { HRM_APPS_CAPABILITY_SEGMENTS } from "#features/hrm/hrm-apps-path.shared"
 
 describe("capability registry SSOT", () => {
   it("ORG_ADMIN_PATH_SEGMENTS matches ORG_ADMIN_CAPABILITIES segments", () => {
@@ -29,10 +29,10 @@ describe("capability registry SSOT", () => {
     expect(new Set(PLATFORM_ADMIN_ALLOWED_SEGMENTS)).toEqual(expected)
   })
 
-  it("HRM_DASHBOARD_CAPABILITY_SEGMENTS matches HRM_CAPABILITIES segments", () => {
+  it("HRM_APPS_CAPABILITY_SEGMENTS matches HRM_CAPABILITIES segments", () => {
     const fromRegistry = new Set(
       HRM_CAPABILITIES.flatMap((c) => [...c.segments])
     )
-    expect(new Set(HRM_DASHBOARD_CAPABILITY_SEGMENTS)).toEqual(fromRegistry)
+    expect(new Set(HRM_APPS_CAPABILITY_SEGMENTS)).toEqual(fromRegistry)
   })
 })

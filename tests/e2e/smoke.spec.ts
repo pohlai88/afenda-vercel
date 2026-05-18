@@ -30,10 +30,10 @@ test.describe("public shell", () => {
   )
 
   test(
-    "org-scoped dashboard redirects unauthenticated users to sign-in with callbackUrl",
+    "org-scoped apps surface redirects unauthenticated users to sign-in with callbackUrl",
     { tag: "@smoke" },
     async ({ page }) => {
-      const target = "/en/o/acme-corp/dashboard/contacts"
+      const target = "/en/o/acme-corp/apps/contacts"
       await page.goto(target)
       await expect(page).toHaveURL(/\/en\/sign-in\?/)
       const u = new URL(page.url())

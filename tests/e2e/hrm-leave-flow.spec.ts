@@ -28,7 +28,7 @@ test.describe("HRM leave UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/leave`)
+      await page.goto(`/en/o/${slug}/apps/hrm/leave`)
 
       await expect(
         page.getByRole("heading", { name: "Leave management", exact: true })
@@ -43,7 +43,7 @@ test.describe("HRM leave UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/leave`)
+      await page.goto(`/en/o/${slug}/apps/hrm/leave`)
 
       await expect(page.getByText("Pending approvals")).toBeVisible()
       await expect(page.getByText("Recent activity")).toBeVisible()
@@ -54,7 +54,7 @@ test.describe("HRM leave UI surface", () => {
     "leave route under unknown org slug renders organization not-found",
     { tag: "@hrm" },
     async ({ page }) => {
-      await page.goto("/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/leave")
+      await page.goto("/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/leave")
       await expect(
         page.getByRole("heading", {
           name: "Organization not available",

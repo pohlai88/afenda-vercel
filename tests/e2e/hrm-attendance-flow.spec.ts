@@ -28,7 +28,7 @@ test.describe("HRM attendance UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/attendance`)
+      await page.goto(`/en/o/${slug}/apps/hrm/attendance`)
 
       await expect(
         page.getByRole("heading", {
@@ -46,7 +46,7 @@ test.describe("HRM attendance UI surface", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
 
-      await page.goto(`/en/o/${slug}/dashboard/hrm/attendance`)
+      await page.goto(`/en/o/${slug}/apps/hrm/attendance`)
 
       await expect(page.getByText("Day summary", { exact: true })).toBeVisible()
       await expect(
@@ -54,7 +54,7 @@ test.describe("HRM attendance UI surface", () => {
       ).toBeVisible()
 
       const summaryForm = page.locator(
-        'form[action$="/dashboard/hrm/attendance"][method="get"]'
+        'form[action$="/apps/hrm/attendance"][method="get"]'
       )
       const employeeOptions = summaryForm.locator(
         'select[name="employeeId"] option'
@@ -108,7 +108,7 @@ test.describe("HRM attendance UI surface", () => {
     { tag: "@hrm" },
     async ({ page }) => {
       await page.goto(
-        "/en/o/zz-no-such-afenda-org-slug-99/dashboard/hrm/attendance"
+        "/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/attendance"
       )
       await expect(
         page.getByRole("heading", {

@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache"
 
 import { requireErpPermission } from "#features/erp-rbac/server"
-import { ORG_DASHBOARD_HRM_TRAINING } from "#lib/dashboard-module-paths"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { ORG_APPS_HRM_TRAINING } from "#lib/org-apps-module-paths"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import {
@@ -17,7 +17,7 @@ import type { TrainingMutationFormState } from "../data/training.types.shared"
 
 function revalidateTraining() {
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_TRAINING),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_TRAINING),
     "page"
   )
 }

@@ -59,11 +59,11 @@ import { Tabs, TabsList, TabsTrigger } from "#components2/ui/tabs"
 import { Textarea } from "#components2/ui/textarea"
 import { ToggleGroup, ToggleGroupItem } from "#components2/ui/toggle-group"
 import { Link } from "#i18n/navigation"
-import type {
-  OrgNotificationNotice,
-  OrgNotificationSeverity,
-} from "#features/org-notifications"
-import { describeOrgNotificationBadge } from "#features/org-notifications"
+import {
+  describeOrgNotificationBadge,
+  type OrgNotificationNotice,
+  type OrgNotificationSeverity,
+} from "#features/org-notifications/client"
 import { cn } from "#lib/utils"
 
 import { APP_SHELL_UTILITY_L2_ICON_CLASS } from "./appshell-utility-bar.client"

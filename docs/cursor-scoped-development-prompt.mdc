@@ -1,0 +1,63 @@
+---
+description: Docs mirror — canonical development verdict lives in .cursor/rules/cursor-scoped-development-prompt.mdc
+alwaysApply: false
+---
+
+# Scoped development prompt (docs mirror)
+
+**Canonical file:** [`.cursor/rules/cursor-scoped-development-prompt.mdc`](../.cursor/rules/cursor-scoped-development-prompt.mdc)
+
+## Two-run workflow
+
+```txt
+Run A — Phase 0 clarify (plan only, no code):
+Run B — Phase 0 implement OR Phase 1 (after you approve the plan)
+```
+
+---
+
+## Run A — Phase 0 clarify (start here)
+
+```txt
+@.cursor/rules/cursor-scoped-development-prompt.mdc
+@lib/features/hrm/time-attendance/flexible-work-arrangement-tracking/ARCHITECTURE.md
+@lib/features/hrm/time-attendance/leave-attendance-management/ARCHITECTURE.md
+
+DEVELOPMENT_SCOPE:
+lib/features/hrm/time-attendance/flexible-work-arrangement-tracking/**
+
+ARCHITECTURE: lib/features/hrm/time-attendance/flexible-work-arrangement-tracking/ARCHITECTURE.md
+DELIVERY_PHASE: 0
+PHASE_0_MODE: clarify
+MODULE: hrm
+ROUTE_SEGMENT: tbd
+PATTERN: tbd
+```
+
+**Agent delivers:** Phase 0 Clarification Report (entity model, phase 0–4 map, route/permission proposal, patterns, next-run paste block). **No code.**
+
+---
+
+## Run B — after plan approved
+
+**Option 1 — scaffold foundation:**
+
+```txt
+DELIVERY_PHASE: 0
+PHASE_0_MODE: implement
+ROUTE_SEGMENT: flexible-work
+REQUIREMENT_CODES: HRM-FWA-001,HRM-FWA-002,HRM-FWA-003
+PATTERN: A
+```
+
+**Option 2 — MVP directly:**
+
+```txt
+DELIVERY_PHASE: 1
+PHASE_0_MODE: implement
+ROUTE_SEGMENT: flexible-work
+REQUIREMENT_CODES: HRM-FWA-001,HRM-FWA-002,HRM-FWA-004,HRM-FWA-005,HRM-FWA-006
+PATTERN: mixed
+```
+
+Full verdict text lives in the Cursor rule.

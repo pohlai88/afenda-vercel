@@ -6,7 +6,7 @@ import { scenarioIdSchema } from "#lib/erp/scenario-types.shared"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   toLocaleOrgAdminRevalidatePattern,
-  toLocaleOrgDashboardRevalidatePattern,
+  toLocaleOrgAppsRevalidatePattern,
 } from "#lib/i18n/locales.shared"
 
 import { isOperationalSimulationEnabled } from "../constants"
@@ -47,7 +47,7 @@ export async function replayOrgOperationalScenarioAction(
     })
 
     revalidatePath(toLocaleOrgAdminRevalidatePattern("/audit"), "page")
-    revalidatePath(toLocaleOrgDashboardRevalidatePattern("/orbit"), "page")
+    revalidatePath(toLocaleOrgAppsRevalidatePattern("/orbit"), "page")
 
     return { ok: true, simulationRunId }
   } catch (err) {

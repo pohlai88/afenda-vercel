@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import {
   Card,
   CardContent,
@@ -22,6 +23,11 @@ import type {
   BenefitLifeEventRow,
   BenefitPlanRow,
 } from "../data/benefit-model.shared"
+
+import {
+  buildBenefitReportsByEntityListSurfaceConfiguration,
+  buildBenefitReportsByPlanListSurfaceConfiguration,
+} from "../data/benefit-report-list-surface.server"
 
 import { BenefitReportsExportActions } from "./benefit-reports-export-actions"
 
@@ -129,31 +135,22 @@ export async function BenefitReportsPanel({
           <CardTitle>{t("reports.byPlanTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
-          {byPlan.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("reports.empty")}</p>
-          ) : (
-            <ul className="divide-y divide-border text-sm">
-              {byPlan.map((row) => (
-                <li
-                  key={row.benefitId}
-                  className="flex flex-wrap items-center justify-between gap-2 py-2"
-                >
-                  <span>
-                    {row.benefitName}{" "}
-                    <span className="font-mono text-xs text-muted-foreground">
-                      {row.benefitCode}
-                    </span>
-                  </span>
-                  <span className="text-muted-foreground">
-                    {t("reports.planCounts", {
-                      active: row.activeCount,
-                      pending: row.pendingCount,
-                    })}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={buildBenefitReportsByPlanListSurfaceConfiguration(
+              byPlan,
+              {
+                empty: t("reports.empty"),
+                colPlan: t("reports.byPlanTitle"),
+                colCounts: "Enrollments",
+                planCountsLabel: (active, pending) =>
+                  t("reports.planCounts", { active, pending }),
+              }
+            )}
+            surfaceKey="hrm:benefits:reports-by-plan"
+            resolveConfiguredPermission={false}
+          />
         </CardContent>
       </Card>
 
@@ -162,27 +159,26 @@ export async function BenefitReportsPanel({
           <CardTitle>{t("reports.byEntityTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
-          {byEntity.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("reports.empty")}</p>
-          ) : (
-            <ul className="divide-y divide-border text-sm">
-              {byEntity.map((row) => (
-                <li
-                  key={row.legalEntityCode}
-                  className="flex flex-wrap items-center justify-between gap-2 py-2"
-                >
-                  <span className="font-medium">{row.legalEntityCode}</span>
-                  <span className="text-muted-foreground">
-                    {t("reports.entityTotals", {
-                      enrollments: row.enrollmentCount,
-                      employee: row.employeeContributionTotal,
-                      employer: row.employerContributionTotal,
-                    })}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={buildBenefitReportsByEntityListSurfaceConfiguration(
+              byEntity,
+              {
+                empty: t("reports.empty"),
+                colEntity: t("reports.byEntityTitle"),
+                colTotals: "Totals",
+                entityTotalsLabel: (enrollments, employee, employer) =>
+                  t("reports.entityTotals", {
+                    enrollments,
+                    employee,
+                    employer,
+                  }),
+              }
+            )}
+            surfaceKey="hrm:benefits:reports-by-entity"
+            resolveConfiguredPermission={false}
+          />
         </CardContent>
       </Card>
 

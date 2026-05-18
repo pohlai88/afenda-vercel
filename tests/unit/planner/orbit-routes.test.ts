@@ -30,8 +30,8 @@ vi.mock("#features/planner/server", () => ({
   OrbitPage: orbitPageMock,
 }))
 
-import OrbitQueuePage from "../../../app/(main)/[locale]/o/[orgSlug]/dashboard/orbit/page"
-import OrbitTriagePage from "../../../app/(main)/[locale]/o/[orgSlug]/dashboard/orbit/triage/page"
+import OrbitQueuePage from "../../../app/(main)/[locale]/o/[orgSlug]/apps/orbit/page"
+import OrbitTriagePage from "../../../app/(main)/[locale]/o/[orgSlug]/apps/orbit/triage/page"
 
 describe("orbit route wrappers", () => {
   beforeEach(() => {

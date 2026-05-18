@@ -5,13 +5,13 @@ import {
   canCancelReviewRowStage,
   canSubmitReviewStageTransition,
   isFinalReviewRowState,
-} from "../../lib/features/hrm/talent-management/performance-management/data/performance-review.shared.ts"
+} from "../../lib/features/hrm/talent-management/performance-appraisals/data/performance-review.shared.ts"
 import {
   HRM_REVIEW_ROW_STATE,
   initialReviewStageForPipeline,
   nextReviewStageAfterSubmit,
   normalizeReviewStage,
-} from "../../lib/features/hrm/talent-management/performance-management/schemas/performance.schema"
+} from "../../lib/features/hrm/talent-management/performance-appraisals/schemas/performance.schema"
 
 describe("performance review stage machine", () => {
   it("initialReviewStageForPipeline", () => {

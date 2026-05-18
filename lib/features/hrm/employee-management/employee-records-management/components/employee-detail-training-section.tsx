@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server"
 
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { Badge } from "#components2/ui/badge"
 import {
   Card,
@@ -8,16 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
 
 import { listEmployeeSkillsForEmployee } from "../../../talent-management/competency-skills-framework/data/skill.queries.server"
+import {
+  buildEmployeeDetailTrainingAssignmentListSurfaceConfiguration,
+  buildTrainingRecordListSurfaceConfiguration,
+} from "../../../talent-management/training-development/data/training-list-surface.server"
 import {
   listTrainingAssignmentsForOrg,
   listTrainingRecordsForOrg,
@@ -43,6 +40,27 @@ export async function EmployeeDetailTrainingSection({
     listEmployeeSkillsForEmployee(organizationId, employeeId),
   ])
 
+  const assignmentsConfiguration =
+    buildEmployeeDetailTrainingAssignmentListSurfaceConfiguration(assignments, {
+      empty: t("employeeDetailUpcomingEmpty"),
+      colCourse: t("colCourse"),
+      colDue: t("colDue"),
+      colState: t("colState"),
+      formatDue: (value) => format.dateTime(value, { dateStyle: "medium" }),
+    })
+
+  const recordsConfiguration = buildTrainingRecordListSurfaceConfiguration(
+    records,
+    {
+      empty: t("employeeDetailHistoryEmpty"),
+      colCourse: t("colCourse"),
+      colCompleted: t("employeeDetailHistory"),
+      colVerification: "Verification",
+      colExpires: t("expires"),
+      formatDate: (value) => format.dateTime(value, { dateStyle: "medium" }),
+    }
+  )
+
   return (
     <Card id="training" size="sm">
       <CardHeader>
@@ -52,65 +70,22 @@ export async function EmployeeDetailTrainingSection({
       <CardContent className="flex flex-col gap-6">
         <section className="flex flex-col gap-2">
           <h3 className="text-sm font-medium">{t("employeeDetailUpcoming")}</h3>
-          {assignments.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("employeeDetailUpcomingEmpty")}
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("colCourse")}</TableHead>
-                  <TableHead>{t("colDue")}</TableHead>
-                  <TableHead>{t("colState")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {assignments.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>{row.courseName}</TableCell>
-                    <TableCell>
-                      {row.dueAt
-                        ? format.dateTime(row.dueAt, { dateStyle: "medium" })
-                        : "—"}
-                    </TableCell>
-                    <TableCell>{row.state}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={assignmentsConfiguration}
+            surfaceKey="hrm:employee-detail:training-assignments"
+          />
         </section>
 
         <section className="flex flex-col gap-2">
           <h3 className="text-sm font-medium">{t("employeeDetailHistory")}</h3>
-          {records.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("employeeDetailHistoryEmpty")}
-            </p>
-          ) : (
-            <ul className="divide-y rounded-md border text-sm">
-              {records.map((record) => (
-                <li key={record.id} className="px-4 py-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium">{record.courseName}</p>
-                    <Badge variant="outline">{record.verificationState}</Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {format.dateTime(record.completedAt, {
-                      dateStyle: "medium",
-                    })}
-                    {record.expiresAt
-                      ? ` · ${t("expires")} ${format.dateTime(record.expiresAt, { dateStyle: "medium" })}`
-                      : null}
-                    {record.feedbackRating
-                      ? ` · ${t("employeeDetailFeedback", { rating: record.feedbackRating })}`
-                      : null}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={recordsConfiguration}
+            surfaceKey="hrm:employee-detail:training-records"
+          />
         </section>
 
         {skills.length > 0 ? (

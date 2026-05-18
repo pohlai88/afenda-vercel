@@ -386,7 +386,7 @@ Policy capability is registered in `HRM_CAPABILITIES`. E2e `hrm-policies-flow.sp
 
 **Coverage: 3 · Quality: 3 · Weight: 3**
 
-The **`imports`** capability is registered in **`HRM_CAPABILITIES`** with audit prefix **`erp.hrm.import`**, primary segment **`imports`**, and ERP permission **`hrm.import.search`** (see [`lib/features/hrm/constants.ts`](../../lib/features/hrm/constants.ts)). The dashboard segment allowlist includes **`imports`** in [`#lib/hrm-dashboard.shared`](../../lib/hrm-dashboard.shared.ts). The route [`app/[locale]/o/[orgSlug]/dashboard/hrm/imports/page.tsx`](../../app/[locale]/o/[orgSlug]/dashboard/hrm/imports/page.tsx) gates access via **`getHrmCapabilityById("imports")`** and **`getErpPermissionDefinition`** so permissions stay registry-sourced. Bulk CSV / governed import sessions are implemented in **`hrm-import.actions.ts`** and composed through **`HrmImportsPage`**.
+The **`imports`** capability is registered in **`HRM_CAPABILITIES`** with audit prefix **`erp.hrm.import`**, primary segment **`imports`**, and ERP permission **`hrm.import.search`** (see [`lib/features/hrm/constants.ts`](../../lib/features/hrm/constants.ts)). The dashboard segment allowlist includes **`imports`** in [`#lib/hrm-dashboard.shared`](../../lib/hrm-dashboard.shared.ts). The route [`app/[locale]/o/[orgSlug]/apps/hrm/imports/page.tsx`](../../app/[locale]/o/[orgSlug]/dashboard/hrm/imports/page.tsx) gates access via **`getHrmCapabilityById("imports")`** and **`getErpPermissionDefinition`** so permissions stay registry-sourced. Bulk CSV / governed import sessions are implemented in **`hrm-import.actions.ts`** and composed through **`HrmImportsPage`**.
 
 **Tests:** `hrm-import.test.ts` (session lifecycle, CSV row guards). Ask-docs: `imports.mdx`.
 

@@ -41,12 +41,12 @@ export function AttendanceDaySelector({
   const t = useTranslations("Dashboard.Hrm.attendance")
   const employeeId = useId()
   const dateId = useId()
-  const resetHref = `/o/${orgSlug}/dashboard/hrm/attendance`
+  const resetHref = `/o/${orgSlug}/apps/hrm/attendance`
 
   return (
     <form
       method="get"
-      action={`/o/${orgSlug}/dashboard/hrm/attendance`}
+      action={`/o/${orgSlug}/apps/hrm/attendance`}
       className="flex flex-wrap items-end gap-3"
     >
       <Field className="min-w-[14rem] flex-1">

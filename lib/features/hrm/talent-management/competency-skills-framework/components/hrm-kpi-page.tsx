@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server"
+import { getFormatter, getTranslations } from "next-intl/server"
 import type { Route } from "next"
 
 import { ModulePageHeader } from "#features/governed-surface"
@@ -26,6 +26,10 @@ import {
 import { listActiveEmployeeChoicesForLeave } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
 
 import { KpiGoalList, type KpiGoalListGoalStatusFilter } from "./kpi-goal-list"
+import {
+  KpiPeriodsListSection,
+  KpiScoresListSection,
+} from "./kpi-metrics-list-sections"
 
 type HrmKpiPageProps = {
   orgSlug: string
@@ -50,7 +54,10 @@ export async function HrmKpiPage({
   isHrmAdmin,
 }: HrmKpiPageProps) {
   const session = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.kpi")
+  const [t, format] = await Promise.all([
+    getTranslations("Dashboard.Hrm.kpi"),
+    getFormatter(),
+  ])
   const basePath = organizationHrmPath(orgSlug, "kpi")
 
   const tabNav = (
@@ -278,24 +285,12 @@ export async function HrmKpiPage({
           <CardDescription>{t("periodsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {periods.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("periodsEmpty")}</p>
-          ) : (
-            <ul className="divide-y divide-border rounded-md border border-border text-sm">
-              {periods.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex flex-wrap justify-between gap-2 px-3 py-2"
-                >
-                  <span className="font-medium">{p.name}</span>
-                  <span className="text-muted-foreground">
-                    {p.periodStart.toISOString().slice(0, 10)} ÔÇö{" "}
-                    {p.periodEnd.toISOString().slice(0, 10)} ┬À {p.state}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <KpiPeriodsListSection
+            periods={periods}
+            formatRange={(period) =>
+              `${format.dateTime(period.periodStart, { dateStyle: "medium" })} — ${format.dateTime(period.periodEnd, { dateStyle: "medium" })}`
+            }
+          />
         </CardContent>
       </Card>
 
@@ -306,19 +301,12 @@ export async function HrmKpiPage({
             <CardDescription>{t("scoresDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="divide-y divide-border rounded-md border border-border text-sm">
-              {scores.map((s) => (
-                <li key={s.id} className="flex flex-col gap-1 px-3 py-2">
-                  <span className="font-medium">
-                    {s.employeeLegalName} ┬À {s.metricCode}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {t("scoreTarget")}: {s.targetValue ?? "ÔÇö"} ┬À{" "}
-                    {t("scoreAchieved")}: {s.achievedValue ?? "ÔÇö"}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <KpiScoresListSection
+              scores={scores}
+              formatTargets={(score) =>
+                `${t("scoreTarget")}: ${score.targetValue ?? "—"} · ${t("scoreAchieved")}: ${score.achievedValue ?? "—"}`
+              }
+            />
           </CardContent>
         </Card>
       ) : null}

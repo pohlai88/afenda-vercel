@@ -12,7 +12,7 @@ import {
   hrmClaimEvidence,
   hrmClaimType,
 } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
@@ -37,9 +37,9 @@ import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.
 import type { ClaimApprovalFormState } from "../../../types"
 
 function revalidateClaims() {
-  revalidatePath(toLocaleOrgDashboardRevalidatePattern("/hrm/claims"), "layout")
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/claims"), "layout")
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern("/hrm/employees/[employeeId]"),
+    toLocaleOrgAppsRevalidatePattern("/hrm/employees/[employeeId]"),
     "page"
   )
 }

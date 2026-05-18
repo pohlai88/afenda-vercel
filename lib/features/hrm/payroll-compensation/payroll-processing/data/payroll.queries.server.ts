@@ -19,6 +19,7 @@ import {
 } from "../../../time-attendance/leave-attendance-management/data/attendance.queries.server"
 import { isAttendanceDayReadyForPayroll } from "../../../time-attendance/leave-attendance-management/data/attendance-display.shared"
 import { listBenefitPayrollProjectionEnrollmentsForPeriod } from "../../benefits-administration/data/benefit-enterprise.queries.server"
+import { listApprovedBonusPayoutPayrollInputsForPeriod } from "../../bonus-incentive-management/server"
 import { listApprovedUnpaidClaimsForPeriod } from "../../expenses-reimbursement/data/claim.queries.server"
 import {
   buildCompensationSnapshotForContract,
@@ -542,6 +543,11 @@ export async function getPayrollRunInputSnapshot(
     pcbTp1AdditionalReliefMonthly,
     pcbTp3AdditionalDeductionMonthly,
     approvedUnpaidClaims,
+    approvedBonusPayouts: await listApprovedBonusPayoutPayrollInputsForPeriod({
+      organizationId,
+      employeeId: run.employeeId,
+      payrollPeriodId: run.periodId,
+    }),
     approvedSalaryAdvanceInstallments:
       await listDueSalaryAdvanceInstallmentsForEmployeePayroll({
         organizationId,

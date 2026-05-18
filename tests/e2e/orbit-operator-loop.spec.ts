@@ -38,7 +38,7 @@ test.describe("orbit operator loop (optional credentials)", () => {
       const capturedTitle = `E2E Orbit captured item ${unique}`
       const capturedText = `${capturedTitle} tomorrow 9am every week`
 
-      await page.goto(`/en/o/${slug}/dashboard/orbit/triage`)
+      await page.goto(`/en/o/${slug}/apps/orbit/triage`)
       await expect(
         page.getByRole("heading", { name: /Orbit/i }).first()
       ).toBeVisible({ timeout: 15_000 })
@@ -55,7 +55,7 @@ test.describe("orbit operator loop (optional credentials)", () => {
       ).toBeVisible()
       await expect(page.getByText("FREQ=WEEKLY;INTERVAL=1")).toBeVisible()
 
-      await page.goto(`/en/o/${slug}/dashboard/orbit/triage`)
+      await page.goto(`/en/o/${slug}/apps/orbit/triage`)
 
       await page
         .getByLabel("Orbit signal title", { exact: true })
@@ -79,7 +79,7 @@ test.describe("orbit operator loop (optional credentials)", () => {
         .getByRole("button", { name: "Promote to item", exact: true })
         .click()
 
-      await expect(page).toHaveURL(/dashboard\/orbit\?status=promotedSignal/)
+      await expect(page).toHaveURL(/apps\/orbit\?status=promotedSignal/)
       await expect(
         page.getByRole("heading", { name: signalTitle, exact: true })
       ).toBeVisible()
@@ -116,7 +116,7 @@ test.describe("orbit operator loop (optional credentials)", () => {
       await expect(page).toHaveURL(/status=updatedItem/)
       const itemFocusUrl = page.url()
 
-      await page.goto(`/en/o/${slug}/dashboard/orbit/links`)
+      await page.goto(`/en/o/${slug}/apps/orbit/links`)
       await page.getByRole("link", { name: new RegExp(linkLabel) }).click()
       await expect(page).toHaveURL(/focusKind=link&focusId=/)
       await expect(page.getByText(linkReason, { exact: true })).toBeVisible()
@@ -126,7 +126,7 @@ test.describe("orbit operator loop (optional credentials)", () => {
         .getByRole("button", { name: "Start session", exact: true })
         .click()
       await expect(page).toHaveURL(
-        /dashboard\/orbit\/sessions\?status=startedSession/
+        /apps\/orbit\/sessions\?status=startedSession/
       )
       await expect(page.getByText(signalTitle, { exact: true })).toBeVisible()
 

@@ -33,7 +33,7 @@ todos:
 **Add** [`app/[locale]/loading.tsx`](app/[locale]/loading.tsx) mirroring the existing spinner shell:
 
 - Import `Spinner` from `#components/ui/spinner`.
-- Same container classes and `aria-busy` / `aria-live="polite"` as org dashboard loading (e.g. [`app/[locale]/o/[orgSlug]/dashboard/loading.tsx`](app/[locale]/o/[orgSlug]/dashboard/loading.tsx)).
+- Same container classes and `aria-busy` / `aria-live="polite"` as org dashboard loading (e.g. [`app/[locale]/o/[orgSlug]/apps/loading.tsx`](app/[locale]/o/[orgSlug]/dashboard/loading.tsx)).
 - Short JSDoc: immediate feedback while any direct child segment of `[locale]` suspends.
 
 **Acceptance:** Navigating between top-level locale routes (e.g. home → sign-in) shows the spinner during slow RSC resolution without layout flash regressions.

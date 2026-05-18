@@ -38,7 +38,7 @@ export function ensureAppLocale(value: string): AppLocale {
   return isAppLocale(value) ? value : DEFAULT_APP_LOCALE
 }
 
-/** Same-origin path segment after `/` (e.g. `/dashboard`, `/`). */
+/** Same-origin path segment after `/` (e.g. `/apps`, `/`). */
 export type AppPath = `/${string}`
 
 /**
@@ -70,22 +70,20 @@ export function toLocaleRoutePattern(path: AppPath): AppPath {
 }
 
 /**
- * `revalidatePath` pattern for org-scoped dashboard routes
- * (`app/[locale]/o/[orgSlug]/dashboard/...`), invalidating all locales and orgs.
+ * `revalidatePath` pattern for org-scoped ERP app routes
+ * (`app/[locale]/o/[orgSlug]/apps/...`), invalidating all locales and orgs.
  *
- * @param dashboardTail — path after `/dashboard` with a leading slash, e.g.
- *   `/contacts`, `/sale`, or `""` for the dashboard index segment.
+ * @param appsTail — path after `/apps` with a leading slash, e.g.
+ *   `/contacts`, `/hrm/payroll`, or `""` for the apps index segment.
  */
-export function toLocaleOrgDashboardRevalidatePattern(
-  dashboardTail: string
-): AppPath {
+export function toLocaleOrgAppsRevalidatePattern(appsTail: string): AppPath {
   const tail =
-    dashboardTail === "" || dashboardTail === "/"
+    appsTail === "" || appsTail === "/"
       ? ""
-      : dashboardTail.startsWith("/")
-        ? dashboardTail
-        : `/${dashboardTail}`
-  return `/[locale]/o/[orgSlug]/dashboard${tail}` as AppPath
+      : appsTail.startsWith("/")
+        ? appsTail
+        : `/${appsTail}`
+  return `/[locale]/o/[orgSlug]/apps${tail}` as AppPath
 }
 
 /** `revalidatePath` pattern for the Nexus field (`/o/[orgSlug]/nexus`). */
@@ -93,9 +91,7 @@ export function toLocaleOrgNexusRevalidatePattern(): AppPath {
   return `/[locale]/o/[orgSlug]/nexus` as AppPath
 }
 
-/**
- * `revalidatePath` for org admin workbench routes (`/o/[orgSlug]/admin/...`).
- */
+/** `revalidatePath` for org admin routes (`/o/[orgSlug]/admin/...`). */
 export function toLocaleOrgAdminRevalidatePattern(adminTail: string): AppPath {
   const tail =
     adminTail === "" || adminTail === "/"
@@ -106,24 +102,20 @@ export function toLocaleOrgAdminRevalidatePattern(adminTail: string): AppPath {
   return `/[locale]/o/[orgSlug]/admin${tail}` as AppPath
 }
 
-/**
- * `revalidatePath` for the org-scoped Capability Registry (`/o/[orgSlug]/marketplace/...`).
- */
-export function toLocaleMarketplaceRevalidatePattern(
-  marketplaceTail: string = ""
-): AppPath {
+/** `revalidatePath` for Afenda platform console (`/[locale]/platform/...`). */
+export function toLocalePlatformRevalidatePattern(platformTail: string): AppPath {
   const tail =
-    marketplaceTail === "" || marketplaceTail === "/"
+    platformTail === "" || platformTail === "/"
       ? ""
-      : marketplaceTail.startsWith("/")
-        ? marketplaceTail
-        : `/${marketplaceTail}`
-  return `/[locale]/o/[orgSlug]/marketplace${tail}` as AppPath
+      : platformTail.startsWith("/")
+        ? platformTail
+        : `/${platformTail}`
+  return `/[locale]/platform${tail}` as AppPath
 }
 
 export type StrippedLocalePath = {
   locale: AppLocale
-  /** Pathname without the leading `/{locale}` (e.g. `/dashboard` or `/`). */
+  /** Pathname without the leading `/{locale}` (e.g. `/apps` or `/`). */
   pathnameWithoutLocale: string
 }
 

@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -23,6 +24,7 @@ export type GovernedSurfaceSectionCardProps = {
   title: string
   description?: string
   body: GovernedSurfaceSectionCardBody
+  headerAction?: ReactNode
   className?: string
   contentClassName?: string
 }
@@ -31,6 +33,7 @@ export function GovernedSurfaceSectionCard({
   title,
   description,
   body,
+  headerAction,
   className,
   contentClassName,
 }: GovernedSurfaceSectionCardProps) {
@@ -44,6 +47,7 @@ export function GovernedSurfaceSectionCard({
           {title}
         </CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
+        {headerAction ? <CardAction>{headerAction}</CardAction> : null}
       </CardHeader>
       <CardContent className={contentClassName}>
         {body.state === "forbidden" || body.state === "invalid" ? (

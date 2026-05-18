@@ -20,6 +20,8 @@ import { listActiveEmployeeChoicesForAttendance } from "../../../server"
 import { AttendanceDaySummary } from "./attendance-day-summary"
 import { AttendanceDaySelector } from "./attendance-day-selector"
 import { AttendanceRecentEvents } from "./attendance-recent-events"
+import { AttendanceTimeReportPending } from "./attendance-time-report-pending"
+import { AttendanceTimeReportRecent } from "./attendance-time-report-recent"
 import { AttendanceRecordEventDialog } from "./attendance-record-event-dialog"
 import {
   AttendanceShiftAssignmentPanel,
@@ -58,8 +60,9 @@ export async function AttendancePage({
 }: AttendancePageProps) {
   const orgSession = await requireOrgSession()
 
-  const [t, isAdmin, employees] = await Promise.all([
+  const [t, tTimeReports, isAdmin, employees] = await Promise.all([
     getTranslations("Dashboard.Hrm.attendance"),
+    getTranslations("Dashboard.Hrm.leave.timeReports"),
     canUseErpPermissionForCurrentOrg({
       module: "hrm",
       object: "attendance",
@@ -164,6 +167,34 @@ export async function AttendancePage({
           </Suspense>
         </CardContent>
       </Card>
+
+      {isAdmin ? (
+        <>
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle>{tTimeReports("inboxTitle")}</CardTitle>
+              <CardDescription>{tTimeReports("inboxDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Suspense fallback={<AttendanceTableSkeleton />}>
+                <AttendanceTimeReportPending />
+              </Suspense>
+            </CardContent>
+          </Card>
+
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle>{tTimeReports("recentTitle")}</CardTitle>
+              <CardDescription>{tTimeReports("recentDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Suspense fallback={<AttendanceTableSkeleton />}>
+                <AttendanceTimeReportRecent />
+              </Suspense>
+            </CardContent>
+          </Card>
+        </>
+      ) : null}
     </div>
   )
 }

@@ -39,6 +39,8 @@ import {
 } from "#components2/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components2/ui/tabs"
 
+const STACK_ROW_DIVIDER = "border-b border-border/40 last:border-b-0"
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -142,7 +144,7 @@ function PathTab({ activeScopes }: { activeScopes: ActiveScopeEntry[] }) {
   }
 
   return (
-    <div className="flex flex-col divide-y divide-border/40">
+    <div className="flex flex-col">
       {sorted.map((scope) => {
         const hasValue =
           scope.selectedLabel !== null && scope.selectedLabel.length > 0
@@ -153,7 +155,10 @@ function PathTab({ activeScopes }: { activeScopes: ActiveScopeEntry[] }) {
         return (
           <div
             key={scope.scopeType}
-            className="flex items-center gap-3 px-4 py-2.5"
+            className={cn(
+              "flex items-center gap-3 px-4 py-2.5",
+              STACK_ROW_DIVIDER
+            )}
           >
             <ScopeIcon
               scopeType={scope.scopeType}
@@ -239,7 +244,10 @@ function ScopePolicyRow({
 
   return (
     <div
-      className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+      className={cn(
+        "flex items-center justify-between gap-3 py-2.5",
+        STACK_ROW_DIVIDER
+      )}
       aria-busy={isPending}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -305,7 +313,7 @@ function PolicyTab({
         </AlertDescription>
       </Alert>
 
-      <div className="divide-y divide-border/40 px-4 py-3">
+      <div className="flex flex-col px-4 py-3">
         {registeredScopes.map((entry) => (
           <ScopePolicyRow
             key={entry.scopeType}
@@ -366,11 +374,14 @@ function AudienceTab() {
         </Alert>
       </div>
 
-      <div className="divide-y divide-border/40 px-4 pb-3">
+      <div className="flex flex-col px-4 pb-3">
         {AUDIENCE_PLACEHOLDER.map((row) => (
           <div
             key={row.id}
-            className="flex items-center justify-between gap-3 py-2.5"
+            className={cn(
+              "flex items-center justify-between gap-3 py-2.5",
+              STACK_ROW_DIVIDER
+            )}
           >
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium">{row.label}</p>
@@ -416,13 +427,16 @@ function DefaultsTab({
         </Alert>
       </div>
 
-      <div className="divide-y divide-border/40 px-4 pb-3">
+      <div className="flex flex-col px-4 pb-3">
         {registeredScopes
           .filter((e) => e.available)
           .map((entry) => (
             <div
               key={entry.scopeType}
-              className="flex items-center justify-between gap-3 py-2.5"
+              className={cn(
+                "flex items-center justify-between gap-3 py-2.5",
+                STACK_ROW_DIVIDER
+              )}
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 <ScopeIcon

@@ -34,7 +34,7 @@ Afenda is **not** a low-code platform. It is a **governed, server-first declarat
 
 ## Schema kernel (`lib/features/governed-surface/`)
 
-**Public doors:** `#features/governed-surface` · `#features/governed-surface/client` (data table only)
+**Public doors:** `#features/governed-surface` (server RSC sections, builders) · `#features/governed-surface/client` (client islands, Zod, pure helpers — see [ADR-0030](./0030-module-client-server-barrel-boundary.md))
 
 **Envelope** (`component.schema.ts`):
 
@@ -93,6 +93,7 @@ GovernedSurface (page chrome)
 | **A — Chrome only** | Bespoke forms, settings | `GovernedSurface` + `GovernedSection` + `ModulePageHeader` |
 | **B — Full tree** | KPI grids, directories, audit (no trailing forms) | Builder + `GovernedComponentRenderer` inside manual section `Card` |
 | **C — Trailing column** | List metadata + non-serializable row actions | `GovernedPatternCListSection` from `#features/governed-surface` |
+| **K — Kanban** | Column workflow boards | Builder → `governed:kanban-board` + mode-specific client bridge (see below) |
 
 Pattern C is the **only** approved bypass of `GovernedComponentRenderer` for list tables. Feature modules must not import `list-surface-table` from `components2/metadata/renderers/` (use `GovernedListSurfaceWithTrailingColumn` via the section primitive or the documented portal embedded helper).
 
@@ -125,7 +126,21 @@ Reference: [`lib/features/hrm/employee-management/employee-lifecycle-management/
 5. **Layouts:** `layout="card"` (default — section owns Card chrome) vs `layout="embedded"` (parent page already has `Card` + header — pass `title=""`).
 6. **Test hooks:** `data-testid="governed-list-section:{surfaceKey}"` on the section wrapper.
 
-**Portal embedded helper (transitional):** [`employee-portal-governed-table.tsx`](../../lib/features/hrm/employee-management/employee-selfservice-portal/components/employee-portal-governed-table.tsx) — sync list body inside portal `Card` pages until each page adopts full `GovernedPatternCListSection`.
+**Portal employee surfaces:** use `GovernedPatternCListSection` with `layout="embedded"` and `title=""` when the parent `Card` already owns section chrome (see `employee-portal-claims-page.tsx`).
+
+### Pattern K — Kanban recipe
+
+Reference: [`recruitment-pipeline-kanban-section.tsx`](../../lib/features/hrm/talent-management/recruitment-onboarding/components/recruitment-pipeline-kanban-section.tsx).
+
+1. Builder: `build*KanbanConfiguration` in `*-surface-builders.server.ts` → `GovernedKanbanBoardConfigurationInput` with `dataNature: "kanban"`, `interactionMode`, `workflow`, `copy`, columns/cards.
+2. RSC section: `GovernedKanbanFooterSection` (alias `GovernedKanbanDragSection` for drag) with `surfaceKey`, `layout` (`titled` | `embedded`), optional `sectionTestId` (Pattern C parity: `governed-list-section:{surfaceKey}` when reusing list E2E hooks).
+3. Client bridge by `interactionMode`:
+   - `read-only` — `GovernedComponentRenderer` (`governed:kanban-board`) or gallery; transition hints from `availableTransitions`.
+   - `footer-actions` — `GovernedKanbanFooterBoard` + `renderCardFooter` (Server Action forms); **do not** route footer boards through `KanbanBoardRenderer`.
+   - `drag-reorder` — `GovernedKanbanDragBoard` + `onCardMove`; domain owns mutations.
+4. Invalid config: bridges render `GovernedEmpty` (`variant: "error"`); operator diagnostics via `showOperatorDiagnostics` in dev.
+
+**Gallery:** `/[locale]/dev/metadata-renderer-gallery` — `kanban-recruitment`, `kanban-recruitment-drag`, `kanban-recruitment-footer`.
 
 ### Trailing actions (Wave C3)
 
@@ -144,7 +159,7 @@ Deep import of list-surface-table from lib/features/**
 
 ## Design-reserve renderers
 
-Types in `governedComponentTypeSchema` without a registry entry (`chart`, `kanban-board`, `multi-step-form`, `scorecard-form`, `approval-timeline`) are **design-reserve**. Builders must not emit them until a renderer ships (`pnpm lint:renderer-contracts` enforces registry ↔ type parity).
+Types in `governedComponentTypeSchema` without a shipped renderer (`multi-step-form`, `scorecard-form`) are **design-reserve**. **`governed:chart`**, **`governed:approval-timeline`**, and **`governed:kanban-board`** are shipped (see `components2/metadata/renderers/`). `footer-actions` and `drag-reorder` kanban modes use domain client bridges, not `KanbanBoardRenderer` alone. Builders must not emit reserve types until a renderer ships (`pnpm lint:renderer-contracts` enforces registry ↔ type parity).
 
 ---
 
@@ -162,19 +177,22 @@ Types in `governedComponentTypeSchema` without a registry entry (`chart`, `kanba
 
 ---
 
-## P2 backlog (not blocking Pattern B rollout)
+## P2 backlog (not blocking mass Pattern B/C rollout)
 
+- Ship **multi-step-form**, **scorecard-form** renderers (or remove from schema); extend kanban production adoption beyond recruitment pipeline
 - Rules layer on form configs (`rule.effect` — JSON Forms–style, server-evaluated)
 - `__schemaVersion` on envelopes
-- `requiresErpPermission` aligned with `#features/erp-rbac/server`
-- Draft inferencer → server builders (not Refine client inferencer)
+- Column-level / envelope permission keys (react-admin–style granularity beyond list `requiresErpPermission`)
+- Draft inferencer → server `*-surface-builders.server.ts` drafts (not Refine client inferencer)
+- `GovernedPatternBListSection` (unified Card + permission + renderer)
 - Figma Code Connect per renderer
+- Full playground editor with persistence (dev only — production low-code remains refused)
 
 ---
 
 ## Maturity score
 
-Post-P0+P1 re-score: [`docs/architecture/metadata-maturity-score.md`](../architecture/metadata-maturity-score.md) (74/100 — bounded production-ready).
+Current re-score: [`docs/architecture/metadata-maturity-score.md`](../architecture/metadata-maturity-score.md) (**91/100** — mature platform; mass default **Go**). Pattern C section rubric: [`governed-section-composition-score.md`](../architecture/governed-section-composition-score.md).
 
 ## References
 

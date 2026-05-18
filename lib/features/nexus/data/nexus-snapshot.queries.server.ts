@@ -4,7 +4,7 @@ import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { neonAuthMember, neonAuthOrganization } from "#lib/db/schema-neon-auth"
-import { organizationDashboardPath } from "#lib/dashboard-module-paths"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { organizationOrbitPath } from "#features/planner"
 import {
   countPlannerActiveForOrg,
@@ -239,7 +239,7 @@ function buildPriorityLanes(
       label: "Due today",
       surface: "Orbit",
       count: todayCount,
-      href: organizationDashboardPath(orgSlug, "orbit"),
+      href: organizationAppsPath(orgSlug, "orbit"),
     })
   }
 
@@ -304,7 +304,7 @@ function buildPriorityLanes(
       label: "Blocked work",
       surface: "Orbit",
       count: blockedCount,
-      href: `${organizationDashboardPath(orgSlug, "orbit")}?lifecycle=blocked`,
+      href: `${organizationAppsPath(orgSlug, "orbit")}?lifecycle=blocked`,
     })
   }
 
@@ -315,7 +315,7 @@ function buildPriorityLanes(
       label: "Assignee blockers",
       surface: "Orbit",
       count: assigneeBlockedCount,
-      href: `${organizationDashboardPath(orgSlug, "orbit")}?lifecycle=blocked&assignmentRole=assignee`,
+      href: `${organizationAppsPath(orgSlug, "orbit")}?lifecycle=blocked&assignmentRole=assignee`,
     })
   }
 
@@ -326,7 +326,7 @@ function buildPriorityLanes(
       label: "Reviewer blockers",
       surface: "Orbit",
       count: reviewerBlockedCount,
-      href: `${organizationDashboardPath(orgSlug, "orbit")}?lifecycle=blocked&assignmentRole=reviewer`,
+      href: `${organizationAppsPath(orgSlug, "orbit")}?lifecycle=blocked&assignmentRole=reviewer`,
     })
   }
 
@@ -337,7 +337,7 @@ function buildPriorityLanes(
       label: "Escalation-owned blockers",
       surface: "Orbit",
       count: escalationOwnedBlockedCount,
-      href: `${organizationDashboardPath(orgSlug, "orbit")}?lifecycle=blocked&assignmentRole=escalation_owner`,
+      href: `${organizationAppsPath(orgSlug, "orbit")}?lifecycle=blocked&assignmentRole=escalation_owner`,
     })
   }
 
@@ -395,7 +395,7 @@ function buildSurfaces(
       status: "stable",
       pressureCount: 0,
       freshness: "live",
-      href: organizationDashboardPath(orgSlug, "accounting"),
+      href: organizationAppsPath(orgSlug, "accounting"),
     },
     {
       id: "stockIntegrity",
@@ -404,7 +404,7 @@ function buildSurfaces(
       status: "stable",
       pressureCount: 0,
       freshness: "live",
-      href: organizationDashboardPath(orgSlug, "inventory"),
+      href: organizationAppsPath(orgSlug, "inventory"),
     },
     {
       id: "pipeline",
@@ -413,7 +413,7 @@ function buildSurfaces(
       status: "stable",
       pressureCount: 0,
       freshness: "live",
-      href: organizationDashboardPath(orgSlug, "sale"),
+      href: organizationAppsPath(orgSlug, "sale"),
     },
     {
       id: "workforce",
@@ -422,7 +422,7 @@ function buildSurfaces(
       status: hrmPressureCount > 0 ? "attention" : "stable",
       pressureCount: hrmPressureCount,
       freshness: "live",
-      href: organizationDashboardPath(orgSlug, "hrm"),
+      href: organizationAppsPath(orgSlug, "hrm"),
     },
     {
       id: "procurement",
@@ -431,7 +431,7 @@ function buildSurfaces(
       status: "stable",
       pressureCount: 0,
       freshness: "live",
-      href: organizationDashboardPath(orgSlug, "purchase"),
+      href: organizationAppsPath(orgSlug, "purchase"),
     },
     {
       id: "evidence",
@@ -440,7 +440,7 @@ function buildSurfaces(
       status: "stable",
       pressureCount: 0,
       freshness: "live",
-      href: organizationDashboardPath(orgSlug, "knowledge"),
+      href: organizationAppsPath(orgSlug, "knowledge"),
     },
     {
       id: "operations",
@@ -449,7 +449,7 @@ function buildSurfaces(
       status: activeCount > 0 ? "attention" : "stable",
       pressureCount: activeCount,
       freshness: "live",
-      href: organizationDashboardPath(orgSlug, "orbit"),
+      href: organizationAppsPath(orgSlug, "orbit"),
     },
   ]
 }

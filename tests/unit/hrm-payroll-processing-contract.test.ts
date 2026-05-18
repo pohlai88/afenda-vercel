@@ -96,7 +96,7 @@ describe("HRM payroll processing contracts", () => {
     const payrollRoutePage = readFileSync(
       join(
         process.cwd(),
-        "app/(main)/[locale]/o/[orgSlug]/dashboard/hrm/payroll/page.tsx"
+        "app/(main)/[locale]/o/[orgSlug]/apps/hrm/payroll/page.tsx"
       ),
       "utf8"
     )

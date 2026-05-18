@@ -19,14 +19,14 @@ import {
   isHrmContractType,
   isHrmPayFrequency,
 } from "../schemas/employment-contract.schema"
-import { isHrmDocumentType } from "../../documents-management/data/hrm-document-display.shared"
-
 import { SignatureRequestPanel } from "#features/tools"
 import { EmploymentContractDraftForm } from "./employment-contract-draft-form"
 import { EmploymentContractLifecycleForms } from "./employment-contract-lifecycle-forms"
 import { EmploymentContractSalaryRevisionForm } from "./employment-contract-salary-revision-form"
 import { HrmDocumentAttachForm } from "../../documents-management/components/hrm-document-attach-form"
 import { PayrollProfileForm } from "../../../payroll-compensation/payroll-processing/components/payroll-profile-form"
+
+import { EmployeeDocumentVaultListSection } from "./employee-document-vault-list-section"
 
 type EmployeeDetailPayrollContractProps = {
   orgSlug: string
@@ -55,7 +55,6 @@ export async function EmployeeDetailPayrollContract({
     t,
     tContractTypes,
     tPayFrequencies,
-    tDocumentTypes,
     format,
     contracts,
     payrollProfile,
@@ -65,7 +64,6 @@ export async function EmployeeDetailPayrollContract({
     getTranslations("Dashboard.Hrm.workforce"),
     getTranslations("Dashboard.Hrm.workforce.contractTypes"),
     getTranslations("Dashboard.Hrm.workforce.payFrequencies"),
-    getTranslations("Dashboard.Hrm.workforce.documentTypes"),
     getFormatter(),
     listEmploymentContractsForEmployee(organizationId, employeeId),
     getCurrentPayrollProfileForEmployee(organizationId, employeeId),
@@ -245,46 +243,11 @@ export async function EmployeeDetailPayrollContract({
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {t("documentVaultTitle")}
             </p>
-            {documents.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {t("documentVaultEmpty")}
-              </p>
-            ) : (
-              <ul className="divide-y divide-border rounded-lg border border-border">
-                {documents.map((doc) => (
-                  <li
-                    key={doc.id}
-                    className="flex flex-wrap items-center justify-between gap-2 px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">
-                        {doc.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {isHrmDocumentType(doc.documentType)
-                          ? tDocumentTypes(doc.documentType)
-                          : doc.documentType}{" "}
-                        ·{" "}
-                        {format.dateTime(doc.uploadedAt, {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })}
-                      </p>
-                    </div>
-                    {canDownloadDocument ? (
-                      <a
-                        href={doc.blobUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="shrink-0 text-sm text-primary underline-offset-4 hover:underline"
-                      >
-                        {t("documentOpen")}
-                      </a>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <EmployeeDocumentVaultListSection
+              documents={documents}
+              canDownload={canDownloadDocument}
+              openLabel={t("documentOpen")}
+            />
           </div>
         </CardContent>
       </Card>

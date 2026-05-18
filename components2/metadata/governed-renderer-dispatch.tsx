@@ -12,6 +12,9 @@ import { DetailTabsRenderer } from "./renderers/detail-tabs.renderer"
 import { ApprovalTimelineRenderer } from "./renderers/approval-timeline.renderer"
 import { ChartRenderer } from "./renderers/chart.renderer"
 import { EmptyRenderer } from "./renderers/empty.renderer"
+import { KanbanBoardRenderer } from "./renderers/kanban-board.renderer"
+import { MultiStepFormRenderer } from "./renderers/multi-step-form.renderer"
+import { ScorecardFormRenderer } from "./renderers/scorecard-form.renderer"
 import { ListSurfaceRenderer } from "./renderers/list-surface.renderer"
 import { SectionRenderer } from "./renderers/section.renderer"
 import { StackRenderer } from "./renderers/stack.renderer"
@@ -52,6 +55,9 @@ const GOVERNED_RENDERERS = {
   "detail-tabs": DetailTabsRenderer,
   "approval-timeline": ApprovalTimelineRenderer,
   "chart": ChartRenderer,
+  "kanban-board": KanbanBoardRenderer,
+  "multi-step-form": MultiStepFormRenderer,
+  "scorecard-form": ScorecardFormRenderer,
 } satisfies Partial<
   Record<AfendaGovernedRendererId, (props: RendererProps) => ReactNode>
 >

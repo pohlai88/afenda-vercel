@@ -44,7 +44,7 @@ vi.mock("#features/planner/server", () => ({
 
 vi.mock("../../lib/features/hrm/constants", () => ({
   organizationHrmPath: (slug: string, segment: string) =>
-    `/o/${slug}/dashboard/hrm/${segment}`,
+    `/o/${slug}/apps/hrm/${segment}`,
 }))
 
 vi.mock("#lib/auth", () => ({
@@ -52,8 +52,8 @@ vi.mock("#lib/auth", () => ({
 }))
 
 vi.mock("#lib/i18n/locales.shared", () => ({
-  toLocaleOrgDashboardRevalidatePattern: vi.fn(
-    (path: string) => `/[locale]/o/[orgSlug]/dashboard${path}`
+  toLocaleOrgAppsRevalidatePattern: vi.fn(
+    (path: string) => `/[locale]/o/[orgSlug]/apps${path}`
   ),
 }))
 
@@ -308,7 +308,7 @@ describe("payrollFinalizeWorkflow", () => {
       })
     )
     expect(revalidatePath).toHaveBeenCalledWith(
-      "/[locale]/o/[orgSlug]/dashboard/hrm/payroll",
+      "/[locale]/o/[orgSlug]/apps/hrm/payroll",
       "page"
     )
   })

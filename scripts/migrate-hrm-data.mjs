@@ -73,7 +73,7 @@ function classify(relFromData) {
     [/^hrm-import/, "employee-management/employee-records-management/data"],
     [/^payroll|^salary-advance/, "payroll-compensation/payroll-processing/data"],
     [/^training/, "talent-management/training-development/data"],
-    [/^performance/, "talent-management/performance-management/data"],
+    [/^performance/, "talent-management/performance-appraisals/data"],
     [/^kpi|^skill\.queries/, "talent-management/competency-skills-framework/data"],
     [/^skill\./, "talent-management/competency-skills-framework/data"],
   ]

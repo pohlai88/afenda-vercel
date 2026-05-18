@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## Stack
 
-- **`next-intl`** with **`localePrefix: "always"`** — public URLs are `/{locale}/…` (e.g. `/en/o/acme/dashboard/contacts`; bare `/en/o` resolves the active org slug via `app/[locale]/o/page.tsx`).
+- **`next-intl`** with **`localePrefix: "always"`** — public URLs are `/{locale}/…` (e.g. `/en/o/acme/apps/contacts`; bare `/en/o` resolves the active org slug via `app/[locale]/o/page.tsx`).
 - **Next.js 16** edge entry: [`proxy.ts`](../../proxy.ts) (not `middleware.ts`). Compose **`createIntlMiddleware(routing)`** with narrow product logic only.
 - Narrative (proxy + auth cookie gate + resilience): **`AGENTS.md` §5** — *Locale-first application surface*.
 
@@ -16,11 +16,11 @@ alwaysApply: true
 - **`toLocalePath(locale, "/segment")`** in [`lib/i18n/locales.shared.ts`](../../lib/i18n/locales.shared.ts) — first argument is always **`AppLocale`**; never emit bare `/o` or `/sign-in` from server redirects or emails.
 - **Root recovery (outside `[locale]`):** [`DEFAULT_LOCALE_HOME_PATH`](../../lib/i18n/root-default-locale-href.shared.ts) for `app/not-found`, `app/error`, and `app/global-error` — same default-locale home as [`app/page.tsx`](../../app/page.tsx) redirect; use `next/link` with `prefetch={false}` there (not `#i18n/navigation`).
 - **`toLocaleRoutePattern("/segment")`** → `"/[locale]/segment"` for **`revalidatePath(..., "page")`** so all locales invalidate (Next.js dynamic segment pattern).
-- **`toLocaleOrgDashboardRevalidatePattern("/contacts")`** → `"/[locale]/o/[orgSlug]/dashboard/contacts"` for ERP **`revalidatePath`** (all locales + org slugs).
+- **`toLocaleOrgAppsRevalidatePattern("/contacts")`** → `"/[locale]/o/[orgSlug]/apps/contacts"` for ERP **`revalidatePath`** (all locales + org slugs).
 - **`ensureAppLocale(params.locale)`** for `app/[locale]/…` **RSC** `params`.
 - **`getRequestAppLocale()`** in [`lib/i18n/request-locale.server.ts`](../../lib/i18n/request-locale.server.ts) for **Server Actions** / guards without route `params` (wraps `getLocale()`).
 - **`sanitizePathAfterOrgSlug`** in [`lib/i18n/dashboard-org-path.shared.ts`](../../lib/i18n/dashboard-org-path.shared.ts) — forwarded-path tail sanitizer for `/o/{slug}/…` redirects.
-- **`localePrefixedOrgDashboardRedirect`** in [`lib/i18n/dashboard-org-redirect.server.ts`](../../lib/i18n/dashboard-org-redirect.server.ts) — canonical org slug redirect preserving sanitized tail.
+- **`localePrefixedOrgAppsRedirect`** in [`lib/i18n/dashboard-org-redirect.server.ts`](../../lib/i18n/dashboard-org-redirect.server.ts) — canonical org slug redirect preserving sanitized tail.
 - **`searchParamFirst` / `searchParamPositiveInt`** in [`lib/i18n/app-search-params.shared.ts`](../../lib/i18n/app-search-params.shared.ts) — awaited `searchParams` parsing for RSC pages.
 - **`PRIVATE_SURFACE_ROBOTS`** in [`lib/i18n/private-surface-robots.shared.ts`](../../lib/i18n/private-surface-robots.shared.ts) — `metadata.robots` for auth/IAM/private shells.
 
@@ -29,12 +29,12 @@ Forbidden:
 ```txt
 redirect("/o")
 redirect("/sign-in")
-revalidatePath("/en/o/acme/dashboard/contacts")  // only one locale — use pattern + "page"
+revalidatePath("/en/o/acme/apps/contacts")  // only one locale — use pattern + "page"
 ```
 
 ## Navigation
 
-- Client: **`Link`**, **`useRouter`**, **`usePathname`** from [`#i18n/navigation`](../../i18n/navigation.tsx) (locale-internal `href` like `/o/acme/dashboard/contacts`). `Link` defaults **`prefetch={false}`**; pass **`prefetch={true}`** to opt in.
+- Client: **`Link`**, **`useRouter`**, **`usePathname`** from [`#i18n/navigation`](../../i18n/navigation.tsx) (locale-internal `href` like `/o/acme/apps/contacts`). `Link` defaults **`prefetch={false}`**; pass **`prefetch={true}`** to opt in.
 - Server RSC redirects: **`redirect` from `next/navigation`** + **`toLocalePath(locale, …)`** (or `ensureAppLocale` + `params`).
 
 ## Callbacks and auth

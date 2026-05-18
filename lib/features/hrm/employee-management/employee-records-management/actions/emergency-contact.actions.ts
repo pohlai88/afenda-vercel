@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache"
 import { and, eq, isNull } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL } from "#lib/dashboard-module-paths"
+import { ORG_APPS_HRM_EMPLOYEE_DETAIL } from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import { hrmEmployeeEmergencyContact } from "#lib/db/schema"
-import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { requireEmployeeRecordMutationGate } from "../data/employee-record-action-guard.server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
@@ -224,7 +224,7 @@ export async function upsertEmergencyContactAction(
   )
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
 
@@ -319,7 +319,7 @@ export async function archiveEmergencyContactAction(
   )
 
   revalidatePath(
-    toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
+    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
 

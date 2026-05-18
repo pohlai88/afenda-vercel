@@ -24,7 +24,7 @@ export {
   orgAdminNavLabelKey,
   organizationAdminPath,
 } from "./constants"
-export { ORG_ADMIN_PATH_SEGMENTS } from "#lib/i18n/dashboard-org-path.shared"
+export { ORG_ADMIN_PATH_SEGMENTS } from "#lib/i18n/org-apps-path.shared"
 export {
   ORG_ADMIN_NAV_NAMESPACE,
   type OrgAdminCapability,
@@ -55,8 +55,13 @@ export type {
   OrgAdminInboxLabelResolver,
 } from "./data/org-admin-rail-inbox.shared"
 export { OrgAuditEventsView } from "./components/org-audit-events-view"
+export { OrgAuditEventsListSection } from "./components/org-audit-events-list-section"
 export { OrgAdminSimulationToolbar } from "./components/org-admin-simulation-toolbar"
-export { OrganizationAdminClient } from "./components/organization-admin-client"
+export { OrganizationAdminInviteSection } from "./components/organization-admin-invite-section.client"
+export { OrgAdminMembersListSection } from "./components/org-admin-members-list-section"
+export { OrgAdminPendingInvitationsListSection } from "./components/org-admin-pending-invitations-list-section"
+export { OrgAdminIntegrationsEndpointsListSection } from "./components/org-admin-integrations-endpoints-list-section"
+export { OrgAdminIntegrationsImportsListSection } from "./components/org-admin-integrations-imports-list-section"
 export { OrganizationAuditCsvExport } from "./components/organization-audit-csv-export"
 export { IntegrationsEndpointsPanel } from "./components/integrations-endpoints-panel"
 export { IntegrationsImportsPanel } from "./components/integrations-imports-panel"

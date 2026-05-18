@@ -1,0 +1,29 @@
+---
+description: Docs mirror — canonical scoped refactor verdict lives in .cursor/rules/cursor-scoped-refactor-prompt.mdc
+alwaysApply: false
+---
+
+# Scoped refactor prompt (docs mirror)
+
+**Canonical file:** [`.cursor/rules/cursor-scoped-refactor-prompt.mdc`](../.cursor/rules/cursor-scoped-refactor-prompt.mdc)
+
+**Greenfield development** from `ARCHITECTURE.md`: [`.cursor/rules/cursor-scoped-development-prompt.mdc`](../.cursor/rules/cursor-scoped-development-prompt.mdc)
+
+That rule **auto-loads** when editing `lib/features/**`, `app/(main)/**`, `components2/metadata/**`, and related paths. For large refactors, explicitly `@`-mention it and paste `TARGET_SCOPE`.
+
+## Paste in Cursor
+
+```txt
+@.cursor/rules/cursor-scoped-refactor-prompt.mdc
+
+TARGET_SCOPE:
+lib/features/<module>/<area>/**
+app/(main)/[locale]/o/[orgSlug]/apps/<module>/<segment>/**
+tests/unit/<matching>*.test.ts
+
+REFACTOR_KIND: full-stack
+MODULE: <module>
+PRESERVE_UI: yes
+```
+
+Full verdict text, skills stack, residue cleanup, verification gates, and report template are in the Cursor rule — not duplicated here.

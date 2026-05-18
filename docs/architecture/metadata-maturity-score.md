@@ -43,7 +43,7 @@ Re-scored after score-90 gate: `governed:chart` + `governed:approval-timeline`, 
 ## Deferred (post mass rollout)
 
 - Mass conversion of remaining `ModulePageHeader`-only HRM pages
-- `governed:multi-step-form`, `governed:kanban-board`, `governed:scorecard-form` renderers
-- Draft Drizzle → `*-surface-builders.server.ts` inferencer
+- Production adoption of `governed:multi-step-form`, `governed:kanban-board`, `governed:scorecard-form` beyond pilots (renderers shipped)
+- Draft Drizzle → `*-surface-builders.server.ts` inferencer (`pnpm gen surface-draft`)
 - Figma Code Connect per renderer
 - Production low-code / stored layout JSON
