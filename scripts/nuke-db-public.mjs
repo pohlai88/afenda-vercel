@@ -15,7 +15,16 @@
 
 import { neon } from "@neondatabase/serverless"
 
-const sql = neon(process.env.DATABASE_URL)
+const url =
+  process.env.DATABASE_URL_UNPOOLED?.trim() || process.env.DATABASE_URL?.trim()
+if (!url) {
+  console.error(
+    "[nuke-db-public] DATABASE_URL is not set (optional DATABASE_URL_UNPOOLED)."
+  )
+  process.exit(1)
+}
+
+const sql = neon(url)
 
 // 1. Drop everything in public (CASCADE resolves FK order automatically).
 //    Re-create the schema so future migrations can write into it.
