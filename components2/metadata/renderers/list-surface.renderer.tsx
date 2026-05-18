@@ -1,4 +1,3 @@
-import { GovernedEmpty } from "#features/governed-surface"
 import { GovernedListSurface } from "#features/governed-surface/components/governed-list-surface"
 import { parseListSurfaceRendererConfiguration } from "#features/governed-surface/schemas/list-surface-renderer.schema"
 
@@ -26,14 +25,15 @@ export function ListSurfaceRenderer({
     <ListSurfaceTable
       columns={columns}
       rows={rows}
+      columnsId={surface.columnsId}
+      dataNature={parsed.data.dataNature}
+      presentationVariant={resolvedVariant}
+      empty={surface.empty}
       density={tableDensity}
     />
   )
 
   if (resolvedVariant === "table-only") {
-    if (rows.length === 0) {
-      return <GovernedEmpty model={surface.empty} />
-    }
     return table
   }
 

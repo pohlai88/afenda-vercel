@@ -107,6 +107,7 @@ function ApproveClaimDialog({
               max={requestedAmount}
               defaultValue={requestedAmount}
               required
+              aria-invalid={Boolean(error?.approvedAmount)}
             />
             <p className="text-xs text-muted-foreground">
               {t("approvePartialHint", {
@@ -114,6 +115,9 @@ function ApproveClaimDialog({
                 currency,
               })}
             </p>
+            {error?.approvedAmount ? (
+              <p className="text-sm text-destructive">{error.approvedAmount}</p>
+            ) : null}
           </div>
           {error?.form ? (
             <p className="text-sm text-destructive">{error.form}</p>

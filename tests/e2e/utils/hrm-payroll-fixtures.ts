@@ -10,7 +10,9 @@ export const HRM_PAYROLL_E2E_FIXTURE = {
   employeeLegalName: "Payroll Fixture Employee",
   periodStart: "2026-10-01",
   periodEnd: "2026-10-31",
+  cutoffDate: "2026-10-25",
   paymentDate: "2026-11-07",
+  payrollGroupCode: "E2E_PAYROLL",
   basicSalaryAmount: "6000.00",
 } as const
 
@@ -175,6 +177,7 @@ export async function seedHrmPayrollE2eFixture(): Promise<void> {
       "hrdfApplicable",
       "paySchedule",
       "payCurrency",
+      "payrollGroupCode",
       "effectiveFrom",
       "createdByUserId",
       "updatedByUserId"
@@ -194,6 +197,7 @@ export async function seedHrmPayrollE2eFixture(): Promise<void> {
       false,
       'monthly',
       'MYR',
+      ${fixture.payrollGroupCode},
       '2026-01-01',
       ${userId},
       ${userId}

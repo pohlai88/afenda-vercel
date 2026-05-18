@@ -1,5 +1,10 @@
 import "server-only"
 
+import { and, desc, eq } from "drizzle-orm"
+
+import { db } from "#lib/db"
+import { hrmBenefitClaimReference } from "#lib/db/schema"
+
 export type BenefitClaimReferenceRow = {
   id: string
   organizationId: string
@@ -16,15 +21,55 @@ export type BenefitClaimReferenceRow = {
 }
 
 export async function listBenefitClaimReferencesForEnrollment(
-  _organizationId: string,
-  _enrollmentId: string
+  organizationId: string,
+  enrollmentId: string
 ): Promise<BenefitClaimReferenceRow[]> {
-  return []
+  return db
+    .select({
+      id: hrmBenefitClaimReference.id,
+      organizationId: hrmBenefitClaimReference.organizationId,
+      enrollmentId: hrmBenefitClaimReference.enrollmentId,
+      providerId: hrmBenefitClaimReference.providerId,
+      externalClaimId: hrmBenefitClaimReference.externalClaimId,
+      claimStatus: hrmBenefitClaimReference.claimStatus,
+      claimedAmount: hrmBenefitClaimReference.claimedAmount,
+      currency: hrmBenefitClaimReference.currency,
+      paymentReference: hrmBenefitClaimReference.paymentReference,
+      documentIds: hrmBenefitClaimReference.documentIds,
+      createdAt: hrmBenefitClaimReference.createdAt,
+      updatedAt: hrmBenefitClaimReference.updatedAt,
+    })
+    .from(hrmBenefitClaimReference)
+    .where(
+      and(
+        eq(hrmBenefitClaimReference.organizationId, organizationId),
+        eq(hrmBenefitClaimReference.enrollmentId, enrollmentId)
+      )
+    )
+    .orderBy(desc(hrmBenefitClaimReference.updatedAt))
 }
 
 export async function listBenefitClaimReferencesForOrganization(
-  _organizationId: string,
-  _limit = 500
+  organizationId: string,
+  limit = 500
 ): Promise<BenefitClaimReferenceRow[]> {
-  return []
+  return db
+    .select({
+      id: hrmBenefitClaimReference.id,
+      organizationId: hrmBenefitClaimReference.organizationId,
+      enrollmentId: hrmBenefitClaimReference.enrollmentId,
+      providerId: hrmBenefitClaimReference.providerId,
+      externalClaimId: hrmBenefitClaimReference.externalClaimId,
+      claimStatus: hrmBenefitClaimReference.claimStatus,
+      claimedAmount: hrmBenefitClaimReference.claimedAmount,
+      currency: hrmBenefitClaimReference.currency,
+      paymentReference: hrmBenefitClaimReference.paymentReference,
+      documentIds: hrmBenefitClaimReference.documentIds,
+      createdAt: hrmBenefitClaimReference.createdAt,
+      updatedAt: hrmBenefitClaimReference.updatedAt,
+    })
+    .from(hrmBenefitClaimReference)
+    .where(eq(hrmBenefitClaimReference.organizationId, organizationId))
+    .orderBy(desc(hrmBenefitClaimReference.updatedAt))
+    .limit(Math.min(Math.max(limit, 1), 1000))
 }

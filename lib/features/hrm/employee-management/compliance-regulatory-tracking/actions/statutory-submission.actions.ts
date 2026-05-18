@@ -17,6 +17,7 @@ import {
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
+import { HRM_COMPLIANCE_REGULATORY_AUDIT } from "../compliance-regulatory.contract"
 import { getComplianceEvidence } from "../data/compliance.queries.server"
 import { fetchRunsForStatutoryPack } from "../data/compliance.queries.server"
 import { updateComplianceSubmissionStateMutation } from "../data/compliance.mutations.server"
@@ -25,7 +26,7 @@ import { resolveRulePack } from "../../../payroll-compensation/multi-country-pay
 import type { StatutoryPackType } from "../../../payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server"
 import { buildStatutoryPackFromRuns } from "../data/statutory-pack.server"
 import { eventTypeForStatutoryPack } from "../data/statutory-event-types.shared"
-import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
+import { requireComplianceSessionMutationGate } from "../data/compliance-action-guard.server"
 import { organizationHrmPath } from "../../../constants"
 import { hrmCodedActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { SubmitStatutoryEvidenceFormState } from "../../../types"
@@ -90,11 +91,11 @@ export async function submitStatutoryEvidenceForDeliveryAction(
   _prev: SubmitStatutoryEvidenceFormState,
   formData: FormData
 ): Promise<SubmitStatutoryEvidenceFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireComplianceSessionMutationGate("update")
   if (!gate.ok) {
     return hrmCodedActionFailure("permission_denied", gate.error)
   }
-  const { organizationId, userId, sessionId } = gate.session
+  const { organizationId, userId, sessionId } = gate
 
   const evidenceId = formData.get("evidenceId")?.toString()
   if (!evidenceId) {
@@ -262,7 +263,7 @@ export async function submitStatutoryEvidenceForDeliveryAction(
   if (succeeded) {
     after(() =>
       writeIamAuditEventFromNextHeaders({
-        action: eventType, // erp.hrm.statutory.<bureau>.submitted
+        action: HRM_COMPLIANCE_REGULATORY_AUDIT.evidence.submitted,
         organizationId,
         actorUserId: userId,
         actorSessionId: sessionId,
@@ -274,6 +275,7 @@ export async function submitStatutoryEvidenceForDeliveryAction(
           rulePackVersion: evidence.rulePackVersion,
           deliveryId: delivery.id,
           endpointId: endpoint.id,
+          eventType,
           httpStatus: result.httpStatus,
           payloadHash: delivery.payloadHash,
           durationMs: result.durationMs,

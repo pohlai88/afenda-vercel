@@ -24,7 +24,7 @@ type ClaimRejectFormProps = {
 /**
  * Reject-claim form body. Lives outside the parent dialog so the
  * cross-boundary `onSuccess` close reads as a normal callback.
- * Mirrors {@link import('./leave-reject-form').LeaveRejectForm}.
+ * Mirrors the leave rejection form pattern used in leave self-service.
  */
 export function ClaimRejectForm({ claimId, onSuccess }: ClaimRejectFormProps) {
   const t = useTranslations("Dashboard.Hrm.claims")

@@ -109,15 +109,19 @@ export function deriveOffboardingTaskStatus(input: {
 }
 
 export function isOffboardingChecklistComplete(
-  tasks: readonly { readonly completedAt: string | null }[]
+  tasks: readonly {
+    readonly completedAt: string | null
+    readonly status?: string | null
+  }[]
 ): boolean {
-  return tasks.length > 0 && tasks.every((task) => task.completedAt !== null)
+  return (
+    tasks.length > 0 &&
+    tasks.every((task) => task.completedAt !== null || task.status === "waived")
+  )
 }
 
 export function isOffboardingInstanceActive(
   status: string
 ): status is (typeof HRM_OFFBOARDING_ACTIVE_STATUSES)[number] {
-  return (HRM_OFFBOARDING_ACTIVE_STATUSES as readonly string[]).includes(
-    status
-  )
+  return (HRM_OFFBOARDING_ACTIVE_STATUSES as readonly string[]).includes(status)
 }

@@ -174,6 +174,13 @@ export const HRM_EMPLOYEE_LIFECYCLE_AUDIT = {
       object: "lifecycle.transition",
       verb: "deprecate",
     }),
+    /** Pending lifecycle transition failed during due-date application. HRM-LCY-026/028. */
+    failed: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "lifecycle.transition",
+      verb: "audit",
+    }),
   },
 
   // ── Employee movement ────────────────────────────────────────────────────

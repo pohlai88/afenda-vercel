@@ -11,7 +11,9 @@ const orgSlug = z.string().min(1)
 
 const isoDateOnly = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Must be a date in YYYY-MM-DD format." })
+  .regex(/^\d{4}-\d{2}-\d{2}$/, {
+    message: "Must be a date in YYYY-MM-DD format.",
+  })
 
 /**
  * Initiates an offboarding process for an employee. HRM-OFF-001/002/003.
@@ -27,6 +29,8 @@ export const initiateOffboardingFormSchema = z.object({
   noticeStartDate: isoDateOnly.optional(),
   noticeEndDate: isoDateOnly.optional(),
   requiredNoticeDays: z.number().int().min(0).max(365).optional(),
+  noticeWaived: z.boolean().optional(),
+  shortNotice: z.boolean().optional(),
   /** Skip approval workflow and open checklist immediately. */
   skipApproval: z.boolean().optional(),
 })
@@ -81,6 +85,7 @@ export const updateSettlementReadinessFormSchema = z.object({
   instanceId: uuid,
   employeeId: uuid,
   settlementReadinessStatus: z.enum(HRM_SETTLEMENT_READINESS_STATUSES),
+  finalSettlementReference: z.string().trim().max(160).optional(),
   blockers: z
     .array(
       z.object({
@@ -88,7 +93,7 @@ export const updateSettlementReadinessFormSchema = z.object({
         message: z.string().min(1).max(500),
       })
     )
-    .optional(),
+    .default([]),
 })
 
 export type UpdateSettlementReadinessFormInput = z.infer<
@@ -112,6 +117,9 @@ export type SetRehireEligibilityFormInput = z.infer<
 export const offboardingDashboardFilterSchema = z.object({
   exitType: z.enum(HRM_OFFBOARDING_EXIT_TYPES).optional(),
   status: z.string().optional(),
+  departmentId: uuid.optional(),
+  managerEmployeeId: uuid.optional(),
+  legalEntityCode: z.string().trim().max(80).optional(),
   lastWorkingOnOrBefore: isoDateOnly.optional(),
 })
 

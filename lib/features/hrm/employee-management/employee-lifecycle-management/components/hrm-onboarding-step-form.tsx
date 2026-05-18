@@ -14,12 +14,14 @@ type HrmOnboardingStepFormProps = {
   orgSlug: string
   contractId: string
   disabled?: boolean
+  disabledReason?: string
 }
 
 export function HrmOnboardingStepForm({
   orgSlug,
   contractId,
   disabled = false,
+  disabledReason,
 }: HrmOnboardingStepFormProps) {
   const t = useTranslations("Dashboard.Hrm.onboarding")
   const baseId = useId()
@@ -29,7 +31,11 @@ export function HrmOnboardingStepForm({
   )
 
   return (
-    <form action={formAction} className="flex flex-wrap items-end gap-2">
+    <form
+      action={formAction}
+      className="flex flex-wrap items-end gap-2"
+      title={disabled && disabledReason ? disabledReason : undefined}
+    >
       <input type="hidden" name="orgSlug" value={orgSlug} />
       <input type="hidden" name="contractId" value={contractId} />
 

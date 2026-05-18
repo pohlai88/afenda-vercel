@@ -18,9 +18,15 @@ export {
 export type {
   HrmCompensationComponentRow,
   ContractCompensationLineSummary,
+  HrmCompensationQueryClient,
 } from "./data/compensation.queries.server"
 
 export type {
   HrmCompensationDbClient,
   ContractCompensationLineInput,
 } from "./data/compensation.mutations.server"
+
+export {
+  parseAllowanceLineInputsFromForm,
+  tryBuildAnnexSlotsFromForm,
+} from "./schema/contract-compensation.shared"

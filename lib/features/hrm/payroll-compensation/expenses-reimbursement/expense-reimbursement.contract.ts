@@ -34,6 +34,8 @@ export const HRM_EXPENSE_REIMBURSEMENT_AUDIT = {
       object: "claim.exception",
       verb: "resolve",
     }),
+    overdue: "erp.hrm.claim.overdue",
+    apPosted: "erp.hrm.claim.ap_posted",
   },
   fund: {
     create: buildCrudSapAuditAction({

@@ -65,7 +65,7 @@ function validateSourceRefTargets(): DeclarationValidationIssue[] {
 }
 
 async function validateSecurityTxt(): Promise<DeclarationValidationIssue[]> {
-  const response = securityTxtGET()
+  const response = await securityTxtGET()
   const body = await response.text()
   const base = getSiteUrl().replace(/\/$/, "")
   const policyPath = toLocalePath(

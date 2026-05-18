@@ -40,10 +40,6 @@ import type {
   PayrollPeriodCreateFormState,
   PreparePayrollRunsFormState,
 } from "../../../types"
-import type {
-  PayrollPeriodRow,
-  PayrollRunRow,
-} from "../data/payroll.queries.server"
 import type { PayrollPeriodTraceability } from "../data/payroll-engine.server"
 import type {
   PayrollCloseActionFormState,
@@ -56,6 +52,17 @@ import type {
   PayrollPostingRecord,
   PayrollPostingState,
 } from "../data/payroll-posting.shared"
+import type {
+  PayrollConsolePeriod,
+  PayrollConsoleProps,
+  PayrollConsoleRun,
+} from "../data/payroll-console-view.shared"
+import type { PayrollSurfaceCapabilities } from "../data/payroll-capabilities.shared"
+
+type PayrollConsolePeriodCard = PayrollConsolePeriod & {
+  readonly cutoffDate: string | null
+  readonly payrollGroupCode: string | null
+}
 
 // ---------------------------------------------------------------------------
 // Period state badge
@@ -99,7 +106,11 @@ const initialCreateState: PayrollPeriodCreateFormState = {
   errors: {},
 }
 
-export function CreatePayrollPeriodForm() {
+export function CreatePayrollPeriodForm({
+  canCreate,
+}: {
+  canCreate: boolean
+}) {
   const t = useTranslations("Dashboard.Hrm.payroll")
   const [state, action, pending] = useActionState(
     createPayrollPeriodAction,
@@ -108,7 +119,7 @@ export function CreatePayrollPeriodForm() {
 
   return (
     <form action={action} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <Field
           data-invalid={
             !state.ok &&
@@ -125,7 +136,7 @@ export function CreatePayrollPeriodForm() {
             name="periodStart"
             type="date"
             required
-            disabled={pending}
+            disabled={pending || !canCreate}
           />
           {!state.ok &&
             (state as { errors: { periodStart?: string } }).errors
@@ -154,12 +165,37 @@ export function CreatePayrollPeriodForm() {
             name="periodEnd"
             type="date"
             required
-            disabled={pending}
+            disabled={pending || !canCreate}
           />
           {!state.ok &&
             (state as { errors: { periodEnd?: string } }).errors.periodEnd && (
               <FieldError>
                 {(state as { errors: { periodEnd?: string } }).errors.periodEnd}
+              </FieldError>
+            )}
+        </Field>
+        <Field
+          data-invalid={
+            !state.ok &&
+            Boolean(
+              (state as { errors: { cutoffDate?: string } }).errors.cutoffDate
+            )
+          }
+        >
+          <FieldLabel htmlFor="payroll-cutoff-date">
+            {t("fieldCutoffDate")}
+          </FieldLabel>
+          <Input
+            id="payroll-cutoff-date"
+            name="cutoffDate"
+            type="date"
+            required
+            disabled={pending || !canCreate}
+          />
+          {!state.ok &&
+            (state as { errors: { cutoffDate?: string } }).errors.cutoffDate && (
+              <FieldError>
+                {(state as { errors: { cutoffDate?: string } }).errors.cutoffDate}
               </FieldError>
             )}
         </Field>
@@ -179,7 +215,7 @@ export function CreatePayrollPeriodForm() {
             name="paymentDate"
             type="date"
             required
-            disabled={pending}
+            disabled={pending || !canCreate}
           />
           {!state.ok &&
             (state as { errors: { paymentDate?: string } }).errors
@@ -194,6 +230,18 @@ export function CreatePayrollPeriodForm() {
         </Field>
       </div>
       <div className="flex items-end gap-3">
+        <Field className="min-w-40">
+          <FieldLabel htmlFor="payroll-group-code">
+            {t("fieldPayrollGroupCode")}
+          </FieldLabel>
+          <Input
+            id="payroll-group-code"
+            name="payrollGroupCode"
+            required
+            maxLength={64}
+            disabled={pending || !canCreate}
+          />
+        </Field>
         <Field className="w-24">
           <FieldLabel htmlFor="payroll-currency">
             {t("fieldCurrency")}
@@ -203,10 +251,15 @@ export function CreatePayrollPeriodForm() {
             name="currency"
             defaultValue="MYR"
             maxLength={3}
-            disabled={pending}
+            disabled={pending || !canCreate}
           />
         </Field>
-        <Button type="submit" disabled={pending} size="sm" className="mb-px">
+        <Button
+          type="submit"
+          disabled={pending || !canCreate}
+          size="sm"
+          className="mb-px"
+        >
           {pending ? t("creating") : t("createPeriod")}
         </Button>
       </div>
@@ -215,6 +268,16 @@ export function CreatePayrollPeriodForm() {
           {(state as { errors: { form?: string } }).errors.form}
         </p>
       )}
+      {!state.ok &&
+        (state as { errors: { payrollGroupCode?: string } }).errors
+          .payrollGroupCode && (
+          <p className="text-sm text-destructive">
+            {
+              (state as { errors: { payrollGroupCode?: string } }).errors
+                .payrollGroupCode
+            }
+          </p>
+        )}
       {state.ok && (
         <p className="text-sm text-green-600 dark:text-green-400">
           {t("periodCreated")}
@@ -233,7 +296,13 @@ const initialPrepareState: PreparePayrollRunsFormState = {
   errors: {},
 }
 
-export function PreparePayrollRunsButton({ periodId }: { periodId: string }) {
+export function PreparePayrollRunsButton({
+  periodId,
+  disabled = false,
+}: {
+  periodId: string
+  disabled?: boolean
+}) {
   const t = useTranslations("Dashboard.Hrm.payroll")
   const [state, action, pending] = useActionState(
     preparePayrollRunsAction,
@@ -243,7 +312,12 @@ export function PreparePayrollRunsButton({ periodId }: { periodId: string }) {
   return (
     <form action={action} className="flex items-center gap-3">
       <input type="hidden" name="periodId" value={periodId} />
-      <Button type="submit" size="sm" variant="outline" disabled={pending}>
+      <Button
+        type="submit"
+        size="sm"
+        variant="outline"
+        disabled={disabled || pending}
+      >
         {pending ? t("preparing") : t("prepareRuns")}
       </Button>
       {state.ok && (
@@ -260,8 +334,12 @@ export function PreparePayrollRunsButton({ periodId }: { periodId: string }) {
   )
 }
 
+function PayrollCapabilityHint({ message }: { message: string }) {
+  return <p className="text-sm text-muted-foreground">{message}</p>
+}
+
 // ---------------------------------------------------------------------------
-// Phase 3B ÔÇö lock certification + period lock (MYR / MY rule pack)
+// Phase 3B - lock certification + period lock (MYR / MY rule pack)
 // ---------------------------------------------------------------------------
 
 const initialPayrollLockApproval: PayrollLockApprovalFormState = {
@@ -317,8 +395,10 @@ export function RequestPayrollLockApprovalButton({
 
 export function ApprovePayrollLockButton({
   approvalId,
+  disabled = false,
 }: {
   approvalId: string
+  disabled?: boolean
 }) {
   const t = useTranslations("Dashboard.Hrm.payroll")
   const [state, action, pending] = useActionState(
@@ -329,7 +409,7 @@ export function ApprovePayrollLockButton({
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="approvalId" value={approvalId} />
-      <Button type="submit" size="sm" disabled={pending}>
+      <Button type="submit" size="sm" disabled={disabled || pending}>
         {pending ? t("approvingLockApproval") : t("approveLockApproval")}
       </Button>
       {!state.ok && state.errors.form && (
@@ -339,7 +419,13 @@ export function ApprovePayrollLockButton({
   )
 }
 
-export function RejectPayrollLockForm({ approvalId }: { approvalId: string }) {
+export function RejectPayrollLockForm({
+  approvalId,
+  disabled = false,
+}: {
+  approvalId: string
+  disabled?: boolean
+}) {
   const t = useTranslations("Dashboard.Hrm.payroll")
   const [state, action, pending] = useActionState(
     rejectPayrollPeriodLockApprovalAction,
@@ -360,12 +446,17 @@ export function RejectPayrollLockForm({ approvalId }: { approvalId: string }) {
           id={`reject-lock-${approvalId}`}
           name="rejectedReason"
           required
-          disabled={pending}
+          disabled={disabled || pending}
           rows={2}
           className="min-h-0"
         />
       </Field>
-      <Button type="submit" size="sm" variant="destructive" disabled={pending}>
+      <Button
+        type="submit"
+        size="sm"
+        variant="destructive"
+        disabled={disabled || pending}
+      >
         {pending ? t("rejectingLockApproval") : t("rejectLockApproval")}
       </Button>
       {!state.ok && state.errors.form && (
@@ -509,10 +600,12 @@ export function PayrollClosePassport({
   periodId,
   snapshot,
   postingRecord,
+  canUpdate,
 }: {
   periodId: string
   snapshot: PayrollCloseSnapshot | null
   postingRecord: PayrollPostingRecord | null
+  canUpdate: boolean
 }) {
   const t = useTranslations("Dashboard.Hrm.payroll")
 
@@ -533,6 +626,7 @@ export function PayrollClosePassport({
             action={refreshPayrollCloseSnapshotAction}
             label={t("close.refresh")}
             pendingLabel={t("close.refreshing")}
+            disabled={!canUpdate}
           />
         </div>
       </div>
@@ -660,7 +754,7 @@ export function PayrollClosePassport({
                     className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm"
                   >
                     <span>
-                      {evidence.countryCode} ┬À {evidence.packType}
+                      {evidence.countryCode} | {evidence.packType}
                     </span>
                     <Badge variant="outline" className="text-xs">
                       {evidence.submissionState}
@@ -733,7 +827,7 @@ export function PayrollClosePassport({
                     {t("close.postedAt")}
                   </div>
                   <div className="font-medium tabular-nums">
-                    {postingRecord.postedAt ?? "ÔÇö"}
+                    {postingRecord.postedAt ?? "-"}
                   </div>
                 </div>
                 <div>
@@ -741,7 +835,7 @@ export function PayrollClosePassport({
                     {t("close.postedBy")}
                   </div>
                   <div className="font-medium">
-                    {postingRecord.postedByUserId ?? "ÔÇö"}
+                    {postingRecord.postedByUserId ?? "-"}
                   </div>
                 </div>
                 <div>
@@ -781,21 +875,21 @@ export function PayrollClosePassport({
             label={t("close.postPayroll")}
             pendingLabel={t("close.postingPayroll")}
             variant="default"
-            disabled={!canPostPayroll}
+            disabled={!canUpdate || !canPostPayroll}
           />
           <PayrollCloseActionButton
             periodId={periodId}
             action={generatePayrollPayslipsAction}
             label={t("close.generatePayslips")}
             pendingLabel={t("close.generatingPayslips")}
-            disabled={!canRunGovernedCloseActions}
+            disabled={!canUpdate || !canRunGovernedCloseActions}
           />
           <PayrollCloseActionButton
             periodId={periodId}
             action={publishPayrollPayslipsAction}
             label={t("close.publishPayslips")}
             pendingLabel={t("close.publishingPayslips")}
-            disabled={!canRunGovernedCloseActions}
+            disabled={!canUpdate || !canRunGovernedCloseActions}
           />
         </div>
       </div>
@@ -917,7 +1011,7 @@ export function PayrollTraceabilityPanel({
 // Run summary table
 // ---------------------------------------------------------------------------
 
-export function PayrollRunTable({ runs }: { runs: PayrollRunRow[] }) {
+export function PayrollRunTable({ runs }: { runs: PayrollConsoleRun[] }) {
   const t = useTranslations("Dashboard.Hrm.payroll")
   if (runs.length === 0) {
     return (
@@ -999,6 +1093,7 @@ export function PayrollRunTable({ runs }: { runs: PayrollRunRow[] }) {
 // ---------------------------------------------------------------------------
 
 export function PayrollPeriodDetailCard({
+  capabilities,
   period,
   runs,
   closeSnapshot,
@@ -1006,8 +1101,9 @@ export function PayrollPeriodDetailCard({
   traceability,
   pendingLockApprovalId,
 }: {
-  period: PayrollPeriodRow
-  runs: PayrollRunRow[]
+  capabilities: PayrollSurfaceCapabilities
+  period: PayrollConsolePeriodCard
+  runs: PayrollConsoleRun[]
   closeSnapshot: PayrollCloseSnapshot | null
   postingRecord: PayrollPostingRecord | null
   traceability: PayrollPeriodTraceability
@@ -1021,6 +1117,7 @@ export function PayrollPeriodDetailCard({
     runs.length > 0 &&
     runs.every((r) => r.state === "computed" || r.state === "locked")
   const canRequestApproval =
+    capabilities.canUpdate &&
     isPreparing &&
     allRunsComputed &&
     traceability.runsWithBlockers === 0 &&
@@ -1028,6 +1125,7 @@ export function PayrollPeriodDetailCard({
     !traceability.approvalExists &&
     pendingLockApprovalId === null
   const canLock =
+    capabilities.canUpdate &&
     isPreparing &&
     traceability.approvalExists &&
     allRunsComputed &&
@@ -1040,21 +1138,38 @@ export function PayrollPeriodDetailCard({
       <CardHeader className="flex flex-row items-start justify-between gap-4">
         <div>
           <CardTitle className="text-base font-semibold">
-            {period.periodStart} ÔÇö {period.periodEnd}
+            {period.periodStart} - {period.periodEnd}
           </CardTitle>
           <CardDescription>
-            {t("paymentDateLabel")} {period.paymentDate} ┬À {period.currency}
+            {t("paymentDateLabel")} {period.paymentDate} | {period.currency}
+            {period.cutoffDate ? (
+              <>
+                {" "}
+                | {t("cutoffDateLabel")} {period.cutoffDate}
+              </>
+            ) : null}
+            {period.payrollGroupCode ? (
+              <>
+                {" "}
+                | {t("payrollGroupLabel")} {period.payrollGroupCode}
+              </>
+            ) : null}
             {period.rulePackVersion ? (
               <>
                 {" "}
-                ┬À {t("pinnedRulePackLabel")} {period.rulePackVersion}
+                | {t("pinnedRulePackLabel")} {period.rulePackVersion}
               </>
             ) : null}
           </CardDescription>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <PeriodStateBadge state={period.state} />
-          {isOpen && <PreparePayrollRunsButton periodId={period.id} />}
+          {isOpen && capabilities.canUpdate ? (
+            <PreparePayrollRunsButton
+              periodId={period.id}
+              disabled={!capabilities.canUpdate}
+            />
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -1062,6 +1177,7 @@ export function PayrollPeriodDetailCard({
           periodId={period.id}
           snapshot={closeSnapshot}
           postingRecord={postingRecord}
+          canUpdate={capabilities.canUpdate}
         />
         <div>
           <Label className="mb-1 block text-xs font-semibold tracking-widest text-muted-foreground uppercase">
@@ -1099,8 +1215,12 @@ export function PayrollPeriodDetailCard({
                   </p>
                   <ApprovePayrollLockButton
                     approvalId={pendingLockApprovalId}
+                    disabled={!capabilities.canUpdate}
                   />
-                  <RejectPayrollLockForm approvalId={pendingLockApprovalId} />
+                  <RejectPayrollLockForm
+                    approvalId={pendingLockApprovalId}
+                    disabled={!capabilities.canUpdate}
+                  />
                 </div>
               )}
               {canLock && (
@@ -1122,20 +1242,9 @@ export function PayrollPeriodDetailCard({
 // ---------------------------------------------------------------------------
 
 export function PayrollConsolePage({
+  capabilities,
   periods,
-  periodRuns,
-  periodTraceability,
-  periodCloseSnapshots,
-  periodPostingRecords,
-  periodPendingLockApprovalIds,
-}: {
-  periods: PayrollPeriodRow[]
-  periodRuns: Map<string, PayrollRunRow[]>
-  periodTraceability: Map<string, PayrollPeriodTraceability>
-  periodCloseSnapshots: Map<string, PayrollCloseSnapshot | null>
-  periodPostingRecords: Map<string, PayrollPostingRecord | null>
-  periodPendingLockApprovalIds: Map<string, string | null>
-}) {
+}: PayrollConsoleProps) {
   const t = useTranslations("Dashboard.Hrm.payroll")
 
   return (
@@ -1149,7 +1258,11 @@ export function PayrollConsolePage({
           <CardDescription>{t("createPeriodDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <CreatePayrollPeriodForm />
+          {capabilities.canCreate ? (
+            <CreatePayrollPeriodForm canCreate={capabilities.canCreate} />
+          ) : (
+            <PayrollCapabilityHint message={t("createPeriodAccessDenied")} />
+          )}
         </CardContent>
       </Card>
 
@@ -1157,28 +1270,16 @@ export function PayrollConsolePage({
       {periods.length === 0 && (
         <p className="text-sm text-muted-foreground">{t("noPeriods")}</p>
       )}
-      {periods.map((period) => (
+      {periods.map((view) => (
         <PayrollPeriodDetailCard
-          key={period.id}
-          period={period}
-          runs={periodRuns.get(period.id) ?? []}
-          closeSnapshot={periodCloseSnapshots.get(period.id) ?? null}
-          postingRecord={periodPostingRecords.get(period.id) ?? null}
-          traceability={
-            periodTraceability.get(period.id) ?? {
-              employeeCount: 0,
-              allContractsSnapshotted: false,
-              allProfilesSnapshotted: false,
-              attendanceComplete: false,
-              rulePackVersion: null,
-              runsWithBlockers: 0,
-              approvalExists: false,
-              approvedUnpaidClaimCount: 0,
-            }
-          }
-          pendingLockApprovalId={
-            periodPendingLockApprovalIds.get(period.id) ?? null
-          }
+          key={view.period.id}
+          capabilities={capabilities}
+          period={view.period}
+          runs={view.runs}
+          closeSnapshot={view.closeSnapshot}
+          postingRecord={view.postingRecord}
+          traceability={view.traceability}
+          pendingLockApprovalId={view.pendingLockApprovalId}
         />
       ))}
     </div>

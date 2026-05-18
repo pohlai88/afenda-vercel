@@ -1,6 +1,6 @@
 import type { Route } from "next"
 
-import { getFormatter, getTranslations } from "next-intl/server"
+import { getTranslations } from "next-intl/server"
 
 import { Badge } from "#components2/ui/badge"
 import { Button } from "#components2/ui/button"
@@ -11,14 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
 import { Link } from "#i18n/navigation"
 import { employeePortalPath } from "#lib/portal"
 
@@ -28,10 +20,12 @@ import {
   listClaimsForEmployee,
 } from "../../../payroll-compensation/expenses-reimbursement/data/claim.queries.server"
 import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
+import { buildEmployeePortalClaimsListSurfaceConfiguration } from "../data/employee-portal-list-surface.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
 import { EmployeePortalClaimCancelButton } from "./employee-portal-claim-cancel-button.client"
 import { EmployeePortalClaimSubmitForm } from "./employee-portal-claim-submit-form.client"
+import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalClaimsPageProps = {
@@ -49,10 +43,10 @@ export async function EmployeePortalClaimsPage({
   const organizationId = context.portal.organizationId
   const employeeId = context.employee.id
 
-  const [t, navLabels, format, claimTypes, claims] = await Promise.all([
+  const [t, tClaims, navLabels, claimTypes, claims] = await Promise.all([
     getTranslations("Dashboard.Hrm.portalClaims"),
+    getTranslations("Dashboard.Hrm.claims"),
     getEmployeePortalSectionNavLabels(),
-    getFormatter(),
     listClaimTypesForOrg(organizationId, { activeOnly: true }),
     listClaimsForEmployee(organizationId, employeeId, { limit: 25 }),
   ])
@@ -63,6 +57,33 @@ export async function EmployeePortalClaimsPage({
     name: row.name,
     currency: row.currency,
   }))
+
+  const stateLabels = {
+    draft: tClaims("state.draft"),
+    submitted: tClaims("state.submitted"),
+    under_review: tClaims("state.under_review"),
+    returned: tClaims("state.returned"),
+    approved: tClaims("state.approved"),
+    rejected: tClaims("state.rejected"),
+    cancelled: tClaims("state.cancelled"),
+    paid: tClaims("state.paid"),
+  } as const
+
+  const listConfiguration = buildEmployeePortalClaimsListSurfaceConfiguration(
+    claims,
+    (claimId) => claimDetailHref(context.portal.portalSlug, claimId),
+    {
+      empty: t("listEmpty"),
+      colClaimDate: t("colDate"),
+      colAmount: t("colAmount"),
+      colState: t("colState"),
+      colEvidence: t("colEvidence"),
+      evidenceCountLabel: (count) => String(count),
+      stateLabels,
+    }
+  )
+
+  const claimById = new Map(claims.map((row) => [row.id, row]))
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -96,60 +117,38 @@ export async function EmployeePortalClaimsPage({
             <CardDescription>{t("portalPageDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            {claims.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("listEmpty")}</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("colDate")}</TableHead>
-                    <TableHead>{t("colAmount")}</TableHead>
-                    <TableHead>{t("colState")}</TableHead>
-                    <TableHead>{t("colEvidence")}</TableHead>
-                    <TableHead className="text-right"> </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {claims.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>{row.claimDate}</TableCell>
-                      <TableCell>
-                        {format.number(Number(row.amount), {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        {row.currency}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{row.state}</Badge>
-                      </TableCell>
-                      <TableCell>{row.evidenceCount}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <Button variant="outline" size="sm" asChild>
-                            <Link
-                              href={claimDetailHref(
-                                context.portal.portalSlug,
-                                row.id
-                              )}
-                            >
-                              {t("viewDetail")}
-                            </Link>
-                          </Button>
-                          {isClaimCancellable(row.state) ? (
-                            <EmployeePortalClaimCancelButton
-                              portalSlug={context.portal.portalSlug}
-                              claimId={row.id}
-                              label={t("cancel")}
-                            />
-                          ) : null}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+            <EmployeePortalGovernedTable
+              configuration={listConfiguration}
+              surfaceKey="hrm:portal:claims"
+              trailingColumn={{
+                header: " ",
+                render: (surfaceRow) => {
+                  const row = claimById.get(surfaceRow.id)
+                  if (!row) return null
+                  return (
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link
+                          href={claimDetailHref(
+                            context.portal.portalSlug,
+                            row.id
+                          )}
+                        >
+                          {t("viewDetail")}
+                        </Link>
+                      </Button>
+                      {isClaimCancellable(row.state) ? (
+                        <EmployeePortalClaimCancelButton
+                          portalSlug={context.portal.portalSlug}
+                          claimId={row.id}
+                          label={t("cancel")}
+                        />
+                      ) : null}
+                    </div>
+                  )
+                },
+              }}
+            />
           </CardContent>
         </Card>
 

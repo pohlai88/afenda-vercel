@@ -45,16 +45,13 @@ function listRootSectionCards(
       const target = folderIndexItem(folder)
       if (!target) return []
 
-      const description =
-        folder.description ?? target.description ?? undefined
+      const description = folder.description ?? target.description ?? undefined
 
       return [
         {
           href: toRelativeCardHref(pageUrl, target.url),
           title: reactNodeToText(folder.name),
-          description: description
-            ? reactNodeToText(description)
-            : undefined,
+          description: description ? reactNodeToText(description) : undefined,
         },
       ]
     })
@@ -96,6 +93,8 @@ export function listAskDocsSearchLinks(tree: Root): AskDocsSearchLink[] {
     .flatMap((folder) => {
       const target = folderIndexItem(folder)
       if (!target) return []
-      return [[reactNodeToText(folder.name), target.url] satisfies AskDocsSearchLink]
+      return [
+        [reactNodeToText(folder.name), target.url] satisfies AskDocsSearchLink,
+      ]
     })
 }

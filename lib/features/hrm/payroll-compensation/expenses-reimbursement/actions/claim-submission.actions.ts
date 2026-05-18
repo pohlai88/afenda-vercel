@@ -11,8 +11,12 @@ import { canUseErpPermission } from "#features/erp-rbac/server"
 import { isClaimCancellable } from "../data/claim-helpers.shared"
 import { HRM_EXPENSE_REIMBURSEMENT_AUDIT } from "../expense-reimbursement.contract"
 import {
+  validateClaimEvidenceAttachment,
+} from "../data/claim-evidence-validation.server"
+import { firstBlockingClaimEvidenceIssue } from "../data/claim-evidence-validation.shared"
+import {
   findClaimEmployeeForUser,
-  findOrgDocumentForClaim,
+  findOrgDocumentForClaimEvidence,
   findOrgEmployeeForClaim,
 } from "../data/claim.queries.server"
 import {
@@ -47,6 +51,12 @@ function submitClaimFieldErrors(
   return hrmActionFailure(errors)
 }
 
+function parseEvidenceDocumentIds(formData: FormData): string[] {
+  return formData
+    .getAll("evidenceDocumentIds")
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+}
+
 export async function submitOwnClaimAction(
   _prev: SubmitClaimFormState | undefined,
   formData: FormData
@@ -69,6 +79,7 @@ export async function submitOwnClaimAction(
     policyVersion: formData.get("policyVersion") || null,
     expenseFundId: formData.get("expenseFundId") || null,
     duplicateOverrideReason: formData.get("duplicateOverrideReason") || null,
+    evidenceDocumentIds: parseEvidenceDocumentIds(formData),
   })
 
   if (!parsed.success) {
@@ -78,6 +89,8 @@ export async function submitOwnClaimAction(
       claimDate: fieldErrors.claimDate?.[0],
       amount: fieldErrors.amount?.[0],
       currency: fieldErrors.currency?.[0],
+      expenseFundId: fieldErrors.expenseFundId?.[0],
+      duplicateOverrideReason: fieldErrors.duplicateOverrideReason?.[0],
       form: parsed.error.issues[0]?.message,
     })
   }
@@ -115,6 +128,7 @@ export async function submitClaimOnBehalfAction(
     policyVersion: formData.get("policyVersion") || null,
     expenseFundId: formData.get("expenseFundId") || null,
     duplicateOverrideReason: formData.get("duplicateOverrideReason") || null,
+    evidenceDocumentIds: parseEvidenceDocumentIds(formData),
   })
 
   if (!parsed.success) {
@@ -125,6 +139,8 @@ export async function submitClaimOnBehalfAction(
       claimDate: fieldErrors.claimDate?.[0],
       amount: fieldErrors.amount?.[0],
       currency: fieldErrors.currency?.[0],
+      expenseFundId: fieldErrors.expenseFundId?.[0],
+      duplicateOverrideReason: fieldErrors.duplicateOverrideReason?.[0],
       form: parsed.error.issues[0]?.message,
     })
   }
@@ -257,7 +273,7 @@ export async function cancelClaimAction(
 
   if (claim.currentApprovalId) {
     await writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.approval.cancel",
+      action: HRM_EXPENSE_REIMBURSEMENT_AUDIT.approval.cancel,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,
@@ -352,7 +368,10 @@ export async function attachClaimEvidenceAction(
     })
   }
 
-  const document = await findOrgDocumentForClaim(organizationId, documentId)
+  const document = await findOrgDocumentForClaimEvidence(
+    organizationId,
+    documentId
+  )
   if (!document) {
     return hrmActionFailure({ documentId: "Document not found." })
   }
@@ -369,9 +388,19 @@ export async function attachClaimEvidenceAction(
     })
   }
 
+  const evidenceIssues = await validateClaimEvidenceAttachment({
+    organizationId,
+    claimId,
+    evidenceType,
+    document,
+  })
+  const blockingEvidence = firstBlockingClaimEvidenceIssue(evidenceIssues)
+  if (blockingEvidence) {
+    return hrmActionFailure({ documentId: blockingEvidence.message })
+  }
+
   const evidenceId = crypto.randomUUID()
 
-  // Surface the unique-index conflict cleanly.
   const existing = await db.query.hrmClaimEvidence.findFirst({
     where: and(
       eq(hrmClaimEvidence.claimId, claimId),

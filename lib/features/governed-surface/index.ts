@@ -75,6 +75,35 @@ export {
 } from "./schemas/list-surface-renderer.schema"
 
 export {
+  SCHEMA_STABILITY as LIST_SURFACE_ROW_TRAILING_ACTION_SCHEMA_STABILITY,
+  listSurfaceRowTrailingActionSchema,
+  parseListSurfaceRowTrailingAction,
+  type ListSurfaceRowTrailingAction,
+} from "./schemas/list-surface-row-trailing-action.schema"
+
+export {
+  isListSurfaceTrailingActionRenderable,
+  listSurfaceRowTrailingActionHidden,
+  resolveListSurfaceRowTrailingAction,
+  type ResolveListSurfaceRowTrailingActionInput,
+} from "./list-surface-trailing-action.shared"
+
+export {
+  buildGovernedListSurfaceDataAttributes,
+  buildGovernedListSurfaceRenderFingerprint,
+  governedListRowTestId,
+  governedListSectionTestId,
+  governedListSurfaceTestId,
+  summarizeListSurfaceTrailingActions,
+  type GovernedListSurfaceDataAttributes,
+  type GovernedListSurfaceRenderLogFields,
+  type GovernedListSurfaceRenderState,
+  type GovernedListSurfaceTrailingSummary,
+} from "./list-surface-identity.shared"
+
+export type { LogGovernedListSurfaceRenderInput } from "./log-governed-list-surface-render.server"
+
+export {
   GOVERNED_COMPONENT_SCHEMA_ID,
   GOVERNED_COMPONENT_SCHEMA_STABILITY,
   governedComponentDiscriminatedSchema,
@@ -128,6 +157,16 @@ export {
   GovernedSection,
   type GovernedSectionProps,
 } from "./components/governed-section"
+export {
+  GovernedSurfaceSectionCard,
+  type GovernedSurfaceSectionCardBody,
+  type GovernedSurfaceSectionCardProps,
+} from "./components/governed-surface-section-card"
+export {
+  GovernedPatternCListSection,
+  type GovernedPatternCListSectionLayout,
+  type GovernedPatternCListSectionProps,
+} from "./components/governed-pattern-c-list-section"
 export {
   GovernedEmpty,
   type GovernedEmptyProps,

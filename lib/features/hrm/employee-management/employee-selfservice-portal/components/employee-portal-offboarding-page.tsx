@@ -79,9 +79,9 @@ export async function EmployeePortalOffboardingPage({
               <ul className="flex flex-col gap-3">
                 {instance.checklist.map((task) => {
                   const completed = Boolean(task.completedAt)
-                  const taskLabel = t(
-                    `tasks.${task.taskKey}` as "tasks.return_equipment"
-                  )
+                  const taskLabel =
+                    task.title ??
+                    t(`tasks.${task.taskKey}` as "tasks.return_equipment")
                   return (
                     <li
                       key={task.taskKey}
@@ -97,7 +97,7 @@ export async function EmployeePortalOffboardingPage({
                         portalSlug={portalSlug}
                         instanceId={instance.id}
                         taskKey={task.taskKey}
-                        disabled={completed}
+                        disabled={completed || task.assignedRole !== "employee"}
                       />
                     </li>
                   )

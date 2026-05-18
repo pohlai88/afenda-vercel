@@ -24,6 +24,7 @@ import {
   claimPolicySnapshotFromUnknown,
   doesClaimRequireEvidence,
 } from "../data/claim-helpers.shared"
+import { postApprovedClaimToApJournal } from "../data/claim-ap-posting.server"
 import { fanoutClaimLifecycleEvent } from "../data/claim-notification.server"
 import { deductExpenseFundBalanceOnApprove } from "../data/claim-fund-balance.server"
 import { isClaimAssignedApprover } from "../data/claim.queries.server"
@@ -98,8 +99,11 @@ export async function approveClaimAction(
   })
 
   if (!parsed.success) {
+    const errs = parsed.error.flatten().fieldErrors
     return hrmActionFailure({
-      claimId: parsed.error.issues[0]?.message,
+      claimId: errs.claimId?.[0],
+      approvedAmount: errs.approvedAmount?.[0],
+      form: parsed.error.issues[0]?.message,
     })
   }
 
@@ -123,6 +127,9 @@ export async function approveClaimAction(
       requiresExceptionApproval: true,
       expenseFundId: true,
       reimbursementMode: true,
+      payoutMethod: true,
+      financeAccountCode: true,
+      costCenterCode: true,
       policySnapshot: true,
       submittedByUserId: true,
       createdByUserId: true,
@@ -194,7 +201,7 @@ export async function approveClaimAction(
   const resolvedApprovedAmount = approvedAmount ?? requestedAmount
   if (resolvedApprovedAmount > requestedAmount) {
     return hrmActionFailure({
-      claimId: "Approved amount cannot exceed the requested amount.",
+      approvedAmount: "Approved amount cannot exceed the requested amount.",
     })
   }
   const rejectedAmount = requestedAmount - resolvedApprovedAmount
@@ -259,6 +266,38 @@ export async function approveClaimAction(
     }
   })
 
+  let apPostingJournalId: string | null = null
+  if (claim.payoutMethod === "ap") {
+    const apResult = await postApprovedClaimToApJournal({
+      organizationId,
+      claimId,
+      claimNumber: claim.claimNumber,
+      approvedAmount: resolvedApprovedAmount,
+      currency: claim.currency,
+      financeAccountCode: claim.financeAccountCode,
+      costCenterCode: claim.costCenterCode,
+      postedByUserId: userId,
+    })
+    if (apResult.code === "invalid_amount") {
+      return hrmActionFailure({ form: apResult.message })
+    }
+    if (apResult.code === "posted" || apResult.code === "already_posted") {
+      apPostingJournalId = apResult.journalId
+      const paymentReference =
+        apResult.code === "posted"
+          ? apResult.reference
+          : apResult.journalId
+      await db
+        .update(hrmClaim)
+        .set({
+          paymentReference,
+          updatedAt: now,
+          updatedByUserId: userId,
+        })
+        .where(eq(hrmClaim.id, claimId))
+    }
+  }
+
   const notificationPayload = {
     claimId,
     claimNumber: claim.claimNumber,
@@ -302,6 +341,22 @@ export async function approveClaimAction(
         },
       })
     }
+    if (apPostingJournalId) {
+      await writeIamAuditEventFromNextHeaders({
+        action: HRM_EXPENSE_REIMBURSEMENT_AUDIT.claim.apPosted,
+        actorUserId: userId,
+        actorSessionId: sessionId,
+        organizationId,
+        resourceType: "hrm_claim",
+        resourceId: claimId,
+        metadata: {
+          claimNumber: claim.claimNumber,
+          journalId: apPostingJournalId,
+          payoutMethod: "ap",
+          approvedAmount: resolvedApprovedAmount,
+        },
+      })
+    }
     await fanoutClaimLifecycleEvent({
       organizationId,
       eventType: HRM_CLAIM_EVENT_TYPES.approved,
@@ -331,7 +386,8 @@ export async function returnClaimAction(
     const errs = parsed.error.flatten().fieldErrors
     return hrmActionFailure({
       claimId: errs.claimId?.[0],
-      form: errs.returnedReason?.[0] ?? parsed.error.issues[0]?.message,
+      returnedReason: errs.returnedReason?.[0],
+      form: parsed.error.issues[0]?.message,
     })
   }
 

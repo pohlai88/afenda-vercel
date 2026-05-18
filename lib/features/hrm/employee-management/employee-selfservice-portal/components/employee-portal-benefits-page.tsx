@@ -9,19 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
 
 import { listEnrollmentsForEmployee } from "../../../payroll-compensation/benefits-administration/data/benefit.queries.server"
 import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
+import { buildEmployeePortalBenefitEnrollmentListSurfaceConfiguration } from "../data/employee-portal-list-surface.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
+import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalBenefitsPageProps = {
@@ -41,6 +35,15 @@ export async function EmployeePortalBenefitsPage({
       context.employee.id
     ),
   ])
+
+  const listConfiguration =
+    buildEmployeePortalBenefitEnrollmentListSurfaceConfiguration(enrollments, {
+      empty: t("listEmpty"),
+      colPlan: t("colPlan"),
+      colState: t("colState"),
+      colCoverage: t("colCoverage"),
+      colEffective: t("colEffective"),
+    })
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -78,38 +81,10 @@ export async function EmployeePortalBenefitsPage({
           <CardDescription>{t("portalPageDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {enrollments.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("listEmpty")}</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("colPlan")}</TableHead>
-                  <TableHead>{t("colState")}</TableHead>
-                  <TableHead>{t("colCoverage")}</TableHead>
-                  <TableHead>{t("colEffective")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {enrollments.map((row) => (
-                  <TableRow key={row.enrollmentId}>
-                    <TableCell>{row.benefitName}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{row.state}</Badge>
-                    </TableCell>
-                    <TableCell>{row.coverageLevel ?? "ÔÇö"}</TableCell>
-                    <TableCell>
-                      {row.effectiveFrom instanceof Date
-                        ? row.effectiveFrom.toISOString().slice(0, 10)
-                        : row.effectiveFrom
-                          ? String(row.effectiveFrom).slice(0, 10)
-                          : "ÔÇö"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <EmployeePortalGovernedTable
+            configuration={listConfiguration}
+            surfaceKey="hrm:portal:benefits"
+          />
         </CardContent>
       </Card>
     </div>

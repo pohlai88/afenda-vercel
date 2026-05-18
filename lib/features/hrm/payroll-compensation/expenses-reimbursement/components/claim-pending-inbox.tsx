@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedListSurfaceWithTrailingColumn } from "#components2/metadata"
-import { parseListSurfaceRendererConfiguration } from "#features/governed-surface/schemas/list-surface-renderer.schema"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
@@ -19,12 +18,6 @@ type ClaimPendingInboxProps = {
   canManage: boolean
 }
 
-/**
- * Admin inbox — pending claims awaiting approval. List body is metadata-driven
- * via `GovernedListSurfaceWithTrailingColumn` (ADR-0026 Pattern C); action
- * buttons stay in a trailing column (not
- * serializable in list-surface cells).
- */
 export async function ClaimPendingInbox({
   orgSlug,
   canManage,
@@ -45,14 +38,28 @@ export async function ClaimPendingInbox({
       organizationId: orgSession.organizationId,
     })
     return (
-      <p className="text-sm text-destructive" role="status" aria-live="polite">
-        {t("inboxLoadFailed")}
-      </p>
+      <GovernedPatternCListSection
+        layout="embedded"
+        title=""
+        listConfiguration={{
+          dataNature: "table",
+          surface: {
+            header: { title: "hrm-claims-pending" },
+            columnsId: "hrm-claims-pending",
+            rowKey: "id",
+            empty: { variant: "muted", title: t("inboxEmpty") },
+          },
+          columns: [{ id: "employee", header: t("colEmployee") }],
+          rows: [],
+        }}
+        surfaceKey="hrm:claims:pending:error"
+        resolveConfiguredPermission={false}
+        loadError={{
+          variant: "error",
+          title: t("inboxLoadFailed"),
+        }}
+      />
     )
-  }
-
-  if (rows.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("inboxEmpty")}</p>
   }
 
   const stateLabels = {
@@ -83,22 +90,20 @@ export async function ClaimPendingInbox({
     }
   )
 
-  const parsed = parseListSurfaceRendererConfiguration(listConfiguration)
-  if (!parsed.success) {
-    return (
-      <p className="text-sm text-destructive" role="status" aria-live="polite">
-        {t("inboxLoadFailed")}
-      </p>
-    )
-  }
-
   const showActions = canManage || rows.length > 0
   const claimById = new Map(rows.map((row) => [row.id, row]))
 
   return (
-    <GovernedListSurfaceWithTrailingColumn
-      columns={parsed.data.columns}
-      rows={parsed.data.rows}
+    <GovernedPatternCListSection
+      layout="embedded"
+      title=""
+      listConfiguration={listConfiguration}
+      surfaceKey="hrm:claims:pending-inbox"
+      resolveConfiguredPermission={false}
+      invalid={{
+        variant: "error",
+        title: t("inboxLoadFailed"),
+      }}
       trailingColumn={
         showActions
           ? {

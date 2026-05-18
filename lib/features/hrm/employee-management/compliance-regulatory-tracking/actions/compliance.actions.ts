@@ -4,9 +4,9 @@ import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { buildCrudSapAuditAction } from "#lib/erp/crud-sap.shared"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
+import { HRM_COMPLIANCE_REGULATORY_AUDIT } from "../compliance-regulatory.contract"
 import {
   fetchRunsForStatutoryPack,
   listComplianceEvidenceForPeriod,
@@ -200,12 +200,7 @@ export async function generateStatutoryPackAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: buildCrudSapAuditAction({
-        area: "erp",
-        module: "hrm",
-        object: "compliance_pack",
-        verb: "create",
-      }),
+      action: HRM_COMPLIANCE_REGULATORY_AUDIT.pack.generated,
       organizationId,
       actorUserId: userId,
       actorSessionId: sessionId,
@@ -368,12 +363,7 @@ export async function generateAllStatutoryPacksAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: buildCrudSapAuditAction({
-        area: "erp",
-        module: "hrm",
-        object: "compliance_pack",
-        verb: "create",
-      }),
+      action: HRM_COMPLIANCE_REGULATORY_AUDIT.pack.generated,
       organizationId,
       actorUserId: userId,
       actorSessionId: sessionId,
@@ -450,12 +440,7 @@ export async function markEvidenceSubmittedAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: buildCrudSapAuditAction({
-        area: "erp",
-        module: "hrm",
-        object: "compliance_pack",
-        verb: "update",
-      }),
+      action: HRM_COMPLIANCE_REGULATORY_AUDIT.evidence.mark_submitted,
       organizationId,
       actorUserId: userId,
       actorSessionId: sessionId,

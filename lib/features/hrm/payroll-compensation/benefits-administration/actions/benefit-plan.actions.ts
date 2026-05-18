@@ -76,6 +76,10 @@ function trimOrNull(value: string | undefined): string | null {
   return normalized ? normalized : null
 }
 
+function hasCheckedValue(formData: FormData, name: string): boolean {
+  return formData.getAll(name).some((value) => String(value) === "true")
+}
+
 async function resolveBenefitPlanProviderId(
   organizationId: string,
   providerId: string | undefined
@@ -163,8 +167,11 @@ export async function createBenefitPlanAction(
     providerId: formData.get("providerId"),
     scopeCountryCodes: formData.get("scopeCountryCodes"),
     scopeLegalEntityCodes: formData.get("scopeLegalEntityCodes"),
-    requiresEnrollmentApproval: formData.get("requiresEnrollmentApproval"),
-    newHireAutoEnroll: formData.get("newHireAutoEnroll"),
+    requiresEnrollmentApproval: hasCheckedValue(
+      formData,
+      "requiresEnrollmentApproval"
+    ),
+    newHireAutoEnroll: hasCheckedValue(formData, "newHireAutoEnroll"),
     eligibilityRules: formData.get("eligibilityRules"),
     rateTableVersion: formData.get("rateTableVersion"),
     rateTable: formData.get("rateTable"),
@@ -320,8 +327,11 @@ export async function updateBenefitPlanAction(
     providerId: formData.get("providerId"),
     scopeCountryCodes: formData.get("scopeCountryCodes"),
     scopeLegalEntityCodes: formData.get("scopeLegalEntityCodes"),
-    requiresEnrollmentApproval: formData.get("requiresEnrollmentApproval"),
-    newHireAutoEnroll: formData.get("newHireAutoEnroll"),
+    requiresEnrollmentApproval: hasCheckedValue(
+      formData,
+      "requiresEnrollmentApproval"
+    ),
+    newHireAutoEnroll: hasCheckedValue(formData, "newHireAutoEnroll"),
     eligibilityRules: formData.get("eligibilityRules"),
     rateTableVersion: formData.get("rateTableVersion"),
     rateTable: formData.get("rateTable"),

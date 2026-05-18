@@ -1,8 +1,19 @@
 import "server-only"
 
-import type { ListSurfaceRendererConfiguration } from "#features/governed-surface"
+import type { ListSurfaceRendererConfigurationInput } from "#features/governed-surface"
 
 import { ATTENDANCE_LIST_SURFACE_IDS } from "./attendance-surface-metadata.shared"
+
+const ATTENDANCE_READ_PERMISSION = {
+  module: "hrm" as const,
+  object: "attendance" as const,
+  function: "read" as const,
+}
+
+const PRESENTATION = {
+  variant: "table-only" as const,
+  tableDensity: "compact" as const,
+}
 
 export type AttendanceEventDisplayRow = {
   id: string
@@ -45,11 +56,13 @@ type AttendancePortalDaysListCopy = {
 export function buildAttendanceRecentListSurfaceConfiguration(
   rows: readonly AttendanceEventDisplayRow[],
   copy: AttendanceRecentListCopy
-): ListSurfaceRendererConfiguration {
+): ListSurfaceRendererConfigurationInput {
   const columnsId =
     copy.columnsId ?? ATTENDANCE_LIST_SURFACE_IDS.recentEvents
   return {
     dataNature: "table",
+    requiresErpPermission: ATTENDANCE_READ_PERMISSION,
+    presentation: PRESENTATION,
     surface: {
       header: listSurfaceHeader(columnsId),
       columnsId,
@@ -91,10 +104,11 @@ export function buildAttendanceRecentListSurfaceConfiguration(
 export function buildAttendancePortalDaysListSurfaceConfiguration(
   rows: readonly AttendanceDayDisplayRow[],
   copy: AttendancePortalDaysListCopy
-): ListSurfaceRendererConfiguration {
+): ListSurfaceRendererConfigurationInput {
   const columnsId = copy.columnsId ?? ATTENDANCE_LIST_SURFACE_IDS.portalDays
   return {
     dataNature: "table",
+    presentation: PRESENTATION,
     surface: {
       header: listSurfaceHeader(columnsId),
       columnsId,

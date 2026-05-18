@@ -1,6 +1,7 @@
 import "server-only"
 
 import type {
+  HrmPayrollProfileStub,
   PayrollComputeInput,
   PayrollRulePack,
   ValidationIssue,
@@ -27,6 +28,8 @@ export type PayrollEngineInput = {
   /** Gross salary declared on the active contract (e.g. "5000.00"). */
   readonly basicSalaryAmount: string
   readonly basicSalaryCurrency: string
+  /** Additional contract compensation lines snapshotted for this run. */
+  readonly contractAllowances: ReadonlyArray<PayrollContractAllowanceInput>
   /** ISO date string "YYYY-MM-DD" — first day of the period. */
   readonly periodStart?: string
   /** ISO date string "YYYY-MM-DD" — last day of the period; used for rule-pack resolution. */
@@ -49,6 +52,11 @@ export type PayrollEngineInput = {
   readonly eisEligible: boolean
   readonly hrdfApplicable: boolean
   readonly taxResidency: "resident" | "non_resident" | null
+  readonly taxIdentifierNumber?: string | null
+  readonly epfNumber?: string | null
+  readonly socsoNumber?: string | null
+  readonly payCurrency?: string | null
+  readonly taxResidencyCountry?: string | null
   // ── PCB running-total fields ───────────────────────────────────────────────
   readonly monthNumber: number | null
   readonly yearNumber: number | null
@@ -98,6 +106,14 @@ export type PayrollClaimInput = {
   readonly description: string
   readonly amount: string
   readonly currency: string
+}
+
+export type PayrollContractAllowanceInput = {
+  readonly componentCode: string
+  readonly amount: string
+  readonly currency: string
+  readonly taxTreatment: string
+  readonly statutoryBaseTreatment: string
 }
 
 export type PayrollLineInput = {
@@ -221,6 +237,37 @@ export async function computePayrollRun(
     rulePackProvenance: provenance ?? undefined,
   })
 
+  let contractAllowanceTotal = 0
+  for (const allowance of input.contractAllowances) {
+    const amount = parseAmount(allowance.amount)
+    if (amount <= 0) continue
+
+    if (
+      allowance.currency.toUpperCase() !==
+      input.basicSalaryCurrency.toUpperCase()
+    ) {
+      validationIssues.push({
+        code: "PAYROLL_CONTRACT_ALLOWANCE_CURRENCY_MISMATCH",
+        message: `Contract allowance ${allowance.componentCode} currency ${allowance.currency} does not match payroll currency ${input.basicSalaryCurrency}.`,
+      })
+      continue
+    }
+
+    contractAllowanceTotal += amount
+    lines.push({
+      lineKind: "earning",
+      code: allowance.componentCode,
+      description: allowance.componentCode.replace(/_/g, " "),
+      amount: formatAmount(amount),
+      metadata: {
+        currency: allowance.currency,
+        taxTreatment: allowance.taxTreatment,
+        statutoryBaseTreatment: allowance.statutoryBaseTreatment,
+        source: "contract_compensation_line",
+      },
+    })
+  }
+
   // 2. Unpaid leave deduction
   const unpaidDeduction = computeUnpaidLeaveDeduction(
     input.basicSalaryAmount,
@@ -262,8 +309,8 @@ export async function computePayrollRun(
     })
   }
 
-  // 3. Gross pay = BASIC + claim earnings (before deductions)
-  const grossPay = basicAmount + claimsTotal
+  // 3. Gross pay = BASIC + contract allowances + claim earnings (before deductions)
+  const grossPay = basicAmount + contractAllowanceTotal + claimsTotal
   const grossPayFormatted = formatAmount(grossPay)
 
   // 4. Statutory contributions via rule pack
@@ -291,7 +338,14 @@ export async function computePayrollRun(
     }
 
     try {
-      const profileStub = { countryCode: input.countryCode }
+      const profileStub: HrmPayrollProfileStub = {
+        countryCode: input.countryCode,
+        taxIdentifierNumber: input.taxIdentifierNumber ?? null,
+        epfNumber: input.epfNumber ?? null,
+        socsoNumber: input.socsoNumber ?? null,
+        payCurrency: input.payCurrency ?? null,
+        taxResidencyCountry: input.taxResidencyCountry ?? null,
+      }
       const profileIssues = pack.validateProfile(profileStub)
       validationIssues.push(...profileIssues)
 
@@ -433,6 +487,8 @@ export type PayrollPeriodTraceability = {
    * page.
    */
   readonly approvedUnpaidClaimCount: number
+  /** Approved AP claims awaiting treasury (informational; does not block lock). */
+  readonly approvedUnpaidApClaimCount: number
 }
 
 /** Derive traceability signals from already-loaded data.
@@ -448,6 +504,7 @@ export function derivePayrollTraceability(params: {
   rulePackVersion: string | null
   approvalExists: boolean
   approvedUnpaidClaimCount: number
+  approvedUnpaidApClaimCount: number
 }): PayrollPeriodTraceability {
   return {
     employeeCount: params.runs.length,
@@ -459,5 +516,6 @@ export function derivePayrollTraceability(params: {
       .length,
     approvalExists: params.approvalExists,
     approvedUnpaidClaimCount: params.approvedUnpaidClaimCount,
+    approvedUnpaidApClaimCount: params.approvedUnpaidApClaimCount,
   }
 }

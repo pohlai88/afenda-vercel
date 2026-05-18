@@ -79,7 +79,10 @@ export {
   decideSalaryAdvanceAction,
   requestSalaryAdvanceAction,
 } from "./payroll-compensation/payroll-processing/actions/salary-advance.actions"
-export { createSkillAction, updateSkillAction } from "./talent-management/competency-skills-framework/actions/skill.actions"
+export {
+  createSkillAction,
+  updateSkillAction,
+} from "./talent-management/competency-skills-framework/actions/skill.actions"
 export {
   archiveDependentAction,
   createDependentAction,
@@ -157,6 +160,7 @@ export {
 } from "./employee-management/employee-selfservice-portal/actions/employee-portal-profile.actions"
 export { completePortalOffboardingTaskAction } from "./employee-management/employee-selfservice-portal/actions/employee-portal-offboarding.actions"
 export {
+  closeOffboardingCaseAction,
   completeOffboardingTaskAction,
   completeOffboardingTaskFormAction,
   initiateOffboardingAction,
@@ -167,6 +171,7 @@ export {
   scheduleExitInterviewAction,
   setRehireEligibilityAction,
   updateSettlementReadinessAction,
+  upsertOffboardingClearanceItemAction,
 } from "./employee-management/offboarding-exit-management/client"
 export {
   portalSelfAttestTrainingAction,

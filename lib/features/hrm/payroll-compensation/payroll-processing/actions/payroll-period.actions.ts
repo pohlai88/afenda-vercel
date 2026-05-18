@@ -7,9 +7,7 @@ import {
   enqueuePayrollFinalizeWorkflowRun,
   payrollFinalizePayloadSchema,
 } from "#features/execution"
-import { requireErpPermission } from "#features/erp-rbac/server"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { buildCrudSapAuditAction } from "#lib/erp/crud-sap.shared"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import {
@@ -32,8 +30,13 @@ import {
   getApprovedPayrollPeriodLockApproval,
   getPayrollPeriodPrimaryCountryCode,
 } from "../data/payroll.queries.server"
+import { requirePayrollSessionMutationGate } from "../data/payroll-action-guard.server"
+import {
+  buildCompensationSnapshotForContract,
+  ensureDefaultHrmCompensationComponents,
+} from "../../compensation-planning-modeling/server"
 import { resolveRulePack } from "../../multi-country-payroll/data/payroll-rule-pack.server"
-import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
+import { HRM_PAYROLL_PROCESSING_AUDIT } from "../payroll-processing.contract"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   PayrollPeriodCreateFormState,
@@ -76,18 +79,15 @@ export async function createPayrollPeriodAction(
   _prev: PayrollPeriodCreateFormState,
   formData: FormData
 ): Promise<PayrollPeriodCreateFormState> {
-  const gate = await requireErpPermission({
-    module: "hrm",
-    object: "payroll",
-    function: "create",
-  })
+  const gate = await requirePayrollSessionMutationGate("create")
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
-  const session = gate.session
 
   const parsed = createPayrollPeriodFormSchema.safeParse({
     periodStart: formData.get("periodStart"),
     periodEnd: formData.get("periodEnd"),
+    cutoffDate: formData.get("cutoffDate"),
     paymentDate: formData.get("paymentDate"),
+    payrollGroupCode: formData.get("payrollGroupCode"),
     currency: formData.get("currency") ?? "MYR",
   })
   if (!parsed.success) {
@@ -95,19 +95,23 @@ export async function createPayrollPeriodAction(
     return hrmActionFailure({
       periodStart: fe.periodStart?.[0],
       periodEnd: fe.periodEnd?.[0],
+      cutoffDate: fe.cutoffDate?.[0],
       paymentDate: fe.paymentDate?.[0],
+      payrollGroupCode: fe.payrollGroupCode?.[0],
       currency: fe.currency?.[0],
     })
   }
 
-  const { organizationId, userId } = session
+  const { organizationId, userId } = gate
   let periodId: string
   try {
     const result = await createPayrollPeriodMutation({
       organizationId,
       periodStart: parsed.data.periodStart,
       periodEnd: parsed.data.periodEnd,
+      cutoffDate: parsed.data.cutoffDate,
       paymentDate: parsed.data.paymentDate,
+      payrollGroupCode: parsed.data.payrollGroupCode,
       currency: parsed.data.currency,
       createdByUserId: userId,
     })
@@ -122,12 +126,7 @@ export async function createPayrollPeriodAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: buildCrudSapAuditAction({
-        area: "erp",
-        module: "hrm",
-        object: "payroll_period",
-        verb: "create",
-      }),
+      action: HRM_PAYROLL_PROCESSING_AUDIT.period.create,
       actorUserId: userId,
       organizationId,
       resourceType: "hrm_payroll_period",
@@ -135,6 +134,8 @@ export async function createPayrollPeriodAction(
       metadata: {
         periodStart: parsed.data.periodStart,
         periodEnd: parsed.data.periodEnd,
+        cutoffDate: parsed.data.cutoffDate,
+        payrollGroupCode: parsed.data.payrollGroupCode,
         currency: parsed.data.currency,
       },
     })
@@ -152,19 +153,16 @@ export async function updatePayrollPeriodAction(
   _prev: PayrollPeriodUpdateFormState,
   formData: FormData
 ): Promise<PayrollPeriodUpdateFormState> {
-  const gate = await requireErpPermission({
-    module: "hrm",
-    object: "payroll",
-    function: "update",
-  })
+  const gate = await requirePayrollSessionMutationGate("update")
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
-  const session = gate.session
 
   const parsed = updatePayrollPeriodFormSchema.safeParse({
     periodId: formData.get("periodId"),
     periodStart: formData.get("periodStart"),
     periodEnd: formData.get("periodEnd"),
+    cutoffDate: formData.get("cutoffDate"),
     paymentDate: formData.get("paymentDate"),
+    payrollGroupCode: formData.get("payrollGroupCode"),
     currency: formData.get("currency"),
   })
   if (!parsed.success) {
@@ -172,12 +170,14 @@ export async function updatePayrollPeriodAction(
     return hrmActionFailure({
       periodStart: fe.periodStart?.[0],
       periodEnd: fe.periodEnd?.[0],
+      cutoffDate: fe.cutoffDate?.[0],
       paymentDate: fe.paymentDate?.[0],
+      payrollGroupCode: fe.payrollGroupCode?.[0],
       currency: fe.currency?.[0],
     })
   }
 
-  const { organizationId, userId } = session
+  const { organizationId, userId } = gate
   const period = await getPayrollPeriod(organizationId, parsed.data.periodId)
   if (!period) {
     return hrmActionFailure({ form: "Payroll period not found." })
@@ -189,24 +189,25 @@ export async function updatePayrollPeriodAction(
   await updatePayrollPeriodMutation(organizationId, parsed.data.periodId, {
     periodStart: parsed.data.periodStart,
     periodEnd: parsed.data.periodEnd,
+    cutoffDate: parsed.data.cutoffDate,
     paymentDate: parsed.data.paymentDate,
+    payrollGroupCode: parsed.data.payrollGroupCode,
     currency: parsed.data.currency,
     updatedByUserId: userId,
   })
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: buildCrudSapAuditAction({
-        area: "erp",
-        module: "hrm",
-        object: "payroll_period",
-        verb: "update",
-      }),
+      action: HRM_PAYROLL_PROCESSING_AUDIT.period.amend,
       actorUserId: userId,
       organizationId,
       resourceType: "hrm_payroll_period",
       resourceId: parsed.data.periodId,
-      metadata: { periodId: parsed.data.periodId },
+      metadata: {
+        periodId: parsed.data.periodId,
+        cutoffDate: parsed.data.cutoffDate,
+        payrollGroupCode: parsed.data.payrollGroupCode,
+      },
     })
   )
 
@@ -226,12 +227,8 @@ export async function preparePayrollRunsAction(
   _prev: PreparePayrollRunsFormState,
   formData: FormData
 ): Promise<PreparePayrollRunsFormState> {
-  const gate = await requireHrmPermission({
-    object: "payroll",
-    function: "update",
-  })
+  const gate = await requirePayrollSessionMutationGate("update")
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
-  const { session } = gate
 
   const parsed = preparePayrollRunsFormSchema.safeParse({
     periodId: formData.get("periodId"),
@@ -242,7 +239,7 @@ export async function preparePayrollRunsAction(
     })
   }
 
-  const { organizationId, userId, sessionId } = session
+  const { organizationId, userId, sessionId } = gate
   const period = await getPayrollPeriod(organizationId, parsed.data.periodId)
   if (!period) {
     return hrmActionFailure({ form: "Payroll period not found." })
@@ -252,12 +249,18 @@ export async function preparePayrollRunsAction(
       form: "Period must be in open state to start preparation.",
     })
   }
+  if (!period.payrollGroupCode) {
+    return hrmActionFailure({
+      form: "Assign a payroll group to the period before preparing runs.",
+    })
+  }
 
   await updatePayrollPeriodState(
     organizationId,
     parsed.data.periodId,
     "preparing"
   )
+  await ensureDefaultHrmCompensationComponents(organizationId)
 
   const employees = await db
     .selectDistinct({ employeeId: hrmEmployee.id })
@@ -266,7 +269,8 @@ export async function preparePayrollRunsAction(
       hrmPayrollProfile,
       and(
         eq(hrmPayrollProfile.organizationId, organizationId),
-        eq(hrmPayrollProfile.employeeId, hrmEmployee.id)
+        eq(hrmPayrollProfile.employeeId, hrmEmployee.id),
+        eq(hrmPayrollProfile.payrollGroupCode, period.payrollGroupCode)
       )
     )
     .where(
@@ -293,10 +297,14 @@ export async function preparePayrollRunsAction(
         eq(hrmEmploymentContract.state, "active")
       ),
     })
+    const compensationSnapshot = contract
+      ? await buildCompensationSnapshotForContract(organizationId, contract.id)
+      : []
 
     await insertPayrollRun(organizationId, parsed.data.periodId, employeeId, {
       contractId: contract?.id ?? null,
       profileId: profile?.id ?? null,
+      compensationSnapshot,
       createdByUserId: userId,
     })
   }
@@ -312,12 +320,7 @@ export async function preparePayrollRunsAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: buildCrudSapAuditAction({
-        area: "erp",
-        module: "hrm",
-        object: "payroll_run",
-        verb: "create",
-      }),
+      action: HRM_PAYROLL_PROCESSING_AUDIT.period.prepare,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,
@@ -342,12 +345,8 @@ export async function lockPayrollPeriodAction(
   _prev: LockPayrollPeriodFormState,
   formData: FormData
 ): Promise<LockPayrollPeriodFormState> {
-  const gate = await requireHrmPermission({
-    object: "payroll",
-    function: "update",
-  })
+  const gate = await requirePayrollSessionMutationGate("update")
   if (!gate.ok) return hrmActionFailure({ form: gate.error })
-  const { session } = gate
 
   const parsed = lockPayrollPeriodFormSchema.safeParse({
     periodId: formData.get("periodId"),
@@ -358,7 +357,7 @@ export async function lockPayrollPeriodAction(
     })
   }
 
-  const { organizationId, userId, sessionId } = session
+  const { organizationId, userId, sessionId } = gate
   const period = await getPayrollPeriod(organizationId, parsed.data.periodId)
   if (!period) {
     return hrmActionFailure({ form: "Payroll period not found." })
@@ -440,7 +439,7 @@ export async function lockPayrollPeriodAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.payroll.period.lock",
+      action: HRM_PAYROLL_PROCESSING_AUDIT.period.lock,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,

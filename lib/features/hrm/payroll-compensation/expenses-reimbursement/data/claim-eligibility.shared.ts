@@ -4,6 +4,8 @@ export type ClaimEligibilityRules = {
   readonly allowedDepartmentIds?: readonly string[]
   readonly allowedJobGradeIds?: readonly string[]
   readonly allowedEmploymentStatuses?: readonly string[]
+  readonly allowedEmploymentTypes?: readonly string[]
+  readonly allowedWorkStateCodes?: readonly string[]
   readonly allowedClaimTypeCodes?: readonly string[]
 }
 
@@ -11,19 +13,23 @@ export type ClaimEligibilityEmployee = {
   readonly id: string
   readonly archivedAt: Date | string | null
   readonly employmentStatus: string | null
+  readonly employmentType: string | null
   readonly countryCode: string | null
   readonly legalEntityCode: string | null
   readonly currentDepartmentId: string | null
   readonly currentJobGradeId: string | null
+  readonly workStateCode: string | null
 }
 
 export type ClaimEligibilityReasonCode =
   | "employee_archived"
   | "employment_status_not_allowed"
+  | "employment_type_not_allowed"
   | "country_not_allowed"
   | "legal_entity_not_allowed"
   | "department_not_allowed"
   | "job_grade_not_allowed"
+  | "work_state_not_allowed"
   | "claim_type_not_allowed"
 
 export type ClaimEligibilityReason = {
@@ -69,6 +75,8 @@ export function parseClaimEligibilityRules(
     allowedDepartmentIds: readStringArray("allowedDepartmentIds"),
     allowedJobGradeIds: readStringArray("allowedJobGradeIds"),
     allowedEmploymentStatuses: readStringArray("allowedEmploymentStatuses"),
+    allowedEmploymentTypes: readStringArray("allowedEmploymentTypes"),
+    allowedWorkStateCodes: readStringArray("allowedWorkStateCodes"),
     allowedClaimTypeCodes: readStringArray("allowedClaimTypeCodes"),
   }
 }
@@ -88,10 +96,28 @@ export function evaluateClaimEligibility(input: {
 
   if (
     rules?.allowedEmploymentStatuses &&
-    !includesAllowed(rules.allowedEmploymentStatuses, input.employee.employmentStatus)
+    !includesAllowed(
+      rules.allowedEmploymentStatuses,
+      input.employee.employmentStatus
+    )
   ) {
     reasons.push(
-      reason("employment_status_not_allowed", "Employment status is not eligible.")
+      reason(
+        "employment_status_not_allowed",
+        "Employment status is not eligible."
+      )
+    )
+  }
+
+  if (
+    rules?.allowedEmploymentTypes &&
+    !includesAllowed(
+      rules.allowedEmploymentTypes,
+      input.employee.employmentType
+    )
+  ) {
+    reasons.push(
+      reason("employment_type_not_allowed", "Employment type is not eligible.")
     )
   }
 
@@ -99,23 +125,36 @@ export function evaluateClaimEligibility(input: {
     rules?.allowedCountryCodes &&
     !includesAllowed(rules.allowedCountryCodes, input.employee.countryCode)
   ) {
-    reasons.push(reason("country_not_allowed", "Country is not eligible for this fund."))
+    reasons.push(
+      reason("country_not_allowed", "Country is not eligible for this fund.")
+    )
   }
 
   if (
     rules?.allowedLegalEntityCodes &&
-    !includesAllowed(rules.allowedLegalEntityCodes, input.employee.legalEntityCode)
+    !includesAllowed(
+      rules.allowedLegalEntityCodes,
+      input.employee.legalEntityCode
+    )
   ) {
     reasons.push(
-      reason("legal_entity_not_allowed", "Legal entity is not eligible for this fund.")
+      reason(
+        "legal_entity_not_allowed",
+        "Legal entity is not eligible for this fund."
+      )
     )
   }
 
   if (
     rules?.allowedDepartmentIds &&
-    !includesAllowed(rules.allowedDepartmentIds, input.employee.currentDepartmentId)
+    !includesAllowed(
+      rules.allowedDepartmentIds,
+      input.employee.currentDepartmentId
+    )
   ) {
-    reasons.push(reason("department_not_allowed", "Department is not eligible."))
+    reasons.push(
+      reason("department_not_allowed", "Department is not eligible.")
+    )
   }
 
   if (
@@ -126,10 +165,21 @@ export function evaluateClaimEligibility(input: {
   }
 
   if (
+    rules?.allowedWorkStateCodes &&
+    !includesAllowed(rules.allowedWorkStateCodes, input.employee.workStateCode)
+  ) {
+    reasons.push(
+      reason("work_state_not_allowed", "Work location is not eligible.")
+    )
+  }
+
+  if (
     rules?.allowedClaimTypeCodes &&
     !rules.allowedClaimTypeCodes.includes(input.claimTypeCode)
   ) {
-    reasons.push(reason("claim_type_not_allowed", "Claim category is not allowed."))
+    reasons.push(
+      reason("claim_type_not_allowed", "Claim category is not allowed.")
+    )
   }
 
   return {

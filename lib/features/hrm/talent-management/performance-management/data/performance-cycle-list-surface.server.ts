@@ -1,9 +1,18 @@
 import "server-only"
 
-import type { ListSurfaceRendererConfiguration } from "#features/governed-surface"
+import {
+  listSurfaceRowTrailingActionHidden,
+  resolveListSurfaceRowTrailingAction,
+  type ListSurfaceRendererConfigurationInput,
+} from "#features/governed-surface"
 
 import type { HrmReviewCycleRow } from "./performance.queries.server"
 import type { HrmReviewPipeline } from "../schemas/performance.schema"
+
+const PRESENTATION = {
+  variant: "table-only" as const,
+  tableDensity: "compact" as const,
+}
 
 type PerformanceCycleListCopy = {
   eyebrow: string
@@ -18,10 +27,24 @@ type PerformanceCycleListCopy = {
   formatPipeline: (pipeline: HrmReviewPipeline) => string
 }
 
+type PerformanceCycleListContext = {
+  canUpdate: boolean
+  readOnlyUpdateReason: string
+}
+
+function cycleActionsVisible(
+  row: HrmReviewCycleRow,
+  canUpdate: boolean
+): boolean {
+  if (!canUpdate) return false
+  return row.state === "draft" || row.state === "active"
+}
+
 export function buildPerformanceCycleListSurfaceConfiguration(
   rows: readonly HrmReviewCycleRow[],
-  copy: PerformanceCycleListCopy
-): ListSurfaceRendererConfiguration {
+  copy: PerformanceCycleListCopy,
+  context: PerformanceCycleListContext
+): ListSurfaceRendererConfigurationInput {
   return {
     dataNature: "table",
     requiresErpPermission: {
@@ -29,6 +52,7 @@ export function buildPerformanceCycleListSurfaceConfiguration(
       object: "performance",
       function: "read",
     },
+    presentation: PRESENTATION,
     surface: {
       header: {
         eyebrow: copy.eyebrow,
@@ -60,6 +84,18 @@ export function buildPerformanceCycleListSurfaceConfiguration(
         state: row.state,
         pipeline: copy.formatPipeline(row.reviewPipeline),
       },
+      trailingAction: cycleActionsVisible(row, context.canUpdate)
+        ? resolveListSurfaceRowTrailingAction({
+            visible: true,
+            allowed: context.canUpdate,
+            disabledReason: context.readOnlyUpdateReason,
+            descriptor: {
+              id: "erp.hrm.performance.cycle.manage",
+              label: "Manage cycle",
+              intent: "default",
+            },
+          })
+        : listSurfaceRowTrailingActionHidden(),
     })),
   }
 }

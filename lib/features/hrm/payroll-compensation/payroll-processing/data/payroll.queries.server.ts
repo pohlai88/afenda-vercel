@@ -20,6 +20,10 @@ import {
 import { isAttendanceDayReadyForPayroll } from "../../../time-attendance/leave-attendance-management/data/attendance-display.shared"
 import { listBenefitPayrollProjectionEnrollmentsForPeriod } from "../../benefits-administration/data/benefit-enterprise.queries.server"
 import { listApprovedUnpaidClaimsForPeriod } from "../../expenses-reimbursement/data/claim.queries.server"
+import {
+  buildCompensationSnapshotForContract,
+  parseStoredCompensationSnapshot,
+} from "../../compensation-planning-modeling/server"
 import { listDueSalaryAdvanceInstallmentsForEmployeePayroll } from "./salary-advance.queries.server"
 import { PAYROLL_PERIOD_LOCK_SUBJECT_KIND } from "../schemas/payroll-period.schema"
 import { parseMalaysiaPcbStatutoryExtras } from "../schemas/malaysia-pcb-statutory-extras.shared"
@@ -36,7 +40,9 @@ export type PayrollPeriodRow = {
   organizationId: string
   periodStart: string
   periodEnd: string
+  cutoffDate: string | null
   paymentDate: string
+  payrollGroupCode: string | null
   currency: string
   state: string
   lockedByUserId: string | null
@@ -71,7 +77,9 @@ export async function listPayrollPeriodsForOrg(
       organizationId: hrmPayrollPeriod.organizationId,
       periodStart: hrmPayrollPeriod.periodStart,
       periodEnd: hrmPayrollPeriod.periodEnd,
+      cutoffDate: hrmPayrollPeriod.cutoffDate,
       paymentDate: hrmPayrollPeriod.paymentDate,
+      payrollGroupCode: hrmPayrollPeriod.payrollGroupCode,
       currency: hrmPayrollPeriod.currency,
       state: hrmPayrollPeriod.state,
       lockedByUserId: hrmPayrollPeriod.lockedByUserId,
@@ -102,7 +110,9 @@ export async function getPayrollPeriod(
       organizationId: hrmPayrollPeriod.organizationId,
       periodStart: hrmPayrollPeriod.periodStart,
       periodEnd: hrmPayrollPeriod.periodEnd,
+      cutoffDate: hrmPayrollPeriod.cutoffDate,
       paymentDate: hrmPayrollPeriod.paymentDate,
+      payrollGroupCode: hrmPayrollPeriod.payrollGroupCode,
       currency: hrmPayrollPeriod.currency,
       state: hrmPayrollPeriod.state,
       lockedByUserId: hrmPayrollPeriod.lockedByUserId,
@@ -345,6 +355,7 @@ export async function getPayrollRunInputSnapshot(
       employeeId: hrmPayrollRun.employeeId,
       contractId: hrmPayrollRun.contractId,
       profileId: hrmPayrollRun.profileId,
+      compensationSnapshot: hrmPayrollRun.compensationSnapshot,
     })
     .from(hrmPayrollRun)
     .where(
@@ -430,6 +441,9 @@ export async function getPayrollRunInputSnapshot(
   // Fetch active contract (for salary)
   let baseSalaryAmount = "0"
   let baseSalaryCurrency = "MYR"
+  let contractAllowances = parseStoredCompensationSnapshot(
+    run.compensationSnapshot
+  )
   if (run.contractId) {
     const contractRow = await db
       .select({
@@ -444,16 +458,32 @@ export async function getPayrollRunInputSnapshot(
       baseSalaryAmount = contract.baseSalaryAmount ?? "0"
       baseSalaryCurrency = contract.baseSalaryCurrency ?? "MYR"
     }
+    if (contractAllowances.length === 0) {
+      contractAllowances = await buildCompensationSnapshotForContract(
+        organizationId,
+        run.contractId
+      )
+    }
   }
 
   // Fetch payroll profile (for country code + Malaysia PCB TP1/TP3 extras)
   let countryCode = "MY"
+  let taxIdentifierNumber: string | null = null
+  let epfNumber: string | null = null
+  let socsoNumber: string | null = null
+  let payCurrency: string | null = null
+  let taxResidencyCountry: string | null = null
   let pcbTp1AdditionalReliefMonthly = "0.00"
   let pcbTp3AdditionalDeductionMonthly = "0.00"
   if (run.profileId) {
     const profileRow = await db
       .select({
         countryCode: hrmPayrollProfile.countryCode,
+        taxIdentifierNumber: hrmPayrollProfile.taxIdentifierNumber,
+        epfNumber: hrmPayrollProfile.epfNumber,
+        socsoNumber: hrmPayrollProfile.socsoNumber,
+        payCurrency: hrmPayrollProfile.payCurrency,
+        taxResidencyCountry: hrmPayrollProfile.taxResidencyCountry,
         statutoryProfileExtras: hrmPayrollProfile.statutoryProfileExtras,
       })
       .from(hrmPayrollProfile)
@@ -462,6 +492,11 @@ export async function getPayrollRunInputSnapshot(
     const profile = profileRow[0]
     if (profile) {
       countryCode = profile.countryCode
+      taxIdentifierNumber = profile.taxIdentifierNumber ?? null
+      epfNumber = profile.epfNumber ?? null
+      socsoNumber = profile.socsoNumber ?? null
+      payCurrency = profile.payCurrency ?? null
+      taxResidencyCountry = profile.taxResidencyCountry ?? null
       const pcb = parseMalaysiaPcbStatutoryExtras(
         profile.statutoryProfileExtras
       )
@@ -479,6 +514,7 @@ export async function getPayrollRunInputSnapshot(
     countryCode,
     basicSalaryAmount: baseSalaryAmount,
     basicSalaryCurrency: baseSalaryCurrency,
+    contractAllowances,
     periodStart: periodStartIso,
     periodEnd: periodEndIso,
     // Payroll consumes finalized attendance days, while readiness blocks unresolved exceptions.
@@ -493,6 +529,11 @@ export async function getPayrollRunInputSnapshot(
     eisEligible: true,
     hrdfApplicable: false,
     taxResidency: null,
+    taxIdentifierNumber,
+    epfNumber,
+    socsoNumber,
+    payCurrency,
+    taxResidencyCountry,
     monthNumber,
     yearNumber,
     ytdRemuneration: null,

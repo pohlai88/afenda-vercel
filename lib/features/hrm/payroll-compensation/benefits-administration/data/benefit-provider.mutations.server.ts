@@ -3,7 +3,7 @@ import "server-only"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { hrmBenefit } from "#lib/db/schema"
+import { hrmBenefitProvider } from "#lib/db/schema"
 
 export async function insertBenefitProvider(params: {
   organizationId: string
@@ -13,7 +13,20 @@ export async function insertBenefitProvider(params: {
   externalReference: string | null
   createdByUserId: string
 }): Promise<{ id: string }> {
-  return { id: params.code }
+  const [row] = await db
+    .insert(hrmBenefitProvider)
+    .values({
+      organizationId: params.organizationId,
+      code: params.code,
+      name: params.name,
+      countryCodes: params.countryCodes,
+      externalReference: params.externalReference,
+      createdByUserId: params.createdByUserId,
+      updatedByUserId: params.createdByUserId,
+    })
+    .returning({ id: hrmBenefitProvider.id })
+
+  return { id: row.id }
 }
 
 export async function updateBenefitProviderRow(params: {
@@ -27,20 +40,20 @@ export async function updateBenefitProviderRow(params: {
   updatedByUserId: string
 }): Promise<void> {
   await db
-    .update(hrmBenefit)
+    .update(hrmBenefitProvider)
     .set({
-      providerId: params.code,
-      providerName: params.name,
-      scopeCountryCodes: params.countryCodes,
-      policyReference: params.externalReference,
+      code: params.code,
+      name: params.name,
+      countryCodes: params.countryCodes,
+      externalReference: params.externalReference,
       isActive: params.isActive,
       updatedByUserId: params.updatedByUserId,
       updatedAt: new Date(),
     })
     .where(
       and(
-        eq(hrmBenefit.organizationId, params.organizationId),
-        eq(hrmBenefit.providerId, params.providerId)
+        eq(hrmBenefitProvider.organizationId, params.organizationId),
+        eq(hrmBenefitProvider.id, params.providerId)
       )
     )
 }

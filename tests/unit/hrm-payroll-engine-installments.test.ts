@@ -16,6 +16,7 @@ function baseInput(
     periodEnd: "2026-01-31",
     basicSalaryAmount: "5000.00",
     basicSalaryCurrency: "MYR",
+    contractAllowances: [],
     scheduledMinutes: 9600,
     unpaidLeaveMinutes: 0,
     overtimeMinutes: 0,

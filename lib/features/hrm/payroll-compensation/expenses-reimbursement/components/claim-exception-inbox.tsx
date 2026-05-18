@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedListSurfaceWithTrailingColumn } from "#components2/metadata"
-import { parseListSurfaceRendererConfiguration } from "#features/governed-surface/schemas/list-surface-renderer.schema"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
@@ -17,7 +16,9 @@ type ClaimExceptionInboxProps = {
   orgSlug: string
 }
 
-export async function ClaimExceptionInbox({ orgSlug }: ClaimExceptionInboxProps) {
+export async function ClaimExceptionInbox({
+  orgSlug,
+}: ClaimExceptionInboxProps) {
   const orgSession = await requireOrgSession()
   const t = await getTranslations("Dashboard.Hrm.claims")
 
@@ -29,15 +30,27 @@ export async function ClaimExceptionInbox({ orgSlug }: ClaimExceptionInboxProps)
       organizationId: orgSession.organizationId,
     })
     return (
-      <p className="text-sm text-destructive" role="status" aria-live="polite">
-        {t("exceptionQueueLoadFailed")}
-      </p>
-    )
-  }
-
-  if (rows.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">{t("exceptionQueueEmpty")}</p>
+      <GovernedPatternCListSection
+        layout="embedded"
+        title=""
+        listConfiguration={{
+          dataNature: "table",
+          surface: {
+            header: { title: "hrm-claims-exception" },
+            columnsId: "hrm-claims-exception",
+            rowKey: "id",
+            empty: { variant: "muted", title: t("exceptionQueueEmpty") },
+          },
+          columns: [{ id: "employee", header: t("colEmployee") }],
+          rows: [],
+        }}
+        surfaceKey="hrm:claims:exception:error"
+        resolveConfiguredPermission={false}
+        loadError={{
+          variant: "error",
+          title: t("exceptionQueueLoadFailed"),
+        }}
+      />
     )
   }
 
@@ -69,21 +82,19 @@ export async function ClaimExceptionInbox({ orgSlug }: ClaimExceptionInboxProps)
     }
   )
 
-  const parsed = parseListSurfaceRendererConfiguration(listConfiguration)
-  if (!parsed.success) {
-    return (
-      <p className="text-sm text-destructive" role="status" aria-live="polite">
-        {t("exceptionQueueLoadFailed")}
-      </p>
-    )
-  }
-
   const claimById = new Map(rows.map((row) => [row.id, row]))
 
   return (
-    <GovernedListSurfaceWithTrailingColumn
-      columns={parsed.data.columns}
-      rows={parsed.data.rows}
+    <GovernedPatternCListSection
+      layout="embedded"
+      title=""
+      listConfiguration={listConfiguration}
+      surfaceKey="hrm:claims:exception-inbox"
+      resolveConfiguredPermission={false}
+      invalid={{
+        variant: "error",
+        title: t("exceptionQueueLoadFailed"),
+      }}
       trailingColumn={{
         header: t("colActions"),
         render: (surfaceRow) => {

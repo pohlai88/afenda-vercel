@@ -1,22 +1,64 @@
 import "server-only"
 
+import { and, desc, eq, gte, lte } from "drizzle-orm"
+
+import { db } from "#lib/db"
+import { hrmBenefitOpenEnrollment } from "#lib/db/schema"
+
 import type { BenefitOpenEnrollmentRow } from "./benefit-model.shared"
 import type { BenefitEnrollmentWindow } from "./benefit-self-service.shared"
 
 export type { BenefitOpenEnrollmentRow } from "./benefit-model.shared"
 
-/** Reserved until `hrm_benefit_open_enrollment` is registered in `lib/db/schema.ts` (human migration). */
 export async function listBenefitOpenEnrollmentsForOrg(
-  _organizationId: string
+  organizationId: string
 ): Promise<BenefitOpenEnrollmentRow[]> {
-  return []
+  return db
+    .select({
+      id: hrmBenefitOpenEnrollment.id,
+      organizationId: hrmBenefitOpenEnrollment.organizationId,
+      name: hrmBenefitOpenEnrollment.name,
+      startsOn: hrmBenefitOpenEnrollment.startsOn,
+      endsOn: hrmBenefitOpenEnrollment.endsOn,
+      planIds: hrmBenefitOpenEnrollment.planIds,
+      isActive: hrmBenefitOpenEnrollment.isActive,
+      createdAt: hrmBenefitOpenEnrollment.createdAt,
+      updatedAt: hrmBenefitOpenEnrollment.updatedAt,
+    })
+    .from(hrmBenefitOpenEnrollment)
+    .where(eq(hrmBenefitOpenEnrollment.organizationId, organizationId))
+    .orderBy(desc(hrmBenefitOpenEnrollment.startsOn))
 }
 
 export async function findActiveBenefitOpenEnrollmentWindow(
-  _organizationId: string,
-  _at: Date = new Date()
+  organizationId: string,
+  at: Date = new Date()
 ): Promise<BenefitOpenEnrollmentRow | null> {
-  return null
+  const [row] = await db
+    .select({
+      id: hrmBenefitOpenEnrollment.id,
+      organizationId: hrmBenefitOpenEnrollment.organizationId,
+      name: hrmBenefitOpenEnrollment.name,
+      startsOn: hrmBenefitOpenEnrollment.startsOn,
+      endsOn: hrmBenefitOpenEnrollment.endsOn,
+      planIds: hrmBenefitOpenEnrollment.planIds,
+      isActive: hrmBenefitOpenEnrollment.isActive,
+      createdAt: hrmBenefitOpenEnrollment.createdAt,
+      updatedAt: hrmBenefitOpenEnrollment.updatedAt,
+    })
+    .from(hrmBenefitOpenEnrollment)
+    .where(
+      and(
+        eq(hrmBenefitOpenEnrollment.organizationId, organizationId),
+        eq(hrmBenefitOpenEnrollment.isActive, true),
+        lte(hrmBenefitOpenEnrollment.startsOn, at),
+        gte(hrmBenefitOpenEnrollment.endsOn, at)
+      )
+    )
+    .orderBy(desc(hrmBenefitOpenEnrollment.startsOn))
+    .limit(1)
+
+  return row ?? null
 }
 
 export function toBenefitEnrollmentWindow(

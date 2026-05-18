@@ -1,8 +1,18 @@
 import "server-only"
 
-import type { ListSurfaceRendererConfiguration } from "#features/governed-surface"
+import {
+  listSurfaceRowTrailingActionHidden,
+  resolveListSurfaceRowTrailingAction,
+  type ListSurfaceRendererConfigurationInput,
+} from "#features/governed-surface"
 
+import { performanceReviewRowHasTrailingUi } from "./performance-review.shared"
 import type { HrmPerformanceReviewListRow } from "./performance.queries.server"
+
+const PRESENTATION = {
+  variant: "table-only" as const,
+  tableDensity: "compact" as const,
+}
 
 type PerformanceReviewListCopy = {
   eyebrow: string
@@ -13,13 +23,33 @@ type PerformanceReviewListCopy = {
   colEmployee: string
   colReviewer: string
   colStage: string
-  formatReviewer: (reviewerId: string) => string
+  unassignedReviewer: string
+}
+
+type PerformanceReviewListContext = {
+  canUpdate: boolean
+  viewerUserId: string
+}
+
+function formatReviewerDisplay(
+  row: HrmPerformanceReviewListRow,
+  unassignedReviewer: string
+): string {
+  if (row.reviewerLegalName?.trim()) {
+    const number = row.reviewerEmployeeNumber?.trim()
+    return number ? `${row.reviewerLegalName} (${number})` : row.reviewerLegalName
+  }
+  if (row.reviewerId.trim()) {
+    return `${row.reviewerId.slice(0, 8)}…`
+  }
+  return unassignedReviewer
 }
 
 export function buildPerformanceReviewListSurfaceConfiguration(
   rows: readonly HrmPerformanceReviewListRow[],
-  copy: PerformanceReviewListCopy
-): ListSurfaceRendererConfiguration {
+  copy: PerformanceReviewListCopy,
+  context: PerformanceReviewListContext
+): ListSurfaceRendererConfigurationInput {
   return {
     dataNature: "table",
     requiresErpPermission: {
@@ -27,6 +57,7 @@ export function buildPerformanceReviewListSurfaceConfiguration(
       object: "performance",
       function: "read",
     },
+    presentation: PRESENTATION,
     surface: {
       header: {
         eyebrow: copy.eyebrow,
@@ -55,9 +86,20 @@ export function buildPerformanceReviewListSurfaceConfiguration(
       cells: {
         cycle: row.cycleName,
         employee: row.employeeLegalName,
-        reviewer: copy.formatReviewer(row.reviewerId),
+        reviewer: formatReviewerDisplay(row, copy.unassignedReviewer),
         stage: row.state,
       },
+      trailingAction: performanceReviewRowHasTrailingUi(row, context)
+        ? resolveListSurfaceRowTrailingAction({
+            visible: true,
+            allowed: true,
+            descriptor: {
+              id: "erp.hrm.performance.review.actions",
+              label: "Review actions",
+              intent: "default",
+            },
+          })
+        : listSurfaceRowTrailingActionHidden(),
     })),
   }
 }

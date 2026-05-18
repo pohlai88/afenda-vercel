@@ -10,9 +10,10 @@ import {
 } from "#lib/dashboard-module-paths"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
-import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import { upsertPayrollProfileMutation } from "../data/payroll-profile.mutations.server"
+import { requirePayrollMutationGate } from "../data/payroll-action-guard.server"
 import { upsertPayrollProfileFormSchema } from "../schemas/payroll-profile.schema"
+import { HRM_PAYROLL_PROCESSING_AUDIT } from "../payroll-processing.contract"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { PayrollProfileMutationFormState } from "../../../types"
 
@@ -31,10 +32,9 @@ export async function upsertPayrollProfileAction(
   _prev: PayrollProfileMutationFormState | undefined,
   formData: FormData
 ): Promise<PayrollProfileMutationFormState> {
-  const gate = await requireHrmOrgTenantFromForm(formData)
+  const gate = await requirePayrollMutationGate(formData, "update")
   if (!gate.ok) return gate.response
-  const { session } = gate
-  const { organizationId, userId, sessionId } = session
+  const { organizationId, userId, sessionId } = gate
 
   const parsed = upsertPayrollProfileFormSchema.safeParse({
     orgSlug: formData.get("orgSlug"),
@@ -110,7 +110,7 @@ export async function upsertPayrollProfileAction(
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
-      action: "erp.hrm.payroll_profile.upsert",
+      action: HRM_PAYROLL_PROCESSING_AUDIT.profile.upsert,
       actorUserId: userId,
       actorSessionId: sessionId,
       organizationId,

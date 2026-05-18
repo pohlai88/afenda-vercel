@@ -230,6 +230,7 @@ export type {
 } from "./payroll-compensation/benefits-administration/data/benefit-payroll-projection.shared"
 export { buildBenefitCensusReport } from "./payroll-compensation/benefits-administration/data/benefit-reporting.shared"
 export type { BenefitCensusReport } from "./payroll-compensation/benefits-administration/data/benefit-reporting.shared"
+export { HRM_BENEFIT_AUDIT } from "./payroll-compensation/benefits-administration/benefit.contract"
 export { payrollPayslipSnapshotFromDocumentPayload } from "./payroll-compensation/payroll-processing/data/payroll-close.shared"
 export { HRM_NAV_NAMESPACE } from "./types"
 
@@ -308,13 +309,11 @@ export { CandidatePortalCareersDetailPage } from "./talent-management/candidate-
 export { CandidatePortalCareersPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-careers-page"
 export { CandidatePortalStatusPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-status-page"
 export { HrmSkillsPage } from "./talent-management/competency-skills-framework/components/hrm-skills-page"
-/** P3: Training analytics + feedback widgets — usable as RSC slots inside org admin layouts. */
-export { TrainingAnalyticsPanel } from "./talent-management/training-development/components/training-analytics-panel"
-export { TrainingFeedbackSummary } from "./talent-management/training-development/components/training-feedback-summary"
 export { SkillMatrixPanel } from "./talent-management/competency-skills-framework/components/skill-matrix-panel"
 /** P3: Employee training history + skills tab for employee detail pages. */
 export { EmployeeDetailTrainingSection } from "./employee-management/employee-records-management/components/employee-detail-training-section"
 export { HrmAdvancesPage } from "./payroll-compensation/payroll-processing/components/hrm-advances-page"
+export { PayrollPage } from "./payroll-compensation/payroll-processing/components/payroll-page"
 export { WorkforcePage } from "./employee-management/employee-records-management/components/workforce-page"
 export { PayrollConsolePage } from "./payroll-compensation/payroll-processing/components/payroll-console"
 export { HrmSnapshotPage } from "./_internal-cross-cutting/hrm-snapshot-page"

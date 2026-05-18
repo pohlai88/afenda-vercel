@@ -58,19 +58,53 @@ describe("HRM payroll processing contracts", () => {
     expect(queries).not.toContain("../../../data/benefit-enterprise")
   })
 
+  it("snapshots contract compensation through the compensation planning module", () => {
+    const periodActions = readFileSync(
+      join(PAYROLL_ROOT, "actions", "payroll-period.actions.ts"),
+      "utf8"
+    )
+    const mutations = readFileSync(
+      join(PAYROLL_ROOT, "data", "payroll.mutations.server.ts"),
+      "utf8"
+    )
+    const queries = readFileSync(
+      join(PAYROLL_ROOT, "data", "payroll.queries.server.ts"),
+      "utf8"
+    )
+    const engine = readFileSync(
+      join(PAYROLL_ROOT, "data", "payroll-engine.server.ts"),
+      "utf8"
+    )
+
+    expect(periodActions).toContain(
+      "../../compensation-planning-modeling/server"
+    )
+    expect(mutations).toContain("compensationSnapshot")
+    expect(queries).toContain("parseStoredCompensationSnapshot")
+    expect(engine).toContain("PAYROLL_CONTRACT_ALLOWANCE_CURRENCY_MISMATCH")
+  })
+
   it("gates payroll console mutations with surface capabilities", () => {
     const consolePage = readFileSync(
       join(PAYROLL_ROOT, "components", "payroll-console.tsx"),
       "utf8"
     )
-    const payrollPage = readFileSync(
-      join(process.cwd(), "app/(main)/[locale]/o/[orgSlug]/dashboard/hrm/payroll/page.tsx"),
+    const payrollFeaturePage = readFileSync(
+      join(PAYROLL_ROOT, "components", "payroll-page.tsx"),
+      "utf8"
+    )
+    const payrollRoutePage = readFileSync(
+      join(
+        process.cwd(),
+        "app/(main)/[locale]/o/[orgSlug]/dashboard/hrm/payroll/page.tsx"
+      ),
       "utf8"
     )
 
     expect(consolePage).toContain("capabilities")
     expect(consolePage).toContain("canCreate")
     expect(consolePage).toContain("canUpdate")
-    expect(payrollPage).toContain("resolvePayrollSurfaceCapabilities")
+    expect(payrollFeaturePage).toContain("resolvePayrollSurfaceCapabilities")
+    expect(payrollRoutePage).toContain('import { PayrollPage } from "#features/hrm"')
   })
 })

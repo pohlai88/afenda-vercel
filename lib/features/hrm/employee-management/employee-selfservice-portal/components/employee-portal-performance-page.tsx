@@ -3,7 +3,6 @@ import type { Route } from "next"
 import { getFormatter, getTranslations } from "next-intl/server"
 
 import { Link } from "#i18n/navigation"
-import { Badge } from "#components2/ui/badge"
 import {
   Card,
   CardContent,
@@ -11,20 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
 import { employeePortalPerformanceGoalPath } from "#lib/portal"
 
 import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
-import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 import { listKpiGoalsVisibleToEmployee } from "../data/employee-portal-kpi.queries.server"
+import { buildEmployeePortalPerformanceGoalsListSurfaceConfiguration } from "../data/employee-portal-list-surface.server"
+import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
+import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalPerformancePageProps = {
@@ -49,6 +42,23 @@ export async function EmployeePortalPerformancePage({
     }),
   ])
 
+  const listConfiguration =
+    buildEmployeePortalPerformanceGoalsListSurfaceConfiguration(goals, {
+      empty: t("goalsEmpty"),
+      colTitle: t("colTitle"),
+      colStatus: t("colStatus"),
+      colDue: t("colDue"),
+      colProgress: t("colProgress"),
+      formatDue: (dueDate) =>
+        dueDate
+          ? format.dateTime(new Date(`${dueDate}T00:00:00Z`), {
+              dateStyle: "medium",
+            })
+          : "—",
+    })
+
+  const goalById = new Map(goals.map((goal) => [goal.id, goal]))
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <header className="flex flex-col gap-2">
@@ -70,50 +80,25 @@ export async function EmployeePortalPerformancePage({
           <CardDescription>{t("goalsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {goals.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("goalsEmpty")}</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("colTitle")}</TableHead>
-                  <TableHead>{t("colStatus")}</TableHead>
-                  <TableHead>{t("colDue")}</TableHead>
-                  <TableHead>{t("colProgress")}</TableHead>
-                  <TableHead className="text-right">{t("colAction")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {goals.map((goal) => (
-                  <TableRow key={goal.id}>
-                    <TableCell className="font-medium">{goal.title}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{goal.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {goal.dueDate
-                        ? format.dateTime(
-                            new Date(`${goal.dueDate}T00:00:00Z`),
-                            {
-                              dateStyle: "medium",
-                            }
-                          )
-                        : "ÔÇö"}
-                    </TableCell>
-                    <TableCell>{goal.percentComplete ?? 0}%</TableCell>
-                    <TableCell className="text-right">
-                      <Link
-                        href={goalPath(portalSlug, goal.id)}
-                        className="text-sm font-medium text-primary hover:underline"
-                      >
-                        {t("viewGoal")}
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <EmployeePortalGovernedTable
+            configuration={listConfiguration}
+            surfaceKey="hrm:portal:performance-goals"
+            trailingColumn={{
+              header: t("colAction"),
+              render: (surfaceRow) => {
+                const goal = goalById.get(surfaceRow.id)
+                if (!goal) return null
+                return (
+                  <Link
+                    href={goalPath(portalSlug, goal.id)}
+                    className="text-sm font-medium text-primary hover:underline"
+                  >
+                    {t("viewGoal")}
+                  </Link>
+                )
+              },
+            }}
+          />
         </CardContent>
       </Card>
     </div>

@@ -32,9 +32,9 @@ import { BenefitEnrollmentTable } from "./benefit-enrollment-table"
 import { BenefitLifeEventRecordDialog } from "./benefit-life-event-record-dialog"
 import { BenefitLifeEventsTable } from "./benefit-life-events-table"
 import { BenefitOpenEnrollmentPanel } from "./benefit-open-enrollment-panel"
-import { BenefitClaimReferencesTable } from "./benefit-claim-references-table"
-import { BenefitPlansTable } from "./benefit-plans-table"
-import { BenefitProvidersTable } from "./benefit-providers-table"
+import { BenefitClaimReferencesSection } from "./benefit-claim-references-section"
+import { BenefitPlansSection } from "./benefit-plans-section"
+import { BenefitProvidersSection } from "./benefit-providers-section"
 import { BenefitReportsPanel } from "./benefit-reports-panel"
 import { BenefitsTabNav } from "./benefits-tab-nav"
 
@@ -148,7 +148,7 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
             <CardDescription>{t("tabPlansDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <BenefitPlansTable
+            <BenefitPlansSection
               isAdmin={isAdmin}
               plans={plans}
               providers={providerChoices}
@@ -166,7 +166,7 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <BenefitProvidersTable
+            <BenefitProvidersSection
               isAdmin={isAdmin}
               providers={allBenefitProviders}
             />
@@ -220,7 +220,7 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <BenefitClaimReferencesTable
+            <BenefitClaimReferencesSection
               isAdmin={isAdmin}
               rows={claimReferences}
               enrollments={enrollmentChoices}

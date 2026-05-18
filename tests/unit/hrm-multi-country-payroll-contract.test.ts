@@ -43,9 +43,15 @@ describe("HRM multi-country payroll contracts", () => {
     expect(mutations).toContain("upsertLegalEntityPayrollConfigMutation")
     expect(mutations).toContain("insertPayrollExchangeRateMutation")
     expect(mutations).toContain("upsertPayComponentCountryTreatmentMutation")
+    expect(mutations).toContain("hrmPayrollLegalEntityConfig")
+    expect(mutations).toContain("hrmPayComponentCountryTreatment")
+    expect(mutations).not.toContain("id: input.config.legalEntityCode.trim()")
+    expect(mutations).not.toContain(
+      "id: `${input.treatment.countryCode.toUpperCase()}:${input.treatment.componentCode}`"
+    )
   })
 
-  it("gates country config and cross-country report panels with search access", () => {
+  it("gates metadata-driven country config and cross-country report panels with search access", () => {
     const configPanel = readFileSync(
       join(MCP_ROOT, "components", "country-payroll-config-panel.tsx"),
       "utf8"
@@ -57,7 +63,40 @@ describe("HRM multi-country payroll contracts", () => {
 
     expect(configPanel).toContain("requireMultiCountryPayrollSearchSession")
     expect(configPanel).not.toContain("requireOrgSession")
+    expect(configPanel).toContain("GovernedPatternCListSection")
+    expect(configPanel).not.toContain("<table")
     expect(reportPanel).toContain("requireMultiCountryPayrollSearchSession")
     expect(reportPanel).not.toContain("requireOrgSession")
+    expect(reportPanel).toContain("GovernedPatternCListSection")
+    expect(reportPanel).not.toContain("<table")
+  })
+
+  it("keeps multi-country payroll tables in the Drizzle schema", () => {
+    const schema = readFileSync(join(process.cwd(), "lib/db/schema.ts"), "utf8")
+
+    expect(schema).toContain("hrmPayrollLegalEntityConfig")
+    expect(schema).toContain("hrm_payroll_legal_entity_config")
+    expect(schema).toContain("hrmPayComponentCountryTreatment")
+    expect(schema).toContain("hrm_pay_component_country_treatment")
+  })
+
+  it("prepares serializable governed list-surface metadata", () => {
+    const surfaceBuilder = readFileSync(
+      join(MCP_ROOT, "data", "multi-country-payroll-list-surface.server.ts"),
+      "utf8"
+    )
+    const payrollPage = readFileSync(
+      join(
+        process.cwd(),
+        "lib/features/hrm/payroll-compensation/payroll-processing/components/payroll-page.tsx"
+      ),
+      "utf8"
+    )
+
+    expect(surfaceBuilder).toContain("ListSurfaceRendererConfigurationInput")
+    expect(surfaceBuilder).toContain('dataNature: "table"')
+    expect(surfaceBuilder).toContain("requiresErpPermission")
+    expect(payrollPage).toContain("CountryPayrollConfigPanel")
+    expect(payrollPage).toContain("CrossCountryPayrollSummaryPanel")
   })
 })

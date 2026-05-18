@@ -1,1 +1,5 @@
-export { default } from "#components2/route-loading/nexus-route-loading"
+import { GovernedMetadataLoading } from "#components2/metadata/governed-metadata-loading"
+
+export default function HrmPerformanceLoading() {
+  return <GovernedMetadataLoading rendererId="list-surface" />
+}

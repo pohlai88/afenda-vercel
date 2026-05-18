@@ -11,22 +11,16 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { Link } from "#i18n/navigation"
 import { employeePortalPath } from "#lib/portal"
 
+import { getPayslipDocumentForEmployee } from "../../documents-management/data/hrm-document.queries.server"
 import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
-import { getPayslipDocumentForEmployee } from "../../documents-management/data/hrm-document.queries.server"
+import { buildPayslipLinesSurfaceConfiguration } from "../data/payslip-surface-builders.server"
 
+import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalPayslipDetailPageProps = {
@@ -84,6 +78,19 @@ export async function EmployeePortalPayslipDetailPage({
     })
   )
 
+  const linesConfiguration = buildPayslipLinesSurfaceConfiguration(
+    document.snapshot,
+    {
+      eyebrow: tPayroll("portalPayslipLinesTitle"),
+      title: tPayroll("portalPayslipLinesTitle"),
+      description: document.title,
+      colKind: tPayroll("portalPayslipLineKind"),
+      colCode: tPayroll("portalPayslipLineCode"),
+      colDescription: tPayroll("portalPayslipLineDescription"),
+      colAmount: tPayroll("portalPayslipLineAmount"),
+    }
+  )
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <header className="flex flex-col gap-2">
@@ -125,36 +132,10 @@ export async function EmployeePortalPayslipDetailPage({
             <CardDescription>{document.title}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{tPayroll("portalPayslipLineKind")}</TableHead>
-                  <TableHead>{tPayroll("portalPayslipLineCode")}</TableHead>
-                  <TableHead>
-                    {tPayroll("portalPayslipLineDescription")}
-                  </TableHead>
-                  <TableHead className="text-right">
-                    {tPayroll("portalPayslipLineAmount")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {document.snapshot.lines.map((line, index) => (
-                  <TableRow key={`${line.code}-${index}`}>
-                    <TableCell className="capitalize">
-                      {line.lineKind}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {line.code}
-                    </TableCell>
-                    <TableCell>{line.description}</TableCell>
-                    <TableCell className="text-right font-medium">
-                      {line.amount} {document.snapshot.currency}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <EmployeePortalGovernedTable
+              configuration={linesConfiguration}
+              surfaceKey="hrm:portal:payslip-lines"
+            />
           </CardContent>
         </Card>
 
@@ -234,7 +215,7 @@ export async function EmployeePortalPayslipDetailPage({
                   {tPayroll("portalPayslipRulePackLabel")}
                 </dt>
                 <dd className="font-medium">
-                  {document.snapshot.rulePackVersion ?? "ÔÇö"}
+                  {document.snapshot.rulePackVersion ?? "—"}
                 </dd>
               </div>
             </dl>

@@ -4,7 +4,12 @@ import { and, eq, inArray } from "drizzle-orm"
 
 import { writeIamAuditEvent } from "#lib/auth"
 import { db } from "#lib/db"
-import { hrmEmployee, hrmOffboardingInstance, iamAuditEvent } from "#lib/db/schema"
+import {
+  hrmBoardingTask,
+  hrmEmployee,
+  hrmOffboardingInstance,
+  iamAuditEvent,
+} from "#lib/db/schema"
 import type {
   CronTickInput,
   CronTickScannedEmittedSummary,
@@ -15,7 +20,12 @@ import { HRM_OFFBOARDING_EXIT_AUDIT } from "../offboarding-exit.contract"
 
 const OVERDUE_WATCH_BATCH_LIMIT = 200
 
-const ACTIVE_STATUSES = ["open", "in_progress", "blocked", "pending_approval"] as const
+const ACTIVE_STATUSES = [
+  "open",
+  "in_progress",
+  "blocked",
+  "pending_approval",
+] as const
 
 export type OffboardingOverdueWatchTickSummary =
   CronTickScannedEmittedSummary & {
@@ -47,7 +57,10 @@ function parseChecklist(raw: unknown): OffboardingChecklistTask[] {
   )
 }
 
-function isTaskOverdue(task: OffboardingChecklistTask, todayIso: string): boolean {
+function isTaskOverdue(
+  task: OffboardingChecklistTask,
+  todayIso: string
+): boolean {
   if (task.completedAt !== null) return false
   if (!task.dueDate) return false
   return task.dueDate < todayIso
@@ -69,6 +82,7 @@ export async function runOffboardingTaskOverdueTick(
       id: hrmOffboardingInstance.id,
       organizationId: hrmOffboardingInstance.organizationId,
       employeeId: hrmOffboardingInstance.employeeId,
+      boardingInstanceId: hrmOffboardingInstance.boardingInstanceId,
       checklist: hrmOffboardingInstance.checklist,
     })
     .from(hrmOffboardingInstance)
@@ -79,9 +93,7 @@ export async function runOffboardingTaskOverdueTick(
         eq(hrmEmployee.organizationId, hrmOffboardingInstance.organizationId)
       )
     )
-    .where(
-      inArray(hrmOffboardingInstance.status, [...ACTIVE_STATUSES])
-    )
+    .where(inArray(hrmOffboardingInstance.status, [...ACTIVE_STATUSES]))
     .limit(input?.batchLimit ?? OVERDUE_WATCH_BATCH_LIMIT)
 
   if (instances.length === 0) {
@@ -98,8 +110,46 @@ export async function runOffboardingTaskOverdueTick(
   }
 
   const candidates: OverdueCandidate[] = []
+  const instanceByBoardingId = new Map(
+    instances
+      .filter((inst) => inst.boardingInstanceId)
+      .map((inst) => [inst.boardingInstanceId!, inst])
+  )
+  const boardingInstanceIds = [...instanceByBoardingId.keys()]
+  if (boardingInstanceIds.length > 0) {
+    const normalizedTasks = await db
+      .select({
+        instanceId: hrmBoardingTask.instanceId,
+        taskKey: hrmBoardingTask.taskKey,
+        status: hrmBoardingTask.status,
+        dueAt: hrmBoardingTask.dueAt,
+      })
+      .from(hrmBoardingTask)
+      .where(inArray(hrmBoardingTask.instanceId, boardingInstanceIds))
+
+    for (const task of normalizedTasks) {
+      const instance = instanceByBoardingId.get(task.instanceId)
+      const dueDate = task.dueAt ? toIsoDayOnly(task.dueAt) : null
+      if (
+        instance &&
+        dueDate &&
+        dueDate < todayIso &&
+        task.status !== "completed" &&
+        task.status !== "waived"
+      ) {
+        candidates.push({
+          instanceId: instance.id,
+          organizationId: instance.organizationId,
+          employeeId: instance.employeeId,
+          taskKey: task.taskKey,
+          dueDate,
+        })
+      }
+    }
+  }
 
   for (const inst of instances) {
+    if (inst.boardingInstanceId) continue
     const tasks = parseChecklist(inst.checklist)
     for (const task of tasks) {
       if (isTaskOverdue(task, todayIso)) {

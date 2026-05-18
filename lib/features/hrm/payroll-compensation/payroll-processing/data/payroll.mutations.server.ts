@@ -6,7 +6,11 @@ import { db } from "#lib/db"
 import {
   hrmAttendanceDay,
   hrmClaim,
+  hrmPayrollAdjustment,
+  hrmPayrollGroup,
   hrmPayrollLine,
+  hrmPayrollPayment,
+  hrmPayrollPaymentBatch,
   hrmPayrollPeriod,
   hrmPayrollRun,
   hrmSalaryAdvance,
@@ -14,6 +18,7 @@ import {
 } from "#lib/db/schema"
 
 import type { PayrollLineInput } from "./payroll-engine.server"
+import type { HrmCompensationSnapshotEntry } from "../../compensation-planning-modeling"
 
 // ---------------------------------------------------------------------------
 // Period mutations
@@ -23,7 +28,9 @@ export type CreatePayrollPeriodInput = {
   readonly organizationId: string
   readonly periodStart: string
   readonly periodEnd: string
+  readonly cutoffDate: string | null
   readonly paymentDate: string
+  readonly payrollGroupCode: string | null
   readonly currency: string
   readonly createdByUserId: string
 }
@@ -37,7 +44,9 @@ export async function createPayrollPeriodMutation(
     organizationId: input.organizationId,
     periodStart: input.periodStart,
     periodEnd: input.periodEnd,
+    cutoffDate: input.cutoffDate,
     paymentDate: input.paymentDate,
+    payrollGroupCode: input.payrollGroupCode,
     currency: input.currency,
     state: "open",
     createdByUserId: input.createdByUserId,
@@ -49,7 +58,9 @@ export async function createPayrollPeriodMutation(
 export type UpdatePayrollPeriodInput = {
   readonly periodStart?: string
   readonly periodEnd?: string
+  readonly cutoffDate?: string | null
   readonly paymentDate?: string
+  readonly payrollGroupCode?: string | null
   readonly currency?: string
   readonly updatedByUserId: string
 }
@@ -66,8 +77,14 @@ export async function updatePayrollPeriodMutation(
         periodStart: input.periodStart,
       }),
       ...(input.periodEnd !== undefined && { periodEnd: input.periodEnd }),
+      ...(input.cutoffDate !== undefined && {
+        cutoffDate: input.cutoffDate,
+      }),
       ...(input.paymentDate !== undefined && {
         paymentDate: input.paymentDate,
+      }),
+      ...(input.payrollGroupCode !== undefined && {
+        payrollGroupCode: input.payrollGroupCode,
       }),
       ...(input.currency !== undefined && { currency: input.currency }),
       updatedByUserId: input.updatedByUserId,
@@ -127,15 +144,58 @@ export async function upsertPayrollGroupMutation(input: {
   readonly organizationId: string
   readonly code: string
   readonly name: string
+  readonly countryCode: string
   readonly paySchedule: string
   readonly payCurrency: string
   readonly isActive: boolean
   readonly userId: string
 }): Promise<{ id: string }> {
-  return { id: input.code }
+  const existing = await db
+    .select({ id: hrmPayrollGroup.id })
+    .from(hrmPayrollGroup)
+    .where(
+      and(
+        eq(hrmPayrollGroup.organizationId, input.organizationId),
+        eq(hrmPayrollGroup.code, input.code)
+      )
+    )
+    .limit(1)
+
+  if (existing[0]) {
+    await db
+      .update(hrmPayrollGroup)
+      .set({
+        name: input.name,
+        countryCode: input.countryCode,
+        paySchedule: input.paySchedule,
+        payCurrency: input.payCurrency,
+        isActive: input.isActive,
+        updatedByUserId: input.userId,
+        updatedAt: new Date(),
+      })
+      .where(eq(hrmPayrollGroup.id, existing[0].id))
+
+    return { id: existing[0].id }
+  }
+
+  const id = crypto.randomUUID()
+  await db.insert(hrmPayrollGroup).values({
+    id,
+    organizationId: input.organizationId,
+    code: input.code,
+    name: input.name,
+    countryCode: input.countryCode,
+    paySchedule: input.paySchedule,
+    payCurrency: input.payCurrency,
+    isActive: input.isActive,
+    createdByUserId: input.userId,
+    updatedByUserId: input.userId,
+  })
+
+  return { id }
 }
 
-export async function insertPayrollAdjustment(_input: {
+export async function insertPayrollAdjustment(input: {
   readonly organizationId: string
   readonly periodId: string
   readonly employeeId: string
@@ -147,34 +207,84 @@ export async function insertPayrollAdjustment(_input: {
   readonly retroReferencePeriodId: string | null
   readonly createdByUserId: string
 }): Promise<{ id: string }> {
-  return { id: crypto.randomUUID() }
+  const id = crypto.randomUUID()
+  await db.insert(hrmPayrollAdjustment).values({
+    id,
+    organizationId: input.organizationId,
+    periodId: input.periodId,
+    employeeId: input.employeeId,
+    kind: input.kind,
+    amount: input.amount,
+    currency: input.currency,
+    reason: input.reason,
+    approvalId: input.approvalId,
+    retroReferencePeriodId: input.retroReferencePeriodId,
+    createdByUserId: input.createdByUserId,
+    updatedByUserId: input.createdByUserId,
+  })
+  return { id }
 }
 
-export async function insertPayrollPaymentBatch(_input: {
+export async function insertPayrollPaymentBatch(input: {
   readonly organizationId: string
   readonly periodId: string
   readonly reference: string
+  readonly state?: string
+  readonly documentId?: string | null
   readonly createdByUserId: string
 }): Promise<{ id: string }> {
-  return { id: crypto.randomUUID() }
+  const id = crypto.randomUUID()
+  await db.insert(hrmPayrollPaymentBatch).values({
+    id,
+    organizationId: input.organizationId,
+    periodId: input.periodId,
+    reference: input.reference,
+    state: input.state ?? "generated",
+    documentId: input.documentId ?? null,
+    createdByUserId: input.createdByUserId,
+    updatedByUserId: input.createdByUserId,
+  })
+  return { id }
 }
 
-export async function insertPayrollPaymentRow(_input: {
+export async function insertPayrollPaymentRow(input: {
   readonly organizationId: string
   readonly batchId: string
   readonly employeeId: string
   readonly netAmount: string
   readonly currency: string
 }): Promise<{ id: string }> {
-  return { id: crypto.randomUUID() }
+  const id = crypto.randomUUID()
+  await db.insert(hrmPayrollPayment).values({
+    id,
+    organizationId: input.organizationId,
+    batchId: input.batchId,
+    employeeId: input.employeeId,
+    netAmount: input.netAmount,
+    currency: input.currency,
+  })
+  return { id }
 }
 
-export async function updatePayrollPaymentStatus(_input: {
+export async function updatePayrollPaymentStatus(input: {
   readonly organizationId: string
   readonly paymentId: string
   readonly status: string
   readonly paidAt: Date | null
 }): Promise<void> {
+  await db
+    .update(hrmPayrollPayment)
+    .set({
+      status: input.status,
+      paidAt: input.paidAt,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(hrmPayrollPayment.organizationId, input.organizationId),
+        eq(hrmPayrollPayment.id, input.paymentId)
+      )
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -188,6 +298,7 @@ export async function insertPayrollRun(
   opts?: {
     contractId?: string | null
     profileId?: string | null
+    compensationSnapshot?: readonly HrmCompensationSnapshotEntry[]
     createdByUserId?: string
   }
 ): Promise<{ id: string }> {
@@ -199,6 +310,7 @@ export async function insertPayrollRun(
     employeeId,
     contractId: opts?.contractId ?? null,
     profileId: opts?.profileId ?? null,
+    compensationSnapshot: opts?.compensationSnapshot ?? [],
     state: "draft",
   })
   return { id }

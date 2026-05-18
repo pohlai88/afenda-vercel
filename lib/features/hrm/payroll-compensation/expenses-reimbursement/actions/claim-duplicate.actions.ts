@@ -39,7 +39,8 @@ export async function overrideDuplicateClaimAction(
     const errs = parsed.error.flatten().fieldErrors
     return hrmActionFailure({
       claimId: errs.claimId?.[0],
-      form: errs.overrideReason?.[0] ?? parsed.error.issues[0]?.message,
+      overrideReason: errs.overrideReason?.[0],
+      form: parsed.error.issues[0]?.message,
     })
   }
 

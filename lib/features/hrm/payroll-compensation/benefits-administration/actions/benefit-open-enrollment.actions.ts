@@ -13,6 +13,11 @@ import {
   createBenefitOpenEnrollmentFormSchema,
 } from "../schema/benefit.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
+import {
+  closeBenefitOpenEnrollmentWindow,
+  insertBenefitOpenEnrollmentWindow,
+} from "../data/benefit-open-enrollment.mutations.server"
+import { getBenefitPlanForOrganization } from "../data/benefit.queries.server"
 
 export type BenefitOpenEnrollmentFormState =
   | { ok: true; windowId: string }
@@ -77,7 +82,26 @@ export async function createBenefitOpenEnrollmentAction(
     })
   }
 
-  const windowId = crypto.randomUUID()
+  const planLookups = await Promise.all(
+    parsed.data.planIds.map((planId) =>
+      getBenefitPlanForOrganization(organizationId, planId)
+    )
+  )
+  const hasInvalidPlan = planLookups.some((plan) => !plan || !plan.isActive)
+  if (hasInvalidPlan) {
+    return hrmActionFailure({
+      form: "Open enrollment can only include active benefit plans.",
+    })
+  }
+
+  const row = await insertBenefitOpenEnrollmentWindow({
+    organizationId,
+    name: parsed.data.name.trim(),
+    startsOn,
+    endsOn,
+    planIds: parsed.data.planIds,
+    createdByUserId: userId,
+  })
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
@@ -86,7 +110,7 @@ export async function createBenefitOpenEnrollmentAction(
       actorUserId: userId,
       actorSessionId: sessionId,
       resourceType: "hrm_benefit_open_enrollment",
-      resourceId: windowId,
+      resourceId: row.id,
       metadata: {
         name: parsed.data.name.trim(),
         startsOn: parsed.data.startsOn,
@@ -97,7 +121,7 @@ export async function createBenefitOpenEnrollmentAction(
   )
 
   revalidateBenefits()
-  return { ok: true, windowId }
+  return { ok: true, windowId: row.id }
 }
 
 export async function closeBenefitOpenEnrollmentAction(
@@ -117,6 +141,15 @@ export async function closeBenefitOpenEnrollmentAction(
       form: parsed.error.issues[0]?.message,
       windowId: parsed.error.flatten().fieldErrors.windowId?.[0],
     })
+  }
+
+  const closed = await closeBenefitOpenEnrollmentWindow({
+    organizationId,
+    windowId: parsed.data.windowId,
+    updatedByUserId: userId,
+  })
+  if (!closed) {
+    return hrmActionFailure({ windowId: "Open enrollment window not found." })
   }
 
   after(() =>

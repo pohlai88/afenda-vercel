@@ -1,4 +1,5 @@
 export {
+  closeOffboardingCaseAction,
   completeOffboardingTaskAction,
   completeOffboardingTaskFormAction,
   initiateOffboardingAction,
@@ -9,5 +10,6 @@ export {
   scheduleExitInterviewAction,
   setRehireEligibilityAction,
   updateSettlementReadinessAction,
+  upsertOffboardingClearanceItemAction,
 } from "./actions/offboarding.actions"
 export { InitiateOffboardingForm } from "./components/initiate-offboarding-form"

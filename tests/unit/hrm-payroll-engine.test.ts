@@ -28,6 +28,7 @@ function baseInput(
     countryCode: "MY",
     basicSalaryAmount: "5000.00",
     basicSalaryCurrency: "MYR",
+    contractAllowances: [],
     periodEnd: PERIOD_END_2026,
     unpaidLeaveMinutes: 0,
     scheduledMinutes: 26880, // 22 working days * 8h
@@ -39,6 +40,11 @@ function baseInput(
     eisEligible: true,
     hrdfApplicable: false,
     taxResidency: "resident" as const,
+    taxIdentifierNumber: "TIN-123456789",
+    epfNumber: "EPF-123456789",
+    socsoNumber: "SOCSO-123456789",
+    payCurrency: "MYR",
+    taxResidencyCountry: "MY",
     monthNumber: 3,
     yearNumber: 2026,
     ytdRemuneration: "10000.00",
@@ -177,6 +183,61 @@ describe("Payroll engine — MY-2026-01 integration", () => {
       expect(result.inputDigest).toMatch(/^[0-9a-f]{64}$/)
       // No statutory lines without rule pack
       expect(result.lines.some((l) => l.code === "EPF_EE")).toBe(false)
+    })
+
+    it("includes same-currency contract allowances in gross, net, and employer cost", async () => {
+      const result = await computePayrollRun(
+        baseInput({
+          contractAllowances: [
+            {
+              componentCode: "MEAL_ALLOWANCE",
+              amount: "125.50",
+              currency: "MYR",
+              taxTreatment: "taxable",
+              statutoryBaseTreatment: "included",
+            },
+          ],
+        }),
+        null
+      )
+
+      expect(result.validationIssues).toHaveLength(0)
+      expect(result.grossPay).toBe("5125.50")
+      expect(result.netPay).toBe("5125.50")
+      expect(result.employerCost).toBe("5125.50")
+      expect(
+        result.lines.find((line) => line.code === "MEAL_ALLOWANCE")
+      ).toMatchObject({
+        lineKind: "earning",
+        amount: "125.50",
+      })
+    })
+
+    it("flags and skips contract allowances in a different currency", async () => {
+      const result = await computePayrollRun(
+        baseInput({
+          contractAllowances: [
+            {
+              componentCode: "PHONE_ALLOWANCE",
+              amount: "75.00",
+              currency: "USD",
+              taxTreatment: "taxable",
+              statutoryBaseTreatment: "included",
+            },
+          ],
+        }),
+        null
+      )
+
+      expect(result.grossPay).toBe("5000.00")
+      expect(
+        result.lines.some((line) => line.code === "PHONE_ALLOWANCE")
+      ).toBe(false)
+      expect(result.validationIssues).toContainEqual({
+        code: "PAYROLL_CONTRACT_ALLOWANCE_CURRENCY_MISMATCH",
+        message:
+          "Contract allowance PHONE_ALLOWANCE currency USD does not match payroll currency MYR.",
+      })
     })
 
     it("projects active benefit enrollments into deduction and employer cost lines", async () => {

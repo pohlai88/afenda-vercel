@@ -9,21 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
 
-import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
-import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 import { listEmployeeVisibleDocuments } from "../../documents-management/data/hrm-document.queries.server"
 import { downloadPortalEmployeeDocumentAction } from "../actions/employee-portal-document.actions"
+import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
+import { buildEmployeePortalDocumentsListSurfaceConfiguration } from "../data/employee-portal-list-surface.server"
+import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
 import { EmployeePortalDocumentRequestForm } from "./employee-portal-document-request-form.client"
+import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalDocumentsPageProps = {
@@ -43,6 +37,17 @@ export async function EmployeePortalDocumentsPage({
       employeeId: context.employee.id,
     }),
   ])
+
+  const listConfiguration = buildEmployeePortalDocumentsListSurfaceConfiguration(
+    documents,
+    {
+      empty: t("listEmpty"),
+      colTitle: "Title",
+      colType: "Type",
+    }
+  )
+
+  const documentById = new Map(documents.map((doc) => [doc.id, doc]))
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -76,49 +81,35 @@ export async function EmployeePortalDocumentsPage({
             <CardDescription>{t("portalPageDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            {documents.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("listEmpty")}</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right"> </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {documents.map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell>{doc.title}</TableCell>
-                      <TableCell>{doc.documentType}</TableCell>
-                      <TableCell className="text-right">
-                        <form action={downloadPortalEmployeeDocumentAction}>
-                          <input
-                            type="hidden"
-                            name="portalSlug"
-                            value={context.portal.portalSlug}
-                          />
-                          <input
-                            type="hidden"
-                            name="documentId"
-                            value={doc.id}
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            type="submit"
-                            disabled={!doc.canDownload}
-                          >
-                            {t("download")}
-                          </Button>
-                        </form>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+            <EmployeePortalGovernedTable
+              configuration={listConfiguration}
+              surfaceKey="hrm:portal:documents"
+              trailingColumn={{
+                header: " ",
+                render: (surfaceRow) => {
+                  const doc = documentById.get(surfaceRow.id)
+                  if (!doc) return null
+                  return (
+                    <form action={downloadPortalEmployeeDocumentAction}>
+                      <input
+                        type="hidden"
+                        name="portalSlug"
+                        value={context.portal.portalSlug}
+                      />
+                      <input type="hidden" name="documentId" value={doc.id} />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        type="submit"
+                        disabled={!doc.canDownload}
+                      >
+                        {t("download")}
+                      </Button>
+                    </form>
+                  )
+                },
+              }}
+            />
           </CardContent>
         </Card>
 

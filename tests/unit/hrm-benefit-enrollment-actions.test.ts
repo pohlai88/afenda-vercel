@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({
   requireHrmAdmin: vi.fn(),
   getBenefitEnrollmentForOrganization: vi.fn(),
+  getBenefitPlanForOrganization: vi.fn(),
   listBenefitEnrollmentCoverageRowsForEmployeePlan: vi.fn(),
   listClosedPayrollPeriodsOverlappingRange: vi.fn(),
   evaluateBenefitEligibilityForEmployee: vi.fn(),
@@ -31,21 +32,31 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-vi.mock("../../lib/features/hrm/hrm-admin-guard.server.ts", () => ({
-  requireHrmAdmin: mocks.requireHrmAdmin,
-}))
+vi.mock(
+  "../../lib/features/hrm/_module-governance/hrm-admin-guard.server.ts",
+  () => ({
+    requireHrmAdmin: mocks.requireHrmAdmin,
+  })
+)
 
-vi.mock("../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit.queries.server.ts", () => ({
-  getBenefitEnrollmentForOrganization:
-    mocks.getBenefitEnrollmentForOrganization,
-  listBenefitEnrollmentCoverageRowsForEmployeePlan:
-    mocks.listBenefitEnrollmentCoverageRowsForEmployeePlan,
-}))
+vi.mock(
+  "../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit.queries.server.ts",
+  () => ({
+    getBenefitEnrollmentForOrganization:
+      mocks.getBenefitEnrollmentForOrganization,
+    getBenefitPlanForOrganization: mocks.getBenefitPlanForOrganization,
+    listBenefitEnrollmentCoverageRowsForEmployeePlan:
+      mocks.listBenefitEnrollmentCoverageRowsForEmployeePlan,
+  })
+)
 
-vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts", () => ({
-  listClosedPayrollPeriodsOverlappingRange:
-    mocks.listClosedPayrollPeriodsOverlappingRange,
-}))
+vi.mock(
+  "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts",
+  () => ({
+    listClosedPayrollPeriodsOverlappingRange:
+      mocks.listClosedPayrollPeriodsOverlappingRange,
+  })
+)
 
 vi.mock(
   "../../lib/features/hrm/payroll-compensation/benefits-administration/data/benefit-enterprise.queries.server.ts",
@@ -55,9 +66,12 @@ vi.mock(
   })
 )
 
-vi.mock("../../lib/features/hrm/employee-management/employee-records-management/data/employee.queries.server.ts", () => ({
-  getEmployeeForOrganization: mocks.getEmployeeForOrganization,
-}))
+vi.mock(
+  "../../lib/features/hrm/employee-management/employee-records-management/data/employee.queries.server.ts",
+  () => ({
+    getEmployeeForOrganization: mocks.getEmployeeForOrganization,
+  })
+)
 
 import {
   activateBenefitEnrollmentAction,
@@ -83,6 +97,7 @@ describe("benefit enrollment actions", () => {
   beforeEach(() => {
     mocks.requireHrmAdmin.mockReset()
     mocks.getBenefitEnrollmentForOrganization.mockReset()
+    mocks.getBenefitPlanForOrganization.mockReset()
     mocks.listBenefitEnrollmentCoverageRowsForEmployeePlan.mockReset()
     mocks.listClosedPayrollPeriodsOverlappingRange.mockReset()
     mocks.evaluateBenefitEligibilityForEmployee.mockReset()
@@ -101,6 +116,9 @@ describe("benefit enrollment actions", () => {
       },
     })
     mocks.listBenefitEnrollmentCoverageRowsForEmployeePlan.mockResolvedValue([])
+    mocks.getBenefitPlanForOrganization.mockResolvedValue({
+      eligibilityRules: { requiresEnrollmentApproval: true },
+    })
     mocks.listClosedPayrollPeriodsOverlappingRange.mockResolvedValue([])
     buildUpdateChain()
   })

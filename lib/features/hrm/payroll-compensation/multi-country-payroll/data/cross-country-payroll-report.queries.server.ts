@@ -10,6 +10,7 @@ import {
 } from "#lib/db/schema"
 
 import { resolveExchangeRate } from "./exchange-rate.queries.server"
+import { readPayrollProfileLegalEntityCode } from "./payroll-profile-legal-entity.shared"
 
 export type CrossCountryPayrollReportRow = {
   readonly countryCode: string
@@ -34,8 +35,17 @@ export type CrossCountryPayrollReport = {
 }
 
 function sumDecimal(values: readonly string[]): string {
-  const total = values.reduce((acc, v) => acc + Number.parseFloat(v || "0"), 0)
-  return total.toFixed(2)
+  const totalCents = values.reduce((acc, value) => {
+    const normalized = String(value || "0").trim()
+    const negative = normalized.startsWith("-")
+    const [whole = "0", fraction = ""] = normalized.replace("-", "").split(".")
+    const cents =
+      Number.parseInt(whole, 10) * 100 +
+      Number.parseInt(fraction.padEnd(2, "0").slice(0, 2) || "0", 10)
+    return acc + (negative ? -cents : cents)
+  }, 0)
+
+  return (totalCents / 100).toFixed(2)
 }
 
 function applyFx(amount: string, rate: string): string {
@@ -59,6 +69,8 @@ export async function getCrossCountryPayrollReport(input: {
       id: hrmPayrollPeriod.id,
       periodStart: hrmPayrollPeriod.periodStart,
       periodEnd: hrmPayrollPeriod.periodEnd,
+      payrollGroupCode: hrmPayrollPeriod.payrollGroupCode,
+      currency: hrmPayrollPeriod.currency,
     })
     .from(hrmPayrollPeriod)
     .where(
@@ -86,6 +98,7 @@ export async function getCrossCountryPayrollReport(input: {
       countryCode: hrmPayrollProfile.countryCode,
       payCurrency: hrmPayrollProfile.payCurrency,
       payrollGroupCode: hrmPayrollProfile.payrollGroupCode,
+      statutoryProfileExtras: hrmPayrollProfile.statutoryProfileExtras,
     })
     .from(hrmPayrollRun)
     .leftJoin(
@@ -106,6 +119,7 @@ export async function getCrossCountryPayrollReport(input: {
       countryCode: string
       payCurrency: string
       payrollGroupCode: string
+      legalEntityCode: string
       periodId: string
       gross: string[]
       net: string[]
@@ -117,16 +131,21 @@ export async function getCrossCountryPayrollReport(input: {
     const period = periodById.get(run.periodId)
     if (!period) continue
 
-    const countryCode = run.countryCode?.trim() || "MY"
-    const payCurrency = run.payCurrency?.trim() || "MYR"
+    const countryCode = run.countryCode?.trim().toUpperCase() || "UNASSIGNED"
+    const payCurrency =
+      run.payCurrency?.trim().toUpperCase() || period.currency.toUpperCase()
     const payrollGroupCode =
-      run.payrollGroupCode?.trim() || "default"
+      run.payrollGroupCode?.trim() || period.payrollGroupCode || "default"
+    const legalEntityCode =
+      readPayrollProfileLegalEntityCode(run.statutoryProfileExtras) ??
+      countryCode
 
-    const key = `${run.periodId}|${countryCode}|${payCurrency}|${payrollGroupCode}`
+    const key = `${run.periodId}|${countryCode}|${payCurrency}|${payrollGroupCode}|${legalEntityCode}`
     const bucket = buckets.get(key) ?? {
       countryCode,
       payCurrency,
       payrollGroupCode,
+      legalEntityCode,
       periodId: run.periodId,
       gross: [],
       net: [],
@@ -172,7 +191,7 @@ export async function getCrossCountryPayrollReport(input: {
       countryCode: bucket.countryCode,
       payCurrency: bucket.payCurrency,
       payrollGroupCode: bucket.payrollGroupCode,
-      legalEntityCode: "default",
+      legalEntityCode: bucket.legalEntityCode,
       periodId: bucket.periodId,
       periodStart:
         typeof period.periodStart === "string"
@@ -195,7 +214,11 @@ export async function getCrossCountryPayrollReport(input: {
   rows.sort((a, b) => {
     const c = a.countryCode.localeCompare(b.countryCode)
     if (c !== 0) return c
-    return a.periodEnd.localeCompare(b.periodEnd)
+    const legalEntity = a.legalEntityCode.localeCompare(b.legalEntityCode)
+    if (legalEntity !== 0) return legalEntity
+    const period = a.periodEnd.localeCompare(b.periodEnd)
+    if (period !== 0) return period
+    return a.payrollGroupCode.localeCompare(b.payrollGroupCode)
   })
 
   return { rows, reportingCurrency }

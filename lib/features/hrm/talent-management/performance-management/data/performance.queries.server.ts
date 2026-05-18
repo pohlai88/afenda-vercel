@@ -1,5 +1,6 @@
 import "server-only"
 
+import { alias } from "drizzle-orm/pg-core"
 import { and, asc, desc, eq, isNotNull, isNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
@@ -26,6 +27,8 @@ export type HrmReviewCycleRow = {
   createdAt: Date
 }
 
+const hrmReviewerEmployee = alias(hrmEmployee, "hrm_reviewer_employee")
+
 export type HrmPerformanceReviewListRow = {
   reviewId: string
   cycleId: string
@@ -36,6 +39,8 @@ export type HrmPerformanceReviewListRow = {
   employeeLegalName: string
   employeeLinkedUserId: string | null
   reviewerId: string
+  reviewerLegalName: string | null
+  reviewerEmployeeNumber: string | null
   state: HrmReviewRowState
   rating: string | null
   notes: string | null
@@ -93,6 +98,8 @@ export async function listPerformanceReviewsForOrg(
       employeeLegalName: hrmEmployee.legalName,
       employeeLinkedUserId: hrmEmployee.linkedUserId,
       reviewerId: hrmReview.reviewerId,
+      reviewerLegalName: hrmReviewerEmployee.legalName,
+      reviewerEmployeeNumber: hrmReviewerEmployee.employeeNumber,
       state: hrmReview.state,
       rating: hrmReview.rating,
       notes: hrmReview.notes,
@@ -104,6 +111,10 @@ export async function listPerformanceReviewsForOrg(
     .from(hrmReview)
     .innerJoin(hrmReviewCycle, eq(hrmReview.cycleId, hrmReviewCycle.id))
     .innerJoin(hrmEmployee, eq(hrmEmployee.id, hrmReview.employeeId))
+    .leftJoin(
+      hrmReviewerEmployee,
+      eq(hrmReviewerEmployee.linkedUserId, hrmReview.reviewerId)
+    )
     .where(eq(hrmReview.organizationId, organizationId))
     .orderBy(desc(hrmReview.updatedAt))
     .limit(limit)

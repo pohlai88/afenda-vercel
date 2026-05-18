@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedListSurfaceWithTrailingColumn } from "#components2/metadata"
-import { parseListSurfaceRendererConfiguration } from "#features/governed-surface/schemas/list-surface-renderer.schema"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
@@ -85,14 +84,28 @@ export async function AttendanceRecentEvents({
       organizationId: orgSession.organizationId,
     })
     return (
-      <p className="text-sm text-destructive" role="status" aria-live="polite">
-        {t("recentLoadFailed")}
-      </p>
+      <GovernedPatternCListSection
+        layout="embedded"
+        title=""
+        listConfiguration={{
+          dataNature: "table",
+          surface: {
+            header: { title: "hrm-attendance-recent-events" },
+            columnsId: "hrm-attendance-recent-events",
+            rowKey: "id",
+            empty: { variant: "muted", title: t("recentEmpty") },
+          },
+          columns: [{ id: "employee", header: t("colEmployee") }],
+          rows: [],
+        }}
+        surfaceKey="hrm:attendance:recent:error"
+        resolveConfiguredPermission={false}
+        loadError={{
+          variant: "error",
+          title: t("recentLoadFailed"),
+        }}
+      />
     )
-  }
-
-  if (rows.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("recentEmpty")}</p>
   }
 
   const eventLabelFor = (eventType: string) =>
@@ -121,21 +134,18 @@ export async function AttendanceRecentEvents({
     }
   )
 
-  const parsed = parseListSurfaceRendererConfiguration(listConfiguration)
-  if (!parsed.success) {
-    return (
-      <p className="text-sm text-destructive" role="status" aria-live="polite">
-        {t("recentLoadFailed")}
-      </p>
-    )
-  }
-
   const rowById = new Map(rows.map((row) => [row.id, row]))
 
   return (
-    <GovernedListSurfaceWithTrailingColumn
-      columns={parsed.data.columns}
-      rows={parsed.data.rows}
+    <GovernedPatternCListSection
+      layout="embedded"
+      title=""
+      listConfiguration={listConfiguration}
+      surfaceKey="hrm:attendance:recent-events"
+      invalid={{
+        variant: "error",
+        title: t("recentLoadFailed"),
+      }}
       trailingColumn={
         isAdmin
           ? {

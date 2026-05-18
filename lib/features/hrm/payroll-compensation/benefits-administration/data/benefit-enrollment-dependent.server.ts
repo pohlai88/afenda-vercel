@@ -1,9 +1,9 @@
 import "server-only"
 
-import { and, eq, inArray, isNull } from "drizzle-orm"
+import { and, count, eq, inArray, isNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { hrmDependent } from "#lib/db/schema"
+import { hrmBenefitEnrollmentDependent, hrmDependent } from "#lib/db/schema"
 
 import {
   isBenefitCoverageLevel,
@@ -62,8 +62,6 @@ export async function replaceBenefitEnrollmentDependents(params: {
   readonly effectiveTo?: Date | null
   readonly createdByUserId: string
 }): Promise<void> {
-  if (params.dependentIds.length === 0) return
-
   const dependents = await db
     .select({
       id: hrmDependent.id,
@@ -78,5 +76,49 @@ export async function replaceBenefitEnrollmentDependents(params: {
       )
     )
 
-  if (dependents.length === 0) return
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(hrmBenefitEnrollmentDependent)
+      .where(
+        and(
+          eq(
+            hrmBenefitEnrollmentDependent.organizationId,
+            params.organizationId
+          ),
+          eq(hrmBenefitEnrollmentDependent.enrollmentId, params.enrollmentId)
+        )
+      )
+
+    if (dependents.length === 0) return
+
+    await tx.insert(hrmBenefitEnrollmentDependent).values(
+      dependents.map((dependent) => ({
+        organizationId: params.organizationId,
+        enrollmentId: params.enrollmentId,
+        employeeId: params.employeeId,
+        dependentId: dependent.id,
+        effectiveFrom: params.effectiveFrom,
+        effectiveTo: params.effectiveTo ?? null,
+        createdByUserId: params.createdByUserId,
+        updatedByUserId: params.createdByUserId,
+      }))
+    )
+  })
+}
+
+export async function countBenefitEnrollmentDependents(params: {
+  readonly organizationId: string
+  readonly enrollmentId: string
+}): Promise<number> {
+  const [row] = await db
+    .select({ n: count(hrmBenefitEnrollmentDependent.id) })
+    .from(hrmBenefitEnrollmentDependent)
+    .where(
+      and(
+        eq(hrmBenefitEnrollmentDependent.organizationId, params.organizationId),
+        eq(hrmBenefitEnrollmentDependent.enrollmentId, params.enrollmentId)
+      )
+    )
+
+  return Number(row?.n ?? 0)
 }

@@ -63,6 +63,7 @@ export async function submitPortalEmployeeClaimAction(
     employeeId: context.employee.id,
     ...parsed.data,
     submissionMode: "self_service",
+    employeePortalAudit: true,
   })
 }
 

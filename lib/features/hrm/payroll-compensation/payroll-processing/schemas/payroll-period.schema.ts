@@ -8,12 +8,22 @@ export const createPayrollPeriodFormSchema = z
   .object({
     periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
     periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
+    cutoffDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
     paymentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
+    payrollGroupCode: z.string().min(1).max(64),
     currency: z.string().min(3).max(3).toUpperCase().default("MYR"),
   })
   .refine((d) => d.periodEnd >= d.periodStart, {
     message: "Period end must be on or after period start",
     path: ["periodEnd"],
+  })
+  .refine((d) => d.cutoffDate >= d.periodStart, {
+    message: "Cutoff date must be on or after period start",
+    path: ["cutoffDate"],
+  })
+  .refine((d) => d.cutoffDate <= d.paymentDate, {
+    message: "Cutoff date must be on or before payment date",
+    path: ["cutoffDate"],
   })
   .refine((d) => d.paymentDate >= d.periodEnd, {
     message: "Payment date must be on or after period end",
@@ -33,12 +43,22 @@ export const updatePayrollPeriodFormSchema = z
     periodId: z.string().uuid("Invalid period ID"),
     periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
     periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
+    cutoffDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
     paymentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
+    payrollGroupCode: z.string().min(1).max(64),
     currency: z.string().min(3).max(3).toUpperCase(),
   })
   .refine((d) => d.periodEnd >= d.periodStart, {
     message: "Period end must be on or after period start",
     path: ["periodEnd"],
+  })
+  .refine((d) => d.cutoffDate >= d.periodStart, {
+    message: "Cutoff date must be on or after period start",
+    path: ["cutoffDate"],
+  })
+  .refine((d) => d.cutoffDate <= d.paymentDate, {
+    message: "Cutoff date must be on or before payment date",
+    path: ["cutoffDate"],
   })
   .refine((d) => d.paymentDate >= d.periodEnd, {
     message: "Payment date must be on or after period end",

@@ -15,7 +15,9 @@ import {
 } from "#lib/db/schema"
 
 import { listComplianceEvidenceForPeriod } from "../../../employee-management/compliance-regulatory-tracking/data/compliance.queries.server"
+import { sumApprovedApClaimAccrualsForPeriod } from "../../expenses-reimbursement/data/claim-ap-payment.server"
 import {
+  applyApClaimAccrualsToPostingPreview,
   buildPayrollPostingPreviewFromInputs,
   classifyPayrollCloseExceptions,
   computePayrollCloseReadinessScore,
@@ -153,7 +155,8 @@ function sumCents(values: readonly string[]): number {
 
 function buildCloseTotals(
   runs: readonly PayrollRunRow[],
-  lines: readonly PayrollLineRow[]
+  lines: readonly PayrollLineRow[],
+  apClaimAccruals: string
 ): PayrollCloseTotals {
   const employeeIds = new Set(runs.map((run) => run.employeeId))
   const employeeDeductions = lines
@@ -194,6 +197,7 @@ function buildCloseTotals(
     claimSettlements: payrollCentsToDecimal(
       Math.abs(sumCents(claimSettlements))
     ),
+    apClaimAccruals,
     advanceSettlements: payrollCentsToDecimal(
       Math.abs(sumCents(advanceSettlements))
     ),
@@ -310,7 +314,7 @@ function buildChecklist(params: {
       id: "settlements",
       label: "Claims and advances settlement",
       status: "passed",
-      detail: `${params.totals.claimSettlements} claims and ${params.totals.advanceSettlements} advances represented in payroll lines.`,
+      detail: `${params.totals.claimSettlements} payroll-routed claims, ${params.totals.apClaimAccruals} AP accruals, and ${params.totals.advanceSettlements} advances in scope.`,
     },
     {
       id: "rule-pack",
@@ -379,24 +383,37 @@ function buildChecklist(params: {
   ]
 }
 
-function buildPostingPreviewForLoadedPeriod(input: {
+async function buildPostingPreviewForLoadedPeriod(input: {
+  readonly organizationId: string
   readonly period: PayrollPeriodRow
   readonly runs: readonly PayrollRunRow[]
   readonly lines: readonly PayrollLineRow[]
-}): PayrollPostingPreview {
+}): Promise<PayrollPostingPreview> {
+  const apClaimAccrualTotal = await sumApprovedApClaimAccrualsForPeriod({
+    organizationId: input.organizationId,
+    periodStart: input.period.periodStart,
+    periodEnd: input.period.periodEnd,
+  })
+
   const inputHash = hashStablePayload({
     periodId: input.period.id,
     currency: input.period.currency,
     runs: input.runs.map((run) => ({ id: run.id, netPay: run.netPay })),
     lines: input.lines,
+    apClaimAccrualTotal,
   })
 
-  return buildPayrollPostingPreviewFromInputs({
+  const basePreview = buildPayrollPostingPreviewFromInputs({
     periodId: input.period.id,
     currency: input.period.currency,
     runs: input.runs,
     lines: input.lines,
     inputHash,
+  })
+
+  return applyApClaimAccrualsToPostingPreview({
+    preview: basePreview,
+    apClaimAccrualTotal,
   })
 }
 
@@ -416,6 +433,7 @@ export async function buildPayrollPostingPreview(
   )
 
   return buildPostingPreviewForLoadedPeriod({
+    organizationId: input.organizationId,
     period,
     runs,
     lines,
@@ -459,7 +477,14 @@ export async function buildPayrollCloseSnapshot(
     resolvedRulePackVersion = null
   }
 
-  const postingPreview = buildPostingPreviewForLoadedPeriod({
+  const apClaimAccruals = await sumApprovedApClaimAccrualsForPeriod({
+    organizationId: input.organizationId,
+    periodStart: period.periodStart,
+    periodEnd: period.periodEnd,
+  })
+
+  const postingPreview = await buildPostingPreviewForLoadedPeriod({
+    organizationId: input.organizationId,
     period,
     runs,
     lines,
@@ -494,7 +519,7 @@ export async function buildPayrollCloseSnapshot(
     postingPreview,
     runs,
   })
-  const totals = buildCloseTotals(runs, lines)
+  const totals = buildCloseTotals(runs, lines, apClaimAccruals)
   const checklist = buildChecklist({
     period,
     totals,

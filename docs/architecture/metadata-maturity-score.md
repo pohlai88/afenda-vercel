@@ -2,6 +2,8 @@
 
 Canonical architecture: [ADR-0026](../decisions/0026-metadata-driven-ui-architecture.md).
 
+**Section composition (Pattern C):** separate rubric — [governed-section-composition-score.md](./governed-section-composition-score.md) (~9/10 on migrated HRM sections after Wave C4).
+
 ## Summary
 
 | Metric               | Value                                                                      |

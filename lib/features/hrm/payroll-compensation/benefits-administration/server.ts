@@ -30,7 +30,11 @@ export {
   listLifeEventsForOrganization,
 } from "./data/benefit.queries.server"
 
-export { listBenefitOpenEnrollmentsForOrg } from "./data/benefit-open-enrollment.queries.server"
+export {
+  findActiveBenefitOpenEnrollmentWindow,
+  listBenefitOpenEnrollmentsForOrg,
+  toBenefitEnrollmentWindow,
+} from "./data/benefit-open-enrollment.queries.server"
 
 export {
   listBenefitProvidersForOrganization,
@@ -51,7 +55,8 @@ export {
   buildBenefitEnrollmentsListSurfaceConfiguration,
   buildBenefitOpenEnrollmentListSurfaceConfiguration,
   buildBenefitProvidersListSurfaceConfiguration,
-} from "./data/benefit-list-surfaces.server"
+  buildBenefitClaimReferencesListSurfaceConfiguration,
+} from "./data/benefit-list-surface.server"
 
 export {
   BENEFIT_LIST_SURFACE_IDS,

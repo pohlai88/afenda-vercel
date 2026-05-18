@@ -160,6 +160,12 @@
         "scripts/check-list-surface-table-imports.mjs"
       ]
     },
+    "lint:feature-table-imports": {
+      "inputs": [
+        "lib/features/**",
+        "scripts/check-feature-table-imports.mjs"
+      ]
+    },
     "typecheck": {
       "inputs": [
         "$TURBO_DEFAULT$",

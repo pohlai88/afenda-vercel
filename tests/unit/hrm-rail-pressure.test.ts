@@ -10,7 +10,7 @@ import {
   type CompliancePressureInput,
   type LeavePressureInput,
   type PayrollPressureInput,
-} from "#features/hrm/hrm-rail-pressure.shared"
+} from "../../lib/features/hrm/_internal-cross-cutting/hrm-rail-pressure.shared"
 
 /**
  * Phase 2 of the Working Memory Rail (`docs/_draft/working-memory-rail-plan.md`)

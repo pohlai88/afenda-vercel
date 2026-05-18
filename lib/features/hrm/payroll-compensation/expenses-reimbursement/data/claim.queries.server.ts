@@ -21,6 +21,7 @@ import {
   hrmClaimType,
   hrmDocument,
   hrmEmployee,
+  hrmExpenseFund,
 } from "#lib/db/schema"
 import {
   canUseErpPermission,
@@ -32,6 +33,7 @@ import {
   type ClaimEvidenceType,
   type ClaimStateValue,
 } from "./claim-helpers.shared"
+import type { ClaimNotificationPayload } from "./claim-notification.server"
 
 const CLAIM_LIST_LIMIT_MAX = 100
 
@@ -546,7 +548,10 @@ export async function countPendingClaimsForOrg(
   return rows.length
 }
 
-/** Counts approved-unpaid claims for the HR Nexus pressure aggregator. */
+/**
+ * Approved-unpaid payroll-routed claims (payroll period lock gate).
+ * AP-routed claims are excluded — use {@link countApprovedUnpaidApClaimsForOrg}.
+ */
 export async function countApprovedUnpaidClaimsForOrg(
   organizationId: string
 ): Promise<number> {
@@ -559,10 +564,75 @@ export async function countApprovedUnpaidClaimsForOrg(
     .where(
       and(
         eq(hrmClaim.organizationId, organizationId),
-        eq(hrmClaim.state, "approved")
+        eq(hrmClaim.state, "approved"),
+        eq(hrmClaim.payoutMethod, "payroll")
       )
     )
   return rows.filter((row) => row.paidByPayrollLineId == null).length
+}
+
+/** Approved AP-routed claims awaiting treasury payment. */
+export async function countApprovedUnpaidApClaimsForOrg(
+  organizationId: string
+): Promise<number> {
+  const rows = await db
+    .select({ id: hrmClaim.id })
+    .from(hrmClaim)
+    .where(
+      and(
+        eq(hrmClaim.organizationId, organizationId),
+        eq(hrmClaim.state, "approved"),
+        eq(hrmClaim.payoutMethod, "ap"),
+        isNull(hrmClaim.paidAt)
+      )
+    )
+  return rows.length
+}
+
+/** Operational fanout payload — no employee PII. */
+export async function findClaimNotificationPayload(input: {
+  readonly organizationId: string
+  readonly claimId: string
+  readonly state: string
+}): Promise<ClaimNotificationPayload | null> {
+  const rows = await db
+    .select({
+      claimId: hrmClaim.id,
+      claimNumber: hrmClaim.claimNumber,
+      claimDate: hrmClaim.claimDate,
+      amount: hrmClaim.amount,
+      approvedAmount: hrmClaim.approvedAmount,
+      currency: hrmClaim.currency,
+      requiresExceptionApproval: hrmClaim.requiresExceptionApproval,
+      claimTypeCode: hrmClaimType.code,
+      expenseFundCode: hrmExpenseFund.code,
+    })
+    .from(hrmClaim)
+    .innerJoin(hrmClaimType, eq(hrmClaim.claimTypeId, hrmClaimType.id))
+    .leftJoin(hrmExpenseFund, eq(hrmClaim.expenseFundId, hrmExpenseFund.id))
+    .where(
+      and(
+        eq(hrmClaim.organizationId, input.organizationId),
+        eq(hrmClaim.id, input.claimId)
+      )
+    )
+    .limit(1)
+
+  const row = rows[0]
+  if (!row) return null
+
+  const amount = row.approvedAmount ?? row.amount
+  return {
+    claimId: row.claimId,
+    claimNumber: row.claimNumber,
+    claimTypeCode: row.claimTypeCode,
+    claimDate: row.claimDate,
+    amount: String(amount),
+    currency: row.currency,
+    state: input.state,
+    expenseFundCode: row.expenseFundCode ?? null,
+    requiresExceptionApproval: row.requiresExceptionApproval,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -624,6 +694,16 @@ export type ClaimDocumentLite = {
   employeeId: string | null
 }
 
+export type ClaimDocumentForEvidence = ClaimDocumentLite & {
+  readonly documentType: string
+  readonly payloadHash: string
+  readonly blobUrl: string
+  readonly documentLifecycleStatus: string
+  readonly verificationStatus: string
+  readonly mimeType: string
+  readonly sizeBytes: number
+}
+
 export async function findOrgDocumentForClaim(
   organizationId: string,
   documentId: string
@@ -634,6 +714,31 @@ export async function findOrgDocumentForClaim(
       eq(hrmDocument.organizationId, organizationId)
     ),
     columns: { id: true, organizationId: true, employeeId: true },
+  })
+  return row ?? null
+}
+
+export async function findOrgDocumentForClaimEvidence(
+  organizationId: string,
+  documentId: string
+): Promise<ClaimDocumentForEvidence | null> {
+  const row = await db.query.hrmDocument.findFirst({
+    where: and(
+      eq(hrmDocument.id, documentId),
+      eq(hrmDocument.organizationId, organizationId)
+    ),
+    columns: {
+      id: true,
+      organizationId: true,
+      employeeId: true,
+      documentType: true,
+      payloadHash: true,
+      blobUrl: true,
+      documentLifecycleStatus: true,
+      verificationStatus: true,
+      mimeType: true,
+      sizeBytes: true,
+    },
   })
   return row ?? null
 }
@@ -649,7 +754,9 @@ export async function findOrgEmployeeForClaim(
   managerEmployeeId: string | null
   archivedAt: Date | null
   employmentStatus: string | null
+  employmentType: string | null
   countryCode: string | null
+  workStateCode: string | null
   currentDepartmentId: string | null
   currentJobGradeId: string | null
 } | null> {
@@ -666,7 +773,9 @@ export async function findOrgEmployeeForClaim(
       managerEmployeeId: true,
       archivedAt: true,
       employmentStatus: true,
+      employmentType: true,
       countryCode: true,
+      workStateCode: true,
       currentDepartmentId: true,
       currentJobGradeId: true,
     },

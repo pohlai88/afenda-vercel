@@ -409,6 +409,7 @@ export {
 export type {
   PayrollEngineInput,
   PayrollEngineResult,
+  PayrollContractAllowanceInput,
   PayrollLineInput,
   PayrollPeriodTraceability,
 } from "./payroll-compensation/payroll-processing/data/payroll-engine.server"
@@ -426,6 +427,7 @@ export {
   getPendingPayrollPeriodLockApprovalId,
   getPayrollPeriodPrimaryCountryCode,
 } from "./payroll-compensation/payroll-processing/data/payroll.queries.server"
+export { resolvePayrollSurfaceCapabilities } from "./payroll-compensation/payroll-processing/data/payroll-capabilities.server"
 
 export type {
   PayrollPeriodRow,
@@ -433,6 +435,7 @@ export type {
   PayrollLineRow,
   PayrollPeriodLockApprovalRow,
 } from "./payroll-compensation/payroll-processing/data/payroll.queries.server"
+export type { PayrollSurfaceCapabilities } from "./payroll-compensation/payroll-processing/data/payroll-capabilities.server"
 
 export {
   buildPayrollCloseSnapshot,
@@ -610,9 +613,7 @@ export {
   listComplianceFilingsForOrg,
   type ComplianceFilingListRow,
 } from "./employee-management/compliance-regulatory-tracking/data/compliance-filing.queries.server"
-export {
-  listComplianceDashboardRowsForOrg,
-} from "./employee-management/compliance-regulatory-tracking/data/compliance-dashboard.queries.server"
+export { listComplianceDashboardRowsForOrg } from "./employee-management/compliance-regulatory-tracking/data/compliance-dashboard.queries.server"
 export type {
   ComplianceDashboardFilterInput,
   ComplianceDashboardRow,
@@ -623,12 +624,8 @@ export {
   HRM_COMPLIANCE_SURFACE_ROW_ACTIONS,
   HRM_COMPLIANCE_FILING_SURFACE,
 } from "./employee-management/compliance-regulatory-tracking/data/compliance-surface-metadata.shared"
-export {
-  resolveComplianceSurfaceCapabilities,
-} from "./employee-management/compliance-regulatory-tracking/data/compliance-capabilities.server"
-export type {
-  ComplianceSurfaceCapabilities,
-} from "./employee-management/compliance-regulatory-tracking/data/compliance-capabilities.server"
+export { resolveComplianceSurfaceCapabilities } from "./employee-management/compliance-regulatory-tracking/data/compliance-capabilities.server"
+export type { ComplianceSurfaceCapabilities } from "./employee-management/compliance-regulatory-tracking/data/compliance-capabilities.server"
 export {
   listComplianceExceptionsForOrg,
   type ComplianceExceptionListRow,
@@ -657,12 +654,8 @@ export type {
   AgingWatchCandidate,
   AgingWatchTickSummary,
 } from "./employee-management/compliance-regulatory-tracking/data/compliance-aging-watch.server"
-export {
-  runComplianceControlWatchTick,
-} from "./employee-management/compliance-regulatory-tracking/data/compliance-control-watch.server"
-export type {
-  ComplianceControlWatchTickSummary,
-} from "./employee-management/compliance-regulatory-tracking/data/compliance-control-watch.server"
+export { runComplianceControlWatchTick } from "./employee-management/compliance-regulatory-tracking/data/compliance-control-watch.server"
+export type { ComplianceControlWatchTickSummary } from "./employee-management/compliance-regulatory-tracking/data/compliance-control-watch.server"
 
 /** Compliance aging tier fanout — signed outbound delivery after tier audit writes. */
 export {
@@ -877,8 +870,37 @@ export {
   EMPLOYEE_LIFECYCLE_READINESS_COUNTERS,
   EMPLOYEE_LIFECYCLE_SURFACE_ID,
 } from "./employee-management/employee-lifecycle-management/data/employee-lifecycle-surface-metadata.shared"
+export {
+  closeOffboardingCaseMutation,
+  buildDefaultOffboardingClearanceItems,
+  buildOffboardingApprovalSteps,
+  initiateOffboardingMutation,
+  insertDefaultOffboardingInstance,
+  recordExitInterviewFeedbackMutation,
+  reviewOffboardingApprovalMutation,
+  scheduleExitInterviewMutation,
+  setRehireEligibilityMutation,
+  transitionOffboardingTaskMutation,
+  updateSettlementReadinessMutation,
+  upsertOffboardingClearanceItemMutation,
+} from "./employee-management/offboarding-exit-management/data/offboarding.mutations.server"
+export {
+  buildOffboardingChecklistListSurfaceConfiguration,
+  buildOffboardingDashboardListSurfaceConfiguration,
+} from "./employee-management/offboarding-exit-management/data/offboarding-list-surface.server"
+export { listOpenOffboardingForEmployee } from "./employee-management/offboarding-exit-management/data/offboarding.queries.server"
+export { listOffboardingInstancesForOrgDashboard } from "./employee-management/offboarding-exit-management/data/offboarding-org-dashboard.queries.server"
+export type { OffboardingInstanceRow } from "./employee-management/offboarding-exit-management/data/offboarding.queries.server"
+export type { OffboardingDashboardRow } from "./employee-management/offboarding-exit-management/data/offboarding-org-dashboard.queries.server"
 export { runOffboardingTaskOverdueTick } from "./employee-management/offboarding-exit-management/data/offboarding-overdue-watch.server"
 export type { OffboardingOverdueWatchTickSummary } from "./employee-management/offboarding-exit-management/data/offboarding-overdue-watch.server"
+export { runClaimApprovalOverdueTick } from "./payroll-compensation/expenses-reimbursement/data/claim-overdue-watch.server"
+export type { ClaimOverdueWatchTickSummary } from "./payroll-compensation/expenses-reimbursement/data/claim-overdue-watch.server"
+export { postApprovedClaimToApJournal } from "./payroll-compensation/expenses-reimbursement/data/claim-ap-posting.server"
+export {
+  buildClaimEmployeeEligibilityProjection,
+  resolveClaimEmployeeLegalEntityCode,
+} from "./payroll-compensation/expenses-reimbursement/data/claim-employee-eligibility.server"
 export { resolveOffboardingSurfaceCapabilities } from "./employee-management/offboarding-exit-management/data/offboarding-capabilities.server"
 export type { OffboardingSurfaceCapabilities } from "./employee-management/offboarding-exit-management/data/offboarding-capabilities.shared"
 export { runTrainingExpiryWatchTick } from "./talent-management/training-development/data/training-expiry-watch.server"

@@ -11,8 +11,8 @@ vi.mock("@sentry/nextjs", () => ({
   captureException,
 }))
 
-import type { RouteErrorSegment } from "../../components/use-report-route-error"
-import { useReportRouteError } from "../../components/use-report-route-error"
+import type { RouteErrorSegment } from "../../components2/route-error/use-report-route-error"
+import { useReportRouteError } from "../../components2/route-error/use-report-route-error"
 
 function Probe({
   segment,

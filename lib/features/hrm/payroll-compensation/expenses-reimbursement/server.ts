@@ -7,6 +7,7 @@ export {
   findClaimEmployeeForUser,
   findClaimApproval,
   findOrgDocumentForClaim,
+  findOrgDocumentForClaimEvidence,
   findOrgEmployeeForClaim,
   getClaimDetail,
   getClaimTypeForOrg,
@@ -16,9 +17,11 @@ export {
   listClaimsForOrg,
   listClaimsForOrgPage,
   listClaimTypesForOrg,
+  listPendingClaimApprovalsForActor,
   listPendingClaimApprovalsForOrg,
   listExceptionPendingClaimsForOrg,
   resolveClaimApproverUserId,
+  isClaimAssignedApprover,
   sumClaimsForEmployeeClaimTypeWindow,
 } from "./data/claim.queries.server"
 
@@ -31,6 +34,17 @@ export { buildClaimExceptionListSurfaceConfiguration } from "./data/claim-except
 export { listDuplicateSignalsForClaim } from "./data/claim-duplicate.queries.server"
 export { buildClaimPortalListSurfaceConfiguration } from "./data/claim-portal-list-surface.server"
 export { evaluateClaimSubmission } from "./data/claim-evaluation.server"
+export {
+  buildClaimEmployeeEligibilityProjection,
+  resolveClaimEmployeeLegalEntityCode,
+} from "./data/claim-employee-eligibility.server"
+export { validateClaimEvidenceAttachment } from "./data/claim-evidence-validation.server"
+export { postApprovedClaimToApJournal } from "./data/claim-ap-posting.server"
+export { runClaimApprovalOverdueTick } from "./data/claim-overdue-watch.server"
+export {
+  CLAIM_LIST_READ_PERMISSION,
+  CLAIM_LIST_SURFACE_PRESENTATION,
+} from "./data/claim-list-surface-rows.shared"
 
 export type { ExpenseFundRow } from "./data/expense-fund.queries.server"
 export type { ClaimSubmissionEvaluation } from "./data/claim-evaluation.server"

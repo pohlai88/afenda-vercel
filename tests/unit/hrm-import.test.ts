@@ -353,7 +353,7 @@ describe("hrmImportRollbackJsonSchema", () => {
       blobUrl: "https://example.blob.vercel-storage.com/hrm/imports/org/session/source.csv",
     })
     expect(result.success).toBe(true)
-    if (result.success) {
+    if (result.success && result.data.kind === "hrm_import_v1") {
       expect(result.data.blobUrl).toContain("blob")
       expect(result.data.sourceCsv).toBeUndefined()
     }

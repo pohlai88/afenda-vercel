@@ -1,6 +1,7 @@
 "use client"
 
 import type { Route } from "next"
+import { useLocale } from "next-intl"
 
 import { Link } from "#i18n/navigation"
 
@@ -19,9 +20,13 @@ const BADGE_TONE_CLASS: Record<ListCellTone, string> = {
   default: "bg-muted text-muted-foreground",
 }
 
-function formatCurrency(value: number, currency?: string): string {
+function formatCurrency(
+  value: number,
+  locale: string,
+  currency?: string
+): string {
   try {
-    return new Intl.NumberFormat(undefined, {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: currency ?? "USD",
     }).format(value)
@@ -30,20 +35,20 @@ function formatCurrency(value: number, currency?: string): string {
   }
 }
 
-function formatDate(value: string): string {
+function formatDate(value: string, locale: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) {
     return value
   }
-  return date.toLocaleDateString()
+  return date.toLocaleDateString(locale)
 }
 
-function formatDateTime(value: string): string {
+function formatDateTime(value: string, locale: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) {
     return value
   }
-  return date.toLocaleString()
+  return date.toLocaleString(locale)
 }
 
 export type ListSurfaceCellProps = {
@@ -52,6 +57,7 @@ export type ListSurfaceCellProps = {
 }
 
 export function ListSurfaceCell({ column, row }: ListSurfaceCellProps) {
+  const locale = useLocale()
   const raw = row.cells[column.id]
   const kind = column.cellKind?.kind ?? "text"
   const display =
@@ -92,15 +98,15 @@ export function ListSurfaceCell({ column, row }: ListSurfaceCellProps) {
       column.cellKind?.kind === "currency"
         ? column.cellKind.currency
         : undefined
-    return formatCurrency(raw, currency)
+    return formatCurrency(raw, locale, currency)
   }
 
   if (kind === "date") {
-    return formatDate(display)
+    return formatDate(display, locale)
   }
 
   if (kind === "datetime") {
-    return formatDateTime(display)
+    return formatDateTime(display, locale)
   }
 
   return display

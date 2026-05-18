@@ -4,7 +4,11 @@ import { put } from "@vercel/blob"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { hrmDocument, hrmPayrollProfile } from "#lib/db/schema"
+import {
+  hrmDocument,
+  hrmPayrollPaymentBatch,
+  hrmPayrollProfile,
+} from "#lib/db/schema"
 
 import {
   getPayrollPeriod,
@@ -160,6 +164,22 @@ export async function generatePayrollPaymentBatch(input: {
       uploadedByUserId: input.actorUserId,
     })
     .returning({ id: hrmDocument.id })
+
+  if (inserted[0]?.id) {
+    await db
+      .update(hrmPayrollPaymentBatch)
+      .set({
+        documentId: inserted[0].id,
+        updatedAt: new Date(),
+        updatedByUserId: input.actorUserId,
+      })
+      .where(
+        and(
+          eq(hrmPayrollPaymentBatch.organizationId, input.organizationId),
+          eq(hrmPayrollPaymentBatch.id, batchId)
+        )
+      )
+  }
 
   return {
     batchId,

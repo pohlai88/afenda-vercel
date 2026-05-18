@@ -47,6 +47,10 @@ export type { LegalEntityPayrollConfigRow } from "./data/legal-entity-payroll.qu
 export { listPayComponentTreatmentsForCountry } from "./data/pay-component-treatment.queries.server"
 export type { ResolvedPayComponentTreatment } from "./data/pay-component-treatment.queries.server"
 export { listDefaultPayComponentTreatments } from "./data/pay-component-treatment.defaults.shared"
+export {
+  buildCountryPayrollConfigListSurfaceConfiguration,
+  buildCrossCountryPayrollReportListSurfaceConfiguration,
+} from "./data/multi-country-payroll-list-surface.server"
 export { resolveExchangeRate } from "./data/exchange-rate.queries.server"
 export type { ResolvedExchangeRate } from "./data/exchange-rate.queries.server"
 export { getCrossCountryPayrollReport } from "./data/cross-country-payroll-report.queries.server"

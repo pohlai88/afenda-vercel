@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
+
+vi.mock("next/cache", () => ({
+  cacheLife: vi.fn(),
+}))
 
 import sitemap from "../../app/sitemap"
 import { GET as securityTxtGET } from "../../app/.well-known/security.txt/route"
@@ -46,7 +50,7 @@ describe("public trust routing", () => {
   })
 
   it("serves a machine-readable security.txt for the live disclosure surface", async () => {
-    const response = securityTxtGET()
+    const response = await securityTxtGET()
     const body = await response.text()
     const base = getSiteUrl().replace(/\/$/, "")
 

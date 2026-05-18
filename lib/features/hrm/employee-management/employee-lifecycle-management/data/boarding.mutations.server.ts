@@ -90,7 +90,7 @@ export async function createOffboardingInstanceForTermination(
   input: {
     readonly organizationId: string
     readonly employeeId: string
-    readonly contractId: string
+    readonly contractId: string | null
     readonly startDate: Date
     readonly actorUserId: string
     readonly criteria?: BoardingTemplateCriteria
@@ -333,7 +333,7 @@ async function createBoardingInstanceFromTemplate(
     readonly organizationId: string
     readonly kind: BoardingKind
     readonly employeeId: string
-    readonly contractId: string
+    readonly contractId: string | null
     readonly startDate: Date
     readonly actorUserId: string
     readonly criteria?: BoardingTemplateCriteria

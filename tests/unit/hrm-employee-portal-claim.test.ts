@@ -10,14 +10,20 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("server-only", () => ({}))
 
-vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts", () => ({
-  getEmployeePortalContext: mocks.getEmployeePortalContext,
-}))
+vi.mock(
+  "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts",
+  () => ({
+    getEmployeePortalContext: mocks.getEmployeePortalContext,
+  })
+)
 
-vi.mock("../../lib/features/hrm/payroll-compensation/expenses-reimbursement/data/claim-submission-mutation.server.ts", () => ({
-  submitClaimForEmployee: mocks.submitClaimForEmployee,
-  cancelClaimForPortalEmployee: mocks.cancelClaimForPortalEmployee,
-}))
+vi.mock(
+  "../../lib/features/hrm/payroll-compensation/expenses-reimbursement/data/claim-submission-mutation.server.ts",
+  () => ({
+    submitClaimForEmployee: mocks.submitClaimForEmployee,
+    cancelClaimForPortalEmployee: mocks.cancelClaimForPortalEmployee,
+  })
+)
 
 import {
   cancelPortalEmployeeClaimAction,
@@ -82,6 +88,7 @@ describe("employee portal claim actions", () => {
         employeeId: "emp-1",
         userId: "user-1",
         submissionMode: "self_service",
+        employeePortalAudit: true,
       })
     )
   })

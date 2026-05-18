@@ -51,6 +51,8 @@ export type PayrollCloseTotals = {
   readonly employerContributions: string
   readonly taxDeductions: string
   readonly claimSettlements: string
+  /** Approved AP claims in the period (accrual posted; treasury unpaid). */
+  readonly apClaimAccruals: string
   readonly advanceSettlements: string
 }
 
@@ -408,6 +410,54 @@ export function classifyPayrollCloseExceptions(
   }
 
   return exceptions
+}
+
+export function applyApClaimAccrualsToPostingPreview(input: {
+  readonly preview: PayrollPostingPreview
+  readonly apClaimAccrualTotal: string
+}): PayrollPostingPreview {
+  const cents = payrollDecimalToCents(input.apClaimAccrualTotal)
+  if (cents === 0) return input.preview
+
+  const amount = payrollCentsToDecimal(cents)
+  const extraLines: PayrollPostingPreviewLine[] = [
+    {
+      id: "ap-claim-expense",
+      accountCode: "hrm.claims_expense",
+      accountName: "Employee reimbursement expense (AP accrual)",
+      side: "debit",
+      amount,
+      source: "ap_claim_accruals",
+    },
+    {
+      id: "ap-claim-payable",
+      accountCode: "ap.employee_reimbursements",
+      accountName: "Employee reimbursements payable",
+      side: "credit",
+      amount,
+      source: "ap_claim_accruals",
+    },
+  ]
+
+  const lines = [...input.preview.lines, ...extraLines]
+  const totalDebits = payrollCentsToDecimal(
+    payrollDecimalToCents(input.preview.totalDebits) + cents
+  )
+  const totalCredits = payrollCentsToDecimal(
+    payrollDecimalToCents(input.preview.totalCredits) + cents
+  )
+
+  return {
+    ...input.preview,
+    lines,
+    totalDebits,
+    totalCredits,
+    netBalance: payrollCentsToDecimal(
+      payrollDecimalToCents(totalDebits) - payrollDecimalToCents(totalCredits)
+    ),
+    isBalanced:
+      payrollDecimalToCents(totalDebits) === payrollDecimalToCents(totalCredits),
+  }
 }
 
 export function buildPayrollPostingPreviewFromInputs(

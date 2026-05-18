@@ -1,16 +1,16 @@
 import { getTranslations } from "next-intl/server"
 
-import { Badge } from "#components2/ui/badge"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
+  GovernedEmpty,
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
 import { requireOrgSession } from "#lib/auth"
 
+import {
+  buildLeaveBalanceListSurfaceConfiguration,
+  buildLeaveMyHistoryListSurfaceConfiguration,
+} from "../data/leave-list-surface.server"
 import {
   findLeaveEmployeeForUser,
   listLeaveBalancesForEmployee,
@@ -35,9 +35,12 @@ export async function LeaveMyPanel({ leaveTypes }: LeaveMyPanelProps) {
 
   if (!employee) {
     return (
-      <p className="text-sm text-muted-foreground">
-        {t("selfServiceNoEmployee")}
-      </p>
+      <GovernedEmpty
+        model={{
+          variant: "muted",
+          title: t("selfServiceNoEmployee"),
+        }}
+      />
     )
   }
 
@@ -50,117 +53,90 @@ export async function LeaveMyPanel({ leaveTypes }: LeaveMyPanelProps) {
     listLeaveRequestsForEmployee(session.organizationId, employee.id),
   ])
 
+  const stateLabelFor = (state: string) =>
+    t(`state.${state}` as "state.draft")
+
+  const balanceConfiguration = buildLeaveBalanceListSurfaceConfiguration(
+    balances,
+    {
+      empty: t("myBalancesEmpty"),
+      colLeaveType: t("colLeaveType"),
+      colEntitled: t("colEntitled"),
+      colTaken: t("colTaken"),
+      colPending: t("colPending"),
+      colAvailable: t("colAvailable"),
+    }
+  )
+
+  const historyRows = requests.slice(0, 10)
+  const historyConfiguration = buildLeaveMyHistoryListSurfaceConfiguration(
+    historyRows,
+    {
+      empty: t("myHistoryEmpty"),
+      colLeaveType: t("colLeaveType"),
+      colDates: t("colDates"),
+      colDuration: t("colDuration"),
+      colState: t("colState"),
+      stateLabelFor,
+    }
+  )
+
+  const requestById = new Map(historyRows.map((row) => [row.id, row]))
+
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="flex flex-col gap-5">
         <section className="flex flex-col gap-3">
-          <h3 className="text-sm font-medium">{t("myBalancesTitle")}</h3>
-          {balances.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("myBalancesEmpty")}
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("colLeaveType")}</TableHead>
-                  <TableHead>{t("colEntitled")}</TableHead>
-                  <TableHead>{t("colTaken")}</TableHead>
-                  <TableHead>{t("colPending")}</TableHead>
-                  <TableHead>{t("colAvailable")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {balances.map((balance) => {
-                  const available =
-                    Number(balance.openingDays) +
-                    Number(balance.daysEntitled) +
-                    Number(balance.adjustedDays) +
-                    Number(balance.carriedForwardDays) -
-                    Number(balance.daysTaken) -
-                    Number(balance.daysPending)
-                  return (
-                    <TableRow key={balance.id}>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {balance.leaveTypeCode ?? balance.leaveTypeId}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatDays(balance.daysEntitled)}</TableCell>
-                      <TableCell>{formatDays(balance.daysTaken)}</TableCell>
-                      <TableCell>{formatDays(balance.daysPending)}</TableCell>
-                      <TableCell>{formatDays(available)}</TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          )}
+          <h3 className="text-label-small font-medium">{t("myBalancesTitle")}</h3>
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={balanceConfiguration}
+            surfaceKey="hrm:leave:my-balances"
+          />
         </section>
 
         <section className="flex flex-col gap-3">
-          <h3 className="text-sm font-medium">{t("myHistoryTitle")}</h3>
-          {requests.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("myHistoryEmpty")}
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("colLeaveType")}</TableHead>
-                  <TableHead>{t("colDates")}</TableHead>
-                  <TableHead>{t("colDuration")}</TableHead>
-                  <TableHead>{t("colState")}</TableHead>
-                  <TableHead className="text-right">
-                    {t("colActions")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {requests.slice(0, 10).map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {request.leaveTypeCode ?? request.leaveTypeId}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {request.startDate === request.endDate
-                        ? request.startDate
-                        : `${request.startDate} -> ${request.endDate}`}
-                    </TableCell>
-                    <TableCell>{formatDays(request.durationDays)}</TableCell>
-                    <TableCell>{t(`state.${request.state}`)}</TableCell>
-                    <TableCell className="text-right">
-                      {request.state === "submitted" ? (
-                        <LeaveCancelButton requestId={request.id} />
-                      ) : null}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <h3 className="text-label-small font-medium">{t("myHistoryTitle")}</h3>
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={historyConfiguration}
+            surfaceKey="hrm:leave:my-history"
+            trailingColumn={{
+              header: t("colActions"),
+              render: (surfaceRow) => {
+                const request = requestById.get(surfaceRow.id)
+                if (
+                  !request ||
+                  !isListSurfaceTrailingActionRenderable(
+                    surfaceRow.trailingAction
+                  )
+                ) {
+                  return null
+                }
+                return <LeaveCancelButton requestId={request.id} />
+              },
+            }}
+          />
         </section>
       </div>
 
       <section className="flex flex-col gap-3">
-        <h3 className="text-sm font-medium">{t("requestLeaveTitle")}</h3>
+        <h3 className="text-label-small font-medium">
+          {t("requestLeaveTitle")}
+        </h3>
         {leaveTypes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {t("requestLeaveNoTypes")}
-          </p>
+          <GovernedEmpty
+            model={{
+              variant: "muted",
+              title: t("requestLeaveNoTypes"),
+            }}
+          />
         ) : (
           <LeaveOwnRequestForm leaveTypes={leaveTypes} />
         )}
       </section>
     </div>
   )
-}
-
-function formatDays(value: number | string): string {
-  const days = Number(value)
-  if (Number.isNaN(days)) return "-"
-  return Number.isInteger(days) ? String(days) : days.toFixed(2)
 }

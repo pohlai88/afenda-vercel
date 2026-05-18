@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { buildGroundedTruthQuestion } from "../../components/nexus/nexus-lynx-grounded-truth-question.shared"
+import { buildGroundedTruthQuestion } from "../../components2/nexus/nexus-lynx-grounded-truth-question.shared"
 
 describe("buildGroundedTruthQuestion", () => {
   it("returns null when grounding is null", () => {

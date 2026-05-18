@@ -4,8 +4,14 @@
  * Status: `shipped` | `partial` | `missing`
  */
 export const HRM_COMPENSATION_PLANNING_SPEC_MAP = {
-  compensationCyclePlanning: { status: "missing", codes: ["HRM-CPM-001", "HRM-CPM-002"] },
-  budgetPoolManagement: { status: "missing", codes: ["HRM-CPM-003", "HRM-CPM-018", "HRM-CPM-019"] },
+  compensationCyclePlanning: {
+    status: "missing",
+    codes: ["HRM-CPM-001", "HRM-CPM-002"],
+  },
+  budgetPoolManagement: {
+    status: "missing",
+    codes: ["HRM-CPM-003", "HRM-CPM-018", "HRM-CPM-019"],
+  },
   meritIncreasePlanning: { status: "missing", codes: ["HRM-CPM-008"] },
   salaryAdjustmentModeling: {
     status: "partial",
@@ -19,7 +25,10 @@ export const HRM_COMPENSATION_PLANNING_SPEC_MAP = {
     note: "ADR-0015 allowance catalog in this folder; no scenario rollup",
   },
   compensationScenarioModeling: { status: "missing", codes: ["HRM-CPM-015"] },
-  compensationEligibility: { status: "missing", codes: ["HRM-CPM-004", "HRM-CPM-005"] },
+  compensationEligibility: {
+    status: "missing",
+    codes: ["HRM-CPM-004", "HRM-CPM-005"],
+  },
   salaryStructureReference: {
     status: "partial",
     codes: ["HRM-CPM-007", "HRM-CPM-016", "HRM-CPM-017"],
@@ -43,3 +52,17 @@ export const HRM_COMPENSATION_PLANNING_SPEC_MAP = {
     note: "HRM_COMPENSATION_PLANNING_AUDIT reserved; contract revision uses erp.hrm.contract.*",
   },
 } as const
+
+export type HrmCompensationPlanningSpecArea =
+  keyof typeof HRM_COMPENSATION_PLANNING_SPEC_MAP
+
+/** All HRM-CPM codes referenced in the spec map. */
+export function listHrmCompensationPlanningSpecCodes(): string[] {
+  const codes = new Set<string>()
+  for (const area of Object.values(HRM_COMPENSATION_PLANNING_SPEC_MAP)) {
+    for (const code of area.codes) {
+      codes.add(code)
+    }
+  }
+  return [...codes].sort()
+}

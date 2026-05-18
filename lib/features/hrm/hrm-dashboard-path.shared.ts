@@ -16,6 +16,7 @@ export const HRM_DASHBOARD_CAPABILITY_SEGMENTS = [
   "kpi",
   "leave",
   "onboarding",
+  "offboarding",
   "organization",
   "payroll",
   "performance",

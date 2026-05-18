@@ -8,15 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
 
+import { buildAttendancePortalDaysListSurfaceConfiguration } from "../../../time-attendance/leave-attendance-management/data/attendance-list-surface.server"
 import {
   listAttendanceDaysForEmployee,
   listAttendanceEventsForDate,
@@ -25,6 +18,7 @@ import { requireEmployeePortalContext } from "../data/employee-portal-access.ser
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
 import { EmployeePortalAttendanceCorrectionForm } from "./employee-portal-attendance-correction-form.client"
+import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalAttendancePageProps = {
@@ -83,6 +77,21 @@ export async function EmployeePortalAttendancePage({
 
   const recentEvents = eventLists.flat()
 
+  const daysConfiguration = buildAttendancePortalDaysListSurfaceConfiguration(
+    days.map((row) => ({
+      id: row.id,
+      date: row.attendanceDate,
+      workedMinutes: String(row.workedMinutes ?? 0),
+      state: row.state,
+    })),
+    {
+      empty: t("daysEmpty"),
+      colDate: t("colDate"),
+      colWorked: t("colWorked"),
+      colState: t("colState"),
+    }
+  )
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <header className="flex flex-col gap-2">
@@ -115,30 +124,10 @@ export async function EmployeePortalAttendancePage({
             <CardDescription>{t("portalPageDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            {days.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("daysEmpty")}</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("colDate")}</TableHead>
-                    <TableHead>{t("colWorked")}</TableHead>
-                    <TableHead>{t("colState")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {days.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>{row.attendanceDate}</TableCell>
-                      <TableCell>{String(row.workedMinutes ?? 0)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{row.state}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+            <EmployeePortalGovernedTable
+              configuration={daysConfiguration}
+              surfaceKey="hrm:portal:attendance-days"
+            />
           </CardContent>
         </Card>
 

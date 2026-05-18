@@ -15,6 +15,7 @@ import {
   canAcknowledgeReviewStage,
   canCancelReviewRowStage,
   canSubmitReviewStageTransition,
+  performanceReviewRowHasTrailingUi,
 } from "../data/performance-review.shared"
 import { HRM_REVIEW_ROW_STATE } from "../schemas/performance.schema"
 
@@ -32,6 +33,12 @@ export function PerformanceReviewRowActions({
   canUpdate,
 }: PerformanceReviewRowActionsProps) {
   const t = useTranslations("Dashboard.Hrm.performance")
+
+  if (
+    !performanceReviewRowHasTrailingUi(review, { canUpdate, viewerUserId })
+  ) {
+    return null
+  }
 
   const showSubmit =
     review.cycleState === "active" &&
@@ -54,10 +61,6 @@ export function PerformanceReviewRowActions({
     review.cycleState === "active" &&
     canCancelReviewRowStage(review.state) &&
     canUpdate
-
-  if (!showSubmit && !showAcknowledge && !showCancel) {
-    return null
-  }
 
   return (
     <div className="inline-flex flex-col items-end gap-2">
@@ -112,3 +115,4 @@ export function PerformanceReviewRowActions({
     </div>
   )
 }
+

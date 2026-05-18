@@ -169,12 +169,17 @@ export async function canEmployeePortalAccessDocument(input: {
       and(
         eq(hrmDocument.organizationId, input.organizationId),
         eq(hrmDocument.employeeId, input.employeeId),
-        eq(hrmDocument.id, input.documentId)
+        eq(hrmDocument.id, input.documentId),
+        eq(hrmDocument.isLatestVersion, true),
+        or(
+          eq(hrmDocument.documentLifecycleStatus, "active"),
+          eq(hrmDocument.documentLifecycleStatus, "archived")
+        )
       )
     )
     .limit(1)
 
-  if (!document || document.documentLifecycleStatus === "deleted") {
+  if (!document) {
     return { ok: false, reason: "not_found" }
   }
 

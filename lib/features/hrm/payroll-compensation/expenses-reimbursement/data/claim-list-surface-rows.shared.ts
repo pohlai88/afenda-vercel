@@ -3,6 +3,17 @@ import type { ListSurfaceRow } from "#features/governed-surface"
 import { resolveClaimDisplayState } from "./claim-state.shared"
 import type { ClaimRow } from "./claim.queries.server"
 
+export const CLAIM_LIST_READ_PERMISSION = {
+  module: "hrm" as const,
+  object: "claim" as const,
+  function: "read" as const,
+}
+
+export const CLAIM_LIST_SURFACE_PRESENTATION = {
+  variant: "table-only" as const,
+  tableDensity: "compact" as const,
+}
+
 export type ClaimListStateLabels = Readonly<Record<string, string>>
 
 export function resolveClaimStateLabel(
@@ -13,8 +24,7 @@ export function resolveClaimStateLabel(
     state: row.state,
     hasPendingApproval: Boolean(row.currentApprovalId),
   })
-  const stateKey =
-    displayState === "under_review" ? "under_review" : row.state
+  const stateKey = displayState === "under_review" ? "under_review" : row.state
   return stateLabels[stateKey] ?? stateKey
 }
 
@@ -32,8 +42,8 @@ export function mapClaimRowToListSurfaceRow(input: {
     amount: `${input.row.amount} ${input.row.currency}`,
     state: resolveClaimStateLabel(input.row, input.stateLabels),
     submitted: input.row.submittedAt
-      ? input.row.submittedAt.toLocaleString()
-      : input.row.createdAt.toLocaleString(),
+      ? input.row.submittedAt.toISOString()
+      : input.row.createdAt.toISOString(),
     evidence: input.formatEvidenceCount(input.row.evidenceCount),
   }
 
@@ -43,7 +53,9 @@ export function mapClaimRowToListSurfaceRow(input: {
 
   return {
     id: input.row.id,
-    ...(input.rowHref ? { rowHref: input.rowHref, linkColumnId: input.linkColumnId } : {}),
+    ...(input.rowHref
+      ? { rowHref: input.rowHref, linkColumnId: input.linkColumnId }
+      : {}),
     cells,
   }
 }

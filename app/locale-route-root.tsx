@@ -4,6 +4,7 @@ import { getMessages, setRequestLocale } from "next-intl/server"
 import { notFound } from "next/navigation"
 
 import { LocaleRouteDevGate } from "#components2/dev/locale-route-dev-gate.client"
+import { HtmlLangSync } from "#components2/html-lang-sync.client"
 import { RouteEnvelopeProvider } from "#components2/route-envelope-context.client"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
@@ -44,6 +45,7 @@ async function LocaleRouteRootInner({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <RouteEnvelopeProvider value={envelope}>
+        <HtmlLangSync locale={locale} />
         {children}
         <LocaleRouteDevGate />
       </RouteEnvelopeProvider>

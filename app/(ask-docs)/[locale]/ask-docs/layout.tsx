@@ -3,7 +3,11 @@ import type { ReactNode } from "react"
 import { DocsLayout } from "fumadocs-ui/layouts/notebook"
 import { RootProvider } from "fumadocs-ui/provider/next"
 
-import { AISearch, AISearchPanel, AISearchTrigger } from "#components2/ai/search"
+import {
+  AISearch,
+  AISearchPanel,
+  AISearchTrigger,
+} from "#components2/ai/search"
 import { DocsNavBrandLockup } from "#components2/docs-nav-brand-lockup"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { askDocsUI } from "#lib/ask-docs/ui-i18n.shared"

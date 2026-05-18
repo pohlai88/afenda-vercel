@@ -61,6 +61,7 @@ function listFiles(root: string): string[] {
 describe("portal foundation contract", () => {
   it("defines the supported audience registry", () => {
     expect(PORTAL_AUDIENCES).toEqual([
+      "candidate",
       "employee",
       "supplier",
       "customer",
@@ -307,10 +308,17 @@ describe("portal foundation contract", () => {
     const routeSource = [
       "layout.tsx",
       "page.tsx",
-      join("employee", "page.tsx"),
-      join("employee", "leave", "page.tsx"),
-      join("employee", "payslips", "page.tsx"),
-      join("employee", "payslips", "[documentId]", "page.tsx"),
+      join("(portal-auth)", "employee", "page.tsx"),
+      join("(portal-auth)", "employee", "leave", "page.tsx"),
+      join("(portal-auth)", "employee", "payslips", "page.tsx"),
+      join(
+        "(portal-auth)",
+        "employee",
+        "payslips",
+        "[documentId]",
+        "page.tsx"
+      ),
+      join("(portal-public)", "candidate", "page.tsx"),
     ]
       .map((file) => readFileSync(join(routeRoot, file), "utf8"))
       .join("\n")

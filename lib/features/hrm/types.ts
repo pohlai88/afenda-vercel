@@ -7,6 +7,7 @@ export type HrmCapabilityId =
   | "workforce"
   | "organization"
   | "onboarding"
+  | "offboarding"
   | "recruitment"
   | "leave"
   | "attendance"
@@ -690,7 +691,9 @@ export type PayrollPeriodCreateFormState =
         form?: string
         periodStart?: string
         periodEnd?: string
+        cutoffDate?: string
         paymentDate?: string
+        payrollGroupCode?: string
         currency?: string
       }
     }
@@ -703,7 +706,9 @@ export type PayrollPeriodUpdateFormState =
         form?: string
         periodStart?: string
         periodEnd?: string
+        cutoffDate?: string
         paymentDate?: string
+        payrollGroupCode?: string
         currency?: string
       }
     }
@@ -779,6 +784,8 @@ export type SubmitClaimFormState =
         claimDate?: string
         amount?: string
         currency?: string
+        expenseFundId?: string
+        duplicateOverrideReason?: string
       }
     }
 
@@ -796,8 +803,10 @@ export type ClaimApprovalFormState =
       errors: {
         form?: string
         claimId?: string
+        approvedAmount?: string
         rejectedReason?: string
         returnedReason?: string
+        overrideReason?: string
       }
     }
 

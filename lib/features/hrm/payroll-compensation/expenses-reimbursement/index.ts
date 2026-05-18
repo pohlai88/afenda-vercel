@@ -7,7 +7,9 @@ export {
   attachClaimEvidenceFormSchema,
   cancelClaimFormSchema,
   claimApprovalDecisionSchema,
+  claimDuplicateOverrideSchema,
   claimRejectDecisionSchema,
+  claimReturnDecisionSchema,
   requestOwnClaimFormSchema,
   submitClaimFormSchema,
 } from "./schema/claim.schema"
@@ -16,7 +18,9 @@ export type {
   AttachClaimEvidenceFormValues,
   CancelClaimFormValues,
   ClaimApprovalDecisionValues,
+  ClaimDuplicateOverrideValues,
   ClaimRejectDecisionValues,
+  ClaimReturnDecisionValues,
   RequestOwnClaimFormValues,
   SubmitClaimFormValues,
 } from "./schema/claim.schema"
@@ -47,6 +51,24 @@ export type {
   ClaimStateValue,
   PerClaimLimitOutcome,
 } from "./data/claim-helpers.shared"
+
+export {
+  CLAIM_LIST_READ_PERMISSION,
+  CLAIM_LIST_SURFACE_PRESENTATION,
+  resolveClaimStateLabel,
+} from "./data/claim-list-surface-rows.shared"
+
+export {
+  toClaimSubmitClaimTypeOptions,
+  toClaimSubmitEmployeeOptions,
+  toClaimSubmitExpenseFundOptions,
+} from "./data/claim-form-options.shared"
+
+export type {
+  ClaimSubmitClaimTypeOption,
+  ClaimSubmitEmployeeOption,
+  ClaimSubmitExpenseFundOption,
+} from "./data/claim-form-options.shared"
 
 export { ClaimDetailPage } from "./components/claim-detail-page"
 export { ClaimsPage } from "./components/claims-page"

@@ -30,7 +30,6 @@ import {
   type HrmProbationOutcome,
   HRM_EMPLOYMENT_STATUSES,
 } from "./employee-lifecycle-stage.shared"
-import { createOffboardingInstanceForTermination } from "./boarding.mutations.server"
 import { HRM_EMPLOYEE_LIFECYCLE_AUDIT } from "../employee-lifecycle.contract"
 
 export type HrmLifecycleDbExecutor = Parameters<
@@ -63,9 +62,7 @@ function parseEmploymentStatus(value: string): HrmEmploymentStatus {
   throw new Error(`Unknown employment status: ${value}`)
 }
 
-function isContractExpiryTerminalStatus(
-  status: HrmEmploymentStatus
-): boolean {
+function isContractExpiryTerminalStatus(status: HrmEmploymentStatus): boolean {
   return (
     status === "offboarding" ||
     status === "separated" ||
@@ -226,7 +223,9 @@ function lifecycleEventKindForStatus(
   }
 }
 
-function canonicalWriteStatus(status: HrmEmploymentStatus): HrmEmploymentStatus {
+function canonicalWriteStatus(
+  status: HrmEmploymentStatus
+): HrmEmploymentStatus {
   return status === "terminated" ? "separated" : status
 }
 
@@ -263,8 +262,9 @@ function deserializeEmployeePatch(
         "retirementDate",
       ].includes(key)
     ) {
-      parsed[key as keyof EmployeeLifecyclePatch] =
-        isoDateOnlyToUtcDate(value) as never
+      parsed[key as keyof EmployeeLifecyclePatch] = isoDateOnlyToUtcDate(
+        value
+      ) as never
     } else {
       parsed[key as keyof EmployeeLifecyclePatch] = value as never
     }
@@ -326,17 +326,7 @@ async function ensureLifecycleOffboardingTriggered(
     employeeId: input.employee.id,
     terminationDate: input.effectiveDate,
     createdByUserId: input.actorUserId,
-  })
-
-  const contractId = input.contractId ?? input.employee.currentEmploymentContractId
-  if (!contractId) return
-
-  await createOffboardingInstanceForTermination(tx, {
-    organizationId: input.organizationId,
-    employeeId: input.employee.id,
-    contractId,
-    startDate: input.effectiveDate,
-    actorUserId: input.actorUserId,
+    contractId: input.contractId ?? input.employee.currentEmploymentContractId,
   })
 }
 
@@ -557,7 +547,10 @@ export async function triggerContractExpiryLifecycleTransition(input: {
     assertEmployeeEligibleForLifecycle(employee)
 
     const currentStatus = parseEmploymentStatus(employee.employmentStatus)
-    if (currentStatus === "offboarding" || isContractExpiryTerminalStatus(currentStatus)) {
+    if (
+      currentStatus === "offboarding" ||
+      isContractExpiryTerminalStatus(currentStatus)
+    ) {
       return "skipped"
     }
 
@@ -580,7 +573,10 @@ export async function triggerContractExpiryLifecycleTransition(input: {
         },
       })
     } catch (err) {
-      if (err instanceof Error && err.message.includes("Invalid employment status")) {
+      if (
+        err instanceof Error &&
+        err.message.includes("Invalid employment status")
+      ) {
         return "skipped"
       }
       throw err
@@ -1267,7 +1263,10 @@ export async function applyPendingLifecycleTransition(input: {
     if (!row || row.status !== "pending") return "skipped"
 
     try {
-      const lifecycleEventId = await applyPendingLifecycleTransitionInTx(tx, row)
+      const lifecycleEventId = await applyPendingLifecycleTransitionInTx(
+        tx,
+        row
+      )
       await insertLifecycleEvent(tx, {
         organizationId: row.organizationId,
         employeeId: row.employeeId,
@@ -1296,15 +1295,48 @@ export async function applyPendingLifecycleTransition(input: {
         .where(eq(hrmLifecycleTransition.id, row.id))
       return "applied"
     } catch (err) {
+      const failureReason = err instanceof Error ? err.message : "Unknown error"
       await tx
         .update(hrmLifecycleTransition)
         .set({
           status: "failed" satisfies HrmLifecycleTransitionStatus,
-          failureReason: err instanceof Error ? err.message : "Unknown error",
+          failureReason,
           updatedAt: new Date(),
           updatedByUserId: row.actorUserId,
         })
         .where(eq(hrmLifecycleTransition.id, row.id))
+      await insertLifecycleEvent(tx, {
+        organizationId: row.organizationId,
+        employeeId: row.employeeId,
+        kind: "transition_failed",
+        previousStatus: row.fromStatus,
+        newStatus: row.toStatus,
+        effectiveDate: row.effectiveDate,
+        reason: row.reason,
+        approvalReference: row.approvalReference,
+        metadata: {
+          transitionId: row.id,
+          transitionKind: row.transitionKind,
+          failureReason,
+        },
+        actorUserId: row.actorUserId ?? "system",
+      })
+      await writeIamAuditEvent({
+        action: HRM_EMPLOYEE_LIFECYCLE_AUDIT.transition.failed,
+        organizationId: row.organizationId,
+        actorUserId: row.actorUserId,
+        actorSessionId: null,
+        resourceType: "hrm_lifecycle_transition",
+        resourceId: row.id,
+        metadata: {
+          employeeId: row.employeeId,
+          transitionKind: row.transitionKind,
+          fromStatus: row.fromStatus,
+          toStatus: row.toStatus,
+          effectiveDate: formatUtcDateOnly(row.effectiveDate),
+          failureReason,
+        },
+      })
       return "failed"
     }
   })

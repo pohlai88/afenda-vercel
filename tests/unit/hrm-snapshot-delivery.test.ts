@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { shouldRunHrmSnapshotDelivery } from "../../lib/features/hrm/hrm-snapshot-delivery.shared.ts"
+import { shouldRunHrmSnapshotDelivery } from "../../lib/features/hrm/_internal-cross-cutting/hrm-snapshot-delivery.shared.ts"
 import { isInstallmentDueOnOrBefore } from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/salary-advance-installment.shared.ts"
 
 describe("hrm snapshot delivery schedule", () => {

@@ -71,7 +71,7 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Jump to topic                  | [Contents](#contents)                                                                                                                                                                                                                                                                             |
 | App shell (post-login)         | **`#app-shell`** (`components2/app-shell/`) — `AppShell` slot API (`utilityBar`, `rail`, `command`, `overlay`, `envelope`). Client chrome: **`#app-shell/client`**. Providers `components2/providers/`; stores `components2/stores/`. Rules: `shell-directory.mdc`, `components2-directory.mdc`, `never-restore-deleted-components.mdc` |
-| Metadata renderers             | `#components2` (narrow: dispatcher only) · `#components2/metadata` · `#components2/ui` (named imports) · `pnpm gen governed-renderer` · `pnpm lint:components2-renderers` · **ADR-0026** (canonical; ADR-0011/0021/0025 historical) · Pattern C: `GovernedListSurfaceWithTrailingColumn` |
+| Metadata renderers             | `#components2/metadata` · `#features/governed-surface` (`GovernedPatternCListSection`, `GovernedSurfaceSectionCard`) · `pnpm gen governed-renderer` · **ADR-0026** · section score: `docs/architecture/governed-section-composition-score.md` · dev: `/dev/pattern-c-section-gallery` |
 | Nexus (org root)               | `app/[locale]/o/[orgSlug]/nexus/` · `#features/nexus` · redirected from `/{locale}/o/{orgSlug}`. See §5                                                                                                                                                                                           |
 | ERP feature                    | `lib/features/<module>/` · `#features/<module>` only · no deep imports · see §6                                                                                                                                                                                                                   |
 | Orbit / Planner                | `lib/features/planner/` · product name Orbit · see ADR-0006 · rule `.cursor/rules/planner-directory.mdc`                                                                                                                                                                                          |
@@ -977,20 +977,41 @@ May contain only `components/` (under `lib/features/governed-surface/`), `schema
 
 ### Metadata rollout playbook (ADR-0026)
 
-Maturity score and gate: [`docs/architecture/metadata-maturity-score.md`](docs/architecture/metadata-maturity-score.md) (target **≥ 90** before mass ERP default).
+**Platform maturity:** [`docs/architecture/metadata-maturity-score.md`](docs/architecture/metadata-maturity-score.md) (target **≥ 90** before mass ERP default).
 
-| Pattern | Use when | Import |
+**Section composition (Pattern C blocks):** [`docs/architecture/governed-section-composition-score.md`](docs/architecture/governed-section-composition-score.md) (target **≥ 9.4/10** per section).
+
+| Pattern | Use when | Import / primitive |
 | --- | --- | --- |
-| **A** | Page chrome + bespoke forms | `GovernedSurface` from `#features/governed-surface` |
-| **B** | Tables, KPI grids, audit lists | `GovernedComponentRenderer` from `#components2/metadata` |
-| **C** | Pattern B + non-serializable row actions | `GovernedListSurfaceWithTrailingColumn` from `#components2/metadata` |
+| **A** | Page chrome + bespoke forms | `GovernedSurface`, `ModulePageHeader`, `GovernedSection` from `#features/governed-surface` |
+| **B** | Serializable list/KPI via full renderer tree | `GovernedComponentRenderer` from `#components2/metadata` + manual section `Card` when header actions needed (contacts ceiling) |
+| **C** | Pattern B list + trailing forms/actions | `GovernedPatternCListSection` from `#features/governed-surface`; trailing UI: `GovernedTrailingActionSlot` from `#features/governed-surface/client` |
 
 **Recipe (Pattern B):**
 
-1. Add `lib/features/<module>/data/*-surface-builders.server.ts` (`server-only`) returning `ListSurfaceRendererConfiguration`.
-2. Page: `Promise.all` for session, translations, queries, `resolveGovernedErpPermissionAllowed` when `requiresErpPermission` is set.
-3. Render `GovernedComponentRenderer` with `type` / `serverType` / `configuration` envelope.
-4. Optional: set `requiresErpPermission: { module, object, function }` on configuration; gate with `#features/governed-surface/server`.
+1. Add `lib/features/<module>/data/*-surface-builders.server.ts` (`server-only`) returning `ListSurfaceRendererConfigurationInput`.
+2. Page: `Promise.all` for session, translations, queries; `resolveGovernedErpPermissionAllowed` when `requiresErpPermission` is set (`#features/governed-surface/server`).
+3. `Card` + optional `CardAction` → `GovernedComponentRenderer` with `surfaceKey`, `type: "governed:list-surface"`, `configuration`.
+4. Forbidden list: `GovernedEmpty` `variant: "forbidden"` — not bare `<p>`.
+
+**Recipe (Pattern C):**
+
+1. Builder in `data/*-list-surface.server.ts`: `requiresErpPermission`, `surface.empty`, per-row `trailingAction` when actions are gated.
+2. Thin RSC section → `GovernedPatternCListSection` (`listConfiguration`, `surfaceKey`, `title`, `description`).
+3. `trailingColumn.render` + `GovernedTrailingActionSlot` + domain form component.
+4. `loadError` for query failures; `layout="embedded"` when parent `Card` already owns the header.
+5. `parentAccessAllowed` / `resolveConfiguredPermission` when the page already resolved ERP read (see claim inboxes).
+
+**Pattern C checklist:**
+
+- [ ] Builder is `server-only`; no parse/render in `app/`
+- [ ] `requiresErpPermission` on configuration when the list is ERP-gated
+- [ ] `surfaceKey` stable and unique (e.g. `hrm:onboarding:contracts`)
+- [ ] Row `trailingAction` metadata when trailing controls exist
+- [ ] No early empty `return` with a duplicate hand-rolled `Card`
+- [ ] No `parseListSurfaceRendererConfiguration` + manual `Card` fork in the feature section
+- [ ] `data-testid="governed-list-section:{surfaceKey}"` on production routes (smoke via Playwright)
+- [ ] Invalid config uses module or `Dashboard.GovernedSurface.invalidConfig*` copy — not empty-state titles
 
 **New renderer:**
 
@@ -1000,9 +1021,9 @@ pnpm lint:components2-renderers && pnpm lint:renderer-contracts
 pnpm lint:renderer-container-queries && pnpm lint:renderer-skeleton-parity && pnpm lint:renderer-fixtures
 ```
 
-**Forbidden:** deep `list-surface-table` imports from feature modules (use Pattern C wrapper).
+**Forbidden:** deep `list-surface-table` imports from feature modules; Pattern C empty fork via `GovernedComponentRenderer` in feature code.
 
-**Dev gallery:** `/{locale}/dev/metadata-renderer-gallery` — width presets, operator diagnostics, editable fixture JSON (development only).
+**Dev galleries:** `/{locale}/dev/metadata-renderer-gallery` (renderers) · `/{locale}/dev/pattern-c-section-gallery` (Pattern C section states).
 
 ---
 

@@ -19,7 +19,6 @@ import {
 import { isoDateOnlyToUtcDate } from "../../../_module-governance/hrm-calendar-dates.server"
 import { organizationHrmEmployeePath } from "../../../constants"
 import { terminateBenefitEnrollmentsForEmploymentEnd } from "../../../payroll-compensation/benefits-administration/data/benefit-employment-bridge.server"
-import { createOffboardingInstanceForTermination } from "../../employee-lifecycle-management/data/boarding.mutations.server"
 import { insertDefaultOffboardingInstance } from "../../offboarding-exit-management/data/offboarding.mutations.server"
 import { assertOptionalHrmPlacementFkBelongsToOrg } from "../../../_internal-cross-cutting/hrm-org-fk.server"
 import { updateEmployeeCoreFieldsWithHistory } from "../data/employee-core-update.mutations.server"
@@ -456,17 +455,8 @@ export async function archiveEmployeeAction(
         employeeId: parsed.data.employeeId,
         terminationDate: archivedAt,
         createdByUserId: userId,
+        contractId: existing.currentEmploymentContractId,
       })
-
-      if (existing.currentEmploymentContractId) {
-        await createOffboardingInstanceForTermination(tx, {
-          organizationId,
-          employeeId: parsed.data.employeeId,
-          contractId: existing.currentEmploymentContractId,
-          startDate: archivedAt,
-          actorUserId: userId,
-        })
-      }
     })
   } catch (err) {
     logUnexpectedServerError("archiveEmployeeAction", err, {

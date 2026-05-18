@@ -8,23 +8,21 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
+import { GovernedEmpty } from "#features/governed-surface"
 
-import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
-import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
+import {
+  buildLeaveBalanceListSurfaceConfiguration,
+  buildLeaveMyHistoryListSurfaceConfiguration,
+} from "../../../time-attendance/leave-attendance-management/data/leave-list-surface.server"
 import {
   listActiveLeaveTypesForOrg,
   listLeaveBalancesForEmployee,
   listLeaveRequestsForEmployee,
 } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
+import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
+import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
+import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
 import { EmployeePortalLeaveCancelButton } from "./employee-portal-leave-cancel-button"
 import { EmployeePortalLeaveRequestForm } from "./employee-portal-leave-request-form"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
@@ -51,6 +49,34 @@ export async function EmployeePortalLeavePage({
     ),
     listLeaveRequestsForEmployee(organizationId, employeeId),
   ])
+
+  const stateLabelFor = (state: string) =>
+    t(`state.${state}` as "state.draft")
+
+  const historyRows = requests.slice(0, 10)
+  const balanceConfiguration = buildLeaveBalanceListSurfaceConfiguration(
+    balances,
+    {
+      empty: t("myBalancesEmpty"),
+      colLeaveType: t("colLeaveType"),
+      colEntitled: t("colEntitled"),
+      colTaken: t("colTaken"),
+      colPending: t("colPending"),
+      colAvailable: t("colAvailable"),
+    }
+  )
+  const historyConfiguration = buildLeaveMyHistoryListSurfaceConfiguration(
+    historyRows,
+    {
+      empty: t("myHistoryEmpty"),
+      colLeaveType: t("colLeaveType"),
+      colDates: t("colDates"),
+      colDuration: t("colDuration"),
+      colState: t("colState"),
+      stateLabelFor,
+    }
+  )
+  const requestById = new Map(historyRows.map((row) => [row.id, row]))
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -87,51 +113,10 @@ export async function EmployeePortalLeavePage({
               <CardDescription>{t("myBalancesDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
-              {balances.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {t("myBalancesEmpty")}
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("colLeaveType")}</TableHead>
-                      <TableHead>{t("colEntitled")}</TableHead>
-                      <TableHead>{t("colTaken")}</TableHead>
-                      <TableHead>{t("colPending")}</TableHead>
-                      <TableHead>{t("colAvailable")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {balances.map((balance) => {
-                      const available =
-                        Number(balance.openingDays) +
-                        Number(balance.daysEntitled) +
-                        Number(balance.adjustedDays) +
-                        Number(balance.carriedForwardDays) -
-                        Number(balance.daysTaken) -
-                        Number(balance.daysPending)
-                      return (
-                        <TableRow key={balance.id}>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {balance.leaveTypeCode ?? balance.leaveTypeId}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {formatDays(balance.daysEntitled)}
-                          </TableCell>
-                          <TableCell>{formatDays(balance.daysTaken)}</TableCell>
-                          <TableCell>
-                            {formatDays(balance.daysPending)}
-                          </TableCell>
-                          <TableCell>{formatDays(available)}</TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              )}
+              <EmployeePortalGovernedTable
+                configuration={balanceConfiguration}
+                surfaceKey="hrm:portal:leave-balances"
+              />
             </CardContent>
           </Card>
 
@@ -141,53 +126,23 @@ export async function EmployeePortalLeavePage({
               <CardDescription>{t("myHistoryDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
-              {requests.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {t("myHistoryEmpty")}
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("colLeaveType")}</TableHead>
-                      <TableHead>{t("colDates")}</TableHead>
-                      <TableHead>{t("colDuration")}</TableHead>
-                      <TableHead>{t("colState")}</TableHead>
-                      <TableHead className="text-right">
-                        {t("colActions")}
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {requests.slice(0, 10).map((request) => (
-                      <TableRow key={request.id}>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {request.leaveTypeCode ?? request.leaveTypeId}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {request.startDate === request.endDate
-                            ? request.startDate
-                            : `${request.startDate} -> ${request.endDate}`}
-                        </TableCell>
-                        <TableCell>
-                          {formatDays(request.durationDays)}
-                        </TableCell>
-                        <TableCell>{t(`state.${request.state}`)}</TableCell>
-                        <TableCell className="text-right">
-                          {request.state === "submitted" ? (
-                            <EmployeePortalLeaveCancelButton
-                              portalSlug={context.portal.portalSlug}
-                              requestId={request.id}
-                            />
-                          ) : null}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
+              <EmployeePortalGovernedTable
+                configuration={historyConfiguration}
+                surfaceKey="hrm:portal:leave-history"
+                trailingColumn={{
+                  header: t("colActions"),
+                  render: (surfaceRow) => {
+                    const request = requestById.get(surfaceRow.id)
+                    if (!request || request.state !== "submitted") return null
+                    return (
+                      <EmployeePortalLeaveCancelButton
+                        portalSlug={context.portal.portalSlug}
+                        requestId={request.id}
+                      />
+                    )
+                  },
+                }}
+              />
             </CardContent>
           </Card>
         </div>
@@ -201,9 +156,12 @@ export async function EmployeePortalLeavePage({
           </CardHeader>
           <CardContent>
             {leaveTypes.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {t("requestLeaveNoTypes")}
-              </p>
+              <GovernedEmpty
+                model={{
+                  variant: "muted",
+                  title: t("requestLeaveNoTypes"),
+                }}
+              />
             ) : (
               <EmployeePortalLeaveRequestForm
                 portalSlug={context.portal.portalSlug}
@@ -215,10 +173,4 @@ export async function EmployeePortalLeavePage({
       </div>
     </div>
   )
-}
-
-function formatDays(value: number | string): string {
-  const days = Number(value)
-  if (Number.isNaN(days)) return "-"
-  return Number.isInteger(days) ? String(days) : days.toFixed(2)
 }

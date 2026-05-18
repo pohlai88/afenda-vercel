@@ -2,18 +2,15 @@
 
 import { after } from "next/server"
 import { revalidatePath } from "next/cache"
-import { and, eq } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { db } from "#lib/db"
-import { hrmOffboardingInstance } from "#lib/db/schema"
 import { toLocalePortalRevalidatePattern } from "#lib/portal"
 
 import { getEmployeePortalContext } from "../data/employee-portal-access.server"
 import { withEmployeePortalActionSpan } from "../data/portal-mutation-tracing.server"
 import { EMPLOYEE_PORTAL_ACCESS_UNAVAILABLE_ERROR } from "../data/employee-portal-access.shared"
 import { HRM_ESS_AUDIT } from "../ess.contract"
-import type { OffboardingChecklistTask } from "../../offboarding-exit-management/data/offboarding-defaults.shared"
+import { transitionOffboardingTaskMutation } from "../../offboarding-exit-management/data/offboarding.mutations.server"
 import { completeOffboardingTaskFormSchema } from "../../offboarding-exit-management/schemas/offboarding.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ContractMutationFormState } from "../../../types"
@@ -54,48 +51,21 @@ export async function completePortalOffboardingTaskAction(
   const organizationId = context.portal.organizationId
   const userId = context.portal.userId
 
-  const [row] = await db
-    .select({
-      id: hrmOffboardingInstance.id,
-      checklist: hrmOffboardingInstance.checklist,
-      status: hrmOffboardingInstance.status,
-    })
-    .from(hrmOffboardingInstance)
-    .where(
-      and(
-        eq(hrmOffboardingInstance.organizationId, organizationId),
-        eq(hrmOffboardingInstance.id, instanceId),
-        eq(hrmOffboardingInstance.employeeId, employeeId)
-      )
-    )
-    .limit(1)
-
-  if (!row || row.status !== "open") {
-    return hrmActionFailure({ form: "Offboarding checklist is not open." })
-  }
-
-  const list = (row.checklist as OffboardingChecklistTask[]) ?? []
-  const next = list.map((task) =>
-    task.taskKey === taskKey
-      ? { ...task, completedAt: new Date().toISOString() }
-      : task
-  )
-  const allDone = next.every((task) => task.completedAt !== null)
-
   return withEmployeePortalActionSpan(
     context,
     "offboarding",
     "task.complete",
     async () => {
-      await db
-        .update(hrmOffboardingInstance)
-        .set({
-          checklist: next,
-          status: allDone ? "completed" : "open",
-          updatedAt: new Date(),
-          updatedByUserId: userId,
-        })
-        .where(eq(hrmOffboardingInstance.id, instanceId))
+      const result = await transitionOffboardingTaskMutation({
+        organizationId,
+        instanceId,
+        employeeId,
+        taskKey,
+        transition: "complete",
+        actorUserId: userId,
+        allowedOwnerRoles: ["employee"],
+      })
+      if (!result.ok) return hrmActionFailure({ form: result.message })
 
       after(() =>
         writeIamAuditEventFromNextHeaders({

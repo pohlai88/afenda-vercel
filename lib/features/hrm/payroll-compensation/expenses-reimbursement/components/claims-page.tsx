@@ -18,6 +18,11 @@ import {
   resolveClaimSurfaceAccess,
   type ClaimSurfaceAccess,
 } from "../data/claim-access.server"
+import {
+  toClaimSubmitClaimTypeOptions,
+  toClaimSubmitEmployeeOptions,
+  toClaimSubmitExpenseFundOptions,
+} from "../data/claim-form-options.shared"
 import { listClaimTypesForOrg } from "../data/claim.queries.server"
 import { listExpenseFundsForOrg } from "../data/expense-fund.queries.server"
 import { listActiveEmployeeChoicesForLeave } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
@@ -60,6 +65,9 @@ export async function ClaimsPage({ orgSlug, access }: ClaimsPageProps) {
     resolvedAccess.canSubmitOnBehalf &&
     employees.length > 0 &&
     claimTypes.length > 0
+  const employeeOptions = toClaimSubmitEmployeeOptions(employees)
+  const claimTypeOptions = toClaimSubmitClaimTypeOptions(claimTypes)
+  const expenseFundOptions = toClaimSubmitExpenseFundOptions(expenseFunds)
 
   return (
     <GovernedSurface header={header} className="flex flex-col gap-6 p-6">
@@ -117,16 +125,16 @@ export async function ClaimsPage({ orgSlug, access }: ClaimsPageProps) {
                 {canSubmitOwn ? (
                   <ClaimSubmitDialog
                     mode="own"
-                    claimTypes={claimTypes}
-                    expenseFunds={expenseFunds}
+                    claimTypes={claimTypeOptions}
+                    expenseFunds={expenseFundOptions}
                   />
                 ) : null}
                 {canSubmitOnBehalf ? (
                   <ClaimSubmitDialog
                     mode="on_behalf"
-                    employees={employees}
-                    claimTypes={claimTypes}
-                    expenseFunds={expenseFunds}
+                    employees={employeeOptions}
+                    claimTypes={claimTypeOptions}
+                    expenseFunds={expenseFundOptions}
                   />
                 ) : null}
               </div>

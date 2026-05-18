@@ -42,6 +42,7 @@ import {
   type ClosedPayrollPeriodRow,
 } from "../../payroll-processing/data/payroll.queries.server"
 import {
+  countBenefitEnrollmentDependents,
   replaceBenefitEnrollmentDependents,
   validateEnrollmentDependents,
 } from "../data/benefit-enrollment-dependent.server"
@@ -822,8 +823,14 @@ export async function changeBenefitEnrollmentAction(
     ? parseIsoDateStart(parsed.data.effectiveTo)
     : enrollment.effectiveTo
 
+  const currentDependentCount = await countBenefitEnrollmentDependents({
+    organizationId,
+    enrollmentId: enrollment.id,
+  })
   const dependentCount =
-    parsed.data.dependentIds !== undefined ? parsed.data.dependentIds.length : 0
+    parsed.data.dependentIds !== undefined
+      ? parsed.data.dependentIds.length
+      : currentDependentCount
 
   if (parsed.data.dependentIds !== undefined) {
     const dependentError = await validateEnrollmentDependents({
@@ -867,7 +874,7 @@ export async function changeBenefitEnrollmentAction(
     effectiveTo: enrollment.effectiveTo,
     employerContributionAmount: enrollment.employerContributionAmount,
     employeeContributionAmount: enrollment.employeeContributionAmount,
-    dependentCount: 0,
+    dependentCount: currentDependentCount,
   })
 
   await updateBenefitEnrollmentChange({

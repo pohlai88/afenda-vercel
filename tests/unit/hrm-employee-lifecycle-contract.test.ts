@@ -59,6 +59,10 @@ describe("HRM employee lifecycle management contracts", () => {
     expect(mutations).toContain("upsertEmployeeEffectiveAssignment")
     expect(mutations).toContain("ensureLifecycleOffboardingTriggered")
     expect(mutations).toContain("runLifecycleTransitionDueTick")
+    expect(mutations).toContain("transition_failed")
+    expect(mutations).toContain(
+      "HRM_EMPLOYEE_LIFECYCLE_AUDIT.transition.failed"
+    )
   })
 
   it("gates boarding task actions with kind-aware ERP permissions", () => {

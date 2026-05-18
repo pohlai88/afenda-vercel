@@ -23,7 +23,7 @@ import {
   leavePriorityForAge,
   mergeAndTrimPressureRows,
   type HrmPressureRowForNexus,
-} from "../../lib/features/hrm/hrm-nexus-pressure.shared.ts"
+} from "../../lib/features/hrm/_internal-cross-cutting/hrm-nexus-pressure.shared.ts"
 import { mapHrmPressureRowsToOperationalPressureItems } from "../../lib/features/nexus/data/nexus-operational-pressure-map.shared"
 
 const TEST_SLUG = "acme-co"

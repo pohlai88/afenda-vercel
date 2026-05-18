@@ -16,4 +16,8 @@ export type {
 } from "./schema/contract-compensation.shared"
 
 export { HRM_COMPENSATION_PLANNING_AUDIT } from "./compensation-planning.contract"
-export { HRM_COMPENSATION_PLANNING_SPEC_MAP } from "./compensation-planning-spec-map.shared"
+export {
+  HRM_COMPENSATION_PLANNING_SPEC_MAP,
+  listHrmCompensationPlanningSpecCodes,
+} from "./compensation-planning-spec-map.shared"
+export type { HrmCompensationPlanningSpecArea } from "./compensation-planning-spec-map.shared"

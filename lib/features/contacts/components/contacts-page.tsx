@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server"
+
 import {
   Card,
   CardAction,
@@ -17,19 +19,22 @@ import { AddContactDialog } from "./add-contact-dialog"
 
 export async function ContactsPage() {
   const org = await requireOrgSession()
-  const rows = await listContactsForOrganization(org.organizationId)
+  const [rows, t] = await Promise.all([
+    listContactsForOrganization(org.organizationId),
+    getTranslations("Dashboard.Contacts"),
+  ])
 
   const listConfiguration = buildContactsListSurfaceConfiguration(
     rows,
     {
-      eyebrow: "CRM",
-      title: "Directory",
-      description: "Search and open contact records.",
-      empty: "No contacts yet. Add your first contact to get started.",
-      colName: "Name",
-      colEmail: "Email",
-      colCreated: "Created",
-      noEmail: "—",
+      eyebrow: t("eyebrow"),
+      title: t("directoryTitle"),
+      description: t("directoryDescription"),
+      empty: t("empty"),
+      colName: t("colName"),
+      colEmail: t("colEmail"),
+      colCreated: t("colCreated"),
+      noEmail: t("noEmail"),
     },
     {
       requiresErpPermission: {
@@ -47,17 +52,15 @@ export async function ContactsPage() {
   return (
     <div className="flex flex-col gap-6">
       <ModulePageHeader
-        title="Contacts"
-        description="Manage customers, suppliers, and partner records."
-        eyebrow="CRM"
+        title={t("title")}
+        description={t("description")}
+        eyebrow={t("eyebrow")}
       />
 
       <Card size="sm">
         <CardHeader>
-          <CardTitle>Directory</CardTitle>
-          <CardDescription>
-            Search and open contact records. Click any row to view details.
-          </CardDescription>
+          <CardTitle>{t("directoryTitle")}</CardTitle>
+          <CardDescription>{t("directoryDescription")}</CardDescription>
           <CardAction>
             <AddContactDialog />
           </CardAction>
@@ -76,9 +79,8 @@ export async function ContactsPage() {
             <GovernedEmpty
               model={{
                 variant: "forbidden",
-                title: "Contacts unavailable",
-                description:
-                  "You do not have permission to view the contact directory.",
+                title: t("forbiddenTitle"),
+                description: t("forbiddenDescription"),
               }}
             />
           )}

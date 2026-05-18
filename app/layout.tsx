@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next"
 import { Geist_Mono, Inter } from "next/font/google"
-import { connection } from "next/server"
-import { headers } from "next/headers"
 
 import { AppShellRootThemeProvider } from "#components2/providers/theme-provider.client"
 import { Toaster } from "#components2/ui/sonner"
@@ -16,8 +14,7 @@ import {
   SITE_NAME,
   getSiteUrl,
 } from "#lib/site"
-import { AFENDA_LOCALE_HEADER } from "#lib/i18n/locale-header.shared"
-import { DEFAULT_APP_LOCALE, isAppLocale } from "#lib/i18n/locales.shared"
+import { DEFAULT_APP_LOCALE } from "#lib/i18n/locales.shared"
 import { cn } from "#lib/utils"
 
 const inter = Inter({
@@ -34,32 +31,9 @@ const geistMono = Geist_Mono({
 
 const LAYOUT_DENSITY_INIT_SCRIPT = `(function(){try{var key="afenda.layoutDensity";var value=localStorage.getItem(key);if(value==="compact"||value==="comfortable"||value==="relaxed"){document.documentElement.setAttribute("data-layout-density",value);}else{document.documentElement.setAttribute("data-layout-density","comfortable");}}catch(e){document.documentElement.setAttribute("data-layout-density","comfortable");}})();`
 
-/**
- * Icons and OG URLs resolve against `metadataBase`. Using the **request host** avoids
- * pointing at the wrong origin when `NEXT_PUBLIC_SITE_URL` is a custom domain but the user
- * is on `*.vercel.app` (or vice versa), which breaks favicon fetches and shows a fallback.
- */
-async function resolveRequestMetadataBase(): Promise<URL> {
-  const h = await headers()
-  const hostRaw =
-    h.get("x-forwarded-host")?.split(",")[0]?.trim() || h.get("host")?.trim()
-  if (hostRaw) {
-    const forwardedProto = h.get("x-forwarded-proto")?.split(",")[0]?.trim()
-    const proto =
-      forwardedProto ||
-      (hostRaw.startsWith("localhost") || hostRaw.startsWith("127.0.0.1")
-        ? "http"
-        : "https")
-    return new URL(`${proto}://${hostRaw}`)
-  }
-  return new URL(getSiteUrl())
-}
-
-export async function generateMetadata(): Promise<Metadata> {
-  await connection()
-  const metadataBase = await resolveRequestMetadataBase()
+export function generateMetadata(): Metadata {
   return {
-    metadataBase,
+    metadataBase: new URL(getSiteUrl()),
     title: {
       default: SITE_NAME,
       template: `%s | ${SITE_NAME}`,
@@ -152,20 +126,14 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  await connection()
-  const h = await headers()
-  const localeRaw = h.get(AFENDA_LOCALE_HEADER)?.trim()
-  const htmlLang =
-    localeRaw && isAppLocale(localeRaw) ? localeRaw : DEFAULT_APP_LOCALE
-
   return (
     <html
-      lang={htmlLang}
+      lang={DEFAULT_APP_LOCALE}
       data-scroll-behavior="smooth"
       data-layout-density="comfortable"
       suppressHydrationWarning

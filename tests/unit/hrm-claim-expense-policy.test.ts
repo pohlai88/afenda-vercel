@@ -11,10 +11,12 @@ describe("evaluateClaimEligibility", () => {
         id: "emp-1",
         archivedAt: "2026-01-01",
         employmentStatus: "active",
+        employmentType: "permanent",
         countryCode: "MY",
         legalEntityCode: "MY01",
         currentDepartmentId: null,
         currentJobGradeId: null,
+        workStateCode: "KUL",
       },
       claimTypeCode: "TRAVEL",
       rules: null,
@@ -22,6 +24,34 @@ describe("evaluateClaimEligibility", () => {
     })
     expect(result.eligible).toBe(false)
     expect(result.reasons[0]?.code).toBe("employee_archived")
+  })
+
+  it("rejects employees outside configured employment type and work location rules", () => {
+    const result = evaluateClaimEligibility({
+      employee: {
+        id: "emp-1",
+        archivedAt: null,
+        employmentStatus: "active",
+        employmentType: "contractor",
+        countryCode: "MY",
+        legalEntityCode: "MY01",
+        currentDepartmentId: "dept-ops",
+        currentJobGradeId: "grade-4",
+        workStateCode: "PEN",
+      },
+      claimTypeCode: "TRAVEL",
+      rules: {
+        allowedEmploymentTypes: ["permanent"],
+        allowedWorkStateCodes: ["KUL"],
+      },
+      evaluatedAt: new Date("2026-05-12T00:00:00.000Z"),
+    })
+
+    expect(result.eligible).toBe(false)
+    expect(result.reasons.map((item) => item.code)).toEqual([
+      "employment_type_not_allowed",
+      "work_state_not_allowed",
+    ])
   })
 })
 

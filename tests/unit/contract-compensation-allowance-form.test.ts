@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { parseAllowanceLineInputsFromForm } from "../../lib/features/hrm/payroll-compensation/compensation-planning-modeling/schema/contract-compensation.shared"
+import {
+  HRM_COMPENSATION_PLANNING_SPEC_MAP,
+  listHrmCompensationPlanningSpecCodes,
+  parseAllowanceLineInputsFromForm,
+} from "../../lib/features/hrm/payroll-compensation/compensation-planning-modeling"
 
 describe("parseAllowanceLineInputsFromForm", () => {
   it("returns lines for valid decimals", () => {
@@ -45,5 +49,14 @@ describe("parseAllowanceLineInputsFromForm", () => {
     expect(r.ok).toBe(true)
     if (!r.ok) return
     expect(r.lines).toHaveLength(0)
+  })
+})
+
+describe("HRM compensation planning spec map", () => {
+  it("lists stable HRM-CPM codes from the shared spec map", () => {
+    expect(listHrmCompensationPlanningSpecCodes()).toContain("HRM-CPM-027")
+    expect(HRM_COMPENSATION_PLANNING_SPEC_MAP.payrollIntegration.status).toBe(
+      "partial"
+    )
   })
 })

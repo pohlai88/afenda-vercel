@@ -98,7 +98,7 @@ function parseAnyHrmUploadPath(pathname: string): HrmUploadPath | null {
   if (parts[0] !== "orgs" || parts[2] !== "hrm") return null
   const organizationId = parts[1] ?? ""
   const employeeId = parts[3] ?? ""
-  if (!UUID_RE.test(organizationId) || !UUID_RE.test(employeeId)) return null
+  if (!organizationId || !UUID_RE.test(employeeId)) return null
   if (parts[4] !== "claims") {
     return { organizationId, employeeId, claimId: null }
   }
@@ -198,8 +198,19 @@ export async function POST(request: Request) {
   const orgSession = isGenerateTokenEvent
     ? await getOrgSessionFromRequest(request)
     : null
+  const portalUpload =
+    isGenerateTokenEvent && !orgSession
+      ? await isAllowedPortalHrmUploadPath({
+          pathname: body.payload.pathname,
+          clientPayload: parseClientPayload(body.payload.clientPayload),
+        })
+      : null
 
   const organizationId = orgSession?.organizationId ?? null
+
+  if (isGenerateTokenEvent && !orgSession && !portalUpload?.ok) {
+    return routeJsonError("Unauthorized", 401)
+  }
 
   try {
     const jsonResponse = await handleUpload({
@@ -208,13 +219,10 @@ export async function POST(request: Request) {
       onBeforeGenerateToken: async (pathname, clientPayload) => {
         if (!orgSession) {
           const parsedClientPayload = parseClientPayload(clientPayload)
-          const portalUpload = await isAllowedPortalHrmUploadPath({
-            pathname,
-            clientPayload: parsedClientPayload,
-          })
-          if (!portalUpload.ok) {
-            throw new Error("Unauthorized")
-          }
+          const portalOrganizationId =
+            portalUpload && portalUpload.ok
+              ? portalUpload.organizationId
+              : null
           return {
             allowedContentTypes: [
               ...WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES,
@@ -224,7 +232,7 @@ export async function POST(request: Request) {
             tokenPayload: JSON.stringify({
               userId: null,
               sessionId: null,
-              organizationId: portalUpload.organizationId,
+              organizationId: portalOrganizationId,
               pathname,
               clientPayload: parsedClientPayload,
             }),

@@ -44,11 +44,11 @@ import {
   listTrainingSessionsForOrg,
 } from "../data/training.queries.server"
 
-import { TrainingAnalyticsPanel } from "./training-analytics-panel"
-import { TrainingCatalogTable } from "./training-catalog-table"
-import { TrainingFeedbackSummary } from "./training-feedback-summary"
-import { TrainingSessionRoster } from "./training-session-roster"
-import { TrainingAssignmentBoard } from "./training-assignment-board"
+import { TrainingAnalyticsSection } from "./training-analytics-section"
+import { TrainingAssignmentSection } from "./training-assignment-section"
+import { TrainingCatalogSection } from "./training-catalog-section"
+import { TrainingFeedbackSection } from "./training-feedback-section"
+import { TrainingSessionRosterSection } from "./training-session-roster-section"
 
 type HrmTrainingPageProps = {
   orgSlug: string
@@ -273,14 +273,13 @@ export async function HrmTrainingPage({
 
       {isHrmAdmin ? (
         <>
-          <TrainingAnalyticsPanel organizationId={organizationId} />
-          <TrainingFeedbackSummary organizationId={organizationId} />
+          <TrainingAnalyticsSection organizationId={organizationId} />
+          <TrainingFeedbackSection organizationId={organizationId} />
         </>
       ) : null}
 
-      <TrainingCatalogTable
+      <TrainingCatalogSection
         courses={courses}
-        categories={categories}
         orgSlug={orgSlug}
         organizationId={organizationId}
         isHrmAdmin={isHrmAdmin}
@@ -525,7 +524,7 @@ export async function HrmTrainingPage({
               </button>
             </form>
 
-            <TrainingSessionRoster
+            <TrainingSessionRosterSection
               sessions={sessions}
               assignments={assignments}
               orgSlug={orgSlug}
@@ -541,9 +540,8 @@ export async function HrmTrainingPage({
               attendanceAction={submitRecordSessionAttendance}
               closeAction={submitCloseTrainingSession}
               labels={{
-                colSession: t("colSession"),
-                colSchedule: t("colSchedule"),
-                colRoster: t("colRoster"),
+                colEmployee: t("colEmployee"),
+                colAttendance: t("colRoster"),
                 colState: t("colState"),
                 closeSession: t("closeSession"),
                 markPresent: t("markPresent"),
@@ -555,7 +553,7 @@ export async function HrmTrainingPage({
         </Card>
       ) : null}
 
-      <TrainingAssignmentBoard
+      <TrainingAssignmentSection
         assignments={assignments}
         courses={activeCourses}
         employees={employees}
@@ -566,7 +564,9 @@ export async function HrmTrainingPage({
         waiveAction={submitWaiveTrainingAssignment}
         cancelAction={submitCancelTrainingAssignment}
         completeAction={submitCompleteTrainingRecord}
-        formatDate={(value) => format.dateTime(value, { dateStyle: "medium" })}
+        formatDate={(value) =>
+          value ? format.dateTime(value, { dateStyle: "medium" }) : "—"
+        }
         labels={{
           boardTitle: t("assignmentTitle"),
           boardDescription: t("assignmentDescription"),
@@ -580,9 +580,6 @@ export async function HrmTrainingPage({
           cancel: t("cancelAssignment"),
           complete: t("completeTraining"),
           empty: t("assignmentsEmpty"),
-          fieldEmployee: t("fieldEmployee"),
-          fieldCourse: t("fieldCourse"),
-          fieldDue: t("fieldDue"),
         }}
       />
 

@@ -49,6 +49,10 @@ function isUniqueViolation(err: unknown): boolean {
   )
 }
 
+function hasCheckedValue(formData: FormData, name: string): boolean {
+  return formData.getAll(name).some((value) => String(value) === "true")
+}
+
 export async function createBenefitProviderAction(
   _prev: BenefitPlanMutationFormState | undefined,
   formData: FormData
@@ -67,7 +71,12 @@ export async function createBenefitProviderAction(
     externalReference: formData.get("externalReference"),
   })
   if (!parsed.success) {
-    return hrmActionFailure({ form: parsed.error.issues[0]?.message })
+    const fe = parsed.error.flatten().fieldErrors
+    return hrmActionFailure({
+      code: fe.code?.[0],
+      name: fe.name?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const data = parsed.data
@@ -123,10 +132,15 @@ export async function updateBenefitProviderAction(
     name: formData.get("name"),
     countryCodes,
     externalReference: formData.get("externalReference"),
-    isActive: formData.get("isActive"),
+    isActive: hasCheckedValue(formData, "isActive"),
   })
   if (!parsed.success) {
-    return hrmActionFailure({ form: parsed.error.issues[0]?.message })
+    const fe = parsed.error.flatten().fieldErrors
+    return hrmActionFailure({
+      code: fe.code?.[0],
+      name: fe.name?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
   }
 
   const data = parsed.data

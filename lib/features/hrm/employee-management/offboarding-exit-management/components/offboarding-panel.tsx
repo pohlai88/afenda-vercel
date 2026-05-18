@@ -3,37 +3,13 @@ import { getTranslations } from "next-intl/server"
 import { Badge } from "#components2/ui/badge"
 import { Button } from "#components2/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "#components2/ui/card"
+  GovernedPatternCListSection,
+  GovernedSurfaceSectionCard,
+} from "#features/governed-surface"
 
 import { completeOffboardingTaskFormAction } from "../actions/offboarding.actions"
+import { buildOffboardingChecklistListSurfaceConfiguration } from "../data/offboarding-list-surface.server"
 import type { OffboardingInstanceRow } from "../data/offboarding.queries.server"
-
-type OffboardingTaskTitleKey =
-  | "offboardingTaskReturnEquipment"
-  | "offboardingTaskRevokeAccess"
-  | "offboardingTaskFinalPayroll"
-  | "offboardingTaskExitInterview"
-  | "offboardingTaskUnknown"
-
-function offboardingTaskTitleKey(taskKey: string): OffboardingTaskTitleKey {
-  switch (taskKey) {
-    case "return_equipment":
-      return "offboardingTaskReturnEquipment"
-    case "revoke_access":
-      return "offboardingTaskRevokeAccess"
-    case "final_payroll_review":
-      return "offboardingTaskFinalPayroll"
-    case "exit_interview":
-      return "offboardingTaskExitInterview"
-    default:
-      return "offboardingTaskUnknown"
-  }
-}
 
 type OffboardingPanelProps = {
   orgSlug: string
@@ -54,74 +30,113 @@ export async function OffboardingPanel({
     return null
   }
 
+  const checklistCopy = {
+    title: t("offboardingChecklistTitle"),
+    description: t("offboardingChecklistDescription"),
+    empty: t("offboardingChecklistEmpty"),
+    colTask: t("offboardingColTask"),
+    colOwner: t("offboardingColOwner"),
+    colStatus: t("offboardingColStatus"),
+    colDue: t("offboardingColDue"),
+    colCompleted: t("offboardingColCompleted"),
+    emptyValue: t("offboardingEmptyValue"),
+    pendingStatus: t("offboardingPendingStatus"),
+  }
+
   return (
-    <Card size="sm">
-      <CardHeader>
-        <CardTitle className="text-base">
-          {t("offboardingSectionTitle")}
-        </CardTitle>
-        <CardDescription>{t("offboardingSectionDescription")}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {instances.map((inst) => (
-          <div
-            key={inst.id}
-            className="rounded-md border border-border p-3 text-sm"
-          >
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <Badge variant="outline">{inst.status}</Badge>
-              <span className="text-muted-foreground">
-                {t("offboardingTerminationLabel", {
-                  date: inst.terminationDate,
-                })}
-              </span>
-            </div>
-            <ul className="divide-y divide-border rounded-md border border-border">
-              {inst.checklist.map((task) => (
-                <li
-                  key={`${inst.id}-${task.taskKey}`}
-                  className="flex flex-col gap-2 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+    <GovernedSurfaceSectionCard
+      title={t("offboardingSectionTitle")}
+      description={t("offboardingSectionDescription")}
+      className="mt-0"
+      body={{
+        state: "ready",
+        children: (
+          <div className="flex flex-col gap-4">
+            {instances.map((inst) => {
+              const listConfiguration =
+                buildOffboardingChecklistListSurfaceConfiguration(
+                  inst.checklist,
+                  checklistCopy
+                )
+              const taskByKey = new Map(
+                inst.checklist.map((task) => [task.taskKey, task])
+              )
+              const tasksComplete =
+                inst.status === "completed" || inst.status === "cancelled"
+
+              return (
+                <div
+                  key={inst.id}
+                  className="rounded-md border border-border p-3 text-sm"
                 >
-                  <div>
-                    <p className="font-medium">
-                      {t(offboardingTaskTitleKey(task.taskKey))}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("offboardingAssignedRole", {
-                        role: task.assignedRole,
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <Badge variant="outline">{inst.status}</Badge>
+                    <span className="text-muted-foreground">
+                      {t("offboardingTerminationLabel", {
+                        date: inst.terminationDate,
                       })}
-                      {task.completedAt
-                        ? ` ┬À ${t("offboardingCompletedAt", { at: task.completedAt })}`
-                        : null}
-                    </p>
+                    </span>
                   </div>
-                  {canCompleteTasks &&
-                  inst.status === "open" &&
-                  !task.completedAt ? (
-                    <form action={completeOffboardingTaskFormAction}>
-                      <input type="hidden" name="orgSlug" value={orgSlug} />
-                      <input
-                        type="hidden"
-                        name="employeeId"
-                        value={employeeId}
-                      />
-                      <input type="hidden" name="instanceId" value={inst.id} />
-                      <input
-                        type="hidden"
-                        name="taskKey"
-                        value={task.taskKey}
-                      />
-                      <Button type="submit" size="sm" variant="secondary">
-                        {t("offboardingMarkDone")}
-                      </Button>
-                    </form>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
+                  <GovernedPatternCListSection
+                    layout="embedded"
+                    title=""
+                    listConfiguration={listConfiguration}
+                    surfaceKey={`hrm:offboarding:checklist:${inst.id}`}
+                    invalid={{
+                      variant: "error",
+                      title: t("offboardingChecklistLoadFailed"),
+                    }}
+                    trailingColumn={
+                      canCompleteTasks && !tasksComplete
+                        ? {
+                            header: t("offboardingColActions"),
+                            render: (surfaceRow) => {
+                              const task = taskByKey.get(surfaceRow.id)
+                              if (!task || task.completedAt) {
+                                return null
+                              }
+                              return (
+                                <form action={completeOffboardingTaskFormAction}>
+                                  <input
+                                    type="hidden"
+                                    name="orgSlug"
+                                    value={orgSlug}
+                                  />
+                                  <input
+                                    type="hidden"
+                                    name="employeeId"
+                                    value={employeeId}
+                                  />
+                                  <input
+                                    type="hidden"
+                                    name="instanceId"
+                                    value={inst.id}
+                                  />
+                                  <input
+                                    type="hidden"
+                                    name="taskKey"
+                                    value={task.taskKey}
+                                  />
+                                  <Button
+                                    type="submit"
+                                    size="sm"
+                                    variant="secondary"
+                                  >
+                                    {t("offboardingMarkDone")}
+                                  </Button>
+                                </form>
+                              )
+                            },
+                          }
+                        : undefined
+                    }
+                  />
+                </div>
+              )
+            })}
           </div>
-        ))}
-      </CardContent>
-    </Card>
+        ),
+      }}
+    />
   )
 }

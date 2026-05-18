@@ -1,6 +1,7 @@
 export const CLAIM_DUPLICATE_SIGNAL_KINDS = [
   "same_amount_date_employee",
   "same_claim_number",
+  "same_receipt_payload_hash",
 ] as const
 
 export type ClaimDuplicateSignalKind = (typeof CLAIM_DUPLICATE_SIGNAL_KINDS)[number]
@@ -70,6 +71,52 @@ export function scoreDuplicateClaims(input: {
   }
 
   return signals
+}
+
+export function scoreReceiptPayloadDuplicateSignals(input: {
+  readonly payloadHashes: readonly string[]
+  readonly matches: readonly {
+    readonly payloadHash: string
+    readonly claimId: string
+    readonly claimNumber: string | null
+  }[]
+}): readonly ClaimDuplicateSignalDraft[] {
+  const signals: ClaimDuplicateSignalDraft[] = []
+  const seenHashes = new Set<string>()
+
+  for (const match of input.matches) {
+    if (!input.payloadHashes.includes(match.payloadHash)) continue
+    if (seenHashes.has(match.payloadHash)) continue
+    seenHashes.add(match.payloadHash)
+    signals.push({
+      signalKind: "same_receipt_payload_hash",
+      matchedClaimId: match.claimId,
+      score: 1,
+      signalPayload: {
+        payloadHash: match.payloadHash,
+        matchedClaimId: match.claimId,
+        matchedClaimNumber: match.claimNumber ?? "",
+      },
+    })
+  }
+
+  return signals
+}
+
+export function mergeClaimDuplicateSignals(
+  ...groups: readonly (readonly ClaimDuplicateSignalDraft[])[]
+): readonly ClaimDuplicateSignalDraft[] {
+  const merged: ClaimDuplicateSignalDraft[] = []
+  const seen = new Set<string>()
+  for (const group of groups) {
+    for (const signal of group) {
+      const key = `${signal.signalKind}:${signal.matchedClaimId ?? ""}:${JSON.stringify(signal.signalPayload)}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      merged.push(signal)
+    }
+  }
+  return merged
 }
 
 export function hasBlockingDuplicateSignals(

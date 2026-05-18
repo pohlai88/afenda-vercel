@@ -1,20 +1,38 @@
 import { z } from "zod"
 
-export const payComponentTreatmentSchema = z.object({
-  countryCode: z.string().length(2),
-  componentCode: z.string().min(1).max(64),
-  taxable: z.boolean(),
-  contributable: z.boolean(),
-  pensionable: z.boolean(),
-  effectiveFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  effectiveTo: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional()
-    .nullable(),
-})
+const isoDateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 
-export type PayComponentTreatmentInput = z.infer<typeof payComponentTreatmentSchema>
+export const payComponentTreatmentSchema = z
+  .object({
+    countryCode: z
+      .string()
+      .trim()
+      .length(2)
+      .transform((value) => value.toUpperCase()),
+    componentCode: z
+      .string()
+      .trim()
+      .min(1)
+      .max(64)
+      .transform((value) => value.toUpperCase()),
+    taxable: z.boolean(),
+    contributable: z.boolean(),
+    pensionable: z.boolean(),
+    effectiveFrom: isoDateOnlySchema,
+    effectiveTo: isoDateOnlySchema.optional().nullable(),
+  })
+  .refine(
+    (value) =>
+      value.effectiveTo == null || value.effectiveTo >= value.effectiveFrom,
+    {
+      message: "Effective-to must be on or after effective-from.",
+      path: ["effectiveTo"],
+    }
+  )
+
+export type PayComponentTreatmentInput = z.infer<
+  typeof payComponentTreatmentSchema
+>
 
 export const upsertPayComponentTreatmentFormSchema =
   payComponentTreatmentSchema.extend({

@@ -4,6 +4,7 @@ import type { SchemaStability } from "./_stability.shared"
 
 import { erpPermissionRequirementSchema } from "./erp-permission-requirement.schema"
 import { listColumnSchema, listSurfaceSchema } from "./list-surface.schema"
+import { listSurfaceRowTrailingActionSchema } from "./list-surface-row-trailing-action.schema"
 
 export const SCHEMA_STABILITY: SchemaStability = "beta"
 
@@ -19,6 +20,8 @@ export const listSurfaceRowSchema = z
     cells: z.record(z.string(), listSurfaceRowCellSchema),
     rowHref: z.string().min(1).optional(),
     linkColumnId: z.string().min(1).optional(),
+    /** Pattern C trailing-column action metadata (Wave C3). */
+    trailingAction: listSurfaceRowTrailingActionSchema.optional(),
   })
   .strict()
 

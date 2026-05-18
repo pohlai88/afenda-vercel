@@ -28,10 +28,13 @@ export type HrmCompensationComponentRow = {
   isActive: boolean
 }
 
+export type HrmCompensationQueryClient = Pick<typeof db, "select">
+
 export async function listCompensationComponentsForOrg(
-  organizationId: string
+  organizationId: string,
+  client: HrmCompensationQueryClient = db
 ): Promise<HrmCompensationComponentRow[]> {
-  return db
+  return client
     .select({
       id: hrmCompensationComponent.id,
       organizationId: hrmCompensationComponent.organizationId,
@@ -57,9 +60,10 @@ export async function listCompensationComponentsForOrg(
 
 export async function buildCompensationSnapshotForContract(
   organizationId: string,
-  contractId: string
+  contractId: string,
+  client: HrmCompensationQueryClient = db
 ): Promise<HrmCompensationSnapshotEntry[]> {
-  const rows = await db
+  const rows = await client
     .select({
       code: hrmCompensationComponent.code,
       amount: hrmContractCompensationLine.amount,
@@ -97,7 +101,8 @@ export async function buildCompensationSnapshotForContract(
 
 export async function listContractAllowancesForEngine(
   organizationId: string,
-  contractId: string
+  contractId: string,
+  client: HrmCompensationQueryClient = db
 ): Promise<
   ReadonlyArray<{
     code: string
@@ -109,7 +114,8 @@ export async function listContractAllowancesForEngine(
 > {
   const snap = await buildCompensationSnapshotForContract(
     organizationId,
-    contractId
+    contractId,
+    client
   )
   return snap.map((s) => ({
     code: s.componentCode,
@@ -129,10 +135,11 @@ export type ContractCompensationLineSummary = {
 
 export async function listCompensationLineSummariesForContracts(
   organizationId: string,
-  contractIds: readonly string[]
+  contractIds: readonly string[],
+  client: HrmCompensationQueryClient = db
 ): Promise<ContractCompensationLineSummary[]> {
   if (contractIds.length === 0) return []
-  return db
+  return client
     .select({
       contractId: hrmContractCompensationLine.contractId,
       code: hrmCompensationComponent.code,

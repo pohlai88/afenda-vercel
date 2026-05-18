@@ -22,6 +22,10 @@
       "schedule": "0 7 * * *"
     },
     {
+      "path": "/api/cron/hrm-claim-overdue-watch",
+      "schedule": "45 7 * * *"
+    },
+    {
       "path": "/api/cron/hrm-probation-watch",
       "schedule": "0 8 * * *"
     },

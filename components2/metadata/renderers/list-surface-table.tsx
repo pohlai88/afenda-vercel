@@ -1,7 +1,19 @@
 import type { ReactNode } from "react"
 
-import type { ListColumn } from "#features/governed-surface/schemas/list-surface.schema"
-import type { ListSurfaceRow } from "#features/governed-surface/schemas/list-surface-renderer.schema"
+import { GovernedEmpty } from "#features/governed-surface"
+import {
+  buildGovernedListSurfaceDataAttributes,
+  governedListRowTestId,
+  governedListSurfaceTestId,
+} from "#features/governed-surface/list-surface-identity.shared"
+import type {
+  EmptyState,
+  ListColumn,
+} from "#features/governed-surface/schemas/list-surface.schema"
+import type {
+  ListSurfaceRendererDataNature,
+  ListSurfaceRow,
+} from "#features/governed-surface/schemas/list-surface-renderer.schema"
 import type { uiDensity } from "#lib/design-system"
 import {
   Table,
@@ -34,6 +46,13 @@ export type ListSurfaceTableTrailingColumn = {
 export type ListSurfaceTableProps = {
   columns: readonly ListColumn[]
   rows: readonly ListSurfaceRow[]
+  /** Governed surface identity — section + list `data-testid` and `data-governed-*` traces. */
+  surfaceKey?: string
+  columnsId?: string
+  dataNature?: ListSurfaceRendererDataNature
+  presentationVariant?: string
+  /** When `rows` is empty, render governed empty UI (Pattern C / table-only). */
+  empty?: EmptyState
   trailingColumn?: ListSurfaceTableTrailingColumn
   density?: keyof typeof uiDensity
 }
@@ -45,11 +64,45 @@ export type ListSurfaceTableProps = {
 export function ListSurfaceTable({
   columns,
   rows,
+  surfaceKey,
+  columnsId,
+  dataNature,
+  presentationVariant,
+  empty,
   trailingColumn,
   density = "compact",
 }: ListSurfaceTableProps) {
+  const listState = rows.length === 0 ? "empty" : "ready"
+  const listTestId = surfaceKey
+    ? governedListSurfaceTestId(surfaceKey)
+    : undefined
+  const governedDataAttrs = buildGovernedListSurfaceDataAttributes({
+    surfaceKey,
+    columnsId,
+    dataNature,
+    presentationVariant,
+    density,
+    state: listState,
+  })
+
+  if (rows.length === 0 && empty) {
+    return (
+      <div
+        className={cn("af-material-opaque min-w-0 rounded-lg")}
+        data-testid={listTestId}
+        {...governedDataAttrs}
+      >
+        <GovernedEmpty model={empty} />
+      </div>
+    )
+  }
+
   return (
-    <div className={cn("af-material-opaque min-w-0 rounded-lg")}>
+    <div
+      className={cn("af-material-opaque min-w-0 rounded-lg")}
+      data-testid={listTestId}
+      {...governedDataAttrs}
+    >
       <Table density={density}>
         <TableHeader>
           <TableRow>
@@ -65,7 +118,12 @@ export function ListSurfaceTable({
         </TableHeader>
         <TableBody>
           {rows.map((row, rowIndex) => (
-            <TableRow key={row.id}>
+            <TableRow
+              key={row.id}
+              data-testid={
+                surfaceKey ? governedListRowTestId(surfaceKey, row.id) : undefined
+              }
+            >
               {columns.map((column) => (
                 <TableCell
                   key={`${row.id}-${column.id}`}
@@ -75,7 +133,13 @@ export function ListSurfaceTable({
                 </TableCell>
               ))}
               {trailingColumn ? (
-                <TableCell className="text-end">
+                <TableCell
+                  className="text-end"
+                  data-trailing-action-state={row.trailingAction?.state}
+                  data-action-descriptor-id={
+                    row.trailingAction?.descriptor?.id
+                  }
+                >
                   {trailingColumn.render(row, rowIndex)}
                 </TableCell>
               ) : null}

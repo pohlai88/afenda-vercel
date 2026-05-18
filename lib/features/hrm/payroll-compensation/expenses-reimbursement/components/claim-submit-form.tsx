@@ -20,15 +20,17 @@ import {
 } from "../actions/claim-submission.actions"
 import type { SubmitClaimFormState } from "../../../types"
 
-import type { LeaveEmployeeChoiceRow } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
-import type { ClaimTypeRow } from "../data/claim.queries.server"
-import type { ExpenseFundRow } from "../data/expense-fund.queries.server"
+import type {
+  ClaimSubmitClaimTypeOption,
+  ClaimSubmitEmployeeOption,
+  ClaimSubmitExpenseFundOption,
+} from "../data/claim-form-options.shared"
 
 type ClaimSubmitFormProps = {
   mode: "own" | "on_behalf"
-  employees: ReadonlyArray<LeaveEmployeeChoiceRow>
-  claimTypes: ReadonlyArray<ClaimTypeRow>
-  expenseFunds?: ReadonlyArray<ExpenseFundRow>
+  employees: ReadonlyArray<ClaimSubmitEmployeeOption>
+  claimTypes: ReadonlyArray<ClaimSubmitClaimTypeOption>
+  expenseFunds?: ReadonlyArray<ClaimSubmitExpenseFundOption>
   onSuccess?: () => void
 }
 
@@ -139,13 +141,16 @@ export function ClaimSubmitForm({
       </Field>
 
       {expenseFunds.length > 0 ? (
-        <Field>
-          <FieldLabel htmlFor={expenseFundId}>{t("fieldExpenseFund")}</FieldLabel>
+        <Field data-invalid={fieldErrors?.expenseFundId ? true : undefined}>
+          <FieldLabel htmlFor={expenseFundId}>
+            {t("fieldExpenseFund")}
+          </FieldLabel>
           <select
             id={expenseFundId}
             name="expenseFundId"
             defaultValue=""
             className={SELECT_CLASS}
+            aria-invalid={Boolean(fieldErrors?.expenseFundId)}
           >
             <option value="">{t("fieldExpenseFundPlaceholder")}</option>
             {expenseFunds.map((fund) => (
@@ -154,10 +159,15 @@ export function ClaimSubmitForm({
               </option>
             ))}
           </select>
+          {fieldErrors?.expenseFundId ? (
+            <FieldError>{fieldErrors.expenseFundId}</FieldError>
+          ) : null}
         </Field>
       ) : null}
 
-      <Field>
+      <Field
+        data-invalid={fieldErrors?.duplicateOverrideReason ? true : undefined}
+      >
         <FieldLabel htmlFor={duplicateOverrideId}>
           {t("fieldDuplicateOverride")}
         </FieldLabel>
@@ -165,7 +175,11 @@ export function ClaimSubmitForm({
           id={duplicateOverrideId}
           name="duplicateOverrideReason"
           placeholder={t("fieldDuplicateOverridePlaceholder")}
+          aria-invalid={Boolean(fieldErrors?.duplicateOverrideReason)}
         />
+        {fieldErrors?.duplicateOverrideReason ? (
+          <FieldError>{fieldErrors.duplicateOverrideReason}</FieldError>
+        ) : null}
       </Field>
 
       <div className="grid gap-3 sm:grid-cols-2">

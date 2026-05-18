@@ -8,33 +8,26 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
 
-import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
-import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 import {
   listAdvanceInstallmentsForEmployee,
   listSalaryAdvancesForEmployee,
 } from "../../../payroll-compensation/payroll-processing/data/salary-advance.queries.server"
+import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
+import {
+  buildEmployeePortalAdvanceInstallmentListSurfaceConfiguration,
+  buildEmployeePortalAdvanceListSurfaceConfiguration,
+  type PortalAdvanceInstallmentDisplayRow,
+} from "../data/employee-portal-list-surface.server"
+import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
 
 import { EmployeePortalAdvanceCancelButton } from "./employee-portal-advance-cancel-button"
 import { EmployeePortalAdvanceRequestForm } from "./employee-portal-advance-request-form"
+import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalAdvancesPageProps = {
   portalSlug: string
-}
-
-function formatIsoDate(iso: string): string {
-  // YYYY-MM-DD ÔÇö safe for any timezone since we store calendar dates
-  return iso.slice(0, 10)
 }
 
 type AdvanceStateKey =
@@ -69,12 +62,66 @@ export async function EmployeePortalAdvancesPage({
     listAdvanceInstallmentsForEmployee(organizationId, employeeId),
   ])
 
-  // Group installments by advanceId for O(1) lookup
-  const installmentsByAdvance = new Map<string, typeof installments>()
+  const stateLabelFor = (state: string) =>
+    STATE_KEY_MAP[state] ? t(STATE_KEY_MAP[state]!) : state
+
+  const advanceConfiguration = buildEmployeePortalAdvanceListSurfaceConfiguration(
+    advances,
+    {
+      empty: t("listEmpty"),
+      colAmount: t("colAmount"),
+      colState: t("colState"),
+      colRequested: t("colRequested"),
+      colReason: t("colReason"),
+      stateLabelFor,
+    }
+  )
+
+  const advanceById = new Map(advances.map((row) => [row.id, row]))
+
+  const installmentsByAdvance = new Map<string, PortalAdvanceInstallmentDisplayRow[]>()
   for (const inst of installments) {
+    const advance = advanceById.get(inst.advanceId)
     const existing = installmentsByAdvance.get(inst.advanceId) ?? []
-    installmentsByAdvance.set(inst.advanceId, [...existing, inst])
+    installmentsByAdvance.set(inst.advanceId, [
+      ...existing,
+      {
+        id: inst.id,
+        sequence: inst.sequence,
+        dueAfterPeriodEndIso: inst.dueAfterPeriodEndIso,
+        plannedAmount: inst.plannedAmount,
+        currency: advance?.currency ?? "",
+        state: inst.state,
+      },
+    ])
   }
+
+  const allInstallmentRows: PortalAdvanceInstallmentDisplayRow[] = installments.map(
+    (inst) => {
+      const advance = advanceById.get(inst.advanceId)
+      return {
+        id: inst.id,
+        sequence: inst.sequence,
+        dueAfterPeriodEndIso: inst.dueAfterPeriodEndIso,
+        plannedAmount: inst.plannedAmount,
+        currency: advance?.currency ?? "",
+        state: inst.state,
+      }
+    }
+  )
+
+  const installmentConfiguration =
+    buildEmployeePortalAdvanceInstallmentListSurfaceConfiguration(
+      allInstallmentRows,
+      {
+        empty: t("installmentsEmpty"),
+        colSequence: t("colInstallment"),
+        colPeriodEnd: t("colInstallmentPeriodEnd"),
+        colAmount: t("colInstallmentAmount"),
+        colState: t("colInstallmentState"),
+        stateLabelFor,
+      }
+    )
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -116,107 +163,52 @@ export async function EmployeePortalAdvancesPage({
           <CardTitle className="text-base">{t("listTitle")}</CardTitle>
           <CardDescription>{t("listDescription")}</CardDescription>
         </CardHeader>
-        <CardContent>
-          {advances.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("listEmpty")}</p>
-          ) : (
-            <div className="flex flex-col gap-6">
-              {advances.map((row) => {
-                const advInstallments = installmentsByAdvance.get(row.id) ?? []
+        <CardContent className="flex flex-col gap-6">
+          <EmployeePortalGovernedTable
+            configuration={advanceConfiguration}
+            surfaceKey="hrm:portal:advances"
+            trailingColumn={{
+              header: t("colActions"),
+              render: (surfaceRow) => {
+                const row = advanceById.get(surfaceRow.id)
+                if (!row || row.state !== "pending") return null
                 return (
-                  <div key={row.id} className="flex flex-col gap-3">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t("colAmount")}</TableHead>
-                          <TableHead>{t("colState")}</TableHead>
-                          <TableHead>{t("colRequested")}</TableHead>
-                          <TableHead>{t("colReason")}</TableHead>
-                          <TableHead className="text-right">
-                            {t("colActions")}
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell>
-                            {row.amount} {row.currency}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {STATE_KEY_MAP[row.state]
-                                ? t(STATE_KEY_MAP[row.state]!)
-                                : row.state}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {formatIsoDate(row.requestedAt.toISOString())}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {row.reason ?? "ÔÇö"}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {row.state === "pending" ? (
-                              <EmployeePortalAdvanceCancelButton
-                                portalSlug={portalSlug}
-                                advanceId={row.id}
-                              />
-                            ) : (
-                              "ÔÇö"
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-
-                    {advInstallments.length > 0 && (
-                      <div className="ml-4 border-l pl-4">
-                        <p className="mb-2 text-xs font-medium text-muted-foreground">
-                          {t("installmentsTitle")}
-                        </p>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-10">
-                                {t("colInstallment")}
-                              </TableHead>
-                              <TableHead>
-                                {t("colInstallmentPeriodEnd")}
-                              </TableHead>
-                              <TableHead>{t("colInstallmentAmount")}</TableHead>
-                              <TableHead>{t("colInstallmentState")}</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {advInstallments.map((inst) => (
-                              <TableRow key={inst.id}>
-                                <TableCell className="text-muted-foreground">
-                                  {inst.sequence}
-                                </TableCell>
-                                <TableCell>
-                                  {formatIsoDate(inst.dueAfterPeriodEndIso)}
-                                </TableCell>
-                                <TableCell>
-                                  {inst.plannedAmount} {row.currency}
-                                </TableCell>
-                                <TableCell>
-                                  <Badge variant="outline">
-                                    {STATE_KEY_MAP[inst.state]
-                                      ? t(STATE_KEY_MAP[inst.state]!)
-                                      : inst.state}
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </div>
+                  <EmployeePortalAdvanceCancelButton
+                    portalSlug={portalSlug}
+                    advanceId={row.id}
+                  />
                 )
-              })}
-            </div>
-          )}
+              },
+            }}
+          />
+
+          {advances.map((advance) => {
+            const advInstallments = installmentsByAdvance.get(advance.id) ?? []
+            if (advInstallments.length === 0) return null
+            const nestedConfiguration =
+              buildEmployeePortalAdvanceInstallmentListSurfaceConfiguration(
+                advInstallments,
+                {
+                  empty: t("installmentsEmpty"),
+                  colSequence: t("colInstallment"),
+                  colPeriodEnd: t("colInstallmentPeriodEnd"),
+                  colAmount: t("colInstallmentAmount"),
+                  colState: t("colInstallmentState"),
+                  stateLabelFor,
+                }
+              )
+            return (
+              <div key={advance.id} className="border-l pl-4">
+                <p className="mb-2 text-xs font-medium text-muted-foreground">
+                  {t("installmentsTitle")}
+                </p>
+                <EmployeePortalGovernedTable
+                  configuration={nestedConfiguration}
+                  surfaceKey={`hrm:portal:advance-installments:${advance.id}`}
+                />
+              </div>
+            )
+          })}
         </CardContent>
       </Card>
 
@@ -229,51 +221,10 @@ export async function EmployeePortalAdvancesPage({
             <CardDescription>{t("installmentsDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            {installments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {t("installmentsEmpty")}
-              </p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10">
-                      {t("colInstallment")}
-                    </TableHead>
-                    <TableHead>{t("colInstallmentPeriodEnd")}</TableHead>
-                    <TableHead>{t("colInstallmentAmount")}</TableHead>
-                    <TableHead>{t("colInstallmentState")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {installments.map((inst) => {
-                    const advance = advances.find(
-                      (a) => a.id === inst.advanceId
-                    )
-                    return (
-                      <TableRow key={inst.id}>
-                        <TableCell className="text-muted-foreground">
-                          {inst.sequence}
-                        </TableCell>
-                        <TableCell>
-                          {formatIsoDate(inst.dueAfterPeriodEndIso)}
-                        </TableCell>
-                        <TableCell>
-                          {inst.plannedAmount} {advance?.currency ?? ""}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {STATE_KEY_MAP[inst.state]
-                              ? t(STATE_KEY_MAP[inst.state]!)
-                              : inst.state}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            )}
+            <EmployeePortalGovernedTable
+              configuration={installmentConfiguration}
+              surfaceKey="hrm:portal:advance-installments-all"
+            />
           </CardContent>
         </Card>
       )}

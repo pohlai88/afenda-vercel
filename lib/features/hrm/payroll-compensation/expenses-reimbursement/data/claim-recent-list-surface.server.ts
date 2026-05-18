@@ -1,9 +1,11 @@
 import "server-only"
 
-import type { ListSurfaceRendererConfiguration } from "#features/governed-surface"
+import type { ListSurfaceRendererConfigurationInput } from "#features/governed-surface"
 
 import { organizationHrmClaimPath } from "../../../constants"
 import {
+  CLAIM_LIST_READ_PERMISSION,
+  CLAIM_LIST_SURFACE_PRESENTATION,
   mapClaimRowToListSurfaceRow,
   type ClaimListStateLabels,
 } from "./claim-list-surface-rows.shared"
@@ -26,9 +28,11 @@ export function buildClaimRecentListSurfaceConfiguration(
   rows: readonly ClaimRow[],
   orgSlug: string,
   copy: ClaimRecentListCopy
-): ListSurfaceRendererConfiguration {
+): ListSurfaceRendererConfigurationInput {
   return {
     dataNature: "table",
+    requiresErpPermission: CLAIM_LIST_READ_PERMISSION,
+    presentation: CLAIM_LIST_SURFACE_PRESENTATION,
     surface: {
       header: {
         eyebrow: copy.pageTitle,
@@ -53,7 +57,11 @@ export function buildClaimRecentListSurfaceConfiguration(
         header: copy.colClaimType,
         cellKind: { kind: "badge", tone: "default" },
       },
-      { id: "claimDate", header: copy.colClaimDate, cellKind: { kind: "date" } },
+      {
+        id: "claimDate",
+        header: copy.colClaimDate,
+        cellKind: { kind: "date" },
+      },
       { id: "amount", header: copy.colAmount },
       {
         id: "state",

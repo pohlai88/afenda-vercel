@@ -27,7 +27,14 @@ export const BOARDING_TASK_CATEGORIES = [
   "access",
   "asset",
   "document",
+  "employee",
+  "finance",
   "manager",
+  "admin",
+  "handover",
+  "leave_attendance",
+  "claims_advance",
+  "vacancy",
   "compliance",
 ] as const
 

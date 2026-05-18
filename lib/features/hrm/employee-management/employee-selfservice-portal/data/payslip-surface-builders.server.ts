@@ -8,6 +8,11 @@ import { employeePortalPath } from "#lib/portal"
 
 import type { PayrollPayslipSnapshot } from "../../../payroll-compensation/payroll-processing/data/payroll-close.shared"
 
+const PRESENTATION = {
+  variant: "table-only" as const,
+  tableDensity: "compact" as const,
+}
+
 export type PayslipListRowInput = {
   readonly id: string
   readonly title: string
@@ -38,6 +43,7 @@ export function buildPayslipListSurfaceConfiguration(
 ): ListSurfaceRendererConfigurationInput {
   return {
     dataNature: "table",
+    presentation: PRESENTATION,
     surface: {
       header: {
         eyebrow: copy.eyebrow,
@@ -91,7 +97,8 @@ export function buildPayslipLinesSurfaceConfiguration(
   copy: PayslipLinesCopy
 ): ListSurfaceRendererConfigurationInput {
   return {
-    dataNature: "document-lines",
+    dataNature: "table",
+    presentation: PRESENTATION,
     surface: {
       header: {
         eyebrow: copy.eyebrow,

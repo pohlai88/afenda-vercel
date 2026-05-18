@@ -36,8 +36,11 @@ import {
 import { evaluateClaimSubmission } from "./claim-evaluation.server"
 import { getExpenseFundForOrg } from "./expense-fund.queries.server"
 import { fanoutClaimLifecycleEvent } from "./claim-notification.server"
+import { buildClaimEmployeeEligibilityProjection } from "./claim-employee-eligibility.server"
+import { validateClaimEvidenceAttachment } from "./claim-evidence-validation.server"
+import { firstBlockingClaimEvidenceIssue } from "./claim-evidence-validation.shared"
 import {
-  findOrgDocumentForClaim,
+  findOrgDocumentForClaimEvidence,
   findOrgEmployeeForClaim,
   getClaimTypeForOrg,
   resolveClaimApproverUserId,
@@ -72,6 +75,7 @@ export type SubmitClaimForEmployeeInput = {
   policyVersion: string | null
   expenseFundId?: string | null
   duplicateOverrideReason?: string | null
+  evidenceDocumentIds?: readonly string[]
   submissionMode: "self_service" | "on_behalf"
   /** When true, IAM audit uses `HRM_ESS_AUDIT.claim` (employee portal). */
   employeePortalAudit?: boolean
@@ -125,10 +129,10 @@ async function submitClaimForEmployeeBody(
     return hrmActionFailure({ claimTypeId: "Claim type is not active." })
   }
   if (input.expenseFundId && !expenseFund) {
-    return hrmActionFailure({ form: "Expense fund not found." })
+    return hrmActionFailure({ expenseFundId: "Expense fund not found." })
   }
   if (expenseFund && expenseFund.state !== "active") {
-    return hrmActionFailure({ form: "Expense fund is not active." })
+    return hrmActionFailure({ expenseFundId: "Expense fund is not active." })
   }
 
   const claimCurrency = (input.currency ?? claimType.currency).toUpperCase()
@@ -166,12 +170,42 @@ async function submitClaimForEmployeeBody(
   const approvalId = crypto.randomUUID()
   const now = new Date()
 
+  const submitEvidenceDocuments: { id: string; payloadHash: string }[] = []
+  const evidenceDocumentIds = input.evidenceDocumentIds ?? []
+  for (const documentId of evidenceDocumentIds) {
+    const document = await findOrgDocumentForClaimEvidence(
+      organizationId,
+      documentId
+    )
+    if (!document) {
+      return hrmActionFailure({
+        form: "One or more evidence documents were not found.",
+      })
+    }
+    const issues = await validateClaimEvidenceAttachment({
+      organizationId,
+      claimId,
+      evidenceType: "receipt",
+      document,
+    })
+    const blocking = firstBlockingClaimEvidenceIssue(issues)
+    if (blocking) {
+      return hrmActionFailure({ form: blocking.message })
+    }
+    submitEvidenceDocuments.push({
+      id: document.id,
+      payloadHash: document.payloadHash,
+    })
+  }
+
+  const eligibilityEmployee = await buildClaimEmployeeEligibilityProjection({
+    organizationId,
+    employee,
+  })
+
   const evaluation = await evaluateClaimSubmission({
     organizationId,
-    employee: {
-      ...employee,
-      legalEntityCode: null,
-    },
+    employee: eligibilityEmployee,
     claimType: {
       id: claimType.id,
       code: claimType.code,
@@ -186,6 +220,10 @@ async function submitClaimForEmployeeBody(
     amount: input.amount,
     claimCurrency,
     claimNumber,
+    receiptPayloadHashes: submitEvidenceDocuments.map(
+      (document) => document.payloadHash
+    ),
+    excludeClaimId: claimId,
     today,
     evaluatedAt: now,
   })
@@ -203,7 +241,8 @@ async function submitClaimForEmployeeBody(
     !input.duplicateOverrideReason?.trim()
   ) {
     return hrmActionFailure({
-      form: "A similar claim already exists. Provide an override reason to continue.",
+      duplicateOverrideReason:
+        "A similar claim already exists. Provide an override reason to continue.",
     })
   }
 
@@ -224,6 +263,11 @@ async function submitClaimForEmployeeBody(
     requiresEvidence: claimType.requiresEvidence,
     evidenceRequiredAboveAmount,
   })
+  if (evidenceRequired && submitEvidenceDocuments.length === 0) {
+    return hrmActionFailure({
+      form: "Receipt evidence is required for this claim.",
+    })
+  }
   const payoutMethod =
     evaluation.reimbursementMode === "petty_cash_fund"
       ? "payroll"
@@ -272,7 +316,7 @@ async function submitClaimForEmployeeBody(
       amount: input.amount,
       currency: reimbursementCurrency,
       description: input.description,
-      evidenceCount: 0,
+      evidenceCount: submitEvidenceDocuments.length,
       evidenceRequired,
       payoutMethod,
       financeAccountCode,
@@ -361,6 +405,20 @@ async function submitClaimForEmployeeBody(
           reviewedByUserId:
             duplicateReviewStatus === "overridden" ? userId : null,
           reviewedAt: duplicateReviewStatus === "overridden" ? now : null,
+        }))
+      )
+    }
+
+    if (submitEvidenceDocuments.length > 0) {
+      await tx.insert(hrmClaimEvidence).values(
+        submitEvidenceDocuments.map((document) => ({
+          id: crypto.randomUUID(),
+          organizationId,
+          claimId,
+          documentId: document.id,
+          evidenceType: "receipt",
+          notes: null,
+          uploadedByUserId: userId,
         }))
       )
     }
@@ -658,7 +716,10 @@ async function attachClaimEvidenceForPortalEmployeeBody(
     })
   }
 
-  const document = await findOrgDocumentForClaim(organizationId, documentId)
+  const document = await findOrgDocumentForClaimEvidence(
+    organizationId,
+    documentId
+  )
   if (!document) {
     return hrmActionFailure({ documentId: "Document not found." })
   }
@@ -667,6 +728,17 @@ async function attachClaimEvidenceForPortalEmployeeBody(
       documentId:
         "Self-service evidence must be uploaded against your employee record.",
     })
+  }
+
+  const evidenceIssues = await validateClaimEvidenceAttachment({
+    organizationId,
+    claimId,
+    evidenceType,
+    document,
+  })
+  const blockingEvidence = firstBlockingClaimEvidenceIssue(evidenceIssues)
+  if (blockingEvidence) {
+    return hrmActionFailure({ documentId: blockingEvidence.message })
   }
 
   const existing = await db.query.hrmClaimEvidence.findFirst({

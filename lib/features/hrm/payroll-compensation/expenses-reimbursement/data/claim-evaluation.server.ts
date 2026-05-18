@@ -4,7 +4,7 @@ import { and, eq, inArray, ne } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { hrmClaim } from "#lib/db/schema"
-import { resolveExchangeRate } from "#features/hrm/server"
+import { resolveExchangeRate } from "../../multi-country-payroll/server"
 
 import {
   evaluateClaimEligibility,
@@ -18,9 +18,11 @@ import {
 } from "./claim-policy.shared"
 import {
   hasBlockingDuplicateSignals,
+  mergeClaimDuplicateSignals,
   scoreDuplicateClaims,
   type ClaimDuplicateSignalDraft,
 } from "./claim-duplicate.shared"
+import { listReceiptPayloadDuplicateSignalsForSubmit } from "./claim-evidence-validation.server"
 import { buildClaimFxSnapshot, type ClaimFxSnapshot } from "./claim-fx.shared"
 import type { ExpenseFundRow } from "./expense-fund.queries.server"
 import { sumClaimsForEmployeeClaimTypeWindow } from "./claim.queries.server"
@@ -90,9 +92,7 @@ async function listRecentClaimsForDuplicateScan(input: {
         eq(hrmClaim.employeeId, input.employeeId),
         eq(hrmClaim.claimDate, input.claimDate),
         inArray(hrmClaim.state, ["submitted", "approved", "paid", "returned"]),
-        input.excludeClaimId
-          ? ne(hrmClaim.id, input.excludeClaimId)
-          : undefined
+        input.excludeClaimId ? ne(hrmClaim.id, input.excludeClaimId) : undefined
       )
     )
     .limit(20)
@@ -128,10 +128,12 @@ export async function evaluateClaimSubmission(input: {
     id: string
     archivedAt: Date | null
     employmentStatus: string | null
+    employmentType: string | null
     countryCode: string | null
     legalEntityCode: string | null
     currentDepartmentId: string | null
     currentJobGradeId: string | null
+    workStateCode: string | null
   }
   claimType: {
     id: string
@@ -147,8 +149,10 @@ export async function evaluateClaimSubmission(input: {
   amount: number
   claimCurrency: string
   claimNumber: string | null
+  receiptPayloadHashes?: readonly string[]
   today: string
   evaluatedAt: Date
+  excludeClaimId?: string
 }): Promise<ClaimSubmissionEvaluation> {
   const fundRules = input.expenseFund
     ? parseClaimEligibilityRules(input.expenseFund.eligibilityRules)
@@ -209,20 +213,31 @@ export async function evaluateClaimSubmission(input: {
     })
   }
 
-  const recentClaims = await listRecentClaimsForDuplicateScan({
-    organizationId: input.organizationId,
-    employeeId: input.employee.id,
-    claimDate: input.claimDate,
-  })
-  const duplicateSignals = scoreDuplicateClaims({
-    candidate: {
+  const [recentClaims, receiptDuplicateSignals] = await Promise.all([
+    listRecentClaimsForDuplicateScan({
+      organizationId: input.organizationId,
       employeeId: input.employee.id,
       claimDate: input.claimDate,
-      amount: input.amount,
-      claimNumber: input.claimNumber,
-    },
-    recentClaims,
-  })
+      excludeClaimId: input.excludeClaimId,
+    }),
+    listReceiptPayloadDuplicateSignalsForSubmit({
+      organizationId: input.organizationId,
+      payloadHashes: input.receiptPayloadHashes ?? [],
+      excludeClaimId: input.excludeClaimId,
+    }),
+  ])
+  const duplicateSignals = mergeClaimDuplicateSignals(
+    scoreDuplicateClaims({
+      candidate: {
+        employeeId: input.employee.id,
+        claimDate: input.claimDate,
+        amount: input.amount,
+        claimNumber: input.claimNumber,
+      },
+      recentClaims,
+    }),
+    receiptDuplicateSignals
+  )
   const duplicateReviewStatus = hasBlockingDuplicateSignals(duplicateSignals)
     ? "flagged"
     : "clear"

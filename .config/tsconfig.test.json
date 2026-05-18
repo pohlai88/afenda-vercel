@@ -7,6 +7,7 @@
     // invalidating the main tsconfig.tsbuildinfo cache.
     "tsBuildInfoFile": "../.artifacts/.tsbuildinfo/test",
     "assumeChangesOnlyAffectDirectDependencies": false,
+    "allowImportingTsExtensions": true,
     "noEmit": true
   },
   "include": [

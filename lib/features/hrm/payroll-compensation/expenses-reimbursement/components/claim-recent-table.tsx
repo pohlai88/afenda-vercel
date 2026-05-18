@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { GovernedEmpty } from "#features/governed-surface"
-import { ListSurfaceRenderer } from "#components2/metadata/renderers/list-surface.renderer"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
@@ -39,8 +38,23 @@ export async function ClaimRecentTable({
       organizationId: orgSession.organizationId,
     })
     return (
-      <GovernedEmpty
-        model={{
+      <GovernedPatternCListSection
+        layout="embedded"
+        title=""
+        listConfiguration={{
+          dataNature: "table",
+          surface: {
+            header: { title: "hrm-claims-recent" },
+            columnsId: "hrm-claims-recent",
+            rowKey: "id",
+            empty: { variant: "muted", title: t("recentEmpty") },
+          },
+          columns: [{ id: "employee", header: t("colEmployee") }],
+          rows: [],
+        }}
+        surfaceKey="hrm:claims:recent-activity:error"
+        resolveConfiguredPermission={false}
+        loadError={{
           variant: "error",
           title: t("recentLoadFailed"),
         }}
@@ -77,9 +91,19 @@ export async function ClaimRecentTable({
   )
 
   return (
-    <ListSurfaceRenderer
-      configuration={listConfiguration}
-      variant="table-only"
+    <GovernedPatternCListSection
+      layout="embedded"
+      title=""
+      listConfiguration={listConfiguration}
+      surfaceKey="hrm:claims:recent-activity"
+      resolveConfiguredPermission={false}
+      parentAccessAllowed={
+        access.canReadOrgClaims || access.hasSelfServiceEmployee
+      }
+      invalid={{
+        variant: "error",
+        title: t("recentLoadFailed"),
+      }}
     />
   )
 }

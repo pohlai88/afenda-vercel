@@ -1,0 +1,19 @@
+---
+description: Auto-load metadata EUI polish skill for governed renderers, surface builders, and Pattern B/C ERP pages.
+globs: "components2/metadata/**,lib/features/governed-surface/**,lib/features/*/data/*-surface-builders.server.ts,app/**/dev/metadata-renderer-gallery/**"
+alwaysApply: false
+---
+
+# Metadata EUI polish
+
+When editing governed renderers, surface builders, or Pattern B/C pages under the globs above, **apply `.agents/skills/metadata-eui-polish/SKILL.md` automatically**.
+
+Do not invoke `shadcn-metadata`, `web-design-guidelines`, or `vercel-composition-patterns` as separate workflows for the same task — the metadata EUI skill composes them.
+
+Hard contracts (always enforce):
+
+- `.cursor/rules/governed-renderer-contract.mdc` — `@container`, `dataNature`, no raw leaf `<div>`
+- `.cursor/rules/governed-surface-schema-contract.mdc` — Zod configuration schemas
+- `.cursor/rules/design-system.mdc` — semantic tokens only
+
+Post-task: targeted ESLint on touched renderer paths + `pnpm typecheck`. Renderer changes also run `pnpm lint:renderer-skeleton-parity` when skeleton geometry changes.

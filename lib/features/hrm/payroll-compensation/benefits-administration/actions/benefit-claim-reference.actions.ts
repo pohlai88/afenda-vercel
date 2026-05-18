@@ -7,8 +7,11 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { HRM_BENEFIT_AUDIT } from "../benefit.contract"
-import { insertBenefitClaimReference } from "../data/benefit-claim-reference.mutations.server"
-import { updateBenefitClaimReferenceRow } from "../data/benefit-claim-reference.mutations.server"
+import {
+  insertBenefitClaimReference,
+  updateBenefitClaimReferenceRow,
+} from "../data/benefit-claim-reference.mutations.server"
+import { getBenefitProviderForOrganization } from "../data/benefit-provider.queries.server"
 import { getBenefitEnrollmentForOrganization } from "../data/benefit.queries.server"
 import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
 import {
@@ -28,6 +31,15 @@ function revalidateBenefits() {
 function toMoneyString(value: number | undefined): string | null {
   if (value === undefined) return null
   return value.toFixed(2)
+}
+
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    (err as { code?: string }).code === "23505"
+  )
 }
 
 export async function createBenefitClaimReferenceAction(
@@ -66,19 +78,43 @@ export async function createBenefitClaimReferenceAction(
   if (!enrollment) {
     return hrmActionFailure({ form: "Enrollment not found." })
   }
+  if (data.providerId) {
+    const provider = await getBenefitProviderForOrganization(
+      organizationId,
+      data.providerId
+    )
+    if (!provider) {
+      return hrmActionFailure({ form: "Benefit provider not found." })
+    }
+    if (!provider.isActive) {
+      return hrmActionFailure({
+        form: "Cannot link an inactive benefit provider.",
+      })
+    }
+  }
 
-  const row = await insertBenefitClaimReference({
-    organizationId,
-    enrollmentId: data.enrollmentId,
-    providerId: data.providerId ?? null,
-    externalClaimId: data.externalClaimId.trim(),
-    claimStatus: data.claimStatus,
-    claimedAmount: toMoneyString(data.claimedAmount),
-    currency: data.currency,
-    paymentReference: data.paymentReference?.trim() ?? null,
-    documentIds: data.documentIds ?? [],
-    createdByUserId: userId,
-  })
+  let row: { id: string }
+  try {
+    row = await insertBenefitClaimReference({
+      organizationId,
+      enrollmentId: data.enrollmentId,
+      providerId: data.providerId ?? null,
+      externalClaimId: data.externalClaimId.trim(),
+      claimStatus: data.claimStatus,
+      claimedAmount: toMoneyString(data.claimedAmount),
+      currency: data.currency,
+      paymentReference: data.paymentReference?.trim() ?? null,
+      documentIds: data.documentIds ?? [],
+      createdByUserId: userId,
+    })
+  } catch (err) {
+    if (isUniqueViolation(err)) {
+      return hrmActionFailure({
+        form: "A benefit claim reference with this external ID already exists.",
+      })
+    }
+    return hrmActionFailure({ form: "Could not create claim reference." })
+  }
 
   after(() =>
     writeIamAuditEventFromNextHeaders({
@@ -126,7 +162,7 @@ export async function updateBenefitClaimReferenceAction(
   }
 
   const data = parsed.data
-  await updateBenefitClaimReferenceRow({
+  const updated = await updateBenefitClaimReferenceRow({
     organizationId,
     claimReferenceId: data.claimReferenceId,
     claimStatus: data.claimStatus,
@@ -135,6 +171,9 @@ export async function updateBenefitClaimReferenceAction(
     documentIds: data.documentIds ?? [],
     updatedByUserId: userId,
   })
+  if (!updated) {
+    return hrmActionFailure({ form: "Benefit claim reference not found." })
+  }
 
   after(() =>
     writeIamAuditEventFromNextHeaders({

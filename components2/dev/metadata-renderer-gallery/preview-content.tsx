@@ -23,6 +23,13 @@ export function MetadataRendererGalleryContent() {
         </p>
         <nav className="flex flex-wrap gap-3 text-sm">
           <Link
+            href="/en/dev/pattern-c-section-gallery"
+            prefetch={false}
+            className="text-primary hover:underline"
+          >
+            Pattern C section gallery (Wave C4)
+          </Link>
+          <Link
             href={SHELL_PREVIEW_HREF as Route}
             prefetch={false}
             className="text-primary hover:underline"

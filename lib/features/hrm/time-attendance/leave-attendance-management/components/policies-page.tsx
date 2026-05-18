@@ -19,7 +19,7 @@ import {
   isHrmPolicyTab,
 } from "../data/leave-policy-display.shared"
 
-import { PoliciesLeaveTypesTable } from "./policies-leave-types-table"
+import { PoliciesLeaveTypesSection } from "./policies-leave-types-section"
 import { PoliciesSeedMyEa2023Dialog } from "./policies-seed-my-ea-2023-dialog"
 import { PoliciesTabNav } from "./policies-tab-nav"
 import { LeaveTypeCreateDialog } from "./policies-leave-type-create-dialog"
@@ -122,7 +122,7 @@ export async function PoliciesPage({
               key={`leave-types-${includeArchived ? "archived" : "active"}`}
               fallback={<PoliciesTableSkeleton />}
             >
-              <PoliciesLeaveTypesTable
+              <PoliciesLeaveTypesSection
                 isAdmin={isAdmin}
                 includeArchived={includeArchived}
                 orgSlug={orgSlug}

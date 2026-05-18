@@ -20,6 +20,13 @@ import {
 
 import { organizationHrmEmployeePath } from "../../../constants"
 import { seedNewHireBenefitEnrollments } from "../../../payroll-compensation/benefits-administration/data/benefit-employment-bridge.server"
+import {
+  copyContractCompensationLines,
+  ensureDefaultHrmCompensationComponents,
+  insertContractCompensationLines,
+  listCompensationComponentsForOrg,
+  parseAllowanceLineInputsFromForm,
+} from "../../../payroll-compensation/compensation-planning-modeling/server"
 
 import { createOnboardingInstanceForContract } from "../../employee-lifecycle-management/data/boarding.mutations.server"
 import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
@@ -101,6 +108,48 @@ function revalidateHrmEmployeeSurfaces() {
     toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_HRM_EMPLOYEE_DETAIL),
     "page"
   )
+}
+
+function readContractPayCurrency(formData: FormData): string {
+  const raw = formData.get("baseSalaryCurrency")
+  if (typeof raw !== "string") return "MYR"
+  const currency = raw.trim().toUpperCase()
+  return /^[A-Z]{3}$/.test(currency) ? currency : "MYR"
+}
+
+async function parseContractAllowanceLines(input: {
+  readonly organizationId: string
+  readonly formData: FormData
+  readonly currency: string
+}): Promise<
+  | {
+      ok: true
+      lines: Array<{
+        readonly componentId: string
+        readonly amount: string
+        readonly currency: string
+      }>
+    }
+  | { ok: false; message: string }
+> {
+  await ensureDefaultHrmCompensationComponents(input.organizationId)
+  const components = await listCompensationComponentsForOrg(
+    input.organizationId
+  )
+  const parsed = parseAllowanceLineInputsFromForm({
+    formData: input.formData,
+    codeToId: new Map(
+      components.map((component) => [component.code, component.id])
+    ),
+    currency: input.currency,
+  })
+  if (!parsed.ok) {
+    return {
+      ok: false,
+      message: `Invalid allowance amount for ${parsed.invalidCode}.`,
+    }
+  }
+  return { ok: true, lines: parsed.lines }
 }
 
 async function requireMutableContractEmployee(input: {
@@ -192,10 +241,19 @@ export async function createDraftContractAction(
     d.baseSalaryAmount && d.baseSalaryAmount.length > 0
       ? d.baseSalaryAmount
       : null
+  const payCurrency = readContractPayCurrency(formData)
   const hours =
     d.normalWorkingHoursPerWeek && d.normalWorkingHoursPerWeek.length > 0
       ? d.normalWorkingHoursPerWeek
       : null
+  const allowanceParse = await parseContractAllowanceLines({
+    organizationId,
+    formData,
+    currency: payCurrency,
+  })
+  if (!allowanceParse.ok) {
+    return hrmActionFailure({ form: allowanceParse.message })
+  }
 
   const { contractId, versionNumber } = await db.transaction(async (tx) => {
     const [last] = await tx
@@ -225,11 +283,19 @@ export async function createDraftContractAction(
       positionId: posId ?? null,
       jobGradeId: gradeId ?? null,
       baseSalaryAmount: baseSalary,
+      baseSalaryCurrency: payCurrency,
       payFrequency: d.payFrequency ?? "monthly",
       normalWorkingHoursPerWeek: hours,
       createdByUserId: userId,
       updatedByUserId: userId,
     })
+
+    await insertContractCompensationLines(
+      organizationId,
+      id,
+      allowanceParse.lines,
+      tx
+    )
 
     await recordEmployeeRecordChangeHistory(
       {
@@ -394,6 +460,9 @@ export async function createSalaryRevisionDraftAction(
       createdByUserId: userId,
       updatedByUserId: userId,
     })
+
+    await ensureDefaultHrmCompensationComponents(organizationId, tx)
+    await copyContractCompensationLines(organizationId, active.id, id, tx)
 
     await recordEmployeeRecordChangeHistory(
       {

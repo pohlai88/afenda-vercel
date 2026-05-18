@@ -111,10 +111,25 @@ describe("default boarding templates", () => {
     ).toBe(3)
   })
 
-  it("offboarding has four required tasks", () => {
-    expect(DEFAULT_OFFBOARDING_TEMPLATE.tasks).toHaveLength(4)
+  it("offboarding has enterprise clearance tasks", () => {
+    expect(DEFAULT_OFFBOARDING_TEMPLATE.tasks).toHaveLength(11)
     expect(DEFAULT_OFFBOARDING_TEMPLATE.tasks.every((t) => t.required)).toBe(
       true
     )
+    expect(
+      DEFAULT_OFFBOARDING_TEMPLATE.tasks.map((task) => task.ownerRole)
+    ).toEqual([
+      "hr",
+      "manager",
+      "employee",
+      "it",
+      "asset_owner",
+      "hr",
+      "hr",
+      "finance",
+      "payroll",
+      "hr",
+      "manager",
+    ])
   })
 })

@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache"
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { acknowledgeEvidenceTransition } from "../data/compliance-acknowledgement.server"
-import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
+import { requireComplianceSessionMutationGate } from "../data/compliance-action-guard.server"
 import { hrmCodedActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { AcknowledgeStatutoryEvidenceFormState } from "../../../types"
 
@@ -53,11 +53,11 @@ export async function acknowledgeStatutoryEvidenceAction(
   _prev: AcknowledgeStatutoryEvidenceFormState,
   formData: FormData
 ): Promise<AcknowledgeStatutoryEvidenceFormState> {
-  const gate = await requireHrmAdmin()
+  const gate = await requireComplianceSessionMutationGate("update")
   if (!gate.ok) {
     return hrmCodedActionFailure("permission_denied", gate.error)
   }
-  const { organizationId, userId, sessionId } = gate.session
+  const { organizationId, userId, sessionId } = gate
 
   const evidenceId = formData.get("evidenceId")?.toString()
   if (!evidenceId) {

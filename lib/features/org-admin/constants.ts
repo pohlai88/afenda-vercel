@@ -164,6 +164,14 @@ export const ORG_EVENT_TYPES = [
   "erp.hrm.compliance.aging.detected",
   "erp.hrm.compliance.aging.escalated",
   "erp.hrm.compliance.aging.critical",
+  "erp.hrm.claim.submitted",
+  "erp.hrm.claim.under_review",
+  "erp.hrm.claim.approved",
+  "erp.hrm.claim.rejected",
+  "erp.hrm.claim.returned",
+  "erp.hrm.claim.exception_requested",
+  "erp.hrm.claim.paid",
+  "erp.hrm.claim.overdue",
 ] as const
 
 const EVENT_TYPE_SET = new Set<string>(ORG_EVENT_TYPES)

@@ -50,6 +50,7 @@ describe("HRM document backend gap closure contracts", () => {
     expect(guarded).toContain('function: "search"')
     expect(guarded).toContain('function: "read"')
     expect(guarded).toContain('function: "audit"')
+    expect(guarded).toContain("HRM_DOCUMENT_AUDIT.download")
     expect(metadata).toContain("HRM_DOCUMENT_SURFACE_COLUMNS")
     expect(metadata).toContain("HRM_DOCUMENT_SURFACE_FILTERS")
     expect(metadata).toContain("HRM_DOCUMENT_SURFACE_ROW_ACTIONS")
@@ -71,6 +72,18 @@ describe("HRM document backend gap closure contracts", () => {
     expect(actions).toContain("submitPortalEmployeeDocumentAction")
     expect(actions).toContain("canEmployeePortalAccessDocument")
     expect(actions).toContain("findEmployeeSubmissionRequirement")
+
+    const governance = readFileSync(
+      join(documentRoot, "data", "hrm-document-governance.server.ts"),
+      "utf8"
+    )
+    expect(governance).toContain("eq(hrmDocument.isLatestVersion, true)")
+    expect(governance).toContain(
+      'eq(hrmDocument.documentLifecycleStatus, "active")'
+    )
+    expect(governance).toContain(
+      'eq(hrmDocument.documentLifecycleStatus, "archived")'
+    )
   })
 
   it("persists policy acknowledgements for compliance summaries", () => {

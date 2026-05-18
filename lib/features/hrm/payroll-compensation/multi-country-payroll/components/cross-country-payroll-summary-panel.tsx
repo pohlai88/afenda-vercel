@@ -2,16 +2,10 @@ import { after } from "next/server"
 import { getTranslations } from "next-intl/server"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "#components2/ui/card"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 
 import { getCrossCountryPayrollReport } from "../data/cross-country-payroll-report.queries.server"
+import { buildCrossCountryPayrollReportListSurfaceConfiguration } from "../data/multi-country-payroll-list-surface.server"
 import { requireMultiCountryPayrollSearchSession } from "../data/multi-country-payroll-access.server"
 import { HRM_MULTI_COUNTRY_PAYROLL_AUDIT } from "../multi-country-payroll.contract"
 
@@ -64,65 +58,33 @@ export async function CrossCountryPayrollSummaryPanel({
     })
   )
 
+  const listConfiguration =
+    buildCrossCountryPayrollReportListSurfaceConfiguration(report.rows, {
+      empty: t("reportEmpty"),
+      colCountry: t("reportColCountry"),
+      colLegalEntity: t("reportColLegalEntity"),
+      colPeriod: t("reportColPeriod"),
+      colPayGroup: t("reportColPayGroup"),
+      colCurrency: t("reportColCurrency"),
+      colRuns: t("reportColRuns"),
+      colGrossPay: t("reportColGrossPay"),
+      colNetPay: t("reportColNetPay"),
+      colEmployerCost: t("reportColEmployerCost"),
+      colEmployerCostReporting: t("reportColEmployerCostReporting"),
+    })
+
   return (
-    <Card size="sm">
-      <CardHeader>
-        <CardTitle className="text-base">{t("reportTitle")}</CardTitle>
-        <CardDescription>
-          {t("reportDescription", {
-            from: periodStart,
-            to: periodEnd,
-            currency: report.reportingCurrency ?? reportingCurrency,
-          })}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {report.rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("reportEmpty")}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[32rem] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs text-muted-foreground">
-                  <th className="py-2 pr-3 font-medium">{t("reportColCountry")}</th>
-                  <th className="py-2 pr-3 font-medium">{t("reportColPeriod")}</th>
-                  <th className="py-2 pr-3 font-medium">{t("reportColCurrency")}</th>
-                  <th className="py-2 pr-3 font-medium text-right">
-                    {t("reportColEmployerCost")}
-                  </th>
-                  {report.reportingCurrency ? (
-                    <th className="py-2 font-medium text-right">
-                      {t("reportColEmployerCostReporting")}
-                    </th>
-                  ) : null}
-                </tr>
-              </thead>
-              <tbody>
-                {report.rows.map((row) => (
-                  <tr
-                    key={`${row.periodId}-${row.countryCode}-${row.payCurrency}-${row.payrollGroupCode}`}
-                    className="border-b border-border/60"
-                  >
-                    <td className="py-2 pr-3 font-medium">{row.countryCode}</td>
-                    <td className="py-2 pr-3 text-muted-foreground">
-                      {row.periodStart} – {row.periodEnd}
-                    </td>
-                    <td className="py-2 pr-3">{row.payCurrency}</td>
-                    <td className="py-2 pr-3 text-right tabular-nums">
-                      {row.employerCost}
-                    </td>
-                    {report.reportingCurrency ? (
-                      <td className="py-2 text-right tabular-nums">
-                        {row.employerCostReporting ?? "—"}
-                      </td>
-                    ) : null}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <GovernedPatternCListSection
+      title={t("reportTitle")}
+      description={t("reportDescription", {
+        from: periodStart,
+        to: periodEnd,
+        currency: report.reportingCurrency ?? reportingCurrency,
+      })}
+      listConfiguration={listConfiguration}
+      surfaceKey="hrm:multi-country-payroll:cross-country-report"
+      resolveConfiguredPermission={false}
+      cardClassName="mt-0"
+    />
   )
 }

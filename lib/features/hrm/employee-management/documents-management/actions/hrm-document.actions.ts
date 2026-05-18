@@ -727,7 +727,7 @@ export async function downloadDocumentAction(
   if (!gate.ok) {
     redirect("/")
   }
-  const { organizationId, userId, sessionId } = gate
+  const { organizationId } = gate
 
   const parsed = downloadDocumentFormSchema.safeParse({
     orgSlug: formData.get("orgSlug"),
@@ -744,16 +744,6 @@ export async function downloadDocumentAction(
   if (!doc.ok || doc.organizationId !== organizationId) {
     redirect("/")
   }
-
-  await writeIamAuditEventFromNextHeaders({
-    action: HRM_DOCUMENT_AUDIT.download,
-    actorUserId: userId,
-    actorSessionId: sessionId,
-    organizationId,
-    resourceType: "hrm_document",
-    resourceId: doc.documentId,
-    metadata: {},
-  })
 
   redirect(doc.blobUrl as Route)
 }

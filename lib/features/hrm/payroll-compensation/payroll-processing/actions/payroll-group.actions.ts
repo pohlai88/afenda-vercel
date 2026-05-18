@@ -47,6 +47,7 @@ export async function upsertPayrollGroupAction(
     organizationId: gate.organizationId,
     code: parsed.data.code,
     name: parsed.data.name,
+    countryCode: "MY",
     paySchedule: parsed.data.paySchedule,
     payCurrency: parsed.data.payCurrency,
     isActive: parsed.data.isActive,

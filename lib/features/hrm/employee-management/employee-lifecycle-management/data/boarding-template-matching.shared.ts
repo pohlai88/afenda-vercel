@@ -4,6 +4,7 @@ export type BoardingTemplateCriteria = {
   readonly positionId?: string | null
   readonly gradeId?: string | null
   readonly contractType?: string | null
+  readonly exitType?: string | null
 }
 
 export type BoardingTemplateCandidate = {
@@ -19,6 +20,7 @@ const CRITERIA_KEYS = [
   "positionId",
   "gradeId",
   "contractType",
+  "exitType",
 ] as const satisfies readonly (keyof BoardingTemplateCriteria)[]
 
 export function selectBestBoardingTemplate<T extends BoardingTemplateCandidate>(

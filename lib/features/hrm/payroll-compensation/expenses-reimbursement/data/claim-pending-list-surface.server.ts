@@ -1,9 +1,13 @@
 import "server-only"
 
-import type { ListSurfaceRendererConfiguration } from "#features/governed-surface"
+import type { ListSurfaceRendererConfigurationInput } from "#features/governed-surface"
 
 import { organizationHrmClaimPath } from "../../../constants"
-import { mapClaimRowToListSurfaceRow } from "./claim-list-surface-rows.shared"
+import {
+  CLAIM_LIST_READ_PERMISSION,
+  CLAIM_LIST_SURFACE_PRESENTATION,
+  mapClaimRowToListSurfaceRow,
+} from "./claim-list-surface-rows.shared"
 import type { ClaimRow } from "./claim.queries.server"
 import type { ClaimListStateLabels } from "./claim-list-surface-rows.shared"
 
@@ -24,9 +28,11 @@ export function buildClaimPendingListSurfaceConfiguration(
   rows: readonly ClaimRow[],
   orgSlug: string,
   copy: ClaimPendingListCopy
-): ListSurfaceRendererConfiguration {
+): ListSurfaceRendererConfigurationInput {
   return {
     dataNature: "table",
+    requiresErpPermission: CLAIM_LIST_READ_PERMISSION,
+    presentation: CLAIM_LIST_SURFACE_PRESENTATION,
     surface: {
       header: {
         eyebrow: "Claims",
@@ -51,7 +57,11 @@ export function buildClaimPendingListSurfaceConfiguration(
         header: copy.colClaimType,
         cellKind: { kind: "badge", tone: "default" },
       },
-      { id: "claimDate", header: copy.colClaimDate, cellKind: { kind: "date" } },
+      {
+        id: "claimDate",
+        header: copy.colClaimDate,
+        cellKind: { kind: "date" },
+      },
       { id: "amount", header: copy.colAmount },
       { id: "evidence", header: copy.colEvidence },
       {

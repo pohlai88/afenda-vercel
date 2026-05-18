@@ -8,20 +8,16 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components2/ui/table"
 
 import { requireEmployeePortalContext } from "../data/employee-portal-access.server"
+import { buildEmployeePortalOpenRequestsListSurfaceConfiguration } from "../data/employee-portal-list-surface.server"
+import {
+  listEmployeePortalOpenRequests,
+  type EmployeePortalOpenRequestKind,
+} from "../data/employee-portal-requests.queries.server"
 import { getEmployeePortalSectionNavLabels } from "../data/employee-portal-nav-labels.server"
-import { listEmployeePortalOpenRequests } from "../data/employee-portal-requests.queries.server"
-import type { EmployeePortalOpenRequestKind } from "../data/employee-portal-requests.queries.server"
 
+import { EmployeePortalGovernedTable } from "./employee-portal-governed-table"
 import { EmployeePortalSectionNav } from "./employee-portal-section-nav"
 
 type EmployeePortalRequestsPageProps = {
@@ -58,6 +54,16 @@ export async function EmployeePortalRequestsPage({
     listEmployeePortalOpenRequests({ organizationId, employeeId }),
   ])
 
+  const listConfiguration =
+    buildEmployeePortalOpenRequestsListSurfaceConfiguration(requests, {
+      empty: t("openRequestsEmpty"),
+      colType: t("colType"),
+      colDetails: t("colDetails"),
+      colStatus: t("colStatus"),
+      colSubmitted: t("colSubmitted"),
+      kindLabelFor: requestKindLabel,
+    })
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <header className="flex flex-col gap-2">
@@ -89,42 +95,10 @@ export async function EmployeePortalRequestsPage({
           <CardDescription>{t("openRequestsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {requests.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("openRequestsEmpty")}
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("colType")}</TableHead>
-                  <TableHead>{t("colDetails")}</TableHead>
-                  <TableHead>{t("colStatus")}</TableHead>
-                  <TableHead>{t("colSubmitted")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {requests.map((row) => (
-                  <TableRow key={`${row.kind}-${row.id}`}>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {requestKindLabel(row.kind)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-[240px] truncate">
-                      {row.label}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{row.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {row.submittedAt.toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <EmployeePortalGovernedTable
+            configuration={listConfiguration}
+            surfaceKey="hrm:portal:open-requests"
+          />
         </CardContent>
       </Card>
     </div>

@@ -2,13 +2,17 @@
  * Metadata vocabulary for governed-surface migration (no UI wiring in this phase).
  */
 
-import { HRM_BENEFITS_TABS, type HrmBenefitsTab } from "./benefit-display.shared"
+import {
+  HRM_BENEFITS_TABS,
+  type HrmBenefitsTab,
+} from "./benefit-display.shared"
 
 export const BENEFIT_LIST_SURFACE_IDS = {
   plans: "hrm-benefit-plans",
   enrollments: "hrm-benefit-enrollments",
   openEnrollment: "hrm-benefit-open-enrollment",
   providers: "hrm-benefit-providers",
+  claimReferences: "hrm-benefit-claim-references",
 } as const
 
 export const BENEFIT_SURFACE_PERMISSION = {
@@ -27,7 +31,9 @@ export function benefitTabForSurfaceId(
     case BENEFIT_LIST_SURFACE_IDS.openEnrollment:
       return "openEnrollment"
     case BENEFIT_LIST_SURFACE_IDS.providers:
-      return "plans"
+      return "providers"
+    case BENEFIT_LIST_SURFACE_IDS.claimReferences:
+      return "claimReferences"
     default:
       return HRM_BENEFITS_TABS[0]
   }

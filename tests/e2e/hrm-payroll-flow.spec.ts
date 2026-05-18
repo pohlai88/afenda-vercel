@@ -63,7 +63,9 @@ test.describe("HRM payroll preparation UI surface", () => {
 
       await expect(page.getByLabel("Period start (YYYY-MM-DD)")).toBeVisible()
       await expect(page.getByLabel("Period end (YYYY-MM-DD)")).toBeVisible()
+      await expect(page.getByLabel("Cutoff date (YYYY-MM-DD)")).toBeVisible()
       await expect(page.getByLabel("Payment date (YYYY-MM-DD)")).toBeVisible()
+      await expect(page.getByLabel("Payroll group code")).toBeVisible()
       await expect(page.getByLabel("Currency")).toHaveValue("MYR")
 
       const openPeriod = page.getByRole("button", {
@@ -131,8 +133,14 @@ test.describe("HRM payroll preparation UI surface", () => {
           .getByLabel("Period end (YYYY-MM-DD)")
           .fill(HRM_PAYROLL_E2E_FIXTURE.periodEnd)
         await page
+          .getByLabel("Cutoff date (YYYY-MM-DD)")
+          .fill(HRM_PAYROLL_E2E_FIXTURE.cutoffDate)
+        await page
           .getByLabel("Payment date (YYYY-MM-DD)")
           .fill(HRM_PAYROLL_E2E_FIXTURE.paymentDate)
+        await page
+          .getByLabel("Payroll group code")
+          .fill(HRM_PAYROLL_E2E_FIXTURE.payrollGroupCode)
         await page.getByLabel("Currency").fill("MYR")
         await page
           .getByRole("button", { name: "Open period", exact: true })
@@ -145,7 +153,7 @@ test.describe("HRM payroll preparation UI surface", () => {
         await page.reload({ waitUntil: "domcontentloaded" })
         await expect(
           page.getByText(
-            `${HRM_PAYROLL_E2E_FIXTURE.periodStart} — ${HRM_PAYROLL_E2E_FIXTURE.periodEnd}`,
+            `${HRM_PAYROLL_E2E_FIXTURE.periodStart} - ${HRM_PAYROLL_E2E_FIXTURE.periodEnd}`,
             { exact: true }
           )
         ).toBeVisible()

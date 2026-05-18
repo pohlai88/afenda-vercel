@@ -34,7 +34,25 @@ export const submitClaimFormSchema = z.object({
   policyVersion: z.string().max(64).nullable().default(null),
   expenseFundId: z.string().uuid().nullable().optional(),
   duplicateOverrideReason: z.string().max(1000).nullable().optional(),
+  evidenceDocumentIds: z
+    .array(z.string().uuid("Document ID must be a valid UUID"))
+    .max(5, "At most 5 evidence documents per submission")
+    .optional(),
 })
+
+export const recordClaimApPaymentFormSchema = z.object({
+  claimId: z.string().uuid("Claim ID must be a valid UUID"),
+  treasuryPaymentReference: z
+    .string()
+    .min(1, "Treasury payment reference is required")
+    .max(128, "Reference must be at most 128 characters"),
+  paidAmount: z.coerce.number().positive().optional(),
+  cashAccountCode: z.string().max(64).nullable().optional(),
+})
+
+export type RecordClaimApPaymentFormValues = z.infer<
+  typeof recordClaimApPaymentFormSchema
+>
 
 export type SubmitClaimFormValues = z.infer<typeof submitClaimFormSchema>
 

@@ -29,6 +29,7 @@ describe("CLAIM_STATES / CLAIM_EVIDENCE_TYPES", () => {
     expect(CLAIM_STATES).toEqual([
       "draft",
       "submitted",
+      "returned",
       "approved",
       "rejected",
       "cancelled",
@@ -353,9 +354,10 @@ describe("claim policy metadata", () => {
 // ---------------------------------------------------------------------------
 
 describe("claim state machine guards", () => {
-  it("submitted -> approved | rejected | cancelled", () => {
+  it("submitted -> approved | rejected | returned | cancelled", () => {
     expect(canTransitionFromSubmitted("approved")).toBe(true)
     expect(canTransitionFromSubmitted("rejected")).toBe(true)
+    expect(canTransitionFromSubmitted("returned")).toBe(true)
     expect(canTransitionFromSubmitted("cancelled")).toBe(true)
     expect(canTransitionFromSubmitted("draft")).toBe(false)
     expect(canTransitionFromSubmitted("paid")).toBe(false)

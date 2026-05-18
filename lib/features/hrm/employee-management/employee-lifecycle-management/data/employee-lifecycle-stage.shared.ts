@@ -274,6 +274,7 @@ export const HRM_LIFECYCLE_EVENT_KINDS = [
   "transition_scheduled",
   "transition_applied",
   "transition_cancelled",
+  "transition_failed",
 ] as const
 
 export type HrmLifecycleEventKind = (typeof HRM_LIFECYCLE_EVENT_KINDS)[number]

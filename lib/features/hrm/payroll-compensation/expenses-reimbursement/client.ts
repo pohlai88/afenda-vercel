@@ -11,6 +11,8 @@ export {
   returnClaimAction,
 } from "./actions/claim-approval.actions"
 
+export { recordClaimApPaymentAction } from "./actions/claim-payment.actions"
+
 export { overrideDuplicateClaimAction } from "./actions/claim-duplicate.actions"
 
 export {
@@ -20,6 +22,7 @@ export {
   claimRejectDecisionSchema,
   claimReturnDecisionSchema,
   claimDuplicateOverrideSchema,
+  recordClaimApPaymentFormSchema,
   requestOwnClaimFormSchema,
   submitClaimFormSchema,
 } from "./schema/claim.schema"
@@ -28,7 +31,10 @@ export type {
   AttachClaimEvidenceFormValues,
   CancelClaimFormValues,
   ClaimApprovalDecisionValues,
+  ClaimDuplicateOverrideValues,
   ClaimRejectDecisionValues,
+  ClaimReturnDecisionValues,
+  RecordClaimApPaymentFormValues,
   RequestOwnClaimFormValues,
   SubmitClaimFormValues,
 } from "./schema/claim.schema"
@@ -46,6 +52,12 @@ export type {
   ClaimsCountsSummary,
   ClaimStateValue,
 } from "./data/claim-helpers.shared"
+
+export type {
+  ClaimSubmitClaimTypeOption,
+  ClaimSubmitEmployeeOption,
+  ClaimSubmitExpenseFundOption,
+} from "./data/claim-form-options.shared"
 
 export type {
   AttachClaimEvidenceFormState,

@@ -1,6 +1,6 @@
 import "server-only"
 
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -34,7 +34,8 @@ const DEFAULT_SORT: Record<HrmCompensationComponentCode, number> = {
 
 /** Idempotent seed of Viet-ERP–aligned component rows for an organization. */
 export async function ensureDefaultHrmCompensationComponents(
-  organizationId: string
+  organizationId: string,
+  client: HrmCompensationDbClient = db
 ): Promise<void> {
   const rows = HRM_COMPENSATION_COMPONENT_CODES.map((code) => ({
     id: crypto.randomUUID(),
@@ -48,7 +49,7 @@ export async function ensureDefaultHrmCompensationComponents(
   }))
 
   for (const row of rows) {
-    await db
+    await client
       .insert(hrmCompensationComponent)
       .values(row)
       .onConflictDoNothing({
@@ -98,7 +99,12 @@ export async function copyContractCompensationLines(
       currency: hrmContractCompensationLine.currency,
     })
     .from(hrmContractCompensationLine)
-    .where(eq(hrmContractCompensationLine.contractId, fromContractId))
+    .where(
+      and(
+        eq(hrmContractCompensationLine.organizationId, organizationId),
+        eq(hrmContractCompensationLine.contractId, fromContractId)
+      )
+    )
 
   if (existing.length === 0) return
 

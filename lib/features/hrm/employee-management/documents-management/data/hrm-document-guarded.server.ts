@@ -133,6 +133,19 @@ export async function getSecureHrmDocumentDownload(input: {
     if (!auditGate.ok) return auditGate
   }
 
+  await writeIamAuditEvent({
+    action: HRM_DOCUMENT_AUDIT.download,
+    organizationId: readGate.session.organizationId,
+    actorUserId: readGate.session.userId,
+    actorSessionId: readGate.session.sessionId,
+    resourceType: "hrm_document",
+    resourceId: document.id,
+    metadata: {
+      classification: document.classification,
+      documentLifecycleStatus: document.documentLifecycleStatus,
+    },
+  })
+
   return {
     ok: true,
     documentId: document.id,

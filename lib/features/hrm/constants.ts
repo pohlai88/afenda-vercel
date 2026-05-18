@@ -54,6 +54,17 @@ export const HRM_CAPABILITIES = [
     }),
   },
   {
+    id: "offboarding",
+    segments: ["offboarding"] as const,
+    auditPrefix: "erp.hrm.offboarding",
+    nav: { navKey: "offboarding", order: 17, primarySegment: "offboarding" },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "employee",
+      function: "search",
+    }),
+  },
+  {
     id: "recruitment",
     segments: ["recruitment"] as const,
     auditPrefix: "erp.hrm.recruitment",

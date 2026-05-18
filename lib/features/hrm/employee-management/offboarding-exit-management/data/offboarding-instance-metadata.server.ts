@@ -11,8 +11,11 @@ export type OffboardingInstanceDetails = {
   readonly lastWorkingDate: string | null
   readonly noticeStartDate: string | null
   readonly noticeEndDate: string | null
+  readonly noticeWaived: boolean
+  readonly shortNotice: boolean
   readonly settlementReadinessStatus: HrmSettlementReadinessStatus
   readonly settlementBlockers: readonly { code: string; message: string }[]
+  readonly finalSettlementReference: string | null
   readonly rehireEligibility: HrmRehireEligibility | null
   readonly rehireEligibilityNote: string | null
   readonly exitInterviewScheduledAt: Date | null
@@ -21,6 +24,8 @@ export type OffboardingInstanceDetails = {
   readonly exitInterviewFeedbackSummary: string | null
   readonly exitInterviewWouldRehire: boolean | null
   readonly approvalReviewNote: string | null
+  readonly replacementRequestReference: string | null
+  readonly closureNote: string | null
 }
 
 export type OffboardingInstanceDetailsPatch = Partial<{
@@ -29,8 +34,11 @@ export type OffboardingInstanceDetailsPatch = Partial<{
   lastWorkingDate: string | null
   noticeStartDate: string | null
   noticeEndDate: string | null
+  noticeWaived: boolean
+  shortNotice: boolean
   settlementReadinessStatus: HrmSettlementReadinessStatus
   settlementBlockers: readonly { code: string; message: string }[]
+  finalSettlementReference: string | null
   rehireEligibility: HrmRehireEligibility | null
   rehireEligibilityNote: string | null
   exitInterviewScheduledAt: Date | string | null
@@ -39,6 +47,8 @@ export type OffboardingInstanceDetailsPatch = Partial<{
   exitInterviewFeedbackSummary: string | null
   exitInterviewWouldRehire: boolean | null
   approvalReviewNote: string | null
+  replacementRequestReference: string | null
+  closureNote: string | null
 }>
 
 type MutableRecord = Record<string, unknown>
@@ -67,7 +77,9 @@ function parseDateOrNull(value: unknown): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-function serializeDateOrNull(value: Date | string | null | undefined): string | null {
+function serializeDateOrNull(
+  value: Date | string | null | undefined
+): string | null {
   if (!value) return null
   if (value instanceof Date) return value.toISOString()
   const parsed = new Date(value)
@@ -97,17 +109,23 @@ export function readOffboardingInstanceDetails(
     exitType: asStringOrNull(details.exitType),
     exitReason: asStringOrNull(details.exitReason),
     lastWorkingDate:
-      asStringOrNull(details.lastWorkingDate) ?? fallback?.lastWorkingDate ?? null,
+      asStringOrNull(details.lastWorkingDate) ??
+      fallback?.lastWorkingDate ??
+      null,
     noticeStartDate: asStringOrNull(details.noticeStartDate),
     noticeEndDate: asStringOrNull(details.noticeEndDate),
+    noticeWaived: asBooleanOrNull(details.noticeWaived) ?? false,
+    shortNotice: asBooleanOrNull(details.shortNotice) ?? false,
     settlementReadinessStatus:
-      (asStringOrNull(details.settlementReadinessStatus) as
-        | HrmSettlementReadinessStatus
-        | null) ?? DEFAULT_SETTLEMENT_STATUS,
+      (asStringOrNull(
+        details.settlementReadinessStatus
+      ) as HrmSettlementReadinessStatus | null) ?? DEFAULT_SETTLEMENT_STATUS,
     settlementBlockers: parseSettlementBlockers(details.settlementBlockers),
+    finalSettlementReference: asStringOrNull(details.finalSettlementReference),
     rehireEligibility:
-      (asStringOrNull(details.rehireEligibility) as HrmRehireEligibility | null) ??
-      null,
+      (asStringOrNull(
+        details.rehireEligibility
+      ) as HrmRehireEligibility | null) ?? null,
     rehireEligibilityNote: asStringOrNull(details.rehireEligibilityNote),
     exitInterviewScheduledAt: parseDateOrNull(details.exitInterviewScheduledAt),
     exitInterviewCompletedAt: parseDateOrNull(details.exitInterviewCompletedAt),
@@ -115,10 +133,12 @@ export function readOffboardingInstanceDetails(
     exitInterviewFeedbackSummary: asStringOrNull(
       details.exitInterviewFeedbackSummary
     ),
-    exitInterviewWouldRehire: asBooleanOrNull(
-      details.exitInterviewWouldRehire
-    ),
+    exitInterviewWouldRehire: asBooleanOrNull(details.exitInterviewWouldRehire),
     approvalReviewNote: asStringOrNull(details.approvalReviewNote),
+    replacementRequestReference: asStringOrNull(
+      details.replacementRequestReference
+    ),
+    closureNote: asStringOrNull(details.closureNote),
   }
 }
 

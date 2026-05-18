@@ -14,17 +14,19 @@ import {
   DialogTrigger,
 } from "#components2/ui/dialog"
 
-import type { ClaimTypeRow } from "../data/claim.queries.server"
-import type { ExpenseFundRow } from "../data/expense-fund.queries.server"
-import type { LeaveEmployeeChoiceRow } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
+import type {
+  ClaimSubmitClaimTypeOption,
+  ClaimSubmitEmployeeOption,
+  ClaimSubmitExpenseFundOption,
+} from "../data/claim-form-options.shared"
 
 import { ClaimSubmitForm } from "./claim-submit-form"
 
 type ClaimSubmitDialogProps = {
   mode: "own" | "on_behalf"
-  employees?: ReadonlyArray<LeaveEmployeeChoiceRow>
-  claimTypes: ReadonlyArray<ClaimTypeRow>
-  expenseFunds?: ReadonlyArray<ExpenseFundRow>
+  employees?: ReadonlyArray<ClaimSubmitEmployeeOption>
+  claimTypes: ReadonlyArray<ClaimSubmitClaimTypeOption>
+  expenseFunds?: ReadonlyArray<ClaimSubmitExpenseFundOption>
 }
 
 /**
