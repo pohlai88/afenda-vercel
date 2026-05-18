@@ -72,20 +72,21 @@ Every `ignoreIssues` entry must answer: *Why intentionally kept? Who consumes it
 
 | Tier | Moment | Command | Cost |
 |---|---|---|---|
-| 0 | every `git commit` | lint-staged (auto) | changed files |
-| 1 | after focused edit | `pnpm typecheck && pnpm lint` | ~30s warm |
-| 2 | before push | `pnpm verify:parallel` | ~2–3 min |
-| 3 | before significant merge | `pnpm verify:artifact` (`next build`) | ~5 min |
-| 4 | CI gate | `pnpm verify` (sequential, includes coverage) | CI |
-| 5 | operational | `pnpm test:e2e:ci` | runtime |
+| L0 | every edit / agent task | `pnpm gate -- <paths>` | ~15–45s warm |
+| L1 | every `git commit` | lint-staged (auto) | changed files |
+| L2 | before push | `pnpm gate:push` | ~2–5 min warm |
+| L3 | pre-merge / route risk | `pnpm gate:merge` | ~5–10 min |
+| L4 | CI gate | `pnpm verify` (sequential, includes coverage) | CI |
+| L5 | operational | `pnpm test:e2e:ci` | runtime |
 
 **Use the lowest sufficient tier.** Never run `pnpm knip` after individual task completions.
 
 ### What each gate validates
 
-- **`pnpm lint`** → ESLint (import boundaries, forbidden patterns, Radix confinement) + governance scripts (agent-contract, drizzle-journal, design-contract, fixtures-parity)
-- **`pnpm typecheck`** → main app type graph
-- **`pnpm verify:parallel`** → all of the above + knip + format:check + behavior tests
+- **`pnpm gate:push`** → lint:full + typecheck:full + knip + format:check + behavior tests
+- **`pnpm lint:full`** / **`pnpm lint`** → ESLint + governance scripts (not an edit-loop command)
+- **`pnpm typecheck`** → main app type graph (L0)
+- **`pnpm gate:merge`** → `gate:push` + `next build`
 - **`pnpm verify:artifact`** → `next build` — RSC boundaries, bundle shape, route graph, server/client partitioning, metadata, typed routes
 - **`pnpm verify`** → sequential CI chain with coverage thresholds
 

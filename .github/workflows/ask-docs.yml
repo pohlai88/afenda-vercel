@@ -6,7 +6,7 @@ on:
   pull_request:
     paths:
       - "content/ask-docs/**"
-      - "content/ask-docs/scaffold.manifest.json"
+      - ".config/ask-docs-scaffold.manifest.json"
       - "scripts/validate-ask-docs-links.ts"
       - "scripts/lint-ask-docs-prose.mjs"
       - "scripts/lint-ask-docs-quality.mjs"

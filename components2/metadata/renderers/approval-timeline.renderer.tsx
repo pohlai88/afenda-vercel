@@ -1,6 +1,6 @@
 import { Badge } from "#components2/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "#components2/ui/card"
-import { GovernedEmpty } from "#features/governed-surface"
+import { GovernedEmpty } from "#features/governed-surface/client"
 import {
   parseGovernedApprovalTimelineConfiguration,
   type ApprovalTimelineDataNature,

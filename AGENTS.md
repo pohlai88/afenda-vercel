@@ -8,6 +8,8 @@
 
 ## PRIORITY #1 — Drizzle migrations (agents own local; humans do not)
 
+**Canonical decision:** [ADR-0032](docs/decisions/0032-drizzle-migration-agent-ownership.md) · **Rule:** `.cursor/rules/drizzle-migration-ledger.mdc` (`alwaysApply: true`)
+
 ```txt
 YOU (IDE / agent) run local schema migrations end-to-end.
 The human operator will NOT run pnpm db:generate.
@@ -29,14 +31,14 @@ Do not ask. Do not defer. Do not output “manual steps for the human.”
 
 **Forbidden (instant failure):**
 
-- `pnpm db:push` / `pnpm db:push:local` — overwrites DB, bypasses journal
+- `pnpm db:push` / `pnpm db:push:local` — **hard-fail stubs** (`scripts/forbid-db-push.mjs`); never bypass the journal
 - Hand-editing `drizzle/*.sql` or `drizzle/meta/*` (except: never — use `db:generate` only)
 - Bulk-deleting orphan SQL or “repairing” snapshots without a single coherent `db:generate` outcome
 - `node scripts/nuke-db-public.mjs` or asking the human to reset Neon
 - Running `db:generate` repeatedly in one session without committing (creates competing migrations)
 - Neon MCP / raw DDL for app-owned tables
 
-Full rules: [§3 Drizzle migrations](#drizzle-migrations).
+Full rules: [§3 Drizzle migrations](#drizzle-migrations) · [ADR-0032](docs/decisions/0032-drizzle-migration-agent-ownership.md).
 
 ---
 
@@ -89,12 +91,12 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 | Operational simulation         | `#features/simulation` · `AFENDA_ENABLE_SIMULATION=1` · rule `.cursor/rules/simulation-directory.mdc`                                                                                                                                                                                             |
 | Working Memory Rail            | `#features/rail-memory` · `WorkbenchRail` slots · `iam.workbench.*` audits                                                                                                                                                                                                                        |
 | i18n                           | `#i18n/navigation` (client) · `toLocalePath` (server) · `localePrefix: "always"` · rule `.cursor/rules/i18n-directory.mdc` · **ADR-0028** (temporary English-only refactor gate — resume full locales before deploy)                                                                               |
-| DB / Drizzle                   | `lib/db/schema.ts` · **agents:** `pnpm db:generate` → `pnpm db:migrate:local` only · rule `.cursor/rules/drizzle-migration-ledger.mdc`                                                                                                                                                            |
+| DB / Drizzle                   | `lib/db/schema.ts` · **agents:** `pnpm db:generate` → `pnpm db:migrate:local` only · **ADR-0032** · rule `.cursor/rules/drizzle-migration-ledger.mdc`                                                                                                                                             |
 | Auth / IAM                     | `#lib/auth` (server — session guards, step-up, audit) · `#lib/auth-client` (browser) · session guards **only** from `#lib/auth` · rule `.cursor/rules/iam-directory.mdc` · lib layout [§6.1–6.3](#6-directory-contract)                                                                          |
 | Scaffold                       | `pnpm gen [capability\|action\|adr\|audit-contract\|workflow-job\|ask-doc]` — see §3                                                                                                                                                                                                              |
 | UI / design                    | `#components2/ui/*` · `#lib/design-system` · `app/globals.css` tokens · rule `.cursor/rules/design-system.mdc`                                                                                                                                                                                     |
 | Tests                          | `pnpm test:fast` (unit) · `pnpm test:e2e` (Playwright port 3001) · rule `.cursor/rules/testing.mdc`                                                                                                                                                                                               |
-| Green CI                       | **Targeted (concurrent agents):** `pnpm exec eslint --max-warnings=0 <path> && pnpm typecheck` · **Full (solo):** `pnpm typecheck && pnpm lint` · **Pre-push:** `pnpm verify:parallel` · Rule: `.cursor/rules/targeted-verification.mdc`                                                          |
+| Green CI                       | **`pnpm gate:help`** · **L0:** `pnpm gate -- <paths>` · **L2:** `pnpm gate:push` · **L3:** `pnpm gate:merge` · ADR-0033 · `.cursor/rules/targeted-verification.mdc`                                                                                                      |
 | Neon / Vercel MCP              | Configure in `.cursor/mcp.json` · see §5 [MCP validation](#validating-with-neon-and-vercel-mcp)                                                                                                                                                                                                   |
 | Ask docs                       | `app/(ask-docs)/[locale]/ask-docs/` · `content/ask-docs/` · **`pnpm ask-docs:preflight`** · **`pnpm ask-docs:check`** · **`pnpm ask-docs:validate-manifest`** · **`pnpm ask-docs:scaffold`** · `pnpm gen ask-doc` · ADR-0027 · `.agents/skills/adqs/` · rule `.cursor/rules/ask-docs-directory.mdc` |
 | Ask docs AI chat (Public Lynx) | `app/api/chat/route.ts` · `#components2/ai/search` on `/{locale}/ask-docs` · `pnpm lint:public-lynx-contract` · rule `.cursor/rules/public-lynx.mdc` — **never** import `#features/lynx`                                                                                                           |
@@ -136,28 +138,67 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 
 ## 2. Commands & quality gates
 
+**Gate ladder (ADR-0033)** — use the **lowest sufficient tier**. Do not run `lint:full`, `gate:push`, and `build` after every edit.
+
+| Tier | When | Command | Typical cost (warm) |
+| --- | --- | --- | --- |
+| **L0** | After every edit / agent task | `pnpm gate -- <touched-paths…>` | ~15–45s |
+| **L0** | Types only | `pnpm gate` or `pnpm typecheck` | ~10–30s |
+| **L1** | Git commit | lint-staged (automatic) | staged files |
+| **L2** | Before push / open PR | `pnpm gate:push` | ~2–5 min |
+| **L3** | Pre-merge / App Router risk | `pnpm gate:merge` | ~5–10 min |
+| **L4** | CI | GitHub Actions — do not replay locally unless debugging | parallel jobs |
+
+### Common commands (high frequency — no `:full` suffix)
+
+| Command | Purpose |
+| --- | --- |
+| **`pnpm gate -- <paths>`** | **Default close condition:** targeted ESLint + app `typecheck` |
+| **`pnpm gate`** | App `typecheck` only (prints tip to pass paths) |
+| **`pnpm gate:help`** | Print full gate ladder (onboarding / agent self-correction) |
+| **`pnpm gate:dry-run -- <paths>`** | Print planned L0 commands without executing |
+| **`pnpm typecheck`** | App TypeScript graph (`next typegen` + `tsc --noEmit`) |
+| **`pnpm lint:path -- <paths>`** | Targeted ESLint only — never `eslint .` |
+| **`pnpm typecheck:test`** | Test graph — add at L0 when `tests/` changed |
+| **`pnpm typecheck:scripts`** | Scripts graph — add at L0 when `scripts/` changed |
+
+### Full commands (low frequency — `:full` or `gate:*`)
+
+| Command | Purpose |
+| --- | --- |
+| **`pnpm typecheck:full`** | App + test + scripts TypeScript graphs |
+| **`pnpm lint:full`** / **`pnpm lint`** | Full Turbo lint stack (~18 governance tasks + repo ESLint) |
+| **`pnpm gate:push`** | Pre-push: lint stack + all typechecks + knip + `test:ci` + format (alias: `pnpm verify:parallel`) |
+| **`pnpm gate:merge`** | `gate:push` + production `next build` |
+| **`pnpm verify`** / **`pnpm verify:ci`** | CI sequential variant (unchanged for workflows) |
+
+> **Three-graph rule:** L0 uses **`pnpm typecheck`** (app only). Before push, **`gate:push`** runs all three graphs. Manually run **`pnpm typecheck:full`** only when debugging graph splits — not after every edit.
+
+**Forbidden edit-loop habit:** `pnpm lint:full && pnpm gate:push && pnpm build && pnpm test:e2e` in one session — that replays CI locally (~8–15+ min).
+
 | Command                               | Purpose                                                                                                                                                                                                              |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm dev`                            | Dev server (Turbopack, port 3000)                                                                                                                                                                                    |
 | `pnpm build` / `pnpm start`           | Production build / serve                                                                                                                                                                                             |
-| `pnpm lint`                           | Turborepo: `lint:agent-contract → … → lint:ask-docs-links → lint:ask-docs-prose → lint:ask-docs-quality → …` |
+| `pnpm lint:full`                      | Turborepo: `lint:agent-contract → … → lint:ask-docs-* → …` (alias: **`pnpm lint`**) |
 | `pnpm lint:eslint`                    | ESLint — zero warnings, unused disables reported                                                                                                                                                                     |
 | `pnpm lint:drizzle-journal`           | `drizzle/*.sql` ↔ `_journal.json` parity                                                                                                                                                                             |
 | `pnpm lint:route-error-files`         | `error.tsx` files ↔ approved operational shell allowlist (`scripts/check-route-error-files.mjs`)                                                                                                                     |
 | `pnpm lint:public-lynx-contract`      | Public Lynx boundary — no `#features/lynx`, raw POST cap, shared transcript helpers (`scripts/check-public-lynx-contract.mjs`)                                                                                       |
 | `pnpm lint:fixtures-parity`           | `tests/fixtures/*` ↔ `messages/en.json` + auth surfaces + seed script                                                                                                                                                |
 | `pnpm ask-docs:check`                 | Ask-docs quality pipeline (Turbo meta task via `scripts/ask-docs-check-gate.mjs`) — `lint:ask-docs-links` + `lint:ask-docs-prose` + `lint:ask-docs-quality` (after editing `content/ask-docs/**`; in `pnpm verify*`) |
-| `pnpm ask-docs:validate-manifest`     | Validate `content/ask-docs/scaffold.manifest.json` (or `--manifest`) — no file writes                                                                                                                                    |
+| `pnpm ask-docs:validate-manifest`     | Validate `.config/ask-docs-scaffold.manifest.json` (or `--manifest`) — no file writes                                                                                                                                    |
 | `pnpm ask-docs:scaffold:dry-run`      | Dry-run fixture manifest (`tests/fixtures/ask-docs-scaffold-dry-run.manifest.json`) — proves scaffold wiring                                                                                                              |
 | `pnpm ask-docs:preflight`             | Pre-PR docs workflow: `validate-manifest` + fixture `scaffold:dry-run` + `ask-docs:check`                                                                                                                                 |
-| `pnpm ask-docs:scaffold`              | Batch-scaffold new MDX from `content/ask-docs/scaffold.manifest.json` via `pnpm gen ask-doc` (idempotent; **not** part of `pnpm build`; supports `--dry-run`, `--json`)                                                  |
+| `pnpm ask-docs:scaffold`              | Batch-scaffold new MDX from `.config/ask-docs-scaffold.manifest.json` via `pnpm gen ask-doc` (idempotent; **not** part of `pnpm build`; supports `--dry-run`, `--json`)                                                   |
 | `pnpm lint:ask-docs-links`            | `next-validate-link` — validates internal URLs in `content/ask-docs/**/*.mdx` (Fumadocs)                                                                                                                             |
 | `pnpm lint:ask-docs-prose`            | `markdownlint-cli2` — narrow prose/style gate on `content/ask-docs/**/*.mdx` (config `.config/markdownlint-ask-docs.jsonc`)                                                                                          |
 | `pnpm lint:ask-docs-quality`          | ADQS mechanical gate — stub strings, Related graph, stable frontmatter on `content/ask-docs/**/*.mdx` (`scripts/lint-ask-docs-quality.mjs`; ADR-0027)                                                                  |
 | `pnpm audit:ask-docs-quality`         | ADQS corpus tier report A/B/C → `.artifacts/ask-docs-quality-audit.txt` (`scripts/audit-ask-docs-quality.mjs`; not in CI — PR review aid)                                                                               |
-| `pnpm typecheck`                      | `tsc --noEmit` — **app graph only** (separate tsconfigs for tests/scripts; always run all three before push)                                                                                                         |
-| `pnpm typecheck:test`                 | `tsc -p tsconfig.test.json` — test graph; catches type drift in `tests/unit/` that `pnpm typecheck` never sees                                                                                                       |
-| `pnpm typecheck:scripts`              | `tsc -p tsconfig.scripts.json` — scripts graph                                                                                                                                                                       |
+| `pnpm typecheck:full`                 | App + test + scripts graphs (`typecheck` + `typecheck:test` + `typecheck:scripts`) |
+| `pnpm typecheck`                      | `tsc --noEmit` — **app graph only** |
+| `pnpm typecheck:test`                 | `tsc -p tsconfig.test.json` — test graph |
+| `pnpm typecheck:scripts`              | `tsc -p tsconfig.scripts.json` — scripts graph |
 | `pnpm format` / `pnpm format:check`   | Prettier + Tailwind class sorting                                                                                                                                                                                    |
 | `pnpm knip`                           | Dead-code verdict — run before push, not after each edit                                                                                                                                                             |
 | `pnpm verify`                         | Full pre-merge graph (lint + typecheck + knip + test:ci + format:check)                                                                                                                                              |
@@ -171,30 +212,31 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations).
 | `pnpm db:generate`                    | **Agent-owned (required).** After `lib/db/schema.ts` edits — additive only; **abort** if rename disambiguation prompts (no TTY). Commit SQL + meta with schema. **Never** ask human to run. **Never** from CI.       |
 | `pnpm db:migrate:local`               | **Agent-owned (required).** After `lint:drizzle-journal` passes on local `.env.local`. **Never** ask human to run. **Never** from CI.                                                                                |
 | `pnpm db:migrate:vercel`              | Out of scope for agents; do not ask human to run as a substitute for local discipline.                                                                                                                               |
-| `pnpm db:push` / `pnpm db:push:local` | **Forbidden for agents/IDE** — overwrites DB from schema without journal discipline. Human throwaway branches only, if ever.                                                                                         |
+| `pnpm db:push` / `pnpm db:push:local` | **Hard-fail stubs** — invoke `scripts/forbid-db-push.mjs`; drizzle-kit push removed (ADR-0032) |
 | `pnpm simulate:replay`                | Replay scenario (`AFENDA_ENABLE_SIMULATION=1` required)                                                                                                                                                              |
 | `pnpm simulate:clear`                 | Delete simulation rows for a run                                                                                                                                                                                     |
 
-**Post-task gate — targeted (use when other agents may be running):**
+**L0 example (after editing HRM):**
 
 ```bash
-# Lint only the files/dirs you touched — avoids full workspace scan
-pnpm exec eslint --max-warnings=0 <path1> [path2 ...]
-
-# Typecheck — incremental (~10s warm); safe to run concurrently
-pnpm typecheck
+pnpm gate -- lib/features/hrm/
+# preview only:
+pnpm gate:dry-run -- lib/features/hrm/
 ```
 
-> **Three-graph rule:** `pnpm typecheck` only covers the app graph. Touching `tests/unit/` also requires `pnpm typecheck:test`. Touching `scripts/` also requires `pnpm typecheck:scripts`. All three are automatically included in every `pnpm verify*` and `pnpm verify:quick` invocation — never skip the test/scripts graphs before push.
-
-**Post-task gate — full workspace (only agent running, or design-token / i18n changes):**
+**Onboarding / reminder:**
 
 ```bash
-pnpm typecheck && pnpm lint
-# Both must exit 0.
+pnpm gate:help
 ```
 
-**Narrow lint gates (run instead of full `pnpm lint` when only one concern changed):**
+**L2 before push:**
+
+```bash
+pnpm gate:push
+```
+
+**Narrow lint gates (run instead of `lint:full` when only one concern changed):**
 
 ```bash
 pnpm lint:drizzle-journal # after drizzle/*.sql changes
@@ -208,13 +250,7 @@ pnpm lint:fixtures-parity # after messages/en.json or fixture changes
 pnpm lint:public-lynx-contract # after app/api/chat, components2/ai/search, lib/ask-docs/public-lynx*
 ```
 
-**Pre-push gate:**
-
-```bash
-pnpm verify:parallel
-```
-
-> Rule: `.cursor/rules/targeted-verification.mdc` — full decision table for concurrent-agent scenarios.
+> Rule: `.cursor/rules/targeted-verification.mdc` · decision: [ADR-0033](docs/decisions/0033-verify-gate-ladder-naming.md)
 
 **Path aliases** (`package.json`): `#components2/*` · `#app-shell` · `#app-shell/client` · `#lib/*` · `#hooks/*` · `#features/*`
 
@@ -277,7 +313,7 @@ Each generator runs `pnpm lint:agent-contract + pnpm lint:eslint --fix` on touch
 
 ### Drizzle migrations
 
-See **[PRIORITY #1](#priority-1--drizzle-migrations-agents-own-local-humans-do-not)** first.
+See **[PRIORITY #1](#priority-1--drizzle-migrations-agents-own-local-humans-do-not)** and **[ADR-0032](docs/decisions/0032-drizzle-migration-agent-ownership.md)** first.
 
 **Agent-owned (local). Human does not run generate, migrate, or DB reset.**
 
@@ -308,7 +344,7 @@ pnpm db:migrate:local               # fixes local "relation does not exist"
 | -------------------------------------------------------------------------- | ---------------------------------------------------- |
 | Asking human to run `db:generate` / `db:migrate:local`                     | Agent-owned per PRIORITY #1                          |
 | Asking human to nuke or reset Neon                                         | Human will not help; you must not destroy the ledger |
-| `pnpm db:push` / `pnpm db:push:local`                                      | Overwrites DB — caused drift class                   |
+| `pnpm db:push` / `pnpm db:push:local`                                      | Hard-fail stubs — bypasses journal; caused drift class |
 | `node scripts/drizzle-migrate-logged.mjs`                                  | Use `pnpm db:migrate:local` only                     |
 | `node scripts/nuke-db-public.mjs`                                          | Destructive — never                                  |
 | Hand-edit `drizzle/*.sql`, `drizzle/meta/_journal.json`, `*_snapshot.json` | Corrupts drizzle-kit baseline                        |
@@ -356,6 +392,8 @@ AGENTS.md
 .cursor/rules/portal-directory.mdc
 .cursor/rules/module-client-server-barrels.mdc
 docs/decisions/0030-module-client-server-barrel-boundary.md
+docs/decisions/0032-drizzle-migration-agent-ownership.md
+.cursor/rules/drizzle-migration-ledger.mdc
 eslint.config.mjs
 scripts/check-design-contract.mjs
 scripts/check-route-error-files.mjs
@@ -841,7 +879,7 @@ Do **not** commit `.source/` — it is regenerated by Next/Fumadocs. Do **not** 
 | `scripts/ask-docs-check-gate.mjs`                       | User entry for `pnpm ask-docs:check` — invokes Turbo `ask-docs:check` (lint deps + noop leaf when `TURBO_HASH` is set)                                                                                           |
 | `scripts/ask-docs-scaffold-from-manifest.mjs`           | `pnpm ask-docs:scaffold` — batch `gen ask-doc` from manifest (`--dry-run`, `--validate-only`, `--json`, `--manifest`)                                                                                            |
 | `scripts/lib/ask-docs-scaffold-manifest.shared.mjs`     | Shared manifest validation/planning (unit-tested)                                                                                                                                                                  |
-| `content/ask-docs/scaffold.manifest.json`               | Planned pages for batch scaffold (JSON array; empty `[]` when unused)                                                                                                                                              |
+| `.config/ask-docs-scaffold.manifest.json`               | Planned pages for batch scaffold (JSON array; empty `[]` when unused) — **not** under `content/ask-docs/` (Fumadocs would treat it as `meta.json`)                                                                  |
 | `tests/fixtures/ask-docs-scaffold-dry-run.manifest.json`| Fixture for `pnpm ask-docs:scaffold:dry-run` (pipeline smoke; slug must not exist on disk)                                                                                                                         |
 
 **Split trigger:** when `content/ask-docs/` exceeds ~50 MDX files or requires a CMS, extract as a standalone Fumadocs Next.js app and serve under a subdomain (`docs.afenda.com`). Until then, keep it co-located.

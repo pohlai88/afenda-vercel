@@ -1,5 +1,5 @@
 import { Card, CardContent } from "#components2/ui/card"
-import { GovernedEmpty } from "#features/governed-surface"
+import { GovernedEmpty } from "#features/governed-surface/client"
 import {
   parseStatCardConfiguration,
   type StatCardDensity,

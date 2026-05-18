@@ -1,4 +1,5 @@
-import { GovernedDetailTabs, GovernedEmpty } from "#features/governed-surface"
+import { GovernedDetailTabs } from "#features/governed-surface/components/governed-detail-tabs"
+import { GovernedEmpty } from "#features/governed-surface/client"
 import { parseGovernedDetailTabsData } from "#features/governed-surface/schemas/detail-tabs.schema"
 
 import type { GovernedComponentRendererDiagnostics } from "../registry"

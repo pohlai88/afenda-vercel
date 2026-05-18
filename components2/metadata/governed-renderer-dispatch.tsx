@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-import { GovernedEmpty } from "#features/governed-surface"
+import { GovernedEmpty } from "#features/governed-surface/client"
 
 import type {
   AfendaGovernedRendererId,

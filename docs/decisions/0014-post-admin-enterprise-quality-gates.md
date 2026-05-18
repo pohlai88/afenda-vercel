@@ -23,7 +23,7 @@ for the contract it changes, then pass the standard residue gate.
 | Governed surface | Schema unit tests, renderer import boundary, one real consumer |
 | Viet-ERP mapping | ADR-only review; no runtime dependency or new package |
 | Accounting foundation | Route renders through Workbench, no ledger writes until tables and audit rules exist |
-| Production close | `pnpm typecheck && pnpm lint`; before PR/push run `pnpm verify:parallel` |
+| Production close | `pnpm gate -- <paths>` after each task; `pnpm gate:push` before PR |
 
 ## Standing Rules
 

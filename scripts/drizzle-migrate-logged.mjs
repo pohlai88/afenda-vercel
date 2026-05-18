@@ -49,7 +49,7 @@ try {
     console.error(
       "\n[hint] relation already exists — the database likely has tables from `db:push` or a partial migrate while `__drizzle_migrations` is out of sync.\n" +
         "        On a throwaway branch: `pnpm db:extensions:local` then `node scripts/with-env.mjs node scripts/nuke-db-public.mjs` then re-run `pnpm db:migrate:local`.\n" +
-        "        Never use `db:push` on shared/production branches (see AGENTS.md)."
+        "        `pnpm db:push` is disabled (ADR-0032) — use db:generate → lint:drizzle-journal → db:migrate:local."
     )
   }
   process.exit(1)

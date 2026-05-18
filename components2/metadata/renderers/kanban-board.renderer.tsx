@@ -1,4 +1,4 @@
-import { GovernedEmpty } from "#features/governed-surface"
+import { GovernedEmpty } from "#features/governed-surface/client"
 import {
   GOVERNED_KANBAN_BOARD_SCHEMA_ID,
   parseGovernedKanbanBoardConfiguration,

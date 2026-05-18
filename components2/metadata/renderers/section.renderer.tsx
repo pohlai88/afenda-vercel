@@ -1,4 +1,5 @@
-import { GovernedEmpty, GovernedSection } from "#features/governed-surface"
+import { GovernedSection } from "#features/governed-surface/components/governed-section"
+import { GovernedEmpty } from "#features/governed-surface/client"
 import {
   parseGovernedComponentData,
   type GovernedComponent,

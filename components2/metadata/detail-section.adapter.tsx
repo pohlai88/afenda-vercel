@@ -1,9 +1,7 @@
 import type { ReactNode } from "react"
 
-import {
-  parseGovernedComponentData,
-  type GovernedDetailSection,
-} from "#features/governed-surface"
+import { parseGovernedComponentData } from "#features/governed-surface/client"
+import type { GovernedDetailSection } from "#features/governed-surface/schemas/detail-tabs.schema"
 
 import { GovernedComponentRenderer } from "./render-governed-component"
 

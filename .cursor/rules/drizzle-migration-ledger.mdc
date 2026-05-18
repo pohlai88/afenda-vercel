@@ -1,12 +1,12 @@
 ---
-description: Drizzle schema truth, SQL migration evidence, journal ledger, and meta baseline governance
-globs: "drizzle/**,lib/db/schema.ts,drizzle.config.ts"
-alwaysApply: false
+description: Drizzle schema truth, SQL migration evidence, journal ledger, and meta baseline governance (PRIORITY #1)
+globs: "drizzle/**,lib/db/**,lib/db/schema.ts,.config/drizzle.config.ts"
+alwaysApply: true
 ---
 
 # Drizzle migration boundary
 
-Aligns with **AGENTS.md PRIORITY #1** and **§3**. If this rule and AGENTS.md diverge, follow AGENTS.md.
+**Canonical decision:** [ADR-0032](../docs/decisions/0032-drizzle-migration-agent-ownership.md). Aligns with **AGENTS.md PRIORITY #1** and **§3**. If this rule and AGENTS.md diverge, follow AGENTS.md.
 
 ## PRIORITY #1 — agents own local migrations
 
@@ -15,7 +15,7 @@ IDE / agent runs:  pnpm db:generate  →  pnpm lint:drizzle-journal  →  pnpm d
 Human does NOT run generate, migrate, or DB reset. Do not ask.
 ```
 
-Never destroy the ledger (orphan SQL floods, duplicate prefixes, hand-edited meta, `db:push`). Keep SQL count === journal entry count after every generate.
+Never destroy the ledger (orphan SQL floods, duplicate prefixes, hand-edited meta, `db:push`). Keep SQL count === journal entry count and one snapshot per journal tag after every generate.
 
 ## Agent workflow (local)
 
@@ -30,8 +30,7 @@ One schema change → one generate → one journal row. Commit before generating
 ## Forbidden for agents
 
 ```
-pnpm db:push
-pnpm db:push:local
+pnpm db:push / pnpm db:push:local          # hard-fail stubs (scripts/forbid-db-push.mjs)
 node scripts/drizzle-migrate-logged.mjs    # use pnpm db:migrate:local
 node scripts/nuke-db-public.mjs
 Hand-edit drizzle/*.sql or drizzle/meta/*
@@ -44,7 +43,7 @@ Neon MCP / raw DDL for app-owned tables
 
 ## Doctrine
 
-`lib/db/schema.ts` = schema truth · `drizzle/*.sql` = DDL evidence · `drizzle/meta/_journal.json` = order · snapshots = drizzle-kit diff baseline.
+`lib/db/schema.ts` = schema truth · `drizzle/*.sql` = DDL evidence · `drizzle/meta/_journal.json` = order · `drizzle/meta/NNNN_snapshot.json` = drizzle-kit diff baseline (one per journal tag).
 
 `neon_auth.*` is platform-owned — no app DDL; mirror in `lib/db/schema-neon-auth.ts` only.
 
@@ -58,4 +57,4 @@ Stop. Do not migrate. Do not ask human to reset. Fix by reverting mistaken gener
 
 ## Contract changes
 
-Update **AGENTS.md PRIORITY #1** in the same PR when this rule changes.
+Update **AGENTS.md PRIORITY #1** and **ADR-0032** in the same PR when this rule changes.

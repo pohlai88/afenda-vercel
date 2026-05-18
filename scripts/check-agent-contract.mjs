@@ -23,6 +23,8 @@ const REQUIRED_FILES = [
   ".cursor/rules/portal-directory.mdc",
   ".cursor/rules/module-client-server-barrels.mdc",
   "docs/decisions/0030-module-client-server-barrel-boundary.md",
+  "docs/decisions/0032-drizzle-migration-agent-ownership.md",
+  ".cursor/rules/drizzle-migration-ledger.mdc",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
   "scripts/check-route-error-files.mjs",
@@ -30,6 +32,7 @@ const REQUIRED_FILES = [
   ".cursor/rules/public-lynx.mdc",
   ".cursor/rules/governed-renderer-contract.mdc",
   "scripts/check-renderer-contracts.mjs",
+  "scripts/forbid-db-push.mjs",
   "tests/unit/fixtures-i18n-parity.test.ts",
   "turbo.json",
   "turbo/generators/config.ts",
@@ -97,6 +100,7 @@ const ROOT_TOOLING_FILES = new Set([
   ".prettierignore",
   "postcss.config.mjs",
   "scripts/check-drizzle-journal.mjs",
+  "scripts/forbid-db-push.mjs",
   "components.json",
   ".gitignore",
   ".node-version",
@@ -291,6 +295,16 @@ function assertRuleStrength() {
     const neverRestore = read(".cursor/rules/never-restore-deleted-components.mdc")
     if (!/alwaysApply:\s*true/.test(neverRestore)) {
       fail("never-restore-deleted-components.mdc must keep alwaysApply: true")
+    }
+  }
+
+  if (exists(".cursor/rules/drizzle-migration-ledger.mdc")) {
+    const drizzleLedger = read(".cursor/rules/drizzle-migration-ledger.mdc")
+    if (!/alwaysApply:\s*true/.test(drizzleLedger)) {
+      fail("drizzle-migration-ledger.mdc must keep alwaysApply: true (ADR-0032 PRIORITY #1)")
+    }
+    if (!/0032-drizzle-migration-agent-ownership/.test(drizzleLedger)) {
+      fail("drizzle-migration-ledger.mdc must reference ADR-0032")
     }
   }
 
@@ -534,6 +548,43 @@ function assertNoServerFeatureBarrelInClientFiles() {
   }
 }
 
+const DB_PUSH_SCRIPT_NAMES = ["db:push", "db:push:local"]
+const DRIZZLE_KIT_PUSH_RE = /drizzle-kit\s+push|\bpush\s+--config/i
+
+function assertDbPushForbidden() {
+  let pkg
+  try {
+    pkg = JSON.parse(read("package.json"))
+  } catch (err) {
+    fail(`package.json is invalid JSON: ${err}`)
+    return
+  }
+
+  const scripts = pkg.scripts ?? {}
+
+  for (const [name, cmd] of Object.entries(scripts)) {
+    if (typeof cmd !== "string") continue
+    if (DRIZZLE_KIT_PUSH_RE.test(cmd)) {
+      fail(
+        `package.json scripts.${name} must not invoke drizzle-kit push (ADR-0032) — use scripts/forbid-db-push.mjs`
+      )
+    }
+  }
+
+  for (const name of DB_PUSH_SCRIPT_NAMES) {
+    const cmd = scripts[name]
+    if (typeof cmd !== "string") {
+      fail(`package.json scripts.${name} must exist and hard-fail via forbid-db-push.mjs (ADR-0032)`)
+      continue
+    }
+    if (!cmd.includes("forbid-db-push.mjs")) {
+      fail(
+        `package.json scripts.${name} must invoke scripts/forbid-db-push.mjs (ADR-0032)`
+      )
+    }
+  }
+}
+
 function assertNoDeepFeatureImports() {
   const scanDirs = ["app", "components2", "hooks", "lib"]
   const files = scanDirs.flatMap((dir) => walk(path.join(root, dir)))
@@ -571,6 +622,7 @@ function assertNoDeepFeatureImports() {
 assertRequiredFiles()
 assertRepoRootComponentsDeleted()
 assertRuleStrength()
+assertDbPushForbidden()
 assertNoDumpDirsAtRoot()
 assertNoNewDumpDirsInDiff()
 assertNoUnexpectedTopLevelDirsInDiff()

@@ -1,4 +1,4 @@
-import { GovernedEmpty } from "#features/governed-surface"
+import { GovernedEmpty } from "#features/governed-surface/client"
 import { parseEmptyStateData } from "#features/governed-surface/schemas/list-surface.schema"
 
 /**

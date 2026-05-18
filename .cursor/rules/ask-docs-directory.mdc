@@ -100,7 +100,7 @@ icon: BookOpen
 - Run `pnpm lint:ask-docs-links` after adding or changing internal links (`[text](/ask-docs/…)`).
 - Run `pnpm lint:ask-docs-prose` after substantive MDX edits (markdownlint-cli2; config `.config/markdownlint-ask-docs.jsonc`).
 - Run `pnpm lint:ask-docs-quality` after substantive MDX edits (stub strings, Related graph, stable frontmatter).
-- Scaffold new pages with `pnpm gen ask-doc` (enforces frontmatter + section skeleton; use `--archetype` when available) or batch via `pnpm ask-docs:scaffold` + `content/ask-docs/scaffold.manifest.json`.
+- Scaffold new pages with `pnpm gen ask-doc` (enforces frontmatter + section skeleton; use `--archetype` when available) or batch via `pnpm ask-docs:scaffold` + `.config/ask-docs-scaffold.manifest.json`.
 - Before a docs PR: `pnpm ask-docs:preflight` (`validate-manifest` + fixture `scaffold:dry-run` + `ask-docs:check`).
 - After substantive edits: `pnpm ask-docs:check` (links + prose + ADQS quality). Compile is automatic on `pnpm dev` / `pnpm build` via Fumadocs — do not add `gen ask-doc` to `prebuild`.
 - Preview scaffold: `pnpm ask-docs:validate-manifest` then `pnpm ask-docs:scaffold -- --dry-run` (production manifest) or `pnpm ask-docs:scaffold:dry-run` (fixture).

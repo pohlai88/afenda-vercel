@@ -1,9 +1,11 @@
 import type { ReactNode } from "react"
 import { trace } from "@opentelemetry/api"
 
-import { GovernedEmpty } from "#features/governed-surface"
-import type { GovernedComponent } from "#features/governed-surface"
-import { parseGovernedComponentData } from "#features/governed-surface/schemas/component.schema"
+import {
+  GovernedEmpty,
+  parseGovernedComponentData,
+  type GovernedComponent,
+} from "#features/governed-surface/client"
 
 import { emitGovernedTelemetry } from "./governed-telemetry.shared"
 import { renderGovernedRendererById } from "./governed-renderer-dispatch"

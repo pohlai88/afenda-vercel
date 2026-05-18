@@ -1,15 +1,15 @@
 import { cacheLife } from "next/cache"
 
-import { securityDisclosureLink } from "#features/legal-declarations"
+import { securityDisclosureLink } from "#features/legal-declarations/data/footer.shared"
 import {
   publicTrustOwnerRoutes,
   securityTxtExpiresAt,
   securityTxtHref,
-} from "#features/public-trust"
+} from "#features/public-trust/data/trust-surface.fixture.shared"
 import { DEFAULT_APP_LOCALE, toLocalePath } from "#lib/i18n/locales.shared"
 import { getSiteUrl } from "#lib/site"
 
-export async function GET(): Promise<Response> {
+async function buildSecurityTxtBody(): Promise<string> {
   "use cache"
   cacheLife("max")
 
@@ -18,7 +18,7 @@ export async function GET(): Promise<Response> {
     DEFAULT_APP_LOCALE,
     securityDisclosureLink.href as `/${string}`
   )
-  const body = [
+  return [
     `Contact: mailto:${publicTrustOwnerRoutes.security.value}`,
     `Expires: ${securityTxtExpiresAt}`,
     "Preferred-Languages: en",
@@ -26,6 +26,10 @@ export async function GET(): Promise<Response> {
     `Policy: ${base}${policyPath}`,
     "",
   ].join("\n")
+}
+
+export async function GET(): Promise<Response> {
+  const body = await buildSecurityTxtBody()
 
   return new Response(body, {
     headers: {

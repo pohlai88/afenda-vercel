@@ -24,9 +24,8 @@ import {
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 const defaultManifestPath = path.join(
   root,
-  "content",
-  "ask-docs",
-  "scaffold.manifest.json"
+  ".config",
+  "ask-docs-scaffold.manifest.json"
 )
 
 function parseArgs(argv) {
@@ -51,7 +50,7 @@ function parseArgs(argv) {
 Flags:
   --validate-only   Validate manifest only (no gen)
   --dry-run         Print planned gen commands (no writes)
-  --manifest <path> Manifest file (default: content/ask-docs/scaffold.manifest.json)
+  --manifest <path> Manifest file (default: .config/ask-docs-scaffold.manifest.json)
   --json            Machine-readable plan on stdout
 `)
       process.exit(0)

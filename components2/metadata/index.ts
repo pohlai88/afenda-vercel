@@ -24,5 +24,3 @@ export {
   type GovernedComponentRendererInput,
   type RendererContractEntry,
 } from "./registry"
-
-export { resolveGovernedDetailSectionContent } from "./detail-section.adapter"

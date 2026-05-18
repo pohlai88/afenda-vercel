@@ -1,4 +1,4 @@
-import { GovernedEmpty } from "#features/governed-surface"
+import { GovernedEmpty } from "#features/governed-surface/client"
 import {
   GOVERNED_SCORECARD_FORM_SCHEMA_ID,
   parseGovernedScorecardFormConfiguration,

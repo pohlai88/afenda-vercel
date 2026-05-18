@@ -1,4 +1,5 @@
-import { GovernedAuditPanel, GovernedEmpty } from "#features/governed-surface"
+import { GovernedAuditPanel } from "#features/governed-surface/components/governed-audit-panel"
+import { GovernedEmpty } from "#features/governed-surface/client"
 import { parseAuditPanelData } from "#features/governed-surface/schemas/audit-panel.schema"
 
 import type { GovernedComponentRendererDiagnostics } from "../registry"

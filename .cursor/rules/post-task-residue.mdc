@@ -14,14 +14,14 @@ See `verify-pipeline.mdc` for the full tier ladder. See `targeted-verification.m
 
 | When | Command | Cost |
 |---|---|---|
-| After every task — concurrent agents | `pnpm exec eslint --max-warnings=0 <path> && pnpm typecheck` | ~15s warm |
-| After every task — solo agent | `pnpm typecheck && pnpm lint` | ~30s warm |
-| Before push / PR | `pnpm verify:parallel` | ~2–3 min |
-| Pre-merge only | `pnpm verify` (includes knip) | ~4–5 min |
+| After every task — concurrent agents | `pnpm gate -- <touched-paths>` | ~15–45s warm |
+| After every task — types only | `pnpm gate` or `pnpm typecheck` | ~10–30s warm |
+| Before push / PR | `pnpm gate:push` | ~2–5 min |
+| Pre-merge / App Router risk | `pnpm gate:merge` | ~5–10 min |
 
-**When multiple agents run concurrently, always use the targeted form** — pass only the files/directories you touched to ESLint. Never pass `./` or omit a path when other agents are active.
+**When multiple agents run concurrently, always use L0** — pass only touched paths to `pnpm gate --`. Never run `pnpm lint:full` or `pnpm gate:push` per task.
 
-**Never run `pnpm knip` after individual task completions.** Knip is a full static graph walk — it belongs at the pre-push Tier 2 gate, not as a per-task tool.
+**Never run `pnpm knip` after individual task completions.** Knip is a full static graph walk — it belongs in `gate:push` only.
 
 ---
 
@@ -64,7 +64,7 @@ export function NexusDock() { return null }
 
 ### 5. Dead imports
 - After moving or deleting a component, scan all import sites.
-- `pnpm lint` catches ESLint-level unused imports immediately.
+- `pnpm lint:full` catches ESLint-level unused imports when run at push time; use `pnpm lint:path -- <paths>` during the edit loop.
 
 ### 6. Message catalog parity
 - New i18n key used in a component → must exist in `messages/en.json`.
@@ -79,17 +79,19 @@ export function NexusDock() { return null }
 
 **Concurrent agents (default — use this):**
 ```bash
-# Lint only touched paths — ~5s
-pnpm exec eslint --max-warnings=0 <path1> [path2 ...]
-
-# Incremental typecheck — ~10s warm
-pnpm typecheck
+# L0 gate — ~15–45s
+pnpm gate -- <path1> [path2 ...]
 ```
 
-**Solo agent only:**
+**Solo agent — same L0 unless design-token / globals.css sweep:**
 ```bash
-pnpm typecheck
-pnpm lint
+pnpm gate -- <path1> [path2 ...]
+# or: pnpm lint:full  only when design-contract must re-run
+```
+
+**Before push:**
+```bash
+pnpm gate:push
 ```
 
 Both forms must exit 0. No exceptions. This is the non-negotiable close condition.
@@ -128,9 +130,10 @@ pnpm typecheck
 
 ```txt
 Task is closed only when:
-  pnpm exec eslint --max-warnings=0 <touched-paths> → exits 0   (concurrent agents)
-  OR pnpm lint → exits 0                                          (solo agent)
+  pnpm gate -- <touched-paths> → exits 0                         (concurrent agents)
+  OR pnpm lint:full → exits 0                                     (solo + design-token/globals.css only)
   pnpm typecheck → exits 0
+  pnpm typecheck:test / :scripts when those trees touched
   No import targets a file that does not exist on disk
   No redirect targets a deleted route
   All stale "Phase N" comments are resolved or renamed to a future phase

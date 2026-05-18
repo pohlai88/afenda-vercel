@@ -106,4 +106,5 @@ The following remain **documented follow-ons** — not blockers for local **`pnp
 | Date | Change |
 | ---- | ------ |
 | 2026-05-12 | Initial acceptance — Phase 1 local cache + script wiring; Phase 2–3 deferred per §4 |
+| 2026-05-19 | Gate ladder naming — see [ADR-0033](./0033-verify-gate-ladder-naming.md) (`gate`, `lint:full`, `typecheck:full`) |
 | 2026-05-12 | **`turbo-with-env.mjs`**, CI **`pnpm verify:ci`** + **`.turbo`** cache + telemetry env; §4 split into completed vs still-open follow-ons |
