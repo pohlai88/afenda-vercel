@@ -6,7 +6,7 @@ import {
   requireOrgSession,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
-import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/dashboard-org-path.shared"
+import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { HRM_AAT_AUDIT } from "../aat.contract"
 import { buildAatAnalyticsReportCsv } from "../data/aat-report-export.shared"

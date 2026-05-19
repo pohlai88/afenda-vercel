@@ -116,7 +116,7 @@ export async function AbsenceAnalyticsPage({
   }
 
   const period = parseAatPeriodKey(periodRaw)
-  const scope =
+  const scope: AatScopeKey =
     access.canViewTeamScope && parseAatScopeKey(scopeRaw) === "team"
       ? "team"
       : "org"
@@ -132,7 +132,7 @@ export async function AbsenceAnalyticsPage({
   })
 
   const loadError = !pageData.ok
-  const snapshot = pageData.ok
+  const snapshot: AatOrgAnalyticsSnapshot = pageData.ok
     ? pageData.snapshot
     : { ...EMPTY_SNAPSHOT, period, scope }
   const thresholds = pageData.ok

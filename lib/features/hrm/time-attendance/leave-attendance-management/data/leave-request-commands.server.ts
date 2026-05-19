@@ -35,7 +35,10 @@ import {
   resolveLeaveApproverUserId,
 } from "./leave-request.queries.server"
 
-import { resolveActiveFwaForEmployee } from "#features/hrm/server"
+import {
+  resolveActiveFwaForEmployee,
+  validateLeaveAgainstFwaSchedule,
+} from "#features/hrm/server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import { withPortalMutationSpan } from "../../../employee-management/employee-selfservice-portal/data/portal-mutation-tracing.server"
 import type {
@@ -186,13 +189,14 @@ export async function submitLeaveRequest(
   })
 
   if (activeFwa) {
-    const remoteDays = activeFwa.patterns.filter(
-      (pattern) => pattern.workMode === "remote"
-    ).length
-    if (remoteDays === 0 && input.halfDay) {
-      return hrmActionFailure({
-        form: "Half-day leave is not aligned with the active office-only flexible work pattern.",
-      })
+    const fwaLeaveCheck = validateLeaveAgainstFwaSchedule({
+      startDate: input.startDate,
+      endDate: input.endDate,
+      halfDay: input.halfDay ?? "none",
+      patterns: activeFwa.patterns,
+    })
+    if (!fwaLeaveCheck.ok) {
+      return hrmActionFailure({ form: fwaLeaveCheck.message })
     }
   }
 

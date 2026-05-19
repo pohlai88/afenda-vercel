@@ -2855,6 +2855,7 @@
         "correctionPendingColEvent": "Original event",
         "correctionPendingColRequested": "Requested",
         "correctionPendingApprove": "Approve correction",
+        "correctionPendingApproving": "Approving…",
         "colEmployee": "Employee",
         "colEvent": "Event",
         "colOccurredAt": "Occurred at",

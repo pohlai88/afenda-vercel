@@ -220,6 +220,7 @@ export { runFwaComplianceWatchTick } from "./time-attendance/flexible-work-arran
 export type { FwaComplianceWatchSummary } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-compliance-watch.server"
 export type { FwaExpiryWatchSummary } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-expiry-watch.server"
 export type { ActiveFwaScheduleForDate } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-integration.server"
+export { validateLeaveAgainstFwaSchedule } from "./time-attendance/flexible-work-arrangement-tracking/fwa-leave-validation.shared"
 
 export { resolveLeaveRequestCalendar } from "./time-attendance/leave-attendance-management/data/leave-calendar.server"
 export type { LeaveRequestCalendar } from "./time-attendance/leave-attendance-management/data/leave-calendar.server"

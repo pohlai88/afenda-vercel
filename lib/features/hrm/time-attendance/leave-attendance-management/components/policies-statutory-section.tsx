@@ -36,7 +36,7 @@ export async function PoliciesStatutorySection() {
     packVersion = pack.version
     holidays = pack.publicHolidays(year, []).map((h) => ({
       date: h.date,
-      name: h.name,
+      name: h.nameKey,
     }))
   } catch {
     packError = t("statutory.unsupportedCountry", { country: countryCode })

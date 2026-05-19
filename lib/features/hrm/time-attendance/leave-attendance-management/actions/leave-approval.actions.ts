@@ -246,6 +246,7 @@ export async function rejectLeaveAction(
       employeeId: true,
       leaveTypeId: true,
       startDate: true,
+      endDate: true,
     },
   })
 

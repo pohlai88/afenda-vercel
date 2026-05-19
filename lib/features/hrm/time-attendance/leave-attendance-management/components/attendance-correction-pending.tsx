@@ -1,12 +1,11 @@
 import { getTranslations } from "next-intl/server"
 import { and, desc, eq } from "drizzle-orm"
 
-import { Button } from "#components2/ui/button"
 import { requireOrgSession } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmApproval } from "#lib/db/schema"
 
-import { approveAttendanceCorrectionAction } from "../actions/attendance-correction-approval.actions"
+import { AttendanceCorrectionApproveButton } from "./attendance-correction-approve-button.client"
 
 export async function AttendanceCorrectionPending() {
   const session = await requireOrgSession()
@@ -54,12 +53,7 @@ export async function AttendanceCorrectionPending() {
                 {row.requestedAt.toISOString().slice(0, 10)}
               </td>
               <td className="py-2">
-                <form action={approveAttendanceCorrectionAction}>
-                  <input type="hidden" name="approvalId" value={row.id} />
-                  <Button type="submit" size="sm" variant="outline">
-                    {t("correctionPendingApprove")}
-                  </Button>
-                </form>
+                <AttendanceCorrectionApproveButton approvalId={row.id} />
               </td>
             </tr>
           ))}
