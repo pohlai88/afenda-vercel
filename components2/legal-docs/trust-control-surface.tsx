@@ -674,82 +674,82 @@ export function TrustControlSurface({
                 ))}
               </div>
             </section>
-
-            <footer className="mt-12 grid gap-5 border-t border-border pt-6 sm:grid-cols-[minmax(0,1.16fr)_auto] sm:items-end">
-              <div className="grid gap-2">
-                <LegalDocsLocaleLink
-                  locale={locale}
-                  href="/"
-                  className="inline-flex w-fit items-center text-inherit no-underline"
-                  aria-label="Afenda footer home"
-                >
-                  <AfendaBrandLockup
-                    className="max-w-[min(176px,62vw)]"
-                    imgClassName="object-left"
-                  />
-                </LegalDocsLocaleLink>
-                <div className="min-w-0">
-                  <div className="grid gap-0">
-                    <span className="text-[0.94rem] leading-snug font-semibold text-foreground">
-                      {legalIdentity.legalEntityName}
-                    </span>
-                    <span className="text-[0.94rem] leading-snug font-semibold text-foreground">
-                      [Company No. {legalIdentity.companyRegistrationNumber}]
-                    </span>
-                    <span className="text-[0.94rem] leading-snug font-semibold text-foreground">
-                      {legalIdentity.incorporationStatement}
-                    </span>
-                  </div>
-                </div>
-                <p className="m-0 text-xs leading-relaxed text-muted-foreground">
-                  {legalIdentity.registeredAddress}
-                </p>
-                <a
-                  href={legalIdentity.websiteHref}
-                  className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground"
-                >
-                  {legalIdentity.websiteLabel}: {legalIdentity.websiteValue}
-                </a>
-                <a
-                  href={`mailto:${legalIdentity.operationalSupportEmail}`}
-                  className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground"
-                >
-                  {legalIdentity.operationalSupportLabel}:{" "}
-                  {legalIdentity.operationalSupportEmail}
-                </a>
-                <a
-                  href={`mailto:${legalIdentity.privacyInquiryEmail}`}
-                  className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground"
-                >
-                  {legalIdentity.privacyInquiryLabel}:{" "}
-                  {legalIdentity.privacyInquiryEmail}
-                </a>
-              </div>
-
-              <nav
-                className="flex flex-wrap justify-start gap-x-4 gap-y-2.5 sm:justify-end"
-                aria-label="Trust footer links"
-              >
-                {footerLinks.map((link) => (
-                  <LegalDocsLocaleLink
-                    locale={locale}
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
-                      "text-sm leading-relaxed text-muted-foreground underline-offset-4 hover:text-foreground",
-                      link.href === trustPageHref && "text-foreground"
-                    )}
-                    aria-current={
-                      link.href === trustPageHref ? "page" : undefined
-                    }
-                  >
-                    {link.label}
-                  </LegalDocsLocaleLink>
-                ))}
-              </nav>
-            </footer>
           </article>
         </div>
+
+        <footer className="mt-12 grid gap-5 border-t border-border pt-6 sm:grid-cols-[minmax(0,1.16fr)_auto] sm:items-end">
+          <div className="grid gap-2">
+            <LegalDocsLocaleLink
+              locale={locale}
+              href="/"
+              className="inline-flex w-fit items-center text-inherit no-underline"
+              aria-label="Afenda footer home"
+            >
+              <AfendaBrandLockup
+                className="max-w-[min(176px,62vw)]"
+                imgClassName="object-left"
+              />
+            </LegalDocsLocaleLink>
+            <div className="min-w-0">
+              <div className="grid gap-0">
+                <span className="text-[0.94rem] leading-snug font-semibold text-foreground">
+                  {legalIdentity.legalEntityName}
+                </span>
+                <span className="text-[0.94rem] leading-snug font-semibold text-foreground">
+                  [Company No. {legalIdentity.companyRegistrationNumber}]
+                </span>
+                <span className="text-[0.94rem] leading-snug font-semibold text-foreground">
+                  {legalIdentity.incorporationStatement}
+                </span>
+              </div>
+            </div>
+            <p className="m-0 text-xs leading-relaxed text-muted-foreground">
+              {legalIdentity.registeredAddress}
+            </p>
+            <a
+              href={legalIdentity.websiteHref}
+              className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground"
+            >
+              {legalIdentity.websiteLabel}: {legalIdentity.websiteValue}
+            </a>
+            <a
+              href={`mailto:${legalIdentity.operationalSupportEmail}`}
+              className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground"
+            >
+              {legalIdentity.operationalSupportLabel}:{" "}
+              {legalIdentity.operationalSupportEmail}
+            </a>
+            <a
+              href={`mailto:${legalIdentity.privacyInquiryEmail}`}
+              className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground"
+            >
+              {legalIdentity.privacyInquiryLabel}:{" "}
+              {legalIdentity.privacyInquiryEmail}
+            </a>
+          </div>
+
+          <nav
+            className="flex flex-wrap justify-start gap-x-4 gap-y-2.5 sm:justify-end"
+            aria-label="Trust footer links"
+          >
+            {footerLinks.map((link) => (
+              <LegalDocsLocaleLink
+                locale={locale}
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "text-sm leading-relaxed text-muted-foreground underline-offset-4 hover:text-foreground",
+                  link.href === trustPageHref && "text-foreground"
+                )}
+                aria-current={
+                  link.href === trustPageHref ? "page" : undefined
+                }
+              >
+                {link.label}
+              </LegalDocsLocaleLink>
+            ))}
+          </nav>
+        </footer>
       </div>
     </main>
   )

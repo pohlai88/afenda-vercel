@@ -2,7 +2,7 @@ import "server-only"
 
 import { cache } from "react"
 import { notFound } from "next/navigation"
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { organizationPortal } from "#lib/db/schema"
@@ -46,7 +46,9 @@ export const getPublicPortalBySlug = cache(async function getPublicPortalBySlug(
     .from(organizationPortal)
     .innerJoin(
       neonAuthOrganization,
-      eq(neonAuthOrganization.id, organizationPortal.organizationId)
+      // neon_auth.organization.id is uuid (platform-owned); organization_portal.organizationId
+      // is text. Cast the app column to uuid so Postgres can resolve the column-to-column join.
+      sql`${neonAuthOrganization.id} = ${organizationPortal.organizationId}::uuid`
     )
     .where(eq(organizationPortal.slug, portalSlug))
     .limit(1)

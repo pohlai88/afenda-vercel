@@ -17,6 +17,7 @@ import type {
 } from "#lib/portal"
 import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 import type { SignedInSession } from "#lib/auth"
+import en from "../../../messages/en.json"
 
 function readSquashedInitialMigrationSql(): string {
   const drizzleDir = join(process.cwd(), "drizzle")
@@ -329,5 +330,65 @@ describe("portal foundation contract", () => {
 
     expect(routeSource).toContain("params: Promise<")
     expect(routeSource).toContain("await params")
+  })
+
+  it("casts organization_portal.organizationId to uuid in neon_auth joins", () => {
+    // `neon_auth.organization.id` is uuid (platform-owned). `organization_portal.organizationId`
+    // is text (app-owned). Postgres rejects column-to-column text=uuid comparisons; the
+    // explicit ::uuid cast keeps the single-round-trip join working. Regression guard for
+    // the operator-does-not-exist failure seen on /p/{slug}/employee/leave.
+    const serverSource = readFileSync(
+      join(process.cwd(), "lib", "portal", "server.ts"),
+      "utf8"
+    )
+    const publicPortalSource = readFileSync(
+      join(process.cwd(), "lib", "portal", "public-portal.server.ts"),
+      "utf8"
+    )
+
+    expect(serverSource).toContain(
+      "${neonAuthOrganization.id} = ${organizationPortal.organizationId}::uuid"
+    )
+    expect(publicPortalSource).toContain(
+      "${neonAuthOrganization.id} = ${organizationPortal.organizationId}::uuid"
+    )
+  })
+
+  it("ships Portal.Root i18n keys consumed by portal root error/not-found/home", () => {
+    const root = en.Portal.Root as Record<string, string>
+
+    expect(root.errorTitle).toBeTypeOf("string")
+    expect(root.errorDescription).toBeTypeOf("string")
+    expect(root.errorRetry).toBeTypeOf("string")
+    expect(root.notFoundTitle).toBeTypeOf("string")
+    expect(root.notFoundDescription).toBeTypeOf("string")
+    expect(root.homeKicker).toBeTypeOf("string")
+    expect(root.homeDescription).toContain("{audience}")
+    expect(root.homeServicesHeading).toBeTypeOf("string")
+    expect(root.homeServicesEmpty).toBeTypeOf("string")
+  })
+
+  it("wires portal root error/not-found/home through Portal.Root translations", () => {
+    const routeRoot = join(
+      process.cwd(),
+      "app",
+      "(main)",
+      "[locale]",
+      "p",
+      "[portalSlug]"
+    )
+    const errorSource = readFileSync(join(routeRoot, "error.tsx"), "utf8")
+    const notFoundSource = readFileSync(
+      join(routeRoot, "not-found.tsx"),
+      "utf8"
+    )
+    const pageSource = readFileSync(join(routeRoot, "page.tsx"), "utf8")
+
+    expect(errorSource).toContain('useTranslations("Portal.Root")')
+    expect(notFoundSource).toContain('getTranslations("Portal.Root")')
+    expect(pageSource).toContain('getTranslations("Portal.Root")')
+    expect(pageSource).toContain(
+      't("homeDescription", { audience: context.portalAudience })'
+    )
   })
 })

@@ -1,7 +1,9 @@
-import { requirePortalContext } from "#lib/portal/server"
-import { employeePortalPath } from "#lib/portal"
-import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { redirect } from "next/navigation"
+import { getTranslations } from "next-intl/server"
+
+import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+import { employeePortalPath } from "#lib/portal"
+import { requirePortalContext } from "#lib/portal/server"
 
 type PortalHomePageProps = {
   params: Promise<{ locale: string; portalSlug: string }>
@@ -18,24 +20,24 @@ export default async function PortalHomePage({ params }: PortalHomePageProps) {
     )
   }
 
+  const t = await getTranslations("Portal.Root")
+
   return (
     <div className="space-y-6">
       <section className="rounded-md border border-border bg-card p-6">
-        <p className="text-sm text-muted-foreground">Portal access</p>
+        <p className="text-sm text-muted-foreground">{t("homeKicker")}</p>
         <h2 className="mt-2 text-xl font-semibold">
           {context.portalDisplayName}
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Your account has active access to this {context.portalAudience}{" "}
-          portal. Portal services will appear here when they are enabled for
-          this audience.
+          {t("homeDescription", { audience: context.portalAudience })}
         </p>
       </section>
 
       <section className="rounded-md border border-border p-6">
-        <h3 className="text-base font-semibold">Available services</h3>
+        <h3 className="text-base font-semibold">{t("homeServicesHeading")}</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          No services are enabled for this portal yet.
+          {t("homeServicesEmpty")}
         </p>
       </section>
     </div>

@@ -48,11 +48,21 @@ const nextConfig: NextConfig = {
     // Vercel Workflow DevKit queue runtime — same dynamic-require pattern.
     "@vercel/queue",
   ],
-  logging: {
-    fetches: {
-      fullUrl: true,
-    },
-  },
+  /**
+   * Dev-only verbose fetch logger. Off by default — Nexus snapshot, ERP pages,
+   * and ask-docs each issue many parallel server-component fetches per request,
+   * so the chatty per-URL output drowns useful signals in the terminal and
+   * costs measurable CPU on every Server Component render in dev.
+   *
+   * Opt in with `AFENDA_DEV_LOG_FETCHES=1` when debugging cache / dedupe or
+   * tracing why a particular Server Component is fetching too much. The flag
+   * has no effect in production builds (Next.js ignores `logging` in prod).
+   *
+   * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/logging
+   */
+  ...(process.env.AFENDA_DEV_LOG_FETCHES === "1"
+    ? { logging: { fetches: { fullUrl: true } } }
+    : {}),
   images: {
     remotePatterns: [
       {
@@ -212,7 +222,52 @@ const nextConfig: NextConfig = {
   },
 }
 
-const coreConfig = withWorkflow(withNextIntl(withMDX(nextConfig)))
+/**
+ * Skip the `withWorkflow()` plugin on dev/typegen paths that don't need it.
+ *
+ * Two skip triggers, both refused when `VERCEL=1` (Vercel's build environment
+ * auto-injects this — a stale env var in project settings can never strip the
+ * workflow route handler from a real production build):
+ *
+ *   1. `AFENDA_SKIP_WORKFLOW_PLUGIN === "1"` — explicit opt-out, set only by
+ *      `scripts/next-typegen-fast.mjs` (driven by `pretypecheck`). The plugin's
+ *      output files are routes at `/.well-known/workflow/v1/*` that no
+ *      application code imports as typed routes; they're HTTP-only endpoints
+ *      for the workflow runtime. Skipping directive discovery during typegen
+ *      saves ~15s per `pnpm gate` invocation.
+ *   2. `AFENDA_NEXT_DIST_DIR === ".next-ui"` (with `NODE_ENV !== "production"`)
+ *      — the dev:stack UI dev process. On Windows the plugin writes its
+ *      generated route handler (`app/.well-known/workflow/v1/flow/route.js`)
+ *      via tmp-then-rename; when Turbopack has the route module open, the
+ *      rename can stall, leaving orphan `.tmp` files in `app/`. Turbopack's
+ *      watcher sees those tmp files appear → recompile → workflow plugin
+ *      watcher fires → re-bundle → another tmp → infinite write-amplification
+ *      loop. `cacheComponents: true` tightens it.
+ *
+ * `next typegen`, `next build`, `next start`, and `next lint` all set
+ * `NODE_ENV=production` internally, so NODE_ENV alone cannot distinguish
+ * typegen from build — the explicit env var is the authoritative signal.
+ *
+ * The UI process never serves `/.well-known/workflow/v1/*` — that's hosted by
+ * the separate workflow Next dev server on port 3002 (ADR-0039). Server
+ * Actions on the UI process dispatch via `start()` from `workflow/api`, which
+ * is a runtime HTTP call to the workflow server, not the Next plugin.
+ *
+ * Vercel production builds → plugin always enabled. The standalone workflow
+ * dev process (`.next-workflow`) → plugin enabled. Plain `pnpm dev` keeps
+ * the plugin (single-process dev for users who want local workflow execution
+ * from one server).
+ */
+const SKIP_WORKFLOW_PLUGIN =
+  process.env.VERCEL !== "1" &&
+  (process.env.AFENDA_SKIP_WORKFLOW_PLUGIN === "1" ||
+    (process.env.NODE_ENV !== "production" &&
+      process.env.AFENDA_NEXT_DIST_DIR === ".next-ui"))
+
+const composedConfig = withNextIntl(withMDX(nextConfig))
+const coreConfig = SKIP_WORKFLOW_PLUGIN
+  ? composedConfig
+  : withWorkflow(composedConfig)
 
 /**
  * Always wrap with withSentryConfig so the webpack plugin runs unconditionally —

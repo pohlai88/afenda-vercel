@@ -5242,6 +5242,17 @@
     }
   },
   "Portal": {
+    "Root": {
+      "errorTitle": "This portal page could not load",
+      "errorDescription": "Your portal session is still active. Try reloading this section or return to another self-service area.",
+      "errorRetry": "Try again",
+      "notFoundTitle": "Portal not found",
+      "notFoundDescription": "The portal is unavailable or your account does not have access.",
+      "homeKicker": "Portal access",
+      "homeDescription": "Your account has active access to this {audience} portal. Portal services will appear here when they are enabled for this audience.",
+      "homeServicesHeading": "Available services",
+      "homeServicesEmpty": "No services are enabled for this portal yet."
+    },
     "Employee": {
       "errorTitle": "This employee section could not load",
       "errorDescription": "Your portal session is still active. Try again or open another self-service area.",

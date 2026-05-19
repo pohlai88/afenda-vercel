@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import { useRouteEnvelope } from "#components2/route-envelope-context.client"
 import { RouteErrorDebugPanel } from "#components2/dev/route-error-debug-panel"
 import {
@@ -18,6 +20,7 @@ import {
  * Portal-tier error boundary — keeps PortalShell mounted while content recovers.
  */
 export default function PortalError(props: NextAppErrorPageProps) {
+  const t = useTranslations("Portal.Root")
   const { error } = props
   const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
   const envelope = useRouteEnvelope()
@@ -29,11 +32,10 @@ export default function PortalError(props: NextAppErrorPageProps) {
   return (
     <RouteErrorShell variant="embedded">
       <h1 className="text-2xl font-semibold text-foreground">
-        This portal page could not load
+        {t("errorTitle")}
       </h1>
       <p className="max-w-md text-sm text-muted-foreground">
-        Your portal session is still active. Try reloading this section or
-        return to another employee self-service area.
+        {t("errorDescription")}
       </p>
       <RouteErrorDigest digest={error.digest} />
       <RouteErrorActions>
@@ -41,7 +43,7 @@ export default function PortalError(props: NextAppErrorPageProps) {
           retryAction={retryAction}
           resetAction={resetAction}
         >
-          Try again
+          {t("errorRetry")}
         </RouteErrorRetryButton>
       </RouteErrorActions>
       <RouteErrorDebugPanel segment={segment} error={error} />

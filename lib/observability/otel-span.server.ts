@@ -1,8 +1,21 @@
 import "server-only"
 
-import { trace } from "@opentelemetry/api"
+import { trace, type Tracer } from "@opentelemetry/api"
 
 const TRACER_NAME = "afenda-vercel"
+
+/**
+ * The OpenTelemetry tracer is a stable handle once `@vercel/otel` has registered providers in
+ * `instrumentation.node.ts`. Caching it skips repeated `getTracer()` lookups on hot paths
+ * (cron fan-out, per-mutation portal tracing, knowledge pipeline embed batches).
+ */
+let cachedTracer: Tracer | null = null
+function getCachedTracer(): Tracer {
+  if (cachedTracer === null) {
+    cachedTracer = trace.getTracer(TRACER_NAME)
+  }
+  return cachedTracer
+}
 
 /**
  * Active span around async work (Node runtime only). Edge / unknown runtime runs `fn` directly.
@@ -17,7 +30,7 @@ export async function runWithNodeOtelSpan<T>(
     return fn()
   }
 
-  const tracer = trace.getTracer(TRACER_NAME)
+  const tracer = getCachedTracer()
   return tracer.startActiveSpan(name, async (span) => {
     try {
       for (const [key, value] of Object.entries(attributes)) {

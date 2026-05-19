@@ -2,7 +2,7 @@ import "server-only"
 
 import { cache } from "react"
 import { notFound } from "next/navigation"
-import { and, eq } from "drizzle-orm"
+import { and, eq, sql } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { organizationPortal, organizationPortalAccess } from "#lib/db/schema"
@@ -38,7 +38,10 @@ export const getPortalContext = cache(async function getPortalContext(
     .from(organizationPortal)
     .innerJoin(
       neonAuthOrganization,
-      eq(neonAuthOrganization.id, organizationPortal.organizationId)
+      // neon_auth.organization.id is uuid (platform-owned); organization_portal.organizationId
+      // is text. Postgres has no implicit cast between text and uuid for column-to-column
+      // comparisons, so cast the app column explicitly to keep the single round-trip join.
+      sql`${neonAuthOrganization.id} = ${organizationPortal.organizationId}::uuid`
     )
     .where(eq(organizationPortal.slug, portalSlug))
     .limit(1)

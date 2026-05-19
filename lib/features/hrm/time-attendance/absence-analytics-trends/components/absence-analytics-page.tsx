@@ -79,6 +79,13 @@ const EMPTY_SNAPSHOT: AatOrgAnalyticsSnapshot = {
   dailyHeatmap: [],
 }
 
+function aatFallbackSnapshot(
+  period: AatPeriodKey,
+  scope: AatScopeKey
+): AatOrgAnalyticsSnapshot {
+  return { ...EMPTY_SNAPSHOT, period, scope }
+}
+
 function aatNavHref(
   basePath: Route,
   period: AatPeriodKey,
@@ -132,9 +139,9 @@ export async function AbsenceAnalyticsPage({
   })
 
   const loadError = !pageData.ok
-  const snapshot: AatOrgAnalyticsSnapshot = pageData.ok
+  const snapshot = pageData.ok
     ? pageData.snapshot
-    : { ...EMPTY_SNAPSHOT, period, scope }
+    : aatFallbackSnapshot(period, scope)
   const thresholds = pageData.ok
     ? pageData.thresholds
     : AAT_DEFAULT_THRESHOLD_CONFIG

@@ -1,3 +1,6 @@
+import type { runWithNodeOtelSpan as RunWithNodeOtelSpanFn } from "#lib/observability/otel-span.server"
+import type { start as WorkflowStartFn } from "workflow/api"
+
 import type { ImportJobRunPayload } from "./schemas/import-job-run-payload.schema"
 import type { KnowledgeEvalRunPayload } from "./schemas/knowledge-eval-run-payload.schema"
 import type { KnowledgeSourceSyncPayload } from "./schemas/knowledge-source-sync-payload.schema"
@@ -45,14 +48,54 @@ export {
   type HrmImportApplyPayload,
 } from "./schemas/hrm-import-apply-payload.schema"
 
+/**
+ * Shared Workflow DevKit + OTel runtime resolved lazily on first enqueue.
+ *
+ * Why a module-scoped singleton instead of static top-level imports:
+ *   - This barrel is imported by edge/client-shared files (`compliance-timeline.shared.ts`,
+ *     type-only imports from `lib/features/knowledge/data/*.workflow.ts`, etc.), so static
+ *     `import "workflow/api"` or `"#lib/observability/otel-span.server"` would pull
+ *     server-only code into client/edge bundles and break the ADR-0030 barrel contract.
+ *   - The previous per-call `await import(...)` paid the dynamic-import resolution cost
+ *     on EVERY enqueue (8 helpers × every Server Action / cron tick). The `@vercel/queue`
+ *     and `@opentelemetry/instrumentation` packages are listed in `serverExternalPackages`
+ *     (next.config.ts), so each dynamic import goes through native Node `require()` — fast
+ *     after warm-up, but non-zero on cold paths and amplified by being inside the OTel span.
+ *
+ * One `loadEnqueueRuntime()` call per Node worker; subsequent enqueues skip import resolution.
+ */
+type EnqueueRuntime = {
+  start: typeof WorkflowStartFn
+  runWithNodeOtelSpan: typeof RunWithNodeOtelSpanFn
+}
+
+let enqueueRuntimePromise: Promise<EnqueueRuntime> | null = null
+
+function loadEnqueueRuntime(): Promise<EnqueueRuntime> {
+  if (enqueueRuntimePromise === null) {
+    enqueueRuntimePromise = Promise.all([
+      import("workflow/api"),
+      import("#lib/observability/otel-span.server"),
+    ]).then(([{ start }, { runWithNodeOtelSpan }]) => ({
+      start,
+      runWithNodeOtelSpan,
+    }))
+  }
+  return enqueueRuntimePromise
+}
+
+/**
+ * Wraps a workflow start in an OTel span. The runtime is resolved BEFORE the span begins so
+ * span duration measures only the actual `start()` round-trip, not module resolution. This
+ * gives accurate enqueue-latency telemetry on Vercel Observability dashboards.
+ */
 async function enqueueWorkflowWithOtelSpan(
   spanName: string,
   organizationId: string,
   attributes: Record<string, string | number | boolean | undefined>,
-  run: () => Promise<void>
+  run: (start: EnqueueRuntime["start"]) => Promise<void>
 ): Promise<void> {
-  const { runWithNodeOtelSpan } =
-    await import("#lib/observability/otel-span.server")
+  const { start, runWithNodeOtelSpan } = await loadEnqueueRuntime()
   await runWithNodeOtelSpan(
     spanName,
     {
@@ -60,7 +103,7 @@ async function enqueueWorkflowWithOtelSpan(
       "erp.organization.id": organizationId,
       ...attributes,
     },
-    run
+    () => run(start)
   )
 }
 
@@ -79,11 +122,10 @@ export async function enqueueOrgImportJobWorkflowRun(
       "erp.workflow": "import_job",
       "erp.job.id": payload.jobId,
     },
-    async () => {
-      const [{ runOrgImportJobWorkflow }, { start }] = await Promise.all([
-        import("./data/import-job-run-entry"),
-        import("workflow/api"),
-      ])
+    async (start) => {
+      const { runOrgImportJobWorkflow } = await import(
+        "./data/import-job-run-entry"
+      )
       await start(runOrgImportJobWorkflow, [payload])
     }
   )
@@ -103,11 +145,10 @@ export async function enqueueHrmSignatureSealWorkflowRun(
       "erp.workflow": "hrm_signature_seal",
       "erp.signature.request.id": payload.requestId,
     },
-    async () => {
-      const [{ hrmSignatureSealWorkflow }, { start }] = await Promise.all([
-        import("./data/signature-seal-run-entry"),
-        import("workflow/api"),
-      ])
+    async (start) => {
+      const { hrmSignatureSealWorkflow } = await import(
+        "./data/signature-seal-run-entry"
+      )
       await start(hrmSignatureSealWorkflow, [payload])
     }
   )
@@ -123,11 +164,10 @@ export async function enqueueHrmImportApplyWorkflowRun(
       "erp.workflow": "hrm_import_apply",
       "erp.import.session.id": payload.sessionId,
     },
-    async () => {
-      const [{ hrmImportApplyWorkflow }, { start }] = await Promise.all([
-        import("./data/hrm-import-apply-run-entry"),
-        import("workflow/api"),
-      ])
+    async (start) => {
+      const { hrmImportApplyWorkflow } = await import(
+        "./data/hrm-import-apply-run-entry"
+      )
       await start(hrmImportApplyWorkflow, [payload])
     }
   )
@@ -143,11 +183,10 @@ export async function enqueuePayrollFinalizeWorkflowRun(
       "erp.workflow": "payroll_finalize",
       "erp.payroll.period.id": payload.periodId,
     },
-    async () => {
-      const [{ payrollFinalizeWorkflow }, { start }] = await Promise.all([
-        import("./data/payroll-finalize-run-entry"),
-        import("workflow/api"),
-      ])
+    async (start) => {
+      const { payrollFinalizeWorkflow } = await import(
+        "./data/payroll-finalize-run-entry"
+      )
       await start(payrollFinalizeWorkflow, [payload])
     }
   )
@@ -163,11 +202,10 @@ export async function enqueueKnowledgeEvalWorkflowRun(
       "erp.workflow": "knowledge_eval",
       "erp.eval_set.id": payload.evalSetId,
     },
-    async () => {
-      const [{ runKnowledgeEvalWorkflow }, { start }] = await Promise.all([
-        import("./data/knowledge-eval-run-entry"),
-        import("workflow/api"),
-      ])
+    async (start) => {
+      const { runKnowledgeEvalWorkflow } = await import(
+        "./data/knowledge-eval-run-entry"
+      )
       await start(runKnowledgeEvalWorkflow, [payload])
     }
   )
@@ -184,9 +222,9 @@ export async function enqueueKnowledgeSourceSyncWorkflowRun(
       "erp.knowledge.run.id": payload.runId,
       "erp.knowledge.source.id": payload.sourceId,
     },
-    async () => {
-      const [{ runKnowledgeSourceSyncWorkflow }, { start }] = await Promise.all(
-        [import("./data/knowledge-source-sync-entry"), import("workflow/api")]
+    async (start) => {
+      const { runKnowledgeSourceSyncWorkflow } = await import(
+        "./data/knowledge-source-sync-entry"
       )
       await start(runKnowledgeSourceSyncWorkflow, [payload])
     }
@@ -200,11 +238,10 @@ export async function enqueuePlannerRecurrenceWorkflowRun(
     "execution.workflow.planner_recurrence.enqueue",
     payload.organizationId,
     { "erp.workflow": "planner_recurrence" },
-    async () => {
-      const [{ runPlannerRecurrenceWorkflow }, { start }] = await Promise.all([
-        import("./data/planner-recurrence-run-entry"),
-        import("workflow/api"),
-      ])
+    async (start) => {
+      const { runPlannerRecurrenceWorkflow } = await import(
+        "./data/planner-recurrence-run-entry"
+      )
       await start(runPlannerRecurrenceWorkflow, [payload])
     }
   )
@@ -217,11 +254,10 @@ export async function enqueuePlannerReminderWorkflowRun(
     "execution.workflow.planner_reminder.enqueue",
     payload.organizationId,
     { "erp.workflow": "planner_reminder" },
-    async () => {
-      const [{ runPlannerReminderWorkflow }, { start }] = await Promise.all([
-        import("./data/planner-reminder-run-entry"),
-        import("workflow/api"),
-      ])
+    async (start) => {
+      const { runPlannerReminderWorkflow } = await import(
+        "./data/planner-reminder-run-entry"
+      )
       await start(runPlannerReminderWorkflow, [payload])
     }
   )

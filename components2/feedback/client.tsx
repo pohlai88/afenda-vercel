@@ -318,10 +318,16 @@ export function FeedbackText({ onSendAction, children }: FeedbackTextProps) {
 
   return (
     <>
-      <div
-        ref={containerRef}
-        className="prose-no-margin [&_::highlight(fd-feedback-text)]:bg-primary [&_::highlight(fd-feedback-text)]:text-primary-foreground"
-      >
+      {/*
+        ::highlight() is part of the CSS Custom Highlight API. Turbopack's
+        Lightning CSS parser does not recognize the functional pseudo-element,
+        so we emit it via a native <style> element instead of Tailwind
+        arbitrary variants. React 19 deduplicates by `href`.
+      */}
+      <style href="fd-feedback-highlight" precedence="default">
+        {`::highlight(fd-feedback-text){background-color:var(--primary);color:var(--primary-foreground);}`}
+      </style>
+      <div ref={containerRef} className="prose-no-margin">
         {children}
       </div>
 

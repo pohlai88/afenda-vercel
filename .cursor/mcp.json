@@ -17,6 +17,14 @@
     },
     "sentry": {
       "url": "https://mcp.sentry.dev/mcp/afenda/javascript-nextjs"
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "neon": {
+      "type": "stdio",
+      "command": "pnpm",
+      "args": ["dlx", "@neondatabase/mcp-server-neon", "start"]
     }
   }
 }

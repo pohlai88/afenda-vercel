@@ -3,6 +3,8 @@
 import { useActionState } from "react"
 import { useTranslations } from "next-intl"
 
+import { Loader2 } from "lucide-react"
+
 import { Button } from "#components2/ui/button"
 
 import { approveAttendanceCorrectionAction } from "../actions/attendance-correction-approval.actions"
@@ -24,7 +26,10 @@ export function AttendanceCorrectionApproveButton({
     <form action={formAction}>
       <input type="hidden" name="approvalId" value={approvalId} />
       <Button type="submit" size="sm" variant="outline" disabled={pending}>
-        {pending ? t("correctionPendingApproving") : t("correctionPendingApprove")}
+        {pending ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden />
+        ) : null}
+        {t("correctionPendingApprove")}
       </Button>
     </form>
   )

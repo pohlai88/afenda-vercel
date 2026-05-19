@@ -93,6 +93,7 @@
     ".source",
     ".next/dev",
     ".next-ui/dev",
+    ".next-workflow/dev",
     "tests",
     "scripts",
     "turbo",
