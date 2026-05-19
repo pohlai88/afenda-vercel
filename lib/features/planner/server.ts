@@ -3,6 +3,7 @@ import "server-only"
 export { organizationOrbitPath } from "./constants"
 export { OrbitPage } from "./views/orbit-page"
 export { OrbitAppsRoutePage } from "./components/orbit-apps-route-page"
+export { OrbitCommandLayer } from "./components/orbit-command-layer"
 export type {
   PlannerPressureRowForNexus,
   PlannerResolutionRowForNexus,

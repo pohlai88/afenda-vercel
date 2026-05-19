@@ -7,8 +7,7 @@ import {
   Timer,
 } from "lucide-react"
 
-import { organizationOrbitPath } from "../constants"
-import { PLANNER_VIEW_SORT_MODES } from "../constants"
+import { organizationOrbitPath, PLANNER_VIEW_SORT_MODES } from "../constants"
 import type {
   OrbitSurface,
   PlannerBlockedState,
@@ -18,6 +17,9 @@ import type {
   PlannerViewSortMode,
 } from "../types"
 import type { PlannerTriageOperatingLane } from "../triage/planner-triage-rule.shared"
+
+export { PLANNER_VIEW_SORT_MODES }
+export type { PlannerViewSortMode } from "../types"
 
 export const ORBIT_SURFACE_META = {
   queue: { icon: Activity },

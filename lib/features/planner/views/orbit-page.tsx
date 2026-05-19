@@ -79,7 +79,6 @@ import type {
   PlannerScopeInput,
   PlannerSessionRow,
   PlannerSurfaceRecordKind,
-  PlannerViewSortMode,
 } from "../types"
 import { OrbitGovernedTableList } from "../components/orbit-governed-table-list"
 import { OrbitAttachmentForm } from "./orbit-attachment-form.client"
@@ -89,6 +88,7 @@ import { OrbitTriageBatchControls } from "./orbit-triage-batch-controls.client"
 import { OrbitOperatorHotkeys } from "./orbit-operator-hotkeys.client"
 import {
   ORBIT_SURFACE_META,
+  PLANNER_VIEW_SORT_MODES,
   blockedStageLabel,
   blockedStageVariant,
   buildOrbitHref,
@@ -106,6 +106,7 @@ import {
   toUrlSearchParams,
   triageOperatingLaneLabel,
   type OrbitSearchParams,
+  type PlannerViewSortMode,
 } from "./orbit-page.shared"
 
 export async function OrbitPage({

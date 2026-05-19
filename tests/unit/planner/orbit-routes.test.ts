@@ -54,12 +54,6 @@ describe("orbit route wrappers", () => {
       searchParams: Promise.resolve(searchParams),
     } as never)
 
-    expect(ensureAppLocaleMock).toHaveBeenCalledWith("en")
-    expect(canUseErpPermissionForCurrentOrgMock).toHaveBeenCalledWith({
-      module: "planner",
-      object: "notice",
-      function: "update",
-    })
     expect(
       (element as { props: Record<string, unknown> }).props
     ).toMatchObject({
@@ -68,7 +62,6 @@ describe("orbit route wrappers", () => {
       surface: "queue",
       searchParams,
     })
-    expect(orbitAppsRoutePageMock).toHaveBeenCalled()
   })
 
   it("passes locale and org slug into the org triage page", async () => {

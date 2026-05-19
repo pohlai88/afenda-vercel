@@ -26,7 +26,7 @@ describe("orbit surface contract", () => {
   })
 
   it("mounts an Orbit command layer inside the org route segment", () => {
-    const content = readRepoFile(
+    const layoutContent = readRepoFile(
       "app",
       "(main)",
       "[locale]",
@@ -36,11 +36,49 @@ describe("orbit surface contract", () => {
       "orbit",
       "layout.tsx"
     )
+    const layerContent = readRepoFile(
+      "lib",
+      "features",
+      "planner",
+      "components",
+      "orbit-command-layer.tsx"
+    )
 
-    expect(content).toContain("AppShellCommandPalette")
-    expect(content).toContain('organizationOrbitPath(orgSlug, "triage")')
-    expect(content).toContain('organizationOrbitPath(orgSlug, "sessions")')
-    expect(content).toContain("commandQuickLinks.automationAttention.label")
+    // Layer 1 (ADR-0035): layout delegates the orbit command palette to the planner module.
+    expect(layoutContent).toContain("OrbitCommandLayer")
+    expect(layoutContent).toMatch(/from\s+["']#features\/planner\/server["']/)
+    expect(layoutContent).not.toContain("AppShellCommandPalette")
+
+    // Layer 2 (ADR-0035): the planner module owns the registry + translation wiring.
+    expect(layerContent).toContain("AppShellCommandPalette")
+    expect(layerContent).toContain("ORBIT_PRIMARY_SURFACES")
+    expect(layerContent).toContain("organizationOrbitPath")
+    expect(layerContent).toContain("commandQuickLinks")
+    expect(layerContent).toContain("blockedExecution")
+    expect(layerContent).toContain("automationAttention")
+    expect(layerContent).toContain("signalsAwaitingTriage")
+  })
+
+  it("wires governed Pattern B list sections for sessions, links, and signals surfaces", () => {
+    const pageContent = readRepoFile(
+      "lib",
+      "features",
+      "planner",
+      "views",
+      "orbit-page.tsx"
+    )
+    const metadataContent = readRepoFile(
+      "lib",
+      "features",
+      "planner",
+      "orbit-surface-metadata.shared.ts"
+    )
+
+    expect(pageContent).toContain("OrbitGovernedTableList")
+    expect(pageContent).toContain("orbitSurfaceUsesGovernedTable")
+    expect(metadataContent).toContain("planner:orbit:sessions")
+    expect(metadataContent).toContain("planner:orbit:links")
+    expect(metadataContent).toContain("planner:orbit:signals")
   })
 
   it("renders session and link detail branches in OrbitPage", () => {
