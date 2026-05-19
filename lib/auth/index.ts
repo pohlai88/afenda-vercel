@@ -12,15 +12,6 @@ export {
 } from "./auth-status.shared"
 export type { AuthStatusCode } from "./auth-status.shared"
 export {
-  AUTH_CLIENT_ERROR_CODE,
-  normalizeAuthClientError,
-} from "./auth-client-error.shared"
-export type {
-  AuthClientErrorCode,
-  AuthClientErrorHint,
-  NormalizedAuthClientError,
-} from "./auth-client-error.shared"
-export {
   resolveAuthInterruptionMetaTitle,
   resolveAuthStatusContent,
   type AuthResultVariant,
@@ -34,8 +25,6 @@ export {
 } from "./audit-origin.shared"
 export type { AuditActorMode, AuditOrigin } from "./audit-origin.shared"
 export {
-  inferAuthMethodFromPath,
-  resolveIamSessionLifecycleAudit,
   writeIamAuditEvent,
   writeIamAuditEventFromHeaders,
   writeIamAuditEventFromNextHeaders,
@@ -51,20 +40,8 @@ export {
 } from "./session-policy.server"
 export { requireRecentAuthStepUp } from "./stepup.server"
 export { requireVerifiedEmailForAccount } from "./policy.server"
-export { listDeviceSessions, listUserPasskeys } from "./security.server"
 export { getEnabledSocialProviderIds } from "./social-providers-env.shared"
-export { hasCredentialAccount, listSafeLinkedAccounts } from "./accounts.server"
-export type { SafeLinkedAccount } from "./accounts.types.shared"
-export { listUserSecurityActivity } from "./activity.server"
-export type { UserSecurityActivityRow } from "./activity.server"
-export {
-  canActInOrganization,
-  getOrgMemberRole,
-  isGlobalAdminUser,
-  orgRoleAtLeast,
-  orgRoleRank,
-} from "./permission.server"
-export type { OrgRoleMinimum } from "./permission.server"
+export { isGlobalAdminUser } from "./permission.server"
 export { assertInvitationForUser } from "./invitation-guard.server"
 export type { InvitationGuardResult } from "./invitation-guard.server"
 export {
@@ -89,15 +66,6 @@ export type {
   OrganizationIamAuditRow,
 } from "./org-audit.server"
 export { assertOrgInviteRateAllowed } from "./org-invite-rate.server"
-export {
-  fetchOrgAdminIdentity,
-  fetchOrgAdminMembers,
-  fetchOrgAdminPendingInvitations,
-} from "./org-admin-data.server"
-export type {
-  OrgAdminInvitationRow,
-  OrgAdminMemberRow,
-} from "./org-admin-data.server"
 export {
   AFENDA_PATHNAME_HEADER,
   AFENDA_SEARCH_HEADER,

@@ -5,15 +5,15 @@ import { notFound, redirect } from "next/navigation"
 
 import { AppSubLayoutShellSkeleton } from "#app-shell"
 import {
-  fetchOrgAdminIdentity,
   requireRecentAuthStepUp,
   requireVerifiedEmailForAccount,
+  requireOrgSession,
 } from "#lib/auth"
+import { fetchOrgAdminIdentity } from "#features/org-admin/server"
 import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { bindRequestLocale } from "#lib/i18n/bind-request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
-import { requireOrgSession } from "#lib/auth"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { organizationAdminPath } from "#features/org-admin"
 

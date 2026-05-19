@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server"
 
 import { GovernedPatternCListSection } from "#features/governed-surface"
-import type { OrgAdminInvitationRow } from "#lib/auth"
+import type { OrgAdminInvitationRow } from "#features/org-admin"
 
 import { buildOrgAdminPendingInvitationsListSurfaceConfiguration } from "../data/org-admin-members-list-surface.server"
 

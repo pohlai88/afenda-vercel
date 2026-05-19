@@ -22,6 +22,7 @@ alwaysApply: false
 | `providers/` | Client React context/providers | Zustand stores, domain logic |
 | `ui/` | Design-system primitives (shadcn shelf) | Feature workflows, shell layout |
 | `metadata/` | Governed renderer kernel (ADR-0021) | ERP mutations |
+| `auth/` | Pre-login auth UI — **Layer 3** (Card + client forms; see `_SEAL.md`) | Session guards, routes, metadata renderers |
 | `dev/` | Gated local previews + fixtures | Production routes |
 | `marketing/` | Public/marketing surfaces | ERP shell |
 

@@ -13,10 +13,10 @@ import {
 import {
   recordOrgAdminPageVisit,
   resolveOrgAdminAuditSearchParams,
+  loadOrgAdminAuditListing,
 } from "#features/org-admin/server"
 import { isOperationalSimulationEnabled } from "#features/simulation"
 
-import { listOrganizationIamAuditEvents } from "#lib/auth"
 import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminAuditPage({
@@ -40,7 +40,7 @@ export default async function OrgAdminAuditPage({
   const { page, auditOriginFilter } =
     await resolveOrgAdminAuditSearchParams(searchParams)
 
-  const result = await listOrganizationIamAuditEvents({
+  const result = await loadOrgAdminAuditListing({
     organizationId: orgSession.organizationId,
     page,
     auditOriginFilter,

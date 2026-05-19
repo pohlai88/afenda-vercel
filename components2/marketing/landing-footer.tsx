@@ -5,7 +5,7 @@ import { AfendaBrandLockup } from "#components2/afenda-brand"
 import {
   declarationFooterIdentity,
   type DeclarationLegalIdentity,
-} from "#features/legal-declarations"
+} from "#features/legal-docs"
 import { Link } from "#i18n/navigation"
 
 import {

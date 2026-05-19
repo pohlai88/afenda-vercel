@@ -135,9 +135,9 @@ describe("Workbench org switch surfaces", () => {
     renderWithTooltipProvider(
       <AppShellAccountDropdown
         hrefs={{
-          account: "/en/account",
-          identity: "/en/account/identity",
-          security: "/en/account/security",
+          account: "/en/o/acme/iam-profile",
+          identity: "/en/o/acme/iam-profile/identity",
+          security: "/en/o/acme/iam-profile/security",
         }}
         userEmail="owner@afenda.com"
         subtitle="Demo Organization"
@@ -154,7 +154,7 @@ describe("Workbench org switch surfaces", () => {
     )
 
     expect(await screen.findByText("Demo Organization")).toBeTruthy()
-    expect(screen.getByRole("menuitem", { name: "Profile" })).toBeTruthy()
+    expect(screen.getByRole("menuitem", { name: /^Profile/ })).toBeTruthy()
     expect(
       screen.queryByRole("menuitem", { name: /switch organization/i })
     ).toBeNull()

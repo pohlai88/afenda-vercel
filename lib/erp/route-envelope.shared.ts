@@ -18,7 +18,7 @@ export type RouteSurface =
   | "platform"
   | "auth"
   | "iam"
-  | "account"
+  | "iam-profile"
   /** Cross-org picker (`/{locale}/console`) — signed-in, no active org required. */
   | "console"
   /** Tenant slug segment (`/{locale}/o/{orgSlug}`) before apps/admin shells. */

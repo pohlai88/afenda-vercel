@@ -59,6 +59,7 @@
     "labelEmail": "Email",
     "labelPassword": "Password",
     "forgotPassword": "Forgot password",
+    "titleResetPassword": "Set a new password",
     "ariaHidePassword": "Hide password",
     "ariaShowPassword": "Show password",
     "capsLockOn": "Caps Lock is on.",
@@ -74,8 +75,37 @@
     "submitCreateAccount": "Create account",
     "pageMetadataTitle": "Sign in",
     "pageOpenGraphTitle": "Sign in | {siteName}",
+    "forgotPasswordDescription": "We will email you a reset link if the address is registered.",
+    "forgotPasswordSend": "Send reset link",
+    "forgotPasswordSending": "Sending…",
+    "forgotPasswordRequestFailed": "Request failed",
+    "forgotPasswordCheckEmailTitle": "Check your email",
+    "forgotPasswordSuccessMessage": "If an account exists for that email, a reset link was sent.",
+    "backToSignIn": "Back to sign in",
+    "resetPasswordDescription": "Choose a strong password you have not used here before.",
+    "resetPasswordNewLabel": "New password",
+    "resetPasswordConfirmLabel": "Confirm password",
+    "resetPasswordHint": "Use at least 8 characters. You will sign in again after updating.",
+    "resetPasswordSubmit": "Update password",
+    "resetPasswordUpdating": "Updating…",
+    "resetPasswordErrorTitle": "Could not reset",
+    "resetMissingToken": "Missing reset token. Open the link from your email again.",
+    "resetPasswordMismatch": "Passwords do not match.",
+    "resetPasswordTooShort": "Password must be at least 8 characters.",
+    "resetPasswordFailed": "Reset failed",
+    "resetPasswordLoading": "Loading reset form…",
     "ariaSsoSection": "Single sign-on",
     "ariaEmailSection": "Email sign-in options"
+  },
+  "AuthShell": {
+    "errorTitle": "Sign-in error",
+    "errorDescription": "Something went wrong while loading this page. Try again, or return to sign in.",
+    "retry": "Try again",
+    "backToSignIn": "Back to sign in",
+    "notFoundCode": "404",
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "This URL is not part of sign-in, sign-up, or password recovery.",
+    "goHome": "Go home"
   },
   "AuthStatus": {
     "goHome": "Go to home",
@@ -130,6 +160,29 @@
       "title": "Something went wrong",
       "description": "We could not complete that request. Sign in again or return home.",
       "primary": "Sign in"
+    }
+  },
+  "AcceptInvitation": {
+    "pageMetadataTitle": "Accept invitation",
+    "form": {
+      "title": "Organization invitation",
+      "description": "You have been invited to join an organization. Accept to join on this account, or reject to decline.",
+      "accept": "Accept invitation",
+      "accepting": "Accepting…",
+      "reject": "Reject",
+      "rejecting": "Rejecting…",
+      "errorTitle": "Something went wrong"
+    },
+    "missingId": {
+      "title": "Missing invitation",
+      "description": "Open the link from your invitation email, or ask your administrator to send a new invite.",
+      "primary": "Back to sign in"
+    },
+    "signInRequired": {
+      "title": "Sign in to review invitation",
+      "description": "Use the invited account first. After sign-in, you will return here to accept or reject the organization invitation.",
+      "primary": "Sign in",
+      "secondary": "Go home"
     }
   },
   "VerifyEmail": {
@@ -244,7 +297,21 @@
         "defaultSubtitle": "Personal account & session",
         "footer": "Organization admin and org-wide policy live outside this menu. Security here protects your sign-in for this profile — not your company’s network perimeter.",
         "securityLabel": "Account security",
-        "securityDescription": "Passwords, passkeys, sessions, and step-up for your Afenda identity."
+        "securityDescription": "Password, sessions, and recent security evidence for your Afenda identity.",
+        "profileLabel": "Profile",
+        "profileDescription": "Edit display name and linked sign-in methods.",
+        "accountSettingsLabel": "Account & settings",
+        "accountSettingsDescription": "Personal overview, next steps, and workspace context.",
+        "backToWorkspaceLabel": "Back to workspace",
+        "backToWorkspaceDescription": "Return to your main workspace surface.",
+        "recentActivityLabel": "Recent activity",
+        "recentActivityDescription": "Recent sign-in and security events for this profile.",
+        "helpCenterLabel": "Help center",
+        "helpCenterDescription": "Product guides and documentation.",
+        "privacyLabel": "Privacy & data",
+        "privacyDescription": "Visibility, exports, and retention controls.",
+        "signOut": "Sign out",
+        "signOutDescription": "End this browser session for the current profile."
       },
       "utilityBar": {
         "help": "Help",
@@ -5203,7 +5270,7 @@
       "title": "Organization"
     }
   },
-  "AccountSurface": {
+  "IamProfileSurface": {
     "title": "Personal surface",
     "skipToMain": "Skip to account content",
     "breadcrumbs": {
@@ -5231,19 +5298,17 @@
         "current": "Current"
       },
       "identity": "Identity",
-      "identityDescription": "Canonical profile, email, and linked sign-in methods.",
+      "identityDescription": "Display name, email verification, and linked sign-in methods.",
       "orbit": "Orbit",
       "orbitDescription": "Personal execution queue, signals, sessions, and linked operational work.",
       "sessions": "Sessions",
       "sessionsDescription": "Device access and sign-out control for active sessions.",
       "security": "Security",
-      "securityDescription": "Passkeys, 2FA, and recent security evidence.",
+      "securityDescription": "Password, active sessions, and recent security evidence.",
       "workspace": "Workspace",
       "workspaceDescription": "Return to the active organization and operating surface."
     },
     "quickActions": {
-      "addPasskey": "Add passkey",
-      "addPasskeyDescription": "Open passkey registration in the security surface.",
       "signOutOthers": "Sign out others",
       "signOutOthersDescription": "Review and revoke access from other devices.",
       "signOut": "Sign out",
@@ -5255,7 +5320,6 @@
       "actions": {
         "identity": "Identity",
         "manageSessions": "Manage sessions",
-        "addPasskey": "Add passkey",
         "openWorkspace": "Open workspace",
         "signOut": "Sign out"
       },
@@ -5271,9 +5335,12 @@
         "workspaceMissing": "No active workspace is selected for this account yet."
       },
       "next": {
-        "addPasskey": "Add a hardware-backed or platform-backed passkey.",
+        "verifyEmail": "Verify your email address to unlock full account features.",
+        "verifyEmailAction": "Resend verification email",
+        "verifyEmailSent": "Verification email sent. Check your inbox.",
         "reviewSessions": "Review other device sessions and revoke any that are no longer needed.",
         "confirmSessions": "Confirm this device remains the intended trusted session.",
+        "updateDisplayName": "Update your display name on the identity surface.",
         "returnWorkspace": "Return to {workspace} and continue operational work.",
         "openWorkspace": "Open your organization loading bay and select a workspace."
       },
@@ -5281,23 +5348,125 @@
     },
     "identity": {
       "title": "Identity",
-      "subtitle": "Profile, email authority, and linked sign-in methods for this operator.",
+      "subtitle": "Profile, email verification, and linked sign-in methods for this operator.",
+      "verifyEmailBanner": "Your email address is not verified yet.",
+      "verifyEmailAction": "Resend verification email",
+      "profileTitle": "Profile",
+      "profileDescription": "Display name shown across Afenda surfaces.",
+      "fields": {
+        "displayName": "Display name",
+        "saveName": "Save name",
+        "email": "Email",
+        "emailVerifiedBadge": "Verified",
+        "emailUnverifiedBadge": "Unverified"
+      },
+      "footerSecurity": "Open security",
+      "footerWorkspace": "Open workspace",
+      "messages": {
+        "profileUpdated": "Profile updated.",
+        "verificationSent": "Verification email sent.",
+        "providerUnlinked": "Provider unlinked.",
+        "updateFailed": "Could not update profile",
+        "verificationFailed": "Could not send verification email",
+        "linkFailed": "Could not link provider",
+        "unlinkFailed": "Could not unlink"
+      },
+      "linked": {
+        "title": "Linked accounts",
+        "description": "Sign-in methods connected to this profile.",
+        "linkedAt": "Linked {date}",
+        "disconnectAction": "Disconnect",
+        "connectAction": "Connect {provider}",
+        "allLinked": "All available providers are already linked.",
+        "noCredentialHint": "Email and password sign-in is not configured for this account."
+      },
       "actions": {
         "profile": "Edit profile",
-        "email": "Change email",
         "providers": "Link provider",
         "security": "Open security"
       }
     },
     "security": {
       "title": "Security",
-      "subtitle": "Sessions, passkeys, two-factor authentication, and recent access evidence.",
+      "subtitle": "Password, active sessions, and recent access evidence.",
       "actions": {
         "sessions": "Manage sessions",
-        "passkeys": "Passkeys",
-        "twoFactor": "Two-factor",
         "recent": "Recent evidence"
+      },
+      "password": {
+        "title": "Password",
+        "description": "Change the password for email and password sign-in.",
+        "noCredentialDescription": "This account uses a linked provider only. Password changes are not available.",
+        "currentPasswordLabel": "Current password",
+        "newPasswordLabel": "New password",
+        "submit": "Change password",
+        "submitting": "Changing…",
+        "success": "Password updated."
+      },
+      "sessions": {
+        "title": "Sessions",
+        "subtitle": "Devices and browsers currently signed in to this account.",
+        "currentDeviceBadge": "(this device)",
+        "revoke": "Revoke",
+        "revokeOtherSessions": "Sign out all other sessions",
+        "signedInAt": "Signed in",
+        "expiresAt": "Expires",
+        "revokeDialogTitle": "Revoke this session?",
+        "revokeDialogDescription": "This device will be signed out immediately.",
+        "revokeDialogCancel": "Cancel",
+        "revokeConfirm": "Revoke session",
+        "revoking": "Revoking…",
+        "revokeAllDialogTitle": "Sign out all other sessions?",
+        "revokeAllDialogDescription": "Every session except this browser will be ended.",
+        "revokeAllConfirm": "Sign out others",
+        "revokingAll": "Signing out…"
+      },
+      "activity": {
+        "title": "Recent activity",
+        "subtitle": "Sign-in and security events recorded for this profile.",
+        "empty": "No recent security activity."
       }
+    },
+    "membership": {
+      "sectionLabel": "Organizations",
+      "empty": "You are not a member of any organization yet.",
+      "activeBadge": "Active",
+      "roleLabel": "Role: {role}",
+      "openWorkspace": "Open workspace",
+      "setActive": "Set active",
+      "leave": "Leave",
+      "leaveDialogTitle": "Leave organization?",
+      "leaveDialogDescription": "You will lose access to {name} until you are invited again.",
+      "leaveDialogCancel": "Cancel",
+      "leaveConfirm": "Leave organization",
+      "leaveConfirming": "Leaving…",
+      "errorGeneric": "Could not update membership."
+    },
+    "danger": {
+      "sectionLabel": "Danger zone",
+      "title": "Delete account",
+      "description": "Permanently delete this Afenda profile and end all sessions. This cannot be undone.",
+      "deleteAccount": {
+        "action": "Delete account",
+        "dialogTitle": "Delete your account?",
+        "dialogDescription": "All organizations memberships and personal data tied to this profile will be removed according to platform policy.",
+        "confirmLabel": "Type {email} to confirm",
+        "cancel": "Cancel",
+        "confirm": "Delete account",
+        "confirming": "Deleting…"
+      }
+    },
+    "errors": {
+      "loadTitle": "Profile settings could not load",
+      "loadDescription": "Try again, or return to your organization workspace.",
+      "retry": "Try again",
+      "openWorkspace": "Open workspace"
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "This profile page does not exist or is not available in this workspace.",
+      "personalLink": "Personal surface",
+      "workspaceLink": "Workspace"
     }
   },
   "Console": {

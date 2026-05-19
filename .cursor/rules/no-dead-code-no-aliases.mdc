@@ -58,7 +58,7 @@ Wire the data or delete the stub. Do not leave the comment.
 
 ### 5. Any file whose only job is bridging to a deleted surface
 
-If `legacy-authenticated-route-alias.server.ts` contains zero aliases for anything that still exists, delete the file. If it still has live aliases, remove only the dead ones. Never leave dead branches inside a live file.
+If `lib/i18n/profile-legacy-redirect.server.ts` contains zero aliases for anything that still exists, delete the file. If it still has live aliases, remove only the dead ones. Never leave dead branches inside a live file.
 
 ---
 

@@ -2,25 +2,47 @@ import type { Route } from "next"
 import {
   CircleHelp,
   FileText,
-  Folder,
   History,
   House,
-  LifeBuoy,
   Lock,
   LogOut,
-  MessageSquare,
-  Palette,
   Shield,
   UserRound,
-  Users,
 } from "lucide-react"
 
 import type { UtilityDropdownGroup } from "./appshell-utility-bar-dropdown.client"
 
+/**
+ * Locale-prefixed routes for the personal IAM menu items.
+ *
+ * Each href is optional — surfaces without a bound `orgSlug` (platform admin,
+ * post-login console) omit the org-scoped Profile / Account / Security rows
+ * rather than emitting placeholder paths. Org composers pass all three.
+ */
 export type AppShellAccountDropdownHrefs = {
-  account: Route
-  identity: Route
-  security: Route
+  account?: Route
+  identity?: Route
+  security?: Route
+  help?: Route
+}
+
+export type AppShellAccountDropdownLabels = {
+  profile: string
+  profileDescription: string
+  accountSettings: string
+  accountSettingsDescription: string
+  backToWorkspace: string
+  backToWorkspaceDescription: string
+  recentActivity: string
+  recentActivityDescription: string
+  securityLabel: string
+  securityDescription: string
+  helpCenter: string
+  helpCenterDescription: string
+  privacy: string
+  privacyDescription: string
+  signOut: string
+  signOutDescription: string
 }
 
 /**
@@ -32,41 +54,39 @@ export function buildAppShellAccountDropdownGroups({
   workspaceHomeHref,
   signOutPending,
   runSignOut,
-  securityLabel,
-  securityDescription,
+  labels,
 }: {
   hrefs: AppShellAccountDropdownHrefs
   workspaceHomeHref: Route | undefined
   signOutPending: boolean
   runSignOut: () => void
-  securityLabel: string
-  securityDescription: string
+  labels: AppShellAccountDropdownLabels
 }): UtilityDropdownGroup[] {
   return [
     {
       items: [
-        {
-          id: "profile",
-          label: "Profile",
-          description: "Edit name, email visibility, and profile fields.",
-          icon: UserRound,
-          href: hrefs.identity,
-        },
-        {
-          id: "account-settings",
-          label: "Account & settings",
-          description: "Account overview, next steps, and workspace context.",
-          icon: FileText,
-          href: hrefs.account,
-        },
-        {
-          id: "appearance",
-          label: "Appearance (theme)",
-          description:
-            "Coming soon — light, dark, and system appearance in account.",
-          icon: Palette,
-          disabled: true,
-        },
+        ...(hrefs.identity
+          ? [
+              {
+                id: "profile",
+                label: labels.profile,
+                description: labels.profileDescription,
+                icon: UserRound,
+                href: hrefs.identity,
+              },
+            ]
+          : []),
+        ...(hrefs.account
+          ? [
+              {
+                id: "account-settings",
+                label: labels.accountSettings,
+                description: labels.accountSettingsDescription,
+                icon: FileText,
+                href: hrefs.account,
+              },
+            ]
+          : []),
       ],
     },
     {
@@ -75,43 +95,43 @@ export function buildAppShellAccountDropdownGroups({
           ? [
               {
                 id: "workspace-home",
-                label: "Back to workspace",
-                description: "Return to your main workspace surface.",
+                label: labels.backToWorkspace,
+                description: labels.backToWorkspaceDescription,
                 icon: House,
                 href: workspaceHomeHref,
               },
             ]
           : []),
-        {
-          id: "my-files",
-          label: "My files",
-          description: "Coming soon — personal uploads and saved documents.",
-          icon: Folder,
-          disabled: true,
-        },
-        {
-          id: "recent-activity",
-          label: "Recent activity",
-          description: "Coming soon — cross-surface activity history.",
-          icon: History,
-          disabled: true,
-        },
+        ...(hrefs.security
+          ? [
+              {
+                id: "recent-activity",
+                label: labels.recentActivity,
+                description: labels.recentActivityDescription,
+                icon: History,
+                href: `${hrefs.security}#recent-activity` as Route,
+              },
+            ]
+          : []),
       ],
     },
     {
       items: [
-        {
-          id: "security",
-          label: securityLabel,
-          description: securityDescription,
-          icon: Shield,
-          href: hrefs.security,
-        },
+        ...(hrefs.security
+          ? [
+              {
+                id: "security",
+                label: labels.securityLabel,
+                description: labels.securityDescription,
+                icon: Shield,
+                href: hrefs.security,
+              },
+            ]
+          : []),
         {
           id: "privacy",
-          label: "Privacy & data",
-          description:
-            "Coming soon — visibility, exports, and retention controls.",
+          label: labels.privacy,
+          description: labels.privacyDescription,
           icon: Lock,
           disabled: true,
         },
@@ -119,43 +139,25 @@ export function buildAppShellAccountDropdownGroups({
     },
     {
       items: [
-        {
-          id: "help",
-          label: "Help center",
-          description: "Coming soon — guides and FAQs in the product.",
-          icon: CircleHelp,
-          disabled: true,
-        },
-        {
-          id: "contact",
-          label: "Contact support",
-          description: "Coming soon — reach the Afenda team from the shell.",
-          icon: LifeBuoy,
-          disabled: true,
-        },
-        {
-          id: "feedback",
-          label: "Send feedback",
-          description: "Coming soon — structured product feedback from here.",
-          icon: MessageSquare,
-          disabled: true,
-        },
+        ...(hrefs.help
+          ? [
+              {
+                id: "help",
+                label: labels.helpCenter,
+                description: labels.helpCenterDescription,
+                icon: CircleHelp,
+                href: hrefs.help,
+              },
+            ]
+          : []),
       ],
     },
     {
       items: [
         {
-          id: "switch-account",
-          label: "Switch account",
-          description:
-            "Coming soon — fast user switching for multiple profiles.",
-          icon: Users,
-          disabled: true,
-        },
-        {
           id: "sign-out",
-          label: "Sign out",
-          description: "End this browser session for the current profile.",
+          label: labels.signOut,
+          description: labels.signOutDescription,
           icon: LogOut,
           disabled: signOutPending,
           onSelect: runSignOut,

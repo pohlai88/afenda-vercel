@@ -64,15 +64,15 @@ Each item is **ordered**; `depends_on` must complete before implementation.
     "delivers": [
       "RSC data: listSessions + listPasskeys via auth.api + headers()",
       "Server Actions: revokeSession, revokeOtherSessions, deletePasskey",
-      "Refactor app/account/security to thin client island"
+      "Refactor app/profile/security to thin client island"
     ],
     "primary_files": [
       "lib/auth/config.server.ts",
       "lib/auth/index.ts",
-      "app/account/security/page.tsx",
-      "app/account/security/_actions/*.ts"
+      "app/profile/security/page.tsx",
+      "app/profile/security/_actions/*.ts"
     ],
-    "legacy_reference": "afenda-next: auth.security.query.server.ts, iam/account/security"
+    "legacy_reference": "afenda-next: auth.security.query.server.ts, iam/profile/security"
   },
   {
     "id": "WP-02",
@@ -91,22 +91,22 @@ Each item is **ordered**; `depends_on` must complete before implementation.
     "depends_on": ["WP-01"],
     "delivers": [
       "betterAuth account.accountLinking (and related) in config.server.ts",
-      "app/account/identity: linked providers, link/unlink flows",
+      "app/profile/identity: linked providers, link/unlink flows",
       "Safe DB projections for linked accounts (no token columns in UI queries)"
     ],
     "primary_files": [
       "lib/auth/config.server.ts",
-      "app/account/identity/page.tsx",
-      "app/account/identity/_actions/*.ts"
+      "app/profile/identity/page.tsx",
+      "app/profile/identity/_actions/*.ts"
     ],
-    "legacy_reference": "afenda-next: auth.account-query.server.ts, iam/account/identity"
+    "legacy_reference": "afenda-next: auth.account-query.server.ts, iam/profile/identity"
   },
   {
     "id": "WP-04",
     "title": "Policy composition — verified email + step-up",
     "depends_on": [],
     "delivers": [
-      "lib/auth: requireVerifiedEmail (or equivalent) composed with requireRecentAuthStepUp for /account/security and /account/identity",
+      "lib/auth: requireVerifiedEmail (or equivalent) composed with requireRecentAuthStepUp for /profile/security and /profile/identity",
       "Document interaction with session cookie cache if enabled later"
     ],
     "primary_files": ["lib/auth/*.server.ts", "app/account/**/layout.tsx"],
@@ -159,7 +159,7 @@ Add or confirm when implementing; sync via `pnpm env:sync` and Vercel project se
 
 1. `pnpm lint` (agent-contract + eslint + design-contract)
 2. `pnpm typecheck`
-3. Manual: `/account/security` and new `/account/identity` — step-up + verified-email behavior
+3. Manual: `/profile/security` and new `/profile/identity` — step-up + verified-email behavior
 4. Production: confirm Vercel env contains auth secrets for target environment; no missing `BETTER_AUTH_URL` on prod
 
 ## Deferred: afenda-node
@@ -170,9 +170,9 @@ When source is available: compare **IdP / PBAC / host-tenant** doctrine only; po
 
 | WP | Planned | Delivered |
 |----|---------|-----------|
-| WP-01 | RSC security center, `listSessions` / `listPasskeys`, revoke / delete passkey actions, thin client | **Done:** [`lib/auth/security.server.ts`](lib/auth/security.server.ts), [`app/account/security/page.tsx`](app/account/security/page.tsx), [`security-center-client.tsx`](app/account/security/security-center-client.tsx), [`security-actions.ts`](app/account/security/security-actions.ts) using `auth.api.*` + [`next/headers`](https://nextjs.org/docs/app/api-reference/functions/headers) per Better Auth server session docs. |
+| WP-01 | RSC security center, `listSessions` / `listPasskeys`, revoke / delete passkey actions, thin client | **Done:** [`lib/auth/security.server.ts`](lib/auth/security.server.ts), [`app/profile/security/page.tsx`](app/profile/security/page.tsx), [`security-center-client.tsx`](app/profile/security/security-center-client.tsx), [`security-actions.ts`](app/profile/security/security-actions.ts) using `auth.api.*` + [`next/headers`](https://nextjs.org/docs/app/api-reference/functions/headers) per Better Auth server session docs. |
 | WP-02 | User activity from `iam_audit_event` | **Done:** [`lib/auth/activity.server.ts`](lib/auth/activity.server.ts) — allowlisted `iam.session.*` only; labels for copy-safe UI. |
-| WP-03 | Identity, account linking, safe linked-account queries | **Done:** [`lib/auth/accounts.server.ts`](lib/auth/accounts.server.ts), [`app/account/identity/*`](app/account/identity/), `account.accountLinking` + `user.changeEmail` in [`config.server.ts`](lib/auth/config.server.ts) per [Better Auth options](https://www.better-auth.com/docs/reference/options) / [users & accounts](https://www.better-auth.com/docs/concepts/users-accounts). |
+| WP-03 | Identity, account linking, safe linked-account queries | **Done:** [`lib/auth/accounts.server.ts`](lib/auth/accounts.server.ts), [`app/profile/identity/*`](app/profile/identity/), `account.accountLinking` + `user.changeEmail` in [`config.server.ts`](lib/auth/config.server.ts) per [Better Auth options](https://www.better-auth.com/docs/reference/options) / [users & accounts](https://www.better-auth.com/docs/concepts/users-accounts). |
 | WP-04 | Verified email + step-up | **Done:** [`lib/auth/policy.server.ts`](lib/auth/policy.server.ts); security + organization layouts require verified email after step-up; identity allows unverified with banner. |
 | WP-05 | Org invites UI + `org.*` audit | **Partial:** [`app/account/organization/page.tsx`](app/account/organization/page.tsx) read-only org summary + onboarding links; **no** invite/member management UI or new `writeIamAuditEvent` org mutations. |
 | WP-06 | `@better-auth/infra` dash/sentinel | **Not done** (optional env-gated scope). |
@@ -185,7 +185,7 @@ When source is available: compare **IdP / PBAC / host-tenant** doctrine only; po
 
 - [x] WP-01 Security center (sessions/passkeys + actions + RSC refactor)
 - [x] WP-02 Activity feed from `iam_audit_event`
-- [x] WP-03 Identity + account linking + `/account/identity`
+- [x] WP-03 Identity + account linking + `/profile/identity`
 - [x] WP-04 Verified-email + step-up composition
 - [ ] WP-05 Org UX + `org.*` audit (partial: org summary page only)
 - [ ] WP-06 Optional `@better-auth/infra`

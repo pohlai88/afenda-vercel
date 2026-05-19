@@ -3,6 +3,7 @@ import type { Route } from "next"
 
 import { AuthPageFrame } from "#components2/auth/auth-page-frame"
 import { AuthResult } from "#components2/auth/auth-result"
+import { localeAwarePathToClientRoute } from "#lib/auth/auth-flow.shared"
 import {
   AUTH_CONTEXT_QUERY_KEY,
   AUTH_STATUS,
@@ -16,23 +17,8 @@ import {
   resolveAuthInterruptionMetaTitle,
   resolveAuthStatusContent,
 } from "#lib/auth/auth-status-copy"
-import {
-  ensureAppLocale,
-  stripLeadingLocalePrefix,
-  toLocalePath,
-} from "#lib/i18n/locales.shared"
-
-/** Locale-prefixed hrefs from {@link resolveAuthStatusContent} → next-intl {@link Route}. */
-function localeAwareHrefToRoute(href: string): Route {
-  const qIdx = href.indexOf("?")
-  const pathOnly = qIdx >= 0 ? href.slice(0, qIdx) : href
-  const query = qIdx >= 0 ? href.slice(qIdx) : ""
-  const stripped = stripLeadingLocalePrefix(pathOnly)
-  const internal =
-    stripped?.pathnameWithoutLocale ??
-    (pathOnly.startsWith("/") ? pathOnly : `/${pathOnly}`)
-  return `${internal}${query}` as Route
-}
+import { SITE_NAME } from "#lib/site"
+import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 
 export async function generateMetadata({
   params,
@@ -48,7 +34,10 @@ export async function generateMetadata({
     parseAuthStatusParam(sp[AUTH_STATUS_QUERY_KEY]) ??
     AUTH_STATUS.SESSION_EXPIRED
   const title = await resolveAuthInterruptionMetaTitle(locale, status)
-  return { title }
+  return {
+    title,
+    openGraph: { title: `${title} | ${SITE_NAME}` },
+  }
 }
 
 export default async function SessionExpiredPage({
@@ -79,11 +68,11 @@ export default async function SessionExpiredPage({
         trustNote={content.trustNote}
         primaryAction={{
           label: content.primaryLabel,
-          href: localeAwareHrefToRoute(content.primaryHref),
+          href: localeAwarePathToClientRoute(content.primaryHref) as Route,
         }}
         secondaryAction={{
           label: content.secondaryLabel,
-          href: localeAwareHrefToRoute(content.secondaryHref),
+          href: localeAwarePathToClientRoute(content.secondaryHref) as Route,
         }}
         supportReference={pickFirstParam(sp[AUTH_SUPPORT_REF_QUERY_KEY])}
         className="w-full"

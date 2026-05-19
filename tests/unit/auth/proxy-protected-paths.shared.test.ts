@@ -25,11 +25,15 @@ describe("proxy-protected-paths.shared", () => {
       )
     })
 
-    it("protects IAM and account surfaces", () => {
-      expect(isProtectedLocaleInternalPath("/account/security")).toBe(true)
-      expect(isProtectedLocaleInternalPath("/account")).toBe(true)
+    it("protects post-login org bootstrap and invitation surfaces", () => {
       expect(isProtectedLocaleInternalPath("/console")).toBe(true)
       expect(isProtectedLocaleInternalPath("/accept-invitation")).toBe(true)
+    })
+
+    it("protects org-scoped IAM profile under /o", () => {
+      expect(
+        isProtectedLocaleInternalPath("/o/acme/iam-profile/security")
+      ).toBe(true)
     })
 
     it("protects platform console and legacy operator bookmarks", () => {
@@ -37,7 +41,7 @@ describe("proxy-protected-paths.shared", () => {
       expect(isProtectedLocaleInternalPath("/operator/users")).toBe(true)
     })
 
-    it("does not protect public auth pages", () => {
+    it("does not protect public auth pages or removed legacy alias roots", () => {
       expect(isProtectedLocaleInternalPath("/sign-in")).toBe(false)
       expect(isProtectedLocaleInternalPath("/sign-up")).toBe(false)
       expect(isProtectedLocaleInternalPath("/forgot-password")).toBe(false)
@@ -45,6 +49,8 @@ describe("proxy-protected-paths.shared", () => {
       expect(isProtectedLocaleInternalPath("/check-email")).toBe(false)
       expect(isProtectedLocaleInternalPath("/verify-email")).toBe(false)
       expect(isProtectedLocaleInternalPath("/session-expired")).toBe(false)
+      expect(isProtectedLocaleInternalPath("/account")).toBe(false)
+      expect(isProtectedLocaleInternalPath("/iam-profile")).toBe(false)
     })
   })
 

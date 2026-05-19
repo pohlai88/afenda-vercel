@@ -1,0 +1,176 @@
+---
+description: Legal-docs three-layer boundary — app routes, lib/features/legal-docs, components2/legal-docs. STOP IDE drift.
+globs: app/(main)/[locale]/legal-docs/**,lib/features/legal-docs/**,components2/legal-docs/**
+alwaysApply: false
+---
+
+# Legal-docs three-layer boundary — IDE anti-drift contract
+
+**Canonical decision:** [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift.md) (AGENTS.md **PRIORITY #2**) · Layer 1 seal: [`app/(main)/[locale]/legal-docs/_SEAL.md`](../../app/(main)/[locale]/legal-docs/_SEAL.md)
+
+**If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.**
+
+Public `/legal-docs/*` uses **one product name everywhere: `legal-docs`**.  
+**Never** split back into `public-trust`, `legal-declarations`, or UI under `components2/marketing/`.
+
+Mechanical guard: [`tests/unit/legal-docs-surface-contract.test.ts`](tests/unit/legal-docs-surface-contract.test.ts)  
+Human seal (Layer 1): [`app/(main)/[locale]/legal-docs/_SEAL.md`](app/(main)/[locale]/legal-docs/_SEAL.md)
+
+---
+
+## Prime directive (read before any edit)
+
+```txt
+Layer 1 — app/           → URL + thin re-exports ONLY
+Layer 2 — lib/features/  → routing, registry, cache, dispatch, metadata
+Layer 3 — components2/   → presentation shells ONLY (no fetch, no dispatch)
+```
+
+**Import doors (only these):**
+
+| Layer | Door |
+| --- | --- |
+| Layer 2 | `#features/legal-docs` · `#features/legal-docs/server` (if added) |
+| Layer 3 | `#components2/legal-docs` |
+
+---
+
+## Layer 1 — `app/(main)/[locale]/legal-docs/`
+
+**Owns:** catch-all route file, `_SEAL.md`, `unstable_instant` re-export.
+
+**Allowed in `page.tsx`:**
+
+```tsx
+export { unstable_instant } from "#features/legal-docs"
+export {
+  buildLegalDocsStaticParams as generateStaticParams,
+  generateLegalDocsMetadata as generateMetadata,
+  LegalDocsRoutePage as default,
+} from "#features/legal-docs"
+```
+
+**Forbidden in `app/` (instant CI / review failure):**
+
+| Action | Why |
+| --- | --- |
+| `resolveLegalDocsSlug`, `notFound()`, OpenStatus fetch | Layer 2 |
+| `DeclarationShell`, `TrustControlSurface`, layout JSX | Layer 3 |
+| `declarationDocuments`, trust fixture data | Layer 2 |
+| `#components2/legal-docs` or `#components2/marketing` imports | Layer 3 — not in routes |
+| Segment `dynamic` / `revalidate` / `runtime` | Cache Components policy |
+| Route-level `loading.tsx` for trust/status | Use Suspense in Layer 2 |
+| Recreate `public-trust` / `legal-declarations` module names | Retired |
+
+---
+
+## Layer 2 — `lib/features/legal-docs/`
+
+**Owns:** declaration registry, slug routing, `generateLegalDocsMetadata`, OpenStatus cache, page orchestration (`LegalDocsRoutePage`, trust/status/declaration pages).
+
+**Allowed module root entries only** ([`scripts/check-agent-contract.mjs`](scripts/check-agent-contract.mjs)):
+
+```txt
+actions/ · data/ · components/ · schemas/ · index.ts · server.ts · client.ts · types.ts · constants.ts · *.contract.ts · README.md
+```
+
+**Forbidden at `lib/features/legal-docs/` root:**
+
+| Entry | Why |
+| --- | --- |
+| `_SEAL.md` | Not an allowed module root entry — use `app/.../legal-docs/_SEAL.md` |
+| `public-trust/` · `legal-declarations/` as sibling modules | Retired — merge into `legal-docs` |
+| React presentation components | Layer 3 `components2/legal-docs/` |
+| Imports from `#components2/marketing` for legal-docs shells | Use `#components2/legal-docs` |
+
+**Canonical Layer 2 files:**
+
+| Concern | Path |
+| --- | --- |
+| Public barrel | `index.ts` |
+| Slug + static params | `data/legal-docs-routing.shared.ts` |
+| Metadata | `data/legal-docs-metadata.server.ts` |
+| Declaration registry | `data/declaration-registry.shared.ts` |
+| Footer links / `LEGAL_ROUTE_PREFIX` | `data/footer.shared.ts` |
+| OpenStatus cache | `data/openstatus-status.server.ts` |
+| Trust fixture | `data/trust-surface.fixture.shared.ts` |
+| Route dispatch | `components/legal-docs-route-page.server.tsx` |
+| Declaration page (`use cache`) | `components/legal-docs-declaration-page.server.tsx` |
+| Trust/status pages + bodies | `components/legal-docs-trust-*.server.tsx`, `legal-docs-status-*.server.tsx` |
+
+**Cache tiers (do not collapse):**
+
+| Route | Strategy |
+| --- | --- |
+| Declarations | `LegalDocsDeclarationPage` — UI `'use cache'` + `cacheLife('max')` |
+| Trust | Baseline `TrustControlSurface` Suspense fallback + cached body |
+| Status | `StatusControlSkeleton` + cached body |
+| Shell | `notFound()` in `LegalDocsRoutePage` **before** Suspense |
+
+**Cross-module imports:** Other features (landing footer, sitemap, security.txt) import **`#features/legal-docs` only** — never deep paths into `data/`.
+
+---
+
+## Layer 3 — `components2/legal-docs/`
+
+**Owns:** presentation-only shells for public legal/trust/status pages.
+
+| File | Export |
+| --- | --- |
+| `declaration-shell.tsx` | `DeclarationShell` |
+| `trust-control-surface.tsx` | `TrustControlSurface` |
+| `status-control-surface.tsx` | `StatusControlSurface` |
+| `status-control-skeleton.tsx` | `StatusControlSkeleton` |
+| `legal-docs-status-pill.shared.tsx` | `OpenStatusPill`, `TrustSurfaceStatePill` |
+
+**May import:** `#components2/ui/*`, `#features/legal-docs` (types, `LEGAL_ROUTE_PREFIX`, footer constants), `#i18n/navigation`, `#components2/afenda-brand`.
+
+**Forbidden in Layer 3:**
+
+| Action | Why |
+| --- | --- |
+| `getCachedOpenStatusPublicSnapshot`, `resolveLegalDocsSlug` | Layer 2 |
+| `generateMetadata`, `buildLegalDocsStaticParams` | Layer 2 |
+| Governed metadata renderers (`#components2/metadata`) | Bespoke marketing/legal UI only |
+| Placing legal-docs UI back in `components2/marketing/` | Wrong folder — use `components2/legal-docs/` |
+
+**Landing footer** (`components2/marketing/`) may import **`#features/legal-docs`** for link constants only — not legal-docs layout components.
+
+---
+
+## Retired names — do not recreate (IDE warning)
+
+```txt
+lib/features/public-trust/          ← GONE. Use lib/features/legal-docs/
+lib/features/legal-declarations/    ← GONE. Use lib/features/legal-docs/
+components2/marketing/declaration-shell.tsx   ← MOVED to components2/legal-docs/
+components2/marketing/trust-control-surface.tsx
+components2/marketing/status-control-surface.tsx
+app/.../legal-declaration-page.shared.tsx       ← DELETED
+```
+
+Recreating any of the above is **forward drift** — fix imports, do not mkdir retired trees.
+
+---
+
+## Verification (required after every legal-docs task)
+
+```bash
+pnpm lint:path -- lib/features/legal-docs components2/legal-docs app/(main)/[locale]/legal-docs
+pnpm test:fast -- tests/unit/legal-docs-surface-contract.test.ts tests/unit/public-trust-routing.test.ts tests/unit/legal-declarations-contract.test.ts
+pnpm typecheck
+```
+
+`pnpm lint:agent-contract` must not report forbidden entries under `lib/features/legal-docs/`.
+
+---
+
+## Parity reference (same three-layer shape)
+
+| Surface | Layer 1 `app/` | Layer 2 `lib/` | Layer 3 `components2/` |
+| --- | --- | --- | --- |
+| Pre-login auth | `(auth)/` | `lib/auth/` | `components2/auth/` |
+| Legal-docs | `legal-docs/` | `lib/features/legal-docs/` | `components2/legal-docs/` |
+| IAM profile | `o/.../profile/` | `lib/features/iam-profile/` | `components2/iam-profile/` |
+
+When unsure: **routes stay thin, features own truth, components own paint.**

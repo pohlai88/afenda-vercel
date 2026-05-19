@@ -41,7 +41,6 @@ import { listFor{{pascalCase slug}}Organization } from "#features/{{slug}}/data/
 vi.mock("#lib/auth", () => ({
   requireOrgSession: vi.fn(),
   writeIamAuditEventFromNextHeaders: vi.fn().mockResolvedValue(undefined),
-  canActInOrganization: vi.fn().mockResolvedValue(true),
 }))
 
 vi.mock("next/cache", () => ({

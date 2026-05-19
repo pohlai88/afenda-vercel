@@ -49,3 +49,26 @@ export function buildErpAuditActionString(args: {
 export function pascalVerb(verb: string): string {
   return verb.charAt(0).toUpperCase() + verb.slice(1).toLowerCase()
 }
+
+/** Maps CRUD-SAP audit verbs to ERP RBAC function keys (AGENTS.md §5 ERP RBAC). */
+export function mapCrudSapVerbToErpFunction(
+  verb: CrudSapVerb
+): "create" | "read" | "update" | "delete" | "search" | "audit" | "predict" {
+  switch (verb) {
+    case "create":
+      return "create"
+    case "resolve":
+    case "update":
+      return "update"
+    case "deprecate":
+      return "delete"
+    case "search":
+      return "search"
+    case "audit":
+      return "audit"
+    case "predict":
+      return "predict"
+    default:
+      return "update"
+  }
+}

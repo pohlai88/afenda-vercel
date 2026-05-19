@@ -107,11 +107,11 @@ describe("auth-interruption-url.shared", () => {
   it("builds step-up interruption href", () => {
     const href = authInterruptionHref(AUTH_STATUS.STEP_UP_REQUIRED, {
       locale: en,
-      callbackPath: toLocalePath(en, "/account/security"),
+      callbackPath: toLocalePath(en, "/o/acme/iam-profile/security"),
     })
     expect(href).toContain("authStatus=step_up_required")
     expect(href).toContain(
-      `callbackUrl=${encodeURIComponent(toLocalePath(en, "/account/security"))}`
+      `callbackUrl=${encodeURIComponent(toLocalePath(en, "/o/acme/iam-profile/security"))}`
     )
   })
 
@@ -140,15 +140,15 @@ describe("auth-status-copy", () => {
     expect(content.primaryHref).toContain("stepUp=1")
   })
 
-  it("sends email_unverified to account identity settings", async () => {
+  it("sends email_unverified to the verify-email surface", async () => {
     const content = await resolveAuthStatusContent(
       AUTH_STATUS.EMAIL_UNVERIFIED,
       {
         locale: en,
-        callbackUrl: "/account/security",
+        callbackUrl: toLocalePath(en, "/o/acme/iam-profile/security"),
       }
     )
-    expect(content.primaryHref).toBe(toLocalePath(en, "/account/identity"))
+    expect(content.primaryHref).toBe(toLocalePath(en, "/verify-email"))
   })
 })
 

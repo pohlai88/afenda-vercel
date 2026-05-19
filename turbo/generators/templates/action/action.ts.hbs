@@ -7,10 +7,8 @@
  * follows AGENTS.md §5 → IAM audit policy (ERP):
  *
  *   - Tier B (default): `requireOrgSession()` — standard CRUD
- *   - Tier A: `requireOrgSession()` + `canActInOrganization(..., "admin")` —
- *     irreversible / compliance-sensitive (posting, finalizing, reversing)
- *   - Tier S: `requireOrgSession()` + `canActInOrganization(..., "owner")` or
- *     global admin — ownership / destructive
+ *   - Tier A: `requireErpPermission(...)` — irreversible / compliance-sensitive
+ *   - Tier S: `requireTenantAuthority(["tenant_owner"])` — ownership / destructive
  *
  * **This is a stub.** The DB write is intentionally absent — per AGENTS.md
  * §5 "no DB write → no `iam_audit_event` row." Wire the real mutation
@@ -48,8 +46,11 @@
  */
 import { revalidatePath } from "next/cache"
 
-{{#if isTierAOrS}}
-import { canActInOrganization } from "#lib/auth"
+{{#if isTierA}}
+import { requireErpPermission } from "#features/erp-rbac/server"
+{{/if}}
+{{#if isTierS}}
+import { requireTenantAuthority } from "#features/erp-rbac/server"
 {{/if}}
 import { toLocaleOrgDashboardRevalidatePattern } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/auth"
@@ -63,25 +64,34 @@ export async function {{camelCase verb}}{{pascalCase slug}}(
   formData: FormData
 ): Promise<{{pascalCase slug}}FormState> {
   // {{tier}} — see AGENTS.md §5 IAM audit policy.
-{{#if isTierAOrS}}
-  const { organizationId, userId, user } = await requireOrgSession()
-
-  const allowed = await canActInOrganization(
-    userId,
-    user.role,
-    organizationId,
-    "{{requiredRole}}"
-  )
-  if (!allowed) {
+{{#if isTierS}}
+  const tenantGate = await requireTenantAuthority(["tenant_owner"])
+  if (!tenantGate.ok) {
     return {
       ok: false,
       errors: {
-        form: "You do not have permission to {{verb}} this resource.",
+        form: tenantGate.error,
       },
     }
   }
+  const { organizationId, userId, sessionId } = tenantGate.session
+{{else if isTierA}}
+  const permission = await requireErpPermission({
+    module: "{{slug}}",
+    object: "{{object}}",
+    function: "{{erpFunction}}",
+  })
+  if (!permission.ok) {
+    return {
+      ok: false,
+      errors: {
+        form: permission.error,
+      },
+    }
+  }
+  const { organizationId, userId, sessionId } = permission
 {{else}}
-  const { organizationId, userId } = await requireOrgSession()
+  const { organizationId, userId, sessionId } = await requireOrgSession()
 {{/if}}
 
   const parsed = {{camelCase slug}}Schema.safeParse({
@@ -103,9 +113,8 @@ export async function {{camelCase verb}}{{pascalCase slug}}(
   // FormData). Once a real DB write exists, add the audit block.
   void parsed.data
   void organizationId
-{{#unless isTierAOrS}}
   void userId
-{{/unless}}
+  void sessionId
 
   revalidatePath(
     toLocaleOrgDashboardRevalidatePattern(ORG_DASHBOARD_{{constantCase slug}}),

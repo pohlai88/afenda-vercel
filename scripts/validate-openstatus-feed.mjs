@@ -1,6 +1,6 @@
 /**
  * Validates that OPENSTATUS_PUBLIC_STATUS_URL serves a JSON feed at /feed/json (same path as
- * {@link buildOpenStatusFeedUrl} in lib/features/public-trust).
+ * {@link buildOpenStatusFeedUrl} in lib/features/legal-docs).
  *
  *   node scripts/with-env.mjs node scripts/validate-openstatus-feed.mjs
  */

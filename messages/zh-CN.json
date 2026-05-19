@@ -4370,7 +4370,7 @@
       "title": "Organization"
     }
   },
-  "AccountSurface": {
+  "IamProfileSurface": {
     "title": "Personal surface",
     "skipToMain": "Skip to account content",
     "breadcrumbs": {

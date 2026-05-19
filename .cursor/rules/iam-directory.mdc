@@ -7,7 +7,8 @@ alwaysApply: true
 
 ## Authority
 
-- **`lib/auth/`** owns the **IAM control plane**: Better Auth configuration, session/step-up guards, audit writers ([`audit.server.ts`](lib/auth/audit.server.ts)), org IAM audit CSV ([`org-audit.server.ts`](lib/auth/org-audit.server.ts), `org-audit-csv.shared.ts`, `org-audit-export-verify.server.ts`), and permission predicates ([`permission.server.ts`](lib/auth/permission.server.ts) — org role + global admin; no duplicate RBAC trees elsewhere).
+- **`lib/auth/`** owns the **IAM control plane**: Better Auth configuration, session/step-up guards, audit writers ([`audit.server.ts`](lib/auth/audit.server.ts)), org IAM audit CSV ([`org-audit.server.ts`](lib/auth/org-audit.server.ts), `org-audit-csv.shared.ts`, `org-audit-export-verify.server.ts`), and permission predicates ([`permission.server.ts`](lib/auth/permission.server.ts) — global admin only; ERP RBAC lives in `#features/erp-rbac`).
+- **`lib/features/iam-profile/`** owns **signed-in member profile** data and invitation accept/reject actions (relocated from `lib/auth/` — see [`lib/auth/_RELOCATION.md`](lib/auth/_RELOCATION.md)). Import `#features/iam-profile/server` or `#features/iam-profile/client`, not `#lib/auth`, for those concerns.
 - **`app/[locale]/…`** owns **routes and UI only** — do not introduce an `app/iam/*` URL tree for configuration authority.
 
 ## Import rules
@@ -24,8 +25,12 @@ alwaysApply: true
   - `lib/auth/auth-status-copy.ts` — UI copy resolver
   - `#lib/auth/org-slug.shared` — `normalizeOrgSlugParam`, `ORG_SLUG_MAX_LENGTH` (URL `[orgSlug]` validation)
   - `#lib/auth/org-slug-generate.shared` — `slugifyOrganizationName`, `isReservedOrgSlug`, `RESERVED_ORG_SLUGS`
+  - `#lib/auth/org-membership.shared` — `mapIamSessionUser`, IAM session user field types
 - **Server-only helpers** (deep import or `#lib/auth` barrel):
   - `#lib/auth/tenant-session.server` — `requireOrgSession`, `getOrgTenantContext`, `requireSignedInSession`, `setActiveOrganizationForSession`, route-handler session readers (also re-exported from `#lib/auth`)
+  - `#lib/auth/org-membership.server` — `hasOrgMembership`, `assertOrgMembership`, `findOrganizationIdBySlug` (membership truth used by tenant + auth-shell guards)
+  - `#lib/auth/org-membership.shared` — `mapIamSessionUser`, session user field types (pure; no DB)
+  - `#lib/auth/session-lifecycle-audit.shared` — auth API path → `iam.session.*` audit mapping
   - `#lib/auth/org-slug.server` — slug DB lookups + `allocateUniqueOrganizationSlug` (`server-only`)
   - `interruption-redirect.server.ts` + `intended-path.server.ts` — server redirect + path capture
   - `audit.server.ts` — `writeIamAuditEvent`, `writeIamAuditEventFromNextHeaders`
@@ -49,7 +54,15 @@ alwaysApply: true
 
 ## Auth/IAM route groups
 
-- Locale-first routes under `app/[locale]/(auth)/**` (auth flows: sign-in, sign-up, verify-email, forgot/reset password, accept-invitation) and `app/[locale]/(iam)/**` (identity/security/org management: account). Post-login org bootstrap lives under **`/{locale}/console`** (`app/[locale]/console/**`), not a dedicated `(iam)/onboarding` route — see **`docs/decisions/0003-post-login-loading-bay-nexus.md`**.
+Pre-login auth uses a **three-layer stack** (each layer has `_SEAL.md`):
+
+```txt
+Layer 1 — app/[locale]/(auth)/**     routes + AuthPageFrame
+Layer 2 — lib/auth/                  IAM control plane (#lib/auth)
+Layer 3 — components2/auth/          Card + client forms (#components2/auth/*)
+```
+
+Locale-first routes under `app/[locale]/(auth)/**` (auth flows: sign-in, sign-up, verify-email, forgot/reset password, accept-invitation) and **`app/[locale]/o/[orgSlug]/iam-profile/**`** (signed-in identity + security). Legacy `/{locale}/account/*` redirects session-aware to org profile. Post-login org bootstrap lives under **`/{locale}/console`** (`app/[locale]/console/**`) — see **`docs/decisions/0003-post-login-loading-bay-nexus.md`**.
 - Both route groups import **`#lib/auth`** (server) and **`#lib/auth-client`** (client) directly — no intermediary barrel.
 - Auth/account shell session guards: **`requireAuthShellSignedInSession`**, **`requireAuthShellOrgSession`**, **`requireAuthShellGlobalAdminSession`** from **`#lib/auth`** (`lib/auth/auth-shell-session.server.ts`).
 - Neon webhook receiver: `app/api/integrations/neon-auth-webhooks/route.ts` — verify with **`verifyNeonAuthWebhookSignature`** from **`#lib/auth`**.

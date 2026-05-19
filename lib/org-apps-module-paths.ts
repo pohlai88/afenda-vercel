@@ -7,7 +7,7 @@ import {
 } from "#lib/i18n/org-apps-path.shared"
 import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
-const ACCOUNT_PATH_SEGMENTS = new Set(["identity", "security"])
+const PROFILE_PATH_SEGMENTS = new Set(["identity", "security"])
 
 /**
  * Locale-internal pathname for org admin (`localePrefix: "always"`).
@@ -31,22 +31,22 @@ export function organizationAdminPath(
   return `${base}/${section}` as Route
 }
 
-/** Locale-internal pathname for org-scoped account (`/o/{slug}/account/...`). */
-export function organizationAccountPath(
+/** Locale-internal pathname for org-scoped member IAM profile (`/o/{slug}/iam-profile/...`). */
+export function organizationIamProfilePath(
   orgSlug: string,
   section: "overview" | "identity" | "security" | string = "overview"
 ): Route {
   const slug = normalizeOrgSlugParam(orgSlug)
   if (!slug) {
-    throw new Error("organizationAccountPath: invalid org slug")
+    throw new Error("organizationIamProfilePath: invalid org slug")
   }
-  const base = `/o/${slug}/account`
+  const base = `/o/${slug}/iam-profile`
   if (section === "overview") {
     return base as Route
   }
-  if (!ACCOUNT_PATH_SEGMENTS.has(section)) {
+  if (!PROFILE_PATH_SEGMENTS.has(section)) {
     throw new Error(
-      `organizationAccountPath: unknown account segment "${section}"`
+      `organizationIamProfilePath: unknown profile segment "${section}"`
     )
   }
   return `${base}/${section}` as Route

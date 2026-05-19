@@ -17,7 +17,7 @@ import { recordOrgAdminPageVisit } from "#features/org-admin/server"
 import {
   fetchOrgAdminMembers,
   fetchOrgAdminPendingInvitations,
-} from "#lib/auth"
+} from "#features/org-admin/server"
 import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { getOrgTenantContext } from "#lib/auth"
 

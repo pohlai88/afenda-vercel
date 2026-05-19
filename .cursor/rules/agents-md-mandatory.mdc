@@ -10,6 +10,8 @@ alwaysApply: true
 ## Before every task
 
 1. Read **`AGENTS.md`** before analysis, planning, coding, refactoring, testing, or tool execution.
+   - **PRIORITY #1** — Drizzle: agents own `db:generate` / `db:migrate:local`; humans do not.
+   - **PRIORITY #2** — IDE anti-drift: one product name, three layers (`app/` · `lib/features/` · `components2/`); read surface `*-directory.mdc` before editing.
    - **IDE & AI quickstart** table for fast routing.
    - **§3** for **`pnpm gen`** / Turborepo generators — `pnpm gen action --module <slug>` is expanded by **`scripts/turbo-gen.mjs`** (positional `--args`; do not pass `--module` to raw `turbo gen`).
    - **§4** for CI gates and enforcement scripts (including Drizzle migrations when editing `drizzle/` or `lib/db/schema.ts`).
@@ -37,6 +39,7 @@ alwaysApply: true
 | UI primitives | **`components/` is hard-deleted.** Shelf: `components2/ui/**` · import via **`#components2/ui/*`**. Never recreate repo-root `components/`. |
 | Design tokens | `@theme inline` `var(--*)` must resolve to `:root`/`.dark` definitions (`check-design-contract.mjs`) |
 | Deleted `components/` | **Entire repo-root `components/` directory is hard-deleted** — never mkdir or restore any path under it (`never-restore-deleted-components.mdc`) |
+| IDE three-layer drift | **PRIORITY #2** — one product name across three layers; no `_SEAL.md` at `lib/features/*` root · [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift.md) |
 
 ## Cross-module import rule
 

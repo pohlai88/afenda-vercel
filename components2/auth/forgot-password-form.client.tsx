@@ -1,7 +1,7 @@
 "use client"
 
 import { MailIcon } from "lucide-react"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useState } from "react"
 
 import { authClient } from "#lib/auth-client"
@@ -25,6 +25,7 @@ import { Label } from "#components2/ui/label"
 import { Spinner } from "#components2/ui/spinner"
 
 export function ForgotPasswordForm() {
+  const t = useTranslations("Auth")
   const locale = ensureAppLocale(useLocale())
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState<string | null>(null)
@@ -43,10 +44,10 @@ export function ForgotPasswordForm() {
         redirectTo: `${origin}${toLocalePath(locale, "/reset-password")}`,
       })
       if (err) {
-        setError(err.message ?? "Request failed")
+        setError(err.message ?? t("forgotPasswordRequestFailed"))
         return
       }
-      setMessage("If an account exists for that email, a reset link was sent.")
+      setMessage(t("forgotPasswordSuccessMessage"))
     } finally {
       setPending(false)
     }
@@ -60,16 +61,14 @@ export function ForgotPasswordForm() {
             className="size-5 shrink-0 text-muted-foreground"
             aria-hidden
           />
-          Forgot password
+          {t("forgotPassword")}
         </CardTitle>
-        <CardDescription>
-          We will email you a reset link if the address is registered.
-        </CardDescription>
+        <CardDescription>{t("forgotPasswordDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("labelEmail")}</Label>
             <Input
               id="email"
               name="email"
@@ -82,27 +81,27 @@ export function ForgotPasswordForm() {
           </div>
           {error ? (
             <Alert variant="destructive">
-              <AlertTitle>Request failed</AlertTitle>
+              <AlertTitle>{t("forgotPasswordRequestFailed")}</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
           {message ? (
             <Alert role="status" aria-live="polite">
-              <AlertTitle>Check your email</AlertTitle>
+              <AlertTitle>{t("forgotPasswordCheckEmailTitle")}</AlertTitle>
               <AlertDescription>{message}</AlertDescription>
             </Alert>
           ) : null}
           <Button type="submit" className="w-full" disabled={pending}>
             <span className="inline-flex items-center justify-center gap-2">
               {pending ? <Spinner className="size-4" /> : null}
-              {pending ? "Sending…" : "Send reset link"}
+              {pending ? t("forgotPasswordSending") : t("forgotPasswordSend")}
             </span>
           </Button>
         </form>
       </CardContent>
       <CardFooter className="border-t pt-6">
         <AuthFooterLinks>
-          <AuthFooterLink href="/sign-in">Back to sign in</AuthFooterLink>
+          <AuthFooterLink href="/sign-in">{t("backToSignIn")}</AuthFooterLink>
         </AuthFooterLinks>
       </CardFooter>
     </Card>

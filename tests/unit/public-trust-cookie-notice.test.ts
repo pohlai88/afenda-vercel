@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest"
 import {
   declarationDocuments,
   declarationFooterLinks,
-} from "#features/legal-declarations"
+} from "#features/legal-docs"
 import {
   publicTrustIndexableRoutes,
   trustSurfaceDefinition,
-} from "#features/public-trust"
+} from "#features/legal-docs"
 
 describe("cookie notice public trust contract", () => {
   it("exposes a standalone cookie declaration at /legal-docs/cookies", () => {

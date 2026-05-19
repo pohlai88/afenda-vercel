@@ -38,8 +38,8 @@ Owns **only** what the shell needs before first render:
 ```tsx
 // Tier A — blocks; Tier B — streams
 const [adminLink, identity, t] = await Promise.all([
-  canActInOrganization(org.userId, org.user.role, org.organizationId, "admin"),
-  fetchOrgAdminIdentity(org.organizationId),
+  requireTenantAuthority(["tenant_key_admin", "tenant_support_admin"]),
+  fetchOrgAdminIdentity(org.organizationId), // #features/org-admin/server
   getTranslations("Dashboard.nav"),
 ])
 // Tier B example:

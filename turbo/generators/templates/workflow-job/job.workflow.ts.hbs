@@ -10,7 +10,7 @@
  *      double-writing state.
  *   3. **Tier classification stays in the caller** — Server Action / Route
  *      Handler enqueuing the workflow must call `requireOrgSession` (and
- *      `canActInOrganization(..., "admin")` for Tier A) before invoking it.
+ *      `requireErpPermission(...)` for Tier A) before invoking it.
  *
  * Lifecycle audit strings live in `./{{jobName}}.workflow.contract.ts`.
  *

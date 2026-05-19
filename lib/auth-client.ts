@@ -1,7 +1,7 @@
 "use client"
 
 /**
- * Browser auth client for Neon Auth (Better Auth–compatible API).
+ * Browser auth client for Neon Auth (managed Better Auth).
  *
  * Set `NEXT_PUBLIC_AUTH_URL` to the app auth proxy base, e.g.
  * `https://example.com/api/auth` (see `.env.config.example` § Neon Auth).

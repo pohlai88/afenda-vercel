@@ -212,3 +212,19 @@ export type OrgImportJobFailureSummary = {
   readonly field: string | null
   readonly createdAt: Date
 }
+
+export type OrgAdminMemberRow = {
+  id: string
+  userId: string
+  name: string | null
+  email: string
+  role: string
+}
+
+export type OrgAdminInvitationRow = {
+  id: string
+  email: string
+  role: string | null
+  status: string
+  expiresAt: Date
+}

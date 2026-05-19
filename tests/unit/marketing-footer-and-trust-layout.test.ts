@@ -7,7 +7,7 @@ import {
   declarationFooterIdentity,
   securityDisclosureLink,
   trustRouteLink,
-} from "#features/legal-declarations"
+} from "#features/legal-docs"
 import {
   landingFooterActionLinks,
   landingFooterContactRoutes,

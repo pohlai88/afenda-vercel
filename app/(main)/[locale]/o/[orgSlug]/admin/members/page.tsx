@@ -11,7 +11,7 @@ import { GovernedSurface } from "#features/governed-surface"
 import {
   fetchOrgAdminMembers,
   fetchOrgAdminPendingInvitations,
-} from "#lib/auth"
+} from "#features/org-admin/server"
 import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAdminMembersPage({

@@ -5,16 +5,14 @@ import {
   declarationDocuments,
   declarationRouteHrefs,
   isHttpSourceRef,
+  publicTrustOwnerRoutes,
   securityDisclosureLink,
+  securityTxtExpiresAt,
+  securityTxtHref,
   validateDeclarationRegistry,
   validateOfficialSourceRefs,
   type DeclarationValidationIssue,
-} from "#features/legal-declarations"
-import {
-  publicTrustOwnerRoutes,
-  securityTxtExpiresAt,
-  securityTxtHref,
-} from "#features/public-trust"
+} from "#features/legal-docs"
 import { GET as securityTxtGET } from "../app/.well-known/security.txt/route"
 import { DEFAULT_APP_LOCALE, toLocalePath } from "../lib/i18n/locales.shared"
 import { getSiteUrl } from "../lib/site"

@@ -5,7 +5,7 @@ import {
   fallbackOpenStatusSnapshot,
   normalizeOpenStatusFeed,
   normalizeOpenStatusState,
-} from "#features/public-trust"
+} from "#features/legal-docs"
 
 describe("OpenStatus public status mapping", () => {
   it("builds the public JSON feed URL from the status page URL", () => {

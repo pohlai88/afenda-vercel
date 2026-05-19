@@ -9,9 +9,11 @@ import {
 } from "react"
 import Image from "next/image"
 import type { Route } from "next"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import { useRouter } from "#i18n/navigation"
+import { askDocsPath } from "#lib/ask-docs/path.shared"
+import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { authClient } from "#lib/auth-client"
 import { ERP_UTILITY_AVATAR_PNG } from "#lib/site"
 import { cn } from "#lib/utils"
@@ -56,6 +58,7 @@ export function AppShellAccountDropdown({
   onSignOut,
 }: AppShellAccountDropdownProps) {
   const t = useTranslations("Dashboard.shell.accountMenu")
+  const locale = ensureAppLocale(useLocale())
   const router = useRouter()
   const [signOutPending, startSignOut] = useTransition()
 
@@ -90,8 +93,27 @@ export function AppShellAccountDropdown({
     subtitle?.trim() ||
     (userEmail?.trim() ? userEmail.trim() : t("defaultSubtitle"))
 
-  const securityLabel = t("securityLabel")
-  const securityDescription = t("securityDescription")
+  const menuLabels = useMemo(
+    () => ({
+      profile: t("profileLabel"),
+      profileDescription: t("profileDescription"),
+      accountSettings: t("accountSettingsLabel"),
+      accountSettingsDescription: t("accountSettingsDescription"),
+      backToWorkspace: t("backToWorkspaceLabel"),
+      backToWorkspaceDescription: t("backToWorkspaceDescription"),
+      recentActivity: t("recentActivityLabel"),
+      recentActivityDescription: t("recentActivityDescription"),
+      securityLabel: t("securityLabel"),
+      securityDescription: t("securityDescription"),
+      helpCenter: t("helpCenterLabel"),
+      helpCenterDescription: t("helpCenterDescription"),
+      privacy: t("privacyLabel"),
+      privacyDescription: t("privacyDescription"),
+      signOut: t("signOut"),
+      signOutDescription: t("signOutDescription"),
+    }),
+    [t]
+  )
 
   const groups = useMemo(
     () =>
@@ -100,22 +122,22 @@ export function AppShellAccountDropdown({
           account: hrefAccount,
           identity: hrefIdentity,
           security: hrefSecurity,
+          help: askDocsPath(locale) as Route,
         },
         workspaceHomeHref,
         signOutPending,
         runSignOut,
-        securityLabel,
-        securityDescription,
+        labels: menuLabels,
       }),
     [
       hrefAccount,
       hrefIdentity,
       hrefSecurity,
+      locale,
       workspaceHomeHref,
       runSignOut,
       signOutPending,
-      securityLabel,
-      securityDescription,
+      menuLabels,
     ]
   )
 

@@ -242,7 +242,7 @@ PRESERVE_UI: yes
 | Nexus | `/{locale}/o/{orgSlug}/nexus` | `#features/nexus` | `AppShell` @ org layout |
 | ERP apps | `/{locale}/o/{orgSlug}/apps/{module}` | `lib/features/<module>/` | `AppShell` |
 | Org admin | `/{locale}/o/{orgSlug}/admin/*` | `lib/features/org-admin/` | `AppSubLayout` |
-| Org account | `/{locale}/o/{orgSlug}/account/*` | `app/(iam)/account/` + `#lib/auth` | `AppSubLayout` |
+| Org profile (IAM) | `/{locale}/o/{orgSlug}/profile/*` | `#features/iam-profile` + `#components2/iam-profile` | `AppSubLayout` |
 | Platform admin | `/{locale}/platform/*` | `lib/features/platform-admin/` | platform layout (`AppShell` + `AppSubLayout`) |
 | Portal | `/{locale}/p/{portalSlug}/*` | feature modules via public doors | `PortalShell` |
 | Ask docs | `/{locale}/ask-docs/*` | `lib/ask-docs/`, `content/ask-docs/` | docs layout |

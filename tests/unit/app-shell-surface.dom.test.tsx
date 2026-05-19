@@ -26,7 +26,7 @@ describe("AppShellSurface", () => {
     render(
       <AppShellSurface
         breadcrumbs={[
-          { label: "Personal", href: "/account" },
+          { label: "Personal", href: "/o/acme/iam-profile" },
           { label: "Personal surface" },
         ]}
       >

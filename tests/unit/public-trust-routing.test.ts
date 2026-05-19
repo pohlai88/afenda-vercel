@@ -7,23 +7,79 @@ vi.mock("next/cache", () => ({
 import sitemap from "../../app/sitemap"
 import { GET as securityTxtGET } from "../../app/.well-known/security.txt/route"
 import {
+  buildLegalDocsStaticParams,
   declarationRouteReviewedAtByHref,
-  latestLegalDeclarationReviewedAt,
-  securityDisclosureLink,
-} from "#features/legal-declarations"
-import {
   fallbackOpenStatusSnapshot,
+  generateLegalDocsMetadata,
+  latestLegalDeclarationReviewedAt,
   publicTrustIndexableRoutes,
   publicTrustOwnerRoutes,
+  resolveLegalDocsSlug,
+  securityDisclosureLink,
   securityTxtExpiresAt,
   securityTxtHref,
   trustSurfaceDefinition,
+  trustSurfaceDefinitionBaseline,
   trustSurfaceDefinitionResolved,
-} from "#features/public-trust"
-import { DEFAULT_APP_LOCALE, toLocalePath } from "#lib/i18n/locales.shared"
+} from "#features/legal-docs"
+import { DEFAULT_APP_LOCALE, APP_LOCALES, toLocalePath } from "#lib/i18n/locales.shared"
 import { getSiteUrl } from "#lib/site"
 
 describe("public trust routing", () => {
+  it("resolves legal-docs catch-all slugs from the indexable route registry", () => {
+    expect(resolveLegalDocsSlug(["cookies"])).toBe("cookies")
+    expect(resolveLegalDocsSlug(["security", "disclosure"])).toBe(
+      "security/disclosure"
+    )
+    expect(resolveLegalDocsSlug(["trust"])).toBe("trust")
+    expect(resolveLegalDocsSlug(["status"])).toBe("status")
+    expect(resolveLegalDocsSlug(["unknown"])).toBeNull()
+    expect(resolveLegalDocsSlug([])).toBeNull()
+  })
+
+  it("builds static params for every indexable trust/legal route", () => {
+    const params = buildLegalDocsStaticParams()
+    const slugKeys = params.map(({ slug }) => slug.join("/"))
+
+    for (const route of publicTrustIndexableRoutes) {
+      const tail = route.replace("/legal-docs/", "")
+      expect(slugKeys).toContain(tail)
+    }
+
+    expect(params.length).toBe(
+      publicTrustIndexableRoutes.length * APP_LOCALES.length
+    )
+  })
+
+  it("returns metadata titles for trust and status routes", async () => {
+    const trustMeta = await generateLegalDocsMetadata({
+      params: Promise.resolve({ locale: DEFAULT_APP_LOCALE, slug: ["trust"] }),
+    })
+    const statusMeta = await generateLegalDocsMetadata({
+      params: Promise.resolve({ locale: DEFAULT_APP_LOCALE, slug: ["status"] }),
+    })
+
+    expect(trustMeta.title).toBe("Trust")
+    expect(statusMeta.title).toMatch(/Status/)
+  })
+
+  it("renders trust baseline without network enrichment", () => {
+    const baseline = trustSurfaceDefinitionBaseline()
+    const live = trustSurfaceDefinitionResolved(
+      fallbackOpenStatusSnapshot({
+        publicStatusUrl: "https://example.openstatus.dev",
+        feedUrl: "https://example.openstatus.dev/feed/json",
+        reason: "missing-config",
+      })
+    )
+
+    expect(baseline.surfaces.length).toBe(trustSurfaceDefinition.surfaces.length)
+    expect(
+      live.currentPosture.find((posture) => posture.id === "operations-posture")
+        ?.state
+    ).toBe("live")
+  })
+
   it("publishes every indexable trust/legal route in the sitemap", () => {
     const entries = sitemap()
     const paths = entries.map((entry) => new URL(entry.url).pathname)

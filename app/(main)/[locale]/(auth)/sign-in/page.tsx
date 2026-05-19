@@ -6,7 +6,7 @@ import {
   parsePostAuthPath,
   parsePrefillEmail,
   parseStepUp,
-} from "../auth-flow.shared"
+} from "#lib/auth/auth-flow.shared"
 import { SignInForm } from "#components2/auth/sign-in-form.client"
 
 export default async function SignInPage({

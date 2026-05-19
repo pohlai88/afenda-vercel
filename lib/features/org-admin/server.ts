@@ -23,6 +23,12 @@ export { listUserOrganizationsForSwitcher } from "./data/user-orgs.queries.serve
 export { getOrgAdminRailPressureCounts } from "./data/org-admin-rail-pressure.queries.server"
 export { recordOrgAdminPageVisit } from "./data/org-admin-rail-recents.server"
 export { resolveOrgAdminAuditSearchParams } from "./data/org-admin-audit-search-params.server"
+export { loadOrgAdminAuditListing } from "./data/org-admin-audit-listing.server"
+export {
+  fetchOrgAdminIdentity,
+  fetchOrgAdminMembers,
+  fetchOrgAdminPendingInvitations,
+} from "./data/org-admin-directory.server"
 export type {
   OrgAdminRecentSegment,
   OrgAdminRecentSessionContext,

@@ -8,6 +8,7 @@ import {
   auth,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
+import { neonAuthErrorMessage } from "#lib/auth/neon-auth-error.shared"
 import { requireTenantAuthority } from "#features/erp-rbac/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
 import type { requireOrgSession } from "#lib/auth"
@@ -23,19 +24,6 @@ export type OrgAdminActionState =
 
 function revalidateOrgAdminSurface() {
   revalidatePath(toLocaleOrgAdminRevalidatePattern(""), "layout")
-}
-
-function neonAuthErrorMessage(
-  err: {
-    message?: string
-    statusText?: string
-  } | null
-): string {
-  const m = err?.message?.trim()
-  if (m) return m
-  const s = err?.statusText?.trim()
-  if (s) return s
-  return "Something went wrong."
 }
 
 function invitationIdFromCreateResult(result: unknown): string | null {

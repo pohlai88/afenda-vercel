@@ -145,14 +145,17 @@ export function sanitizePathAfterOrgSlug(tailFromO: string): AppPath {
   if (parts.length >= 1 && parts[0] === "nexus") {
     return "/nexus" as AppPath
   }
-  if (parts.length >= 1 && parts[0] === "account") {
+  if (parts.length >= 1 && parts[0] === "iam-profile") {
     if (parts.length === 1) {
-      return "/account" as AppPath
+      return "/iam-profile" as AppPath
     }
-    if (parts.length === 2 && (parts[1] === "identity" || parts[1] === "security")) {
-      return `/account/${parts[1]}` as AppPath
+    if (
+      parts.length === 2 &&
+      (parts[1] === "identity" || parts[1] === "security")
+    ) {
+      return `/iam-profile/${parts[1]}` as AppPath
     }
-    return "/account" as AppPath
+    return "/iam-profile" as AppPath
   }
   if (parts.length >= 1 && parts[0] === "operator") {
     return parts.length === 1

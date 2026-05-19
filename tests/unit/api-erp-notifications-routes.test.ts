@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const {
   acknowledgeOrgNotificationMock,
-  canActInOrganizationMock,
   canUseErpPermissionMock,
   closeOrgNotificationMock,
   createOrgNotificationMock,
@@ -12,7 +11,6 @@ const {
   writeIamAuditEventFromHeadersMock,
 } = vi.hoisted(() => ({
   acknowledgeOrgNotificationMock: vi.fn(),
-  canActInOrganizationMock: vi.fn(),
   canUseErpPermissionMock: vi.fn(),
   closeOrgNotificationMock: vi.fn(),
   createOrgNotificationMock: vi.fn(),
@@ -24,7 +22,6 @@ const {
 
 vi.mock("#lib/auth", () => ({
   getOrgSessionFromRequest: getOrgSessionFromRequestMock,
-  canActInOrganization: canActInOrganizationMock,
   writeIamAuditEventFromHeaders: writeIamAuditEventFromHeadersMock,
 }))
 

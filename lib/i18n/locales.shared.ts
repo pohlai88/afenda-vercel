@@ -102,6 +102,17 @@ export function toLocaleOrgAdminRevalidatePattern(adminTail: string): AppPath {
   return `/[locale]/o/[orgSlug]/admin${tail}` as AppPath
 }
 
+/** `revalidatePath` for org-scoped profile routes (`/o/[orgSlug]/iam-profile/...`). */
+export function toLocaleOrgIamProfileRevalidatePattern(profileTail = ""): AppPath {
+  const tail =
+    profileTail === "" || profileTail === "/"
+      ? ""
+      : profileTail.startsWith("/")
+        ? profileTail
+        : `/${profileTail}`
+  return `/[locale]/o/[orgSlug]/iam-profile${tail}` as AppPath
+}
+
 /** `revalidatePath` for Afenda platform console (`/[locale]/platform/...`). */
 export function toLocalePlatformRevalidatePattern(platformTail: string): AppPath {
   const tail =

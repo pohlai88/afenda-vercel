@@ -94,7 +94,7 @@ describe("formatOrganizationIamAuditCsvDataRow", () => {
       actorEmail: "a@b.co",
       resourceType: "invitation",
       resourceId: "inv-1",
-      path: "/account",
+      path: "/o/acme/iam-profile",
       metadata: null,
       ipAddress: "127.0.0.1",
       userAgent: "Mozilla",

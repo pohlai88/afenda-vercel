@@ -19,7 +19,7 @@ describe("resolvePostAuthCallbackUrl", () => {
 
   it("rejects paths without locale prefix", () => {
     expect(resolvePostAuthCallbackUrl("/dashboard")).toBe(defaultFallback)
-    expect(resolvePostAuthCallbackUrl("/account/security")).toBe(
+    expect(resolvePostAuthCallbackUrl("/o/acme/iam-profile/security")).toBe(
       defaultFallback
     )
   })
@@ -30,14 +30,14 @@ describe("resolvePostAuthCallbackUrl", () => {
     ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/o"))
     expect(
       resolvePostAuthCallbackUrl(
-        toLocalePath(DEFAULT_APP_LOCALE, "/account/security")
+        toLocalePath(DEFAULT_APP_LOCALE, "/o/acme/iam-profile/security")
       )
-    ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/account/security"))
+    ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/o/acme/iam-profile/security"))
     expect(
       resolvePostAuthCallbackUrl(
-        toLocalePath(DEFAULT_APP_LOCALE, "/account/orbit")
+        toLocalePath(DEFAULT_APP_LOCALE, "/o/acme/apps/orbit")
       )
-    ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/account/orbit"))
+    ).toBe(toLocalePath(DEFAULT_APP_LOCALE, "/o/acme/apps/orbit"))
     expect(
       resolvePostAuthCallbackUrl(
         toLocalePath(DEFAULT_APP_LOCALE, "/p/acme-employee/employee")

@@ -1,11 +1,11 @@
 import { cacheLife } from "next/cache"
 
-import { securityDisclosureLink } from "#features/legal-declarations/data/footer.shared"
 import {
   publicTrustOwnerRoutes,
+  securityDisclosureLink,
   securityTxtExpiresAt,
   securityTxtHref,
-} from "#features/public-trust/data/trust-surface.fixture.shared"
+} from "#features/legal-docs"
 import { DEFAULT_APP_LOCALE, toLocalePath } from "#lib/i18n/locales.shared"
 import { getSiteUrl } from "#lib/site"
 

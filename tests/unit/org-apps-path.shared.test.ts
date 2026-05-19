@@ -38,9 +38,16 @@ describe("sanitizePathAfterOrgSlug", () => {
     )
     expect(sanitizePathAfterOrgSlug("/apps/onething")).toBe("/apps")
     expect(sanitizePathAfterOrgSlug("/apps/../contacts")).toBe("/nexus")
-    expect(sanitizePathAfterOrgSlug("/account/security")).toBe(
-      "/account/security"
+    expect(sanitizePathAfterOrgSlug("/iam-profile")).toBe("/iam-profile")
+    expect(sanitizePathAfterOrgSlug("/iam-profile/identity")).toBe(
+      "/iam-profile/identity"
     )
+    expect(sanitizePathAfterOrgSlug("/iam-profile/security")).toBe(
+      "/iam-profile/security"
+    )
+    expect(sanitizePathAfterOrgSlug("/iam-profile/evil")).toBe("/iam-profile")
+    expect(sanitizePathAfterOrgSlug("/account")).toBe("/nexus")
+    expect(sanitizePathAfterOrgSlug("/account/identity")).toBe("/nexus")
     expect(sanitizePathAfterOrgSlug("/apps/contacts/extra")).toBe("/apps")
   })
 

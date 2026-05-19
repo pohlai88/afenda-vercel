@@ -4,11 +4,11 @@ import {
   dataProcessingAddendumLink,
   declarationDocuments,
   declarationFooterLinks,
-} from "#features/legal-declarations"
+} from "#features/legal-docs"
 import {
   publicTrustIndexableRoutes,
   trustSurfaceDefinition,
-} from "#features/public-trust"
+} from "#features/legal-docs"
 
 describe("data processing addendum public trust contract", () => {
   it("exposes a standalone DPA declaration at /legal-docs/data-processing-addendum", () => {

@@ -25,19 +25,6 @@ describe("orbit surface contract", () => {
     }
   })
 
-  it("aliases legacy /account/orbit URLs to org apps Orbit paths", () => {
-    const content = readRepoFile(
-      "lib",
-      "auth",
-      "legacy-authenticated-route-alias.server.ts"
-    )
-
-    expect(content).toContain('pathname === "/account/orbit"')
-    expect(content).toContain("organizationOrbitPath(orgSlug)")
-    expect(content).toContain("^\\/account\\/orbit\\/")
-    expect(content).not.toContain("/dashboard/orbit")
-  })
-
   it("mounts an Orbit command layer inside the org route segment", () => {
     const content = readRepoFile(
       "app",

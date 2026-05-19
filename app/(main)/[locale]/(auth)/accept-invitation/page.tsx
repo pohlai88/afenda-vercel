@@ -1,11 +1,26 @@
-import type { Route } from "next"
-
-import { AuthPageFrame } from "#components2/auth/auth-page-frame"
-import { AuthResult } from "#components2/auth/auth-result"
-import { getAuthShellSignedInSessionOrNull } from "#lib/auth"
-import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+import type { Metadata, Route } from "next"
+import { getTranslations } from "next-intl/server"
 
 import { AcceptInvitationClient } from "#components2/auth/accept-invitation-client"
+import { AuthPageFrame } from "#components2/auth/auth-page-frame"
+import { AuthResult } from "#components2/auth/auth-result"
+import { localeAwarePathToClientRoute } from "#lib/auth/auth-flow.shared"
+import { getAuthShellSignedInSessionOrNull } from "#lib/auth"
+import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+import { SITE_NAME } from "#lib/site"
+
+export async function generateMetadata({
+  params,
+}: Pick<PageProps<"/[locale]/accept-invitation">, "params">): Promise<Metadata> {
+  const { locale: localeRaw } = await params
+  const locale = ensureAppLocale(localeRaw)
+  const t = await getTranslations({ locale, namespace: "AcceptInvitation" })
+
+  return {
+    title: t("pageMetadataTitle"),
+    openGraph: { title: `${t("pageMetadataTitle")} | ${SITE_NAME}` },
+  }
+}
 
 export default async function AcceptInvitationPage({
   params,
@@ -16,15 +31,17 @@ export default async function AcceptInvitationPage({
   const sp = await searchParams
   const raw = sp.invitationId
   const invitationId = Array.isArray(raw) ? raw[0] : raw
+  const t = await getTranslations({ locale, namespace: "AcceptInvitation" })
+
   if (!invitationId?.trim()) {
     return (
       <AuthPageFrame>
         <AuthResult
           variant="warning"
-          title="Missing invitation"
-          description="Open the link from your invitation email, or ask your administrator to send a new invite."
+          title={t("missingId.title")}
+          description={t("missingId.description")}
           primaryAction={{
-            label: "Back to sign in",
+            label: t("missingId.primary"),
             href: "/sign-in" as Route,
           }}
         />
@@ -41,14 +58,14 @@ export default async function AcceptInvitationPage({
       <AuthPageFrame>
         <AuthResult
           variant="neutral"
-          title="Sign in to review invitation"
-          description="Use the invited account first. After sign-in, you will return here to accept or reject the organization invitation."
+          title={t("signInRequired.title")}
+          description={t("signInRequired.description")}
           primaryAction={{
-            label: "Sign in",
-            href: signInHref as Route,
+            label: t("signInRequired.primary"),
+            href: localeAwarePathToClientRoute(signInHref) as Route,
           }}
           secondaryAction={{
-            label: "Go home",
+            label: t("signInRequired.secondary"),
             href: "/" as Route,
           }}
         />
@@ -56,5 +73,9 @@ export default async function AcceptInvitationPage({
     )
   }
 
-  return <AcceptInvitationClient invitationId={invitationId.trim()} />
+  return (
+    <AuthPageFrame>
+      <AcceptInvitationClient invitationId={invitationId.trim()} />
+    </AuthPageFrame>
+  )
 }

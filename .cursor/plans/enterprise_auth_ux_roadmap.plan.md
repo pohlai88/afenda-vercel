@@ -124,7 +124,7 @@ Use **`loading.tsx`** and narrow **client** interstitials only where `loading.ts
 
 ## Destructive security confirmation UX (Tier 2)
 
-Revoke flows must show **consequences + device context** before destructive actions ([`app/account/security/`](app/account/security/)):
+Revoke flows must show **consequences + device context** before destructive actions ([`app/profile/security/`](app/profile/security/)):
 
 - **Revoke session:** confirm dialog with browser/OS hint, last active, location (if available), IP mask policy per privacy.
 - **Revoke all:** explicit “signs you out everywhere except this device” + primary confirm.

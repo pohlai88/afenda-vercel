@@ -1,6 +1,7 @@
 import {
   toLocaleOrgAdminRevalidatePattern,
   toLocaleOrgAppsRevalidatePattern,
+  toLocaleOrgIamProfileRevalidatePattern,
   toLocaleRoutePattern,
 } from "#lib/i18n/locales.shared"
 import type { AppPath } from "#lib/i18n/locales.shared"
@@ -51,7 +52,10 @@ import type { AppPath } from "#lib/i18n/locales.shared"
  * Choice of strings mirrors the URL segment / module slug so log drains
  * and audit metadata stay grep-able:
  *
- *   - `account`         → `/{locale}/account/*` (IAM personal surface)
+ *   - `account`         → `/{locale}/o/{orgSlug}/iam-profile/*` (IAM personal surface).
+ *                       The DB column literal stays `account` so existing rows
+ *                       and Drizzle migrations remain stable across the IAM
+ *                       profile URL rename (ADR-0029).
  *   - `org-admin`       → `/{locale}/o/{orgSlug}/admin/*`
  *   - `hrm`             → `/{locale}/o/{orgSlug}/apps/hrm/*`
  *   - `platform-admin`  → `/{locale}/platform/*`
@@ -196,7 +200,7 @@ export type RailMemoryResourceType =
  * makes `tsc` flag the omission at compile time.
  */
 export const WORKBENCH_REVALIDATE_PATTERNS = {
-  account: toLocaleRoutePattern("/account"),
+  account: toLocaleOrgIamProfileRevalidatePattern(""),
   "org-admin": toLocaleOrgAdminRevalidatePattern(""),
   hrm: toLocaleOrgAppsRevalidatePattern("/hrm"),
   "platform-admin": toLocaleRoutePattern("/platform"),

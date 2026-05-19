@@ -30,3 +30,26 @@ process.env.NEON_AUTH_COOKIE_SECRET ??=
 
 /** Dummy URL so importing `#lib/db` does not throw in unit tests. */
 process.env.DATABASE_URL ??= "postgresql://vitest:vitest@127.0.0.1:5432/vitest"
+
+/**
+ * jsdom does not implement `window.matchMedia` — shadcn `useIsMobile` and any
+ * other media-query consumer must work in `*.dom.test.tsx` files without each
+ * test re-declaring the polyfill.
+ *
+ * @see https://github.com/jsdom/jsdom/issues/3522
+ */
+if (typeof globalThis.window !== "undefined" && !globalThis.window.matchMedia) {
+  Object.defineProperty(globalThis.window, "matchMedia", {
+    writable: true,
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  })
+}

@@ -11,7 +11,7 @@ import {
 } from "#features/marketplace/server"
 import { resolveOperationalContext } from "#features/operational-scope"
 import {
-  organizationAccountPath,
+  organizationIamProfilePath,
   organizationAdminPath,
   organizationAppsPath,
 } from "#lib/org-apps-module-paths"
@@ -67,9 +67,9 @@ export async function buildAppShellOrgUtilityBarSlots({
   })
 
   const accountHrefs = {
-    account: organizationAccountPath(orgSlug) as Route,
-    identity: organizationAccountPath(orgSlug, "identity") as Route,
-    security: organizationAccountPath(orgSlug, "security") as Route,
+    account: organizationIamProfilePath(orgSlug) as Route,
+    identity: organizationIamProfilePath(orgSlug, "identity") as Route,
+    security: organizationIamProfilePath(orgSlug, "security") as Route,
   }
 
   return {

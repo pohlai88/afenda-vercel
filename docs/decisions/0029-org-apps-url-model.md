@@ -12,7 +12,7 @@ Org workbench ERP modules lived under `/o/{orgSlug}/dashboard/{module}`, which i
 
 1. **Canonical module prefix:** `/o/{orgSlug}/apps/{module}` (e.g. `/apps/hrm`, `/apps/contacts`).
 2. **Nexus** remains `/o/{orgSlug}/nexus` — not under `apps/`.
-3. **Tenant control planes** under the org slug: `/admin`, `/account` only. Afenda **platform console** is `/platform` at locale root (ADR-0031).
+3. **Tenant control planes** under the org slug: `/admin`, `/profile` (member IAM). Afenda **platform console** is `/platform` at locale root (ADR-0031). Legacy `/account` URLs 308 to `/profile`.
 4. **Post-login chrome:** one `AppShell` mount at org layout; no `apps/layout.tsx` utility bar; `AppSubLayout` only on modules that need a secondary rail (HRM).
 5. **Cutover:** `next.config.ts` permanent wildcard redirect `/:locale/o/:orgSlug/dashboard/:path*` → `/:locale/o/:orgSlug/apps/:path*` (308). No dashboard→apps logic in `proxy.ts`.
 6. **Cache Components:** no new segment `dynamic` / `revalidate` exports on app routes; use `toLocaleOrgAppsRevalidatePattern` + `updateTag` in Server Actions (ADR-0023).

@@ -71,7 +71,8 @@ function truncateMetadata(raw: string | null, max = 200): string | null {
 
 /**
  * Organization-scoped IAM events with action prefix `org.*` (see AGENTS.md).
- * Read path for org admins only — call after `canActInOrganization(..., "admin")`.
+ * Read path for org admins only — authorize via tenant governance / ERP RBAC
+ * before calling (e.g. `requireTenantAuthority` on org-admin routes).
  */
 export async function listOrganizationIamAuditEvents(input: {
   organizationId: string

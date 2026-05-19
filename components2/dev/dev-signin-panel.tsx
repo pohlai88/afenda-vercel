@@ -9,7 +9,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react"
 import { useDevSignInPanelDrag } from "./dev-signin-panel-drag"
 
 import { usePathname } from "#i18n/navigation"
-import { neonAuthClient } from "#lib/auth-client-neon-compat"
+import { neonAuthClient } from "#lib/auth/neon-auth-client-runtime.shared"
 import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { employeePortalPath } from "#lib/portal"
 import {

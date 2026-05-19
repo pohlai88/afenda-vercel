@@ -8,8 +8,8 @@ import {
   declarationStalePhrases,
   formatDeclarationReviewedLabel,
   latestLegalDeclarationReviewedAt,
-} from "#features/legal-declarations"
-import { trustSurfaceDefinition } from "#features/public-trust"
+} from "#features/legal-docs"
+import { trustSurfaceDefinition } from "#features/legal-docs"
 
 describe("legal declarations contract", () => {
   it("gives every declaration reviewed metadata and source refs", () => {

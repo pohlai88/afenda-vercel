@@ -12,7 +12,6 @@ const libRoot = join(repoRoot, "lib")
 
 const LIB_ROOT_ALLOWLIST = [
   "auth-client.ts",
-  "auth-client-neon-compat.ts",
   "org-apps-module-paths.ts",
   "design-system.ts",
   "logger.server.ts",

@@ -2,7 +2,7 @@
 
 **Stack:** Next.js 16 · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui · Neon Postgres · Drizzle ORM
 
-**Read before every task:** §4 (enforcement gates), §5 (ERP + routing), §6 (directory contract — **§6.1 `lib/` root allowlist**, §6.2 subtrees, §6.3 anti-drift).
+**Read before every task:** **PRIORITY #1** (Drizzle) · **PRIORITY #2** (IDE three-layer drift) · §4 (enforcement gates) · §5 (ERP + routing) · §6 (directory contract — **§6.1 `lib/` root allowlist**, §6.2 subtrees, §6.3 anti-drift).
 
 ---
 
@@ -42,6 +42,59 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations) · [ADR-0032](docs/dec
 
 ---
 
+## PRIORITY #2 — IDE anti-drift: three-layer surfaces (agents MUST NOT drift)
+
+**Canonical decision:** [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift.md) · **Rule:** `.cursor/rules/legal-docs-directory.mdc` (legal-docs); parallel rules for auth, IAM profile, org-admin, portal, …
+
+```txt
+WARNING — IDE / CURSOR / AGENT:
+
+You are the #1 source of architecture drift in this repo.
+Humans find code by PRODUCT NAME on disk. You invent parallel folders and call it "refactor."
+
+STOP before creating or moving files:
+
+  Layer 1 — app/                    → thin routes + re-exports ONLY
+  Layer 2 — lib/features/<name>/    → truth: routing, registry, cache, dispatch, actions
+  Layer 3 — components2/<name>/     → paint: shells, cards, client islands ONLY
+
+ONE product name across all three layers (example: legal-docs — NOT public-trust + legal-declarations + marketing).
+
+FORBIDDEN (instant failure — fix forward, never shim):
+  • Business logic, fetch, slug dispatch, or generateMetadata in app/
+  • Presentation shells for a product in the wrong components2/ folder (e.g. legal-docs UI in marketing/)
+  • Sibling feature modules for the same URL tree (public-trust, legal-declarations — RETIRED)
+  • _SEAL.md at lib/features/<module>/ root (check-agent-contract rejects it)
+  • Recreating repo-root components/ (hard-deleted)
+
+WHEN EDITING A SURFACE — read its *-directory.mdc rule FIRST:
+  legal-docs → .cursor/rules/legal-docs-directory.mdc
+  auth       → .cursor/rules/iam-directory.mdc + app/(auth)/_SEAL.md
+  iam-profile→ lib/features/iam-profile/ + components2/iam-profile/
+
+If you cannot state which layer owns a file in one sentence, STOP and read ADR-0035.
+```
+
+**Legal-docs doors (locked):**
+
+| Layer | Path | Import |
+| --- | --- | --- |
+| 1 | `app/(main)/[locale]/legal-docs/` | re-export `#features/legal-docs` only |
+| 2 | `lib/features/legal-docs/` | `#features/legal-docs` |
+| 3 | `components2/legal-docs/` | `#components2/legal-docs` |
+
+**Verify after any legal-docs / three-layer touch:**
+
+```bash
+pnpm lint:path -- lib/features/legal-docs components2/legal-docs
+pnpm test:fast -- tests/unit/legal-docs-surface-contract.test.ts
+node scripts/check-agent-contract.mjs   # no forbidden lib/features/legal-docs/_SEAL.md
+```
+
+Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift.md) · [§6.3 anti-drift](#63-anti-drift-doctrine).
+
+---
+
 ## Non-negotiable boundaries
 
 | Boundary             | Rule                                                                                                                                                                                                                                                                                                |
@@ -61,6 +114,7 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations) · [ADR-0032](docs/dec
 | Design tokens        | `@theme inline var(--)` must resolve to `:root`/`.dark` definitions                                                                                                                                                                                                                                 |
 | Change governance    | New architectural category → update **this file first**, then implement                                                                                                                                                                                                                             |
 | Schema migrations    | **PRIORITY #1:** Agent runs `pnpm db:generate` → `lint:drizzle-journal` → `pnpm db:migrate:local`. Human **never** runs generate/migrate/reset. No `db:push*`, no hand-edited `drizzle/`, no ledger destruction. See [PRIORITY #1](#priority-1--drizzle-migrations-agents-own-local-humans-do-not). |
+| IDE three-layer drift | **PRIORITY #2:** One product name across `app/` + `lib/features/<name>/` + `components2/<name>/`. No parallel modules, no app-layer fetch/dispatch, no `_SEAL.md` at `lib/features/*` root. See [PRIORITY #2](#priority-2--ide-anti-drift-three-layer-surfaces-agents-must-not-drift) · [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift.md). |
 | Deleted `components/` | **Entire repo-root `components/` directory is hard-deleted** — never mkdir or restore any file under it; fix forward in `components2/` (`.cursor/rules/never-restore-deleted-components.mdc`, always on) |
 | `app/` page thickness | `page.tsx` ≤ params + guards + single feature RSC export; no domain fetch graphs in `app/` |
 | Cache Components | `cacheComponents: true` in `next.config.ts` (ADR-0023 Phase 2). No segment `dynamic`/`revalidate`/`runtime` exports under `app/`. Ask-docs uses `'use cache'` + `cacheLife`. Verify with `pnpm build -- --debug-prerender`. |
@@ -84,6 +138,8 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations) · [ADR-0032](docs/dec
 | Lynx / Knowledge               | `lib/features/lynx/` · `#features/lynx/client` for client islands · rule `.cursor/rules/lynx-knowledge.mdc`                                                                                                                                                                                       |
 | Org Messenger (Ably)           | `lib/features/messenger/` · `#features/messenger/client` (panel) · `#features/messenger/server` (token mint) · `ABLY_API_KEY` in `.env.config` → `pnpm env:sync` · workbench rail `right.messenger` (chat) + `right.coordination` (operational console) · `POST /api/erp/messenger/auth`          |
 | Org admin                      | `lib/features/org-admin/` · `ORG_ADMIN_CAPABILITIES` registry · `/o/{orgSlug}/admin/*` · rule `.cursor/rules/org-admin-directory.mdc`                                                                                                                                                             |
+| Member profile (IAM)           | `lib/features/iam-profile/` · `#components2/iam-profile` · `/o/{orgSlug}/profile/*` (legacy `/account` → 308 + session redirect) · `organizationIamProfilePath` · `IamProfileSurface` i18n                                                                                                          |
+| Public legal-docs / trust      | **Layer 1** `app/[locale]/legal-docs/` · **Layer 2** `#features/legal-docs` · **Layer 3** `#components2/legal-docs` · rule `.cursor/rules/legal-docs-directory.mdc` · never recreate `public-trust` / `legal-declarations` |
 | Portals                        | `app/[locale]/p/[portalSlug]/` · `lib/portal/` · `components2/portal-shell/` · rule `.cursor/rules/portal-directory.mdc`                                                                                                                                                                          |
 | Platform admin                 | `lib/features/platform-admin/` · `PLATFORM_ADMIN_CAPABILITIES` · `/platform/*` (legacy `/operator/*` → 308)                                                                                                                                                                                       |
 | Operational primitives         | `#lib/erp/temporal-spine.shared` · `#lib/erp/crud-sap.shared` · `#lib/erp/audit-7w1h.{shared,server}`                                                                                                                                                                                             |
@@ -130,7 +186,7 @@ Full rules: [§3 Drizzle migrations](#drizzle-migrations) · [ADR-0032](docs/dec
 
 - `i18n-directory.mdc` · `iam-directory.mdc` · `shell-directory.mdc`
 - `ask-docs-directory.mdc` · `design-system.mdc` · `erp-primitives.mdc` · `planner-directory.mdc`
-- `lynx-knowledge.mdc` · `public-lynx.mdc` · `simulation-directory.mdc` · `org-admin-directory.mdc`
+- `lynx-knowledge.mdc` · `public-lynx.mdc` · `simulation-directory.mdc` · `org-admin-directory.mdc` · `legal-docs-directory.mdc`
 - `drizzle-migration-ledger.mdc` · `app-router-contracts.mdc` · `testing.mdc`
 - `portal-directory.mdc` · `dev-directory.mdc` · `components2-directory.mdc` · `client-state-management.mdc` · `module-client-server-barrels.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
 
@@ -440,7 +496,7 @@ turbo/generators/config.ts
 - **Browser door:** `#lib/auth-client` ([`lib/auth-client.ts`](lib/auth-client.ts)) — Neon Auth client only; never import `#lib/auth` from Client Components.
 - **Retired:** `#lib/tenant` and `lib/tenant.ts` — use `#lib/auth` only (`lib/auth/tenant-session.server.ts`).
 - **HTTP:** `/api/auth/[...path]`. Neon webhooks: `app/api/integrations/neon-auth-webhooks/`.
-- **Session guards** (use in layouts): `requireSignedInSession()` for `/console`/`/account`; `requireOrgSession()` + `getOrgTenantContext()` for ERP; `requireGlobalAdminSession()` for `/platform`.
+- **Session guards** (use in layouts): `requireSignedInSession()` for `/console` and legacy `/account` (redirects to org profile); `requireOrgSession()` + `getOrgTenantContext()` for ERP; `requireGlobalAdminSession()` for `/platform`.
 - **IDOR:** `organizationId` is authoritative **only** from `requireOrgSession` / `getOrgTenantContext` / `getOrgSessionFromRequest` — never trust it from `FormData`, JSON, or query strings.
 - **Step-up:** `requireRecentAuthStepUp` with `disableCookieCache: true` → `AUTH_STATUS.SESSION_EXPIRED` or `AUTH_STATUS.STEP_UP_REQUIRED`.
 - **Invites:** `ORG_INVITE_MAX_PER_HOUR` (default 30); Upstash Redis ratelimit when env set, otherwise `iam_audit_event` rolling counts.
@@ -497,7 +553,7 @@ Nexus owns the OS.  Surfaces execute work.  Materials are governed.
 
 - Import **`AppShell`** / **`AppSubLayout`** from **`#app-shell`**; client islands from **`#app-shell/client`**.
 - Org/console layouts compose **`utilityBar`** via `buildAppShellOrgUtilityBarSlots` / `buildAppShellConsoleUtilityBarSlots` (server-only composers under `components2/app-shell/compose/`).
-- Nested rail surfaces (org admin, HRM, account, operator) use **`AppSubLayout`** + **`AppShellPrimaryLeftRail*`** inside the parent org `AppShell`.
+- Nested rail surfaces (org admin, HRM, member profile, operator) use **`AppSubLayout`** + **`AppShellPrimaryLeftRail*`** inside the parent org `AppShell`.
 - Rail slot kernel: `appshell-primary-left-rail.schema.ts`. Builders are pure mappers. Cross-cutting structural changes → `ts-morph` codemod under `scripts/refactors/`.
 - Portal chrome is separate: `/p/{portalSlug}` uses `PortalShell` from `components2/portal-shell/`, never `AppShell`.
 
@@ -732,7 +788,6 @@ Only these files may exist directly under `lib/` (`lib/*.ts` / `lib/*.tsx`). **N
 | File | Import door | Layer |
 |------|-------------|-------|
 | `auth-client.ts` | `#lib/auth-client` | Client (`"use client"`) — browser IAM |
-| `auth-client-neon-compat.ts` | `#lib/auth-client-neon-compat` | Client — Neon Auth typings extension |
 | `org-apps-module-paths.ts` | `#lib/org-apps-module-paths` | Shared — client-safe ERP app path builders |
 | `design-system.ts` | `#lib/design-system` | Shared — token/Zod contract |
 | `logger.server.ts` | `#lib/logger.server` | Server (Node) — structured logs |
@@ -996,7 +1051,7 @@ app/api/chat/*           ← public docs AI chat ("Public Lynx"); see .cursor/ru
 app/
   [locale]/
     (auth)/**     ← sign-in, sign-up, verify-email, forgot/reset password, accept-invitation
-    (iam)/**      ← account, security
+    account/[[...path]]/  ← legacy redirect to org profile
     console/      ← post-login loading bay
     operator/     ← platform admin surface
     p/[portalSlug]/ ← org-owned portal boundary (PortalShell; no AppShell)
@@ -1004,8 +1059,9 @@ app/
       layout.tsx  ← AppShell mounts here
       page.tsx    ← redirect to nexus
       nexus/
+      profile/    ← member IAM (identity, security)
       admin/      ← org admin workbench
-      dashboard/
+      apps/
         contacts/ · hrm/ · orbit/ · lynx/ · …
   api/auth/ · cron/ · upload/ · webhooks/ · integrations/ · erp/<module>/
 
@@ -1013,7 +1069,7 @@ components2/
   portal-shell/   ← portal chrome only
 
 lib/
-  auth-client.ts · auth-client-neon-compat.ts · org-apps-module-paths.ts
+  auth-client.ts · org-apps-module-paths.ts
   design-system.ts · logger.server.ts · session-cache.ts · site.ts · utils.ts  ← §6.1 allowlist only
   auth/           ← IAM control plane (index.ts = public door)
   db/             ← schema.ts + index.ts

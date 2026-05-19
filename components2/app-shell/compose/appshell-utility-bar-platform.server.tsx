@@ -41,11 +41,9 @@ export async function buildAppShellPlatformUtilityBarSlots({
       <AppShellUtilityBarRight
         account={{
           userEmail,
-          hrefs: {
-            account: toLocalePath(locale, "/account") as Route,
-            identity: toLocalePath(locale, "/account/identity") as Route,
-            security: toLocalePath(locale, "/account/security") as Route,
-          },
+          // No org-scoped IAM profile from platform admin — Profile / Account / Security
+          // rows are omitted (the menu still surfaces sign-out + workspace return).
+          hrefs: {},
           workspaceHomeHref: toLocalePath(locale, platformPath()) as Route,
         }}
       />

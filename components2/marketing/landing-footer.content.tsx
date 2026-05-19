@@ -6,7 +6,7 @@ import {
   securityDisclosureLink,
   subprocessorsLink,
   trustRouteLink,
-} from "#features/legal-declarations"
+} from "#features/legal-docs"
 
 export type LandingFooterLink = {
   readonly label: string

@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import { RouteErrorDebugPanel } from "#components2/dev/route-error-debug-panel"
 import {
   RouteErrorActions,
@@ -20,6 +22,7 @@ import {
  * Falls back to a clean recovery surface when an auth form/page errors out.
  */
 export default function AuthError(props: NextAppErrorPageProps) {
+  const t = useTranslations("AuthShell")
   const { error } = props
   const { retryAction, resetAction } = resolveErrorBoundaryRetryCallbacks(props)
   const segment = "auth"
@@ -27,21 +30,20 @@ export default function AuthError(props: NextAppErrorPageProps) {
 
   return (
     <RouteErrorShell variant="auth">
-      <h1 className="text-2xl font-semibold text-foreground">Sign-in error</h1>
-      <p className="text-sm text-muted-foreground">
-        Something went wrong while loading this page. Try again, or return to
-        sign in.
-      </p>
+      <h1 className="text-2xl font-semibold text-foreground">
+        {t("errorTitle")}
+      </h1>
+      <p className="text-sm text-muted-foreground">{t("errorDescription")}</p>
       <RouteErrorDigest digest={error.digest} />
       <RouteErrorActions>
         <RouteErrorRetryButton
           retryAction={retryAction}
           resetAction={resetAction}
         >
-          Try again
+          {t("retry")}
         </RouteErrorRetryButton>
         <Button variant="outline" asChild>
-          <Link href="/sign-in">Back to sign in</Link>
+          <Link href="/sign-in">{t("backToSignIn")}</Link>
         </Button>
       </RouteErrorActions>
       <RouteErrorDebugPanel segment={segment} error={error} />

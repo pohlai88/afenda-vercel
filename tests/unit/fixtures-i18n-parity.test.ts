@@ -57,6 +57,20 @@ describe("fixtures ↔ messages/en.json", () => {
   it("AUTH_PUBLIC_SHELL_COPY Auth-derived keys match Auth.*", () => {
     expect(AUTH_PUBLIC_SHELL_COPY.signInTabSignUp).toBe(en.Auth.tabSignUp)
     expect(AUTH_PUBLIC_SHELL_COPY.signUpNameLabel).toBe(en.Auth.labelName)
+    expect(AUTH_PUBLIC_SHELL_COPY.forgotPasswordTitle).toBe(en.Auth.forgotPassword)
+    expect(AUTH_PUBLIC_SHELL_COPY.forgotPasswordSend).toBe(en.Auth.forgotPasswordSend)
+    expect(AUTH_PUBLIC_SHELL_COPY.forgotPasswordBackToSignIn).toBe(
+      en.Auth.backToSignIn
+    )
+    expect(AUTH_PUBLIC_SHELL_COPY.resetPasswordTitle).toBe(
+      en.Auth.titleResetPassword
+    )
+    expect(AUTH_PUBLIC_SHELL_COPY.resetPasswordSubmit).toBe(
+      en.Auth.resetPasswordSubmit
+    )
+    expect(AUTH_PUBLIC_SHELL_COPY.resetMissingTokenAlert).toBe(
+      en.Auth.resetMissingToken
+    )
   })
 
   it("SIGN_UP_PAGE_COPY matches Auth.*", () => {
@@ -87,22 +101,24 @@ describe("fixtures ↔ repo sources (substring scan)", () => {
     expect(ORG_AUDIT_CSV_HEADER_PROVENANCE_SNIPPET).toBe(tail)
   })
 
-  it("AUTH_PUBLIC_SHELL_COPY appears in auth route forms", () => {
+  it("AUTH_PUBLIC_SHELL_COPY auth client forms use i18n keys", () => {
     const forgot = readRepoFile(
-      "app/(main)/[locale]/(auth)/forgot-password/forgot-password-form.tsx"
+      "components2/auth/forgot-password-form.client.tsx"
     )
     const reset = readRepoFile(
-      "app/(main)/[locale]/(auth)/reset-password/reset-password-form.tsx"
+      "components2/auth/reset-password-form.client.tsx"
     )
     const verify = readRepoFile(
-      "app/(main)/[locale]/(auth)/verify-email/verify-email-form.tsx"
+      "components2/auth/verify-email-form.client.tsx"
     )
-    expect(forgot).toContain(AUTH_PUBLIC_SHELL_COPY.forgotPasswordTitle)
-    expect(forgot).toContain(AUTH_PUBLIC_SHELL_COPY.forgotPasswordSend)
-    expect(forgot).toContain(AUTH_PUBLIC_SHELL_COPY.forgotPasswordBackToSignIn)
-    expect(reset).toContain(AUTH_PUBLIC_SHELL_COPY.resetPasswordTitle)
-    expect(reset).toContain(AUTH_PUBLIC_SHELL_COPY.resetPasswordSubmit)
-    expect(reset).toContain(AUTH_PUBLIC_SHELL_COPY.resetMissingTokenAlert)
+    expect(forgot).toContain('useTranslations("Auth")')
+    expect(forgot).toContain('t("forgotPassword")')
+    expect(forgot).toContain('t("forgotPasswordSend")')
+    expect(forgot).toContain('t("backToSignIn")')
+    expect(reset).toContain('useTranslations("Auth")')
+    expect(reset).toContain('t("titleResetPassword")')
+    expect(reset).toContain('t("resetPasswordSubmit")')
+    expect(reset).toContain('t("resetMissingToken")')
     expect(verify).toContain('useTranslations("VerifyEmail")')
   })
 

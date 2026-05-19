@@ -3,8 +3,9 @@
  * consistency work.
  *
  * Rules enforced:
- *  1. Every auth page/form component must import AuthPageFrame.
- *  2. Interruption and error states must use AuthResult or RouteErrorShell.
+ *  1. Auth route pages wrap content in AuthPageFrame (or delegate to a self-framed client component).
+ *  2. Auth route pages wrap content in AuthPageFrame; client components own Card only.
+ *  3. Interruption and error states must use AuthResult or RouteErrorShell.
  *  3. Every auth card footer must use AuthFooterLink(s).
  *  4. Password toggle buttons must carry type="button" (no accidental form submit).
  *  5. OTP inputs must declare inputMode="numeric" and autoComplete="one-time-code".
@@ -35,27 +36,22 @@ const PAGE_FRAME_SURFACES: [label: string, ...path: string[]][] = [
   ["reset-password page", "reset-password", "page.tsx"],
   ["session-expired page", "session-expired", "page.tsx"],
   ["check-email page", "check-email", "page.tsx"],
-]
-
-const COMPONENT_AUTH_SURFACES: [label: string, ...path: string[]][] = [
-  ["sign-in form", "sign-in-form.client.tsx"],
-  ["forgot-password form", "forgot-password-form.client.tsx"],
-  ["reset-password form", "reset-password-form.client.tsx"],
-  ["check-email client", "check-email-client.tsx"],
-  ["verify-email form component", "verify-email-form.client.tsx"],
-  ["accept-invitation client component", "accept-invitation-client.tsx"],
+  ["verify-email page", "verify-email", "page.tsx"],
+  ["accept-invitation page", "accept-invitation", "page.tsx"],
 ]
 
 describe("AuthPageFrame contract", () => {
-  it.each(PAGE_FRAME_SURFACES)("%s renders AuthPageFrame", (_, ...path) => {
-    const content = readAuth(...path)
-    expect(content, `${path.join("/")} must import AuthPageFrame`).toContain(
-      "AuthPageFrame"
-    )
+  it("Layer 3 UI shelf is sealed", () => {
+    expect(
+      readFileSync(
+        join(ROOT, "components2", "auth", "_SEAL.md"),
+        "utf-8"
+      )
+    ).toContain("Layer 3")
   })
 
-  it.each(COMPONENT_AUTH_SURFACES)("%s renders AuthPageFrame", (_, ...path) => {
-    const content = readComponent(...path)
+  it.each(PAGE_FRAME_SURFACES)("%s renders AuthPageFrame", (_, ...path) => {
+    const content = readAuth(...path)
     expect(content, `${path.join("/")} must import AuthPageFrame`).toContain(
       "AuthPageFrame"
     )
@@ -77,6 +73,7 @@ describe("Interruption state contract", () => {
     const content = readAuth("error.tsx")
     expect(content).toContain("RouteErrorShell")
     expect(content).toContain('variant="auth"')
+    expect(content).toContain('useTranslations("AuthShell")')
   })
 
   it("error boundary uses RouteErrorDigest", () => {
@@ -97,6 +94,12 @@ describe("Legal consent footer contract", () => {
     const content = readComponent("sign-in-form.client.tsx")
     expect(content).toContain("AuthLegalConsent")
   })
+
+  it("sign-in form uses SignInFormProvider composition", () => {
+    const content = readComponent("sign-in-form.client.tsx")
+    expect(content).toContain("SignInFormProvider")
+    expect(content).toContain("SignInFormMethodPanels")
+  })
 })
 
 describe("AuthFooterLink contract", () => {
@@ -116,7 +119,7 @@ describe("AuthFooterLink contract", () => {
 
 describe("Password toggle contract", () => {
   it('sign-in password toggle has type="button"', () => {
-    const content = readComponent("sign-in-form.client.tsx")
+    const content = readComponent("sign-in-form-method-panels.client.tsx")
     expect(content).toContain('type="button"')
     expect(content).toContain("aria-pressed")
   })
@@ -124,7 +127,7 @@ describe("Password toggle contract", () => {
 
 describe("OTP accessibility contract", () => {
   it('sign-in OTP has inputMode="numeric" and autoComplete="one-time-code"', () => {
-    const content = readComponent("sign-in-form.client.tsx")
+    const content = readComponent("sign-in-form-method-panels.client.tsx")
     expect(content).toContain('inputMode="numeric"')
     expect(content).toContain('autoComplete="one-time-code"')
   })

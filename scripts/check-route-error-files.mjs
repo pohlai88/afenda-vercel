@@ -41,8 +41,8 @@ const APPROVED_BOUNDARIES = new Set([
   "app/(main)/[locale]/error.tsx",
   // Auth shell
   "app/(main)/[locale]/(auth)/error.tsx",
-  // IAM shell
-  "app/(main)/[locale]/(iam)/error.tsx",
+  // Org member profile (identity + security under AppSubLayout)
+  "app/(main)/[locale]/o/[orgSlug]/iam-profile/error.tsx",
   // Platform console (Afenda global admin)
   "app/(main)/[locale]/platform/error.tsx",
   // Org shell (all tenant surfaces)

@@ -94,7 +94,7 @@ export async function resolveAuthStatusContent(
         description: t("email_unverified.description"),
         trustNote: t("email_unverified.trustNote"),
         primaryLabel: t("email_unverified.primary"),
-        primaryHref: toLocalePath(locale, "/account/identity"),
+        primaryHref: toLocalePath(locale, "/verify-email"),
         secondaryLabel,
         secondaryHref,
       }

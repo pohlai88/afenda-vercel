@@ -1,6 +1,7 @@
 "use client"
 
 import { LockIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "#i18n/navigation"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useState } from "react"
@@ -25,6 +26,7 @@ import { Label } from "#components2/ui/label"
 import { Spinner } from "#components2/ui/spinner"
 
 function ResetPasswordForm() {
+  const t = useTranslations("Auth")
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get("token") ?? ""
@@ -37,15 +39,15 @@ function ResetPasswordForm() {
     e.preventDefault()
     setError(null)
     if (!token) {
-      setError("Missing reset token. Open the link from your email again.")
+      setError(t("resetMissingToken"))
       return
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match.")
+      setError(t("resetPasswordMismatch"))
       return
     }
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.")
+      setError(t("resetPasswordTooShort"))
       return
     }
     setPending(true)
@@ -55,7 +57,7 @@ function ResetPasswordForm() {
         token,
       })
       if (err) {
-        setError(err.message ?? "Reset failed")
+        setError(err.message ?? t("resetPasswordFailed"))
         return
       }
       router.push("/sign-in")
@@ -73,16 +75,14 @@ function ResetPasswordForm() {
             className="size-5 shrink-0 text-muted-foreground"
             aria-hidden
           />
-          Set a new password
+          {t("titleResetPassword")}
         </CardTitle>
-        <CardDescription>
-          Choose a strong password you have not used here before.
-        </CardDescription>
+        <CardDescription>{t("resetPasswordDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="password">New password</Label>
+            <Label htmlFor="password">{t("resetPasswordNewLabel")}</Label>
             <Input
               id="password"
               name="password"
@@ -95,7 +95,9 @@ function ResetPasswordForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm password</Label>
+            <Label htmlFor="confirm-password">
+              {t("resetPasswordConfirmLabel")}
+            </Label>
             <Input
               id="confirm-password"
               name="confirm-password"
@@ -107,26 +109,24 @@ function ResetPasswordForm() {
               minLength={8}
             />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Use at least 8 characters. You will sign in again after updating.
-          </p>
+          <p className="text-xs text-muted-foreground">{t("resetPasswordHint")}</p>
           {error ? (
             <Alert variant="destructive">
-              <AlertTitle>Could not reset</AlertTitle>
+              <AlertTitle>{t("resetPasswordErrorTitle")}</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
           <Button type="submit" className="w-full" disabled={pending}>
             <span className="inline-flex items-center justify-center gap-2">
               {pending ? <Spinner className="size-4" /> : null}
-              {pending ? "Updating…" : "Update password"}
+              {pending ? t("resetPasswordUpdating") : t("resetPasswordSubmit")}
             </span>
           </Button>
         </form>
       </CardContent>
       <CardFooter className="border-t pt-6">
         <AuthFooterLinks>
-          <AuthFooterLink href="/sign-in">Back to sign in</AuthFooterLink>
+          <AuthFooterLink href="/sign-in">{t("backToSignIn")}</AuthFooterLink>
         </AuthFooterLinks>
       </CardFooter>
     </Card>
@@ -134,13 +134,17 @@ function ResetPasswordForm() {
 }
 
 export function ResetPasswordSection() {
+  const t = useTranslations("Auth")
+
   return (
     <Suspense
       fallback={
         <Card className="w-full border-border/80 shadow-elevation-1">
           <CardContent className="flex flex-col items-center justify-center gap-3 py-12">
             <Spinner className="size-8" />
-            <p className="text-sm text-muted-foreground">Loading reset form…</p>
+            <p className="text-sm text-muted-foreground">
+              {t("resetPasswordLoading")}
+            </p>
           </CardContent>
         </Card>
       }

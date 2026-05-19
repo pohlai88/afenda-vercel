@@ -4,11 +4,11 @@ import {
   declarationDocuments,
   declarationFooterLinks,
   subprocessorsLink,
-} from "#features/legal-declarations"
+} from "#features/legal-docs"
 import {
   publicTrustIndexableRoutes,
   trustSurfaceDefinition,
-} from "#features/public-trust"
+} from "#features/legal-docs"
 
 const document = declarationDocuments.subprocessors
 const documentCopy = document.sections

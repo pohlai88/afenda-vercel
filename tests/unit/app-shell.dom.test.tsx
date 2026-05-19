@@ -13,7 +13,7 @@ vi.mock("#i18n/navigation", () => ({
       {children}
     </a>
   ),
-  usePathname: () => "/account/identity",
+  usePathname: () => "/o/acme/iam-profile/identity",
   useRouter: () => ({ push: vi.fn() }),
 }))
 
@@ -49,7 +49,7 @@ const testRailSlots: AppShellPrimaryLeftRailSlots = {
         {
           id: "identity",
           label: "Identity",
-          href: "/account/identity",
+          href: "/o/acme/iam-profile/identity",
           icon: "layout-dashboard",
         },
       ],

@@ -4,23 +4,24 @@ import { cache } from "react"
 import type { Route } from "next"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
-import { and, eq } from "drizzle-orm"
 
-import { db } from "#lib/db"
-import { neonAuthMember, neonAuthOrganization } from "#lib/db/schema-neon-auth"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 
 import { isGlobalAdminUser } from "./permission.server"
 import { auth } from "./neon.server"
+import {
+  findOrganizationIdBySlug,
+  hasOrgMembership,
+  mapIamSessionUser,
+  type BetterAuthSessionUserLike,
+  type IamSessionUserFields,
+} from "./org-membership.server"
 
 export type AuthShellSignedInSession = {
   userId: string
   sessionId: string
-  user: {
-    email: string
-    name: string | null
-    role: string | null
+  user: IamSessionUserFields & {
     emailVerified: boolean
   }
 }
@@ -32,6 +33,21 @@ export type AuthShellOrgSession = AuthShellSignedInSession & {
 async function redirectSignIn(): Promise<never> {
   const locale = await getRequestAppLocale()
   redirect(toLocalePath(locale, "/sign-in") as Route)
+}
+
+function mapAuthShellSignedInSession(input: {
+  user: BetterAuthSessionUserLike
+  sessionId: string
+}): AuthShellSignedInSession {
+  const mapped = mapIamSessionUser(input.user)
+  return {
+    userId: mapped.userId,
+    sessionId: input.sessionId,
+    user: {
+      ...mapped.user,
+      emailVerified: Boolean(input.user.emailVerified),
+    },
+  }
 }
 
 /**
@@ -57,18 +73,10 @@ export const getAuthShellSignedInSessionOrNull = cache(
       return null
     }
 
-    return {
-      userId: session.user.id,
+    return mapAuthShellSignedInSession({
+      user: session.user as BetterAuthSessionUserLike,
       sessionId: session.session.id,
-      user: {
-        email: session.user.email,
-        name: session.user.name ?? null,
-        role: (session.user as { role?: string | null }).role ?? null,
-        emailVerified: Boolean(
-          (session.user as { emailVerified?: boolean }).emailVerified
-        ),
-      },
-    }
+    })
   }
 )
 
@@ -100,30 +108,15 @@ export const requireAuthShellOrgSession = cache(
         ?.activeOrganizationId ?? null
 
     if (orgSlug) {
-      const [org] = await db
-        .select({ id: neonAuthOrganization.id })
-        .from(neonAuthOrganization)
-        .where(eq(neonAuthOrganization.slug, orgSlug))
-        .limit(1)
-      organizationId = org?.id ?? null
+      organizationId = await findOrganizationIdBySlug(orgSlug)
     }
 
     if (!organizationId) {
       return await redirectSignIn()
     }
 
-    const [membership] = await db
-      .select({ id: neonAuthMember.id })
-      .from(neonAuthMember)
-      .where(
-        and(
-          eq(neonAuthMember.userId, signed.userId),
-          eq(neonAuthMember.organizationId, organizationId)
-        )
-      )
-      .limit(1)
-
-    if (!membership) {
+    const member = await hasOrgMembership(signed.userId, organizationId)
+    if (!member) {
       return await redirectSignIn()
     }
 

@@ -44,6 +44,8 @@ export {
   type OrgImportJobState,
   type OrgImportJobSummary,
   type OrgImportRowState,
+  type OrgAdminInvitationRow,
+  type OrgAdminMemberRow,
   type UserOrgSummary,
 } from "./types"
 

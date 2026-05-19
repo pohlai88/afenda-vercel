@@ -4,48 +4,80 @@ import { cache } from "react"
 import type { Route } from "next"
 import { redirect } from "next/navigation"
 
+import { getAuthSession } from "#lib/session-cache"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
 
 import { AUTH_STATUS } from "./auth-status.shared"
 import { redirectToAuthInterruption } from "./interruption-redirect.server"
 import { auth } from "./neon.server"
+import {
+  hasOrgMembership,
+  assertOrgMembership,
+  mapIamSessionUser,
+  type BetterAuthSessionUserLike,
+  type IamSessionUserFields,
+} from "./org-membership.server"
 import { isGlobalAdminUser } from "./permission.server"
-import { getAuthSession } from "#lib/session-cache"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { neonAuthMember, neonAuthSession } from "#lib/db/schema-neon-auth"
+import { neonAuthSession } from "#lib/db/schema-neon-auth"
 
 export type OrgSession = {
   userId: string
   sessionId: string
   organizationId: string
-  user: { email: string; name: string | null; role: string | null }
+  user: IamSessionUserFields
 }
 
 export type GlobalAdminSession = {
   userId: string
   sessionId: string
-  user: { email: string; name: string | null; role: string | null }
+  user: IamSessionUserFields
 }
 
 export type SignedInSession = {
   userId: string
   sessionId: string
-  user: { email: string; name: string | null; role: string | null }
-}
-
-type SessionUserWithRole = {
-  id: string
-  email: string
-  name: string | null
-  role?: string | null
+  user: IamSessionUserFields
 }
 
 type SessionWithOrg = {
   id: string
   activeOrganizationId?: string | null
+}
+
+function mapSignedInSession(input: {
+  user: BetterAuthSessionUserLike
+  sessionId: string
+}): SignedInSession {
+  const mapped = mapIamSessionUser(input.user)
+  return {
+    userId: mapped.userId,
+    sessionId: input.sessionId,
+    user: mapped.user,
+  }
+}
+
+async function resolveOrgSessionFromParts(input: {
+  user: BetterAuthSessionUserLike
+  sessionId: string
+  organizationId: string | null | undefined
+}): Promise<OrgSession | null> {
+  if (!input.organizationId) return null
+  const member = await hasOrgMembership(input.user.id, input.organizationId)
+  if (!member) return null
+
+  const signedIn = mapSignedInSession({
+    user: input.user,
+    sessionId: input.sessionId,
+  })
+
+  return {
+    ...signedIn,
+    organizationId: input.organizationId,
+  }
 }
 
 /** Requires a valid Better Auth session (user signed in). No org requirement. */
@@ -56,17 +88,10 @@ export async function requireSignedInSession(): Promise<SignedInSession> {
     return await redirectToAuthInterruption(AUTH_STATUS.SESSION_EXPIRED)
   }
 
-  const user = session.user as SessionUserWithRole
-
-  return {
-    userId: user.id,
+  return mapSignedInSession({
+    user: session.user as BetterAuthSessionUserLike,
     sessionId: session.session.id,
-    user: {
-      email: user.email,
-      name: user.name,
-      role: user.role ?? null,
-    },
-  }
+  })
 }
 
 /**
@@ -81,22 +106,17 @@ export const requireGlobalAdminSession = cache(
       return await redirectToAuthInterruption(AUTH_STATUS.SESSION_EXPIRED)
     }
 
-    const user = session.user as SessionUserWithRole
+    const user = session.user as BetterAuthSessionUserLike
 
     if (!isGlobalAdminUser(user.id, user.role)) {
       const locale = await getRequestAppLocale()
       redirect(toLocalePath(locale, "/o") as Route)
     }
 
-    return {
-      userId: user.id,
+    return mapSignedInSession({
+      user,
       sessionId: session.session.id,
-      user: {
-        email: user.email,
-        name: user.name,
-        role: user.role ?? null,
-      },
-    }
+    })
   }
 )
 
@@ -114,38 +134,19 @@ export const requireOrgSession = cache(
       return await redirectToAuthInterruption(AUTH_STATUS.SESSION_EXPIRED)
     }
 
-    const user = session.user as SessionUserWithRole
+    const user = session.user as BetterAuthSessionUserLike
     const sess = session.session as SessionWithOrg
-    const organizationId = sess.activeOrganizationId
-    if (!organizationId) {
-      return await redirectToAuthInterruption(AUTH_STATUS.ORG_REQUIRED)
-    }
-
-    const [row] = await db
-      .select({ id: neonAuthMember.id })
-      .from(neonAuthMember)
-      .where(
-        and(
-          eq(neonAuthMember.userId, user.id),
-          eq(neonAuthMember.organizationId, organizationId)
-        )
-      )
-      .limit(1)
-
-    if (!row) {
-      return await redirectToAuthInterruption(AUTH_STATUS.ORG_REQUIRED)
-    }
-
-    return {
-      userId: user.id,
+    const resolved = await resolveOrgSessionFromParts({
+      user,
       sessionId: session.session.id,
-      organizationId,
-      user: {
-        email: user.email,
-        name: user.name,
-        role: user.role ?? null,
-      },
+      organizationId: sess.activeOrganizationId,
+    })
+
+    if (!resolved) {
+      return await redirectToAuthInterruption(AUTH_STATUS.ORG_REQUIRED)
     }
+
+    return resolved
   }
 )
 
@@ -164,20 +165,7 @@ export async function setActiveOrganizationForSession(input: {
   sessionId: string
   organizationId: string
 }): Promise<void> {
-  const [member] = await db
-    .select({ id: neonAuthMember.id })
-    .from(neonAuthMember)
-    .where(
-      and(
-        eq(neonAuthMember.userId, input.userId),
-        eq(neonAuthMember.organizationId, input.organizationId)
-      )
-    )
-    .limit(1)
-
-  if (!member) {
-    throw new Error("Not a member of the requested organization.")
-  }
+  await assertOrgMembership(input.userId, input.organizationId)
 
   await db
     .update(neonAuthSession)
@@ -205,38 +193,14 @@ export async function getOrgSessionFromRequest(
     return null
   }
 
-  const user = session.user as SessionUserWithRole
+  const user = session.user as BetterAuthSessionUserLike
   const sess = session.session as SessionWithOrg
-  const organizationId = sess.activeOrganizationId
-  if (!organizationId) {
-    return null
-  }
 
-  const [row] = await db
-    .select({ id: neonAuthMember.id })
-    .from(neonAuthMember)
-    .where(
-      and(
-        eq(neonAuthMember.userId, user.id),
-        eq(neonAuthMember.organizationId, organizationId)
-      )
-    )
-    .limit(1)
-
-  if (!row) {
-    return null
-  }
-
-  return {
-    userId: user.id,
+  return resolveOrgSessionFromParts({
+    user,
     sessionId: session.session.id,
-    organizationId,
-    user: {
-      email: user.email,
-      name: user.name,
-      role: user.role ?? null,
-    },
-  }
+    organizationId: sess.activeOrganizationId,
+  })
 }
 
 /**
@@ -254,15 +218,8 @@ export async function getSignedInSessionFromRequest(
     return null
   }
 
-  const user = session.user as SessionUserWithRole
-
-  return {
-    userId: user.id,
+  return mapSignedInSession({
+    user: session.user as BetterAuthSessionUserLike,
     sessionId: session.session.id,
-    user: {
-      email: user.email,
-      name: user.name,
-      role: user.role ?? null,
-    },
-  }
+  })
 }

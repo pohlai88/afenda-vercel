@@ -36,8 +36,10 @@ import { getNextAdrNumber } from "./lib/adr-next-number"
 import {
   CRUD_SAP_VERB_CHOICES,
   buildErpAuditActionString,
+  mapCrudSapVerbToErpFunction,
   pascalVerb,
 } from "./lib/audit-action"
+import type { CrudSapVerb } from "../../lib/erp/crud-sap.shared"
 import {
   adrFile,
   contractFile,
@@ -282,8 +284,10 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
       const enrichedAnswers = {
         ...(answers ?? {}),
         tier: "Tier B (standard CRUD)",
+        isTierA: false,
+        isTierS: false,
         isTierAOrS: false,
-        requiredRole: "member",
+        erpFunction: mapCrudSapVerbToErpFunction(verb as CrudSapVerb),
         generatorName: "capability",
       }
       Object.assign(answers ?? {}, enrichedAnswers)
@@ -416,11 +420,11 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
         choices: [
           { name: "B — standard CRUD (requireOrgSession only)", value: "B" },
           {
-            name: "A — irreversible/compliance (canActInOrganization admin)",
+            name: "A — irreversible/compliance (requireErpPermission)",
             value: "A",
           },
           {
-            name: "S — destructive/ownership (canActInOrganization owner)",
+            name: "S — destructive/ownership (requireTenantAuthority tenant_owner)",
             value: "S",
           },
         ],
@@ -438,11 +442,13 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
           : tierKey === "S"
             ? "Tier S (destructive / ownership)"
             : "Tier B (standard CRUD)"
-      const requiredRole = tierKey === "S" ? "owner" : "admin"
+      const erpFunction = mapCrudSapVerbToErpFunction(verb as CrudSapVerb)
       Object.assign(a, {
         tier,
+        isTierA: tierKey === "A",
+        isTierS: tierKey === "S",
         isTierAOrS: tierKey !== "B",
-        requiredRole,
+        erpFunction,
         generatorName: "action",
       })
 

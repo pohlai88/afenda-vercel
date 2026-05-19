@@ -21,9 +21,11 @@ const REQUIRED_FILES = [
   ".cursor/rules/simulation-directory.mdc",
   ".cursor/rules/shell-directory.mdc",
   ".cursor/rules/portal-directory.mdc",
+  ".cursor/rules/legal-docs-directory.mdc",
   ".cursor/rules/module-client-server-barrels.mdc",
   "docs/decisions/0030-module-client-server-barrel-boundary.md",
   "docs/decisions/0032-drizzle-migration-agent-ownership.md",
+  "docs/decisions/0035-three-layer-surface-ide-anti-drift.md",
   ".cursor/rules/drizzle-migration-ledger.mdc",
   "eslint.config.mjs",
   "scripts/check-design-contract.mjs",
@@ -224,7 +226,6 @@ const DEEP_FEATURE_IMPORT_RE =
 /** AGENTS.md §6.1 — only these files may live at lib/*.ts / lib/*.tsx root. */
 const LIB_ROOT_ALLOWLIST = new Set([
   "auth-client.ts",
-  "auth-client-neon-compat.ts",
   "org-apps-module-paths.ts",
   "design-system.ts",
   "logger.server.ts",

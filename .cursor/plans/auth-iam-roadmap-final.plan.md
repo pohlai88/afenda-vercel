@@ -160,7 +160,7 @@ Every merge touching auth:
 1. `pnpm lint`
 2. `pnpm typecheck`
 3. `pnpm test:ci`
-4. Manual: `/account/security`, `/account/identity`, step-up + verified-email behavior
+4. Manual: `/profile/security`, `/profile/identity`, step-up + verified-email behavior
 5. Optional Playwright with `E2E_ORG_ADMIN_*` for org audit flows
 6. Optional Playwright with `E2E_ORG_INVITE_*` for org invite UI ([`tests/e2e/org-invite-optional.spec.ts`](tests/e2e/org-invite-optional.spec.ts))
 

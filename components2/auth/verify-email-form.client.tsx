@@ -8,12 +8,11 @@ import {
   AUTH_CLIENT_ERROR_CODE,
   normalizeAuthClientError,
 } from "#lib/auth-client"
-import { neonAuthClient } from "#lib/auth-client-neon-compat"
+import { neonAuthClient } from "#lib/auth/neon-auth-client-runtime.shared"
 import {
   AuthFooterLink,
   AuthFooterLinks,
 } from "#components2/auth/auth-footer-links"
-import { AuthPageFrame } from "#components2/auth/auth-page-frame"
 import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
 import { Button } from "#components2/ui/button"
 import {
@@ -33,7 +32,7 @@ import {
   authResponseHasSessionToken,
   buildCheckEmailHref,
   localeAwarePathToClientRoute,
-} from "./auth-flow.shared"
+} from "#lib/auth/auth-flow.shared"
 
 type VerifyEmailFormProps = {
   initialEmail?: string
@@ -85,8 +84,7 @@ export function VerifyEmailForm({
   }
 
   return (
-    <AuthPageFrame>
-      <Card className="w-full border-border/80 shadow-elevation-1">
+    <Card className="w-full border-border/80 shadow-elevation-1">
         <CardHeader className="space-y-1 pb-4">
           <CardTitle className="text-xl tracking-tight">{t("title")}</CardTitle>
           <CardDescription>{t("description")}</CardDescription>
@@ -160,6 +158,5 @@ export function VerifyEmailForm({
           </AuthFooterLinks>
         </CardFooter>
       </Card>
-    </AuthPageFrame>
   )
 }

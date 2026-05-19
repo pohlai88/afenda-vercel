@@ -1,8 +1,8 @@
 /**
  * Copy for pre-sign-in auth routes Playwright specs.
  * Align with:
- * - `app/(main)/[locale]/(auth)/forgot-password/forgot-password-form.tsx`
- * - `app/(main)/[locale]/(auth)/reset-password/reset-password-form.tsx`
+ * - `components2/auth/forgot-password-form.client.tsx`
+ * - `components2/auth/reset-password-form.client.tsx`
  * - `messages/en.json` → `Auth.*` + `VerifyEmail.*`
  *
  * Full password-reset E2E (email link + token) needs a mail sink or auth test API — not in CI; see `AGENTS.md` testing contract.

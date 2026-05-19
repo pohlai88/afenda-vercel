@@ -714,7 +714,7 @@ describe("WORKBENCH_REVALIDATE_PATTERNS", () => {
     // silently change cache scope (e.g. accidentally narrowing
     // `org-admin` to a single locale).
     expect(WORKBENCH_REVALIDATE_PATTERNS).toStrictEqual({
-      account: "/[locale]/account",
+      account: "/[locale]/o/[orgSlug]/iam-profile",
       "org-admin": "/[locale]/o/[orgSlug]/admin",
       hrm: "/[locale]/o/[orgSlug]/apps/hrm",
       "platform-admin": "/[locale]/platform",

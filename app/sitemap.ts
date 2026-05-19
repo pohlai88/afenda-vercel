@@ -4,8 +4,8 @@ import {
   LEGAL_ROUTE_PREFIX,
   declarationRouteReviewedAtByHref,
   latestLegalDeclarationReviewedAt,
-} from "#features/legal-declarations"
-import { publicTrustIndexableRoutes } from "#features/public-trust"
+  publicTrustIndexableRoutes,
+} from "#features/legal-docs"
 import {
   type AppPath,
   DEFAULT_APP_LOCALE,

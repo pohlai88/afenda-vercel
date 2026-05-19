@@ -8,7 +8,7 @@ import {
   AUTH_CLIENT_ERROR_CODE,
   normalizeAuthClientError,
 } from "#lib/auth-client"
-import { neonAuthClient } from "#lib/auth-client-neon-compat"
+import { neonAuthClient } from "#lib/auth/neon-auth-client-runtime.shared"
 import {
   AuthFooterLink,
   AuthFooterLinks,

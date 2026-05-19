@@ -40,11 +40,9 @@ export async function buildAppShellConsoleUtilityBarSlots({
       <AppShellUtilityBarRight
         account={{
           userEmail,
-          hrefs: {
-            account: toLocalePath(locale, "/account") as Route,
-            identity: toLocalePath(locale, "/account/identity") as Route,
-            security: toLocalePath(locale, "/account/security") as Route,
-          },
+          // Pre-org loading bay has no slug — Profile / Account / Security rows
+          // are omitted (the menu still surfaces sign-out + workspace return).
+          hrefs: {},
           workspaceHomeHref: toLocalePath(locale, "/console") as Route,
         }}
       />
