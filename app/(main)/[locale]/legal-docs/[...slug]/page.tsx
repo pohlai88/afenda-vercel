@@ -1,7 +1,6 @@
-export { unstable_instant } from "#features/legal-docs"
+export { unstable_instant, buildLegalDocsStaticParams as generateStaticParams } from "#features/legal-docs"
 
 export {
-  buildLegalDocsStaticParams as generateStaticParams,
   generateLegalDocsMetadata as generateMetadata,
   LegalDocsRoutePage as default,
-} from "#features/legal-docs"
+} from "#features/legal-docs/server"

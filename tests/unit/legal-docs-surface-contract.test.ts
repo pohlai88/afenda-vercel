@@ -77,9 +77,10 @@ describe("Legal-docs three-layer seals", () => {
 })
 
 describe("Layer 1 thin route contract", () => {
-  it("legal-docs page re-exports only from #features/legal-docs", () => {
+  it("legal-docs page re-exports shared params from index and server page from server barrel", () => {
     const content = readLegalDocsPage()
     expect(content).toContain("#features/legal-docs")
+    expect(content).toContain("#features/legal-docs/server")
     expect(content).not.toContain("#components2/legal-docs")
     expect(content).not.toContain("#components2/marketing")
     expect(content).not.toContain("await ")
@@ -88,6 +89,16 @@ describe("Layer 1 thin route contract", () => {
 })
 
 describe("Layer 2 orchestrator contract", () => {
+  it("public index barrel stays client-safe (no cached server page exports)", () => {
+    const barrel = readFileSync(
+      join(ROOT, "lib", "features", "legal-docs", "index.ts"),
+      "utf-8"
+    )
+    expect(barrel).not.toContain("legal-docs-declaration-page.server")
+    expect(barrel).not.toContain("legal-docs-route-page.server")
+    expect(barrel).not.toContain("legal-docs-metadata.server")
+  })
+
   it("LegalDocsRoutePage resolves slug and notFound before Suspense pages", () => {
     const content = readLegalDocsFeatureComponent(
       "legal-docs-route-page.server.tsx"

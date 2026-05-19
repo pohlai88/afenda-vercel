@@ -10,7 +10,6 @@ import {
   buildLegalDocsStaticParams,
   declarationRouteReviewedAtByHref,
   fallbackOpenStatusSnapshot,
-  generateLegalDocsMetadata,
   latestLegalDeclarationReviewedAt,
   publicTrustIndexableRoutes,
   publicTrustOwnerRoutes,
@@ -22,6 +21,7 @@ import {
   trustSurfaceDefinitionBaseline,
   trustSurfaceDefinitionResolved,
 } from "#features/legal-docs"
+import { generateLegalDocsMetadata } from "#features/legal-docs/server"
 import { DEFAULT_APP_LOCALE, APP_LOCALES, toLocalePath } from "#lib/i18n/locales.shared"
 import { getSiteUrl } from "#lib/site"
 

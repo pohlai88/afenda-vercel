@@ -88,9 +88,4 @@ export {
   trustSurfaceLastUpdatedLabel,
 } from "./data/trust-surface.fixture.shared"
 
-export { generateLegalDocsMetadata } from "./data/legal-docs-metadata.server"
-
-export { LegalDocsDeclarationPage } from "./components/legal-docs-declaration-page.server"
-export { LegalDocsRoutePage } from "./components/legal-docs-route-page.server"
-
 export const unstable_instant = { prefetch: "static" } as const
