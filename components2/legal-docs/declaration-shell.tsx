@@ -1,8 +1,6 @@
-import type { Route } from "next"
-import type { AnchorHTMLAttributes, ReactNode } from "react"
-import { Link } from "#i18n/navigation"
-
 import { AfendaBrandLockup } from "#components2/afenda-brand"
+import type { AppLocale } from "#lib/i18n/locales.shared"
+import { LegalDocsLocaleLink } from "./legal-docs-locale-link"
 import {
   LEGAL_ROUTE_PREFIX,
   type DeclarationContactChannel,
@@ -14,6 +12,7 @@ import {
 import { cn } from "#lib/utils"
 
 type DeclarationShellProps = {
+  readonly locale: AppLocale
   readonly document: DeclarationDocumentDefinition
   readonly footerLinks: readonly DeclarationRelatedLink[]
   readonly legalIdentity: DeclarationLegalIdentity
@@ -80,48 +79,8 @@ function renderSourceRef(ref: string) {
   )
 }
 
-function LegalLink({
-  href,
-  className,
-  children,
-  "aria-current": ariaCurrent,
-  "aria-label": ariaLabel,
-}: {
-  href: string
-  className?: string
-  children: ReactNode
-  "aria-current"?: AnchorHTMLAttributes<HTMLAnchorElement>["aria-current"]
-  "aria-label"?: string
-}) {
-  if (href.startsWith("mailto:") || href.startsWith("http")) {
-    return (
-      <a
-        href={href}
-        className={className}
-        aria-current={ariaCurrent}
-        aria-label={ariaLabel}
-        {...(href.startsWith("http")
-          ? { target: "_blank", rel: "noopener noreferrer" }
-          : {})}
-      >
-        {children}
-      </a>
-    )
-  }
-
-  return (
-    <Link
-      href={href as Route}
-      className={className}
-      aria-current={ariaCurrent}
-      aria-label={ariaLabel}
-    >
-      {children}
-    </Link>
-  )
-}
-
 export function DeclarationShell({
+  locale,
   document,
   footerLinks,
   legalIdentity,
@@ -135,7 +94,8 @@ export function DeclarationShell({
       <div className="mx-auto w-full max-w-[1240px] px-4 pt-4 sm:px-6">
         <header className="border-b border-border pt-4 pb-8">
           <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
-            <LegalLink
+            <LegalDocsLocaleLink
+              locale={locale}
               href="/"
               className="inline-flex max-w-[214px] shrink-0 text-inherit no-underline"
               aria-label="Afenda home"
@@ -145,18 +105,19 @@ export function DeclarationShell({
                 imgClassName="object-left"
                 priority
               />
-            </LegalLink>
+            </LegalDocsLocaleLink>
 
             <div className="flex flex-col items-start gap-2.5 sm:items-end">
               <p className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
                 Public declaration
               </p>
-              <LegalLink
+              <LegalDocsLocaleLink
+                locale={locale}
                 href="/"
                 className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground"
               >
                 Return to platform
-              </LegalLink>
+              </LegalDocsLocaleLink>
             </div>
           </div>
 
@@ -255,7 +216,8 @@ export function DeclarationShell({
                   <ul className="mt-3.5 grid list-none gap-2.5 p-0">
                     {document.relatedLinks.map((link) => (
                       <li key={link.href} className="min-w-0">
-                        <LegalLink
+                        <LegalDocsLocaleLink
+                          locale={locale}
                           href={link.href}
                           className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
                         >
@@ -265,7 +227,7 @@ export function DeclarationShell({
                           <span className="text-[0.82rem] leading-snug text-muted-foreground">
                             {link.description}
                           </span>
-                        </LegalLink>
+                        </LegalDocsLocaleLink>
                       </li>
                     ))}
                   </ul>
@@ -367,7 +329,8 @@ export function DeclarationShell({
 
         <footer className="mt-12 grid gap-5 border-t border-border pt-6 sm:grid-cols-[minmax(0,1.16fr)_auto] sm:items-end">
           <div className="grid gap-2">
-            <LegalLink
+            <LegalDocsLocaleLink
+              locale={locale}
               href="/"
               className="inline-flex w-fit max-w-[176px] text-inherit no-underline"
               aria-label="Afenda footer home"
@@ -376,7 +339,7 @@ export function DeclarationShell({
                 className="max-w-[min(176px,62vw)]"
                 imgClassName="object-left"
               />
-            </LegalLink>
+            </LegalDocsLocaleLink>
             <div className="grid gap-0 text-[0.94rem] leading-snug font-semibold">
               <span>{legalIdentity.legalEntityName}</span>
               <span>
@@ -414,8 +377,9 @@ export function DeclarationShell({
             aria-label="Declaration footer links"
           >
             {footerLinks.map((link) => (
-              <LegalLink
+              <LegalDocsLocaleLink
                 key={link.href}
+                locale={locale}
                 href={link.href}
                 aria-current={
                   link.href === currentFooterHref ? "page" : undefined
@@ -427,7 +391,7 @@ export function DeclarationShell({
                 )}
               >
                 {link.label}
-              </LegalLink>
+              </LegalDocsLocaleLink>
             ))}
           </nav>
         </footer>

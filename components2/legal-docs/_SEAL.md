@@ -13,6 +13,7 @@ Full three-layer doctrine: `app/(main)/[locale]/legal-docs/_SEAL.md` · `.cursor
 
 | File | Export |
 | --- | --- |
+| `legal-docs-locale-link.tsx` | `LegalDocsLocaleLink` (locale-prefixed `<a>`, no `headers()`) |
 | `declaration-shell.tsx` | `DeclarationShell` |
 | `trust-control-surface.tsx` | `TrustControlSurface` |
 | `status-control-surface.tsx` | `StatusControlSurface` |
@@ -27,7 +28,8 @@ Full three-layer doctrine: `app/(main)/[locale]/legal-docs/_SEAL.md` · `.cursor
 | --- | --- |
 | `#components2/ui/*` | OpenStatus loaders, slug routing |
 | `#features/legal-docs` (types, constants) | `#components2/metadata` |
-| `#i18n/navigation` | Putting these files under `components2/marketing/` |
+| `legal-docs-locale-link.tsx` + `toLocalePath` via explicit `locale` prop | `#i18n/navigation` `Link` (reads `headers()` in RSC) |
+| — | Putting these files under `components2/marketing/` |
 
 ---
 

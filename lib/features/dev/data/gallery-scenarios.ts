@@ -1,5 +1,3 @@
-import type { GovernedComponent } from "#features/governed-surface"
-
 import {
   GALLERY_ACTION_BAR,
   GALLERY_APPROVAL_TIMELINE,
@@ -21,21 +19,12 @@ import {
   GALLERY_STAT_CARD_SNAPSHOT,
 } from "./gallery-fixtures"
 
-export type GalleryPreviewMode =
-  | "default"
-  | "kanban-footer-actions"
-  | "kanban-drag-reorder"
+import type {
+  GalleryPreviewMode,
+  GalleryScenario,
+} from "../schemas/gallery-scenario.types.shared"
 
-export type GalleryScenario = {
-  id: string
-  title: string
-  description: string
-  minWidthPx?: number
-  component: GovernedComponent
-  diagnostics?: "user" | "operator"
-  /** When set, preview uses the client footer bridge instead of `GovernedComponentRenderer`. */
-  previewMode?: GalleryPreviewMode
-}
+export type { GalleryPreviewMode, GalleryScenario }
 
 export const GALLERY_SCENARIOS: readonly GalleryScenario[] = [
   {

@@ -2,6 +2,8 @@
  * Structural types for public `/legal-docs/*` routes (declarations + trust surface).
  */
 
+import type { AppLocale } from "#lib/i18n/locales.shared"
+
 export type DeclarationSection = {
   readonly id: string
   readonly title: string
@@ -141,6 +143,7 @@ export type TrustSurfaceDefinition = {
 }
 
 export type TrustControlSurfaceProps = {
+  readonly locale: AppLocale
   readonly definition: TrustSurfaceDefinition
   readonly legalIdentity: DeclarationLegalIdentity
   readonly footerLinks: readonly DeclarationRelatedLink[]

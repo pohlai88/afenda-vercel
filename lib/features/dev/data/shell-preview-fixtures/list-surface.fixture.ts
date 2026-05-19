@@ -1,7 +1,5 @@
-import {
-  assertGovernedSurfaceInput,
-  listSurfaceRendererConfigurationSchema,
-} from "#features/governed-surface"
+import { assertGovernedSurfaceInput } from "#features/governed-surface/schemas/dev-assert.shared"
+import { listSurfaceRendererConfigurationSchema } from "#features/governed-surface/schemas/list-surface-renderer.schema"
 
 export const SHELL_PREVIEW_LIST_SURFACE = assertGovernedSurfaceInput(
   listSurfaceRendererConfigurationSchema,

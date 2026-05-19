@@ -18,7 +18,7 @@ import { governedMultiStepFormConfigurationSchema } from "#features/governed-sur
 import { governedScorecardFormConfigurationSchema } from "#features/governed-surface/schemas/scorecard-form.schema"
 import { governedStackConfigurationSchema } from "#features/governed-surface/schemas/stack.schema"
 
-import { SHELL_PREVIEW_LIST_SURFACE } from "../fixtures/list-surface.fixture"
+import { SHELL_PREVIEW_LIST_SURFACE } from "./shell-preview-fixtures/list-surface.fixture"
 
 export const GALLERY_STAT_CARD_KPI = assertGovernedSurfaceInput(
   statCardConfigurationSchema,

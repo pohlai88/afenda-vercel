@@ -3,7 +3,7 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { GALLERY_DETAIL_TABS } from "#components2/dev/metadata-renderer-gallery/gallery-fixtures"
+import { GALLERY_DETAIL_TABS } from "#features/dev"
 import { DetailTabsRenderer } from "#components2/metadata/renderers/detail-tabs.renderer"
 
 describe("DetailTabsRenderer", () => {

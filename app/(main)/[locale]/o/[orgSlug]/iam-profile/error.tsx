@@ -8,7 +8,7 @@ import { RouteErrorRetryButton } from "#components2/route-error/route-error-retr
 import { useReportRouteError } from "#components2/route-error/use-report-route-error"
 import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
-import { organizationNexusPath } from "#features/nexus"
+import { organizationNexusPath } from "#features/nexus/client"
 import {
   resolveErrorBoundaryRetryCallbacks,
   type NextAppErrorPageProps,

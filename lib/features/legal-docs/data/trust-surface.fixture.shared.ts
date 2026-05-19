@@ -11,10 +11,7 @@ import { LEGAL_ROUTE_PREFIX } from "./footer.shared"
 import { formatDeclarationReviewedLabel } from "./review.shared"
 import { DEFAULT_OG_IMAGE, SITE_NAME, getSiteUrl } from "#lib/site"
 
-import {
-  fallbackOpenStatusSnapshot,
-  type OpenStatusPublicSnapshot,
-} from "./openstatus-status.shared"
+import type { OpenStatusPublicSnapshot } from "./openstatus-status.shared"
 import type {
   TrustActivationRule,
   TrustBoundaryStatement,
@@ -550,10 +547,9 @@ export function trustSurfaceDefinitionResolved(
   }
 }
 
+/** Static trust shell for Suspense fallback — no `new Date()` (Cache Components prerender). */
 export function trustSurfaceDefinitionBaseline(): TrustSurfaceDefinition {
-  return trustSurfaceDefinitionResolved(
-    fallbackOpenStatusSnapshot({ reason: "missing-config" })
-  )
+  return trustSurfaceDefinitionResolved(null)
 }
 
 export function buildStatusPageMetadata(locale: string): Metadata {

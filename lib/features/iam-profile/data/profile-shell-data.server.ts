@@ -7,6 +7,7 @@ import {
   auth,
   requireAuthShellSignedInSession,
 } from "#lib/auth"
+import { hasCredentialAccount } from "./account-identity.server"
 import { listDeviceSessions } from "./account-device-sessions.server"
 import { listUserSecurityActivity } from "./account-security-activity.server"
 import { organizationNexusPath } from "#features/nexus"
@@ -14,13 +15,24 @@ import type { UserOrgSummary } from "#features/org-admin/client"
 import { listUserOrganizationsForSwitcher } from "#features/org-admin/server"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
-import type { IamProfileShellSummary } from "../profile-shell.types"
+import type { IamProfileShellSummary } from "../schemas/profile-shell.types.shared"
+
+export type IamProfileShellDeviceSession = Awaited<
+  ReturnType<typeof listDeviceSessions>
+>[number]
+export type IamProfileShellActivityRow = Awaited<
+  ReturnType<typeof listUserSecurityActivity>
+>[number]
 
 export type IamProfileShellData = {
   summary: IamProfileShellSummary
   activeOrganization: UserOrgSummary | null
   organizations: UserOrgSummary[]
-  securityActivity: Awaited<ReturnType<typeof listUserSecurityActivity>>
+  deviceSessions: IamProfileShellDeviceSession[]
+  securityActivity: IamProfileShellActivityRow[]
+  currentSessionId: string
+  currentSessionToken: string
+  hasCredential: boolean
 }
 
 function fallbackDisplayName(email: string, name: string | null): string {
@@ -38,11 +50,13 @@ export const getProfileShellData = cache(
       organizations,
       deviceSessions,
       securityActivity,
+      hasCredential,
     ] = await Promise.all([
       auth.getSession({ fetchOptions: { headers: await headers() } }),
       listUserOrganizationsForSwitcher(session.userId),
       listDeviceSessions(),
       listUserSecurityActivity(session.userId, 6),
+      hasCredentialAccount(session.userId),
     ])
 
     const activeOrganizationId =
@@ -74,7 +88,11 @@ export const getProfileShellData = cache(
       },
       activeOrganization,
       organizations,
+      deviceSessions,
       securityActivity,
+      currentSessionId: session.sessionId,
+      currentSessionToken: authSession?.session?.token ?? "",
+      hasCredential,
     }
   }
 )

@@ -58,7 +58,7 @@ See `components2/legal-docs/_SEAL.md` for Layer 3 inventory.
 
 ```bash
 pnpm lint:path -- lib/features/legal-docs components2/legal-docs
-pnpm test:fast -- tests/unit/legal-docs-surface-contract.test.ts tests/unit/public-trust-routing.test.ts tests/unit/legal-declarations-contract.test.ts
+pnpm test:fast -- tests/unit/legal-docs-surface-contract.test.ts tests/unit/legal-docs-routing.test.ts tests/unit/legal-docs-declarations-contract.test.ts
 pnpm typecheck
 ```
 

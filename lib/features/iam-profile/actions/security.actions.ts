@@ -5,19 +5,14 @@ import { z } from "zod"
 
 import {
   auth,
-  getOrgTenantContext,
   requireAuthShellSignedInSession,
   requireRecentAuthStepUp,
   requireVerifiedEmailForAccount,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
-import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
-import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
-import {
-  toLocaleOrgIamProfileRevalidatePattern,
-  toLocalePath,
-} from "#lib/i18n/locales.shared"
-import { organizationIamProfilePath } from "#lib/org-apps-module-paths"
+import { toLocaleOrgIamProfileRevalidatePattern } from "#lib/i18n/locales.shared"
+
+import { iamProfileReturnPath } from "../data/iam-profile-return-path.server"
 
 const tokenSchema = z.string().trim().min(1).max(512)
 
@@ -44,10 +39,9 @@ export async function changePasswordAction(input: {
     return { ok: false, error: next.error.issues[0]?.message ?? "Invalid new password." }
   }
 
-  await requireVerifiedEmailForAccount(await securityCenterReturnPath())
-  await requireRecentAuthStepUp({
-    returnTo: await securityCenterReturnPath(),
-  })
+  const returnTo = await iamProfileReturnPath("security")
+  await requireVerifiedEmailForAccount(returnTo)
+  await requireRecentAuthStepUp({ returnTo })
 
   const session = await requireAuthShellSignedInSession()
   const { error } = await auth.changePassword({
@@ -72,22 +66,12 @@ export async function changePasswordAction(input: {
   return { ok: true }
 }
 
-async function securityCenterReturnPath(): Promise<string> {
-  const locale = await getRequestAppLocale()
-  const { organizationId } = await getOrgTenantContext()
-  const orgSlug = await getOrganizationSlugById(organizationId)
-  if (!orgSlug) {
-    throw new Error("Active organization slug is required for security actions.")
-  }
-  return toLocalePath(locale, organizationIamProfilePath(orgSlug, "security"))
-}
-
 export async function revokeSessionAction(
   token: string,
   sessionRowId?: string
 ) {
   const parsed = tokenSchema.parse(token)
-  await requireVerifiedEmailForAccount(await securityCenterReturnPath())
+  await requireVerifiedEmailForAccount(await iamProfileReturnPath("security"))
   const revoked = await auth.revokeSession({ token: parsed })
   if (revoked.error) {
     throw new Error(revoked.error.message ?? "Failed to revoke session.")
@@ -105,7 +89,7 @@ export async function revokeSessionAction(
 }
 
 export async function revokeOtherSessionsAction() {
-  await requireVerifiedEmailForAccount(await securityCenterReturnPath())
+  await requireVerifiedEmailForAccount(await iamProfileReturnPath("security"))
   const out = await auth.revokeOtherSessions({})
   if (out.error) {
     throw new Error(out.error.message ?? "Failed to revoke other sessions.")

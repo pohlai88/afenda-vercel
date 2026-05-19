@@ -4,7 +4,7 @@ import type {
   AppShellPrimaryLeftRailSlots,
 } from "#app-shell"
 
-import type { IamProfileRailSection } from "../profile-shell.types"
+import type { IamProfileRailSection } from "../schemas/profile-shell.types.shared"
 
 export function buildIamProfileRailSlots({
   sections,

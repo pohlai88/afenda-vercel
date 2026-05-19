@@ -1,4 +1,6 @@
-export { unstable_instant, buildLegalDocsStaticParams as generateStaticParams } from "#features/legal-docs"
+export const unstable_instant = { prefetch: "static" }
+
+export { buildLegalDocsStaticParams as generateStaticParams } from "#features/legal-docs"
 
 export {
   generateLegalDocsMetadata as generateMetadata,

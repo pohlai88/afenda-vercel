@@ -49,7 +49,7 @@ YOU do not invent sibling modules, marketing dumps, or app-layer business logic.
 YOU do not add _SEAL.md under lib/features/<module>/ roots.
 
 When in doubt: routes stay thin, features own truth, components own paint.
-Read the surface rule BEFORE editing (legal-docs-directory.mdc, iam-directory.mdc, …).
+Read the surface rule BEFORE editing (legal-docs-directory.mdc, iam-profile-directory.mdc, iam-directory.mdc, …).
 ```
 
 ### Layer ownership (hard)
@@ -57,18 +57,20 @@ Read the surface rule BEFORE editing (legal-docs-directory.mdc, iam-directory.md
 | Layer | Path pattern | Owns | Must not own |
 | --- | --- | --- | --- |
 | **1** | `app/(main)/[locale]/…` | `page.tsx` re-exports, route `_SEAL.md`, locale params wiring | Fetch graphs, slug dispatch, registry, JSX shells |
-| **2** | `lib/features/<name>/` | Registry, metadata, guards wiring *into* feature, cache, Server Actions, RSC page bodies | React presentation shelves, `_SEAL.md` at module root |
+| **2** | `lib/features/<name>/` (auth: `lib/auth/`) | Registry, metadata, guards wiring *into* feature, cache, Server Actions, RSC page bodies | React presentation shelves, `_SEAL.md` at module root |
 | **3** | `components2/<name>/` | Card/shell/layout JSX, client islands for that surface | OpenStatus fetch, `notFound()`, `generateMetadata` |
 
 **Public doors only:** `#features/<name>`, `#components2/<name>` (or documented barrels). No cross-layer deep imports that pull server graphs into client bundles.
+
+**Auth exception:** pre-login auth Layer 2 is `lib/auth/` (IAM control plane), not `lib/features/auth/`. Same three-layer *shape* applies; only the Layer 2 path differs.
 
 ### Sealed surfaces (reference implementations)
 
 | Surface | Layer 1 | Layer 2 | Layer 3 | Rule |
 | --- | --- | --- | --- | --- |
-| Pre-login auth | `(auth)/` | `lib/auth/` | `components2/auth/` | `iam-directory.mdc` |
+| Pre-login auth | `(auth)/` | `lib/auth/` (IAM control plane — not `lib/features/`) | `components2/auth/` | `iam-directory.mdc` |
 | Legal-docs / trust | `legal-docs/` | `lib/features/legal-docs/` | `components2/legal-docs/` | `legal-docs-directory.mdc` |
-| IAM profile | `o/…/profile/` | `lib/features/iam-profile/` | `components2/iam-profile/` | `iam-directory.mdc` |
+| IAM profile | `o/…/iam-profile/` | `lib/features/iam-profile/` | `components2/iam-profile/` | `iam-profile-directory.mdc` |
 
 New public surfaces **must** follow the same three-layer shape and get a `*-directory.mdc` rule in the same PR.
 

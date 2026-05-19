@@ -5,7 +5,7 @@ import type {
   OrgOperationalScopePolicyRow,
 } from "#features/operational-scope/client"
 
-import { SHELL_PREVIEW_ORG_ID } from "./preview-href.shared"
+import { SHELL_PREVIEW_ORG_ID } from "../../schemas/dev-paths.shared"
 
 export { SHELL_PREVIEW_ORG_ID }
 

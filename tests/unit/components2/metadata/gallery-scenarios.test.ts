@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { GALLERY_SCENARIOS } from "#components2/dev/metadata-renderer-gallery/gallery-scenarios"
+import { GALLERY_SCENARIOS } from "#features/dev"
 import { parseGovernedComponentData } from "#features/governed-surface/schemas/component.schema"
 
 describe("metadata renderer gallery scenarios", () => {

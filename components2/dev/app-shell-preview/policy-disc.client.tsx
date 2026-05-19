@@ -8,7 +8,7 @@ import {
   SHELL_PREVIEW_ORG_ID,
   SHELL_PREVIEW_ORG_POLICIES,
   SHELL_PREVIEW_SCOPE_CATALOG,
-} from "../fixtures/operational-scope.fixture"
+} from "#features/dev/client"
 
 export function AppShellPreviewPolicyDisc({
   className,

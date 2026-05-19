@@ -1,3 +1,5 @@
+import "server-only"
+
 import type { Route } from "next"
 import Link from "next/link"
 
@@ -6,16 +8,16 @@ import {
   isListSurfaceTrailingActionRenderable,
 } from "#features/governed-surface"
 import type { ListSurfaceRendererConfigurationInput } from "#features/governed-surface"
+import { GalleryPatternCTrailingCell } from "#components2/dev/pattern-c-section-gallery/gallery-pattern-c-trailing-cell.client"
 
-import { SHELL_PREVIEW_HREF } from "../fixtures/preview-href.shared"
-import { GalleryPatternCTrailingCell } from "./gallery-pattern-c-trailing-cell.client"
 import {
   GALLERY_PATTERN_C_EMPTY,
   GALLERY_PATTERN_C_INVALID,
   GALLERY_PATTERN_C_READY,
-} from "./pattern-c-gallery-fixtures"
+} from "../data/pattern-c-gallery-fixtures"
+import { SHELL_PREVIEW_HREF } from "../schemas/dev-paths.shared"
 
-export function PatternCSectionGalleryContent() {
+export function DevPatternCSectionGalleryContent() {
   return (
     <div className="flex flex-col gap-8 p-6">
       <header className="flex flex-col gap-2">

@@ -8,7 +8,7 @@ alwaysApply: true
 ## Authority
 
 - **`lib/auth/`** owns the **IAM control plane**: Better Auth configuration, session/step-up guards, audit writers ([`audit.server.ts`](lib/auth/audit.server.ts)), org IAM audit CSV ([`org-audit.server.ts`](lib/auth/org-audit.server.ts), `org-audit-csv.shared.ts`, `org-audit-export-verify.server.ts`), and permission predicates ([`permission.server.ts`](lib/auth/permission.server.ts) — global admin only; ERP RBAC lives in `#features/erp-rbac`).
-- **`lib/features/iam-profile/`** owns **signed-in member profile** data and invitation accept/reject actions (relocated from `lib/auth/` — see [`lib/auth/_RELOCATION.md`](lib/auth/_RELOCATION.md)). Import `#features/iam-profile/server` or `#features/iam-profile/client`, not `#lib/auth`, for those concerns.
+- **`lib/features/iam-profile/`** owns **signed-in member profile** data and invitation accept/reject actions (relocated from `lib/auth/` — see [`lib/auth/_RELOCATION.md`](lib/auth/_RELOCATION.md)). Import `#features/iam-profile/server` or `#features/iam-profile/client`, not `#lib/auth`, for those concerns. Three-layer rule: `.cursor/rules/iam-profile-directory.mdc`.
 - **`app/[locale]/…`** owns **routes and UI only** — do not introduce an `app/iam/*` URL tree for configuration authority.
 
 ## Import rules

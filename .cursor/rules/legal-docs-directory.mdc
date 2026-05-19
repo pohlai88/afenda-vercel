@@ -157,7 +157,7 @@ Recreating any of the above is **forward drift** — fix imports, do not mkdir r
 
 ```bash
 pnpm lint:path -- lib/features/legal-docs components2/legal-docs app/(main)/[locale]/legal-docs
-pnpm test:fast -- tests/unit/legal-docs-surface-contract.test.ts tests/unit/public-trust-routing.test.ts tests/unit/legal-declarations-contract.test.ts
+pnpm test:fast -- tests/unit/legal-docs-surface-contract.test.ts tests/unit/legal-docs-routing.test.ts tests/unit/legal-docs-declarations-contract.test.ts
 pnpm typecheck
 ```
 
@@ -171,6 +171,6 @@ pnpm typecheck
 | --- | --- | --- | --- |
 | Pre-login auth | `(auth)/` | `lib/auth/` | `components2/auth/` |
 | Legal-docs | `legal-docs/` | `lib/features/legal-docs/` | `components2/legal-docs/` |
-| IAM profile | `o/.../profile/` | `lib/features/iam-profile/` | `components2/iam-profile/` |
+| IAM profile | `o/.../iam-profile/` | `lib/features/iam-profile/` | `components2/iam-profile/` |
 
 When unsure: **routes stay thin, features own truth, components own paint.**

@@ -1,0 +1,149 @@
+---
+description: IAM profile three-layer boundary — app routes, lib/features/iam-profile, components2/iam-profile. STOP IDE drift.
+globs: app/(main)/[locale]/o/[orgSlug]/iam-profile/**,lib/features/iam-profile/**,components2/iam-profile/**
+alwaysApply: false
+---
+
+# IAM profile three-layer boundary — IDE anti-drift contract
+
+**Canonical decisions:** [ADR-0034](docs/decisions/0034-neon-auth-iam-profile-surface.md) (Neon runtime matrix) · [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift.md) (AGENTS.md **PRIORITY #2**) · Layer 1 seal: [`app/(main)/[locale]/o/[orgSlug]/iam-profile/_SEAL.md`](../../app/(main)/[locale]/o/[orgSlug]/iam-profile/_SEAL.md)
+
+**If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.**
+
+Org-scoped member IAM uses **one product name everywhere: `iam-profile`**.  
+URL segment is **`/o/{slug}/iam-profile/*`** — not `/profile/`. Legacy `/account` redirects session-aware to this tree.
+
+Mechanical guard: [`tests/unit/iam-profile-surface-contract.test.ts`](tests/unit/iam-profile-surface-contract.test.ts)
+
+---
+
+## Prime directive (read before any edit)
+
+```txt
+Layer 1 — app/           → URL + thin re-exports ONLY (layout may own Tier A shell)
+Layer 2 — lib/features/  → page orchestrators, data, actions, metadata
+Layer 3 — components2/   → client islands + presentation ONLY
+```
+
+**Import doors (only these):**
+
+| Layer | Door |
+| --- | --- |
+| Layer 2 | `#features/iam-profile` · `#features/iam-profile/server` |
+| Layer 3 | `#components2/iam-profile/*` |
+| Client actions | `#features/iam-profile/client` |
+
+**IAM control plane** (session guards, audit) stays in `#lib/auth` — not this module.
+
+---
+
+## Layer 1 — `app/.../o/[orgSlug]/iam-profile/`
+
+**Owns:** route files, `_SEAL.md`, layout Tier A (`OrgIamProfileDeferredShell`).
+
+**Allowed in leaf `page.tsx`:**
+
+```tsx
+export { IamProfileOverviewPage as default } from "#features/iam-profile/server"
+
+export {
+  generateIamProfileIdentityMetadata as generateMetadata,
+  IamProfileIdentityPage as default,
+} from "#features/iam-profile/server"
+```
+
+**Forbidden in leaf `page.tsx`:**
+
+| Action | Why |
+| --- | --- |
+| `getProfileShellData`, `listDeviceSessions`, session guards | Layer 2 |
+| `AppShellSurface`, overview/identity/security JSX | Layer 2 orchestrators |
+| `#components2/iam-profile` imports in routes | Layer 3 via Layer 2 only |
+| `#features/nexus` in `"use client"` files | Use `#features/nexus/client` |
+
+---
+
+## Layer 2 — `lib/features/iam-profile/`
+
+**Owns:** Neon-backed profile mutations, shell data, metadata, RSC page bodies.
+
+**Allowed module root entries only** ([`scripts/check-agent-contract.mjs`](scripts/check-agent-contract.mjs)):
+
+```txt
+actions/ · data/ · components/ · schemas/ · index.ts · server.ts · client.ts · types.ts · constants.ts · *.contract.ts · README.md
+```
+
+**Forbidden at `lib/features/iam-profile/` root:**
+
+| Entry | Why |
+| --- | --- |
+| `_SEAL.md` | Not allowed — use route `_SEAL.md` |
+| `profile-metadata.server.ts` loose at root | Belongs in `data/` |
+| `profile-shell.types.ts` loose at root | Belongs in `schemas/` |
+| Passkey / 2FA / `changeEmail` flows | ADR-0034 — Neon unsupported |
+
+**Canonical Layer 2 files:**
+
+| Concern | Path |
+| --- | --- |
+| Public barrel | `index.ts` · `server.ts` · `client.ts` |
+| Metadata | `data/profile-metadata.server.ts` |
+| Shell / overview data | `data/profile-shell-data.server.ts` |
+| Rail types | `schemas/profile-shell.types.shared.ts` |
+| Page orchestrators | `components/iam-profile-*-page.server.tsx` |
+| Deferred shell | `components/org-iam-profile-deferred-shell.tsx` |
+| Mutations | `actions/*.actions.ts` |
+
+---
+
+## Layer 3 — `components2/iam-profile/`
+
+**Owns:** compound client providers + panels for identity, security, overview sections.
+
+| File | Role |
+| --- | --- |
+| `iam-profile-identity.client.tsx` | Provider + panels mount |
+| `iam-profile-security.client.tsx` | Provider + panels mount |
+| `iam-profile-overview-sections.client.tsx` | Overview next / membership / danger |
+| `iam-profile-*-panels.client.tsx` | Panel bodies |
+| `iam-profile-*-context.client.tsx` | Client state + action wiring |
+
+**May import:** `#components2/ui/*`, `#features/iam-profile/client`, `#i18n/navigation`.
+
+**Forbidden in Layer 3:**
+
+| Action | Why |
+| --- | --- |
+| `#features/iam-profile` server barrel | ADR-0030 |
+| `#lib/auth` server barrel | Client boundary |
+| Passkey, 2FA, `changeEmail`, `/account/` fallbacks | ADR-0034 |
+
+---
+
+## Neon unsupported (do not add until documented)
+
+Passkeys · 2FA · `changeEmail` · avatar `updateUser({ image })`
+
+---
+
+## Verification (required after every iam-profile task)
+
+```bash
+pnpm lint:path -- lib/features/iam-profile components2/iam-profile
+pnpm test:fast -- tests/unit/iam-profile-surface-contract.test.ts
+pnpm typecheck
+```
+
+`pnpm lint:agent-contract` must not report forbidden entries under `lib/features/iam-profile/`.
+
+---
+
+## Parity reference (same three-layer shape)
+
+| Surface | Layer 1 `app/` | Layer 2 `lib/` | Layer 3 `components2/` |
+| --- | --- | --- | --- |
+| Pre-login auth | `(auth)/` | `lib/auth/` (control plane) | `components2/auth/` |
+| Legal-docs | `legal-docs/` | `lib/features/legal-docs/` | `components2/legal-docs/` |
+| IAM profile | `o/.../iam-profile/` | `lib/features/iam-profile/` | `components2/iam-profile/` |
+
+When unsure: **routes stay thin, features own truth, components own paint.**

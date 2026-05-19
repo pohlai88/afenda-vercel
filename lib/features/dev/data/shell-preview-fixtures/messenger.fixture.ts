@@ -1,6 +1,6 @@
 import type { MessengerPanelTransport } from "#features/messenger/client"
 
-import { SHELL_PREVIEW_ORG_ID } from "./preview-href.shared"
+import { SHELL_PREVIEW_ORG_ID } from "../../schemas/dev-paths.shared"
 
 const PREVIEW_ROOM = "00000000-0000-0000-0000-000000000001"
 

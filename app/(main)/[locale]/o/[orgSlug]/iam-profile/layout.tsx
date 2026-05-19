@@ -1,4 +1,3 @@
-import type { Metadata } from "next"
 import { Suspense } from "react"
 
 import { AppSubLayoutShellSkeleton } from "#app-shell"
@@ -9,14 +8,7 @@ import {
   OrgIamProfileDeferredShell,
 } from "#features/iam-profile/server"
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}): Promise<Metadata> {
-  const { locale } = await params
-  return generateIamProfileOverviewMetadata(Promise.resolve({ locale }))
-}
+export const generateMetadata = generateIamProfileOverviewMetadata
 
 export default function OrganizationIamProfileLayout({
   children,

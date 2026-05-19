@@ -3,7 +3,7 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { GALLERY_ACTION_BAR } from "#components2/dev/metadata-renderer-gallery/gallery-fixtures"
+import { GALLERY_ACTION_BAR } from "#features/dev"
 import { ActionBarRenderer } from "#components2/metadata/renderers/action-bar.renderer"
 
 describe("ActionBarRenderer", () => {

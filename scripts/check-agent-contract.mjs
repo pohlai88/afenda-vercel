@@ -22,6 +22,7 @@ const REQUIRED_FILES = [
   ".cursor/rules/shell-directory.mdc",
   ".cursor/rules/portal-directory.mdc",
   ".cursor/rules/legal-docs-directory.mdc",
+  ".cursor/rules/iam-profile-directory.mdc",
   ".cursor/rules/module-client-server-barrels.mdc",
   "docs/decisions/0030-module-client-server-barrel-boundary.md",
   "docs/decisions/0032-drizzle-migration-agent-ownership.md",

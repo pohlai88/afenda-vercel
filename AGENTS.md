@@ -70,7 +70,7 @@ FORBIDDEN (instant failure — fix forward, never shim):
 WHEN EDITING A SURFACE — read its *-directory.mdc rule FIRST:
   legal-docs → .cursor/rules/legal-docs-directory.mdc
   auth       → .cursor/rules/iam-directory.mdc + app/(auth)/_SEAL.md
-  iam-profile→ lib/features/iam-profile/ + components2/iam-profile/
+  iam-profile→ lib/features/iam-profile/ + components2/iam-profile/ (rule: iam-profile-directory.mdc)
 
 If you cannot state which layer owns a file in one sentence, STOP and read ADR-0035.
 ```
@@ -138,7 +138,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | Lynx / Knowledge               | `lib/features/lynx/` · `#features/lynx/client` for client islands · rule `.cursor/rules/lynx-knowledge.mdc`                                                                                                                                                                                       |
 | Org Messenger (Ably)           | `lib/features/messenger/` · `#features/messenger/client` (panel) · `#features/messenger/server` (token mint) · `ABLY_API_KEY` in `.env.config` → `pnpm env:sync` · workbench rail `right.messenger` (chat) + `right.coordination` (operational console) · `POST /api/erp/messenger/auth`          |
 | Org admin                      | `lib/features/org-admin/` · `ORG_ADMIN_CAPABILITIES` registry · `/o/{orgSlug}/admin/*` · rule `.cursor/rules/org-admin-directory.mdc`                                                                                                                                                             |
-| Member profile (IAM)           | `lib/features/iam-profile/` · `#components2/iam-profile` · `/o/{orgSlug}/profile/*` (legacy `/account` → 308 + session redirect) · `organizationIamProfilePath` · `IamProfileSurface` i18n                                                                                                          |
+| Member profile (IAM)           | `lib/features/iam-profile/` · `#components2/iam-profile` · `/o/{orgSlug}/iam-profile/*` (legacy `/account` → 308 + session redirect) · `organizationIamProfilePath` · rule `.cursor/rules/iam-profile-directory.mdc` · `IamProfileSurface` i18n |
 | Public legal-docs / trust      | **Layer 1** `app/[locale]/legal-docs/` · **Layer 2** `#features/legal-docs` · **Layer 3** `#components2/legal-docs` · rule `.cursor/rules/legal-docs-directory.mdc` · never recreate `public-trust` / `legal-declarations` |
 | Portals                        | `app/[locale]/p/[portalSlug]/` · `lib/portal/` · `components2/portal-shell/` · rule `.cursor/rules/portal-directory.mdc`                                                                                                                                                                          |
 | Platform admin                 | `lib/features/platform-admin/` · `PLATFORM_ADMIN_CAPABILITIES` · `/platform/*` (legacy `/operator/*` → 308)                                                                                                                                                                                       |

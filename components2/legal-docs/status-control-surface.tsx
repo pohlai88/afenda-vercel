@@ -1,4 +1,3 @@
-import type { Route } from "next"
 import { Activity, CalendarClock, CircleAlert, ShieldCheck } from "lucide-react"
 
 import { AfendaBrandLockup } from "#components2/afenda-brand"
@@ -8,8 +7,10 @@ import type {
   OpenStatusPublicSnapshot,
   OpenStatusPublicState,
 } from "#features/legal-docs"
-import { Link } from "#i18n/navigation"
+import type { AppLocale } from "#lib/i18n/locales.shared"
 import { cn } from "#lib/utils"
+
+import { LegalDocsLocaleLink } from "./legal-docs-locale-link"
 
 function stateLabel(state: OpenStatusPublicState | string): string {
   switch (state) {
@@ -103,8 +104,10 @@ function EventList({
 }
 
 export function StatusControlSurface({
+  locale,
   snapshot,
 }: {
+  readonly locale: AppLocale
   readonly snapshot: OpenStatusPublicSnapshot
 }) {
   return (
@@ -112,8 +115,9 @@ export function StatusControlSurface({
       <div className="mx-auto w-full max-w-[1240px] px-4 pt-4 sm:px-6">
         <header className="border-b border-border pt-4 pb-8">
           <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
-            <Link
-              href={"/" as Route}
+            <LegalDocsLocaleLink
+              locale={locale}
+              href="/"
               className="inline-flex max-w-[214px] shrink-0 text-inherit no-underline"
               aria-label="Afenda home"
             >
@@ -122,18 +126,19 @@ export function StatusControlSurface({
                 imgClassName="object-left"
                 priority
               />
-            </Link>
+            </LegalDocsLocaleLink>
 
             <div className="flex flex-col items-start gap-2.5 sm:items-end">
               <p className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
                 Public availability evidence
               </p>
-              <Link
-                href={"/legal-docs/trust" as Route}
+              <LegalDocsLocaleLink
+                locale={locale}
+                href="/legal-docs/trust"
                 className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground"
               >
                 Trust surface
-              </Link>
+              </LegalDocsLocaleLink>
             </div>
           </div>
 

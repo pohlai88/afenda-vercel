@@ -18,7 +18,7 @@ export async function LegalDocsRoutePage({
   params,
 }: PageProps<"/[locale]/legal-docs/[...slug]">) {
   const { locale: localeRaw, slug } = await params
-  ensureAppLocale(localeRaw)
+  const locale = ensureAppLocale(localeRaw)
   const key = resolveLegalDocsSlug(slug)
 
   if (!key) {
@@ -28,14 +28,15 @@ export async function LegalDocsRoutePage({
   if (isLegalDeclarationSlug(key)) {
     return (
       <LegalDocsDeclarationPage
+        locale={locale}
         document={declarationDocuments[key as DeclarationSlug]}
       />
     )
   }
 
   if (key === "trust") {
-    return <LegalDocsTrustPage />
+    return <LegalDocsTrustPage locale={locale} />
   }
 
-  return <LegalDocsStatusPage />
+  return <LegalDocsStatusPage locale={locale} />
 }

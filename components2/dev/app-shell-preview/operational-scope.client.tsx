@@ -2,7 +2,7 @@
 
 import { OperationalScopeRail } from "#features/operational-scope/client"
 
-import { SHELL_PREVIEW_OPERATIONAL_CONTEXT } from "../fixtures/operational-scope.fixture"
+import { SHELL_PREVIEW_OPERATIONAL_CONTEXT } from "#features/dev/client"
 
 export function AppShellPreviewOperationalScope() {
   return (

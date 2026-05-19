@@ -17,6 +17,8 @@ export {
   generateIamProfileOverviewMetadata,
   generateIamProfileIdentityMetadata,
   generateIamProfileSecurityMetadata,
-  generateIamProfileOrbitMetadata,
-} from "./profile-metadata.server"
+} from "./data/profile-metadata.server"
 export { OrgIamProfileDeferredShell } from "./components/org-iam-profile-deferred-shell"
+export { default as IamProfileOverviewPage } from "./components/iam-profile-overview-page.server"
+export { default as IamProfileIdentityPage } from "./components/iam-profile-identity-page.server"
+export { default as IamProfileSecurityPage } from "./components/iam-profile-security-page.server"

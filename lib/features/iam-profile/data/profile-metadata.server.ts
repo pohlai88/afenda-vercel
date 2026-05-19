@@ -4,18 +4,14 @@ import { getTranslations } from "next-intl/server"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
 
-type LocaleParams = Promise<{ locale: string }>
+type LocaleRouteSegment = { locale: string }
+type IamProfileRouteSegment = LocaleRouteSegment & { orgSlug: string }
 
-type IamProfileOrbitSurface =
-  | "queue"
-  | "triage"
-  | "today"
-  | "timeline"
-  | "signals"
-  | "sessions"
-  | "links"
+type MetadataProps<T> = { params: Promise<T> }
 
-async function resolveLocale(params: LocaleParams) {
+async function resolveLocale(
+  params: Promise<LocaleRouteSegment>
+): Promise<ReturnType<typeof ensureAppLocale>> {
   const { locale: localeRaw } = await params
   return ensureAppLocale(localeRaw)
 }
@@ -23,23 +19,21 @@ async function resolveLocale(params: LocaleParams) {
 function buildPrivateSurfaceMetadata(title: string): Metadata {
   return {
     title,
-    openGraph: {
-      title: `${title} | ${SITE_NAME}`,
-    },
+    openGraph: { title: `${title} | ${SITE_NAME}` },
   }
 }
 
-export async function generateIamProfileOverviewMetadata(
-  params: LocaleParams
-): Promise<Metadata> {
+export async function generateIamProfileOverviewMetadata({
+  params,
+}: MetadataProps<IamProfileRouteSegment>): Promise<Metadata> {
   const locale = await resolveLocale(params)
   const t = await getTranslations({ locale, namespace: "IamProfileSurface" })
   return buildPrivateSurfaceMetadata(t("overview.title"))
 }
 
-export async function generateIamProfileIdentityMetadata(
-  params: LocaleParams
-): Promise<Metadata> {
+export async function generateIamProfileIdentityMetadata({
+  params,
+}: MetadataProps<IamProfileRouteSegment>): Promise<Metadata> {
   const locale = await resolveLocale(params)
   const t = await getTranslations({
     locale,
@@ -48,22 +42,13 @@ export async function generateIamProfileIdentityMetadata(
   return buildPrivateSurfaceMetadata(t("title"))
 }
 
-export async function generateIamProfileSecurityMetadata(
-  params: LocaleParams
-): Promise<Metadata> {
+export async function generateIamProfileSecurityMetadata({
+  params,
+}: MetadataProps<IamProfileRouteSegment>): Promise<Metadata> {
   const locale = await resolveLocale(params)
   const t = await getTranslations({
     locale,
     namespace: "IamProfileSurface.security",
   })
   return buildPrivateSurfaceMetadata(t("title"))
-}
-
-export async function generateIamProfileOrbitMetadata(
-  params: LocaleParams,
-  surface: IamProfileOrbitSurface
-): Promise<Metadata> {
-  const locale = await resolveLocale(params)
-  const t = await getTranslations({ locale, namespace: "Dashboard.Orbit" })
-  return buildPrivateSurfaceMetadata(t(`surfaces.${surface}.title` as never))
 }

@@ -8,11 +8,9 @@ import { useUtilityBarStore } from "#components2/stores/utility-bar.store"
 import {
   createShellPreviewMessengerTransport,
   SHELL_PREVIEW_MESSENGER_ORG_ID,
-} from "../fixtures/messenger.fixture"
-import {
   SHELL_PREVIEW_ASK_DOCS_HREF,
   SHELL_PREVIEW_HREF,
-} from "../fixtures/preview-href.shared"
+} from "#features/dev/client"
 
 export function AppShellPreviewUtilityBarRight() {
   useEffect(() => {

@@ -14,7 +14,7 @@ import { Button } from "#components2/ui/button"
 import { GalleryFixtureEditor } from "./gallery-fixture-editor.client"
 import { GalleryKanbanDragPreview } from "./gallery-kanban-drag-preview.client"
 import { GalleryKanbanFooterPreview } from "./gallery-kanban-footer-preview.client"
-import type { GalleryPreviewMode } from "./gallery-scenarios"
+import type { GalleryPreviewMode } from "#features/dev/client"
 
 const WIDTH_PRESETS = [
   { id: "full", label: "Full", px: undefined as number | undefined },

@@ -1,4 +1,6 @@
-import { redirect } from "next/navigation"
+import "server-only"
+
+import { Suspense } from "react"
 
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { AppShell, AppSubLayout, AppShellSurface } from "#app-shell"
@@ -9,16 +11,17 @@ import {
   AppShellPrimaryLeftRailFooter,
   CrudSapActionBar,
 } from "#app-shell/client"
-
-import { SHELL_PREVIEW_HREF } from "../fixtures/preview-href.shared"
 import {
   AppShellPreviewCommandPalette,
   AppShellPreviewCommandSearch,
-} from "./command-search.client"
-import { AppShellPreviewOperationalScope } from "./operational-scope.client"
-import { AppShellPreviewPolicyDisc } from "./policy-disc.client"
-import { AppShellPreviewContent } from "./preview-content"
-import { AppShellPreviewUtilityBarRight } from "./utility-bar-right.client"
+} from "#components2/dev/app-shell-preview/command-search.client"
+import { AppShellPreviewOperationalScope } from "#components2/dev/app-shell-preview/operational-scope.client"
+import { AppShellPreviewPolicyDisc } from "#components2/dev/app-shell-preview/policy-disc.client"
+import { AppShellPreviewUtilityBarRight } from "#components2/dev/app-shell-preview/utility-bar-right.client"
+
+import { redirectIfProductionDevRoute } from "../data/dev-route-gate.server"
+import { SHELL_PREVIEW_HREF } from "../schemas/dev-paths.shared"
+import { DevShellPreviewContent } from "./dev-shell-preview-content.server"
 
 const SUB_RAIL: AppShellPrimaryLeftRailConfig = {
   storageKey: "dev-shell-preview-sub-rail",
@@ -98,12 +101,32 @@ const SUB_RAIL: AppShellPrimaryLeftRailConfig = {
   },
 }
 
-export default async function AppShellPreviewPage({
+function ShellPreviewFallback() {
+  return (
+    <div
+      className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground"
+      aria-busy="true"
+      aria-live="polite"
+    >
+      Loading shell preview…
+    </div>
+  )
+}
+
+export default function DevShellPreviewPage(
+  props: PageProps<"/[locale]/dev/shell-preview">
+) {
+  return (
+    <Suspense fallback={<ShellPreviewFallback />}>
+      <DevShellPreviewPageInner {...props} />
+    </Suspense>
+  )
+}
+
+async function DevShellPreviewPageInner({
   params,
 }: PageProps<"/[locale]/dev/shell-preview">) {
-  if (process.env.NODE_ENV !== "development") {
-    redirect("/")
-  }
+  redirectIfProductionDevRoute()
 
   const { locale: localeRaw } = await params
   const locale = ensureAppLocale(localeRaw)
@@ -268,7 +291,7 @@ export default async function AppShellPreviewPage({
           ]}
           headerActions={<CrudSapActionBar />}
         >
-          <AppShellPreviewContent />
+          <DevShellPreviewContent />
         </AppShellSurface>
       </AppSubLayout>
     </AppShell>

@@ -3,7 +3,7 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { GALLERY_EMPTY } from "#components2/dev/metadata-renderer-gallery/gallery-fixtures"
+import { GALLERY_EMPTY } from "#features/dev"
 import { EmptyRenderer } from "#components2/metadata/renderers/empty.renderer"
 
 describe("EmptyRenderer", () => {

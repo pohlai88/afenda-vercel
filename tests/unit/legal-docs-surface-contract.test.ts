@@ -105,8 +105,8 @@ describe("Layer 2 orchestrator contract", () => {
     )
     expect(content).toContain("resolveLegalDocsSlug")
     expect(content).toContain("notFound()")
-    expect(content).toContain("LegalDocsTrustPage")
-    expect(content).toContain("LegalDocsStatusPage")
+    expect(content).toContain("LegalDocsTrustPage locale={locale}")
+    expect(content).toContain("LegalDocsStatusPage locale={locale}")
     expect(content).toContain("LegalDocsDeclarationPage")
     expect(content).not.toContain("getCachedOpenStatusPublicSnapshot")
   })
@@ -136,6 +136,26 @@ describe("Layer 3 legal-docs UI contract", () => {
     expect(content).toContain("DeclarationShell")
     expect(content).toContain("#features/legal-docs")
     expect(content).not.toContain("getCachedOpenStatusPublicSnapshot")
+  })
+
+  it("legal-docs shells avoid next-intl Link (cache-safe locale hrefs)", () => {
+    for (const file of [
+      "declaration-shell.tsx",
+      "trust-control-surface.tsx",
+      "status-control-surface.tsx",
+    ]) {
+      const content = readLegalDocsUiComponent(file)
+      expect(content).toContain("LegalDocsLocaleLink")
+      expect(content).not.toContain("#i18n/navigation")
+    }
+  })
+
+  it("LegalDocsDeclarationPage passes locale into cached DeclarationShell", () => {
+    const content = readLegalDocsFeatureComponent(
+      "legal-docs-declaration-page.server.tsx"
+    )
+    expect(content).toContain('"use cache"')
+    expect(content).toContain("locale={locale}")
   })
 
   it("legal-docs UI barrel exports presentation surfaces", () => {

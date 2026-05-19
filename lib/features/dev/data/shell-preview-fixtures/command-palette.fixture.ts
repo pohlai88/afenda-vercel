@@ -5,7 +5,7 @@ import type {
   AppShellCommandPaletteSection,
 } from "#app-shell/client"
 
-import { SHELL_PREVIEW_HREF } from "./preview-href.shared"
+import { SHELL_PREVIEW_HREF } from "../../schemas/dev-paths.shared"
 
 export const SHELL_PREVIEW_COMMAND_SECTIONS: AppShellCommandPaletteSection[] = [
   {

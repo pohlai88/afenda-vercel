@@ -1,60 +1,40 @@
+import "server-only"
+
 import type { Route } from "next"
-import { headers } from "next/headers"
 import { getTranslations } from "next-intl/server"
 import { redirect } from "next/navigation"
 
-import { ConsoleBootstrapForm } from "#components2/console/console-bootstrap-form"
-import { ConsolePendingInvites } from "#components2/console/console-pending-invites"
+import { ConsoleBootstrapForm } from "#components2/console/console-bootstrap-form.client"
 import { AfendaBrandLockup } from "#components2/afenda-brand"
 import { Button } from "#components2/ui/button"
 import { organizationNexusPath } from "#features/nexus"
 import { prepareOrganizationSlugAction } from "#features/org-admin"
-import { listUserOrganizationsForSwitcher } from "#features/org-admin/server"
-import { auth } from "#lib/auth"
-import type { AppLocale } from "#lib/i18n/locales.shared"
-import { toLocalePath } from "#lib/i18n/locales.shared"
-import { requireSignedInSession } from "#lib/auth"
+import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { Link } from "#i18n/navigation"
 
-type Props = { locale: AppLocale }
+import { resolveConsoleOrgContext } from "../data/console-org-context.server"
+import { ConsolePendingInvitesSection } from "./console-pending-invites-section.server"
+
+type Props = {
+  params: Promise<{ locale: string }>
+}
 
 /**
  * Tier B: org membership list + single-org shortcut redirect + no-org loading bay
- * (pending invites + first-org bootstrap). Streams behind Suspense in `console/page.tsx`.
+ * (pending invites + first-org bootstrap). Streams behind Suspense in console/page.tsx.
  */
-export async function ConsoleOrgListSlot({ locale }: Props) {
-  const session = await requireSignedInSession()
-  const [orgs, authSession] = await Promise.all([
-    listUserOrganizationsForSwitcher(session.userId),
-    auth.getSession({ fetchOptions: { headers: await headers() } }),
-  ])
+export default async function ConsoleOrgListPage({ params }: Props) {
+  const { locale: localeRaw } = await params
+  const locale = ensureAppLocale(localeRaw)
+  const context = await resolveConsoleOrgContext(locale)
 
-  const activeOrganizationId =
-    (
-      authSession.data?.session as {
-        activeOrganizationId?: string | null
-      } | null
-    )?.activeOrganizationId ?? null
-  const activeOrganization =
-    orgs.find((org) => org.id === activeOrganizationId) ?? null
-
-  if (activeOrganization) {
-    redirect(
-      toLocalePath(
-        locale,
-        organizationNexusPath(activeOrganization.slug)
-      ) as Route
-    )
-  }
-
-  if (orgs.length === 1 && orgs[0]) {
-    // Single-org shortcut → Nexus root (operational origin field, not /dashboard).
-    redirect(toLocalePath(locale, organizationNexusPath(orgs[0].slug)) as Route)
+  if (context.kind === "redirect") {
+    redirect(context.href as Route)
   }
 
   const t = await getTranslations("Console")
 
-  if (orgs.length === 0) {
+  if (context.kind === "no-orgs") {
     return (
       <div className="flex flex-1 flex-col items-center px-4 py-16">
         <div className="w-full max-w-xl space-y-10">
@@ -64,7 +44,7 @@ export async function ConsoleOrgListSlot({ locale }: Props) {
               {t("subtitleNoOrgs")}
             </p>
           </div>
-          <ConsolePendingInvites userEmail={session.user.email} />
+          <ConsolePendingInvitesSection userEmail={context.session.email} />
           <ConsoleBootstrapForm
             prepareSlugAction={prepareOrganizationSlugAction}
           />
@@ -84,7 +64,7 @@ export async function ConsoleOrgListSlot({ locale }: Props) {
         <section aria-label={t("orgsLabel")}>
           <h1 className="mb-4 text-lg font-semibold">{t("orgsLabel")}</h1>
           <ul className="space-y-3">
-            {orgs.map((org) => (
+            {context.orgs.map((org) => (
               <li
                 key={org.id}
                 className="flex items-center justify-between rounded-xl border border-border/80 bg-card px-5 py-4 shadow-elevation-1"

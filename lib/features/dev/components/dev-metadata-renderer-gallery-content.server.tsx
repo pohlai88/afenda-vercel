@@ -1,11 +1,14 @@
+import "server-only"
+
 import type { Route } from "next"
 import Link from "next/link"
 
-import { SHELL_PREVIEW_HREF } from "../fixtures/preview-href.shared"
-import { GALLERY_SCENARIOS } from "./gallery-scenarios"
-import { GalleryPreviewFrame } from "./gallery-preview-frame.client"
+import { GalleryPreviewFrame } from "#components2/dev/metadata-renderer-gallery/gallery-preview-frame.client"
 
-export function MetadataRendererGalleryContent() {
+import { GALLERY_SCENARIOS } from "../data/gallery-scenarios"
+import { SHELL_PREVIEW_HREF } from "../schemas/dev-paths.shared"
+
+export function DevMetadataRendererGalleryContent() {
   return (
     <div className="flex flex-col gap-8 p-6">
       <header className="flex flex-col gap-2">

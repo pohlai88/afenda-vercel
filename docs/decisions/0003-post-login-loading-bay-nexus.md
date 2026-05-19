@@ -8,7 +8,7 @@
 | **Amended** | **2026-05-11** — With-org bay mounts **`WorkbenchShell`** (ADR-0005); **"Nexus Field"** retired — use **Nexus** for `/nexus` surface; non-goals clarify console does not mount full org shell. |
 | **Supersedes** | Prior assumption that org bootstrap lives at a dedicated `/onboarding` gate route before any operational surface. |
 | **Does not supersede** | **ADR-0001** (Spatial OS L1–L4, materials, command pipeline target). **locale-first routing**, **tenant/session authority**, **`proxy.ts` narrow gate**, **Server Actions**, **IAM audit**, **`AGENTS.md` §6 import boundaries**. |
-| **Implements in code** | `/{locale}/console` (no-org loading bay), `/{locale}/o/{orgSlug}/nexus` (with-org Nexus), `next.config.ts` redirect `/:locale/onboarding` → `/:locale/console`, `lib/auth/callback-path.ts`, `lib/auth/auth-status-copy.ts`, `components/console/console-bootstrap-form.tsx`, `components/console/console-pending-invites.tsx` |
+| **Implements in code** | `/{locale}/console` (no-org loading bay), `/{locale}/o/{orgSlug}/nexus` (with-org Nexus), `next.config.ts` redirect `/:locale/onboarding` → `/:locale/console`, `lib/auth/callback-path.ts`, `lib/auth/auth-status-copy.ts`, `lib/features/console/` (org context + page orchestrators), `components2/console/console-bootstrap-form.client.tsx` |
 | **Related rules** | `.cursor/rules/i18n-directory.mdc` · `.cursor/rules/nextjs-best-practices.mdc` §2 (Tier A/B) · ADR-0001 §3 (layer roles) · ADR-0005 (Workbench shell) |
 
 ---
@@ -42,7 +42,7 @@ Spatial OS chrome (L1 utility bar, L4 dock target, command layer) remains mounte
 
 Permanent redirect **`/:locale/onboarding` → `/:locale/console`** in `next.config.ts` (Next.js `redirects` — evaluated before `proxy.ts`). Bookmarks and external links keep working.
 
-The IAM route tree `app/[locale]/(iam)/onboarding/**` is **removed**; bootstrap UI lives under `components/console/`.
+The IAM route tree `app/[locale]/(iam)/onboarding/**` is **removed**; bootstrap UI lives under `lib/features/console/` + `components2/console/`.
 
 ### 2.4 Relationship to ADR-0001 (Spatial OS shell)
 

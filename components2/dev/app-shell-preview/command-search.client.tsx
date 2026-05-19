@@ -5,7 +5,7 @@ import {
   AppShellUtilityBarCommandSearchTrigger,
 } from "#app-shell/client"
 
-import { SHELL_PREVIEW_COMMAND_PALETTE_PROPS } from "../fixtures/command-palette.fixture"
+import { SHELL_PREVIEW_COMMAND_PALETTE_PROPS } from "#features/dev/client"
 
 const SEP = <div aria-hidden className="h-4 w-px shrink-0 bg-border/40" />
 

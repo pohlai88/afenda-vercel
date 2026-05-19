@@ -5,35 +5,20 @@ import { z } from "zod"
 
 import {
   auth,
-  getOrgTenantContext,
   requireAuthShellSignedInSession,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
-import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
-import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
-import {
-  toLocaleOrgIamProfileRevalidatePattern,
-  toLocalePath,
-} from "#lib/i18n/locales.shared"
-import { organizationIamProfilePath } from "#lib/org-apps-module-paths"
+import { toLocaleOrgIamProfileRevalidatePattern } from "#lib/i18n/locales.shared"
+
+import { iamProfileReturnPath } from "../data/iam-profile-return-path.server"
 
 export type IamProfileActionResult =
   | { ok: true }
   | { ok: false; error: string }
 
-async function identityReturnPath(): Promise<string> {
-  const locale = await getRequestAppLocale()
-  const { organizationId } = await getOrgTenantContext()
-  const orgSlug = await getOrganizationSlugById(organizationId)
-  if (!orgSlug) {
-    return toLocalePath(locale, "/console")
-  }
-  return toLocalePath(locale, organizationIamProfilePath(orgSlug, "identity"))
-}
-
 export async function sendVerificationEmailAction(): Promise<IamProfileActionResult> {
   const session = await requireAuthShellSignedInSession()
-  const callbackURL = await identityReturnPath()
+  const callbackURL = await iamProfileReturnPath("identity")
 
   const { error } = await auth.sendVerificationEmail({
     email: session.user.email,

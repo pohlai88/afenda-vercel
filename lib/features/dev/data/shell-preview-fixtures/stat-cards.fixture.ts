@@ -1,7 +1,5 @@
-import {
-  assertGovernedSurfaceInput,
-  statCardConfigurationSchema,
-} from "#features/governed-surface"
+import { assertGovernedSurfaceInput } from "#features/governed-surface/schemas/dev-assert.shared"
+import { statCardConfigurationSchema } from "#features/governed-surface/schemas/stat-card.schema"
 
 export const SHELL_PREVIEW_STAT_CARDS = assertGovernedSurfaceInput(
   statCardConfigurationSchema,

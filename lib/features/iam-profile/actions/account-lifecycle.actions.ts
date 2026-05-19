@@ -5,16 +5,14 @@ import { z } from "zod"
 
 import {
   auth,
-  getOrgTenantContext,
   requireAuthShellSignedInSession,
   requireRecentAuthStepUp,
   writeIamAuditEventFromNextHeaders,
 } from "#lib/auth"
-import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
 import { toLocalePath } from "#lib/i18n/locales.shared"
-import { organizationIamProfilePath } from "#lib/org-apps-module-paths"
 
+import { iamProfileReturnPath } from "../data/iam-profile-return-path.server"
 import type { IamProfileActionResult } from "./identity.actions"
 
 const confirmEmailSchema = z.string().trim().email().max(320)
@@ -28,13 +26,7 @@ export async function deleteAccountAction(
   }
 
   const session = await requireAuthShellSignedInSession()
-  const locale = await getRequestAppLocale()
-  const { organizationId } = await getOrgTenantContext()
-  const orgSlug = await getOrganizationSlugById(organizationId)
-  const returnTo = orgSlug
-    ? toLocalePath(locale, organizationIamProfilePath(orgSlug))
-    : toLocalePath(locale, "/console")
-
+  const returnTo = await iamProfileReturnPath()
   await requireRecentAuthStepUp({ returnTo })
 
   if (parsed.data.toLowerCase() !== session.user.email.trim().toLowerCase()) {
@@ -55,5 +47,6 @@ export async function deleteAccountAction(
     return { ok: false, error: error.message ?? "Could not delete account." }
   }
 
+  const locale = await getRequestAppLocale()
   redirect(toLocalePath(locale, "/sign-in"))
 }

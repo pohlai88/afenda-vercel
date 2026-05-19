@@ -104,7 +104,7 @@ export function IamProfileIdentityProvider({
       callbackURL: toLocalePath(locale, props.identityPath as never),
     })
     if (error) {
-      setErr(error.message ?? "Could not link provider")
+      setErr(error.message ?? t("linkFailed"))
     }
   }
 
