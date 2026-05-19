@@ -92,6 +92,7 @@
     "node_modules",
     ".source",
     ".next/dev",
+    ".next-ui/dev",
     "tests",
     "scripts",
     "turbo",
