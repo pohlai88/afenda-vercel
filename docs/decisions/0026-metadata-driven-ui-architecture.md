@@ -32,7 +32,8 @@ Afenda is **not** a low-code platform. It is a **governed, server-first declarat
 
 - **Nexus Field — handcrafted:** orientation band, truth-map surface grid, Lynx summon chrome ([ADR-0038](./0038-nexus-field-governed-composition.md)).
 - **Nexus Field — governed composition:** operational pressure, priority lanes, recent resolutions (`governed:list-surface` builders in `#features/nexus`).
-- **Fully handcrafted:** Orbit, Lynx machine layer, specialized timelines.
+- **Orbit — hybrid (ADR-0006):** governed **Pattern B** list tables for sessions, links, and signals-only surfaces; **handcrafted** card lists for queue/triage/today/timeline (batch selection, operational badges, focus links). Capture, detail panels, evidence graph, and timeline chrome remain handcrafted.
+- **Fully handcrafted:** Lynx machine layer, specialized timeline grouping chrome.
 
 ---
 

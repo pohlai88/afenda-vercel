@@ -95,6 +95,8 @@ export async function applyFwaOnBehalfAction(
     evidenceDocumentId: formData.get("evidenceDocumentId") || null,
     expectedWeeklyHours: formData.get("expectedWeeklyHours") || undefined,
     reviewDate: formData.get("reviewDate") || null,
+    eligibilityExceptionReason:
+      formData.get("eligibilityExceptionReason") || null,
   })
 
   if (!parsed.success) {
@@ -169,6 +171,7 @@ export async function applyFwaOnBehalfAction(
       : null,
     reviewDate: data.reviewDate ?? null,
     initiatedBy,
+    eligibilityExceptionReason: data.eligibilityExceptionReason ?? null,
   })
 }
 

@@ -8,6 +8,7 @@ export type LeaveRequestStateValue =
   | "submitted"
   | "approved"
   | "rejected"
+  | "returned"
   | "cancelled"
   | "taken"
 

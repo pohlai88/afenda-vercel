@@ -117,6 +117,27 @@ export type LeaveRejectDecisionValues = z.infer<
   typeof leaveRejectDecisionSchema
 >
 
+export const leaveReturnDecisionSchema = leaveApprovalDecisionSchema.extend({
+  returnedReason: z
+    .string()
+    .min(1, "Return reason is required")
+    .max(1000, "Reason must be at most 1000 characters"),
+})
+
+export type LeaveReturnDecisionValues = z.infer<typeof leaveReturnDecisionSchema>
+
+export const leaveClarificationDecisionSchema =
+  leaveApprovalDecisionSchema.extend({
+    clarificationNote: z
+      .string()
+      .min(1, "Clarification request is required")
+      .max(1000, "Note must be at most 1000 characters"),
+  })
+
+export type LeaveClarificationDecisionValues = z.infer<
+  typeof leaveClarificationDecisionSchema
+>
+
 export const leaveBalanceAdjustmentKinds = [
   "opening_balance",
   "manual_correction",

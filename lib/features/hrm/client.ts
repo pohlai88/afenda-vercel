@@ -139,16 +139,34 @@ export {
 export {
   approveLeaveAction,
   rejectLeaveAction,
+  returnLeaveAction,
+  requestLeaveClarificationAction,
 } from "./time-attendance/leave-attendance-management/actions/leave-approval.actions"
+export {
+  exportLeaveRequestsReportAction,
+  exportAttendanceSummaryReportAction,
+} from "./time-attendance/leave-attendance-management/actions/lam-report.actions"
+export { approveAttendanceCorrectionAction } from "./time-attendance/leave-attendance-management/actions/attendance-correction-approval.actions"
 export {
   approveFwaRequestAction,
   rejectFwaRequestAction,
   returnFwaRequestAction,
+  renewFwaRequestAction,
+  suspendFwaRequestAction,
+  terminateFwaRequestAction,
   requestOwnFwaAction,
   applyFwaOnBehalfAction,
   seedDefaultFwaTypesAction,
   createFwaArrangementTypeAction,
+  registerFwaEvidenceDocumentAction,
+  exportFwaOperationalReportCsvAction,
+  createFwaEligibilityRuleAction,
 } from "./time-attendance/flexible-work-arrangement-tracking/client"
+export {
+  exportAatAnalyticsReportCsvAction,
+  updateAatThresholdAction,
+} from "./time-attendance/absence-analytics-trends/client"
+export type { UpdateAatThresholdFormState } from "./time-attendance/absence-analytics-trends/client"
 export {
   createCompensationCycleAction,
   syncCompensationCycleParticipantsAction,
@@ -229,7 +247,9 @@ export type {
   FwaApprovalFormState,
   SeedFwaTypesFormState,
   CreateFwaTypeFormState,
+  CreateFwaEligibilityRuleFormState,
 } from "./types"
+export type { RegisterFwaEvidenceFormState } from "./time-attendance/flexible-work-arrangement-tracking/client"
 export {
   createLeaveTypeAction,
   updateLeaveTypeAction,

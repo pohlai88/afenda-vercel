@@ -1,6 +1,10 @@
-import { getTranslations } from "next-intl/server"
+import { getFormatter, getTranslations } from "next-intl/server"
 
-import { GovernedPatternCListSection } from "#features/governed-surface"
+import {
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import type { EmptyState } from "#features/governed-surface/schemas/list-surface.schema"
 import {
   Card,
@@ -11,14 +15,21 @@ import {
 } from "#components2/ui/card"
 
 import {
+  fwaArrangementKindMessageKey,
+  formatFwaDateRange,
+} from "../data/fwa-display.shared"
+import {
   buildFwaActiveListSurfaceConfiguration,
+  buildFwaActiveManageListSurfaceConfiguration,
   buildFwaArrangementTypesListSurfaceConfiguration,
-} from "../data/fwa-list-surface.server"
+} from "../data/fwa-surface-builders.server"
+import { FwaLifecycleForms } from "./fwa-lifecycle-forms.client"
 import { FWA_LIST_SURFACE_IDS } from "../data/fwa-surface-metadata.shared"
 import type {
   FwaArrangementTypeChoiceRow,
   OrgFwaRequestRow,
-} from "../data/fwa.queries.server"
+} from "../data/fwa.types.shared"
+import type { HrmFwaArrangementKind } from "../schemas/fwa-workflow-state.shared"
 import { FwaCreateTypeDialog } from "./fwa-create-type-dialog"
 import { FwaSeedTypesButton } from "./fwa-seed-types-button"
 
@@ -93,6 +104,11 @@ export async function FwaArrangementTypesSection({
           colLabel: t("colLabel"),
           colKind: t("colKind"),
           colRemoteRequired: t("colRemoteRequired"),
+          kindLabelFor: (kind) =>
+            t(
+              fwaArrangementKindMessageKey(kind as HrmFwaArrangementKind)
+            ),
+          yesNo: (value) => (value ? t("yes") : t("no")),
         }
       )}
       headerSlot={canManage ? <FwaCreateTypeDialog /> : undefined}
@@ -108,6 +124,7 @@ export async function FwaMyArrangementsSection({
   loadError?: FwaListLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.flexibleWork")
+  const format = await getFormatter()
 
   return (
     <GovernedPatternCListSection
@@ -122,6 +139,8 @@ export async function FwaMyArrangementsSection({
         colDates: t("colDates"),
         colState: t("colState"),
         colRequested: t("colRequested"),
+        formatRequestedAt: (date) =>
+          format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
         stateLabelFor: (state) =>
           t(`stateLabels.${state}` as "stateLabels.active"),
       })}
@@ -137,28 +156,75 @@ export async function FwaMyArrangementsSection({
 export async function FwaActiveArrangementsSection({
   rows,
   loadError,
+  canManageLifecycle = false,
 }: {
   rows: readonly OrgFwaRequestRow[]
   loadError?: FwaListLoadError
+  canManageLifecycle?: boolean
 }) {
   const t = await getTranslations("Dashboard.Hrm.flexibleWork")
+  const format = await getFormatter()
+
+  const copy = {
+    columnsId: FWA_LIST_SURFACE_IDS.active,
+    empty: t("activeEmpty"),
+    colEmployee: t("colEmployee"),
+    colType: t("colType"),
+    colDates: t("colDates"),
+    colState: t("colState"),
+    colRequested: t("colRequested"),
+    formatRequestedAt: (date: Date) =>
+      format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
+    stateLabelFor: (state: string) =>
+      t(`stateLabels.${state}` as "stateLabels.active"),
+  }
+
+  const listConfiguration = canManageLifecycle
+    ? buildFwaActiveManageListSurfaceConfiguration(rows, copy, {
+        canManageLifecycle: true,
+        manageLabel: t("manageLifecycleAction"),
+      })
+    : buildFwaActiveListSurfaceConfiguration(rows, copy)
+
+  const rowById = new Map(rows.map((row) => [row.id, row]))
 
   return (
     <GovernedPatternCListSection
       title={t("activeTitle")}
       description={t("activeDescription")}
       surfaceKey="hrm:flexible-work:active"
-      listConfiguration={buildFwaActiveListSurfaceConfiguration(rows, {
-        columnsId: FWA_LIST_SURFACE_IDS.active,
-        empty: t("activeEmpty"),
-        colEmployee: t("colEmployee"),
-        colType: t("colType"),
-        colDates: t("colDates"),
-        colState: t("colState"),
-        colRequested: t("colRequested"),
-        stateLabelFor: (state) =>
-          t(`stateLabels.${state}` as "stateLabels.active"),
-      })}
+      listConfiguration={listConfiguration}
+      trailingColumn={
+        canManageLifecycle
+          ? {
+              header: t("colActions"),
+              render: (surfaceRow) => {
+                const row = rowById.get(surfaceRow.id)
+                if (
+                  !row ||
+                  !isListSurfaceTrailingActionRenderable(
+                    surfaceRow.trailingAction
+                  )
+                ) {
+                  return null
+                }
+                return (
+                  <GovernedTrailingActionSlot
+                    trailingAction={surfaceRow.trailingAction}
+                  >
+                    <FwaLifecycleForms
+                      requestId={row.id}
+                      dateRange={formatFwaDateRange({
+                        startDate: row.startDate,
+                        endDate: row.endDate,
+                      })}
+                    />
+                  </GovernedTrailingActionSlot>
+                )
+              },
+            }
+          : undefined
+      }
       loadError={
         loadError
           ? { variant: loadError.variant ?? "error", title: loadError.title }

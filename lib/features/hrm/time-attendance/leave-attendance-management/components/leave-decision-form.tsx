@@ -19,7 +19,9 @@ import {
   type LeaveApprovalFormState,
 } from "#features/hrm/client"
 
+import { LeaveClarificationForm } from "./leave-clarification-form"
 import { LeaveRejectForm } from "./leave-reject-form"
+import { LeaveReturnForm } from "./leave-return-form"
 
 type LeaveDecisionFormsProps = {
   requestId: string
@@ -43,8 +45,10 @@ export function LeaveDecisionForms({
   dateRange,
 }: LeaveDecisionFormsProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <ApproveLeaveButton requestId={requestId} dateRange={dateRange} />
+      <ReturnLeaveDialog requestId={requestId} dateRange={dateRange} />
+      <ClarifyLeaveDialog requestId={requestId} dateRange={dateRange} />
       <RejectLeaveDialog requestId={requestId} dateRange={dateRange} />
     </div>
   )
@@ -92,6 +96,78 @@ function ApproveLeaveButton({
         <span className="text-xs text-destructive">{error.requestId}</span>
       ) : null}
     </form>
+  )
+}
+
+function ReturnLeaveDialog({
+  requestId,
+  dateRange,
+}: {
+  requestId: string
+  dateRange: string
+}) {
+  const t = useTranslations("Dashboard.Hrm.leave")
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          size="sm"
+          variant="outline"
+          type="button"
+          aria-label={t("returnAria", { dates: dateRange })}
+        >
+          {t("return")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("return")}</DialogTitle>
+          <DialogDescription>{dateRange}</DialogDescription>
+        </DialogHeader>
+        <LeaveReturnForm
+          requestId={requestId}
+          onSuccess={() => setOpen(false)}
+        />
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function ClarifyLeaveDialog({
+  requestId,
+  dateRange,
+}: {
+  requestId: string
+  dateRange: string
+}) {
+  const t = useTranslations("Dashboard.Hrm.leave")
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          size="sm"
+          variant="secondary"
+          type="button"
+          aria-label={t("clarificationAria", { dates: dateRange })}
+        >
+          {t("requestClarification")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("requestClarification")}</DialogTitle>
+          <DialogDescription>{dateRange}</DialogDescription>
+        </DialogHeader>
+        <LeaveClarificationForm
+          requestId={requestId}
+          onSuccess={() => setOpen(false)}
+        />
+      </DialogContent>
+    </Dialog>
   )
 }
 

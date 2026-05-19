@@ -20,8 +20,12 @@ import {
 } from "../data/leave-policy-display.shared"
 
 import { PoliciesLeaveTypesSection } from "./policies-leave-types-section"
+import { PoliciesLeaveBlackoutSection } from "./policies-leave-blackout-section"
+import { PoliciesOrgHolidaysSection } from "./policies-org-holidays-section"
 import { PoliciesSeedMyEa2023Dialog } from "./policies-seed-my-ea-2023-dialog"
+import { PoliciesStatutorySection } from "./policies-statutory-section"
 import { PoliciesTabNav } from "./policies-tab-nav"
+import { PoliciesWorkingPatternSection } from "./policies-working-pattern-section"
 import { LeaveTypeCreateDialog } from "./policies-leave-type-create-dialog"
 
 /**
@@ -133,32 +137,19 @@ export async function PoliciesPage({
       ) : null}
 
       {activeTab === "holidays" ? (
-        <Card size="sm">
-          <CardHeader>
-            <CardTitle>{t("comingSoon.holidaysTitle")}</CardTitle>
-            <CardDescription>{t("comingSoon.holidaysBody")}</CardDescription>
-          </CardHeader>
-        </Card>
+        <PoliciesOrgHolidaysSection isAdmin={isAdmin} />
+      ) : null}
+
+      {activeTab === "blackout" ? (
+        <PoliciesLeaveBlackoutSection isAdmin={isAdmin} />
       ) : null}
 
       {activeTab === "working_pattern" ? (
-        <Card size="sm">
-          <CardHeader>
-            <CardTitle>{t("comingSoon.workingPatternTitle")}</CardTitle>
-            <CardDescription>
-              {t("comingSoon.workingPatternBody")}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <PoliciesWorkingPatternSection orgSlug={orgSlug} />
       ) : null}
 
       {activeTab === "statutory" ? (
-        <Card size="sm">
-          <CardHeader>
-            <CardTitle>{t("comingSoon.statutoryTitle")}</CardTitle>
-            <CardDescription>{t("comingSoon.statutoryBody")}</CardDescription>
-          </CardHeader>
-        </Card>
+        <PoliciesStatutorySection />
       ) : null}
     </div>
   )

@@ -3,6 +3,7 @@
  */
 export const HRM_APPS_CAPABILITY_SEGMENTS = [
   "advances",
+  "absence-analytics",
   "attendance",
   "benefits",
   "bonus-incentives",

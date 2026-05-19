@@ -105,3 +105,32 @@ export async function listActiveFwaScheduleForEmployee(input: {
     expectedMinutes: row.expectedMinutes,
   }))
 }
+
+/** Payroll integration door (HRM-FWA-027). */
+export async function getFwaPayrollScheduleReference(input: {
+  organizationId: string
+  employeeId: string
+  asOfDate: string
+}): Promise<{
+  requestId: string
+  expectedWeeklyMinutes: number | null
+  arrangementTypeId: string
+} | null> {
+  const active = await resolveActiveFwaForEmployee(input)
+  if (!active) return null
+
+  const totalExpectedMinutes = active.patterns.reduce(
+    (sum, row) => sum + (row.expectedMinutes ?? 0),
+    0
+  )
+
+  return {
+    requestId: active.requestId,
+    expectedWeeklyMinutes:
+      totalExpectedMinutes > 0 ? totalExpectedMinutes : null,
+    arrangementTypeId: active.arrangementTypeId,
+  }
+}
+
+/** Overtime Management integration door (HRM-FWA-026) — same schedule reference as payroll. */
+export const getFwaOvertimeScheduleReference = getFwaPayrollScheduleReference

@@ -21,6 +21,7 @@ import {
   buildDefaultSchedulePatternForKind,
   fwaArrangementKindLabel,
 } from "./fwa-display.shared"
+import { validateFwaEmployeeEligibility } from "./fwa-eligibility.server"
 import {
   getFwaArrangementTypeForOrg,
   getFwaEmployeeForOrg,
@@ -43,6 +44,8 @@ export type SubmitFwaRequestInput = {
   expectedWeeklyMinutes: number | null
   reviewDate: string | null
   initiatedBy: "employee" | "manager" | "hr"
+  renewalOfRequestId?: string | null
+  eligibilityExceptionReason?: string | null
 }
 
 export async function submitFwaRequest(
@@ -82,6 +85,28 @@ export async function submitFwaRequest(
     return hrmActionFailure({
       evidenceDocumentId: "Supporting document is required for this type.",
     })
+  }
+
+  const eligibility = await validateFwaEmployeeEligibility({
+    organizationId,
+    arrangementTypeId: input.arrangementTypeId,
+    employee,
+  })
+
+  let usedEligibilityException = false
+  if (!eligibility.eligible) {
+    if (!eligibility.allowException || input.initiatedBy === "employee") {
+      return hrmActionFailure({
+        employeeId: eligibility.reason,
+      })
+    }
+    const exceptionReason = input.eligibilityExceptionReason?.trim()
+    if (!exceptionReason) {
+      return hrmActionFailure({
+        form: "Eligibility exception reason is required for this employee.",
+      })
+    }
+    usedEligibilityException = true
   }
 
   const approvalSnapshot = {
@@ -138,6 +163,7 @@ export async function submitFwaRequest(
       evidenceDocumentId: input.evidenceDocumentId,
       expectedWeeklyMinutes: input.expectedWeeklyMinutes,
       initiatedBy: input.initiatedBy,
+      renewalOfRequestId: input.renewalOfRequestId ?? null,
       state: "submitted",
       currentApprovalId: approvalId,
       createdByUserId: userId,
@@ -179,8 +205,25 @@ export async function submitFwaRequest(
       endDate: input.endDate,
       initiatedBy: input.initiatedBy,
       currentApproverUserId,
+      eligibilityException: usedEligibilityException,
     },
   })
+
+  if (usedEligibilityException) {
+    await writeIamAuditEventFromNextHeaders({
+      action: HRM_FWA_AUDIT.requestException,
+      actorUserId: userId,
+      actorSessionId: sessionId,
+      organizationId,
+      resourceType: "hrm_flexible_work_request",
+      resourceId: requestId,
+      metadata: {
+        employeeId: input.employeeId,
+        arrangementTypeId: input.arrangementTypeId,
+        reason: input.eligibilityExceptionReason,
+      },
+    })
+  }
 
   await writeIamAuditEventFromNextHeaders({
     action: "erp.hrm.approval.request",
@@ -198,6 +241,82 @@ export async function submitFwaRequest(
 
   revalidateFwaSurfaces()
   return { ok: true, requestId }
+}
+
+export async function renewFwaRequest(input: {
+  organizationId: string
+  userId: string
+  sessionId: string | null
+  sourceRequestId: string
+  startDate: string
+  endDate: string | null
+  reason: string
+}): Promise<FwaRequestMutationFormState> {
+  const [source] = await db
+    .select({
+      id: hrmFlexibleWorkRequest.id,
+      employeeId: hrmFlexibleWorkRequest.employeeId,
+      arrangementTypeId: hrmFlexibleWorkRequest.arrangementTypeId,
+      remoteLocation: hrmFlexibleWorkRequest.remoteLocation,
+      evidenceDocumentId: hrmFlexibleWorkRequest.evidenceDocumentId,
+      expectedWeeklyMinutes: hrmFlexibleWorkRequest.expectedWeeklyMinutes,
+      reviewDate: hrmFlexibleWorkRequest.reviewDate,
+      state: hrmFlexibleWorkRequest.state,
+    })
+    .from(hrmFlexibleWorkRequest)
+    .where(
+      and(
+        eq(hrmFlexibleWorkRequest.id, input.sourceRequestId),
+        eq(hrmFlexibleWorkRequest.organizationId, input.organizationId)
+      )
+    )
+    .limit(1)
+
+  if (!source) {
+    return hrmActionFailure({ form: "Arrangement request not found." })
+  }
+  if (source.state !== "active") {
+    return hrmActionFailure({
+      form: "Only active arrangements can be renewed.",
+    })
+  }
+
+  const result = await submitFwaRequest({
+    organizationId: input.organizationId,
+    userId: input.userId,
+    sessionId: input.sessionId,
+    employeeId: source.employeeId,
+    arrangementTypeId: source.arrangementTypeId,
+    startDate: input.startDate,
+    endDate: input.endDate,
+    reason: input.reason,
+    remoteLocation: source.remoteLocation,
+    evidenceDocumentId: source.evidenceDocumentId,
+    expectedWeeklyMinutes: source.expectedWeeklyMinutes,
+    reviewDate: source.reviewDate,
+    initiatedBy: "hr",
+    renewalOfRequestId: source.id,
+  })
+
+  if (!result.ok) {
+    return result
+  }
+
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_FWA_AUDIT.requestRenew,
+    actorUserId: input.userId,
+    actorSessionId: input.sessionId,
+    organizationId: input.organizationId,
+    resourceType: "hrm_flexible_work_request",
+    resourceId: result.requestId,
+    metadata: {
+      renewalOfRequestId: source.id,
+      startDate: input.startDate,
+      endDate: input.endDate,
+    },
+  })
+
+  return result
 }
 
 export async function seedDefaultFwaArrangementTypes(input: {

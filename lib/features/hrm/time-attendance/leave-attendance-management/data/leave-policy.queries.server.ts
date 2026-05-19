@@ -39,6 +39,9 @@ export type LeaveTypeAdminRow = {
   readonly fixedDaysPerYear: number | null
   readonly maxCarryForwardDays: number
   readonly carryForwardExpiryMonths: number | null
+  readonly minNoticeDays: number | null
+  readonly maxConsecutiveDays: number | null
+  readonly requiresAttachment: boolean
   readonly archivedAt: Date | null
   readonly updatedAt: Date
   readonly createdAt: Date
@@ -92,6 +95,9 @@ export async function listAllLeaveTypesForOrg(
       fixedDaysPerYear: hrmLeaveType.fixedDaysPerYear,
       maxCarryForwardDays: hrmLeaveType.maxCarryForwardDays,
       carryForwardExpiryMonths: hrmLeaveType.carryForwardExpiryMonths,
+      minNoticeDays: hrmLeaveType.minNoticeDays,
+      maxConsecutiveDays: hrmLeaveType.maxConsecutiveDays,
+      requiresAttachment: hrmLeaveType.requiresAttachment,
       archivedAt: hrmLeaveType.archivedAt,
       updatedAt: hrmLeaveType.updatedAt,
       createdAt: hrmLeaveType.createdAt,
@@ -127,6 +133,9 @@ export async function getLeaveTypeForOrg(
       fixedDaysPerYear: hrmLeaveType.fixedDaysPerYear,
       maxCarryForwardDays: hrmLeaveType.maxCarryForwardDays,
       carryForwardExpiryMonths: hrmLeaveType.carryForwardExpiryMonths,
+      minNoticeDays: hrmLeaveType.minNoticeDays,
+      maxConsecutiveDays: hrmLeaveType.maxConsecutiveDays,
+      requiresAttachment: hrmLeaveType.requiresAttachment,
       archivedAt: hrmLeaveType.archivedAt,
       updatedAt: hrmLeaveType.updatedAt,
       createdAt: hrmLeaveType.createdAt,

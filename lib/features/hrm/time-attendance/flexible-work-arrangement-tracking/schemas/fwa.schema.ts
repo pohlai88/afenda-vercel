@@ -77,6 +77,7 @@ export const submitFwaRequestFormSchema = z
       .regex(/^\d{4}-\d{2}-\d{2}$/)
       .optional()
       .nullable(),
+    eligibilityExceptionReason: z.string().trim().optional().nullable(),
   })
   .superRefine((data, ctx) => {
     if (data.endDate && data.endDate < data.startDate) {
@@ -119,3 +120,63 @@ export const createFwaArrangementTypeFormSchema = z.object({
 })
 
 export const seedFwaTypesFormSchema = z.object({})
+
+export const fwaSuspendDecisionSchema = z.object({
+  requestId: z.string().uuid(),
+  suspensionReason: z
+    .string()
+    .trim()
+    .min(1, "Suspension reason is required."),
+})
+
+export const fwaTerminateDecisionSchema = z.object({
+  requestId: z.string().uuid(),
+  terminationReason: z
+    .string()
+    .trim()
+    .min(1, "Termination reason is required."),
+})
+
+export const registerFwaEvidenceFormSchema = z.object({
+  employeeId: z.string().uuid(),
+  blobUrl: z.string().url().startsWith("https://"),
+  payloadHash: z.string().regex(/^[a-f0-9]{64}$/),
+  mimeType: z.string().min(3).max(128),
+  sizeBytes: z.coerce.number().int().min(1).max(80 * 1024 * 1024),
+  title: z.string().trim().min(1).max(512),
+})
+
+export const createFwaEligibilityRuleFormSchema = z.object({
+  arrangementTypeId: z.string().uuid(),
+  departmentId: z.string().uuid().optional().nullable(),
+  jobGradeId: z.string().uuid().optional().nullable(),
+  employmentType: z.string().trim().optional().nullable(),
+  legalEntityCode: z.string().trim().optional().nullable(),
+  countryCode: z.string().trim().optional().nullable(),
+  workLocationCode: z.string().trim().optional().nullable(),
+  positionId: z.string().uuid().optional().nullable(),
+  workerCategory: z.string().trim().optional().nullable(),
+  policyGroupCode: z.string().trim().optional().nullable(),
+  allowException: z.coerce.boolean().optional(),
+})
+
+export const fwaRenewDecisionSchema = z
+  .object({
+    requestId: z.string().uuid(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    endDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional()
+      .nullable(),
+    reason: z.string().trim().min(1, "Reason is required."),
+  })
+  .superRefine((data, ctx) => {
+    if (data.endDate && data.endDate < data.startDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End date must be on or after start date.",
+        path: ["endDate"],
+      })
+    }
+  })

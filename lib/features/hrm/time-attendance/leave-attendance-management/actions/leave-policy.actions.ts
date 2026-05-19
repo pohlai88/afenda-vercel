@@ -18,6 +18,7 @@ import {
   createLeaveTypeFormSchema,
   updateLeaveTypeFormSchema,
 } from "../schemas/leave-policy.schema"
+import { HRM_LAM_AUDIT } from "../hrm-lam.contract"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   LeavePolicyMutationFormState,
@@ -92,6 +93,9 @@ export async function createLeaveTypeAction(
       fixedDaysPerYear: data.fixedDaysPerYear,
       maxCarryForwardDays: data.maxCarryForwardDays,
       carryForwardExpiryMonths: data.carryForwardExpiryMonths,
+      minNoticeDays: data.minNoticeDays,
+      maxConsecutiveDays: data.maxConsecutiveDays,
+      requiresAttachment: data.requiresAttachment,
       createdByUserId: userId,
       updatedByUserId: userId,
     })
@@ -154,6 +158,9 @@ export async function updateLeaveTypeAction(
     fixedDaysPerYear: formData.get("fixedDaysPerYear") || null,
     maxCarryForwardDays: formData.get("maxCarryForwardDays") ?? "0",
     carryForwardExpiryMonths: formData.get("carryForwardExpiryMonths") || null,
+    minNoticeDays: formData.get("minNoticeDays") || null,
+    maxConsecutiveDays: formData.get("maxConsecutiveDays") || null,
+    requiresAttachment: formData.get("requiresAttachment") === "true",
   })
 
   if (!parsed.success) {
@@ -194,6 +201,9 @@ export async function updateLeaveTypeAction(
       fixedDaysPerYear: data.fixedDaysPerYear,
       maxCarryForwardDays: data.maxCarryForwardDays,
       carryForwardExpiryMonths: data.carryForwardExpiryMonths,
+      minNoticeDays: data.minNoticeDays,
+      maxConsecutiveDays: data.maxConsecutiveDays,
+      requiresAttachment: data.requiresAttachment,
       updatedAt: new Date(),
       updatedByUserId: userId,
     })
@@ -205,7 +215,7 @@ export async function updateLeaveTypeAction(
     )
 
   await writeIamAuditEventFromNextHeaders({
-    action: "erp.hrm.leave_type.update",
+    action: HRM_LAM_AUDIT.leaveType.update,
     actorUserId: userId,
     actorSessionId: sessionId,
     organizationId,

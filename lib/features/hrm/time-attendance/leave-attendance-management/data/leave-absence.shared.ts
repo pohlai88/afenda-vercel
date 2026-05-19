@@ -24,6 +24,11 @@ export type LeaveRequestPolicyInput = {
   readonly requiresAttachment?: boolean | null
   readonly allowNegativeBalance?: boolean | null
   readonly minServiceDays?: number | null
+  readonly blackoutPeriods?: readonly {
+    readonly name: string
+    readonly startDate: string
+    readonly endDate: string
+  }[]
 }
 
 export type LeavePolicyIssueCode =
@@ -32,6 +37,7 @@ export type LeavePolicyIssueCode =
   | "insufficient_balance"
   | "minimum_notice"
   | "max_consecutive_days"
+  | "blackout_dates"
   | "attachment_required"
   | "gender_ineligible"
   | "service_ineligible"
@@ -174,6 +180,20 @@ export function validateLeavePolicyForRequest(
       field: "durationDays",
       message: `Leave cannot exceed ${maxConsecutiveDays} consecutive day(s).`,
     })
+  }
+
+  for (const blackout of input.blackoutPeriods ?? []) {
+    if (
+      input.startDate <= blackout.endDate &&
+      input.endDate >= blackout.startDate
+    ) {
+      issues.push({
+        code: "blackout_dates",
+        field: "startDate",
+        message: `Leave overlaps blackout period "${blackout.name}" (${blackout.startDate} – ${blackout.endDate}).`,
+      })
+      break
+    }
   }
 
   if ((input.requiresAttachment ?? false) && !input.evidenceDocumentId) {

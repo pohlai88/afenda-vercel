@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useId, useRef } from "react"
+import { useActionState, useEffect, useId, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
@@ -18,9 +18,11 @@ import {
 import type {
   FwaArrangementTypeChoiceRow,
   FwaEmployeeChoiceRow,
-} from "../data/fwa.queries.server"
+} from "../data/fwa.types.shared"
+import { FwaEvidenceUploadField } from "./fwa-evidence-upload.client"
 
 type FwaRequestFormProps = {
+  organizationId: string
   employees: FwaEmployeeChoiceRow[]
   arrangementTypes: FwaArrangementTypeChoiceRow[]
   mode: "self" | "on_behalf"
@@ -32,6 +34,7 @@ const SELECT_CLASS =
   "h-9 w-full rounded border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
 
 export function FwaRequestForm({
+  organizationId,
   employees,
   arrangementTypes,
   mode,
@@ -45,6 +48,11 @@ export function FwaRequestForm({
     FormData
   >(action, undefined)
 
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(
+    defaultEmployeeId ?? ""
+  )
+  const [evidenceDocumentId, setEvidenceDocumentId] = useState("")
+
   const employeeId = useId()
   const arrangementTypeId = useId()
   const startDateId = useId()
@@ -53,6 +61,7 @@ export function FwaRequestForm({
   const remoteLocationId = useId()
   const weeklyHoursId = useId()
   const reviewDateId = useId()
+  const exceptionReasonId = useId()
 
   const onSuccessRef = useRef(onSuccess)
   useEffect(() => {
@@ -66,6 +75,12 @@ export function FwaRequestForm({
   }, [state])
 
   const errors = state && !state.ok ? state.errors : null
+  const evidenceEmployeeId =
+    mode === "self"
+      ? (defaultEmployeeId ?? null)
+      : selectedEmployeeId.trim().length > 0
+        ? selectedEmployeeId
+        : null
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -79,6 +94,10 @@ export function FwaRequestForm({
             defaultValue={defaultEmployeeId ?? ""}
             required
             disabled={pending}
+            onChange={(event) => {
+              setSelectedEmployeeId(event.target.value)
+              setEvidenceDocumentId("")
+            }}
           >
             <option value="">{t("fieldEmployeePlaceholder")}</option>
             {employees.map((employee) => (
@@ -177,6 +196,34 @@ export function FwaRequestForm({
         <Input id={reasonId} name="reason" required disabled={pending} />
         {errors?.reason ? <FieldError>{errors.reason}</FieldError> : null}
       </Field>
+
+      {mode === "on_behalf" ? (
+        <Field>
+          <FieldLabel htmlFor={exceptionReasonId}>
+            {t("fieldEligibilityExceptionReason")}
+          </FieldLabel>
+          <Input
+            id={exceptionReasonId}
+            name="eligibilityExceptionReason"
+            disabled={pending}
+            placeholder={t("fieldEligibilityExceptionReasonPlaceholder")}
+          />
+          <p className="text-muted-foreground text-xs">
+            {t("fieldEligibilityExceptionReasonHint")}
+          </p>
+        </Field>
+      ) : null}
+
+      <FwaEvidenceUploadField
+        organizationId={organizationId}
+        employeeId={evidenceEmployeeId}
+        documentId={evidenceDocumentId}
+        onDocumentIdChange={setEvidenceDocumentId}
+        disabled={pending}
+      />
+      {errors?.evidenceDocumentId ? (
+        <FieldError>{errors.evidenceDocumentId}</FieldError>
+      ) : null}
 
       {errors?.form ? (
         <Alert variant="destructive">

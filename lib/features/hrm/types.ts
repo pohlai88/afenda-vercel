@@ -564,6 +564,8 @@ export type LeaveApprovalFormState =
         form?: string
         requestId?: string
         rejectedReason?: string
+        returnedReason?: string
+        clarificationNote?: string
       }
     }
 
@@ -580,6 +582,7 @@ export type FwaRequestMutationFormState =
         reason?: string
         remoteLocation?: string
         evidenceDocumentId?: string
+        eligibilityExceptionReason?: string
       }
     }
 
@@ -604,6 +607,16 @@ export type CreateFwaTypeFormState =
         code?: string
         label?: string
         arrangementKind?: string
+      }
+    }
+
+export type CreateFwaEligibilityRuleFormState =
+  | { ok: true; ruleId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        arrangementTypeId?: string
       }
     }
 

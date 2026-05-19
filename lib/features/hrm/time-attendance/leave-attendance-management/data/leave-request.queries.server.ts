@@ -96,6 +96,9 @@ export type LeaveTypeContextRow = {
   genderRestriction: string | null
   maxCarryForwardDays: number
   carryForwardExpiryMonths: number | null
+  minNoticeDays: number | null
+  maxConsecutiveDays: number | null
+  requiresAttachment: boolean
 }
 
 export type LeaveRequestDetailRow = LeaveRequestRow & {
@@ -612,6 +615,9 @@ export async function getLeaveTypeForRequest(
       genderRestriction: true,
       maxCarryForwardDays: true,
       carryForwardExpiryMonths: true,
+      minNoticeDays: true,
+      maxConsecutiveDays: true,
+      requiresAttachment: true,
     },
   })
 

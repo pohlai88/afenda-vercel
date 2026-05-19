@@ -22,13 +22,20 @@ import {
   readLeaveBalance,
   recomputeLeaveBalance,
 } from "./leave-balance.server"
-import { resolveLeaveRequestCalendar } from "./leave-calendar.server"
+import { HRM_LAM_AUDIT } from "../hrm-lam.contract"
+import {
+  notifyLeaveEmployeeLifecycle,
+  notifyLeaveLifecycle,
+} from "./leave-notification.server"
+import { listLeaveBlackoutsOverlappingRange } from "./leave-blackout.queries.server"
+import { resolveLeaveRequestCalendarForOrg } from "./leave-calendar.server"
 import {
   getLeaveEmployeeForOrg,
   getLeaveTypeForRequest,
   resolveLeaveApproverUserId,
 } from "./leave-request.queries.server"
 
+import { resolveActiveFwaForEmployee } from "#features/hrm/server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import { withPortalMutationSpan } from "../../../employee-management/employee-selfservice-portal/data/portal-mutation-tracing.server"
 import type {
@@ -93,7 +100,8 @@ export async function submitLeaveRequest(
     return hrmActionFailure({ leaveTypeId: "Leave type is archived." })
   }
 
-  const calendar = resolveLeaveRequestCalendar({
+  const calendar = await resolveLeaveRequestCalendarForOrg({
+    organizationId,
     countryCode: employee.countryCode,
     workStateCode: employee.workStateCode,
     startDate: input.startDate,
@@ -134,6 +142,13 @@ export async function submitLeaveRequest(
     entitlementYear
   )
 
+  const blackoutPeriods = await listLeaveBlackoutsOverlappingRange({
+    organizationId,
+    leaveTypeId: input.leaveTypeId,
+    startDate: input.startDate,
+    endDate: input.endDate,
+  })
+
   const policyValidation = validateLeavePolicyForRequest({
     startDate: input.startDate,
     endDate: input.endDate,
@@ -144,7 +159,15 @@ export async function submitLeaveRequest(
     employeeGender: employee.gender,
     employeeStartDate: employee.employmentStartDate,
     genderRestriction: leaveType.genderRestriction,
+    minNoticeDays: leaveType.minNoticeDays,
+    maxConsecutiveDays: leaveType.maxConsecutiveDays,
+    requiresAttachment: leaveType.requiresAttachment,
     allowNegativeBalance: false,
+    blackoutPeriods: blackoutPeriods.map((row) => ({
+      name: row.name,
+      startDate: row.startDate,
+      endDate: row.endDate,
+    })),
   })
 
   if (!policyValidation.ok) {
@@ -154,6 +177,23 @@ export async function submitLeaveRequest(
         { form: policyValidation.issues[0]?.message }
       )
     )
+  }
+
+  const activeFwa = await resolveActiveFwaForEmployee({
+    organizationId,
+    employeeId: input.employeeId,
+    asOfDate: input.startDate,
+  })
+
+  if (activeFwa) {
+    const remoteDays = activeFwa.patterns.filter(
+      (pattern) => pattern.workMode === "remote"
+    ).length
+    if (remoteDays === 0 && input.halfDay) {
+      return hrmActionFailure({
+        form: "Half-day leave is not aligned with the active office-only flexible work pattern.",
+      })
+    }
   }
 
   const existingRequests = await listActiveLeaveRequestsForOverlapCheck(
@@ -184,6 +224,9 @@ export async function submitLeaveRequest(
     employeeGender: employee.gender,
     employeeStartDate: employee.employmentStartDate,
     genderRestriction: leaveType.genderRestriction,
+    minNoticeDays: leaveType.minNoticeDays,
+    maxConsecutiveDays: leaveType.maxConsecutiveDays,
+    requiresAttachment: leaveType.requiresAttachment,
     leaveTypeCode: leaveType.code,
     policyVersion: input.policyVersion,
     computedDurationDays,
@@ -192,6 +235,11 @@ export async function submitLeaveRequest(
     allowNegativeBalance: false,
     weekendDays: calendar.weekendDays,
     publicHolidayDates: calendar.publicHolidayDates,
+    blackoutPeriods: blackoutPeriods.map((row) => ({
+      name: row.name,
+      startDate: row.startDate,
+      endDate: row.endDate,
+    })),
   })
 
   const approvalSnapshot = {
@@ -261,7 +309,7 @@ export async function submitLeaveRequest(
   )
 
   await writeIamAuditEventFromNextHeaders({
-    action: "erp.hrm.leave.request.create",
+    action: HRM_LAM_AUDIT.leave.requestCreate,
     actorUserId: userId,
     actorSessionId: sessionId,
     organizationId,
@@ -282,7 +330,7 @@ export async function submitLeaveRequest(
   })
 
   await writeIamAuditEventFromNextHeaders({
-    action: "erp.hrm.approval.request",
+    action: HRM_LAM_AUDIT.approval.request,
     actorUserId: userId,
     actorSessionId: sessionId,
     organizationId,
@@ -294,6 +342,31 @@ export async function submitLeaveRequest(
       currentApproverUserId,
     },
   })
+
+  await Promise.all([
+    notifyLeaveLifecycle({
+      organizationId,
+      requestId,
+      event: "submitted",
+      targetUserId: currentApproverUserId,
+      leaveTypeCode: leaveType.code,
+      startDate: input.startDate,
+      endDate: input.endDate,
+      linkedPath: input.portalSlug ? "/employee/leave" : "/apps/hrm/leave",
+    }),
+    employee.linkedUserId && employee.linkedUserId !== userId
+      ? notifyLeaveLifecycle({
+          organizationId,
+          requestId,
+          event: "submitted",
+          targetUserId: employee.linkedUserId,
+          leaveTypeCode: leaveType.code,
+          startDate: input.startDate,
+          endDate: input.endDate,
+          linkedPath: input.portalSlug ? "/employee/leave" : "/apps/hrm/leave",
+        })
+      : Promise.resolve(),
+  ])
 
   revalidateLeaveRequests()
   if (input.portalSlug) {
@@ -354,6 +427,7 @@ async function cancelLeaveRequestForContextBody(
       employeeId: true,
       leaveTypeId: true,
       startDate: true,
+      endDate: true,
       createdByUserId: true,
     },
   })
@@ -468,6 +542,18 @@ async function cancelLeaveRequestForContextBody(
     req.leaveTypeId,
     entitlementYear
   )
+
+  await notifyLeaveEmployeeLifecycle({
+    organizationId: input.organizationId,
+    employeeId: req.employeeId,
+    leaveTypeId: req.leaveTypeId,
+    requestId: input.requestId,
+    event: "cancelled",
+    startDate: req.startDate,
+    endDate: req.endDate,
+    linkedPath:
+      input.mode === "employee_portal" ? "/employee/leave" : "/apps/hrm/leave",
+  })
 
   revalidateLeaveRequests()
   if (input.mode === "employee_portal") {

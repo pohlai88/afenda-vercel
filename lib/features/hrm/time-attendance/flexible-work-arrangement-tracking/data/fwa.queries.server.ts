@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm"
+import { and, asc, count, desc, eq, gte, inArray, isNull, lte, or, sql } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -14,12 +14,20 @@ import { listUserIdsWithErpPermission } from "#features/erp-rbac/server"
 import type { HrmFwaRequestState } from "../schemas/fwa-workflow-state.shared"
 import { hrmFwaRequestStateSchema } from "../schemas/fwa-workflow-state.shared"
 import { FWA_REQUEST_APPROVAL_SUBJECT_KIND } from "../fwa.contract"
+import { countFwaComplianceGaps } from "./fwa-compliance.server"
+import type {
+  FwaArrangementTypeChoiceRow,
+  FwaEmployeeChoiceRow,
+  FwaOrgSummaryCounts,
+  OrgFwaRequestRow,
+} from "./fwa.types.shared"
 
-export type FwaEmployeeChoiceRow = {
-  id: string
-  employeeNumber: string | null
-  legalName: string
-}
+export type {
+  FwaArrangementTypeChoiceRow,
+  FwaEmployeeChoiceRow,
+  FwaOrgSummaryCounts,
+  OrgFwaRequestRow,
+} from "./fwa.types.shared"
 
 export type FwaEmployeeContextRow = {
   id: string
@@ -27,34 +35,6 @@ export type FwaEmployeeContextRow = {
   legalName: string
   managerEmployeeId: string | null
   archivedAt: Date | null
-}
-
-export type FwaArrangementTypeChoiceRow = {
-  id: string
-  code: string
-  label: string
-  arrangementKind: string
-  requiresRemoteLocation: boolean
-  requiresSupportingDocument: boolean
-}
-
-export type OrgFwaRequestRow = {
-  id: string
-  employeeId: string
-  employeeNumber: string | null
-  employeeFullName: string | null
-  arrangementTypeId: string
-  arrangementTypeCode: string
-  arrangementTypeLabel: string
-  arrangementKind: string
-  requestedAt: Date
-  reason: string | null
-  startDate: string
-  endDate: string | null
-  remoteLocation: string | null
-  state: HrmFwaRequestState
-  currentApprovalId: string | null
-  currentApproverUserId: string | null
 }
 
 export async function listActiveEmployeeChoicesForFwa(
@@ -327,4 +307,78 @@ export async function listFwaRequestsForOrg(
         : null,
     }
   })
+}
+
+function addDaysIso(dateIso: string, days: number): string {
+  const date = new Date(`${dateIso}T12:00:00.000Z`)
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+
+export async function countFwaOrgSummary(
+  organizationId: string
+): Promise<FwaOrgSummaryCounts> {
+  const today = new Date().toISOString().slice(0, 10)
+  const within30 = addDaysIso(today, 30)
+
+  const [pendingRow, activeRow, typesRow, expiringRow, complianceGapCount] =
+    await Promise.all([
+    db
+      .select({ value: count() })
+      .from(hrmFlexibleWorkRequest)
+      .where(
+        and(
+          eq(hrmFlexibleWorkRequest.organizationId, organizationId),
+          eq(hrmFlexibleWorkRequest.state, "submitted")
+        )
+      ),
+    db
+      .select({ value: count() })
+      .from(hrmFlexibleWorkRequest)
+      .where(
+        and(
+          eq(hrmFlexibleWorkRequest.organizationId, organizationId),
+          inArray(hrmFlexibleWorkRequest.state, ["active", "approved"])
+        )
+      ),
+    db
+      .select({ value: count() })
+      .from(hrmFlexibleWorkArrangementType)
+      .where(
+        and(
+          eq(hrmFlexibleWorkArrangementType.organizationId, organizationId),
+          isNull(hrmFlexibleWorkArrangementType.archivedAt)
+        )
+      ),
+    db
+      .select({ value: count() })
+      .from(hrmFlexibleWorkRequest)
+      .where(
+        and(
+          eq(hrmFlexibleWorkRequest.organizationId, organizationId),
+          inArray(hrmFlexibleWorkRequest.state, ["active", "approved"]),
+          or(
+            and(
+              sql`${hrmFlexibleWorkRequest.endDate} IS NOT NULL`,
+              lte(hrmFlexibleWorkRequest.endDate, within30),
+              gte(hrmFlexibleWorkRequest.endDate, today)
+            ),
+            and(
+              sql`${hrmFlexibleWorkRequest.reviewDate} IS NOT NULL`,
+              lte(hrmFlexibleWorkRequest.reviewDate, within30),
+              gte(hrmFlexibleWorkRequest.reviewDate, today)
+            )
+          )
+        )
+      ),
+    countFwaComplianceGaps(organizationId),
+  ])
+
+  return {
+    pendingCount: Number(pendingRow[0]?.value ?? 0),
+    activeCount: Number(activeRow[0]?.value ?? 0),
+    typesCount: Number(typesRow[0]?.value ?? 0),
+    expiringWithin30DaysCount: Number(expiringRow[0]?.value ?? 0),
+    complianceGapCount,
+  }
 }

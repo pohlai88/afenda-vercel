@@ -16,6 +16,8 @@ const serverActionAllowedOrigins = buildServerActionAllowedOrigins(
 )
 
 const nextConfig: NextConfig = {
+  /** Isolated caches for `pnpm dev:stack` (UI `.next-ui` vs workflow `.next-workflow`). */
+  distDir: process.env.AFENDA_NEXT_DIST_DIR ?? ".next",
   reactStrictMode: true,
   poweredByHeader: false,
   typedRoutes: true,

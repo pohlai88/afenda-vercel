@@ -356,6 +356,10 @@ export {
   resolveCompensationPlanningSurfaceAccess,
 } from "./payroll-compensation/compensation-planning-modeling"
 export {
+  AbsenceAnalyticsPage,
+  resolveAatSurfaceAccess,
+} from "./time-attendance/absence-analytics-trends"
+export {
   FlexibleWorkPage,
   resolveFwaSurfaceAccess,
 } from "./time-attendance/flexible-work-arrangement-tracking"

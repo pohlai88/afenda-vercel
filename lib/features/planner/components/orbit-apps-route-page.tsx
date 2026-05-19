@@ -23,11 +23,18 @@ export async function OrbitAppsRoutePage({
 }: OrbitAppsRoutePageProps) {
   ensureAppLocale(localeRaw)
   const { organizationId, userId } = await getOrgTenantContext()
-  const canManageNotices = await canUseErpPermissionForCurrentOrg({
-    module: "planner",
-    object: "notice",
-    function: "update",
-  })
+  const [canManageNotices, canSearchWorkspace] = await Promise.all([
+    canUseErpPermissionForCurrentOrg({
+      module: "planner",
+      object: "notice",
+      function: "update",
+    }),
+    canUseErpPermissionForCurrentOrg({
+      module: "planner",
+      object: "workspace",
+      function: "search",
+    }),
+  ])
 
   return (
     <OrbitPage
@@ -40,6 +47,7 @@ export async function OrbitAppsRoutePage({
       searchParams={searchParams}
       viewerUserId={userId}
       canManageNotices={canManageNotices}
+      canSearchWorkspace={canSearchWorkspace}
     />
   )
 }

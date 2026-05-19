@@ -20,6 +20,8 @@ import { listActiveEmployeeChoicesForAttendance } from "../../../server"
 import { AttendanceDaySummary } from "./attendance-day-summary"
 import { AttendanceDaySelector } from "./attendance-day-selector"
 import { AttendanceRecentEvents } from "./attendance-recent-events"
+import { AttendanceCorrectionPending } from "./attendance-correction-pending"
+import { AttendanceExportReportButton } from "./attendance-export-report-button.client"
 import { AttendanceTimeReportPending } from "./attendance-time-report-pending"
 import { AttendanceTimeReportRecent } from "./attendance-time-report-recent"
 import { AttendanceRecordEventDialog } from "./attendance-record-event-dialog"
@@ -87,11 +89,14 @@ export async function AttendancePage({
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <ModulePageHeader
-        eyebrow={t("eyebrow")}
-        title={t("pageTitle")}
-        description={t("pageDescription")}
-      />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <ModulePageHeader
+          eyebrow={t("eyebrow")}
+          title={t("pageTitle")}
+          description={t("pageDescription")}
+        />
+        {isAdmin ? <AttendanceExportReportButton /> : null}
+      </div>
 
       {!isAdmin ? (
         <Card size="sm">
@@ -170,6 +175,18 @@ export async function AttendancePage({
 
       {isAdmin ? (
         <>
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle>{t("correctionPendingTitle")}</CardTitle>
+              <CardDescription>{t("correctionPendingDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Suspense fallback={<AttendanceTableSkeleton />}>
+                <AttendanceCorrectionPending />
+              </Suspense>
+            </CardContent>
+          </Card>
+
           <Card size="sm">
             <CardHeader>
               <CardTitle>{tTimeReports("inboxTitle")}</CardTitle>

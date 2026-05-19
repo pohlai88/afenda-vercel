@@ -57,6 +57,27 @@ describe("validateLeavePolicyForRequest", () => {
     }
   })
 
+  it("blocks leave that overlaps an active blackout period", () => {
+    const result = validateLeavePolicyForRequest({
+      startDate: "2026-06-10",
+      endDate: "2026-06-12",
+      durationDays: 3,
+      daysAvailable: 10,
+      blackoutPeriods: [
+        {
+          name: "Year-end close",
+          startDate: "2026-06-11",
+          endDate: "2026-06-15",
+        },
+      ],
+    })
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.issues.map((issue) => issue.code)).toContain("blackout_dates")
+    }
+  })
+
   it("enforces notice period, attachment, gender, and service rules", () => {
     const result = validateLeavePolicyForRequest({
       requestedAt: "2026-05-15",

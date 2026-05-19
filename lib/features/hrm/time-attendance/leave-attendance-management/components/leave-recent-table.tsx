@@ -16,13 +16,20 @@ import {
 
 import { LeaveCancelButton } from "./leave-cancel-button"
 
-const RECENT_STATES = ["approved", "rejected", "cancelled", "taken"] as const
+const RECENT_STATES = [
+  "approved",
+  "rejected",
+  "returned",
+  "cancelled",
+  "taken",
+] as const
 
 type RecentState = (typeof RECENT_STATES)[number]
 
 const STATE_LABEL_KEY: Record<RecentState, `state.${RecentState}`> = {
   approved: "state.approved",
   rejected: "state.rejected",
+  returned: "state.returned",
   cancelled: "state.cancelled",
   taken: "state.taken",
 }

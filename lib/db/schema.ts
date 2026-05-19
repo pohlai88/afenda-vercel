@@ -2966,6 +2966,9 @@ export const hrmLeaveType = pgTable(
     fixedDaysPerYear: integer("fixedDaysPerYear"),
     maxCarryForwardDays: integer("maxCarryForwardDays").notNull().default(0),
     carryForwardExpiryMonths: integer("carryForwardExpiryMonths"),
+    minNoticeDays: integer("minNoticeDays"),
+    maxConsecutiveDays: integer("maxConsecutiveDays"),
+    requiresAttachment: boolean("requiresAttachment").notNull().default(false),
     archivedAt: timestamp("archivedAt", { mode: "date" }),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
@@ -3019,6 +3022,83 @@ export const hrmLeavePolicy = pgTable(
     index("hrm_leave_policy_org_effectiveFrom_idx").on(
       t.organizationId,
       t.effectiveFrom
+    ),
+  ]
+)
+
+/** Org-owned company holiday (LAM calendar reference). */
+export const hrmOrgHoliday = pgTable(
+  "hrm_org_holiday",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    holidayDate: date("holidayDate", { mode: "string" }).notNull(),
+    name: text("name").notNull(),
+    regionCode: text("regionCode"),
+    isActive: boolean("isActive").notNull().default(true),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_org_holiday_org_date_uidx").on(
+      t.organizationId,
+      t.holidayDate
+    ),
+    index("hrm_org_holiday_org_active_idx").on(t.organizationId, t.isActive),
+  ]
+)
+
+/** Org-scoped absence analytics risk thresholds (HRM-AAT-018). One row per organization. */
+export const hrmAbsenceAnalyticsThreshold = pgTable(
+  "hrm_absence_analytics_threshold",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    /** Validated against `aatThresholdConfigSchema` at write time. */
+    config: jsonb("config").notNull(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_absence_analytics_threshold_org_uidx").on(t.organizationId),
+  ]
+)
+
+/** Leave blackout window — blocks applications overlapping the range. */
+export const hrmLeaveBlackout = pgTable(
+  "hrm_leave_blackout",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    name: text("name").notNull(),
+    startDate: date("startDate", { mode: "string" }).notNull(),
+    endDate: date("endDate", { mode: "string" }).notNull(),
+    leaveTypeId: text("leaveTypeId").references(() => hrmLeaveType.id, {
+      onDelete: "set null",
+    }),
+    isActive: boolean("isActive").notNull().default(true),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_leave_blackout_org_active_idx").on(
+      t.organizationId,
+      t.isActive
+    ),
+    index("hrm_leave_blackout_org_range_idx").on(
+      t.organizationId,
+      t.startDate,
+      t.endDate
     ),
   ]
 )
@@ -4600,6 +4680,8 @@ export const hrmLeaveRequest = pgTable(
     approvedByUserId: text("approvedByUserId"),
     approvedAt: timestamp("approvedAt", { mode: "date" }),
     rejectedReason: text("rejectedReason"),
+    returnedReason: text("returnedReason"),
+    medicalCertificateRef: text("medicalCertificateRef"),
     policyVersion: text("policyVersion"),
     temporalPast: jsonb("temporalPast"),
     temporalNow: jsonb("temporalNow"),
@@ -4700,6 +4782,11 @@ export const hrmFlexibleWorkRequest = pgTable(
     approvedByUserId: text("approvedByUserId"),
     approvedAt: timestamp("approvedAt", { mode: "date" }),
     rejectedReason: text("rejectedReason"),
+    suspendedAt: timestamp("suspendedAt", { mode: "date" }),
+    suspensionReason: text("suspensionReason"),
+    terminatedAt: timestamp("terminatedAt", { mode: "date" }),
+    terminationReason: text("terminationReason"),
+    renewalOfRequestId: text("renewalOfRequestId"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
     createdByUserId: text("createdByUserId"),
@@ -4753,6 +4840,41 @@ export const hrmFlexibleWorkSchedulePattern = pgTable(
       t.dayOfWeek
     ),
     index("hrm_fwa_schedule_org_request_idx").on(t.organizationId, t.requestId),
+  ]
+)
+
+/** Eligibility rule rows (HRM-FWA-003/007). */
+export const hrmFlexibleWorkEligibilityRule = pgTable(
+  "hrm_flexible_work_eligibility_rule",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    arrangementTypeId: text("arrangementTypeId")
+      .notNull()
+      .references(() => hrmFlexibleWorkArrangementType.id, {
+        onDelete: "cascade",
+      }),
+    departmentId: text("departmentId"),
+    jobGradeId: text("jobGradeId"),
+    employmentType: text("employmentType"),
+    legalEntityCode: text("legalEntityCode"),
+    countryCode: text("countryCode"),
+    workLocationCode: text("workLocationCode"),
+    positionId: text("positionId"),
+    workerCategory: text("workerCategory"),
+    policyGroupCode: text("policyGroupCode"),
+    allowException: boolean("allowException").notNull().default(false),
+    isActive: boolean("isActive").notNull().default(true),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_fwa_eligibility_org_type_idx").on(
+      t.organizationId,
+      t.arrangementTypeId
+    ),
   ]
 )
 

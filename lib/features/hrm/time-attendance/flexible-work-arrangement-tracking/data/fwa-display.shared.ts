@@ -30,6 +30,13 @@ export function fwaStateLabelKey(state: string): string {
   return `stateLabels.${state}`
 }
 
+export function fwaArrangementKindMessageKey(
+  kind: HrmFwaArrangementKind
+): `kindLabels.${HrmFwaArrangementKind}` {
+  return `kindLabels.${kind}`
+}
+
+/** @deprecated Prefer i18n `kindLabels.*` via fwaArrangementKindMessageKey */
 export function fwaArrangementKindLabel(kind: HrmFwaArrangementKind): string {
   const labels: Record<HrmFwaArrangementKind, string> = {
     hybrid: "Hybrid",

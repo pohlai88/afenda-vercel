@@ -1,12 +1,4 @@
-import {
-  Activity,
-  AlertTriangle,
-  ArrowRight,
-  CalendarClock,
-  Link2,
-  Radar,
-  Timer,
-} from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#features/governed-surface"
@@ -39,7 +31,6 @@ import {
   PLANNER_OWNERSHIP_ROLES,
   PLANNER_RELATION_TYPES,
   PLANNER_SIGNAL_RESOLUTION_POLICIES,
-  PLANNER_VIEW_SORT_MODES,
 } from "../constants"
 import { assignPlannerOwnershipAction } from "../commands/assign-planner-ownership"
 import { capturePlannerItemAction } from "../commands/capture-planner-item"
@@ -92,160 +83,32 @@ import type {
   PlannerSurfaceRecordKind,
   PlannerViewSortMode,
 } from "../types"
+import { OrbitGovernedTableList } from "../components/orbit-governed-table-list"
 import { OrbitAttachmentForm } from "./orbit-attachment-form.client"
 import { OrbitCaptureInput } from "./orbit-capture-input.client"
 import { OrbitQueueBatchControls } from "./orbit-queue-batch-controls.client"
 import { OrbitTriageBatchControls } from "./orbit-triage-batch-controls.client"
 import { OrbitOperatorHotkeys } from "./orbit-operator-hotkeys.client"
-
-const SURFACE_META = {
-  queue: { icon: Activity },
-  triage: { icon: AlertTriangle },
-  today: { icon: CalendarClock },
-  timeline: { icon: CalendarClock },
-  signals: { icon: Radar },
-  sessions: { icon: Timer },
-  links: { icon: Link2 },
-} as const
-
-function focusHref(
-  basePath: string,
-  searchParams: URLSearchParams,
-  kind: PlannerSurfaceRecordKind,
-  id: string
-) {
-  const next = new URLSearchParams(searchParams)
-  next.set("focusKind", kind)
-  next.set("focusId", id)
-  next.delete("status")
-  return `${basePath}?${next.toString()}`
-}
-
-function summaryValue(value: number) {
-  return new Intl.NumberFormat("en").format(value)
-}
-
-function toDatetimeLocalValue(date: Date | null | undefined) {
-  if (!date) return ""
-  const localTime = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
-  return localTime.toISOString().slice(0, 16)
-}
-
-function plannerBasePath(input: {
-  scope: PlannerScopeInput
-  orgSlug?: string
-  surface: OrbitSurface
-}) {
-  if (input.scope.scopeKind !== "organization") {
-    throw new Error("OrbitPage requires organization scope")
-  }
-  if (!input.orgSlug) {
-    throw new Error("OrbitPage requires an organization slug")
-  }
-  return organizationOrbitPath(input.orgSlug, input.surface)
-}
-
-type OrbitSearchParams = Record<string, string | string[] | undefined>
-
-function firstSearchValue(value: string | string[] | undefined): string | null {
-  if (Array.isArray(value)) {
-    return value[0] ?? null
-  }
-  return typeof value === "string" ? value : null
-}
-
-function toUrlSearchParams(searchParams: OrbitSearchParams | undefined) {
-  const next = new URLSearchParams()
-  if (!searchParams) return next
-
-  for (const [key, rawValue] of Object.entries(searchParams)) {
-    if (Array.isArray(rawValue)) {
-      for (const entry of rawValue) next.append(key, entry)
-      continue
-    }
-    if (typeof rawValue === "string") next.set(key, rawValue)
-  }
-
-  return next
-}
-
-function buildOrbitHref(
-  basePath: string,
-  patch: Record<string, string | null | undefined>,
-  currentSearchParams?: OrbitSearchParams
-) {
-  const search = toUrlSearchParams(currentSearchParams)
-
-  for (const [key, value] of Object.entries(patch)) {
-    if (value == null || value === "") {
-      search.delete(key)
-      continue
-    }
-    search.set(key, value)
-  }
-
-  const next = search.toString()
-  return next.length > 0 ? `${basePath}?${next}` : basePath
-}
-
-function filterSelectValue(values: readonly string[] | undefined) {
-  return values?.[0] ?? ""
-}
-
-function isPlannerViewSortMode(
-  value: string | null
-): value is PlannerViewSortMode {
-  return (
-    value != null &&
-    (PLANNER_VIEW_SORT_MODES as readonly string[]).includes(value)
-  )
-}
-
-function sortModeLabel(sortMode: PlannerViewSortMode | null) {
-  if (sortMode === "priority_desc") return "Priority"
-  if (sortMode === "due_asc") return "Due date"
-  if (sortMode === "created_desc") return "Created"
-  if (sortMode === "updated_desc") return "Updated"
-  if (sortMode === "title_asc") return "Title"
-  return "Default"
-}
-
-function blockedStageLabel(stage: PlannerBlockedState["stage"]) {
-  if (stage === "critical") return "Breach"
-  if (stage === "urgent") return "Overdue"
-  return "Threshold"
-}
-
-function blockedStageVariant(stage: PlannerBlockedState["stage"]) {
-  if (stage === "critical") return "critical" as const
-  if (stage === "urgent") return "warning" as const
-  return "outline" as const
-}
-
-function noticeSeverityVariant(severity: "info" | "warning" | "critical") {
-  if (severity === "critical") return "critical" as const
-  if (severity === "warning") return "warning" as const
-  return "info" as const
-}
-
-function triageOperatingLaneLabel(lane: PlannerTriageOperatingLane) {
-  if (lane === "automation_attention") return "Automation attention"
-  if (lane === "blocked_recovery") return "Blocked recovery"
-  if (lane === "high_pressure") return "High pressure"
-  if (lane === "signal_intake") return "Signal intake"
-  return "Manual follow-up"
-}
-
-function relationLabel(relation: PlannerRelationRow) {
-  const target =
-    relation.relatedItemTitle ??
-    relation.relatedSignalTitle ??
-    relation.relatedItemId ??
-    relation.relatedSignalId ??
-    "Unknown target"
-
-  return `${relation.relationType} · ${target}`
-}
+import {
+  ORBIT_SURFACE_META,
+  blockedStageLabel,
+  blockedStageVariant,
+  buildOrbitHref,
+  filterSelectValue,
+  firstSearchValue,
+  focusHref,
+  isPlannerViewSortMode,
+  noticeSeverityVariant,
+  orbitSurfaceUsesGovernedTable,
+  plannerBasePath,
+  relationLabel,
+  sortModeLabel,
+  summaryValue,
+  toDatetimeLocalValue,
+  toUrlSearchParams,
+  triageOperatingLaneLabel,
+  type OrbitSearchParams,
+} from "./orbit-page.shared"
 
 export async function OrbitPage({
   scope,
@@ -254,6 +117,7 @@ export async function OrbitPage({
   searchParams,
   viewerUserId,
   canManageNotices = false,
+  canSearchWorkspace = true,
 }: {
   scope: PlannerScopeInput
   surface: OrbitSurface
@@ -261,6 +125,7 @@ export async function OrbitPage({
   searchParams?: OrbitSearchParams
   viewerUserId?: string | null
   canManageNotices?: boolean
+  canSearchWorkspace?: boolean
 }) {
   const [t, advancedOperatorControlsEnabled] = await Promise.all([
     getTranslations("Dashboard.Orbit"),
@@ -309,22 +174,21 @@ export async function OrbitPage({
         null)
       : null
 
-  const itemDetail =
-    focusKind === "item" && focusId
-      ? await getPlannerItemDetail(scope, focusId, viewerUserId)
-      : null
-  const signalDetail =
-    focusKind === "signal" && focusId
-      ? await getPlannerSignalDetail(scope, focusId)
-      : null
-  const sessionDetail =
-    focusKind === "session" && focusId
-      ? await getPlannerSessionDetail(scope, focusId)
-      : null
-  const linkDetail =
-    focusKind === "link" && focusId
-      ? await getPlannerLinkDetail(scope, focusId)
-      : null
+  const [itemDetail, signalDetail, sessionDetail, linkDetail] =
+    await Promise.all([
+      focusKind === "item" && focusId
+        ? getPlannerItemDetail(scope, focusId, viewerUserId)
+        : Promise.resolve(null),
+      focusKind === "signal" && focusId
+        ? getPlannerSignalDetail(scope, focusId)
+        : Promise.resolve(null),
+      focusKind === "session" && focusId
+        ? getPlannerSessionDetail(scope, focusId)
+        : Promise.resolve(null),
+      focusKind === "link" && focusId
+        ? getPlannerLinkDetail(scope, focusId)
+        : Promise.resolve(null),
+    ])
   const hasFocusedRecord = Boolean(focusKind && focusId)
 
   const listEntries =
@@ -411,7 +275,8 @@ export async function OrbitPage({
                                       ? t("status.featureDisabled")
                                       : null
 
-  const SurfaceIcon = SURFACE_META[surface].icon
+  const SurfaceIcon = ORBIT_SURFACE_META[surface].icon
+  const usesGovernedTable = orbitSurfaceUsesGovernedTable(surface)
 
   return (
     <div className="space-y-surface-lg">
@@ -541,7 +406,17 @@ export async function OrbitPage({
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-surface-lg">
-            {surface === "triage" && advancedOperatorControlsEnabled ? (
+            {usesGovernedTable ? (
+              <OrbitGovernedTableList
+                surface={surface}
+                basePath={basePath}
+                searchParams={searchParams}
+                sessions={page.sessions}
+                links={page.links}
+                signals={page.signals}
+                parentAccessAllowed={canSearchWorkspace}
+              />
+            ) : surface === "triage" && advancedOperatorControlsEnabled ? (
               <form
                 action={batchPlannerTriageAction}
                 className="space-y-4"

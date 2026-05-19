@@ -50,6 +50,54 @@ export const HRM_FWA_AUDIT = {
     object: "flexible_work.request",
     verb: "return",
   }),
+  requestSuspend: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "flexible_work.request",
+    verb: "update",
+  }),
+  requestTerminate: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "flexible_work.request",
+    verb: "update",
+  }),
+  requestRenew: buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "flexible_work_request",
+    verb: "create",
+  }),
+  requestExpiryWatch: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "flexible_work.request",
+    verb: "audit",
+  }),
+  complianceBreach: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "flexible_work.request",
+    verb: "audit",
+  }),
+  requestException: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "flexible_work.request",
+    verb: "update",
+  }),
+  reportExport: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "flexible_work_report",
+    verb: "audit",
+  }),
+  eligibilityRuleCreate: buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "flexible_work_eligibility_rule",
+    verb: "create",
+  }),
 } as const
 
 export const FWA_REQUEST_APPROVAL_SUBJECT_KIND =

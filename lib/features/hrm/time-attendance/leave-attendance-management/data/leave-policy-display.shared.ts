@@ -73,6 +73,7 @@ export function hrmLeaveTypeStatusTone(
 export const HRM_POLICY_TABS = [
   "leave_types",
   "holidays",
+  "blackout",
   "working_pattern",
   "statutory",
 ] as const

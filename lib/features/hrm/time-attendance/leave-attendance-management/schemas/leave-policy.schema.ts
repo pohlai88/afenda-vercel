@@ -51,6 +51,19 @@ export const createLeaveTypeFormSchema = z
       .positive()
       .nullable()
       .default(null),
+    minNoticeDays: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .nullable()
+      .default(null),
+    maxConsecutiveDays: z.coerce
+      .number()
+      .int()
+      .positive()
+      .nullable()
+      .default(null),
+    requiresAttachment: z.boolean().default(false),
   })
   .superRefine((val, ctx) => {
     if (val.accrualMethod === "annual_grant") {

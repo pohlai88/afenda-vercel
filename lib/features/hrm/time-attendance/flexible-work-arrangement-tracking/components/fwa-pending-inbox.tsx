@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server"
+import { getFormatter, getTranslations } from "next-intl/server"
 
 import {
   GovernedPatternCListSection,
@@ -8,7 +8,7 @@ import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
 import { formatFwaDateRange } from "../data/fwa-display.shared"
-import { buildFwaPendingListSurfaceConfiguration } from "../data/fwa-list-surface.server"
+import { buildFwaPendingListSurfaceConfiguration } from "../data/fwa-surface-builders.server"
 import { listFwaRequestsForOrg } from "../data/fwa.queries.server"
 import { FWA_LIST_SURFACE_IDS } from "../data/fwa-surface-metadata.shared"
 import { FwaDecisionForms } from "./fwa-decision-form"
@@ -23,6 +23,7 @@ export async function FwaPendingInbox({
   canApproveAll: boolean
 }) {
   const t = await getTranslations("Dashboard.Hrm.flexibleWork")
+  const format = await getFormatter()
 
   let rows: Awaited<ReturnType<typeof listFwaRequestsForOrg>>
   try {
@@ -70,12 +71,15 @@ export async function FwaPendingInbox({
       colDates: t("colDates"),
       colState: t("colState"),
       colRequested: t("colRequested"),
+      formatRequestedAt: (date) =>
+        format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
       stateLabelFor: (state) =>
         t(`stateLabels.${state}` as "stateLabels.submitted"),
     },
     {
       canApproveAll,
       currentUserId: userId,
+      decideLabel: t("decideAction"),
     }
   )
 

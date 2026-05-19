@@ -11,9 +11,13 @@ import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import { recomputeLeaveBalance } from "../data/leave-balance.server"
+import { notifyLeaveEmployeeLifecycle } from "../data/leave-notification.server"
+import { HRM_LAM_AUDIT } from "../hrm-lam.contract"
 import {
   leaveApprovalDecisionSchema,
+  leaveClarificationDecisionSchema,
   leaveRejectDecisionSchema,
+  leaveReturnDecisionSchema,
 } from "../schemas/leave-request.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { LeaveApprovalFormState } from "../../../types"
@@ -104,6 +108,7 @@ export async function approveLeaveAction(
       employeeId: true,
       leaveTypeId: true,
       startDate: true,
+      endDate: true,
       durationDays: true,
     },
   })
@@ -180,6 +185,16 @@ export async function approveLeaveAction(
     req.leaveTypeId,
     entitlementYear
   )
+
+  await notifyLeaveEmployeeLifecycle({
+    organizationId,
+    employeeId: req.employeeId,
+    leaveTypeId: req.leaveTypeId,
+    requestId,
+    event: "approved",
+    startDate: req.startDate,
+    endDate: req.endDate,
+  })
 
   revalidateLeaveRequests()
   return { ok: true, requestId }
@@ -307,6 +322,212 @@ export async function rejectLeaveAction(
     entitlementYear
   )
 
+  await notifyLeaveEmployeeLifecycle({
+    organizationId,
+    employeeId: req.employeeId,
+    leaveTypeId: req.leaveTypeId,
+    requestId,
+    event: "rejected",
+    startDate: req.startDate,
+    endDate: req.endDate,
+  })
+
   revalidateLeaveRequests()
   return { ok: true, requestId }
+}
+
+async function returnLeaveRequestWithReason(input: {
+  organizationId: string
+  userId: string
+  sessionId: string | null
+  requestId: string
+  returnedReason: string
+  decisionNote: string | null
+  auditMetadata: Record<string, unknown>
+}): Promise<LeaveApprovalFormState> {
+  const { organizationId, userId, sessionId, requestId, returnedReason } = input
+
+  const req = await db.query.hrmLeaveRequest.findFirst({
+    where: and(
+      eq(hrmLeaveRequest.id, requestId),
+      eq(hrmLeaveRequest.organizationId, organizationId)
+    ),
+    columns: {
+      id: true,
+      state: true,
+      currentApprovalId: true,
+      employeeId: true,
+      leaveTypeId: true,
+      startDate: true,
+      endDate: true,
+    },
+  })
+
+  if (!req) {
+    return hrmActionFailure({ requestId: "Leave request not found." })
+  }
+
+  if (req.state !== "submitted") {
+    return hrmActionFailure({
+      requestId: `Cannot return a leave request with state "${req.state}". Expected "submitted".`,
+    })
+  }
+
+  const allowed = await canDecideLeaveRequest({
+    organizationId,
+    userId,
+    currentApprovalId: req.currentApprovalId,
+  })
+  if (!allowed) {
+    return hrmActionFailure({
+      form: "Only the assigned approver or HRM leave administrator can return this request.",
+    })
+  }
+
+  const now = new Date()
+  const approvalId = req.currentApprovalId
+
+  await db.transaction(async (tx) => {
+    if (approvalId) {
+      await tx
+        .update(hrmApproval)
+        .set({
+          state: "cancelled",
+          decisionByUserId: userId,
+          decisionAt: now,
+          decisionNote: input.decisionNote ?? returnedReason,
+          updatedByUserId: userId,
+          updatedAt: now,
+        })
+        .where(eq(hrmApproval.id, approvalId))
+    }
+
+    await tx
+      .update(hrmLeaveRequest)
+      .set({
+        state: "returned",
+        returnedReason,
+        currentApprovalId: null,
+        updatedAt: now,
+        updatedByUserId: userId,
+      })
+      .where(eq(hrmLeaveRequest.id, requestId))
+  })
+
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_LAM_AUDIT.leave.requestReturn,
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_leave_request",
+    resourceId: requestId,
+    metadata: {
+      employeeId: req.employeeId,
+      returnedReason,
+      ...input.auditMetadata,
+    },
+  })
+
+  if (approvalId) {
+    await writeIamAuditEventFromNextHeaders({
+      action: HRM_LAM_AUDIT.approval.cancel,
+      actorUserId: userId,
+      actorSessionId: sessionId,
+      organizationId,
+      resourceType: "hrm_approval",
+      resourceId: approvalId,
+      metadata: { subjectId: requestId, returnedReason },
+    })
+  }
+
+  const entitlementYear = parseInt(req.startDate.slice(0, 4), 10)
+  await recomputeLeaveBalance(
+    organizationId,
+    req.employeeId,
+    req.leaveTypeId,
+    entitlementYear
+  )
+
+  await notifyLeaveEmployeeLifecycle({
+    organizationId,
+    employeeId: req.employeeId,
+    leaveTypeId: req.leaveTypeId,
+    requestId,
+    event: "returned",
+    startDate: req.startDate,
+    endDate: req.endDate,
+  })
+
+  revalidateLeaveRequests()
+  return { ok: true, requestId }
+}
+
+export async function returnLeaveAction(
+  _prev: LeaveApprovalFormState | undefined,
+  formData: FormData
+): Promise<LeaveApprovalFormState> {
+  const session = await requireOrgSession()
+  const { organizationId, userId, sessionId } = session
+
+  const parsed = leaveReturnDecisionSchema.safeParse({
+    requestId: formData.get("requestId"),
+    returnedReason: formData.get("returnedReason"),
+    decisionNote: formData.get("decisionNote") || null,
+  })
+
+  if (!parsed.success) {
+    const errs = parsed.error.flatten().fieldErrors
+    return hrmActionFailure({
+      requestId: errs.requestId?.[0],
+      returnedReason: errs.returnedReason?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
+  }
+
+  const { requestId, returnedReason, decisionNote } = parsed.data
+
+  return returnLeaveRequestWithReason({
+    organizationId,
+    userId,
+    sessionId,
+    requestId,
+    returnedReason,
+    decisionNote,
+    auditMetadata: { decisionKind: "return" },
+  })
+}
+
+export async function requestLeaveClarificationAction(
+  _prev: LeaveApprovalFormState | undefined,
+  formData: FormData
+): Promise<LeaveApprovalFormState> {
+  const session = await requireOrgSession()
+  const { organizationId, userId, sessionId } = session
+
+  const parsed = leaveClarificationDecisionSchema.safeParse({
+    requestId: formData.get("requestId"),
+    clarificationNote: formData.get("clarificationNote"),
+    decisionNote: formData.get("decisionNote") || null,
+  })
+
+  if (!parsed.success) {
+    const errs = parsed.error.flatten().fieldErrors
+    return hrmActionFailure({
+      requestId: errs.requestId?.[0],
+      clarificationNote: errs.clarificationNote?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
+  }
+
+  const { requestId, clarificationNote, decisionNote } = parsed.data
+
+  return returnLeaveRequestWithReason({
+    organizationId,
+    userId,
+    sessionId,
+    requestId,
+    returnedReason: clarificationNote,
+    decisionNote,
+    auditMetadata: { decisionKind: "clarification" },
+  })
 }

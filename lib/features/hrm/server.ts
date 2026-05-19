@@ -210,9 +210,15 @@ export { resolveLeaveSurfaceAccess } from "./time-attendance/leave-attendance-ma
 export type { LeaveSurfaceAccess } from "./time-attendance/leave-attendance-management/data/leave-access.server"
 
 export {
+  getFwaOvertimeScheduleReference,
+  getFwaPayrollScheduleReference,
   listActiveFwaScheduleForEmployee,
   resolveActiveFwaForEmployee,
 } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-integration.server"
+export { runFwaExpiryWatchTick } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-expiry-watch.server"
+export { runFwaComplianceWatchTick } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-compliance-watch.server"
+export type { FwaComplianceWatchSummary } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-compliance-watch.server"
+export type { FwaExpiryWatchSummary } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-expiry-watch.server"
 export type { ActiveFwaScheduleForDate } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-integration.server"
 
 export { resolveLeaveRequestCalendar } from "./time-attendance/leave-attendance-management/data/leave-calendar.server"
@@ -922,6 +928,8 @@ export { runOffboardingTaskOverdueTick } from "./employee-management/offboarding
 export type { OffboardingOverdueWatchTickSummary } from "./employee-management/offboarding-exit-management/data/offboarding-overdue-watch.server"
 export { runClaimApprovalOverdueTick } from "./payroll-compensation/expenses-reimbursement/data/claim-overdue-watch.server"
 export type { ClaimOverdueWatchTickSummary } from "./payroll-compensation/expenses-reimbursement/data/claim-overdue-watch.server"
+export { runLeaveApprovalOverdueTick } from "./time-attendance/leave-attendance-management/data/leave-overdue-watch.server"
+export type { LeaveOverdueWatchTickSummary } from "./time-attendance/leave-attendance-management/data/leave-overdue-watch.server"
 export { postApprovedClaimToApJournal } from "./payroll-compensation/expenses-reimbursement/data/claim-ap-posting.server"
 export {
   buildClaimEmployeeEligibilityProjection,

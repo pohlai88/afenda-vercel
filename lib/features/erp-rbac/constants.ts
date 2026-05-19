@@ -176,6 +176,12 @@ export const ERP_PERMISSION_REGISTRY = [
   }),
   ...buildPermissionSet({
     module: "hrm",
+    object: "absence_analytics",
+    label: "HRM absence analytics",
+    sensitivity: "sensitive",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
     object: "benefit",
     label: "HRM benefits",
     sensitivity: "sensitive",

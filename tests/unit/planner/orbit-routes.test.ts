@@ -1,21 +1,21 @@
 import { describe, expect, it, vi, beforeEach } from "vitest"
 
 const {
-  requireOrgSessionMock,
+  getOrgTenantContextMock,
   canUseErpPermissionForCurrentOrgMock,
   ensureAppLocaleMock,
-  orbitPageMock,
+  orbitAppsRoutePageMock,
 } = vi.hoisted(() => ({
-  requireOrgSessionMock: vi.fn(),
+  getOrgTenantContextMock: vi.fn(),
   canUseErpPermissionForCurrentOrgMock: vi.fn(),
   ensureAppLocaleMock: vi.fn((locale: string) => locale),
-  orbitPageMock: vi.fn(() => null),
+  orbitAppsRoutePageMock: vi.fn(() => null),
 }))
 
 vi.mock("server-only", () => ({}))
 
 vi.mock("#lib/auth", () => ({
-  requireOrgSession: requireOrgSessionMock,
+  getOrgTenantContext: getOrgTenantContextMock,
 }))
 
 vi.mock("#features/erp-rbac/server", () => ({
@@ -27,7 +27,7 @@ vi.mock("#lib/i18n/locales.shared", () => ({
 }))
 
 vi.mock("#features/planner/server", () => ({
-  OrbitPage: orbitPageMock,
+  OrbitAppsRoutePage: orbitAppsRoutePageMock,
 }))
 
 import OrbitQueuePage from "../../../app/(main)/[locale]/o/[orgSlug]/apps/orbit/page"
@@ -35,17 +35,16 @@ import OrbitTriagePage from "../../../app/(main)/[locale]/o/[orgSlug]/apps/orbit
 
 describe("orbit route wrappers", () => {
   beforeEach(() => {
-    requireOrgSessionMock.mockReset()
+    getOrgTenantContextMock.mockReset()
     canUseErpPermissionForCurrentOrgMock.mockReset()
     ensureAppLocaleMock.mockClear()
-    orbitPageMock.mockClear()
+    orbitAppsRoutePageMock.mockClear()
   })
 
-  it("passes organization scope and notice authority into the org queue page", async () => {
-    requireOrgSessionMock.mockResolvedValue({
+  it("passes locale, org slug, surface, and notice authority into the org queue page", async () => {
+    getOrgTenantContextMock.mockResolvedValue({
       userId: "user-1",
       organizationId: "org-1",
-      user: { role: "member" },
     })
     canUseErpPermissionForCurrentOrgMock.mockResolvedValue(false)
 
@@ -61,26 +60,21 @@ describe("orbit route wrappers", () => {
       object: "notice",
       function: "update",
     })
-    expect((element as { props: Record<string, unknown> }).props).toMatchObject(
-      {
-        scope: {
-          scopeKind: "organization",
-          organizationId: "org-1",
-        },
-        orgSlug: "acme",
-        surface: "queue",
-        searchParams,
-        viewerUserId: "user-1",
-        canManageNotices: false,
-      }
-    )
+    expect(
+      (element as { props: Record<string, unknown> }).props
+    ).toMatchObject({
+      localeRaw: "en",
+      orgSlug: "acme",
+      surface: "queue",
+      searchParams,
+    })
+    expect(orbitAppsRoutePageMock).toHaveBeenCalled()
   })
 
-  it("passes organization scope into the org triage page", async () => {
-    requireOrgSessionMock.mockResolvedValue({
+  it("passes locale and org slug into the org triage page", async () => {
+    getOrgTenantContextMock.mockResolvedValue({
       userId: "user-1",
       organizationId: "org-1",
-      user: { role: "admin" },
     })
     canUseErpPermissionForCurrentOrgMock.mockResolvedValue(true)
 
@@ -90,18 +84,13 @@ describe("orbit route wrappers", () => {
       searchParams: Promise.resolve(searchParams),
     } as never)
 
-    expect((element as { props: Record<string, unknown> }).props).toMatchObject(
-      {
-        scope: {
-          scopeKind: "organization",
-          organizationId: "org-1",
-        },
-        orgSlug: "acme",
-        surface: "triage",
-        searchParams,
-        viewerUserId: "user-1",
-        canManageNotices: true,
-      }
-    )
+    expect(
+      (element as { props: Record<string, unknown> }).props
+    ).toMatchObject({
+      localeRaw: "en",
+      orgSlug: "acme",
+      surface: "triage",
+      searchParams,
+    })
   })
 })

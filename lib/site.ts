@@ -61,6 +61,8 @@ export function betterAuthAllowedHostsFromEnv(): string[] {
   if (process.env.NODE_ENV === "development") {
     hosts.add("localhost:3000")
     hosts.add("127.0.0.1:3000")
+    hosts.add("localhost:3002")
+    hosts.add("127.0.0.1:3002")
   }
 
   if (process.env.VERCEL) {
@@ -111,6 +113,13 @@ export function betterAuthTrustedOriginsFromEnv(): string[] {
 
   if (process.env.VERCEL) {
     out.add("https://*.vercel.app")
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    out.add("http://localhost:3000")
+    out.add("http://127.0.0.1:3000")
+    out.add("http://localhost:3002")
+    out.add("http://127.0.0.1:3002")
   }
 
   let list = [...out]

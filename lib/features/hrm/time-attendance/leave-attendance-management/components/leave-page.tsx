@@ -25,6 +25,8 @@ import { LeaveAbsenceCalendar } from "./leave-absence-calendar"
 import { LeaveApplyDialog } from "./leave-apply-dialog"
 import { LeaveMyPanel } from "./leave-my-panel"
 import { LeavePendingInbox } from "./leave-pending-inbox"
+import { LeaveRecentTable } from "./leave-recent-table"
+import { LeaveExportReportButton } from "./leave-export-report-button.client"
 
 /**
  * Leave management surface. The page stays server-first and splits the
@@ -67,11 +69,14 @@ export async function LeavePage({ orgSlug, access }: LeavePageProps) {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <ModulePageHeader
-        eyebrow={t("eyebrow")}
-        title={t("pageTitle")}
-        description={t("pageDescription")}
-      />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <ModulePageHeader
+          eyebrow={t("eyebrow")}
+          title={t("pageTitle")}
+          description={t("pageDescription")}
+        />
+        {leaveAccess.canManage ? <LeaveExportReportButton /> : null}
+      </div>
 
       {leaveAccess.canManage && employees.length === 0 ? (
         <Card size="sm">
@@ -125,6 +130,20 @@ export async function LeavePage({ orgSlug, access }: LeavePageProps) {
           </Suspense>
         </CardContent>
       </Card>
+
+      {leaveAccess.canManage ? (
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle>{t("recentTitle")}</CardTitle>
+            <CardDescription>{t("recentDescription")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Suspense fallback={<LeaveSectionSkeleton />}>
+              <LeaveRecentTable isAdmin={leaveAccess.canManage} />
+            </Suspense>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card size="sm">
         <CardHeader>

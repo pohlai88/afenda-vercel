@@ -33,11 +33,13 @@ import {
   listFwaRequestsForOrg,
   findFwaEmployeeForUser,
 } from "../data/fwa.queries.server"
+import { countFwaOrgSummary } from "../data/fwa.queries.server"
 import type {
   FwaArrangementTypeChoiceRow,
   OrgFwaRequestRow,
-} from "../data/fwa.queries.server"
+} from "../data/fwa.types.shared"
 
+import { FwaKpiSummarySection } from "./fwa-kpi-section"
 import { FwaRequestForm } from "./fwa-request-form"
 import {
   FwaActiveArrangementsSection,
@@ -45,14 +47,18 @@ import {
   FwaMyArrangementsSection,
 } from "./fwa-sections"
 import { FwaPendingInbox } from "./fwa-pending-inbox"
+import { FwaEligibilityRulesSection } from "./fwa-eligibility-section"
+import { FwaOperationalReportSection } from "./fwa-report-section"
 
 type FlexibleWorkPageProps = {
+  orgSlug: string
   access?: FwaSurfaceAccess
   organizationId?: string
   userId?: string
 }
 
 export async function FlexibleWorkPage({
+  orgSlug: _orgSlug,
   access,
   organizationId: organizationIdProp,
   userId: userIdProp,
@@ -71,21 +77,22 @@ export async function FlexibleWorkPage({
       userId,
     }))
 
+  const t = await getTranslations("Dashboard.Hrm.flexibleWork")
+
   if (!fwaAccess.canEnter) {
     return (
       <ErpAccessDenied
-        title="Flexible work"
-        description="This HRM surface requires Flexible Work access or a linked employee record."
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
       />
     )
   }
-
-  const t = await getTranslations("Dashboard.Hrm.flexibleWork")
 
   const [
     employeesResult,
     typesResult,
     activeRowsResult,
+    summaryResult,
     selfEmployee,
     canApproveAll,
   ] = await Promise.all([
@@ -103,6 +110,10 @@ export async function FlexibleWorkPage({
       states: ["submitted", "active", "approved"],
       limit: 100,
     }).then(
+      (value) => ({ ok: true as const, value }),
+      (error) => ({ ok: false as const, error })
+    ),
+    countFwaOrgSummary(organizationId).then(
       (value) => ({ ok: true as const, value }),
       (error) => ({ ok: false as const, error })
     ),
@@ -147,6 +158,13 @@ export async function FlexibleWorkPage({
       }
     )
   }
+  if (!summaryResult.ok) {
+    logUnexpectedServerError(
+      "flexible-work-page: summary query failed",
+      summaryResult.error,
+      { organizationId }
+    )
+  }
 
   const employees = employeesResult.ok ? employeesResult.value : []
   const arrangementTypes: FwaArrangementTypeChoiceRow[] = typesResult.ok
@@ -162,6 +180,15 @@ export async function FlexibleWorkPage({
   const activeLoadError = activeRowsResult.ok
     ? undefined
     : { title: t("activeLoadFailed") }
+  const summary = summaryResult.ok
+    ? summaryResult.value
+    : {
+        pendingCount: 0,
+        activeCount: 0,
+        typesCount: 0,
+        expiringWithin30DaysCount: 0,
+        complianceGapCount: 0,
+      }
 
   const myActiveRows = selfEmployee
     ? activeRows.filter((row) => row.employeeId === selfEmployee.id)
@@ -178,6 +205,11 @@ export async function FlexibleWorkPage({
         eyebrow={t("eyebrow")}
         title={t("pageTitle")}
         description={t("pageDescription")}
+      />
+
+      <FwaKpiSummarySection
+        summary={summary}
+        loadError={!summaryResult.ok}
       />
 
       {fwaAccess.canManage && employees.length === 0 ? (
@@ -213,9 +245,11 @@ export async function FlexibleWorkPage({
                     </DialogDescription>
                   </DialogHeader>
                   <FwaRequestForm
+                    organizationId={organizationId}
                     employees={[]}
                     arrangementTypes={arrangementTypes}
                     mode="self"
+                    defaultEmployeeId={selfEmployee?.id}
                   />
                 </DialogContent>
               </Dialog>
@@ -244,6 +278,7 @@ export async function FlexibleWorkPage({
                     </DialogDescription>
                   </DialogHeader>
                   <FwaRequestForm
+                    organizationId={organizationId}
                     employees={employees}
                     arrangementTypes={arrangementTypes}
                     mode="on_behalf"
@@ -281,7 +316,20 @@ export async function FlexibleWorkPage({
       <FwaActiveArrangementsSection
         rows={orgActiveRows}
         loadError={activeLoadError}
+        canManageLifecycle={fwaAccess.canManage && canApproveAll}
       />
+
+      {fwaAccess.canManage ? (
+        <FwaEligibilityRulesSection
+          organizationId={organizationId}
+          arrangementTypes={arrangementTypes}
+          canManage={fwaAccess.canManage}
+        />
+      ) : null}
+
+      {fwaAccess.canManage ? (
+        <FwaOperationalReportSection organizationId={organizationId} />
+      ) : null}
     </div>
   )
 }

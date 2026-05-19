@@ -43,6 +43,8 @@ const HRM_MESSAGES = (
         cards: Record<string, Record<string, string>>
         placeholders: Record<string, Record<string, string>>
         flexibleWork?: Record<string, string>
+        absenceAnalytics?: Record<string, string>
+        compensationPlanning?: Record<string, string>
       }
     }
   }
@@ -119,6 +121,17 @@ describe("HRM_CAPABILITIES registry", () => {
     expect(flexibleWork?.auditPrefix).toBe("erp.hrm.flexible_work")
     expect(HRM_MESSAGES.nav["flexible-work"]).toBeTypeOf("string")
     expect(HRM_MESSAGES.flexibleWork?.pageTitle).toBeTypeOf("string")
+  })
+
+  it("registers absence-analytics capability and catalog keys", () => {
+    const absenceAnalytics = getHrmCapabilityById("absenceAnalytics")
+    expect(absenceAnalytics?.segments).toContain("absence-analytics")
+    expect(absenceAnalytics?.requiredPermission).toBe(
+      "hrm.absence_analytics.search"
+    )
+    expect(absenceAnalytics?.auditPrefix).toBe("erp.hrm.absence_analytics")
+    expect(HRM_MESSAGES.nav["absence-analytics"]).toBeTypeOf("string")
+    expect(HRM_MESSAGES.absenceAnalytics?.pageTitle).toBeTypeOf("string")
   })
 
   it("registers onboarding and performance audit prefixes", () => {

@@ -6,6 +6,7 @@ export const HRM_LEAVE_REQUEST_STATES = [
   "submitted",
   "approved",
   "rejected",
+  "returned",
   "taken",
   "cancelled",
 ] as const

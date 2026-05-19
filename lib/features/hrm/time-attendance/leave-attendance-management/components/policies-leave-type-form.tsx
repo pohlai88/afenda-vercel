@@ -71,6 +71,9 @@ export function LeaveTypeForm({ row, onSuccess }: LeaveTypeFormProps) {
   const fixedId = useId()
   const carryId = useId()
   const expiryId = useId()
+  const minNoticeId = useId()
+  const maxConsecutiveId = useId()
+  const requiresAttachmentId = useId()
 
   const onSuccessRef = useRef(onSuccess)
   useEffect(() => {
@@ -295,6 +298,47 @@ export function LeaveTypeForm({ row, onSuccess }: LeaveTypeFormProps) {
           min={1}
           defaultValue={row?.carryForwardExpiryMonths ?? ""}
         />
+      </Field>
+
+      <Field>
+        <FieldLabel htmlFor={minNoticeId}>
+          {t("leaveType.fieldMinNoticeDays")}
+        </FieldLabel>
+        <Input
+          id={minNoticeId}
+          name="minNoticeDays"
+          type="number"
+          min={0}
+          defaultValue={row?.minNoticeDays ?? ""}
+        />
+      </Field>
+
+      <Field>
+        <FieldLabel htmlFor={maxConsecutiveId}>
+          {t("leaveType.fieldMaxConsecutiveDays")}
+        </FieldLabel>
+        <Input
+          id={maxConsecutiveId}
+          name="maxConsecutiveDays"
+          type="number"
+          min={1}
+          defaultValue={row?.maxConsecutiveDays ?? ""}
+        />
+      </Field>
+
+      <Field>
+        <FieldLabel htmlFor={requiresAttachmentId}>
+          {t("leaveType.fieldRequiresAttachment")}
+        </FieldLabel>
+        <select
+          id={requiresAttachmentId}
+          name="requiresAttachment"
+          className={SELECT_CLASS}
+          defaultValue={row?.requiresAttachment ? "true" : "false"}
+        >
+          <option value="false">{t("leaveType.requiresAttachmentNo")}</option>
+          <option value="true">{t("leaveType.requiresAttachmentYes")}</option>
+        </select>
       </Field>
 
       <Button type="submit" disabled={pending} className="self-start">

@@ -105,6 +105,21 @@ export const HRM_CAPABILITIES = [
     }),
   },
   {
+    id: "absenceAnalytics",
+    segments: ["absence-analytics"] as const,
+    auditPrefix: "erp.hrm.absence_analytics",
+    nav: {
+      navKey: "absence-analytics",
+      order: 31,
+      primarySegment: "absence-analytics",
+    },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "absence_analytics",
+      function: "search",
+    }),
+  },
+  {
     id: "flexibleWork",
     segments: ["flexible-work"] as const,
     auditPrefix: "erp.hrm.flexible_work",

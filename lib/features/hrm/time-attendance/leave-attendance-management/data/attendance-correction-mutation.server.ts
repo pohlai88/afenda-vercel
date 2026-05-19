@@ -18,6 +18,8 @@ import {
 import type { RegenerateAttendanceDayResult } from "./attendance-shift.shared"
 import { listClosedPayrollPeriodsOverlappingRange } from "../../../payroll-compensation/payroll-processing/data/payroll.queries.server"
 import type { CorrectAttendanceEventInput } from "../schemas/attendance-event.schema"
+import { submitAttendanceCorrectionForApproval } from "./attendance-correction-approval.server"
+import { getLeaveEmployeeForOrg } from "./leave-request.queries.server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import { withPortalMutationSpan } from "../../../employee-management/employee-selfservice-portal/data/portal-mutation-tracing.server"
 import type { AttendanceCorrectionFormState } from "../../../types"
@@ -238,6 +240,21 @@ async function applyAttendanceEventCorrectionBody(input: {
   if (originalEvent.correctionOfEventId !== null) {
     return hrmActionFailure({
       form: "Correction events cannot be corrected again.",
+    })
+  }
+
+  if (restrictToEmployeeId !== null) {
+    const employee = await getLeaveEmployeeForOrg(
+      organizationId,
+      originalEvent.employeeId
+    )
+    return submitAttendanceCorrectionForApproval({
+      organizationId,
+      userId,
+      sessionId,
+      employeeId: originalEvent.employeeId,
+      correction: data,
+      managerEmployeeId: employee?.managerEmployeeId ?? null,
     })
   }
 
