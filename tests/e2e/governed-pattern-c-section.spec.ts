@@ -14,7 +14,7 @@ test.describe("@smoke Pattern C section gallery", () => {
   test("renders forbidden, invalid, empty, and trailing-disabled fixtures", async ({
     page,
   }) => {
-    await page.goto("/en/dev/pattern-c-section-gallery")
+    await page.goto("/en/playground/pattern-c-section-gallery")
 
     const forbidden = page.locator("#pattern-c-forbidden")
     await expect(
@@ -89,9 +89,9 @@ test.describe("HRM Pattern C production mounts", () => {
       )
       await expect(section).toBeVisible()
       await expect(
-        section.getByRole("table").or(
-          section.getByText("No active contracts", { exact: true })
-        )
+        section
+          .getByRole("table")
+          .or(section.getByText("No active contracts", { exact: true }))
       ).toBeVisible()
     }
   )
@@ -114,9 +114,9 @@ test.describe("HRM Pattern C production mounts", () => {
       )
       await expect(inbox).toBeVisible()
       await expect(
-        inbox.getByRole("table").or(
-          inbox.getByText("No pending leave approvals", { exact: false })
-        )
+        inbox
+          .getByRole("table")
+          .or(inbox.getByText("No pending leave approvals", { exact: false }))
       ).toBeVisible()
     }
   )
@@ -187,7 +187,10 @@ test.describe("HRM Pattern C production mounts", () => {
       )
       await expect(kanban).toBeVisible()
       await expect(
-        kanban.getByRole("region").first().or(kanban.getByText("temporarily unavailable"))
+        kanban
+          .getByRole("region")
+          .first()
+          .or(kanban.getByText("temporarily unavailable"))
       ).toBeVisible()
 
       const recent = page.locator(
@@ -195,9 +198,9 @@ test.describe("HRM Pattern C production mounts", () => {
       )
       await expect(recent).toBeVisible()
       await expect(
-        recent.getByRole("table").or(
-          recent.getByText("No claim activity yet", { exact: false })
-        )
+        recent
+          .getByRole("table")
+          .or(recent.getByText("No claim activity yet", { exact: false }))
       ).toBeVisible()
     }
   )

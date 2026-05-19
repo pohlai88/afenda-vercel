@@ -103,7 +103,9 @@ export function buildFwaArrangementTypesListSurfaceConfiguration(
       cells: {
         code: row.code,
         label: row.label,
-        kind: fwaArrangementKindLabel(row.arrangementKind as HrmFwaArrangementKind),
+        kind: fwaArrangementKindLabel(
+          row.arrangementKind as HrmFwaArrangementKind
+        ),
         remoteRequired: row.requiresRemoteLocation ? "Yes" : "No",
       },
     })),

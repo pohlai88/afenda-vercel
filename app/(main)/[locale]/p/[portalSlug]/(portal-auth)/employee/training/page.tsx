@@ -4,7 +4,6 @@ import { getTranslations } from "next-intl/server"
 import { EmployeePortalTrainingPage } from "#features/hrm"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
-
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Dashboard.Hrm.training")
   return {

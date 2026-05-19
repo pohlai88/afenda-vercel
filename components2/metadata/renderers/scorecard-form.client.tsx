@@ -37,10 +37,7 @@ export function ScorecardFormSurface({
           <CardTitle className="text-base">{form.title}</CardTitle>
         </CardHeader>
         <CardContent
-          className={cn(
-            "flex flex-col",
-            densityGapClass(form.chrome?.density)
-          )}
+          className={cn("flex flex-col", densityGapClass(form.chrome?.density))}
         >
           <ul className="flex flex-col gap-4">
             {form.criteria.map((criterion) => (
@@ -58,7 +55,11 @@ export function ScorecardFormSurface({
           {form.notesFieldId ? (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={form.notesFieldId}>Notes</Label>
-              <Textarea id={form.notesFieldId} name={form.notesFieldId} rows={3} />
+              <Textarea
+                id={form.notesFieldId}
+                name={form.notesFieldId}
+                rows={3}
+              />
             </div>
           ) : null}
           <Button
@@ -92,7 +93,9 @@ function CriterionRow({
       <div className="flex flex-col gap-0.5">
         <p className="text-sm font-medium">{criterion.label}</p>
         {criterion.description ? (
-          <p className="text-xs text-muted-foreground">{criterion.description}</p>
+          <p className="text-xs text-muted-foreground">
+            {criterion.description}
+          </p>
         ) : null}
       </div>
       <div

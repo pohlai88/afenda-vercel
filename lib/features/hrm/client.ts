@@ -150,6 +150,15 @@ export {
   createFwaArrangementTypeAction,
 } from "./time-attendance/flexible-work-arrangement-tracking/client"
 export {
+  createCompensationCycleAction,
+  syncCompensationCycleParticipantsAction,
+  createCompensationBudgetPoolAction,
+} from "./payroll-compensation/compensation-planning-modeling/client"
+export type {
+  CreateCompensationCycleFormState,
+  CreateCompensationBudgetPoolFormState,
+} from "./payroll-compensation/compensation-planning-modeling/client"
+export {
   cancelPortalEmployeeLeaveAction,
   requestPortalEmployeeLeaveAction,
 } from "./employee-management/employee-selfservice-portal/actions/employee-portal-leave.actions"
@@ -348,18 +357,21 @@ export type { AcknowledgementSource } from "./employee-management/compliance-reg
 export { acknowledgeStatutoryEvidenceAction } from "./employee-management/compliance-regulatory-tracking/actions/statutory-acknowledgement.actions"
 export {
   archiveComplianceObligationAction,
+  archiveComplianceObligationFormAction,
   assignComplianceCorrectiveActionAction,
+  ComplianceDashboardExportActions,
+  ComplianceStatutoryPackControls,
   completeFilingAction,
   createComplianceExceptionAction,
   createFilingAction,
+  exportComplianceDashboardCsvAction,
   updateComplianceCorrectiveActionProgressAction,
   updateFilingAction,
   upsertComplianceObligationAction,
+  upsertComplianceObligationFormAction,
   waiveComplianceExceptionAction,
   waiveFilingAction,
 } from "./employee-management/compliance-regulatory-tracking/client"
-
-export { CompliancePage } from "./employee-management/compliance-regulatory-tracking/components/compliance-page"
 
 /** Benefits administration (Phase 5) — plan catalog + enrollments + life events. */
 export {
@@ -431,7 +443,7 @@ export {
   claimRejectDecisionSchema,
   requestOwnClaimFormSchema,
   submitClaimFormSchema,
-} from "./payroll-compensation/expenses-reimbursement/schema/claim.schema"
+} from "./payroll-compensation/expenses-reimbursement/schemas/claim.schema"
 export type {
   AttachClaimEvidenceFormValues,
   CancelClaimFormValues,
@@ -439,7 +451,7 @@ export type {
   ClaimRejectDecisionValues,
   RequestOwnClaimFormValues,
   SubmitClaimFormValues,
-} from "./payroll-compensation/expenses-reimbursement/schema/claim.schema"
+} from "./payroll-compensation/expenses-reimbursement/schemas/claim.schema"
 export {
   CLAIM_EVIDENCE_TYPES,
   CLAIM_STATES,

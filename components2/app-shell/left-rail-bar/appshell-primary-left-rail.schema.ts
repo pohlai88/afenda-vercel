@@ -184,7 +184,11 @@ export const appShellPrimaryLeftRailSlotsDataSchema = z
     inbox: appShellPrimaryLeftRailInboxSchema.optional(),
     pinned: z.array(appShellPrimaryLeftRailPinSchema).min(1).optional(),
     views: z.array(appShellPrimaryLeftRailViewSchema).min(1).optional(),
-    recents: z.array(appShellPrimaryLeftRailRecentSchema).min(1).max(5).optional(),
+    recents: z
+      .array(appShellPrimaryLeftRailRecentSchema)
+      .min(1)
+      .max(5)
+      .optional(),
   })
   .strict()
 

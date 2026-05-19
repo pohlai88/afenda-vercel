@@ -3,10 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { GovernedPatternCListSection } from "#features/governed-surface"
 
 import { buildOrgIntegrationsImportsListSurfaceConfiguration } from "../data/org-admin-integrations-list-surface.server"
-import type {
-  OrgImportJobFailureSummary,
-  OrgImportJobSummary,
-} from "../types"
+import type { OrgImportJobFailureSummary, OrgImportJobSummary } from "../types"
 
 import { IntegrationsImportJobActions } from "./integrations-import-job-actions.client"
 

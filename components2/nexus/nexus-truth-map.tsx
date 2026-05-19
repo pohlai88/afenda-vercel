@@ -1,5 +1,5 @@
 import { NexusSurfaceCard } from "./nexus-surface-card"
-import type { NexusSurfaceState } from "./nexus.types"
+import type { NexusSurfaceState } from "#features/nexus"
 
 /**
  * Truth Map — Section C of the Nexus Field.

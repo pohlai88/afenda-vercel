@@ -77,7 +77,8 @@ export function validateClaimEvidenceDocument(input: {
   ) {
     issues.push({
       code: "receipt_unverified",
-      message: "Receipt was rejected in the document vault — upload a new file.",
+      message:
+        "Receipt was rejected in the document vault — upload a new file.",
       blocking: true,
     })
   }

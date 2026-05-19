@@ -46,7 +46,9 @@ function listUseCacheFiles(): string[] {
     const abs = join(ROOT, root)
     collectSourceFiles(abs, files)
   }
-  return files.filter((file) => readFileSync(file, "utf-8").includes('"use cache"'))
+  return files.filter((file) =>
+    readFileSync(file, "utf-8").includes('"use cache"')
+  )
 }
 
 describe("use cache dynamic boundary", () => {

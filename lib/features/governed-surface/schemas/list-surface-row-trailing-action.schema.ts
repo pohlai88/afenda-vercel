@@ -23,14 +23,16 @@ export const listSurfaceRowTrailingActionSchema = z
     if (value.state === "disabled" && !value.disabledReason) {
       ctx.addIssue({
         code: "custom",
-        message: "disabledReason is required when trailing action state is disabled",
+        message:
+          "disabledReason is required when trailing action state is disabled",
         path: ["disabledReason"],
       })
     }
     if (value.state === "hidden" && value.disabledReason) {
       ctx.addIssue({
         code: "custom",
-        message: "disabledReason must not be set when trailing action state is hidden",
+        message:
+          "disabledReason must not be set when trailing action state is hidden",
         path: ["disabledReason"],
       })
     }

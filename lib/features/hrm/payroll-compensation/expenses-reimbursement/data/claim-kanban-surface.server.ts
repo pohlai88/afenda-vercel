@@ -15,10 +15,7 @@ import {
 } from "./claim-kanban-workflow.shared"
 
 const COLUMN_BADGE_TONE: Partial<
-  Record<
-    ClaimKanbanColumnId,
-    "default" | "positive" | "attention" | "critical"
-  >
+  Record<ClaimKanbanColumnId, "default" | "positive" | "attention" | "critical">
 > = {
   submitted: "attention",
   returned: "attention",
@@ -84,9 +81,7 @@ function buildClaimKanbanDragTransitions(
         toColumnId,
         label: copy.cancelTransitionLabel,
         allowed: canCancel,
-        disabledReason: canCancel
-          ? undefined
-          : copy.dragDisabledNotCancellable,
+        disabledReason: canCancel ? undefined : copy.dragDisabledNotCancellable,
       })
     }
 

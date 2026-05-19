@@ -24,9 +24,7 @@ export const CLAIM_KANBAN_COLUMN_TRANSITIONS: Readonly<
   cancelled: [],
 }
 
-const STATE_TO_COLUMN: Partial<
-  Record<ClaimStateValue, ClaimKanbanColumnId>
-> = {
+const STATE_TO_COLUMN: Partial<Record<ClaimStateValue, ClaimKanbanColumnId>> = {
   submitted: "submitted",
   returned: "returned",
   approved: "approved",

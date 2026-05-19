@@ -25,7 +25,10 @@ export async function listPayrollGroupsForOrg(
     })
     .from(hrmPayrollGroup)
     .where(
-      and(eq(hrmPayrollGroup.organizationId, organizationId), eq(hrmPayrollGroup.isActive, true))
+      and(
+        eq(hrmPayrollGroup.organizationId, organizationId),
+        eq(hrmPayrollGroup.isActive, true)
+      )
     )
     .orderBy(asc(hrmPayrollGroup.code))
 

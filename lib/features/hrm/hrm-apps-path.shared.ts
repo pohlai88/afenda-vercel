@@ -7,6 +7,7 @@ export const HRM_APPS_CAPABILITY_SEGMENTS = [
   "benefits",
   "bonus-incentives",
   "claims",
+  "compensation-planning",
   "compliance",
   "documents",
   "employees",

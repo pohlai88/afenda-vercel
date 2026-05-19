@@ -29,9 +29,7 @@ import {
   submitCreateTrainingSession,
   submitRecordSessionAttendance,
 } from "../actions/training-session.actions"
-import {
-  submitCompleteTrainingRecord,
-} from "../actions/training-record.actions"
+import { submitCompleteTrainingRecord } from "../actions/training-record.actions"
 import { listActiveEmployeeChoicesForLeave } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
 import { listSkillsForOrg } from "../../competency-skills-framework/data/skill.queries.server"
 import { listAllPrerequisitesForOrg } from "../data/training-prerequisite.server"

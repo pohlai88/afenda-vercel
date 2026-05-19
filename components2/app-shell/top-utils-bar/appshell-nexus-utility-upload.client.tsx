@@ -7,7 +7,11 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "#components2/ui/button"
 import { Progress } from "#components2/ui/progress"
-import { Popover, PopoverContent, PopoverTrigger } from "#components2/ui/popover"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "#components2/ui/popover"
 import { Spinner } from "#components2/ui/spinner"
 import { cn } from "#lib/utils"
 
@@ -53,7 +57,9 @@ function formatFileSize(size: number): string {
  * Quick tenant-scoped upload launcher for governed Blob intake from the Nexus utility bar.
  * v1 intentionally supports one file at a time and returns inline success or failure only.
  */
-export function AppShellNexusUtilityUpload({ orgId }: AppShellNexusUtilityUploadProps) {
+export function AppShellNexusUtilityUpload({
+  orgId,
+}: AppShellNexusUtilityUploadProps) {
   const t = useTranslations("Dashboard.shell.utilityBar.upload")
   const inputId = useId()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -279,4 +285,7 @@ export function AppShellNexusUtilityUpload({ orgId }: AppShellNexusUtilityUpload
   )
 }
 
-export { buildUploadPath as buildAppShellNexusUtilityUploadPath, formatFileSize }
+export {
+  buildUploadPath as buildAppShellNexusUtilityUploadPath,
+  formatFileSize,
+}

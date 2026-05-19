@@ -52,7 +52,11 @@ const submitPortalDocumentFormSchema = z.object({
   blobUrl: z.string().url().startsWith("https://"),
   payloadHash,
   mimeType: z.string().min(3).max(128),
-  sizeBytes: z.coerce.number().int().min(1).max(80 * 1024 * 1024),
+  sizeBytes: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(80 * 1024 * 1024),
   title: z.string().trim().min(1).max(512),
   documentType: z.enum(HRM_DOCUMENT_TYPES),
   classification: z.enum(HRM_DOCUMENT_CLASSIFICATIONS).optional(),
@@ -202,7 +206,9 @@ export async function submitPortalEmployeeDocumentAction(
   ) {
     return {
       ok: false,
-      errors: { form: "Employee submissions cannot set a sensitive classification." },
+      errors: {
+        form: "Employee submissions cannot set a sensitive classification.",
+      },
     }
   }
 
@@ -215,7 +221,9 @@ export async function submitPortalEmployeeDocumentAction(
   if (!requirement) {
     return {
       ok: false,
-      errors: { form: "This document type is not open for employee submission." },
+      errors: {
+        form: "This document type is not open for employee submission.",
+      },
     }
   }
   if (
@@ -231,92 +239,103 @@ export async function submitPortalEmployeeDocumentAction(
     }
   }
 
-  return withEmployeePortalActionSpan(context, "documents", "submit", async () => {
-    const now = new Date()
-    const id = crypto.randomUUID()
-    const effectiveFrom = new Date(`${parsed.data.effectiveFrom}T00:00:00.000Z`)
-    const effectiveTo = parsed.data.expiryDate
-      ? new Date(`${parsed.data.expiryDate}T00:00:00.000Z`)
-      : null
-    const documentGroup = requirement.documentGroup
-      || deriveHrmDocumentGroup(parsed.data.documentType)
-    const retentionRule = await findRetentionRule({
-      organizationId,
-      retentionPolicyCode: requirement.retentionPolicyCode,
-      documentType: parsed.data.documentType,
-      documentGroup,
-    })
-    const retentionUntil = retentionRule
-      ? addUtcDays(effectiveTo ?? effectiveFrom, retentionRule.retentionPeriodDays)
-      : null
-
-    await db.transaction(async (tx) => {
-      await tx.insert(hrmDocument).values({
-        id,
+  return withEmployeePortalActionSpan(
+    context,
+    "documents",
+    "submit",
+    async () => {
+      const now = new Date()
+      const id = crypto.randomUUID()
+      const effectiveFrom = new Date(
+        `${parsed.data.effectiveFrom}T00:00:00.000Z`
+      )
+      const effectiveTo = parsed.data.expiryDate
+        ? new Date(`${parsed.data.expiryDate}T00:00:00.000Z`)
+        : null
+      const documentGroup =
+        requirement.documentGroup ||
+        deriveHrmDocumentGroup(parsed.data.documentType)
+      const retentionRule = await findRetentionRule({
         organizationId,
-        documentSetId: id,
-        employeeId,
+        retentionPolicyCode: requirement.retentionPolicyCode,
         documentType: parsed.data.documentType,
         documentGroup,
-        title: parsed.data.title,
-        blobUrl: parsed.data.blobUrl,
-        payloadHash: parsed.data.payloadHash,
-        mimeType: parsed.data.mimeType,
-        sizeBytes: parsed.data.sizeBytes,
-        classification: parsed.data.classification ?? "internal",
-        verificationStatus: "pending",
-        documentLifecycleStatus: "active",
-        effectiveFrom,
-        effectiveTo,
-        versionNumber: 1,
-        isLatestVersion: true,
-        isMandatory: requirement.isMandatory,
-        retentionPolicyCode: requirement.retentionPolicyCode,
-        retentionUntil,
-        uploadedByUserId: context.portal.userId,
+      })
+      const retentionUntil = retentionRule
+        ? addUtcDays(
+            effectiveTo ?? effectiveFrom,
+            retentionRule.retentionPeriodDays
+          )
+        : null
+
+      await db.transaction(async (tx) => {
+        await tx.insert(hrmDocument).values({
+          id,
+          organizationId,
+          documentSetId: id,
+          employeeId,
+          documentType: parsed.data.documentType,
+          documentGroup,
+          title: parsed.data.title,
+          blobUrl: parsed.data.blobUrl,
+          payloadHash: parsed.data.payloadHash,
+          mimeType: parsed.data.mimeType,
+          sizeBytes: parsed.data.sizeBytes,
+          classification: parsed.data.classification ?? "internal",
+          verificationStatus: "pending",
+          documentLifecycleStatus: "active",
+          effectiveFrom,
+          effectiveTo,
+          versionNumber: 1,
+          isLatestVersion: true,
+          isMandatory: requirement.isMandatory,
+          retentionPolicyCode: requirement.retentionPolicyCode,
+          retentionUntil,
+          uploadedByUserId: context.portal.userId,
+        })
+
+        if (parsed.data.requestId) {
+          await tx
+            .update(hrmEssDocumentRequest)
+            .set({
+              status: "fulfilled",
+              fulfilledDocumentId: id,
+              reviewedAt: now,
+              reviewedByUserId: context.portal.userId,
+              updatedAt: now,
+            })
+            .where(
+              and(
+                eq(hrmEssDocumentRequest.organizationId, organizationId),
+                eq(hrmEssDocumentRequest.employeeId, employeeId),
+                eq(hrmEssDocumentRequest.id, parsed.data.requestId)
+              )
+            )
+        }
       })
 
-      if (parsed.data.requestId) {
-        await tx
-          .update(hrmEssDocumentRequest)
-          .set({
-            status: "fulfilled",
-            fulfilledDocumentId: id,
-            reviewedAt: now,
-            reviewedByUserId: context.portal.userId,
-            updatedAt: now,
-          })
-          .where(
-            and(
-              eq(hrmEssDocumentRequest.organizationId, organizationId),
-              eq(hrmEssDocumentRequest.employeeId, employeeId),
-              eq(hrmEssDocumentRequest.id, parsed.data.requestId)
-            )
-          )
-      }
-    })
+      await writeIamAuditEventFromNextHeaders({
+        action: HRM_DOCUMENT_AUDIT.attach,
+        actorUserId: context.portal.userId,
+        actorSessionId: context.portal.sessionId,
+        organizationId,
+        resourceType: "hrm_document",
+        resourceId: id,
+        metadata: {
+          surface: "employee_portal",
+          employeeId,
+          documentType: parsed.data.documentType,
+          payloadHashSuffix: parsed.data.payloadHash.slice(-12),
+        },
+      })
 
-    await writeIamAuditEventFromNextHeaders({
-      action: HRM_DOCUMENT_AUDIT.attach,
-      actorUserId: context.portal.userId,
-      actorSessionId: context.portal.sessionId,
-      organizationId,
-      resourceType: "hrm_document",
-      resourceId: id,
-      metadata: {
-        surface: "employee_portal",
-        employeeId,
-        documentType: parsed.data.documentType,
-        payloadHashSuffix: parsed.data.payloadHash.slice(-12),
-      },
-    })
-
-    revalidatePath(
-      toLocalePortalRevalidatePattern("/employee/documents"),
-      "page"
-    )
-    return { ok: true }
-  })
+      revalidatePath(
+        toLocalePortalRevalidatePattern("/employee/documents"),
+        "page"
+      )
+      return { ok: true }
+    }
+  )
 }
 
 export async function downloadPortalEmployeeDocumentAction(

@@ -443,7 +443,10 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": [
         "error",
         {
-          patterns: [...serverFeatureIndexBarrelPatterns, ...serverOnlyPatterns],
+          patterns: [
+            ...serverFeatureIndexBarrelPatterns,
+            ...serverOnlyPatterns,
+          ],
         },
       ],
     },
@@ -455,15 +458,15 @@ const eslintConfig = defineConfig([
   // -------------------------------------------------------------------------
   {
     name: "afenda/feature-client-server-barrel",
-    files: [
-      "lib/features/**/*.client.{ts,tsx}",
-      "hooks/**/*.client.{ts,tsx}",
-    ],
+    files: ["lib/features/**/*.client.{ts,tsx}", "hooks/**/*.client.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
-          patterns: [...serverFeatureIndexBarrelPatterns, ...serverOnlyPatterns],
+          patterns: [
+            ...serverFeatureIndexBarrelPatterns,
+            ...serverOnlyPatterns,
+          ],
         },
       ],
     },
@@ -483,7 +486,10 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": [
         "error",
         {
-          patterns: [...serverFeatureIndexBarrelPatterns, ...serverOnlyPatterns],
+          patterns: [
+            ...serverFeatureIndexBarrelPatterns,
+            ...serverOnlyPatterns,
+          ],
         },
       ],
     },

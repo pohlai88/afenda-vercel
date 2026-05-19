@@ -10,7 +10,7 @@ import { canUseErpPermission } from "#features/erp-rbac/server"
 import {
   buildKanbanWorkflowFromColumnTransitions,
   isKanbanTransitionAllowed,
-} from "#features/governed-surface/kanban-workflow.shared"
+} from "#features/governed-surface"
 
 import { isClaimCancellable } from "../data/claim-helpers.shared"
 import {

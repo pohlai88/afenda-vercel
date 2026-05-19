@@ -143,7 +143,8 @@ export function EmployeePortalAttendanceCorrectionForm({
       <Button type="submit" disabled={pending || correctable.length === 0}>
         {pending ? (
           <>
-            <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />ÔÇª
+            <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+            ÔÇª
           </>
         ) : (
           "Submit correction"

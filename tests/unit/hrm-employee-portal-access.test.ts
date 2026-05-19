@@ -6,10 +6,13 @@ vi.mock("#lib/auth", () => ({
   writeIamAuditEventFromNextHeaders: vi.fn(),
   requireOrgSession: vi.fn(),
 }))
-vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts", () => ({
-  ensureEmployeePortalForOrganization: vi.fn(),
-  getEmployeePortalAccessForEmployee: vi.fn(),
-}))
+vi.mock(
+  "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts",
+  () => ({
+    ensureEmployeePortalForOrganization: vi.fn(),
+    getEmployeePortalAccessForEmployee: vi.fn(),
+  })
+)
 
 import {
   grantEmployeePortalAccessAction,

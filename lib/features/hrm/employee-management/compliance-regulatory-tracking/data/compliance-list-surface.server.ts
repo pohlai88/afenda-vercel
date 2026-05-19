@@ -11,6 +11,7 @@ import type { ComplianceFilingListRow } from "./compliance-filing.queries.server
 import type { ComplianceEvidenceRow } from "./compliance.queries.server"
 import type { ComplianceHealthSampleRow } from "./compliance-operational-health.queries.server"
 import type { ComplianceHealthAttentionBucket } from "./compliance-operational-health.shared"
+import type { ComplianceObligationRow } from "./compliance-obligation.queries.server"
 const PRESENTATION = {
   variant: "table-only" as const,
   tableDensity: "compact" as const,
@@ -141,10 +142,7 @@ export function buildComplianceFilingsListSurfaceConfiguration(
         status: row.derivedStatus,
         category: row.filingCategory,
         due: copy.formatDueDate(row.dueDate),
-        scope: [
-          row.countryCode ?? "Global",
-          row.legalEntityCode ?? null,
-        ]
+        scope: [row.countryCode ?? "Global", row.legalEntityCode ?? null]
           .filter(Boolean)
           .join(" · "),
       },
@@ -274,6 +272,73 @@ export function buildComplianceHealthSamplesListSurfaceConfiguration(
         visible: true,
         allowed: rows.length > 0,
       }),
+    })),
+  }
+}
+
+type ComplianceObligationsListCopy = {
+  empty: string
+  colCode: string
+  colTitle: string
+  colKind: string
+  colArea: string
+  colStatus: string
+  colScope: string
+  formatScope: (row: ComplianceObligationRow) => string
+}
+
+export function buildComplianceObligationsListSurfaceConfiguration(
+  rows: readonly ComplianceObligationRow[],
+  copy: ComplianceObligationsListCopy,
+  context?: ComplianceListTrailingContext
+): ListSurfaceRendererConfigurationInput {
+  return {
+    dataNature: "table",
+    requiresErpPermission: COMPLIANCE_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: { title: "hrm-compliance-obligations" },
+      columnsId: "hrm-compliance-obligations",
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "code", header: copy.colCode },
+      { id: "title", header: copy.colTitle },
+      {
+        id: "kind",
+        header: copy.colKind,
+        cellKind: { kind: "badge", tone: "default" },
+      },
+      {
+        id: "area",
+        header: copy.colArea,
+        cellKind: { kind: "badge", tone: "default" },
+      },
+      {
+        id: "status",
+        header: copy.colStatus,
+        cellKind: { kind: "badge", tone: "attention" },
+      },
+      { id: "scope", header: copy.colScope },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        code: row.code,
+        title: row.title,
+        kind: row.requirementKind,
+        area: row.complianceArea,
+        status: row.status,
+        scope: copy.formatScope(row),
+      },
+      trailingAction:
+        context?.showActionsColumn && context.canUpdate
+          ? resolveListSurfaceRowTrailingAction({
+              visible: true,
+              allowed: row.status !== "archived",
+            })
+          : undefined,
     })),
   }
 }

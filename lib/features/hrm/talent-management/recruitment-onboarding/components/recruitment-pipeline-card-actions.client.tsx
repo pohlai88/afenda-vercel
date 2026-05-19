@@ -153,7 +153,10 @@ function OfferCreateForm({
       />
       <div className="grid grid-cols-2 gap-1">
         <div className="flex flex-col gap-1">
-          <Label htmlFor={`offer-currency-${applicationId}`} className="text-xs">
+          <Label
+            htmlFor={`offer-currency-${applicationId}`}
+            className="text-xs"
+          >
             {t("fieldCurrency")}
           </Label>
           <Input
@@ -176,7 +179,12 @@ function OfferCreateForm({
           />
         </div>
       </div>
-      <Button type="submit" size="sm" variant="secondary" className="h-7 text-xs">
+      <Button
+        type="submit"
+        size="sm"
+        variant="secondary"
+        className="h-7 text-xs"
+      >
         {t("createOffer")}
       </Button>
     </form>

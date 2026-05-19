@@ -16,10 +16,8 @@ export async function RecruitmentRequisitionsListSection({
 }: RecruitmentRequisitionsListSectionProps) {
   const t = await getTranslations("Dashboard.Hrm.recruitment")
 
-  const listConfiguration = buildRecruitmentRequisitionsListSurfaceConfiguration(
-    rows,
-    orgSlug,
-    {
+  const listConfiguration =
+    buildRecruitmentRequisitionsListSurfaceConfiguration(rows, orgSlug, {
       pageTitle: t("requisitionsTitle"),
       pageDescription: t("newRequisitionDescription"),
       empty: t("requisitionsEmpty"),
@@ -27,8 +25,7 @@ export async function RecruitmentRequisitionsListSection({
       colDepartment: t("noDepartment"),
       colHeadcount: t("fieldHeadcount"),
       colStatus: "Status",
-    }
-  )
+    })
 
   return (
     <GovernedPatternCListSection

@@ -27,9 +27,6 @@ export async function createSaleOrder(
     return { ok: false, errors: { form: "Invalid sale payload." } }
   }
 
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern(ORG_APPS_SALE),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(ORG_APPS_SALE), "page")
   return { ok: true }
 }

@@ -11,7 +11,7 @@ import {
 import { recordClaimApTreasuryPayment } from "../data/claim-ap-payment.server"
 import { fanoutClaimLifecycleEvent } from "../data/claim-notification.server"
 import { findClaimNotificationPayload } from "../data/claim.queries.server"
-import { recordClaimApPaymentFormSchema } from "../schema/claim.schema"
+import { recordClaimApPaymentFormSchema } from "../schemas/claim.schema"
 import { revalidateClaims } from "../data/claim-submission-mutation.server"
 import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
@@ -76,23 +76,22 @@ export async function recordClaimApPaymentAction(
     return { ok: true, claimId: result.claimId }
   }
 
-  const notificationPayload =
-    (await findClaimNotificationPayload({
-      organizationId,
-      claimId: result.claimId,
-      state: "paid",
-    })) ?? {
-      claimId: result.claimId,
-      claimNumber: null,
-      claimTypeCode: "claim",
-      claimDate: "",
-      amount:
-        parsed.data.paidAmount != null ? String(parsed.data.paidAmount) : "0",
-      currency: "",
-      state: "paid",
-      expenseFundCode: null,
-      requiresExceptionApproval: false,
-    }
+  const notificationPayload = (await findClaimNotificationPayload({
+    organizationId,
+    claimId: result.claimId,
+    state: "paid",
+  })) ?? {
+    claimId: result.claimId,
+    claimNumber: null,
+    claimTypeCode: "claim",
+    claimDate: "",
+    amount:
+      parsed.data.paidAmount != null ? String(parsed.data.paidAmount) : "0",
+    currency: "",
+    state: "paid",
+    expenseFundCode: null,
+    requiresExceptionApproval: false,
+  }
 
   after(async () => {
     await writeIamAuditEventFromNextHeaders({

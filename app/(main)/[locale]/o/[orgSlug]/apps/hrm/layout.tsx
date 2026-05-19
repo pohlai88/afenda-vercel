@@ -6,7 +6,6 @@ import { getOrgTenantContext } from "#lib/auth"
 
 import { OrgHrmDeferredShell } from "#features/hrm"
 
-
 export default function OrgAppsHrmLayout({
   children,
   params,

@@ -38,14 +38,12 @@ export async function EmployeePortalDocumentsPage({
     }),
   ])
 
-  const listConfiguration = buildEmployeePortalDocumentsListSurfaceConfiguration(
-    documents,
-    {
+  const listConfiguration =
+    buildEmployeePortalDocumentsListSurfaceConfiguration(documents, {
       empty: t("listEmpty"),
       colTitle: "Title",
       colType: "Type",
-    }
-  )
+    })
 
   const documentById = new Map(documents.map((doc) => [doc.id, doc]))
 

@@ -106,10 +106,7 @@ function revalidateOrganizationSurface() {
     toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_ORGANIZATION),
     "page"
   )
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/employees"),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/employees"), "page")
   revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "page")
   revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/snapshot"), "page")
   revalidatePath(toLocaleOrgNexusRevalidatePattern(), "page")

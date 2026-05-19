@@ -54,7 +54,7 @@ const GOVERNED_RENDERERS = {
   "audit-panel": AuditPanelRenderer,
   "detail-tabs": DetailTabsRenderer,
   "approval-timeline": ApprovalTimelineRenderer,
-  "chart": ChartRenderer,
+  chart: ChartRenderer,
   "kanban-board": KanbanBoardRenderer,
   "multi-step-form": MultiStepFormRenderer,
   "scorecard-form": ScorecardFormRenderer,

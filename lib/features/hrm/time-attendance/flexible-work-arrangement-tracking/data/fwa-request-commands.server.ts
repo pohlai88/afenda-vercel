@@ -73,18 +73,12 @@ export async function submitFwaRequest(
       arrangementTypeId: "Arrangement type is archived.",
     })
   }
-  if (
-    arrangementType.requiresRemoteLocation &&
-    !input.remoteLocation?.trim()
-  ) {
+  if (arrangementType.requiresRemoteLocation && !input.remoteLocation?.trim()) {
     return hrmActionFailure({
       remoteLocation: "Remote location is required for this arrangement type.",
     })
   }
-  if (
-    arrangementType.requiresSupportingDocument &&
-    !input.evidenceDocumentId
-  ) {
+  if (arrangementType.requiresSupportingDocument && !input.evidenceDocumentId) {
     return hrmActionFailure({
       evidenceDocumentId: "Supporting document is required for this type.",
     })

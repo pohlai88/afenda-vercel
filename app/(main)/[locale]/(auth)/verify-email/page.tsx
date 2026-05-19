@@ -38,7 +38,10 @@ export default async function VerifyEmailPage({
 
   return (
     <AuthPageFrame>
-      <VerifyEmailForm initialEmail={initialEmail} postAuthPath={postAuthPath} />
+      <VerifyEmailForm
+        initialEmail={initialEmail}
+        postAuthPath={postAuthPath}
+      />
     </AuthPageFrame>
   )
 }

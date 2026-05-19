@@ -1,6 +1,5 @@
 import { EmployeePortalLeavePage } from "#features/hrm"
 
-
 type EmployeePortalLeaveRouteProps = {
   params: Promise<{ portalSlug: string }>
 }

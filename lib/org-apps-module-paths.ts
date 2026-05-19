@@ -7,7 +7,7 @@ import {
 } from "#lib/i18n/org-apps-path.shared"
 import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
-const PROFILE_PATH_SEGMENTS = new Set(["identity", "security"])
+const PROFILE_PATH_SEGMENTS = new Set(["identity", "security", "reverify"])
 
 /**
  * Locale-internal pathname for org admin (`localePrefix: "always"`).
@@ -95,7 +95,9 @@ export function organizationAppsPath(
 }
 
 /** ERP module order under `/o/{slug}/apps` (excludes Nexus `home`). */
-export const APPS_NAV_MODULES = [...ORG_APPS_MODULES] as const satisfies ReadonlyArray<
+export const APPS_NAV_MODULES = [
+  ...ORG_APPS_MODULES,
+] as const satisfies ReadonlyArray<
   Exclude<Parameters<typeof organizationAppsPath>[1], "home">
 >
 

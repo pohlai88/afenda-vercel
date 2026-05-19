@@ -27,7 +27,10 @@ export function renderWithNextIntl(
 ) {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <NextIntlClientProvider locale="en" messages={GOVERNED_SURFACE_TEST_MESSAGES}>
+      <NextIntlClientProvider
+        locale="en"
+        messages={GOVERNED_SURFACE_TEST_MESSAGES}
+      >
         {children}
       </NextIntlClientProvider>
     )

@@ -16,15 +16,12 @@ import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.ser
 import {
   createBenefitProviderFormSchema,
   updateBenefitProviderFormSchema,
-} from "../schema/benefit.schema"
+} from "../schemas/benefit.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { BenefitPlanMutationFormState } from "../../../types"
 
 function revalidateBenefits() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/benefits"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/benefits"), "layout")
 }
 
 function parseCountryCodesFromForm(formData: FormData): string[] {

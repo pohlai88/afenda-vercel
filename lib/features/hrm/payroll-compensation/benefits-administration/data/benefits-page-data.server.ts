@@ -21,7 +21,9 @@ export type BenefitsPageTabData = {
     ReturnType<typeof listBenefitOpenEnrollmentsForOrg>
   >
   dependents: Awaited<ReturnType<typeof listDependentsForOrganization>>
-  benefitProviders: Awaited<ReturnType<typeof listBenefitProvidersForOrganization>>
+  benefitProviders: Awaited<
+    ReturnType<typeof listBenefitProvidersForOrganization>
+  >
   allBenefitProviders: Awaited<
     ReturnType<typeof listBenefitProvidersForOrganization>
   >
@@ -101,9 +103,8 @@ export async function loadBenefitsPageTabData(
         plans: await listBenefitPlansForOrganization(organizationId, {
           limit: 200,
         }),
-        openEnrollmentWindows: await listBenefitOpenEnrollmentsForOrg(
-          organizationId
-        ),
+        openEnrollmentWindows:
+          await listBenefitOpenEnrollmentsForOrg(organizationId),
       }
     case "life":
       return {

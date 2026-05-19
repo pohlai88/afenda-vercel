@@ -5,9 +5,7 @@ export {
   revokeEmployeePortalAccessAction,
 } from "./actions/employee-portal-access.actions"
 
-export {
-  acknowledgePortalPolicyAction,
-} from "./actions/employee-portal-acknowledgement.actions"
+export { acknowledgePortalPolicyAction } from "./actions/employee-portal-acknowledgement.actions"
 
 export {
   submitEmployeePortalRequestAdvance,

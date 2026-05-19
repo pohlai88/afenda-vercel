@@ -11,7 +11,10 @@ import {
 import { organizationNexusPath } from "#features/nexus"
 import { organizationIamProfilePath } from "#lib/org-apps-module-paths"
 
-import { hasCredentialAccount, listSafeLinkedAccounts } from "../data/account-identity.server"
+import {
+  hasCredentialAccount,
+  listSafeLinkedAccounts,
+} from "../data/account-identity.server"
 
 export default async function IamProfileIdentityPage({
   params,

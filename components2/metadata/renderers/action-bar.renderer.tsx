@@ -42,13 +42,18 @@ export function ActionBarRenderer({
     <div
       role="toolbar"
       aria-label={ariaLabel ?? "Actions"}
-      className={cn("flex flex-wrap items-center", densityGapClass(chrome?.density))}
+      className={cn(
+        "flex flex-wrap items-center",
+        densityGapClass(chrome?.density)
+      )}
     >
       {actions.map((action) => (
         <Button
           key={action.id}
           type="button"
-          variant={action.intent === "destructive" ? "destructive" : "secondary"}
+          variant={
+            action.intent === "destructive" ? "destructive" : "secondary"
+          }
           size="sm"
           data-action-id={action.id}
         >

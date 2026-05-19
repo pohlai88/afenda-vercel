@@ -90,7 +90,9 @@ export function isHrmDocumentGroup(value: string): value is HrmDocumentGroup {
   return (HRM_DOCUMENT_GROUPS as readonly string[]).includes(value)
 }
 
-const DOCUMENT_GROUP_BY_TYPE: Readonly<Record<HrmDocumentType, HrmDocumentGroup>> = {
+const DOCUMENT_GROUP_BY_TYPE: Readonly<
+  Record<HrmDocumentType, HrmDocumentGroup>
+> = {
   offer_letter: "employment",
   contract: "employment",
   appointment_letter: "employment",
@@ -160,9 +162,9 @@ export type HrmDocumentVerificationStatus =
 export function isHrmDocumentVerificationStatus(
   value: string
 ): value is HrmDocumentVerificationStatus {
-  return (
-    HRM_DOCUMENT_VERIFICATION_STATUSES as readonly string[]
-  ).includes(value)
+  return (HRM_DOCUMENT_VERIFICATION_STATUSES as readonly string[]).includes(
+    value
+  )
 }
 
 /** Tone for `verificationStatus` badge in the vault table. */
@@ -204,9 +206,7 @@ export type HrmDocumentLifecycleStatus =
 export function isHrmDocumentLifecycleStatus(
   value: string
 ): value is HrmDocumentLifecycleStatus {
-  return (
-    HRM_DOCUMENT_LIFECYCLE_STATUSES as readonly string[]
-  ).includes(value)
+  return (HRM_DOCUMENT_LIFECYCLE_STATUSES as readonly string[]).includes(value)
 }
 
 export function isSensitiveHrmDocumentClassification(

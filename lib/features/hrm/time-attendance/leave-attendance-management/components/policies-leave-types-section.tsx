@@ -38,9 +38,13 @@ export async function PoliciesLeaveTypesSection({
   try {
     rows = await listAllLeaveTypesForOrg(orgSession.organizationId)
   } catch (err) {
-    logUnexpectedServerError("policies-leave-types-section: query failed", err, {
-      organizationId: orgSession.organizationId,
-    })
+    logUnexpectedServerError(
+      "policies-leave-types-section: query failed",
+      err,
+      {
+        organizationId: orgSession.organizationId,
+      }
+    )
     return (
       <GovernedPatternCListSection
         layout="embedded"

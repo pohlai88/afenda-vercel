@@ -1,6 +1,5 @@
 import { CandidatePortalStatusPage } from "#features/hrm"
 
-
 type CandidateApplicationStatusRouteProps = {
   params: Promise<{ portalSlug: string; token: string }>
 }

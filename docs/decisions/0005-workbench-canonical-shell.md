@@ -5,7 +5,7 @@
 | **Status** | Accepted |
 | **Date** | 2026-05-11 |
 | **Supersedes** | The implicit naming convention in **ADR-0001 §3** that placed every layer of operational chrome under `components/nexus/` and labelled the org-root surface "Nexus Field." This ADR does **not** revoke ADR-0001's L1–L4 spatial model — only the directory and naming convention used to implement it. |
-| **Does not supersede** | **ADR-0001 §3** four-layer model (L1 utility / L2 workspace / L3 command / L4 dock). **ADR-0001 §13** material semantics. **ADR-0003** post-login loading bay (`/console`) and `/o/{orgSlug}/nexus` URL stability. **AGENTS.md** stable-identifier rule (§2): route slugs, audit prefixes, i18n namespace keys are immutable here. |
+| **Does not supersede** | **ADR-0001 §3** four-layer model (L1 utility / L2 workspace / L3 command / L4 dock). **ADR-0001 §13** material semantics. **ADR-0003** post-login bootstrap (`/bootstrap`, `/o` dispatcher) and `/o/{orgSlug}/nexus` URL stability. **AGENTS.md** stable-identifier rule (§2): route slugs, audit prefixes, i18n namespace keys are immutable here. |
 | **Implements in code** | `components/workbench/` (canonical shell), `components/nexus/` (narrowed to one product surface), rename of `nexus-utility-*`, `nexus-dock`, `nexus-command-*`, `nexus-skip-to-main`, `nexus-global-shortcuts*` files, deletion of `nexus-shell.tsx`, `nexus-surface-chrome.tsx`, `account-operating-shell.tsx`, `account-surface.tsx`, and per-feature shell wrappers. |
 | **Related rules** | `.cursor/rules/shell-directory.mdc` (Workbench shell + Nexus product surface in `components/workbench/**`, `components/nexus/**`) · Updated: `AGENTS.md` quickstart + Nexus runtime section, `frontend-quality-contract.mdc` §11 (geometry ownership). |
 

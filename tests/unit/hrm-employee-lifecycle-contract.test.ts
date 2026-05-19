@@ -101,10 +101,7 @@ describe("HRM employee lifecycle management contracts", () => {
 
   it("registers the lifecycle due-transition cron route", () => {
     const route = readFileSync(
-      join(
-        process.cwd(),
-        "app/api/cron/hrm-lifecycle-transition-due/route.ts"
-      ),
+      join(process.cwd(), "app/api/cron/hrm-lifecycle-transition-due/route.ts"),
       "utf8"
     )
     const vercel = readFileSync(join(process.cwd(), "vercel.json"), "utf8")
@@ -116,10 +113,7 @@ describe("HRM employee lifecycle management contracts", () => {
   })
 
   it("defines the effective-dated lifecycle transition table", () => {
-    const schema = readFileSync(
-      join(process.cwd(), "lib/db/schema.ts"),
-      "utf8"
-    )
+    const schema = readFileSync(join(process.cwd(), "lib/db/schema.ts"), "utf8")
 
     expect(schema).toContain("hrmLifecycleTransition")
     expect(schema).toContain('"hrm_lifecycle_transition"')
@@ -147,10 +141,7 @@ describe("HRM employee lifecycle management contracts", () => {
       "utf8"
     )
     const route = readFileSync(
-      join(
-        process.cwd(),
-        "app/api/cron/hrm-contract-expiry-watch/route.ts"
-      ),
+      join(process.cwd(), "app/api/cron/hrm-contract-expiry-watch/route.ts"),
       "utf8"
     )
 

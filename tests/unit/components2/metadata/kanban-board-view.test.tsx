@@ -66,7 +66,9 @@ describe("KanbanBoardView", () => {
 
     const board = screen.getByTestId("governed-kanban-board")
     expect(board.getAttribute("data-interaction-mode")).toBe("read-only")
-    expect(board.querySelector('[data-kanban-card-draggable="true"]')).toBeNull()
+    expect(
+      board.querySelector('[data-kanban-card-draggable="true"]')
+    ).toBeNull()
   })
 
   it("uses surfaceKey for board and card test ids", () => {

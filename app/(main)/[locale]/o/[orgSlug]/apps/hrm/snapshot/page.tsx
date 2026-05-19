@@ -2,7 +2,6 @@ import { HrmSnapshotPage } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
-
 export default async function OrgAppsHrmSnapshotPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/apps/hrm/snapshot">) {

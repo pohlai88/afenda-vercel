@@ -8,9 +8,8 @@ vi.mock("next-intl/server", () => ({
 
 describe("bindRequestLocale", () => {
   it("validates locale and pins request locale", async () => {
-    const { bindRequestLocale } = await import(
-      "#lib/i18n/bind-request-locale.server"
-    )
+    const { bindRequestLocale } =
+      await import("#lib/i18n/bind-request-locale.server")
 
     const locale = bindRequestLocale("en")
 

@@ -8,7 +8,6 @@ import {
   HRM_ORG_STRUCTURE_AUDIT,
 } from "#features/hrm/server"
 
-
 function optionalSearchParam(url: URL, key: string): string | undefined {
   const value = url.searchParams.get(key)?.trim()
   return value ? value : undefined

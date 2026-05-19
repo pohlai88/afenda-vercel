@@ -350,7 +350,8 @@ describe("hrmImportRollbackJsonSchema", () => {
       kind: "hrm_import_v1",
       importType: "employees",
       contentSha256: "abc123",
-      blobUrl: "https://example.blob.vercel-storage.com/hrm/imports/org/session/source.csv",
+      blobUrl:
+        "https://example.blob.vercel-storage.com/hrm/imports/org/session/source.csv",
     })
     expect(result.success).toBe(true)
     if (result.success && result.data.kind === "hrm_import_v1") {

@@ -1,8 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import {
-  GovernedPatternCListSection,
-} from "#features/governed-surface"
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
@@ -77,9 +75,11 @@ export async function LeaveAbsenceCalendar() {
   }
 
   const listConfiguration = buildLeaveAbsenceCalendarListSurfaceConfiguration(
-    rows.map((row) => toAbsenceCalendarDisplayRow(row, (state) =>
-      t(`state.${state}` as "state.draft")
-    )),
+    rows.map((row) =>
+      toAbsenceCalendarDisplayRow(row, (state) =>
+        t(`state.${state}` as "state.draft")
+      )
+    ),
     absenceCalendarCopy(t)
   )
 

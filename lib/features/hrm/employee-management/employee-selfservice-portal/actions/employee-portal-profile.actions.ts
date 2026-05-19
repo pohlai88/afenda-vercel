@@ -134,7 +134,11 @@ export async function updatePortalPersonalProfileAction(
             organizationId,
             resourceType: "hrm_ess_profile_update_request",
             resourceId: requestId,
-            metadata: { surface: "employee_portal", section: "personal", employeeId },
+            metadata: {
+              surface: "employee_portal",
+              section: "personal",
+              employeeId,
+            },
           })
         )
         after(() =>
@@ -217,7 +221,11 @@ export async function updatePortalEmergencyContactAction(
             organizationId,
             resourceType: "hrm_ess_profile_update_request",
             resourceId: requestId,
-            metadata: { surface: "employee_portal", section: "contact", employeeId },
+            metadata: {
+              surface: "employee_portal",
+              section: "contact",
+              employeeId,
+            },
           })
         )
         after(() =>
@@ -315,7 +323,11 @@ export async function updatePortalBankingProfileAction(
             organizationId,
             resourceType: "hrm_ess_profile_update_request",
             resourceId: requestId,
-            metadata: { surface: "employee_portal", section: "banking", employeeId },
+            metadata: {
+              surface: "employee_portal",
+              section: "banking",
+              employeeId,
+            },
           })
         )
         after(() =>

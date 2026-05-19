@@ -21,7 +21,11 @@ import type { LucideIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { Button } from "#components2/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "#components2/ui/popover"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "#components2/ui/popover"
 import {
   Sheet,
   SheetContent,
@@ -109,7 +113,7 @@ export function AppShellAppLauncher({
               id: "organizations",
               label: tShell("navPanel.organizations"),
               description: tShell("navPanel.organizationsDescription"),
-              href: "/console" as Route,
+              href: "/o" as Route,
               Icon: Building2,
             },
           ]

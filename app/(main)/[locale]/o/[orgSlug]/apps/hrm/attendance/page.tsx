@@ -2,7 +2,6 @@ import { AttendancePage } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
-
 export default async function OrgAppsHrmAttendancePage({
   params,
   searchParams,

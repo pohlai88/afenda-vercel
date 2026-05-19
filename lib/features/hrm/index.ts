@@ -35,7 +35,7 @@ export {
   claimRejectDecisionSchema,
   requestOwnClaimFormSchema,
   submitClaimFormSchema,
-} from "./payroll-compensation/expenses-reimbursement/schema/claim.schema"
+} from "./payroll-compensation/expenses-reimbursement/schemas/claim.schema"
 
 export {
   archiveOrgUnitFormSchema,
@@ -56,7 +56,7 @@ export type {
   ClaimRejectDecisionValues,
   RequestOwnClaimFormValues,
   SubmitClaimFormValues,
-} from "./payroll-compensation/expenses-reimbursement/schema/claim.schema"
+} from "./payroll-compensation/expenses-reimbursement/schemas/claim.schema"
 
 export {
   recordAttendanceEventSchema,
@@ -266,6 +266,8 @@ export {
   ORG_APPS_HRM,
 } from "./constants"
 
+export { HRM_APPS_CAPABILITY_SEGMENT_SET } from "./hrm-apps-path.shared"
+
 export {
   HrmCapabilityPlaceholderPage,
   HrmOverviewPage,
@@ -337,17 +339,22 @@ export { PayrollPage } from "./payroll-compensation/payroll-processing/component
 export { WorkforcePage } from "./employee-management/employee-records-management/components/workforce-page"
 export { PayrollConsolePage } from "./payroll-compensation/payroll-processing/components/payroll-console"
 export { HrmSnapshotPage } from "./_internal-cross-cutting/hrm-snapshot-page"
-export { CompliancePage } from "./employee-management/compliance-regulatory-tracking/components/compliance-page"
+export { ComplianceStatutoryPackControls } from "./employee-management/compliance-regulatory-tracking/components/compliance-statutory-pack-controls.client"
 export { HrmComplianceWorkbenchPage } from "./employee-management/compliance-regulatory-tracking/components/hrm-compliance-workbench-page"
 export { OrgHrmDeferredShell } from "./components/org-hrm-deferred-shell"
 /** Compliance evidence detail route surface. */
 export { ComplianceEvidenceDetailPage } from "./employee-management/compliance-regulatory-tracking/components/compliance-evidence-detail-page"
 export { ComplianceExceptionsPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-exceptions-panel"
 export { ComplianceFilingsPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-filings-panel"
+export { ComplianceObligationsPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-obligations-panel"
 export { ComplianceEmployeeStatusPanel } from "./employee-management/compliance-regulatory-tracking/components/compliance-employee-status-panel"
 export { BenefitsPage } from "./payroll-compensation/benefits-administration/components/benefits-page"
 export { BonusIncentivesPage } from "./payroll-compensation/bonus-incentive-management"
 export { SalaryBenchmarkingPage } from "./payroll-compensation/salary-benchmarking-survey"
+export {
+  CompensationPlanningPage,
+  resolveCompensationPlanningSurfaceAccess,
+} from "./payroll-compensation/compensation-planning-modeling"
 export {
   FlexibleWorkPage,
   resolveFwaSurfaceAccess,

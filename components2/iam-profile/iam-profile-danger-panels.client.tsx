@@ -37,7 +37,11 @@ export function IamProfileDangerPanels({ email }: { email: string }) {
           </h2>
           <p className="text-sm text-muted-foreground">{t("description")}</p>
         </div>
-        <Button type="button" variant="destructive" onClick={() => setOpen(true)}>
+        <Button
+          type="button"
+          variant="destructive"
+          onClick={() => setOpen(true)}
+        >
           {t("deleteAccount.action")}
         </Button>
         {err ? (
@@ -50,7 +54,9 @@ export function IamProfileDangerPanels({ email }: { email: string }) {
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteAccount.dialogTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("deleteAccount.dialogTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-left text-muted-foreground">
                 <p>{t("deleteAccount.dialogDescription")}</p>

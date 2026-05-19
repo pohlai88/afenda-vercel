@@ -11,7 +11,9 @@ const uuid = z.string().uuid()
 /** ISO date string YYYY-MM-DD (no time component). */
 const isoDateOnly = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Must be a date in YYYY-MM-DD format." })
+  .regex(/^\d{4}-\d{2}-\d{2}$/, {
+    message: "Must be a date in YYYY-MM-DD format.",
+  })
 
 const optionalIsoDateOnly = isoDateOnly.optional()
 
@@ -25,37 +27,40 @@ const employeeId = uuid
  * Records the HR outcome of a probation review.
  * HRM-LCY-008/009 — confirmation | extension | termination_recommended.
  */
-export const recordProbationOutcomeFormSchema = z.object({
-  orgSlug,
-  employeeId,
-  contractId: uuid,
-  outcome: z.enum(HRM_PROBATION_OUTCOMES),
-  /**
-   * Required when outcome is "extended" — new probation end date. HRM-LCY-008.
-   */
-  newProbationEndDate: isoDateOnly.optional(),
-  /**
-   * Required when outcome is "termination_recommended". HRM-LCY-008.
-   */
-  terminationReason: z.string().min(1).max(2000).optional(),
-  reviewerNote: z.string().max(2000).optional(),
-  effectiveDate: isoDateOnly,
-}).superRefine((d, ctx) => {
-  if (d.outcome === "extended" && !d.newProbationEndDate) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "New probation end date is required when extending probation.",
-      path: ["newProbationEndDate"],
-    })
-  }
-  if (d.outcome === "termination_recommended" && !d.terminationReason) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Termination reason is required when recommending termination.",
-      path: ["terminationReason"],
-    })
-  }
-})
+export const recordProbationOutcomeFormSchema = z
+  .object({
+    orgSlug,
+    employeeId,
+    contractId: uuid,
+    outcome: z.enum(HRM_PROBATION_OUTCOMES),
+    /**
+     * Required when outcome is "extended" — new probation end date. HRM-LCY-008.
+     */
+    newProbationEndDate: isoDateOnly.optional(),
+    /**
+     * Required when outcome is "termination_recommended". HRM-LCY-008.
+     */
+    terminationReason: z.string().min(1).max(2000).optional(),
+    reviewerNote: z.string().max(2000).optional(),
+    effectiveDate: isoDateOnly,
+  })
+  .superRefine((d, ctx) => {
+    if (d.outcome === "extended" && !d.newProbationEndDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "New probation end date is required when extending probation.",
+        path: ["newProbationEndDate"],
+      })
+    }
+    if (d.outcome === "termination_recommended" && !d.terminationReason) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Termination reason is required when recommending termination.",
+        path: ["terminationReason"],
+      })
+    }
+  })
 
 export type RecordProbationOutcomeFormInput = z.infer<
   typeof recordProbationOutcomeFormSchema
@@ -91,9 +96,7 @@ export const suspendEmployeeFormSchema = z.object({
   effectiveDate: isoDateOnly,
 })
 
-export type SuspendEmployeeFormInput = z.infer<
-  typeof suspendEmployeeFormSchema
->
+export type SuspendEmployeeFormInput = z.infer<typeof suspendEmployeeFormSchema>
 
 /**
  * Lifts a suspension and returns the employee to active service. HRM-LCY-017.

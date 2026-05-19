@@ -16,9 +16,7 @@ test.describe("HRM workforce tenant boundaries", () => {
     "unknown org slug renders organization not-found while signed in",
     { tag: "@hrm" },
     async ({ page }) => {
-      await page.goto(
-        "/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/employees"
-      )
+      await page.goto("/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/employees")
       await expect(
         page.getByRole("heading", {
           name: "Organization not available",
@@ -46,9 +44,7 @@ test.describe("HRM workforce tenant boundaries", () => {
     "unknown org slug also denies access to the claims surface",
     { tag: "@hrm" },
     async ({ page }) => {
-      await page.goto(
-        "/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/claims"
-      )
+      await page.goto("/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/claims")
       await expect(
         page.getByRole("heading", {
           name: "Organization not available",

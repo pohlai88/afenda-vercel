@@ -1,7 +1,4 @@
-export {
-  organizationAppsPath,
-  ORG_APPS_LYNX,
-} from "#lib/org-apps-module-paths"
+export { organizationAppsPath, ORG_APPS_LYNX } from "#lib/org-apps-module-paths"
 
 /** Retrieved passages passed to the model (org-scoped). */
 export const LYNX_TRUTH_TOP_K = 8 as const

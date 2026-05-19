@@ -167,8 +167,7 @@ export async function updateEmployeeCoreFieldsWithHistory(
       return {
         ok: false,
         code: "duplicate_employee_number",
-        message:
-          "Employee number already exists for this organization.",
+        message: "Employee number already exists for this organization.",
       }
     }
     return {

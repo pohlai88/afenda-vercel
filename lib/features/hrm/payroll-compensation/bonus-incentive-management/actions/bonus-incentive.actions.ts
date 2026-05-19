@@ -44,7 +44,7 @@ import {
   recordBonusClawbackFormSchema,
   requestBonusPayoutApprovalFormSchema,
   upsertBonusTargetFormSchema,
-} from "../schema/bonus-incentive.schema"
+} from "../schemas/bonus-incentive.schema"
 import type { BonusFormulaConfig } from "../data/bonus-incentive-types.shared"
 
 export type BonusIncentiveFormState =

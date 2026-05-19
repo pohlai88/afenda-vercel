@@ -67,9 +67,7 @@ describe("nexus orbit pressure mapping", () => {
     )
 
     expect(mapped).toHaveLength(2)
-    expect(mapped[0]?.primaryAction.command).toContain(
-      "/o/acme/apps/orbit"
-    )
+    expect(mapped[0]?.primaryAction.command).toContain("/o/acme/apps/orbit")
     expect(mapped[0]?.reason).toContain("Blocked by 1 dependency")
     expect(mapped[0]?.reason).toContain("Escalation overdue")
     expect(mapped[0]?.reason).toContain("Recurrence processing")

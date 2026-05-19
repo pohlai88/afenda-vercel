@@ -26,7 +26,9 @@ type ChartRendererBodyProps = {
   configuration: GovernedChartConfiguration
 }
 
-function buildChartConfig(series: GovernedChartConfiguration["series"]): ChartConfig {
+function buildChartConfig(
+  series: GovernedChartConfiguration["series"]
+): ChartConfig {
   return Object.fromEntries(
     series.map((entry, index) => [
       entry.id,
@@ -69,7 +71,12 @@ export function ChartRendererBody({ configuration }: ChartRendererBodyProps) {
           <ChartTooltip content={<ChartTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />
           {seriesKeys.map((key) => (
-            <Bar key={key} dataKey={key} fill={`var(--color-${key})`} radius={4} />
+            <Bar
+              key={key}
+              dataKey={key}
+              fill={`var(--color-${key})`}
+              radius={4}
+            />
           ))}
         </BarChart>
       ) : configuration.chartKind === "area" ? (

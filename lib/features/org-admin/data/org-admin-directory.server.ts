@@ -10,10 +10,7 @@ import {
   neonAuthUser,
 } from "#lib/db/schema-neon-auth"
 
-import type {
-  OrgAdminInvitationRow,
-  OrgAdminMemberRow,
-} from "../types"
+import type { OrgAdminInvitationRow, OrgAdminMemberRow } from "../types"
 
 export async function fetchOrgAdminIdentity(organizationId: string) {
   const [row] = await db

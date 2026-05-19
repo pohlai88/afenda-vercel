@@ -8,7 +8,12 @@ export const GOVERNED_FORM_RULES_SCHEMA_ID =
 export const GOVERNED_FORM_RULES_SCHEMA_STABILITY: SchemaStability = "beta"
 
 /** JSON Forms–style effects (server-evaluated in builders; client mirrors for wizards). */
-export const formRuleEffectSchema = z.enum(["SHOW", "HIDE", "DISABLE", "ENABLE"])
+export const formRuleEffectSchema = z.enum([
+  "SHOW",
+  "HIDE",
+  "DISABLE",
+  "ENABLE",
+])
 
 export type FormRuleEffect = z.infer<typeof formRuleEffectSchema>
 
@@ -20,7 +25,9 @@ export const formRuleFieldConditionSchema = z
   })
   .strict()
 
-export type FormRuleFieldCondition = z.infer<typeof formRuleFieldConditionSchema>
+export type FormRuleFieldCondition = z.infer<
+  typeof formRuleFieldConditionSchema
+>
 
 export type FormRuleAndCondition = {
   scope: "and"
@@ -37,22 +44,23 @@ export type FormRuleCondition =
   | FormRuleAndCondition
   | FormRuleOrCondition
 
-export const formRuleConditionSchema: z.ZodType<FormRuleCondition> = z.lazy(() =>
-  z.discriminatedUnion("scope", [
-    formRuleFieldConditionSchema,
-    z
-      .object({
-        scope: z.literal("and"),
-        conditions: z.array(formRuleConditionSchema).min(1),
-      })
-      .strict(),
-    z
-      .object({
-        scope: z.literal("or"),
-        conditions: z.array(formRuleConditionSchema).min(1),
-      })
-      .strict(),
-  ])
+export const formRuleConditionSchema: z.ZodType<FormRuleCondition> = z.lazy(
+  () =>
+    z.discriminatedUnion("scope", [
+      formRuleFieldConditionSchema,
+      z
+        .object({
+          scope: z.literal("and"),
+          conditions: z.array(formRuleConditionSchema).min(1),
+        })
+        .strict(),
+      z
+        .object({
+          scope: z.literal("or"),
+          conditions: z.array(formRuleConditionSchema).min(1),
+        })
+        .strict(),
+    ])
 )
 
 export const formRuleSchema = z

@@ -57,7 +57,9 @@ type BenefitPlanFormProps = {
   onSuccess?: () => void
 }
 
-function formatScopeCodes(values: readonly string[] | null | undefined): string {
+function formatScopeCodes(
+  values: readonly string[] | null | undefined
+): string {
   if (!values?.length) return ""
   return values.join(", ")
 }
@@ -199,7 +201,9 @@ export function BenefitPlanForm({
       </Field>
 
       <Field>
-        <FieldLabel htmlFor={categoryId}>{t("fieldBenefitCategory")}</FieldLabel>
+        <FieldLabel htmlFor={categoryId}>
+          {t("fieldBenefitCategory")}
+        </FieldLabel>
         <select
           id={categoryId}
           name="benefitCategory"

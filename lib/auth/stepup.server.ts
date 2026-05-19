@@ -1,7 +1,13 @@
 import "server-only"
 
+import type { Route } from "next"
+import { redirect } from "next/navigation"
+
+import { getRequestAppLocale } from "#lib/i18n/request-locale.server"
+
 import { AUTH_STATUS } from "./auth-status.shared"
 import { redirectToAuthInterruption } from "./interruption-redirect.server"
+import { resolveSessionReverifyHref } from "./session-reverify-path.server"
 import { getAuthSessionTrusted } from "#lib/session-cache"
 
 import { isSessionFresh } from "./session-policy.server"
@@ -16,8 +22,10 @@ import { isSessionFresh } from "./session-policy.server"
  * tenant guards (Next.js `redirect` in Server Components).
  */
 export async function requireRecentAuthStepUp(options: {
-  /** Relative path (+ optional query) to resume after sign-in. */
+  /** Locale-prefixed path (+ optional query) to resume after reverify. */
   returnTo: string
+  /** Override reverify surface when the default resolver is insufficient. */
+  reverifyPath?: string
 }): Promise<void> {
   const record = await getAuthSessionTrusted()
   if (!record?.session) {
@@ -27,6 +35,15 @@ export async function requireRecentAuthStepUp(options: {
   }
   const sessionBody = record!.session
   if (!isSessionFresh(sessionBody)) {
+    const locale = await getRequestAppLocale()
+    const reverifyHref =
+      options.reverifyPath ??
+      resolveSessionReverifyHref(locale, options.returnTo)
+    if (reverifyHref) {
+      const params = new URLSearchParams()
+      params.set("callbackUrl", options.returnTo)
+      redirect(`${reverifyHref}?${params.toString()}` as Route)
+    }
     await redirectToAuthInterruption(AUTH_STATUS.STEP_UP_REQUIRED, {
       callbackPath: options.returnTo,
     })

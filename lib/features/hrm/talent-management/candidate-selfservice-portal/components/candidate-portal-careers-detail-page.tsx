@@ -3,9 +3,7 @@ import { notFound } from "next/navigation"
 import { GovernedComponentRenderer } from "#components2/metadata"
 import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
-import {
-  candidatePortalCareersApplyPath,
-} from "#lib/portal"
+import { candidatePortalCareersApplyPath } from "#lib/portal"
 import { requirePublicCandidatePortal } from "#lib/portal/public-portal.server"
 
 import { buildCandidateCareersDetailStatConfiguration } from "../data/candidate-portal-surface-builders.server"

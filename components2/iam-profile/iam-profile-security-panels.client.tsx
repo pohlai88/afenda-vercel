@@ -303,7 +303,10 @@ function IamProfileSecurityPanelsSessions({
                 {sessionPendingRevoke ? (
                   <ul className="list-inside list-disc space-y-1 text-xs">
                     <li>
-                      {parseUserAgentLabel(sessionPendingRevoke.userAgent).browser}
+                      {
+                        parseUserAgentLabel(sessionPendingRevoke.userAgent)
+                          .browser
+                      }
                     </li>
                     <li>
                       {t("signedInAt")}{" "}

@@ -6,11 +6,7 @@ import { Loader2 } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
 import { Button } from "#components2/ui/button"
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from "#components2/ui/field"
+import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
 import {
@@ -125,7 +121,12 @@ export function FwaRequestForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor={reviewDateId}>{t("fieldReviewDate")}</FieldLabel>
-          <Input id={reviewDateId} name="reviewDate" type="date" disabled={pending} />
+          <Input
+            id={reviewDateId}
+            name="reviewDate"
+            type="date"
+            disabled={pending}
+          />
         </Field>
         <Field>
           <FieldLabel htmlFor={startDateId}>{t("fieldStartDate")}</FieldLabel>
@@ -165,11 +166,7 @@ export function FwaRequestForm({
         <FieldLabel htmlFor={remoteLocationId}>
           {t("fieldRemoteLocation")}
         </FieldLabel>
-        <Input
-          id={remoteLocationId}
-          name="remoteLocation"
-          disabled={pending}
-        />
+        <Input id={remoteLocationId} name="remoteLocation" disabled={pending} />
         {errors?.remoteLocation ? (
           <FieldError>{errors.remoteLocation}</FieldError>
         ) : null}

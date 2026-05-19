@@ -31,7 +31,7 @@ import {
   portalEnrollBenefitSchema,
   portalRecordLifeEventSchema,
   portalWaiveBenefitEnrollmentSchema,
-} from "../../../payroll-compensation/benefits-administration/schema/benefit.schema"
+} from "../../../payroll-compensation/benefits-administration/schemas/benefit.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   BenefitEnrollFormState,

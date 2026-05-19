@@ -28,7 +28,11 @@ Afenda is **not** a low-code platform. It is a **governed, server-first declarat
 | **Renderer** | `components2/metadata/renderers/` | Presentation from `#components2/ui/*` | Domain queries, IAM decisions |
 | **Domain** | `lib/features/<module>/` | Queries, mutations, audit, builders | React chrome, registry wiring |
 
-**Handcrafted exclusions (permanent):** Nexus, Orbit, Lynx, specialized timelines.
+**Handcrafted exclusions (permanent):**
+
+- **Nexus Field — handcrafted:** orientation band, truth-map surface grid, Lynx summon chrome ([ADR-0038](./0038-nexus-field-governed-composition.md)).
+- **Nexus Field — governed composition:** operational pressure, priority lanes, recent resolutions (`governed:list-surface` builders in `#features/nexus`).
+- **Fully handcrafted:** Orbit, Lynx machine layer, specialized timelines.
 
 ---
 
@@ -86,7 +90,7 @@ GovernedSurface (page chrome)
 
 **Section composition score (Pattern C blocks):** [`docs/architecture/governed-section-composition-score.md`](../architecture/governed-section-composition-score.md).
 
-**Dev fixtures:** `/[locale]/dev/pattern-c-section-gallery` — forbidden, invalid, empty, trailing-disabled.
+**Dev fixtures:** `/[locale]/playground/pattern-c-section-gallery` — forbidden, invalid, empty, trailing-disabled.
 
 | Pattern | When | Mechanism |
 | --- | --- | --- |
@@ -140,7 +144,7 @@ Reference: [`recruitment-pipeline-kanban-section.tsx`](../../lib/features/hrm/ta
    - `drag-reorder` — `GovernedKanbanDragBoard` + `onCardMove`; domain owns mutations.
 4. Invalid config: bridges render `GovernedEmpty` (`variant: "error"`); operator diagnostics via `showOperatorDiagnostics` in dev.
 
-**Gallery:** `/[locale]/dev/metadata-renderer-gallery` — `kanban-recruitment`, `kanban-recruitment-drag`, `kanban-recruitment-footer`.
+**Gallery:** `/[locale]/playground/metadata-renderer-gallery` — `kanban-recruitment`, `kanban-recruitment-drag`, `kanban-recruitment-footer`.
 
 ### Trailing actions (Wave C3)
 
@@ -167,7 +171,7 @@ Types in `governedComponentTypeSchema` without a shipped renderer (`multi-step-f
 
 **Production ERP:** no stored app JSON, visual canvas, or runtime layout editor.
 
-**Governed Playground (dev only):** extends `/[locale]/dev/metadata-renderer-gallery` — fixtures, width presets, `diagnostics: "operator"`. Same kernels; no persistence. Optional Zod 4 `z.toJSONSchema()` export for docs tooling only.
+**Governed Playground (dev only):** extends `/[locale]/playground/metadata-renderer-gallery` — fixtures, width presets, `diagnostics: "operator"`. Same kernels; no persistence. Optional Zod 4 `z.toJSONSchema()` export for docs tooling only.
 
 ---
 

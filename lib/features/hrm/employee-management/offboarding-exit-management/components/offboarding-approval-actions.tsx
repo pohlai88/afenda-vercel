@@ -23,13 +23,18 @@ export async function OffboardingApprovalActions({
 
   if (!capabilities.canUpdate) {
     return (
-      <span className="text-xs text-muted-foreground">{t("readOnlyApproval")}</span>
+      <span className="text-xs text-muted-foreground">
+        {t("readOnlyApproval")}
+      </span>
     )
   }
 
   return (
     <div className="flex min-w-[14rem] flex-col gap-2">
-      <form action={reviewOffboardingApprovalFormAction} className="flex flex-col gap-1">
+      <form
+        action={reviewOffboardingApprovalFormAction}
+        className="flex flex-col gap-1"
+      >
         <input type="hidden" name="orgSlug" value={orgSlug} />
         <input type="hidden" name="employeeId" value={employeeId} />
         <input type="hidden" name="instanceId" value={instanceId} />
@@ -43,7 +48,10 @@ export async function OffboardingApprovalActions({
           {t("approveSubmit")}
         </Button>
       </form>
-      <form action={reviewOffboardingApprovalFormAction} className="flex flex-col gap-1">
+      <form
+        action={reviewOffboardingApprovalFormAction}
+        className="flex flex-col gap-1"
+      >
         <input type="hidden" name="orgSlug" value={orgSlug} />
         <input type="hidden" name="employeeId" value={employeeId} />
         <input type="hidden" name="instanceId" value={instanceId} />

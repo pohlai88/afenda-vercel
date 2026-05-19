@@ -7,7 +7,6 @@ import {
 import { getOrgBotLinkByDiscordGuild } from "#features/knowledge"
 import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 
-
 type DiscordCommandPayload = {
   guild_id?: string
   data?: { name?: string; options?: Array<{ name?: string; value?: string }> }

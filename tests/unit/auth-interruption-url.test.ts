@@ -22,9 +22,9 @@ describe("authInterruptionHref locale propagation", () => {
     // is in APP_LOCALES — this documents the contract for future locales.
     const href = authInterruptionHref(AUTH_STATUS.SESSION_EXPIRED, {
       locale: "en",
-      callbackPath: "/en/console",
+      callbackPath: "/en/o",
     })
     expect(href).toContain("authStatus=session_expired")
-    expect(href).toContain(`callbackUrl=${encodeURIComponent("/en/console")}`)
+    expect(href).toContain(`callbackUrl=${encodeURIComponent("/en/o")}`)
   })
 })

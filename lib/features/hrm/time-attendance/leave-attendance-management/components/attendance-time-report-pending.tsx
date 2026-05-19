@@ -4,9 +4,7 @@ import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
-import {
-  buildTimeReportPendingListSurfaceConfiguration,
-} from "../data/time-report-list-surface.server"
+import { buildTimeReportPendingListSurfaceConfiguration } from "../data/time-report-list-surface.server"
 import { listTimeReportsForOrg } from "../data/time-report.queries.server"
 
 export async function AttendanceTimeReportPending() {
@@ -23,9 +21,13 @@ export async function AttendanceTimeReportPending() {
       limit: 50,
     })
   } catch (err) {
-    logUnexpectedServerError("attendance-time-report-pending: query failed", err, {
-      organizationId: orgSession.organizationId,
-    })
+    logUnexpectedServerError(
+      "attendance-time-report-pending: query failed",
+      err,
+      {
+        organizationId: orgSession.organizationId,
+      }
+    )
     return (
       <GovernedPatternCListSection
         layout="embedded"

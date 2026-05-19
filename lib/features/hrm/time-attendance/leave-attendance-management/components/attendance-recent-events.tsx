@@ -63,7 +63,8 @@ function toDisplayRow(
     occurredAt: row.occurredAt.toISOString(),
     source: labels.sourceLabelFor(row.source),
     correction: isCorrection ? labels.correctionShort : "—",
-    canCorrect: labels.canCorrect && !isCorrection && row.eventType !== "correction",
+    canCorrect:
+      labels.canCorrect && !isCorrection && row.eventType !== "correction",
   }
 }
 

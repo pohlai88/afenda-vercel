@@ -97,7 +97,10 @@ for (const file of walk(FEATURES)) {
     tier3.push(rel)
     continue
   }
-  if (src.includes("GovernedComponentRenderer") || src.includes("GovernedListSurfaceWithTrailingColumn")) {
+  if (
+    src.includes("GovernedComponentRenderer") ||
+    src.includes("GovernedListSurfaceWithTrailingColumn")
+  ) {
     tier3.push(`${rel} (partial — verify hand-rolled section)`)
     continue
   }
@@ -133,4 +136,6 @@ const lines = [
 
 const outPath = path.join(ROOT, "scripts", "legacy-ui-inventory.md")
 fs.writeFileSync(outPath, lines.join("\n"))
-console.log(`Wrote ${outPath} — Tier 1: ${tier1.length}, Tier 3 verify: ${tier3.length}`)
+console.log(
+  `Wrote ${outPath} — Tier 1: ${tier1.length}, Tier 3 verify: ${tier3.length}`
+)

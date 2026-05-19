@@ -26,23 +26,29 @@ export async function getPayrollProcessingPeriodSnapshot(
       ? String(period.periodEnd).slice(0, 10)
       : (period.periodEnd as Date).toISOString().slice(0, 10)
 
-  const [runs, attendanceReady, lockApprovalPresent, closeSnapshot, anomalies, countryReadiness] =
-    await Promise.all([
-      listPayrollRunsForPeriod(organizationId, periodId),
-      isAttendancePayrollReadyForPeriod({
-        organizationId,
-        periodStart: period.periodStart,
-        periodEnd: period.periodEnd,
-      }),
-      hasApprovedPayrollPeriodLockApproval(organizationId, periodId),
-      buildPayrollCloseSnapshot({ organizationId, periodId }),
-      countPayrollAnomaliesForPeriod(organizationId, periodId),
-      assessPayrollPeriodCountryReadiness({
-        organizationId,
-        periodId,
-        periodEnd: periodEndIso,
-      }),
-    ])
+  const [
+    runs,
+    attendanceReady,
+    lockApprovalPresent,
+    closeSnapshot,
+    anomalies,
+    countryReadiness,
+  ] = await Promise.all([
+    listPayrollRunsForPeriod(organizationId, periodId),
+    isAttendancePayrollReadyForPeriod({
+      organizationId,
+      periodStart: period.periodStart,
+      periodEnd: period.periodEnd,
+    }),
+    hasApprovedPayrollPeriodLockApproval(organizationId, periodId),
+    buildPayrollCloseSnapshot({ organizationId, periodId }),
+    countPayrollAnomaliesForPeriod(organizationId, periodId),
+    assessPayrollPeriodCountryReadiness({
+      organizationId,
+      periodId,
+      periodEnd: periodEndIso,
+    }),
+  ])
 
   const blockingCloseCount =
     closeSnapshot?.exceptions.filter((item) => item.severity === "blocker")

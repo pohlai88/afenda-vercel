@@ -88,8 +88,7 @@ export async function getPublicCandidatePortalContext(portalSlug: string) {
 export async function listOpenRequisitionsForPublicCareers(
   organizationId: string
 ) {
-  const { listOpenJobRequisitionsForOrganization } = await import(
-    "../../recruitment-onboarding/data/recruitment.queries.server"
-  )
+  const { listOpenJobRequisitionsForOrganization } =
+    await import("../../recruitment-onboarding/data/recruitment.queries.server")
   return listOpenJobRequisitionsForOrganization(organizationId)
 }

@@ -11,7 +11,10 @@ export {
   type HrmFwaSpecCode,
 } from "./fwa-spec-map.shared"
 
-export { FWA_LIST_SURFACE_IDS, type FwaListSurfaceId } from "./data/fwa-surface-metadata.shared"
+export {
+  FWA_LIST_SURFACE_IDS,
+  type FwaListSurfaceId,
+} from "./data/fwa-surface-metadata.shared"
 
 export {
   HRM_FWA_ARRANGEMENT_KINDS,
@@ -21,4 +24,7 @@ export {
   type HrmFwaRequestState,
 } from "./schemas/fwa-workflow-state.shared"
 
-export { FlexibleWorkPage, resolveFwaSurfaceAccess } from "./components/flexible-work-page"
+export {
+  FlexibleWorkPage,
+  resolveFwaSurfaceAccess,
+} from "./components/flexible-work-page"

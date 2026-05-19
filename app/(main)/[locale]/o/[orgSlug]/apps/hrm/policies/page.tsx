@@ -2,7 +2,6 @@ import { PoliciesPage } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
-
 export default async function OrgAppsHrmPoliciesPage({
   params,
   searchParams,

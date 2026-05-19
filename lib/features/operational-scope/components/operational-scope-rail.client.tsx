@@ -27,7 +27,11 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "#components2/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipTrigger } from "#components2/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "#components2/ui/tooltip"
 import { useOperationalScopeUiStore } from "#components2/stores/operational-scope.store"
 
 function sourceDescriptor(

@@ -32,7 +32,9 @@ describe("HRM compliance regulatory tracking contracts", () => {
     )
 
     expect(submission).toContain("requireComplianceSessionMutationGate")
-    expect(submission).toContain("HRM_COMPLIANCE_REGULATORY_AUDIT.evidence.submitted")
+    expect(submission).toContain(
+      "HRM_COMPLIANCE_REGULATORY_AUDIT.evidence.submitted"
+    )
     expect(submission).not.toContain("requireHrmAdmin")
     expect(acknowledgement).toContain("requireComplianceSessionMutationGate")
     expect(acknowledgement).not.toContain("requireHrmAdmin")
@@ -44,7 +46,9 @@ describe("HRM compliance regulatory tracking contracts", () => {
       "utf8"
     )
 
-    expect(compliance).toContain("HRM_COMPLIANCE_REGULATORY_AUDIT.pack.generated")
+    expect(compliance).toContain(
+      "HRM_COMPLIANCE_REGULATORY_AUDIT.pack.generated"
+    )
     expect(compliance).toContain(
       "HRM_COMPLIANCE_REGULATORY_AUDIT.evidence.mark_submitted"
     )
@@ -63,12 +67,25 @@ describe("HRM compliance regulatory tracking contracts", () => {
     )
 
     expect(filing).toContain("HRM_COMPLIANCE_REGULATORY_AUDIT.filing.waived")
-    expect(filing).not.toContain("HRM_COMPLIANCE_REGULATORY_AUDIT.exception.waived")
+    expect(filing).not.toContain(
+      "HRM_COMPLIANCE_REGULATORY_AUDIT.exception.waived"
+    )
     expect(obligations).toContain(
       "HRM_COMPLIANCE_REGULATORY_AUDIT.obligation.configured"
     )
     expect(obligations).toContain(
       "HRM_COMPLIANCE_REGULATORY_AUDIT.obligation.archived"
     )
+  })
+
+  it("emits report.exported from compliance dashboard export action", () => {
+    const report = readFileSync(
+      join(COMPLIANCE_ROOT, "actions", "compliance-report.actions.ts"),
+      "utf8"
+    )
+
+    expect(report).toContain("HRM_COMPLIANCE_REGULATORY_AUDIT.report.exported")
+    expect(report).toContain("buildComplianceDashboardCsv")
+    expect(report).toContain("listComplianceDashboardRowsForOrg")
   })
 })

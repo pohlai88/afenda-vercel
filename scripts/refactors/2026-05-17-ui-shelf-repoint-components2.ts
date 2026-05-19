@@ -51,7 +51,9 @@ for (const source of project.getSourceFiles()) {
     const next = repointSpecifier(decl.getModuleSpecifierValue())
     if (!next) continue
     if (APPLY) decl.setModuleSpecifier(next)
-    console.log(`${source.getFilePath()}: ${decl.getModuleSpecifierValue()} -> ${next}`)
+    console.log(
+      `${source.getFilePath()}: ${decl.getModuleSpecifierValue()} -> ${next}`
+    )
     changed++
     fileChanged = true
   }
@@ -79,5 +81,7 @@ if (!APPLY) {
   if (changed > 0) process.exit(1)
 } else {
   project.saveSync()
-  console.log(`\nApplied ${changed} specifier change(s) across ${touched.size} file(s).`)
+  console.log(
+    `\nApplied ${changed} specifier change(s) across ${touched.size} file(s).`
+  )
 }

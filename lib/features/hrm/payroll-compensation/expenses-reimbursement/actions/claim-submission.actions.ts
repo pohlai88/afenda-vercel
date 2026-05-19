@@ -10,9 +10,7 @@ import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import { isClaimCancellable } from "../data/claim-helpers.shared"
 import { HRM_EXPENSE_REIMBURSEMENT_AUDIT } from "../expense-reimbursement.contract"
-import {
-  validateClaimEvidenceAttachment,
-} from "../data/claim-evidence-validation.server"
+import { validateClaimEvidenceAttachment } from "../data/claim-evidence-validation.server"
 import { firstBlockingClaimEvidenceIssue } from "../data/claim-evidence-validation.shared"
 import {
   findClaimEmployeeForUser,
@@ -29,7 +27,7 @@ import {
   cancelClaimFormSchema,
   requestOwnClaimFormSchema,
   submitClaimFormSchema,
-} from "../schema/claim.schema"
+} from "../schemas/claim.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   AttachClaimEvidenceFormState,
@@ -54,7 +52,9 @@ function submitClaimFieldErrors(
 function parseEvidenceDocumentIds(formData: FormData): string[] {
   return formData
     .getAll("evidenceDocumentIds")
-    .filter((value): value is string => typeof value === "string" && value.length > 0)
+    .filter(
+      (value): value is string => typeof value === "string" && value.length > 0
+    )
 }
 
 export async function submitOwnClaimAction(

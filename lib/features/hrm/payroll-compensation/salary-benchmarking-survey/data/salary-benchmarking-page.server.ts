@@ -15,13 +15,14 @@ export async function loadSalaryBenchmarkingPageData() {
   const session = await requireOrgSession()
   const organizationId = session.organizationId
 
-  const [surveys, marketRows, mappings, analyses, employees] = await Promise.all([
-    listSalaryBenchmarkSurveysForOrganization(organizationId),
-    listSalaryBenchmarkRowsForOrganization(organizationId),
-    listSalaryBenchmarkMappingsForOrganization(organizationId),
-    listSalaryBenchmarkAnalysisForOrganization(organizationId),
-    listEmployeeCompensationForBenchmarking(organizationId),
-  ])
+  const [surveys, marketRows, mappings, analyses, employees] =
+    await Promise.all([
+      listSalaryBenchmarkSurveysForOrganization(organizationId),
+      listSalaryBenchmarkRowsForOrganization(organizationId),
+      listSalaryBenchmarkMappingsForOrganization(organizationId),
+      listSalaryBenchmarkAnalysisForOrganization(organizationId),
+      listEmployeeCompensationForBenchmarking(organizationId),
+    ])
 
   const payEquityGroups = buildSalaryBenchmarkPayEquityGroups(
     employees,

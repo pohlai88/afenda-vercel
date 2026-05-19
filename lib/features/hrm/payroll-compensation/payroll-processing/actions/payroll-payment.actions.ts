@@ -21,10 +21,7 @@ import type {
 } from "../payroll-form-states"
 
 function revalidatePayrollPages() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/payroll"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "layout")
 }
 
 export async function generatePayrollPaymentBatchAction(

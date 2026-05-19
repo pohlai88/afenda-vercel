@@ -34,7 +34,7 @@ Afenda's governed UI kernel (ADR-0011) separates **schema** (`lib/features/gover
    - `#components2/ui` — shadcn shelf (named imports).
 5. **Forbidden:** `react-jsx-parser` and any runtime JSON-to-JSX parsing in the renderer kernel.
 6. **Parity gate:** `scripts/check-components2-renderers.mjs` (`pnpm lint:components2-renderers`) enforces registry ids ↔ renderer files.
-7. **Dev preview:** `components2/dev/app-shell-preview/` owns `/dev/shell-preview` composition; route is a thin wrapper.
+7. **Dev preview:** `components2/dev/app-shell-preview/` owns `/playground/shell-preview` composition; route is a thin wrapper.
 
 ## Promotion gate (`experimental` → `beta`)
 

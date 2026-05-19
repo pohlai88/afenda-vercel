@@ -337,9 +337,7 @@ export const singaporeEmployeeStatutoryProfileSchema = z.strictObject({
   countryCode: z.literal("SG"),
   taxResidencyCountry: z.literal("SG").default("SG"),
   /** IRAS Income Tax Reference (FIN or NRIC). */
-  taxIdentifierType: z
-    .enum(["sg_nric", "sg_fin"])
-    .default("sg_nric"),
+  taxIdentifierType: z.enum(["sg_nric", "sg_fin"]).default("sg_nric"),
   taxIdentifierNumber: optionalIdentifier,
   /** CPF account number. */
   cpfAccountNumber: optionalIdentifier,

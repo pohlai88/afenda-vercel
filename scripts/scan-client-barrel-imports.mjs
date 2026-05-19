@@ -11,7 +11,8 @@ const USE_CLIENT_RE = /^\s*["']use client["']/
 
 function walk(dir, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (["node_modules", ".next", ".git", ".artifacts"].includes(entry.name)) continue
+    if (["node_modules", ".next", ".git", ".artifacts"].includes(entry.name))
+      continue
     const abs = path.join(dir, entry.name)
     if (entry.isDirectory()) walk(abs, out)
     else if (/\.(ts|tsx)$/.test(entry.name)) out.push(abs)
@@ -44,7 +45,8 @@ function featureIndexLooksServerOnly(moduleName) {
       comp.endsWith(".tsx") || comp.endsWith(".ts") ? comp : `${comp}.tsx`
     )
     if (!fs.existsSync(compPath)) continue
-    if (/import\s+["']server-only["']/.test(fs.readFileSync(compPath, "utf8"))) return true
+    if (/import\s+["']server-only["']/.test(fs.readFileSync(compPath, "utf8")))
+      return true
   }
   return false
 }

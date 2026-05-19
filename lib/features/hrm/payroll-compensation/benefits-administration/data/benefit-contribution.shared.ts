@@ -1,8 +1,11 @@
-import type { BenefitCoverageLevel, BenefitContributionType } from "./benefit-helpers.shared"
+import type {
+  BenefitCoverageLevel,
+  BenefitContributionType,
+} from "./benefit-helpers.shared"
 import {
   parseBenefitRateTable,
   type BenefitRateTableTier,
-} from "../schema/benefit-rate-table.schema"
+} from "../schemas/benefit-rate-table.schema"
 
 export type BenefitContributionPlanInput = {
   readonly employerContributionType: BenefitContributionType | string
@@ -42,7 +45,9 @@ export type ResolvedBenefitEnrollmentContributions = {
   readonly source: BenefitContributionResolutionSource
 }
 
-function parseNonNegativeAmount(value: string | null | undefined): number | null {
+function parseNonNegativeAmount(
+  value: string | null | undefined
+): number | null {
   if (value === null || value === undefined || value === "") return null
   const parsed = Number.parseFloat(value)
   if (!Number.isFinite(parsed) || parsed < 0) return null

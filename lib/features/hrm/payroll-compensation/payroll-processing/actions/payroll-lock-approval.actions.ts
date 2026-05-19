@@ -33,10 +33,7 @@ import type { PayrollLockApprovalFormState } from "../../../types"
  * comes along for free since it sits below the layout.
  */
 function revalidatePayrollPages() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/payroll"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "layout")
 }
 
 /**

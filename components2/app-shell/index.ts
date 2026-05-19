@@ -5,13 +5,22 @@ import "server-only"
 // ---------------------------------------------------------------------------
 
 export { AppShell, type AppShellProps } from "./appshell"
-export { AppSubLayout, type AppSubLayoutProps } from "./surface/appshell-sub-layout-rsc"
+export {
+  AppSubLayout,
+  type AppSubLayoutProps,
+} from "./surface/appshell-sub-layout-rsc"
 export { AppSubLayoutShellSkeleton } from "./surface/appshell-sub-layout-shell-skeleton"
-export { AppShellSurface, type AppShellSurfaceProps } from "./surface/appshell-sub-layout-surface"
-export { AppShellUtilityBar, type AppShellUtilityBarProps } from "./top-utils-bar/appshell-utility-bar"
+export {
+  AppShellSurface,
+  type AppShellSurfaceProps,
+} from "./surface/appshell-sub-layout-surface"
+export {
+  AppShellUtilityBar,
+  type AppShellUtilityBarProps,
+} from "./top-utils-bar/appshell-utility-bar"
 
 export { buildAppShellOrgUtilityBarSlots } from "./compose/appshell-utility-bar-org.server"
-export { buildAppShellConsoleUtilityBarSlots } from "./compose/appshell-utility-bar-console.server"
+export { buildAppShellBootstrapUtilityBarSlots } from "./compose/appshell-utility-bar-bootstrap.server"
 export { buildAppShellPlatformUtilityBarSlots } from "./compose/appshell-utility-bar-platform.server"
 
 export type {

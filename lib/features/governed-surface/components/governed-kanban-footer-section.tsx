@@ -48,11 +48,7 @@ export function GovernedKanbanFooterSection({
 }: GovernedKanbanFooterSectionProps) {
   const testId = sectionTestId ?? governedKanbanSectionTestId(surfaceKey)
   const headingId = `governed-kanban-section-${surfaceKey.replace(/:/g, "-")}-title`
-  const boardSlot = loadError ? (
-    <GovernedEmpty model={loadError} />
-  ) : (
-    children
-  )
+  const boardSlot = loadError ? <GovernedEmpty model={loadError} /> : children
 
   if (layout === "embedded") {
     return (
@@ -74,11 +70,15 @@ export function GovernedKanbanFooterSection({
         {title}
       </h2>
       {description ? (
-        <p className={cn("mb-3 text-sm text-muted-foreground", contentClassName)}>
+        <p
+          className={cn("mb-3 text-sm text-muted-foreground", contentClassName)}
+        >
           {description}
         </p>
       ) : null}
-      <div className={description ? undefined : contentClassName}>{boardSlot}</div>
+      <div className={description ? undefined : contentClassName}>
+        {boardSlot}
+      </div>
     </section>
   )
 }

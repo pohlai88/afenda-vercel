@@ -44,7 +44,9 @@ function scoreFile(raw, rel) {
     notes.push("generator stub")
   }
 
-  const isLocaleIndex = /index\.[a-z]{2}(-[A-Z]{2})?\.mdx$/.test(path.basename(rel))
+  const isLocaleIndex = /index\.[a-z]{2}(-[A-Z]{2})?\.mdx$/.test(
+    path.basename(rel)
+  )
   if (isLocaleIndex) {
     score = Math.max(score, 40)
     notes.push("locale index — partial ADQS exempt")
@@ -57,7 +59,11 @@ function scoreFile(raw, rel) {
   return { rel, score, tier, notes }
 }
 
-const lines = ["# Ask-docs ADQS audit", `Generated: ${new Date().toISOString()}`, ""]
+const lines = [
+  "# Ask-docs ADQS audit",
+  `Generated: ${new Date().toISOString()}`,
+  "",
+]
 const byTier = { A: [], B: [], C: [] }
 
 for (const file of listMdxFiles(docsRoot)) {

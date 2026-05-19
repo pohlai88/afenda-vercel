@@ -13,6 +13,6 @@ export async function iamProfileReturnPath(
   const locale = await getRequestAppLocale()
   const { organizationId } = await getOrgTenantContext()
   const orgSlug = await getOrganizationSlugById(organizationId)
-  if (!orgSlug) return toLocalePath(locale, "/console")
+  if (!orgSlug) return toLocalePath(locale, "/o")
   return toLocalePath(locale, organizationIamProfilePath(orgSlug, segment))
 }

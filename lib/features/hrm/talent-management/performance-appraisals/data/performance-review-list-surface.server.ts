@@ -37,7 +37,9 @@ function formatReviewerDisplay(
 ): string {
   if (row.reviewerLegalName?.trim()) {
     const number = row.reviewerEmployeeNumber?.trim()
-    return number ? `${row.reviewerLegalName} (${number})` : row.reviewerLegalName
+    return number
+      ? `${row.reviewerLegalName} (${number})`
+      : row.reviewerLegalName
   }
   if (row.reviewerId.trim()) {
     return `${row.reviewerId.slice(0, 8)}…`

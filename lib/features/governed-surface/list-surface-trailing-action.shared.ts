@@ -29,9 +29,10 @@ export function resolveListSurfaceRowTrailingAction(
   const disabledReason = input.disabledReason?.trim()
   return {
     state: "disabled",
-    disabledReason: disabledReason && disabledReason.length > 0
-      ? disabledReason
-      : "Not permitted",
+    disabledReason:
+      disabledReason && disabledReason.length > 0
+        ? disabledReason
+        : "Not permitted",
     descriptor: input.descriptor,
   }
 }

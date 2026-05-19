@@ -16,7 +16,7 @@ import type { UtilityDropdownGroup } from "./appshell-utility-bar-dropdown.clien
  * Locale-prefixed routes for the personal IAM menu items.
  *
  * Each href is optional — surfaces without a bound `orgSlug` (platform admin,
- * post-login console) omit the org-scoped Profile / Account / Security rows
+ * post-login bootstrap) omit the org-scoped Profile / Account / Security rows
  * rather than emitting placeholder paths. Org composers pass all three.
  */
 export type AppShellAccountDropdownHrefs = {

@@ -1,6 +1,5 @@
 import { EmployeePortalPerformancePage } from "#features/hrm"
 
-
 type EmployeePortalPerformanceRouteProps = {
   params: Promise<{ portalSlug: string }>
 }

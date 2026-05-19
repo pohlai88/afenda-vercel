@@ -78,14 +78,16 @@ export async function ClaimPendingInbox({
     copy
   )
   let surfaceKey = "hrm:claims:pending-inbox"
-  let loadError:
-    | { variant: "error"; title: string }
-    | undefined
+  let loadError: { variant: "error"; title: string } | undefined
 
   if (!rowsResult.ok) {
-    logUnexpectedServerError("claim-pending-inbox: query failed", rowsResult.error, {
-      organizationId: orgSession.organizationId,
-    })
+    logUnexpectedServerError(
+      "claim-pending-inbox: query failed",
+      rowsResult.error,
+      {
+        organizationId: orgSession.organizationId,
+      }
+    )
     surfaceKey = "hrm:claims:pending:error"
     loadError = {
       variant: "error",

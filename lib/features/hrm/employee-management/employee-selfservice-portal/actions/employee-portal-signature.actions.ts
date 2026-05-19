@@ -29,10 +29,7 @@ import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.
 import type { SignatureMutationFormState } from "../../../types"
 
 function revalidateSignaturePortalSurfaces() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/signatures"),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/signatures"), "page")
   revalidatePath(
     toLocalePortalRevalidatePattern("/employee/signatures"),
     "page"

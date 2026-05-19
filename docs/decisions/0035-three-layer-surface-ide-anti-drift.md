@@ -70,7 +70,16 @@ Read the surface rule BEFORE editing (legal-docs-directory.mdc, iam-profile-dire
 | --- | --- | --- | --- | --- |
 | Pre-login auth | `(auth)/` | `lib/auth/` (IAM control plane — not `lib/features/`) | `components2/auth/` | `iam-directory.mdc` |
 | Legal-docs / trust | `legal-docs/` | `lib/features/legal-docs/` | `components2/legal-docs/` | `legal-docs-directory.mdc` |
-| IAM profile | `o/…/iam-profile/` | `lib/features/iam-profile/` | `components2/iam-profile/` | `iam-profile-directory.mdc` |
+| IAM profile | `o/…/iam-profile/` | `lib/features/iam-profile/` (`components/iam-profile-*-page.server.tsx` orchestrators only) | `components2/iam-profile/` (paint + `iam-profile-overview-bands.tsx`) | `iam-profile-directory.mdc` |
+| Post-login bootstrap | `bootstrap/` · `o/page.tsx` | `lib/features/bootstrap/` (`BootstrapSetupPage`, `OrgDispatchPage`, `post-login-org-dispatch.server.ts`) | `components2/bootstrap/` (`bootstrap-first-run-shell`, `org-dispatch-picker`, …) | `bootstrap-directory.mdc` |
+| Nexus field | `o/…/nexus/` | `lib/features/nexus/` (`getNexusSnapshot`, list-surface builders, `NexusFieldPage`) | `components2/nexus/` (`NexusFieldView`, orientation, truth map) | `nexus-directory.mdc` |
+| Playground galleries | `playground/` | `lib/features/playground/` (fixtures, `playground-route-gate`, RSC page orchestrators) | `components2/playground/` (preview client islands) | `playground-directory.mdc` |
+
+**Playground vs `components2/dev`:** routed galleries use the **`playground`** product name on all three layers. `components2/dev/` retains **NODE_ENV-only overlays** (sign-in panel, route-error debug) — not part of the playground URL tree.
+
+**IAM profile anti-drift:** Layer 2 page orchestrators fetch and compose; overview “now/recent” bands and security session mapping must not duplicate Layer 3 JSX. Session reverify chrome is shared via `components2/auth/step-up-reverify-shell.tsx` (org profile + platform admin).
+
+**Bootstrap anti-drift:** `/o` dispatcher and `/bootstrap` first-run share the **`bootstrap`** product name. Layer 2 owns `resolvePostLoginOrgDispatch`; Layer 3 owns picker/setup shells. **Retired:** `/console`, `lib/features/console/`, `components2/console/`.
 
 New public surfaces **must** follow the same three-layer shape and get a `*-directory.mdc` rule in the same PR.
 

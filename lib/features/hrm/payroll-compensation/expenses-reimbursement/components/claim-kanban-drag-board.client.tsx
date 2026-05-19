@@ -14,7 +14,9 @@ type ClaimKanbanDragBoardProps = {
   configuration: GovernedKanbanBoardConfigurationInput
 }
 
-export function ClaimKanbanDragBoard({ configuration }: ClaimKanbanDragBoardProps) {
+export function ClaimKanbanDragBoard({
+  configuration,
+}: ClaimKanbanDragBoardProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [pendingCardId, setPendingCardId] = useState<string | null>(null)

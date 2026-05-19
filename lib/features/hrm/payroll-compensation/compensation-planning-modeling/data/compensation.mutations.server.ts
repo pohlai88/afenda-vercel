@@ -11,7 +11,7 @@ import {
 import {
   HRM_COMPENSATION_COMPONENT_CODES,
   type HrmCompensationComponentCode,
-} from "../schema/contract-compensation.shared"
+} from "../schemas/contract-compensation.shared"
 
 /** Query surface used by compensation line writers (root `db` or `db.transaction` `tx`). */
 export type HrmCompensationDbClient = Pick<typeof db, "insert" | "select">

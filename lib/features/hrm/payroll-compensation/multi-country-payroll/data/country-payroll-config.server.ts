@@ -12,7 +12,9 @@ let registrySyncPromise: Promise<void> | null = null
 
 async function ensureRegistrySynced(): Promise<void> {
   if (!registrySyncPromise) {
-    registrySyncPromise = syncCountryRulePacksFromRegistry().then(() => undefined)
+    registrySyncPromise = syncCountryRulePacksFromRegistry().then(
+      () => undefined
+    )
   }
   await registrySyncPromise
 }

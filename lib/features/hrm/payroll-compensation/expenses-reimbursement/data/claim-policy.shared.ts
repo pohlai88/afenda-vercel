@@ -19,7 +19,9 @@ export type ClaimValidationFlag = {
 export function parseClaimPolicyRules(value: unknown): ClaimPolicyRules | null {
   if (!value || typeof value !== "object") return null
   const record = value as Record<string, unknown>
-  const readNumber = (key: keyof ClaimPolicyRules): number | null | undefined => {
+  const readNumber = (
+    key: keyof ClaimPolicyRules
+  ): number | null | undefined => {
     const candidate = record[key]
     if (candidate == null) return null
     const parsed = typeof candidate === "number" ? candidate : Number(candidate)
@@ -47,12 +49,14 @@ export function evaluateClaimPolicyLimits(input: {
   readonly monthlyTotalBefore: number
   readonly annualTotalBefore: number
   readonly rules: ClaimPolicyRules | null
-}): { readonly flags: readonly ClaimValidationFlag[]; readonly requiresException: boolean } {
+}): {
+  readonly flags: readonly ClaimValidationFlag[]
+  readonly requiresException: boolean
+} {
   const flags: ClaimValidationFlag[] = []
   let requiresException = false
 
-  const perClaim =
-    input.rules?.perClaimLimit ?? input.perClaimLimit
+  const perClaim = input.rules?.perClaimLimit ?? input.perClaimLimit
   const perClaimOutcome = applyClaimAmountLimit(input.amount, perClaim)
   if (!perClaimOutcome.ok) {
     flags.push({

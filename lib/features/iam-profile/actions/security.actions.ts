@@ -22,9 +22,7 @@ const passwordSchema = z
   .min(8, "Password must be at least 8 characters.")
   .max(128)
 
-export type ChangePasswordResult =
-  | { ok: true }
-  | { ok: false; error: string }
+export type ChangePasswordResult = { ok: true } | { ok: false; error: string }
 
 export async function changePasswordAction(input: {
   currentPassword: string
@@ -36,7 +34,10 @@ export async function changePasswordAction(input: {
     return { ok: false, error: "Enter your current password." }
   }
   if (!next.success) {
-    return { ok: false, error: next.error.issues[0]?.message ?? "Invalid new password." }
+    return {
+      ok: false,
+      error: next.error.issues[0]?.message ?? "Invalid new password.",
+    }
   }
 
   const returnTo = await iamProfileReturnPath("security")

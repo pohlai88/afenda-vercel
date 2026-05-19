@@ -45,7 +45,9 @@ export function BoardingTaskActions({
       {status === "pending" ? (
         <BoardingTaskStartForm orgSlug={orgSlug} taskId={taskId} />
       ) : null}
-      {status === "pending" || status === "in_progress" || status === "blocked" ? (
+      {status === "pending" ||
+      status === "in_progress" ||
+      status === "blocked" ? (
         <>
           <BoardingTaskCompleteForm orgSlug={orgSlug} taskId={taskId} />
           <BoardingTaskWaiveForm orgSlug={orgSlug} taskId={taskId} />

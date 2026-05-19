@@ -59,7 +59,7 @@ Zustand stores need no `<Provider>` — import `useAppShellStore` from `#app-she
 Adding new shell state: extend `AppShellStore` in `app-shell.store.ts`. If the store grows beyond ~6 actions, split into a new file under `components2/stores/`.
 
 **Import aliases:** `#app-shell` → `./components2/app-shell/index.ts` (server-only barrel) · `#app-shell/client` → `./components2/app-shell/client.ts`.
-**Import alias:** `#components2/*` → `./components2/*` (direct access to components2 primitives). **`#components2`** (barrel) exports only `GovernedComponentRenderer` + registry — not shell or UI. Metadata kernel: `components2/metadata/` (ADR-0021). Dev preview: `components2/dev/app-shell-preview/`.
+**Import alias:** `#components2/*` → `./components2/*` (direct access to components2 primitives). **`#components2`** (barrel) exports only `GovernedComponentRenderer` + registry — not shell or UI. Metadata kernel: `components2/metadata/` (ADR-0021). Playground shell preview: `components2/playground/app-shell-preview/`.
 
 ---
 
@@ -105,7 +105,7 @@ Stores: `components2/stores/<domain>.store.ts` → `use<Domain>Store` (see `comp
 
 - **Production org/console layouts** import **`AppShell`** from **`#app-shell`** (`components2/app-shell/appshell.tsx`) with slot props: `utilityBar`, `rail`, `command`, `overlay`, `envelope`.
 - **Client chrome** (command palette, utility controls, rail footer): **`#app-shell/client`** only — never import `#app-shell` from Client Components (`server-only` barrel).
-- **Server composers:** `buildAppShellOrgUtilityBarSlots` / `buildAppShellConsoleUtilityBarSlots` in `components2/app-shell/compose/`.
+- **Server composers:** `buildAppShellOrgUtilityBarSlots` / `buildAppShellBootstrapUtilityBarSlots` in `components2/app-shell/compose/`.
 - **No** `components2/app-shell/workbench/` — deleted; no `WorkbenchShell` alias on the public barrel.
 
 ---

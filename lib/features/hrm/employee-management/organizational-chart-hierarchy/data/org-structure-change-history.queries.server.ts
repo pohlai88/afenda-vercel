@@ -34,7 +34,10 @@ export async function listOrgStructureChangeHistory(input: {
   readonly rows: readonly OrgStructureChangeHistoryRow[]
   readonly nextCursor: string | null
 }> {
-  const limit = Math.min(Math.max(input.limit ?? DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
+  const limit = Math.min(
+    Math.max(input.limit ?? DEFAULT_PAGE_SIZE, 1),
+    MAX_PAGE_SIZE
+  )
   const fetchLimit = limit + 1
   const cursorDate = input.cursor ? new Date(input.cursor) : null
 

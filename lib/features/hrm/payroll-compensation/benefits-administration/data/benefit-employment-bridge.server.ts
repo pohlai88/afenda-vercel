@@ -72,7 +72,8 @@ export async function seedNewHireBenefitEnrollments(params: {
 
     const offered =
       plan.coverageLevels?.filter(
-        (level): level is string => typeof level === "string" && level.length > 0
+        (level): level is string =>
+          typeof level === "string" && level.length > 0
       ) ?? []
     const coverageLevel = offered[0] ?? "employee_only"
 

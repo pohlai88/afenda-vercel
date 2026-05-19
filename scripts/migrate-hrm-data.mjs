@@ -31,9 +31,7 @@ function walk(dir, acc = []) {
 
 function findCanonical(name) {
   return walk(HRM).filter(
-    (p) =>
-      basename(p) === name &&
-      !p.replace(/\\/g, "/").includes("/hrm/data/"),
+    (p) => basename(p) === name && !p.replace(/\\/g, "/").includes("/hrm/data/")
   )
 }
 
@@ -43,9 +41,15 @@ function classify(relFromData) {
   const base = basename(norm)
 
   if (norm.startsWith("rule-packs/")) return { delete: true }
-  if (base.startsWith("signature-") || base === "hrm-signature-seal.workflow.ts")
+  if (
+    base.startsWith("signature-") ||
+    base === "hrm-signature-seal.workflow.ts"
+  )
     return { delete: true }
-  if (base === "recruitment.queries.server.ts" || base === "recruitment-workflow.shared.ts")
+  if (
+    base === "recruitment.queries.server.ts" ||
+    base === "recruitment-workflow.shared.ts"
+  )
     return { delete: true }
 
   const canonical = findCanonical(base)
@@ -63,27 +67,50 @@ function classify(relFromData) {
   }
 
   const rules = [
-    [/^(attendance|time-report)/, "time-attendance/leave-attendance-management/data"],
+    [
+      /^(attendance|time-report)/,
+      "time-attendance/leave-attendance-management/data",
+    ],
     [/^leave/, "time-attendance/leave-attendance-management/data"],
-    [/^boarding|^onboarding|^probation-watch/, "employee-management/employee-lifecycle-management/data"],
+    [
+      /^boarding|^onboarding|^probation-watch/,
+      "employee-management/employee-lifecycle-management/data",
+    ],
     [/^offboarding/, "employee-management/offboarding-exit-management/data"],
-    [/^compliance|^statutory|^bureau-reliability/, "employee-management/compliance-regulatory-tracking/data"],
+    [
+      /^compliance|^statutory|^bureau-reliability/,
+      "employee-management/compliance-regulatory-tracking/data",
+    ],
     [/^document-expiry/, "employee-management/documents-management/data"],
-    [/^employee-portal|^portal-mutation/, "employee-management/employee-selfservice-portal/data"],
+    [
+      /^employee-portal|^portal-mutation/,
+      "employee-management/employee-selfservice-portal/data",
+    ],
     [/^hrm-import/, "employee-management/employee-records-management/data"],
-    [/^payroll|^salary-advance/, "payroll-compensation/payroll-processing/data"],
+    [
+      /^payroll|^salary-advance/,
+      "payroll-compensation/payroll-processing/data",
+    ],
     [/^training/, "talent-management/training-development/data"],
     [/^performance/, "talent-management/performance-appraisals/data"],
-    [/^kpi|^skill\.queries/, "talent-management/competency-skills-framework/data"],
+    [
+      /^kpi|^skill\.queries/,
+      "talent-management/competency-skills-framework/data",
+    ],
     [/^skill\./, "talent-management/competency-skills-framework/data"],
   ]
 
   for (const [re, target] of rules) {
-    if (re.test(base) || (norm.includes("leave-rules/") && re.source.includes("leave")))
+    if (
+      re.test(base) ||
+      (norm.includes("leave-rules/") && re.source.includes("leave"))
+    )
       return { target }
   }
   if (norm.startsWith("leave-rules/"))
-    return { target: "time-attendance/leave-attendance-management/data/leave-rules" }
+    return {
+      target: "time-attendance/leave-attendance-management/data/leave-rules",
+    }
 
   return null
 }
@@ -173,21 +200,27 @@ function fixRelativeImports(filePath) {
   const extra = depthFromHrm - 1
   if (extra > 0) {
     const add = "../".repeat(extra)
-    content = content.replace(/from "(\.\.\/)+/g, (m) => `from "${add}${m.slice(6)}`)
-    content = content.replace(/from '(\.\.\/)+/g, (m) => `from '${add}${m.slice(6)}`)
+    content = content.replace(
+      /from "(\.\.\/)+/g,
+      (m) => `from "${add}${m.slice(6)}`
+    )
+    content = content.replace(
+      /from '(\.\.\/)+/g,
+      (m) => `from '${add}${m.slice(6)}`
+    )
   }
 
   content = content.replace(
     /from "\.\/payroll-rule-pack\.server"/g,
-    'from "../../multi-country-payroll/data/payroll-rule-pack.server"',
+    'from "../../multi-country-payroll/data/payroll-rule-pack.server"'
   )
   content = content.replace(
     /from '\.\/payroll-rule-pack\.server'/g,
-    "from '../../multi-country-payroll/data/payroll-rule-pack.server'",
+    "from '../../multi-country-payroll/data/payroll-rule-pack.server'"
   )
   content = content.replace(
     /from "\.\/benefit-payroll-projection\.shared"/g,
-    'from "../../benefits-administration/data/benefit-payroll-projection.shared"',
+    'from "../../benefits-administration/data/benefit-payroll-projection.shared"'
   )
 
   writeFileSync(filePath, content)
@@ -206,7 +239,9 @@ const scanRoots = [
 
 function rewriteImports(content, filePath) {
   let next = content
-  const sorted = [...importMap.entries()].sort((a, b) => b[0].length - a[0].length)
+  const sorted = [...importMap.entries()].sort(
+    (a, b) => b[0].length - a[0].length
+  )
 
   for (const [oldSuffix, newFromHrm] of sorted) {
     const patterns = [

@@ -11,11 +11,11 @@ import {
 import type {
   HrmCompensationSnapshotEntry,
   HrmContractAnnexSlot,
-} from "../schema/contract-compensation.shared"
+} from "../schemas/contract-compensation.shared"
 import {
   hrmCompensationSnapshotSchema,
   hrmContractAnnexSlotsSchema,
-} from "../schema/contract-compensation.shared"
+} from "../schemas/contract-compensation.shared"
 
 export type HrmCompensationComponentRow = {
   id: string

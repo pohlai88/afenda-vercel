@@ -677,7 +677,8 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
         stepup: "templates/ask-doc/page-stepup.mdx.hbs",
       }
       const templateFile =
-        templateByArchetype[archetype] ?? "templates/ask-doc/page-workflow.mdx.hbs"
+        templateByArchetype[archetype] ??
+        "templates/ask-doc/page-workflow.mdx.hbs"
       const mdxPath = `content/ask-docs/${section}/${slug}.mdx`
       const metaPath = `content/ask-docs/${section}/meta.json`
 
@@ -745,7 +746,8 @@ export default function plop(p: PlopTypes.NodePlopAPI): void {
       {
         type: "input",
         name: "minContainerPx",
-        message: "minContainerPx for the registry contract (numeric, e.g. 320):",
+        message:
+          "minContainerPx for the registry contract (numeric, e.g. 320):",
         default: "320",
         validate: (input: string) => {
           const n = Number(input)

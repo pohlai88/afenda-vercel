@@ -20,15 +20,24 @@ vi.mock("#lib/i18n/request-locale.server", () => ({
 vi.mock("#lib/db", () => ({
   db: { transaction: mocks.dbTransaction },
 }))
-vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts", () => ({
-  getEmployeePortalContext: mocks.getEmployeePortalContext,
-}))
-vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-profile.queries.server.ts", () => ({
-  getCurrentPayrollProfileForEmployee: vi.fn(),
-}))
-vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-profile.mutations.server.ts", () => ({
-  upsertPayrollProfileMutation: vi.fn(),
-}))
+vi.mock(
+  "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts",
+  () => ({
+    getEmployeePortalContext: mocks.getEmployeePortalContext,
+  })
+)
+vi.mock(
+  "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-profile.queries.server.ts",
+  () => ({
+    getCurrentPayrollProfileForEmployee: vi.fn(),
+  })
+)
+vi.mock(
+  "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-profile.mutations.server.ts",
+  () => ({
+    upsertPayrollProfileMutation: vi.fn(),
+  })
+)
 
 import { updatePortalPersonalProfileAction } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/actions/employee-portal-profile.actions"
 

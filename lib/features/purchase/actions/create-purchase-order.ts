@@ -27,9 +27,6 @@ export async function createPurchaseOrder(
     return { ok: false, errors: { form: "Invalid purchase payload." } }
   }
 
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern(ORG_APPS_PURCHASE),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(ORG_APPS_PURCHASE), "page")
   return { ok: true }
 }

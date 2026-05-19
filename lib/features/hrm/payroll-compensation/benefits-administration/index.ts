@@ -58,7 +58,7 @@ export type {
   BenefitContributionResolutionSource,
 } from "./data/benefit-contribution.shared"
 
-export { parseBenefitRateTable } from "./schema/benefit-rate-table.schema"
-export type { BenefitRateTable } from "./schema/benefit-rate-table.schema"
+export { parseBenefitRateTable } from "./schemas/benefit-rate-table.schema"
+export type { BenefitRateTable } from "./schemas/benefit-rate-table.schema"
 
 export { BenefitsPage } from "./components/benefits-page"

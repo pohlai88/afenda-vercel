@@ -96,9 +96,7 @@ type BenefitEnrollmentsListCopy = {
   formatEffective: (row: BenefitEnrollmentListRow) => string
 }
 
-function enrollmentTrailingState(
-  state: string
-): "ready" | "hidden" {
+function enrollmentTrailingState(state: string): "ready" | "hidden" {
   if (state === "pending" || state === "active" || state === "suspended") {
     return "ready"
   }

@@ -42,7 +42,7 @@ async function resolveV2PostAcceptPath(
     .limit(1)
   const slug = org?.slug?.trim()
   if (slug) return organizationAppsPath(slug, "home") as AppPath
-  return "/console"
+  return "/bootstrap"
 }
 
 export async function acceptOrganizationInvitationAction(
@@ -87,7 +87,7 @@ export async function acceptOrganizationInvitationAction(
   revalidatePath(toLocaleOrgAdminRevalidatePattern(""), "layout")
   revalidatePath(toLocaleOrgIamProfileRevalidatePattern(""), "page")
   revalidatePath(toLocaleOrgNexusRevalidatePattern(), "page")
-  revalidatePath(toLocaleRoutePattern("/console"), "page")
+  revalidatePath(toLocaleRoutePattern("/bootstrap"), "page")
   const locale = await getRequestAppLocale()
   const nextPath = await resolveV2PostAcceptPath(guarded.organizationId)
   redirect(toLocalePath(locale, nextPath) as unknown as Route)
@@ -125,7 +125,7 @@ export async function rejectOrganizationInvitationAction(
     resourceType: "invitation",
     resourceId: invitationId,
   })
-  revalidatePath(toLocaleRoutePattern("/console"), "page")
+  revalidatePath(toLocaleRoutePattern("/bootstrap"), "page")
   const locale = await getRequestAppLocale()
-  redirect(toLocalePath(locale, "/console") as Route)
+  redirect(toLocalePath(locale, "/bootstrap") as Route)
 }

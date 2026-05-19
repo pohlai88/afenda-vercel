@@ -9,8 +9,8 @@ import { fileURLToPath } from "node:url"
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const required = [
-  "components2/dev/metadata-renderer-gallery/gallery-scenarios.ts",
-  "components2/dev/metadata-renderer-gallery/gallery-fixtures.ts",
+  "lib/features/playground/data/gallery-scenarios.ts",
+  "lib/features/playground/data/gallery-fixtures.ts",
 ]
 
 const missing = required.filter((rel) => !fs.existsSync(path.join(ROOT, rel)))

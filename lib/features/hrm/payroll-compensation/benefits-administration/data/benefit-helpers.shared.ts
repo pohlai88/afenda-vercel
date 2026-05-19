@@ -30,15 +30,17 @@ export const BENEFIT_KINDS = [
 export type BenefitKind = (typeof BENEFIT_KINDS)[number]
 
 /** Default category when creating plans from legacy kind-only rows. */
-export const BENEFIT_KIND_DEFAULT_CATEGORY: Record<BenefitKind, BenefitCategory> =
-  {
-    medical: "health",
-    dental: "health",
-    optical: "health",
-    wellness: "wellness",
-    retirement: "retirement",
-    other: "welfare",
-  }
+export const BENEFIT_KIND_DEFAULT_CATEGORY: Record<
+  BenefitKind,
+  BenefitCategory
+> = {
+  medical: "health",
+  dental: "health",
+  optical: "health",
+  wellness: "wellness",
+  retirement: "retirement",
+  other: "welfare",
+}
 
 export const BENEFIT_ENROLLMENT_STATES = [
   "pending",
@@ -101,7 +103,9 @@ export const BENEFIT_CLAIM_STATUSES = [
 
 export type BenefitClaimStatus = (typeof BENEFIT_CLAIM_STATUSES)[number]
 
-export function isBenefitClaimStatus(value: string): value is BenefitClaimStatus {
+export function isBenefitClaimStatus(
+  value: string
+): value is BenefitClaimStatus {
   return (BENEFIT_CLAIM_STATUSES as readonly string[]).includes(value)
 }
 

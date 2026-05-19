@@ -10,7 +10,9 @@ const OPEN_STATUS_PILL_BASE =
 const TRUST_STATE_PILL_BASE =
   "inline-flex min-h-[30px] items-center justify-center rounded-full border px-3 text-[0.72rem] font-bold tracking-[0.08em] uppercase"
 
-export function openStatusPillLabel(state: OpenStatusPublicState | string): string {
+export function openStatusPillLabel(
+  state: OpenStatusPublicState | string
+): string {
   switch (state) {
     case "operational":
       return "Operational"
@@ -27,7 +29,9 @@ export function openStatusPillLabel(state: OpenStatusPublicState | string): stri
   }
 }
 
-export function openStatusPillClassName(state: OpenStatusPublicState | string): string {
+export function openStatusPillClassName(
+  state: OpenStatusPublicState | string
+): string {
   switch (state) {
     case "operational":
       return "border-emerald-500/35 bg-emerald-500/10 text-foreground dark:bg-emerald-500/15"
@@ -48,9 +52,7 @@ export function OpenStatusPill({
   readonly state: OpenStatusPublicState | string
 }) {
   return (
-    <span
-      className={cn(OPEN_STATUS_PILL_BASE, openStatusPillClassName(state))}
-    >
+    <span className={cn(OPEN_STATUS_PILL_BASE, openStatusPillClassName(state))}>
       {openStatusPillLabel(state)}
     </span>
   )
@@ -75,7 +77,9 @@ export function TrustSurfaceStatePill({
   readonly state: TrustSurfaceState
 }) {
   return (
-    <span className={cn(TRUST_STATE_PILL_BASE, trustSurfacePillClassName(state))}>
+    <span
+      className={cn(TRUST_STATE_PILL_BASE, trustSurfacePillClassName(state))}
+    >
       {state}
     </span>
   )

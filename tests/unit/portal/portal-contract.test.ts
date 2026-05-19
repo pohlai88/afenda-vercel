@@ -18,6 +18,19 @@ import type {
 import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 import type { SignedInSession } from "#lib/auth"
 
+function readSquashedInitialMigrationSql(): string {
+  const drizzleDir = join(process.cwd(), "drizzle")
+  const candidates = readdirSync(drizzleDir).filter(
+    (name) => name.startsWith("0000_") && name.endsWith(".sql")
+  )
+  if (candidates.length !== 1) {
+    throw new Error(
+      `portal contract expects exactly one drizzle/0000_*.sql (squashed baseline), found: ${candidates.join(", ") || "(none)"}`
+    )
+  }
+  return readFileSync(join(drizzleDir, candidates[0]), "utf8")
+}
+
 const session: SignedInSession = {
   userId: "user_01",
   sessionId: "session_01",
@@ -232,10 +245,7 @@ describe("portal foundation contract", () => {
     )
     // Portal schema was included in the initial squashed migration — no separate
     // portal_foundation or hardening migration files exist in this setup.
-    const migrationSource = readFileSync(
-      join(process.cwd(), "drizzle", "0000_opposite_onslaught.sql"),
-      "utf8"
-    )
+    const migrationSource = readSquashedInitialMigrationSql()
 
     expect(schemaSource).toContain(
       "organization_portal_org_audience_active_uidx"
@@ -311,13 +321,7 @@ describe("portal foundation contract", () => {
       join("(portal-auth)", "employee", "page.tsx"),
       join("(portal-auth)", "employee", "leave", "page.tsx"),
       join("(portal-auth)", "employee", "payslips", "page.tsx"),
-      join(
-        "(portal-auth)",
-        "employee",
-        "payslips",
-        "[documentId]",
-        "page.tsx"
-      ),
+      join("(portal-auth)", "employee", "payslips", "[documentId]", "page.tsx"),
       join("(portal-public)", "candidate", "page.tsx"),
     ]
       .map((file) => readFileSync(join(routeRoot, file), "utf8"))

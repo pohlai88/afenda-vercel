@@ -22,9 +22,8 @@ export async function OrgAdminPendingInvitationsListSection({
     getTranslations("OrgAdmin.invite"),
   ])
 
-  const listConfiguration = buildOrgAdminPendingInvitationsListSurfaceConfiguration(
-    invitations,
-    {
+  const listConfiguration =
+    buildOrgAdminPendingInvitationsListSurfaceConfiguration(invitations, {
       empty: tPending("empty"),
       colEmail: "Email",
       colMeta: "Details",
@@ -33,8 +32,7 @@ export async function OrgAdminPendingInvitationsListSection({
           role: localizeOrgAdminRole(invitation.role ?? "member", tInvite),
           expiresAt: invitation.expiresAt,
         }),
-    }
-  )
+    })
 
   return (
     <GovernedPatternCListSection

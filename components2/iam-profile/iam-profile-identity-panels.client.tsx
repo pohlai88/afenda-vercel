@@ -190,7 +190,9 @@ function LinkedAccountsPanel() {
           <p className="text-sm text-muted-foreground">{t("allLinked")}</p>
         )}
         {!hasCredential ? (
-          <p className="text-xs text-muted-foreground">{t("noCredentialHint")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("noCredentialHint")}
+          </p>
         ) : null}
       </div>
     </section>

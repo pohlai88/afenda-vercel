@@ -30,7 +30,7 @@ export {
   recordClaimApPaymentFormSchema,
   requestOwnClaimFormSchema,
   submitClaimFormSchema,
-} from "./schema/claim.schema"
+} from "./schemas/claim.schema"
 
 export type {
   AttachClaimEvidenceFormValues,
@@ -42,7 +42,7 @@ export type {
   RecordClaimApPaymentFormValues,
   RequestOwnClaimFormValues,
   SubmitClaimFormValues,
-} from "./schema/claim.schema"
+} from "./schemas/claim.schema"
 
 export {
   CLAIM_EVIDENCE_TYPES,

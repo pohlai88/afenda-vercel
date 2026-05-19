@@ -3,37 +3,17 @@
     "baseUrl": ".",
     // Internal `#…/*` aliases: mirror `package.json` → `imports` for Node + bundlers.
     "paths": {
-      "#collections/*": [
-        "./.source/*"
-      ],
-      "#components2/*": [
-        "./components2/*"
-      ],
-      "#app-shell": [
-        "./components2/app-shell/index.ts"
-      ],
-      "#app-shell/client": [
-        "./components2/app-shell/client.ts"
-      ],
-      "#lib/*": [
-        "./lib/*"
-      ],
-      "#features/*": [
-        "./lib/features/*"
-      ],
-      "#i18n/*": [
-        "./i18n/*"
-      ],
-      "#flags": [
-        "./flags.ts"
-      ]
+      "#collections/*": ["./.source/*"],
+      "#components2/*": ["./components2/*"],
+      "#app-shell": ["./components2/app-shell/index.ts"],
+      "#app-shell/client": ["./components2/app-shell/client.ts"],
+      "#lib/*": ["./lib/*"],
+      "#features/*": ["./lib/features/*"],
+      "#i18n/*": ["./i18n/*"],
+      "#flags": ["./flags.ts"]
     },
     "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -52,9 +32,7 @@
     // are loaded via JSX transform imports, not as global ambient types; @types/pg and
     // others are import-only. Auto-scanning all @types packages slows program construction.
     // See: https://github.com/microsoft/TypeScript/wiki/Performance#controlling-types-inclusion
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     // Assume a file change only affects files that directly import it — avoids rechecking
     // the full transitive closure on every save in watch mode (IDE language-server + tsc --watch).
     "assumeChangesOnlyAffectDirectDependencies": true,

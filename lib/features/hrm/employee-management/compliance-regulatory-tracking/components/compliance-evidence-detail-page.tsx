@@ -201,7 +201,7 @@ export async function ComplianceEvidenceDetailPage({
 
 /**
  * Compact submission state badge ÔÇö mirrors `SubmissionBadge` in
- * `compliance-page.tsx` but without dragging the larger row's chrome in.
+ * `compliance-statutory-pack-controls.client.tsx` but without dragging the larger row's chrome in.
  * Stays read-only; the manual acknowledge form lives on the index page.
  */
 function SubmissionStateBadge({ state }: { state: string }) {

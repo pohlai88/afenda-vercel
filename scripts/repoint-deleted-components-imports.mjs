@@ -20,7 +20,9 @@ const SCAN = [
   "turbo/**/*.{ts,tsx,hbs}",
 ].map((g) => path.join(root, g))
 
-const project = new Project({ tsConfigFilePath: path.join(root, "tsconfig.json") })
+const project = new Project({
+  tsConfigFilePath: path.join(root, "tsconfig.json"),
+})
 project.addSourceFilesAtPaths(SCAN)
 
 /** Flat `#components2/<file>` → nested folders after port script layout. */

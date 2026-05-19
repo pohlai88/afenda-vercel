@@ -88,7 +88,9 @@ export async function getOffboardingExitSnapshot(
       const pendingTaskCount = taskStatuses.filter(
         (s) => s === "pending" || s === "in_progress" || s === "overdue"
       ).length
-      const overdueTaskCount = taskStatuses.filter((s) => s === "overdue").length
+      const overdueTaskCount = taskStatuses.filter(
+        (s) => s === "overdue"
+      ).length
 
       return {
         id: instance.id,

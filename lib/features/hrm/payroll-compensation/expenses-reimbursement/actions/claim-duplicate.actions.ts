@@ -12,7 +12,7 @@ import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import { HRM_EXPENSE_REIMBURSEMENT_AUDIT } from "../expense-reimbursement.contract"
-import { claimDuplicateOverrideSchema } from "../schema/claim.schema"
+import { claimDuplicateOverrideSchema } from "../schemas/claim.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ClaimApprovalFormState } from "../../../types"
 

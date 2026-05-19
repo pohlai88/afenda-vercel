@@ -46,7 +46,10 @@ export function governedListSurfaceTestId(surfaceKey: string): string {
   return `governed-list-surface:${surfaceKey}`
 }
 
-export function governedListRowTestId(surfaceKey: string, rowId: string): string {
+export function governedListRowTestId(
+  surfaceKey: string,
+  rowId: string
+): string {
   return `governed-list-row:${surfaceKey}:${rowId}`
 }
 
@@ -92,12 +95,8 @@ export function buildGovernedListSurfaceDataAttributes(input: {
       ? { "data-governed-surface-key": input.surfaceKey }
       : {}),
     "data-governed-list-state": input.state,
-    ...(input.columnsId
-      ? { "data-governed-columns-id": input.columnsId }
-      : {}),
-    ...(input.density
-      ? { "data-governed-table-density": input.density }
-      : {}),
+    ...(input.columnsId ? { "data-governed-columns-id": input.columnsId } : {}),
+    ...(input.density ? { "data-governed-table-density": input.density } : {}),
     ...(input.dataNature
       ? { "data-governed-data-nature": input.dataNature }
       : {}),

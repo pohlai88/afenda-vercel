@@ -10,8 +10,7 @@ export const HRM_FWA_ARRANGEMENT_KINDS = [
   "temporary",
 ] as const
 
-export type HrmFwaArrangementKind =
-  (typeof HRM_FWA_ARRANGEMENT_KINDS)[number]
+export type HrmFwaArrangementKind = (typeof HRM_FWA_ARRANGEMENT_KINDS)[number]
 
 export const hrmFwaArrangementKindSchema = z.enum(HRM_FWA_ARRANGEMENT_KINDS)
 

@@ -11,7 +11,10 @@ import { SITE_NAME } from "#lib/site"
 
 export async function generateMetadata({
   params,
-}: Pick<PageProps<"/[locale]/accept-invitation">, "params">): Promise<Metadata> {
+}: Pick<
+  PageProps<"/[locale]/accept-invitation">,
+  "params"
+>): Promise<Metadata> {
   const { locale: localeRaw } = await params
   const locale = ensureAppLocale(localeRaw)
   const t = await getTranslations({ locale, namespace: "AcceptInvitation" })

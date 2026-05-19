@@ -1,4 +1,4 @@
-import { benefitEligibilityRulesSchema } from "../schema/benefit-eligibility-rules.schema"
+import { benefitEligibilityRulesSchema } from "../schemas/benefit-eligibility-rules.schema"
 
 export function normalizeBenefitScopeCodes(
   values: readonly string[] | undefined

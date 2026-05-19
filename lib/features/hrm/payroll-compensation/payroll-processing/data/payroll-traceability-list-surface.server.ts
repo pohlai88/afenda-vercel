@@ -92,7 +92,9 @@ export function payrollTraceabilityListRows(
     {
       id: "q2",
       question: copy.q2,
-      value: traceability.allContractsSnapshotted ? copy.complete : copy.missing,
+      value: traceability.allContractsSnapshotted
+        ? copy.complete
+        : copy.missing,
       ok: traceability.allContractsSnapshotted,
       okLabel: copy.complete,
       notOkLabel: copy.missing,

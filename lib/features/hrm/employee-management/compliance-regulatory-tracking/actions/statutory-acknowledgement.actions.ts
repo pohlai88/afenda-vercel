@@ -22,10 +22,7 @@ const EXTERNAL_REFERENCE_MAX_LENGTH = 128
  * since it sits below the layout.
  */
 function revalidateCompliancePages(): void {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/compliance"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/compliance"), "layout")
 }
 
 /**

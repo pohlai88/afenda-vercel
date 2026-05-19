@@ -1,7 +1,4 @@
-import {
-  FlexibleWorkPage,
-  resolveFwaSurfaceAccess,
-} from "#features/hrm"
+import { FlexibleWorkPage, resolveFwaSurfaceAccess } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getOrgTenantContext } from "#lib/auth"
 

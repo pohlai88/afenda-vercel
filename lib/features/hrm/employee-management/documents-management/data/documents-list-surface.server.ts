@@ -103,7 +103,9 @@ export function buildDocumentsListSurfaceConfiguration(
       const typeLabel = isHrmDocumentType(row.documentType)
         ? copy.typeLabelFor(row.documentType)
         : row.documentType
-      const classificationLabel = isHrmDocumentClassification(row.classification)
+      const classificationLabel = isHrmDocumentClassification(
+        row.classification
+      )
         ? copy.classificationLabelFor(row.classification)
         : row.classification
       const verificationLabel = isHrmDocumentVerificationStatus(

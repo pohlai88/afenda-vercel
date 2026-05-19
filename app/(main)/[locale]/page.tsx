@@ -2,10 +2,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { AfendaBrandLockup } from "#components2/marketing"
-import {
-  CookieConsentPreview,
-  LandingFooter,
-} from "#components2/marketing"
+import { CookieConsentPreview, LandingFooter } from "#components2/marketing"
 import { ModeToggle } from "#components2/providers/mode-toggle.client"
 import { Button } from "#components2/ui/button"
 import { SITE_DESCRIPTION, SITE_NAME } from "#lib/site"

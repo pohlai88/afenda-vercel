@@ -6,14 +6,14 @@ export {
   hrmContractAnnexSlotsSchema,
   parseAllowanceLineInputsFromForm,
   tryBuildAnnexSlotsFromForm,
-} from "./schema/contract-compensation.shared"
+} from "./schemas/contract-compensation.shared"
 
 export type {
   HrmCompensationComponentCode,
   HrmCompensationSnapshotEntry,
   HrmContractAnnexSlot,
   HrmAllowanceLineFormParsed,
-} from "./schema/contract-compensation.shared"
+} from "./schemas/contract-compensation.shared"
 
 export {
   HRM_COMPENSATION_ADJUSTMENT_TYPES,
@@ -31,7 +31,7 @@ export {
   hrmCompensationRecommendationModelInputSchema,
   hrmCompensationRecommendationStateSchema,
   hrmCompensationSalaryStructureReferenceSchema,
-} from "./schema/compensation-planning.shared"
+} from "./schemas/compensation-planning.shared"
 
 export type {
   HrmCompensationAdjustmentType,
@@ -48,7 +48,7 @@ export type {
   HrmCompensationRecommendationModelInput,
   HrmCompensationRecommendationState,
   HrmCompensationSalaryStructureReference,
-} from "./schema/compensation-planning.shared"
+} from "./schemas/compensation-planning.shared"
 
 export { HRM_COMPENSATION_PLANNING_AUDIT } from "./compensation-planning.contract"
 export {
@@ -56,3 +56,7 @@ export {
   listHrmCompensationPlanningSpecCodes,
 } from "./compensation-planning-spec-map.shared"
 export type { HrmCompensationPlanningSpecArea } from "./compensation-planning-spec-map.shared"
+
+export { CompensationPlanningPage } from "./components/compensation-planning-page"
+export { resolveCompensationPlanningSurfaceAccess } from "./data/cpm-access.server"
+export type { CompensationPlanningSurfaceAccess } from "./data/cpm-access.server"

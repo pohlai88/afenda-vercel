@@ -34,9 +34,7 @@ export function PerformanceReviewRowActions({
 }: PerformanceReviewRowActionsProps) {
   const t = useTranslations("Dashboard.Hrm.performance")
 
-  if (
-    !performanceReviewRowHasTrailingUi(review, { canUpdate, viewerUserId })
-  ) {
+  if (!performanceReviewRowHasTrailingUi(review, { canUpdate, viewerUserId })) {
     return null
   }
 
@@ -115,4 +113,3 @@ export function PerformanceReviewRowActions({
     </div>
   )
 }
-

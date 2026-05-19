@@ -54,7 +54,7 @@ import {
   suspendBenefitEnrollmentFormSchema,
   terminateBenefitEnrollmentFormSchema,
   waiveBenefitEnrollmentFormSchema,
-} from "../schema/benefit.schema"
+} from "../schemas/benefit.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   BenefitEnrollFormState,
@@ -71,10 +71,7 @@ function isUniqueViolation(err: unknown): boolean {
 }
 
 function revalidateBenefits() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/benefits"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/benefits"), "layout")
 }
 
 function parseIsoDateStart(iso: string | undefined): Date {

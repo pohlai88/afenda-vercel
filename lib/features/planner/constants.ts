@@ -1,9 +1,6 @@
 import type { Route } from "next"
 
-import {
-  ORBIT_SURFACES,
-  type OrbitSurface,
-} from "./planner-orbit-path.shared"
+import { ORBIT_SURFACES, type OrbitSurface } from "./planner-orbit-path.shared"
 import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 export const PLANNER_SIGNAL_CLASSES = [

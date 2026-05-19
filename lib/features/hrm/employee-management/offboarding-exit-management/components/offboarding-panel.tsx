@@ -96,7 +96,9 @@ export async function OffboardingPanel({
                                 return null
                               }
                               return (
-                                <form action={completeOffboardingTaskFormAction}>
+                                <form
+                                  action={completeOffboardingTaskFormAction}
+                                >
                                   <input
                                     type="hidden"
                                     name="orgSlug"

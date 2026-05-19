@@ -9,7 +9,8 @@ import {
   type GovernedListSurfaceRenderLogFields,
 } from "./list-surface-identity.shared"
 
-export type LogGovernedListSurfaceRenderInput = GovernedListSurfaceRenderLogFields
+export type LogGovernedListSurfaceRenderInput =
+  GovernedListSurfaceRenderLogFields
 
 function governedListSurfaceDiagnosticsEnabled(): boolean {
   return (

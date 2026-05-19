@@ -48,10 +48,7 @@ const partyInputSchema = z.array(
 )
 
 function revalidateSignatureSurfaces() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/signatures"),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/signatures"), "page")
 }
 
 export async function createSignatureRequestAction(

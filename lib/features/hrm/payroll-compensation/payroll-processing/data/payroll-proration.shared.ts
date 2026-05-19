@@ -44,8 +44,7 @@ export function prorateMonthlyAmount(
 
   const overlapStart =
     activeFrom && activeFrom > periodStart ? activeFrom : periodStart
-  const overlapEnd =
-    activeTo && activeTo < periodEnd ? activeTo : periodEnd
+  const overlapEnd = activeTo && activeTo < periodEnd ? activeTo : periodEnd
 
   if (overlapStart > overlapEnd) {
     return {

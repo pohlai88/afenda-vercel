@@ -12,9 +12,7 @@ import { toLocaleOrgIamProfileRevalidatePattern } from "#lib/i18n/locales.shared
 
 import { iamProfileReturnPath } from "../data/iam-profile-return-path.server"
 
-export type IamProfileActionResult =
-  | { ok: true }
-  | { ok: false; error: string }
+export type IamProfileActionResult = { ok: true } | { ok: false; error: string }
 
 export async function sendVerificationEmailAction(): Promise<IamProfileActionResult> {
   const session = await requireAuthShellSignedInSession()
@@ -25,7 +23,10 @@ export async function sendVerificationEmailAction(): Promise<IamProfileActionRes
     callbackURL,
   })
   if (error) {
-    return { ok: false, error: error.message ?? "Could not send verification email." }
+    return {
+      ok: false,
+      error: error.message ?? "Could not send verification email.",
+    }
   }
 
   await writeIamAuditEventFromNextHeaders({
@@ -49,7 +50,10 @@ export async function updateDisplayNameAction(
 ): Promise<IamProfileActionResult> {
   const parsed = nameSchema.safeParse(displayName)
   if (!parsed.success) {
-    return { ok: false, error: "Enter a display name between 1 and 120 characters." }
+    return {
+      ok: false,
+      error: "Enter a display name between 1 and 120 characters.",
+    }
   }
 
   await requireAuthShellSignedInSession()

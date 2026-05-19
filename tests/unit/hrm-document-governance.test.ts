@@ -21,9 +21,9 @@ describe("HRM document governance", () => {
   })
 
   it("derives expiry state without mutating verification state", () => {
-    expect(
-      deriveHrmDocumentExpiryState({ effectiveTo: null, now: NOW })
-    ).toBe("none")
+    expect(deriveHrmDocumentExpiryState({ effectiveTo: null, now: NOW })).toBe(
+      "none"
+    )
     expect(
       deriveHrmDocumentExpiryState({
         effectiveTo: new Date("2026-05-17T00:00:00.000Z"),

@@ -1,6 +1,5 @@
 import { EmployeePortalPerformanceGoalPage } from "#features/hrm"
 
-
 type EmployeePortalPerformanceGoalRouteProps = {
   params: Promise<{ portalSlug: string; goalId: string }>
 }

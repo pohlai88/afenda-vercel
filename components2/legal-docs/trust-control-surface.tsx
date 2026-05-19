@@ -104,7 +104,8 @@ export function TrustControlSurface({
       <div className="mx-auto w-full max-w-[1240px] px-4 pt-4 sm:px-6">
         <header className="border-b border-border pt-4 pb-8">
           <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
-            <LegalDocsLocaleLink locale={locale}
+            <LegalDocsLocaleLink
+              locale={locale}
               href="/"
               className="inline-flex max-w-[214px] shrink-0 text-inherit no-underline"
               aria-label="Afenda home"
@@ -120,7 +121,8 @@ export function TrustControlSurface({
               <p className="text-[0.7rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">
                 Canonical public assurance surface
               </p>
-              <LegalDocsLocaleLink locale={locale}
+              <LegalDocsLocaleLink
+                locale={locale}
                 href="/"
                 className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground"
               >
@@ -217,7 +219,8 @@ export function TrustControlSurface({
                       .filter((link) => link.href !== trustPageHref)
                       .map((link) => (
                         <li key={link.href} className="min-w-0">
-                          <LegalDocsLocaleLink locale={locale}
+                          <LegalDocsLocaleLink
+                            locale={locale}
                             href={link.href}
                             className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
                           >
@@ -244,7 +247,8 @@ export function TrustControlSurface({
                     className="mt-3.5 grid list-none gap-2.5 p-0"
                   >
                     <div className="min-w-0">
-                      <LegalDocsLocaleLink locale={locale}
+                      <LegalDocsLocaleLink
+                        locale={locale}
                         href={statusAuthorityUrl}
                         className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
                       >
@@ -258,7 +262,8 @@ export function TrustControlSurface({
                       </LegalDocsLocaleLink>
                     </div>
                     <div className="min-w-0">
-                      <LegalDocsLocaleLink locale={locale}
+                      <LegalDocsLocaleLink
+                        locale={locale}
                         href={STATUS_ROUTE}
                         className="grid gap-1 text-muted-foreground no-underline hover:text-foreground"
                       >
@@ -376,7 +381,8 @@ export function TrustControlSurface({
                       </span>
                       <span className="text-[0.88rem] leading-snug break-words text-foreground">
                         {signal.href ? (
-                          <LegalDocsLocaleLink locale={locale}
+                          <LegalDocsLocaleLink
+                            locale={locale}
                             href={signal.href}
                             className="underline-offset-4 hover:text-foreground"
                           >
@@ -421,7 +427,8 @@ export function TrustControlSurface({
                       <h3 className="m-0 text-[1.02rem] leading-snug font-semibold">
                         {item.title}
                       </h3>
-                      <LegalDocsLocaleLink locale={locale}
+                      <LegalDocsLocaleLink
+                        locale={locale}
                         href={item.href}
                         className="text-[0.88rem] leading-snug break-words text-foreground underline-offset-4 hover:text-foreground"
                       >
@@ -515,7 +522,8 @@ export function TrustControlSurface({
                         <span className="text-[0.68rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">
                           Authority page
                         </span>
-                        <LegalDocsLocaleLink locale={locale}
+                        <LegalDocsLocaleLink
+                          locale={locale}
                           href={surface.authorityUrl}
                           className="text-[0.88rem] leading-snug break-all text-foreground underline-offset-4 hover:text-foreground"
                         >
@@ -567,7 +575,8 @@ export function TrustControlSurface({
                         {commitment.title}
                       </h3>
                       {commitment.href ? (
-                        <LegalDocsLocaleLink locale={locale}
+                        <LegalDocsLocaleLink
+                          locale={locale}
                           href={commitment.href}
                           className="text-[0.88rem] leading-snug break-words text-foreground underline-offset-4 hover:text-foreground"
                         >
@@ -668,7 +677,8 @@ export function TrustControlSurface({
 
             <footer className="mt-12 grid gap-5 border-t border-border pt-6 sm:grid-cols-[minmax(0,1.16fr)_auto] sm:items-end">
               <div className="grid gap-2">
-                <LegalDocsLocaleLink locale={locale}
+                <LegalDocsLocaleLink
+                  locale={locale}
                   href="/"
                   className="inline-flex w-fit items-center text-inherit no-underline"
                   aria-label="Afenda footer home"
@@ -721,7 +731,8 @@ export function TrustControlSurface({
                 aria-label="Trust footer links"
               >
                 {footerLinks.map((link) => (
-                  <LegalDocsLocaleLink locale={locale}
+                  <LegalDocsLocaleLink
+                    locale={locale}
                     key={link.href}
                     href={link.href}
                     className={cn(

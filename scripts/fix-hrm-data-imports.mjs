@@ -39,7 +39,7 @@ const TOOLS_SIGNATURE = new Map(
   walk(join(ROOT, "lib/features/tools/electronic-signatures/data")).map((p) => [
     basename(p),
     relative(ROOT, p).replace(/\\/g, "/"),
-  ]),
+  ])
 )
 
 function resolveDataImport(specifier, fromFile) {
@@ -47,7 +47,10 @@ function resolveDataImport(specifier, fromFile) {
   if (!m) return null
   const tail = m[1]
   const name = basename(tail.endsWith(".ts") ? tail : `${tail}.ts`)
-  if (name.startsWith("signature-") || name === "hrm-signature-seal.workflow.ts") {
+  if (
+    name.startsWith("signature-") ||
+    name === "hrm-signature-seal.workflow.ts"
+  ) {
     const toolsRel = TOOLS_SIGNATURE.get(name)
     if (!toolsRel) return null
     const fromDir = dirname(fromFile)
@@ -78,7 +81,7 @@ function fixFile(filePath) {
       if (!next) return full
       changed = true
       return `from ${q}${next}${q}`
-    },
+    }
   )
 
   content = content.replace(
@@ -88,7 +91,7 @@ function fixFile(filePath) {
       if (!next) return full
       changed = true
       return `import(${q}${next}${q})`
-    },
+    }
   )
 
   // Absolute test paths: lib/features/hrm/data/foo -> resolved path
@@ -112,7 +115,7 @@ function fixFile(filePath) {
       if (!rel) return full
       changed = true
       return `lib/features/hrm/${rel}`
-    },
+    }
   )
 
   if (changed && EXECUTE) writeFileSync(filePath, content)
@@ -132,11 +135,14 @@ for (const scanRoot of scanRoots) {
   if (!existsSync(scanRoot)) continue
   for (const file of walk(scanRoot)) {
     const before = readFileSync(file, "utf8")
-    const specs = [...before.matchAll(/(?:\.\.\/|\.\/)+data\/[a-zA-Z0-9_./-]+/g)].map((x) => x[0])
+    const specs = [
+      ...before.matchAll(/(?:\.\.\/|\.\/)+data\/[a-zA-Z0-9_./-]+/g),
+    ].map((x) => x[0])
     if (fixFile(file)) count++
     else {
       for (const spec of specs) {
-        if (!resolveDataImport(spec, file)) unresolved.add(`${relative(ROOT, file)}: ${spec}`)
+        if (!resolveDataImport(spec, file))
+          unresolved.add(`${relative(ROOT, file)}: ${spec}`)
       }
     }
   }

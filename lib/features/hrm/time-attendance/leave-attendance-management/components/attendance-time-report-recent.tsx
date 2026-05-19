@@ -4,9 +4,7 @@ import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
-import {
-  buildTimeReportRecentListSurfaceConfiguration,
-} from "../data/time-report-list-surface.server"
+import { buildTimeReportRecentListSurfaceConfiguration } from "../data/time-report-list-surface.server"
 import { listTimeReportsForOrg } from "../data/time-report.queries.server"
 
 const RECENT_STATES = ["approved", "rejected", "cancelled"] as const
@@ -25,9 +23,13 @@ export async function AttendanceTimeReportRecent() {
       limit: 50,
     })
   } catch (err) {
-    logUnexpectedServerError("attendance-time-report-recent: query failed", err, {
-      organizationId: orgSession.organizationId,
-    })
+    logUnexpectedServerError(
+      "attendance-time-report-recent: query failed",
+      err,
+      {
+        organizationId: orgSession.organizationId,
+      }
+    )
     return (
       <GovernedPatternCListSection
         layout="embedded"

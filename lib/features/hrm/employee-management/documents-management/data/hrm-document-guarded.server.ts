@@ -34,7 +34,10 @@ export async function searchHrmDocumentsForCurrentOrg(
   })
   if (!gate.ok) return gate
 
-  const rows = await listHrmDocumentsForOrg(gate.session.organizationId, options)
+  const rows = await listHrmDocumentsForOrg(
+    gate.session.organizationId,
+    options
+  )
   await writeIamAuditEvent({
     action: HRM_DOCUMENT_AUDIT.view,
     organizationId: gate.session.organizationId,

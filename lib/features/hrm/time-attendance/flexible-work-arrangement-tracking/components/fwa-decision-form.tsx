@@ -13,11 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "#components2/ui/dialog"
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from "#components2/ui/field"
+import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
 import {
@@ -132,7 +128,12 @@ function ReturnFwaForm({ requestId }: { requestId: string }) {
       <input type="hidden" name="requestId" value={requestId} />
       <Field>
         <FieldLabel htmlFor={reasonId}>{t("fieldReturnedReason")}</FieldLabel>
-        <Input id={reasonId} name="returnedReason" required disabled={pending} />
+        <Input
+          id={reasonId}
+          name="returnedReason"
+          required
+          disabled={pending}
+        />
         {error?.returnedReason ? (
           <FieldError>{error.returnedReason}</FieldError>
         ) : null}
@@ -191,7 +192,12 @@ function RejectFwaForm({ requestId }: { requestId: string }) {
       <input type="hidden" name="requestId" value={requestId} />
       <Field>
         <FieldLabel htmlFor={reasonId}>{t("fieldRejectedReason")}</FieldLabel>
-        <Input id={reasonId} name="rejectedReason" required disabled={pending} />
+        <Input
+          id={reasonId}
+          name="rejectedReason"
+          required
+          disabled={pending}
+        />
         {error?.rejectedReason ? (
           <FieldError>{error.rejectedReason}</FieldError>
         ) : null}

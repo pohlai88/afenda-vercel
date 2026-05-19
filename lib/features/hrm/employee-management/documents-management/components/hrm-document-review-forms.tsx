@@ -29,7 +29,10 @@ type ReviewFormProps = {
   readonly documentId: string
 }
 
-export function HrmDocumentVerifyForm({ orgSlug, documentId }: ReviewFormProps) {
+export function HrmDocumentVerifyForm({
+  orgSlug,
+  documentId,
+}: ReviewFormProps) {
   const t = useTranslations("Dashboard.Hrm.documents.review")
   const [state, formAction, pending] = useActionState(
     verifyDocumentAction,
@@ -50,7 +53,10 @@ export function HrmDocumentVerifyForm({ orgSlug, documentId }: ReviewFormProps) 
   )
 }
 
-export function HrmDocumentRejectForm({ orgSlug, documentId }: ReviewFormProps) {
+export function HrmDocumentRejectForm({
+  orgSlug,
+  documentId,
+}: ReviewFormProps) {
   const t = useTranslations("Dashboard.Hrm.documents.review")
   const [open, setOpen] = useState(false)
   const [state, formAction, pending] = useActionState<

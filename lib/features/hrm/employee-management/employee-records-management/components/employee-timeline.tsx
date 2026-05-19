@@ -67,23 +67,27 @@ export async function EmployeeTimeline({ rows }: EmployeeTimelineProps) {
     getFormatter(),
   ])
 
-  const listConfiguration = buildEmployeeTimelineListSurfaceConfiguration(rows, {
-    empty: t("timelineEmpty"),
-    colAction: t("timelineColEvent"),
-    colWhen: t("timelineColWhen"),
-    colActor: t("timelineActorLabel"),
-    colDetails: t("timelineColDetails"),
-    actionLabelFor: (action) => resolveTimelineActionLabel(action, t),
-    formatWhen: (value) =>
-      format.dateTime(value, { dateStyle: "medium", timeStyle: "short" }),
-    actorLabelFor: (row) =>
-      row.actorEmail?.trim() ||
-      (row.actorUserId ? shortId(row.actorUserId) : null) ||
-      t("timelineActorUnknown"),
-    facetLabelFor: (labelKey) => t(labelKey),
-    formatFacetValue: (labelKey, value) => formatFacetValue(labelKey, value, t),
-    actorUnknown: t("timelineActorUnknown"),
-  })
+  const listConfiguration = buildEmployeeTimelineListSurfaceConfiguration(
+    rows,
+    {
+      empty: t("timelineEmpty"),
+      colAction: t("timelineColEvent"),
+      colWhen: t("timelineColWhen"),
+      colActor: t("timelineActorLabel"),
+      colDetails: t("timelineColDetails"),
+      actionLabelFor: (action) => resolveTimelineActionLabel(action, t),
+      formatWhen: (value) =>
+        format.dateTime(value, { dateStyle: "medium", timeStyle: "short" }),
+      actorLabelFor: (row) =>
+        row.actorEmail?.trim() ||
+        (row.actorUserId ? shortId(row.actorUserId) : null) ||
+        t("timelineActorUnknown"),
+      facetLabelFor: (labelKey) => t(labelKey),
+      formatFacetValue: (labelKey, value) =>
+        formatFacetValue(labelKey, value, t),
+      actorUnknown: t("timelineActorUnknown"),
+    }
+  )
 
   return (
     <Card size="sm">

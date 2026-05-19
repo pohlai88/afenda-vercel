@@ -109,7 +109,9 @@ function ResetPasswordForm() {
               minLength={8}
             />
           </div>
-          <p className="text-xs text-muted-foreground">{t("resetPasswordHint")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("resetPasswordHint")}
+          </p>
           {error ? (
             <Alert variant="destructive">
               <AlertTitle>{t("resetPasswordErrorTitle")}</AlertTitle>

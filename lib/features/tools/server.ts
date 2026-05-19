@@ -28,9 +28,7 @@ export {
   listPendingSignaturePartiesForEmployee,
 } from "./electronic-signatures/data/signature-request.queries.server"
 
-export type {
-  SignatureRequestListRow,
-} from "./electronic-signatures/data/signature-request.queries.server"
+export type { SignatureRequestListRow } from "./electronic-signatures/data/signature-request.queries.server"
 
 export {
   createSignatureRequest,

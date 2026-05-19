@@ -120,7 +120,7 @@ export const AFENDA_GOVERNED_RENDERER_CONTRACTS = {
     acceptedNatures: ["tabbed-detail"],
     minContainerPx: 480,
   },
-  "chart": {
+  chart: {
     acceptedNatures: ["time-series", "categorical"],
     minContainerPx: 360,
   },

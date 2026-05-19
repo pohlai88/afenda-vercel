@@ -32,8 +32,7 @@ import {
 function orgStructureTrailingListContext(
   capabilities: OrgStructureSurfaceCapabilities
 ) {
-  const showActionsColumn =
-    capabilities.canCreate || capabilities.canDelete
+  const showActionsColumn = capabilities.canCreate || capabilities.canDelete
   return {
     canDelete: capabilities.canDelete,
     showActionsColumn,
@@ -88,9 +87,7 @@ export async function OrganizationGradesListSection({
                   isListSurfaceTrailingActionRenderable(trailingAction)
                 ) {
                   return (
-                    <GovernedTrailingActionSlot
-                      trailingAction={trailingAction}
-                    >
+                    <GovernedTrailingActionSlot trailingAction={trailingAction}>
                       <OrganizationJobGradeArchiveForm
                         orgSlug={orgSlug}
                         gradeId={row.id}
@@ -98,9 +95,7 @@ export async function OrganizationGradesListSection({
                     </GovernedTrailingActionSlot>
                   )
                 }
-                return (
-                  <span className="text-muted-foreground">—</span>
-                )
+                return <span className="text-muted-foreground">—</span>
               },
             }
           : undefined
@@ -159,9 +154,7 @@ export async function OrganizationPositionsListSection({
                   isListSurfaceTrailingActionRenderable(trailingAction)
                 ) {
                   return (
-                    <GovernedTrailingActionSlot
-                      trailingAction={trailingAction}
-                    >
+                    <GovernedTrailingActionSlot trailingAction={trailingAction}>
                       <OrganizationPositionArchiveForm
                         orgSlug={orgSlug}
                         positionId={row.id}
@@ -169,9 +162,7 @@ export async function OrganizationPositionsListSection({
                     </GovernedTrailingActionSlot>
                   )
                 }
-                return (
-                  <span className="text-muted-foreground">—</span>
-                )
+                return <span className="text-muted-foreground">—</span>
               },
             }
           : undefined
@@ -257,9 +248,7 @@ export async function OrganizationOrgUnitsListSection({
                   isListSurfaceTrailingActionRenderable(trailingAction)
                 ) {
                   return (
-                    <GovernedTrailingActionSlot
-                      trailingAction={trailingAction}
-                    >
+                    <GovernedTrailingActionSlot trailingAction={trailingAction}>
                       <OrganizationDepartmentArchiveForm
                         orgSlug={orgSlug}
                         departmentId={row.id}
@@ -267,9 +256,7 @@ export async function OrganizationOrgUnitsListSection({
                     </GovernedTrailingActionSlot>
                   )
                 }
-                return (
-                  <span className="text-muted-foreground">—</span>
-                )
+                return <span className="text-muted-foreground">—</span>
               },
             }
           : undefined

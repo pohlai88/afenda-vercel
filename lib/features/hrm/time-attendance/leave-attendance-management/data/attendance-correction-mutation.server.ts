@@ -23,10 +23,7 @@ import { withPortalMutationSpan } from "../../../employee-management/employee-se
 import type { AttendanceCorrectionFormState } from "../../../types"
 
 export function revalidateAttendanceAndPayroll() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/attendance"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/attendance"), "layout")
   revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "page")
   revalidatePath(
     toLocalePortalRevalidatePattern("/employee/attendance"),

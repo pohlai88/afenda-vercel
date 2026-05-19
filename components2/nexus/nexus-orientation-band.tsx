@@ -4,7 +4,7 @@ import type {
   OperatorContext,
   OrgContext,
   SystemReadiness,
-} from "./nexus.types"
+} from "#features/nexus"
 
 /**
  * Orientation band — Section A of the Nexus Field.

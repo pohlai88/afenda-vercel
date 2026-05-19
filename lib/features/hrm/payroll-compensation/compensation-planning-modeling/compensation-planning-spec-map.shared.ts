@@ -5,12 +5,14 @@
  */
 export const HRM_COMPENSATION_PLANNING_SPEC_MAP = {
   compensationCyclePlanning: {
-    status: "missing",
+    status: "partial",
     codes: ["HRM-CPM-001", "HRM-CPM-002"],
+    note: "Cycle CRUD + list surface; workflow states beyond draft deferred",
   },
   budgetPoolManagement: {
-    status: "missing",
+    status: "partial",
     codes: ["HRM-CPM-003", "HRM-CPM-018", "HRM-CPM-019"],
+    note: "Budget pool create + utilization display; over-budget flags on recommendations deferred",
   },
   meritIncreasePlanning: { status: "missing", codes: ["HRM-CPM-008"] },
   salaryAdjustmentModeling: {
@@ -28,12 +30,12 @@ export const HRM_COMPENSATION_PLANNING_SPEC_MAP = {
   compensationEligibility: {
     status: "partial",
     codes: ["HRM-CPM-004", "HRM-CPM-005", "HRM-CPM-006"],
-    note: "Shared eligibility contract exists; cycle assignment persistence is not shipped",
+    note: "Participant sync evaluates rules; manual assignment UI deferred",
   },
   salaryStructureReference: {
     status: "partial",
     codes: ["HRM-CPM-007", "HRM-CPM-016", "HRM-CPM-017"],
-    note: "Job grade min/max in organizational-chart-hierarchy",
+    note: "Participant roster shows grade band min/mid/max; band exception workflow deferred",
   },
   payEquityReference: { status: "missing", codes: [] },
   marketBenchmarkReference: { status: "missing", codes: [] },

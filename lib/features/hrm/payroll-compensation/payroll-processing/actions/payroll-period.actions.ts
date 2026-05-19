@@ -66,10 +66,7 @@ import { and, eq, isNull } from "drizzle-orm"
  * free since it sits below the layout.
  */
 function revalidatePayrollPages() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/payroll"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "layout")
 }
 
 // ---------------------------------------------------------------------------

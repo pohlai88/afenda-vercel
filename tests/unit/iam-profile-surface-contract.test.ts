@@ -10,7 +10,16 @@ function readRepo(rel: string) {
 
 function readIamProfilePage(...segments: string[]) {
   return readFileSync(
-    join(root, "app", "(main)", "[locale]", "o", "[orgSlug]", "iam-profile", ...segments),
+    join(
+      root,
+      "app",
+      "(main)",
+      "[locale]",
+      "o",
+      "[orgSlug]",
+      "iam-profile",
+      ...segments
+    ),
     "utf8"
   )
 }
@@ -87,9 +96,24 @@ describe("iam-profile surface contract", () => {
     for (const file of samples) {
       const text = readRepo(file)
       for (const needle of forbidden) {
-        expect(text, `${file} must not reference ${needle}`).not.toContain(needle)
+        expect(text, `${file} must not reference ${needle}`).not.toContain(
+          needle
+        )
       }
     }
+  })
+
+  it("keeps overview now/recent presentation in layer 3 bands", () => {
+    const overviewPage = readRepo(
+      "lib/features/iam-profile/components/iam-profile-overview-page.server.tsx"
+    )
+    const bands = readRepo(
+      "components2/iam-profile/iam-profile-overview-bands.tsx"
+    )
+    expect(overviewPage).toContain("IamProfileOverviewNowBand")
+    expect(overviewPage).toContain("IamProfileOverviewRecentBand")
+    expect(overviewPage).not.toContain("IamProfileContextBand")
+    expect(bands).toContain("IamProfileContextBand")
   })
 
   it("uses compound identity and security clients", () => {
@@ -163,7 +187,14 @@ describe("iam-profile surface contract", () => {
   it("keeps profile metadata and shell types under allowed subtrees", () => {
     expect(
       existsSync(
-        join(root, "lib", "features", "iam-profile", "data", "profile-metadata.server.ts")
+        join(
+          root,
+          "lib",
+          "features",
+          "iam-profile",
+          "data",
+          "profile-metadata.server.ts"
+        )
       )
     ).toBe(true)
     expect(
@@ -180,7 +211,13 @@ describe("iam-profile surface contract", () => {
     ).toBe(true)
     expect(
       existsSync(
-        join(root, "lib", "features", "iam-profile", "profile-metadata.server.ts")
+        join(
+          root,
+          "lib",
+          "features",
+          "iam-profile",
+          "profile-metadata.server.ts"
+        )
       )
     ).toBe(false)
     expect(

@@ -35,37 +35,38 @@ const COMMON: readonly PayComponentTreatmentFlags[] = [
   },
 ]
 
-const BY_COUNTRY: Readonly<Record<string, readonly PayComponentTreatmentFlags[]>> =
-  {
-    MY: COMMON,
-    SG: [
-      ...COMMON,
-      {
-        componentCode: "CPF_EE",
-        taxable: false,
-        contributable: false,
-        pensionable: false,
-      },
-    ],
-    ID: [
-      ...COMMON,
-      {
-        componentCode: "BPJS_EE",
-        taxable: false,
-        contributable: false,
-        pensionable: false,
-      },
-    ],
-    VN: [
-      ...COMMON,
-      {
-        componentCode: "VN_PIT",
-        taxable: false,
-        contributable: false,
-        pensionable: false,
-      },
-    ],
-  }
+const BY_COUNTRY: Readonly<
+  Record<string, readonly PayComponentTreatmentFlags[]>
+> = {
+  MY: COMMON,
+  SG: [
+    ...COMMON,
+    {
+      componentCode: "CPF_EE",
+      taxable: false,
+      contributable: false,
+      pensionable: false,
+    },
+  ],
+  ID: [
+    ...COMMON,
+    {
+      componentCode: "BPJS_EE",
+      taxable: false,
+      contributable: false,
+      pensionable: false,
+    },
+  ],
+  VN: [
+    ...COMMON,
+    {
+      componentCode: "VN_PIT",
+      taxable: false,
+      contributable: false,
+      pensionable: false,
+    },
+  ],
+}
 
 export function listDefaultPayComponentTreatments(
   countryCode: string

@@ -51,10 +51,7 @@ type LeaveTypesListCopy = {
 
 function formatEntitlementSummary(
   row: LeaveTypeAdminRow,
-  copy: Pick<
-    LeaveTypesListCopy,
-    "tierLabel" | "fixedDaysLabel"
-  >
+  copy: Pick<LeaveTypesListCopy, "tierLabel" | "fixedDaysLabel">
 ): string {
   if (row.fixedDaysPerYear !== null) {
     return copy.fixedDaysLabel(row.fixedDaysPerYear)

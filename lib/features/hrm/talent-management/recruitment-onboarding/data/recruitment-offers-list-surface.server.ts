@@ -50,7 +50,10 @@ export function buildRecruitmentOffersListSurfaceConfiguration(
         compensation: copy.formatCompensation(row),
         status: copy.statusLabel(row.status),
       },
-      trailingAction: { state: "ready", descriptor: { id: "offer-actions", label: "Actions" } },
+      trailingAction: {
+        state: "ready",
+        descriptor: { id: "offer-actions", label: "Actions" },
+      },
     })),
   }
 }

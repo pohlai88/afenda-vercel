@@ -28,7 +28,15 @@ export {
   type GovernedKanbanTransitionHintProps,
 } from "./components/governed-kanban-transition-hint.client"
 
-export { GovernedEmpty, type GovernedEmptyProps } from "./components/governed-empty"
+export {
+  GovernedEmpty,
+  type GovernedEmptyProps,
+} from "./components/governed-empty"
+
+export {
+  GovernedSection,
+  type GovernedSectionProps,
+} from "./components/governed-section"
 
 export {
   ActionFormErrors,
@@ -41,6 +49,12 @@ export {
   resolveListSurfaceRowTrailingAction,
   type ResolveListSurfaceRowTrailingActionInput,
 } from "./list-surface-trailing-action.shared"
+
+export {
+  resolveFormFieldRuleState,
+  type FormFieldRuleState,
+  type FormRuleValues,
+} from "./form-rules.evaluate.shared"
 
 export type { ListSurfaceRowTrailingAction } from "./schemas/list-surface-row-trailing-action.schema"
 

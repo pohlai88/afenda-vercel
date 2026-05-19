@@ -4,7 +4,10 @@ import { useActionState } from "react"
 
 import { useTranslations } from "next-intl"
 
-import { inviteMemberAction, type OrgAdminActionState } from "../actions/members.actions"
+import {
+  inviteMemberAction,
+  type OrgAdminActionState,
+} from "../actions/members.actions"
 import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
 import { Input } from "#components2/ui/input"
 import { Label } from "#components2/ui/label"

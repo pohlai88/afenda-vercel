@@ -389,8 +389,10 @@ export async function getBenefitEnrollmentForOrganization(
       effectiveTo: hrmBenefitEnrollment.effectiveTo,
       enrolledAt: hrmBenefitEnrollment.enrolledAt,
       terminatedAt: hrmBenefitEnrollment.terminatedAt,
-      employerContributionAmount: hrmBenefitEnrollment.employerContributionAmount,
-      employeeContributionAmount: hrmBenefitEnrollment.employeeContributionAmount,
+      employerContributionAmount:
+        hrmBenefitEnrollment.employerContributionAmount,
+      employeeContributionAmount:
+        hrmBenefitEnrollment.employeeContributionAmount,
     })
     .from(hrmBenefitEnrollment)
     .where(
@@ -420,9 +422,8 @@ export async function listBenefitsAvailableToEmployee(
   const at = options.at ?? new Date()
   const { findActiveBenefitOpenEnrollmentWindow, toBenefitEnrollmentWindow } =
     await import("./benefit-open-enrollment.queries.server")
-  const { resolveBenefitElectionAccess } = await import(
-    "./benefit-self-service.shared"
-  )
+  const { resolveBenefitElectionAccess } =
+    await import("./benefit-self-service.shared")
 
   const activeWindowRow = await findActiveBenefitOpenEnrollmentWindow(
     organizationId,

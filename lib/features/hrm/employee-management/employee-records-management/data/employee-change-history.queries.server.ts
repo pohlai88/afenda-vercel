@@ -46,7 +46,10 @@ export async function listEmployeeChangeHistory(input: {
   /** Optional field name filter (e.g. ["employmentStatus", "managerEmployeeId"]). */
   readonly fieldNames?: string[]
 }): Promise<ListEmployeeChangeHistoryResult> {
-  const limit = Math.min(Math.max(input.limit ?? DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
+  const limit = Math.min(
+    Math.max(input.limit ?? DEFAULT_PAGE_SIZE, 1),
+    MAX_PAGE_SIZE
+  )
   const fetchLimit = limit + 1
 
   const cursorDate = input.cursor ? new Date(input.cursor) : null

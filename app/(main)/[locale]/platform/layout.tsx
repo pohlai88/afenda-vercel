@@ -7,13 +7,11 @@ import {
   AppSubLayoutShellSkeleton,
   buildAppShellPlatformUtilityBarSlots,
 } from "#app-shell"
-import { requireRecentAuthStepUp, requireGlobalAdminSession } from "#lib/auth"
+import { requireGlobalAdminSession } from "#lib/auth"
 import { bindRequestLocale } from "#lib/i18n/bind-request-locale.server"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
-import { toLocalePath } from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 import { SITE_NAME } from "#lib/site"
-import { platformPath } from "#features/platform-admin"
 
 import { PlatformDeferredShell } from "./_components/platform-deferred-shell"
 
@@ -45,9 +43,6 @@ async function PlatformLayoutInner({
   const { locale: localeRaw } = await params
   const locale = bindRequestLocale(localeRaw)
   const session = await requireGlobalAdminSession()
-  await requireRecentAuthStepUp({
-    returnTo: toLocalePath(locale, platformPath()),
-  })
 
   const t = await getTranslations("PlatformAdmin")
 

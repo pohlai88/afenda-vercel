@@ -28,10 +28,7 @@ const payrollClosePeriodActionSchema = z.object({
 })
 
 function revalidatePayrollPages() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/payroll"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "layout")
 }
 
 async function requirePayrollUpdate() {

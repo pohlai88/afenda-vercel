@@ -149,9 +149,7 @@ export function assertEmploymentStatusTransition(
   if (from === to) return
   const allowed = ALLOWED_EMPLOYMENT_TRANSITIONS[from]
   if (!allowed.includes(to)) {
-    throw new Error(
-      `Invalid employment status transition: ${from} → ${to}`
-    )
+    throw new Error(`Invalid employment status transition: ${from} → ${to}`)
   }
 }
 

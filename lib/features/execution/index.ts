@@ -51,7 +51,8 @@ async function enqueueWorkflowWithOtelSpan(
   attributes: Record<string, string | number | boolean | undefined>,
   run: () => Promise<void>
 ): Promise<void> {
-  const { runWithNodeOtelSpan } = await import("#lib/observability/otel-span.server")
+  const { runWithNodeOtelSpan } =
+    await import("#lib/observability/otel-span.server")
   await runWithNodeOtelSpan(
     spanName,
     {

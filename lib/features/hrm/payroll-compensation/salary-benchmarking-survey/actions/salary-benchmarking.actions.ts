@@ -193,7 +193,8 @@ export async function upsertSalaryBenchmarkMappingAction(
   const { id } = await upsertSalaryBenchmarkMappingMutation({
     organizationId: gate.session.organizationId,
     actorUserId: gate.session.userId,
-    mappingId: typeof mappingId === "string" && mappingId ? mappingId : undefined,
+    mappingId:
+      typeof mappingId === "string" && mappingId ? mappingId : undefined,
     mapping: parsed.data,
   })
 

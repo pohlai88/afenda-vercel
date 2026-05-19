@@ -36,9 +36,9 @@ describe("claim legal entity eligibility", () => {
     })
 
     expect(result.eligible).toBe(false)
-    expect(result.reasons.some((r) => r.code === "legal_entity_not_allowed")).toBe(
-      true
-    )
+    expect(
+      result.reasons.some((r) => r.code === "legal_entity_not_allowed")
+    ).toBe(true)
   })
 })
 

@@ -117,7 +117,10 @@ export async function leaveOrganizationAction(
 
   const { error } = await leave({ organizationId: orgId })
   if (error) {
-    return { ok: false, error: error.message ?? "Could not leave organization." }
+    return {
+      ok: false,
+      error: error.message ?? "Could not leave organization.",
+    }
   }
 
   await writeIamAuditEventFromNextHeaders({
@@ -135,7 +138,7 @@ export async function leaveOrganizationAction(
   const { organizationId: activeOrgId } = await getOrgTenantContext()
   if (activeOrgId === orgId) {
     const locale = await getRequestAppLocale()
-    redirect(toLocalePath(locale, "/console"))
+    redirect(toLocalePath(locale, "/o"))
   }
 
   return { ok: true }
@@ -148,7 +151,7 @@ export async function openOrganizationWorkspaceAction(
   const locale = await getRequestAppLocale()
   const slug = await getOrganizationSlugById(parsed)
   if (!slug) {
-    redirect(toLocalePath(locale, "/console"))
+    redirect(toLocalePath(locale, "/o"))
   }
   redirect(toLocalePath(locale, organizationNexusPath(slug)))
 }

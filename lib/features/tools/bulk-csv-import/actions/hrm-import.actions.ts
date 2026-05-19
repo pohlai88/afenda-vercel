@@ -4,7 +4,10 @@ import { after } from "next/server"
 import { revalidatePath } from "next/cache"
 import { and, eq, inArray } from "drizzle-orm"
 
-import { requireRecentAuthStepUp, writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import {
+  requireRecentAuthStepUp,
+  writeIamAuditEventFromNextHeaders,
+} from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmImportSession } from "#lib/db/schema"
 import { ORG_APPS_HRM_IMPORTS } from "#lib/org-apps-module-paths"
@@ -18,10 +21,7 @@ import { toolsActionFailure } from "../../_module-governance/tools-action-result
 import type { ToolsMutationFormState } from "../../types"
 import { HRM_BULK_IMPORT_AUDIT } from "../bulk-import.contract"
 
-import {
-  dryRunEmployees,
-  parseCsv,
-} from "../data/hrm-import-csv.shared"
+import { dryRunEmployees, parseCsv } from "../data/hrm-import-csv.shared"
 import { loadEmployeeImportCsvFromRollback } from "../data/hrm-import-source.server"
 import { hrmImportRollbackJsonSchema } from "../schemas/hrm-import.schema"
 
@@ -45,7 +45,9 @@ export async function commitImportSessionAction(
       permission: { module: "hrm", object: "import", function: "update" },
     }))
   ) {
-    return toolsActionFailure({ form: "HRM import update permission required." })
+    return toolsActionFailure({
+      form: "HRM import update permission required.",
+    })
   }
 
   const sessionIdParam = String(formData.get("importSessionId") ?? "").trim()
@@ -120,10 +122,7 @@ export async function commitImportSessionAction(
     return toolsActionFailure({ form: "Commit failed unexpectedly." })
   }
 
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_IMPORTS),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_IMPORTS), "page")
   return { ok: true }
 }
 
@@ -147,7 +146,9 @@ export async function rollbackImportSessionAction(
       permission: { module: "hrm", object: "import", function: "update" },
     }))
   ) {
-    return toolsActionFailure({ form: "HRM import update permission required." })
+    return toolsActionFailure({
+      form: "HRM import update permission required.",
+    })
   }
 
   const sessionIdParam = String(formData.get("importSessionId") ?? "").trim()
@@ -234,9 +235,6 @@ export async function rollbackImportSessionAction(
     })
   )
 
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_IMPORTS),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_IMPORTS), "page")
   return { ok: true }
 }

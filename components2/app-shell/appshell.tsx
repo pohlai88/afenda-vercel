@@ -37,7 +37,9 @@ export function AppShell({
     <RouteEnvelopeProvider value={envelope}>
       <AppShellClient
         skipToMain={
-          skipToMainLabel ? <AppShellSkipToMain label={skipToMainLabel} /> : null
+          skipToMainLabel ? (
+            <AppShellSkipToMain label={skipToMainLabel} />
+          ) : null
         }
         enableLynxSummon={enableLynxSummon}
         orgSlug={orgSlug ?? envelope.orgSlug}

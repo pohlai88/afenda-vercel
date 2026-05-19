@@ -9,7 +9,7 @@ import type {
   KanbanCard,
   KanbanColumn,
 } from "#features/governed-surface/schemas/kanban-board.schema"
-import type { KanbanCardDropState } from "#features/governed-surface/kanban-card-drop.shared"
+import type { KanbanCardDropState } from "#features/governed-surface"
 import { GovernedEmpty } from "#features/governed-surface/client"
 import { cn } from "#lib/utils"
 

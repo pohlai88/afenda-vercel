@@ -101,7 +101,10 @@ function SignInFormCard() {
                 setKind("password")
               }
               setOtp("")
-              focusFieldForMode(nextMode, nextMode === "sign-up" ? "password" : kind)
+              focusFieldForMode(
+                nextMode,
+                nextMode === "sign-up" ? "password" : kind
+              )
             }}
           >
             <TabsList className="grid h-10 w-full grid-cols-2">
@@ -112,11 +115,20 @@ function SignInFormCard() {
                 {t("tabSignUp")}
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="sign-in" className="mt-4 space-y-6 outline-none">
+            <TabsContent
+              value="sign-in"
+              className="mt-4 space-y-6 outline-none"
+            >
               <SignInFormMethodPanels panelMode="sign-in" />
             </TabsContent>
-            <TabsContent value="sign-up" className="mt-4 space-y-6 outline-none">
-              <SignInFormMethodPanels panelMode="sign-up" panelKind="password" />
+            <TabsContent
+              value="sign-up"
+              className="mt-4 space-y-6 outline-none"
+            >
+              <SignInFormMethodPanels
+                panelMode="sign-up"
+                panelKind="password"
+              />
             </TabsContent>
           </Tabs>
         )}

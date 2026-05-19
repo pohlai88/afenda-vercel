@@ -74,7 +74,9 @@ async function countOpenBoardingInstances(
   return Number(row?.n ?? 0)
 }
 
-async function countProbationEmployees(organizationId: string): Promise<number> {
+async function countProbationEmployees(
+  organizationId: string
+): Promise<number> {
   const [row] = await db
     .select({ n: count(hrmEmployee.id) })
     .from(hrmEmployee)
@@ -164,58 +166,60 @@ export async function getEmployeeLifecycleReadinessCounts(
 export async function listEmployeeLifecycleOverviewForOrganization(
   organizationId: string
 ): Promise<readonly EmployeeLifecycleOverviewRow[]> {
-  const [employees, openBoardingRows, pendingTransitionRows] = await Promise.all([
-    db
-      .select({
-        id: hrmEmployee.id,
-        employeeNumber: hrmEmployee.employeeNumber,
-        legalName: hrmEmployee.legalName,
-        employmentStatus: hrmEmployee.employmentStatus,
-        archivedAt: hrmEmployee.archivedAt,
-        lastWorkingDate: hrmEmployee.lastWorkingDate,
-      })
-      .from(hrmEmployee)
-      .where(
-        and(
-          eq(hrmEmployee.organizationId, organizationId),
-          isNull(hrmEmployee.archivedAt)
+  const [employees, openBoardingRows, pendingTransitionRows] =
+    await Promise.all([
+      db
+        .select({
+          id: hrmEmployee.id,
+          employeeNumber: hrmEmployee.employeeNumber,
+          legalName: hrmEmployee.legalName,
+          employmentStatus: hrmEmployee.employmentStatus,
+          archivedAt: hrmEmployee.archivedAt,
+          lastWorkingDate: hrmEmployee.lastWorkingDate,
+        })
+        .from(hrmEmployee)
+        .where(
+          and(
+            eq(hrmEmployee.organizationId, organizationId),
+            isNull(hrmEmployee.archivedAt)
+          )
         )
-      )
-      .orderBy(desc(hrmEmployee.updatedAt))
-      .limit(LIFECYCLE_OVERVIEW_EMPLOYEE_LIMIT),
-    db
-      .select({
-        employeeId: hrmBoardingInstance.employeeId,
-        kind: hrmBoardingInstance.kind,
-      })
-      .from(hrmBoardingInstance)
-      .where(
-        and(
-          eq(hrmBoardingInstance.organizationId, organizationId),
-          inArray(hrmBoardingInstance.status, [...OPEN_INSTANCE_STATUSES])
-        )
-      ),
-    db
-      .select({
-        employeeId: hrmLifecycleTransition.employeeId,
-        effectiveDate: hrmLifecycleTransition.effectiveDate,
-        reason: hrmLifecycleTransition.reason,
-        approvalReference: hrmLifecycleTransition.approvalReference,
-      })
-      .from(hrmLifecycleTransition)
-      .where(
-        and(
-          eq(hrmLifecycleTransition.organizationId, organizationId),
-          eq(hrmLifecycleTransition.status, "pending")
-        )
-      ),
-  ])
+        .orderBy(desc(hrmEmployee.updatedAt))
+        .limit(LIFECYCLE_OVERVIEW_EMPLOYEE_LIMIT),
+      db
+        .select({
+          employeeId: hrmBoardingInstance.employeeId,
+          kind: hrmBoardingInstance.kind,
+        })
+        .from(hrmBoardingInstance)
+        .where(
+          and(
+            eq(hrmBoardingInstance.organizationId, organizationId),
+            inArray(hrmBoardingInstance.status, [...OPEN_INSTANCE_STATUSES])
+          )
+        ),
+      db
+        .select({
+          employeeId: hrmLifecycleTransition.employeeId,
+          effectiveDate: hrmLifecycleTransition.effectiveDate,
+          reason: hrmLifecycleTransition.reason,
+          approvalReference: hrmLifecycleTransition.approvalReference,
+        })
+        .from(hrmLifecycleTransition)
+        .where(
+          and(
+            eq(hrmLifecycleTransition.organizationId, organizationId),
+            eq(hrmLifecycleTransition.status, "pending")
+          )
+        ),
+    ])
 
   const openOnboardingByEmployee = new Set<string>()
   const openOffboardingByEmployee = new Set<string>()
   for (const row of openBoardingRows) {
     if (row.kind === "onboarding") openOnboardingByEmployee.add(row.employeeId)
-    if (row.kind === "offboarding") openOffboardingByEmployee.add(row.employeeId)
+    if (row.kind === "offboarding")
+      openOffboardingByEmployee.add(row.employeeId)
   }
 
   const pendingByEmployee = new Map<string, PendingTransitionAggregate>()

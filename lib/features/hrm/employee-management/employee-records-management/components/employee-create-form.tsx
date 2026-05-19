@@ -16,7 +16,10 @@ type EmployeeCreateFormProps = {
   onSuccess?: () => void
 }
 
-export function EmployeeCreateForm({ orgSlug, onSuccess }: EmployeeCreateFormProps) {
+export function EmployeeCreateForm({
+  orgSlug,
+  onSuccess,
+}: EmployeeCreateFormProps) {
   const t = useTranslations("Dashboard.Hrm.workforce")
   const [state, formAction, pending] = useActionState(
     createEmployeeAction,

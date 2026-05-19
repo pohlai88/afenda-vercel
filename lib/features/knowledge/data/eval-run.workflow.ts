@@ -189,9 +189,7 @@ async function evalFailedStep(
     linkedEntityType: "knowledge_eval_set",
     linkedEntityId: payload.evalSetId,
     linkedEntityLabel: `Eval set ${payload.evalSetId}`,
-    linkedPath: orgSlug
-      ? organizationAppsPath(orgSlug, "knowledge")
-      : null,
+    linkedPath: orgSlug ? organizationAppsPath(orgSlug, "knowledge") : null,
   })
 
   await writeIamAuditEvent({

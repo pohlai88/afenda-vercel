@@ -24,7 +24,9 @@ describe("session-lifecycle-audit.shared", () => {
   })
 
   it("normalizes /api/auth prefixes", () => {
-    expect(normalizeAuthApiPath("/api/auth/sign-in/email")).toBe("/sign-in/email")
+    expect(normalizeAuthApiPath("/api/auth/sign-in/email")).toBe(
+      "/sign-in/email"
+    )
     expect(normalizeAuthApiPath("/api/auth")).toBe("/")
   })
 

@@ -2,7 +2,6 @@ import { EmployeeDetailPage } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
-
 export default async function OrgAppsHrmEmployeeDetailPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/apps/hrm/employees/[employeeId]">) {

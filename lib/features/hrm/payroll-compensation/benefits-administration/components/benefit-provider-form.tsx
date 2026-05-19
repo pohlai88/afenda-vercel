@@ -129,7 +129,9 @@ export function BenefitProviderForm({
       </Field>
 
       <Field>
-        <FieldLabel htmlFor={externalId}>{t("fieldExternalReference")}</FieldLabel>
+        <FieldLabel htmlFor={externalId}>
+          {t("fieldExternalReference")}
+        </FieldLabel>
         <Input
           id={externalId}
           name="externalReference"

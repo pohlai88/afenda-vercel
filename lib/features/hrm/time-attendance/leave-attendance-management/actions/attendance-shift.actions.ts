@@ -31,10 +31,7 @@ import type {
 } from "../../../types"
 
 function revalidateAttendanceAndPayroll() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/attendance"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/attendance"), "layout")
   revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "page")
 }
 

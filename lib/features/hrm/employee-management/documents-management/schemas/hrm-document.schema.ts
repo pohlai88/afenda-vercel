@@ -133,7 +133,11 @@ export const rejectDocumentFormSchema = z.object({
   orgSlug: z.string().min(1),
   documentId: uuid,
   /** Required — HR must provide a reason so the employee can correct it. HRM-DOC-010. */
-  rejectionReason: z.string().trim().min(1, "Rejection reason is required.").max(1000),
+  rejectionReason: z
+    .string()
+    .trim()
+    .min(1, "Rejection reason is required.")
+    .max(1000),
 })
 
 export type RejectDocumentFormInput = z.infer<typeof rejectDocumentFormSchema>

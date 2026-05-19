@@ -251,9 +251,8 @@ async function sealSignatureRequestStep(payload: SignatureSealPayload) {
   })
 
   if (request.kind === "boarding_task" && envelopeDocumentId) {
-    const { onSignatureRequestSealedForBoardingTask } = await import(
-      "#features/hrm/server"
-    )
+    const { onSignatureRequestSealedForBoardingTask } =
+      await import("#features/hrm/server")
     await onSignatureRequestSealedForBoardingTask({
       organizationId: payload.organizationId,
       taskId: request.subjectId,

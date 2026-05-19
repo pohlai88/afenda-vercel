@@ -69,7 +69,10 @@ export async function listComplianceFilingsForOrg(
     .select()
     .from(hrmComplianceFiling)
     .where(and(...predicates))
-    .orderBy(asc(hrmComplianceFiling.dueDate), desc(hrmComplianceFiling.createdAt))
+    .orderBy(
+      asc(hrmComplianceFiling.dueDate),
+      desc(hrmComplianceFiling.createdAt)
+    )
 
   return rows.map((row) => ({
     ...row,

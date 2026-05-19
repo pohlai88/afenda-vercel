@@ -35,7 +35,9 @@ export async function resolveExchangeRate(input: {
     }
   }
 
-  const atDate = new Date(`${input.atDate.toISOString().slice(0, 10)}T00:00:00.000Z`)
+  const atDate = new Date(
+    `${input.atDate.toISOString().slice(0, 10)}T00:00:00.000Z`
+  )
 
   for (const orgFilter of [input.organizationId, null] as const) {
     const conditions = [

@@ -74,7 +74,8 @@ export function SectionRenderer({
           gapClass,
           elevationClass(chrome?.elevation),
           surfaceMaterialClass(chrome?.surface),
-          chrome?.elevation !== "flat" && "rounded-2xl border border-border/60 p-4"
+          chrome?.elevation !== "flat" &&
+            "rounded-2xl border border-border/60 p-4"
         )}
       >
         {renderChildren(children, diagnostics)}
@@ -91,7 +92,8 @@ export function SectionRenderer({
         gapClass,
         elevationClass(chrome?.elevation),
         surfaceMaterialClass(chrome?.surface),
-        chrome?.elevation !== "flat" && "rounded-2xl border border-border/60 p-4"
+        chrome?.elevation !== "flat" &&
+          "rounded-2xl border border-border/60 p-4"
       )}
     >
       {renderChildren(children, diagnostics)}

@@ -53,7 +53,11 @@ export function buildEmployeeDependentsListSurfaceConfiguration(
     columns: [
       { id: "name", header: copy.colName },
       { id: "relationship", header: copy.colRelationship },
-      { id: "dateOfBirth", header: copy.colDateOfBirth, cellKind: { kind: "date" } },
+      {
+        id: "dateOfBirth",
+        header: copy.colDateOfBirth,
+        cellKind: { kind: "date" },
+      },
       { id: "taxDependent", header: copy.colTaxDependent },
     ],
     rows: dependents.map((dependent) => ({

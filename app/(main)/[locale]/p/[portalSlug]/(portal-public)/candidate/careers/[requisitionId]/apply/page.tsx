@@ -1,6 +1,5 @@
 import { CandidatePortalApplyPage } from "#features/hrm"
 
-
 type CandidateApplyRouteProps = {
   params: Promise<{ portalSlug: string; requisitionId: string }>
 }

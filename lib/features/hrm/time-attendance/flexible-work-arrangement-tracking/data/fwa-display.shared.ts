@@ -78,13 +78,7 @@ export function buildDefaultSchedulePatternForKind(
         officeDay(5),
       ]
     case "part_time":
-      return [
-        officeDay(1),
-        officeDay(2),
-        officeDay(3),
-        restDay(4),
-        restDay(5),
-      ]
+      return [officeDay(1), officeDay(2), officeDay(3), restDay(4), restDay(5)]
     case "compressed":
       return [
         { ...officeDay(1), expectedMinutes: 600 },

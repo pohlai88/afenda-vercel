@@ -213,7 +213,7 @@ export function UtilityBarLynxPanel({ href }: UtilityBarLynxPanelProps) {
         align="end"
         sideOffset={8}
         className={cn(
-          "max-h-[min(28rem,calc(100vh-6rem))] w-80 flex flex-col overflow-hidden p-0",
+          "flex max-h-[min(28rem,calc(100vh-6rem))] w-80 flex-col overflow-hidden p-0",
           APP_SHELL_UTILITY_RAIL_MENU_SURFACE_CLASS
         )}
       >

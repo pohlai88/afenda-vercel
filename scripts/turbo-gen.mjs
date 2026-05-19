@@ -150,7 +150,9 @@ function spawnTurbo() {
     turboArgv.includes("--args")
 
   if (process.platform === "win32" && isAskDocWithArgs) {
-    const cmd = ["pnpm", "exec", "turbo", ...turboArgv].map(quoteCmdArg).join(" ")
+    const cmd = ["pnpm", "exec", "turbo", ...turboArgv]
+      .map(quoteCmdArg)
+      .join(" ")
     return spawnSync(cmd, {
       stdio: "inherit",
       cwd: process.cwd(),

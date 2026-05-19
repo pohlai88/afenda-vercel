@@ -68,9 +68,10 @@ FORBIDDEN (instant failure — fix forward, never shim):
   • Recreating repo-root components/ (hard-deleted)
 
 WHEN EDITING A SURFACE — read its *-directory.mdc rule FIRST:
-  legal-docs → .cursor/rules/legal-docs-directory.mdc
-  auth       → .cursor/rules/iam-directory.mdc + app/(auth)/_SEAL.md
-  iam-profile→ lib/features/iam-profile/ + components2/iam-profile/ (rule: iam-profile-directory.mdc)
+  legal-docs  → .cursor/rules/legal-docs-directory.mdc
+  bootstrap   → .cursor/rules/bootstrap-directory.mdc (`/bootstrap` + `/o` dispatcher)
+  auth        → .cursor/rules/iam-directory.mdc + app/(auth)/_SEAL.md
+  iam-profile → .cursor/rules/iam-profile-directory.mdc
 
 If you cannot state which layer owns a file in one sentence, STOP and read ADR-0035.
 ```
@@ -128,7 +129,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Jump to topic                  | [Contents](#contents)                                                                                                                                                                                                                                                                             |
 | App shell (post-login)         | **`#app-shell`** (`components2/app-shell/`) — `AppShell` slot API (`utilityBar`, `rail`, `command`, `overlay`, `envelope`). Client chrome: **`#app-shell/client`**. Providers `components2/providers/`; stores `components2/stores/`. Rules: `shell-directory.mdc`, `components2-directory.mdc`, `never-restore-deleted-components.mdc` |
-| Metadata renderers             | `#components2/metadata` · `#features/governed-surface` (`GovernedPatternCListSection`, `GovernedSurfaceSectionCard`) · `pnpm gen governed-renderer` · **ADR-0026** · section score: `docs/architecture/governed-section-composition-score.md` · dev: `/dev/pattern-c-section-gallery` |
+| Metadata renderers             | `#components2/metadata` · `#features/governed-surface` (`GovernedPatternCListSection`, `GovernedSurfaceSectionCard`) · `pnpm gen governed-renderer` · **ADR-0026** · section score: `docs/architecture/governed-section-composition-score.md` · playground: `/playground/pattern-c-section-gallery` |
 | Nexus (org root)               | `app/[locale]/o/[orgSlug]/nexus/` · `#features/nexus` · redirected from `/{locale}/o/{orgSlug}`. See §5                                                                                                                                                                                           |
 | ERP feature                    | `lib/features/<module>/` · `#features/<module>` only · no deep imports · see §6                                                                                                                                                                                                                   |
 | Orbit / Planner                | `lib/features/planner/` · product name Orbit · see ADR-0006 · rule `.cursor/rules/planner-directory.mdc`                                                                                                                                                                                          |
@@ -139,6 +140,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | Org Messenger (Ably)           | `lib/features/messenger/` · `#features/messenger/client` (panel) · `#features/messenger/server` (token mint) · `ABLY_API_KEY` in `.env.config` → `pnpm env:sync` · workbench rail `right.messenger` (chat) + `right.coordination` (operational console) · `POST /api/erp/messenger/auth`          |
 | Org admin                      | `lib/features/org-admin/` · `ORG_ADMIN_CAPABILITIES` registry · `/o/{orgSlug}/admin/*` · rule `.cursor/rules/org-admin-directory.mdc`                                                                                                                                                             |
 | Member profile (IAM)           | `lib/features/iam-profile/` · `#components2/iam-profile` · `/o/{orgSlug}/iam-profile/*` (legacy `/account` → 308 + session redirect) · `organizationIamProfilePath` · rule `.cursor/rules/iam-profile-directory.mdc` · `IamProfileSurface` i18n |
+| Post-login bootstrap           | **Layer 1** `app/[locale]/bootstrap/` + `app/[locale]/o/page.tsx` · **Layer 2** `#features/bootstrap` · **Layer 3** `#components2/bootstrap` · rule `.cursor/rules/bootstrap-directory.mdc` · retired `/console` |
 | Public legal-docs / trust      | **Layer 1** `app/[locale]/legal-docs/` · **Layer 2** `#features/legal-docs` · **Layer 3** `#components2/legal-docs` · rule `.cursor/rules/legal-docs-directory.mdc` · never recreate `public-trust` / `legal-declarations` |
 | Portals                        | `app/[locale]/p/[portalSlug]/` · `lib/portal/` · `components2/portal-shell/` · rule `.cursor/rules/portal-directory.mdc`                                                                                                                                                                          |
 | Platform admin                 | `lib/features/platform-admin/` · `PLATFORM_ADMIN_CAPABILITIES` · `/platform/*` (legacy `/operator/*` → 308)                                                                                                                                                                                       |
@@ -188,7 +190,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 - `ask-docs-directory.mdc` · `design-system.mdc` · `erp-primitives.mdc` · `planner-directory.mdc`
 - `lynx-knowledge.mdc` · `public-lynx.mdc` · `simulation-directory.mdc` · `org-admin-directory.mdc` · `legal-docs-directory.mdc`
 - `drizzle-migration-ledger.mdc` · `app-router-contracts.mdc` · `testing.mdc`
-- `portal-directory.mdc` · `dev-directory.mdc` · `components2-directory.mdc` · `client-state-management.mdc` · `module-client-server-barrels.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
+- `portal-directory.mdc` · `playground-directory.mdc` · `nexus-directory.mdc` · `components2-directory.mdc` · `client-state-management.mdc` · `module-client-server-barrels.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
 
 ---
 
@@ -496,7 +498,7 @@ turbo/generators/config.ts
 - **Browser door:** `#lib/auth-client` ([`lib/auth-client.ts`](lib/auth-client.ts)) — Neon Auth client only; never import `#lib/auth` from Client Components.
 - **Retired:** `#lib/tenant` and `lib/tenant.ts` — use `#lib/auth` only (`lib/auth/tenant-session.server.ts`).
 - **HTTP:** `/api/auth/[...path]`. Neon webhooks: `app/api/integrations/neon-auth-webhooks/`.
-- **Session guards** (use in layouts): `requireSignedInSession()` for `/console` and legacy `/account` (redirects to org profile); `requireOrgSession()` + `getOrgTenantContext()` for ERP; `requireGlobalAdminSession()` for `/platform`.
+- **Session guards** (use in layouts): `requireSignedInSession()` for `/bootstrap` and legacy `/account` (redirects to org profile); `requireOrgSession()` + `getOrgTenantContext()` for ERP; `requireGlobalAdminSession()` for `/platform`.
 - **IDOR:** `organizationId` is authoritative **only** from `requireOrgSession` / `getOrgTenantContext` / `getOrgSessionFromRequest` — never trust it from `FormData`, JSON, or query strings.
 - **Step-up:** `requireRecentAuthStepUp` with `disableCookieCache: true` → `AUTH_STATUS.SESSION_EXPIRED` or `AUTH_STATUS.STEP_UP_REQUIRED`.
 - **Invites:** `ORG_INVITE_MAX_PER_HOUR` (default 30); Upstash Redis ratelimit when env set, otherwise `iam_audit_event` rolling counts.
@@ -529,9 +531,9 @@ turbo/generators/config.ts
 ### Locale-first routing
 
 - `localePrefix: "always"` — all public URLs include `/{locale}/`.
-- **Edge entry:** `proxy.ts` runs `createIntlMiddleware` then presence-only cookie check for `/o`, `/p`, `/account`, `/platform`, legacy `/operator`, `/accept-invitation`, `/console`. Matcher excludes `api`, `_next`, `_vercel`, `.well-known`, static assets.
+- **Edge entry:** `proxy.ts` runs `createIntlMiddleware` then presence-only cookie check for `/o`, `/p`, `/account`, `/platform`, legacy `/operator`, `/accept-invitation`, `/bootstrap`. Matcher excludes `api`, `_next`, `_vercel`, `.well-known`, static assets.
 - **Never emit bare `/sign-in`, `/o`, or `/p` from server** — use `toLocalePath(locale, path)`.
-- **Post-login:** `/{locale}/console` is the loading bay (single-org → redirect to nexus immediately).
+- **Post-login:** `/{locale}/o` resolves the active org (0 orgs → `/bootstrap`; single org → Nexus; multi-org → inline picker). `/{locale}/bootstrap` is first-run setup only.
 - **`callbackUrl`** must be locale-prefixed + validated via `resolvePostAuthCallbackUrl`.
 - **Refactor gate (local only):** `AFENDA_I18N_SINGLE_LOCALE` + `NEXT_PUBLIC_AFENDA_I18N_SINGLE_LOCALE` narrow `APP_LOCALES` to `en` for faster builds — see [ADR-0028](docs/decisions/0028-single-locale-refactor-gate.md). **Required before deploy:** unset both, `pnpm env:sync`, backfill non-English catalogs, full verify. Never set in CI/Vercel production.
 - **Rule:** `.cursor/rules/i18n-directory.mdc`
@@ -545,14 +547,15 @@ Nexus owns the OS.  Surfaces execute work.  Materials are governed.
 - **Org root:** `/{locale}/o/{orgSlug}` → `/{locale}/o/{orgSlug}/nexus`.
 - **Shell mounts at:** `app/[locale]/o/[orgSlug]/layout.tsx` (not dashboard layout) — ensures utility bar / dock / command persist across surfaces.
 - **`components2/app-shell/`** owns all post-login shell chrome. **`components2/` Nexus field** (Lynx summon overlays) — not repo-root `components/`. No `components/dashboard/` (hard-deleted).
-- **NexusSnapshot:** one server-built snapshot per request — no per-widget fetching.
+- **NexusSnapshot:** one server-built snapshot per request — no per-widget fetching. Field composes **governed `list-surface`** sections (pressure, priority lanes, resolutions) + handcrafted orientation/truth map ([ADR-0038](docs/decisions/0038-nexus-field-governed-composition.md)).
+- **Three layers:** `app/.../nexus/` · `#features/nexus` / `#features/nexus/server` · `#components2/nexus` — rule `.cursor/rules/nexus-directory.mdc`.
 - **Forbidden vocabulary:** dashboard (as org root noun), widget, cockpit, home (as org root noun), AI mode, notification center.
 - **Shell is final (ADR-0005):** do not reintroduce legacy shell wrappers.
 
 ### App shell (post-login chrome)
 
 - Import **`AppShell`** / **`AppSubLayout`** from **`#app-shell`**; client islands from **`#app-shell/client`**.
-- Org/console layouts compose **`utilityBar`** via `buildAppShellOrgUtilityBarSlots` / `buildAppShellConsoleUtilityBarSlots` (server-only composers under `components2/app-shell/compose/`).
+- Org/bootstrap layouts compose **`utilityBar`** via `buildAppShellOrgUtilityBarSlots` / `buildAppShellBootstrapUtilityBarSlots` (server-only composers under `components2/app-shell/compose/`).
 - Nested rail surfaces (org admin, HRM, member profile, operator) use **`AppSubLayout`** + **`AppShellPrimaryLeftRail*`** inside the parent org `AppShell`.
 - Rail slot kernel: `appshell-primary-left-rail.schema.ts`. Builders are pure mappers. Cross-cutting structural changes → `ts-morph` codemod under `scripts/refactors/`.
 - Portal chrome is separate: `/p/{portalSlug}` uses `PortalShell` from `components2/portal-shell/`, never `AppShell`.
@@ -870,7 +873,7 @@ lib/features/<module>/ — business logic, RSC feature pages, Server Actions,
       #features/<module>/server.
 
 components2/ — shell chrome (app-shell, portal-shell, providers, stores),
-      metadata renderers, auth/console/marketing surfaces. Import via #app-shell,
+      metadata renderers, auth/bootstrap/marketing surfaces. Import via #app-shell,
       #app-shell/client, #components2/* — not from app/.
 
 i18n/ + messages/ — locale routing and catalogs only.
@@ -1159,7 +1162,7 @@ pnpm lint:renderer-container-queries && pnpm lint:renderer-skeleton-parity && pn
 
 **Forbidden:** deep `list-surface-table` imports from feature modules; Pattern C empty fork via `GovernedComponentRenderer` in feature code.
 
-**Dev galleries:** `/{locale}/dev/metadata-renderer-gallery` (renderers) · `/{locale}/dev/pattern-c-section-gallery` (Pattern C section states).
+**Playground galleries:** `/{locale}/playground/metadata-renderer-gallery` (renderers) · `/{locale}/playground/pattern-c-section-gallery` (Pattern C section states).
 
 ---
 

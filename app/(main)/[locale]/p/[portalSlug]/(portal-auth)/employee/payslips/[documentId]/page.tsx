@@ -1,6 +1,5 @@
 import { EmployeePortalPayslipDetailPage } from "#features/hrm"
 
-
 type EmployeePortalPayslipDetailRouteProps = {
   params: Promise<{ portalSlug: string; documentId: string }>
 }

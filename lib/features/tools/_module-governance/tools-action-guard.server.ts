@@ -7,7 +7,9 @@ import { validateToolsOrgSlugMatchesSession } from "./tools-tenant-form.server"
 
 export type ToolsOrgSession = Awaited<ReturnType<typeof requireOrgSession>>
 
-export async function requireToolsOrgTenantFromForm(formData: FormData): Promise<
+export async function requireToolsOrgTenantFromForm(
+  formData: FormData
+): Promise<
   | { ok: true; session: ToolsOrgSession; orgSlug: string }
   | {
       ok: false

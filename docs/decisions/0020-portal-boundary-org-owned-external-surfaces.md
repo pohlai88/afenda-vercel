@@ -60,7 +60,8 @@ The route responsibilities are:
 | -------------------------- | ------------------------------- | ----------------------------- | ------------------------------------------------ |
 | `/{locale}/o/{orgSlug}`    | Internal organization Workbench | `WorkbenchShell` / `AppShell` | `requireOrgSession()` and ERP RBAC               |
 | `/{locale}/p/{portalSlug}` | Org-owned portal surface        | `PortalShell`                 | Portal context guard and audience-specific rules |
-| `/{locale}/console`        | Authenticated org bootstrap     | Console bootstrap shell       | Signed-in session, no active org required        |
+| `/{locale}/bootstrap`      | Authenticated org bootstrap     | Bootstrap setup shell         | Signed-in session, no active org required        |
+| `/{locale}/o`              | Org resolution / picker         | Bootstrap dispatcher          | Signed-in session                                |
 
 `/p` must resolve organization context, but it must not require active Workbench
 organization switching. Supplier, customer, investor, and some employee portal

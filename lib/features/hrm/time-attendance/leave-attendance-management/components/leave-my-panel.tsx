@@ -54,8 +54,7 @@ export async function LeaveMyPanel({ leaveTypes }: LeaveMyPanelProps) {
     listLeaveRequestsForEmployee(session.organizationId, employee.id),
   ])
 
-  const stateLabelFor = (state: string) =>
-    t(`state.${state}` as "state.draft")
+  const stateLabelFor = (state: string) => t(`state.${state}` as "state.draft")
 
   const balanceConfiguration = buildLeaveBalanceListSurfaceConfiguration(
     balances,
@@ -88,7 +87,9 @@ export async function LeaveMyPanel({ leaveTypes }: LeaveMyPanelProps) {
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="flex flex-col gap-5">
         <section className="flex flex-col gap-3">
-          <h3 className="text-label-small font-medium">{t("myBalancesTitle")}</h3>
+          <h3 className="text-label-small font-medium">
+            {t("myBalancesTitle")}
+          </h3>
           <GovernedPatternCListSection
             layout="embedded"
             title=""
@@ -98,7 +99,9 @@ export async function LeaveMyPanel({ leaveTypes }: LeaveMyPanelProps) {
         </section>
 
         <section className="flex flex-col gap-3">
-          <h3 className="text-label-small font-medium">{t("myHistoryTitle")}</h3>
+          <h3 className="text-label-small font-medium">
+            {t("myHistoryTitle")}
+          </h3>
           <GovernedPatternCListSection
             layout="embedded"
             title=""

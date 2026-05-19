@@ -51,7 +51,9 @@ export async function KpiGoalMilestonesListSection({
               header: t("goalMilestoneColActions"),
               render: (surfaceRow) => (
                 <form
-                  action={asVoidKpiGoalAction(submitRemoveKpiGoalMilestoneAction)}
+                  action={asVoidKpiGoalAction(
+                    submitRemoveKpiGoalMilestoneAction
+                  )}
                 >
                   <input type="hidden" name="orgSlug" value={orgSlug} />
                   <input

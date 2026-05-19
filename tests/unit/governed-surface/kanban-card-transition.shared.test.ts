@@ -44,9 +44,7 @@ describe("resolveKanbanCardTransition", () => {
   })
 
   it("kanbanCardTransitionHidden matches hidden resolver output", () => {
-    expect(
-      kanbanCardTransitionHidden("x", "y", "Move")
-    ).toEqual(
+    expect(kanbanCardTransitionHidden("x", "y", "Move")).toEqual(
       resolveKanbanCardTransition({
         fromColumnId: "x",
         toColumnId: "y",

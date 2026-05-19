@@ -7,7 +7,6 @@ import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { requirePortalContext } from "#lib/portal/server"
 import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 
-
 export const metadata: Metadata = {
   robots: PRIVATE_SURFACE_ROBOTS,
 }

@@ -31,7 +31,7 @@ import {
   archiveBenefitPlanFormSchema,
   createBenefitPlanFormSchema,
   updateBenefitPlanFormSchema,
-} from "../schema/benefit.schema"
+} from "../schemas/benefit.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   BenefitArchiveFormState,
@@ -48,10 +48,7 @@ function isUniqueViolation(err: unknown): boolean {
 }
 
 function revalidateBenefits() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/benefits"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/benefits"), "layout")
 }
 
 function parseIsoDate(iso: string | undefined): Date | null {

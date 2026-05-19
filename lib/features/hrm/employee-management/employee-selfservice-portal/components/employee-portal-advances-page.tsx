@@ -71,22 +71,26 @@ export async function EmployeePortalAdvancesPage({
 
   const trailingContext = { showRowActions: true } as const
 
-  const advanceConfiguration = buildEmployeePortalAdvanceListSurfaceConfiguration(
-    advances,
-    {
-      empty: t("listEmpty"),
-      colAmount: t("colAmount"),
-      colState: t("colState"),
-      colRequested: t("colRequested"),
-      colReason: t("colReason"),
-      stateLabelFor,
-    },
-    trailingContext
-  )
+  const advanceConfiguration =
+    buildEmployeePortalAdvanceListSurfaceConfiguration(
+      advances,
+      {
+        empty: t("listEmpty"),
+        colAmount: t("colAmount"),
+        colState: t("colState"),
+        colRequested: t("colRequested"),
+        colReason: t("colReason"),
+        stateLabelFor,
+      },
+      trailingContext
+    )
 
   const advanceById = new Map(advances.map((row) => [row.id, row]))
 
-  const installmentsByAdvance = new Map<string, PortalAdvanceInstallmentDisplayRow[]>()
+  const installmentsByAdvance = new Map<
+    string,
+    PortalAdvanceInstallmentDisplayRow[]
+  >()
   for (const inst of installments) {
     const advance = advanceById.get(inst.advanceId)
     const existing = installmentsByAdvance.get(inst.advanceId) ?? []
@@ -103,8 +107,8 @@ export async function EmployeePortalAdvancesPage({
     ])
   }
 
-  const allInstallmentRows: PortalAdvanceInstallmentDisplayRow[] = installments.map(
-    (inst) => {
+  const allInstallmentRows: PortalAdvanceInstallmentDisplayRow[] =
+    installments.map((inst) => {
       const advance = advanceById.get(inst.advanceId)
       return {
         id: inst.id,
@@ -114,8 +118,7 @@ export async function EmployeePortalAdvancesPage({
         currency: advance?.currency ?? "",
         state: inst.state,
       }
-    }
-  )
+    })
 
   const installmentConfiguration =
     buildEmployeePortalAdvanceInstallmentListSurfaceConfiguration(

@@ -30,7 +30,10 @@ export async function deleteAccountAction(
   await requireRecentAuthStepUp({ returnTo })
 
   if (parsed.data.toLowerCase() !== session.user.email.trim().toLowerCase()) {
-    return { ok: false, error: "Confirmation email does not match your account." }
+    return {
+      ok: false,
+      error: "Confirmation email does not match your account.",
+    }
   }
 
   await writeIamAuditEventFromNextHeaders({

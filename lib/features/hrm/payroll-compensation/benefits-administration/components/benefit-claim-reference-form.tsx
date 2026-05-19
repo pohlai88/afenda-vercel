@@ -115,7 +115,9 @@ export function BenefitClaimReferenceForm({
       </Field>
 
       <Field>
-        <FieldLabel htmlFor={externalClaimId}>{t("fieldExternalClaimId")}</FieldLabel>
+        <FieldLabel htmlFor={externalClaimId}>
+          {t("fieldExternalClaimId")}
+        </FieldLabel>
         <Input
           id={externalClaimId}
           name="externalClaimId"
@@ -126,7 +128,9 @@ export function BenefitClaimReferenceForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor={claimStatusId}>{t("fieldClaimStatus")}</FieldLabel>
+          <FieldLabel htmlFor={claimStatusId}>
+            {t("fieldClaimStatus")}
+          </FieldLabel>
           <select
             id={claimStatusId}
             name="claimStatus"
@@ -153,7 +157,9 @@ export function BenefitClaimReferenceForm({
       </div>
 
       <Field>
-        <FieldLabel htmlFor={claimedAmountId}>{t("fieldClaimedAmount")}</FieldLabel>
+        <FieldLabel htmlFor={claimedAmountId}>
+          {t("fieldClaimedAmount")}
+        </FieldLabel>
         <Input
           id={claimedAmountId}
           name="claimedAmount"

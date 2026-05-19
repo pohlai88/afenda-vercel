@@ -52,6 +52,8 @@ describe("buildEmployeeLifecycleListSurfaceConfiguration", () => {
     expect(parsed.data.rows).toHaveLength(1)
     expect(parsed.data.rows[0]?.cells.legalName).toBe("Aminah Rahman")
     expect(parsed.data.rows[0]?.cells.stage).toBe("Probation")
-    expect(parsed.data.rows[0]?.rowHref).toBe("/o/demo-org/apps/hrm/employees/emp-1")
+    expect(parsed.data.rows[0]?.rowHref).toBe(
+      "/o/demo-org/apps/hrm/employees/emp-1"
+    )
   })
 })

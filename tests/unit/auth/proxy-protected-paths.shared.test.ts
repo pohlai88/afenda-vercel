@@ -12,9 +12,7 @@ describe("proxy-protected-paths.shared", () => {
       expect(isProtectedLocaleInternalPath("/o")).toBe(true)
       expect(isProtectedLocaleInternalPath("/o/acme")).toBe(true)
       expect(isProtectedLocaleInternalPath("/o/acme/dashboard")).toBe(true)
-      expect(isProtectedLocaleInternalPath("/o/acme/apps/contacts")).toBe(
-        true
-      )
+      expect(isProtectedLocaleInternalPath("/o/acme/apps/contacts")).toBe(true)
     })
 
     it("protects canonical /p portal prefix", () => {
@@ -26,7 +24,7 @@ describe("proxy-protected-paths.shared", () => {
     })
 
     it("protects post-login org bootstrap and invitation surfaces", () => {
-      expect(isProtectedLocaleInternalPath("/console")).toBe(true)
+      expect(isProtectedLocaleInternalPath("/bootstrap")).toBe(true)
       expect(isProtectedLocaleInternalPath("/accept-invitation")).toBe(true)
     })
 

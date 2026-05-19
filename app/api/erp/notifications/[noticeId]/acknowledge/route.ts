@@ -3,7 +3,6 @@ import { acknowledgeOrgNotification } from "#features/org-notifications/server"
 import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/auth"
 
-
 export async function POST(
   request: Request,
   { params }: RouteContext<"/api/erp/notifications/[noticeId]/acknowledge">

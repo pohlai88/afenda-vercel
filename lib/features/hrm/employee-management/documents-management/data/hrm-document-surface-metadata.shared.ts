@@ -24,8 +24,18 @@ export const HRM_DOCUMENT_SURFACE_COLUMNS = [
 export const HRM_DOCUMENT_SURFACE_FILTERS = [
   { id: "employeeId", label: "Employee", type: "employee" },
   { id: "legalEntityId", label: "Legal entity", type: "legalEntity" },
-  { id: "documentType", label: "Document type", type: "enum", options: HRM_DOCUMENT_TYPES },
-  { id: "documentGroup", label: "Document group", type: "enum", options: HRM_DOCUMENT_GROUPS },
+  {
+    id: "documentType",
+    label: "Document type",
+    type: "enum",
+    options: HRM_DOCUMENT_TYPES,
+  },
+  {
+    id: "documentGroup",
+    label: "Document group",
+    type: "enum",
+    options: HRM_DOCUMENT_GROUPS,
+  },
   {
     id: "classification",
     label: "Classification",
@@ -44,7 +54,12 @@ export const HRM_DOCUMENT_SURFACE_FILTERS = [
     type: "enum",
     options: HRM_DOCUMENT_LIFECYCLE_STATUSES,
   },
-  { id: "expiryStatus", label: "Expiry status", type: "enum", options: ["valid", "expiring_soon", "expired"] },
+  {
+    id: "expiryStatus",
+    label: "Expiry status",
+    type: "enum",
+    options: ["valid", "expiring_soon", "expired"],
+  },
   { id: "uploadedFrom", label: "Uploaded from", type: "date" },
   { id: "uploadedTo", label: "Uploaded to", type: "date" },
   { id: "isMandatory", label: "Mandatory", type: "boolean" },

@@ -155,7 +155,8 @@ export function EmployeePortalClaimSubmitForm({
       <Button type="submit" disabled={pending || claimTypes.length === 0}>
         {pending ? (
           <>
-            <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />ÔÇª
+            <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+            ÔÇª
           </>
         ) : (
           t("submit")

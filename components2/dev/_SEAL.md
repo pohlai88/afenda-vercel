@@ -1,16 +1,6 @@
-# SEAL — Layer 3 · `components2/dev/`
+# SEAL — Layer 3 · `components2/dev/` (NODE_ENV overlays only)
 
-**Authority:** client islands + dev-only overlays. Gallery truth and fixtures live in `#features/dev`.
-
-## Route-adjacent paint (galleries)
-
-| Area | Role |
-| --- | --- |
-| `metadata-renderer-gallery/*.client.tsx` | Preview frames, kanban bridges, fixture editor |
-| `pattern-c-section-gallery/gallery-pattern-c-trailing-cell.client.tsx` | Pattern C trailing cell |
-| `app-shell-preview/*.client.tsx` | Shell preview utility bar / command / scope mocks |
-
-## Global dev overlays (not `/dev` routes)
+**Authority:** cross-app development overlays gated by `NODE_ENV === "development"`. **Not** the routed `playground` product ([`components2/playground/_SEAL.md`](../playground/_SEAL.md)).
 
 | Component | Role |
 | --- | --- |
@@ -20,9 +10,5 @@
 
 ## Import rules
 
-- Fixtures + dev paths: `#features/dev/client` only
-- Never `#features/dev/server` from `"use client"` files
-
-## Forbidden
-
-- Page orchestrators, production redirect gate, gallery scenario registry — Layer 2 only
+- May import `#components2/ui/*`, `#app-shell/client`, client-safe auth helpers
+- Do not import `#features/playground/server` or gallery fixture registries

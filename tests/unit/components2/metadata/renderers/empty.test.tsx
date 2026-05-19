@@ -3,12 +3,14 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { GALLERY_EMPTY } from "#features/dev"
+import { GALLERY_EMPTY } from "#features/playground"
 import { EmptyRenderer } from "#components2/metadata/renderers/empty.renderer"
 
 describe("EmptyRenderer", () => {
   it("renders nothing when configuration is invalid", () => {
-    const { container } = render(<EmptyRenderer configuration={{ title: "" }} />)
+    const { container } = render(
+      <EmptyRenderer configuration={{ title: "" }} />
+    )
     expect(container.firstChild).toBeNull()
   })
 

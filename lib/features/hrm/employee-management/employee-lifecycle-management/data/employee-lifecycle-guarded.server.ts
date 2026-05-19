@@ -1,7 +1,10 @@
 import "server-only"
 
 import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
-import { getEmployeeLifecycleHistory, getEmployeeLifecycleSnapshot } from "./employee-lifecycle-summary.queries.server"
+import {
+  getEmployeeLifecycleHistory,
+  getEmployeeLifecycleSnapshot,
+} from "./employee-lifecycle-summary.queries.server"
 import type {
   EmployeeLifecycleHistoryRow,
   EmployeeLifecycleSnapshot,

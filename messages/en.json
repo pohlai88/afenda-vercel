@@ -892,6 +892,7 @@
         "flexible-work": "Flexible work",
         "benefits": "Benefits",
         "bonus-incentives": "Bonus & incentives",
+        "compensation-planning": "Compensation planning",
         "salary-benchmarking": "Salary benchmarking",
         "claims": "Claims",
         "imports": "Imports",
@@ -966,6 +967,10 @@
         "bonus-incentives": {
           "title": "Bonus & incentives",
           "description": "Bonus plans, incentive cycles, payout calculation, approvals, payroll handoff, accounting allocation, and clawback records."
+        },
+        "compensation-planning": {
+          "title": "Compensation planning",
+          "description": "Plan merit and adjustment cycles, budget pools, eligibility, and participant compensation snapshots."
         },
         "salary-benchmarking": {
           "title": "Salary benchmarking",
@@ -1982,6 +1987,10 @@
         "bonus-incentives": {
           "title": "Bonus & incentives",
           "body": "Configure variable-pay plans, assign eligible employees, calculate payouts, route approvals, and send locked payouts to payroll."
+        },
+        "compensation-planning": {
+          "title": "Compensation planning",
+          "body": "Create compensation cycles, assign budget pools, refresh eligible participants, and review salary band context."
         },
         "salary-benchmarking": {
           "title": "Salary benchmarking",
@@ -3288,6 +3297,77 @@
         "exceptionQueueTitle": "Exception queue",
         "exceptionQueueDescription": "Claims requiring policy, evidence, or approval review."
       },
+      "compensationPlanning": {
+        "eyebrow": "Payroll compensation",
+        "pageTitle": "Compensation planning & modeling",
+        "pageDescription": "Plan compensation cycles, model budget pools, evaluate eligibility, and review participant salary and band context before recommendations and approvals.",
+        "accessDeniedDescription": "This HRM surface requires Compensation Planning search or read access.",
+        "cyclesTitle": "Compensation cycles",
+        "cyclesDescription": "Annual, merit, promotion, and adjustment planning windows.",
+        "cyclesEmpty": "No compensation cycles yet.",
+        "noCyclesTitle": "No compensation cycles yet",
+        "noCyclesBody": "Create a cycle to assign budget pools and refresh eligible participants.",
+        "budgetPoolsTitle": "Budget pools",
+        "budgetPoolsDescription": "Allocated increase budget for the active cycle (newest by effective date).",
+        "budgetPoolsEmpty": "No budget pools on the active cycle.",
+        "participantsTitle": "Cycle participants",
+        "participantsDescription": "Eligible employees with current salary and salary band reference for the active cycle.",
+        "participantsEmpty": "No participants on the active cycle. Refresh the roster after creating a cycle.",
+        "createCycleOpen": "Create cycle",
+        "createCycleTitle": "Create compensation cycle",
+        "createCycleDescription": "Defines cycle type and effective date for planning.",
+        "createCycleSubmit": "Create cycle",
+        "createCycleSubmitting": "Creating…",
+        "createBudgetPoolOpen": "Add budget pool",
+        "createBudgetPoolTitle": "Add budget pool",
+        "createBudgetPoolDescription": "Allocates budget for a department, grade, or other scope on the active cycle.",
+        "createBudgetPoolSubmit": "Add pool",
+        "createBudgetPoolSubmitting": "Saving…",
+        "syncParticipantsOpen": "Refresh participants",
+        "syncParticipantsSubmitting": "Refreshing…",
+        "syncParticipantsSuccess": "Refreshed {count} employees.",
+        "fieldCycleCode": "Cycle code",
+        "fieldCycleName": "Cycle name",
+        "fieldCycleType": "Cycle type",
+        "fieldEffectiveDate": "Effective date",
+        "fieldScopeType": "Scope type",
+        "fieldScopeId": "Scope id",
+        "fieldAllocatedAmount": "Allocated amount",
+        "colCycleCode": "Code",
+        "colCycleName": "Name",
+        "colCycleType": "Type",
+        "colEffectiveDate": "Effective",
+        "colCycleState": "State",
+        "colBudgetScope": "Scope",
+        "colBudgetAllocated": "Allocated",
+        "colBudgetUsed": "Used",
+        "colBudgetRemaining": "Remaining",
+        "colParticipantEmployee": "Employee",
+        "colParticipantSalary": "Current salary",
+        "colParticipantBand": "Band min / mid / max",
+        "colParticipantEligibility": "Eligibility",
+        "cycleType": {
+          "annual_review": "Annual review",
+          "merit_review": "Merit review",
+          "promotion_review": "Promotion review",
+          "market_adjustment": "Market adjustment",
+          "equity_adjustment": "Equity adjustment",
+          "retention_adjustment": "Retention adjustment"
+        },
+        "cycleState": {
+          "draft": "Draft",
+          "open": "Open",
+          "closed": "Closed"
+        },
+        "scopeType": {
+          "legal_entity": "Legal entity",
+          "department": "Department",
+          "business_unit": "Business unit",
+          "grade": "Grade",
+          "location": "Location",
+          "manager_group": "Manager group"
+        }
+      },
       "flexibleWork": {
         "eyebrow": "Flexible work",
         "pageTitle": "Flexible work arrangements",
@@ -4443,6 +4523,33 @@
           "waiveSubmit": "Waive",
           "readOnlyActions": "You can view exceptions but cannot resolve or waive them."
         },
+        "obligations": {
+          "panelTitle": "Compliance obligations",
+          "panelDescription": "Configure HR compliance requirements by legal entity, country, location, employment type, and worker category.",
+          "registerTitle": "Register obligation",
+          "registerDescription": "Define a scoped compliance requirement applied to matching employees.",
+          "readOnlyRegister": "You can view obligations but cannot create or archive them.",
+          "empty": "No compliance obligations are configured.",
+          "colCode": "Code",
+          "colTitle": "Title",
+          "colKind": "Kind",
+          "colArea": "Area",
+          "colStatus": "Status",
+          "colScope": "Scope",
+          "colActions": "Actions",
+          "fieldCode": "Code",
+          "fieldTitle": "Title",
+          "fieldKind": "Requirement kind",
+          "fieldArea": "Compliance area",
+          "fieldCountry": "Country (ISO)",
+          "fieldLegalEntity": "Legal entity",
+          "saveSubmit": "Save obligation",
+          "archiveSubmit": "Archive"
+        },
+        "reports": {
+          "exportDashboard": "Export compliance dashboard (CSV)",
+          "exporting": "Exporting…"
+        },
         "filings": {
           "panelTitle": "Regulatory calendar",
           "panelDescription": "Filing deadlines, submission state, and confirmation evidence.",
@@ -4728,6 +4835,10 @@
     "description": "Global tools for operators with the admin role. Organization admins use the workspace Admin workbench from the ERP dashboard.",
     "overviewTitle": "Overview",
     "overviewDescription": "Cross-tenant capabilities. Tenant-scoped governance lives in the organization Admin workbench.",
+    "reverify": {
+      "title": "Verify it's you",
+      "subtitle": "Sign in again to continue with platform administration."
+    },
     "shell": {
       "kicker": "Platform administration",
       "title": "Operator console",
@@ -5346,6 +5457,10 @@
       },
       "recentEmpty": "No recent account activity has been recorded yet."
     },
+    "reverify": {
+      "title": "Verify it's you",
+      "subtitle": "Sign in again to continue. Sensitive work requires a recent session proof."
+    },
     "identity": {
       "title": "Identity",
       "subtitle": "Profile, email verification, and linked sign-in methods for this operator.",
@@ -5469,11 +5584,11 @@
       "workspaceLink": "Workspace"
     }
   },
-  "Console": {
-    "skipToMain": "Skip to console content",
+  "Bootstrap": {
+    "skipToMain": "Skip to bootstrap content",
     "topNav": {
       "brandHome": "Go to home",
-      "surfaceLabel": "Console",
+      "surfaceLabel": "Bootstrap",
       "menuTrigger": "Open account menu",
       "menuTriggerTooltip": "Account — open personal settings, information, security, or sign out.",
       "account": "Account",

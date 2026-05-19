@@ -12,5 +12,8 @@ export function normalizeEmployeeDuplicatePhone(value: string): string {
 export function normalizeEmployeeDuplicateIdentityDocumentNumber(
   value: string
 ): string {
-  return value.trim().replace(/[^0-9A-Za-z]+/g, "").toUpperCase()
+  return value
+    .trim()
+    .replace(/[^0-9A-Za-z]+/g, "")
+    .toUpperCase()
 }

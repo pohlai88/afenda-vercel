@@ -14,10 +14,7 @@ import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.
 import type { PayrollGroupUpsertFormState } from "../payroll-form-states"
 
 function revalidatePayrollPages() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/payroll"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "layout")
 }
 
 export async function upsertPayrollGroupAction(

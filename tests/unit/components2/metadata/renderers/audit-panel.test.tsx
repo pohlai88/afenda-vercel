@@ -3,7 +3,7 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { GALLERY_AUDIT_PANEL } from "#features/dev"
+import { GALLERY_AUDIT_PANEL } from "#features/playground"
 import { AuditPanelRenderer } from "#components2/metadata/renderers/audit-panel.renderer"
 
 describe("AuditPanelRenderer", () => {

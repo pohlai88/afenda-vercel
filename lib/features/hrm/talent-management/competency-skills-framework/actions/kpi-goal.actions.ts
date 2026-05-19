@@ -61,10 +61,7 @@ const KPI_PERMISSION = {
 } as const
 
 function revalidateKpi() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_KPI),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_KPI), "page")
 }
 
 async function requireKpiGoalPermission(

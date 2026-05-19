@@ -43,9 +43,7 @@ export async function BenefitClaimReferencesSection({
       colAmount: t("colAmount"),
       colPaymentRef: t("colPaymentRef"),
       claimStatusLabel: (status) =>
-        isBenefitClaimStatus(status)
-          ? t(`claimStatuses.${status}`)
-          : status,
+        isBenefitClaimStatus(status) ? t(`claimStatuses.${status}`) : status,
       enrollmentLabel: (enrollmentId) =>
         enrollmentLabels.get(enrollmentId) ?? enrollmentId,
     }

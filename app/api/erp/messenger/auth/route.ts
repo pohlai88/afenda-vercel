@@ -11,7 +11,6 @@ import {
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { getOrgSessionFromRequest } from "#lib/auth"
 
-
 export async function POST(request: Request) {
   const orgSession = await getOrgSessionFromRequest(request)
   if (!orgSession) return routeJsonError("Unauthorized", 401)

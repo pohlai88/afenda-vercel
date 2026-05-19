@@ -124,7 +124,10 @@ export async function BenefitsPage({ orgSlug, tabParam }: BenefitsPageProps) {
       ) : null}
 
       {activeTab === "providers" ? (
-        <BenefitProvidersSection isAdmin={isAdmin} providers={allBenefitProviders} />
+        <BenefitProvidersSection
+          isAdmin={isAdmin}
+          providers={allBenefitProviders}
+        />
       ) : null}
 
       {activeTab === "enrollments" ? (

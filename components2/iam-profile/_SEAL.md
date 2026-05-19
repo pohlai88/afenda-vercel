@@ -9,6 +9,7 @@
 | `iam-profile-identity.client.tsx` | Provider + panels mount |
 | `iam-profile-security.client.tsx` | Provider + panels mount |
 | `iam-profile-context-band.tsx` | Overview section chrome |
+| `iam-profile-overview-bands.tsx` | Overview “now” + recent bands (presentation only) |
 | `iam-profile-overview-sections.client.tsx` | Next / membership / danger on overview |
 
 ## Compound APIs

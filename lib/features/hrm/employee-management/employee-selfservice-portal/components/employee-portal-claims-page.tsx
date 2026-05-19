@@ -144,23 +144,23 @@ export async function EmployeePortalClaimsPage({
                   return (
                     <GovernedTrailingActionSlot trailingAction={trailingAction}>
                       <div className="flex flex-wrap justify-end gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link
-                          href={claimDetailHref(
-                            context.portal.portalSlug,
-                            row.id
-                          )}
-                        >
-                          {t("viewDetail")}
-                        </Link>
-                      </Button>
-                      {isClaimCancellable(row.state) ? (
-                        <EmployeePortalClaimCancelButton
-                          portalSlug={context.portal.portalSlug}
-                          claimId={row.id}
-                          label={t("cancel")}
-                        />
-                      ) : null}
+                        <Button variant="outline" size="sm" asChild>
+                          <Link
+                            href={claimDetailHref(
+                              context.portal.portalSlug,
+                              row.id
+                            )}
+                          >
+                            {t("viewDetail")}
+                          </Link>
+                        </Button>
+                        {isClaimCancellable(row.state) ? (
+                          <EmployeePortalClaimCancelButton
+                            portalSlug={context.portal.portalSlug}
+                            claimId={row.id}
+                            label={t("cancel")}
+                          />
+                        ) : null}
                       </div>
                     </GovernedTrailingActionSlot>
                   )

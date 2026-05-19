@@ -9,7 +9,10 @@ import {
   IamProfileOverviewMembershipSection,
   IamProfileOverviewNextSection,
 } from "#components2/iam-profile/iam-profile-overview-sections.client"
-import { IamProfileContextBand } from "#components2/iam-profile/iam-profile-context-band"
+import {
+  IamProfileOverviewNowBand,
+  IamProfileOverviewRecentBand,
+} from "#components2/iam-profile/iam-profile-overview-bands"
 import type { IamProfileMembershipOrgRow } from "#components2/iam-profile/iam-profile-membership-panels.client"
 import { organizationNexusPath } from "#features/nexus"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
@@ -57,7 +60,30 @@ export default async function IamProfileOverviewPage({
       nexusHref: organizationNexusPath(org.slug) as Route,
     }))
 
-  const recentItems = shellData.securityActivity.slice(0, 3)
+  const nowLines = [
+    t("overview.now.signedInAs", { email: shellData.summary.email }),
+    shellData.summary.emailVerified
+      ? t("overview.now.emailVerified")
+      : t("overview.now.emailPending"),
+    t("overview.now.sessionSummary", {
+      count: shellData.summary.sessionCount,
+    }),
+    shellData.activeOrganization
+      ? t("overview.now.workspaceActive", {
+          workspace: shellData.activeOrganization.name,
+        })
+      : t("overview.now.workspaceMissing"),
+  ]
+
+  const recentItems = shellData.securityActivity.slice(0, 3).map((item) => {
+    const when = formatRecentTimestamp(locale, item.createdAt)
+    const detail = [when, item.path].filter(Boolean).join(" · ")
+    return {
+      id: item.id,
+      label: item.label,
+      detail,
+    }
+  })
 
   return (
     <AppShellSurface
@@ -71,30 +97,10 @@ export default async function IamProfileOverviewPage({
       title={t("overview.title")}
       subtitle={t("overview.subtitle")}
     >
-      <IamProfileContextBand label={t("overview.nowLabel")}>
-        <div className="space-y-2 text-sm leading-6 text-foreground">
-          <p>
-            {t("overview.now.signedInAs", { email: shellData.summary.email })}
-          </p>
-          <p>
-            {shellData.summary.emailVerified
-              ? t("overview.now.emailVerified")
-              : t("overview.now.emailPending")}
-          </p>
-          <p>
-            {t("overview.now.sessionSummary", {
-              count: shellData.summary.sessionCount,
-            })}
-          </p>
-          <p>
-            {shellData.activeOrganization
-              ? t("overview.now.workspaceActive", {
-                  workspace: shellData.activeOrganization.name,
-                })
-              : t("overview.now.workspaceMissing")}
-          </p>
-        </div>
-      </IamProfileContextBand>
+      <IamProfileOverviewNowBand
+        label={t("overview.nowLabel")}
+        lines={nowLines}
+      />
 
       <IamProfileOverviewNextSection
         emailVerified={shellData.summary.emailVerified}
@@ -105,25 +111,11 @@ export default async function IamProfileOverviewPage({
         nexusHref={nexusHref}
       />
 
-      <IamProfileContextBand label={t("overview.recentLabel")}>
-        {recentItems.length > 0 ? (
-          <ul className="space-y-3 text-sm">
-            {recentItems.map((item) => (
-              <li key={item.id} className="space-y-1">
-                <p className="font-medium text-foreground">{item.label}</p>
-                <p className="text-muted-foreground">
-                  {formatRecentTimestamp(locale, item.createdAt)}
-                  {item.path ? ` · ${item.path}` : ""}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            {t("overview.recentEmpty")}
-          </p>
-        )}
-      </IamProfileContextBand>
+      <IamProfileOverviewRecentBand
+        label={t("overview.recentLabel")}
+        items={recentItems}
+        emptyLabel={t("overview.recentEmpty")}
+      />
 
       <IamProfileOverviewMembershipSection organizations={membershipRows} />
 

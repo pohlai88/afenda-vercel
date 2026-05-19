@@ -54,10 +54,7 @@ function isStatutoryPackType(value: string): value is StatutoryPackType {
  * for free since it sits below the layout.
  */
 function revalidateCompliancePages(): void {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/compliance"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/compliance"), "layout")
 }
 
 /**

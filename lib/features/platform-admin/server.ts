@@ -5,3 +5,4 @@ export { listOrganizationsForPlatformAdmin } from "./data/organizations.queries.
 export { getPlatformAdminRailPressureCounts } from "./data/platform-admin-rail-pressure.queries.server"
 export { buildPlatformAdminRailSlots } from "./data/platform-admin-rail-slots"
 export { platformPath } from "./constants"
+export { default as PlatformReverifyPage } from "./components/platform-reverify-page.server"

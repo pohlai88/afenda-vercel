@@ -3,10 +3,7 @@
 import { useTranslations } from "next-intl"
 
 import { Button } from "#components2/ui/button"
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "#components2/ui/native-select"
+import { NativeSelect, NativeSelectOption } from "#components2/ui/native-select"
 
 import {
   submitActivateReviewCycle,
@@ -46,7 +43,9 @@ export function PerformanceCycleRowActions({
               size="sm"
               className="min-w-48"
             >
-              <NativeSelectOption value="">{t("selectReviewer")}</NativeSelectOption>
+              <NativeSelectOption value="">
+                {t("selectReviewer")}
+              </NativeSelectOption>
               {reviewerChoices.map((choice) => (
                 <NativeSelectOption
                   key={choice.employeeId}

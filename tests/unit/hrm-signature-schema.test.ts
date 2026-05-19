@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  signedEnvelopeV1Schema,
-  zSignatureEventDataV1,
-} from "#features/tools"
+import { signedEnvelopeV1Schema, zSignatureEventDataV1 } from "#features/tools"
 
 describe("signedEnvelopeV1Schema", () => {
   it("accepts a minimal valid envelope", () => {

@@ -22,7 +22,7 @@ export {
   bonusPlanTypeSchema,
   createBonusCycleFormSchema,
   createBonusPlanFormSchema,
-} from "./schema/bonus-incentive.schema"
+} from "./schemas/bonus-incentive.schema"
 
 export {
   calculateAchievementPercent,

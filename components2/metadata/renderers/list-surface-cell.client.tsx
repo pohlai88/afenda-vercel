@@ -60,8 +60,7 @@ export function ListSurfaceCell({ column, row }: ListSurfaceCellProps) {
   const locale = useLocale()
   const raw = row.cells[column.id]
   const kind = column.cellKind?.kind ?? "text"
-  const display =
-    raw === undefined || raw === null ? "—" : String(raw)
+  const display = raw === undefined || raw === null ? "—" : String(raw)
 
   if (kind === "link" || (row.linkColumnId === column.id && row.rowHref)) {
     if (row.rowHref) {

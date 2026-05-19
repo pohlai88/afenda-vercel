@@ -118,7 +118,10 @@ function main() {
   const journalPrefixes = tagsFromJournal.map((tag) => tag.slice(0, 4))
 
   /** Pre-ADR-0032 ledger: 0001 SQL+journal exist but 0002_snapshot.prevId still points at 0000. */
-  const snapshotGapPrefixes = resolveKnownSnapshotGapPrefixes(tagsFromJournal, metaDir)
+  const snapshotGapPrefixes = resolveKnownSnapshotGapPrefixes(
+    tagsFromJournal,
+    metaDir
+  )
 
   for (const prefix of journalPrefixes) {
     if (snapshotGapPrefixes.has(prefix)) {

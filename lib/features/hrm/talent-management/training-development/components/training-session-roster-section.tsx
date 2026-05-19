@@ -1,9 +1,9 @@
-import { GovernedEmpty, GovernedPatternCListSection } from "#features/governed-surface"
-import { Button } from "#components2/ui/button"
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from "#components2/ui/native-select"
+  GovernedEmpty,
+  GovernedPatternCListSection,
+} from "#features/governed-surface"
+import { Button } from "#components2/ui/button"
+import { NativeSelect, NativeSelectOption } from "#components2/ui/native-select"
 
 import { buildTrainingSessionRosterListSurfaceConfiguration } from "../data/training-list-surface.server"
 import type {
@@ -113,8 +113,7 @@ async function TrainingSessionRosterBlock({
   const roster = assignments.filter(
     (assignment) => assignment.sessionId === session.id
   )
-  const open =
-    session.state === "scheduled" || session.state === "in_progress"
+  const open = session.state === "scheduled" || session.state === "in_progress"
   const listConfiguration = buildTrainingSessionRosterListSurfaceConfiguration(
     roster,
     {
@@ -126,10 +125,7 @@ async function TrainingSessionRosterBlock({
   const rosterById = new Map(roster.map((row) => [row.id, row]))
 
   const assignForm = open ? (
-    <form
-      action={assignAction}
-      className="mt-3 flex flex-wrap items-end gap-2"
-    >
+    <form action={assignAction} className="mt-3 flex flex-wrap items-end gap-2">
       <input type="hidden" name="organizationId" value={organizationId} />
       <input type="hidden" name="orgSlug" value={orgSlug} />
       <input type="hidden" name="courseId" value={session.courseId} />

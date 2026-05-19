@@ -52,7 +52,10 @@ export function buildRecruitmentInterviewsListSurfaceConfiguration(
       },
       trailingAction: row.outcome
         ? { state: "hidden" }
-        : { state: "ready", descriptor: { id: "submit-feedback", label: "Feedback" } },
+        : {
+            state: "ready",
+            descriptor: { id: "submit-feedback", label: "Feedback" },
+          },
     })),
   }
 }

@@ -89,11 +89,7 @@ export async function EmployeeDetailDependentsListSection({
             <GovernedTrailingActionSlot trailingAction={trailingAction}>
               <form action={submitArchiveDependent}>
                 <input type="hidden" name="orgSlug" value={orgSlug} />
-                <input
-                  type="hidden"
-                  name="dependentId"
-                  value={dependent.id}
-                />
+                <input type="hidden" name="dependentId" value={dependent.id} />
                 <Button type="submit" variant="outline" size="sm">
                   {t("dependentArchiveSubmit")}
                 </Button>

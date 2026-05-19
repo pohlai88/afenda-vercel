@@ -3,10 +3,7 @@ import "server-only"
 import { cache } from "react"
 import { headers } from "next/headers"
 
-import {
-  auth,
-  requireAuthShellSignedInSession,
-} from "#lib/auth"
+import { auth, requireAuthShellSignedInSession } from "#lib/auth"
 import { hasCredentialAccount } from "./account-identity.server"
 import { listDeviceSessions } from "./account-device-sessions.server"
 import { listUserSecurityActivity } from "./account-security-activity.server"

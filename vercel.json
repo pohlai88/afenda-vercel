@@ -106,7 +106,7 @@
       ]
     },
     {
-      "source": "/en/console",
+      "source": "/en/bootstrap",
       "headers": [
         {
           "key": "Cache-Control",

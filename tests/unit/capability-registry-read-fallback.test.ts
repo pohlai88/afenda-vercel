@@ -7,10 +7,13 @@ describe("isCapabilityRegistryRelationMissing", () => {
     const err = new Error(
       'Failed query: select "id" from "org_capability_policy" where "organizationId" = $1'
     )
-    err.cause = Object.assign(new Error('relation "org_capability_policy" does not exist'), {
-      code: "42P01",
-      name: "NeonDbError",
-    })
+    err.cause = Object.assign(
+      new Error('relation "org_capability_policy" does not exist'),
+      {
+        code: "42P01",
+        name: "NeonDbError",
+      }
+    )
 
     expect(isCapabilityRegistryRelationMissing(err)).toBe(true)
   })
@@ -25,7 +28,9 @@ describe("isCapabilityRegistryRelationMissing", () => {
   })
 
   it("rejects unrelated query failures", () => {
-    const err = new Error('Failed query: select "id" from "contact" where "id" = $1')
+    const err = new Error(
+      'Failed query: select "id" from "contact" where "id" = $1'
+    )
     err.cause = Object.assign(new Error('relation "contact" does not exist'), {
       code: "42P01",
     })

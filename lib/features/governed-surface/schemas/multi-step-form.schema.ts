@@ -13,7 +13,9 @@ export const GOVERNED_MULTI_STEP_FORM_SCHEMA_STABILITY: SchemaStability = "beta"
 
 /** Multi-step wizard data nature (ADR-0025 §2). */
 export const multiStepFormDataNatureSchema = z.literal("wizard")
-export type MultiStepFormDataNature = z.infer<typeof multiStepFormDataNatureSchema>
+export type MultiStepFormDataNature = z.infer<
+  typeof multiStepFormDataNatureSchema
+>
 
 export const governedFormFieldKindSchema = z.enum([
   "text",
@@ -90,28 +92,28 @@ export const governedFormStepSchema = z
 export const governedMultiStepFormConfigurationSchema =
   governedMetadataSchemaVersionSchema
     .extend({
-    dataNature: multiStepFormDataNatureSchema.default("wizard"),
-    formId: z.string().trim().min(1),
-    actionId: z.string().trim().min(1),
-    steps: z.array(governedFormStepSchema).min(1),
-    submitLabel: z.string().trim().min(1).default("Submit"),
-    chrome: governedSurfaceChromeSchema.optional(),
+      dataNature: multiStepFormDataNatureSchema.default("wizard"),
+      formId: z.string().trim().min(1),
+      actionId: z.string().trim().min(1),
+      steps: z.array(governedFormStepSchema).min(1),
+      submitLabel: z.string().trim().min(1).default("Submit"),
+      chrome: governedSurfaceChromeSchema.optional(),
     })
-  .superRefine((form, ctx) => {
-    const seen = new Set<string>()
+    .superRefine((form, ctx) => {
+      const seen = new Set<string>()
 
-    for (const [index, step] of form.steps.entries()) {
-      if (seen.has(step.id)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Step ids must be unique.",
-          path: ["steps", index, "id"],
-        })
+      for (const [index, step] of form.steps.entries()) {
+        if (seen.has(step.id)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Step ids must be unique.",
+            path: ["steps", index, "id"],
+          })
+        }
+
+        seen.add(step.id)
       }
-
-      seen.add(step.id)
-    }
-  })
+    })
 
 export type GovernedFormFieldKind = z.infer<typeof governedFormFieldKindSchema>
 export type GovernedFormFieldOption = z.infer<

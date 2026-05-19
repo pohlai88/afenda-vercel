@@ -24,7 +24,7 @@ test.describe("nexus screenshot utility (optional credentials)", () => {
         resolveOrgSlugFromSession(page, orgSlugFromEnv))
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /bootstrap or /o."
       )
 
       await test.step("Open dashboard shell", async () => {

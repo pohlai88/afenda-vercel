@@ -1,9 +1,6 @@
 import type { Route } from "next"
 
-import {
-  ORG_APPS_HRM,
-  ORG_APPS_HRM_IMPORTS,
-} from "#lib/org-apps-module-paths"
+import { ORG_APPS_HRM, ORG_APPS_HRM_IMPORTS } from "#lib/org-apps-module-paths"
 import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
 const ORG_APPS_HRM_SIGNATURES = "/hrm/signatures" as const

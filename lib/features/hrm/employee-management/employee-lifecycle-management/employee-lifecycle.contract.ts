@@ -218,5 +218,4 @@ export const HRM_EMPLOYEE_LIFECYCLE_AUDIT = {
       verb: "update",
     }),
   },
-
 } as const

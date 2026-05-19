@@ -85,9 +85,7 @@ test.describe("HRM documents vault UI surface", () => {
     "documents vault under unknown org slug renders organization not-found",
     { tag: "@hrm" },
     async ({ page }) => {
-      await page.goto(
-        "/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/documents"
-      )
+      await page.goto("/en/o/zz-no-such-afenda-org-slug-99/apps/hrm/documents")
       await expect(
         page.getByRole("heading", {
           name: "Organization not available",

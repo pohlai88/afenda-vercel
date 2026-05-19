@@ -50,10 +50,7 @@ export function buildBenefitPlanAuditMetadata(params: {
       rateTableVersion: after.rateTableVersion,
     }
   }
-  const changedFields = listChangedKeys(
-    { ...before },
-    { ...after }
-  )
+  const changedFields = listChangedKeys({ ...before }, { ...after })
   return {
     code: after.code,
     previousCode: before.code !== after.code ? before.code : undefined,

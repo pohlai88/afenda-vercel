@@ -438,8 +438,7 @@ export async function EmployeeDetailPage({
         employeeId={employee.id}
         capabilities={{
           ...offboardingCapabilities,
-          canCreate:
-            !employee.archivedAt && offboardingCapabilities.canCreate,
+          canCreate: !employee.archivedAt && offboardingCapabilities.canCreate,
         }}
       />
 

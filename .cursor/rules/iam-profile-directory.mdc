@@ -90,8 +90,10 @@ actions/ · data/ · components/ · schemas/ · index.ts · server.ts · client.
 | Metadata | `data/profile-metadata.server.ts` |
 | Shell / overview data | `data/profile-shell-data.server.ts` |
 | Rail types | `schemas/profile-shell.types.shared.ts` |
-| Page orchestrators | `components/iam-profile-*-page.server.tsx` |
+| Page orchestrators | `components/iam-profile-*-page.server.tsx` (fetch + compose only) |
+| Security view mapping | `data/profile-security-view.server.ts` |
 | Deferred shell | `components/org-iam-profile-deferred-shell.tsx` |
+| Step-up reverify chrome | `components2/auth/step-up-reverify-shell.tsx` (shared with platform admin) |
 | Mutations | `actions/*.actions.ts` |
 
 ---
@@ -104,6 +106,7 @@ actions/ · data/ · components/ · schemas/ · index.ts · server.ts · client.
 | --- | --- |
 | `iam-profile-identity.client.tsx` | Provider + panels mount |
 | `iam-profile-security.client.tsx` | Provider + panels mount |
+| `iam-profile-overview-bands.tsx` | Overview now + recent bands |
 | `iam-profile-overview-sections.client.tsx` | Overview next / membership / danger |
 | `iam-profile-*-panels.client.tsx` | Panel bodies |
 | `iam-profile-*-context.client.tsx` | Client state + action wiring |

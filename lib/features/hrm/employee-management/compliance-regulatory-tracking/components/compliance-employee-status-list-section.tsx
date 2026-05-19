@@ -14,17 +14,15 @@ export async function ComplianceEmployeeStatusListSection({
 }: ComplianceEmployeeStatusListSectionProps) {
   const t = await getTranslations("Dashboard.Hrm.compliance.employeeStatus")
 
-  const listConfiguration = buildComplianceEmployeeStatusListSurfaceConfiguration(
-    rows,
-    {
+  const listConfiguration =
+    buildComplianceEmployeeStatusListSurfaceConfiguration(rows, {
       empty: t("empty"),
       colEmployee: t("colEmployee"),
       colStatus: t("colStatus"),
       colOpen: t("colOpen"),
       colScope: t("colScope"),
       colSignals: t("colSignals"),
-    }
-  )
+    })
 
   return (
     <GovernedPatternCListSection

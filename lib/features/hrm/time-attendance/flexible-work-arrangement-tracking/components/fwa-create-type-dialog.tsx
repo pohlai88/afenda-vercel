@@ -13,11 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "#components2/ui/dialog"
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from "#components2/ui/field"
+import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
 import {
@@ -97,7 +93,9 @@ function CreateFwaTypeForm() {
         ) : null}
       </Field>
       <Field>
-        <FieldLabel htmlFor={descriptionId}>{t("fieldTypeDescription")}</FieldLabel>
+        <FieldLabel htmlFor={descriptionId}>
+          {t("fieldTypeDescription")}
+        </FieldLabel>
         <Input id={descriptionId} name="description" disabled={pending} />
       </Field>
       <Field orientation="horizontal">

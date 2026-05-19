@@ -12,7 +12,11 @@ vi.mock("next/image", () => ({
 }))
 
 import { AppShellAppLauncherTrigger } from "#app-shell/client"
-import { Popover, PopoverContent, PopoverTrigger } from "#components2/ui/popover"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "#components2/ui/popover"
 
 afterEach(() => {
   cleanup()

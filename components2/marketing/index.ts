@@ -1,4 +1,7 @@
-export { AfendaBrandIcon, AfendaBrandLockup } from "./marketing-afenda-brand.client"
+export {
+  AfendaBrandIcon,
+  AfendaBrandLockup,
+} from "./marketing-afenda-brand.client"
 export { CookieConsentPreview } from "./cookie-consent-preview"
 export { LandingFooter } from "./landing-footer"
 export {

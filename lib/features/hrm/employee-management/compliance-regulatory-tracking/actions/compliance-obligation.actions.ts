@@ -162,3 +162,15 @@ export async function archiveComplianceObligationAction(
   revalidateComplianceSurfaces()
   return { ok: true }
 }
+
+export async function upsertComplianceObligationFormAction(
+  formData: FormData
+): Promise<void> {
+  await upsertComplianceObligationAction(undefined, formData)
+}
+
+export async function archiveComplianceObligationFormAction(
+  formData: FormData
+): Promise<void> {
+  await archiveComplianceObligationAction(undefined, formData)
+}

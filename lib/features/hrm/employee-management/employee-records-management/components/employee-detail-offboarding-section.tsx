@@ -49,7 +49,9 @@ export async function EmployeeDetailOffboardingSection({
   return (
     <Card id="offboarding" size="sm">
       <CardHeader>
-        <CardTitle className="text-base">{t("offboardingSectionTitle")}</CardTitle>
+        <CardTitle className="text-base">
+          {t("offboardingSectionTitle")}
+        </CardTitle>
         <CardDescription>{t("offboardingSectionDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -67,7 +69,7 @@ export async function EmployeeDetailOffboardingSection({
                   .map((inst) => (
                     <div key={inst.id} className="flex flex-col gap-4">
                       <Separator />
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                         HR Actions
                       </p>
 
@@ -77,7 +79,8 @@ export async function EmployeeDetailOffboardingSection({
                           <p className="text-sm font-medium">Exit interview</p>
                           {inst.exitInterviewScheduledAt ? (
                             <Badge variant="outline" className="text-xs">
-                              Scheduled {inst.exitInterviewScheduledAt.toLocaleDateString()}
+                              Scheduled{" "}
+                              {inst.exitInterviewScheduledAt.toLocaleDateString()}
                             </Badge>
                           ) : null}
                           {inst.exitInterviewCompletedAt ? (
@@ -104,7 +107,9 @@ export async function EmployeeDetailOffboardingSection({
                       {/* Settlement readiness */}
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium">Settlement readiness</p>
+                          <p className="text-sm font-medium">
+                            Settlement readiness
+                          </p>
                           <Badge variant="outline" className="text-xs">
                             {inst.settlementReadinessStatus}
                           </Badge>
@@ -119,7 +124,9 @@ export async function EmployeeDetailOffboardingSection({
                       {/* Rehire eligibility */}
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium">Rehire eligibility</p>
+                          <p className="text-sm font-medium">
+                            Rehire eligibility
+                          </p>
                           {inst.rehireEligibility ? (
                             <Badge variant="secondary" className="text-xs">
                               {inst.rehireEligibility}

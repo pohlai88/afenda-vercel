@@ -1,6 +1,5 @@
 import { EmployeePortalOffboardingPage } from "#features/hrm"
 
-
 type EmployeePortalOffboardingRouteProps = {
   params: Promise<{ portalSlug: string }>
 }

@@ -12,9 +12,10 @@ export type BetterAuthSessionUserLike = {
   emailVerified?: boolean
 }
 
-export function mapIamSessionUser(
-  user: BetterAuthSessionUserLike
-): { userId: string; user: IamSessionUserFields } {
+export function mapIamSessionUser(user: BetterAuthSessionUserLike): {
+  userId: string
+  user: IamSessionUserFields
+} {
   return {
     userId: user.id,
     user: {

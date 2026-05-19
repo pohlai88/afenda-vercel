@@ -105,9 +105,7 @@ function StatTile({
 }) {
   return (
     <Card className="@container/tile">
-      <CardContent
-        className={cn("flex flex-col", TILE_DENSITY_CLASS[density])}
-      >
+      <CardContent className={cn("flex flex-col", TILE_DENSITY_CLASS[density])}>
         <span className="text-label-small font-medium tracking-wide text-muted-foreground uppercase">
           {stat.label}
         </span>

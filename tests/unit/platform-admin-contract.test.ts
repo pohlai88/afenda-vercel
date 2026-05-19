@@ -121,9 +121,9 @@ describe("PLATFORM_ADMIN_ALLOWED_SEGMENTS", () => {
   it("does not ship App Router operator trees (legacy URLs use next.config 308)", () => {
     const localeRoot = join(process.cwd(), "app", "(main)", "[locale]")
     expect(existsSync(join(localeRoot, "operator"))).toBe(false)
-    expect(
-      existsSync(join(localeRoot, "o", "[orgSlug]", "operator"))
-    ).toBe(false)
+    expect(existsSync(join(localeRoot, "o", "[orgSlug]", "operator"))).toBe(
+      false
+    )
   })
 })
 

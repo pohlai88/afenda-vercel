@@ -8,7 +8,8 @@ export function migrateGovernedConfiguration<T extends Record<string, unknown>>(
   raw: T
 ): T & { __schemaVersion: number } {
   const version =
-    typeof raw.__schemaVersion === "number" && Number.isFinite(raw.__schemaVersion)
+    typeof raw.__schemaVersion === "number" &&
+    Number.isFinite(raw.__schemaVersion)
       ? raw.__schemaVersion
       : 1
 

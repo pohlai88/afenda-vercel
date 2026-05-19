@@ -63,8 +63,7 @@ export function buildAttendanceRecentListSurfaceConfiguration(
   rows: readonly AttendanceEventDisplayRow[],
   copy: AttendanceRecentListCopy
 ): ListSurfaceRendererConfigurationInput {
-  const columnsId =
-    copy.columnsId ?? ATTENDANCE_LIST_SURFACE_IDS.recentEvents
+  const columnsId = copy.columnsId ?? ATTENDANCE_LIST_SURFACE_IDS.recentEvents
   return {
     __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
     dataNature: "table",

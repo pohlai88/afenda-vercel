@@ -9,7 +9,6 @@ import { neonAuthInvitation } from "#lib/db/schema-neon-auth"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 
-
 export async function POST(request: Request) {
   let rawBody: string
   try {

@@ -19,8 +19,8 @@ export type RouteSurface =
   | "auth"
   | "iam"
   | "iam-profile"
-  /** Cross-org picker (`/{locale}/console`) — signed-in, no active org required. */
-  | "console"
+  /** First-run setup (`/{locale}/bootstrap`) — signed-in, no org memberships. */
+  | "bootstrap"
   /** Tenant slug segment (`/{locale}/o/{orgSlug}`) before apps/admin shells. */
   | "org"
   /** Portal boundary (`/{locale}/p/{portalSlug}`) for org-owned external surfaces. */

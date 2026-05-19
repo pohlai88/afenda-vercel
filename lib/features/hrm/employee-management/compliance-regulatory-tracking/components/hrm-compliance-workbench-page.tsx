@@ -1,8 +1,6 @@
 import { Suspense } from "react"
 
-import { getTranslations } from "next-intl/server"
-
-import { ModulePageHeader } from "#features/governed-surface"
+import { GovernedSurface } from "#features/governed-surface"
 import {
   BureauReliabilityCard,
   BureauReliabilityCardSkeleton,
@@ -10,10 +8,16 @@ import {
   ComplianceExceptionsPanel,
   ComplianceEvidenceRegisterPanel,
   ComplianceFilingsPanel,
+  ComplianceObligationsPanel,
   ComplianceOperationalHealth,
   ComplianceOperationalHealthSkeleton,
 } from "#features/hrm"
-import { CompliancePage, STATUTORY_PACK_TO_EVENT_TYPE } from "#features/hrm/client"
+import {
+  ComplianceDashboardExportActions,
+  ComplianceStatutoryPackControls,
+  STATUTORY_PACK_TO_EVENT_TYPE,
+} from "#features/hrm/client"
+import { buildGovernedHrmWorkbenchHeader } from "../../../_module-governance/hrm-governed-page-header.server"
 import {
   listComplianceEvidenceForPeriod,
   listPayrollPeriodsForOrg,
@@ -39,13 +43,16 @@ export async function HrmComplianceWorkbenchPage({
   orgSession,
   periodId,
 }: HrmComplianceWorkbenchPageProps) {
-  const t = await getTranslations("Dashboard.Hrm.compliance")
-  const capabilities = await resolveComplianceSurfaceCapabilities()
-
-  const [allPeriods, subscribedEventTypes] = await Promise.all([
-    listPayrollPeriodsForOrg(orgSession.organizationId),
-    listSubscribedEventTypesForOrg(orgSession.organizationId),
-  ])
+  const [capabilities, allPeriods, subscribedEventTypes, header] =
+    await Promise.all([
+      resolveComplianceSurfaceCapabilities(),
+      listPayrollPeriodsForOrg(orgSession.organizationId),
+      listSubscribedEventTypesForOrg(orgSession.organizationId),
+      buildGovernedHrmWorkbenchHeader(orgSlug, "Dashboard.Hrm.compliance", {
+        title: "pageTitle",
+        description: "pageDescription",
+      }),
+    ])
 
   const resolvedPeriodId = periodId ?? allPeriods[0]?.id
 
@@ -54,7 +61,7 @@ export async function HrmComplianceWorkbenchPage({
   let deliveryById: Record<string, OrgEventDeliverySummary> = {}
 
   if (resolvedPeriodId) {
-    period = allPeriods.find((p) => p.id === resolvedPeriodId) ?? null
+    period = allPeriods.find((row) => row.id === resolvedPeriodId) ?? null
 
     if (period) {
       evidenceRows = await listComplianceEvidenceForPeriod(
@@ -86,12 +93,10 @@ export async function HrmComplianceWorkbenchPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <ModulePageHeader
-        eyebrow={t("eyebrow")}
-        title={t("pageTitle")}
-        description={t("pageDescription")}
-      />
+    <GovernedSurface header={header} className="flex flex-col gap-6 p-6">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {capabilities.canSearch ? <ComplianceDashboardExportActions /> : null}
+      </div>
       <Suspense fallback={<ComplianceOperationalHealthSkeleton />}>
         <ComplianceOperationalHealth
           organizationId={orgSession.organizationId}
@@ -101,7 +106,10 @@ export async function HrmComplianceWorkbenchPage({
       <Suspense fallback={<BureauReliabilityCardSkeleton />}>
         <BureauReliabilityCard organizationId={orgSession.organizationId} />
       </Suspense>
-      <CompliancePage period={period} allPeriods={allPeriods} />
+      <ComplianceStatutoryPackControls
+        period={period}
+        allPeriods={allPeriods}
+      />
       <ComplianceEvidenceRegisterPanel
         period={period}
         evidenceRows={evidenceRows}
@@ -109,13 +117,23 @@ export async function HrmComplianceWorkbenchPage({
         packTypesWithSubscribedEndpoint={packTypesWithSubscribedEndpoint}
         deliveryById={deliveryById}
       />
-      <ComplianceEmployeeStatusPanel organizationId={orgSession.organizationId} />
+      <ComplianceObligationsPanel
+        organizationId={orgSession.organizationId}
+        orgSlug={orgSlug}
+        capabilities={capabilities}
+      />
+      <ComplianceEmployeeStatusPanel
+        organizationId={orgSession.organizationId}
+      />
       <ComplianceFilingsPanel
         organizationId={orgSession.organizationId}
         orgSlug={orgSlug}
         capabilities={capabilities}
       />
-      <ComplianceExceptionsPanel orgSlug={orgSlug} capabilities={capabilities} />
-    </div>
+      <ComplianceExceptionsPanel
+        orgSlug={orgSlug}
+        capabilities={capabilities}
+      />
+    </GovernedSurface>
   )
 }

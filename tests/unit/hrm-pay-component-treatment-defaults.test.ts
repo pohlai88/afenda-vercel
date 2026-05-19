@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  listDefaultPayComponentTreatments,
-} from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/pay-component-treatment.defaults.shared"
+import { listDefaultPayComponentTreatments } from "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/pay-component-treatment.defaults.shared"
 
 describe("listDefaultPayComponentTreatments", () => {
   it("includes BASIC as taxable and contributable for MY", () => {

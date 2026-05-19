@@ -6,7 +6,6 @@ import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { OffboardingOrgDashboardPage } from "#features/hrm"
 import { resolveOffboardingSurfaceCapabilities } from "#features/hrm/server"
 
-
 export default async function OrgAppsHrmOffboardingPage({
   params,
 }: {
@@ -38,7 +37,10 @@ export default async function OrgAppsHrmOffboardingPage({
         title={t("pageTitle")}
         description={t("pageDescription")}
       />
-      <OffboardingOrgDashboardPage orgSlug={orgSlug} capabilities={capabilities} />
+      <OffboardingOrgDashboardPage
+        orgSlug={orgSlug}
+        capabilities={capabilities}
+      />
     </div>
   )
 }

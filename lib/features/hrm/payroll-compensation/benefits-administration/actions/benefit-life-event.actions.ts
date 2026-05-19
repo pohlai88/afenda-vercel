@@ -16,7 +16,7 @@ import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.ser
 import {
   recordLifeEventFormSchema,
   verifyLifeEventFormSchema,
-} from "../schema/benefit.schema"
+} from "../schemas/benefit.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type {
   RecordLifeEventFormState,
@@ -24,10 +24,7 @@ import type {
 } from "../../../types"
 
 function revalidateBenefits() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/benefits"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/benefits"), "layout")
 }
 
 function parseIsoDateStart(iso: string): Date {

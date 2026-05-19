@@ -161,7 +161,7 @@ export type OrgImportJobRowSummary = {
   readonly resourceId: string | null
 }
 
-/** Org membership row for the dashboard org switcher and `/console` landing. */
+/** Org membership row for the dashboard org switcher and `/o` dispatcher. */
 export type UserOrgSummary = {
   id: string
   slug: string

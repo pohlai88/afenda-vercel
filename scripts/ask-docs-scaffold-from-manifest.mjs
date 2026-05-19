@@ -206,7 +206,11 @@ function main() {
       console.log(
         JSON.stringify({
           manifest: relManifest,
-          mode: opts.validateOnly ? "validate-only" : opts.dryRun ? "dry-run" : "scaffold",
+          mode: opts.validateOnly
+            ? "validate-only"
+            : opts.dryRun
+              ? "dry-run"
+              : "scaffold",
           wouldCreate: 0,
           skipped: 0,
           warnings: [],
@@ -261,7 +265,9 @@ function main() {
     `ask-docs:scaffold: done (created=${created}, skipped=${summary.skipped}, failed=${failed})`
   )
   if (created > 0) {
-    console.log("ask-docs:scaffold: Next: fill ADQS content, then pnpm ask-docs:check")
+    console.log(
+      "ask-docs:scaffold: Next: fill ADQS content, then pnpm ask-docs:check"
+    )
   }
   if (failed > 0) process.exit(1)
 }

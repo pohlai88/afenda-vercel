@@ -29,7 +29,7 @@ export type {
 export {
   parseAllowanceLineInputsFromForm,
   tryBuildAnnexSlotsFromForm,
-} from "./schema/contract-compensation.shared"
+} from "./schemas/contract-compensation.shared"
 
 export {
   deriveCompensationRecommendationModel,
@@ -39,10 +39,23 @@ export {
   hrmCompensationEligibilityRulesSchema,
   hrmCompensationRecommendationModelInputSchema,
   hrmCompensationSalaryStructureReferenceSchema,
-} from "./schema/compensation-planning.shared"
+} from "./schemas/compensation-planning.shared"
 
 export type {
   HrmCompensationEligibilityResult,
   HrmCompensationRecommendationModel,
   HrmCompensationRecommendationModelInput,
-} from "./schema/compensation-planning.shared"
+} from "./schemas/compensation-planning.shared"
+
+export { resolveCompensationPlanningSurfaceAccess } from "./data/cpm-access.server"
+export type { CompensationPlanningSurfaceAccess } from "./data/cpm-access.server"
+export {
+  loadCompensationPlanningPageData,
+  listCompensationCyclesForOrg,
+  syncCompensationCycleParticipants,
+} from "./data/cpm.queries.server"
+export type {
+  CompensationCycleRow,
+  CompensationBudgetPoolRow,
+  CompensationParticipantRow,
+} from "./data/cpm.queries.server"

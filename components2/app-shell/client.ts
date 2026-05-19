@@ -156,5 +156,9 @@ export type { AppShellAppLauncherTriggerProps } from "./top-utils-bar/appshell-a
 export { AppShellUtilityControlAvatarTrigger } from "./top-utils-bar/appshell-utility-control-avatar-trigger.client"
 export type { AppShellUtilityControlAvatarTriggerProps } from "./top-utils-bar/appshell-utility-control-avatar-trigger.client"
 export { AppShellNexusUtilityScreenshot } from "./top-utils-bar/appshell-nexus-utility-screenshot.client"
-export { AppShellNexusUtilityUpload, buildAppShellNexusUtilityUploadPath, formatFileSize } from "./top-utils-bar/appshell-nexus-utility-upload.client"
+export {
+  AppShellNexusUtilityUpload,
+  buildAppShellNexusUtilityUploadPath,
+  formatFileSize,
+} from "./top-utils-bar/appshell-nexus-utility-upload.client"
 export { AppShellNexusUtilityNotifications } from "./top-utils-bar/appshell-nexus-utility-notifications.client"

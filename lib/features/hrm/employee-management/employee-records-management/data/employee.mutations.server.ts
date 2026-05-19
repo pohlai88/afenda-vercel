@@ -65,8 +65,8 @@ function isUniqueViolation(err: unknown): boolean {
 function hasInitialPlacement(input: CreateEmployeeMutationInput): boolean {
   return Boolean(
     input.currentDepartmentId ||
-      input.currentPositionId ||
-      input.currentJobGradeId
+    input.currentPositionId ||
+    input.currentJobGradeId
   )
 }
 

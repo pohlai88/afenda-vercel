@@ -101,6 +101,17 @@ describe("HRM_CAPABILITIES registry", () => {
     expect(imports?.requiredPermission).toBe("hrm.import.search")
   })
 
+  it("registers compensation-planning capability and catalog keys", () => {
+    const compensationPlanning = getHrmCapabilityById("compensationPlanning")
+    expect(compensationPlanning?.segments).toContain("compensation-planning")
+    expect(compensationPlanning?.requiredPermission).toBe(
+      "hrm.compensation_planning.search"
+    )
+    expect(compensationPlanning?.auditPrefix).toBe("erp.hrm.compensation")
+    expect(HRM_MESSAGES.nav["compensation-planning"]).toBeTypeOf("string")
+    expect(HRM_MESSAGES.compensationPlanning?.pageTitle).toBeTypeOf("string")
+  })
+
   it("registers flexible-work capability and catalog keys", () => {
     const flexibleWork = getHrmCapabilityById("flexibleWork")
     expect(flexibleWork?.segments).toContain("flexible-work")

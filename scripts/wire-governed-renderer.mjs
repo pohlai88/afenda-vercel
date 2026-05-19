@@ -161,7 +161,10 @@ if (!componentSchema.includes(`type: z.literal("${governedType}")`)) {
         type: z.literal("governed:detail-tabs"),`
   )
 }
-write("lib/features/governed-surface/schemas/component.schema.ts", componentSchema)
+write(
+  "lib/features/governed-surface/schemas/component.schema.ts",
+  componentSchema
+)
 
 // --- governed-surface index.ts ---
 let barrel = read("lib/features/governed-surface/index.ts")

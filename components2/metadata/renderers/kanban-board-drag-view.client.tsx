@@ -65,7 +65,10 @@ export function KanbanBoardDragView({
     )
   }
 
-  function handleCardDragStart(event: DragEvent<HTMLLIElement>, card: KanbanCard) {
+  function handleCardDragStart(
+    event: DragEvent<HTMLLIElement>,
+    card: KanbanCard
+  ) {
     if (isMovePending) {
       event.preventDefault()
       return
@@ -94,8 +97,7 @@ export function KanbanBoardDragView({
     if (dropState === "forbidden") return
     event.preventDefault()
     if (event.dataTransfer) {
-      event.dataTransfer.dropEffect =
-        dropState === "allowed" ? "move" : "none"
+      event.dataTransfer.dropEffect = dropState === "allowed" ? "move" : "none"
     }
     setHoverColumnId(columnId)
   }
@@ -158,11 +160,9 @@ export function KanbanBoardDragView({
               }}
               renderCard={(card) => {
                 const draggable =
-                  !isMovePending &&
-                  isKanbanCardDraggable(card, board.workflow)
+                  !isMovePending && isKanbanCardDraggable(card, board.workflow)
                 const isDragging =
-                  dragSession?.card.id === card.id ||
-                  pendingCardId === card.id
+                  dragSession?.card.id === card.id || pendingCardId === card.id
 
                 return (
                   <li

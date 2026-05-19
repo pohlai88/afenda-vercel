@@ -19,14 +19,12 @@ describe("claim kanban workflow", () => {
   })
 
   it("allows submitted to approve and returned to resubmit", () => {
-    expect(
-      isKanbanTransitionAllowed(workflow, "submitted", "approved")
-    ).toBe(true)
-    expect(
-      isKanbanTransitionAllowed(workflow, "returned", "submitted")
-    ).toBe(true)
-    expect(isKanbanTransitionAllowed(workflow, "paid", "submitted")).toBe(
-      false
+    expect(isKanbanTransitionAllowed(workflow, "submitted", "approved")).toBe(
+      true
     )
+    expect(isKanbanTransitionAllowed(workflow, "returned", "submitted")).toBe(
+      true
+    )
+    expect(isKanbanTransitionAllowed(workflow, "paid", "submitted")).toBe(false)
   })
 })

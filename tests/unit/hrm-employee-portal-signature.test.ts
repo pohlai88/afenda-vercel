@@ -11,9 +11,12 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock("server-only", () => ({}))
-vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts", () => ({
-  getEmployeePortalContext: mocks.getEmployeePortalContext,
-}))
+vi.mock(
+  "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts",
+  () => ({
+    getEmployeePortalContext: mocks.getEmployeePortalContext,
+  })
+)
 vi.mock("#lib/auth", () => ({
   requireRecentAuthStepUp: mocks.requireRecentAuthStepUp,
 }))
@@ -28,9 +31,12 @@ vi.mock("#features/tools/server", () => ({
   getSignaturePartyByToken: mocks.getSignaturePartyByToken,
   completeSignatureParty: mocks.completeSignatureParty,
 }))
-vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/signature-portal-access.shared.ts", () => ({
-  signaturePartyMatchesPortalSession: vi.fn(() => true),
-}))
+vi.mock(
+  "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/signature-portal-access.shared.ts",
+  () => ({
+    signaturePartyMatchesPortalSession: vi.fn(() => true),
+  })
+)
 
 import { submitPortalSignatureAction } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/actions/employee-portal-signature.actions"
 

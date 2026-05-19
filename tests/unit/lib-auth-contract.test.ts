@@ -12,11 +12,13 @@ function readAuthModule(name: string): string {
 describe("lib/auth contract", () => {
   it("does not restore deleted legacy alias or org-admin-data modules", () => {
     expect(
-      existsSync(join(ROOT, "lib", "auth", "legacy-authenticated-route-alias.server.ts"))
+      existsSync(
+        join(ROOT, "lib", "auth", "legacy-authenticated-route-alias.server.ts")
+      )
     ).toBe(false)
-    expect(existsSync(join(ROOT, "lib", "auth", "org-admin-data.server.ts"))).toBe(
-      false
-    )
+    expect(
+      existsSync(join(ROOT, "lib", "auth", "org-admin-data.server.ts"))
+    ).toBe(false)
   })
 
   it("keeps profile surface modules out of lib/auth after seal", () => {
@@ -56,9 +58,9 @@ describe("lib/auth contract", () => {
   it("keeps session lifecycle mapping out of audit.server.ts", () => {
     const audit = readAuthModule("audit.server.ts")
     expect(audit).not.toContain("resolveIamSessionLifecycleAudit")
-    expect(existsSync(join(ROOT, "lib", "auth", "session-lifecycle-audit.shared.ts"))).toBe(
-      true
-    )
+    expect(
+      existsSync(join(ROOT, "lib", "auth", "session-lifecycle-audit.shared.ts"))
+    ).toBe(true)
   })
 
   it("exports only global admin helper from permission.server.ts", () => {

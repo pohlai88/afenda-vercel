@@ -7,7 +7,6 @@ import {
 import { getOrgBotLinkByGithubInstall } from "#features/knowledge"
 import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 
-
 type GithubCommentWebhook = {
   action?: string
   comment?: { body?: string }

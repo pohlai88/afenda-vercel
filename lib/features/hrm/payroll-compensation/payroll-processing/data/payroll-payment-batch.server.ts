@@ -38,7 +38,9 @@ export async function generatePayrollPaymentBatch(input: {
     throw new Error("Payroll period not found.")
   }
   if (!isPayrollPeriodLocked(period.state)) {
-    throw new Error("Payment batch requires a locked or finalized payroll period.")
+    throw new Error(
+      "Payment batch requires a locked or finalized payroll period."
+    )
   }
 
   const runs = await listPayrollRunsForPeriod(

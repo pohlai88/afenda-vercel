@@ -4,10 +4,7 @@ import { useState } from "react"
 import { Check, Rows3 } from "lucide-react"
 
 import { cn } from "#lib/utils"
-import {
-  type UiDensity,
-  uiDensityKeys,
-} from "#lib/design-system"
+import { type UiDensity, uiDensityKeys } from "#lib/design-system"
 
 import {
   APP_SHELL_UTILITY_L2_MENU_TRIGGER_OPEN_STATE_CLASS,

@@ -22,6 +22,7 @@ export {
   PLANNER_SIGNAL_LIFECYCLES,
   PLANNER_SIGNAL_RESOLUTION_POLICIES,
 } from "./constants"
+export { ORBIT_SURFACE_SEGMENT_SET } from "./planner-orbit-path.shared"
 export { buildOrbitKeyboardNavList } from "./domain/orbit-keyboard-nav.shared"
 export {
   buildPlannerAssignmentNotice,

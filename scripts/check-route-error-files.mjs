@@ -52,7 +52,7 @@ const APPROVED_BOUNDARIES = new Set([
   // Org admin workbench
   "app/(main)/[locale]/o/[orgSlug]/admin/error.tsx",
   // Multi-org console (org picker)
-  "app/(main)/[locale]/console/error.tsx",
+  "app/(main)/[locale]/bootstrap/error.tsx",
   // Portal shell (PortalShell chrome — separate from WorkbenchShell)
   "app/(main)/[locale]/p/[portalSlug]/error.tsx",
   // Employee portal self-service segment (under PortalShell + portal-auth group)

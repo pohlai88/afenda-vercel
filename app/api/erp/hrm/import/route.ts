@@ -15,20 +15,17 @@ import {
 import { getOrgSessionFromRequest } from "#lib/auth"
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
-import {
-  dryRunEmployees,
-  parseCsv,
-} from "#features/tools/server"
-import {
-  HRM_IMPORT_TYPES,
-  hrmImportTypeSchema,
-} from "#features/tools"
+import { dryRunEmployees, parseCsv } from "#features/tools/server"
+import { HRM_IMPORT_TYPES, hrmImportTypeSchema } from "#features/tools"
 import { HRM_BULK_IMPORT_AUDIT } from "#features/tools"
 
 /** Max upload body for inline CSV staging (bytes). */
 const HRM_IMPORT_MAX_BYTES = 5_000_000
 
-function importSourceBlobPath(organizationId: string, sessionId: string): string {
+function importSourceBlobPath(
+  organizationId: string,
+  sessionId: string
+): string {
   return `hrm/imports/${organizationId}/${sessionId}/source.csv`
 }
 
@@ -67,10 +64,7 @@ export async function POST(request: Request) {
     }
 
     const sessionOrgSlug = await getOrganizationSlugById(org.organizationId)
-    if (
-      !sessionOrgSlug ||
-      normalizeOrgSlugParam(orgSlug) !== sessionOrgSlug
-    ) {
+    if (!sessionOrgSlug || normalizeOrgSlugParam(orgSlug) !== sessionOrgSlug) {
       return routeJsonError("orgSlug does not match active organization", 400)
     }
 
@@ -119,12 +113,16 @@ export async function POST(request: Request) {
         }
 
     if (summary.errors.length === 0 && summary.rowCount > 0) {
-      const blob = await put(importSourceBlobPath(org.organizationId, id), text, {
-        access: "private",
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType: "text/csv",
-      })
+      const blob = await put(
+        importSourceBlobPath(org.organizationId, id),
+        text,
+        {
+          access: "private",
+          addRandomSuffix: false,
+          allowOverwrite: true,
+          contentType: "text/csv",
+        }
+      )
       rollbackJson = {
         kind: "hrm_import_v1",
         importType: "employees",

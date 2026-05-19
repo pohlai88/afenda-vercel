@@ -44,10 +44,7 @@ import type {
  * layout.
  */
 function revalidateCompliancePages(): void {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/compliance"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/compliance"), "layout")
 }
 
 // ---------------------------------------------------------------------------

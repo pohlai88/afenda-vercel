@@ -32,7 +32,8 @@ export function assessCountryPayrollReadiness(input: {
       issues: [
         {
           code: "profile_missing",
-          message: "Payroll profile is required before country payroll processing.",
+          message:
+            "Payroll profile is required before country payroll processing.",
         },
       ],
     }

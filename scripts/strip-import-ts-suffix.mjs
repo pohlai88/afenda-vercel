@@ -16,7 +16,10 @@ for (const root of ["lib/features/hrm", "tests/unit", "tests/e2e", "app"]) {
     let content = readFileSync(file, "utf8")
     const before = content
     content = content.replace(/from (["'])([^"']+)\.ts\1/g, "from $1$2$1")
-    content = content.replace(/import\((["'])([^"']+)\.ts\1\)/g, "import($1$2$1)")
+    content = content.replace(
+      /import\((["'])([^"']+)\.ts\1\)/g,
+      "import($1$2$1)"
+    )
     if (content !== before) {
       writeFileSync(file, content)
       count++

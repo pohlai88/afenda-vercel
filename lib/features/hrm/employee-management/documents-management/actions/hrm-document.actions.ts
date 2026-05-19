@@ -47,10 +47,7 @@ function revalidateHrmDocumentSurfaces() {
     toLocaleOrgAppsRevalidatePattern(ORG_APPS_HRM_EMPLOYEE_DETAIL),
     "page"
   )
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/documents"),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/documents"), "page")
 }
 
 export async function attachEmployeeDocumentAction(
@@ -123,7 +120,8 @@ export async function attachEmployeeDocumentAction(
     d.versionNumber === null || d.versionNumber === undefined
       ? 1
       : Number(d.versionNumber)
-  const documentGroup = d.documentGroup ?? deriveHrmDocumentGroup(d.documentType)
+  const documentGroup =
+    d.documentGroup ?? deriveHrmDocumentGroup(d.documentType)
   const effectiveFrom = isoDateOnlyToUtcDate(d.effectiveFrom)
   const effectiveTo = d.expiryDate ? isoDateOnlyToUtcDate(d.expiryDate) : null
   const retentionRule = await findRetentionRule({
@@ -132,9 +130,13 @@ export async function attachEmployeeDocumentAction(
     documentType: d.documentType,
     documentGroup,
   })
-  const retentionPolicyCode = d.retentionPolicyCode ?? retentionRule?.code ?? null
+  const retentionPolicyCode =
+    d.retentionPolicyCode ?? retentionRule?.code ?? null
   const retentionUntil = retentionRule
-    ? addUtcDays(effectiveTo ?? effectiveFrom, retentionRule.retentionPeriodDays)
+    ? addUtcDays(
+        effectiveTo ?? effectiveFrom,
+        retentionRule.retentionPeriodDays
+      )
     : null
 
   try {
@@ -489,7 +491,8 @@ export async function deleteDocumentAction(
   const parsed = archiveDocumentFormSchema.safeParse({
     orgSlug: formData.get("orgSlug"),
     documentId: formData.get("documentId"),
-    archiveReason: formData.get("deleteReason") || formData.get("archiveReason") || null,
+    archiveReason:
+      formData.get("deleteReason") || formData.get("archiveReason") || null,
   })
   if (!parsed.success) {
     return hrmActionFailure({ form: parsed.error.issues[0]?.message })

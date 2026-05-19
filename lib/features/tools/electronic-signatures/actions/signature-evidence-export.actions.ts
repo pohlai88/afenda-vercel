@@ -6,10 +6,7 @@ import { buildSignatureEvidenceExport } from "../data/signature-evidence-export.
 export async function exportSignatureEvidenceAction(input: {
   readonly orgSlug: string
   readonly requestId: string
-}): Promise<
-  | { ok: true; json: string }
-  | { ok: false; error: string }
-> {
+}): Promise<{ ok: true; json: string } | { ok: false; error: string }> {
   const perm = await requireToolsErpPermission({
     object: "signature",
     function: "read",

@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  appliesComplianceObligationToEmployee,
-} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-obligation.shared"
-import {
-  deriveComplianceDashboardOverallStatus,
-} from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-dashboard.shared"
+import { appliesComplianceObligationToEmployee } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-obligation.shared"
+import { deriveComplianceDashboardOverallStatus } from "../../lib/features/hrm/employee-management/compliance-regulatory-tracking/data/compliance-dashboard.shared"
 
 describe("HRM compliance dashboard shared rules", () => {
   it("applies scoped obligations only to matching employee dimensions", () => {

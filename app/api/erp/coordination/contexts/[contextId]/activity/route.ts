@@ -12,7 +12,6 @@ import {
 } from "#lib/api/route-handler-json.shared"
 import { getOrgSessionFromRequest } from "#lib/auth"
 
-
 export async function POST(
   request: Request,
   {

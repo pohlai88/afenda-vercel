@@ -18,7 +18,7 @@ export default async function SignInPage({
   const sp = await searchParams
   const prefillEmail = parsePrefillEmail(sp.email)
   // Default lands at the org resolver which redirects to Nexus when an org is active.
-  // Users without an active org receive ORG_REQUIRED → primary CTA `/console` (loading bay).
+  // Users without an active org receive ORG_REQUIRED → primary CTA `/o` (org dispatcher).
   // See AGENTS.md §5 and docs/decisions/0003-post-login-loading-bay-nexus.md.
   const postAuthPath = parsePostAuthPath(
     sp.callbackUrl,

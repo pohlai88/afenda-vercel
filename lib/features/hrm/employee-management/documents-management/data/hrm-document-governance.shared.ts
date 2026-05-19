@@ -4,7 +4,11 @@ export const HRM_DOCUMENT_EXPIRING_SOON_DAYS = 30
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 
-export type HrmDocumentExpiryState = "none" | "valid" | "expiring_soon" | "expired"
+export type HrmDocumentExpiryState =
+  | "none"
+  | "valid"
+  | "expiring_soon"
+  | "expired"
 
 export type HrmDocumentReadinessState =
   | "ready"
@@ -69,7 +73,10 @@ export function canEmployeeAccessDocument(input: {
   classification: string
   requirementAllowsEmployeeAccess: boolean
 }): boolean {
-  if (input.classification === "public" || input.classification === "internal") {
+  if (
+    input.classification === "public" ||
+    input.classification === "internal"
+  ) {
     return true
   }
   return input.requirementAllowsEmployeeAccess
@@ -85,7 +92,10 @@ export function readinessStateForDocument(input: {
   if (effective === "verified") return "ready"
   if (effective === "rejected") return "rejected"
   if (effective === "expired") return "expired"
-  if (effective === "archived" || input.documentLifecycleStatus === "archived") {
+  if (
+    effective === "archived" ||
+    input.documentLifecycleStatus === "archived"
+  ) {
     return "archived"
   }
   return "pending_verification"

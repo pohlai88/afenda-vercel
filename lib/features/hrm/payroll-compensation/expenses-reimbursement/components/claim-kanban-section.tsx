@@ -14,10 +14,7 @@ import {
   CLAIM_KANBAN_COLUMN_IDS,
   type ClaimKanbanColumnId,
 } from "../data/claim-kanban-workflow.shared"
-import {
-  type ClaimRow,
-  listClaimsForOrg,
-} from "../data/claim.queries.server"
+import { type ClaimRow, listClaimsForOrg } from "../data/claim.queries.server"
 
 import {
   CLAIMS_KANBAN_SURFACE_KEY,
@@ -82,9 +79,13 @@ export async function ClaimKanbanSection({
     | undefined
 
   if (!rowsResult.ok) {
-    logUnexpectedServerError("claim-kanban-section: query failed", rowsResult.error, {
-      organizationId: orgSession.organizationId,
-    })
+    logUnexpectedServerError(
+      "claim-kanban-section: query failed",
+      rowsResult.error,
+      {
+        organizationId: orgSession.organizationId,
+      }
+    )
     loadError = {
       variant: "error",
       title: t("kanban.loadFailed"),
@@ -126,14 +127,17 @@ export async function ClaimKanbanSection({
   const decideResults =
     rowsResult.ok && submittedRows.length > 0
       ? await Promise.all(
-          submittedRows.map(async (row) => [
-            row.id,
-            await canDecideClaimKanbanMove({
-              organizationId: orgSession.organizationId,
-              userId: orgSession.userId,
-              claim: row,
-            }),
-          ] as const)
+          submittedRows.map(
+            async (row) =>
+              [
+                row.id,
+                await canDecideClaimKanbanMove({
+                  organizationId: orgSession.organizationId,
+                  userId: orgSession.userId,
+                  claim: row,
+                }),
+              ] as const
+          )
         )
       : []
 

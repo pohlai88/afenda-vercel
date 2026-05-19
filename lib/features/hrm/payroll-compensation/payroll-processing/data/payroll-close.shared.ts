@@ -456,7 +456,8 @@ export function applyApClaimAccrualsToPostingPreview(input: {
       payrollDecimalToCents(totalDebits) - payrollDecimalToCents(totalCredits)
     ),
     isBalanced:
-      payrollDecimalToCents(totalDebits) === payrollDecimalToCents(totalCredits),
+      payrollDecimalToCents(totalDebits) ===
+      payrollDecimalToCents(totalCredits),
   }
 }
 

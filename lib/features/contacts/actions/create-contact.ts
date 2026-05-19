@@ -78,9 +78,6 @@ export async function createContact(
     }
   }
 
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern(ORG_APPS_CONTACTS),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(ORG_APPS_CONTACTS), "page")
   return { ok: true }
 }

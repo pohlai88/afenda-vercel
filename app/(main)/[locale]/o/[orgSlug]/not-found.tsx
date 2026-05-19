@@ -20,7 +20,7 @@ export default function OrgSlugNotFound() {
       </div>
       <div className="flex flex-wrap items-center justify-center gap-2">
         <Button asChild variant="outline" size="sm">
-          <Link href="/console">Organization console</Link>
+          <Link href="/o">Choose workspace</Link>
         </Button>
         <Button asChild variant="ghost" size="sm">
           <Link href="/">Home</Link>

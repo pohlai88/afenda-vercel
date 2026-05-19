@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { GALLERY_SCENARIOS } from "#features/dev"
+import { GALLERY_SCENARIOS } from "#features/playground"
 import { parseGovernedComponentData } from "#features/governed-surface/schemas/component.schema"
 
 describe("metadata renderer gallery scenarios", () => {
@@ -12,9 +12,7 @@ describe("metadata renderer gallery scenarios", () => {
   })
 
   it("covers all shipped renderer types at least once", () => {
-    const shipped = new Set(
-      GALLERY_SCENARIOS.map((s) => s.component.type)
-    )
+    const shipped = new Set(GALLERY_SCENARIOS.map((s) => s.component.type))
     const expected = [
       "governed:stat-card",
       "governed:list-surface",

@@ -162,18 +162,26 @@ export function BenefitEnrollmentForm({
       </Field>
 
       <Field>
-        <FieldLabel htmlFor={effId}>{t("enrollForm.fieldEffectiveFrom")}</FieldLabel>
+        <FieldLabel htmlFor={effId}>
+          {t("enrollForm.fieldEffectiveFrom")}
+        </FieldLabel>
         <Input id={effId} name="effectiveFrom" type="date" />
-        <FieldDescription>{t("enrollForm.fieldEffectiveFromHint")}</FieldDescription>
+        <FieldDescription>
+          {t("enrollForm.fieldEffectiveFromHint")}
+        </FieldDescription>
         {fieldErrors?.effectiveFrom ? (
           <FieldError>{fieldErrors.effectiveFrom}</FieldError>
         ) : null}
       </Field>
 
       <Field>
-        <FieldLabel htmlFor={effToId}>{t("enrollForm.fieldEffectiveTo")}</FieldLabel>
+        <FieldLabel htmlFor={effToId}>
+          {t("enrollForm.fieldEffectiveTo")}
+        </FieldLabel>
         <Input id={effToId} name="effectiveTo" type="date" />
-        <FieldDescription>{t("enrollForm.fieldEffectiveToHint")}</FieldDescription>
+        <FieldDescription>
+          {t("enrollForm.fieldEffectiveToHint")}
+        </FieldDescription>
         {fieldErrors?.effectiveTo ? (
           <FieldError>{fieldErrors.effectiveTo}</FieldError>
         ) : null}
@@ -182,7 +190,9 @@ export function BenefitEnrollmentForm({
       {showDependents ? (
         <Field>
           <FieldLabel>{t("enrollForm.fieldDependents")}</FieldLabel>
-          <FieldDescription>{t("enrollForm.fieldDependentsHint")}</FieldDescription>
+          <FieldDescription>
+            {t("enrollForm.fieldDependentsHint")}
+          </FieldDescription>
           {employeeDependents.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               {t("enrollForm.noDependentsForEmployee")}
@@ -218,12 +228,16 @@ export function BenefitEnrollmentForm({
           name="eligibilityOverrideReason"
           maxLength={2000}
         />
-        <FieldDescription>{t("enrollForm.fieldEligibilityOverrideHint")}</FieldDescription>
+        <FieldDescription>
+          {t("enrollForm.fieldEligibilityOverrideHint")}
+        </FieldDescription>
       </Field>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor={erAmt}>{t("enrollForm.fieldEmployerAmount")}</FieldLabel>
+          <FieldLabel htmlFor={erAmt}>
+            {t("enrollForm.fieldEmployerAmount")}
+          </FieldLabel>
           <Input
             id={erAmt}
             name="employerContributionAmount"
@@ -233,7 +247,9 @@ export function BenefitEnrollmentForm({
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor={eeAmt}>{t("enrollForm.fieldEmployeeAmount")}</FieldLabel>
+          <FieldLabel htmlFor={eeAmt}>
+            {t("enrollForm.fieldEmployeeAmount")}
+          </FieldLabel>
           <Input
             id={eeAmt}
             name="employeeContributionAmount"

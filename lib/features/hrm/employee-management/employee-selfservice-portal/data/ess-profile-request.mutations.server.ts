@@ -296,7 +296,10 @@ export async function approveEssProfileUpdateRequest(
           .from(hrmEmployeeContactProfile)
           .where(
             and(
-              eq(hrmEmployeeContactProfile.organizationId, input.organizationId),
+              eq(
+                hrmEmployeeContactProfile.organizationId,
+                input.organizationId
+              ),
               eq(hrmEmployeeContactProfile.employeeId, request.employeeId)
             )
           )

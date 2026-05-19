@@ -1,7 +1,7 @@
 import type { AppPath } from "#lib/i18n/locales.shared"
 
-import { HRM_APPS_CAPABILITY_SEGMENT_SET } from "#features/hrm/hrm-apps-path.shared"
-import { ORBIT_SURFACE_SEGMENT_SET } from "#features/planner/planner-orbit-path.shared"
+import { HRM_APPS_CAPABILITY_SEGMENT_SET } from "#features/hrm"
+import { ORBIT_SURFACE_SEGMENT_SET } from "#features/planner"
 
 /** Admin segments under `/o/{slug}/admin/{segment}`. */
 export const ORG_ADMIN_PATH_SEGMENTS = new Set([
@@ -77,10 +77,7 @@ function sanitizeAppsTail(tailFromO: string, parts: string[]): AppPath {
     ) {
       return `/apps/hrm/claims/${parts[3]}` as AppPath
     }
-    if (
-      parts.length === 3 &&
-      HRM_APPS_CAPABILITY_SEGMENT_SET.has(parts[2]!)
-    ) {
+    if (parts.length === 3 && HRM_APPS_CAPABILITY_SEGMENT_SET.has(parts[2]!)) {
       return `/apps/hrm/${parts[2]}` as AppPath
     }
     return "/apps/hrm" as AppPath

@@ -8,7 +8,9 @@ import { GovernedKanbanFooterBoard } from "#features/governed-surface/client"
 
 import { renderWithNextIntl } from "../../helpers/render-with-next-intl"
 
-function renderFooterBoard(props: ComponentProps<typeof GovernedKanbanFooterBoard>) {
+function renderFooterBoard(
+  props: ComponentProps<typeof GovernedKanbanFooterBoard>
+) {
   return renderWithNextIntl(<GovernedKanbanFooterBoard {...props} />)
 }
 
@@ -47,9 +49,7 @@ describe("GovernedKanbanFooterBoard", () => {
           emptyColumn: "Empty",
         },
         columns: [{ id: "a", label: "A" }],
-        cards: [
-          { id: "1", columnId: "a", title: "Alex Kim" },
-        ],
+        cards: [{ id: "1", columnId: "a", title: "Alex Kim" }],
       },
     })
 

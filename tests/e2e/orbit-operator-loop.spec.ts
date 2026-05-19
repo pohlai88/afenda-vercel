@@ -23,7 +23,7 @@ test.describe("orbit operator loop (optional credentials)", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /bootstrap or /o."
       )
 
       const unique = Date.now()

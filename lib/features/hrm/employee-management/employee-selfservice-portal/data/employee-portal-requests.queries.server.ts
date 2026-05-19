@@ -75,7 +75,11 @@ export async function listEmployeePortalOpenRequests(input: {
     listClaimsForEmployee(input.organizationId, input.employeeId, {
       limit,
     }),
-    listSalaryAdvancesForEmployee(input.organizationId, input.employeeId, limit),
+    listSalaryAdvancesForEmployee(
+      input.organizationId,
+      input.employeeId,
+      limit
+    ),
     listEnrollmentsForEmployee(input.organizationId, input.employeeId),
     listPendingSignaturePartiesForEmployee(
       input.organizationId,
@@ -185,7 +189,8 @@ export async function listEmployeePortalOpenRequests(input: {
       kind: "claim",
       status: claim.state,
       label: claim.claimTypeName ?? "Claim",
-      submittedAt: claim.submittedAt ?? new Date(`${claim.claimDate}T00:00:00.000Z`),
+      submittedAt:
+        claim.submittedAt ?? new Date(`${claim.claimDate}T00:00:00.000Z`),
     })
   }
 

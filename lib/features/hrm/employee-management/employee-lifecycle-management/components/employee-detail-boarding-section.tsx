@@ -70,7 +70,9 @@ export async function EmployeeDetailBoardingSection({
           <CardTitle className="text-base">
             {copy("employeeSectionTitle")}
           </CardTitle>
-          <CardDescription>{copy("employeeSectionDescription")}</CardDescription>
+          <CardDescription>
+            {copy("employeeSectionDescription")}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Alert variant="destructive">

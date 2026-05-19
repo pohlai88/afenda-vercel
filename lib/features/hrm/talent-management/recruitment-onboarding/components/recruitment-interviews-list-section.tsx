@@ -51,7 +51,10 @@ export async function RecruitmentInterviewsListSection({
         render: (surfaceRow) => {
           const interview = interviewById.get(surfaceRow.id)
           const trailingAction = surfaceRow.trailingAction
-          if (!interview || !isListSurfaceTrailingActionRenderable(trailingAction)) {
+          if (
+            !interview ||
+            !isListSurfaceTrailingActionRenderable(trailingAction)
+          ) {
             return null
           }
           return (

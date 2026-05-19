@@ -5,7 +5,7 @@ import {
   buildGovernedListSurfaceDataAttributes,
   governedListRowTestId,
   governedListSurfaceTestId,
-} from "#features/governed-surface/list-surface-identity.shared"
+} from "#features/governed-surface"
 import type {
   EmptyState,
   ListColumn,
@@ -112,7 +112,9 @@ export function ListSurfaceTable({
               </TableHead>
             ))}
             {trailingColumn ? (
-              <TableHead className="text-end">{trailingColumn.header}</TableHead>
+              <TableHead className="text-end">
+                {trailingColumn.header}
+              </TableHead>
             ) : null}
           </TableRow>
         </TableHeader>
@@ -121,7 +123,9 @@ export function ListSurfaceTable({
             <TableRow
               key={row.id}
               data-testid={
-                surfaceKey ? governedListRowTestId(surfaceKey, row.id) : undefined
+                surfaceKey
+                  ? governedListRowTestId(surfaceKey, row.id)
+                  : undefined
               }
             >
               {columns.map((column) => (
@@ -136,9 +140,7 @@ export function ListSurfaceTable({
                 <TableCell
                   className="text-end"
                   data-trailing-action-state={row.trailingAction?.state}
-                  data-action-descriptor-id={
-                    row.trailingAction?.descriptor?.id
-                  }
+                  data-action-descriptor-id={row.trailingAction?.descriptor?.id}
                 >
                   {trailingColumn.render(row, rowIndex)}
                 </TableCell>

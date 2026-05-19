@@ -178,9 +178,12 @@ function snapshotFixture(): EmployeeMasterSnapshot {
 
 describe("employee master sensitive view", () => {
   it("masks sensitive fields when the caller lacks sensitive read permission", () => {
-    const masked = maskEmployeeMasterSnapshotSensitiveFields(snapshotFixture(), {
-      canReadSensitive: false,
-    })
+    const masked = maskEmployeeMasterSnapshotSensitiveFields(
+      snapshotFixture(),
+      {
+        canReadSensitive: false,
+      }
+    )
 
     expect(masked.employee.dateOfBirth).toBeNull()
     expect(masked.employee.idDocumentNumber).toBe("[redacted]")

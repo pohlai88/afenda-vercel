@@ -4,7 +4,8 @@ export const CLAIM_DUPLICATE_SIGNAL_KINDS = [
   "same_receipt_payload_hash",
 ] as const
 
-export type ClaimDuplicateSignalKind = (typeof CLAIM_DUPLICATE_SIGNAL_KINDS)[number]
+export type ClaimDuplicateSignalKind =
+  (typeof CLAIM_DUPLICATE_SIGNAL_KINDS)[number]
 
 export type ClaimDuplicateCandidate = {
   readonly id: string

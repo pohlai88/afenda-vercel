@@ -55,8 +55,7 @@ export function derivePayrollPeriodReadiness(
   const canClose =
     canClosePayrollPeriod(input.periodState) && blockingCount === 0
 
-  const canPost =
-    canPostPayrollPeriod(input.periodState) && blockingCount === 0
+  const canPost = canPostPayrollPeriod(input.periodState) && blockingCount === 0
 
   return {
     blockingCount,

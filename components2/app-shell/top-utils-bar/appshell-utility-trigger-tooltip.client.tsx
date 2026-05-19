@@ -2,7 +2,11 @@
 
 import type { ReactElement } from "react"
 
-import { Tooltip, TooltipContent, TooltipTrigger } from "#components2/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "#components2/ui/tooltip"
 
 type AppShellUtilityTriggerTooltipProps = {
   /** Hover / focus-visible description — must not be empty. */

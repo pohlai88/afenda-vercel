@@ -6,7 +6,6 @@ import {
   type ClaimSurfaceAccess,
 } from "#features/hrm/server"
 
-
 export default async function OrgAppsHrmClaimsPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/apps/hrm/claims">) {

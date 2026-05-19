@@ -9,7 +9,7 @@ test.describe("@smoke app-shell preview", () => {
     "renders shell chrome and governed stat cards",
     { tag: "@smoke" },
     async ({ page }) => {
-      await page.goto("/en/dev/shell-preview")
+      await page.goto("/en/playground/shell-preview")
 
       await expect(page.getByLabel("Afenda home (preview)")).toBeVisible()
       await expect(page.getByLabel("Apps (preview)")).toBeVisible()

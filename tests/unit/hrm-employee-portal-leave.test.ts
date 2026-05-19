@@ -9,13 +9,19 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock("server-only", () => ({}))
-vi.mock("../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts", () => ({
-  getEmployeePortalContext: mocks.getEmployeePortalContext,
-}))
-vi.mock("../../lib/features/hrm/time-attendance/leave-attendance-management/data/leave-request-commands.server.ts", () => ({
-  submitLeaveRequest: mocks.submitLeaveRequest,
-  cancelLeaveRequestForContext: mocks.cancelLeaveRequestForContext,
-}))
+vi.mock(
+  "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.server.ts",
+  () => ({
+    getEmployeePortalContext: mocks.getEmployeePortalContext,
+  })
+)
+vi.mock(
+  "../../lib/features/hrm/time-attendance/leave-attendance-management/data/leave-request-commands.server.ts",
+  () => ({
+    submitLeaveRequest: mocks.submitLeaveRequest,
+    cancelLeaveRequestForContext: mocks.cancelLeaveRequestForContext,
+  })
+)
 
 import {
   cancelPortalEmployeeLeaveAction,

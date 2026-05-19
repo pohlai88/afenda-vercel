@@ -412,7 +412,9 @@ export async function listHrmDocumentsForOrg(
     predicates.push(eq(hrmDocument.legalEntityId, options.legalEntityId))
   }
   if (options.verificationStatus) {
-    predicates.push(eq(hrmDocument.verificationStatus, options.verificationStatus))
+    predicates.push(
+      eq(hrmDocument.verificationStatus, options.verificationStatus)
+    )
   }
   if (options.documentLifecycleStatus) {
     predicates.push(
@@ -588,7 +590,9 @@ function documentTypesForGroup(documentGroup: string): string[] {
     "right_to_work",
     "signature_proof",
     "other",
-  ].filter((documentType) => deriveHrmDocumentGroup(documentType) === documentGroup)
+  ].filter(
+    (documentType) => deriveHrmDocumentGroup(documentType) === documentGroup
+  )
 }
 
 export async function listEmployeeVisibleDocuments(input: {
@@ -645,7 +649,9 @@ export async function listEmployeeVisibleDocuments(input: {
     .filter((row) =>
       canEmployeeAccessDocument({
         classification: row.classification,
-        requirementAllowsEmployeeAccess: employeeAccessTypes.has(row.documentType),
+        requirementAllowsEmployeeAccess: employeeAccessTypes.has(
+          row.documentType
+        ),
       })
     )
     .map((row) => {

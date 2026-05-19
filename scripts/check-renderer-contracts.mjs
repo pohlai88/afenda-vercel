@@ -63,7 +63,7 @@ const RENDERER_SCHEMA_FILES = {
   "audit-panel": "audit-panel.schema.ts",
   "detail-tabs": "detail-tabs.schema.ts",
   "approval-timeline": "approval-timeline.schema.ts",
-  "chart": "chart.schema.ts",
+  chart: "chart.schema.ts",
   "kanban-board": "kanban-board.schema.ts",
 }
 
@@ -109,7 +109,7 @@ const rendererIdUnionMatch = registrySrc.match(
 )
 if (!rendererIdUnionMatch) {
   reportError(
-    "registry.ts: AfendaGovernedRendererId union not found (expected `export type AfendaGovernedRendererId = | \"...\" | ...`)"
+    'registry.ts: AfendaGovernedRendererId union not found (expected `export type AfendaGovernedRendererId = | "..." | ...`)'
   )
 }
 const rendererIdUnion = rendererIdUnionMatch
@@ -127,9 +127,7 @@ const contractsBlockMatch = registrySrc.match(
   /AFENDA_GOVERNED_RENDERER_CONTRACTS\s*=\s*\{([\s\S]*?)\}\s*as const satisfies/
 )
 if (!contractsBlockMatch) {
-  reportError(
-    "registry.ts: AFENDA_GOVERNED_RENDERER_CONTRACTS block not found"
-  )
+  reportError("registry.ts: AFENDA_GOVERNED_RENDERER_CONTRACTS block not found")
 }
 const contractEntries = {}
 if (contractsBlockMatch) {

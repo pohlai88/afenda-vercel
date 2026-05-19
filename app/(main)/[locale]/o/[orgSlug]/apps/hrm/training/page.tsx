@@ -6,7 +6,6 @@ import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
-
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Dashboard.Hrm.training")
   return {

@@ -34,6 +34,24 @@ test.describe("HRM compliance UI surface", () => {
   )
 
   test(
+    "compliance obligations panel and export control are present",
+    { tag: "@hrm" },
+    async ({ page }) => {
+      const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
+      test.skip(!slug, "No active organization slug — set E2E_ORG_SLUG.")
+
+      await page.goto(`/en/o/${slug}/apps/hrm/compliance`)
+
+      await expect(
+        page.getByTestId("hrm-compliance-obligations-panel")
+      ).toBeVisible()
+      await expect(
+        page.getByTestId("hrm-compliance-export-dashboard")
+      ).toBeVisible()
+    }
+  )
+
+  test(
     "generate all packs control is present when period context allows",
     { tag: "@hrm" },
     async ({ page }) => {

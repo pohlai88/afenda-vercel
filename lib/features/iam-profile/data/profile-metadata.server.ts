@@ -52,3 +52,14 @@ export async function generateIamProfileSecurityMetadata({
   })
   return buildPrivateSurfaceMetadata(t("title"))
 }
+
+export async function generateIamProfileReverifyMetadata({
+  params,
+}: MetadataProps<IamProfileRouteSegment>): Promise<Metadata> {
+  const locale = await resolveLocale(params)
+  const t = await getTranslations({
+    locale,
+    namespace: "IamProfileSurface.reverify",
+  })
+  return buildPrivateSurfaceMetadata(t("title"))
+}

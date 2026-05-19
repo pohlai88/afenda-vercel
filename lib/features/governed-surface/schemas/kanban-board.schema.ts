@@ -211,7 +211,10 @@ export const governedKanbanBoardConfigurationSchema = z
             path: ["workflow"],
           })
         } else {
-          for (const [ti, availability] of card.availableTransitions.entries()) {
+          for (const [
+            ti,
+            availability,
+          ] of card.availableTransitions.entries()) {
             const edge = board.workflow.transitions.find(
               (t) => t.id === availability.transitionId
             )
@@ -219,7 +222,13 @@ export const governedKanbanBoardConfigurationSchema = z
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: `Unknown transitionId "${availability.transitionId}".`,
-                path: ["cards", index, "availableTransitions", ti, "transitionId"],
+                path: [
+                  "cards",
+                  index,
+                  "availableTransitions",
+                  ti,
+                  "transitionId",
+                ],
               })
               continue
             }
@@ -227,7 +236,13 @@ export const governedKanbanBoardConfigurationSchema = z
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: `Transition "${availability.transitionId}" does not apply to column "${card.columnId}".`,
-                path: ["cards", index, "availableTransitions", ti, "transitionId"],
+                path: [
+                  "cards",
+                  index,
+                  "availableTransitions",
+                  ti,
+                  "transitionId",
+                ],
               })
             }
           }

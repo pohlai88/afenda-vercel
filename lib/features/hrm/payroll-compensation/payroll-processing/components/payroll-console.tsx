@@ -45,9 +45,7 @@ import type {
   PayrollCloseActionFormState,
   PayrollCloseSnapshot,
 } from "../data/payroll-close.shared"
-import {
-  resolvePayrollPostingState,
-} from "../data/payroll-posting.shared"
+import { resolvePayrollPostingState } from "../data/payroll-posting.shared"
 import type {
   PayrollPostingRecord,
   PayrollPostingState,
@@ -106,11 +104,7 @@ const initialCreateState: PayrollPeriodCreateFormState = {
   errors: {},
 }
 
-export function CreatePayrollPeriodForm({
-  canCreate,
-}: {
-  canCreate: boolean
-}) {
+export function CreatePayrollPeriodForm({ canCreate }: { canCreate: boolean }) {
   const t = useTranslations("Dashboard.Hrm.payroll")
   const [state, action, pending] = useActionState(
     createPayrollPeriodAction,
@@ -193,9 +187,13 @@ export function CreatePayrollPeriodForm({
             disabled={pending || !canCreate}
           />
           {!state.ok &&
-            (state as { errors: { cutoffDate?: string } }).errors.cutoffDate && (
+            (state as { errors: { cutoffDate?: string } }).errors
+              .cutoffDate && (
               <FieldError>
-                {(state as { errors: { cutoffDate?: string } }).errors.cutoffDate}
+                {
+                  (state as { errors: { cutoffDate?: string } }).errors
+                    .cutoffDate
+                }
               </FieldError>
             )}
         </Field>
@@ -815,7 +813,8 @@ export function PayrollClosePassport({
               <p className="mt-3 text-xs text-destructive">
                 {t("close.postingMismatch", {
                   currentHash: snapshot.postingPreview.inputHash.slice(0, 12),
-                  postedHash: postingRecord?.sourceHash.slice(0, 12) ?? "missing",
+                  postedHash:
+                    postingRecord?.sourceHash.slice(0, 12) ?? "missing",
                 })}
               </p>
             )}
@@ -855,7 +854,6 @@ export function PayrollClosePassport({
     </div>
   )
 }
-
 
 // ---------------------------------------------------------------------------
 // Period detail card (with traceability + runs)

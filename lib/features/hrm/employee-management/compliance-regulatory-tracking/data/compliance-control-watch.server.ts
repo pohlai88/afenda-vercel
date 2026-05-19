@@ -20,9 +20,7 @@ import type { CronTickScannedEmittedSummary } from "#lib/erp/cron-tick.shared"
 
 import { deriveEffectiveDocumentVerificationStatus } from "../../documents-management/data/hrm-document-governance.shared"
 import { HRM_COMPLIANCE_REGULATORY_AUDIT } from "../compliance-regulatory.contract"
-import {
-  upsertAutoComplianceException,
-} from "./compliance-exception.mutations.server"
+import { upsertAutoComplianceException } from "./compliance-exception.mutations.server"
 import {
   appliesComplianceObligationToEmployee,
   type EmployeeComplianceScope,
@@ -308,7 +306,10 @@ export async function runComplianceControlWatchTick(): Promise<ComplianceControl
           organizationId,
           resourceType: "hrm_compliance_filing",
           resourceId: filing.id,
-          metadata: { dueDate: filing.dueDate.toISOString(), title: filing.title },
+          metadata: {
+            dueDate: filing.dueDate.toISOString(),
+            title: filing.title,
+          },
         })
         const exception = await db.transaction((tx) =>
           upsertAutoComplianceException(tx, {
@@ -327,7 +328,10 @@ export async function runComplianceControlWatchTick(): Promise<ComplianceControl
             action: HRM_COMPLIANCE_REGULATORY_AUDIT.exception.created,
             organizationId,
             resourceId: exception.id,
-            metadata: { complianceArea: "filing", sourceReferenceId: filing.id },
+            metadata: {
+              complianceArea: "filing",
+              sourceReferenceId: filing.id,
+            },
           })
         }
       }

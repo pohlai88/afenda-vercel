@@ -29,10 +29,8 @@ export async function ComplianceHealthSamplesListSection({
 }: ComplianceHealthSamplesListSectionProps) {
   const t = await getTranslations("Dashboard.Hrm.compliance.operationalHealth")
 
-  const listConfiguration = buildComplianceHealthSamplesListSurfaceConfiguration(
-    bucket,
-    samples,
-    {
+  const listConfiguration =
+    buildComplianceHealthSamplesListSurfaceConfiguration(bucket, samples, {
       empty: t("samplesEmpty"),
       colPack: t("colPack"),
       colPeriod: t("colPeriod"),
@@ -52,8 +50,7 @@ export async function ComplianceHealthSamplesListSection({
         if (tier === "escalated") return t("agingTier.escalated")
         return t("agingTier.critical")
       },
-    }
-  )
+    })
 
   return (
     <GovernedPatternCListSection
@@ -76,7 +73,10 @@ export async function ComplianceHealthSamplesListSection({
           return (
             <GovernedTrailingActionSlot trailingAction={trailingAction}>
               <Link
-                href={organizationHrmComplianceDetailPath(orgSlug, surfaceRow.id)}
+                href={organizationHrmComplianceDetailPath(
+                  orgSlug,
+                  surfaceRow.id
+                )}
                 className="text-sm text-primary underline-offset-2 hover:underline"
                 aria-label={t("inspectTimelineAria", { pack: label })}
               >

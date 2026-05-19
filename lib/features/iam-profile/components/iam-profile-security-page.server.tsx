@@ -4,18 +4,10 @@ import { getTranslations } from "next-intl/server"
 
 import { AppShellSurface } from "#app-shell"
 import { IamProfileSecurityClient } from "#components2/iam-profile/iam-profile-security.client"
-import type {
-  IamProfileSecurityActivityRow,
-  IamProfileSecuritySessionRow,
-} from "#components2/iam-profile/iam-profile.types.shared"
 import { organizationIamProfilePath } from "#lib/org-apps-module-paths"
 
 import { getProfileShellData } from "../data/profile-shell-data.server"
-
-function toIso(d: Date | string): string {
-  if (d instanceof Date) return d.toISOString()
-  return typeof d === "string" ? d : new Date(d).toISOString()
-}
+import { buildIamProfileSecurityViewFromShell } from "../data/profile-security-view.server"
 
 export default async function IamProfileSecurityPage({
   params,
@@ -30,24 +22,7 @@ export default async function IamProfileSecurityPage({
     getProfileShellData(),
   ])
 
-  const sessions: IamProfileSecuritySessionRow[] = shellData.deviceSessions.map(
-    (s) => ({
-      id: s.id,
-      token: s.token,
-      createdAt: toIso(s.createdAt),
-      expiresAt: toIso(s.expiresAt),
-      ipAddress: s.ipAddress ?? null,
-      userAgent: s.userAgent ?? null,
-    })
-  )
-
-  const activity: IamProfileSecurityActivityRow[] =
-    shellData.securityActivity.map((a) => ({
-      id: a.id,
-      label: a.label,
-      createdAt: toIso(a.createdAt),
-      path: a.path,
-    }))
+  const securityView = buildIamProfileSecurityViewFromShell(shellData)
 
   return (
     <AppShellSurface
@@ -61,13 +36,7 @@ export default async function IamProfileSecurityPage({
       title={t("title")}
       subtitle={t("subtitle")}
     >
-      <IamProfileSecurityClient
-        currentSessionId={shellData.currentSessionId}
-        currentSessionToken={shellData.currentSessionToken}
-        sessions={sessions}
-        activity={activity}
-        hasCredential={shellData.hasCredential}
-      />
+      <IamProfileSecurityClient {...securityView} />
     </AppShellSurface>
   )
 }

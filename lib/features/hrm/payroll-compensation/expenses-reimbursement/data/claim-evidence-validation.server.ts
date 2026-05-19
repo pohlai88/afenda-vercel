@@ -13,11 +13,7 @@ import {
   type ClaimEvidenceValidationIssue,
 } from "./claim-evidence-validation.shared"
 
-const OPEN_CLAIM_STATES = [
-  "submitted",
-  "approved",
-  "returned",
-] as const
+const OPEN_CLAIM_STATES = ["submitted", "approved", "returned"] as const
 
 export async function isReceiptPayloadHashOnOtherOpenClaim(input: {
   readonly organizationId: string
@@ -34,9 +30,7 @@ export async function isReceiptPayloadHashOnOtherOpenClaim(input: {
         eq(hrmClaimEvidence.organizationId, input.organizationId),
         eq(hrmDocument.payloadHash, input.payloadHash),
         inArray(hrmClaim.state, [...OPEN_CLAIM_STATES]),
-        input.excludeClaimId
-          ? ne(hrmClaim.id, input.excludeClaimId)
-          : undefined
+        input.excludeClaimId ? ne(hrmClaim.id, input.excludeClaimId) : undefined
       )
     )
     .limit(1)
@@ -51,7 +45,9 @@ export async function listReceiptPayloadDuplicateSignalsForSubmit(input: {
 }): Promise<readonly ClaimDuplicateSignalDraft[]> {
   const hashes = [
     ...new Set(
-      input.payloadHashes.map((hash) => hash.trim()).filter((hash) => hash.length > 0)
+      input.payloadHashes
+        .map((hash) => hash.trim())
+        .filter((hash) => hash.length > 0)
     ),
   ]
   if (hashes.length === 0) return []
@@ -70,9 +66,7 @@ export async function listReceiptPayloadDuplicateSignalsForSubmit(input: {
         eq(hrmClaimEvidence.organizationId, input.organizationId),
         inArray(hrmDocument.payloadHash, hashes),
         inArray(hrmClaim.state, [...OPEN_CLAIM_STATES]),
-        input.excludeClaimId
-          ? ne(hrmClaim.id, input.excludeClaimId)
-          : undefined
+        input.excludeClaimId ? ne(hrmClaim.id, input.excludeClaimId) : undefined
       )
     )
 

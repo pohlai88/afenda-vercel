@@ -22,6 +22,7 @@ const REQUIRED_FILES = [
   ".cursor/rules/shell-directory.mdc",
   ".cursor/rules/portal-directory.mdc",
   ".cursor/rules/legal-docs-directory.mdc",
+  ".cursor/rules/bootstrap-directory.mdc",
   ".cursor/rules/iam-profile-directory.mdc",
   ".cursor/rules/module-client-server-barrels.mdc",
   "docs/decisions/0030-module-client-server-barrel-boundary.md",
@@ -155,6 +156,7 @@ const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
       "_hrm_landing_page",
       "_internal-cross-cutting",
       "_module-governance",
+      "hrm-apps-path.shared.ts",
       "hrm-dashboard-path.shared.ts",
     ]),
   ],
@@ -166,6 +168,7 @@ const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
       "server",
       "server.ts",
       "client",
+      "components",
       "scheduling",
       "recurrence",
       "worklog",
@@ -189,6 +192,22 @@ const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
       "index.ts",
       "README.md",
       "planner-dashboard-path.shared.ts",
+      "planner-orbit-path.shared.ts",
+    ]),
+  ],
+  [
+    "governed-surface",
+    new Set([
+      ...DEFAULT_ALLOWED_MODULE_ROOT_ENTRIES,
+      "form-rules.evaluate.shared.ts",
+      "kanban-card-drop.shared.ts",
+      "kanban-card-transition.shared.ts",
+      "kanban-surface-identity.shared.ts",
+      "kanban-workflow.shared.ts",
+      "list-surface-identity.shared.ts",
+      "list-surface-trailing-action.shared.ts",
+      "log-governed-list-surface-render.server.ts",
+      "migrate-governed-configuration.shared.ts",
     ]),
   ],
   [
@@ -207,7 +226,10 @@ function isAllowedDeepFeatureImport(importedModule, subpath) {
   if (importedModule === "hrm" && subpath === "hrm-dashboard-path.shared") {
     return true
   }
-  if (importedModule === "planner" && subpath === "planner-dashboard-path.shared") {
+  if (
+    importedModule === "planner" &&
+    subpath === "planner-dashboard-path.shared"
+  ) {
     return true
   }
   if (
@@ -221,8 +243,7 @@ function isAllowedDeepFeatureImport(importedModule, subpath) {
 
 const CODE_EXT_RE = /\.(ts|tsx|js|jsx|mjs|cjs)$/
 /** Second segment `server` / `client` are allowed composition barrels. */
-const DEEP_FEATURE_IMPORT_RE =
-  /from\s+["']#features\/([^/"']+)\/(.+?)["']/g
+const DEEP_FEATURE_IMPORT_RE = /from\s+["']#features\/([^/"']+)\/(.+?)["']/g
 
 /** AGENTS.md §6.1 — only these files may live at lib/*.ts / lib/*.tsx root. */
 const LIB_ROOT_ALLOWLIST = new Set([
@@ -294,7 +315,9 @@ function assertRuleStrength() {
   }
 
   if (exists(".cursor/rules/never-restore-deleted-components.mdc")) {
-    const neverRestore = read(".cursor/rules/never-restore-deleted-components.mdc")
+    const neverRestore = read(
+      ".cursor/rules/never-restore-deleted-components.mdc"
+    )
     if (!/alwaysApply:\s*true/.test(neverRestore)) {
       fail("never-restore-deleted-components.mdc must keep alwaysApply: true")
     }
@@ -303,7 +326,9 @@ function assertRuleStrength() {
   if (exists(".cursor/rules/drizzle-migration-ledger.mdc")) {
     const drizzleLedger = read(".cursor/rules/drizzle-migration-ledger.mdc")
     if (!/alwaysApply:\s*true/.test(drizzleLedger)) {
-      fail("drizzle-migration-ledger.mdc must keep alwaysApply: true (ADR-0032 PRIORITY #1)")
+      fail(
+        "drizzle-migration-ledger.mdc must keep alwaysApply: true (ADR-0032 PRIORITY #1)"
+      )
     }
     if (!/0032-drizzle-migration-agent-ownership/.test(drizzleLedger)) {
       fail("drizzle-migration-ledger.mdc must reference ADR-0032")
@@ -484,8 +509,7 @@ function assertAgentsLibRootTableParity() {
   }
 }
 
-const SERVER_FEATURE_INDEX_IMPORT_RE =
-  /from\s+["']#features\/([^/"']+)["']/g
+const SERVER_FEATURE_INDEX_IMPORT_RE = /from\s+["']#features\/([^/"']+)["']/g
 
 const CLIENT_FILE_RE = /\.client\.(ts|tsx)$/
 
@@ -576,7 +600,9 @@ function assertDbPushForbidden() {
   for (const name of DB_PUSH_SCRIPT_NAMES) {
     const cmd = scripts[name]
     if (typeof cmd !== "string") {
-      fail(`package.json scripts.${name} must exist and hard-fail via forbid-db-push.mjs (ADR-0032)`)
+      fail(
+        `package.json scripts.${name} must exist and hard-fail via forbid-db-push.mjs (ADR-0032)`
+      )
       continue
     }
     if (!cmd.includes("forbid-db-push.mjs")) {

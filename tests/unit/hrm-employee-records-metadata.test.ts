@@ -21,9 +21,9 @@ describe("employee records field catalog", () => {
   it("marks PII fields as sensitive", () => {
     expect(isEmployeeRecordsSensitiveField("personalEmail")).toBe(true)
     expect(isEmployeeRecordsSensitiveField("profilePhotoBlobUrl")).toBe(true)
-    expect(isEmployeeRecordsSensitiveField("identityDocument.documentNumber")).toBe(
-      true
-    )
+    expect(
+      isEmployeeRecordsSensitiveField("identityDocument.documentNumber")
+    ).toBe(true)
     expect(isEmployeeRecordsSensitiveField("employeeNumber")).toBe(false)
   })
 
@@ -31,7 +31,9 @@ describe("employee records field catalog", () => {
     for (const fieldKey of EMPLOYEE_RECORDS_FIELD_KEYS) {
       const policy = employeeRecordsFieldPolicyForKey(fieldKey)
       expect(policy?.fieldKey).toBe(fieldKey)
-      expect(policy?.readPermission).toBe(EMPLOYEE_RECORDS_SURFACE_PERMISSION.read)
+      expect(policy?.readPermission).toBe(
+        EMPLOYEE_RECORDS_SURFACE_PERMISSION.read
+      )
       if (policy?.sensitive) {
         expect(policy.sensitiveReadPermission).toBe(
           EMPLOYEE_RECORDS_SURFACE_PERMISSION.readSensitive

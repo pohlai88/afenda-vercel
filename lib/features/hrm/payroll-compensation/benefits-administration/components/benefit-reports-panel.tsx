@@ -72,11 +72,7 @@ export async function BenefitReportsPanel({
     uniqueEmployeeIds.map(async (employeeId) => {
       return [
         employeeId,
-        await resolveEmployeeLegalEntityCode(
-          organizationId,
-          employeeId,
-          null
-        ),
+        await resolveEmployeeLegalEntityCode(organizationId, employeeId, null),
       ] as const
     })
   )
@@ -107,10 +103,15 @@ export async function BenefitReportsPanel({
       <Card size="sm">
         <CardHeader>
           <CardTitle>{t("reports.censusTitle")}</CardTitle>
-          <CardDescription>{t("reports.censusDescription", { asOf })}</CardDescription>
+          <CardDescription>
+            {t("reports.censusDescription", { asOf })}
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <ReportMetric label={t("reports.metricActivePlans")} value={census.activePlanCount} />
+          <ReportMetric
+            label={t("reports.metricActivePlans")}
+            value={census.activePlanCount}
+          />
           <ReportMetric
             label={t("reports.metricCoveredEmployees")}
             value={census.coveredEmployeeCount}
@@ -186,12 +187,17 @@ export async function BenefitReportsPanel({
         <CardHeader>
           <CardTitle>{t("reports.deductionsTitle")}</CardTitle>
           <CardDescription>
-            {t("reports.deductionsDescription", { periodStart, periodEnd: asOf })}
+            {t("reports.deductionsDescription", {
+              periodStart,
+              periodEnd: asOf,
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {deductions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("reports.empty")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("reports.empty")}
+            </p>
           ) : (
             <p className="text-sm text-muted-foreground">
               {t("reports.deductionRowCount", { count: deductions.length })}

@@ -27,9 +27,6 @@ export async function reserveStock(
     return { ok: false, errors: { form: "Invalid inventory payload." } }
   }
 
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern(ORG_APPS_INVENTORY),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern(ORG_APPS_INVENTORY), "page")
   return { ok: true }
 }

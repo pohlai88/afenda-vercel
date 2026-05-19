@@ -29,7 +29,7 @@ import {
 import {
   BONUS_FORMULA_TYPES,
   BONUS_PLAN_TYPES,
-} from "../schema/bonus-incentive.schema"
+} from "../schemas/bonus-incentive.schema"
 import type {
   BonusCycleRow,
   BonusEmployeeChoice,

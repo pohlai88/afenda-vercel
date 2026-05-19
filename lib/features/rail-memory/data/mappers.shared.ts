@@ -46,7 +46,9 @@ import type {
  * `parseAppShellPrimaryLeftRailPin` (called from the RSC layout) is the
  * authoritative gate.
  */
-function coerceIcon(raw: string | null): AppShellPrimaryLeftRailNavIconId | null {
+function coerceIcon(
+  raw: string | null
+): AppShellPrimaryLeftRailNavIconId | null {
   if (typeof raw !== "string") return null
   const trimmed = raw.trim()
   if (trimmed.length === 0 || trimmed.length > 64) return null
@@ -186,7 +188,9 @@ export function pinDtoToSlot(pin: RailMemoryPin): AppShellPrimaryLeftRailPin {
   }
 }
 
-export function viewDtoToSlot(view: RailMemorySavedView): AppShellPrimaryLeftRailView {
+export function viewDtoToSlot(
+  view: RailMemorySavedView
+): AppShellPrimaryLeftRailView {
   return {
     id: view.id,
     label: view.label,
@@ -202,7 +206,9 @@ export function viewDtoToSlot(view: RailMemorySavedView): AppShellPrimaryLeftRai
  * this string at hydration time so the server response stays
  * deterministic.
  */
-export function recentDtoToSlot(recent: RailMemoryRecent): AppShellPrimaryLeftRailRecent {
+export function recentDtoToSlot(
+  recent: RailMemoryRecent
+): AppShellPrimaryLeftRailRecent {
   return {
     id: recent.id,
     label: recent.label,

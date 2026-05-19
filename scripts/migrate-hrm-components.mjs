@@ -70,7 +70,10 @@ function resolveTarget(name) {
   ) {
     return "talent-management/training-development/components"
   }
-  if (n.startsWith("hrm-performance") || n.startsWith("employee-portal-performance")) {
+  if (
+    n.startsWith("hrm-performance") ||
+    n.startsWith("employee-portal-performance")
+  ) {
     return "talent-management/performance-appraisals/components"
   }
   if (
@@ -84,7 +87,10 @@ function resolveTarget(name) {
   if (n.startsWith("compliance-") || n.startsWith("bureau-reliability-")) {
     return "employee-management/compliance-regulatory-tracking/components"
   }
-  if (n.includes("offboarding-panel") || n.startsWith("employee-portal-offboarding")) {
+  if (
+    n.includes("offboarding-panel") ||
+    n.startsWith("employee-portal-offboarding")
+  ) {
     return "employee-management/offboarding-exit-management/components"
   }
   if (n.startsWith("documents-") || n.startsWith("hrm-document-")) {
@@ -144,7 +150,8 @@ function listSubmoduleComponentDirs() {
     }
   }
   for (const ent of fs.readdirSync(HRM, { withFileTypes: true })) {
-    if (ent.isDirectory() && ent.name !== "components") walk(path.join(HRM, ent.name))
+    if (ent.isDirectory() && ent.name !== "components")
+      walk(path.join(HRM, ent.name))
   }
   return map
 }
@@ -162,7 +169,7 @@ function fixImports(content, subPath) {
     (match, dot, rest) => {
       if (rest.startsWith("components/")) return match
       return `from "${extra}${dot}${rest}"`
-    },
+    }
   )
   return out
 }
@@ -191,7 +198,9 @@ if (!fs.existsSync(FLAT)) {
 }
 
 const existing = listSubmoduleComponentDirs()
-const flatFiles = fs.readdirSync(FLAT).filter((f) => fs.statSync(path.join(FLAT, f)).isFile())
+const flatFiles = fs
+  .readdirSync(FLAT)
+  .filter((f) => fs.statSync(path.join(FLAT, f)).isFile())
 
 for (const file of flatFiles.sort()) {
   const targetRel = resolveTarget(file)
@@ -203,11 +212,17 @@ for (const file of flatFiles.sort()) {
         const winner = preferGoverned(rootPath, flatPath)
         if (winner === rootPath) {
           fs.unlinkSync(flatPath)
-          deletedDupes.push({ file, reason: "duplicate of hrm root hrm-snapshot-page.tsx" })
+          deletedDupes.push({
+            file,
+            reason: "duplicate of hrm root hrm-snapshot-page.tsx",
+          })
         } else {
           fs.unlinkSync(rootPath)
           fs.renameSync(flatPath, rootPath)
-          moves.push({ file, to: "lib/features/hrm/hrm-snapshot-page.tsx (replaced root)" })
+          moves.push({
+            file,
+            to: "lib/features/hrm/hrm-snapshot-page.tsx (replaced root)",
+          })
         }
       } else {
         gitMv(flatPath, rootPath)
@@ -232,17 +247,27 @@ for (const file of flatFiles.sort()) {
     const winner = preferGoverned(path.join(subPath, file), from)
     if (winner === from) {
       fs.unlinkSync(path.join(subPath, file))
-        moveFile(from, to)
-      moves.push({ file, to: path.relative(ROOT, to).replace(/\\/g, "/"), note: "replaced submodule copy" })
+      moveFile(from, to)
+      moves.push({
+        file,
+        to: path.relative(ROOT, to).replace(/\\/g, "/"),
+        note: "replaced submodule copy",
+      })
     } else {
       fs.unlinkSync(from)
-      deletedDupes.push({ file, kept: path.relative(ROOT, path.join(subPath, file)).replace(/\\/g, "/") })
+      deletedDupes.push({
+        file,
+        kept: path.relative(ROOT, path.join(subPath, file)).replace(/\\/g, "/"),
+      })
     }
     continue
   }
 
-        moveFile(from, to)
-  const content = fixImports(fs.readFileSync(to, "utf8"), targetRel.replace(/\/components$/, ""))
+  moveFile(from, to)
+  const content = fixImports(
+    fs.readFileSync(to, "utf8"),
+    targetRel.replace(/\/components$/, "")
+  )
   fs.writeFileSync(to, content)
   moves.push({ file, to: path.relative(ROOT, to).replace(/\\/g, "/") })
 }
@@ -250,11 +275,23 @@ for (const file of flatFiles.sort()) {
 // hrm-pages → employee-lifecycle or keep at module root? Colocate with constants consumer
 const hrmPages = path.join(FLAT, "hrm-pages.tsx")
 if (fs.existsSync(hrmPages)) {
-  const to = path.join(HRM, "employee-management/employee-lifecycle-management/components/hrm-pages.tsx")
+  const to = path.join(
+    HRM,
+    "employee-management/employee-lifecycle-management/components/hrm-pages.tsx"
+  )
   ensureDir(path.dirname(to))
   gitMv(hrmPages, to)
-  fs.writeFileSync(to, fixImports(fs.readFileSync(to, "utf8"), "employee-management/employee-lifecycle-management"))
-  moves.push({ file: "hrm-pages.tsx", to: path.relative(ROOT, to).replace(/\\/g, "/") })
+  fs.writeFileSync(
+    to,
+    fixImports(
+      fs.readFileSync(to, "utf8"),
+      "employee-management/employee-lifecycle-management"
+    )
+  )
+  moves.push({
+    file: "hrm-pages.tsx",
+    to: path.relative(ROOT, to).replace(/\\/g, "/"),
+  })
 }
 
 // Remove empty flat dir
@@ -272,36 +309,62 @@ const barrelFiles = [
   path.join(HRM, "hrm-snapshot-page.tsx"),
   path.join(HRM, "employee-management/employee-selfservice-portal/index.ts"),
   path.join(HRM, "employee-management/employee-lifecycle-management/index.ts"),
-  path.join(HRM, "employee-management/compliance-regulatory-tracking/client.ts"),
+  path.join(
+    HRM,
+    "employee-management/compliance-regulatory-tracking/client.ts"
+  ),
 ]
 
-const exportMap = new Map(moves.map((m) => [m.file.replace(/\.tsx?$/, "").replace(/\.client\.tsx$/, ""), m.to]))
+const exportMap = new Map(
+  moves.map((m) => [
+    m.file.replace(/\.tsx?$/, "").replace(/\.client\.tsx$/, ""),
+    m.to,
+  ])
+)
 
 function rewriteBarrels(filePath) {
   if (!fs.existsSync(filePath)) return
   let src = fs.readFileSync(filePath, "utf8")
   const original = src
-  src = src.replace(/from\s+["']\.\/components\/([^"']+)["']/g, (match, spec) => {
-    const base = path.basename(spec, path.extname(spec))
-    const moved = moves.find((m) => m.file === `${base}${path.extname(spec)}` || m.file.startsWith(base))
-    if (!moved) return match
-    const rel = path.relative(path.dirname(filePath), path.join(ROOT, moved.to)).replace(/\\/g, "/")
-    return `from "${rel.startsWith(".") ? rel : "./" + rel}"`
-  })
-  src = src.replace(/from\s+["']\.\.\/\.\.\/components\/([^"']+)["']/g, (match, spec) => {
-    const fileName = path.basename(spec)
-    const moved = moves.find((m) => m.file === fileName)
-    if (!moved) return match
-    const rel = path.relative(path.dirname(filePath), path.join(ROOT, moved.to)).replace(/\\/g, "/")
-    return `from "${rel.startsWith(".") ? rel : "./" + rel}"`
-  })
-  src = src.replace(/from\s+["']\.\.\/components\/([^"']+)["']/g, (match, spec) => {
-    const fileName = path.basename(spec)
-    const moved = moves.find((m) => m.file === fileName)
-    if (!moved) return match
-    const rel = path.relative(path.dirname(filePath), path.join(ROOT, moved.to)).replace(/\\/g, "/")
-    return `from "${rel.startsWith(".") ? rel : "./" + rel}"`
-  })
+  src = src.replace(
+    /from\s+["']\.\/components\/([^"']+)["']/g,
+    (match, spec) => {
+      const base = path.basename(spec, path.extname(spec))
+      const moved = moves.find(
+        (m) =>
+          m.file === `${base}${path.extname(spec)}` || m.file.startsWith(base)
+      )
+      if (!moved) return match
+      const rel = path
+        .relative(path.dirname(filePath), path.join(ROOT, moved.to))
+        .replace(/\\/g, "/")
+      return `from "${rel.startsWith(".") ? rel : "./" + rel}"`
+    }
+  )
+  src = src.replace(
+    /from\s+["']\.\.\/\.\.\/components\/([^"']+)["']/g,
+    (match, spec) => {
+      const fileName = path.basename(spec)
+      const moved = moves.find((m) => m.file === fileName)
+      if (!moved) return match
+      const rel = path
+        .relative(path.dirname(filePath), path.join(ROOT, moved.to))
+        .replace(/\\/g, "/")
+      return `from "${rel.startsWith(".") ? rel : "./" + rel}"`
+    }
+  )
+  src = src.replace(
+    /from\s+["']\.\.\/components\/([^"']+)["']/g,
+    (match, spec) => {
+      const fileName = path.basename(spec)
+      const moved = moves.find((m) => m.file === fileName)
+      if (!moved) return match
+      const rel = path
+        .relative(path.dirname(filePath), path.join(ROOT, moved.to))
+        .replace(/\\/g, "/")
+      return `from "${rel.startsWith(".") ? rel : "./" + rel}"`
+    }
+  )
   if (src !== original) fs.writeFileSync(filePath, src)
 }
 
@@ -315,13 +378,18 @@ function walkTs(dir) {
     else if (/\.tsx?$/.test(ent.name)) {
       let src = fs.readFileSync(p, "utf8")
       const orig = src
-      src = src.replace(/from\s+["'](\.\.\/)+components\/([^"']+)["']/g, (match, dots, spec) => {
-        const fileName = path.basename(spec)
-        const moved = moves.find((m) => m.file === fileName)
-        if (!moved) return match
-        const rel = path.relative(path.dirname(p), path.join(ROOT, moved.to)).replace(/\\/g, "/")
-        return `from "${rel.startsWith(".") ? rel : "./" + rel}"`
-      })
+      src = src.replace(
+        /from\s+["'](\.\.\/)+components\/([^"']+)["']/g,
+        (match, dots, spec) => {
+          const fileName = path.basename(spec)
+          const moved = moves.find((m) => m.file === fileName)
+          if (!moved) return match
+          const rel = path
+            .relative(path.dirname(p), path.join(ROOT, moved.to))
+            .replace(/\\/g, "/")
+          return `from "${rel.startsWith(".") ? rel : "./" + rel}"`
+        }
+      )
       if (src !== orig) fs.writeFileSync(p, src)
     }
   }
@@ -334,9 +402,20 @@ if (fs.existsSync(vitest)) {
   let v = fs.readFileSync(vitest, "utf8")
   v = v.replace(
     `"lib/features/hrm/components/**/*.tsx"`,
-    `"lib/features/hrm/**/components/**/*.tsx"`,
+    `"lib/features/hrm/**/components/**/*.tsx"`
   )
   fs.writeFileSync(vitest, v)
 }
 
-console.log(JSON.stringify({ moves: moves.length, deletedDupes, unclassified, sample: moves.slice(0, 5) }, null, 2))
+console.log(
+  JSON.stringify(
+    {
+      moves: moves.length,
+      deletedDupes,
+      unclassified,
+      sample: moves.slice(0, 5),
+    },
+    null,
+    2
+  )
+)

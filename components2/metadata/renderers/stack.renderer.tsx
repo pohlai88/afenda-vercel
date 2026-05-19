@@ -72,7 +72,8 @@ export function StackRenderer({
         densityGapClass(chrome?.density),
         elevationClass(chrome?.elevation),
         surfaceMaterialClass(chrome?.surface),
-        chrome?.elevation !== "flat" && "rounded-2xl border border-border/60 p-4"
+        chrome?.elevation !== "flat" &&
+          "rounded-2xl border border-border/60 p-4"
       )}
     >
       {renderChildren(children, diagnostics)}

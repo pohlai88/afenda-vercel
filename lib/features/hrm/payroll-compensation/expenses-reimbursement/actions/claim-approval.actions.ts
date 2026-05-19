@@ -32,7 +32,7 @@ import {
   claimApprovalDecisionSchema,
   claimRejectDecisionSchema,
   claimReturnDecisionSchema,
-} from "../schema/claim.schema"
+} from "../schemas/claim.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { ClaimApprovalFormState } from "../../../types"
 
@@ -284,9 +284,7 @@ export async function approveClaimAction(
     if (apResult.code === "posted" || apResult.code === "already_posted") {
       apPostingJournalId = apResult.journalId
       const paymentReference =
-        apResult.code === "posted"
-          ? apResult.reference
-          : apResult.journalId
+        apResult.code === "posted" ? apResult.reference : apResult.journalId
       await db
         .update(hrmClaim)
         .set({

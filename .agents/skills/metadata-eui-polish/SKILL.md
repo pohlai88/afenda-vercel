@@ -22,8 +22,8 @@ This skill applies when editing:
 - `lib/features/governed-surface/**` (`GovernedSurfaceSectionCard`, `GovernedPatternCListSection`)
 - `lib/features/*/data/*-surface-builders.server.ts`
 - ERP pages using `GovernedComponentRenderer` or `GovernedPatternCListSection` (`layout="embedded"` when parent `Card` owns chrome)
-- `app/[locale]/dev/metadata-renderer-gallery/**`
-- `app/[locale]/dev/pattern-c-section-gallery/**`
+- `app/[locale]/playground/metadata-renderer-gallery/**`
+- `app/[locale]/playground/pattern-c-section-gallery/**`
 
 ## Embedded skills (load in this order)
 
@@ -78,7 +78,7 @@ Use these **in addition to** `vercel-react-best-practices` and `vercel-compositi
 
 **Builder recipe:** `lib/features/<module>/data/*-surface-builders.server.ts` returns `ListSurfaceRendererConfigurationInput`. Pattern C sections pass the builder output to `GovernedPatternCListSection` — do not re-parse in the feature module.
 
-**Pattern C polish:** `surfaceKey`, `requiresErpPermission`, row `trailingAction` + `disabledReason`, `data-trailing-action-state` on trailing cells, `data-testid="governed-list-section:{surfaceKey}"`. Validate states at `/[locale]/dev/pattern-c-section-gallery`.
+**Pattern C polish:** `surfaceKey`, `requiresErpPermission`, row `trailingAction` + `disabledReason`, `data-trailing-action-state` on trailing cells, `data-testid="governed-list-section:{surfaceKey}"`. Validate states at `/[locale]/playground/pattern-c-section-gallery`.
 
 **Pattern K polish:** `interactionMode` matches bridge (`footer-actions` → `GovernedKanbanFooterBoard`; `drag-reorder` → `GovernedKanbanDragBoard`); builder owns columns/cards/transitions; query failures use empty board + section `loadError` when wired; gallery scenarios `kanban-recruitment*`.
 
@@ -135,7 +135,7 @@ When converting a hand-rolled list/table to `GovernedPatternCListSection` or `Go
 
 1. Announce: *Applying metadata EUI polish to `{surfaceKey}`.*
 2. Complete checklist sections **3–4** (builder + section) for that surface only.
-3. Spot-check `/{locale}/dev/pattern-c-section-gallery` at 280 / 480 / 720 widths when layout changes.
+3. Spot-check `/{locale}/playground/pattern-c-section-gallery` at 280 / 480 / 720 widths when layout changes.
 4. Run `pnpm exec eslint --max-warnings=0 <touched-paths>` and `pnpm typecheck`.
 
 Do **not** re-run full renderer polish (sections 1–2) on every migration PR unless the change exposes a kernel gap — fix kernels in a separate PR.
@@ -150,7 +150,7 @@ Then apply this skill's checklist before wiring the first module builder.
 
 ## Dev gallery
 
-Validate width presets and fixture JSON at `/{locale}/dev/metadata-renderer-gallery` (development only). Compare 280 / 480 / 720 container widths after layout changes.
+Validate width presets and fixture JSON at `/{locale}/playground/metadata-renderer-gallery` (development only). Compare 280 / 480 / 720 container widths after layout changes.
 
 ## Anti-patterns (block merge)
 

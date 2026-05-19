@@ -43,10 +43,7 @@ const PAGE_FRAME_SURFACES: [label: string, ...path: string[]][] = [
 describe("AuthPageFrame contract", () => {
   it("Layer 3 UI shelf is sealed", () => {
     expect(
-      readFileSync(
-        join(ROOT, "components2", "auth", "_SEAL.md"),
-        "utf-8"
-      )
+      readFileSync(join(ROOT, "components2", "auth", "_SEAL.md"), "utf-8")
     ).toContain("Layer 3")
   })
 

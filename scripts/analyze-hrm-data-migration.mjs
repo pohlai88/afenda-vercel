@@ -14,13 +14,15 @@ function walk(dir, acc = []) {
 }
 
 const legacyFiles = walk(legacyDir)
-const allHrm = walk(root).filter((p) => !p.includes(`${join("hrm", "data")}${""}`) || !p.replace(/\\/g, "/").includes("/hrm/data/"))
+const allHrm = walk(root).filter(
+  (p) =>
+    !p.includes(`${join("hrm", "data")}${""}`) ||
+    !p.replace(/\\/g, "/").includes("/hrm/data/")
+)
 
 function findCanonical(name) {
   const matches = allHrm.filter(
-    (p) =>
-      basename(p) === name &&
-      !p.replace(/\\/g, "/").includes("/hrm/data/"),
+    (p) => basename(p) === name && !p.replace(/\\/g, "/").includes("/hrm/data/")
   )
   return matches
 }
@@ -53,7 +55,9 @@ for (const legacy of legacyFiles) {
     divergent.push({
       file: name,
       legacy: relative(process.cwd(), legacy).replace(/\\/g, "/"),
-      canonical: canonical.map((c) => relative(process.cwd(), c).replace(/\\/g, "/")),
+      canonical: canonical.map((c) =>
+        relative(process.cwd(), c).replace(/\\/g, "/")
+      ),
     })
   }
 }

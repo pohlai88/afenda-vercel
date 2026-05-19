@@ -1,9 +1,6 @@
 import "server-only"
 
-import type {
-  OrgAdminInvitationRow,
-  OrgAdminMemberRow,
-} from "../types"
+import type { OrgAdminInvitationRow, OrgAdminMemberRow } from "../types"
 import type { ListSurfaceRendererConfigurationInput } from "#features/governed-surface"
 
 const PRESENTATION = {

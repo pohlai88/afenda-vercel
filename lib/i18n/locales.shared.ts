@@ -25,9 +25,8 @@ export function isAfendaSingleLocaleRefactorMode(): boolean {
 }
 
 /** Active locales for routing, `generateStaticParams`, and message catalogs. */
-export const APP_LOCALES: readonly AppLocale[] = isAfendaSingleLocaleRefactorMode()
-  ? (["en"] as const)
-  : FULL_APP_LOCALES
+export const APP_LOCALES: readonly AppLocale[] =
+  isAfendaSingleLocaleRefactorMode() ? (["en"] as const) : FULL_APP_LOCALES
 
 export function isAppLocale(value: string): value is AppLocale {
   return (APP_LOCALES as readonly string[]).includes(value)
@@ -103,7 +102,9 @@ export function toLocaleOrgAdminRevalidatePattern(adminTail: string): AppPath {
 }
 
 /** `revalidatePath` for org-scoped profile routes (`/o/[orgSlug]/iam-profile/...`). */
-export function toLocaleOrgIamProfileRevalidatePattern(profileTail = ""): AppPath {
+export function toLocaleOrgIamProfileRevalidatePattern(
+  profileTail = ""
+): AppPath {
   const tail =
     profileTail === "" || profileTail === "/"
       ? ""
@@ -114,7 +115,9 @@ export function toLocaleOrgIamProfileRevalidatePattern(profileTail = ""): AppPat
 }
 
 /** `revalidatePath` for Afenda platform console (`/[locale]/platform/...`). */
-export function toLocalePlatformRevalidatePattern(platformTail: string): AppPath {
+export function toLocalePlatformRevalidatePattern(
+  platformTail: string
+): AppPath {
   const tail =
     platformTail === "" || platformTail === "/"
       ? ""

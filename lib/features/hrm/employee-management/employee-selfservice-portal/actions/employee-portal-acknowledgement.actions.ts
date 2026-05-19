@@ -52,74 +52,79 @@ export async function acknowledgePortalPolicyAction(
   const { organizationId, userId, sessionId } = context.portal
   const employeeId = context.employee.id
 
-  return withEmployeePortalActionSpan(context, "acknowledgement", "submit", async () => {
-    const now = new Date()
-    const policyVersion = parsed.data.policyVersion ?? "current"
-    await db
-      .insert(hrmPolicyAcknowledgement)
-      .values({
-        organizationId,
-        employeeId,
-        policyId: parsed.data.policyId,
-        policyVersion,
-        policyTitle: parsed.data.policyTitle,
-        acknowledgementMethod: "employee_portal",
-        acknowledgementSource: "employee_self_service",
-        acknowledgedByUserId: userId,
-        actorSessionId: sessionId,
-        acknowledgedAt: now,
-      })
-      .onConflictDoUpdate({
-        target: [
-          hrmPolicyAcknowledgement.organizationId,
-          hrmPolicyAcknowledgement.employeeId,
-          hrmPolicyAcknowledgement.policyId,
-          hrmPolicyAcknowledgement.policyVersion,
-        ],
-        set: {
+  return withEmployeePortalActionSpan(
+    context,
+    "acknowledgement",
+    "submit",
+    async () => {
+      const now = new Date()
+      const policyVersion = parsed.data.policyVersion ?? "current"
+      await db
+        .insert(hrmPolicyAcknowledgement)
+        .values({
+          organizationId,
+          employeeId,
+          policyId: parsed.data.policyId,
+          policyVersion,
           policyTitle: parsed.data.policyTitle,
           acknowledgementMethod: "employee_portal",
           acknowledgementSource: "employee_self_service",
           acknowledgedByUserId: userId,
           actorSessionId: sessionId,
           acknowledgedAt: now,
-          updatedAt: now,
-        },
-      })
+        })
+        .onConflictDoUpdate({
+          target: [
+            hrmPolicyAcknowledgement.organizationId,
+            hrmPolicyAcknowledgement.employeeId,
+            hrmPolicyAcknowledgement.policyId,
+            hrmPolicyAcknowledgement.policyVersion,
+          ],
+          set: {
+            policyTitle: parsed.data.policyTitle,
+            acknowledgementMethod: "employee_portal",
+            acknowledgementSource: "employee_self_service",
+            acknowledgedByUserId: userId,
+            actorSessionId: sessionId,
+            acknowledgedAt: now,
+            updatedAt: now,
+          },
+        })
 
-    after(() =>
-      writeIamAuditEventFromNextHeaders({
-        action: HRM_ESS_AUDIT.acknowledgement.submit,
-        actorUserId: userId,
-        actorSessionId: sessionId,
-        organizationId,
-        resourceType: "hrm_employee",
-        resourceId: employeeId,
-        metadata: {
-          surface: "employee_portal",
-          policyId: parsed.data.policyId,
-          policyTitle: parsed.data.policyTitle,
-          policyVersion,
+      after(() =>
+        writeIamAuditEventFromNextHeaders({
+          action: HRM_ESS_AUDIT.acknowledgement.submit,
+          actorUserId: userId,
+          actorSessionId: sessionId,
+          organizationId,
+          resourceType: "hrm_employee",
+          resourceId: employeeId,
+          metadata: {
+            surface: "employee_portal",
+            policyId: parsed.data.policyId,
+            policyTitle: parsed.data.policyTitle,
+            policyVersion,
+            employeeId,
+          },
+        })
+      )
+      after(() =>
+        notifyEssRequestLifecycle({
+          organizationId,
+          targetUserId: userId,
+          kind: "policy_acknowledgement",
+          status: "submitted",
+          requestId: `${parsed.data.policyId}:${policyVersion}`,
           employeeId,
-        },
-      })
-    )
-    after(() =>
-      notifyEssRequestLifecycle({
-        organizationId,
-        targetUserId: userId,
-        kind: "policy_acknowledgement",
-        status: "submitted",
-        requestId: `${parsed.data.policyId}:${policyVersion}`,
-        employeeId,
-      })
-    )
+        })
+      )
 
-    revalidatePath(
-      toLocalePortalRevalidatePattern("/employee/documents"),
-      "page"
-    )
+      revalidatePath(
+        toLocalePortalRevalidatePattern("/employee/documents"),
+        "page"
+      )
 
-    return { ok: true }
-  })
+      return { ok: true }
+    }
+  )
 }

@@ -305,13 +305,14 @@ export async function listComplianceDashboardRowsForOrg(
       workerCategory: employee.workerCategory,
     }
 
-    const employeeWorkStatuses = (workAuthByEmployee.get(employee.id) ?? []).map(
-      (row) =>
-        deriveWorkAuthorizationComplianceStatus({
-          status: row.status,
-          expiresAt: row.expiresAt,
-          now,
-        })
+    const employeeWorkStatuses = (
+      workAuthByEmployee.get(employee.id) ?? []
+    ).map((row) =>
+      deriveWorkAuthorizationComplianceStatus({
+        status: row.status,
+        expiresAt: row.expiresAt,
+        now,
+      })
     )
 
     const employeeDocs = docsByEmployee.get(employee.id) ?? []
@@ -380,7 +381,8 @@ export async function listComplianceDashboardRowsForOrg(
       }
     }
 
-    const openExceptionCount = openExceptionCountByEmployee.get(employee.id) ?? 0
+    const openExceptionCount =
+      openExceptionCountByEmployee.get(employee.id) ?? 0
     const overallStatus = deriveComplianceDashboardOverallStatus({
       workStatuses: employeeWorkStatuses,
       documentStatuses: [

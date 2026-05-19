@@ -35,11 +35,40 @@
     "nsTypes": "warn",
     "duplicates": "warn"
   },
-  "ignoreFiles": ["components2/ui/**"],
+  "ignoreFiles": [
+    "components2/ui/**",
+    ".source/**",
+    "lib/features/bootstrap/index.ts",
+    "lib/features/iam-profile/index.ts",
+    "lib/features/tools/client.ts",
+    "components2/app-shell/surface/appshell-sub-layout.tsx",
+    "lib/features/hrm/employee-management/documents-management/{index,client}.ts",
+    "lib/features/hrm/employee-management/employee-lifecycle-management/{client,actions/employment-status-change.actions,schemas/employment-status-change.schema}.ts",
+    "lib/features/hrm/employee-management/employee-records-management/{actions/emergency-contact.actions,components/employee-edit-form,schemas/emergency-contact.schema}.{ts,tsx}",
+    "lib/features/hrm/employee-management/employee-selfservice-portal/{client,actions/employee-portal-acknowledgement.actions}.ts",
+    "lib/features/hrm/employee-management/offboarding-exit-management/data/offboarding-exit-summary.queries.server.ts",
+    "lib/features/hrm/payroll-compensation/benefits-administration/{index,server}.ts",
+    "lib/features/hrm/payroll-compensation/expenses-reimbursement/{client,index,server}.ts",
+    "lib/features/hrm/payroll-compensation/expenses-reimbursement/{actions/claim-duplicate.actions,actions/claim-payment.actions,data/claim-duplicate.queries.server}.ts",
+    "lib/features/hrm/payroll-compensation/multi-country-payroll/{client,index,multi-country-payroll-form-states}.ts",
+    "lib/features/hrm/payroll-compensation/multi-country-payroll/{actions/multi-country-payroll.actions,schemas/vn-payroll-line-code.shared}.ts",
+    "lib/features/hrm/payroll-compensation/payroll-processing/payroll-form-states.ts",
+    "lib/features/hrm/payroll-compensation/payroll-processing/{actions,data,schemas}/*.{ts,tsx}",
+    "lib/features/hrm/payroll-compensation/salary-benchmarking-survey/{client,actions/salary-benchmarking.actions,data/salary-benchmarking.mutations.server,schemas/salary-benchmarking-action.schema}.ts",
+    "lib/features/hrm/talent-management/candidate-selfservice-portal/{client,index}.ts",
+    "lib/features/hrm/time-attendance/leave-attendance-management/components/{employee-portal-leave-cancel-button,employee-portal-leave-page,employee-portal-leave-request-form,leave-recent-table}.tsx",
+    "lib/features/execution/data/org-domain-signal-run-entry.ts",
+    "lib/features/execution/data/org-domain-signal.{mutations.server,workflow}.ts",
+    "lib/features/execution/schemas/org-domain-signal-payload.schema.ts",
+    "lib/features/governed-surface/data/list-surface-trailing-action.server.ts",
+    "lib/features/governed-surface/schemas/{governed-registry,server-actions}.shared.ts",
+    "lib/features/lynx/data/federated-search.queries.server.ts"
+  ],
   "ignoreDependencies": [
     "@better-auth/infra",
     "@better-auth/passkey",
     "better-auth",
+    "markdownlint-cli2",
     "@base-ui/react",
     "@hookform/resolvers",
     "date-fns",
@@ -123,7 +152,40 @@
     "lib/auth/**/*.server.ts": ["exports", "types"],
     "lib/auth/org-audit.server.ts": ["exports", "types"],
     "lib/dashboard-module-paths.ts": ["exports", "types"],
+    "lib/org-apps-module-paths.ts": ["exports", "types"],
     "lib/i18n/dashboard-org-path.shared.ts": ["exports", "types"],
+    "lib/portal/constants.ts": ["exports", "types"],
+    "lib/features/operational-scope/types.ts": ["exports", "types"],
+    "lib/features/hrm/types.ts": ["exports", "types"],
+    "lib/features/hrm/payroll-compensation/benefits-administration/schemas/*.schema.ts": [
+      "exports",
+      "types"
+    ],
+    "lib/features/hrm/payroll-compensation/bonus-incentive-management/schemas/*.schema.ts": [
+      "exports",
+      "types"
+    ],
+    "lib/features/hrm/payroll-compensation/expenses-reimbursement/schemas/*.schema.ts": [
+      "exports",
+      "types"
+    ],
+    "components2/feedback/client.tsx": ["exports", "types"],
+    "components2/iam-profile/iam-profile-security-context.client.tsx": [
+      "exports",
+      "types"
+    ],
+    "components2/legal-docs/legal-docs-status-pill.shared.tsx": [
+      "exports",
+      "types"
+    ],
+    "components2/marketing/marketing-afenda-brand.client.tsx": [
+      "exports",
+      "types"
+    ],
+    "components2/marketing/marketing-public-href.shared.tsx": [
+      "exports",
+      "types"
+    ],
     "lib/site.ts": ["exports", "types", "duplicates"],
     "components2/ui/**/*.tsx": [
       "exports",

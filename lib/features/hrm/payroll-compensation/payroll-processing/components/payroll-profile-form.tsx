@@ -178,7 +178,9 @@ export function PayrollProfileForm({
           <Input
             id="payroll-group"
             name="payrollGroupCode"
-            list={payrollGroups.length > 0 ? "payroll-group-options" : undefined}
+            list={
+              payrollGroups.length > 0 ? "payroll-group-options" : undefined
+            }
             defaultValue={current?.payrollGroupCode ?? ""}
           />
           {payrollGroups.length > 0 ? (

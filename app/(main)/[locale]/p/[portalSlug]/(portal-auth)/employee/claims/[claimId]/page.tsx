@@ -1,6 +1,5 @@
 import { EmployeePortalClaimDetailPage } from "#features/hrm"
 
-
 type RouteProps = {
   params: Promise<{ portalSlug: string; claimId: string }>
 }

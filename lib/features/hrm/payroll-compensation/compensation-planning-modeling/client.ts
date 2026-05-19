@@ -6,14 +6,14 @@ export {
   hrmContractAnnexSlotsSchema,
   parseAllowanceLineInputsFromForm,
   tryBuildAnnexSlotsFromForm,
-} from "./schema/contract-compensation.shared"
+} from "./schemas/contract-compensation.shared"
 
 export type {
   HrmCompensationComponentCode,
   HrmCompensationSnapshotEntry,
   HrmContractAnnexSlot,
   HrmAllowanceLineFormParsed,
-} from "./schema/contract-compensation.shared"
+} from "./schemas/contract-compensation.shared"
 
 export {
   HRM_COMPENSATION_ADJUSTMENT_TYPES,
@@ -31,7 +31,7 @@ export {
   hrmCompensationRecommendationModelInputSchema,
   hrmCompensationRecommendationStateSchema,
   hrmCompensationSalaryStructureReferenceSchema,
-} from "./schema/compensation-planning.shared"
+} from "./schemas/compensation-planning.shared"
 
 export type {
   HrmCompensationAdjustmentType,
@@ -48,4 +48,16 @@ export type {
   HrmCompensationRecommendationModelInput,
   HrmCompensationRecommendationState,
   HrmCompensationSalaryStructureReference,
-} from "./schema/compensation-planning.shared"
+} from "./schemas/compensation-planning.shared"
+
+export {
+  createCompensationCycleAction,
+  syncCompensationCycleParticipantsAction,
+} from "./actions/cpm-cycle.actions"
+
+export { createCompensationBudgetPoolAction } from "./actions/cpm-budget-pool.actions"
+
+export type {
+  CreateCompensationCycleFormState,
+  CreateCompensationBudgetPoolFormState,
+} from "./schemas/cpm.schema"

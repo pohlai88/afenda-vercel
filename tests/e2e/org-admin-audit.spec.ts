@@ -40,7 +40,7 @@ test.describe("org admin audit (optional credentials)", () => {
         resolveOrgSlugFromSession(page, orgSlugFromEnv))
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /bootstrap or /o."
       )
 
       await test.step("Open audit listing", async () => {
@@ -69,7 +69,7 @@ test.describe("org admin audit (optional credentials)", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /bootstrap or /o."
       )
 
       await openAuditPage(page, slug!)
@@ -110,7 +110,7 @@ test.describe("org admin audit (optional credentials)", () => {
       const slug = await resolveOrgSlugFromSession(page, orgSlugFromEnv)
       test.skip(
         !slug,
-        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /console."
+        "No active organization slug detected — set E2E_ORG_SLUG or finish setup at /bootstrap or /o."
       )
 
       await test.step("Workbench overview + sidebar", async () => {

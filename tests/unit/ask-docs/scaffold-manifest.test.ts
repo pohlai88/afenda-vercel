@@ -24,7 +24,9 @@ afterEach(() => {
 function makeTempRoot() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ask-docs-manifest-"))
   tempDirs.push(dir)
-  fs.mkdirSync(path.join(dir, "content", "ask-docs", "hrm"), { recursive: true })
+  fs.mkdirSync(path.join(dir, "content", "ask-docs", "hrm"), {
+    recursive: true,
+  })
   return dir
 }
 
@@ -67,7 +69,9 @@ describe("ask-docs scaffold manifest", () => {
       validateManifestEntry(validEntry, 0, root),
       validateManifestEntry({ ...validEntry, title: "Other title" }, 1, root),
     ]
-    expect(() => findDuplicateKeys(entries)).toThrow(/duplicate manifest entries/)
+    expect(() => findDuplicateKeys(entries)).toThrow(
+      /duplicate manifest entries/
+    )
   })
 
   it("checkMetaJsonSidebar warns when slug is missing from meta.json pages", () => {

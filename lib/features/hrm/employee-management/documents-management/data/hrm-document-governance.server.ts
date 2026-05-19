@@ -268,14 +268,17 @@ export async function getEmployeeDocumentReadiness(input: {
       name: requirement.name,
       documentType: requirement.documentType,
       documentGroup:
-        requirement.documentGroup || deriveHrmDocumentGroup(requirement.documentType),
+        requirement.documentGroup ||
+        deriveHrmDocumentGroup(requirement.documentType),
       state,
       documentId: document?.id ?? null,
       isMandatory: requirement.isMandatory,
     } satisfies EmployeeDocumentReadinessRequirement
   })
 
-  const readyCount = requirementStates.filter((row) => row.state === "ready").length
+  const readyCount = requirementStates.filter(
+    (row) => row.state === "ready"
+  ).length
   const missingCount = requirementStates.filter(
     (row) => row.state === "missing"
   ).length
@@ -363,7 +366,9 @@ export async function findRetentionRule(input: {
     eq(hrmDocumentRetentionRule.status, "active"),
   ]
   if (input.retentionPolicyCode) {
-    predicates.push(eq(hrmDocumentRetentionRule.code, input.retentionPolicyCode))
+    predicates.push(
+      eq(hrmDocumentRetentionRule.code, input.retentionPolicyCode)
+    )
   } else {
     pushSqlPredicate(
       predicates,

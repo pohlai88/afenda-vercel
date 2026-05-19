@@ -1,0 +1,102 @@
+---
+description: Bootstrap three-layer boundary — app routes, lib/features/bootstrap, components2/bootstrap. STOP IDE drift.
+globs: app/(main)/[locale]/bootstrap/**,app/(main)/[locale]/o/page.tsx,lib/features/bootstrap/**,components2/bootstrap/**
+alwaysApply: false
+---
+
+# Bootstrap three-layer boundary — IDE anti-drift contract
+
+**Canonical decision:** [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift.md) (AGENTS.md **PRIORITY #2**) · Layer 1 seal: [`app/(main)/[locale]/bootstrap/_SEAL.md`](../../app/(main)/[locale]/bootstrap/_SEAL.md)
+
+**If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.**
+
+Post-login **first-run** and **org dispatcher** use **one product name: `bootstrap`**.
+
+| URL | Layer 2 page | Role |
+| --- | --- | --- |
+| `/bootstrap` | `BootstrapSetupPage` | 0-org invites + create org |
+| `/o` | `OrgDispatchPage` | Org resolution + inline multi-org picker |
+
+**Retired:** `/console` — no redirects, no `lib/features/console/`, no `components2/console/`.
+
+Mechanical guard: [`tests/unit/bootstrap-surface-contract.test.ts`](tests/unit/bootstrap-surface-contract.test.ts)
+
+---
+
+## Prime directive
+
+```txt
+Layer 1 — app/           → URL + thin re-exports ONLY
+Layer 2 — lib/features/  → dispatch, metadata, fetch, RSC orchestrators (compose only)
+Layer 3 — components2/   → shells, picker JSX, client forms (paint only)
+```
+
+**Import doors:**
+
+| Layer | Door |
+| --- | --- |
+| Layer 2 | `#features/bootstrap` · `#features/bootstrap/server` |
+| Layer 3 | `#components2/bootstrap` |
+
+Session reverify is **not** bootstrap — use `iam-profile/reverify` + `components2/auth/step-up-reverify-shell.tsx` ([`iam-profile-directory.mdc`](iam-profile-directory.mdc)).
+
+---
+
+## Layer 1 — `app/.../bootstrap/` and `app/.../o/page.tsx`
+
+**Allowed in `page.tsx`:**
+
+```tsx
+export {
+  generateBootstrapMetadata as generateMetadata,
+  BootstrapSetupPage as default,
+} from "#features/bootstrap/server"
+
+export { OrgDispatchPage as default } from "#features/bootstrap/server"
+```
+
+**Forbidden in Layer 1:**
+
+| Action | Why |
+| --- | --- |
+| `resolvePostLoginOrgDispatch`, redirects, org lists | Layer 2 |
+| `#components2/bootstrap` imports | Layer 3 via Layer 2 only |
+| Recreate `/console` or `lib/features/console/` | Retired |
+
+---
+
+## Layer 2 — `lib/features/bootstrap/`
+
+**Owns:** `post-login-org-dispatch.server.ts`, metadata, deferred shell, page orchestrators.
+
+**Allowed module root:** `actions/` · `data/` · `components/` · `schemas/` · `index.ts` · `server.ts` · `client.ts` · `types.ts` · `constants.ts` · `*.contract.ts` · `README.md`
+
+**Forbidden at `lib/features/bootstrap/` root:** `_SEAL.md`
+
+**Orchestrator rule:** Layer 2 pages fetch, redirect, and pass serializable props into Layer 3 — **no** `#components2/ui/*`, **no** `#components2/afenda-brand`, **no** layout JSX beyond composition.
+
+---
+
+## Layer 3 — `components2/bootstrap/`
+
+| File | Role |
+| --- | --- |
+| `bootstrap-first-run-shell.tsx` | 0-org page chrome |
+| `org-dispatch-picker.tsx` | Multi-org picker on `/o` |
+| `bootstrap-pending-invites.tsx` | Invite list presentation |
+| `bootstrap-create-org-form.client.tsx` | Create-org form |
+| `bootstrap-loading.tsx` | Route loading skeleton |
+
+**May import:** `#components2/ui/*`, `#features/org-admin/client` (picker form action only).
+
+**Forbidden:** fetch graphs, `redirect()`, `resolvePostLoginOrgDispatch`.
+
+---
+
+## Verification
+
+```bash
+pnpm lint:path -- lib/features/bootstrap components2/bootstrap
+pnpm test:fast -- tests/unit/bootstrap-surface-contract.test.ts
+node scripts/check-agent-contract.mjs
+```

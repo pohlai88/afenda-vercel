@@ -184,10 +184,7 @@ export async function POST(
 
   // Successful transition or already-acknowledged: revalidate compliance
   // dashboards so HR sees the new state on next render.
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/compliance"),
-    "page"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/compliance"), "page")
 
   if (result.status === "already_acknowledged") {
     return routeJsonOk({

@@ -21,7 +21,9 @@ type AppShellGlobalShortcutsProps = {
   orgSlug: string
 }
 
-export function AppShellGlobalShortcuts({ orgSlug }: AppShellGlobalShortcutsProps) {
+export function AppShellGlobalShortcuts({
+  orgSlug,
+}: AppShellGlobalShortcutsProps) {
   const router = useRouter()
   const commandOpen = useAppShellStore((s) => s.commandOpen)
   const openCommand = useAppShellStore((s) => s.openCommand)

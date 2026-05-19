@@ -2,7 +2,6 @@ import { ComplianceEvidenceDetailPage } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
-
 type OrgAppsHrmComplianceEvidenceDetailPageProps = {
   params: Promise<{
     locale: string

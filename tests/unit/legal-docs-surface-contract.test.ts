@@ -69,10 +69,12 @@ describe("Legal-docs three-layer seals", () => {
   })
 
   it("retired split modules stay deleted", () => {
-    expect(existsSync(join(ROOT, "lib", "features", "public-trust"))).toBe(false)
-    expect(existsSync(join(ROOT, "lib", "features", "legal-declarations"))).toBe(
+    expect(existsSync(join(ROOT, "lib", "features", "public-trust"))).toBe(
       false
     )
+    expect(
+      existsSync(join(ROOT, "lib", "features", "legal-declarations"))
+    ).toBe(false)
   })
 })
 

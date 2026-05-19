@@ -283,17 +283,23 @@ export async function getEmployeeComplianceSummary(
 
     workAuthorizationCount: workAuthorizations.length,
     workAuthorizationAtRisk: workStatuses.filter((s) => s === "at_risk").length,
-    workAuthorizationExpired: workStatuses.filter((s) => s === "expired").length,
+    workAuthorizationExpired: workStatuses.filter((s) => s === "expired")
+      .length,
 
     documentCount: documents.length,
     documentAtRisk: documentStatuses.filter((s) => s === "at_risk").length,
     documentExpired: documentStatuses.filter((s) => s === "expired").length,
-    documentPendingVerification: documentStatuses.filter((s) => s === "pending").length,
+    documentPendingVerification: documentStatuses.filter((s) => s === "pending")
+      .length,
 
     mandatoryTrainingCount: mandatoryTraining.length,
-    mandatoryTrainingOverdue: trainingStatuses.filter((s) => s === "overdue").length,
-    mandatoryTrainingAtRisk: trainingStatuses.filter((s) => s === "at_risk").length,
-    mandatoryTrainingCertExpired: trainingStatuses.filter((s) => s === "expired").length,
+    mandatoryTrainingOverdue: trainingStatuses.filter((s) => s === "overdue")
+      .length,
+    mandatoryTrainingAtRisk: trainingStatuses.filter((s) => s === "at_risk")
+      .length,
+    mandatoryTrainingCertExpired: trainingStatuses.filter(
+      (s) => s === "expired"
+    ).length,
 
     acknowledgedPolicyCount: acknowledgedPolicies.length,
     missingAcknowledgementCount,

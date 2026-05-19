@@ -80,12 +80,12 @@ describe("HRM FWA list-surface builders", () => {
       object: "flexible_work",
       function: "read",
     })
-    expect(parsed.data.surface.columnsId).toBe(FWA_LIST_SURFACE_IDS.pendingInbox)
+    expect(parsed.data.surface.columnsId).toBe(
+      FWA_LIST_SURFACE_IDS.pendingInbox
+    )
     expect(parsed.data.rows[0]?.trailingAction?.state).toBe("ready")
     expect(parsed.data.rows[1]?.trailingAction?.state).toBe("hidden")
-    expect(
-      parsed.data.columns.find((column) => column.id === "state")
-    ).toEqual(
+    expect(parsed.data.columns.find((column) => column.id === "state")).toEqual(
       expect.objectContaining({
         cellKind: { kind: "badge", tone: "attention" },
       })

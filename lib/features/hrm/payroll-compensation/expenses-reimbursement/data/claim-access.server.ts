@@ -69,10 +69,7 @@ export async function resolveClaimSurfaceAccess(input: {
   const canSubmitOnBehalf = canCreateClaim || canUpdateClaim
   const hasSelfServiceEmployee = Boolean(employee)
   const isFundCustodian = employee
-    ? await isEmployeeExpenseFundCustodian(
-        input.organizationId,
-        employee.id
-      )
+    ? await isEmployeeExpenseFundCustodian(input.organizationId, employee.id)
     : false
 
   return {

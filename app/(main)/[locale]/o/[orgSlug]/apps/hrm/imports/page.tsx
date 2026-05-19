@@ -6,7 +6,6 @@ import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getErpPermissionDefinition } from "#features/erp-rbac"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
-
 export default async function OrgAppsHrmImportsPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/apps/hrm/imports">) {

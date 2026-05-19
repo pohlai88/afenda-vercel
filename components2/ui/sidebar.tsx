@@ -18,7 +18,11 @@ import {
   SheetTitle,
 } from "#components2/ui/sheet"
 import { Skeleton } from "#components2/ui/skeleton"
-import { Tooltip, TooltipContent, TooltipTrigger } from "#components2/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "#components2/ui/tooltip"
 import { PanelLeftIcon } from "lucide-react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"

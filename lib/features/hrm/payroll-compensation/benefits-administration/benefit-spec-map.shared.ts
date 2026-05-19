@@ -78,8 +78,7 @@ export const HRM_BENEFIT_SPEC_MAP = {
   benefitCompliance: {
     status: "shipped",
     codes: ["HRM-BEN-003", "HRM-BEN-004", "HRM-BEN-027", "HRM-BEN-028"],
-    note:
-      "Eligibility governance + ERP RBAC + IAM audit; statutory ACA/1095 in acaReporting (out of scope)",
+    note: "Eligibility governance + ERP RBAC + IAM audit; statutory ACA/1095 in acaReporting (out of scope)",
   },
   benefitReporting: {
     status: "shipped",

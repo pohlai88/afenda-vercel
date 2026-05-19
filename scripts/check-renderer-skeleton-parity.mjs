@@ -19,7 +19,9 @@ const rendererIdBlock = registrySource.match(
   /export type AfendaGovernedRendererId\s*=\s*([\s\S]*?)(?:\n\n|\n\/\*\*)/
 )
 if (!rendererIdBlock) {
-  console.error("check-renderer-skeleton-parity: could not parse renderer id union")
+  console.error(
+    "check-renderer-skeleton-parity: could not parse renderer id union"
+  )
   process.exit(1)
 }
 
@@ -35,9 +37,9 @@ if (uniqueIds.length === 0) {
 }
 
 const skeletonSource = fs.readFileSync(skeletonPath, "utf8")
-const caseIds = [
-  ...skeletonSource.matchAll(/case\s+"([^"]+)":/g),
-].map((m) => m[1])
+const caseIds = [...skeletonSource.matchAll(/case\s+"([^"]+)":/g)].map(
+  (m) => m[1]
+)
 
 const missingCases = uniqueIds.filter((id) => !caseIds.includes(id))
 const orphanCases = caseIds.filter((id) => !uniqueIds.includes(id))

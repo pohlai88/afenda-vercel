@@ -74,9 +74,9 @@ Canonical recipe: [ADR-0026 § Pattern C](../decisions/0026-metadata-driven-ui-a
 | Organization health issues | `organization-structure-list-sections.tsx` (`hrm:organization:health`) | 9.5 |
 | Claims lifecycle kanban | `claim-kanban-section.tsx` (`hrm:claims:kanban`) | 9.5 |
 
-**Recruitment pipeline kanban** uses `GovernedKanbanFooterSection` + `GovernedKanbanFooterBoard` + `RecruitmentPipelineCardActions` (`footer-actions`, `hrm:recruitment:pipeline`); validate at `/{locale}/dev/metadata-renderer-gallery` (`kanban-recruitment` read-only + `kanban-recruitment-footer` + `kanban-recruitment-drag` scenarios).
+**Recruitment pipeline kanban** uses `GovernedKanbanFooterSection` + `GovernedKanbanFooterBoard` + `RecruitmentPipelineCardActions` (`footer-actions`, `hrm:recruitment:pipeline`); validate at `/{locale}/playground/metadata-renderer-gallery` (`kanban-recruitment` read-only + `kanban-recruitment-footer` + `kanban-recruitment-drag` scenarios).
 
-**Claims kanban** uses the same Pattern K shell with `ClaimKanbanCardFooter` (approve/reject + detail link on submitted cards); `loadError` when `listClaimsForOrg` fails. Dev gallery: `kanban-claims-footer` at `/en/dev/metadata-renderer-gallery`.
+**Claims kanban** uses the same Pattern K shell with `ClaimKanbanCardFooter` (approve/reject + detail link on submitted cards); `loadError` when `listClaimsForOrg` fails. Dev gallery: `kanban-claims-footer` at `/en/playground/metadata-renderer-gallery`.
 
 ---
 
@@ -84,7 +84,7 @@ Canonical recipe: [ADR-0026 § Pattern C](../decisions/0026-metadata-driven-ui-a
 
 | Gate | Command / path |
 | --- | --- |
-| Dev fixtures | `/en/dev/pattern-c-section-gallery` |
+| Dev fixtures | `/en/playground/pattern-c-section-gallery` |
 | Playwright smoke | `pnpm test:e2e -- tests/e2e/governed-pattern-c-section.spec.ts` |
 | Unit (trailing metadata) | `pnpm test:fast -- tests/unit/governed-surface/list-surface-trailing-action.test.ts` |
 | Unit (list identity / diagnostics) | `pnpm test:fast -- tests/unit/governed-surface/list-surface-identity.test.ts` |

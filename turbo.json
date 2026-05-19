@@ -174,7 +174,8 @@
     },
     "lint:renderer-fixtures": {
       "inputs": [
-        "components2/dev/metadata-renderer-gallery/**",
+        "lib/features/playground/data/gallery-scenarios.ts",
+        "lib/features/playground/data/gallery-fixtures.ts",
         "scripts/check-renderer-fixtures.mjs"
       ]
     },
@@ -187,10 +188,7 @@
       ]
     },
     "lint:feature-table-imports": {
-      "inputs": [
-        "lib/features/**",
-        "scripts/check-feature-table-imports.mjs"
-      ]
+      "inputs": ["lib/features/**", "scripts/check-feature-table-imports.mjs"]
     },
     "typecheck": {
       "inputs": [

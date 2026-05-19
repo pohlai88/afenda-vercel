@@ -45,7 +45,9 @@ export async function resolveClaimEmployeeLegalEntityCode(input: {
     )
     .limit(1)
 
-  return readPayrollProfileLegalEntityCode(profile?.statutoryProfileExtras ?? null)
+  return readPayrollProfileLegalEntityCode(
+    profile?.statutoryProfileExtras ?? null
+  )
 }
 
 export type ClaimEmployeeEligibilityProjection = {

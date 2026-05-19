@@ -18,7 +18,7 @@ import { Textarea } from "#components2/ui/textarea"
 import {
   resolveFormFieldRuleState,
   type FormRuleValues,
-} from "#features/governed-surface/form-rules.evaluate.shared"
+} from "#features/governed-surface/client"
 import type {
   GovernedFormField,
   GovernedMultiStepFormConfiguration,
@@ -76,10 +76,7 @@ export function MultiStepFormSurface({
           ) : null}
         </CardHeader>
         <CardContent
-          className={cn(
-            "flex flex-col",
-            densityGapClass(form.chrome?.density)
-          )}
+          className={cn("flex flex-col", densityGapClass(form.chrome?.density))}
         >
           <ol className="flex flex-wrap gap-2" aria-label="Form steps">
             {form.steps.map((s, index) => (

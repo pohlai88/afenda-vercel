@@ -49,7 +49,10 @@ type SignInFormContextValue = {
   stepUp: boolean
   lockMode: boolean
   enabledSocialProviders: string[]
-  focusFieldForMode: (nextMode: SignInFormMode, nextKind: SignInFormAuthKind) => void
+  focusFieldForMode: (
+    nextMode: SignInFormMode,
+    nextKind: SignInFormAuthKind
+  ) => void
   onSubmit: (e: React.FormEvent) => void
   onOAuth: (provider: "google" | "github") => void | Promise<void>
 }

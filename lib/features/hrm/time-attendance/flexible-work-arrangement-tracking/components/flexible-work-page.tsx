@@ -121,19 +121,31 @@ export async function FlexibleWorkPage({
   ])
 
   if (!employeesResult.ok) {
-    logUnexpectedServerError("flexible-work-page: employees query failed", employeesResult.error, {
-      organizationId,
-    })
+    logUnexpectedServerError(
+      "flexible-work-page: employees query failed",
+      employeesResult.error,
+      {
+        organizationId,
+      }
+    )
   }
   if (!typesResult.ok) {
-    logUnexpectedServerError("flexible-work-page: types query failed", typesResult.error, {
-      organizationId,
-    })
+    logUnexpectedServerError(
+      "flexible-work-page: types query failed",
+      typesResult.error,
+      {
+        organizationId,
+      }
+    )
   }
   if (!activeRowsResult.ok) {
-    logUnexpectedServerError("flexible-work-page: active rows query failed", activeRowsResult.error, {
-      organizationId,
-    })
+    logUnexpectedServerError(
+      "flexible-work-page: active rows query failed",
+      activeRowsResult.error,
+      {
+        organizationId,
+      }
+    )
   }
 
   const employees = employeesResult.ok ? employeesResult.value : []
@@ -158,8 +170,7 @@ export async function FlexibleWorkPage({
 
   const canRequestOnBehalf =
     fwaAccess.canManage && employees.length > 0 && arrangementTypes.length > 0
-  const canRequestSelf =
-    Boolean(selfEmployee) && arrangementTypes.length > 0
+  const canRequestSelf = Boolean(selfEmployee) && arrangementTypes.length > 0
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -261,10 +272,16 @@ export async function FlexibleWorkPage({
       </Card>
 
       {selfEmployee ? (
-        <FwaMyArrangementsSection rows={myActiveRows} loadError={activeLoadError} />
+        <FwaMyArrangementsSection
+          rows={myActiveRows}
+          loadError={activeLoadError}
+        />
       ) : null}
 
-      <FwaActiveArrangementsSection rows={orgActiveRows} loadError={activeLoadError} />
+      <FwaActiveArrangementsSection
+        rows={orgActiveRows}
+        loadError={activeLoadError}
+      />
     </div>
   )
 }

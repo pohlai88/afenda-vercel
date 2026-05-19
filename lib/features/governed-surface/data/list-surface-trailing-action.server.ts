@@ -45,9 +45,8 @@ export async function resolveListSurfaceRowTrailingActionsForErpPermission<
   const entries = await Promise.all(
     rows.map(async (row) => {
       const input = await resolveInput(row)
-      const action = await resolveListSurfaceRowTrailingActionForErpPermission(
-        input
-      )
+      const action =
+        await resolveListSurfaceRowTrailingActionForErpPermission(input)
       return [row.id, action] as const
     })
   )

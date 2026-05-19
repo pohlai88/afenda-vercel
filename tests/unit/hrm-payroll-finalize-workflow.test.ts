@@ -61,25 +61,37 @@ vi.mock("#lib/auth/org-slug.server", () => ({
   getOrganizationSlugById: vi.fn(),
 }))
 
-vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-engine.server.ts", () => ({
-  computePayrollRun: vi.fn(),
-}))
+vi.mock(
+  "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-engine.server.ts",
+  () => ({
+    computePayrollRun: vi.fn(),
+  })
+)
 
-vi.mock("../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server.ts", () => ({
-  resolveRulePack: vi.fn(),
-}))
+vi.mock(
+  "../../lib/features/hrm/payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server.ts",
+  () => ({
+    resolveRulePack: vi.fn(),
+  })
+)
 
-vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts", () => ({
-  getPayrollPeriod: vi.fn(),
-  getPayrollRunInputSnapshot: vi.fn(),
-  listPayrollRunsForPeriod: vi.fn(),
-}))
+vi.mock(
+  "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts",
+  () => ({
+    getPayrollPeriod: vi.fn(),
+    getPayrollRunInputSnapshot: vi.fn(),
+    listPayrollRunsForPeriod: vi.fn(),
+  })
+)
 
-vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.mutations.server.ts", () => ({
-  deletePayrollLinesForRun: vi.fn(),
-  insertPayrollLines: vi.fn(),
-  updatePayrollRun: vi.fn(),
-}))
+vi.mock(
+  "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.mutations.server.ts",
+  () => ({
+    deletePayrollLinesForRun: vi.fn(),
+    insertPayrollLines: vi.fn(),
+    updatePayrollRun: vi.fn(),
+  })
+)
 
 import { revalidatePath } from "next/cache"
 

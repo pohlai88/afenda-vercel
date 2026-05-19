@@ -88,8 +88,7 @@ export async function listComplianceExceptionsForOrg(
       status: hrmComplianceException.status,
       correctiveActionOwnerUserId:
         hrmComplianceException.correctiveActionOwnerUserId,
-      correctiveActionDueDate:
-        hrmComplianceException.correctiveActionDueDate,
+      correctiveActionDueDate: hrmComplianceException.correctiveActionDueDate,
       correctiveActionDescription:
         hrmComplianceException.correctiveActionDescription,
       correctiveActionProgressNote:

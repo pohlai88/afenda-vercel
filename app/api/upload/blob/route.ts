@@ -16,7 +16,6 @@ import {
   canUploadPortalEmployeeDocument,
 } from "#features/hrm/server"
 
-
 const WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES = [
   "image/jpeg",
   "image/png",
@@ -164,7 +163,9 @@ async function isAllowedPortalHrmUploadPath(input: {
     organizationId: parsed.organizationId,
     employeeId: parsed.employeeId,
   })
-  return allowed ? { ok: true, organizationId: parsed.organizationId } : { ok: false }
+  return allowed
+    ? { ok: true, organizationId: parsed.organizationId }
+    : { ok: false }
 }
 
 function isAllowedOrbitUploadPath(orgId: string, pathname: string): boolean {
@@ -220,9 +221,7 @@ export async function POST(request: Request) {
         if (!orgSession) {
           const parsedClientPayload = parseClientPayload(clientPayload)
           const portalOrganizationId =
-            portalUpload && portalUpload.ok
-              ? portalUpload.organizationId
-              : null
+            portalUpload && portalUpload.ok ? portalUpload.organizationId : null
           return {
             allowedContentTypes: [
               ...WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES,

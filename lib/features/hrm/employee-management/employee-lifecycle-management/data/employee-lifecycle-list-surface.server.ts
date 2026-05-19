@@ -30,7 +30,10 @@ type EmployeeLifecycleListCopy = {
   emptyValue: string
 }
 
-function displayOrDash(value: string | null | undefined, emptyValue: string): string {
+function displayOrDash(
+  value: string | null | undefined,
+  emptyValue: string
+): string {
   if (value == null || value.trim().length === 0) return emptyValue
   return value
 }
@@ -80,7 +83,10 @@ export function buildEmployeeLifecycleListSurfaceConfiguration(
         pendingTransitionCount: String(row.pendingTransitionCount),
         lastWorkingDate: displayOrDash(row.lastWorkingDate, copy.emptyValue),
         reason: displayOrDash(row.reason, copy.emptyValue),
-        approvalReference: displayOrDash(row.approvalReference, copy.emptyValue),
+        approvalReference: displayOrDash(
+          row.approvalReference,
+          copy.emptyValue
+        ),
       },
     })),
   }

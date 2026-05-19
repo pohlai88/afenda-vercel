@@ -63,7 +63,7 @@ Skills applied: **shadcn-metadata**, **frontend-design-review**, **frontend-skil
 
 | Deliverable | Status |
 |-------------|--------|
-| Dev gallery `/en/dev/pattern-c-section-gallery` | **Done** — forbidden, invalid, empty, trailing-disabled |
+| Dev gallery `/en/playground/pattern-c-section-gallery` | **Done** — forbidden, invalid, empty, trailing-disabled |
 | `data-testid` on `GovernedPatternCListSection` | **Done** — `governed-list-section:{surfaceKey}` |
 | Playwright smoke | **Done** — `tests/e2e/governed-pattern-c-section.spec.ts` |
 | Section composition score doc | **Done** — `docs/architecture/governed-section-composition-score.md` |

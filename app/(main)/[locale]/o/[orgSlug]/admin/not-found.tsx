@@ -24,8 +24,8 @@ export default function OrgAdminNotFound() {
         <p className="text-sm font-medium text-muted-foreground">404</p>
         <h1 className="text-lg font-medium text-foreground">Page not found</h1>
         <p className="max-w-md text-sm text-muted-foreground">
-          The organization admin surface is still available — use the sidebar to navigate
-          to another section.
+          The organization admin surface is still available — use the sidebar to
+          navigate to another section.
         </p>
       </div>
       {params?.orgSlug ? (

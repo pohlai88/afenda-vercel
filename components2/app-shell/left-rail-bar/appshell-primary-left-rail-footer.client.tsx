@@ -107,14 +107,7 @@ export function AppShellPrimaryLeftRailFooter({
       { mode: "hover", label: hover, description: hoverHelp },
       { mode: "collapsed", label: collapsedLabel, description: collapsedHelp },
     ],
-    [
-      collapsedHelp,
-      collapsedLabel,
-      expanded,
-      expandedHelp,
-      hover,
-      hoverHelp,
-    ]
+    [collapsedHelp, collapsedLabel, expanded, expandedHelp, hover, hoverHelp]
   )
 
   return (

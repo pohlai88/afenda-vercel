@@ -22,13 +22,25 @@ function targetPath(repoPath) {
         "components2",
         "app-shell",
         "left-rail-bar",
-        tail.replace(/^left-nav-rail\/workbench-rail/, "appshell-primary-left-rail")
+        tail.replace(
+          /^left-nav-rail\/workbench-rail/,
+          "appshell-primary-left-rail"
+        )
       )
     }
     if (tail.startsWith("utility-bar/")) {
-      return path.join("components2", "app-shell", "top-utils-bar", tail.slice("utility-bar/".length).replace(/^workbench-/, "appshell-"))
+      return path.join(
+        "components2",
+        "app-shell",
+        "top-utils-bar",
+        tail.slice("utility-bar/".length).replace(/^workbench-/, "appshell-")
+      )
     }
-    return path.join("components2", "app-shell", tail.replace(/^workbench-/, "appshell-"))
+    return path.join(
+      "components2",
+      "app-shell",
+      tail.replace(/^workbench-/, "appshell-")
+    )
   }
   if (rel === "module-page-header.tsx") {
     return path.join(
@@ -118,7 +130,9 @@ for (const repoPath of files) {
 }
 
 if (!APPLY) {
-  console.log(`\nDry run: ${planned} file(s), ${skipped} skipped. Pass --apply to write.`)
+  console.log(
+    `\nDry run: ${planned} file(s), ${skipped} skipped. Pass --apply to write.`
+  )
 } else {
   console.log(`Wrote ${planned} file(s), skipped ${skipped}.`)
 }

@@ -28,7 +28,9 @@ export function BenefitOpenEnrollmentPanel({
 
   if (!isAdmin) {
     return (
-      <p className="text-sm text-muted-foreground">{t("openEnrollment.memberReadOnly")}</p>
+      <p className="text-sm text-muted-foreground">
+        {t("openEnrollment.memberReadOnly")}
+      </p>
     )
   }
 
@@ -73,7 +75,9 @@ function CreateOpenEnrollmentForm({
         </Alert>
       ) : null}
       <Field>
-        <FieldLabel htmlFor={nameId}>{t("openEnrollment.fieldName")}</FieldLabel>
+        <FieldLabel htmlFor={nameId}>
+          {t("openEnrollment.fieldName")}
+        </FieldLabel>
         <Input id={nameId} name="name" required maxLength={256} />
         {err?.name ? (
           <p className="text-xs text-destructive">{err.name}</p>
@@ -81,14 +85,18 @@ function CreateOpenEnrollmentForm({
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor={startsId}>{t("openEnrollment.fieldStartsOn")}</FieldLabel>
+          <FieldLabel htmlFor={startsId}>
+            {t("openEnrollment.fieldStartsOn")}
+          </FieldLabel>
           <Input id={startsId} name="startsOn" type="date" required />
           {err?.startsOn ? (
             <p className="text-xs text-destructive">{err.startsOn}</p>
           ) : null}
         </Field>
         <Field>
-          <FieldLabel htmlFor={endsId}>{t("openEnrollment.fieldEndsOn")}</FieldLabel>
+          <FieldLabel htmlFor={endsId}>
+            {t("openEnrollment.fieldEndsOn")}
+          </FieldLabel>
           <Input id={endsId} name="endsOn" type="date" required />
           {err?.endsOn ? (
             <p className="text-xs text-destructive">{err.endsOn}</p>

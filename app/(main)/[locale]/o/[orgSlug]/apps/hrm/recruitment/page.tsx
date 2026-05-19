@@ -2,7 +2,6 @@ import { RecruitmentPage } from "#features/hrm"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
-
 export default async function OrgAppsHrmRecruitmentPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/apps/hrm/recruitment">) {

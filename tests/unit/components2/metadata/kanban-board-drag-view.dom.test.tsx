@@ -39,9 +39,7 @@ describe("KanbanBoardDragView", () => {
   })
 
   it("enables drag on cards with ready transitions", () => {
-    render(
-      <KanbanBoardDragView board={DRAG_BOARD} onCardMove={vi.fn()} />
-    )
+    render(<KanbanBoardDragView board={DRAG_BOARD} onCardMove={vi.fn()} />)
 
     const board = screen.getByTestId("governed-kanban-board")
     expect(board.getAttribute("data-interaction-mode")).toBe("drag-reorder")

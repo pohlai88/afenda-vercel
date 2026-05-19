@@ -70,7 +70,9 @@ function lintFile(filePath) {
   }
 
   if (fm.audience === "employee" && EMPLOYEE_BAD_PREREQ.test(raw)) {
-    errors.push("employee audience must not use generic workspace prerequisite copy")
+    errors.push(
+      "employee audience must not use generic workspace prerequisite copy"
+    )
   }
 
   if (fm.status === "stable" && !fm.lastReviewedAt) {
@@ -81,7 +83,9 @@ function lintFile(filePath) {
     if (!/^## (?:Related|Next steps)/m.test(raw)) {
       errors.push("portals pages require ## Related or ## Next steps")
     } else if (!hasRelatedGraph(raw)) {
-      errors.push("portals Related/Next steps needs <Cards> or ≥2 internal links")
+      errors.push(
+        "portals Related/Next steps needs <Cards> or ≥2 internal links"
+      )
     }
     if (!/<Callout\b/.test(raw) && !/<Steps>/.test(raw)) {
       errors.push("portals pages require <Steps> or <Callout>")

@@ -6,12 +6,7 @@ import {
   isListSurfaceTrailingActionRenderable,
 } from "#features/governed-surface"
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "#components2/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "#components2/ui/card"
 
 import { buildComplianceEvidenceRegisterListSurfaceConfiguration } from "../data/compliance-list-surface.server"
 import { compliancePackTypeLabel } from "../data/compliance-pack-labels.shared"
@@ -85,9 +80,8 @@ export async function ComplianceEvidenceRegisterListSection({
     getFormatter(),
   ])
   const subscribedPackTypeSet = new Set(packTypesWithSubscribedEndpoint)
-  const listConfiguration = buildComplianceEvidenceRegisterListSurfaceConfiguration(
-    evidenceRows,
-    {
+  const listConfiguration =
+    buildComplianceEvidenceRegisterListSurfaceConfiguration(evidenceRows, {
       empty: t("emptyFinalizePeriod"),
       colPack: t("colPack"),
       colState: t("colState"),
@@ -96,8 +90,7 @@ export async function ComplianceEvidenceRegisterListSection({
       packLabelFor: compliancePackTypeLabel,
       formatGenerated: (value) =>
         format.dateTime(value, { dateStyle: "medium" }),
-    }
-  )
+    })
   const trailingById = new Map(
     evidenceRows.map((row) => [
       row.id,

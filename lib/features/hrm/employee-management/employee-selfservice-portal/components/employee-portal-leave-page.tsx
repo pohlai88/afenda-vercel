@@ -54,8 +54,7 @@ export async function EmployeePortalLeavePage({
     listLeaveRequestsForEmployee(organizationId, employeeId),
   ])
 
-  const stateLabelFor = (state: string) =>
-    t(`state.${state}` as "state.draft")
+  const stateLabelFor = (state: string) => t(`state.${state}` as "state.draft")
 
   const historyRows = requests.slice(0, 10)
   const balanceConfiguration = buildLeaveBalanceListSurfaceConfiguration(
@@ -152,7 +151,9 @@ export async function EmployeePortalLeavePage({
                       return null
                     }
                     return (
-                      <GovernedTrailingActionSlot trailingAction={trailingAction}>
+                      <GovernedTrailingActionSlot
+                        trailingAction={trailingAction}
+                      >
                         <EmployeePortalLeaveCancelButton
                           portalSlug={context.portal.portalSlug}
                           requestId={request.id}

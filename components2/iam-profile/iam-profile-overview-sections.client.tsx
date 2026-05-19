@@ -9,9 +9,7 @@ import { Button } from "#components2/ui/button"
 import { sendVerificationEmailAction } from "#features/iam-profile/client"
 
 import { IamProfileContextBand } from "./iam-profile-context-band"
-import {
-  IamProfileDangerPanels,
-} from "./iam-profile-danger-panels.client"
+import { IamProfileDangerPanels } from "./iam-profile-danger-panels.client"
 import {
   IamProfileMembershipPanels,
   type IamProfileMembershipOrgRow,

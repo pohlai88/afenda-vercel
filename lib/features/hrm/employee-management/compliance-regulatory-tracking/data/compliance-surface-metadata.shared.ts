@@ -17,12 +17,21 @@ export const HRM_COMPLIANCE_SURFACE_COLUMNS = [
   { id: "documentMissing", label: "Missing docs", valueType: "number" },
   { id: "documentExpired", label: "Expired docs", valueType: "number" },
   { id: "trainingOverdue", label: "Overdue training", valueType: "number" },
-  { id: "missingAcknowledgementCount", label: "Missing policy", valueType: "number" },
+  {
+    id: "missingAcknowledgementCount",
+    label: "Missing policy",
+    valueType: "number",
+  },
   { id: "openExceptionCount", label: "Open exceptions", valueType: "number" },
 ] as const
 
 export const HRM_COMPLIANCE_SURFACE_FILTERS = [
-  { id: "overallStatus", label: "Compliance", type: "enum", options: HRM_COMPLIANCE_STATUSES },
+  {
+    id: "overallStatus",
+    label: "Compliance",
+    type: "enum",
+    options: HRM_COMPLIANCE_STATUSES,
+  },
   { id: "departmentId", label: "Department", type: "department" },
   { id: "workLocationCode", label: "Location", type: "text" },
   { id: "legalEntityCode", label: "Legal entity", type: "text" },
@@ -32,8 +41,16 @@ export const HRM_COMPLIANCE_SURFACE_FILTERS = [
 
 export const HRM_COMPLIANCE_SURFACE_ROW_ACTIONS = [
   { id: "viewEmployee", label: "Employee", permission: "hrm.employee.search" },
-  { id: "viewExceptions", label: "Exceptions", permission: "hrm.compliance.search" },
-  { id: "updateException", label: "Corrective action", permission: "hrm.compliance.update" },
+  {
+    id: "viewExceptions",
+    label: "Exceptions",
+    permission: "hrm.compliance.search",
+  },
+  {
+    id: "updateException",
+    label: "Corrective action",
+    permission: "hrm.compliance.update",
+  },
 ] as const
 
 export const HRM_COMPLIANCE_FILING_SURFACE = {
@@ -46,8 +63,18 @@ export const HRM_COMPLIANCE_FILING_SURFACE = {
     { id: "dueDate", label: "Due date", valueType: "date" },
   ],
   filters: [
-    { id: "status", label: "Status", type: "enum", options: HRM_COMPLIANCE_FILING_STATUSES },
-    { id: "filingCategory", label: "Category", type: "enum", options: HRM_COMPLIANCE_FILING_CATEGORIES },
+    {
+      id: "status",
+      label: "Status",
+      type: "enum",
+      options: HRM_COMPLIANCE_FILING_STATUSES,
+    },
+    {
+      id: "filingCategory",
+      label: "Category",
+      type: "enum",
+      options: HRM_COMPLIANCE_FILING_CATEGORIES,
+    },
     { id: "countryCode", label: "Country", type: "text" },
     { id: "dueOnOrBefore", label: "Due by", type: "date" },
   ],

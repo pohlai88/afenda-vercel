@@ -7,8 +7,7 @@ import { buildOrganizationStructureExportCsv } from "../data/org-structure-expor
 
 /** CSV export of org structure for ERP integrations (HRM-ORG-023). */
 export async function exportOrgStructureCsvAction(): Promise<
-  | { ok: true; csv: string }
-  | { ok: false; message: string }
+  { ok: true; csv: string } | { ok: false; message: string }
 > {
   const session = await requireOrgSession()
   const allowed = await canUseErpPermissionForCurrentOrg({

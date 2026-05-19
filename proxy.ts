@@ -54,8 +54,8 @@ function copySetCookieHeaders(from: NextResponse, to: NextResponse) {
  * request headers so guards can preserve `callbackUrl` on interruption redirects.
  *
  * Tenant URLs under `/o/{slug}/…` and canonical post-login surfaces
- * (`/console`, `/accept-invitation`, `/platform/*`, legacy `/operator/*`).
- * Legacy `/{locale}/onboarding` redirects to `/console` via `next.config.ts`.
+ * (`/bootstrap`, `/accept-invitation`, `/platform/*`, legacy `/operator/*`).
+ * Legacy `/{locale}/onboarding` redirects to `/bootstrap` via `next.config.ts`.
  * require a cookie gate (see Next.js Data Security — proxy checks are optimistic only).
  */
 export function proxy(request: NextRequest) {

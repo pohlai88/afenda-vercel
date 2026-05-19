@@ -173,7 +173,9 @@ export async function AttendancePage({
           <Card size="sm">
             <CardHeader>
               <CardTitle>{tTimeReports("inboxTitle")}</CardTitle>
-              <CardDescription>{tTimeReports("inboxDescription")}</CardDescription>
+              <CardDescription>
+                {tTimeReports("inboxDescription")}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Suspense fallback={<AttendanceTableSkeleton />}>
@@ -185,7 +187,9 @@ export async function AttendancePage({
           <Card size="sm">
             <CardHeader>
               <CardTitle>{tTimeReports("recentTitle")}</CardTitle>
-              <CardDescription>{tTimeReports("recentDescription")}</CardDescription>
+              <CardDescription>
+                {tTimeReports("recentDescription")}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Suspense fallback={<AttendanceTableSkeleton />}>

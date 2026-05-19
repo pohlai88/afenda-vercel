@@ -163,14 +163,16 @@ export async function runContractExpiryWatchTick(
       const isDue = effectiveToLabel <= todayLabel
 
       if (isDue) {
-        const transitionResult = await triggerContractExpiryLifecycleTransition({
-          organizationId: c.organizationId,
-          employeeId: c.employeeId,
-          contractId: c.contractId,
-          effectiveDate: c.effectiveTo,
-          actorUserId: "system",
-          reason: `Contract ${c.contractId} ended on ${effectiveToLabel}.`,
-        })
+        const transitionResult = await triggerContractExpiryLifecycleTransition(
+          {
+            organizationId: c.organizationId,
+            employeeId: c.employeeId,
+            contractId: c.contractId,
+            effectiveDate: c.effectiveTo,
+            actorUserId: "system",
+            reason: `Contract ${c.contractId} ended on ${effectiveToLabel}.`,
+          }
+        )
         if (transitionResult === "applied") {
           contractExpiryTransitions += 1
         }

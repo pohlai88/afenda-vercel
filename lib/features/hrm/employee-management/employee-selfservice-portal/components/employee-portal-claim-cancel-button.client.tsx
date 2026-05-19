@@ -45,7 +45,8 @@ export function EmployeePortalClaimCancelButton({
       <Button type="submit" variant="outline" size="sm" disabled={disabled}>
         {pending ? (
           <>
-            <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />ÔÇª
+            <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+            ÔÇª
           </>
         ) : (
           label

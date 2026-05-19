@@ -728,7 +728,9 @@ export async function closeOffboardingCaseMutation(input: {
         })
         .where(eq(hrmBoardingInstance.id, instance.boardingInstanceId))
     } else {
-      const checklist = Array.isArray(instance.checklist) ? instance.checklist : []
+      const checklist = Array.isArray(instance.checklist)
+        ? instance.checklist
+        : []
       const allDone =
         checklist.length > 0 &&
         checklist.every(
@@ -1057,7 +1059,10 @@ async function finalizeOffboardingClosure(
       status: "completed",
       completedAt: input.now,
       audit7w1h: input.detailsPatch
-        ? mergeOffboardingInstanceDetails(current?.audit7w1h ?? null, input.detailsPatch)
+        ? mergeOffboardingInstanceDetails(
+            current?.audit7w1h ?? null,
+            input.detailsPatch
+          )
         : undefined,
       updatedAt: input.now,
       updatedByUserId: input.actorUserId,

@@ -3,7 +3,7 @@ import type { Route } from "next"
 
 import { Card, CardContent } from "#components2/ui/card"
 
-import type { NexusSurfaceState } from "./nexus.types"
+import type { NexusSurfaceState } from "#features/nexus"
 
 /**
  * Surface card on the Truth Map. Shows operating-domain state, pressure count,

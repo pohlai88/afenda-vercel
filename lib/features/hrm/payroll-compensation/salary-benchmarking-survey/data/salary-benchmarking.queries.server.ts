@@ -82,7 +82,9 @@ export async function listSalaryBenchmarkAnalysisForOrganization(
   const rows = await db
     .select()
     .from(hrmSalaryBenchmarkAnalysisSnapshot)
-    .where(eq(hrmSalaryBenchmarkAnalysisSnapshot.organizationId, organizationId))
+    .where(
+      eq(hrmSalaryBenchmarkAnalysisSnapshot.organizationId, organizationId)
+    )
     .orderBy(desc(hrmSalaryBenchmarkAnalysisSnapshot.generatedAt))
   return rows.map((row) => mapSalaryBenchmarkAnalysisResult(row.result))
 }
@@ -100,7 +102,9 @@ export async function listEmployeeCompensationForBenchmarking(
       managerName: sql<string | null>`null`,
       legalEntityCode: sql<string | null>`null`,
       countryCode: sql<string>`coalesce(${hrmEmployee.countryCode}, ${hrmEmploymentContract.baseSalaryCurrency})`,
-      location: sql<string | null>`coalesce(${hrmPosition.workLocationCode}, ${hrmDepartment.workLocationCode})`,
+      location: sql<
+        string | null
+      >`coalesce(${hrmPosition.workLocationCode}, ${hrmDepartment.workLocationCode})`,
       jobFamily: sql<string>`coalesce(${hrmPosition.title}, 'Unassigned')`,
       jobTitle: sql<string>`coalesce(${hrmPosition.title}, 'Unassigned')`,
       grade: sql<string>`coalesce(${hrmJobGrade.code}, 'Unassigned')`,
@@ -111,7 +115,9 @@ export async function listEmployeeCompensationForBenchmarking(
       totalCash: sql<string | null>`null`,
       totalCompensation: sql<string | null>`null`,
       currency: hrmEmploymentContract.baseSalaryCurrency,
-      internalRangeMidpoint: sql<string | null>`case when ${hrmJobGrade.minSalaryAmount} is not null and ${hrmJobGrade.maxSalaryAmount} is not null then ((${hrmJobGrade.minSalaryAmount})::numeric + (${hrmJobGrade.maxSalaryAmount})::numeric) / 2 else null end`,
+      internalRangeMidpoint: sql<
+        string | null
+      >`case when ${hrmJobGrade.minSalaryAmount} is not null and ${hrmJobGrade.maxSalaryAmount} is not null then ((${hrmJobGrade.minSalaryAmount})::numeric + (${hrmJobGrade.maxSalaryAmount})::numeric) / 2 else null end`,
       currentPositionId: hrmEmployee.currentPositionId,
     })
     .from(hrmEmployee)
@@ -123,14 +129,8 @@ export async function listEmployeeCompensationForBenchmarking(
         eq(hrmEmploymentContract.state, "active")
       )
     )
-    .leftJoin(
-      hrmPosition,
-      eq(hrmPosition.id, hrmEmployee.currentPositionId)
-    )
-    .leftJoin(
-      hrmJobGrade,
-      eq(hrmJobGrade.id, hrmEmployee.currentJobGradeId)
-    )
+    .leftJoin(hrmPosition, eq(hrmPosition.id, hrmEmployee.currentPositionId))
+    .leftJoin(hrmJobGrade, eq(hrmJobGrade.id, hrmEmployee.currentJobGradeId))
     .leftJoin(
       hrmDepartment,
       eq(hrmDepartment.id, hrmEmployee.currentDepartmentId)
@@ -229,9 +229,13 @@ export async function resolveLatestAnalysisVersion(
   organizationId: string
 ): Promise<string | null> {
   const [row] = await db
-    .select({ analysisVersion: hrmSalaryBenchmarkAnalysisSnapshot.analysisVersion })
+    .select({
+      analysisVersion: hrmSalaryBenchmarkAnalysisSnapshot.analysisVersion,
+    })
     .from(hrmSalaryBenchmarkAnalysisSnapshot)
-    .where(eq(hrmSalaryBenchmarkAnalysisSnapshot.organizationId, organizationId))
+    .where(
+      eq(hrmSalaryBenchmarkAnalysisSnapshot.organizationId, organizationId)
+    )
     .orderBy(desc(hrmSalaryBenchmarkAnalysisSnapshot.generatedAt))
     .limit(1)
   return row?.analysisVersion ?? null

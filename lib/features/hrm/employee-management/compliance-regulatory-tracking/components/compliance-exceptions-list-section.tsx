@@ -78,7 +78,11 @@ export async function ComplianceExceptionsListSection({
                         className="flex flex-col gap-2"
                       >
                         <input type="hidden" name="orgSlug" value={orgSlug} />
-                        <input type="hidden" name="exceptionId" value={row.id} />
+                        <input
+                          type="hidden"
+                          name="exceptionId"
+                          value={row.id}
+                        />
                         <Input
                           name="correctiveActionOwnerUserId"
                           required
@@ -103,11 +107,17 @@ export async function ComplianceExceptionsListSection({
                         </Button>
                       </form>
                       <form
-                        action={updateComplianceCorrectiveActionProgressFormAction}
+                        action={
+                          updateComplianceCorrectiveActionProgressFormAction
+                        }
                         className="flex flex-col gap-2"
                       >
                         <input type="hidden" name="orgSlug" value={orgSlug} />
-                        <input type="hidden" name="exceptionId" value={row.id} />
+                        <input
+                          type="hidden"
+                          name="exceptionId"
+                          value={row.id}
+                        />
                         <Textarea
                           name="progressNote"
                           required
@@ -134,7 +144,11 @@ export async function ComplianceExceptionsListSection({
                         className="flex flex-col gap-2"
                       >
                         <input type="hidden" name="orgSlug" value={orgSlug} />
-                        <input type="hidden" name="exceptionId" value={row.id} />
+                        <input
+                          type="hidden"
+                          name="exceptionId"
+                          value={row.id}
+                        />
                         <Textarea
                           name="resolutionNote"
                           required
@@ -156,7 +170,11 @@ export async function ComplianceExceptionsListSection({
                         className="flex flex-col gap-2"
                       >
                         <input type="hidden" name="orgSlug" value={orgSlug} />
-                        <input type="hidden" name="exceptionId" value={row.id} />
+                        <input
+                          type="hidden"
+                          name="exceptionId"
+                          value={row.id}
+                        />
                         <Textarea
                           name="waiverReason"
                           required

@@ -16,14 +16,20 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-vi.mock("../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-shift.queries.server.ts", () => ({
-  resolveAttendanceShiftContext: mocks.resolveAttendanceShiftContext,
-}))
+vi.mock(
+  "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-shift.queries.server.ts",
+  () => ({
+    resolveAttendanceShiftContext: mocks.resolveAttendanceShiftContext,
+  })
+)
 
-vi.mock("../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts", () => ({
-  listClosedPayrollPeriodsOverlappingRange:
-    mocks.listClosedPayrollPeriodsOverlappingRange,
-}))
+vi.mock(
+  "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll.queries.server.ts",
+  () => ({
+    listClosedPayrollPeriodsOverlappingRange:
+      mocks.listClosedPayrollPeriodsOverlappingRange,
+  })
+)
 
 import { regenerateAttendanceDayFromEvents } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-aggregator.server.ts"
 

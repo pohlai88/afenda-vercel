@@ -37,9 +37,8 @@ export async function HrmOnboardingSection({
           | { ok: false; error: unknown }
         > => {
           try {
-            const rows = await listActiveContractsForOnboardingDashboard(
-              organizationId
-            )
+            const rows =
+              await listActiveContractsForOnboardingDashboard(organizationId)
             return { ok: true, rows }
           } catch (error) {
             return { ok: false, error }
@@ -55,11 +54,9 @@ export async function HrmOnboardingSection({
     readOnlyUpdateReason: t("readOnlyUpdateReason"),
   }
 
-  let listConfiguration = buildOnboardingListSurfaceConfiguration(
-    [],
-    copy,
-    { canUpdate }
-  )
+  let listConfiguration = buildOnboardingListSurfaceConfiguration([], copy, {
+    canUpdate,
+  })
   let surfaceKey: string = ONBOARDING_LIST_SURFACE_IDS.contracts
   let loadError:
     | {

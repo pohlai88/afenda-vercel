@@ -64,9 +64,16 @@ function SuspendEnrollmentForm({ enrollmentId }: { enrollmentId: string }) {
     }
   }, [state, router])
   return (
-    <form action={formAction} className="flex w-full max-w-xs flex-col items-end gap-2">
+    <form
+      action={formAction}
+      className="flex w-full max-w-xs flex-col items-end gap-2"
+    >
       <input type="hidden" name="enrollmentId" value={enrollmentId} />
-      <Input id={reasonId} name="suspensionReason" placeholder={t("suspendReasonPlaceholder")} />
+      <Input
+        id={reasonId}
+        name="suspensionReason"
+        placeholder={t("suspendReasonPlaceholder")}
+      />
       <Button size="sm" type="submit" variant="outline" disabled={pending}>
         {pending ? t("suspending") : t("suspend")}
       </Button>
@@ -90,7 +97,10 @@ function ExpireEnrollmentForm({ enrollmentId }: { enrollmentId: string }) {
     }
   }, [state, router])
   return (
-    <form action={formAction} className="flex w-full max-w-xs flex-col items-end gap-2">
+    <form
+      action={formAction}
+      className="flex w-full max-w-xs flex-col items-end gap-2"
+    >
       <input type="hidden" name="enrollmentId" value={enrollmentId} />
       <Input id={dateId} name="effectiveTo" type="date" />
       <Button size="sm" type="submit" variant="secondary" disabled={pending}>

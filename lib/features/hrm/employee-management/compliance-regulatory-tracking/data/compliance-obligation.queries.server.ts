@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, eq, gte, isNull, lte, or } from "drizzle-orm"
+import { and, asc, eq, gte, isNull, lte, or } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { hrmComplianceObligation } from "#lib/db/schema"
@@ -78,6 +78,17 @@ export async function listComplianceObligationsForOrg(
         ...activeAtPredicates(now)
       )
     )
+}
+
+/** Full obligation registry for operator configuration (HRM-CMP-001). */
+export async function listComplianceObligationRegistryForOrg(
+  organizationId: string
+): Promise<ComplianceObligationRow[]> {
+  return db
+    .select()
+    .from(hrmComplianceObligation)
+    .where(eq(hrmComplianceObligation.organizationId, organizationId))
+    .orderBy(asc(hrmComplianceObligation.code))
 }
 
 export async function listActivePolicyAcknowledgementObligations(input: {

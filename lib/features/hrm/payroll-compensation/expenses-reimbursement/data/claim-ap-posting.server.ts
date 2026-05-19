@@ -55,9 +55,11 @@ export async function postApprovedClaimToApJournal(input: {
   }
 
   const amount = input.approvedAmount.toFixed(2)
-  const expenseAccount = input.financeAccountCode?.trim() || DEFAULT_EXPENSE_ACCOUNT
+  const expenseAccount =
+    input.financeAccountCode?.trim() || DEFAULT_EXPENSE_ACCOUNT
   const reference =
-    input.claimNumber?.trim() || `CLAIM-${input.claimId.slice(0, 8).toUpperCase()}`
+    input.claimNumber?.trim() ||
+    `CLAIM-${input.claimId.slice(0, 8).toUpperCase()}`
   const sourceHash = await sha256Hex(
     JSON.stringify({
       claimId: input.claimId,

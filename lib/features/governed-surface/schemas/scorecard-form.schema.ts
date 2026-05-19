@@ -12,7 +12,9 @@ export const GOVERNED_SCORECARD_FORM_SCHEMA_STABILITY: SchemaStability = "beta"
 
 /** Scorecard / rubric data nature (ADR-0025 §2). */
 export const scorecardFormDataNatureSchema = z.literal("scoring")
-export type ScorecardFormDataNature = z.infer<typeof scorecardFormDataNatureSchema>
+export type ScorecardFormDataNature = z.infer<
+  typeof scorecardFormDataNatureSchema
+>
 
 export const scorecardCriterionSchema = z
   .object({
@@ -24,31 +26,32 @@ export const scorecardCriterionSchema = z
   .strict()
 
 export const governedScorecardFormConfigurationSchema =
-  governedMetadataSchemaVersionSchema.extend({
-    dataNature: scorecardFormDataNatureSchema.default("scoring"),
-    formId: z.string().trim().min(1),
-    actionId: z.string().trim().min(1),
-    title: z.string().trim().min(1),
-    criteria: z.array(scorecardCriterionSchema).min(1),
-    notesFieldId: z.string().trim().min(1).optional(),
-    submitLabel: z.string().trim().min(1).default("Submit feedback"),
-    chrome: governedSurfaceChromeSchema.optional(),
-  })
-  .superRefine((form, ctx) => {
-    const seen = new Set<string>()
+  governedMetadataSchemaVersionSchema
+    .extend({
+      dataNature: scorecardFormDataNatureSchema.default("scoring"),
+      formId: z.string().trim().min(1),
+      actionId: z.string().trim().min(1),
+      title: z.string().trim().min(1),
+      criteria: z.array(scorecardCriterionSchema).min(1),
+      notesFieldId: z.string().trim().min(1).optional(),
+      submitLabel: z.string().trim().min(1).default("Submit feedback"),
+      chrome: governedSurfaceChromeSchema.optional(),
+    })
+    .superRefine((form, ctx) => {
+      const seen = new Set<string>()
 
-    for (const [index, criterion] of form.criteria.entries()) {
-      if (seen.has(criterion.id)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Criterion ids must be unique.",
-          path: ["criteria", index, "id"],
-        })
+      for (const [index, criterion] of form.criteria.entries()) {
+        if (seen.has(criterion.id)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Criterion ids must be unique.",
+            path: ["criteria", index, "id"],
+          })
+        }
+
+        seen.add(criterion.id)
       }
-
-      seen.add(criterion.id)
-    }
-  })
+    })
 
 export type ScorecardCriterion = z.infer<typeof scorecardCriterionSchema>
 

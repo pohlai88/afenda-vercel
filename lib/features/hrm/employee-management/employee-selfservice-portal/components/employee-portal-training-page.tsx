@@ -55,20 +55,19 @@ export async function EmployeePortalTrainingPage({
 
   const trailingContext = { showRowActions: true } as const
 
-  const dueConfiguration = buildEmployeePortalTrainingDueListSurfaceConfiguration(
-    assignments,
-    {
-      empty: t("portalDueEmpty"),
-      colCourse: t("colCourse"),
-      colDue: t("colDue"),
-      colState: t("colState"),
-      formatDue: (value) =>
-        value
-          ? format.dateTime(value, { dateStyle: "medium" })
-          : "—",
-    },
-    trailingContext
-  )
+  const dueConfiguration =
+    buildEmployeePortalTrainingDueListSurfaceConfiguration(
+      assignments,
+      {
+        empty: t("portalDueEmpty"),
+        colCourse: t("colCourse"),
+        colDue: t("colDue"),
+        colState: t("colState"),
+        formatDue: (value) =>
+          value ? format.dateTime(value, { dateStyle: "medium" }) : "—",
+      },
+      trailingContext
+    )
 
   const assignmentById = new Map(assignments.map((row) => [row.id, row]))
   const recordById = new Map(records.map((row) => [row.id, row]))
@@ -84,8 +83,7 @@ export async function EmployeePortalTrainingPage({
         colFeedback: t("portalFeedbackRating"),
         formatCompleted: (value) =>
           format.dateTime(value, { dateStyle: "medium" }),
-        feedbackGivenLabel: (rating) =>
-          t("portalFeedbackGiven", { rating }),
+        feedbackGivenLabel: (rating) => t("portalFeedbackGiven", { rating }),
       },
       trailingContext
     )
@@ -140,30 +138,34 @@ export async function EmployeePortalTrainingPage({
                 }
                 return (
                   <GovernedTrailingActionSlot trailingAction={trailingAction}>
-                  <form
-                    action={submitPortalSelfAttestTraining}
-                    className="flex flex-wrap items-end gap-2"
-                  >
-                    <input type="hidden" name="portalSlug" value={portalSlug} />
-                    <input
-                      type="hidden"
-                      name="assignmentId"
-                      value={row.id}
-                    />
-                    <input type="hidden" name="courseId" value={row.courseId} />
-                    <input
-                      type="hidden"
-                      name="sessionId"
-                      value={row.sessionId ?? ""}
-                    />
-                    <input type="hidden" name="completedAt" value={today} />
-                    <button
-                      type="submit"
-                      className="text-xs font-medium text-primary hover:underline"
+                    <form
+                      action={submitPortalSelfAttestTraining}
+                      className="flex flex-wrap items-end gap-2"
                     >
-                      {t("portalAttest")}
-                    </button>
-                  </form>
+                      <input
+                        type="hidden"
+                        name="portalSlug"
+                        value={portalSlug}
+                      />
+                      <input type="hidden" name="assignmentId" value={row.id} />
+                      <input
+                        type="hidden"
+                        name="courseId"
+                        value={row.courseId}
+                      />
+                      <input
+                        type="hidden"
+                        name="sessionId"
+                        value={row.sessionId ?? ""}
+                      />
+                      <input type="hidden" name="completedAt" value={today} />
+                      <button
+                        type="submit"
+                        className="text-xs font-medium text-primary hover:underline"
+                      >
+                        {t("portalAttest")}
+                      </button>
+                    </form>
                   </GovernedTrailingActionSlot>
                 )
               },
@@ -198,12 +200,12 @@ export async function EmployeePortalTrainingPage({
                 }
                 return (
                   <GovernedTrailingActionSlot trailingAction={trailingAction}>
-                  <EmployeePortalTrainingFeedbackForm
-                    portalSlug={portalSlug}
-                    organizationId={organizationId}
-                    recordId={record.id}
-                    courseName={record.courseName}
-                  />
+                    <EmployeePortalTrainingFeedbackForm
+                      portalSlug={portalSlug}
+                      organizationId={organizationId}
+                      recordId={record.id}
+                      courseName={record.courseName}
+                    />
                   </GovernedTrailingActionSlot>
                 )
               },

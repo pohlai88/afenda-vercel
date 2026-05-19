@@ -12,10 +12,7 @@ import {
 } from "#components2/ui/card"
 import { Input } from "#components2/ui/input"
 import { Label } from "#components2/ui/label"
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "#components2/ui/native-select"
+import { NativeSelect, NativeSelectOption } from "#components2/ui/native-select"
 import { requireOrgSession } from "#lib/auth"
 
 import { submitCreateReviewCycle } from "../actions/performance.actions"

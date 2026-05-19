@@ -40,9 +40,8 @@ export function IamProfileMembershipPanels({
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [err, setErr] = useState<string | null>(null)
-  const [leaveTarget, setLeaveTarget] = useState<IamProfileMembershipOrgRow | null>(
-    null
-  )
+  const [leaveTarget, setLeaveTarget] =
+    useState<IamProfileMembershipOrgRow | null>(null)
 
   function run(
     fn: () => Promise<{ ok: boolean; error?: string }>,
@@ -62,9 +61,7 @@ export function IamProfileMembershipPanels({
   }
 
   if (organizations.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">{t("empty")}</p>
-    )
+    return <p className="text-sm text-muted-foreground">{t("empty")}</p>
   }
 
   return (
@@ -98,9 +95,7 @@ export function IamProfileMembershipPanels({
                   variant="secondary"
                   size="sm"
                   disabled={pending}
-                  onClick={() =>
-                    run(() => setActiveOrganizationAction(org.id))
-                  }
+                  onClick={() => run(() => setActiveOrganizationAction(org.id))}
                 >
                   {t("setActive")}
                 </Button>

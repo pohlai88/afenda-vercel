@@ -4752,10 +4752,7 @@ export const hrmFlexibleWorkSchedulePattern = pgTable(
       t.requestId,
       t.dayOfWeek
     ),
-    index("hrm_fwa_schedule_org_request_idx").on(
-      t.organizationId,
-      t.requestId
-    ),
+    index("hrm_fwa_schedule_org_request_idx").on(t.organizationId, t.requestId),
   ]
 )
 
@@ -6715,6 +6712,198 @@ export const hrmSalaryBenchmarkAuditHistory = pgTable(
       t.organizationId,
       t.resourceType,
       t.resourceId
+    ),
+  ]
+)
+
+// ---------------------------------------------------------------------------
+// Compensation Planning & Modeling (HRM-CPM-001–030)
+// Cycles, budget pools, cycle participants, recommendations.
+// Audit grammar: erp.hrm.compensation.*
+// ---------------------------------------------------------------------------
+
+export const hrmCompensationCycle = pgTable(
+  "hrm_compensation_cycle",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    cycleType: text("cycleType").notNull(),
+    effectiveDate: date("effectiveDate", { mode: "string" }).notNull(),
+    state: text("state").notNull().default("draft"),
+    eligibilityRules: jsonb("eligibilityRules")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_compensation_cycle_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_compensation_cycle_org_state_idx").on(
+      t.organizationId,
+      t.state
+    ),
+    index("hrm_compensation_cycle_org_effective_idx").on(
+      t.organizationId,
+      t.effectiveDate
+    ),
+  ]
+)
+
+export const hrmCompensationBudgetPool = pgTable(
+  "hrm_compensation_budget_pool",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    cycleId: text("cycleId")
+      .notNull()
+      .references(() => hrmCompensationCycle.id, { onDelete: "cascade" }),
+    scopeType: text("scopeType").notNull(),
+    scopeId: text("scopeId").notNull(),
+    allocatedAmount: decimal("allocatedAmount", {
+      precision: 15,
+      scale: 2,
+    }).notNull(),
+    usedAmount: decimal("usedAmount", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0"),
+    currency: text("currency").notNull().default("MYR"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    uniqueIndex("hrm_compensation_budget_pool_cycle_scope_uidx").on(
+      t.cycleId,
+      t.scopeType,
+      t.scopeId
+    ),
+    index("hrm_compensation_budget_pool_org_cycle_idx").on(
+      t.organizationId,
+      t.cycleId
+    ),
+  ]
+)
+
+export const hrmCompensationCycleParticipant = pgTable(
+  "hrm_compensation_cycle_participant",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    cycleId: text("cycleId")
+      .notNull()
+      .references(() => hrmCompensationCycle.id, { onDelete: "cascade" }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    eligible: boolean("eligible").notNull().default(true),
+    eligibilityReasons: jsonb("eligibilityReasons")
+      .$type<readonly { code: string; message: string }[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    currentSalaryAmount: decimal("currentSalaryAmount", {
+      precision: 15,
+      scale: 2,
+    }),
+    salaryCurrency: text("salaryCurrency").notNull().default("MYR"),
+    salaryEffectiveDate: date("salaryEffectiveDate", { mode: "string" }),
+    gradeId: text("gradeId"),
+    jobLevelId: text("jobLevelId"),
+    departmentId: text("departmentId"),
+    managerEmployeeId: text("managerEmployeeId"),
+    bandMinimum: decimal("bandMinimum", { precision: 15, scale: 2 }),
+    bandMidpoint: decimal("bandMidpoint", { precision: 15, scale: 2 }),
+    bandMaximum: decimal("bandMaximum", { precision: 15, scale: 2 }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_compensation_cycle_participant_cycle_employee_uidx").on(
+      t.cycleId,
+      t.employeeId
+    ),
+    index("hrm_compensation_cycle_participant_org_cycle_idx").on(
+      t.organizationId,
+      t.cycleId
+    ),
+    index("hrm_compensation_cycle_participant_org_eligible_idx").on(
+      t.organizationId,
+      t.cycleId,
+      t.eligible
+    ),
+  ]
+)
+
+export const hrmCompensationRecommendation = pgTable(
+  "hrm_compensation_recommendation",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    cycleId: text("cycleId")
+      .notNull()
+      .references(() => hrmCompensationCycle.id, { onDelete: "cascade" }),
+    participantId: text("participantId")
+      .notNull()
+      .references(() => hrmCompensationCycleParticipant.id, {
+        onDelete: "cascade",
+      }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    adjustmentType: text("adjustmentType").notNull(),
+    state: text("state").notNull().default("draft"),
+    currentSalaryAmount: decimal("currentSalaryAmount", {
+      precision: 15,
+      scale: 2,
+    }).notNull(),
+    increaseAmount: decimal("increaseAmount", { precision: 15, scale: 2 }),
+    increasePercentage: decimal("increasePercentage", {
+      precision: 8,
+      scale: 4,
+    }),
+    proposedSalaryAmount: decimal("proposedSalaryAmount", {
+      precision: 15,
+      scale: 2,
+    }).notNull(),
+    currency: text("currency").notNull().default("MYR"),
+    exceptionJustification: text("exceptionJustification"),
+    submittedByUserId: text("submittedByUserId"),
+    submittedAt: timestamp("submittedAt", { mode: "date" }),
+    reviewedByUserId: text("reviewedByUserId"),
+    reviewedAt: timestamp("reviewedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_compensation_recommendation_org_cycle_state_idx").on(
+      t.organizationId,
+      t.cycleId,
+      t.state
+    ),
+    index("hrm_compensation_recommendation_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    uniqueIndex("hrm_compensation_recommendation_participant_uidx").on(
+      t.participantId
     ),
   ]
 )

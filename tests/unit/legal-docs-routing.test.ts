@@ -22,7 +22,11 @@ import {
   trustSurfaceDefinitionResolved,
 } from "#features/legal-docs"
 import { generateLegalDocsMetadata } from "#features/legal-docs/server"
-import { DEFAULT_APP_LOCALE, APP_LOCALES, toLocalePath } from "#lib/i18n/locales.shared"
+import {
+  DEFAULT_APP_LOCALE,
+  APP_LOCALES,
+  toLocalePath,
+} from "#lib/i18n/locales.shared"
 import { getSiteUrl } from "#lib/site"
 
 describe("public trust routing", () => {
@@ -73,7 +77,9 @@ describe("public trust routing", () => {
       })
     )
 
-    expect(baseline.surfaces.length).toBe(trustSurfaceDefinition.surfaces.length)
+    expect(baseline.surfaces.length).toBe(
+      trustSurfaceDefinition.surfaces.length
+    )
     expect(
       live.currentPosture.find((posture) => posture.id === "operations-posture")
         ?.state

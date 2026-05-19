@@ -14,7 +14,7 @@ export function planRequiresEnrollmentApproval(
   eligibilityRules: unknown
 ): boolean {
   return (
-    parseBenefitEligibilityRules(eligibilityRules)?.requiresEnrollmentApproval ===
-    true
+    parseBenefitEligibilityRules(eligibilityRules)
+      ?.requiresEnrollmentApproval === true
   )
 }

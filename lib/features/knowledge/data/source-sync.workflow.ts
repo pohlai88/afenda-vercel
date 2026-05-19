@@ -201,9 +201,7 @@ async function syncFailedStep(
     linkedEntityType: "knowledge_source",
     linkedEntityId: payload.sourceId,
     linkedEntityLabel: sourceLabel,
-    linkedPath: orgSlug
-      ? organizationAppsPath(orgSlug, "knowledge")
-      : null,
+    linkedPath: orgSlug ? organizationAppsPath(orgSlug, "knowledge") : null,
   })
 
   await writeIamAuditEvent({

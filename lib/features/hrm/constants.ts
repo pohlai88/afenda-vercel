@@ -6,10 +6,7 @@ import {
 } from "./hrm-apps-path.shared"
 import { normalizeOrgSlugParam } from "#lib/auth/org-slug.shared"
 
-import {
-  ORG_APPS_HRM,
-  organizationAppsPath,
-} from "#lib/org-apps-module-paths"
+import { ORG_APPS_HRM, organizationAppsPath } from "#lib/org-apps-module-paths"
 import { buildErpPermissionKey } from "#features/erp-rbac"
 
 export const HRM_NAV_NAMESPACE = "Dashboard.Hrm.nav" as const
@@ -145,6 +142,21 @@ export const HRM_CAPABILITIES = [
     requiredPermission: buildErpPermissionKey({
       module: "hrm",
       object: "bonus_incentive",
+      function: "search",
+    }),
+  },
+  {
+    id: "compensationPlanning",
+    segments: ["compensation-planning"] as const,
+    auditPrefix: "erp.hrm.compensation",
+    nav: {
+      navKey: "compensation-planning",
+      order: 36.25,
+      primarySegment: "compensation-planning",
+    },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "compensation_planning",
       function: "search",
     }),
   },
@@ -317,10 +329,7 @@ const SEGMENT_LIST: readonly HrmAppsCapabilitySegment[] =
   HRM_CAPABILITIES.flatMap((c) => [...c.segments])
 const SEGMENT_SET = new Set<HrmAppsCapabilitySegment>(SEGMENT_LIST)
 
-const SEGMENT_TO_CAPABILITY = new Map<
-  HrmAppsCapabilitySegment,
-  HrmCapability
->()
+const SEGMENT_TO_CAPABILITY = new Map<HrmAppsCapabilitySegment, HrmCapability>()
 for (const capability of HRM_CAPABILITIES) {
   for (const segment of capability.segments) {
     SEGMENT_TO_CAPABILITY.set(segment, capability)

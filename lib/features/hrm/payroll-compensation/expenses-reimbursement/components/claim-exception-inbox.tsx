@@ -72,9 +72,7 @@ export async function ClaimExceptionInbox({
     copy
   )
   let surfaceKey = "hrm:claims:exception-inbox"
-  let loadError:
-    | { variant: "error"; title: string }
-    | undefined
+  let loadError: { variant: "error"; title: string } | undefined
 
   if (!rowsResult.ok) {
     logUnexpectedServerError(

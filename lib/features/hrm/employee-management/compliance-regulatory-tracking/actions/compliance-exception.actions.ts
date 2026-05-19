@@ -358,5 +358,8 @@ export async function assignComplianceCorrectiveActionFormAction(
 export async function updateComplianceCorrectiveActionProgressFormAction(
   formData: FormData
 ): Promise<void> {
-  void (await updateComplianceCorrectiveActionProgressAction(undefined, formData))
+  void (await updateComplianceCorrectiveActionProgressAction(
+    undefined,
+    formData
+  ))
 }

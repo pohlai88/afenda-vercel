@@ -105,6 +105,8 @@ describe("HRM payroll processing contracts", () => {
     expect(consolePage).toContain("canCreate")
     expect(consolePage).toContain("canUpdate")
     expect(payrollFeaturePage).toContain("resolvePayrollSurfaceCapabilities")
-    expect(payrollRoutePage).toContain('import { PayrollPage } from "#features/hrm"')
+    expect(payrollRoutePage).toContain(
+      'import { PayrollPage } from "#features/hrm"'
+    )
   })
 })

@@ -60,9 +60,7 @@ export async function OrganizationPage({
     resolveOrgStructureSurfaceCapabilities(),
   ])
   const canAnyMutate =
-    capabilities.canCreate ||
-    capabilities.canUpdate ||
-    capabilities.canDelete
+    capabilities.canCreate || capabilities.canUpdate || capabilities.canDelete
 
   const activeTab = normalizeOrgStructureTab(tabParam)
   const includeArchived = includeArchivedParam === "true"
@@ -447,4 +445,3 @@ async function OrgHealthPanel() {
     </Card>
   )
 }
-

@@ -135,7 +135,8 @@ function SubNavTreeItem({ item }: { item: AppShellPrimaryLeftRailNavItem }) {
     isAppShellPrimaryLeftRailNavItemActive(child, pathname)
   )
   const itemActive =
-    isAppShellPrimaryLeftRailNavItemActive(item, pathname) || activeChild !== undefined
+    isAppShellPrimaryLeftRailNavItemActive(item, pathname) ||
+    activeChild !== undefined
 
   const itemClass = cn(
     "flex w-full items-center gap-1.5 rounded-md px-1 py-1",

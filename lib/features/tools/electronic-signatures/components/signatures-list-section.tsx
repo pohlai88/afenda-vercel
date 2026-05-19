@@ -29,8 +29,7 @@ export async function SignaturesListSection({
       colStatus: "Status",
       colSent: "Sent",
       kindLabelFor: (kind) => t("requestLabel", { kind }),
-      formatSentAt: (date) =>
-        format.dateTime(date, { dateStyle: "medium" }),
+      formatSentAt: (date) => format.dateTime(date, { dateStyle: "medium" }),
     }
   )
 

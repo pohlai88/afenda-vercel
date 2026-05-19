@@ -5,7 +5,8 @@
 
 import { buildErpPermissionKey } from "#features/erp-rbac"
 
-export const EMPLOYEE_RECORDS_DETAIL_SURFACE_ID = "hrm-employee-master-detail" as const
+export const EMPLOYEE_RECORDS_DETAIL_SURFACE_ID =
+  "hrm-employee-master-detail" as const
 
 export const EMPLOYEE_RECORDS_SECTIONS = [
   "identity",
@@ -17,8 +18,7 @@ export const EMPLOYEE_RECORDS_SECTIONS = [
   "history",
 ] as const
 
-export type EmployeeRecordsSection =
-  (typeof EMPLOYEE_RECORDS_SECTIONS)[number]
+export type EmployeeRecordsSection = (typeof EMPLOYEE_RECORDS_SECTIONS)[number]
 
 export const EMPLOYEE_RECORDS_FIELD_KEYS = [
   "employeeNumber",
@@ -294,5 +294,7 @@ export function isEmployeeRecordsSensitiveField(
 export function employeeRecordsFieldPolicyForKey(
   fieldKey: EmployeeRecordsFieldKey
 ): EmployeeRecordsFieldPolicy | undefined {
-  return EMPLOYEE_RECORDS_FIELD_POLICIES.find((row) => row.fieldKey === fieldKey)
+  return EMPLOYEE_RECORDS_FIELD_POLICIES.find(
+    (row) => row.fieldKey === fieldKey
+  )
 }

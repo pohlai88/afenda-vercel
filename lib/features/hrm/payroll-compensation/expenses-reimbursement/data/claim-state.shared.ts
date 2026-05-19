@@ -40,10 +40,17 @@ export function canTransitionClaimTo(
 ): boolean {
   if (from === to) return true
   if (from === "draft" && to === "submitted") return true
-  if (from === "submitted" && (to === "approved" || to === "rejected" || to === "returned" || to === "cancelled")) {
+  if (
+    from === "submitted" &&
+    (to === "approved" ||
+      to === "rejected" ||
+      to === "returned" ||
+      to === "cancelled")
+  ) {
     return true
   }
-  if (from === "returned" && (to === "submitted" || to === "cancelled")) return true
+  if (from === "returned" && (to === "submitted" || to === "cancelled"))
+    return true
   if (from === "approved" && (to === "paid" || to === "cancelled")) return true
   return false
 }

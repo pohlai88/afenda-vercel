@@ -4,7 +4,11 @@ import { useState, useTransition } from "react"
 import { Building2, Check, ChevronDown } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { Popover, PopoverContent, PopoverTrigger } from "#components2/ui/popover"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "#components2/ui/popover"
 import { switchActiveOrgAction } from "#features/org-admin/client"
 import type { UserOrgSummary } from "#features/org-admin/client"
 import { cn } from "#lib/utils"

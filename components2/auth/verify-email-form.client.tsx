@@ -24,7 +24,11 @@ import {
   CardTitle,
 } from "#components2/ui/card"
 import { Input } from "#components2/ui/input"
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "#components2/ui/input-otp"
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "#components2/ui/input-otp"
 import { Label } from "#components2/ui/label"
 import { Spinner } from "#components2/ui/spinner"
 
@@ -85,78 +89,75 @@ export function VerifyEmailForm({
 
   return (
     <Card className="w-full border-border/80 shadow-elevation-1">
-        <CardHeader className="space-y-1 pb-4">
-          <CardTitle className="text-xl tracking-tight">{t("title")}</CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="verify-email">{t("emailLabel")}</Label>
-              <Input
-                id="verify-email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                placeholder={t("emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                aria-invalid={Boolean(error)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="verify-otp">{t("otpLabel")}</Label>
-              <InputOTP
-                id="verify-otp"
-                name="otp"
-                maxLength={6}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                containerClassName="justify-center sm:justify-start"
-                value={otp}
-                onChange={setOtp}
-                aria-invalid={Boolean(error)}
-                aria-describedby={error ? errorId : undefined}
-              >
-                <InputOTPGroup
-                  className="gap-1.5"
-                  aria-label={t("otpGroupAria")}
-                >
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <InputOTPSlot key={i} index={i} />
-                  ))}
-                </InputOTPGroup>
-              </InputOTP>
-              <p className="text-xs text-muted-foreground">{t("otpHint")}</p>
-            </div>
-            {error ? (
-              <Alert variant="destructive" role="alert" aria-live="assertive">
-                <AlertTitle>{t("errorTitle")}</AlertTitle>
-                <AlertDescription id={errorId}>{error}</AlertDescription>
-              </Alert>
-            ) : null}
-            <Button type="submit" className="w-full" disabled={pending}>
-              <span className="inline-flex items-center justify-center gap-2">
-                {pending ? <Spinner className="size-4" /> : null}
-                {pending ? t("submitPending") : t("submit")}
-              </span>
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="border-t pt-6">
-          <AuthFooterLinks>
-            <AuthFooterLink
-              href={buildCheckEmailHref({
-                email,
-                callbackUrl: postAuthPath,
-              })}
+      <CardHeader className="space-y-1 pb-4">
+        <CardTitle className="text-xl tracking-tight">{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="verify-email">{t("emailLabel")}</Label>
+            <Input
+              id="verify-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              placeholder={t("emailPlaceholder")}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-invalid={Boolean(error)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="verify-otp">{t("otpLabel")}</Label>
+            <InputOTP
+              id="verify-otp"
+              name="otp"
+              maxLength={6}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              containerClassName="justify-center sm:justify-start"
+              value={otp}
+              onChange={setOtp}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? errorId : undefined}
             >
-              {t("resend")}
-            </AuthFooterLink>
-            <AuthFooterLink href="/sign-in">{t("backToSignIn")}</AuthFooterLink>
-          </AuthFooterLinks>
-        </CardFooter>
-      </Card>
+              <InputOTPGroup className="gap-1.5" aria-label={t("otpGroupAria")}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <InputOTPSlot key={i} index={i} />
+                ))}
+              </InputOTPGroup>
+            </InputOTP>
+            <p className="text-xs text-muted-foreground">{t("otpHint")}</p>
+          </div>
+          {error ? (
+            <Alert variant="destructive" role="alert" aria-live="assertive">
+              <AlertTitle>{t("errorTitle")}</AlertTitle>
+              <AlertDescription id={errorId}>{error}</AlertDescription>
+            </Alert>
+          ) : null}
+          <Button type="submit" className="w-full" disabled={pending}>
+            <span className="inline-flex items-center justify-center gap-2">
+              {pending ? <Spinner className="size-4" /> : null}
+              {pending ? t("submitPending") : t("submit")}
+            </span>
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="border-t pt-6">
+        <AuthFooterLinks>
+          <AuthFooterLink
+            href={buildCheckEmailHref({
+              email,
+              callbackUrl: postAuthPath,
+            })}
+          >
+            {t("resend")}
+          </AuthFooterLink>
+          <AuthFooterLink href="/sign-in">{t("backToSignIn")}</AuthFooterLink>
+        </AuthFooterLinks>
+      </CardFooter>
+    </Card>
   )
 }

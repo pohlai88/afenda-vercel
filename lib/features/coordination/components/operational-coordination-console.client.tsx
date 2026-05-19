@@ -49,7 +49,11 @@ import {
 } from "#components2/ui/sheet"
 import { Spinner } from "#components2/ui/spinner"
 import { Textarea } from "#components2/ui/textarea"
-import { Tooltip, TooltipContent, TooltipTrigger } from "#components2/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "#components2/ui/tooltip"
 import type {
   CoordinationActivityCreateInput,
   CoordinationContextDetail,

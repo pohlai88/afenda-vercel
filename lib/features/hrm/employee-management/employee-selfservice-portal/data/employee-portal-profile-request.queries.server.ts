@@ -140,5 +140,8 @@ export async function getProfileUpdateRequestById(input: {
     .limit(1)
 
   if (!row) return null
-  return { ...row, requestedChanges: parseRequestedChanges(row.requestedChanges) }
+  return {
+    ...row,
+    requestedChanges: parseRequestedChanges(row.requestedChanges),
+  }
 }

@@ -53,7 +53,13 @@ function parseArgs(argv) {
     else if (a === "--row-type") out.rowType = argv[++i] ?? ""
     else if (a === "--force") out.force = true
   }
-  if (!out.module || !out.surface || !out.table || !out.erpModule || !out.erpObject) {
+  if (
+    !out.module ||
+    !out.surface ||
+    !out.table ||
+    !out.erpModule ||
+    !out.erpObject
+  ) {
     console.error(
       "Required: --module --surface --table --erp-module --erp-object [--row-type] [--force]"
     )
@@ -117,16 +123,11 @@ function buildFileContent({ surface, erpModule, erpObject, rowType, columns }) {
   const fn = `build${pascalCase(surface)}ListSurfaceConfiguration`
   const surfaceKey = `${erpModule}:${surface.replace(/-/g, ":")}`
   const colBlocks = columns
-    .map(
-      (col) => `      { id: "${col}", header: copy.col${pascalCase(col)} },`
-    )
+    .map((col) => `      { id: "${col}", header: copy.col${pascalCase(col)} },`)
     .join("\n")
 
   const copyKeys = columns
-    .map(
-      (col) =>
-        `  col${pascalCase(col)}: string`
-    )
+    .map((col) => `  col${pascalCase(col)}: string`)
     .join("\n")
 
   const cellLines = columns
@@ -206,7 +207,9 @@ function main() {
   }
 
   if (fs.existsSync(outPath) && !args.force) {
-    console.error(`Refusing to overwrite (use --force): ${path.relative(ROOT, outPath)}`)
+    console.error(
+      `Refusing to overwrite (use --force): ${path.relative(ROOT, outPath)}`
+    )
     process.exit(1)
   }
 
@@ -215,7 +218,9 @@ function main() {
   fs.writeFileSync(outPath, content, "utf8")
   console.log(`Wrote draft: ${path.relative(ROOT, outPath)}`)
   console.log(`Inferred columns from ${args.table}: ${columns.join(", ")}`)
-  console.log("Next: wire copy in messages/en.json, section component, and human review.")
+  console.log(
+    "Next: wire copy in messages/en.json, section component, and human review."
+  )
 }
 
 main()

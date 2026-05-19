@@ -13,8 +13,10 @@ const SCENARIOS = [
 ] as const
 
 const KANBAN_BOARD_TEST_IDS = {
-  "kanban-recruitment-footer": "governed-kanban-board:gallery:kanban-recruitment-footer",
-  "kanban-recruitment-drag": "governed-kanban-board:gallery:kanban-recruitment-drag",
+  "kanban-recruitment-footer":
+    "governed-kanban-board:gallery:kanban-recruitment-footer",
+  "kanban-recruitment-drag":
+    "governed-kanban-board:gallery:kanban-recruitment-drag",
 } as const
 
 /**
@@ -25,7 +27,7 @@ test.describe("@smoke metadata renderer gallery", () => {
     "renders core scenarios at 280 / 480 / 720px with operator diagnostics",
     { tag: "@smoke" },
     async ({ page }) => {
-      await page.goto("/en/dev/metadata-renderer-gallery")
+      await page.goto("/en/playground/metadata-renderer-gallery")
       await page.setViewportSize({ width: 1280, height: 1200 })
 
       for (const scenario of SCENARIOS) {
@@ -49,15 +51,19 @@ test.describe("@smoke metadata renderer gallery", () => {
     }
   )
 
-  test("kanban gallery bridges expose stable board test ids", { tag: "@smoke" }, async ({
-    page,
-  }) => {
-    await page.goto("/en/dev/metadata-renderer-gallery")
-    await page.setViewportSize({ width: 1280, height: 1200 })
+  test(
+    "kanban gallery bridges expose stable board test ids",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      await page.goto("/en/playground/metadata-renderer-gallery")
+      await page.setViewportSize({ width: 1280, height: 1200 })
 
-    for (const [scenarioId, boardTestId] of Object.entries(KANBAN_BOARD_TEST_IDS)) {
-      const section = page.locator(`#${scenarioId}`)
-      await expect(section.getByTestId(boardTestId)).toBeVisible()
+      for (const [scenarioId, boardTestId] of Object.entries(
+        KANBAN_BOARD_TEST_IDS
+      )) {
+        const section = page.locator(`#${scenarioId}`)
+        await expect(section.getByTestId(boardTestId)).toBeVisible()
+      }
     }
-  })
+  )
 })

@@ -6,7 +6,10 @@ import { getEnabledSocialProviderIds } from "#lib/auth/social-providers-env.shar
 import { ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
 import { SITE_NAME } from "#lib/site"
 
-import { parsePostAuthPath, parsePrefillEmail } from "#lib/auth/auth-flow.shared"
+import {
+  parsePostAuthPath,
+  parsePrefillEmail,
+} from "#lib/auth/auth-flow.shared"
 import { SignInForm } from "#components2/auth/sign-in-form.client"
 
 export async function generateMetadata({

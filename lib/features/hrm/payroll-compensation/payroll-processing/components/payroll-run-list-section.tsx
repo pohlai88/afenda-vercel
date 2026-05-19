@@ -9,7 +9,9 @@ type PayrollRunListSectionProps = {
   runs: readonly PayrollConsoleRun[]
 }
 
-export async function PayrollRunListSection({ runs }: PayrollRunListSectionProps) {
+export async function PayrollRunListSection({
+  runs,
+}: PayrollRunListSectionProps) {
   const t = await getTranslations("Dashboard.Hrm.payroll")
 
   const listConfiguration = buildPayrollRunListSurfaceConfiguration(runs, {

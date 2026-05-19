@@ -2,7 +2,6 @@ import { SignaturesPage } from "#features/tools"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
-
 export default async function OrgAppsHrmSignaturesPage({
   params,
 }: PageProps<"/[locale]/o/[orgSlug]/apps/hrm/signatures">) {

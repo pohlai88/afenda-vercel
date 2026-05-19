@@ -15,7 +15,11 @@ import {
   organizationAdminPath,
   organizationAppsPath,
 } from "#lib/org-apps-module-paths"
-import { APP_LOCALES, ensureAppLocale, toLocalePath } from "#lib/i18n/locales.shared"
+import {
+  APP_LOCALES,
+  ensureAppLocale,
+  toLocalePath,
+} from "#lib/i18n/locales.shared"
 import type { RouteEnvelope } from "#lib/erp/route-envelope.shared"
 
 import type { AppShellUtilityBarSlots } from "../appshell-props.shared"

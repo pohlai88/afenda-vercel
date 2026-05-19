@@ -32,10 +32,7 @@ export async function RecruitmentPipelineKanbanSection({
       stage,
       resolveRecruitmentStageLabel(t, stage),
     ])
-  ) as Record<
-    (typeof HRM_APPLICATION_STAGES)[number],
-    string
-  >
+  ) as Record<(typeof HRM_APPLICATION_STAGES)[number], string>
 
   const configuration = buildRecruitmentPipelineKanbanConfiguration(
     rows,

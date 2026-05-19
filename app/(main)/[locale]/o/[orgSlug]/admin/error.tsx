@@ -26,8 +26,8 @@ export default function OrgAdminError(props: NextAppErrorPageProps) {
         Admin section failed to load
       </h1>
       <p className="max-w-md text-sm text-muted-foreground">
-        The app shell is still available — try again, or navigate to
-        another section from the sidebar.
+        The app shell is still available — try again, or navigate to another
+        section from the sidebar.
       </p>
       {error.digest ? (
         <p className="font-mono text-xs text-muted-foreground">

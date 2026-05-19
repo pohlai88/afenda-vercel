@@ -31,9 +31,7 @@ function* iterateErrorChain(err: unknown): Generator<{
 
     if (current instanceof Error) {
       const code =
-        "code" in current && current.code != null
-          ? String(current.code)
-          : ""
+        "code" in current && current.code != null ? String(current.code) : ""
       yield { message: current.message, code }
       current = current.cause
       continue

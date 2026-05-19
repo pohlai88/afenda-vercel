@@ -57,8 +57,12 @@ describe("fixtures ↔ messages/en.json", () => {
   it("AUTH_PUBLIC_SHELL_COPY Auth-derived keys match Auth.*", () => {
     expect(AUTH_PUBLIC_SHELL_COPY.signInTabSignUp).toBe(en.Auth.tabSignUp)
     expect(AUTH_PUBLIC_SHELL_COPY.signUpNameLabel).toBe(en.Auth.labelName)
-    expect(AUTH_PUBLIC_SHELL_COPY.forgotPasswordTitle).toBe(en.Auth.forgotPassword)
-    expect(AUTH_PUBLIC_SHELL_COPY.forgotPasswordSend).toBe(en.Auth.forgotPasswordSend)
+    expect(AUTH_PUBLIC_SHELL_COPY.forgotPasswordTitle).toBe(
+      en.Auth.forgotPassword
+    )
+    expect(AUTH_PUBLIC_SHELL_COPY.forgotPasswordSend).toBe(
+      en.Auth.forgotPasswordSend
+    )
     expect(AUTH_PUBLIC_SHELL_COPY.forgotPasswordBackToSignIn).toBe(
       en.Auth.backToSignIn
     )
@@ -108,9 +112,7 @@ describe("fixtures ↔ repo sources (substring scan)", () => {
     const reset = readRepoFile(
       "components2/auth/reset-password-form.client.tsx"
     )
-    const verify = readRepoFile(
-      "components2/auth/verify-email-form.client.tsx"
-    )
+    const verify = readRepoFile("components2/auth/verify-email-form.client.tsx")
     expect(forgot).toContain('useTranslations("Auth")')
     expect(forgot).toContain('t("forgotPassword")')
     expect(forgot).toContain('t("forgotPasswordSend")')

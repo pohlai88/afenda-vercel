@@ -1,6 +1,6 @@
 ---
 description: Auto-load metadata EUI polish skill for governed renderers, surface builders, and Pattern B/C ERP pages.
-globs: "components2/metadata/**,lib/features/governed-surface/**,lib/features/*/data/*-surface-builders.server.ts,app/**/dev/metadata-renderer-gallery/**"
+globs: "components2/metadata/**,lib/features/governed-surface/**,lib/features/*/data/*-surface-builders.server.ts,app/**/playground/metadata-renderer-gallery/**"
 alwaysApply: false
 ---
 

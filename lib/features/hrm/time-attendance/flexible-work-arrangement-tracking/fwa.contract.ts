@@ -52,7 +52,8 @@ export const HRM_FWA_AUDIT = {
   }),
 } as const
 
-export const FWA_REQUEST_APPROVAL_SUBJECT_KIND = "flexible_work_request" as const
+export const FWA_REQUEST_APPROVAL_SUBJECT_KIND =
+  "flexible_work_request" as const
 
 export type HrmFwaAuditAction =
   (typeof HRM_FWA_AUDIT)[keyof typeof HRM_FWA_AUDIT]

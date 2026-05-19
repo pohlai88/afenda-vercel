@@ -17,15 +17,12 @@ import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.ser
 import {
   createBenefitClaimReferenceFormSchema,
   updateBenefitClaimReferenceFormSchema,
-} from "../schema/benefit.schema"
+} from "../schemas/benefit.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { BenefitEnrollmentTransitionFormState } from "../../../types"
 
 function revalidateBenefits() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/benefits"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/benefits"), "layout")
 }
 
 function toMoneyString(value: number | undefined): string | null {

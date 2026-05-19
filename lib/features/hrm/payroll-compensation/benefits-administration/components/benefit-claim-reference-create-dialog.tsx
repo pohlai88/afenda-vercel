@@ -35,11 +35,7 @@ export function BenefitClaimReferenceCreateDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          size="sm"
-          type="button"
-          disabled={enrollments.length === 0}
-        >
+        <Button size="sm" type="button" disabled={enrollments.length === 0}>
           <PlusIcon data-icon="inline-start" aria-hidden />
           {t("createClaimReference")}
         </Button>

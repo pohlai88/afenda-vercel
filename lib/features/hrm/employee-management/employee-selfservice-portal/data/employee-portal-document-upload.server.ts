@@ -10,7 +10,7 @@ export async function canUploadPortalEmployeeDocument(input: {
   const context = await getEmployeePortalContext(input.portalSlug)
   return Boolean(
     context &&
-      context.portal.organizationId === input.organizationId &&
-      context.employee.id === input.employeeId
+    context.portal.organizationId === input.organizationId &&
+    context.employee.id === input.employeeId
   )
 }

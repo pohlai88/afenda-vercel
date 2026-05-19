@@ -20,10 +20,7 @@ import { upsertPayComponentTreatmentFormSchema } from "../schemas/pay-component-
 import type { MultiCountryPayrollMutationFormState } from "../multi-country-payroll-form-states"
 
 function revalidatePayrollLayout() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/payroll"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/payroll"), "layout")
 }
 
 function firstFieldError(

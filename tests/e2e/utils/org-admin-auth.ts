@@ -67,7 +67,7 @@ export async function signInAsOrgAdmin(
   if (ORG_SLUG_FROM_SESSION_URL_RE.test(page.url())) {
     return
   }
-  await page.waitForURL(/\/en\/(console|account|o)/, {
+  await page.waitForURL(/\/en\/(bootstrap|account|o)/, {
     timeout: 30_000,
   })
 }

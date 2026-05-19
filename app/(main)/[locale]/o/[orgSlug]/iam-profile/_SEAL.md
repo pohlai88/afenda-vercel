@@ -21,6 +21,7 @@
 | `/iam-profile` | `page.tsx` | Re-exports `IamProfileOverviewPage` |
 | `/iam-profile/identity` | `identity/page.tsx` | Re-exports identity page + metadata |
 | `/iam-profile/security` | `security/page.tsx` | Re-exports security page + metadata |
+| `/iam-profile/reverify` | `reverify/page.tsx` | Re-exports `IamProfileReverifyPage` + metadata |
 | `layout.tsx` | Tier A org session + deferred `OrgIamProfileDeferredShell` |
 | `error.tsx` | Uncaught failures — `#features/nexus/client` for path helpers |
 | `not-found.tsx` | Invalid segment — `IamProfileSurface.notFound` |
@@ -59,6 +60,7 @@
 - `iam-profile-overview-page.server.tsx`
 - `iam-profile-identity-page.server.tsx`
 - `iam-profile-security-page.server.tsx`
+- `iam-profile-reverify-page.server.tsx`
 - `org-iam-profile-deferred-shell.tsx`
 
 ## Forbidden in this tree

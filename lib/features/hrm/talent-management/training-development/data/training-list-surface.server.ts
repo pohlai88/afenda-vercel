@@ -193,8 +193,7 @@ export function buildTrainingFeedbackListSurfaceConfiguration(
       cells: {
         course: `${row.courseCode} ${row.courseName}`,
         count: row.feedbackCount,
-        average:
-          row.averageRating !== null ? `${row.averageRating}/5` : "—",
+        average: row.averageRating !== null ? `${row.averageRating}/5` : "—",
       },
     })),
   }
@@ -337,9 +336,7 @@ export function buildTrainingRecordListSurfaceConfiguration(
         course: record.courseName,
         completed: copy.formatDate(record.completedAt),
         verification: record.verificationState,
-        expires: record.expiresAt
-          ? copy.formatDate(record.expiresAt)
-          : "—",
+        expires: record.expiresAt ? copy.formatDate(record.expiresAt) : "—",
       },
     })),
   }

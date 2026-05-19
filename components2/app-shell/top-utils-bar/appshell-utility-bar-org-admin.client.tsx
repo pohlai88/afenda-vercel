@@ -194,8 +194,7 @@ export function UtilityBarOrgAdminPanel({
         ) : (
           <div className="px-4 py-4">
             <p className="text-[11px] text-muted-foreground">
-              Navigate to an organization workspace to access the admin
-              pages.
+              Navigate to an organization workspace to access the admin pages.
             </p>
           </div>
         )}

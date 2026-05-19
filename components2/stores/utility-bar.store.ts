@@ -155,7 +155,10 @@ export const useUtilityBarStore = create<UtilityBarStore>()(
         const target = items.find((i) => i.id === id)
         if (!target) return
 
-        if (!target.visible && countVisible(items) >= UTILITY_BAR_MAX_VISIBLE - 1) {
+        if (
+          !target.visible &&
+          countVisible(items) >= UTILITY_BAR_MAX_VISIBLE - 1
+        ) {
           return
         }
 

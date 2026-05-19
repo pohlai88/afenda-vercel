@@ -70,9 +70,8 @@ export async function HrmLifecycleOverviewSection({
 
   if (canRead) {
     try {
-      const rows = await listEmployeeLifecycleOverviewForOrganization(
-        organizationId
-      )
+      const rows =
+        await listEmployeeLifecycleOverviewForOrganization(organizationId)
       listConfiguration = buildEmployeeLifecycleListSurfaceConfiguration(
         rows,
         orgSlug,

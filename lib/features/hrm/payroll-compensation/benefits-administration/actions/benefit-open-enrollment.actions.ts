@@ -11,7 +11,7 @@ import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.ser
 import {
   closeBenefitOpenEnrollmentFormSchema,
   createBenefitOpenEnrollmentFormSchema,
-} from "../schema/benefit.schema"
+} from "../schemas/benefit.schema"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import {
   closeBenefitOpenEnrollmentWindow,
@@ -33,10 +33,7 @@ export type BenefitOpenEnrollmentFormState =
     }
 
 function revalidateBenefits() {
-  revalidatePath(
-    toLocaleOrgAppsRevalidatePattern("/hrm/benefits"),
-    "layout"
-  )
+  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/benefits"), "layout")
 }
 
 function parseIsoDateStart(iso: string): Date {
