@@ -168,6 +168,7 @@ const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
       "server",
       "server.ts",
       "client",
+      "client.ts",
       "components",
       "scheduling",
       "recurrence",
@@ -193,6 +194,7 @@ const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
       "README.md",
       "planner-dashboard-path.shared.ts",
       "planner-orbit-path.shared.ts",
+      "orbit-surface-metadata.shared.ts",
     ]),
   ],
   [
@@ -226,9 +228,18 @@ function isAllowedDeepFeatureImport(importedModule, subpath) {
   if (importedModule === "hrm" && subpath === "hrm-dashboard-path.shared") {
     return true
   }
+  if (importedModule === "hrm" && subpath === "hrm-apps-path.shared") {
+    return true
+  }
   if (
     importedModule === "planner" &&
     subpath === "planner-dashboard-path.shared"
+  ) {
+    return true
+  }
+  if (
+    importedModule === "planner" &&
+    subpath === "planner-orbit-path.shared"
   ) {
     return true
   }

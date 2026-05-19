@@ -58,9 +58,11 @@ describe("public trust routing", () => {
   it("returns metadata titles for trust and status routes", async () => {
     const trustMeta = await generateLegalDocsMetadata({
       params: Promise.resolve({ locale: DEFAULT_APP_LOCALE, slug: ["trust"] }),
+      searchParams: Promise.resolve({}),
     })
     const statusMeta = await generateLegalDocsMetadata({
       params: Promise.resolve({ locale: DEFAULT_APP_LOCALE, slug: ["status"] }),
+      searchParams: Promise.resolve({}),
     })
 
     expect(trustMeta.title).toBe("Trust")

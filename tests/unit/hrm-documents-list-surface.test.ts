@@ -17,9 +17,31 @@ const DOCUMENT_ROW = {
   sizeBytes: 1024,
   uploadedAt: new Date("2026-01-15T12:00:00.000Z"),
   payloadHash: "abc123def456",
+  blobUrl: "https://blob.example.test/doc-1",
+  rejectionReason: null,
+  versionNumber: 1,
+  isMandatory: false,
   employeeId: "emp-1",
   employeeNumber: "E001",
   employeeFullName: "Alex Example",
+  legalEntityId: null,
+  documentGroup: null,
+  subjectKind: "employee",
+  subjectId: "emp-1",
+  effectiveFrom: new Date("2026-01-15T12:00:00.000Z"),
+  effectiveTo: null,
+  uploadedByUserId: null,
+  documentSetId: null,
+  previousDocumentId: null,
+  replacedByDocumentId: null,
+  isLatestVersion: true,
+  documentLifecycleStatus: "active",
+  retentionPolicyCode: null,
+  retentionUntil: null,
+  archivedAt: null,
+  deletedAt: null,
+  expiryState: "none",
+  effectiveVerificationStatus: "pending",
 } as const satisfies OrgHrmDocumentRow
 
 const documentsCopy = {
@@ -50,7 +72,7 @@ describe("buildDocumentsListSurfaceConfiguration", () => {
     const config = buildDocumentsListSurfaceConfiguration(
       [],
       documentsCopy
-    ) as const satisfies ListSurfaceRendererConfigurationInput
+    ) satisfies ListSurfaceRendererConfigurationInput
 
     expect(config.requiresErpPermission).toEqual({
       module: "hrm",
@@ -64,7 +86,7 @@ describe("buildDocumentsListSurfaceConfiguration", () => {
       [DOCUMENT_ROW],
       documentsCopy,
       trailingContext
-    ) as const satisfies ListSurfaceRendererConfigurationInput
+    ) satisfies ListSurfaceRendererConfigurationInput
 
     expect(config.rows[0]?.trailingAction).toEqual({ state: "ready" })
   })
@@ -79,7 +101,7 @@ describe("buildDocumentsListSurfaceConfiguration", () => {
       ],
       documentsCopy,
       { showActionsColumn: true, canDownload: false, canReview: true }
-    ) as const satisfies ListSurfaceRendererConfigurationInput
+    ) satisfies ListSurfaceRendererConfigurationInput
 
     expect(config.rows[0]?.trailingAction?.state).toBe("disabled")
   })
@@ -89,7 +111,7 @@ describe("buildDocumentsListSurfaceConfiguration", () => {
       [DOCUMENT_ROW],
       documentsCopy,
       { showActionsColumn: false, canDownload: false, canReview: false }
-    ) as const satisfies ListSurfaceRendererConfigurationInput
+    ) satisfies ListSurfaceRendererConfigurationInput
 
     expect(config.rows[0]?.trailingAction).toBeUndefined()
   })

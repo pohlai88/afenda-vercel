@@ -91,9 +91,15 @@ const EMPLOYEE_STATUS_ROW = {
 const HEALTH_SAMPLE_ROW = {
   id: "evidence-1",
   packType: "epf",
+  countryCode: "MY",
+  submissionState: "needs_attention_failing",
+  ageDays: 3,
+  generatedAt: new Date("2026-02-01T00:00:00.000Z"),
+  updatedAt: new Date("2026-02-01T00:00:00.000Z"),
   periodStart: "2026-01-01",
   periodEnd: "2026-01-31",
-  ageDays: 3,
+  periodState: "closed",
+  rulePackVersion: "2026.01",
 } as const satisfies ComplianceHealthSampleRow
 
 const filingsCopy = {
@@ -162,7 +168,7 @@ describe("compliance list surface builders", () => {
       [FILING_ROW],
       filingsCopy,
       { showActionsColumn: true, canUpdate: true }
-    ) as const satisfies ListSurfaceRendererConfigurationInput
+    ) satisfies ListSurfaceRendererConfigurationInput
 
     expect(config.rows[0]?.trailingAction).toEqual({ state: "ready" })
   })
@@ -172,7 +178,7 @@ describe("compliance list surface builders", () => {
       [FILING_ROW],
       filingsCopy,
       { showActionsColumn: false, canUpdate: false }
-    ) as const satisfies ListSurfaceRendererConfigurationInput
+    ) satisfies ListSurfaceRendererConfigurationInput
 
     expect(config.rows[0]?.trailingAction).toBeUndefined()
   })
@@ -182,7 +188,7 @@ describe("compliance list surface builders", () => {
       [EXCEPTION_ROW],
       exceptionsCopy,
       { showActionsColumn: true, canUpdate: true }
-    ) as const satisfies ListSurfaceRendererConfigurationInput
+    ) satisfies ListSurfaceRendererConfigurationInput
 
     expect(config.rows[0]?.trailingAction).toEqual({ state: "ready" })
   })
@@ -192,7 +198,7 @@ describe("compliance list surface builders", () => {
       "needs_attention_failing",
       [HEALTH_SAMPLE_ROW],
       healthSamplesCopy
-    ) as const satisfies ListSurfaceRendererConfigurationInput
+    ) satisfies ListSurfaceRendererConfigurationInput
 
     expect(config.rows[0]?.trailingAction).toEqual({ state: "ready" })
   })
@@ -201,7 +207,7 @@ describe("compliance list surface builders", () => {
     const config = buildComplianceEmployeeStatusListSurfaceConfiguration(
       [EMPLOYEE_STATUS_ROW],
       employeeStatusCopy
-    ) as const satisfies ListSurfaceRendererConfigurationInput
+    ) satisfies ListSurfaceRendererConfigurationInput
 
     expect(config.rows[0]?.trailingAction).toBeUndefined()
   })

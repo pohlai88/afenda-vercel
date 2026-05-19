@@ -7,7 +7,6 @@ import type { OnboardingContractRow } from "#features/hrm/employee-management/em
 const BASE_ROW = {
   contractId: "contract-1",
   employeeId: "emp-1",
-  employeeNumber: "E001",
   legalName: "Aminah Rahman",
   onboardingChecklist: { completedSteps: ["equipment_handoff"] },
 } as const satisfies OnboardingContractRow

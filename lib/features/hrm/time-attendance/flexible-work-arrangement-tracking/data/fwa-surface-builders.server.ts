@@ -1,12 +1,12 @@
 import "server-only"
 
 import {
+  GOVERNED_METADATA_SCHEMA_VERSION,
   listSurfaceRowTrailingActionHidden,
   resolveListSurfaceRowTrailingAction,
-} from "#features/governed-surface/list-surface-trailing-action.shared"
-import type { ListSurfaceRendererConfigurationInput } from "#features/governed-surface/schemas/list-surface-renderer.schema"
-import { GOVERNED_METADATA_SCHEMA_VERSION } from "#features/governed-surface/schemas/schema-version.shared"
-import type { StatCardConfigurationInput } from "#features/governed-surface/schemas/stat-card.schema"
+  type ListSurfaceRendererConfigurationInput,
+  type StatCardConfigurationInput,
+} from "#features/governed-surface"
 
 import { formatFwaDateRange } from "./fwa-display.shared"
 import { FWA_LIST_SURFACE_IDS, FWA_STAT_SURFACE_KEY } from "./fwa-surface-metadata.shared"
