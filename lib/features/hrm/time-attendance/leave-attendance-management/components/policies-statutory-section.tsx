@@ -14,8 +14,10 @@ import { listLegalEntityPayrollConfigs } from "../../../payroll-compensation/mul
 import { resolveRulePack } from "../../../payroll-compensation/multi-country-payroll/data/payroll-rule-pack.server"
 
 export async function PoliciesStatutorySection() {
-  const orgSession = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.policies")
+  const [orgSession, t] = await Promise.all([
+    requireOrgSession(),
+    getTranslations("Dashboard.Hrm.policies"),
+  ])
 
   const configs = await listLegalEntityPayrollConfigs(orgSession.organizationId)
   const countryCode =

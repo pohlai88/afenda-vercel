@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useId, useRef, useState } from "react"
+import { useActionState, useId, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
@@ -19,6 +19,8 @@ import { Input } from "#components2/ui/input"
 import { Textarea } from "#components2/ui/textarea"
 import { updateSkillAction } from "#features/hrm/client"
 import type { ContractMutationFormState } from "#features/hrm/types"
+
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 
 type SkillEditFormProps = {
   orgSlug: string
@@ -43,17 +45,7 @@ function SkillEditForm({
     ContractMutationFormState | undefined,
     FormData
   >(updateSkillAction, undefined)
-
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) {
-      onSuccessRef.current?.()
-    }
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   return (
     <form action={formAction} id={formId} className="flex flex-col gap-4">

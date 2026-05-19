@@ -21,8 +21,10 @@ export async function LeavePendingInbox({
 }: {
   canApproveAll: boolean
 }) {
-  const orgSession = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.leave")
+  const [orgSession, t] = await Promise.all([
+    requireOrgSession(),
+    getTranslations("Dashboard.Hrm.leave"),
+  ])
 
   let rows: OrgLeaveRequestRow[]
   try {

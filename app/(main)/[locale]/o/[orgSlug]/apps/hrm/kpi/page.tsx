@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
-import { HrmKpiPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied, HrmKpiPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
@@ -39,10 +38,7 @@ export default async function OrgAppsHrmKpiPage({
   ])
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="KPI"
-        description="This HRM surface requires KPI search access."
-      />
+      <HrmErpAccessDenied surface="kpi" />
     )
   }
   return (

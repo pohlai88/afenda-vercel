@@ -23,9 +23,9 @@ type AppShellSidebarProviderProps = {
  * Shell-scoped SidebarProvider.
  *
  * Intentionally wraps the ENTIRE shell column (header + sidebar row), not just
- * the sidebar row. This lets utility-bar components call `useSidebar()` to
- * read/control the rail collapse state — the pattern the legacy shell
- * used a separate context for (`workbench-rail-collapse-context.tsx`, deleted).
+ * the sidebar row, so utility-bar components can call `useSidebar()` directly
+ * to read/control rail collapse state. Single source of truth — no parallel
+ * collapse context.
  */
 export function AppShellSidebarProvider({
   defaultOpen = true,

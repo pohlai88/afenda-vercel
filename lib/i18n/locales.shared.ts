@@ -90,6 +90,11 @@ export function toLocaleOrgNexusRevalidatePattern(): AppPath {
   return `/[locale]/o/[orgSlug]/nexus` as AppPath
 }
 
+/** `revalidatePath` for the org ERP shell layout (`/o/[orgSlug]/…` utility bar). */
+export function toLocaleOrgShellRevalidatePattern(): AppPath {
+  return `/[locale]/o/[orgSlug]` as AppPath
+}
+
 /** `revalidatePath` for org admin routes (`/o/[orgSlug]/admin/...`). */
 export function toLocaleOrgAdminRevalidatePattern(adminTail: string): AppPath {
   const tail =

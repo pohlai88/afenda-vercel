@@ -21,8 +21,10 @@ type PoliciesOrgHolidaysSectionProps = {
 export async function PoliciesOrgHolidaysSection({
   isAdmin,
 }: PoliciesOrgHolidaysSectionProps) {
-  const orgSession = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.policies")
+  const [orgSession, t] = await Promise.all([
+    requireOrgSession(),
+    getTranslations("Dashboard.Hrm.policies"),
+  ])
   const rows = await listOrgHolidaysForOrganization(orgSession.organizationId)
 
   return (

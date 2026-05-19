@@ -5,6 +5,7 @@ import { useState, useTransition } from "react"
 import { CheckCircle2, Eye, EyeOff, Loader2, XCircle } from "lucide-react"
 
 import { Button } from "#components2/ui/button"
+import { useRouter } from "#i18n/navigation"
 
 import { setUserCapabilityPreferenceAction } from "../client"
 import type { PreferenceState, ResolvedEffectiveState } from "../client"
@@ -42,6 +43,7 @@ export function CapabilityToggleButton({
   customizable,
   labels,
 }: CapabilityToggleButtonProps) {
+  const router = useRouter()
   const [optimistic, setOptimistic] = useState<PreferenceState | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -104,7 +106,9 @@ export function CapabilityToggleButton({
       if (!result.ok) {
         setOptimistic(null)
         setError(result.message ?? labels.error)
+        return
       }
+      router.refresh()
     })
   }
 

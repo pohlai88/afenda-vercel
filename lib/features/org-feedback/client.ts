@@ -23,3 +23,8 @@ export type {
 } from "./types"
 export { submitOrgFeedbackAction } from "./actions/submit-feedback"
 export { transitionOrgFeedbackAction } from "./actions/transition-feedback"
+export {
+  OrgFeedbackComposeForm,
+  type OrgFeedbackComposeFormProps,
+  type OrgFeedbackComposeMetadata,
+} from "./components/org-feedback-compose-form.client"

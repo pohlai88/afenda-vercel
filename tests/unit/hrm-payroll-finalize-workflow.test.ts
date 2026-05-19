@@ -37,7 +37,7 @@ vi.mock("#features/execution", () => ({
   },
 }))
 
-vi.mock("#features/planner/server", () => ({
+vi.mock("#features/orbit/server", () => ({
   createPlannerSignalLink: vi.fn(),
   insertPlannerSignal: vi.fn().mockResolvedValue({ id: "signal-1" }),
 }))

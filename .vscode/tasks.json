@@ -2,10 +2,10 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "pnpm: lint",
+      "label": "pnpm: gate (L0 — pass paths after --)",
       "type": "shell",
-      "command": "pnpm run lint",
-      "problemMatcher": [],
+      "command": "pnpm gate --",
+      "problemMatcher": ["$eslint-stylish", "$tsc"],
       "group": "test",
       "presentation": { "reveal": "silent", "panel": "shared" }
     },

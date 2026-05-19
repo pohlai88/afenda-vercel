@@ -1,12 +1,14 @@
 "use client"
 
-import { useActionState, useEffect, useId, useRef } from "react"
+import { useActionState, useId } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
 import { Alert, AlertDescription } from "#components2/ui/alert"
 import { Button } from "#components2/ui/button"
 import { Field, FieldError, FieldLabel } from "#components2/ui/field"
+
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 
 import {
   returnLeaveAction,
@@ -26,16 +28,7 @@ export function LeaveReturnForm({ requestId, onSuccess }: LeaveReturnFormProps) 
   >(returnLeaveAction, undefined)
 
   const reasonId = useId()
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) {
-      onSuccessRef.current?.()
-    }
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   const error = state && !state.ok ? state.errors : null
 

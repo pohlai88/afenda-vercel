@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+
 import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#features/governed-surface"
@@ -11,9 +12,9 @@ import {
   CardTitle,
 } from "#components2/ui/card"
 import { Skeleton } from "#components2/ui/skeleton"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { requireOrgSession } from "#lib/auth"
 
+import { HrmErpAccessDenied } from "../../../_module-governance/hrm-erp-access-denied.server"
 import { resolveLeaveSurfaceAccess } from "../data/leave-access.server"
 import type { LeaveSurfaceAccess } from "../data/leave-access.server"
 import {
@@ -49,10 +50,7 @@ export async function LeavePage({ orgSlug, access }: LeavePageProps) {
 
   if (!leaveAccess.canEnter) {
     return (
-      <ErpAccessDenied
-        title="Leave"
-        description="This HRM surface requires Leave access or a linked employee record."
-      />
+      <HrmErpAccessDenied surface="leave" />
     )
   }
 

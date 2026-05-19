@@ -78,8 +78,10 @@ export async function AttendanceRecentEvents({
 }: {
   isAdmin: boolean
 }) {
-  const orgSession = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.attendance")
+  const [orgSession, t] = await Promise.all([
+    requireOrgSession(),
+    getTranslations("Dashboard.Hrm.attendance"),
+  ])
 
   let rows: OrgAttendanceEventRow[]
   try {

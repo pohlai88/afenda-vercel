@@ -124,14 +124,16 @@ import { ui } from "#lib/design-system"
 </article>
 ```
 
-## Workbench runtime composition
+## Post-login app shell composition
 
-Post-login org ERP chrome lives under **`#components/workbench/*`** (`WorkbenchShell`, `WorkbenchUtilityBar`, command layer, dock; Lynx summon remains under **`#components/nexus/*`**). Do not recreate utility bar / command / dock in feature modules — compose inside the route tree mounted under [`app/[locale]/o/[orgSlug]/layout.tsx`](../../app/[locale]/o/[orgSlug]/layout.tsx).
+Post-login ERP chrome — covering workbench URLs (`/{locale}/o/{orgSlug}/apps/*`), org admin, IAM profile, and platform admin — lives under **`#app-shell`** (`components2/app-shell/`). The shell exposes `AppShell`, `AppSubLayout`, the utility bar, primary left rail, command layer, and dock. Lynx summon lives in the Nexus field (`components2/nexus/`) and mounts inside the shell via the `enableLynxSummon` prop. Do not recreate utility bar / command / dock in feature modules — compose inside the route tree mounted under [`app/[locale]/o/[orgSlug]/layout.tsx`](../../app/[locale]/o/[orgSlug]/layout.tsx).
 
 ```tsx
-import { WorkbenchShell } from "#components/workbench"
-// Feature routes render as children; utility bar + palette + Lynx mount inside WorkbenchShell.
+import { AppShell, buildAppShellOrgUtilityBarSlots } from "#app-shell"
+// Feature routes render as children; utility bar + palette + Lynx mount inside AppShell.
 ```
+
+The retired `WorkbenchShell` / `WorkbenchUtilityBar` symbols and the `#components/workbench/*` import path no longer exist — see ADR-0005 (canonical post-login shell unification) and `.cursor/rules/never-restore-deleted-components.mdc`.
 
 ## Contacts ERP composition examples
 

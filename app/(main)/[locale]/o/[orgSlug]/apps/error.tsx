@@ -35,8 +35,8 @@ export default function OrgAppsError(props: NextAppErrorPageProps) {
         This page could not load
       </h1>
       <p className="max-w-md text-sm text-muted-foreground">
-        The workbench shell is still available — try reloading the panel or
-        navigate to another module from the rail.
+        The app shell is still available — try reloading the panel or navigate
+        to another module from the rail.
       </p>
       <RouteErrorDigest digest={error.digest} />
       <RouteErrorActions>

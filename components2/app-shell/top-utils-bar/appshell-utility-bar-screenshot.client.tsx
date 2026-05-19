@@ -1,259 +1,375 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
-import { Camera, Copy, Download, Loader2 } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { toBlob as captureToBlob } from "html-to-image"
+import { Camera, CheckCircle2 } from "lucide-react"
+import { upload as uploadBlob } from "@vercel/blob/client"
+import { useTranslations } from "next-intl"
 
+import { Button } from "#components2/ui/button"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "#components2/ui/empty"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "#components2/ui/popover"
+import { Spinner } from "#components2/ui/spinner"
+import { ToggleGroup, ToggleGroupItem } from "#components2/ui/toggle-group"
 import { cn } from "#lib/utils"
 
-import { Button } from "../../ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "../../ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip"
-import {
-  APP_SHELL_UTILITY_L2_MENU_TRIGGER_OPEN_STATE_CLASS,
-  APP_SHELL_UTILITY_RAIL_MENU_SURFACE_CLASS,
-} from "./appshell-utility-bar-dropdown-chrome.shared"
 import { APP_SHELL_UTILITY_L2_ICON_CLASS } from "./appshell-utility-bar.client"
+import { AppShellUtilityTriggerTooltip } from "./appshell-utility-trigger-tooltip.client"
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+type BlobUploadResult = Awaited<ReturnType<typeof uploadBlob>>
+type ScreenshotMode = "workspace" | "content"
+type CapturedScreenshot = {
+  blob: Blob
+  fileName: string
+  mode: ScreenshotMode
+  previewSrc: string
+}
 
-type ScreenshotPhase =
-  | { kind: "idle" }
-  | { kind: "preview"; dataUrl: string }
-  | { kind: "error"; message: string }
+export type UtilityBarScreenshotPanelProps = {
+  organizationId?: string | null
+}
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+function buildScreenshotFileName(mode: ScreenshotMode): string {
+  return `${mode}-${Date.now()}.png`
+}
 
-function dataUrlToBlob(dataUrl: string): Promise<Blob> {
-  return fetch(dataUrl).then((res) => {
-    if (!res.ok) throw new Error("Could not read capture")
-    return res.blob()
+function buildScreenshotUploadPath(orgId: string, fileName: string): string {
+  return `orgs/${orgId}/nexus-screenshot/${fileName}`
+}
+
+function getCaptureRoot(mode: ScreenshotMode): HTMLElement | null {
+  return document.querySelector<HTMLElement>(
+    `[data-appshell-capture-root="${mode}"]`
+  )
+}
+
+function waitForNextPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    window.requestAnimationFrame(() => resolve())
   })
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
+/**
+ * Quick viewport capture utility for governed screenshot intake from the Nexus right rail.
+ * v1 captures one PNG at a time, previews it, then uploads through the existing Blob route.
+ */
+export function UtilityBarScreenshotPanel({
+  organizationId = null,
+}: UtilityBarScreenshotPanelProps) {
+  if (!organizationId) return null
+  return <UtilityBarScreenshotPanelImpl orgId={organizationId} />
+}
 
-/** Right-rail workspace screenshot — DropdownMenu + html2canvas (close-before-capture). */
-export function UtilityBarScreenshotPanel() {
+function UtilityBarScreenshotPanelImpl({ orgId }: { orgId: string }) {
+  const t = useTranslations("Dashboard.shell.utilityBar.screenshot")
   const [open, setOpen] = useState(false)
-  const [phase, setPhase] = useState<ScreenshotPhase>({ kind: "idle" })
-  const [isCapturing, setIsCapturing] = useState(false)
-  const isCapturingRef = useRef(false)
-  const [copyHint, setCopyHint] = useState<string | null>(null)
-  const closingForCaptureRef = useRef(false)
+  const [mode, setMode] = useState<ScreenshotMode>("workspace")
+  const [capturing, setCapturing] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [captured, setCaptured] = useState<CapturedScreenshot | null>(null)
+  const [uploaded, setUploaded] = useState<BlobUploadResult | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const reset = useCallback(() => {
-    setPhase({ kind: "idle" })
-    setCopyHint(null)
-  }, [])
+  useEffect(() => {
+    return () => {
+      if (captured?.previewSrc) {
+        URL.revokeObjectURL(captured.previewSrc)
+      }
+    }
+  }, [captured])
 
-  function handleOpenChange(next: boolean) {
-    if (!next && closingForCaptureRef.current) {
-      closingForCaptureRef.current = false
-      setOpen(false)
-      return
-    }
-    setOpen(next)
-    if (!next && !isCapturingRef.current) {
-      reset()
-    }
+  const modeOptions = useMemo(
+    () =>
+      [
+        { id: "workspace", label: t("mode.workspace") },
+        { id: "content", label: t("mode.content") },
+      ] as const,
+    [t]
+  )
+
+  function clearCapturedScreenshot() {
+    setCaptured((previous) => {
+      if (previous?.previewSrc) {
+        URL.revokeObjectURL(previous.previewSrc)
+      }
+      return null
+    })
   }
 
-  async function startCapture() {
-    setCopyHint(null)
-    closingForCaptureRef.current = true
+  async function handleCapture() {
+    setCapturing(true)
+    setErrorMessage(null)
+    setUploaded(null)
     setOpen(false)
-    isCapturingRef.current = true
-    setIsCapturing(true)
-    await new Promise((r) => setTimeout(r, 220))
+
     try {
-      const { default: html2canvas } = await import("html2canvas")
-      const canvas = await html2canvas(document.documentElement, {
-        useCORS: true,
-        scale: 1,
-        logging: false,
-        backgroundColor: null,
+      await waitForNextPaint()
+      await waitForNextPaint()
+
+      const target = getCaptureRoot(mode)
+      if (!target) {
+        throw new Error(t("errorTargetMissing"))
+      }
+
+      const blob = await captureToBlob(target, {
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        filter: (element) =>
+          !element.hasAttribute("data-nexus-capture-exclude"),
       })
-      const dataUrl = canvas.toDataURL("image/png")
-      setPhase({ kind: "preview", dataUrl })
-    } catch (err) {
-      const message =
-        err instanceof Error && err.message.trim().length > 0
-          ? err.message
-          : "Capture failed"
-      setPhase({ kind: "error", message })
+      if (!blob) throw new Error(t("errorCapture"))
+      const previewSrc = URL.createObjectURL(blob)
+      const fileName = buildScreenshotFileName(mode)
+
+      setCaptured((previous) => {
+        if (previous?.previewSrc) {
+          URL.revokeObjectURL(previous.previewSrc)
+        }
+        return {
+          blob,
+          fileName,
+          mode,
+          previewSrc,
+        }
+      })
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error && error.message.trim().length > 0
+          ? error.message
+          : t("errorCapture")
+      )
     } finally {
-      isCapturingRef.current = false
-      setIsCapturing(false)
+      setCapturing(false)
       setOpen(true)
     }
   }
 
-  async function copyToClipboard() {
-    if (phase.kind !== "preview") return
-    setCopyHint(null)
+  async function handleUpload() {
+    if (!captured) {
+      setErrorMessage(t("errorNoCapture"))
+      return
+    }
+
+    setUploading(true)
+    setErrorMessage(null)
+
     try {
-      const blob = await dataUrlToBlob(phase.dataUrl)
-      await navigator.clipboard.write([
-        new ClipboardItem({ "image/png": blob }),
-      ])
-      setCopyHint("Copied to clipboard")
-    } catch {
-      setCopyHint("Copy failed — try Download instead")
+      const result = await uploadBlob(
+        buildScreenshotUploadPath(orgId, captured.fileName),
+        captured.blob,
+        {
+          access: "public",
+          contentType: "image/png",
+          handleUploadUrl: "/api/upload/blob",
+          clientPayload: JSON.stringify({
+            source: "nexus-utility-screenshot",
+            captureMode: captured.mode,
+            fileName: captured.fileName,
+            fileSize: captured.blob.size,
+            mimeType: "image/png",
+            routePath:
+              typeof window !== "undefined" ? window.location.pathname : null,
+          }),
+        }
+      )
+      setUploaded(result)
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error && error.message.trim().length > 0
+          ? error.message
+          : t("errorUpload")
+      )
+    } finally {
+      setUploading(false)
     }
   }
 
-  function triggerDownload() {
-    if (phase.kind !== "preview") return
-    const a = document.createElement("a")
-    a.href = phase.dataUrl
-    a.download = `workspace-snapshot-${Date.now()}.png`
-    a.rel = "noopener"
-    a.click()
+  function resetCapture() {
+    clearCapturedScreenshot()
+    setUploaded(null)
+    setErrorMessage(null)
   }
 
   return (
-    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label="Screenshot"
-              aria-busy={isCapturing}
-              disabled={isCapturing}
-              className={cn(
-                APP_SHELL_UTILITY_L2_ICON_CLASS,
-                APP_SHELL_UTILITY_L2_MENU_TRIGGER_OPEN_STATE_CLASS,
-                isCapturing && "pointer-events-none opacity-70"
-              )}
-            >
-              <span
-                aria-hidden
-                className="size-[15px] shrink-0 [&>svg]:size-full"
-              >
-                {isCapturing ? (
-                  <Loader2 className="animate-spin" strokeWidth={2} />
-                ) : (
-                  <Camera strokeWidth={2} />
-                )}
-              </span>
-            </button>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" align="center" sideOffset={8}>
-          Screenshot
-        </TooltipContent>
-      </Tooltip>
+    <Popover open={open} onOpenChange={setOpen}>
+      <AppShellUtilityTriggerTooltip tooltip={t("tooltip")} align="end">
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            aria-label={t("trigger")}
+            className={cn(APP_SHELL_UTILITY_L2_ICON_CLASS)}
+          >
+            <Camera
+              className="size-[15px] shrink-0"
+              aria-hidden
+              strokeWidth={2}
+            />
+          </button>
+        </PopoverTrigger>
+      </AppShellUtilityTriggerTooltip>
 
-      <DropdownMenuContent
+      <PopoverContent
+        side="bottom"
         align="end"
-        sideOffset={8}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        onInteractOutside={(e) => {
-          const target = e.target as Element
-          if (target?.closest("[data-radix-dropdown-menu-content]")) {
-            e.preventDefault()
-          }
-        }}
-        className={cn("w-80 p-0", APP_SHELL_UTILITY_RAIL_MENU_SURFACE_CLASS)}
+        sideOffset={10}
+        className="af-nexus-popover-panel w-80 bg-background/92 p-0"
+        data-nexus-capture-exclude
       >
-        <div className="shrink-0 border-b border-border/50 px-4 py-3">
-          <p className="text-xs font-semibold tracking-tight text-card-foreground">
-            Screenshot
-          </p>
+        <div className="border-b border-border/50 px-4 py-3">
+          <p className="text-xs font-medium text-foreground">{t("title")}</p>
           <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
-            Captures the visible page. The menu closes briefly while the image
-            is rendered so it is not included in the shot.
+            {t("description")}
           </p>
         </div>
 
-        <div className="space-y-3 px-4 py-4">
-          {phase.kind === "idle" && (
+        <div className="flex flex-col gap-3 p-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] font-medium text-muted-foreground">
+              {t("modeLabel")}
+            </p>
+            <ToggleGroup
+              type="single"
+              value={mode}
+              variant="outline"
+              size="sm"
+              spacing={0}
+              onValueChange={(value) => {
+                if (value === "workspace" || value === "content") {
+                  setMode(value)
+                  clearCapturedScreenshot()
+                  setUploaded(null)
+                  setErrorMessage(null)
+                }
+              }}
+            >
+              {modeOptions.map((option) => (
+                <ToggleGroupItem key={option.id} value={option.id}>
+                  {option.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-border/60 bg-muted/20">
+            {captured ? (
+              <div className="flex flex-col gap-3 p-3">
+                <div className="overflow-hidden rounded-xl border border-border/50 bg-background/80">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- preview uses a local blob URL */}
+                  <img
+                    src={captured.previewSrc}
+                    alt={t("previewAlt")}
+                    className="aspect-video h-auto w-full object-cover"
+                  />
+                </div>
+                <p className="text-[11px] leading-snug text-muted-foreground">
+                  {t("previewReady", { mode: t(`mode.${captured.mode}`) })}
+                </p>
+              </div>
+            ) : (
+              <Empty className="border-0 px-4 py-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Camera aria-hidden strokeWidth={1.5} />
+                  </EmptyMedia>
+                  <EmptyTitle className="text-sm">{t("emptyState")}</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
+          </div>
+
+          {uploaded ? (
+            <div className="rounded-2xl border border-border/60 bg-background/80 p-3">
+              <div className="flex items-start gap-3">
+                <CheckCircle2
+                  className="mt-0.5 size-4 shrink-0 text-emerald-600"
+                  aria-hidden
+                  strokeWidth={2}
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <p className="text-sm font-medium text-foreground">
+                    {t("successTitle")}
+                  </p>
+                  <p className="text-[11px] leading-snug text-muted-foreground">
+                    {t("successDescription")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {errorMessage ? (
+            <p className="text-xs text-destructive" role="alert">
+              {errorMessage}
+            </p>
+          ) : null}
+
+          <div className="flex flex-wrap gap-2">
             <Button
               type="button"
+              variant={captured ? "outline" : "default"}
               size="sm"
-              className="w-full"
-              onClick={() => void startCapture()}
+              disabled={capturing || uploading}
+              onClick={handleCapture}
             >
-              Capture workspace
+              {capturing ? (
+                <>
+                  <Spinner aria-hidden />
+                  {t("capturing")}
+                </>
+              ) : captured ? (
+                t("retake")
+              ) : (
+                t("capture")
+              )}
             </Button>
-          )}
-
-          {phase.kind === "error" && (
-            <div className="space-y-3">
-              <p className="text-[11px] text-destructive">{phase.message}</p>
+            {captured ? (
               <Button
                 type="button"
                 size="sm"
-                variant="secondary"
-                className="w-full"
-                onClick={() => void startCapture()}
+                disabled={capturing || uploading}
+                onClick={handleUpload}
               >
-                Try again
+                {uploading ? (
+                  <>
+                    <Spinner aria-hidden />
+                    {t("uploading")}
+                  </>
+                ) : (
+                  t("upload")
+                )}
               </Button>
-            </div>
-          )}
-
-          {phase.kind === "preview" && (
-            <div className="space-y-3">
-              <div className="overflow-hidden rounded-md border border-border/60 bg-muted/20">
-                {/* eslint-disable-next-line @next/next/no-img-element -- data URL preview */}
-                <img
-                  src={phase.dataUrl}
-                  alt="Workspace capture preview"
-                  className="mx-auto max-h-40 w-auto object-contain"
-                />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  className="flex-1 gap-1.5"
-                  onClick={triggerDownload}
-                >
-                  <Download className="size-3.5" strokeWidth={2} />
-                  Download PNG
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  className="flex-1 gap-1.5"
-                  onClick={() => void copyToClipboard()}
-                >
-                  <Copy className="size-3.5" strokeWidth={2} />
-                  Copy
-                </Button>
-              </div>
-              {copyHint ? (
-                <p className="text-center text-[10px] text-muted-foreground">
-                  {copyHint}
-                </p>
-              ) : null}
+            ) : null}
+            {captured ? (
               <Button
                 type="button"
                 size="sm"
-                variant="outline"
-                className="w-full"
-                onClick={reset}
+                variant="ghost"
+                disabled={capturing || uploading}
+                onClick={resetCapture}
               >
-                Capture again
+                {t("clear")}
               </Button>
-            </div>
-          )}
+            ) : null}
+            {uploaded ? (
+              <Button asChild type="button" size="sm" variant="outline">
+                <a href={uploaded.url} target="_blank" rel="noreferrer">
+                  {t("openFile")}
+                </a>
+              </Button>
+            ) : null}
+          </div>
         </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </PopoverContent>
+    </Popover>
   )
 }
+
+export { buildScreenshotUploadPath }

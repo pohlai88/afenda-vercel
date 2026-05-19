@@ -135,6 +135,21 @@ export const HRM_CAPABILITIES = [
     }),
   },
   {
+    id: "geolocation",
+    segments: ["geolocation"] as const,
+    auditPrefix: "erp.hrm.remote_checkin",
+    nav: {
+      navKey: "geolocation",
+      order: 33,
+      primarySegment: "geolocation",
+    },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "remote_checkin",
+      function: "search",
+    }),
+  },
+  {
     id: "benefits",
     segments: ["benefits"] as const,
     auditPrefix: "erp.hrm.benefit",

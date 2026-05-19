@@ -55,9 +55,10 @@ It must not own:
 - Server Actions
 - HRM, supplier, customer, or investor domain policy
 
-`/p` routes must not import or mount `WorkbenchShell`, `AppShell`,
-`WorkbenchSubLayout`, or `AppSubLayout`. Workbench chrome belongs to
-`/{locale}/o/{orgSlug}` only.
+`/p` routes must not import or mount `AppShell` or `AppSubLayout` — the
+canonical post-login app shell belongs to `/{locale}/o/{orgSlug}` only.
+There is no `WorkbenchShell` / `WorkbenchSubLayout` — those names are
+retired (ADR-0005); never reintroduce them.
 
 ---
 
@@ -113,7 +114,7 @@ Rules:
 
 ## Forbidden
 
-- `WorkbenchShell` or `AppShell` imports under `app/[locale]/p/**`.
+- `AppShell` or `AppSubLayout` imports under `app/[locale]/p/**` (post-login app shell is forbidden in portal routes; `WorkbenchShell` / `WorkbenchSubLayout` are retired names — never reintroduce, see ADR-0005).
 - ERP business logic in `app/[locale]/p/**`, `components2/portal-shell/**`, or
   `lib/portal/**`.
 - Portal auth decisions in `proxy.ts`.

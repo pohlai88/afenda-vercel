@@ -1,5 +1,5 @@
 import { SignaturesPage } from "#features/tools"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmSignaturesPage({
@@ -13,10 +13,7 @@ export default async function OrgAppsHrmSignaturesPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Signatures"
-        description="This HRM surface requires signature search access."
-      />
+      <HrmErpAccessDenied surface="signatures" />
     )
   }
   return <SignaturesPage orgSlug={orgSlug} />

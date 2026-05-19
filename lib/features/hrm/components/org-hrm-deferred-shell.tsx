@@ -37,19 +37,24 @@ export async function OrgHrmDeferredShell({
   orgSlug,
   orgSession,
 }: OrgHrmDeferredShellProps) {
-  const [tShell, tNav, railPressure, leaveAccess] = await Promise.all([
-    getTranslations("Dashboard.Hrm.shell"),
-    getTranslations("Dashboard.Hrm.nav"),
-    getHrmRailPressureCounts(orgSession.organizationId),
-    resolveLeaveSurfaceAccess({
-      organizationId: orgSession.organizationId,
-      userId: orgSession.userId,
-    }),
-  ])
-  const effectivePermissions = await listEffectiveErpPermissionsForUser({
-    organizationId: orgSession.organizationId,
-    userId: orgSession.userId,
-  })
+  // All five reads are independent — they only need the already-resolved
+  // org session — so they belong in a single Tier B Promise.all. The
+  // permissions read was previously sequential after the four-call group;
+  // bringing it inside cuts one full async hop off every HRM navigation.
+  const [tShell, tNav, railPressure, leaveAccess, effectivePermissions] =
+    await Promise.all([
+      getTranslations("Dashboard.Hrm.shell"),
+      getTranslations("Dashboard.Hrm.nav"),
+      getHrmRailPressureCounts(orgSession.organizationId),
+      resolveLeaveSurfaceAccess({
+        organizationId: orgSession.organizationId,
+        userId: orgSession.userId,
+      }),
+      listEffectiveErpPermissionsForUser({
+        organizationId: orgSession.organizationId,
+        userId: orgSession.userId,
+      }),
+    ])
   const visibleCapabilities: readonly HrmCapability[] = HRM_CAPABILITIES.filter(
     (capability) =>
       effectivePermissions.includes(capability.requiredPermission) ||

@@ -176,6 +176,18 @@ export const ERP_PERMISSION_REGISTRY = [
   }),
   ...buildPermissionSet({
     module: "hrm",
+    object: "remote_checkin",
+    label: "HRM remote check-in",
+    sensitivity: "sensitive",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
+    object: "geofence",
+    label: "HRM geofence",
+    sensitivity: "sensitive",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
     object: "absence_analytics",
     label: "HRM absence analytics",
     sensitivity: "sensitive",

@@ -3,7 +3,7 @@ import { Suspense } from "react"
 import { redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
-import { AppShell, buildAppShellOrgUtilityBarSlots } from "#app-shell"
+import { AppShell, buildAppShellOrgChrome } from "#app-shell"
 import { Button } from "#components2/ui/button"
 import { Link } from "#i18n/navigation"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
@@ -65,8 +65,6 @@ async function OrgSlugLayoutInner({
     redirect(target as Route)
   }
 
-  const tShell = await getTranslations("Dashboard.shell")
-
   const envelope: RouteEnvelope = {
     surface: "org",
     locale,
@@ -74,14 +72,22 @@ async function OrgSlugLayoutInner({
     orgId: session.organizationId,
   }
 
-  const utilityBar = await buildAppShellOrgUtilityBarSlots({
-    locale,
-    orgSlug,
-    orgName: orgSlug,
-    orgId: session.organizationId,
-    userId: session.userId,
-    userEmail: session.user.email,
-  })
+  // Tier A — both depend on the resolved session, neither depends on the
+  // other. `getTranslations` loads the `Dashboard.shell` namespace; the
+  // utility-bar builder issues its own org/user reads. Running them in
+  // parallel cuts the org layout's serial wait by one full async hop on
+  // every navigation into `/o/{orgSlug}/...`.
+  const [tShell, orgChrome] = await Promise.all([
+    getTranslations("Dashboard.shell"),
+    buildAppShellOrgChrome({
+      locale,
+      orgSlug,
+      orgName: orgSlug,
+      orgId: session.organizationId,
+      userId: session.userId,
+      userEmail: session.user.email,
+    }),
+  ])
 
   return (
     <AppShell
@@ -89,7 +95,8 @@ async function OrgSlugLayoutInner({
       skipToMainLabel={tShell("skipToMain")}
       enableLynxSummon
       orgSlug={orgSlug}
-      utilityBar={utilityBar}
+      utilityBar={orgChrome.utilityBar}
+      command={orgChrome.command}
       rail={null}
     >
       {children}

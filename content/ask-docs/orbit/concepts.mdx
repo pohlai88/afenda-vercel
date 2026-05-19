@@ -16,7 +16,7 @@ Use this page when you need shared vocabulary before operating Queue, Triage, or
 ## Before you start
 
 - You need an active org session and ERP permissions for the planner module.
-- **Orbit** is the product name; the internal module is **Planner** (`lib/features/planner/`).
+- **Orbit** is the product name; the module lives at `lib/features/orbit/` with internal types `PlannerItem` / `PlannerSignal` (TypeScript symbols and `planner_*` DB tables remain wire-stable per ADR-0040 §2).
 - Default entry is **Queue** at `/{locale}/o/{orgSlug}/dashboard/orbit` — not a board-first layout.
 
 ## Two primitives

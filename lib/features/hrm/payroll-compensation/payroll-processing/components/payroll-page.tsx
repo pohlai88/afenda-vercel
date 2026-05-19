@@ -3,14 +3,15 @@ import "server-only"
 import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#features/governed-surface"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { requireOrgSession } from "#lib/auth"
+
+import { HrmErpAccessDenied } from "../../../_module-governance/hrm-erp-access-denied.server"
+import { resolvePayrollSurfaceCapabilities } from "../data/payroll-capabilities.server"
 
 import { PayrollConsolePage } from "./payroll-console"
 import { PayrollCloseChecklistListSection } from "./payroll-close-checklist-list-section"
 import { PayrollRunListSection } from "./payroll-run-list-section"
 import { PayrollTraceabilityListSection } from "./payroll-traceability-list-section"
-import { resolvePayrollSurfaceCapabilities } from "../data/payroll-capabilities.server"
 import {
   getPendingPayrollPeriodLockApprovalId,
   hasApprovedPayrollPeriodLockApproval,
@@ -171,10 +172,7 @@ export async function PayrollPage() {
 
   if (!capabilities.canSearch) {
     return (
-      <ErpAccessDenied
-        title="Payroll"
-        description="This HRM surface requires Payroll search access."
-      />
+      <HrmErpAccessDenied surface="payroll" />
     )
   }
 

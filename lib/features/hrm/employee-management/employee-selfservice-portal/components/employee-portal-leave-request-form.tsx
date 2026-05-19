@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useId, useMemo, useRef } from "react"
+import { useActionState, useId, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
@@ -18,6 +18,7 @@ import {
   type LeaveRequestMutationFormState,
 } from "#features/hrm/client"
 
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 import { LEAVE_HALF_DAY_OPTIONS } from "../../../time-attendance/leave-attendance-management/data/leave-display.shared"
 import type { LeaveTypeChoiceRow } from "../../../time-attendance/leave-attendance-management/data/leave-request.queries.server"
 
@@ -46,15 +47,7 @@ export function EmployeePortalLeaveRequestForm({
   const endDateId = useId()
   const halfDayId = useId()
   const reasonId = useId()
-
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) onSuccessRef.current?.()
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   const fieldErrors = useMemo(() => {
     if (!state || state.ok) return null

@@ -35,7 +35,7 @@ import {
  * Phase 2C Server Actions). Composition responsibility:
  *
  *  - **Authority** is established by the parent layout (`requireOrgSession`
- *    via the workbench shell) and re-validated here for the admin gate.
+ *    via the app shell) and re-validated here for the admin gate.
  *  - **Tier A** (admin gate + employee picker + translations) sits in a
  *    single blocking `Promise.all` so the page renders the header + dialog
  *    trigger immediately.

@@ -43,6 +43,13 @@
       "when": 1779177647804,
       "tag": "0005_tricky_randall",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779198187966,
+      "tag": "0006_next_ghost_rider",
+      "breakpoints": true
     }
   ]
 }

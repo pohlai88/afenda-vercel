@@ -1,12 +1,7 @@
 "use client"
 
 import {
-  useActionState,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
+  useActionState, useId, useMemo, useState
 } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
@@ -27,6 +22,7 @@ import {
   type LeaveTypeMutationFormState,
 } from "#features/hrm/client"
 
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 import { HRM_LEAVE_ACCRUAL_METHODS } from "../data/leave-policy-display.shared"
 import type { LeaveTypeAdminRow } from "../data/leave-policy.queries.server"
 
@@ -74,17 +70,7 @@ export function LeaveTypeForm({ row, onSuccess }: LeaveTypeFormProps) {
   const minNoticeId = useId()
   const maxConsecutiveId = useId()
   const requiresAttachmentId = useId()
-
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) {
-      onSuccessRef.current?.()
-    }
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   const fieldErrors = useMemo(() => {
     if (!state || state.ok) return null

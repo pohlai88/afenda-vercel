@@ -1,5 +1,4 @@
-import { ComplianceEvidenceDetailPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { ComplianceEvidenceDetailPage, HrmErpAccessDenied } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 type OrgAppsHrmComplianceEvidenceDetailPageProps = {
@@ -30,10 +29,7 @@ export default async function OrgAppsHrmComplianceEvidenceDetailPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Compliance evidence"
-        description="This HRM surface requires Compliance read access."
-      />
+      <HrmErpAccessDenied surface="complianceEvidence" />
     )
   }
   return (

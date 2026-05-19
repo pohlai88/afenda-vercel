@@ -11,7 +11,7 @@ import {
   hrmFlexibleWorkRequest,
   iamAuditEvent,
 } from "#lib/db/schema"
-import { createPlannerSignalFromErpProducer } from "#features/planner/server"
+import { createPlannerSignalFromErpProducer } from "#features/orbit/server"
 
 import { organizationHrmPath } from "../../../constants"
 import { HRM_FWA_AUDIT } from "../fwa.contract"

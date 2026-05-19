@@ -23,8 +23,10 @@ type PoliciesLeaveBlackoutSectionProps = {
 export async function PoliciesLeaveBlackoutSection({
   isAdmin,
 }: PoliciesLeaveBlackoutSectionProps) {
-  const orgSession = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.policies")
+  const [orgSession, t] = await Promise.all([
+    requireOrgSession(),
+    getTranslations("Dashboard.Hrm.policies"),
+  ])
   const [rows, leaveTypes] = await Promise.all([
     listActiveLeaveBlackoutsForOrg(orgSession.organizationId),
     listAllLeaveTypesForOrg(orgSession.organizationId),

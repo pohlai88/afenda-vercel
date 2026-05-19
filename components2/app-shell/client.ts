@@ -106,13 +106,19 @@ export { UtilityBarLynxPanel } from "./top-utils-bar/appshell-utility-bar-lynx.c
 export type { UtilityBarLynxPanelProps } from "./top-utils-bar/appshell-utility-bar-lynx.client"
 export { UtilityBarDensityPanel } from "./top-utils-bar/appshell-utility-bar-density.client"
 export { UtilityBarDiagnosisPanel } from "./top-utils-bar/appshell-utility-bar-diagnosis.client"
-export { UtilityBarScreenshotPanel } from "./top-utils-bar/appshell-utility-bar-screenshot.client"
+export { UtilityBarScreenshotPanel, buildScreenshotUploadPath } from "./top-utils-bar/appshell-utility-bar-screenshot.client"
+export type { UtilityBarScreenshotPanelProps } from "./top-utils-bar/appshell-utility-bar-screenshot.client"
 export { UtilityBarShortcutsPanel } from "./top-utils-bar/appshell-utility-bar-shortcuts.client"
 export { UtilityBarFeedbackPanel } from "./top-utils-bar/appshell-utility-bar-feedback.client"
 export { UtilityBarMessengerPanel } from "./top-utils-bar/appshell-utility-bar-messenger.client"
 export { UtilityBarCoordinationPanel } from "./top-utils-bar/appshell-utility-bar-coordination.client"
 export { UtilityBarStoragePanel } from "./top-utils-bar/appshell-utility-bar-storage.client"
-export { UtilityBarUploadPanel } from "./top-utils-bar/appshell-utility-bar-upload.client"
+export {
+  UtilityBarUploadPanel,
+  buildAppShellNexusUtilityUploadPath,
+  buildUploadPath,
+  formatFileSize,
+} from "./top-utils-bar/appshell-utility-bar-upload.client"
 export type { UtilityBarUploadPanelProps } from "./top-utils-bar/appshell-utility-bar-upload.client"
 
 // Utility-bar dropdown shell (dropdown + optional sibling overlays)
@@ -155,10 +161,4 @@ export { AppShellAppLauncherTrigger } from "./top-utils-bar/appshell-app-launche
 export type { AppShellAppLauncherTriggerProps } from "./top-utils-bar/appshell-app-launcher-trigger"
 export { AppShellUtilityControlAvatarTrigger } from "./top-utils-bar/appshell-utility-control-avatar-trigger.client"
 export type { AppShellUtilityControlAvatarTriggerProps } from "./top-utils-bar/appshell-utility-control-avatar-trigger.client"
-export { AppShellNexusUtilityScreenshot } from "./top-utils-bar/appshell-nexus-utility-screenshot.client"
-export {
-  AppShellNexusUtilityUpload,
-  buildAppShellNexusUtilityUploadPath,
-  formatFileSize,
-} from "./top-utils-bar/appshell-nexus-utility-upload.client"
 export { AppShellNexusUtilityNotifications } from "./top-utils-bar/appshell-nexus-utility-notifications.client"

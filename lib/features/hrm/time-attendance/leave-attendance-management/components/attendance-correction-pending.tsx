@@ -8,8 +8,10 @@ import { hrmApproval } from "#lib/db/schema"
 import { AttendanceCorrectionApproveButton } from "./attendance-correction-approve-button.client"
 
 export async function AttendanceCorrectionPending() {
-  const session = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.attendance")
+  const [session, t] = await Promise.all([
+    requireOrgSession(),
+    getTranslations("Dashboard.Hrm.attendance"),
+  ])
 
   const rows = await db.query.hrmApproval.findMany({
     where: and(

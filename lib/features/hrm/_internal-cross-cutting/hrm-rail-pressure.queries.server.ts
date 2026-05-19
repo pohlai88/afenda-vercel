@@ -56,7 +56,7 @@ const COMPLIANCE_FAILED_STATE = "failed" as const
  *
  * Any sub-query failure is logged via `logUnexpectedServerError` and
  * degrades that concern to "no badge" — the rail never blocks the
- * workbench shell on a transient DB hiccup.
+ * app shell on a transient DB hiccup.
  */
 export const getHrmRailPressureCounts = cache(
   async (organizationId: string): Promise<HrmRailPressureMap> => {

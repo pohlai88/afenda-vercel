@@ -17,7 +17,7 @@ const REQUIRED_FILES = [
   ".cursor/rules/i18n-directory.mdc",
   ".cursor/rules/lynx-knowledge.mdc",
   ".cursor/rules/erp-primitives.mdc",
-  ".cursor/rules/planner-directory.mdc",
+  ".cursor/rules/orbit-directory.mdc",
   ".cursor/rules/simulation-directory.mdc",
   ".cursor/rules/shell-directory.mdc",
   ".cursor/rules/portal-directory.mdc",
@@ -141,6 +141,7 @@ const DEFAULT_ALLOWED_MODULE_ROOT_ENTRIES = new Set([
   "server.ts",
   "client.ts",
   "README.md",
+  "ARCHITECTURE.md",
 ])
 
 const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
@@ -161,7 +162,7 @@ const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
     ]),
   ],
   [
-    "planner",
+    "orbit",
     new Set([
       "domain",
       "data",
@@ -192,6 +193,9 @@ const MODULE_ROOT_ENTRY_ALLOWLISTS = new Map([
       "types.ts",
       "index.ts",
       "README.md",
+      "ARCHITECTURE.md",
+      // ADR-0040 Phase 1: directory + import-surface renamed planner→orbit; internal
+      // file basenames keep `planner-` prefix as wire-stable Phase-2 cleanup target.
       "planner-dashboard-path.shared.ts",
       "planner-orbit-path.shared.ts",
       "orbit-surface-metadata.shared.ts",
@@ -232,13 +236,13 @@ function isAllowedDeepFeatureImport(importedModule, subpath) {
     return true
   }
   if (
-    importedModule === "planner" &&
+    importedModule === "orbit" &&
     subpath === "planner-dashboard-path.shared"
   ) {
     return true
   }
   if (
-    importedModule === "planner" &&
+    importedModule === "orbit" &&
     subpath === "planner-orbit-path.shared"
   ) {
     return true

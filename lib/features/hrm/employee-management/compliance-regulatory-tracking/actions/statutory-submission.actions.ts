@@ -8,7 +8,7 @@ import { EXECUTION_AUDIT_ACTIONS } from "#features/execution"
 import {
   createPlannerSignalLink,
   insertPlannerSignal,
-} from "#features/planner/server"
+} from "#features/orbit/server"
 import {
   deliverEventNow,
   findEnabledEndpointForEventType,

@@ -1,5 +1,4 @@
-import { EmployeeDetailPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { EmployeeDetailPage, HrmErpAccessDenied } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmEmployeeDetailPage({
@@ -13,10 +12,7 @@ export default async function OrgAppsHrmEmployeeDetailPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Employee detail"
-        description="This HRM surface requires Workforce read access."
-      />
+      <HrmErpAccessDenied surface="employeeDetail" />
     )
   }
   return <EmployeeDetailPage orgSlug={orgSlug} employeeId={employeeId} />

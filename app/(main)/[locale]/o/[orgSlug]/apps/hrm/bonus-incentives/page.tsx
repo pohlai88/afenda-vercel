@@ -1,5 +1,4 @@
-import { BonusIncentivesPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { BonusIncentivesPage, HrmErpAccessDenied } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmBonusIncentivesPage({
@@ -16,10 +15,7 @@ export default async function OrgAppsHrmBonusIncentivesPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Bonus & incentives"
-        description="This HRM surface requires Bonus & Incentive search access."
-      />
+      <HrmErpAccessDenied surface="bonusIncentives" />
     )
   }
 

@@ -7,7 +7,7 @@ import {
   hrmFlexibleWorkRequest,
   hrmFlexibleWorkSchedulePattern,
 } from "#lib/db/schema"
-import { listAttendanceDaysForEmployee } from "#features/hrm/time-attendance/leave-attendance-management/data/attendance.queries.server"
+import { listAttendanceDaysForEmployee } from "../../leave-attendance-management/data/attendance.queries.server"
 
 import type { FwaSchedulePatternInput } from "../schemas/fwa.schema"
 import { listActiveFwaScheduleForEmployee } from "./fwa-integration.server"

@@ -1,5 +1,4 @@
-import { DocumentsPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { DocumentsPage, HrmErpAccessDenied } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmDocumentsPage({
@@ -15,10 +14,7 @@ export default async function OrgAppsHrmDocumentsPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Documents"
-        description="This HRM surface requires Documents search access."
-      />
+      <HrmErpAccessDenied surface="documents" />
     )
   }
 

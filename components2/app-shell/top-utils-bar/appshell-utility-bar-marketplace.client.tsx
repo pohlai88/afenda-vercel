@@ -1,15 +1,11 @@
 "use client"
 
-import {
-  useCallback,
-  useMemo,
-  useState,
-  type DragEvent,
-  type ElementType,
-} from "react"
+import { useCallback, useMemo, useState, type DragEvent, type ElementType } from "react"
+import type { Route } from "next"
 import { useTranslations } from "next-intl"
 import {
   Activity,
+  Bell,
   Camera,
   CircleHelp,
   Database,
@@ -21,7 +17,6 @@ import {
   MessageCircle,
   MessageSquare,
   Moon,
-  Package,
   PenLine,
   Plug2,
   RotateCcw,
@@ -35,13 +30,14 @@ import {
 } from "lucide-react"
 
 import { cn } from "#lib/utils"
+import { OrgFeedbackComposeForm } from "#features/org-feedback/client"
+import type { UtilityBarCapabilityRow } from "#features/nexus/client"
+import { CapabilityToggleButton } from "#features/marketplace/client"
 
-import { Button } from "../../ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "../../ui/dialog"
@@ -54,7 +50,6 @@ import {
   SheetTitle,
 } from "../../ui/sheet"
 import { Switch } from "../../ui/switch"
-import { Textarea } from "../../ui/textarea"
 import {
   UTILITY_BAR_CATALOG,
   UTILITY_BAR_MAX_VISIBLE,
@@ -76,6 +71,7 @@ import {
 const CATALOG_ICON: Record<string, ElementType> = {
   Search,
   PenLine,
+  Bell,
   Sparkles,
   Sun,
   Moon,
@@ -134,8 +130,8 @@ type ItemRowProps = {
   visibleCount: number
   isDragging: boolean
   isOver: boolean
-  /** When false, drag-and-drop is disabled (e.g. search filter active — indices would not match global order). */
   allowReorder: boolean
+  capabilityRow?: UtilityBarCapabilityRow
   onToggle: (id: UtilityBarItemId) => void
   onDragStart: (id: UtilityBarItemId) => void
   onDragOver: (e: DragEvent, index: number) => void
@@ -150,6 +146,7 @@ function CatalogItemRow({
   isDragging,
   isOver,
   allowReorder,
+  capabilityRow,
   onToggle,
   onDragStart,
   onDragOver,
@@ -157,6 +154,7 @@ function CatalogItemRow({
   onDragEnd,
 }: ItemRowProps) {
   const tCatalog = useTranslations("Dashboard.shell.utilityBar.catalog")
+  const tToggle = useTranslations("Marketplace")
   const def = UTILITY_BAR_CATALOG.find((d) => d.id === item.id)
   if (!def) return null
 
@@ -217,13 +215,31 @@ function CatalogItemRow({
         </p>
       </div>
 
-      <Switch
-        checked={item.visible}
-        onCheckedChange={() => onToggle(item.id)}
-        disabled={atCap}
-        aria-label={`${item.visible ? "Hide" : "Show"} ${label}`}
-        className="shrink-0 scale-90"
-      />
+      {capabilityRow ? (
+        <CapabilityToggleButton
+          capabilityId={capabilityRow.capabilityId}
+          effective={capabilityRow.effective}
+          customizable={capabilityRow.customizable}
+          labels={{
+            enable: tToggle("toggle.enable"),
+            disable: tToggle("toggle.disable"),
+            pending: tToggle("toggle.pending"),
+            mandatory: tToggle("toggle.mandatory"),
+            blocked: tToggle("toggle.blocked"),
+            unavailable: tToggle("toggle.unavailable"),
+            notCustomizable: tToggle("toggle.notCustomizable"),
+            error: tToggle("toggle.error"),
+          }}
+        />
+      ) : (
+        <Switch
+          checked={item.visible}
+          onCheckedChange={() => onToggle(item.id)}
+          disabled={atCap}
+          aria-label={`${item.visible ? "Hide" : "Show"} ${label}`}
+          className="shrink-0 scale-90"
+        />
+      )}
     </div>
   )
 }
@@ -232,8 +248,16 @@ function CatalogItemRow({
 // Utilities configuration body (sheet)
 // ---------------------------------------------------------------------------
 
-function UtilitiesTab() {
+function UtilitiesTab({
+  capabilityRows,
+}: {
+  capabilityRows: readonly UtilityBarCapabilityRow[]
+}) {
   const { items, toggleItem, reorderFullCatalog, reset } = useUtilityBarStore()
+  const capabilityByItemId = useMemo(
+    () => new Map(capabilityRows.map((row) => [row.utilityBarItemId, row])),
+    [capabilityRows]
+  )
   const orderedItems = selectAllItemsOrdered(items)
   const visibleCount = items.filter((i) => i.visible).length
   const tCatalog = useTranslations("Dashboard.shell.utilityBar.catalog")
@@ -346,6 +370,7 @@ function UtilitiesTab() {
               drag.dragId !== item.id
             }
             allowReorder={allowReorder}
+            capabilityRow={capabilityByItemId.get(item.id)}
             onToggle={toggleItem}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
@@ -365,9 +390,11 @@ function UtilitiesTab() {
 function UtilityBarConfigSheet({
   open,
   onOpenChange,
+  capabilityRows,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
+  capabilityRows: readonly UtilityBarCapabilityRow[]
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -379,12 +406,11 @@ function UtilityBarConfigSheet({
         <SheetHeader className="shrink-0 border-b border-border/40 px-4 py-4 text-left">
           <SheetTitle>Customise utility bar</SheetTitle>
           <SheetDescription>
-            Show, hide, and reorder icons on the right rail. Changes persist in
-            this browser (localStorage).
+            Visibility syncs to your account; order stays on this device.
           </SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <UtilitiesTab />
+          <UtilitiesTab capabilityRows={capabilityRows} />
         </div>
       </SheetContent>
     </Sheet>
@@ -402,48 +428,30 @@ function RequestUtilityDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const [note, setNote] = useState("")
+  const t = useTranslations("Dashboard.shell.utilityBar.marketplace")
+  const [formKey, setFormKey] = useState(0)
 
   function handleOpenChange(next: boolean) {
     onOpenChange(next)
-    if (!next) setNote("")
+    if (!next) setFormKey((k) => k + 1)
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="gap-4 sm:max-w-md" showCloseButton>
         <DialogHeader>
-          <DialogTitle>Request a utility</DialogTitle>
-          <DialogDescription>
-            Describe the control or workflow you need. This preview does not
-            submit to the server yet.
-          </DialogDescription>
+          <DialogTitle>{t("requestTitle")}</DialogTitle>
+          <DialogDescription>{t("requestDescription")}</DialogDescription>
         </DialogHeader>
-        <Textarea
-          aria-label="Utility request details"
-          placeholder="What should this utility do? Where in the shell should it live?"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          rows={4}
-          className="min-h-24 resize-y text-sm"
+        <OrgFeedbackComposeForm
+          key={formKey}
+          metadata={{
+            source: "utility-marketplace",
+            requestKind: "rail-icon",
+            utilityId: "marketplace.customIcon",
+          }}
+          onReset={() => setFormKey((k) => k + 1)}
         />
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              handleOpenChange(false)
-            }}
-          >
-            Submit (preview)
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
@@ -462,12 +470,17 @@ function RequestUtilityDialog({
 export function AppShellMarketplacePanel({
   triggerAriaLabel = "Open marketplace",
   triggerTooltip = "Marketplace",
+  capabilityRows = [],
+  integrationsHref,
 }: {
   triggerAriaLabel?: string
   triggerTooltip?: string
+  capabilityRows?: readonly UtilityBarCapabilityRow[]
+  integrationsHref?: Route
 }) {
   const [configOpen, setConfigOpen] = useState(false)
   const [requestOpen, setRequestOpen] = useState(false)
+  const t = useTranslations("Dashboard.shell.utilityBar.marketplace")
 
   const groups: UtilityDropdownGroup[] = useMemo(
     () => [
@@ -489,37 +502,23 @@ export function AppShellMarketplacePanel({
           },
         ],
       },
-      {
-        items: [
-          {
-            id: "integrations",
-            label: "Integrations",
-            description: "Coming soon — connect third-party systems",
-            icon: Plug2,
-            disabled: true,
-          },
-          {
-            id: "plugins",
-            label: "Plugins",
-            description: "Coming soon — install workspace extensions",
-            icon: Package,
-            disabled: true,
-          },
-        ],
-      },
-      {
-        items: [
-          {
-            id: "whats-new",
-            label: "What's new",
-            description: "Coming soon — release notes in the shell",
-            icon: Sparkles,
-            disabled: true,
-          },
-        ],
-      },
+      ...(integrationsHref
+        ? [
+            {
+              items: [
+                {
+                  id: "integrations",
+                  label: t("integrationsLabel"),
+                  description: t("integrationsDescription"),
+                  icon: Plug2,
+                  href: integrationsHref,
+                },
+              ],
+            },
+          ]
+        : []),
     ],
-    []
+    [integrationsHref, t]
   )
 
   return (
@@ -541,7 +540,11 @@ export function AppShellMarketplacePanel({
         </span>
       }
     >
-      <UtilityBarConfigSheet open={configOpen} onOpenChange={setConfigOpen} />
+      <UtilityBarConfigSheet
+        open={configOpen}
+        onOpenChange={setConfigOpen}
+        capabilityRows={capabilityRows}
+      />
       <RequestUtilityDialog open={requestOpen} onOpenChange={setRequestOpen} />
     </AppShellUtilityBarIconDropdown>
   )

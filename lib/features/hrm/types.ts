@@ -625,6 +625,112 @@ export type SeedFwaTypesFormState =
   | { ok: false; errors: { form?: string } }
 
 // ---------------------------------------------------------------------------
+// Geolocation & Remote Check-In form states
+// ---------------------------------------------------------------------------
+
+export type RemoteCheckinRecordFormState =
+  | {
+      ok: true
+      eventId: string
+      outcome: "approved" | "pending_exception"
+      exceptionId?: string
+    }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        eventType?: string
+        occurredAt?: string
+        latitude?: string
+        longitude?: string
+        gpsAccuracyMeters?: string
+        deviceId?: string
+        remoteLocationLabel?: string
+        selfieBlobUrl?: string
+      }
+    }
+
+export type RemoteCheckinExceptionSubmissionFormState =
+  | { ok: true; exceptionId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        eventDraftId?: string
+        reason?: string
+      }
+    }
+
+export type RemoteCheckinExceptionDecisionFormState =
+  | { ok: true; exceptionId: string; eventId?: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        exceptionId?: string
+        decisionReason?: string
+        correctedLatitude?: string
+        correctedLongitude?: string
+        correctedEventType?: string
+      }
+    }
+
+export type GeofenceMutationFormState =
+  | { ok: true; geofenceId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        geofenceId?: string
+        code?: string
+        label?: string
+        latitude?: string
+        longitude?: string
+        radiusMeters?: string
+        scopeKind?: string
+      }
+    }
+
+export type RemoteCheckinPolicyMutationFormState =
+  | { ok: true; policyId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        policyId?: string
+        scopeKind?: string
+        minGpsAccuracyMeters?: string
+        allowedRadiusBufferMeters?: string
+        breakWindowMinutes?: string
+      }
+    }
+
+export type RemoteCheckinDeviceMutationFormState =
+  | { ok: true; deviceId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        deviceId?: string
+        employeeId?: string
+        deviceLabel?: string
+        deviceFingerprint?: string
+      }
+    }
+
+export type RemoteCheckinReportExportFormState =
+  | { ok: true; csv: string; filename: string; rowCount: number }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        startDate?: string
+        endDate?: string
+      }
+    }
+
+// ---------------------------------------------------------------------------
 // Phase 2C: Attendance form states
 // ---------------------------------------------------------------------------
 

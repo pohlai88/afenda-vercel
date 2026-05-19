@@ -10,8 +10,8 @@ import {
   derivePlannerBlockedEscalationThresholdHours,
   organizationOrbitPath,
   shouldEscalatePlannerBlockedItem,
-} from "#features/planner"
-import { listPlannerBlockedItemsForEscalation } from "#features/planner/server"
+} from "#features/orbit"
+import { listPlannerBlockedItemsForEscalation } from "#features/orbit/server"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 import { runWithNodeOtelSpan } from "#lib/observability/otel-span.server"
 import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"

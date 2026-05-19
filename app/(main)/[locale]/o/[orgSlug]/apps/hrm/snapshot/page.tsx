@@ -1,5 +1,4 @@
-import { HrmSnapshotPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied, HrmSnapshotPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmSnapshotPage({
@@ -13,10 +12,7 @@ export default async function OrgAppsHrmSnapshotPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Snapshot"
-        description="This HRM surface requires Snapshot read access."
-      />
+      <HrmErpAccessDenied surface="snapshot" />
     )
   }
   return <HrmSnapshotPage orgSlug={orgSlug} />

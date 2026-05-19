@@ -1,12 +1,14 @@
 "use client"
 
-import { useActionState, useEffect, useRef } from "react"
+import { useActionState } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
 import { Alert, AlertDescription } from "#components2/ui/alert"
 import { Button } from "#components2/ui/button"
 import { DialogFooter } from "#components2/ui/dialog"
+
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 
 import {
   cancelLeaveAction,
@@ -32,17 +34,7 @@ export function LeaveCancelForm({
     CancelLeaveFormState | undefined,
     FormData
   >(cancelLeaveAction, undefined)
-
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) {
-      onSuccessRef.current?.()
-    }
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   const error = state && !state.ok ? state.errors : null
 

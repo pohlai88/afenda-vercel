@@ -1,5 +1,6 @@
 import "server-only"
 
+import type { ReactNode } from "react"
 import type { Route } from "next"
 import { getTranslations } from "next-intl/server"
 
@@ -9,6 +10,7 @@ import {
   listUserCapabilityPreferences,
   resolveCapabilitiesForViewer,
 } from "#features/marketplace/server"
+import { OrgCommandLayer, buildQuickCreateMenu, toUtilityBarCapabilityRows, toUtilityBarRailSnapshot } from "#features/nexus/server"
 import { resolveOperationalContext } from "#features/operational-scope"
 import {
   organizationIamProfilePath,
@@ -36,30 +38,42 @@ export type BuildAppShellOrgUtilityBarSlotsInput = {
   userEmail: string
 }
 
-export async function buildAppShellOrgUtilityBarSlots({
+export type AppShellOrgChrome = {
+  utilityBar: AppShellUtilityBarSlots
+  command: ReactNode
+}
+
+export async function buildAppShellOrgChrome({
   locale,
   orgSlug,
   orgName,
   orgId,
   userId,
   userEmail,
-}: BuildAppShellOrgUtilityBarSlotsInput): Promise<AppShellUtilityBarSlots> {
+}: BuildAppShellOrgUtilityBarSlotsInput): Promise<AppShellOrgChrome> {
   const appLocale = ensureAppLocale(locale)
-  const [userOrgs, orgPolicy, userPreferences, operationalContext, tShell] =
-    await Promise.all([
-      listUserOrganizationsForSwitcher(userId),
-      listOrgCapabilityPolicy(orgId),
-      listUserCapabilityPreferences({ organizationId: orgId, userId }),
-      resolveOperationalContext(orgId, userId),
-      getTranslations("Dashboard.shell"),
-    ])
+  const [
+    userOrgs,
+    orgPolicy,
+    userPreferences,
+    operationalContext,
+    quickCreateMenu,
+    tShell,
+  ] = await Promise.all([
+    listUserOrganizationsForSwitcher(userId),
+    listOrgCapabilityPolicy(orgId),
+    listUserCapabilityPreferences({ organizationId: orgId, userId }),
+    resolveOperationalContext(orgId, userId),
+    buildQuickCreateMenu({ orgSlug, orgId, userId }),
+    getTranslations("Dashboard.shell"),
+  ])
 
   const currentOrg = userOrgs.find((o) => o.id === orgId)
   const displayOrgName = currentOrg?.name?.trim() || orgName
   const showOrgAdminSettings =
     currentOrg?.role === "admin" || currentOrg?.role === "owner"
 
-  resolveCapabilitiesForViewer({
+  const resolved = resolveCapabilitiesForViewer({
     viewer: {
       isAdmin: showOrgAdminSettings,
       isMobile: false,
@@ -70,6 +84,9 @@ export async function buildAppShellOrgUtilityBarSlots({
     userPreferences,
   })
 
+  const railSnapshot = toUtilityBarRailSnapshot(resolved)
+  const capabilityRows = toUtilityBarCapabilityRows(resolved)
+
   const accountHrefs = {
     account: organizationIamProfilePath(orgSlug) as Route,
     identity: organizationIamProfilePath(orgSlug, "identity") as Route,
@@ -77,40 +94,66 @@ export async function buildAppShellOrgUtilityBarSlots({
   }
 
   return {
-    left: (
-      <AppShellUtilityBarOrgLeft
+    command: (
+      <OrgCommandLayer
         orgSlug={orgSlug}
-        orgName={displayOrgName}
-        orgId={orgId}
+        currentOrgId={orgId}
         userOrgs={userOrgs}
-        showOrgLoadingBay={userOrgs.length > 1}
-        operationalContext={operationalContext}
+        showOrgAdmin={showOrgAdminSettings}
       />
     ),
-    center: (
-      <AppShellUtilityBarCommandSearchTrigger
-        placeholder={tShell("utilityBar.search")}
-        triggerAriaLabel={tShell("utilityBar.search")}
-        triggerTooltip={tShell("utilityBar.searchTooltip")}
-      />
-    ),
-    right: (
-      <AppShellUtilityBarRight
-        orgSlug={orgSlug}
-        workspaceBlobOrganizationId={orgId}
-        hrefs={{
-          insight: organizationAppsPath(orgSlug, "lynx") as Route,
-          help: toLocalePath(appLocale, "/ask-docs") as Route,
-          settings: (showOrgAdminSettings
-            ? organizationAdminPath(orgSlug, "settings")
-            : organizationAppsPath(orgSlug, "home")) as Route,
-        }}
-        account={{
-          userEmail,
-          hrefs: accountHrefs,
-          workspaceHomeHref: organizationAppsPath(orgSlug, "home"),
-        }}
-      />
-    ),
+    utilityBar: {
+      left: (
+        <AppShellUtilityBarOrgLeft
+          orgSlug={orgSlug}
+          orgName={displayOrgName}
+          orgId={orgId}
+          userOrgs={userOrgs}
+          showOrgLoadingBay={userOrgs.length > 1}
+          operationalContext={operationalContext}
+        />
+      ),
+      center: (
+        <AppShellUtilityBarCommandSearchTrigger
+          placeholder={tShell("utilityBar.search")}
+          triggerAriaLabel={tShell("utilityBar.search")}
+          triggerTooltip={tShell("utilityBar.searchTooltip")}
+        />
+      ),
+      right: (
+        <AppShellUtilityBarRight
+          orgSlug={orgSlug}
+          workspaceBlobOrganizationId={orgId}
+          quickCreateMenu={quickCreateMenu}
+          railSnapshot={railSnapshot}
+          capabilityRows={capabilityRows}
+          notificationsCanManage={showOrgAdminSettings}
+          showOrgAdminIntegrations={showOrgAdminSettings}
+          integrationsHref={
+            organizationAdminPath(orgSlug, "integrations") as Route
+          }
+          hrefs={{
+            insight: organizationAppsPath(orgSlug, "lynx") as Route,
+            help: toLocalePath(appLocale, "/ask-docs") as Route,
+            settings: (showOrgAdminSettings
+              ? organizationAdminPath(orgSlug, "settings")
+              : organizationAppsPath(orgSlug, "home")) as Route,
+          }}
+          account={{
+            userEmail,
+            hrefs: accountHrefs,
+            workspaceHomeHref: organizationAppsPath(orgSlug, "home"),
+          }}
+        />
+      ),
+    },
   }
+}
+
+/** @deprecated Use {@link buildAppShellOrgChrome} — returns utility bar slots only. */
+export async function buildAppShellOrgUtilityBarSlots(
+  input: BuildAppShellOrgUtilityBarSlotsInput
+): Promise<AppShellUtilityBarSlots> {
+  const chrome = await buildAppShellOrgChrome(input)
+  return chrome.utilityBar
 }

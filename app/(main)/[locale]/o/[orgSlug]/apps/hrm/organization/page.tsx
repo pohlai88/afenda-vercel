@@ -1,5 +1,4 @@
-import { OrganizationPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied, OrganizationPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmOrganizationPage({
@@ -15,10 +14,7 @@ export default async function OrgAppsHrmOrganizationPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Organization"
-        description="This HRM surface requires Organization read access."
-      />
+      <HrmErpAccessDenied surface="organization" />
     )
   }
   const tabParam = typeof sp.tab === "string" ? sp.tab : undefined

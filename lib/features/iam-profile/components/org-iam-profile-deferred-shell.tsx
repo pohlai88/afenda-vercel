@@ -8,7 +8,7 @@ import {
   AppShellPrimaryLeftRailFooter,
 } from "#app-shell/client"
 import { organizationNexusPath } from "#features/nexus"
-import { organizationOrbitPath } from "#features/planner"
+import { organizationOrbitPath } from "#features/orbit"
 import { buildIamProfileRailSlots } from "#features/iam-profile/server"
 import { organizationIamProfilePath } from "#lib/org-apps-module-paths"
 import type { AppLocale } from "#lib/i18n/locales.shared"

@@ -6,7 +6,7 @@ import { writeIamAuditEvent } from "#lib/auth/audit.server"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmFlexibleWorkRequest, iamAuditEvent } from "#lib/db/schema"
-import { createPlannerSignalFromErpProducer } from "#features/planner/server"
+import { createPlannerSignalFromErpProducer } from "#features/orbit/server"
 
 import { organizationHrmPath } from "../../../constants"
 import { HRM_FWA_AUDIT } from "../fwa.contract"

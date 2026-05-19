@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useId, useMemo, useRef } from "react"
+import { useActionState, useId, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
@@ -9,6 +9,8 @@ import { Button } from "#components2/ui/button"
 import { DialogFooter } from "#components2/ui/dialog"
 import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
+
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 
 import {
   correctAttendanceEventAction,
@@ -71,17 +73,7 @@ export function AttendanceCorrectionForm({
   const eventTypeId = useId()
   const occurredAtId = useId()
   const reasonId = useId()
-
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) {
-      onSuccessRef.current?.()
-    }
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   const fieldErrors = useMemo(() => {
     if (!state || state.ok) return null

@@ -26,11 +26,16 @@ export type {
   PolicyAudience,
   PolicyState,
   PreferenceState,
+  ResolvedCapability,
+  ResolvedCapabilitySet,
   ResolvedEffectiveState,
   ResolvedSource,
   SetOrgCapabilityPolicyResult,
   SetUserCapabilityPreferenceResult,
 } from "./types"
+
+export { CapabilityToggleButton } from "./components/capability-toggle-button.client"
+export type { CapabilityToggleButtonProps } from "./components/capability-toggle-button.client"
 
 export type { UserPreferenceInput } from "./schemas/user-preference.schema"
 export type {

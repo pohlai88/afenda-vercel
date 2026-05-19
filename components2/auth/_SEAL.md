@@ -141,7 +141,7 @@ pnpm gate -- components2/auth lib/auth
 | Path | Layer / role |
 | --- | --- |
 | `o/[orgSlug]/profile/**` + `#components2/iam-profile/**` | Signed-in profile — not Layer 3 auth |
-| `components2/app-shell/` | Post-login workbench chrome |
+| `components2/app-shell/` | Post-login app shell chrome (the standardized shell) |
 | `lib/features/account/` | Account data + invitation actions |
 
 ---

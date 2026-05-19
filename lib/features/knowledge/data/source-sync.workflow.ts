@@ -7,7 +7,7 @@ import { publishOrgNotificationIfMissing } from "#features/org-notifications/ser
 import {
   createPlannerSignalLink,
   insertPlannerSignal,
-} from "#features/planner/server"
+} from "#features/orbit/server"
 import { writeIamAuditEvent } from "#lib/auth"
 import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"

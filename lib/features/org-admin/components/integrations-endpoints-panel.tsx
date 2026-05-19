@@ -20,7 +20,7 @@ import { OrgAdminIntegrationsEndpointsListSection } from "./org-admin-integratio
 /**
  * Server-rendered list of `org_event_endpoint` rows for the active org. Form
  * islands hydrate as needed; reads stay on the server. Caller is responsible
- * for the `requireOrgSession` + admin gate (workbench layout already enforces).
+ * for the `requireOrgSession` + admin gate (org admin layout already enforces).
  */
 export async function IntegrationsEndpointsPanel({
   organizationId,

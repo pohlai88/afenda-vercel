@@ -5158,6 +5158,17 @@ export const hrmAttendanceEvent = pgTable(
     rawPayloadHash: text("rawPayloadHash"),
     metadata: jsonb("metadata"),
     checkInIp: text("checkInIp"),
+    /**
+     * Geolocation & Remote Check-In extensions — populated by the remote
+     * check-in aggregator when an event originates from the
+     * `geolocation-remote-checkin` capture pipeline or an approved exception.
+     * `null` for shift/manual/CSV rows.
+     */
+    geofenceId: text("geofenceId"),
+    gpsAccuracyMeters: integer("gpsAccuracyMeters"),
+    selfieBlobUrl: text("selfieBlobUrl"),
+    /** verified | outside_geofence | weak_accuracy | missing_gps | ineligible_employee | ineligible_device | spoof_suspected | outside_shift_window | missing_selfie */
+    locationVerificationOutcome: text("locationVerificationOutcome"),
     createdByUserId: text("createdByUserId"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   },
@@ -5175,6 +5186,10 @@ export const hrmAttendanceEvent = pgTable(
     index("hrm_attendance_event_org_correctionOf_idx").on(
       t.organizationId,
       t.correctionOfEventId
+    ),
+    index("hrm_attendance_event_org_geofence_idx").on(
+      t.organizationId,
+      t.geofenceId
     ),
   ]
 )
@@ -8130,6 +8145,241 @@ export const erpRolePermission = pgTable(
       t.module,
       t.object,
       t.status
+    ),
+  ]
+)
+
+// ---------------------------------------------------------------------------
+// Geolocation & Remote Check-In (lib/features/hrm/time-attendance/geolocation-remote-checkin/)
+//
+// `hrm_attendance_event` carries the verified row; the four tables below own
+// configuration (geofences + policies + devices) and the exception inbox.
+// ---------------------------------------------------------------------------
+
+/**
+ * Approved worksite circular geofence (HRM-GEO-004 / HRM-GEO-005).
+ * Referenced by `hrm_remote_checkin_policy` and (after approval) by
+ * `hrm_attendance_event.geofenceId` for traceability.
+ */
+export const hrmGeofence = pgTable(
+  "hrm_geofence",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    label: text("label").notNull(),
+    /** office | branch | project_site | client_site | field_site | home_office */
+    scopeKind: text("scopeKind").notNull(),
+    latitude: decimal("latitude", { precision: 10, scale: 6 }).notNull(),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }).notNull(),
+    radiusMeters: integer("radiusMeters").notNull(),
+    bufferMeters: integer("bufferMeters").notNull().default(0),
+    countryCode: text("countryCode"),
+    legalEntityCode: text("legalEntityCode"),
+    notes: text("notes"),
+    archivedAt: timestamp("archivedAt", { mode: "date" }),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_geofence_org_code_uidx").on(t.organizationId, t.code),
+    index("hrm_geofence_org_scope_active_idx").on(
+      t.organizationId,
+      t.scopeKind,
+      t.archivedAt
+    ),
+    check(
+      "hrm_geofence_scope_kind_chk",
+      sql`${t.scopeKind} IN ('office', 'branch', 'project_site', 'client_site', 'field_site', 'home_office')`
+    ),
+    check(
+      "hrm_geofence_radius_chk",
+      sql`${t.radiusMeters} > 0 AND ${t.radiusMeters} <= 50000`
+    ),
+    check(
+      "hrm_geofence_buffer_chk",
+      sql`${t.bufferMeters} >= 0 AND ${t.bufferMeters} <= 5000`
+    ),
+  ]
+)
+
+/**
+ * Per-scope thresholds for remote check-in (HRM-GEO-007 / HRM-GEO-009 / HRM-GEO-011 / HRM-GEO-015).
+ * Org-wide row uses `scopeKind = 'org'` and `scopeRef = null`; more specific
+ * scopes override.
+ */
+export const hrmRemoteCheckinPolicy = pgTable(
+  "hrm_remote_checkin_policy",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    /** org | department | position | employment_type | policy_group | employee */
+    scopeKind: text("scopeKind").notNull(),
+    /** UUID or code for the scope (department ID, position ID, employment-type slug, policy-group code, employee ID). */
+    scopeRef: text("scopeRef"),
+    minGpsAccuracyMeters: integer("minGpsAccuracyMeters").notNull().default(100),
+    allowedRadiusBufferMeters: integer("allowedRadiusBufferMeters")
+      .notNull()
+      .default(50),
+    shiftWindowMinutes: integer("shiftWindowMinutes").notNull().default(60),
+    breakWindowMinutes: integer("breakWindowMinutes").notNull().default(30),
+    requireRegisteredDevice: boolean("requireRegisteredDevice")
+      .notNull()
+      .default(true),
+    requireSelfie: boolean("requireSelfie").notNull().default(false),
+    detectSpoofing: boolean("detectSpoofing").notNull().default(true),
+    allowEligibilityException: boolean("allowEligibilityException")
+      .notNull()
+      .default(true),
+    isActive: boolean("isActive").notNull().default(true),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_remote_checkin_policy_org_scope_uidx").on(
+      t.organizationId,
+      t.scopeKind,
+      t.scopeRef
+    ),
+    index("hrm_remote_checkin_policy_org_active_idx").on(
+      t.organizationId,
+      t.isActive
+    ),
+    check(
+      "hrm_remote_checkin_policy_scope_kind_chk",
+      sql`${t.scopeKind} IN ('org', 'department', 'position', 'employment_type', 'policy_group', 'employee')`
+    ),
+    check(
+      "hrm_remote_checkin_policy_thresholds_chk",
+      sql`${t.minGpsAccuracyMeters} > 0 AND ${t.allowedRadiusBufferMeters} >= 0 AND ${t.shiftWindowMinutes} >= 0 AND ${t.breakWindowMinutes} >= 0`
+    ),
+  ]
+)
+
+/**
+ * Registered devices allowed for remote check-in (HRM-GEO-010 / HRM-GEO-011).
+ * `deviceFingerprint` is a hashed identifier from the browser / mobile app
+ * — the same physical device can re-register if revoked.
+ */
+export const hrmRemoteCheckinDevice = pgTable(
+  "hrm_remote_checkin_device",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    deviceLabel: text("deviceLabel").notNull(),
+    deviceFingerprint: text("deviceFingerprint").notNull(),
+    /** pending | active | revoked */
+    state: text("state").notNull().default("pending"),
+    lastSeenAt: timestamp("lastSeenAt", { mode: "date" }),
+    lastIpAddress: text("lastIpAddress"),
+    registeredByUserId: text("registeredByUserId"),
+    revokedByUserId: text("revokedByUserId"),
+    revokedAt: timestamp("revokedAt", { mode: "date" }),
+    revokedReason: text("revokedReason"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_remote_checkin_device_org_fingerprint_uidx").on(
+      t.organizationId,
+      t.deviceFingerprint
+    ),
+    index("hrm_remote_checkin_device_org_employee_state_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.state
+    ),
+    check(
+      "hrm_remote_checkin_device_state_chk",
+      sql`${t.state} IN ('pending', 'active', 'revoked')`
+    ),
+  ]
+)
+
+/**
+ * Failed-validation captures awaiting approval (HRM-GEO-016 / HRM-GEO-017 /
+ * HRM-GEO-018). Approved exceptions write into `hrm_attendance_event` and
+ * back-fill `resolvedEventId` for traceability.
+ */
+export const hrmRemoteCheckinException = pgTable(
+  "hrm_remote_checkin_exception",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    /** submitted | approved | rejected | returned | corrected | cancelled */
+    state: text("state").notNull().default("submitted"),
+    /** clock_in | clock_out | break_start | break_end */
+    eventType: text("eventType").notNull(),
+    occurredAt: timestamp("occurredAt", { mode: "date" }).notNull(),
+    latitude: decimal("latitude", { precision: 10, scale: 6 }),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }),
+    gpsAccuracyMeters: integer("gpsAccuracyMeters"),
+    deviceId: text("deviceId"),
+    remoteLocationLabel: text("remoteLocationLabel"),
+    geofenceId: text("geofenceId"),
+    selfieBlobUrl: text("selfieBlobUrl"),
+    /** Outcome reported by the validation engine on capture. */
+    detectionOutcome: text("detectionOutcome").notNull(),
+    reason: text("reason").notNull(),
+    decisionReason: text("decisionReason"),
+    /** Set when the approver corrects the capture (HRM-GEO-019). */
+    correctedLatitude: decimal("correctedLatitude", { precision: 10, scale: 6 }),
+    correctedLongitude: decimal("correctedLongitude", { precision: 10, scale: 6 }),
+    correctedEventType: text("correctedEventType"),
+    correctedOccurredAt: timestamp("correctedOccurredAt", { mode: "date" }),
+    decidedAt: timestamp("decidedAt", { mode: "date" }),
+    decidedByUserId: text("decidedByUserId"),
+    resolvedEventId: text("resolvedEventId"),
+    spoofingSignals: jsonb("spoofingSignals"),
+    capturedClientIp: text("capturedClientIp"),
+    submittedByUserId: text("submittedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_remote_checkin_exception_org_state_created_idx").on(
+      t.organizationId,
+      t.state,
+      t.createdAt
+    ),
+    index("hrm_remote_checkin_exception_org_employee_created_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.createdAt
+    ),
+    index("hrm_remote_checkin_exception_org_outcome_idx").on(
+      t.organizationId,
+      t.detectionOutcome
+    ),
+    check(
+      "hrm_remote_checkin_exception_state_chk",
+      sql`${t.state} IN ('submitted', 'approved', 'rejected', 'returned', 'corrected', 'cancelled')`
+    ),
+    check(
+      "hrm_remote_checkin_exception_event_type_chk",
+      sql`${t.eventType} IN ('clock_in', 'clock_out', 'break_start', 'break_end')`
+    ),
+    check(
+      "hrm_remote_checkin_exception_corrected_event_type_chk",
+      sql`${t.correctedEventType} IS NULL OR ${t.correctedEventType} IN ('clock_in', 'clock_out', 'break_start', 'break_end')`
     ),
   ]
 )

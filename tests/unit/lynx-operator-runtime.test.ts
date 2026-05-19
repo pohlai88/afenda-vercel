@@ -20,7 +20,7 @@ vi.mock("#features/org-admin/server", () => ({
   countActiveImportJobsForOrganization: vi.fn(async () => 0),
 }))
 
-vi.mock("#features/planner/server", () => ({
+vi.mock("#features/orbit/server", () => ({
   getPlannerItemDetail: vi.fn(async () => null),
   getPlannerSignalDetail: vi.fn(async () => null),
   listPlannerHighPressureForNexus: vi.fn(async () => []),

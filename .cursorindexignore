@@ -1,40 +1,30 @@
-# Cursor codebase index — exclude generated / volatile / non-active files.
-# Different from .cursorignore: files here are still readable on demand
-# (via @-mention or direct read), they just don't pollute semantic search.
-#
-# Reference: https://cursor.com/docs/account/configuration/codebase-indexing
+# Cursor semantic search index — exclude generated / volatile / non-active files.
+# Files here stay readable on demand (@-mention, direct read).
 
-# Drizzle journal baseline (huge JSON snapshots — dilutes search relevance)
-drizzle/meta/*_snapshot.json
-drizzle/meta/_journal.json
-
-# Generated content surfaces
+.next/
+.next-ui/
+.next-workflow/
 .source/
-**/.next-ui/
-**/.next-workflow/
-
-# Test / coverage artifacts
 .artifacts/
+.turbo/
 **/coverage/
 **/*.tsbuildinfo
 **/playwright-report/
 **/test-results/
 
-# Public asset binaries (icons / sprites — readable on demand, noisy in search)
+drizzle/meta/*_snapshot.json
+drizzle/meta/_journal.json
+
 public/icons/**
 public/favicons/**
 
-# Inactive locale catalogs (ADR-0028 single-locale refactor gate)
-# Re-include before deploy when locales resume.
 messages/zh-CN.json
 messages/vi.json
 messages/ms.json
 
-# Local-dev env / secret-adjacent
 .env*.local
 .env.workflow.local
 
-# MCP plugin caches (per-project Cursor plugin folders)
 mcps/
 terminals/
 agent-transcripts/

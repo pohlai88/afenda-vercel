@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest"
 import {
   DEFAULT_APP_LOCALE,
   ensureAppLocale,
-  stripLeadingLocalePrefix,
   toLocaleOrgAppsRevalidatePattern,
   toLocaleOrgNexusRevalidatePattern,
+  toLocaleOrgShellRevalidatePattern,
   toLocalePath,
   toLocaleRoutePattern,
 } from "#lib/i18n/locales.shared"
@@ -43,6 +43,12 @@ describe("toLocaleOrgNexusRevalidatePattern", () => {
     expect(toLocaleOrgNexusRevalidatePattern()).toBe(
       "/[locale]/o/[orgSlug]/nexus"
     )
+  })
+})
+
+describe("toLocaleOrgShellRevalidatePattern", () => {
+  it("targets the org ERP shell layout", () => {
+    expect(toLocaleOrgShellRevalidatePattern()).toBe("/[locale]/o/[orgSlug]")
   })
 })
 

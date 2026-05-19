@@ -16,3 +16,16 @@ export {
   generateNexusFieldMetadata,
   default as NexusFieldPage,
 } from "./components/nexus-field-page.server"
+export { OrgCommandLayer } from "./components/org-command-layer"
+export type { OrgCommandLayerProps } from "./components/org-command-layer"
+export { buildQuickCreateMenu } from "./data/quick-create-menu.server"
+export {
+  capabilityIdFromUtilityBarItemId,
+  toUtilityBarCapabilityRows,
+  toUtilityBarRailSnapshot,
+  utilityBarItemIdFromCapabilityId,
+} from "./data/utility-bar-capability-bridge.shared"
+export type {
+  UtilityBarCapabilityRow,
+  UtilityBarRailSnapshot,
+} from "./data/utility-bar-capability-bridge.shared"

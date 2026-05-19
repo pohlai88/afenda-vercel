@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
-import { HrmLifecycleOverviewPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied, HrmLifecycleOverviewPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
@@ -26,10 +25,7 @@ export default async function OrgAppsHrmLifecyclePage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Lifecycle overview"
-        description="This HRM surface requires Workforce search access."
-      />
+      <HrmErpAccessDenied surface="lifecycle" />
     )
   }
   return <HrmLifecycleOverviewPage orgSlug={orgSlug} />

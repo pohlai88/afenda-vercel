@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useId, useMemo, useRef } from "react"
+import { useActionState, useId, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
@@ -9,6 +9,7 @@ import { Button } from "#components2/ui/button"
 import { Field, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 import { createBenefitClaimReferenceAction } from "../client"
 import { BENEFIT_CLAIM_STATUSES } from "../data/benefit-helpers.shared"
 import type { BenefitEnrollmentTransitionFormState } from "../../../types"
@@ -51,17 +52,7 @@ export function BenefitClaimReferenceForm({
   const claimedAmountId = useId()
   const currencyId = useId()
   const paymentReferenceId = useId()
-
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) {
-      onSuccessRef.current?.()
-    }
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   const fieldErrors = useMemo(() => {
     if (!state || state.ok) return null

@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
-import { HrmPerformancePage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied, HrmPerformancePage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
@@ -28,10 +27,7 @@ export default async function OrgAppsHrmPerformancePage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Performance"
-        description="This HRM surface requires Performance search access."
-      />
+      <HrmErpAccessDenied surface="performance" />
     )
   }
   return <HrmPerformancePage orgSlug={orgSlug} />

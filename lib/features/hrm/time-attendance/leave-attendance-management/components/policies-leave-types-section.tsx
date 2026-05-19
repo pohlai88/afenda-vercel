@@ -31,8 +31,10 @@ export async function PoliciesLeaveTypesSection({
   includeArchived,
   orgSlug,
 }: PoliciesLeaveTypesSectionProps) {
-  const orgSession = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.policies")
+  const [orgSession, t] = await Promise.all([
+    requireOrgSession(),
+    getTranslations("Dashboard.Hrm.policies"),
+  ])
 
   let rows: LeaveTypeAdminRow[]
   try {

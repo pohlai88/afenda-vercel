@@ -1,5 +1,5 @@
 import { SignatureRequestDetailPage } from "#features/tools"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmSignatureDetailPage({
@@ -13,10 +13,7 @@ export default async function OrgAppsHrmSignatureDetailPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Signature request"
-        description="This HRM surface requires signature read access."
-      />
+      <HrmErpAccessDenied surface="publicSignature" />
     )
   }
   return (

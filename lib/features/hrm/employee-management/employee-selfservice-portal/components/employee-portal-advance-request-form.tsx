@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useId, useRef } from "react"
+import { useActionState, useId } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
@@ -15,6 +15,8 @@ import {
 import { Input } from "#components2/ui/input"
 import { submitEmployeePortalRequestAdvance } from "#features/hrm/client"
 import type { PortalAdvanceFormState } from "#features/hrm/types"
+
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 
 type EmployeePortalAdvanceRequestFormProps = {
   portalSlug: string
@@ -35,15 +37,7 @@ export function EmployeePortalAdvanceRequestForm({
   const reasonId = useId()
   const installmentCountId = useId()
   const firstPeriodId = useId()
-
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) onSuccessRef.current?.()
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   return (
     <form action={formAction} className="flex flex-col gap-4">

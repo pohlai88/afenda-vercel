@@ -10,14 +10,14 @@ import {
   listPlannerItemsForTriage,
   listPlannerSignalsForTriage,
   type PlannerPressureRowForNexus,
-} from "#features/planner/server"
+} from "#features/orbit/server"
 import type {
   PlannerBlockedState,
   PlannerItemDetail,
   PlannerItemRow,
   PlannerSignalDetail,
   PlannerSignalRow,
-} from "#features/planner"
+} from "#features/orbit"
 
 import type { LynxOperatorToolRegistry } from "./operator-tool-registry.server"
 

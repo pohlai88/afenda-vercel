@@ -1,5 +1,4 @@
-import { AttendancePage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { AttendancePage, HrmErpAccessDenied } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmAttendancePage({
@@ -15,10 +14,7 @@ export default async function OrgAppsHrmAttendancePage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Attendance"
-        description="This HRM surface requires Attendance search access."
-      />
+      <HrmErpAccessDenied surface="attendance" />
     )
   }
 

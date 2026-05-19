@@ -27,7 +27,7 @@ import { DocumentsLibraryFilters } from "./documents-library-filters"
  * organization. Composition responsibility:
  *
  *  - **Authority** is established by the parent layout (`requireOrgSession`
- *    via the workbench shell) and re-validated here for the admin-only
+ *    via the app shell) and re-validated here for the admin-only
  *    member-restriction copy.
  *  - **Tier A** (admin gate + employee filter choices + translations)
  *    sits in a single blocking `Promise.all` so the page renders the

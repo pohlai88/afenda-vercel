@@ -27,8 +27,10 @@ type LeaveMyPanelProps = {
 }
 
 export async function LeaveMyPanel({ leaveTypes }: LeaveMyPanelProps) {
-  const session = await requireOrgSession()
-  const t = await getTranslations("Dashboard.Hrm.leave")
+  const [session, t] = await Promise.all([
+    requireOrgSession(),
+    getTranslations("Dashboard.Hrm.leave"),
+  ])
   const employee = await findLeaveEmployeeForUser(
     session.organizationId,
     session.userId

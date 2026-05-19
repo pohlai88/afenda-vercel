@@ -123,6 +123,14 @@ describe("HRM_CAPABILITIES registry", () => {
     expect(HRM_MESSAGES.flexibleWork?.pageTitle).toBeTypeOf("string")
   })
 
+  it("registers geolocation capability and catalog keys", () => {
+    const geolocation = getHrmCapabilityById("geolocation")
+    expect(geolocation?.segments).toContain("geolocation")
+    expect(geolocation?.requiredPermission).toBe("hrm.remote_checkin.search")
+    expect(geolocation?.auditPrefix).toBe("erp.hrm.remote_checkin")
+    expect(HRM_MESSAGES.nav["geolocation"]).toBeTypeOf("string")
+  })
+
   it("registers absence-analytics capability and catalog keys", () => {
     const absenceAnalytics = getHrmCapabilityById("absenceAnalytics")
     expect(absenceAnalytics?.segments).toContain("absence-analytics")

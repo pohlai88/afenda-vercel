@@ -1,6 +1,5 @@
-import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
-import { HrmComplianceWorkbenchPage } from "#features/hrm"
+import { HrmComplianceWorkbenchPage, HrmErpAccessDenied } from "#features/hrm"
 import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAppsHrmCompliancePage({
@@ -14,10 +13,7 @@ export default async function OrgAppsHrmCompliancePage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Compliance"
-        description="This HRM surface requires Compliance search access."
-      />
+      <HrmErpAccessDenied surface="compliance" />
     )
   }
 

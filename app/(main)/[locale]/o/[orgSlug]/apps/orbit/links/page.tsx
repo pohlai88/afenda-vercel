@@ -1,4 +1,4 @@
-import { OrbitAppsRoutePage } from "#features/planner/server"
+import { OrbitAppsRoutePage } from "#features/orbit/server"
 
 export default async function OrgAppsOrbitLinksPage({
   params,

@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation"
 
-import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { listEffectiveErpPermissionsForUser } from "#features/erp-rbac/server"
 import { getOrgTenantContext } from "#lib/auth"
 
 import { HrmOverviewPage } from "../_hrm_landing_page/hrm-pages"
+import { HrmErpAccessDenied } from "../_module-governance/hrm-erp-access-denied.server"
 import { HRM_CAPABILITIES, organizationHrmPath } from "../constants"
 import { resolveLeaveSurfaceAccess } from "../time-attendance/leave-attendance-management/data/leave-access.server"
 
@@ -28,10 +28,7 @@ export async function HrmOverviewRoutePage({ orgSlug }: { orgSlug: string }) {
     }
 
     return (
-      <ErpAccessDenied
-        title="Human resources"
-        description="This surface requires explicit HRM RBAC before any HRM page can be opened."
-      />
+      <HrmErpAccessDenied surface="workbenchOverview" />
     )
   }
   return <HrmOverviewPage orgSlug={orgSlug} />

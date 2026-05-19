@@ -8,7 +8,7 @@ import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import {
   createPlannerSignalLink,
   insertPlannerSignal,
-} from "#features/planner/server"
+} from "#features/orbit/server"
 import { db } from "#lib/db"
 import { hrmApproval } from "#lib/db/schema"
 import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"

@@ -1,4 +1,4 @@
 /**
- * Keeps Workflow DevKit entrypoints off the `#features/planner` public barrels.
+ * Keeps Workflow DevKit entrypoints off the `#features/orbit` public barrels.
  */
-export { runPlannerReminderWorkflow } from "../../planner/automation/planner-reminder.workflow"
+export { runPlannerReminderWorkflow } from "../../orbit/automation/planner-reminder.workflow"

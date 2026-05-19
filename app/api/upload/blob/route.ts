@@ -16,13 +16,13 @@ import {
   canUploadPortalEmployeeDocument,
 } from "#features/hrm/server"
 
-const WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES = [
+const APP_SHELL_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
   "application/pdf",
 ] as const
-const WORKBENCH_UTILITY_UPLOAD_MAX_SIZE_BYTES = 50 * 1024 * 1024
+const APP_SHELL_UTILITY_UPLOAD_MAX_SIZE_BYTES = 50 * 1024 * 1024
 const NEXUS_ALLOWED_UPLOAD_PREFIXES = [
   "nexus-utility",
   "nexus-screenshot",
@@ -224,9 +224,9 @@ export async function POST(request: Request) {
             portalUpload && portalUpload.ok ? portalUpload.organizationId : null
           return {
             allowedContentTypes: [
-              ...WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES,
+              ...APP_SHELL_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES,
             ],
-            maximumSizeInBytes: WORKBENCH_UTILITY_UPLOAD_MAX_SIZE_BYTES,
+            maximumSizeInBytes: APP_SHELL_UTILITY_UPLOAD_MAX_SIZE_BYTES,
             addRandomSuffix: true,
             tokenPayload: JSON.stringify({
               userId: null,
@@ -252,9 +252,9 @@ export async function POST(request: Request) {
 
         return {
           allowedContentTypes: [
-            ...WORKBENCH_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES,
+            ...APP_SHELL_UTILITY_UPLOAD_ALLOWED_CONTENT_TYPES,
           ],
-          maximumSizeInBytes: WORKBENCH_UTILITY_UPLOAD_MAX_SIZE_BYTES,
+          maximumSizeInBytes: APP_SHELL_UTILITY_UPLOAD_MAX_SIZE_BYTES,
           addRandomSuffix: true,
           tokenPayload: JSON.stringify({
             userId: orgSession.userId,

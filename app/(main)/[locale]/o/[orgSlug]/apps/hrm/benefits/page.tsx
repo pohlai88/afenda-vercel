@@ -1,5 +1,4 @@
-import { BenefitsPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { BenefitsPage, HrmErpAccessDenied } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmBenefitsPage({
@@ -16,10 +15,7 @@ export default async function OrgAppsHrmBenefitsPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Benefits"
-        description="This HRM surface requires Benefits search access."
-      />
+      <HrmErpAccessDenied surface="benefits" />
     )
   }
 

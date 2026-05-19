@@ -5,7 +5,7 @@ import { EXECUTION_AUDIT_ACTIONS } from "#features/execution"
 import {
   createPlannerSignalLink,
   insertPlannerSignal,
-} from "#features/planner/server"
+} from "#features/orbit/server"
 import { writeIamAuditEvent } from "#lib/auth"
 import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"

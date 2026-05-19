@@ -1,4 +1,3 @@
-import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 

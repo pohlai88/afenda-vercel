@@ -1,5 +1,4 @@
-import { PoliciesPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied, PoliciesPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmPoliciesPage({
@@ -15,10 +14,7 @@ export default async function OrgAppsHrmPoliciesPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Policies"
-        description="This HRM surface requires Policy search access."
-      />
+      <HrmErpAccessDenied surface="policies" />
     )
   }
 

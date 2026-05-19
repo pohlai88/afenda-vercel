@@ -16,13 +16,23 @@ import { findAatManagerContextForUser } from "./aat-employee-context.server"
 import { getAatThresholdConfigForOrg } from "./aat-threshold.queries.server"
 import { HRM_AAT_AUDIT } from "../aat.contract"
 
+/**
+ * Failure reason codes for {@link loadAbsenceAnalyticsPageData}. Callers
+ * may branch on this to differentiate "no manager scope available" from
+ * an internal server error and render the appropriate empty state or
+ * recovery path.
+ */
+export type AbsenceAnalyticsPageDataReason =
+  | "team_scope_no_manager"
+  | "unexpected_error"
+
 export type AbsenceAnalyticsPageData =
   | {
       ok: true
       snapshot: AatOrgAnalyticsSnapshot
       thresholds: AatThresholdConfig
     }
-  | { ok: false }
+  | { ok: false; reason: AbsenceAnalyticsPageDataReason }
 
 export async function loadAbsenceAnalyticsPageData(input: {
   organizationId: string
@@ -42,7 +52,7 @@ export async function loadAbsenceAnalyticsPageData(input: {
         : null
 
     if (input.scope === "team" && !managerContext) {
-      return { ok: false }
+      return { ok: false, reason: "team_scope_no_manager" }
     }
 
     const thresholds = await getAatThresholdConfigForOrg(input.organizationId)
@@ -81,6 +91,6 @@ export async function loadAbsenceAnalyticsPageData(input: {
       error,
       { feature: "hrm.absence_analytics" }
     )
-    return { ok: false }
+    return { ok: false, reason: "unexpected_error" }
   }
 }

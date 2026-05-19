@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation"
 
-import { getHrmCapabilityById } from "#features/hrm"
+import { getHrmCapabilityById, HrmErpAccessDenied } from "#features/hrm"
 import { HrmImportsPage } from "#features/tools"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getErpPermissionDefinition } from "#features/erp-rbac"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
@@ -22,10 +21,7 @@ export default async function OrgAppsHrmImportsPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="HRM imports"
-        description="This HRM surface requires HRM import search access."
-      />
+      <HrmErpAccessDenied surface="imports" />
     )
   }
   return <HrmImportsPage orgSlug={orgSlug} />

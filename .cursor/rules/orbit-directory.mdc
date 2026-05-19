@@ -1,0 +1,148 @@
+---
+description: Orbit forward execution substrate contract and reserved module boundary. Anti-task-manager, anti-board-first posture.
+globs:
+  - "lib/features/orbit/**"
+  - "app/**/orbit/**"
+  - "tests/**/orbit/**"
+  - "tests/**/orbit-*.ts"
+  - "tests/**/planner*.ts"
+alwaysApply: false
+---
+
+# Orbit directory contract (`lib/features/orbit/`)
+
+Mirrors **ADR-0006 — Orbit: operational execution substrate doctrine** and its subordinate doctrines (ADR-0007a / 0007b / 0007c / 0007d), **ADR-0040 — Orbit module rename: directory + import surface (Phase 1)**, and the Orbit sections in `AGENTS.md`. If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same change.
+
+> `lib/features/orbit/` is the **only** operational execution substrate in the active product and runtime. It is not a generic todo module, productivity app, kanban clone, or PM SaaS surface. OneThing and iThink were severed in the 2026-05-12 amendment to ADR-0006 — do not reintroduce them.
+
+## Product identity
+
+- Public product name: **Orbit**
+- Module door (Layer 2): `lib/features/orbit/` · public import: `#features/orbit`
+- Primary attention primitive: `PlannerSignal` (TypeScript symbol — Phase-2 rename target; wire format stable)
+- Primary execution primitive: `PlannerItem` (TypeScript symbol — Phase-2 rename target; wire format stable)
+- Database tables: `planner_signal`, `planner_item`, … (NEVER renamed — ledger-stable; ADR-0032 PRIORITY #1)
+- Audit string namespace: `erp.planner.*` (NEVER renamed in Phase 1; ADR-0040 §2 Phase 3 deferred)
+
+These primitives must remain separate (ADR-0006 §3.2, ADR-0007a §2).
+
+## Strategic posture
+
+Planner / Orbit exists to coordinate:
+
+- operational pressure
+- human execution
+- ERP-linked causality
+- scheduling and recurrence
+- reminders and escalation
+- work sessions and execution continuity
+- future AI / analytics over operational pressure
+
+Do not optimize the module around consumer-productivity metaphors.
+
+## Anti-task-manager / anti-board-first posture
+
+Orbit is queue-first, timeline-first, signal-first, execution-first, and keyboard-first.
+
+Forbidden defaults (apply to product UI and module entry points):
+
+- a `p1 / p2 / p3 / p4` priority picker as the primary capture input — pressure is computed from multi-dimensional inputs (ADR-0007a §3)
+- a single ordinal severity badge on every list row
+- a "mark as done" button that bypasses verification when policy requires it (ADR-0007b §3)
+- a `todo / doing / done` lifecycle on `PlannerItem` (ADR-0007b §2)
+- a free-form "tag" or "label" field used in place of typed ERP attachment (ADR-0007c §2)
+- a board / kanban / roadmap surface presented as the Orbit identity
+- a generic "due date" picker that becomes the only temporal input (ADR-0007d §3)
+
+Pressure dimensions, lifecycle states, and ERP attachments are first-class.
+
+## Required architecture categories
+
+Orbit is an intentional exception to the default feature-module ceiling in `AGENTS.md`.
+
+Allowed module-root entries:
+
+```txt
+domain/
+data/
+server.ts            # server-only re-export barrel (see index.ts)
+server/              # reserved; prefer server.ts until split grows
+client/
+scheduling/
+recurrence/
+worklog/
+filters/
+views/
+integrations/
+audit/
+relations/
+commands/
+policies/
+automation/
+signals/
+ranking/
+timeline/
+pressure/
+intelligence/
+evidence/
+triage/
+constants.ts
+types.ts
+index.ts
+README.md
+```
+
+Do not introduce additional top-level categories without updating ADR-0006 (and the appropriate ADR-0007 subordinate), this rule, and `scripts/check-agent-contract.mjs` in the same change.
+
+## Core doctrine
+
+- `PlannerSignal` models detected operational pressure (ADR-0007a).
+- `PlannerItem` models executable work (ADR-0007b).
+- Ranking is multi-dimensional; `displayPriority` is derived, never stored as truth (ADR-0007a §3).
+- Verification is a first-class lifecycle state, not severity-coupled (ADR-0007b §3).
+- ERP attachment is first-class via `PlannerLink` / `PlannerRelation` with `causalityReason` mandatory (ADR-0007c §3).
+- Recurrence / reminders / sessions are first-class orbit entities, not row columns (ADR-0007d §3).
+- Durable execution runs through `lib/features/execution/` and Workflow DevKit (ADR-0007d §4).
+- Orbit consumes `#lib/erp/temporal-spine.shared` and audit primitives (`#lib/erp/audit-7w1h.{shared,server}`, `#lib/erp/crud-sap.shared`) instead of redefining them.
+
+## Audit and historical compatibility
+
+- New audit events use `erp.planner.*` (built via `#lib/erp/crud-sap.shared`). The `planner` namespace remains the wire-stable audit string segment under ADR-0040 Phase 1; renaming to `erp.orbit.*` is deferred to Phase 3 as a coordinated cutover with downstream observers.
+- Durable execution events use `erp.execution.planner_*` (e.g. `erp.execution.planner_recurrence.run.completed`).
+- Legacy `erp.onething.*` / `erp.ithink.*` strings still exist in historical `iam_audit_event` rows. They remain renderable by the shared 7W1H sentence builder via the read-only constants in `#lib/erp/historical-erp-execution-audit-actions.shared`. **No runtime code may emit them.**
+
+## Legacy policy (retired)
+
+OneThing and iThink are **retired**, not legacy:
+
+- their feature modules are removed from `lib/features/`
+- their dashboard / account routes are removed from `app/`
+- their tables are dropped from `lib/db/schema.ts` and a destructive Drizzle migration ships in the same change
+- their Workflow DevKit entrypoints (`onething-recurrence-run`, `onething-reminder-run`) are removed
+- their cron entry (`onething-digest`) is removed
+- their ingestion adapter (`onething_import`) is removed
+- their knowledge source kind (`onething`) is removed
+- their simulation provenance is removed
+
+Do not reintroduce them. Historical context lives in [`docs/_draft/ithink_draft_v1_deprecated.md`](../../docs/_draft/ithink_draft_v1_deprecated.md).
+
+## Module imports
+
+- Public composition entry: `#features/orbit` (server-safe RSC composition + types + schemas).
+- Server-only entry: `#features/orbit/server` (queries / mutations).
+- Client islands: `#features/orbit/client` (types, schemas, Server Actions, pure helpers).
+- ERP modules integrate through orbit server APIs, **never** orbit UI internals.
+- Orbit must not deep-import ERP module internals — use the ERP module's public barrel (`#features/<module>`) and `#features/<module>/server` only.
+
+## Initial public surfaces
+
+Primary Orbit surfaces:
+
+- Orbit Queue
+- Orbit Today
+- Orbit Timeline
+- Orbit Signals
+- Orbit Sessions
+- Orbit Links
+
+Avoid letting the initial UX collapse into board-first or card-first planning software.

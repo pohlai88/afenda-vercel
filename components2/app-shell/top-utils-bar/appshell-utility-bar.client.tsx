@@ -196,8 +196,8 @@ export function AppShellAvatarDisc({
 }
 
 // ---------------------------------------------------------------------------
-// L2 icon-only round control (28px, ring border)
-// Matches the legacy WORKBENCH_UTILITY_ROUND_CONTROL_CLASS shape.
+// L2 icon-only round control (28px, ring border) — canonical app shell shape
+// for utility-bar icon triggers. Contract: `.cursor/rules/shell-utility-bar-controls.mdc`.
 // ---------------------------------------------------------------------------
 
 /** L2 round utility control — shared by icon buttons/links and dropdown triggers. */

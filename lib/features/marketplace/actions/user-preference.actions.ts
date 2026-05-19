@@ -10,7 +10,7 @@ import { db } from "#lib/db"
 import { userCapabilityPreference } from "#lib/db/schema"
 import {
   toLocaleOrgNexusRevalidatePattern,
-  toLocaleRoutePattern,
+  toLocaleOrgShellRevalidatePattern,
 } from "#lib/i18n/locales.shared"
 import { requireOrgSession } from "#lib/auth"
 
@@ -44,11 +44,9 @@ import type { SetUserCapabilityPreferenceResult } from "../types"
  *
  * Cache invalidation:
  *
- *   - `revalidatePath` against the marketplace utilities surface
- *     so the user's view reflects the toggle on next render.
- *   - `revalidatePath` against the locale layout — the L1 utility
- *     bar lives in the root locale `layout.tsx`, so a page-scope
- *     revalidation alone would miss the rail.
+ *   - Org shell layout (`/o/[orgSlug]`) so the L1 utility bar re-runs
+ *     the capability resolver on the next render.
+ *   - Nexus field page for marketplace-adjacent surfaces.
  */
 
 export async function setUserCapabilityPreferenceAction(
@@ -135,10 +133,9 @@ export async function setUserCapabilityPreferenceAction(
     })
   )
 
-  // Refresh the marketplace utility list AND the locale layout so the
-  // L1 rail (mounted in the locale root layout) re-runs the resolver.
+  // Refresh Nexus + org shell layout so the L1 utility bar re-runs the resolver.
   revalidatePath(toLocaleOrgNexusRevalidatePattern(), "page")
-  revalidatePath(toLocaleRoutePattern("/" as `/${string}`), "layout")
+  revalidatePath(toLocaleOrgShellRevalidatePattern(), "layout")
 
   return {
     ok: true,

@@ -38,6 +38,8 @@ export type AppShellThemeSnapshot = {
 export type AppShellState = {
   /** Whether the command palette dialog is open. */
   commandOpen: boolean
+  /** Whether the quick-create chooser is open. */
+  quickCreateOpen: boolean
   /** Notification badge count — updated by utility bar polling or SSE. */
   notificationCount: number
   /**
@@ -65,6 +67,9 @@ type AppShellActions = {
   openCommand: () => void
   closeCommand: () => void
   toggleCommand: () => void
+  openQuickCreate: () => void
+  closeQuickCreate: () => void
+  toggleQuickCreate: () => void
   setNotificationCount: (count: number) => void
   /** Updates `railMode`; `RailController` syncs SidebarProvider `open` on next effect. */
   setRailMode: (mode: RailMode) => void
@@ -93,15 +98,22 @@ export type AppShellStore = AppShellState & AppShellActions
 
 export const useAppShellStore = create<AppShellStore>()((set, get) => ({
   commandOpen: false,
+  quickCreateOpen: false,
   notificationCount: 0,
   railMode: "expanded",
   themePreference: "system",
   resolvedAppearance: null,
   density: "comfortable",
 
-  openCommand: () => set({ commandOpen: true }),
+  openCommand: () => set({ commandOpen: true, quickCreateOpen: false }),
   closeCommand: () => set({ commandOpen: false }),
-  toggleCommand: () => set((s) => ({ commandOpen: !s.commandOpen })),
+  toggleCommand: () =>
+    set((s) => ({ commandOpen: !s.commandOpen, quickCreateOpen: false })),
+
+  openQuickCreate: () => set({ quickCreateOpen: true, commandOpen: false }),
+  closeQuickCreate: () => set({ quickCreateOpen: false }),
+  toggleQuickCreate: () =>
+    set((s) => ({ quickCreateOpen: !s.quickCreateOpen, commandOpen: false })),
 
   setNotificationCount: (count) => set({ notificationCount: count }),
   setRailMode: (mode) => set({ railMode: mode }),

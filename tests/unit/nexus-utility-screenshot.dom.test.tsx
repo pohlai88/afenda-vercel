@@ -78,7 +78,7 @@ vi.mock("next-intl", () => ({
       ),
 }))
 
-import { AppShellNexusUtilityScreenshot } from "#app-shell/client"
+import { UtilityBarScreenshotPanel } from "#app-shell/client"
 import { TooltipProvider } from "#components2/ui/tooltip"
 
 afterEach(() => {
@@ -87,7 +87,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe("AppShellNexusUtilityScreenshot", () => {
+describe("UtilityBarScreenshotPanel", () => {
   beforeEach(() => {
     toBlobMock.mockReset()
     toBlobMock.mockResolvedValue(new Blob(["png"], { type: "image/png" }))
@@ -119,7 +119,7 @@ describe("AppShellNexusUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <AppShellNexusUtilityScreenshot orgId="org-1" />
+        <UtilityBarScreenshotPanel organizationId="org-1" />
       </TooltipProvider>
     )
 
@@ -155,7 +155,7 @@ describe("AppShellNexusUtilityScreenshot", () => {
   it("captures the content view when content mode is selected", async () => {
     render(
       <TooltipProvider>
-        <AppShellNexusUtilityScreenshot orgId="org-1" />
+        <UtilityBarScreenshotPanel organizationId="org-1" />
       </TooltipProvider>
     )
 
@@ -177,7 +177,7 @@ describe("AppShellNexusUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <AppShellNexusUtilityScreenshot orgId="org-1" />
+        <UtilityBarScreenshotPanel organizationId="org-1" />
       </TooltipProvider>
     )
 
@@ -192,7 +192,7 @@ describe("AppShellNexusUtilityScreenshot", () => {
   it("resets the preview when cleared", async () => {
     render(
       <TooltipProvider>
-        <AppShellNexusUtilityScreenshot orgId="org-1" />
+        <UtilityBarScreenshotPanel organizationId="org-1" />
       </TooltipProvider>
     )
 
@@ -221,7 +221,7 @@ describe("AppShellNexusUtilityScreenshot", () => {
 
     render(
       <TooltipProvider>
-        <AppShellNexusUtilityScreenshot orgId="org-1" />
+        <UtilityBarScreenshotPanel organizationId="org-1" />
       </TooltipProvider>
     )
 

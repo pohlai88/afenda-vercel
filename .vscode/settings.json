@@ -1,28 +1,39 @@
 {
   "css.lint.unknownAtRules": "ignore",
-  // Tailwind class/name lint only; does not turn off CSS *syntax* validation inside Tailwind language mode.
   "tailwindCSS.validate": false,
-  // Tailwind v4 `@theme inline`, `@source`, `@custom-variant`, etc. are not standard CSS. The Tailwind language
-  // mode still runs an embedded CSS validator in some versions → false-positive `{ expected` / unknown at-rule noise.
   "css.validate": false,
-  // Tailwind v4 CSS-first entry — IntelliSense 0.14.3+ (tailwindcss-intellisense; single-file form).
-  // If completion fails: update "Tailwind CSS IntelliSense" extension; multi-root workspaces may need a map — see extension docs.
   "tailwindCSS.experimental.configFile": "app/globals.css",
 
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.preferences.includePackageJsonAutoImports": "off",
   "typescript.updateImportsOnFileMove.enabled": "always",
   "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.tsserver.watchOptions": {
+    "watchFile": "useFsEvents",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriority",
+    "excludeDirectories": [
+      "**/node_modules",
+      "**/.next",
+      "**/.next-ui",
+      "**/.next-workflow",
+      "**/.artifacts",
+      "**/.turbo",
+      "**/.source"
+    ]
+  },
 
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "modifications",
   "editor.linkedEditing": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "always"
+    "source.fixAll.eslint": "never"
   },
 
   "files.eol": "\n",
@@ -31,18 +42,13 @@
   "files.encoding": "utf8",
 
   "eslint.useFlatConfig": true,
-  // Suppress "File ignored because no matching configuration" as problems/warnings when a buffer
-  // is not covered by eslint.config.mjs `files` (e.g. `app/globals.css`, env templates). CLI: use
-  // `pnpm exec eslint …` only on TS/TSX paths, or pass `--no-warn-ignored` if you must pass globs.
+  "eslint.run": "onSave",
+  "eslint.format.enable": false,
+  "eslint.lintTask.enable": false,
   "eslint.options": {
     "warnIgnored": false
   },
-  "eslint.probe": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
+  "eslint.probe": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
 
   "files.associations": {
     "*.css": "tailwindcss"
@@ -52,16 +58,32 @@
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,
     "**/node_modules/**": true,
-    "**/.next/**": true
+    "**/.next/**": true,
+    "**/.next-ui/**": true,
+    "**/.next-workflow/**": true,
+    "**/.artifacts/**": true,
+    "**/.turbo/**": true,
+    "**/.source/**": true,
+    "**/coverage/**": true,
+    "**/playwright-report/**": true,
+    "**/test-results/**": true,
+    "drizzle/meta/**": true
   },
 
   "search.exclude": {
     "**/node_modules": true,
     "**/.next": true,
-    "**/pnpm-lock.yaml": true
+    "**/.next-ui": true,
+    "**/.next-workflow": true,
+    "**/.artifacts": true,
+    "**/.turbo": true,
+    "**/.source": true,
+    "**/coverage": true,
+    "**/pnpm-lock.yaml": true,
+    "drizzle/meta": true
   },
+  "search.followSymlinks": false,
 
-  // Port forwarding (Remote SSH / Dev Containers / Codespaces).
   "remote.autoForwardPorts": true,
   "remote.autoForwardPortsSource": "hybrid",
   "remote.portsAttributes": {
@@ -106,9 +128,6 @@
   "[tailwindcss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "css.validate": false,
-    "css.lint.unknownAtRules": "ignore",
-    "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "never"
-    }
+    "css.lint.unknownAtRules": "ignore"
   }
 }

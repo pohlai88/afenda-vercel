@@ -343,6 +343,29 @@
         "searchTooltip": "Search · ⌘K",
         "quickCreate": "Quick create",
         "quickCreateTooltip": "Quick create · C",
+        "quickCreatePanel": {
+          "title": "Quick create",
+          "description": "Choose a module link or start a governed create flow.",
+          "pickLabel": "Create",
+          "back": "Back to list",
+          "groups": {
+            "orbit": "Orbit",
+            "records": "Records",
+            "modules": "Modules"
+          },
+          "forms": {
+            "orbit-signal": "New signal",
+            "orbit-item": "New item",
+            "orbit-session": "Start session",
+            "contact": "New contact"
+          }
+        },
+        "marketplace": {
+          "requestTitle": "Request a utility",
+          "requestDescription": "Describe the control or workflow you need on the utility bar. Submissions route to the org feedback inbox.",
+          "integrationsLabel": "Integrations",
+          "integrationsDescription": "Connect third-party systems in org admin."
+        },
         "notifications": {
           "trigger": "Notifications",
           "triggerUnread": "Notifications. {count, plural, one {# unread notice} other {# unread notices}}",
@@ -681,7 +704,10 @@
         "members": "Members",
         "audit": "Audit",
         "settings": "Settings",
-        "integrations": "Integrations"
+        "integrations": "Integrations",
+        "feedback": "Feedback inbox",
+        "access": "Access",
+        "knowledge": "Knowledge"
       }
     },
     "nav": {
@@ -741,11 +767,13 @@
       "quickCreate": {
         "signalTitle": "Capture signal",
         "signalPlaceholder": "Signal summary",
+        "signalDescriptionPlaceholder": "Operational context (optional)",
         "signalButton": "Add signal",
         "itemTitle": "Create item",
         "itemPlaceholder": "Execution item title",
         "itemButton": "Add item",
         "sessionTitle": "Start session",
+        "sessionHint": "Opens a new Orbit execution session for the active organization.",
         "sessionButton": "Start session"
       },
       "panels": {
@@ -891,6 +919,7 @@
         "attendance": "Attendance",
         "absence-analytics": "Absence analytics",
         "flexible-work": "Flexible work",
+        "geolocation": "Remote check-in",
         "benefits": "Benefits",
         "bonus-incentives": "Bonus & incentives",
         "compensation-planning": "Compensation planning",
@@ -964,6 +993,10 @@
         "flexible-work": {
           "title": "Flexible work",
           "description": "Hybrid, remote, and flexible schedule requests with approval workflow."
+        },
+        "geolocation": {
+          "title": "Remote check-in",
+          "description": "Mobile or web clock-in with GPS verification, geofence rules, device registration, exception approvals, and audit history — verified rows feed Leave & Attendance Management."
         },
         "benefits": {
           "title": "Benefits",
@@ -1988,6 +2021,10 @@
         "flexible-work": {
           "title": "Flexible work",
           "body": "Configure arrangement types, submit flexible work requests, and route manager or HR approvals."
+        },
+        "geolocation": {
+          "title": "Remote check-in",
+          "body": "Capture mobile or web clock-in with GPS verification, validate against geofence rules and shift windows, register devices, route exceptions for approval, and surface verified rows to Leave & Attendance Management — all under erp.hrm.remote_checkin.* audits."
         },
         "benefits": {
           "title": "Benefits",
@@ -3661,6 +3698,267 @@
           "terminated": "Terminated",
           "expired": "Expired"
         }
+      },
+      "Geolocation": {
+        "metaTitle": "Remote check-in",
+        "metaDescription": "Mobile or web clock-in with GPS verification, geofence rules, exception approvals, and audit history.",
+        "accessDeniedTitle": "Remote check-in",
+        "accessDeniedDescription": "This HRM surface requires Remote check-in access or a linked employee record.",
+        "eyebrow": "Time & attendance",
+        "pageTitle": "Geolocation & remote check-in",
+        "pageDescription": "Capture mobile or web clock-in with GPS verification, validate against geofence rules and shift windows, route exceptions for approval, and surface verified attendance to payroll — all under erp.hrm.remote_checkin.* audits.",
+        "kpi": {
+          "title": "Today",
+          "loadFailed": "Could not load summary metrics.",
+          "verifiedToday": "Verified check-ins today",
+          "pendingExceptions": "Pending exceptions",
+          "outsideGeofence": "Outside-geofence today",
+          "weakAccuracy": "Weak-accuracy today",
+          "activeGeofences": "Active geofences",
+          "registeredDevices": "Registered devices"
+        },
+        "capture": {
+          "title": "Quick check-in",
+          "description": "Capture a mobile-friendly clock event. GPS, accuracy, and device ID are validated before the row reaches Attendance.",
+          "openDialog": "Check in now",
+          "dialogTitle": "Remote check-in",
+          "dialogDescription": "Capture GPS, device, and (optionally) selfie verification. Approved rows reach Attendance immediately; failed validations route to exception approval.",
+          "eyebrow": "Self-service",
+          "fieldEventType": "Action",
+          "fieldEventTypePlaceholder": "Select action…",
+          "fieldOccurredAt": "Captured at",
+          "fieldOccurredAtHint": "Defaults to the device clock; corrections are audited.",
+          "fieldLatitude": "Latitude",
+          "fieldLongitude": "Longitude",
+          "fieldGpsAccuracyMeters": "Accuracy (meters)",
+          "fieldDeviceId": "Device ID",
+          "fieldDeviceLabel": "Device label",
+          "fieldDeviceFingerprint": "Device fingerprint",
+          "fieldRemoteLocation": "Site / location",
+          "fieldRemoteLocationPlaceholder": "Optional site label (e.g. ‘Client A — Site B’)",
+          "fieldGeofence": "Geofence",
+          "fieldGeofencePlaceholder": "Auto-detect from GPS",
+          "fieldSelfie": "Selfie (optional)",
+          "fieldSelfieHint": "Required when remote check-in policy enforces selfie verification.",
+          "selfieUploading": "Uploading selfie…",
+          "selfieAttached": "Selfie attached",
+          "selfieUploadFailed": "Could not upload selfie.",
+          "useCurrentLocation": "Use current location",
+          "locationDenied": "Location permission denied — submit as an exception.",
+          "locationPending": "Reading location…",
+          "submit": "Check in",
+          "submitting": "Checking in…",
+          "submitSuccessTitle": "Check-in recorded",
+          "submitSuccessVerified": "Verified — sent to Attendance.",
+          "submitSuccessException": "Sent to exception approval.",
+          "submitFailedTitle": "Could not check in"
+        },
+        "exception": {
+          "submitTitle": "Submit exception",
+          "submitDescription": "Use when GPS, geofence, device, or shift validation blocks an otherwise valid clock event.",
+          "submitOpen": "Submit exception",
+          "fieldDetectionOutcome": "Detected outcome",
+          "fieldReason": "Reason",
+          "fieldReasonPlaceholder": "Why should this check-in be approved?",
+          "submit": "Submit exception",
+          "submitting": "Submitting…",
+          "submitSuccessTitle": "Exception submitted",
+          "submitSuccessBody": "Your manager or HR will review it shortly.",
+          "submitFailedTitle": "Could not submit exception"
+        },
+        "decision": {
+          "title": "Decide",
+          "decideAction": "Decide",
+          "approveOpen": "Approve",
+          "rejectOpen": "Reject",
+          "returnOpen": "Return",
+          "correctOpen": "Correct & approve",
+          "fieldDecisionReason": "Reason",
+          "fieldCorrectedLatitude": "Corrected latitude",
+          "fieldCorrectedLongitude": "Corrected longitude",
+          "fieldCorrectedEventType": "Corrected action",
+          "approveSubmit": "Approve check-in",
+          "approving": "Approving…",
+          "rejectSubmit": "Reject",
+          "rejecting": "Rejecting…",
+          "returnSubmit": "Return",
+          "returning": "Returning…",
+          "correctSubmit": "Correct & approve",
+          "correcting": "Saving correction…",
+          "decisionFailedTitle": "Could not record decision"
+        },
+        "pending": {
+          "title": "Pending exceptions",
+          "description": "Failed or outside-geofence captures awaiting manager or HR decision.",
+          "empty": "No pending remote check-in exceptions.",
+          "loadFailed": "Could not load pending exceptions.",
+          "colEmployee": "Employee",
+          "colEvent": "Action",
+          "colDetected": "Detection",
+          "colSubmittedAt": "Submitted",
+          "colReason": "Reason",
+          "colActions": "Actions"
+        },
+        "history": {
+          "title": "Recent check-ins",
+          "description": "Last 7 days of verified remote check-ins (audit-grade view).",
+          "empty": "No remote check-ins recorded yet.",
+          "loadFailed": "Could not load check-in history.",
+          "colEmployee": "Employee",
+          "colWhen": "When",
+          "colEvent": "Action",
+          "colDevice": "Device",
+          "colSite": "Site",
+          "colOutcome": "Outcome",
+          "maskedLocation": "Location hidden"
+        },
+        "geofences": {
+          "title": "Geofences",
+          "description": "Approved worksites, branches, project sites, and home-office reference points used for validation.",
+          "empty": "No geofences configured.",
+          "loadFailed": "Could not load geofences.",
+          "createOpen": "Add geofence",
+          "createDialogTitle": "Create geofence",
+          "createDialogDescription": "Defines a circular approved location. Reference it from policies or per-employee schedules.",
+          "editOpen": "Edit",
+          "editDialogTitle": "Edit geofence",
+          "editDialogDescription": "Adjusts the boundary or label without breaking history.",
+          "deprecateOpen": "Deactivate",
+          "deprecating": "Deactivating…",
+          "fieldCode": "Code",
+          "fieldLabel": "Label",
+          "fieldScopeKind": "Site kind",
+          "fieldLatitude": "Latitude",
+          "fieldLongitude": "Longitude",
+          "fieldRadiusMeters": "Radius (meters)",
+          "fieldBufferMeters": "Extra buffer (meters)",
+          "fieldCountryCode": "Country code",
+          "fieldLegalEntityCode": "Legal entity code",
+          "fieldNotes": "Notes",
+          "submitCreate": "Create geofence",
+          "submitting": "Saving…",
+          "submitUpdate": "Save changes",
+          "scopeLabels": {
+            "office": "Office",
+            "branch": "Branch",
+            "project_site": "Project site",
+            "client_site": "Client site",
+            "field_site": "Field site",
+            "home_office": "Home office"
+          },
+          "colCode": "Code",
+          "colLabel": "Label",
+          "colScope": "Kind",
+          "colRadius": "Radius",
+          "colCenter": "Center",
+          "colActive": "Active"
+        },
+        "policies": {
+          "title": "Remote check-in policies",
+          "description": "Per-scope thresholds for GPS accuracy, geofence buffer, shift window, device registration, and selfie requirement.",
+          "empty": "No policies configured — default org-wide policy is in effect.",
+          "loadFailed": "Could not load policies.",
+          "createOpen": "Add policy",
+          "createDialogTitle": "Create policy",
+          "createDialogDescription": "Scope-specific thresholds override the org default.",
+          "editOpen": "Edit",
+          "editDialogTitle": "Edit policy",
+          "editDialogDescription": "Adjust thresholds. Existing exceptions are unaffected.",
+          "fieldScopeKind": "Scope",
+          "fieldScopeRef": "Scope reference",
+          "fieldScopeRefHint": "Department / position / employment-type / policy-group / employee ID — leave blank for org-wide.",
+          "fieldMinGpsAccuracyMeters": "Minimum GPS accuracy (meters)",
+          "fieldAllowedRadiusBufferMeters": "Geofence buffer (meters)",
+          "fieldShiftWindowMinutes": "Shift window (minutes)",
+          "fieldBreakWindowMinutes": "Break window (minutes)",
+          "fieldRequireRegisteredDevice": "Require registered device",
+          "fieldRequireSelfie": "Require selfie",
+          "fieldDetectSpoofing": "Detect spoofing",
+          "fieldAllowEligibilityException": "Allow eligibility exception",
+          "fieldIsActive": "Active",
+          "submitCreate": "Create policy",
+          "submitUpdate": "Save changes",
+          "submitting": "Saving…",
+          "scopeLabels": {
+            "org": "Organization",
+            "department": "Department",
+            "position": "Position",
+            "employment_type": "Employment type",
+            "policy_group": "Policy group",
+            "employee": "Employee"
+          }
+        },
+        "devices": {
+          "title": "Registered devices",
+          "description": "Mobile devices and browsers approved for remote check-in. Revoking is a security event.",
+          "empty": "No devices registered yet.",
+          "loadFailed": "Could not load devices.",
+          "registerOpen": "Register device",
+          "registerDialogTitle": "Register device",
+          "registerDialogDescription": "Pairs a device fingerprint to an employee. Required when policy mandates registered devices.",
+          "revokeOpen": "Revoke",
+          "revoking": "Revoking…",
+          "confirmRevoke": "Revoke {label}? The employee will need to re-register before checking in.",
+          "fieldEmployee": "Employee",
+          "fieldDeviceLabel": "Device label",
+          "fieldDeviceFingerprint": "Device fingerprint",
+          "fieldDeviceState": "State",
+          "submitRegister": "Register device",
+          "submitting": "Saving…",
+          "stateLabels": {
+            "pending": "Pending",
+            "active": "Active",
+            "revoked": "Revoked"
+          },
+          "colLabel": "Device",
+          "colEmployee": "Employee",
+          "colState": "State",
+          "colLastSeen": "Last seen",
+          "colActions": "Actions"
+        },
+        "report": {
+          "title": "Operational report",
+          "description": "Filtered remote check-in rows for CSV export — employee, department, geofence, scope, period.",
+          "empty": "No rows to include in the report.",
+          "exportSubmit": "Export CSV",
+          "exporting": "Exporting…",
+          "exportSuccessTitle": "Report exported",
+          "exportFailedTitle": "Could not export report",
+          "fieldStartDate": "Start date",
+          "fieldEndDate": "End date",
+          "fieldEmployee": "Employee",
+          "fieldDepartment": "Department",
+          "fieldGeofence": "Geofence",
+          "fieldScopeKind": "Site kind",
+          "fieldOnlyExceptions": "Exceptions only"
+        },
+        "outcomeLabels": {
+          "verified": "Verified",
+          "outside_geofence": "Outside geofence",
+          "weak_accuracy": "Weak accuracy",
+          "missing_gps": "Missing GPS",
+          "ineligible_employee": "Ineligible employee",
+          "ineligible_device": "Unregistered device",
+          "spoof_suspected": "Spoofing suspected",
+          "outside_shift_window": "Outside shift window",
+          "missing_selfie": "Missing selfie"
+        },
+        "stateLabels": {
+          "submitted": "Submitted",
+          "approved": "Approved",
+          "rejected": "Rejected",
+          "returned": "Returned",
+          "corrected": "Corrected",
+          "cancelled": "Cancelled"
+        },
+        "eventTypeLabels": {
+          "clock_in": "Clock in",
+          "clock_out": "Clock out",
+          "break_start": "Break start",
+          "break_end": "Break end"
+        },
+        "yes": "Yes",
+        "no": "No"
       },
       "benefits": {
         "eyebrow": "Benefits",

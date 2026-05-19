@@ -1,5 +1,4 @@
-import { LeavePage, resolveLeaveSurfaceAccess } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied, LeavePage, resolveLeaveSurfaceAccess } from "#features/hrm"
 import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAppsHrmLeavePage({
@@ -13,10 +12,7 @@ export default async function OrgAppsHrmLeavePage({
   })
   if (!access.canEnter) {
     return (
-      <ErpAccessDenied
-        title="Leave"
-        description="This HRM surface requires Leave access or a linked employee record."
-      />
+      <HrmErpAccessDenied surface="leave" />
     )
   }
   return <LeavePage orgSlug={orgSlug} access={access} />

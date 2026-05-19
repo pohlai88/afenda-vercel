@@ -3,9 +3,14 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
+import { MARKETPLACE_RAIL_VISIBLE_LIMIT } from "#features/marketplace/client"
+import {
+  capabilityIdFromUtilityBarItemId,
+  type UtilityBarRailSnapshot,
+} from "#features/nexus/client"
+
 import {
   UTILITY_BAR_CATALOG,
-  UTILITY_BAR_MAX_VISIBLE,
   type UtilityBarItemId,
 } from "./utility-bar-catalog.shared"
 
@@ -45,6 +50,8 @@ type UtilityBarActions = {
    * {@link UTILITY_BAR_MAX_VISIBLE} (shell preview page).
    */
   ensureItemsVisibleForPreview: (ids: UtilityBarItemId[]) => void
+  /** Overlay server-resolved visibility; preserve local order. */
+  hydrateFromRailSnapshot: (snapshot: UtilityBarRailSnapshot) => void
 }
 
 export type UtilityBarStore = UtilityBarState & UtilityBarActions
@@ -58,6 +65,8 @@ const INITIAL_ITEMS: UtilityBarItemState[] = UTILITY_BAR_CATALOG.map((def) => ({
   visible: def.defaultVisible,
   order: def.defaultOrder,
 }))
+
+const UTILITY_BAR_VISIBLE_ICON_CAP = MARKETPLACE_RAIL_VISIBLE_LIMIT - 1
 
 const CATALOG_IDS: UtilityBarItemId[] = UTILITY_BAR_CATALOG.map((d) => d.id)
 
@@ -157,7 +166,7 @@ export const useUtilityBarStore = create<UtilityBarStore>()(
 
         if (
           !target.visible &&
-          countVisible(items) >= UTILITY_BAR_MAX_VISIBLE - 1
+          countVisible(items) >= UTILITY_BAR_VISIBLE_ICON_CAP
         ) {
           return
         }
@@ -218,9 +227,29 @@ export const useUtilityBarStore = create<UtilityBarStore>()(
           ),
         })
       },
+
+      hydrateFromRailSnapshot: (snapshot) => {
+        const visibleSet = new Set(snapshot.visibleIds)
+        const mandatorySet = new Set(snapshot.mandatoryIds)
+        set({
+          items: get().items.map((item) => {
+            const capabilityId = capabilityIdFromUtilityBarItemId(item.id)
+            if (!capabilityId.startsWith("right.")) {
+              return item
+            }
+            if (mandatorySet.has(item.id)) {
+              return { ...item, visible: true }
+            }
+            if (visibleSet.has(item.id)) {
+              return { ...item, visible: true }
+            }
+            return { ...item, visible: false }
+          }),
+        })
+      },
     }),
     {
-      name: "afenda-utility-bar-v1",
+      name: "afenda-utility-bar-v2",
       partialize: (state) => ({ items: state.items }),
       merge: (persistedState, currentState) => {
         const base = currentState as UtilityBarStore

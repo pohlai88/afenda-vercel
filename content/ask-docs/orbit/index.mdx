@@ -20,7 +20,7 @@ Primary surfaces live under `/{locale}/o/{orgSlug}/dashboard/orbit/*` — queue-
 - Signals and items are separate primitives — promote pressure to items only when ownership and verification are required.
 
 <Callout type="info" title="Product vs domain">
-  **Orbit** is the product name; the internal module is **Planner** (`lib/features/planner/`). Documentation and UI use Orbit.
+  **Orbit** is the product name; the module door is `lib/features/orbit/` and `#features/orbit`. Internal types (`PlannerItem`, `PlannerSignal`) and `planner_*` DB tables remain wire-stable per ADR-0040 §2. Documentation and UI use Orbit.
 </Callout>
 
 ## Open Orbit

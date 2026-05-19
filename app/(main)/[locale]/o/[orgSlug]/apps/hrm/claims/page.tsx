@@ -1,5 +1,4 @@
-import { ClaimsPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { ClaimsPage, HrmErpAccessDenied } from "#features/hrm"
 import { getOrgTenantContext } from "#lib/auth"
 import {
   resolveClaimSurfaceAccess,
@@ -19,10 +18,7 @@ export default async function OrgAppsHrmClaimsPage({
   })
   if (!access.canEnter) {
     return (
-      <ErpAccessDenied
-        title="Claims"
-        description="This HRM surface requires Claims access or a linked employee record."
-      />
+      <HrmErpAccessDenied surface="claims" />
     )
   }
   return <ClaimsPage orgSlug={orgSlug} access={access} />

@@ -26,7 +26,9 @@ export function AppShellGlobalShortcuts({
 }: AppShellGlobalShortcutsProps) {
   const router = useRouter()
   const commandOpen = useAppShellStore((s) => s.commandOpen)
+  const quickCreateOpen = useAppShellStore((s) => s.quickCreateOpen)
   const openCommand = useAppShellStore((s) => s.openCommand)
+  const openQuickCreate = useAppShellStore((s) => s.openQuickCreate)
   const gChordDeadline = useRef<number | null>(null)
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function AppShellGlobalShortcuts({
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.defaultPrevented || e.repeat) return
-      if (commandOpen) return
+      if (commandOpen || quickCreateOpen) return
       if (isTypingTarget(e.target)) return
 
       const key = e.key.toLowerCase()
@@ -49,6 +51,12 @@ export function AppShellGlobalShortcuts({
       if ((e.metaKey || e.ctrlKey) && key === "k") {
         e.preventDefault()
         openCommand()
+        return
+      }
+
+      if (!e.metaKey && !e.ctrlKey && !e.altKey && key === "c") {
+        e.preventDefault()
+        openQuickCreate()
         return
       }
 
@@ -69,7 +77,7 @@ export function AppShellGlobalShortcuts({
 
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [commandOpen, openCommand, orgSlug, router])
+  }, [commandOpen, quickCreateOpen, openCommand, openQuickCreate, orgSlug, router])
 
   return null
 }

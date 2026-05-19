@@ -16,8 +16,8 @@ alwaysApply: false
 
 | Folder | Owns | Must not own |
 | --- | --- | --- |
-| `app-shell/` | Workbench chrome (RSC + client islands) | ERP/domain queries, feature business rules |
-| `portal-shell/` | Portal chrome | Workbench shell, tenant truth |
+| `app-shell/` | Post-login app shell chrome — RSC + client islands serving workbench URLs (`/o/{orgSlug}/...`), IAM profile, and admin | ERP/domain queries, feature business rules |
+| `portal-shell/` | Portal chrome (`/p/{portalSlug}`) | `AppShell`, post-login org shell, tenant truth |
 | `stores/` | Context-free Zustand client stores | React providers, RSC, DB |
 | `providers/` | Client React context/providers | Zustand stores, domain logic |
 | `ui/` | Design-system primitives (shadcn shelf) | Feature workflows, shell layout |

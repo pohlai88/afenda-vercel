@@ -1,5 +1,4 @@
-import { SalaryBenchmarkingPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied, SalaryBenchmarkingPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmSalaryBenchmarkingPage() {
@@ -10,10 +9,7 @@ export default async function OrgAppsHrmSalaryBenchmarkingPage() {
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Salary benchmarking"
-        description="This HRM surface requires Salary Benchmarking search access."
-      />
+      <HrmErpAccessDenied surface="salaryBenchmarking" />
     )
   }
 

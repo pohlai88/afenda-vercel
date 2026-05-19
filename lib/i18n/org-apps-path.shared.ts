@@ -1,7 +1,7 @@
 import type { AppPath } from "#lib/i18n/locales.shared"
 
 import { HRM_APPS_CAPABILITY_SEGMENT_SET } from "#features/hrm/hrm-apps-path.shared"
-import { ORBIT_SURFACE_SEGMENT_SET } from "#features/planner/planner-orbit-path.shared"
+import { ORBIT_SURFACE_SEGMENT_SET } from "#features/orbit/planner-orbit-path.shared"
 
 /** Admin segments under `/o/{slug}/admin/{segment}`. */
 export const ORG_ADMIN_PATH_SEGMENTS = new Set([

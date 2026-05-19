@@ -32,7 +32,7 @@ test.describe("@smoke app-shell preview", () => {
         page.getByRole("button", { name: "Search", exact: true })
       ).toBeVisible()
       await expect(
-        page.getByRole("button", { name: "Create", exact: true })
+        page.getByRole("button", { name: "Quick create", exact: true })
       ).toBeVisible()
     }
   )

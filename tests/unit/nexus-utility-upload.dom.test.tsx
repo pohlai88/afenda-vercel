@@ -65,7 +65,7 @@ vi.mock("next-intl", () => ({
       ),
 }))
 
-import { AppShellNexusUtilityUpload } from "#app-shell/client"
+import { UtilityBarUploadPanel } from "#app-shell/client"
 import { TooltipProvider } from "#components2/ui/tooltip"
 
 afterEach(() => {
@@ -73,7 +73,7 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-describe("AppShellNexusUtilityUpload", () => {
+describe("UtilityBarUploadPanel", () => {
   beforeEach(() => {
     window.history.replaceState({}, "", "/en/o/acme/apps/home")
   })
@@ -92,7 +92,7 @@ describe("AppShellNexusUtilityUpload", () => {
 
     render(
       <TooltipProvider>
-        <AppShellNexusUtilityUpload orgId="org-1" />
+        <UtilityBarUploadPanel organizationId="org-1" />
       </TooltipProvider>
     )
 
@@ -130,7 +130,7 @@ describe("AppShellNexusUtilityUpload", () => {
 
     render(
       <TooltipProvider>
-        <AppShellNexusUtilityUpload orgId="org-1" />
+        <UtilityBarUploadPanel organizationId="org-1" />
       </TooltipProvider>
     )
 

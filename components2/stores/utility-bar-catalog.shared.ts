@@ -8,6 +8,7 @@ export type UtilityBarSection = "utilities" | "integrations" | "plugins"
 export type UtilityBarItemId =
   | "search-mobile"
   | "quick-create"
+  | "notifications"
   | "insight"
   | "theme"
   | "density"
@@ -38,9 +39,9 @@ export type UtilityBarItemDef = {
 
 /**
  * Maximum visible right-rail slots including the avatar disc.
- * Catalog toggles cap at {@link UTILITY_BAR_MAX_VISIBLE} − 1 icons.
+ * Aligned with {@link MARKETPLACE_RAIL_VISIBLE_LIMIT} (9) in marketplace doctrine.
  */
-export const UTILITY_BAR_MAX_VISIBLE = 12
+export const UTILITY_BAR_MAX_VISIBLE = 9
 
 export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
   {
@@ -64,13 +65,24 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     isLink: false,
   },
   {
+    id: "notifications",
+    label: "Notifications",
+    description: "Organization-wide notices and broadcasts.",
+    iconName: "Bell",
+    section: "utilities",
+    defaultVisible: true,
+    defaultOrder: 2,
+    isLink: false,
+    searchAliases: ["notices", "alerts", "broadcast"],
+  },
+  {
     id: "insight",
     label: "Insight",
     description: "Machine-powered Lynx insight surface.",
     iconName: "Sparkles",
     section: "utilities",
     defaultVisible: true,
-    defaultOrder: 2,
+    defaultOrder: 3,
     isLink: true,
     searchAliases: ["lynx", "machine", "truth", "retrieval", "sparkles"],
   },
@@ -81,7 +93,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "Sun",
     section: "utilities",
     defaultVisible: true,
-    defaultOrder: 3,
+    defaultOrder: 4,
     isLink: false,
   },
   {
@@ -91,7 +103,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "LayoutGrid",
     section: "utilities",
     defaultVisible: true,
-    defaultOrder: 4,
+    defaultOrder: 5,
     isLink: false,
   },
   {
@@ -101,7 +113,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "Languages",
     section: "utilities",
     defaultVisible: true,
-    defaultOrder: 5,
+    defaultOrder: 6,
     isLink: false,
   },
   {
@@ -111,7 +123,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "Keyboard",
     section: "utilities",
     defaultVisible: true,
-    defaultOrder: 6,
+    defaultOrder: 7,
     isLink: false,
   },
   {
@@ -121,7 +133,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "MessageSquare",
     section: "utilities",
     defaultVisible: true,
-    defaultOrder: 7,
+    defaultOrder: 8,
     isLink: false,
   },
   {
@@ -131,7 +143,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "CircleHelp",
     section: "utilities",
     defaultVisible: true,
-    defaultOrder: 8,
+    defaultOrder: 9,
     isLink: true,
   },
   {
@@ -141,7 +153,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "ShieldCheck",
     section: "utilities",
     defaultVisible: true,
-    defaultOrder: 9,
+    defaultOrder: 10,
     isLink: true,
     searchAliases: [
       "admin",
@@ -159,7 +171,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "Wifi",
     section: "utilities",
     defaultVisible: false,
-    defaultOrder: 10,
+    defaultOrder: 11,
     isLink: false,
   },
   {
@@ -169,7 +181,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "Database",
     section: "utilities",
     defaultVisible: false,
-    defaultOrder: 11,
+    defaultOrder: 12,
     isLink: false,
   },
   {
@@ -179,7 +191,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "Camera",
     section: "utilities",
     defaultVisible: false,
-    defaultOrder: 12,
+    defaultOrder: 13,
     isLink: false,
   },
   {
@@ -189,7 +201,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "FileUp",
     section: "utilities",
     defaultVisible: false,
-    defaultOrder: 13,
+    defaultOrder: 14,
     isLink: false,
   },
   {
@@ -199,7 +211,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "Activity",
     section: "utilities",
     defaultVisible: false,
-    defaultOrder: 14,
+    defaultOrder: 15,
     isLink: false,
   },
   {
@@ -209,7 +221,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "MessageCircle",
     section: "utilities",
     defaultVisible: true,
-    defaultOrder: 15,
+    defaultOrder: 16,
     isLink: false,
     searchAliases: ["chat", "dm", "group chat", "conversations"],
   },
@@ -221,7 +233,7 @@ export const UTILITY_BAR_CATALOG: readonly UtilityBarItemDef[] = [
     iconName: "ScanSearch",
     section: "utilities",
     defaultVisible: false,
-    defaultOrder: 16,
+    defaultOrder: 17,
     isLink: false,
     searchAliases: ["evidence", "review", "linked record", "coordination"],
   },

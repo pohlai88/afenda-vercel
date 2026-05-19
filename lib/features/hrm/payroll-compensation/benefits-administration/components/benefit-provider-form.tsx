@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useId, useMemo, useRef } from "react"
+import { useActionState, useId, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
@@ -18,6 +18,7 @@ import {
   createBenefitProviderAction,
   updateBenefitProviderAction,
 } from "../client"
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 import type { BenefitPlanMutationFormState } from "../../../types"
 
 export type BenefitProviderFormRow = {
@@ -59,17 +60,7 @@ export function BenefitProviderForm({
   const countriesId = useId()
   const externalId = useId()
   const activeId = useId()
-
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) {
-      onSuccessRef.current?.()
-    }
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   const fieldErrors = useMemo(() => {
     if (!state || state.ok) return null

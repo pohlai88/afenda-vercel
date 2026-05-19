@@ -39,7 +39,9 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     title: "Navigation",
     rows: [
       { label: "Command palette", mac: ["⌘", "K"], win: ["Ctrl", "K"] },
+      { label: "Quick create", mac: ["C"], win: ["C"] },
       { label: "Toggle nav rail", mac: ["⌘", "B"], win: ["Ctrl", "B"] },
+      { label: "Go home", mac: ["G", "H"], win: ["G", "H"] },
     ],
   },
   {
@@ -47,13 +49,6 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     rows: [
       { label: "Save", mac: ["⌘", "S"], win: ["Ctrl", "S"] },
       { label: "Close / cancel", mac: ["Esc"], win: ["Esc"] },
-    ],
-  },
-  {
-    title: "ERP modules",
-    rows: [
-      { label: "Module shortcuts", mac: ["—"], win: ["—"], comingSoon: true },
-      { label: "Field navigation", mac: ["—"], win: ["—"], comingSoon: true },
     ],
   },
 ]

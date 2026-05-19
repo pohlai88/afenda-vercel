@@ -1,4 +1,4 @@
 /**
- * Keeps Workflow DevKit entrypoints off the `#features/planner` public barrels.
+ * Keeps Workflow DevKit entrypoints off the `#features/orbit` public barrels.
  */
-export { runPlannerRecurrenceWorkflow } from "../../planner/automation/planner-recurrence.workflow"
+export { runPlannerRecurrenceWorkflow } from "../../orbit/automation/planner-recurrence.workflow"

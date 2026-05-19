@@ -8,7 +8,7 @@ import { requireTenantAuthority } from "#features/erp-rbac/server"
 import {
   createPlannerSignalLink,
   insertPlannerSignal,
-} from "#features/planner/server"
+} from "#features/orbit/server"
 import { toLocaleOrgAdminRevalidatePattern } from "#lib/i18n/locales.shared"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 import {

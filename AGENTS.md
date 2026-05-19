@@ -132,7 +132,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | Metadata renderers             | `#components2/metadata` · `#features/governed-surface` (`GovernedPatternCListSection`, `GovernedSurfaceSectionCard`) · `pnpm gen governed-renderer` · **ADR-0026** · section score: `docs/architecture/governed-section-composition-score.md` · playground: `/playground/pattern-c-section-gallery` |
 | Nexus (org root)               | `app/[locale]/o/[orgSlug]/nexus/` · `#features/nexus` · redirected from `/{locale}/o/{orgSlug}`. See §5                                                                                                                                                                                           |
 | ERP feature                    | `lib/features/<module>/` · `#features/<module>` only · no deep imports · see §6                                                                                                                                                                                                                   |
-| Orbit / Planner                | `lib/features/planner/` · product name Orbit · see ADR-0006 · rule `.cursor/rules/planner-directory.mdc`                                                                                                                                                                                          |
+| Orbit                          | `lib/features/orbit/` · public name Orbit · see ADR-0006 + ADR-0040 · rule `.cursor/rules/orbit-directory.mdc`                                                                                                                                                                                    |
 | HRM                            | `lib/features/hrm/` · `HRM_CAPABILITIES` registry · `#features/hrm/client` for forms · `#features/hrm/server` for rule-pack                                                                                                                                                                       |
 | Tools                          | `lib/features/tools/` · `#features/tools` · `#features/tools/client` · `#features/tools/server` · subsystems: `bulk-csv-import/`, `electronic-signatures/` · HRM consumes; does not re-export                                                                                                      |
 | ERP RBAC                       | `lib/features/erp-rbac/` · tenant governance overlays + ERP permission guards · `#features/erp-rbac/server` for server-only guards/queries                                                                                                                                                        |
@@ -188,7 +188,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 **Focused rules** (auto-loaded by glob):
 
 - `i18n-directory.mdc` · `iam-directory.mdc` · `shell-directory.mdc`
-- `ask-docs-directory.mdc` · `design-system.mdc` · `erp-primitives.mdc` · `planner-directory.mdc`
+- `ask-docs-directory.mdc` · `design-system.mdc` · `erp-primitives.mdc` · `orbit-directory.mdc`
 - `lynx-knowledge.mdc` · `public-lynx.mdc` · `simulation-directory.mdc` · `org-admin-directory.mdc` · `legal-docs-directory.mdc`
 - `drizzle-migration-ledger.mdc` · `app-router-contracts.mdc` · `testing.mdc`
 - `portal-directory.mdc` · `playground-directory.mdc` · `nexus-directory.mdc` · `components2-directory.mdc` · `client-state-management.mdc` · `module-client-server-barrels.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
@@ -450,7 +450,7 @@ AGENTS.md
 .cursor/rules/i18n-directory.mdc
 .cursor/rules/lynx-knowledge.mdc
 .cursor/rules/erp-primitives.mdc
-.cursor/rules/planner-directory.mdc
+.cursor/rules/orbit-directory.mdc
 .cursor/rules/simulation-directory.mdc
 .cursor/rules/shell-directory.mdc
 .cursor/rules/portal-directory.mdc
@@ -617,10 +617,10 @@ await writeAuditEvent7W1H({
 
 ### Orbit / Planner
 
-- Public product: **Orbit**. Internal domain: **Planner** (`lib/features/planner/`).
-- Core primitives: `PlannerSignal`, `PlannerItem`. ADR-0006 + sub-ADRs 0007a-d.
+- Public product: **Orbit**. Module door: `lib/features/orbit/` (renamed from `planner/` under ADR-0040 Phase 1; internal `Planner*` TypeScript symbols and DB tables `planner_*` remain wire-stable — see ADR-0040 §2).
+- Core primitives: `PlannerSignal`, `PlannerItem` (TS symbols; Phase-2 cleanup target). ADR-0006 + sub-ADRs 0007a-d.
 - **Retired:** OneThing and iThink — do not reintroduce. Historical audit strings in `lib/erp/historical-erp-execution-audit-actions.shared.ts` (read-only).
-- Rule: `.cursor/rules/planner-directory.mdc`
+- Rule: `.cursor/rules/orbit-directory.mdc`
 
 ### Lynx / Knowledge
 
@@ -835,7 +835,7 @@ FORBIDDEN without updating this table in the same PR:
 
 - `#lib/tenant` → `#lib/auth` only
 - `#lib/dashboard-org-path.shared`, `#lib/dashboard-org-redirect.server`, `#lib/app-search-params.shared`, `#lib/app-metadata-surface.shared` → `#lib/i18n/*` (`private-surface-robots.shared.ts` for metadata robots)
-- `#lib/hrm-dashboard.shared`, `#lib/planner-dashboard.shared` → `#features/hrm/hrm-apps-path.shared`, `#features/planner/planner-orbit-path.shared` (not the module barrel — avoids `constants` ↔ `org-apps-module-paths` cycle)
+- `#lib/hrm-dashboard.shared`, `#lib/planner-dashboard.shared` → `#features/hrm/hrm-apps-path.shared`, `#features/orbit/planner-orbit-path.shared` (not the module barrel — avoids `constants` ↔ `org-apps-module-paths` cycle)
 - `#lib/route-handler-json.shared` → `#lib/api/route-handler-json.shared`
 - `#lib/route-envelope.shared` → `#lib/erp/route-envelope.shared`
 - `#lib/otel-span.server`, `#lib/request-error-context.shared`, `#lib/request-error-telemetry.server` → `#lib/observability/*`
@@ -1094,7 +1094,7 @@ lib/
     lynx/         ← machine layer
     knowledge/    ← pgvector substrate
     nexus/        ← org-root data layer
-    planner/      ← Orbit execution substrate (extended vocabulary — see ADR-0006)
+    orbit/        ← Orbit execution substrate (extended vocabulary — see ADR-0006 + ADR-0040)
     execution/    ← cross-cutting durable execution contract
     simulation/   ← scenario replay
     org-admin/    ← org control plane
@@ -1111,7 +1111,7 @@ tests/
 
 ### Module exception: Planner / Orbit
 
-`lib/features/planner/` has an extended vocabulary approved by ADR-0006. See `.cursor/rules/planner-directory.mdc`.
+`lib/features/orbit/` has an extended vocabulary approved by ADR-0006 (renamed from `planner/` under ADR-0040 Phase 1). See `.cursor/rules/orbit-directory.mdc`.
 
 ### Module exception: governed-surface
 

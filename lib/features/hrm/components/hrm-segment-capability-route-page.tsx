@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation"
 
-import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { listEffectiveErpPermissionsForUser } from "#features/erp-rbac/server"
 import { getOrgTenantContext } from "#lib/auth"
 
 import { HrmCapabilityPlaceholderPage } from "../_hrm_landing_page/hrm-pages"
+import { HrmErpAccessDenied } from "../_module-governance/hrm-erp-access-denied.server"
 import {
   getHrmCapabilityForSegment,
   isAllowedHrmAppsSubsegment,
@@ -30,10 +30,7 @@ export async function HrmSegmentCapabilityRoutePage({
   })
   if (!permissions.includes(capability.requiredPermission)) {
     return (
-      <ErpAccessDenied
-        title="Human resources"
-        description="This HRM capability requires explicit RBAC permission."
-      />
+      <HrmErpAccessDenied surface="workbenchCapability" />
     )
   }
 

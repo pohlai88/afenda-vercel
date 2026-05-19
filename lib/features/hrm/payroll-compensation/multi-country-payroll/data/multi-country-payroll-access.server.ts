@@ -6,6 +6,8 @@ import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guar
  * ERP RBAC for multi-country payroll RSC surfaces (config + cross-country report).
  * Uses the `payroll` object — country config is not a separate ERP permission tree.
  */
+export type MultiCountryPayrollAccessFailureReason = "permission_denied"
+
 export async function requireMultiCountryPayrollSearchSession(): Promise<
   | {
       ok: true
@@ -13,7 +15,7 @@ export async function requireMultiCountryPayrollSearchSession(): Promise<
       userId: string
       sessionId: string
     }
-  | { ok: false }
+  | { ok: false; reason: MultiCountryPayrollAccessFailureReason }
 > {
   const permission = await requireHrmPermission({
     object: "payroll",
@@ -22,7 +24,7 @@ export async function requireMultiCountryPayrollSearchSession(): Promise<
       "HRM payroll search permission required for multi-country payroll surfaces.",
   })
   if (!permission.ok) {
-    return { ok: false }
+    return { ok: false, reason: "permission_denied" }
   }
 
   return {

@@ -15,7 +15,7 @@ import type {
   CronTickInput,
   CronTickScannedEmittedSummary,
 } from "#lib/erp/cron-tick.shared"
-import { createPlannerSignalFromErpProducer } from "#features/planner/server"
+import { createPlannerSignalFromErpProducer } from "#features/orbit/server"
 
 import { organizationHrmEmployeePath } from "../../../constants"
 import {

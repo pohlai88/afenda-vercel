@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm"
 import { db } from "#lib/db"
 import { neonAuthMember, neonAuthOrganization } from "#lib/db/schema-neon-auth"
 import { organizationAppsPath } from "#lib/org-apps-module-paths"
-import { organizationOrbitPath } from "#features/planner"
+import { organizationOrbitPath } from "#features/orbit"
 import {
   countPlannerActiveForOrg,
   countPlannerAutomationAttentionForOrg,
@@ -16,7 +16,7 @@ import {
   countPlannerReviewerOwnedBlockedForOrg,
   listPlannerHighPressureForNexus,
   listPlannerRecentResolutionsForNexus,
-} from "#features/planner/server"
+} from "#features/orbit/server"
 import { listHrmHighPressureForNexus } from "#features/hrm/server"
 
 import {

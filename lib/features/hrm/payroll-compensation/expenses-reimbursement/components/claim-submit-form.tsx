@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useId, useMemo, useRef } from "react"
+import { useActionState, useId, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
@@ -18,6 +18,7 @@ import {
   submitClaimOnBehalfAction,
   submitOwnClaimAction,
 } from "../actions/claim-submission.actions"
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 import type { SubmitClaimFormState } from "../../../types"
 
 import type {
@@ -64,17 +65,7 @@ export function ClaimSubmitForm({
   const descriptionId = useId()
   const expenseFundId = useId()
   const duplicateOverrideId = useId()
-
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) {
-      onSuccessRef.current?.()
-    }
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   const fieldErrors = useMemo(() => {
     if (!state || state.ok) return null

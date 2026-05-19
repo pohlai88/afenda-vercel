@@ -1,12 +1,7 @@
 "use client"
 
 import {
-  useActionState,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
+  useActionState, useId, useMemo, useState
 } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
@@ -21,6 +16,7 @@ import {
 } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 import { enrollBenefitAction } from "../actions/benefit-enrollment.actions"
 import type { BenefitEnrollFormState } from "../../../types"
 
@@ -77,17 +73,7 @@ export function BenefitEnrollmentForm({
     [dependents, selectedEmployeeId]
   )
   const showDependents = coverageLevel !== "employee_only"
-
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok) {
-      onSuccessRef.current?.()
-    }
-  }, [state])
+  useFormSuccess(state, onSuccess)
 
   const fieldErrors = useMemo(() => {
     if (!state || state.ok) return null

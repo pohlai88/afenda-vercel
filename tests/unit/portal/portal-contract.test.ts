@@ -215,7 +215,7 @@ describe("portal foundation contract", () => {
     ).toEqual({ ok: false, reason: "access_inactive" })
   })
 
-  it("keeps /p free of route handlers and Workbench shell imports", () => {
+  it("keeps /p free of route handlers and post-login app shell imports", () => {
     const routeRoot = join(process.cwd(), "app", "(main)", "[locale]", "p")
     const shellRoot = join(process.cwd(), "components2", "portal-shell")
     const controlRoot = join(process.cwd(), "lib", "portal")

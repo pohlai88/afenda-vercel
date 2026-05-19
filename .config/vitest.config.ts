@@ -169,13 +169,13 @@ export default defineConfig({
         "lib/features/hrm/**/actions/**",
         "lib/features/hrm/**/data/**",
         "lib/features/hrm/components/**/*.tsx",
-        // Planner: Server Actions + modules under `commands/` + IO-heavy `data/` (ADR-0006 / ADR-0008).
+        // Orbit: Server Actions + modules under `commands/` + IO-heavy `data/` (ADR-0006 / ADR-0008 / ADR-0040 Phase 1).
         // Same doctrine as HRM `actions/**` + `data/**`: mutation + DB graphs are Playwright / runtime gates;
-        // Vitest still runs `tests/unit/planner/planner-capture-parser.test.ts` for capture parsing behavior.
-        "lib/features/planner/commands/**",
-        "lib/features/planner/data/**",
-        // Orbit surface UI + client islands — Playwright / RSC routes; unit tests mock `#features/planner/server`.
-        "lib/features/planner/views/**",
+        // Vitest still runs `tests/unit/orbit/planner-capture-parser.test.ts` for capture parsing behavior.
+        "lib/features/orbit/commands/**",
+        "lib/features/orbit/data/**",
+        // Orbit surface UI + client islands — Playwright / RSC routes; unit tests mock `#features/orbit/server`.
+        "lib/features/orbit/views/**",
         // Governed ERP list/detail shells — Playwright / runtime.
         "lib/features/governed-surface/**",
       ],

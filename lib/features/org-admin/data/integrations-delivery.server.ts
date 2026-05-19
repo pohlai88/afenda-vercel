@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { orgEventDelivery } from "#lib/db/schema"
-import { createPlannerSignalFromErpProducer } from "#features/planner/server"
+import { createPlannerSignalFromErpProducer } from "#features/orbit/server"
 import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 
 import type {

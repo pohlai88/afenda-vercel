@@ -1,5 +1,4 @@
-import { RecruitmentPage } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmErpAccessDenied, RecruitmentPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmRecruitmentPage({
@@ -13,10 +12,7 @@ export default async function OrgAppsHrmRecruitmentPage({
   })
   if (!allowed) {
     return (
-      <ErpAccessDenied
-        title="Recruitment"
-        description="This HRM surface requires Recruitment search access."
-      />
+      <HrmErpAccessDenied surface="recruitment" />
     )
   }
   return <RecruitmentPage orgSlug={orgSlug} />

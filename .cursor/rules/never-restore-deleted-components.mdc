@@ -40,7 +40,7 @@ components/ MUST NOT EXIST ON DISK. Fix imports forward into components2/ (and f
 
 | Was under deleted `components/` | Use instead |
 |---|---|
-| Shell / workbench chrome | `components2/app-shell/**` · `#app-shell` · `#app-shell/client` |
+| Post-login app shell chrome | `components2/app-shell/**` · `#app-shell` · `#app-shell/client` |
 | UI primitives (shadcn shelf) | `components2/ui/**` · `#components2/ui/*` |
 | Portal chrome | `components2/portal-shell/**` |
 | Metadata renderers | `components2/metadata/**` · `#components2/metadata` |

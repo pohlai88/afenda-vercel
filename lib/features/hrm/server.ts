@@ -215,6 +215,36 @@ export {
   listActiveFwaScheduleForEmployee,
   resolveActiveFwaForEmployee,
 } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-integration.server"
+
+export {
+  countRemoteCheckinKpiSummary,
+  findActiveRemoteCheckinDevice,
+  findRemoteCheckinEmployeeForUser,
+  getActiveRemoteCheckinPolicyForOrg,
+  getGeofenceForOrg,
+  getRemoteCheckinEmployeeForOrg,
+  getRemoteCheckinExceptionForOrg,
+  getRemoteCheckinHoursForEmployeeDateRange,
+  hasVerifiedRemoteCheckinOnDate,
+  listGeofencesForOrg,
+  listRemoteCheckinDevicesForOrg,
+  listRemoteCheckinExceptionsForOrg,
+  listRemoteCheckinPoliciesForOrg,
+  listVerifiedRemoteCheckinsForEmployeeDate,
+  listVerifiedRemoteCheckinsForOrg,
+  resolveGeolocationSurfaceAccess,
+  buildRemoteCheckinReportCsv,
+} from "./time-attendance/geolocation-remote-checkin/server"
+export type {
+  GeofenceRow,
+  GeolocationSurfaceAccess,
+  RemoteCheckinDeviceRow,
+  RemoteCheckinEmployeeContextRow,
+  RemoteCheckinExceptionListRow,
+  RemoteCheckinHistoryRow,
+  RemoteCheckinKpiSummary,
+  RemoteCheckinPolicyRow,
+} from "./time-attendance/geolocation-remote-checkin/server"
 export { runFwaExpiryWatchTick } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-expiry-watch.server"
 export { runFwaComplianceWatchTick } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-compliance-watch.server"
 export type { FwaComplianceWatchSummary } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-compliance-watch.server"
@@ -994,6 +1024,8 @@ export {
 } from "./_module-governance/hrm-admin-guard.server"
 export { hrmActionFailure } from "./_module-governance/hrm-action-result.shared"
 export { buildGovernedHrmWorkbenchHeader } from "./_module-governance/hrm-governed-page-header.server"
+export { HrmErpAccessDenied } from "./_module-governance/hrm-erp-access-denied.server"
+export type { HrmAccessDeniedCopyKey } from "./_module-governance/hrm-access-denied-copy.shared"
 export { stablePayrollCloseStringify } from "./payroll-compensation/payroll-processing/data/payroll-close.shared"
 export { transitionBoardingTask } from "./employee-management/employee-lifecycle-management/data/boarding.mutations.server"
 export { onSignatureRequestSealedForBoardingTask } from "./employee-management/employee-lifecycle-management/data/boarding-signature-seal-hook.server"

@@ -1,8 +1,6 @@
 import {
-  CompensationPlanningPage,
-  resolveCompensationPlanningSurfaceAccess,
+  CompensationPlanningPage, HrmErpAccessDenied, resolveCompensationPlanningSurfaceAccess
 } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAppsHrmCompensationPlanningPage() {
@@ -14,10 +12,7 @@ export default async function OrgAppsHrmCompensationPlanningPage() {
 
   if (!access.canEnter) {
     return (
-      <ErpAccessDenied
-        title="Compensation planning"
-        description="This HRM surface requires Compensation Planning search or read access."
-      />
+      <HrmErpAccessDenied surface="compensationPlanning" />
     )
   }
 

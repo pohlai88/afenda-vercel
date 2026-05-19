@@ -33,7 +33,7 @@ import { LeaveTypeCreateDialog } from "./policies-leave-type-create-dialog"
  * leave-type / leave-policy Server Actions). Composition responsibility:
  *
  *  - **Authority** is established by the parent layout (`requireOrgSession`
- *    via the workbench shell) and re-validated here for the admin-only
+ *    via the app shell) and re-validated here for the admin-only
  *    member-restriction copy. The mutation actions themselves enforce
  *    `requireHrmAdmin` independently ÔÇö this gate is UX, not security.
  *  - **Tier A** (admin gate + translations) sits in a single blocking

@@ -1,8 +1,8 @@
 import {
   describePlannerAutomationAttentionKind,
   organizationOrbitPath,
-} from "#features/planner"
-import type { PlannerPressureRowForNexus } from "#features/planner/server"
+} from "#features/orbit"
+import type { PlannerPressureRowForNexus } from "#features/orbit/server"
 import type { HrmPressureRowForNexus } from "#features/hrm/server"
 import { organizationAppsPath } from "#lib/org-apps-module-paths"
 

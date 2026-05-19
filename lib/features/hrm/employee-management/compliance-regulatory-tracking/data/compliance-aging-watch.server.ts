@@ -426,7 +426,7 @@ export async function runComplianceAgingWatchTick(
       if (emission.tier === "critical") {
         try {
           const { createPlannerSignalLink, insertPlannerSignal } =
-            await import("#features/planner/server")
+            await import("#features/orbit/server")
           const orgSlug = await getOrganizationSlugById(
             emission.candidate.organizationId
           )
