@@ -130,7 +130,8 @@ export const FULL_COMMAND_META = {
     pnpmLabel: "pnpm verify:no-test",
     tier: "L2",
     cost: "~2–5 min",
-    summary: "CI-shaped verify without test:ci (lint + typecheck + knip + format)",
+    summary:
+      "CI-shaped verify without test:ci (lint + typecheck + knip + format)",
     l0: "pnpm gate -- <paths>",
   },
   "integrity:static": {

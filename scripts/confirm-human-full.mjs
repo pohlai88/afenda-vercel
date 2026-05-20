@@ -118,7 +118,10 @@ function runVerifyTurbo() {
 }
 
 function runVerifyNoTestTurbo() {
-  runOrExit("node", ["scripts/turbo-with-env.mjs", ...VERIFY_NO_TEST_TURBO_ARGS])
+  runOrExit("node", [
+    "scripts/turbo-with-env.mjs",
+    ...VERIFY_NO_TEST_TURBO_ARGS,
+  ])
 }
 
 function runTypecheckFullExec() {
@@ -128,7 +131,13 @@ function runTypecheckFullExec() {
 }
 
 function runKnipExec() {
-  runOrExit("pnpm", ["exec", "knip", "--no-progress", "--config", ".config/knip.json"])
+  runOrExit("pnpm", [
+    "exec",
+    "knip",
+    "--no-progress",
+    "--config",
+    ".config/knip.json",
+  ])
 }
 
 function runTestCiExec() {
