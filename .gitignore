@@ -8,13 +8,12 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing & CI tool output (Vitest coverage, Playwright junit/traces/screenshots, etc.)
+# testing & CI tool output (Vitest coverage, Playwright junit/traces/screenshots, knip dumps, etc.)
 /.artifacts/
-# Vitest blob shard reports (uploaded to GitHub Actions artifacts; never committed)
+# Playwright default when run without .config/playwright.config.ts (never commit)
+/test-results/
+# Vitest 4.x hardcodes `.vitest-reports/` — prefer junction via scripts/ensure-vitest-blob-link.mjs
 /.vitest-reports/
-
-# Ad-hoc CLI output files that must never be committed
-knip-output.txt
 
 # Local Playwright MCP / browser debug captures (not product source)
 .playwright-mcp/

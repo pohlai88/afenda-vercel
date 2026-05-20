@@ -148,7 +148,7 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: vitest-blob-${{ matrix.index }}
-          path: .vitest-reports/
+          path: .artifacts/vitest-reports/
           retention-days: 1
 
   merge-coverage:
@@ -169,10 +169,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Download all shard blob reports into .vitest-reports/
+      # Download all shard blob reports into .artifacts/vitest-reports/
       - uses: actions/download-artifact@v4
         with:
-          path: .vitest-reports
+          path: .artifacts/vitest-reports
           pattern: vitest-blob-*
           merge-multiple: true
 

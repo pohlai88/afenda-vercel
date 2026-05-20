@@ -383,7 +383,7 @@ pnpm lint:public-lynx-contract # after app/api/chat, components2/ai/search, lib/
 
 **Coverage (V8):** `lib/auth/**/*.shared.ts` + `lib/auth/callback-path.ts` → **≥ 95%**. Global ratcheted toward **80%**. Artifacts → `.artifacts/` only (gitignored).
 
-**Transient output:** Vitest coverage → `.artifacts/coverage/` · Playwright JUnit → `.artifacts/playwright-junit.xml` · traces → `.artifacts/playwright/test-results/`
+**Transient output:** Vitest coverage → `.artifacts/coverage/` · Vitest blob shards → `.artifacts/vitest-reports/` (via `.vitest-reports` junction — `node scripts/ensure-vitest-blob-link.mjs`) · Playwright JUnit → `.artifacts/playwright-junit.xml` · traces → `.artifacts/playwright/test-results/` · ad-hoc knip → `.artifacts/knip-output.txt` (optional) · Playwright MCP debug → `.playwright-mcp/` (gitignored). Never commit repo-root `test-results/` (use `--config .config/playwright.config.ts`).
 
 **Fixture typing rule — `as const satisfies <RowType>`:**
 
