@@ -31,7 +31,7 @@ Prior behavior ran **full typecheck on every** `pnpm gate -- <paths>`, causing a
 | `pnpm gate -- <paths> --typecheck` | `lint:path` + slice `tsc -b` (see Phase 2) |
 | `pnpm gate:lint -- <paths>` | `lint:path` only (explicit alias) |
 | `pnpm gate:typecheck` | App `typecheck` only |
-| `pnpm typecheck` | `typecheck-build.mjs` → `tsc -b` lib-db + platform |
+| `pnpm typecheck` | `typecheck-build.mjs` → `tsc -b tsconfig.build.json` (solution root) |
 | `pnpm typecheck:diagnostics` | `tsc -b` solution + `--extendedDiagnostics` |
 | `pnpm typecheck:profile` | Split timing: `next-typegen-fast` vs `tsc -b` |
 | `pnpm lint:typed` | ESLint + `projectService` (L2; not L0) |
@@ -49,7 +49,7 @@ Before push:         pnpm gate:typecheck  (or pnpm gate:push)
 
 | Phase | Scope |
 | --- | --- |
-| **1** | `tsconfig.base.json`, composite `lib/db`, platform `tsconfig.json`, `tsconfig.build.json`, `pnpm typecheck` → `tsc -b` |
+| **1** | `tsconfig.build.json` solution (`files: []` + references); full check via one `tsc -b`; leaf configs for Turbo/gate slices |
 | **2** | `gate -- <paths> --typecheck` → `gate-typecheck-slices` (db-only vs platform vs full) |
 | **3** | `pnpm lint:typed` + `.config/eslint.typed.config.mjs` (`projectService` at L2) |
 
