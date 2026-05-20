@@ -1070,10 +1070,7 @@ export const orgPushSubscription = pgTable(
   },
   (t) => [
     uniqueIndex("org_push_subscription_endpoint_uidx").on(t.endpoint),
-    index("org_push_subscription_org_user_idx").on(
-      t.organizationId,
-      t.userId
-    ),
+    index("org_push_subscription_org_user_idx").on(t.organizationId, t.userId),
   ]
 )
 
@@ -4688,9 +4685,12 @@ export const hrmOvertimeRequest = pgTable(
     endTime: text("endTime").notNull(),
     durationMinutes: integer("durationMinutes").notNull(),
     timingKind: text("timingKind").notNull().default("actual"),
-    overtimeTypeId: text("overtimeTypeId").references(() => hrmOvertimeType.id, {
-      onDelete: "set null",
-    }),
+    overtimeTypeId: text("overtimeTypeId").references(
+      () => hrmOvertimeType.id,
+      {
+        onDelete: "set null",
+      }
+    ),
     dayCategory: text("dayCategory").notNull().default("normal_day"),
     reason: text("reason"),
     initiatedBy: text("initiatedBy").notNull().default("employee"),
@@ -4827,9 +4827,7 @@ export const hrmOvertimePolicy = pgTable(
     createdByUserId: text("createdByUserId"),
     updatedByUserId: text("updatedByUserId"),
   },
-  (t) => [
-    uniqueIndex("hrm_overtime_policy_org_uidx").on(t.organizationId),
-  ]
+  (t) => [uniqueIndex("hrm_overtime_policy_org_uidx").on(t.organizationId)]
 )
 
 /** Overtime approval routing matrix (HRM-OTM-016). */
@@ -4886,7 +4884,9 @@ export const hrmOvertimeRateRule = pgTable(
     overtimeTypeId: text("overtimeTypeId")
       .notNull()
       .references(() => hrmOvertimeType.id, { onDelete: "cascade" }),
-    multiplierHundredths: integer("multiplierHundredths").notNull().default(100),
+    multiplierHundredths: integer("multiplierHundredths")
+      .notNull()
+      .default(100),
     countryCode: text("countryCode"),
     workerCategory: text("workerCategory"),
     earningCode: text("earningCode"),
@@ -4961,10 +4961,7 @@ export const hrmOvertimeException = pgTable(
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
-    index("hrm_overtime_exception_org_state_idx").on(
-      t.organizationId,
-      t.state
-    ),
+    index("hrm_overtime_exception_org_state_idx").on(t.organizationId, t.state),
     index("hrm_overtime_exception_request_idx").on(t.requestId),
   ]
 )
@@ -5342,6 +5339,10 @@ export const hrmShiftTemplate = pgTable(
       .default(960),
     /** scheduled | skip | paid_holiday */
     holidayBehavior: text("holidayBehavior").notNull().default("scheduled"),
+    /** morning | afternoon | night | split | rest | off | general */
+    shiftCategory: text("shiftCategory").notNull().default("general"),
+    /** fixed | rotating | split | night | weekend | holiday | flexible */
+    patternKind: text("patternKind").notNull().default("fixed"),
     isActive: boolean("isActive").notNull().default(true),
     createdByUserId: text("createdByUserId"),
     updatedByUserId: text("updatedByUserId"),
@@ -5450,6 +5451,224 @@ export const hrmShiftAssignment = pgTable(
     check(
       "hrm_shift_assignment_holiday_behavior_chk",
       sql`${t.holidayBehavior} IN ('scheduled', 'skip', 'paid_holiday')`
+    ),
+  ]
+)
+
+/** Org-wide shift scheduling policy (rest between shifts, weekly hour caps). */
+export const hrmShiftSchedulingPolicy = pgTable(
+  "hrm_shift_scheduling_policy",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    minRestMinutesBetweenShifts: integer("minRestMinutesBetweenShifts")
+      .notNull()
+      .default(660),
+    maxScheduledMinutesPerWeek: integer("maxScheduledMinutesPerWeek")
+      .notNull()
+      .default(2880),
+    warnOnConflict: boolean("warnOnConflict").notNull().default(true),
+    blockOnConflict: boolean("blockOnConflict").notNull().default(false),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_shift_scheduling_policy_org_uidx").on(t.organizationId),
+    check(
+      "hrm_shift_scheduling_policy_nonneg_chk",
+      sql`${t.minRestMinutesBetweenShifts} >= 0 AND ${t.maxScheduledMinutesPerWeek} > 0`
+    ),
+  ]
+)
+
+/** Recurring assignment generator (weekly interval). */
+export const hrmShiftRecurrenceRule = pgTable(
+  "hrm_shift_recurrence_rule",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    shiftTemplateId: text("shiftTemplateId")
+      .notNull()
+      .references(() => hrmShiftTemplate.id, { onDelete: "restrict" }),
+    startDate: date("startDate").notNull(),
+    endDate: date("endDate"),
+    /** 0=Sun … 6=Sat */
+    weekday: integer("weekday").notNull(),
+    isActive: boolean("isActive").notNull().default(true),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_shift_recurrence_rule_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    check(
+      "hrm_shift_recurrence_rule_weekday_chk",
+      sql`${t.weekday} >= 0 AND ${t.weekday} <= 6`
+    ),
+  ]
+)
+
+export const hrmShiftRotationCycle = pgTable(
+  "hrm_shift_rotation_cycle",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    cycleLengthDays: integer("cycleLengthDays").notNull().default(7),
+    isActive: boolean("isActive").notNull().default(true),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_shift_rotation_cycle_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    check("hrm_shift_rotation_cycle_length_chk", sql`${t.cycleLengthDays} > 0`),
+  ]
+)
+
+export const hrmShiftRotationStep = pgTable(
+  "hrm_shift_rotation_step",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    rotationCycleId: text("rotationCycleId")
+      .notNull()
+      .references(() => hrmShiftRotationCycle.id, { onDelete: "cascade" }),
+    stepIndex: integer("stepIndex").notNull(),
+    shiftTemplateId: text("shiftTemplateId")
+      .notNull()
+      .references(() => hrmShiftTemplate.id, { onDelete: "restrict" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_shift_rotation_step_cycle_index_uidx").on(
+      t.rotationCycleId,
+      t.stepIndex
+    ),
+    check("hrm_shift_rotation_step_index_chk", sql`${t.stepIndex} >= 0`),
+  ]
+)
+
+/** Minimum staffing by date and shift template. */
+export const hrmShiftCoverageRequirement = pgTable(
+  "hrm_shift_coverage_requirement",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    attendanceDate: date("attendanceDate").notNull(),
+    shiftTemplateId: text("shiftTemplateId")
+      .notNull()
+      .references(() => hrmShiftTemplate.id, { onDelete: "restrict" }),
+    minHeadcount: integer("minHeadcount").notNull().default(1),
+    departmentId: text("departmentId"),
+    locationCode: text("locationCode"),
+    requiredSkillId: text("requiredSkillId").references(() => hrmSkill.id, {
+      onDelete: "set null",
+    }),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_shift_coverage_req_org_date_idx").on(
+      t.organizationId,
+      t.attendanceDate
+    ),
+    check("hrm_shift_coverage_req_headcount_chk", sql`${t.minHeadcount} > 0`),
+  ]
+)
+
+/** Employee-initiated shift swap between two assignments. */
+export const hrmShiftSwapRequest = pgTable(
+  "hrm_shift_swap_request",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    requesterEmployeeId: text("requesterEmployeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    requesterAssignmentId: text("requesterAssignmentId")
+      .notNull()
+      .references(() => hrmShiftAssignment.id, { onDelete: "restrict" }),
+    counterpartyEmployeeId: text("counterpartyEmployeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    counterpartyAssignmentId: text("counterpartyAssignmentId")
+      .notNull()
+      .references(() => hrmShiftAssignment.id, { onDelete: "restrict" }),
+    state: text("state").notNull().default("submitted"),
+    reason: text("reason").notNull(),
+    rejectedReason: text("rejectedReason"),
+    currentApprovalId: text("currentApprovalId").references(
+      () => hrmApproval.id,
+      { onDelete: "set null" }
+    ),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_shift_swap_request_org_state_idx").on(t.organizationId, t.state),
+    check(
+      "hrm_shift_swap_request_state_chk",
+      sql`${t.state} IN ('submitted', 'approved', 'rejected', 'returned', 'cancelled')`
+    ),
+  ]
+)
+
+/** Published roster window for employee notifications. */
+export const hrmShiftRosterPublication = pgTable(
+  "hrm_shift_roster_publication",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    periodStart: date("periodStart").notNull(),
+    periodEnd: date("periodEnd").notNull(),
+    publishedAt: timestamp("publishedAt", { mode: "date" }).notNull(),
+    publishedByUserId: text("publishedByUserId").notNull(),
+    note: text("note"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_shift_roster_publication_org_period_idx").on(
+      t.organizationId,
+      t.periodStart,
+      t.periodEnd
+    ),
+    check(
+      "hrm_shift_roster_publication_period_chk",
+      sql`${t.periodEnd} >= ${t.periodStart}`
     ),
   ]
 )

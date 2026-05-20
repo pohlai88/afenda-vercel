@@ -18,10 +18,21 @@ Run **`pnpm gate:help`** for the full reference. Preview L0 with **`pnpm gate:dr
 | **L0** | Lint + slice typecheck | `pnpm gate -- <paths> --typecheck` | e.g. HRM → platform slice only (ADR-0042) |
 | **L2** | Typed ESLint (optional) | `pnpm lint:typed -- <paths>` | `projectService`; not L0 |
 | **L0** | Types only | `pnpm gate` or `pnpm typecheck` | app graph |
-| **L2** | Before push / PR | `pnpm gate:push` | ~2–5 min |
-| **L3** | Pre-merge / App Router risk | `pnpm gate:merge` | ~5–10 min |
+| **L2** | Before push / PR (human only) | `pnpm gate:push` | ~5–15 min; interactive YES |
+| **L3** | Pre-merge / App Router risk (human only) | `pnpm gate:merge` | full verify + build; interactive YES |
 
 **Never run L2/L3 after every edit.** Never run `lint:full`, `gate:push`, `build`, and `test:e2e` in one local session unless debugging CI.
+
+### Human approval for ALL full commands (`scripts/confirm-human-full.mjs`)
+
+**Authority: AGENTS.md §2.** Every full-repo gate requires an **interactive terminal** and typing `YES`.
+
+Full commands (non-exhaustive): `lint` / `lint:full`, `typecheck:full`, `knip`, `test:ci`, `test:audit`, `test:coverage`, `build`, `test:e2e`, `verify*`, `gate:push`, `gate:merge`, `integrity:static`, `smoke`.
+
+- **Agents / non-TTY shells:** **exit 2 (blocked)** — L0 only; never `AFENDA_SKIP_FULL_VERIFY_CONFIRM`.
+- **CI:** `verify:ci`, workflow `build:exec` / shards — `CI=true`, no prompt.
+- **One YES** covers child Turbo tasks (`AFENDA_HUMAN_FULL_CONFIRMED=1`).
+- **Cursor hook:** `deny-forbidden-shell.mjs` **denies** every full command + bypass env for agent shells.
 
 ## L0 close condition (concurrent agents — use this)
 

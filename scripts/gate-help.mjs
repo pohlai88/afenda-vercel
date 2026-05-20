@@ -12,8 +12,8 @@ L0     After every edit / agent task pnpm gate -- <touched-paths…>        ESLi
 L0     Before push (types)           pnpm gate:typecheck                  ~10s–minutes (warm/cold)
 L0     Types only                    pnpm gate  |  pnpm typecheck         app graph
 L1     Git commit                    lint-staged (automatic)              staged files
-L2     Before push / open PR         pnpm gate:push                       ~2–5 min
-L3     Pre-merge / App Router risk   pnpm gate:merge                      ~5–10 min
+L2     Before push / open PR         pnpm gate:push                       ~5–15 min (human confirms)
+L3     Pre-merge / App Router risk   pnpm gate:merge                      verify + build (human confirms)
 L4     CI                            GitHub Actions — debug locally only  parallel jobs
 
 IMPORTANT: paths narrow ESLint only by default. Typecheck uses tsc -b slices
@@ -41,7 +41,16 @@ FULL (low frequency — :full or gate:*)
   pnpm typecheck:full                app + test + scripts graphs
   pnpm lint:full  (alias: pnpm lint) ~18 governance tasks + repo ESLint
   pnpm gate:push   (alias: verify:parallel)  lint + all TC + knip + test:ci + format
-  pnpm gate:merge                    gate:push + next build
+  pnpm gate:merge                    full verify + next build
+
+FULL COMMANDS — HUMAN YES (scripts/confirm-human-full.mjs · AGENTS.md §2)
+  ALL full commands: lint:full, lint, typecheck:full, knip, test:ci, test:audit,
+    test:coverage, build, test:e2e, verify*, gate:push, gate:merge, integrity:static, smoke
+  Interactive terminal: type YES once (child Turbo tasks inherit confirmation).
+  Agents / non-TTY: BLOCKED (exit 2). Cursor hook denies agent shell invocations.
+  CI: verify:ci, verify:no-test, build:exec, test:ci:shard — CI=true, no prompt.
+  Emergency bypass (human only — agents forbidden):
+    AFENDA_SKIP_FULL_VERIFY_CONFIRM=1 pnpm gate:push
 
 DRY RUN (print planned L0 commands, do not execute)
   pnpm gate:dry-run

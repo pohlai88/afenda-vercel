@@ -17,6 +17,7 @@ export const HRM_APPS_CAPABILITY_SEGMENTS = [
   "employees",
   "flexible-work",
   "geolocation",
+  "shift-scheduling",
   "overtime",
   "imports",
   "kpi",

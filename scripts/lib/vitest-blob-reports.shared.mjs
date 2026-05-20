@@ -22,17 +22,18 @@ export function ensureVitestBlobReportsLink(root) {
 
   if (fs.existsSync(linkPath)) {
     const stat = fs.lstatSync(linkPath)
-    if (stat.isSymbolicLink()) {
-      fs.rmSync(linkPath, { force: true })
-    } else if (stat.isDirectory()) {
+    if (stat.isDirectory() && !stat.isSymbolicLink()) {
       for (const entry of fs.readdirSync(linkPath)) {
         const from = path.join(linkPath, entry)
         const to = path.join(artifactsDir, entry)
+        if (fs.existsSync(to)) {
+          fs.rmSync(to, { recursive: true, force: true })
+        }
         fs.renameSync(from, to)
       }
       fs.rmdirSync(linkPath)
     } else {
-      fs.rmSync(linkPath, { force: true })
+      fs.rmSync(linkPath, { recursive: true, force: true })
     }
   }
 

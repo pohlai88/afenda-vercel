@@ -10,7 +10,7 @@ alwaysApply: true
 ## Prime directive
 
 ```txt
-Run pnpm gate:push once → triage ALL failures → batch-fix by category → pnpm format once if needed → pnpm gate:push once
+Human runs pnpm gate:push once (interactive YES) → triage ALL failures → batch-fix by category → pnpm format once if needed → one final gate:push
 ```
 
 **Forbidden:** fix one ESLint file → `gate:push` → fix one test → `gate:push` → … (multiplies 2–10 min per lap).

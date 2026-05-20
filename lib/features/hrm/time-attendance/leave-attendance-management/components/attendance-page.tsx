@@ -25,10 +25,7 @@ import { AttendanceExportReportButton } from "./attendance-export-report-button.
 import { AttendanceTimeReportPending } from "./attendance-time-report-pending"
 import { AttendanceTimeReportRecent } from "./attendance-time-report-recent"
 import { AttendanceRecordEventDialog } from "./attendance-record-event-dialog"
-import {
-  AttendanceShiftAssignmentPanel,
-  AttendanceShiftAssignmentPanelSkeleton,
-} from "./attendance-shift-assignment-panel"
+import { SftDeprecationNotice } from "../../shift-scheduling/components/sft-deprecation-notice"
 import { AttendanceOtmDeprecationNotice } from "./attendance-otm-deprecation-notice"
 
 /**
@@ -130,13 +127,7 @@ export async function AttendancePage({
             selectedDate={selectedDate}
           />
           {isAdmin && validEmployeeId ? (
-            <Suspense fallback={<AttendanceShiftAssignmentPanelSkeleton />}>
-              <AttendanceShiftAssignmentPanel
-                organizationId={orgSession.organizationId}
-                employeeId={validEmployeeId}
-                attendanceDate={selectedDate}
-              />
-            </Suspense>
+            <SftDeprecationNotice orgSlug={orgSlug} />
           ) : null}
           {validEmployeeId ? (
             <Suspense fallback={<AttendanceDaySummarySkeleton />}>

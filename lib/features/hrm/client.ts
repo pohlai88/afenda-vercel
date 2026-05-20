@@ -338,8 +338,23 @@ export {
 } from "./time-attendance/leave-attendance-management/actions/attendance-correction.actions"
 export {
   assignEmployeeShiftAction,
+  bulkAssignEmployeeShiftsAction,
   createShiftTemplateAction,
-} from "./time-attendance/leave-attendance-management/actions/attendance-shift.actions"
+  updateShiftSchedulingPolicyAction,
+  submitShiftSwapRequestAction,
+  approveShiftSwapRequestAction,
+  rejectShiftSwapRequestAction,
+  returnShiftSwapRequestAction,
+  overrideShiftSwapRequestAction,
+  addRotationStepAction,
+  publishShiftRosterAction,
+  exportShiftRosterCsvAction,
+  createRecurrenceRuleAction,
+  applyRecurrenceRuleAction,
+  applyRotationCycleAction,
+  createCoverageRequirementAction,
+  createRotationCycleAction,
+} from "./time-attendance/shift-scheduling/client"
 export type {
   AssignEmployeeShiftFormState,
   AttendanceRecordFormState,
@@ -566,4 +581,3 @@ export type {
   TimeReportApprovalFormState,
   TimeReportMutationFormState,
 } from "./types"
-

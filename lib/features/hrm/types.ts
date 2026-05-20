@@ -910,6 +910,91 @@ export type AssignEmployeeShiftFormState =
       }
     }
 
+export type BulkAssignEmployeeShiftsFormState =
+  | { ok: true; applied: number; skipped: number }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeIds?: string
+        rangeStart?: string
+        rangeEnd?: string
+        shiftTemplateId?: string
+      }
+    }
+
+export type SftPolicyFormState =
+  | { ok: true }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        minRestMinutesBetweenShifts?: string
+        maxScheduledMinutesPerWeek?: string
+      }
+    }
+
+export type SftSwapMutationFormState =
+  | { ok: true; swapRequestId?: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        swapRequestId?: string
+        rejectedReason?: string
+        returnedReason?: string
+        overrideNote?: string
+      }
+    }
+
+export type SftPublishRosterFormState =
+  | { ok: true; publicationId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        periodStart?: string
+        periodEnd?: string
+      }
+    }
+
+export type SftRecurrenceMutationFormState =
+  | { ok: true; applied: number; skipped: number }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        ruleId?: string
+        rangeStart?: string
+        rangeEnd?: string
+      }
+    }
+
+export type SftCoverageFormState =
+  | { ok: true; requirementId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        attendanceDate?: string
+        shiftTemplateId?: string
+        minHeadcount?: string
+      }
+    }
+
+export type SftRotationCycleFormState =
+  | { ok: true; rotationCycleId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        code?: string
+        name?: string
+        cycleLengthDays?: string
+        shiftTemplateId?: string
+      }
+    }
+
 // ---------------------------------------------------------------------------
 // Phase 3A: Payroll form states
 // ---------------------------------------------------------------------------

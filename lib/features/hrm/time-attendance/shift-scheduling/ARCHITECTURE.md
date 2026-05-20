@@ -1,5 +1,59 @@
 # Shift Scheduling
 
+## Implementation notes
+
+- **Route:** `/{locale}/o/{orgSlug}/apps/hrm/shift-scheduling` — registry segment `shift-scheduling`, audit prefix `erp.hrm.shift_schedule`.
+- **Follow-up ledger:** `sft_follow.md` — plan ↔ codebase completeness matrix (update when gaps close).
+- **Slice 1 (shipped):** Module scaffold, ERP permissions, shift template catalog (Pattern B list + create form when `canManage`).
+- **Slice 2 (shipped):** Roster queries, assign + bulk assign; attendance links here (deprecation notice only).
+- **Slice 3 (shipped):** Recurrence rules (create + apply UI), rotation cycles (create step-0 + apply UI).
+- **Slice 4 (shipped):** Scheduling policy (read + edit form), conflict detection on assign (leave, overlap, rest, weekly hours).
+- **Slice 5 (shipped):** Coverage requirements (create + Pattern B compare), swap submit (employee) + manager approve/reject inbox (Pattern C).
+- **Slice 6 (shipped):** Publish roster, publications history (Pattern B), CSV export, attendance compare, payroll refs on `#features/hrm/server`.
+- **Deferred (v1+):** HRM-SFT-025 employee notifications on publish; skill/role coverage; dept/team roster filters; swap return/override.
+
+### Phase 0 entity model
+
+| Entity              | Table                                | Notes                                       |
+| ------------------- | ------------------------------------ | ------------------------------------------- |
+| ShiftType           | `hrm_shift_template`                 | Org catalog; `shiftCategory`, `patternKind` |
+| ShiftAssignment     | `hrm_shift_assignment`               | One row per employee per date               |
+| SchedulingPolicy    | `hrm_shift_scheduling_policy`        | Org defaults (rest hours, weekly cap)       |
+| RecurrenceRule      | `hrm_shift_recurrence_rule`          | Weekly generator                            |
+| RotationCycle       | `hrm_shift_rotation_cycle` + `_step` | Rotating pattern                            |
+| CoverageRequirement | `hrm_shift_coverage_requirement`     | Min headcount by date/template              |
+| SwapRequest         | `hrm_shift_swap_request`             | Employee swap workflow                      |
+| RosterPublication   | `hrm_shift_roster_publication`       | Publish stamp per period                    |
+
+### LAM coexistence
+
+- **Authoring:** `/apps/hrm/shift-scheduling` only (attendance shows deprecation link).
+- **Read:** `#features/hrm/server` exposes assignment resolution for attendance aggregator and OTM shift compare.
+- **Tables:** Shared `hrm_shift_*` — no duplicate assignment store.
+
+### Metadata-driven UI (Pattern B / C)
+
+| `surfaceKey`                                | Section                              |
+| ------------------------------------------- | ------------------------------------ |
+| `hrm:shift-scheduling:templates`            | Shift types catalog                  |
+| `hrm:shift-scheduling:roster`               | Date-range roster                    |
+| `hrm:shift-scheduling:recurrence-rules`     | Recurrence rules list                |
+| `hrm:shift-scheduling:coverage`             | Coverage compare                     |
+| `hrm:shift-scheduling:publications`         | Roster publication history           |
+| `hrm:shift-scheduling:attendance-reconcile` | Scheduled vs attendance              |
+| `hrm:shift-scheduling:swap-pending`         | Swap approval inbox (Pattern C)      |
+| `hrm:shift-scheduling:my-swaps`             | Employee swap requests + submit form |
+
+### Access lanes
+
+| Lane            | Condition                              | UI                       |
+| --------------- | -------------------------------------- | ------------------------ |
+| Org read/manage | `canReadOrg` from ERP `shift_schedule` | Full workbench sections  |
+| Self-service    | Linked employee, no org read           | `SftMySwapsSection` only |
+| Denied          | Neither                                | `ErpAccessDenied`        |
+
+---
+
 ## Definition
 
 **Shift Scheduling is the HRM function that creates, assigns, manages, and controls employee shift patterns, shift rotations, work rosters, rest days, off days, shift swaps, schedule changes, staffing coverage, and schedule compliance.**

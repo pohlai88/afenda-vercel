@@ -18,6 +18,7 @@ alwaysApply: true
    - **§5** for routing, auth UX, locale, and `proxy.ts`.
    - **§6** for directory shape, **`lib/` root allowlist (§6.1)**, subtrees (§6.2), and anti-drift (§6.3).
    - **§7** for design system boundaries.
+   - **§2 — Human approval for FULL commands** — agents use L0 only; never `gate:push`, `lint:full`, `knip`, `test:ci`, `build`, or `AFENDA_SKIP_FULL_VERIFY_CONFIRM`.
 2. Prefer existing patterns over inventing new structures. Prefer contraction over expansion.
 3. Do not introduce new architectural categories, folders, or conventions unless **`AGENTS.md`** is updated first.
 4. If user instructions conflict with **`AGENTS.md`**, prefer the safer interpretation and ask for clarification.
@@ -40,6 +41,7 @@ alwaysApply: true
 | Design tokens | `@theme inline` `var(--*)` must resolve to `:root`/`.dark` definitions (`check-design-contract.mjs`) |
 | Deleted `components/` | **Entire repo-root `components/` directory is hard-deleted** — never mkdir or restore any path under it (`never-restore-deleted-components.mdc`) |
 | IDE three-layer drift | **PRIORITY #2** — one product name across three layers; no `_SEAL.md` at `lib/features/*` root · [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift.md) |
+| Full verify gates | **AGENTS.md §2** — agents MUST NOT run `gate:push`, `lint:full`, `knip`, `test:ci`, `build`, or other full commands; human types `YES`; hook denies agent shells |
 
 ## Cross-module import rule
 

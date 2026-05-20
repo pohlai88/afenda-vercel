@@ -375,6 +375,16 @@ export {
   HRM_OTM_TIMING_KINDS,
 } from "./time-attendance/overtime-management"
 export {
+  ShiftSchedulingPage,
+  resolveSftSurfaceAccess,
+  HRM_SFT_AUDIT,
+  SFT_SWAP_APPROVAL_SUBJECT_KIND,
+  HRM_SFT_SPEC_MAP,
+  listHrmSftSpecCodes,
+  SFT_SHIFT_CATEGORIES,
+  SFT_PATTERN_KINDS,
+} from "./time-attendance/shift-scheduling"
+export {
   GeolocationPage,
   resolveGeolocationSurfaceAccess,
   HRM_GEOLOCATION_AUDIT,

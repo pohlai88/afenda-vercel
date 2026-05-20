@@ -10,7 +10,21 @@ const mocks = vi.hoisted(() => ({
   regenerateAttendanceDayFromEvents: vi.fn(),
   writeIamAuditEventFromNextHeaders: vi.fn(),
   revalidatePath: vi.fn(),
+  getOrCreateShiftSchedulingPolicy: vi.fn(),
+  detectShiftSchedulingConflicts: vi.fn(),
+  findSkillCoverageViolationsForAssignment: vi.fn(),
 }))
+
+const DEFAULT_SFT_POLICY = {
+  id: "policy-1",
+  organizationId: "org-1",
+  minRestMinutesBetweenShifts: 660,
+  maxScheduledMinutesPerWeek: 2880,
+  warnOnConflict: false,
+  blockOnConflict: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+}
 
 vi.mock("server-only", () => ({}))
 
@@ -38,7 +52,7 @@ vi.mock(
 )
 
 vi.mock(
-  "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-shift.queries.server.ts",
+  "../../lib/features/hrm/time-attendance/shift-scheduling/data/sft-template.queries.server.ts",
   () => ({
     getActiveShiftTemplateForOrg: mocks.getActiveShiftTemplateForOrg,
   })
@@ -56,6 +70,28 @@ vi.mock(
   "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-aggregator.server.ts",
   () => ({
     regenerateAttendanceDayFromEvents: mocks.regenerateAttendanceDayFromEvents,
+  })
+)
+
+vi.mock(
+  "../../lib/features/hrm/time-attendance/shift-scheduling/data/sft-policy.server.ts",
+  () => ({
+    getOrCreateShiftSchedulingPolicy: mocks.getOrCreateShiftSchedulingPolicy,
+  })
+)
+
+vi.mock(
+  "../../lib/features/hrm/time-attendance/shift-scheduling/data/sft-conflict-detect.server.ts",
+  () => ({
+    detectShiftSchedulingConflicts: mocks.detectShiftSchedulingConflicts,
+  })
+)
+
+vi.mock(
+  "../../lib/features/hrm/time-attendance/shift-scheduling/data/sft-skill-coverage.server.ts",
+  () => ({
+    findSkillCoverageViolationsForAssignment:
+      mocks.findSkillCoverageViolationsForAssignment,
   })
 )
 
@@ -81,6 +117,7 @@ function shiftFormData() {
 
 const TEMPLATE = {
   id: "shift-template-1",
+  organizationId: "org-1",
   code: "DAY",
   name: "Day shift",
   defaultStartTime: "09:00",
@@ -92,6 +129,11 @@ const TEMPLATE = {
   overtimeGraceMinutes: 0,
   maxContinuousClockMinutes: 960,
   holidayBehavior: "scheduled" as const,
+  shiftCategory: "general" as const,
+  patternKind: "fixed" as const,
+  isActive: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 }
 
 describe("assignEmployeeShiftAction", () => {
@@ -120,6 +162,9 @@ describe("assignEmployeeShiftAction", () => {
     mocks.getActiveShiftTemplateForOrg.mockResolvedValue(TEMPLATE)
     mocks.listClosedPayrollPeriodsOverlappingRange.mockResolvedValue([])
     mocks.regenerateAttendanceDayFromEvents.mockResolvedValue("updated")
+    mocks.getOrCreateShiftSchedulingPolicy.mockResolvedValue(DEFAULT_SFT_POLICY)
+    mocks.detectShiftSchedulingConflicts.mockResolvedValue([])
+    mocks.findSkillCoverageViolationsForAssignment.mockResolvedValue([])
   })
 
   it("stops before regeneration, audit, and revalidation when the guarded upsert is blocked by a locked day", async () => {
@@ -142,7 +187,7 @@ describe("assignEmployeeShiftAction", () => {
   it("rejects non-admin assignment before reading or writing shift data", async () => {
     mocks.requireHrmPermission.mockResolvedValue({
       ok: false,
-      error: "HRM attendance update permission required.",
+      error: "HRM shift schedule update permission required.",
     })
 
     const result = await assignEmployeeShiftAction(undefined, shiftFormData())

@@ -1,21 +1,17 @@
 #!/usr/bin/env node
 /**
- * Cursor `beforeShellExecution` hook — mechanical enforcement of AGENTS.md PRIORITY #1.
+ * Cursor `beforeShellExecution` hook — mechanical enforcement of AGENTS.md.
  *
- * Cursor invokes this on every Shell tool call. Hook reads a JSON payload from stdin
- * containing `{ command: string, ... }` and decides:
- *
- *   - allow → command runs (exit 0, empty stdout)
- *   - deny  → command blocked, agent sees the message (exit 0, JSON on stdout)
+ * - PRIORITY #1: Drizzle ledger / DB destructive commands
+ * - §2 Human approval for full commands: agents cannot run L2/L3 full gates
  *
  * Reference: https://cursor.com/docs/agent/hooks
- *
- * The denylist mirrors AGENTS.md PRIORITY #1 + the "Forbidden for agents" table.
- * Catching this at the shell layer is stricter than `scripts/forbid-db-push.mjs`
- * (which only blocks `pnpm db:push*` aliases) because it also catches raw
- * `drizzle-kit push`, hand-edit attempts to the journal, and nuke scripts.
  */
 import process from "node:process"
+import {
+  FULL_COMMAND_KEYS,
+  FULL_COMMAND_META,
+} from "../lib/human-full-commands.shared.mjs"
 
 const DENY_PATTERNS = [
   {
@@ -54,19 +50,39 @@ const DENY_PATTERNS = [
     fix: "If a migration is wrong, revert the offending db:generate, not the meta folder.",
   },
   {
-    pattern: /\bpnpm\s+(lint:full|lint)\b(?!.*--help)/i,
+    pattern: /AFENDA_SKIP_FULL_VERIFY_CONFIRM/i,
     reason:
-      "pnpm lint:full is L2 — not for the edit loop (.cursor/rules/targeted-verification.mdc).",
-    fix: "Use: pnpm gate -- <touched-paths>   (or pnpm lint:path -- <paths>)",
-    severity: "warn", // soft warning; allow to proceed
+      "Agents must not bypass human full-command approval (AGENTS.md §2).",
+    fix: "Use L0: pnpm gate -- <touched-paths> and pnpm gate:typecheck.",
   },
   {
-    pattern: /\bpnpm\s+gate:push\b/i,
-    reason: "pnpm gate:push is L2 (pre-push) — not for the edit loop.",
-    fix: "Use: pnpm gate -- <touched-paths> after each task; gate:push only before pushing.",
-    severity: "warn",
+    pattern: /\bnode\s+scripts[\\/]confirm-human-full\.mjs\b/i,
+    reason:
+      "Full commands require a human terminal — agents must not invoke the confirm script directly.",
+    fix: "Use L0 gates. Human runs pnpm gate:push in an interactive terminal.",
   },
 ]
+
+for (const key of FULL_COMMAND_KEYS) {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const short = key === "lint" ? "lint" : null
+  const patterns = [
+    new RegExp(`\\bpnpm\\s+run\\s+${escaped}\\b`, "i"),
+    new RegExp(`\\bpnpm\\s+${escaped}\\b`, "i"),
+  ]
+  if (short) {
+    patterns.push(/\bpnpm\s+lint\b(?!:)/i)
+    patterns.push(/\bpnpm\s+run\s+lint\b(?!:)/i)
+  }
+  for (const pattern of patterns) {
+    if (key === "lint" && pattern.source.includes("lint:full")) continue
+    DENY_PATTERNS.push({
+      pattern,
+      reason: `pnpm ${key} is a FULL command (${FULL_COMMAND_META[key]?.tier ?? "L2"}) — human approval required (AGENTS.md §2).`,
+      fix: `Use: ${FULL_COMMAND_META[key]?.l0 ?? "pnpm gate -- <touched-paths>"}. Human runs ${key} once before push.`,
+    })
+  }
+}
 
 function respond({ permission, userMessage, agentMessage }) {
   const payload = { permission }
@@ -109,13 +125,6 @@ try {
   for (const rule of DENY_PATTERNS) {
     if (rule.pattern.test(command)) {
       const message = `[afenda hook] ${rule.reason}\n→ ${rule.fix}`
-      if (rule.severity === "warn") {
-        // Allow but surface the warning to the agent so it can self-correct next time.
-        respond({
-          permission: "allow",
-          agentMessage: message,
-        })
-      }
       respond({
         permission: "deny",
         userMessage: message,
@@ -126,7 +135,6 @@ try {
 
   respond({ permission: "allow" })
 } catch (error) {
-  // Never break the agent loop on hook failure — log and allow.
   process.stderr.write(
     `[deny-forbidden-shell] hook error: ${error instanceof Error ? error.message : String(error)}\n`
   )

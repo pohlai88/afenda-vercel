@@ -1,0 +1,2 @@
+ALTER TABLE "hrm_shift_coverage_requirement" ADD COLUMN "requiredSkillId" text;--> statement-breakpoint
+ALTER TABLE "hrm_shift_coverage_requirement" ADD CONSTRAINT "hrm_shift_coverage_requirement_requiredSkillId_hrm_skill_id_fk" FOREIGN KEY ("requiredSkillId") REFERENCES "public"."hrm_skill"("id") ON DELETE set null ON UPDATE no action;

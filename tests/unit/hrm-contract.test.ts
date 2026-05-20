@@ -43,6 +43,7 @@ const HRM_MESSAGES = (
         cards: Record<string, Record<string, string>>
         placeholders: Record<string, Record<string, string>>
         flexibleWork?: Record<string, string>
+        shiftScheduling?: Record<string, string>
         overtime?: Record<string, string>
         absenceAnalytics?: Record<string, string>
         compensationPlanning?: Record<string, string>
@@ -122,6 +123,19 @@ describe("HRM_CAPABILITIES registry", () => {
     expect(flexibleWork?.auditPrefix).toBe("erp.hrm.flexible_work")
     expect(HRM_MESSAGES.nav["flexible-work"]).toBeTypeOf("string")
     expect(HRM_MESSAGES.flexibleWork?.pageTitle).toBeTypeOf("string")
+  })
+
+  it("registers shift-scheduling capability and catalog keys", () => {
+    const shiftScheduling = getHrmCapabilityById("shiftScheduling")
+    expect(shiftScheduling?.segments).toContain("shift-scheduling")
+    expect(shiftScheduling?.requiredPermission).toBe(
+      "hrm.shift_schedule.search"
+    )
+    expect(shiftScheduling?.auditPrefix).toBe("erp.hrm.shift_schedule")
+    expect(HRM_MESSAGES.nav["shift-scheduling"]).toBeTypeOf("string")
+    expect(HRM_MESSAGES.cards["shift-scheduling"]?.title).toBeTypeOf("string")
+    expect(HRM_MESSAGES.shiftScheduling?.title).toBeTypeOf("string")
+    expect(isAllowedHrmAppsSubsegment("shift-scheduling")).toBe(true)
   })
 
   it("registers overtime capability and catalog keys", () => {

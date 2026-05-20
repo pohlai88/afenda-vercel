@@ -206,9 +206,43 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | **L0** | Before push (app types) | `pnpm gate:typecheck` or `pnpm gate -- <paths> --typecheck` | warm ~10–30s; cold often minutes |
 | **L0** | Types only | `pnpm gate` or `pnpm typecheck` | app graph |
 | **L1** | Git commit | lint-staged (automatic) | staged files |
-| **L2** | Before push / open PR | `pnpm gate:push` | ~2–5 min |
-| **L3** | Pre-merge / App Router risk | `pnpm gate:merge` | ~5–10 min |
-| **L4** | CI | GitHub Actions — do not replay locally unless debugging | parallel jobs |
+| **L2** | Before push / open PR (human) | `pnpm gate:push` | ~5–15 min; type `YES` |
+| **L3** | Pre-merge / App Router risk (human) | `pnpm gate:merge` | full verify + build; type `YES` |
+| **L4** | CI | GitHub Actions — `verify:ci` / job scripts (`CI=true`) | parallel jobs |
+
+### Agent authority — human approval for FULL commands (mandatory)
+
+```txt
+IDE / CURSOR / AGENT — NON-NEGOTIABLE:
+
+You MUST NOT run any FULL local command in a task loop.
+FULL commands require a human in an interactive terminal who types YES.
+The shell hook denies these commands; non-TTY runs exit blocked (code 2).
+
+FULL commands (all wired through scripts/confirm-human-full.mjs):
+  pnpm lint / pnpm lint:full
+  pnpm typecheck:full
+  pnpm knip
+  pnpm test:ci · pnpm test:coverage · pnpm test:audit
+  pnpm build
+  pnpm test:e2e · pnpm test:e2e:smoke
+  pnpm verify · pnpm verify:parallel · pnpm verify:no-test
+  pnpm gate:push · pnpm gate:merge
+  pnpm integrity:static · pnpm verify:artifact · pnpm smoke
+
+While coding you MUST use L0 only:
+  pnpm gate -- <touched-paths>
+  pnpm gate:typecheck
+  pnpm test:fast -- tests/unit/<files>
+
+Forbidden for agents:
+  AFENDA_SKIP_FULL_VERIFY_CONFIRM=1   (human emergency only)
+  node scripts/confirm-human-full.mjs …
+  fix → gate:push → fix → gate:push loops
+
+Human runs ONE full lap before push; batch-fix all failures; re-run once.
+CI uses pnpm verify:ci (no prompt). See pnpm gate:help.
+```
 
 ### Common commands (high frequency — no `:full` suffix)
 
@@ -233,15 +267,20 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | **`pnpm typecheck:test`** | Test graph — add at L0 when `tests/` changed |
 | **`pnpm typecheck:scripts`** | Scripts graph — add at L0 when `scripts/` changed |
 
-### Full commands (low frequency — `:full` or `gate:*`)
+### Full commands (low frequency — human `YES` in interactive terminal)
 
 | Command | Purpose |
 | --- | --- |
 | **`pnpm typecheck:full`** | App + test + scripts TypeScript graphs |
 | **`pnpm lint:full`** / **`pnpm lint`** | Full Turbo lint stack (~18 governance tasks + repo ESLint) |
-| **`pnpm gate:push`** | Pre-push: lint stack + all typechecks + knip + `test:ci` + format (alias: `pnpm verify:parallel`) |
-| **`pnpm gate:merge`** | `gate:push` + production `next build` |
-| **`pnpm verify`** / **`pnpm verify:ci`** | CI sequential variant (unchanged for workflows) |
+| **`pnpm knip`** | Full-repo dead-code scan |
+| **`pnpm test:ci`** / **`pnpm test:audit`** | Full Vitest (+ coverage for `test:ci`) |
+| **`pnpm build`** | Production Next.js build |
+| **`pnpm test:e2e`** | Build + Playwright |
+| **`pnpm gate:push`** | Pre-push: lint stack + all typechecks + knip + `test:ci` + format |
+| **`pnpm gate:merge`** | Full verify + production `next build` |
+| **`pnpm verify`** / **`pnpm verify:parallel`** | Same graph as `gate:push` |
+| **`pnpm verify:ci`** | **CI only** — no human prompt (`CI=true`) |
 
 > **Three-graph rule:** L0 uses **`pnpm typecheck`** (app only). Before push, **`gate:push`** runs all three graphs. Manually run **`pnpm typecheck:full`** only when debugging graph splits — not after every edit.
 

@@ -349,23 +349,33 @@ export type {
   AttendanceEmployeeChoiceRow,
 } from "./time-attendance/leave-attendance-management/data/attendance.queries.server"
 
-export {
-  assignEmployeeShiftAction,
-  createShiftTemplateAction,
-} from "./time-attendance/leave-attendance-management/actions/attendance-shift.actions"
+export { assignEmployeeShiftAction } from "./time-attendance/shift-scheduling/actions/sft-assignment.actions"
+
+export { createShiftTemplateAction } from "./time-attendance/shift-scheduling/actions/sft-template.actions"
 
 export {
   getShiftAssignmentForEmployeeDate,
   listShiftTemplatesForOrg,
+  listAllShiftTemplatesForOrg,
+  listAssignmentsInRange,
+  listRosterAssignmentsForOrg,
   resolveAttendanceShiftContext,
   shiftAssignmentRowToView,
   shiftTemplateRowToOption,
-} from "./time-attendance/leave-attendance-management/data/attendance-shift.queries.server"
+  getOrCreateShiftSchedulingPolicy,
+  detectShiftSchedulingConflicts,
+  listShiftPayrollReferencesForPeriod,
+  compareScheduledVsAttendance,
+  resolveScheduledShiftMinutesForWorkDate,
+} from "./time-attendance/shift-scheduling/server"
 
 export type {
   ShiftAssignmentRow,
   ShiftTemplateRow,
-} from "./time-attendance/leave-attendance-management/data/attendance-shift.queries.server"
+  RosterAssignmentRow,
+  ShiftSchedulingPolicyRow,
+  SftScheduleConflict,
+} from "./time-attendance/shift-scheduling/server"
 
 export type {
   AttendanceShiftAssignmentView,
