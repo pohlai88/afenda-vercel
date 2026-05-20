@@ -76,6 +76,7 @@
     "typecheck:lib-db": "node --max-old-space-size=8192 node_modules/typescript/bin/tsc -b .config/tsconfig.lib-db.json",
     "typecheck:platform": "node scripts/next-typegen-fast.mjs && node --max-old-space-size=8192 node_modules/typescript/bin/tsc -b tsconfig.json",
     "typecheck:tsgo": "node scripts/typecheck-tsgo-pilot.mjs",
+    "typecheck:compare": "node scripts/typecheck-compare.mjs",
     "typecheck:test": "tsc --noEmit -p .config/tsconfig.test.json",
     "typecheck:scripts": "tsc --noEmit -p .config/tsconfig.scripts.json",
     "typecheck:full": "pnpm typecheck && pnpm typecheck:test && pnpm typecheck:scripts",

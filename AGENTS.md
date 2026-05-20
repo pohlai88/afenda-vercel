@@ -228,6 +228,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | **`pnpm typecheck`** | App graph (`next typegen` + `tsc -b` lib-db + platform — ADR-0042) |
 | **`pnpm typecheck:turbo`** | Turbo parallel typecheck graphs (CI / verify) |
 | **`pnpm typecheck:tsgo`** | `tsgo` pilot — non-blocking in CI until parity (ADR-0042 Phase 4) |
+| **`pnpm typecheck:compare`** | `tsc` vs `tsgo` exit parity report (ADR-0042 Phase 6) |
 | **`pnpm lint:path -- <paths>`** | Targeted ESLint only — never `eslint .` |
 | **`pnpm typecheck:test`** | Test graph — add at L0 when `tests/` changed |
 | **`pnpm typecheck:scripts`** | Scripts graph — add at L0 when `scripts/` changed |

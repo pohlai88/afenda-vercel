@@ -31,6 +31,7 @@ COMMON (high frequency — no :full suffix)
   pnpm typecheck:lib-db              lib/db slice only
   pnpm typecheck:platform            typegen + platform graph
   pnpm typecheck:tsgo                tsgo pilot (non-blocking; tsc authority)
+  pnpm typecheck:compare             tsc vs tsgo exit parity (before enforcing tsgo)
   pnpm typecheck:test                when tests/ changed
   pnpm typecheck:scripts             when scripts/ changed
   pnpm typecheck:profile             split typegen vs tsc -b timing

@@ -1,8 +1,9 @@
 /**
- * App typecheck via project references (`tsc -b`). ADR-0042 Phase 1–2.
+ * App typecheck via project references (`tsc -b`) and scoped graphs (`tsc --noEmit -p`).
+ * ADR-0042 Phase 1–2 + Phase 6 (tests/scripts gate slices).
  *
  * Usage:
- *   node scripts/typecheck-build.mjs              → `tsc -b tsconfig.build.json` (solution root)
+ *   node scripts/typecheck-build.mjs              → `tsc -b tsconfig.build.json`
  *   node scripts/typecheck-build.mjs <paths...>   → slice plan from gate paths
  */
 import { spawnSync } from "node:child_process"
@@ -37,11 +38,30 @@ if (slicePlanNeedsRouteTypegen(slices)) {
   run("node", ["scripts/next-typegen-fast.mjs"])
 }
 
-const tscArgs = [
-  "--max-old-space-size=8192",
-  "node_modules/typescript/bin/tsc",
-  "-b",
-  ...slices.flatMap((slice) => slice.args),
-]
+const buildProjects = slices
+  .filter((slice) => slice.mode === "build")
+  .flatMap((slice) => slice.args)
 
-run("node", tscArgs)
+if (buildProjects.length > 0) {
+  run("node", [
+    "--max-old-space-size=8192",
+    "node_modules/typescript/bin/tsc",
+    "-b",
+    ...buildProjects,
+  ])
+}
+
+for (const slice of slices.filter((entry) => entry.mode === "noEmit")) {
+  const project = slice.args[0]
+  if (!project) {
+    console.error(`[typecheck-build] missing project path for slice ${slice.id}`)
+    process.exit(1)
+  }
+  run("node", [
+    "--max-old-space-size=8192",
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    project,
+  ])
+}

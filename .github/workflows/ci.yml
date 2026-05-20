@@ -71,9 +71,13 @@ jobs:
       # Tests are handled by the sharded test-shards + merge-coverage jobs.
       - run: pnpm verify:no-test
 
-      # Phase 4: tsgo pilot — tsc remains authority; tsgo is advisory until parity is proven.
+      # Phase 4–6: tsgo pilot + tsc/tsgo parity — tsc remains authority until parity is proven.
       - name: TypeScript native preview (tsgo, non-blocking)
         run: pnpm typecheck:tsgo
+        continue-on-error: true
+
+      - name: TypeScript tsc vs tsgo parity (non-blocking)
+        run: pnpm typecheck:compare
         continue-on-error: true
 
   vitest-gate:

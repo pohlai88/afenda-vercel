@@ -2,7 +2,7 @@
 
 | Field | Value |
 | ----- | ----- |
-| **Status** | Accepted (Phases 0–5 implemented; tsgo pilot non-blocking) |
+| **Status** | Accepted (Phases 0–6 implemented; tsgo pilot non-blocking) |
 | **Date** | 2026-05-20 |
 | **Supersedes** | Misleading L0 cost for `pnpm gate -- <paths>` in ADR-0033 narrative only |
 | **Implements in code** | [`scripts/gate.mjs`](../../scripts/gate.mjs), [`scripts/gate-args.shared.mjs`](../../scripts/gate-args.shared.mjs), [`scripts/typecheck-build.mjs`](../../scripts/typecheck-build.mjs), [`scripts/lib/gate-typecheck-slices.shared.mjs`](../../scripts/lib/gate-typecheck-slices.shared.mjs), [`scripts/lint-typed.mjs`](../../scripts/lint-typed.mjs), [`tsconfig.base.json`](../../tsconfig.base.json), [`.config/tsconfig.lib-db.json`](../../.config/tsconfig.lib-db.json), [`package.json`](../../package.json) |
@@ -60,7 +60,13 @@ Before push:         pnpm gate:typecheck  (or pnpm gate:push)
 | **4** | `@typescript/native-preview` (`tsgo`), `tsconfig.*.tsgo.json`, `pnpm typecheck:tsgo`, CI step (non-blocking), `.artifacts/tsgo-pilot-report.txt` |
 | **5** | Turbo tasks `typecheck:lib-db` → `typecheck:platform`; `typecheck:test` / `typecheck:scripts` parallel after lib-db; `verify*` uses slice tasks; `pnpm typecheck:turbo` |
 
-**Deferred:** more composite slices until `lib/auth` / `lib/i18n` / `#features` graph is layered; `tsgo` as merge gate (`AFENDA_TSGO_ENFORCE=1`); pnpm workspace package split; `isolatedDeclarations`.
+### Phase 6 (implemented)
+
+| Phase | Scope |
+| --- | --- |
+| **6** | Gate `--typecheck` maps `tests/**` and `scripts/**` to their isolated `tsc --noEmit -p` graphs; `pnpm typecheck:compare` records `tsc` vs `tsgo` exit parity (`.artifacts/typecheck-parity-report.txt`) |
+
+**Deferred:** `lib/auth` / `lib/i18n` composite slices (import graph cycles via `#features`); `tsgo` as merge gate until `typecheck:compare` is green on `main`; pnpm workspace package split; `isolatedDeclarations`.
 
 **Rejected:** path-scoped `tsc` on one non-composite config; `projectService` on every L0 lint.
 
@@ -95,3 +101,4 @@ Before push:         pnpm gate:typecheck  (or pnpm gate:push)
 | 2026-05-20 | Phase 0: gate split, diagnostics/profile scripts, ADR acceptance |
 | 2026-05-20 | Phases 1–3: `tsc -b` lib-db slice, gate slice mapping, `lint:typed` |
 | 2026-05-20 | Phases 4–5: tsgo CI pilot (non-blocking), Turbo parallel typecheck graphs |
+| 2026-05-20 | Phase 6: tests/scripts gate slices, `typecheck:compare` parity reporter |

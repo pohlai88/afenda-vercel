@@ -1,14 +1,17 @@
 /**
- * Map touched paths to incremental `tsc -b` targets (ADR-0042 Phase 2).
+ * Map touched paths to incremental typecheck targets (ADR-0042 Phase 2 + 6).
  * Full builds use the solution root (`tsconfig.build.json`) per TS project-references guidance.
  */
 
-/** @typedef {{ id: string; label: string; args: string[] }} TypecheckSlice */
+/** @typedef {"build" | "noEmit"} TypecheckSliceMode */
+
+/** @typedef {{ id: string; label: string; mode: TypecheckSliceMode; args: string[] }} TypecheckSlice */
 
 /** @type {TypecheckSlice} */
 export const TYPECHECK_SOLUTION_SLICE = {
   id: "solution",
   label: "full solution (project references)",
+  mode: "build",
   args: ["tsconfig.build.json"],
 }
 
@@ -16,6 +19,7 @@ export const TYPECHECK_SOLUTION_SLICE = {
 const LIB_DB_SLICE = {
   id: "lib-db",
   label: "lib/db composite",
+  mode: "build",
   args: [".config/tsconfig.lib-db.json"],
 }
 
@@ -23,13 +27,49 @@ const LIB_DB_SLICE = {
 const PLATFORM_SLICE = {
   id: "platform",
   label: "app platform graph",
+  mode: "build",
   args: ["tsconfig.json"],
+}
+
+/** @type {TypecheckSlice} */
+const TESTS_SLICE = {
+  id: "test",
+  label: "tests graph",
+  mode: "noEmit",
+  args: [".config/tsconfig.test.json"],
+}
+
+/** @type {TypecheckSlice} */
+const SCRIPTS_SLICE = {
+  id: "scripts",
+  label: "scripts graph",
+  mode: "noEmit",
+  args: [".config/tsconfig.scripts.json"],
 }
 
 /** Full solution entry — prefer {@link TYPECHECK_SOLUTION_SLICE} over listing leaf projects. */
 export const TYPECHECK_SLICES = [TYPECHECK_SOLUTION_SLICE]
 
 const LIB_DB_PREFIX = "lib/db/"
+const TESTS_PREFIX = "tests/"
+const SCRIPTS_PREFIX = "scripts/"
+
+/**
+ * @param {string} normalizedPosixPath
+ * @returns {"lib-db" | "test" | "scripts" | "platform"}
+ */
+function bucketGatePath(normalizedPosixPath) {
+  if (normalizedPosixPath === "lib/db" || normalizedPosixPath.startsWith(LIB_DB_PREFIX)) {
+    return "lib-db"
+  }
+  if (normalizedPosixPath === "tests" || normalizedPosixPath.startsWith(TESTS_PREFIX)) {
+    return "test"
+  }
+  if (normalizedPosixPath === "scripts" || normalizedPosixPath.startsWith(SCRIPTS_PREFIX)) {
+    return "scripts"
+  }
+  return "platform"
+}
 
 /**
  * @param {string[]} paths
@@ -40,19 +80,37 @@ export function resolveTypecheckSlicesForPaths(paths) {
     return [TYPECHECK_SOLUTION_SLICE]
   }
 
-  const normalized = paths.map(normalizeGatePath)
-  const touchesLibDb = normalized.some(
-    (p) => p === "lib/db" || p.startsWith(LIB_DB_PREFIX)
-  )
-  const touchesOutsideLibDb = normalized.some(
-    (p) => p !== "lib/db" && !p.startsWith(LIB_DB_PREFIX)
-  )
+  const buckets = new Set(paths.map(normalizeGatePath).map(bucketGatePath))
 
-  if (touchesLibDb && touchesOutsideLibDb) {
+  if (buckets.has("lib-db") && buckets.size > 1) {
     return [TYPECHECK_SOLUTION_SLICE]
   }
-  if (touchesLibDb) {
+
+  if (buckets.size > 1) {
+    const slices = []
+    if (buckets.has("test")) {
+      slices.push(TESTS_SLICE)
+    }
+    if (buckets.has("scripts")) {
+      slices.push(SCRIPTS_SLICE)
+    }
+    if (buckets.has("platform")) {
+      slices.push(PLATFORM_SLICE)
+    }
+    if (slices.length > 0) {
+      return slices
+    }
+    return [TYPECHECK_SOLUTION_SLICE]
+  }
+
+  if (buckets.has("lib-db")) {
     return [LIB_DB_SLICE]
+  }
+  if (buckets.has("test")) {
+    return [TESTS_SLICE]
+  }
+  if (buckets.has("scripts")) {
+    return [SCRIPTS_SLICE]
   }
   return [PLATFORM_SLICE]
 }
@@ -81,5 +139,10 @@ function normalizeGatePath(raw) {
  * @returns {boolean}
  */
 export function slicePlanNeedsRouteTypegen(slices) {
-  return slices.some((slice) => slice.id === "platform" || slice.id === "solution")
+  return slices.some(
+    (slice) =>
+      slice.id === "platform" ||
+      slice.id === "solution" ||
+      slice.id === "test"
+  )
 }

@@ -53,8 +53,9 @@ Reference: [TypeScript performance — controlling types inclusion](https://gith
 | --- | --- |
 | `pnpm gate -- <paths>` | ESLint only |
 | `pnpm gate:typecheck` | Full `pnpm typecheck` |
-| `pnpm gate -- <paths> --typecheck` | ESLint + slice `tsc -b` (see ADR-0042) |
+| `pnpm gate -- <paths> --typecheck` | ESLint + slice (`tsc -b` or `tsc --noEmit -p` for tests/scripts) |
 | `pnpm lint:typed -- <paths>` | L2 ESLint + `projectService` |
+| `pnpm typecheck:compare` | `tsc` vs `tsgo` exit parity on same typegen (tsgo promotion) |
 
 ## Test/scripts graph optimizations
 

@@ -21,6 +21,33 @@ describe("resolveTypecheckSlicesForPaths", () => {
     ).toEqual(["platform"])
   })
 
+  it("returns test graph for tests paths", () => {
+    expect(
+      resolveTypecheckSlicesForPaths(["tests/unit/gate-args.shared.test.ts"]).map(
+        (s) => s.id
+      )
+    ).toEqual(["test"])
+    expect(
+      resolveTypecheckSlicesForPaths(["tests/unit/gate-args.shared.test.ts"])[0]
+        ?.mode
+    ).toBe("noEmit")
+  })
+
+  it("returns scripts graph for scripts paths", () => {
+    expect(
+      resolveTypecheckSlicesForPaths(["scripts/gate.mjs"]).map((s) => s.id)
+    ).toEqual(["scripts"])
+  })
+
+  it("returns test and scripts graphs when both trees are touched", () => {
+    expect(
+      resolveTypecheckSlicesForPaths([
+        "tests/unit/foo.test.ts",
+        "scripts/bar.mjs",
+      ]).map((s) => s.id)
+    ).toEqual(["test", "scripts"])
+  })
+
   it("returns lib-db only for schema paths", () => {
     expect(
       resolveTypecheckSlicesForPaths(["lib/db/schema.ts"]).map((s) => s.id)

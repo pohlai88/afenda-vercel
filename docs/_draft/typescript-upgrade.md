@@ -55,8 +55,10 @@ Full builds use **`tsconfig.build.json`** as the solution root (`files: []` + `r
 | Touched paths | `gate -- … --typecheck` |
 | --- | --- |
 | `lib/db/**` only | `tsc -b .config/tsconfig.lib-db.json` |
-| Other paths | `tsc -b tsconfig.json` (platform) |
-| Mixed | `tsc -b tsconfig.build.json` (solution root) |
+| `tests/**` only | `tsc --noEmit -p .config/tsconfig.test.json` |
+| `scripts/**` only | `tsc --noEmit -p .config/tsconfig.scripts.json` |
+| Other app paths | `tsc -b tsconfig.json` (platform) |
+| Mixed (db + app, or app + tests, …) | `tsc -b tsconfig.build.json` or combined slices (Phase 6) |
 
 ---
 
@@ -115,6 +117,28 @@ pnpm verify:no-test     # uses typecheck:lib-db + platform + test + scripts
 
 ---
 
+## Phase 6 — Gate slices for tests/scripts + tsc/tsgo parity (shipped)
+
+### Path-scoped graphs (beyond app platform)
+
+| Touched paths | `gate -- … --typecheck` |
+| --- | --- |
+| `tests/**` only | `tsc --noEmit -p .config/tsconfig.test.json` |
+| `scripts/**` only | `tsc --noEmit -p .config/tsconfig.scripts.json` |
+| `tests/**` + `scripts/**` | both graphs (sequential) |
+| App + db rules unchanged | platform / lib-db / solution (Phase 2) |
+
+### Parity compare (tsgo promotion path)
+
+```bash
+pnpm typecheck:compare
+AFENDA_TSGO_ENFORCE=1 pnpm typecheck:compare
+```
+
+Writes `.artifacts/typecheck-parity-report.txt` with **matching `tsc` vs `tsgo` exit codes** on the same `next typegen` baseline. Use before enabling blocking tsgo in CI.
+
+---
+
 ## Decision matrix
 
 | Approach | Verdict |
@@ -125,7 +149,9 @@ pnpm verify:no-test     # uses typecheck:lib-db + platform + test + scripts
 | `lint:typed` at L2 | **Adopt** |
 | `tsgo` dual-run in CI (non-blocking) | **Adopt (Phase 4)** |
 | Turbo parallel typecheck graphs | **Adopt (Phase 5)** |
-| `tsgo` blocks merge | Defer until `AFENDA_TSGO_ENFORCE=1` + parity review |
+| Gate slices for `tests/` + `scripts/` | **Adopt (Phase 6)** |
+| `typecheck:compare` (tsc vs tsgo exits) | **Adopt (Phase 6)** |
+| `tsgo` blocks merge | Defer until `AFENDA_TSGO_ENFORCE=1` + `typecheck:compare` parity on `main` |
 | pnpm workspace package split | Defer (out of scope for single-package repo) |
 
 ---
