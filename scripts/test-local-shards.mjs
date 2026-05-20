@@ -12,8 +12,14 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { mergeChildEnv } from "./lib/merge-env.shared.mjs"
-import { ensureArtifactsSubdirs, migrateLegacyFlatArtifacts } from "./lib/artifacts-paths.shared.mjs"
-import { ensureVitestBlobReportsLink, VITEST_BLOB_REPORTS_DIR } from "./lib/vitest-blob-reports.shared.mjs"
+import {
+  ensureArtifactsSubdirs,
+  migrateLegacyFlatArtifacts,
+} from "./lib/artifacts-paths.shared.mjs"
+import {
+  ensureVitestBlobReportsLink,
+  VITEST_BLOB_REPORTS_DIR,
+} from "./lib/vitest-blob-reports.shared.mjs"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 const vitestEntry = path.join(root, "node_modules", "vitest", "vitest.mjs")

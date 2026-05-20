@@ -16,7 +16,9 @@ describe("artifacts paths", () => {
 
   it("keeps Playwright junit under playwright/", () => {
     expect(PLAYWRIGHT_JUNIT_PATH).toBe(".artifacts/playwright/junit.xml")
-    expect(PLAYWRIGHT_TEST_RESULTS_DIR).toBe(".artifacts/playwright/test-results")
+    expect(PLAYWRIGHT_TEST_RESULTS_DIR).toBe(
+      ".artifacts/playwright/test-results"
+    )
     expect(PLAYWRIGHT_JUNIT_LEGACY_PATH).toBe(".artifacts/playwright-junit.xml")
   })
 })
