@@ -1,5 +1,7 @@
 import "server-only"
 
+import { and, eq } from "drizzle-orm"
+
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmApproval, hrmOvertimeRequest } from "#lib/db/schema"
@@ -12,12 +14,15 @@ import {
 } from "../otm.contract"
 import { computeOvertimeDurationMinutes } from "./otm-display.shared"
 import { buildOtmApprovalSnapshot } from "./otm-approval-snapshot.shared"
+import type { OtmApprovalSnapshot } from "./otm-approval-snapshot.shared"
+import { resolveOtmSubmissionApprovers } from "./otm-submission-routing.server"
+import { isOtmWorkDatePastClaimDeadline } from "./otm-date.shared"
 import { validateOtmEmployeeEligibility } from "./otm-eligibility.server"
+import { getOtmPolicyForOrg } from "./otm-policy.server"
 import {
   countActiveOtmTypes,
   getOtmEmployeeForOrg,
   getOtmTypeForOrg,
-  resolveOtmApproverUserId,
 } from "./otm.queries.server"
 import { hrmOtmDayCategorySchema } from "../schemas/otm-workflow-state.shared"
 import { revalidateOtmSurfaces } from "./otm-revalidate.server"
@@ -42,6 +47,7 @@ export type SubmitOtmRequestInput = {
   reason: string
   initiatedBy: "employee" | "manager" | "hr"
   eligibilityExceptionReason?: string | null
+  saveAsDraft?: boolean
 }
 
 export async function submitOtmRequest(
@@ -125,26 +131,100 @@ export async function submitOtmRequest(
     dayCategory = parsedCategory.data
   }
 
-  const approvalSnapshot = buildOtmApprovalSnapshot({
+  const policy = await getOtmPolicyForOrg(organizationId)
+
+  if (
+    policy.enforceClaimDeadlineOnSubmit &&
+    isOtmWorkDatePastClaimDeadline({
+      workDate: input.workDate,
+      claimDeadlineDays: policy.claimDeadlineDays,
+    })
+  ) {
+    return hrmActionFailure({
+      workDate:
+        "Work date is outside the configured overtime claim deadline.",
+    })
+  }
+
+  const submissionRouting = await resolveOtmSubmissionApprovers({
+    organizationId,
     employeeId: input.employeeId,
-    employeeNumber: employee.employeeNumber,
-    employeeFullName: employee.legalName,
+    managerEmployeeId: employee.managerEmployeeId,
+    hrOwnerEmployeeId: employee.hrOwnerEmployeeId,
+    policy,
     workDate: input.workDate,
-    startTime: input.startTime,
-    endTime: input.endTime,
     durationMinutes,
     timingKind: input.timingKind,
-    dayCategory,
-    reason: input.reason,
-    requestedAt: new Date().toISOString(),
+    overtimeTypeId,
+    hasEligibilityException: eligibilityExceptionReason != null,
   })
 
-  const currentApproverUserId = await resolveOtmApproverUserId({
-    organizationId,
-    managerEmployeeId: employee.managerEmployeeId,
-  })
+  const approvalSnapshot: OtmApprovalSnapshot = {
+    ...buildOtmApprovalSnapshot({
+      employeeId: input.employeeId,
+      employeeNumber: employee.employeeNumber,
+      employeeFullName: employee.legalName,
+      workDate: input.workDate,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      durationMinutes,
+      timingKind: input.timingKind,
+      dayCategory,
+      reason: input.reason,
+      requestedAt: new Date().toISOString(),
+    }),
+    approvalStage: submissionRouting.approvalStage,
+    routingRuleId: submissionRouting.routingRuleId,
+    routingApproverKind: submissionRouting.approverKind,
+  }
+
+  const currentApproverUserId = submissionRouting.currentApproverUserId
 
   const requestId = crypto.randomUUID()
+
+  if (input.saveAsDraft) {
+    await db.insert(hrmOvertimeRequest).values({
+      id: requestId,
+      organizationId,
+      employeeId: input.employeeId,
+      workDate: input.workDate,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      durationMinutes,
+      timingKind: input.timingKind,
+      overtimeTypeId,
+      dayCategory,
+      reason: input.reason,
+      initiatedBy: input.initiatedBy,
+      state: "draft",
+      currentApprovalId: null,
+      createdByUserId: userId,
+      updatedByUserId: userId,
+    })
+
+    await writeIamAuditEventFromNextHeaders({
+      action: HRM_OTM_AUDIT.requestCreate,
+      actorUserId: userId,
+      actorSessionId: sessionId,
+      organizationId,
+      resourceType: "hrm_overtime_request",
+      resourceId: requestId,
+      metadata: {
+        employeeId: input.employeeId,
+        workDate: input.workDate,
+        durationMinutes,
+        dayCategory,
+        overtimeTypeId,
+        timingKind: input.timingKind,
+        initiatedBy: input.initiatedBy,
+        state: "draft",
+      },
+    })
+
+    revalidateOtmSurfaces()
+    return { ok: true, requestId }
+  }
+
   const approvalId = crypto.randomUUID()
 
   await db.transaction(async (tx) => {
@@ -243,6 +323,335 @@ export async function submitOtmRequest(
       overtimeTypeId,
       timingKind: input.timingKind,
       initiatedBy: input.initiatedBy,
+      currentApproverUserId,
+      routingRuleId: submissionRouting.routingRuleId,
+      routingApproverKind: submissionRouting.approverKind,
+    },
+  })
+
+  await writeIamAuditEventFromNextHeaders({
+    action: "erp.hrm.approval.request",
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_approval",
+    resourceId: approvalId,
+    metadata: {
+      subjectKind: OTM_REQUEST_APPROVAL_SUBJECT_KIND,
+      subjectId: requestId,
+      currentApproverUserId,
+    },
+  })
+
+  revalidateOtmSurfaces()
+  return { ok: true, requestId }
+}
+
+const CANCELLABLE_OTM_STATES = ["draft", "submitted", "returned"] as const
+
+export async function cancelOtmRequest(input: {
+  organizationId: string
+  userId: string
+  sessionId: string | null
+  requestId: string
+  employeeId: string
+  cancelReason?: string | null
+}): Promise<OtmRequestMutationFormState> {
+  const { organizationId, userId, sessionId, requestId, employeeId, cancelReason } =
+    input
+
+  const req = await db.query.hrmOvertimeRequest.findFirst({
+    where: and(
+      eq(hrmOvertimeRequest.id, requestId),
+      eq(hrmOvertimeRequest.organizationId, organizationId),
+      eq(hrmOvertimeRequest.employeeId, employeeId)
+    ),
+    columns: {
+      id: true,
+      state: true,
+      workDate: true,
+      currentApprovalId: true,
+    },
+  })
+
+  if (!req) {
+    return hrmActionFailure({ form: "Overtime request not found." })
+  }
+
+  if (
+    !CANCELLABLE_OTM_STATES.includes(
+      req.state as (typeof CANCELLABLE_OTM_STATES)[number]
+    )
+  ) {
+    return hrmActionFailure({
+      form: `Cannot cancel a request with state "${req.state}".`,
+    })
+  }
+
+  const now = new Date()
+  const approvalId = req.currentApprovalId
+  let approverUserId: string | null = null
+
+  if (approvalId) {
+    const approval = await db.query.hrmApproval.findFirst({
+      where: and(
+        eq(hrmApproval.id, approvalId),
+        eq(hrmApproval.organizationId, organizationId)
+      ),
+      columns: { currentApproverUserId: true, state: true },
+    })
+    approverUserId = approval?.currentApproverUserId ?? null
+  }
+
+  await db.transaction(async (tx) => {
+    if (approvalId) {
+      await tx
+        .update(hrmApproval)
+        .set({
+          state: "cancelled",
+          decisionByUserId: userId,
+          decisionAt: now,
+          decisionNote: cancelReason ?? "Cancelled by employee.",
+          updatedByUserId: userId,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(hrmApproval.id, approvalId),
+            eq(hrmApproval.organizationId, organizationId)
+          )
+        )
+    }
+
+    await tx
+      .update(hrmOvertimeRequest)
+      .set({
+        state: "cancelled",
+        currentApprovalId: null,
+        rejectedReason: cancelReason ?? null,
+        updatedByUserId: userId,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(hrmOvertimeRequest.id, requestId),
+          eq(hrmOvertimeRequest.organizationId, organizationId)
+        )
+      )
+  })
+
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_OTM_AUDIT.requestCancel,
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_overtime_request",
+    resourceId: requestId,
+    metadata: {
+      employeeId,
+      previousState: req.state,
+      cancelReason: cancelReason ?? null,
+    },
+  })
+
+  if (approvalId) {
+    await writeIamAuditEventFromNextHeaders({
+      action: "erp.hrm.approval.cancel",
+      actorUserId: userId,
+      actorSessionId: sessionId,
+      organizationId,
+      resourceType: "hrm_approval",
+      resourceId: approvalId,
+      metadata: { subjectId: requestId, cancelReason },
+    })
+  }
+
+  if (approverUserId && req.state === "submitted") {
+    await notifyOtmLifecycle({
+      organizationId,
+      requestId,
+      event: "cancelled",
+      targetUserId: approverUserId,
+      workDate: req.workDate,
+    })
+  }
+
+  revalidateOtmSurfaces()
+  return { ok: true, requestId }
+}
+
+export async function submitOtmDraftRequest(input: {
+  organizationId: string
+  userId: string
+  sessionId: string | null
+  requestId: string
+  employeeId: string
+}): Promise<OtmRequestMutationFormState> {
+  const { organizationId, userId, sessionId, requestId, employeeId } = input
+
+  const req = await db.query.hrmOvertimeRequest.findFirst({
+    where: and(
+      eq(hrmOvertimeRequest.id, requestId),
+      eq(hrmOvertimeRequest.organizationId, organizationId),
+      eq(hrmOvertimeRequest.employeeId, employeeId)
+    ),
+    columns: {
+      id: true,
+      state: true,
+      employeeId: true,
+      workDate: true,
+      startTime: true,
+      endTime: true,
+      durationMinutes: true,
+      timingKind: true,
+      overtimeTypeId: true,
+      dayCategory: true,
+      reason: true,
+      initiatedBy: true,
+    },
+  })
+
+  if (!req) {
+    return hrmActionFailure({ form: "Overtime request not found." })
+  }
+
+  if (req.state !== "draft") {
+    return hrmActionFailure({
+      form: `Cannot submit a request with state "${req.state}". Expected "draft".`,
+    })
+  }
+
+  const employee = await getOtmEmployeeForOrg(organizationId, employeeId)
+  if (!employee) {
+    return hrmActionFailure({ employeeId: "Employee not found." })
+  }
+
+  const policy = await getOtmPolicyForOrg(organizationId)
+
+  if (
+    policy.enforceClaimDeadlineOnSubmit &&
+    isOtmWorkDatePastClaimDeadline({
+      workDate: req.workDate,
+      claimDeadlineDays: policy.claimDeadlineDays,
+    })
+  ) {
+    return hrmActionFailure({
+      workDate:
+        "Work date is outside the configured overtime claim deadline.",
+    })
+  }
+
+  const submissionRouting = await resolveOtmSubmissionApprovers({
+    organizationId,
+    employeeId: req.employeeId,
+    managerEmployeeId: employee.managerEmployeeId,
+    hrOwnerEmployeeId: employee.hrOwnerEmployeeId,
+    policy,
+    workDate: req.workDate,
+    durationMinutes: req.durationMinutes,
+    timingKind: req.timingKind as HrmOtmTimingKind,
+    overtimeTypeId: req.overtimeTypeId,
+    hasEligibilityException: false,
+  })
+
+  const approvalSnapshot: OtmApprovalSnapshot = {
+    ...buildOtmApprovalSnapshot({
+      employeeId: req.employeeId,
+      employeeNumber: employee.employeeNumber,
+      employeeFullName: employee.legalName,
+      workDate: req.workDate,
+      startTime: req.startTime,
+      endTime: req.endTime,
+      durationMinutes: req.durationMinutes,
+      timingKind: req.timingKind as HrmOtmTimingKind,
+      dayCategory: req.dayCategory as HrmOtmDayCategory,
+      reason: req.reason,
+      requestedAt: new Date().toISOString(),
+    }),
+    approvalStage: submissionRouting.approvalStage,
+    routingRuleId: submissionRouting.routingRuleId,
+    routingApproverKind: submissionRouting.approverKind,
+  }
+
+  const currentApproverUserId = submissionRouting.currentApproverUserId
+
+  const approvalId = crypto.randomUUID()
+  const now = new Date()
+
+  await db.transaction(async (tx) => {
+    await tx.insert(hrmApproval).values({
+      id: approvalId,
+      organizationId,
+      subjectKind: OTM_REQUEST_APPROVAL_SUBJECT_KIND,
+      subjectId: requestId,
+      state: "pending",
+      requestedByUserId: userId,
+      currentApproverUserId,
+      snapshot: approvalSnapshot,
+      createdByUserId: userId,
+      updatedByUserId: userId,
+    })
+
+    await tx
+      .update(hrmOvertimeRequest)
+      .set({
+        state: "submitted",
+        currentApprovalId: approvalId,
+        requestedAt: now,
+        updatedByUserId: userId,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(hrmOvertimeRequest.id, requestId),
+          eq(hrmOvertimeRequest.organizationId, organizationId)
+        )
+      )
+  })
+
+  await syncOtmExceptionsOnSubmit({
+    organizationId,
+    requestId,
+    employeeId: req.employeeId,
+    workDate: req.workDate,
+    durationMinutes: req.durationMinutes,
+    timingKind: req.timingKind as HrmOtmTimingKind,
+  })
+
+  await notifyOtmLifecycle({
+    organizationId,
+    requestId,
+    event: "submitted",
+    targetUserId: currentApproverUserId,
+    workDate: req.workDate,
+  })
+
+  const pendingExceptions = await countPendingOtmExceptionsForRequest(
+    organizationId,
+    requestId
+  )
+  if (pendingExceptions > 0) {
+    await notifyOtmLifecycle({
+      organizationId,
+      requestId,
+      event: "exception_pending",
+      targetUserId: currentApproverUserId,
+      workDate: req.workDate,
+    })
+  }
+
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_OTM_AUDIT.requestCreate,
+    actorUserId: userId,
+    actorSessionId: sessionId,
+    organizationId,
+    resourceType: "hrm_overtime_request",
+    resourceId: requestId,
+    metadata: {
+      employeeId: req.employeeId,
+      workDate: req.workDate,
+      durationMinutes: req.durationMinutes,
+      promotedFrom: "draft",
       currentApproverUserId,
     },
   })

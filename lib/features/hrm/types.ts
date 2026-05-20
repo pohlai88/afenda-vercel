@@ -604,6 +604,7 @@ export type OtmRequestMutationFormState =
       ok: false
       errors: {
         form?: string
+        requestId?: string
         employeeId?: string
         workDate?: string
         startTime?: string
@@ -613,7 +614,7 @@ export type OtmRequestMutationFormState =
     }
 
 export type OtmApprovalFormState =
-  | { ok: true; requestId: string }
+  | { ok: true; requestId: string; outcome?: "approved" | "advanced_to_hr" }
   | {
       ok: false
       errors: {
@@ -621,6 +622,10 @@ export type OtmApprovalFormState =
         requestId?: string
         rejectedReason?: string
         returnedReason?: string
+        adjustmentReason?: string
+        workDate?: string
+        startTime?: string
+        endTime?: string
       }
     }
 
@@ -656,6 +661,17 @@ export type CreateOtmEligibilityRuleFormState =
       errors: {
         form?: string
         overtimeTypeId?: string
+      }
+    }
+
+export type CreateOtmApprovalRouteFormState =
+  | { ok: true; routeId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        approverKind?: string
+        targetUserId?: string
       }
     }
 

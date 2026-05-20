@@ -30,6 +30,10 @@
       "schedule": "50 7 * * *"
     },
     {
+      "path": "/api/cron/hrm-otm-overdue-watch",
+      "schedule": "55 7 * * *"
+    },
+    {
       "path": "/api/cron/hrm-probation-watch",
       "schedule": "0 8 * * *"
     },

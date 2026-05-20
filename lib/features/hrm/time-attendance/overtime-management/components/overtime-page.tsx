@@ -24,6 +24,7 @@ import {
 } from "../data/otm.queries.server"
 import { OtmApprovedPayrollSection } from "./otm-approved-payroll-section"
 import { OtmAttendanceReconcileSection } from "./otm-attendance-reconcile-section"
+import { OtmApprovalRoutesSection } from "./otm-approval-routes-section"
 import { OtmEligibilitySection } from "./otm-eligibility-section"
 import { OtmMyRequestsSection } from "./otm-my-requests-section"
 import { OtmOrgRequestsSection } from "./otm-org-requests-section"
@@ -168,6 +169,10 @@ export async function OvertimePage({
           <OtmEligibilitySection
             organizationId={organizationId}
             overtimeTypes={overtimeTypes}
+            canManage={access.canManage}
+          />
+          <OtmApprovalRoutesSection
+            organizationId={organizationId}
             canManage={access.canManage}
           />
           <OtmPolicySection

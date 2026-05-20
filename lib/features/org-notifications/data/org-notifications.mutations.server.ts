@@ -7,10 +7,35 @@ import { db } from "#lib/db"
 import { orgNotificationNotice, orgNotificationReceipt } from "#lib/db/schema"
 import { findActiveOrgNotification } from "./org-notifications.queries.server"
 
+import { deliverOrgNotificationChannels } from "./org-notification-deliver.server"
+
 import type {
   CreateOrgNotificationInput,
+  OrgNotificationSeverity,
   PublishOrgNotificationInput,
 } from "../types"
+
+async function deliverTargetedNotice(input: {
+  organizationId: string
+  targetUserId: string | null | undefined
+  noticeId: string
+  title: string
+  body: string
+  severity: OrgNotificationSeverity
+  linkedPath: string | null
+}): Promise<void> {
+  const targetUserId = normalizeTrimmed(input.targetUserId)
+  if (!targetUserId) return
+  await deliverOrgNotificationChannels({
+    organizationId: input.organizationId,
+    targetUserId,
+    noticeId: input.noticeId,
+    title: input.title.trim(),
+    body: input.body.trim(),
+    severity: input.severity,
+    linkedPath: input.linkedPath,
+  })
+}
 
 function normalizeTrimmed(value: string | null | undefined): string | null {
   const trimmed = value?.trim() ?? ""
@@ -82,6 +107,16 @@ export async function createOrgNotification(input: {
       publishedAt: orgNotificationNotice.publishedAt,
     })
 
+  await deliverTargetedNotice({
+    organizationId: input.organizationId,
+    targetUserId: input.data.targetUserId,
+    noticeId: row.id,
+    title: input.data.title,
+    body: input.data.body,
+    severity: input.data.severity,
+    linkedPath: normalizeTrimmed(input.data.linkedPath),
+  })
+
   return { noticeId: row.id, publishedAt: row.publishedAt }
 }
 
@@ -126,6 +161,16 @@ export async function publishOrgNotification(
       linkedEntityType: normalizeTrimmed(input.linkedEntityType),
       linkedEntityId: normalizeTrimmed(input.linkedEntityId),
     },
+  })
+
+  await deliverTargetedNotice({
+    organizationId: input.organizationId,
+    targetUserId: input.targetUserId,
+    noticeId: row.id,
+    title: input.title,
+    body: input.body,
+    severity: input.severity ?? "info",
+    linkedPath: normalizeTrimmed(input.linkedPath),
   })
 
   return { noticeId: row.id, publishedAt: row.publishedAt }

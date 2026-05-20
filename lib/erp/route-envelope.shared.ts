@@ -25,6 +25,8 @@ export type RouteSurface =
   | "org"
   /** Portal boundary (`/{locale}/p/{portalSlug}`) for org-owned external surfaces. */
   | "portal"
+  /** Public Afenda Demo Showcase (`/{locale}/demo/*`) — fixture-backed, read-only. */
+  | "demo"
 
 export type RoutePortalAudience = PortalAudience
 

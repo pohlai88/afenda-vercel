@@ -967,6 +967,8 @@ export { runClaimApprovalOverdueTick } from "./payroll-compensation/expenses-rei
 export type { ClaimOverdueWatchTickSummary } from "./payroll-compensation/expenses-reimbursement/data/claim-overdue-watch.server"
 export { runLeaveApprovalOverdueTick } from "./time-attendance/leave-attendance-management/data/leave-overdue-watch.server"
 export type { LeaveOverdueWatchTickSummary } from "./time-attendance/leave-attendance-management/data/leave-overdue-watch.server"
+export { runOtmApprovalOverdueTick } from "./time-attendance/overtime-management/data/otm-overdue-watch.server"
+export type { OtmOverdueWatchTickSummary } from "./time-attendance/overtime-management/data/otm-overdue-watch.server"
 export { postApprovedClaimToApJournal } from "./payroll-compensation/expenses-reimbursement/data/claim-ap-posting.server"
 export {
   buildClaimEmployeeEligibilityProjection,
@@ -1033,3 +1035,14 @@ export { buildGovernedHrmWorkbenchHeader } from "./_module-governance/hrm-govern
 export { stablePayrollCloseStringify } from "./payroll-compensation/payroll-processing/data/payroll-close.shared"
 export { transitionBoardingTask } from "./employee-management/employee-lifecycle-management/data/boarding.mutations.server"
 export { onSignatureRequestSealedForBoardingTask } from "./employee-management/employee-lifecycle-management/data/boarding-signature-seal-hook.server"
+
+export {
+  buildLeaveBalanceListSurfaceConfiguration,
+  buildLeaveMyHistoryListSurfaceConfiguration,
+} from "./time-attendance/leave-attendance-management/data/leave-list-surface.server"
+
+export { getEmployeePortalSectionNavLabels } from "./employee-management/employee-selfservice-portal/data/employee-portal-nav-labels.server"
+
+export { buildWorkforceListSurfaceConfiguration } from "./employee-management/employee-records-management/data/workforce-list-surface.server"
+
+export type { EmployeeRow } from "./types"

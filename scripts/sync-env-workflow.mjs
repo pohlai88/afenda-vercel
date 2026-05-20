@@ -15,33 +15,29 @@ import {
   AFENDA_WORKFLOW_ENV_URL_KEYS,
 } from "./lib/dev-stack-constants.shared.mjs"
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
-const srcPath = path.join(root, ".env.local")
-const destPath = path.join(root, ".env.workflow.local")
+/** @typedef {{ status: "wrote" | "skipped" | "error"; message?: string }} EnsureWorkflowEnvResult */
 
-const isDirectRun =
-  process.argv[1] &&
-  path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))
-
-if (isDirectRun) {
-  main()
-}
-
-function main() {
-  const force = process.argv.includes("--force")
+/**
+ * @param {{ root?: string; force?: boolean; log?: (msg: string) => void }} [opts]
+ * @returns {EnsureWorkflowEnvResult}
+ */
+export function ensureWorkflowEnvFile(opts = {}) {
+  const root = opts.root ?? path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
+  const log = opts.log ?? console.log
+  const srcPath = path.join(root, ".env.local")
+  const destPath = path.join(root, ".env.workflow.local")
+  const force = opts.force === true
 
   if (!fs.existsSync(srcPath)) {
-    console.error(
-      "[env:sync:workflow] .env.local missing — run `pnpm env:sync` first."
-    )
-    process.exit(1)
+    return {
+      status: "error",
+      message:
+        ".env.local missing — run `pnpm env:sync` (or `pnpm env:sync:workflow`) first.",
+    }
   }
 
   if (fs.existsSync(destPath) && !force) {
-    console.log(
-      "[env:sync:workflow] .env.workflow.local exists (use --force to regenerate)."
-    )
-    process.exit(0)
+    return { status: "skipped" }
   }
 
   const src = fs.readFileSync(srcPath, "utf8")
@@ -75,7 +71,30 @@ function main() {
   }
 
   fs.writeFileSync(destPath, `${out.join("\n")}\n`, "utf8")
-  console.log(`[env:sync:workflow] wrote ${destPath}`)
+  log(`[env:sync:workflow] wrote ${destPath}`)
+  return { status: "wrote" }
+}
+
+const isDirectRun =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))
+
+if (isDirectRun) {
+  main()
+}
+
+function main() {
+  const force = process.argv.includes("--force")
+  const result = ensureWorkflowEnvFile({ force, log: console.log })
+  if (result.status === "error") {
+    console.error(`[env:sync:workflow] ${result.message}`)
+    process.exit(1)
+  }
+  if (result.status === "skipped") {
+    console.log(
+      "[env:sync:workflow] .env.workflow.local exists (use --force to regenerate)."
+    )
+  }
 }
 
 /** @param {string} val */

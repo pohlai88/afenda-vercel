@@ -13,6 +13,7 @@ import {
   type CreateNoticeFormState,
   type NoticeFilter,
 } from "./appshell-notifications-advanced-block.client"
+import { AFENDA_ORG_NOTIFICATION_REFRESH_EVENT } from "../appshell-org-notification-delivery.client"
 
 type AppShellNexusUtilityNotificationsProps = {
   canManage: boolean
@@ -110,6 +111,19 @@ export function AppShellNexusUtilityNotifications({
       void loadNotifications().catch(() => {})
     }, 0)
     return () => window.clearTimeout(handle)
+  }, [loadNotifications])
+
+  useEffect(() => {
+    const onRefresh = () => {
+      void loadNotifications().catch(() => {})
+    }
+    window.addEventListener(AFENDA_ORG_NOTIFICATION_REFRESH_EVENT, onRefresh)
+    return () => {
+      window.removeEventListener(
+        AFENDA_ORG_NOTIFICATION_REFRESH_EVENT,
+        onRefresh
+      )
+    }
   }, [loadNotifications])
 
   useEffect(() => {

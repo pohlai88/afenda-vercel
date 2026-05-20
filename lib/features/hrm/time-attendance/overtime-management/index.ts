@@ -24,3 +24,6 @@ export {
 
 export { OvertimePage } from "./components/overtime-page"
 export { resolveOtmSurfaceAccess } from "./data/otm-access.server"
+
+export type { OtmPolicyRow } from "./data/otm-policy.shared"
+export type { OtmApprovalStage } from "./data/otm-approval-snapshot.shared"

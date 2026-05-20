@@ -8,6 +8,10 @@ import { spawnSync } from "node:child_process"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import {
+  cleanWorkflowGenerated,
+  prepareDevStackEnv,
+} from "./lib/dev-stack-bootstrap.shared.mjs"
 import { buildNextDevCommand } from "./lib/dev-stack-spawn-next.shared.mjs"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -22,6 +26,14 @@ if (role !== "ui" && role !== "workflow") {
     "Usage: node scripts/run-next-dev.mjs --role=ui|workflow [--vercel-env]"
   )
   process.exit(1)
+}
+
+if (role === "workflow") {
+  prepareDevStackEnv({
+    root,
+    refreshWorkflowEnv: process.argv.includes("--refresh-env"),
+  })
+  await cleanWorkflowGenerated({ root })
 }
 
 const built = buildNextDevCommand({ role, useVercelEnvRun })

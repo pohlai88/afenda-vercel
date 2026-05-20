@@ -1052,6 +1052,31 @@ export const orgNotificationReceipt = pgTable(
   ]
 )
 
+/** Browser Web Push subscription for org-scoped ERP notifications (HRM-OTM-026). */
+export const orgPushSubscription = pgTable(
+  "org_push_subscription",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    userId: text("userId").notNull(),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    userAgent: text("userAgent"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("org_push_subscription_endpoint_uidx").on(t.endpoint),
+    index("org_push_subscription_org_user_idx").on(
+      t.organizationId,
+      t.userId
+    ),
+  ]
+)
+
 /** Operational coordination context — org-scoped discussion attached to work. */
 export const orgCoordinationContext = pgTable(
   "org_coordination_context",
@@ -4785,6 +4810,13 @@ export const hrmOvertimePolicy = pgTable(
       .default(false),
     compareShiftEnabled: boolean("compareShiftEnabled").notNull().default(true),
     claimDeadlineDays: integer("claimDeadlineDays"),
+    enforceClaimDeadlineOnSubmit: boolean("enforceClaimDeadlineOnSubmit")
+      .notNull()
+      .default(false),
+    requireHrSecondApproval: boolean("requireHrSecondApproval")
+      .notNull()
+      .default(false),
+    managerChainMaxDepth: integer("managerChainMaxDepth").notNull().default(1),
     allowCompensatoryTime: boolean("allowCompensatoryTime")
       .notNull()
       .default(false),
@@ -4797,6 +4829,49 @@ export const hrmOvertimePolicy = pgTable(
   },
   (t) => [
     uniqueIndex("hrm_overtime_policy_org_uidx").on(t.organizationId),
+  ]
+)
+
+/** Overtime approval routing matrix (HRM-OTM-016). */
+export const hrmOvertimeApprovalRoute = pgTable(
+  "hrm_overtime_approval_route",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    label: text("label"),
+    priority: integer("priority").notNull().default(100),
+    departmentId: text("departmentId").references(() => hrmDepartment.id, {
+      onDelete: "set null",
+    }),
+    costCenterCode: text("costCenterCode"),
+    workLocationCode: text("workLocationCode"),
+    jobGradeId: text("jobGradeId").references(() => hrmJobGrade.id, {
+      onDelete: "set null",
+    }),
+    minAmountCents: integer("minAmountCents"),
+    maxAmountCents: integer("maxAmountCents"),
+    requiresEligibilityException: boolean("requiresEligibilityException"),
+    requiresPolicyException: boolean("requiresPolicyException"),
+    approverKind: text("approverKind").notNull(),
+    managerChainDepth: integer("managerChainDepth"),
+    targetUserId: text("targetUserId"),
+    isActive: boolean("isActive").notNull().default(true),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+  },
+  (t) => [
+    index("hrm_overtime_approval_route_org_priority_idx").on(
+      t.organizationId,
+      t.priority
+    ),
+    index("hrm_overtime_approval_route_org_active_idx").on(
+      t.organizationId,
+      t.isActive
+    ),
   ]
 )
 

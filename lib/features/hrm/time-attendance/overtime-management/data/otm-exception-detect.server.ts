@@ -8,6 +8,7 @@ import { hrmAttendanceDay } from "#lib/db/schema"
 import type { HrmOtmExceptionType, HrmOtmTimingKind } from "../schemas/otm-workflow-state.shared"
 import { applyOtmCap } from "./otm-calculation.shared"
 import { isoMonthRange, isoWeekRange } from "./otm-calculation.shared"
+import { daysBetweenIsoDates } from "./otm-date.shared"
 import { getOtmPolicyForOrg } from "./otm-policy.server"
 import { sumPayableMinutesForEmployee } from "./otm-calculation.server"
 import { resolveScheduledShiftMinutesForWorkDate } from "./otm-shift-compare.server"
@@ -15,12 +16,6 @@ import { resolveScheduledShiftMinutesForWorkDate } from "./otm-shift-compare.ser
 export type OtmDetectedException = {
   type: HrmOtmExceptionType
   message: string
-}
-
-function daysBetweenIsoDates(from: string, to: string): number {
-  const start = new Date(`${from}T12:00:00Z`).getTime()
-  const end = new Date(`${to}T12:00:00Z`).getTime()
-  return Math.floor((end - start) / (24 * 60 * 60 * 1000))
 }
 
 export async function detectOtmPolicyExceptions(input: {

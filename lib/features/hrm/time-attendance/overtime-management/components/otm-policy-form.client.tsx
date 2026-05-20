@@ -14,7 +14,7 @@ import {
   type UpsertOtmPolicyFormState,
 } from "#features/hrm/client"
 
-import type { OtmPolicyRow } from "../data/otm-policy.server"
+import type { OtmPolicyRow } from "../data/otm-policy.shared"
 
 const SELECT_CLASS =
   "h-9 w-full rounded border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
@@ -158,6 +158,44 @@ export function OtmPolicyForm({ policy }: OtmPolicyFormProps) {
           type="number"
           min={0}
           defaultValue={policy.claimDeadlineDays ?? ""}
+          disabled={pending}
+        />
+      </Field>
+      <Field orientation="horizontal" className="sm:col-span-2">
+        <input
+          id="enforceClaimDeadlineOnSubmit"
+          name="enforceClaimDeadlineOnSubmit"
+          type="checkbox"
+          defaultChecked={policy.enforceClaimDeadlineOnSubmit}
+          disabled={pending}
+        />
+        <FieldLabel htmlFor="enforceClaimDeadlineOnSubmit">
+          {t("policyEnforceClaimDeadline")}
+        </FieldLabel>
+      </Field>
+      <Field orientation="horizontal" className="sm:col-span-2">
+        <input
+          id="requireHrSecondApproval"
+          name="requireHrSecondApproval"
+          type="checkbox"
+          defaultChecked={policy.requireHrSecondApproval}
+          disabled={pending}
+        />
+        <FieldLabel htmlFor="requireHrSecondApproval">
+          {t("policyRequireHrSecondApproval")}
+        </FieldLabel>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="managerChainMaxDepth">
+          {t("policyManagerChainMaxDepth")}
+        </FieldLabel>
+        <Input
+          id="managerChainMaxDepth"
+          name="managerChainMaxDepth"
+          type="number"
+          min={1}
+          max={5}
+          defaultValue={policy.managerChainMaxDepth}
           disabled={pending}
         />
       </Field>

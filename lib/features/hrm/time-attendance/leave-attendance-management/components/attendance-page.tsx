@@ -29,6 +29,7 @@ import {
   AttendanceShiftAssignmentPanel,
   AttendanceShiftAssignmentPanelSkeleton,
 } from "./attendance-shift-assignment-panel"
+import { AttendanceOtmDeprecationNotice } from "./attendance-otm-deprecation-notice"
 
 /**
  * Attendance management surface (Phase 4 — UI binding for the shipped
@@ -175,6 +176,8 @@ export async function AttendancePage({
 
       {isAdmin ? (
         <>
+          <AttendanceOtmDeprecationNotice orgSlug={orgSlug} />
+
           <Card size="sm">
             <CardHeader>
               <CardTitle>{t("correctionPendingTitle")}</CardTitle>

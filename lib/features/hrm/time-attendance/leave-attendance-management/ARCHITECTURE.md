@@ -1,5 +1,11 @@
 # Leave & Attendance Management
 
+## Overtime coexistence (LAM ↔ OTM)
+
+- **New overtime claims** use **Overtime Management** at `/{locale}/o/{orgSlug}/apps/hrm/overtime` — not `hrm_time_report` with `reportKind: overtime`.
+- **LAM submit** rejects `reportKind: overtime` in `actions/time-report.actions.ts`; pending/recent lists exclude legacy OT rows.
+- **Attendance UI** shows a banner (`attendance-otm-deprecation-notice.tsx`) linking admins to the OTM surface. Legacy rows remain in the database for read/history only.
+
 ## Definition
 
 **Leave & Attendance Management is the HRM function that tracks employee attendance, manages leave entitlement, leave applications, leave balances, attendance exceptions, absence records, approval workflows, policy enforcement, and payroll-ready attendance outcomes.**

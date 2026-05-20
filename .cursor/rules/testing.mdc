@@ -19,9 +19,9 @@ alwaysApply: false
 | `tests/e2e/` | Playwright `*.spec.ts` | Explicit `goto`/`getByRole`/`getByLabel`; tag stable gates `@smoke`; App Router routes validated here |
 | `tests/e2e/utils/` | Browser helpers | Import from `tests/fixtures`; no duplicate magic strings; avoid deep `test.extend` pyramids |
 
-**Playwright base URL:** `http://127.0.0.1:3001` (`next start`) — keeps `pnpm dev` on 3000. Override with `PLAYWRIGHT_BASE_URL`. Do **not** run Playwright inside `pnpm dev:stack` (second WDK + same DB).
+**Playwright base URL:** `http://127.0.0.1:3001` (`next start`) — keeps `pnpm dev` / `dev:ui` on 3000 (`.next-ui`). Override with `PLAYWRIGHT_BASE_URL`. Do **not** run Playwright inside `pnpm dev:stack` (second WDK + same DB).
 
-**Workflow DevKit local stack (ADR-0039):** `pnpm dev:stack` — UI **3000**, durable workflows **3002**, `workflow web`. Use `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000` when attaching E2E to a running UI dev server. Test payroll/import/planner workflows on **3002** only.
+**Workflow DevKit local stack (ADR-0039):** `pnpm dev:stack` (fast default) — UI **3000**, durable workflows **3002**, `workflow web`. Use `pnpm dev:stack:full` only when Vercel env injection is required. Use `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000` when attaching E2E to a running UI dev server. Test payroll/import/planner workflows on **3002** only.
 
 ## Vitest scripts (AGENTS.md §2)
 

@@ -28,6 +28,10 @@ export async function upsertOtmPolicyAction(
     compareAttendanceEnabled: formData.get("compareAttendanceEnabled") === "on",
     compareShiftEnabled: formData.get("compareShiftEnabled") === "on",
     claimDeadlineDays: formData.get("claimDeadlineDays"),
+    enforceClaimDeadlineOnSubmit:
+      formData.get("enforceClaimDeadlineOnSubmit") === "on",
+    requireHrSecondApproval: formData.get("requireHrSecondApproval") === "on",
+    managerChainMaxDepth: formData.get("managerChainMaxDepth"),
     allowCompensatoryTime: formData.get("allowCompensatoryTime") === "on",
     compensatoryLeaveTypeCode: formData.get("compensatoryLeaveTypeCode"),
     defaultEarningCode: formData.get("defaultEarningCode"),
@@ -51,6 +55,10 @@ export async function upsertOtmPolicyAction(
       compareAttendanceEnabled: parsed.data.compareAttendanceEnabled ?? false,
       compareShiftEnabled: parsed.data.compareShiftEnabled ?? true,
       claimDeadlineDays: parsed.data.claimDeadlineDays,
+      enforceClaimDeadlineOnSubmit:
+        parsed.data.enforceClaimDeadlineOnSubmit ?? false,
+      requireHrSecondApproval: parsed.data.requireHrSecondApproval ?? false,
+      managerChainMaxDepth: parsed.data.managerChainMaxDepth ?? 1,
       allowCompensatoryTime: parsed.data.allowCompensatoryTime ?? false,
       compensatoryLeaveTypeCode: parsed.data.compensatoryLeaveTypeCode ?? null,
       defaultEarningCode: parsed.data.defaultEarningCode,

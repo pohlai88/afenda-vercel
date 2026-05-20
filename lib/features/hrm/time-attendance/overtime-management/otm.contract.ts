@@ -38,6 +38,12 @@ export const HRM_OTM_AUDIT = {
     object: "overtime_eligibility_rule",
     verb: "create",
   }),
+  approvalRouteCreate: buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "overtime_approval_route",
+    verb: "create",
+  }),
   rateRuleCreate: buildCrudSapAuditAction({
     area: "erp",
     module: "hrm",
@@ -55,6 +61,18 @@ export const HRM_OTM_AUDIT = {
     module: "hrm",
     object: "overtime.request",
     verb: "approve",
+  }),
+  requestManagerAdvance: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "overtime.request",
+    verb: "update",
+  }),
+  requestOverdue: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "overtime.request",
+    verb: "audit",
   }),
   requestBulkApprove: buildErpAuditAction({
     area: "erp",

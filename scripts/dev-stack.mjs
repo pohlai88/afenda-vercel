@@ -1,15 +1,19 @@
 /**
  * Local dev stack: workflow Next (3002) → health → UI Next (3000) + `workflow web`.
- * Vercel best practice: outer `vercel env run -e development` for live dev env injection.
  *
- * Usage: pnpm dev:stack [--help] [--no-vercel-env-run] [--no-web] [--strict] [--refresh-env]
+ * Default: fast path (local dotenv, no Vercel SDK preflight). Use --full for linked Vercel env.
+ *
+ * Usage: pnpm dev:stack [--help] [--full] [--no-vercel-env-run] [--no-web] [--strict] [--refresh-env]
  *        [--workflow-only] [--ui-only]
  */
 import { spawn, spawnSync } from "node:child_process"
-import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import {
+  cleanWorkflowGenerated,
+  prepareDevStackEnv,
+} from "./lib/dev-stack-bootstrap.shared.mjs"
 import {
   AFENDA_DEV_UI_ORIGIN,
   AFENDA_DEV_UI_PORT,
@@ -25,9 +29,15 @@ import { runDevStackVercelPreflight } from "./lib/dev-stack-vercel-preflight.mjs
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 
+const WORKFLOW_WAIT_MS = 120_000
+const WORKFLOW_WAIT_MS_FULL = 300_000
+
 const args = new Set(process.argv.slice(2))
 const showHelp = args.has("--help") || args.has("-h")
-const noVercelEnvRun = args.has("--no-vercel-env-run")
+const full = args.has("--full")
+const legacyFast = args.has("--fast")
+const noVercelEnvRun =
+  args.has("--no-vercel-env-run") || !full
 const noWeb = args.has("--no-web")
 const strict = args.has("--strict")
 const refreshEnv = args.has("--refresh-env")
@@ -53,18 +63,26 @@ process.on("SIGINT", shutdown)
 process.on("SIGTERM", shutdown)
 
 async function main() {
-  const preflight = await runDevStackVercelPreflight({
-    strict,
-    skipVercelEnvDryRun: noVercelEnvRun,
-  })
-  for (const w of preflight.warnings) {
-    console.warn(`[dev:stack] ${w}`)
+  if (legacyFast) {
+    console.log(
+      "[dev:stack] --fast is the default; use --full for Vercel SDK preflight + workflow health."
+    )
   }
-  if (!preflight.ok) {
-    for (const e of preflight.errors) {
-      console.error(`[dev:stack] ${e}`)
+
+  if (full) {
+    const preflight = await runDevStackVercelPreflight({
+      strict,
+      skipVercelEnvDryRun: noVercelEnvRun,
+    })
+    for (const w of preflight.warnings) {
+      console.warn(`[dev:stack] ${w}`)
     }
-    process.exit(1)
+    if (!preflight.ok) {
+      for (const e of preflight.errors) {
+        console.error(`[dev:stack] ${e}`)
+      }
+      process.exit(1)
+    }
   }
 
   const portsToCheck = []
@@ -78,22 +96,19 @@ async function main() {
     process.exit(1)
   }
 
-  if (!fs.existsSync(path.join(root, ".env.local"))) {
-    console.log("[dev:stack] running pnpm env:sync …")
-    runSync("pnpm", ["env:sync"], { inherit: true })
-  }
+  prepareDevStackEnv({
+    root,
+    refreshWorkflowEnv: refreshEnv,
+    log: (msg) => console.log(msg),
+  })
 
-  if (refreshEnv || !fs.existsSync(path.join(root, ".env.workflow.local"))) {
-    runSync("node", ["scripts/sync-env-workflow.mjs", "--force"], {
-      inherit: true,
-    })
-  } else {
-    runSync("node", ["scripts/sync-env-workflow.mjs"], { inherit: true })
+  const needsWorkflowArtifacts = !uiOnly
+  if (needsWorkflowArtifacts) {
+    await cleanWorkflowGenerated({ root })
   }
-
-  runSync("node", ["scripts/clean-workflow-generated.mjs"], { inherit: true })
 
   const useVercelEnvRun = !noVercelEnvRun
+  const workflowWaitMs = full ? WORKFLOW_WAIT_MS_FULL : WORKFLOW_WAIT_MS
 
   if (!uiOnly) {
     console.log(
@@ -112,32 +127,34 @@ async function main() {
       [
         "scripts/wait-for-http.mjs",
         `${AFENDA_DEV_WORKFLOW_ORIGIN}/.well-known/workflow/v1/flow`,
-        "--timeout-ms=300000",
+        `--timeout-ms=${workflowWaitMs}`,
         "--accept=404,405",
       ],
       { inherit: true }
     )
 
-    const health = spawnSync(
-      "pnpm",
-      [
-        "exec",
-        "workflow",
-        "health",
-        "--port",
-        String(AFENDA_DEV_WORKFLOW_PORT),
-      ],
-      {
-        cwd: root,
-        shell: process.platform === "win32",
-        stdio: "inherit",
-        env: process.env,
-      }
-    )
-    if (health.status !== 0) {
-      console.warn(
-        `[dev:stack] workflow health exited ${health.status ?? "?"} — WDK route probe already passed; continuing (run a workflow on ${AFENDA_DEV_WORKFLOW_ORIGIN} to populate local data).`
+    if (full) {
+      const health = spawnSync(
+        "pnpm",
+        [
+          "exec",
+          "workflow",
+          "health",
+          "--port",
+          String(AFENDA_DEV_WORKFLOW_PORT),
+        ],
+        {
+          cwd: root,
+          shell: process.platform === "win32",
+          stdio: "inherit",
+          env: process.env,
+        }
       )
+      if (health.status !== 0) {
+        console.warn(
+          `[dev:stack] workflow health exited ${health.status ?? "?"} — WDK route probe already passed; continuing (run a workflow on ${AFENDA_DEV_WORKFLOW_ORIGIN} to populate local data).`
+        )
+      }
     }
   }
 
@@ -173,19 +190,24 @@ function printHelp() {
 
 Usage: pnpm dev:stack [options]
 
+Default (fast): local .env files, no Vercel SDK preflight, ${WORKFLOW_WAIT_MS / 1000}s workflow wait.
+
 Options:
   --help, -h              Show this help
-  --no-vercel-env-run     Use .env.local / .env.workflow.local only (no vercel env run)
-  --no-web                Skip npx workflow web
-  --strict                Fail preflight without VERCEL_TOKEN / link
+  --full                  Vercel SDK preflight + vercel env run + workflow health + ${WORKFLOW_WAIT_MS_FULL / 1000}s wait
+  --fast                  Deprecated alias (fast is already the default)
+  --no-vercel-env-run     Use .env.local / .env.workflow.local only (default unless --full)
+  --no-web                Skip workflow web
+  --strict                Fail preflight without VERCEL_TOKEN / link (--full only)
   --refresh-env           Regenerate .env.workflow.local
   --workflow-only         Port ${AFENDA_DEV_WORKFLOW_PORT} only
-  --ui-only               Port ${AFENDA_DEV_UI_PORT} only
+  --ui-only               Port ${AFENDA_DEV_UI_PORT} only (skips workflow clean + WDK)
 
 Related:
-  pnpm dev:stack:preflight   SDK + link checks
-  pnpm dev:stack:inspect     Remote WDK runs on Vercel
-  pnpm env:sync:workflow     Regenerate workflow env file
+  pnpm dev:stack:full      Same as --full
+  pnpm dev:stack:preflight SDK + link checks (no servers)
+  pnpm dev:stack:inspect   Remote WDK runs on Vercel
+  pnpm env:sync:workflow   env:sync + force-regenerate workflow env file
 
 Test durable workflows on ${AFENDA_DEV_WORKFLOW_ORIGIN} (not :${AFENDA_DEV_UI_PORT}).
 `)
@@ -206,6 +228,9 @@ function printBanner() {
   if (!noWeb && !uiOnly) {
     console.log("  WDK web:         (see workflow web output above)")
   }
+  console.log(
+    `  Mode:            ${full ? "full (Vercel preflight)" : "fast (local env)"}`
+  )
   console.log(
     `  WDK Vercel:      pnpm dev:stack:inspect  (${AFENDA_VERCEL_PROJECT_NAME} / ${AFENDA_VERCEL_TEAM_SLUG})`
   )

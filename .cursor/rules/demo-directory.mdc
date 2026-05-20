@@ -1,0 +1,97 @@
+---
+description: Demo Showcase three-layer boundary — app routes, lib/features/demo, components2/demo. STOP IDE drift.
+globs: app/(main)/[locale]/demo/**,lib/features/demo/**,components2/demo/**
+alwaysApply: false
+---
+
+# Demo Showcase three-layer boundary — IDE anti-drift contract
+
+**Canonical decision:** [ADR-0041](../../docs/decisions/0041-demo-showcase-three-lanes.md) (AGENTS.md **PRIORITY #2**) · Layer 1 seal: [`app/(main)/[locale]/demo/_SEAL.md`](../../app/(main)/[locale]/demo/_SEAL.md)
+
+**If this rule and `AGENTS.md` diverge, follow `AGENTS.md` and fix this rule in the same PR.**
+
+Local public showcase uses **one product name everywhere: `demo`**.
+
+Mechanical guard: [`tests/unit/demo-route-contract.test.ts`](../../tests/unit/demo-route-contract.test.ts)
+
+---
+
+## Prime directive
+
+```txt
+Layer 1 — app/           → URL + thin re-exports ONLY
+Layer 2 — lib/features/  → manifest, gate, fixtures, guides, page orchestrators
+Layer 3 — components2/   → DemoShell, DemoGuidePanel, banner, catalog chrome ONLY
+```
+
+**Import doors:**
+
+| Layer | Door |
+| --- | --- |
+| Layer 2 | `#features/demo` · `#features/demo/server` |
+| Layer 3 | `#components2/demo/*` |
+| Client-safe paths + types | `#features/demo/client` (`demoPath`, manifest types, `DemoBanner`) |
+
+---
+
+## Lane A vs Lane B
+
+| Lane | URL | Data |
+| --- | --- | --- |
+| **A — Demo Showcase** | `/{locale}/demo/*` | Fixture SSOT in `lib/features/demo/data/*.fixture.server.ts` |
+| **B — Portal / ERP** | `/p/*`, `/o/*` | Real tenant after `pnpm dev:seed` + `pnpm dev:seed:demo-erp` |
+
+**Forbidden on Lane A:** `requireOrgSession`, `requirePortalContext`, `#lib/db`, production page re-exports (`EmployeePortalLeavePage`, `WorkforcePage`, …).
+
+**Allowed cross-module read:** list-surface **builders** and **types** from `#features/hrm/server` (and similar) when demo mirrors a governed Pattern C surface — never production orchestrators.
+
+---
+
+## Layer 1 — `app/.../demo/`
+
+**Allowed in leaf `page.tsx`:**
+
+```tsx
+export { DemoEmployeeLeavePage as default } from "#features/demo/server"
+```
+
+**Forbidden:** fixtures, `DemoGuidePanel` wiring, `redirectIfDemoShowcaseDisabled`, `#components2/demo` in routes.
+
+---
+
+## Layer 2 — `lib/features/demo/`
+
+- **`schemas/demo-route-manifest.shared.ts`** — catalog SSOT; `status: "available"` only when `app/.../demo/<slug>/page.tsx` exists.
+- **`data/demo-route-gate.server.ts`** — dev always on; prod needs `NEXT_PUBLIC_AFENDA_DEMO_SHOWCASE=1`.
+- **`data/guides/*.shared.ts`** — usage guide copy for `DemoGuidePanel`.
+- **`components/demo-*-page.server.tsx`** — compose `DemoShell` + `DemoSurfaceLayout` + read-only surface + `DemoRelatedDemos`.
+
+**Forbidden:** `_SEAL.md` at `lib/features/demo/` root (check-agent-contract).
+
+---
+
+## Layer 3 — `components2/demo/`
+
+Presentation only: shell, banner, guide panel, catalog card, layout slots.
+
+**Forbidden:** DB access, ERP mutations, session guards.
+
+---
+
+## Product Operating Manual formula
+
+Every **available** manifest entry should ship:
+
+1. Thin `app/.../demo/<slug>/page.tsx` re-export
+2. Fixture rows + optional builder reuse from production modules
+3. `DemoGuidePanel` content (`data/guides/`)
+4. `DemoBanner` + related demo links
+
+---
+
+## Verify after edits
+
+```bash
+pnpm lint:path -- lib/features/demo components2/demo app/(main)/[locale]/demo
+pnpm test:fast -- tests/unit/demo-route-contract.test.ts
+```

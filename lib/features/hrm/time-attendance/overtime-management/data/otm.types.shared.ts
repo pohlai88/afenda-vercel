@@ -2,6 +2,7 @@ import type {
   HrmOtmDayCategory,
   HrmOtmRequestState,
 } from "../schemas/otm-workflow-state.shared"
+import type { OtmApprovalStage } from "./otm-approval-snapshot.shared"
 
 export type OtmEmployeeChoiceRow = {
   id: string
@@ -14,6 +15,7 @@ export type OtmEmployeeContextRow = {
   employeeNumber: string | null
   legalName: string
   managerEmployeeId: string | null
+  hrOwnerEmployeeId: string | null
   archivedAt: Date | null
 }
 
@@ -22,6 +24,24 @@ export type OtmTypeChoiceRow = {
   code: string
   label: string
   dayCategory: string
+}
+
+export type OtmApprovalRouteRow = {
+  id: string
+  label: string | null
+  priority: number
+  departmentId: string | null
+  costCenterCode: string | null
+  workLocationCode: string | null
+  jobGradeId: string | null
+  minAmountCents: number | null
+  maxAmountCents: number | null
+  requiresEligibilityException: boolean | null
+  requiresPolicyException: boolean | null
+  approverKind: string
+  managerChainDepth: number | null
+  targetUserId: string | null
+  isActive: boolean
 }
 
 export type OtmEligibilityRuleRow = {
@@ -91,4 +111,5 @@ export type OrgOtmRequestRow = {
   requestedAt: Date
   currentApprovalId: string | null
   currentApproverUserId: string | null
+  approvalStage: OtmApprovalStage | null
 }

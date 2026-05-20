@@ -15,6 +15,7 @@ import type {
 import { HRM_OTM_AUDIT } from "../otm.contract"
 import {
   canDecideOtmRequest,
+  executeOtmRequestAdjust,
   executeOtmRequestApproval,
 } from "../data/otm-approval-commands.server"
 import { revalidateOtmSurfaces } from "../data/otm-revalidate.server"
@@ -22,6 +23,7 @@ import { notifyOtmEmployeeLifecycle } from "../data/otm-notification.server"
 import {
   bulkApproveOtmRequestsFormSchema,
   otmApprovalDecisionSchema,
+  otmAdjustDecisionSchema,
   otmRejectDecisionSchema,
   otmReturnDecisionSchema,
 } from "../schemas/otm.schema"
@@ -57,7 +59,11 @@ export async function approveOtmRequestAction(
   }
 
   revalidateOtmSurfaces()
-  return { ok: true, requestId: result.requestId }
+  return {
+    ok: true,
+    requestId: result.requestId,
+    outcome: result.outcome,
+  }
 }
 
 export async function bulkApproveOtmRequestsAction(
@@ -133,6 +139,54 @@ export async function bulkApproveOtmRequestsAction(
 
   revalidateOtmSurfaces()
   return { ok: true, approved, failed }
+}
+
+export async function adjustOtmRequestAction(
+  _prev: OtmApprovalFormState | undefined,
+  formData: FormData
+): Promise<OtmApprovalFormState> {
+  const session = await requireOrgSession()
+  const { organizationId, userId, sessionId } = session
+
+  const parsed = otmAdjustDecisionSchema.safeParse({
+    requestId: formData.get("requestId"),
+    workDate: formData.get("workDate"),
+    startTime: formData.get("startTime"),
+    endTime: formData.get("endTime"),
+    adjustmentReason: formData.get("adjustmentReason"),
+    decisionNote: formData.get("decisionNote") || null,
+  })
+
+  if (!parsed.success) {
+    const errs = parsed.error.flatten().fieldErrors
+    return hrmActionFailure({
+      requestId: errs.requestId?.[0],
+      workDate: errs.workDate?.[0],
+      startTime: errs.startTime?.[0],
+      endTime: errs.endTime?.[0],
+      adjustmentReason: errs.adjustmentReason?.[0],
+      form: parsed.error.issues[0]?.message,
+    })
+  }
+
+  const result = await executeOtmRequestAdjust({
+    organizationId,
+    userId,
+    sessionId,
+    requestId: parsed.data.requestId,
+    workDate: parsed.data.workDate,
+    startTime: parsed.data.startTime,
+    endTime: parsed.data.endTime,
+    adjustmentReason: parsed.data.adjustmentReason,
+    decisionNote: parsed.data.decisionNote,
+  })
+
+  if (!result.ok) {
+    return hrmActionFailure(result.errors)
+  }
+
+  revalidateOtmSurfaces()
+  return { ok: true, requestId: result.requestId }
 }
 
 export async function rejectOtmRequestAction(

@@ -10,9 +10,9 @@ import {
   hrmOvertimeRequest,
   hrmOvertimeType,
 } from "#lib/db/schema"
-import { listUserIdsWithErpPermission } from "#features/erp-rbac/server"
-
 import { OTM_REQUEST_APPROVAL_SUBJECT_KIND } from "../otm.contract"
+import { readOtmApprovalStage } from "./otm-approval-routing.shared"
+import { getOtmPolicyForOrg } from "./otm-policy.server"
 import {
   hrmOtmDayCategorySchema,
   hrmOtmRequestStateSchema,
@@ -107,6 +107,7 @@ export async function findOtmEmployeeForUser(
       employeeNumber: true,
       legalName: true,
       managerEmployeeId: true,
+      hrOwnerEmployeeId: true,
       archivedAt: true,
     },
   })
@@ -128,6 +129,7 @@ export async function getOtmEmployeeForOrg(
       employeeNumber: true,
       legalName: true,
       managerEmployeeId: true,
+      hrOwnerEmployeeId: true,
       archivedAt: true,
     },
   })
@@ -135,42 +137,11 @@ export async function getOtmEmployeeForOrg(
   return row ?? null
 }
 
-async function resolveManagerApproverUserId(input: {
-  organizationId: string
-  managerEmployeeId: string | null
-}): Promise<string | null> {
-  if (!input.managerEmployeeId) return null
-
-  const manager = await db.query.hrmEmployee.findFirst({
-    where: and(
-      eq(hrmEmployee.organizationId, input.organizationId),
-      eq(hrmEmployee.id, input.managerEmployeeId),
-      isNull(hrmEmployee.archivedAt)
-    ),
-    columns: { linkedUserId: true },
-  })
-
-  return manager?.linkedUserId ?? null
-}
-
-export async function resolveOtmApproverUserId(input: {
-  organizationId: string
-  managerEmployeeId: string | null
-}): Promise<string | null> {
-  const managerUserId = await resolveManagerApproverUserId(input)
-  if (managerUserId) return managerUserId
-
-  const [fallbackApproverUserId] = await listUserIdsWithErpPermission({
-    organizationId: input.organizationId,
-    permission: {
-      module: "hrm",
-      object: "overtime",
-      function: "update",
-    },
-  })
-
-  return fallbackApproverUserId ?? null
-}
+export {
+  resolveOtmApproverUserId,
+  resolveOtmHrApproverUserId,
+  resolveOtmManagerChainApproverUserId,
+} from "./otm-approver-routing.server"
 
 export async function listOtmRequestsForOrg(
   organizationId: string,
@@ -246,6 +217,8 @@ export async function listOtmRequestsForOrg(
     ),
   ]
 
+  const policy = await getOtmPolicyForOrg(organizationId)
+
   const [employees, approvals] = await Promise.all([
     db.query.hrmEmployee.findMany({
       where: and(
@@ -260,7 +233,7 @@ export async function listOtmRequestsForOrg(
             eq(hrmApproval.organizationId, organizationId),
             inArray(hrmApproval.id, approvalIds)
           ),
-          columns: { id: true, currentApproverUserId: true },
+          columns: { id: true, currentApproverUserId: true, snapshot: true },
         })
       : Promise.resolve([]),
   ])
@@ -272,7 +245,16 @@ export async function listOtmRequestsForOrg(
     ])
   )
   const approvalMap = new Map(
-    approvals.map((approval) => [approval.id, approval.currentApproverUserId])
+    approvals.map((approval) => [
+      approval.id,
+      {
+        currentApproverUserId: approval.currentApproverUserId,
+        approvalStage: readOtmApprovalStage(
+          approval.snapshot,
+          policy
+        ),
+      },
+    ])
   )
 
   return requests.map((row) => {
@@ -297,7 +279,10 @@ export async function listOtmRequestsForOrg(
       requestedAt: row.requestedAt,
       currentApprovalId: row.currentApprovalId,
       currentApproverUserId: row.currentApprovalId
-        ? (approvalMap.get(row.currentApprovalId) ?? null)
+        ? (approvalMap.get(row.currentApprovalId)?.currentApproverUserId ?? null)
+        : null,
+      approvalStage: row.currentApprovalId
+        ? (approvalMap.get(row.currentApprovalId)?.approvalStage ?? "hr")
         : null,
     }
   })

@@ -4,6 +4,7 @@ export const OTM_LIST_SURFACE_IDS = {
   myRequests: "hrm:overtime:my-requests",
   types: "hrm:overtime:types",
   eligibility: "hrm:overtime:eligibility",
+  approvalRoutes: "hrm:overtime:approval-routes",
   rateRules: "hrm:overtime:rate-rules",
   approvedPayroll: "hrm:overtime:approved-payroll",
   payrollReady: "hrm:overtime:payroll-ready",

@@ -87,6 +87,10 @@ export async function OtmPendingInbox({
         format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
       stateLabelFor: (state) =>
         t(`stateLabels.${state}` as "stateLabels.submitted"),
+      approvalStageLabels: {
+        manager: t("approvalStageManager"),
+        hr: t("approvalStageHr"),
+      },
     },
     {
       canApproveAll,
@@ -109,7 +113,7 @@ export async function OtmPendingInbox({
       layout="embedded"
       title={t("pendingTitle")}
       description={t("pendingDescription")}
-      surfaceKey="hrm:overtime:pending"
+      surfaceKey={OTM_LIST_SURFACE_IDS.pendingInbox}
       listConfiguration={listConfiguration}
       trailingColumn={{
         header: t("colActions"),
@@ -128,6 +132,10 @@ export async function OtmPendingInbox({
               <OtmDecisionForms
                 requestId={row.id}
                 timeRange={`${row.workDate} · ${row.startTime}–${row.endTime}`}
+                workDate={row.workDate}
+                startTime={row.startTime}
+                endTime={row.endTime}
+                approvalStage={row.approvalStage}
               />
             </GovernedTrailingActionSlot>
           )

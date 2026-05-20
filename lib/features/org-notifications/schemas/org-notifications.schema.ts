@@ -48,3 +48,15 @@ export const createOrgNotificationSchema = z
       }
     }
   })
+
+export const orgPushSubscriptionBodySchema = z.object({
+  endpoint: z.string().trim().min(1).max(2000),
+  keys: z.object({
+    p256dh: z.string().trim().min(1).max(500),
+    auth: z.string().trim().min(1).max(500),
+  }),
+})
+
+export const orgPushUnsubscribeBodySchema = z.object({
+  endpoint: z.string().trim().min(1).max(2000).optional(),
+})

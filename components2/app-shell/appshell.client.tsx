@@ -24,6 +24,7 @@ import { AppShellProviders } from "#components2/providers"
 import type { AppShellPrimaryLeftRailConfig } from "./left-rail-bar/appshell-primary-left-rail.schema"
 import { useAppShellStore } from "../stores/app-shell.store"
 import { AppShellGlobalShortcuts } from "./appshell-global-shortcuts.client"
+import { AppShellOrgNotificationDelivery } from "./appshell-org-notification-delivery.client"
 
 // ---------------------------------------------------------------------------
 // RailController — syncs railMode (store) → sidebar open state (SidebarProvider)
@@ -175,6 +176,7 @@ export function AppShellClient({
     <AppShellProviders sidebarDefaultOpen={rail !== null}>
       {/* Mode controller — invisible, effect-only */}
       {rail ? <RailController /> : null}
+      <AppShellOrgNotificationDelivery />
       {skipToMain}
       {orgSlug ? <AppShellGlobalShortcuts orgSlug={orgSlug} /> : null}
 

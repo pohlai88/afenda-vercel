@@ -24,7 +24,7 @@ matcher excludes: api, _next, _vercel, .well-known, static files
 
 | Port | Role | Command | WDK enabled |
 |------|------|---------|-------------|
-| **3000** | UI / day-to-day editing | `pnpm dev`, `dev:stack` (UI leg) | Yes (callbacks stay on 3000 if you enqueue from 3000) |
+| **3000** | UI / day-to-day editing | `pnpm dev` / `dev:ui` (`.next-ui`), `dev:stack` (UI leg) | Yes (callbacks stay on 3000 if you enqueue from 3000) |
 | **3002** | Durable workflow testing | `dev:stack` (workflow leg), `pnpm dev:workflow` | Yes — **use this origin for workflow QA** |
 | **3001** | Playwright E2E only | `pnpm test:e2e` | Production-like `next start` — **never** in `dev:stack` |
 
@@ -139,11 +139,12 @@ Avoids Turbopack cache fights between two concurrent `next dev` processes.
 | Command | Purpose |
 |---------|---------|
 | `pnpm dev` | UI-only on 3000 (default for agents; unchanged) |
-| `pnpm dev:stack` | Full stack (workflow → UI → `workflow web`) |
+| `pnpm dev:stack` | Full stack, **fast default** (local dotenv, no Vercel SDK preflight) |
+| `pnpm dev:stack:full` | Same as `dev:stack --full` (Vercel preflight + `vercel env run` + workflow health) |
 | `pnpm dev:stack:preflight` | SDK + link + env dry-run (no servers) |
 | `pnpm dev:stack:inspect` | Remote WDK runs on Vercel |
-| `pnpm dev:ui` | UI role only (`scripts/run-next-dev.mjs --role=ui`) |
-| `pnpm dev:workflow` | Workflow role only (`--role=workflow`) |
+| `pnpm dev` / `dev:ui` | UI role only on 3000 (`.next-ui`; no `predev` clean) |
+| `pnpm dev:workflow` | Workflow role only on 3002 (shared bootstrap in `run-next-dev`) |
 | `pnpm env:sync:workflow` | `env:sync` + regenerate `.env.workflow.local` |
 
 ### `dev:stack` flags
@@ -151,12 +152,14 @@ Avoids Turbopack cache fights between two concurrent `next dev` processes.
 | Flag | Effect |
 |------|--------|
 | `--help`, `-h` | Usage banner |
-| `--no-vercel-env-run` | Skip `vercel env run`; use dotenv files only |
+| `--full` | Vercel SDK preflight + `vercel env run` + workflow health + 300s workflow wait |
+| `--fast` | Deprecated (fast is already the default) |
+| `--no-vercel-env-run` | Skip `vercel env run`; use dotenv files only (default unless `--full`) |
 | `--no-web` | Skip `workflow web` |
-| `--strict` | Preflight errors are fatal |
+| `--strict` | Preflight errors are fatal (`--full` only) |
 | `--refresh-env` | Force-regenerate `.env.workflow.local` |
 | `--workflow-only` | Port 3002 only |
-| `--ui-only` | Port 3000 only |
+| `--ui-only` | Port 3000 only (skips workflow clean + WDK web) |
 
 ### Operator prerequisites (once per machine)
 
@@ -168,13 +171,14 @@ pnpm env:sync:workflow   # optional; dev:stack creates if missing
 pnpm dev:stack
 ```
 
-Without link/token: `pnpm dev:stack --no-vercel-env-run` (`.env.local` + `.env.workflow.local` only).
+Default `pnpm dev:stack` uses local dotenv only. For live Vercel development env injection: `pnpm dev:stack:full` (requires link/token).
 
 ## Implementation map
 
 | File | Responsibility |
 |------|----------------|
-| `scripts/dev-stack.mjs` | Orchestrator, banner, shutdown |
+| `scripts/dev-stack.mjs` | Orchestrator, banner, shutdown (fast default) |
+| `scripts/lib/dev-stack-bootstrap.shared.mjs` | Shared env + workflow clean prep |
 | `scripts/dev-stack-inspect.mjs` | Vercel backend inspect wrapper |
 | `scripts/run-next-dev.mjs` | Single-role dev (`--role=ui\|workflow`) |
 | `scripts/wait-for-http.mjs` | Poll until HTTP ready (`--accept=404,405` for WDK routes) |

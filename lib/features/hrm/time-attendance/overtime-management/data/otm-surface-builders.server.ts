@@ -16,6 +16,7 @@ import { formatOtmMultiplierLabel } from "./otm-calculation.shared"
 import type { OtmExceptionInboxRow } from "./otm-exception.server"
 import type {
   OtmAttendanceReconcileRow,
+  OtmApprovalRouteRow,
   OtmEligibilityRuleRow,
   OtmPayrollExportRow,
   OtmRateRuleRow,
@@ -24,6 +25,7 @@ import type {
 } from "./otm.types.shared"
 import type { HrmOtmExceptionType } from "../schemas/otm-workflow-state.shared"
 import type { HrmOtmDayCategory } from "../schemas/otm.schema"
+import type { OtmApprovalStage } from "./otm-approval-snapshot.shared"
 
 const OTM_READ_PERMISSION = {
   module: "hrm" as const,
@@ -59,6 +61,7 @@ type OtmRequestListCopy = {
   stateLabelFor: (state: string) => string
   formatRequestedAt: (date: Date) => string
   includeEmployeeColumn?: boolean
+  approvalStageLabels?: Partial<Record<OtmApprovalStage, string>>
 }
 
 function buildOtmRequestRows(
@@ -147,14 +150,53 @@ export function buildOtmOrgRecentListSurfaceConfiguration(
   )
 }
 
+const MY_REQUEST_ACTIONABLE_STATES = new Set([
+  "draft",
+  "submitted",
+  "returned",
+])
+
 export function buildOtmMyRequestsListSurfaceConfiguration(
   rows: readonly OrgOtmRequestRow[],
-  copy: OtmRequestListCopy
+  copy: OtmRequestListCopy,
+  options: { actionLabel: string }
 ): ListSurfaceRendererConfigurationInput {
-  return buildOtmRequestListSurfaceConfiguration(rows, {
-    ...copy,
-    includeEmployeeColumn: false,
-  }, OTM_LIST_SURFACE_IDS.myRequests)
+  const base = buildOtmRequestListSurfaceConfiguration(
+    rows,
+    { ...copy, includeEmployeeColumn: false },
+    OTM_LIST_SURFACE_IDS.myRequests
+  )
+
+  return {
+    ...base,
+    rows: rows.map((row) => {
+      const cells = {
+        workDate: row.workDate,
+        timeRange: `${row.startTime}–${row.endTime}`,
+        duration: formatOvertimeDurationMinutes(row.durationMinutes),
+        dayCategory: otmDayCategoryLabel(row.dayCategory, copy.dayCategoryLabels),
+        state: copy.stateLabelFor(row.state),
+        requested: copy.formatRequestedAt(row.requestedAt),
+      }
+
+      const canAct = MY_REQUEST_ACTIONABLE_STATES.has(row.state)
+
+      return {
+        id: row.id,
+        cells,
+        trailingAction: canAct
+          ? resolveListSurfaceRowTrailingAction({
+              allowed: true,
+              descriptor: {
+                id: "erp.hrm.overtime.my_request_action",
+                label: options.actionLabel,
+                intent: "default",
+              },
+            })
+          : listSurfaceRowTrailingActionHidden(),
+      }
+    }),
+  }
 }
 
 export function buildOtmPendingListSurfaceConfiguration(
@@ -180,13 +222,23 @@ export function buildOtmPendingListSurfaceConfiguration(
         options.canApproveAll ||
         row.currentApproverUserId === options.currentUserId
 
+      const stateLabel = (() => {
+        const base = copy.stateLabelFor(row.state)
+        const stage = row.approvalStage
+        const stageLabel =
+          stage && copy.approvalStageLabels
+            ? copy.approvalStageLabels[stage]
+            : null
+        return stageLabel ? `${base} · ${stageLabel}` : base
+      })()
+
       const cells = {
         employee: formatEmployeeCell(row),
         workDate: row.workDate,
         timeRange: `${row.startTime}–${row.endTime}`,
         duration: formatOvertimeDurationMinutes(row.durationMinutes),
         dayCategory: otmDayCategoryLabel(row.dayCategory, copy.dayCategoryLabels),
-        state: copy.stateLabelFor(row.state),
+        state: stateLabel,
         requested: copy.formatRequestedAt(row.requestedAt),
       }
 
@@ -263,6 +315,90 @@ export function buildOtmEligibilityRulesListSurfaceConfiguration(
         active: copy.yesNo(row.isActive),
       },
     })),
+  }
+}
+
+function formatAmountCentsLabel(
+  cents: number | null,
+  anyLabel: string
+): string {
+  if (cents == null) return anyLabel
+  return (cents / 100).toFixed(2)
+}
+
+export function buildOtmApprovalRoutesListSurfaceConfiguration(
+  rows: readonly OtmApprovalRouteRow[],
+  copy: {
+    empty: string
+    colPriority: string
+    colLabel: string
+    colDepartment: string
+    colCostCenter: string
+    colLocation: string
+    colGrade: string
+    colAmount: string
+    colException: string
+    colApprover: string
+    colActive: string
+    anyLabel: string
+    yesNo: (value: boolean) => string
+    formatApproverKind: (kind: string) => string
+    formatExceptionFlags: (row: OtmApprovalRouteRow) => string
+  }
+): ListSurfaceRendererConfigurationInput {
+  const columnsId = OTM_LIST_SURFACE_IDS.approvalRoutes
+  return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
+    dataNature: "table",
+    requiresErpPermission: OTM_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: listSurfaceHeader(columnsId),
+      columnsId,
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "priority", header: copy.colPriority },
+      { id: "label", header: copy.colLabel },
+      { id: "department", header: copy.colDepartment },
+      { id: "costCenter", header: copy.colCostCenter },
+      { id: "location", header: copy.colLocation },
+      { id: "grade", header: copy.colGrade },
+      { id: "amount", header: copy.colAmount },
+      { id: "exception", header: copy.colException },
+      { id: "approver", header: copy.colApprover },
+      { id: "active", header: copy.colActive },
+    ],
+    rows: rows.map((row) => {
+      const amountParts: string[] = []
+      if (row.minAmountCents != null) {
+        amountParts.push(
+          `≥ ${formatAmountCentsLabel(row.minAmountCents, copy.anyLabel)}`
+        )
+      }
+      if (row.maxAmountCents != null) {
+        amountParts.push(
+          `≤ ${formatAmountCentsLabel(row.maxAmountCents, copy.anyLabel)}`
+        )
+      }
+      return {
+        id: row.id,
+        cells: {
+          priority: String(row.priority),
+          label: row.label ?? copy.anyLabel,
+          department: row.departmentId ?? copy.anyLabel,
+          costCenter: row.costCenterCode ?? copy.anyLabel,
+          location: row.workLocationCode ?? copy.anyLabel,
+          grade: row.jobGradeId ?? copy.anyLabel,
+          amount:
+            amountParts.length > 0 ? amountParts.join(" ") : copy.anyLabel,
+          exception: copy.formatExceptionFlags(row),
+          approver: copy.formatApproverKind(row.approverKind),
+          active: copy.yesNo(row.isActive),
+        },
+      }
+    }),
   }
 }
 

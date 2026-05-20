@@ -7,21 +7,167 @@
 - **Phase 2 (shipped):** `hrm_overtime_type` + `hrm_overtime_eligibility_rule`, type catalog on submit, eligibility validation with HR/manager exception reason, Pattern C admin lists (`hrm:overtime:types`, `hrm:overtime:eligibility`), seed default types action.
 - **Phase 3 (shipped):** `hrm_overtime_policy`, `hrm_overtime_rate_rule`, `hrm_overtime_calculation_snapshot`; policy form; rate rules Pattern C list; calculation on approve (rounding, caps, multiplier, earning code); attendance reconcile panel when `compareAttendanceEnabled` (`hrm:overtime:attendance-reconcile`).
 - **Phase 4 (shipped):** `approved` → `payroll_ready` action + audit; payroll-ready Pattern C list (`hrm:overtime:payroll-ready`); operational CSV export (`hrm:overtime:report`); approved-payroll mark list (`hrm:overtime:approved-payroll`).
-- **Gap closure (shipped):** shift vs scheduled compare (`009`), policy exceptions inbox + approve/reject (`019`), monetary amount on calculation snapshot from active contract salary (`021`), compensatory leave ledger credit on approve when policy allows (`022`), payroll engine consumes `payroll_ready` rows via `approvedOvertimeEarnings` + period lock marks `paid` (`023`), org notifications on submit/approve/reject/return/payroll-ready/exception (`026`), LAM overtime time-report submit blocked and lists exclude legacy OT rows, pending-inbox bulk approve up to 25 requests (`016`).
+- **Gap closure (shipped):** shift vs scheduled compare (maps **HRM-OTM-009**), policy exceptions inbox + approve/reject (maps **HRM-OTM-019** / AC 16), monetary amount on calculation snapshot (**HRM-OTM-021**), compensatory leave ledger credit on approve (**HRM-OTM-022**), payroll engine `approvedOvertimeEarnings` + period lock `paid` (**HRM-OTM-023**), org notifications on lifecycle events with in-app + email + Ably realtime + Web Push (**HRM-OTM-026**), LAM legacy OT submit blocked + list exclusion, pending-inbox bulk approve up to 25 requests (implementation gap label **bulk-016**, not **HRM-OTM-016** routing).
+- **Routing & policy gates (shipped):** `hrm_overtime_approval_route` matrix (**HRM-OTM-016**) — match department, cost center, location, grade, estimated amount band, eligibility/policy exception flags; approver kinds: direct manager, manager chain, department head, HR owner, HR pool, specific user; fallback to manager chain + HR ERP pool when no rule matches. Manager chain depth from policy or rule (`managerChainMaxDepth`, max 5). Optional two-stage approval (`requireHrSecondApproval` → `approvalStage` in `hrm_approval.snapshot` + `routingRuleId` / `routingApproverKind` on snapshot). Hard submit rejection when `enforceClaimDeadlineOnSubmit`. Best-effort email via Resend on lifecycle events. Daily overdue cron `hrm-otm-overdue-watch`. LAM attendance banner linking to `/apps/hrm/overtime`.
 - **Compensatory credit:** On approve, when `allowCompensatoryTime` and `compensatoryLeaveTypeCode` are set, payable minutes convert to leave days (`payableMinutes / 480`) and post as `manual_correction` on `hrm_leave_balance` for the work-date entitlement year. Idempotent per request via `erp.hrm.overtime.compensatory_leave.create` audit metadata (`overtimeRequestId`). Payroll-ready path is unchanged.
-- **Bulk approve:** `bulkApproveOtmRequestsAction` reuses `executeOtmRequestApproval`; partial success returns approved + failed rows; summary audit `erp.hrm.overtime.request.audit` with counts.
+- **Bulk approve:** `bulkApproveOtmRequestsAction` reuses `executeOtmRequestApproval` (manager stage advances to HR; HR stage final-approves); partial success returns approved + failed rows; summary audit `erp.hrm.overtime.request.audit` with counts.
+
+### ID legend (avoid confusion)
+
+| Label | Meaning |
+| --- | --- |
+| **HRM-OTM-NNN** | Enterprise requirement code in the tables below (e.g. **HRM-OTM-010** = attendance reconcile). |
+| **gap-*** | Implementation-tracker shorthand from the OTM plan — **not** the same number as HRM-OTM (e.g. plan **gap-010** = pre-approval routing ≠ **HRM-OTM-010**). |
+| **bulk-016** | Shipped bulk approve inbox — **not** **HRM-OTM-016** dynamic approver matrix. |
 
 ## Deferred (not removed)
 
-| ID | Item | Notes |
+| Tracker | Requirement | Status | Current behavior | Touch when implementing |
+| --- | --- | --- | --- | --- |
+
+**Parallel coexistence:** Leave & Attendance `hrm_time_report` (`reportKind: overtime`) on the attendance page remains read-only for legacy rows; new OT must use this module. LAM submit is blocked; lists exclude legacy OT.
+
+## Plan vs codebase completeness (HRM-OTM-001 … 029)
+
+Statuses: **Shipped** = production path in code · **Partial** = subset or schema-only · **Deferred** = explicitly out of scope (see table above).
+
+| Code | Status | Implementation anchor |
 | --- | --- | --- |
-| **010** | Pre-approval routing | Exceptions + eligibility only; no multi-stage pre-approval graph |
-| **014** | Manager hierarchy routing | Single `currentApproverUserId` on `hrm_approval` |
-| **016** (routing) | Amount/grade/location-based approver matrix | **Bulk approve inbox shipped**; dynamic routing still deferred |
-| **026** | Email / push notifications | In-app org notifications only |
-| **claimDeadlineDays** | Late-submission enforcement | Policy field stored; submit/approve deadline gate not wired |
-| **LAM** | Legacy `hrm_time_report` OT rows | Hidden from lists; not deleted |
-- **Parallel coexistence:** Leave & Attendance `hrm_time_report` (`reportKind: overtime`) on the attendance page remains active until a dedicated deprecation pass. This module is the future system of record for policy, rates, caps, and payroll-ready overtime (see LAM ARCHITECTURE — overtime rate/calculation excluded there).
+| **001** | Shipped | `requestOwnOtmAction`, `applyOtmOnBehalfAction`, `OtmRequestForm` |
+| **002** | Shipped | Request schema + `hrm_overtime_request` columns; Pattern C lists |
+| **003** | Shipped | `HRM_OTM_TIMING_KINDS`, timing kind on submit form |
+| **004** | Partial | Eligibility rules: type, department, grade, employment type — not full legal-entity/location/policy-group matrix |
+| **005** | Shipped | `validateOtmEligibilityForSubmit` + exception reason on submit |
+| **006** | Shipped | `HRM_OTM_DAY_CATEGORIES`, types seed, day category on request |
+| **007** | Shipped | `hrm_overtime_rate_rule`, `buildOtmRateRulesListSurfaceConfiguration` |
+| **008** | Shipped | Duration from time range; attendance path via policy + reconcile |
+| **009** | Shipped | `otm-exception-detect.server.ts` (`shift_variance`), cleared before final approve |
+| **010** | Shipped | `OtmAttendanceReconcileSection`, `compareAttendanceEnabled` |
+| **011** | Shipped | Policy rounding modes in `otm-calculation.server.ts` |
+| **012** | Shipped | `minOvertimeMinutes` policy gate |
+| **013** | Shipped | Daily/weekly/monthly caps in policy + exception detect |
+| **014** | Shipped | `hrm_overtime_exception` rows + exception inbox |
+| **015** | Shipped | `hrm_approval` + two-stage `approvalStage` snapshot |
+| **016** | Shipped | `hrm_overtime_approval_route`, `resolveOtmSubmissionApprovers`, `OtmApprovalRoutesSection` |
+| **017** | Shipped | Approve / reject / return / adjust (`OtmDecisionForms`, `adjustOtmRequestAction`) |
+| **018** | Shipped | Reject, return, and adjust require reasons |
+| **019** | Shipped | Exception inbox + approve/reject actions |
+| **020** | Shipped | Payable minutes on `executeOtmRequestApproval` |
+| **021** | Shipped | `amountCents` on `hrm_overtime_calculation_snapshot` |
+| **022** | Shipped | `otm-compensatory-leave.server.ts` on final approve |
+| **023** | Shipped | `listOtmPayrollEarningsForEmployeePeriod`, payroll-ready → paid |
+| **024** | Shipped | States gate export; only `payroll_ready` in payroll earnings query |
+| **025** | Partial | Draft save/submit + employee cancel (`saveOwnOtmDraftAction`, `submitOtmDraftAction`, `cancelOwnOtmRequestAction`); `paid` via payroll lock only |
+| **026** | Shipped | In-app + Resend email + Ably shell refresh + Web Push (`org_push_subscription`); locale-internal links `/o/{slug}/apps/hrm/overtime` |
+| **027** | Partial | CSV via `OtmExportReportButton` + org recent list; no dept/manager/cost-center report cubes |
+| **028** | Shipped | `resolveOtmSurfaceAccess`, ERP `hrm.overtime` permissions |
+| **029** | Shipped | `HRM_OTM_AUDIT` including `requestAdjust`, `requestCancel` on lifecycle mutations |
+
+### Implementation tracker (plan `gap-*` / `bulk-016`)
+
+| Tracker | Maps to | Status | Anchor |
+| --- | --- | --- | --- |
+| **gap-009** | HRM-OTM-009 | Shipped | Shift variance exceptions |
+| **gap-010** | Routing (not OTM-010) | Shipped | Manager chain, HR second approval, claim deadline |
+| **gap-014** | Policy gates | Shipped | `enforceClaimDeadlineOnSubmit`, overdue cron |
+| **gap-019** | HRM-OTM-019 | Shipped | `OtmExceptionInbox` |
+| **gap-021** | HRM-OTM-021 | Shipped | Calculation snapshot amount |
+| **gap-022** | HRM-OTM-022 | Shipped | Compensatory leave credit |
+| **gap-023** | HRM-OTM-023 | Shipped | Payroll consumption |
+| **gap-026** | HRM-OTM-026 | Shipped | `otm-notification.server.ts`, `#features/org-notifications` delivery (Ably + Web Push) |
+| **bulk-016** | Bulk approve (not OTM-016) | Shipped | `bulkApproveOtmRequestsAction`, `OtmPendingBulkApproveToolbar` |
+| **LAM OT** | Coexistence | Shipped | `attendance-otm-deprecation-notice.tsx`, LAM actions block `reportKind=overtime` |
+
+### Metadata-driven UI (Pattern C)
+
+All list surfaces use `GovernedPatternCListSection` + `data/otm-surface-builders.server.ts`. Canonical keys: `data/otm-surface-metadata.shared.ts` (`OTM_LIST_SURFACE_IDS`).
+
+| `surfaceKey` | Section component | Trailing actions |
+| --- | --- | --- |
+| `hrm:overtime:pending-inbox` | `OtmPendingInbox` | Approve / adjust / return / reject + bulk toolbar |
+| `hrm:overtime:org-recent` | `OtmOrgRequestsSection` | — |
+| `hrm:overtime:my-requests` | `OtmMyRequestsSection` | Submit draft / cancel |
+| `hrm:overtime:types` | `OtmTypesSection` | Seed / create (empty state) |
+| `hrm:overtime:eligibility` | `OtmEligibilitySection` | Create rule dialog |
+| `hrm:overtime:approval-routes` | `OtmApprovalRoutesSection` | Create routing rule dialog |
+| `hrm:overtime:rate-rules` | `OtmRateRulesSection` | Create rule dialog |
+| `hrm:overtime:approved-payroll` | `OtmApprovedPayrollSection` | Mark payroll-ready |
+| `hrm:overtime:payroll-ready` | `OtmPayrollReadySection` | — |
+| `hrm:overtime:report` | `OtmReportSection` | CSV export (header action) |
+| `hrm:overtime:attendance-reconcile` | `OtmAttendanceReconcileSection` | — |
+| `hrm:overtime:exception-inbox` | `OtmExceptionInbox` | Exception approve/reject |
+
+Policy admin uses `OtmPolicySection` (form card, not a list surface). Request submit uses bespoke `OtmRequestForm` cards (Pattern A).
+
+### Unit tests (OTM)
+
+| File | Covers |
+| --- | --- |
+| `tests/unit/otm-approval-routing.shared.test.ts` | `approvalStage`, manager depth |
+| `tests/unit/otm-approval-route-matching.test.ts` | Routing matrix match + priority pick |
+| `tests/unit/otm-date.shared.test.ts` | Claim deadline date math |
+| `tests/unit/otm-compensatory-leave.shared.test.ts` | Minutes → leave days |
+| `tests/unit/otm-calculation.test.ts` | Rounding, caps, multiplier |
+| `tests/unit/otm-display.test.ts` | Duration formatting |
+
+Run: `pnpm test:fast -- tests/unit/otm-*.test.ts` (19 tests, 5 files).
+
+## Runtime map (three layers)
+
+| Layer | Path | Responsibility |
+| --- | --- | --- |
+| **1 — Route** | `app/(main)/[locale]/o/[orgSlug]/apps/hrm/overtime/page.tsx` | Locale + org session gate; re-exports `#features/hrm` `OvertimePage` only |
+| **2 — Feature** | `lib/features/hrm/time-attendance/overtime-management/` | Policy, requests, approvals, exceptions, calculation, payroll export, cron tick |
+| **3 — UI** | `…/overtime-management/components/*.tsx` + `#features/hrm/client` | Forms, Pattern C inboxes, policy dialog; client islands import `#features/hrm/client` only |
+
+**Public doors:** `#features/hrm` (`OvertimePage`, `resolveOtmSurfaceAccess`) · `#features/hrm/client` (actions + client forms) · `#features/hrm/server` (`runOtmApprovalOverdueTick` for cron).
+
+## Data model (app-owned)
+
+| Table | Role |
+| --- | --- |
+| `hrm_overtime_request` | Request lifecycle (`submitted` → `approved` → `payroll_ready` → `paid`) |
+| `hrm_approval` | `subjectKind: overtime_request`; `snapshot` JSON holds request copy + `approvalStage` |
+| `hrm_overtime_policy` | Caps, rounding, claim deadline, `requireHrSecondApproval`, `managerChainMaxDepth`, compensatory flags |
+| `hrm_overtime_exception` | Policy violations (late submission, caps, shift variance, …) — must be cleared before final approve |
+| `hrm_overtime_calculation_snapshot` | Payable minutes, multiplier, monetary amount after HR approve |
+| `hrm_overtime_type` / `hrm_overtime_rate_rule` / `hrm_overtime_eligibility_rule` | Catalog, pay rules, who may request |
+
+Migration `drizzle/0011_sudden_energizer.sql` adds `enforceClaimDeadlineOnSubmit`, `requireHrSecondApproval`, `managerChainMaxDepth` on `hrm_overtime_policy`.
+
+## Approval flow
+
+```txt
+Submit (Server Action)
+  → validate eligibility + optional hard claim-deadline gate
+  → insert hrm_approval (pending) + hrm_overtime_request (submitted)
+  → sync policy exceptions; notify current approver
+
+Decide (assigned approver or hrm.overtime update permission)
+  IF approvalStage = manager AND requireHrSecondApproval
+    → Advance to HR (request stays submitted; snapshot.approvalStage = hr)
+  ELSE
+    → Final approve: calculation snapshot, compensatory credit, state = approved
+
+Reject / Return → standard hrm_approval + request state transitions
+```
+
+**Approver resolution:** walk `managerEmployeeId` chain up to `managerChainMaxDepth` (max 5) for linked portal users; else first user with `hrm.overtime` `update`. Initial stage is `manager` when second approval is on and a manager user exists; otherwise `hr`.
+
+## Key modules (by concern)
+
+| Concern | Files |
+| --- | --- |
+| Submit / on-behalf | `actions/otm-request.actions.ts`, `data/otm-request-commands.server.ts` |
+| Approve / bulk | `actions/otm-approval.actions.ts`, `data/otm-approval-commands.server.ts` |
+| Routing (pure) | `data/otm-approval-routing.shared.ts`, `data/otm-approver-routing.server.ts` |
+| Policy | `data/otm-policy.shared.ts`, `data/otm-policy.server.ts`, `components/otm-policy-form.client.tsx` |
+| Exceptions | `data/otm-exception-detect.server.ts`, `data/otm-exception.server.ts`, `components/otm-exception-inbox.tsx` |
+| Calculation / payroll | `data/otm-calculation.server.ts`, `data/otm-payroll-export.server.ts`, `actions/otm-payroll.actions.ts` |
+| Notifications | `data/otm-notification.server.ts`, `data/otm-notification-email.server.ts` |
+| Overdue cron | `data/otm-overdue-watch.server.ts`, `app/api/cron/hrm-otm-overdue-watch/route.ts` |
+| Lists (Pattern C) | `data/otm-surface-builders.server.ts`, `data/otm.queries.server.ts` |
+| Audit strings | `otm.contract.ts` (`HRM_OTM_AUDIT`) |
 
 ## Definition
 

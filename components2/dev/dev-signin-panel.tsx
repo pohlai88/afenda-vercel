@@ -8,7 +8,8 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react"
 
 import { useDevSignInPanelDrag } from "./dev-signin-panel-drag"
 
-import { usePathname } from "#i18n/navigation"
+import { Link, usePathname } from "#i18n/navigation"
+import { demoPath } from "#features/demo/client"
 import { neonAuthClient } from "#lib/auth/neon-auth-client-runtime.shared"
 import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { employeePortalPath } from "#lib/portal"
@@ -38,6 +39,8 @@ const DEMO_EMPLOYEE_PORTAL_SLUG = "demo-org-employee"
 
 const DEMO_NEXUS_HOME = organizationAppsPath(DEMO_ORG_SLUG, "home")
 const DEMO_PORTAL_LEAVE = employeePortalPath(DEMO_EMPLOYEE_PORTAL_SLUG, "leave")
+const DEMO_SHOWCASE_INDEX = demoPath() as Route
+const DEMO_SHOWCASE_LEAVE = demoPath("employee/leave") as Route
 
 /**
  * Must match `DEV_PASSWORD` in `scripts/seed-dev-users.mjs`.
@@ -304,8 +307,25 @@ export function DevSignInPanel() {
           </button>
         </div>
         <p className="mb-surface-sm text-xs text-muted-foreground">
-          One-click sign-in: activates demo org + lands on dashboard (local
-          only). Drag the title bar to move this panel.
+          One-click sign-in for Lane B (real DB). Public showcase needs no
+          account — open on port 3000 (not workflow 3002).
+        </p>
+        <p className="mb-surface-sm text-xs">
+          <Link
+            href={DEMO_SHOWCASE_INDEX}
+            className="font-medium text-primary underline-offset-4 hover:underline"
+            prefetch={false}
+          >
+            Afenda Demo Showcase
+          </Link>
+          {" · "}
+          <Link
+            href={DEMO_SHOWCASE_LEAVE}
+            className="font-medium text-primary underline-offset-4 hover:underline"
+            prefetch={false}
+          >
+            Employee leave (read-only)
+          </Link>
         </p>
         <ul className="flex flex-col gap-2">
           {DEV_SIGNIN_PRESETS.map((preset) => {
@@ -366,19 +386,18 @@ export function DevSignInPanel() {
           </p>
         ) : null}
         <p className="mt-surface-md border-t border-border pt-surface-sm text-[0.625rem] leading-snug text-muted-foreground">
-          First-time setup: run{" "}
+          Lane B setup:{" "}
           <code className="rounded bg-muted px-1 py-px font-mono">
-            pnpm env:sync && pnpm dev:seed
+            pnpm env:sync && pnpm dev:seed && pnpm dev:seed:demo-erp
           </code>{" "}
-          to create accounts, org{" "}
-          <code className="font-mono text-[0.625rem]">{DEMO_ORG_SLUG}</code>,
-          and memberships in{" "}
-          <code className="font-mono text-[0.625rem]">neon_auth</code>. Employee
-          portal slug{" "}
+          — IAM + org{" "}
+          <code className="font-mono text-[0.625rem]">{DEMO_ORG_SLUG}</code> +
+          portal{" "}
           <code className="font-mono text-[0.625rem]">
             {DEMO_EMPLOYEE_PORTAL_SLUG}
-          </code>{" "}
-          requires active portal access on the linked employee record.
+          </code>
+          . UI: <code className="font-mono text-[0.625rem]">localhost:3000</code>
+          .
         </p>
       </div>
     </div>

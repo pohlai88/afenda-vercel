@@ -9,11 +9,11 @@ import { Button } from "#components2/ui/button"
 import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
+import type { OtmRequestMutationFormState } from "../../../types"
 import {
   applyOtmOnBehalfAction,
   requestOwnOtmAction,
-  type OtmRequestMutationFormState,
-} from "#features/hrm/client"
+} from "../actions/otm-request.actions"
 
 import { HRM_OTM_DAY_CATEGORIES, HRM_OTM_TIMING_KINDS } from "../schemas/otm.schema"
 import type {
@@ -218,20 +218,33 @@ export function OtmRequestForm({
         </Alert>
       ) : null}
 
-      <Button type="submit" disabled={pending}>
-        {pending ? (
-          <>
-            <Loader2
-              className="size-4 animate-spin"
-              data-icon="inline-start"
-              aria-hidden
-            />
-            {t("submitting")}
-          </>
-        ) : (
-          t("submit")
-        )}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" name="intent" value="submit" disabled={pending}>
+          {pending ? (
+            <>
+              <Loader2
+                className="size-4 animate-spin"
+                data-icon="inline-start"
+                aria-hidden
+              />
+              {t("submitting")}
+            </>
+          ) : (
+            t("submit")
+          )}
+        </Button>
+        {mode === "self" ? (
+          <Button
+            type="submit"
+            name="intent"
+            value="draft"
+            variant="outline"
+            disabled={pending}
+          >
+            {pending ? t("savingDraft") : t("saveDraft")}
+          </Button>
+        ) : null}
+      </div>
     </form>
   )
 }

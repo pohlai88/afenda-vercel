@@ -6,7 +6,15 @@ import { canUseErpPermission } from "#features/erp-rbac/server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import type { OtmRequestMutationFormState } from "../../../types"
 import { submitOtmRequestFormSchema } from "../schemas/otm.schema"
-import { submitOtmRequest } from "../data/otm-request-commands.server"
+import {
+  cancelOtmRequest,
+  submitOtmDraftRequest,
+  submitOtmRequest,
+} from "../data/otm-request-commands.server"
+import {
+  otmCancelRequestSchema,
+  otmSubmitDraftSchema,
+} from "../schemas/otm.schema"
 import {
   findOtmEmployeeForUser,
   getOtmEmployeeForOrg,
@@ -51,6 +59,7 @@ export async function requestOwnOtmAction(
   }
 
   const { data } = parsed
+  const saveAsDraft = formData.get("intent") === "draft"
   return submitOtmRequest({
     organizationId,
     userId,
@@ -65,6 +74,75 @@ export async function requestOwnOtmAction(
     reason: data.reason,
     eligibilityExceptionReason: data.eligibilityExceptionReason,
     initiatedBy: "employee",
+    saveAsDraft,
+  })
+}
+
+export async function submitOtmDraftAction(
+  _prev: OtmRequestMutationFormState | undefined,
+  formData: FormData
+): Promise<OtmRequestMutationFormState> {
+  const session = await requireOrgSession()
+  const { organizationId, userId, sessionId } = session
+
+  const employee = await findOtmEmployeeForUser(organizationId, userId)
+  if (!employee) {
+    return hrmActionFailure({
+      form: "Your user is not linked to an active employee record.",
+    })
+  }
+
+  const parsed = otmSubmitDraftSchema.safeParse({
+    requestId: formData.get("requestId"),
+  })
+
+  if (!parsed.success) {
+    return hrmActionFailure({
+      form: parsed.error.issues[0]?.message ?? "Invalid request.",
+    })
+  }
+
+  return submitOtmDraftRequest({
+    organizationId,
+    userId,
+    sessionId,
+    requestId: parsed.data.requestId,
+    employeeId: employee.id,
+  })
+}
+
+export async function cancelOwnOtmRequestAction(
+  _prev: OtmRequestMutationFormState | undefined,
+  formData: FormData
+): Promise<OtmRequestMutationFormState> {
+  const session = await requireOrgSession()
+  const { organizationId, userId, sessionId } = session
+
+  const employee = await findOtmEmployeeForUser(organizationId, userId)
+  if (!employee) {
+    return hrmActionFailure({
+      form: "Your user is not linked to an active employee record.",
+    })
+  }
+
+  const parsed = otmCancelRequestSchema.safeParse({
+    requestId: formData.get("requestId"),
+    cancelReason: formData.get("cancelReason") || null,
+  })
+
+  if (!parsed.success) {
+    return hrmActionFailure({
+      form: parsed.error.issues[0]?.message ?? "Invalid request.",
+    })
+  }
+
+  return cancelOtmRequest({
+    organizationId,
+    userId,
+    sessionId,
+    requestId: parsed.data.requestId,
+    employeeId: employee.id,
+    cancelReason: parsed.data.cancelReason,
   })
 }
 
@@ -133,6 +211,7 @@ export async function applyOtmOnBehalfAction(
   }
 
   const { data } = parsed
+  const saveAsDraft = formData.get("intent") === "draft"
   return submitOtmRequest({
     organizationId,
     userId,
@@ -147,5 +226,6 @@ export async function applyOtmOnBehalfAction(
     reason: data.reason,
     eligibilityExceptionReason: data.eligibilityExceptionReason,
     initiatedBy: hasUpdate ? "hr" : "manager",
+    saveAsDraft,
   })
 }

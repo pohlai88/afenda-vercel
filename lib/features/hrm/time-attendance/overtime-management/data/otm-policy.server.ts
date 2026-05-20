@@ -9,38 +9,10 @@ import { hrmOvertimePolicy } from "#lib/db/schema"
 import { HRM_OTM_AUDIT } from "../otm.contract"
 import type { HrmOtmRoundingMode } from "../schemas/otm-workflow-state.shared"
 import { revalidateOtmSurfaces } from "./otm-revalidate.server"
+import { OTM_DEFAULT_POLICY, type OtmPolicyRow } from "./otm-policy.shared"
 
-export type OtmPolicyRow = {
-  organizationId: string
-  minDurationMinutes: number
-  dailyCapMinutes: number | null
-  weeklyCapMinutes: number | null
-  monthlyCapMinutes: number | null
-  roundingIntervalMinutes: number | null
-  roundingMode: HrmOtmRoundingMode
-  compareAttendanceEnabled: boolean
-  compareShiftEnabled: boolean
-  claimDeadlineDays: number | null
-  allowCompensatoryTime: boolean
-  compensatoryLeaveTypeCode: string | null
-  defaultEarningCode: string
-}
-
-export const OTM_DEFAULT_POLICY: OtmPolicyRow = {
-  organizationId: "",
-  minDurationMinutes: 0,
-  dailyCapMinutes: null,
-  weeklyCapMinutes: null,
-  monthlyCapMinutes: null,
-  roundingIntervalMinutes: null,
-  roundingMode: "none",
-  compareAttendanceEnabled: false,
-  compareShiftEnabled: true,
-  claimDeadlineDays: null,
-  allowCompensatoryTime: false,
-  compensatoryLeaveTypeCode: null,
-  defaultEarningCode: "OT",
-}
+export type { OtmPolicyRow } from "./otm-policy.shared"
+export { OTM_DEFAULT_POLICY } from "./otm-policy.shared"
 
 export async function getOtmPolicyForOrg(
   organizationId: string
@@ -64,6 +36,9 @@ export async function getOtmPolicyForOrg(
     compareAttendanceEnabled: row.compareAttendanceEnabled,
     compareShiftEnabled: row.compareShiftEnabled,
     claimDeadlineDays: row.claimDeadlineDays,
+    enforceClaimDeadlineOnSubmit: row.enforceClaimDeadlineOnSubmit,
+    requireHrSecondApproval: row.requireHrSecondApproval,
+    managerChainMaxDepth: row.managerChainMaxDepth,
     allowCompensatoryTime: row.allowCompensatoryTime,
     compensatoryLeaveTypeCode: row.compensatoryLeaveTypeCode,
     defaultEarningCode: row.defaultEarningCode,
@@ -91,6 +66,9 @@ export async function upsertOtmPolicy(input: {
     compareAttendanceEnabled: input.policy.compareAttendanceEnabled,
     compareShiftEnabled: input.policy.compareShiftEnabled,
     claimDeadlineDays: input.policy.claimDeadlineDays,
+    enforceClaimDeadlineOnSubmit: input.policy.enforceClaimDeadlineOnSubmit,
+    requireHrSecondApproval: input.policy.requireHrSecondApproval,
+    managerChainMaxDepth: input.policy.managerChainMaxDepth,
     allowCompensatoryTime: input.policy.allowCompensatoryTime,
     compensatoryLeaveTypeCode: input.policy.compensatoryLeaveTypeCode,
     defaultEarningCode: input.policy.defaultEarningCode,
