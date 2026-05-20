@@ -12,13 +12,13 @@ import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { artifactsReportPath } from "./lib/artifacts-paths.shared.mjs"
 import { buildFailureDigest } from "./lib/vitest-failure-digest.shared.mjs"
 import { mergeChildEnv } from "./lib/merge-env.shared.mjs"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
-const artifactsDir = path.join(root, ".artifacts")
-const jsonPath = path.join(artifactsDir, "vitest-report.json")
-const failuresPath = path.join(artifactsDir, "vitest-failures.txt")
+const jsonPath = artifactsReportPath(root, "vitest-report.json")
+const failuresPath = artifactsReportPath(root, "vitest-failures.txt")
 
 /** @returns {Record<string, string>} */
 function parseDotenv(content) {
@@ -65,7 +65,7 @@ function main() {
 Runs \`vitest run --changed\` against tests affected by uncommitted + ref diff.
 Default ref: HEAD (Vitest default). Pass e.g. \`origin/main\` to compare to main.
 
-Writes .artifacts/vitest-failures.txt (same as test:audit).
+Writes .artifacts/reports/vitest-failures.txt (same as test:audit).
 `)
       process.exit(0)
     }

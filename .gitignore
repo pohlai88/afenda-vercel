@@ -12,7 +12,7 @@
 /.artifacts/
 # Playwright default when run without .config/playwright.config.ts (never commit)
 /test-results/
-# Vitest 4.x hardcodes `.vitest-reports/` — prefer junction via scripts/ensure-vitest-blob-link.mjs
+# Vitest 4.x hardcodes `.vitest-reports/` — junction → `.artifacts/vitest-reports` via `pnpm artifacts:init`
 /.vitest-reports/
 
 # Local Playwright MCP / browser debug captures (not product source)

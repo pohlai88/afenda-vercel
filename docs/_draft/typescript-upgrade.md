@@ -124,7 +124,7 @@ AFENDA_TSGO_ENFORCE=1 pnpm typecheck:tsgo        # blocking when promoting
 
 **CI:** `pnpm typecheck:tsgo` with `continue-on-error: true` after `verify:no-test`. **`tsc` remains merge authority.**
 
-**Report:** `.artifacts/tsgo-pilot-report.txt`
+**Report:** `.artifacts/reports/tsgo-pilot-report.txt`
 
 ---
 
@@ -153,7 +153,7 @@ pnpm typecheck:compare
 AFENDA_TSGO_ENFORCE=1 pnpm typecheck:compare
 ```
 
-Writes `.artifacts/typecheck-parity-report.txt` — promote `tsgo` to blocking only when **`exitParity=match`** on `main` with `AFENDA_TSGO_ENFORCE=1`.
+Writes `.artifacts/reports/typecheck-parity-report.txt` — promote `tsgo` to blocking only when **`exitParity=match`** on `main` with `AFENDA_TSGO_ENFORCE=1`.
 
 ---
 

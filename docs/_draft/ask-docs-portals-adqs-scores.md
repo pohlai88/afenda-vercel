@@ -18,4 +18,4 @@ Target ≥47.5/50 (95%). Heuristic audit via `pnpm audit:ask-docs-quality`.
 | offboarding | 54 | A |
 | employee (hub) | 54 | A |
 
-Full corpus tiers: `.artifacts/ask-docs-quality-audit.txt` (A=59, B=9 locale indexes partial-exempt, C=0 as of 2026-05-18).
+Full corpus tiers: `.artifacts/reports/ask-docs-quality-audit.txt` (A=59, B=9 locale indexes partial-exempt, C=0 as of 2026-05-18).

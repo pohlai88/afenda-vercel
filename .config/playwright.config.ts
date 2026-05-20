@@ -80,7 +80,7 @@ export default defineConfig({
   reporter: isCi
     ? [
         ["line"],
-        ["junit", { outputFile: "../.artifacts/playwright-junit.xml" }],
+        ["junit", { outputFile: "../.artifacts/playwright/junit.xml" }],
       ]
     : [["list"]],
   use: {

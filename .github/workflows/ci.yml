@@ -231,5 +231,5 @@ jobs:
         if: always()
         with:
           name: playwright-junit
-          path: .artifacts/playwright-junit.xml
+          path: .artifacts/playwright/junit.xml
           if-no-files-found: ignore

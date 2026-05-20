@@ -5,7 +5,7 @@
  * Cursor invokes this after every file write. Hook reads a JSON payload from stdin
  * containing `{ filePath: string, ... }` and appends the path to:
  *
- *   .artifacts/cursor-lint-queue.txt
+ *   .artifacts/reports/cursor-lint-queue.txt
  *
  * The agent (or a CI step / git hook) then drains the queue with:
  *
@@ -23,8 +23,10 @@ import fs from "node:fs"
 import path from "node:path"
 import process from "node:process"
 
+import { artifactsReportPath } from "../lib/artifacts-paths.shared.mjs"
+
 const REPO_ROOT = process.cwd()
-const QUEUE_FILE = path.join(REPO_ROOT, ".artifacts", "cursor-lint-queue.txt")
+const QUEUE_FILE = artifactsReportPath(REPO_ROOT, "cursor-lint-queue.txt")
 
 // Only queue paths under these roots — ESLint is meaningless for content/, docs/, .config/.
 const QUEUE_ROOTS = [

@@ -340,7 +340,7 @@ pnpm ask-docs:scaffold        # batch gen from scaffold.manifest.json (on demand
 pnpm lint:ask-docs-links      # internal URLs in MDX
 pnpm lint:ask-docs-prose      # markdownlint-cli2
 pnpm lint:ask-docs-quality    # ADQS stubs, Related graph, frontmatter (ADR-0027)
-pnpm audit:ask-docs-quality   # optional corpus tier report → .artifacts/ask-docs-quality-audit.txt
+pnpm audit:ask-docs-quality   # optional corpus tier report → .artifacts/reports/ask-docs-quality-audit.txt
 pnpm exec eslint --max-warnings=0 "app/(ask-docs)" app/og/ask-docs app/api/ask-docs-search app/api/chat components2/ai/search.tsx components2/ask-docs-mermaid.tsx lib/ask-docs source.config.ts scripts/ask-docs-check-gate.mjs scripts/ask-docs-scaffold-from-manifest.mjs scripts/lib/ask-docs-scaffold-manifest.shared.mjs
 pnpm typecheck
 ```

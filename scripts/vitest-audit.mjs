@@ -5,7 +5,7 @@
  * Full mode (--full): tee console log + JUnit (use before CI debug only).
  *
  * Usage:
- *   pnpm test:audit                         fast + all failures → .artifacts/vitest-failures.txt
+ *   pnpm test:audit                         fast + all failures → .artifacts/reports/vitest-failures.txt
  *   pnpm test:audit -- --full               tee + JUnit (larger artifacts)
  *   pnpm test:audit -- --coverage --full    CI parity (slow on Windows — explicit only)
  *   pnpm test:audit -- tests/unit/hrm-*.test.ts
@@ -15,15 +15,18 @@ import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import {
+  artifactsLogPath,
+  artifactsReportPath,
+} from "./lib/artifacts-paths.shared.mjs"
 import { mergeChildEnv } from "./lib/merge-env.shared.mjs"
 import { buildFailureDigest } from "./lib/vitest-failure-digest.shared.mjs"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
-const artifactsDir = path.join(root, ".artifacts")
-const logPath = path.join(artifactsDir, "vitest-audit.log")
-const jsonPath = path.join(artifactsDir, "vitest-report.json")
-const junitPath = path.join(artifactsDir, "vitest-junit.xml")
-const failuresPath = path.join(artifactsDir, "vitest-failures.txt")
+const logPath = artifactsLogPath(root, "vitest-audit.log")
+const jsonPath = artifactsReportPath(root, "vitest-report.json")
+const junitPath = artifactsReportPath(root, "vitest-junit.xml")
+const failuresPath = artifactsReportPath(root, "vitest-failures.txt")
 
 /** @returns {Record<string, string>} */
 function parseDotenv(content) {
@@ -105,12 +108,12 @@ function parseAuditArgs(argv) {
       console.log(`Usage: pnpm test:audit [-- --full] [-- --coverage] [-- --serial] [-- <filters>]
 
 LEAN (default) — same speed as test:fast, minimal disk:
-  .artifacts/vitest-failures.txt   all failures (or "All tests passed")
-  .artifacts/vitest-report.json    only when failures exist
+  .artifacts/reports/vitest-failures.txt   all failures (or "All tests passed")
+  .artifacts/reports/vitest-report.json    only when failures exist
 
 FULL (--full) — larger artifacts for deep debug:
-  + .artifacts/vitest-audit.log    full console tee
-  + .artifacts/vitest-junit.xml    JUnit XML
+  + .artifacts/logs/vitest-audit.log       full console tee
+  + .artifacts/reports/vitest-junit.xml    JUnit XML
 
 Avoid --coverage unless you need threshold parity (slow on Windows).
 `)

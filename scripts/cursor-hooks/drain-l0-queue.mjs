@@ -7,7 +7,7 @@
  *   node scripts/cursor-hooks/drain-l0-queue.mjs --dry-run
  *
  * Behavior:
- *   1. Reads `.artifacts/cursor-lint-queue.txt`.
+ *   1. Reads `.artifacts/reports/cursor-lint-queue.txt`.
  *   2. Dedupes paths and collapses to their nearest module/route directory
  *      (so 30 edits inside `lib/features/hrm/...` become a single `lib/features/hrm/` lint).
  *   3. Runs `pnpm gate -- <paths>` exactly once.
@@ -16,12 +16,13 @@
  * Reference: .cursor/rules/targeted-verification.mdc (L0 close condition)
  */
 import fs from "node:fs"
-import path from "node:path"
 import process from "node:process"
 import { spawnSync } from "node:child_process"
 
+import { artifactsReportPath } from "../lib/artifacts-paths.shared.mjs"
+
 const REPO_ROOT = process.cwd()
-const QUEUE_FILE = path.join(REPO_ROOT, ".artifacts", "cursor-lint-queue.txt")
+const QUEUE_FILE = artifactsReportPath(REPO_ROOT, "cursor-lint-queue.txt")
 const DRY_RUN = process.argv.includes("--dry-run")
 
 if (!fs.existsSync(QUEUE_FILE)) {
@@ -93,6 +94,6 @@ if ((result.status ?? 1) === 0) {
 }
 
 console.error(
-  "[drain-l0-queue] gate failed — queue preserved at .artifacts/cursor-lint-queue.txt for retry."
+  "[drain-l0-queue] gate failed — queue preserved at .artifacts/reports/cursor-lint-queue.txt for retry."
 )
 process.exit(result.status ?? 1)

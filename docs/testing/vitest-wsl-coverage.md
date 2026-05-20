@@ -22,6 +22,7 @@ corepack enable
 cd ~/afenda-vercel
 pnpm install
 pnpm env:sync   # if you use .env.config locally
+pnpm artifacts:init   # .artifacts layout + Vitest blob junction (Windows + WSL)
 ```
 
 ## Run coverage in WSL
@@ -80,7 +81,7 @@ From Windows or WSL:
 
 ```bash
 pnpm test:analyze:imports              # print top slow imports
-pnpm test:analyze:imports:report       # write .artifacts/vitest-import-durations.txt
+pnpm test:analyze:imports:report       # write .artifacts/reports/vitest-import-durations.txt
 pnpm test:analyze:imports -- tests/unit/hrm
 ```
 

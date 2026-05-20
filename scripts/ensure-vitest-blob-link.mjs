@@ -1,6 +1,6 @@
 /**
- * Ensures `.vitest-reports` → `.artifacts/vitest-reports` (Vitest blob reporter target).
- * Run before `test:ci:shard`, `test:local-shards`, and CI merge jobs.
+ * @deprecated Prefer `pnpm artifacts:init` (`scripts/ensure-artifacts-layout.mjs`).
+ * Kept for scripts that only need the Vitest blob junction.
  */
 import path from "node:path"
 import { fileURLToPath } from "node:url"

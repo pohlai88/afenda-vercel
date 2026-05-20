@@ -57,14 +57,14 @@ Before push:         pnpm gate:typecheck  (or pnpm gate:push)
 
 | Phase | Scope |
 | --- | --- |
-| **4** | `@typescript/native-preview` (`tsgo`), `tsconfig.*.tsgo.json`, `pnpm typecheck:tsgo`, CI step (non-blocking), `.artifacts/tsgo-pilot-report.txt` |
+| **4** | `@typescript/native-preview` (`tsgo`), `tsconfig.*.tsgo.json`, `pnpm typecheck:tsgo`, CI step (non-blocking), `.artifacts/reports/tsgo-pilot-report.txt` |
 | **5** | Turbo tasks `typecheck:lib-db` → `typecheck:platform`; `typecheck:test` / `typecheck:scripts` parallel after lib-db; `verify*` uses slice tasks; `pnpm typecheck:turbo` |
 
 ### Phase 6 (implemented)
 
 | Phase | Scope |
 | --- | --- |
-| **6** | Gate `--typecheck` maps `tests/**` and `scripts/**` to their isolated `tsc --noEmit -p` graphs; `pnpm typecheck:compare` records `tsc` vs `tsgo` exit parity (`.artifacts/typecheck-parity-report.txt`) |
+| **6** | Gate `--typecheck` maps `tests/**` and `scripts/**` to their isolated `tsc --noEmit -p` graphs; `pnpm typecheck:compare` records `tsc` vs `tsgo` exit parity (`.artifacts/reports/typecheck-parity-report.txt`) |
 
 ### Phase 7 (implemented)
 

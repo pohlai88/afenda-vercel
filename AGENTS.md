@@ -270,7 +270,8 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | `pnpm lint:ask-docs-links`            | `next-validate-link` — validates internal URLs in `content/ask-docs/**/*.mdx` (Fumadocs)                                                                                                                             |
 | `pnpm lint:ask-docs-prose`            | `markdownlint-cli2` — narrow prose/style gate on `content/ask-docs/**/*.mdx` (config `.config/markdownlint-ask-docs.jsonc`)                                                                                          |
 | `pnpm lint:ask-docs-quality`          | ADQS mechanical gate — stub strings, Related graph, stable frontmatter on `content/ask-docs/**/*.mdx` (`scripts/lint-ask-docs-quality.mjs`; ADR-0027)                                                                  |
-| `pnpm audit:ask-docs-quality`         | ADQS corpus tier report A/B/C → `.artifacts/ask-docs-quality-audit.txt` (`scripts/audit-ask-docs-quality.mjs`; not in CI — PR review aid)                                                                               |
+| `pnpm artifacts:init`                 | Ensure `.artifacts/` layout (`logs/`, `reports/`, `playwright/`) + Vitest blob junction + migrate legacy flat files (`scripts/ensure-artifacts-layout.mjs`)                                                              |
+| `pnpm audit:ask-docs-quality`         | ADQS corpus tier report A/B/C → `.artifacts/reports/ask-docs-quality-audit.txt` (`scripts/audit-ask-docs-quality.mjs`; not in CI — PR review aid)                                                                     |
 | `pnpm typecheck:full`                 | App + test + scripts graphs (`typecheck` + `typecheck:test` + `typecheck:scripts`) |
 | `pnpm typecheck`                      | `typecheck-build.mjs` → `tsc -b` (lib-db + platform) |
 | `pnpm typecheck:test`                 | `tsc -p tsconfig.test.json` — test graph |
@@ -282,9 +283,9 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | `pnpm verify:parallel`                | Alias for `pnpm verify` (stable name)                                                                                                                                                                                |
 | `pnpm test`                           | Vitest watch — `tests/unit/` (ADR-0008)                                                                                                                                                                              |
 | `pnpm test:fast`                      | `vitest run --config .config/vitest.config.ts` (required — bare `vitest run` skips stubs)                                                                                                                            |
-| `pnpm test:changed`                   | Git-changed tests only + `.artifacts/vitest-failures.txt` (fastest behavior gate)                                                                                                                                    |
+| `pnpm test:changed`                   | Git-changed tests only + `.artifacts/reports/vitest-failures.txt` (fastest behavior gate)                                                                                                                            |
 | `pnpm test:audit`                     | Full suite, `--bail=0`, lean failure digest (JSON deleted on pass)                                                                                                                                                   |
-| `pnpm test:failures`                  | Reprint last `.artifacts/vitest-failures.txt` without re-running                                                                                                                                                     |
+| `pnpm test:failures`                  | Reprint last `.artifacts/reports/vitest-failures.txt` without re-running                                                                                                                                             |
 | `pnpm test:fast:node` / `:dom`        | Single Vitest project — skip jsdom when DOM untouched                                                                                                                                                                |
 | `pnpm test:ci`                        | `vitest run --coverage` → `.artifacts/coverage/`                                                                                                                                                                     |
 | `pnpm test:e2e`                       | `pnpm build` → Playwright on port 3001                                                                                                                                                                               |
@@ -383,7 +384,21 @@ pnpm lint:public-lynx-contract # after app/api/chat, components2/ai/search, lib/
 
 **Coverage (V8):** `lib/auth/**/*.shared.ts` + `lib/auth/callback-path.ts` → **≥ 95%**. Global ratcheted toward **80%**. Artifacts → `.artifacts/` only (gitignored).
 
-**Transient output:** Vitest coverage → `.artifacts/coverage/` · Vitest blob shards → `.artifacts/vitest-reports/` (via `.vitest-reports` junction — `node scripts/ensure-vitest-blob-link.mjs`) · Playwright JUnit → `.artifacts/playwright-junit.xml` · traces → `.artifacts/playwright/test-results/` · ad-hoc knip → `.artifacts/knip-output.txt` (optional) · Playwright MCP debug → `.playwright-mcp/` (gitignored). Never commit repo-root `test-results/` (use `--config .config/playwright.config.ts`).
+**Transient output** (gitignored; run **`pnpm artifacts:init`** once after clone/pull — layout + Vitest junction + legacy flat-file migration):
+
+| Output | Path |
+| --- | --- |
+| Vitest coverage | `.artifacts/coverage/` |
+| Vitest blob shards | `.artifacts/vitest-reports/` (Vitest writes `.vitest-reports/` → junction) |
+| Playwright JUnit | `.artifacts/playwright/junit.xml` |
+| Playwright traces | `.artifacts/playwright/test-results/` |
+| Ad-hoc reports | `.artifacts/reports/` (vitest digests, typecheck parity, ask-docs audit, cursor lint queue, …) |
+| Ad-hoc logs | `.artifacts/logs/` (`*.log` tee files) |
+| TS build cache | `.artifacts/.tsbuildinfo/`, `.artifacts/types/` |
+| Optional knip | `.artifacts/reports/knip-output.txt` |
+| Playwright MCP debug | `.playwright-mcp/` (repo root, gitignored) |
+
+Never commit repo-root `test-results/` (use `--config .config/playwright.config.ts`).
 
 **Fixture typing rule — `as const satisfies <RowType>`:**
 
@@ -986,7 +1001,7 @@ Do **not** commit `.source/` — it is regenerated by Next/Fumadocs. Do **not** 
 | `.config/markdownlint-ask-docs.jsonc`                     | markdownlint-cli2 config for `lint:ask-docs-prose`                                                                                                                                                                 |
 | `scripts/lint-ask-docs-prose.mjs`                         | Invokes markdownlint-cli2 on `content/ask-docs/**/*.mdx`                                                                                                                                                           |
 | `scripts/lint-ask-docs-quality.mjs`                       | ADQS mechanical gate (stubs, Related, frontmatter) — see ADR-0027                                                                                                                                                  |
-| `scripts/audit-ask-docs-quality.mjs`                      | Heuristic tier report → `.artifacts/ask-docs-quality-audit.txt`                                                                                                                                                    |
+| `scripts/audit-ask-docs-quality.mjs`                      | Heuristic tier report → `.artifacts/reports/ask-docs-quality-audit.txt`                                                                                                                                            |
 | `.agents/skills/adqs/SKILL.md`                            | Embedded agent workflow — composes documentation-audit + technical-writing + ADQS rubric                                                                                                                           |
 | `turbo/generators/config.ts`                              | Registers `ask-doc` generator (`pnpm gen ask-doc`)                                                                                                                                                                 |
 | `turbo/generators/templates/ask-doc/page.mdx.hbs`         | `pnpm gen ask-doc` MDX skeleton                                                                                                                                                                                    |

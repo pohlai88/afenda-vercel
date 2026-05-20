@@ -11,10 +11,12 @@ import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { artifactsReportPath } from "./lib/artifacts-paths.shared.mjs"
+
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 const isWindows = process.platform === "win32"
 const enforce = process.env.AFENDA_TSGO_ENFORCE === "1"
-const reportPath = path.join(root, ".artifacts", "tsgo-pilot-report.txt")
+const reportPath = artifactsReportPath(root, "tsgo-pilot-report.txt")
 
 const TSGO_SOLUTION = "tsconfig.tsgo.build.json"
 

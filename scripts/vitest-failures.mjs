@@ -2,13 +2,14 @@
  * Reprint the last Vitest failure digest without re-running tests.
  *
  * Usage:
- *   pnpm test:failures              read .artifacts/vitest-failures.txt
+ *   pnpm test:failures              read .artifacts/reports/vitest-failures.txt
  *   pnpm test:failures -- --rebuild   rebuild digest from vitest-report.json if present
  */
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { artifactsReportPath } from "./lib/artifacts-paths.shared.mjs"
 import {
   buildFailureDigest,
   digestIndicatesFailures,
@@ -16,9 +17,8 @@ import {
 } from "./lib/vitest-failure-digest.shared.mjs"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
-const artifactsDir = path.join(root, ".artifacts")
-const failuresPath = path.join(artifactsDir, "vitest-failures.txt")
-const jsonPath = path.join(artifactsDir, "vitest-report.json")
+const failuresPath = artifactsReportPath(root, "vitest-failures.txt")
+const jsonPath = artifactsReportPath(root, "vitest-report.json")
 
 const rebuild = process.argv.includes("--rebuild")
 
@@ -41,10 +41,10 @@ function main() {
   if (process.argv.includes("--help") || process.argv.includes("-h")) {
     console.log(`Usage: pnpm test:failures [-- --rebuild]
 
-Reads .artifacts/vitest-failures.txt from the last pnpm test:audit run.
+Reads .artifacts/reports/vitest-failures.txt from the last pnpm test:audit run.
 Exit 0 when all passed; exit 1 when failures are listed; exit 2 when no digest exists.
 
-  --rebuild   regenerate digest from .artifacts/vitest-report.json (if kept)
+  --rebuild   regenerate digest from .artifacts/reports/vitest-report.json (if kept)
 `)
     process.exit(0)
   }

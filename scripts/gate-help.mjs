@@ -58,7 +58,8 @@ DEBUG (full test picture — lean by default)
   pnpm test:changed                  fastest — git-changed tests only + failure digest
   pnpm test:audit:changed            same, via audit entry
   pnpm test:failures                 reprint last digest (no re-run)
-  pnpm test:audit                    full suite + .artifacts/vitest-failures.txt
+  pnpm artifacts:init                after clone/pull — layout + vitest junction
+  pnpm test:audit                    full suite + .artifacts/reports/vitest-failures.txt
   pnpm test:fast:node                skip jsdom project when DOM untouched
   pnpm test:audit -- --coverage      slow — before push only
 

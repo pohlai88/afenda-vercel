@@ -36,12 +36,13 @@ alwaysApply: false
 | `pnpm test:ci` / `pnpm test:coverage` | `vitest run --config .config/vitest.config.ts --coverage` |
 | `pnpm test:fast:node` / `test:fast:pure` / `test:fast:dom` | Single Vitest project |
 | `pnpm test:changed` | **Default edit loop** — git-changed tests only |
-| `pnpm test:local-shards` | Local 4-way shard + merge (high-core Linux/WSL) |
+| `pnpm artifacts:init` | After clone/pull — `.artifacts/` layout + Vitest blob junction + legacy file migration |
+| `pnpm test:local-shards` | Local 4-way shard + merge (high-core Linux/WSL); runs `artifacts:init` first |
 | `pnpm test:audit:changed` | Same via audit entry |
-| `pnpm test:failures` | Reprint `.artifacts/vitest-failures.txt` without re-running |
+| `pnpm test:failures` | Reprint `.artifacts/reports/vitest-failures.txt` without re-running |
 | `pnpm test:audit` | Full suite, `--bail=0`, lean digest (JSON deleted on pass) |
 | `pnpm test:analyze:imports` | Top slow module imports (console, limit 30) |
-| `pnpm test:analyze:imports:report` | Same → `.artifacts/vitest-import-durations.txt` (limit 50) |
+| `pnpm test:analyze:imports:report` | Same → `.artifacts/reports/vitest-import-durations.txt` (limit 50) |
 | `pnpm test:analyze:imports:warn` | `print=on-warn` (direct Vitest flag) |
 
 Append Vitest path filters after `--`, e.g. `pnpm test:analyze:imports -- tests/unit/planner`.

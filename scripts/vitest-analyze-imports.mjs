@@ -3,7 +3,7 @@
  *
  * Usage:
  *   pnpm test:analyze:imports              # top 30, console
- *   pnpm test:analyze:imports:report       # top 50 → .artifacts/vitest-import-durations.txt
+ *   pnpm test:analyze:imports:report       # top 50 → .artifacts/reports/vitest-import-durations.txt
  *   pnpm test:analyze:imports -- tests/unit/hrm
  */
 import { spawnSync } from "node:child_process"
@@ -11,11 +11,11 @@ import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { artifactsReportPath } from "./lib/artifacts-paths.shared.mjs"
 import { mergeChildEnv } from "./lib/merge-env.shared.mjs"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
-const artifactsDir = path.join(root, ".artifacts")
-const reportPath = path.join(artifactsDir, "vitest-import-durations.txt")
+const reportPath = artifactsReportPath(root, "vitest-import-durations.txt")
 
 /** @returns {Record<string, string>} */
 function parseDotenv(content) {

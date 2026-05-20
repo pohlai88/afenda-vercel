@@ -37,7 +37,7 @@ Adopt **ADQS — Ask-Docs Quality Standard** with target **≥47.5/50 (95%)** pe
 | Gate | Script | CI |
 | --- | --- | --- |
 | Stub / Related / frontmatter | `pnpm lint:ask-docs-quality` | `pnpm lint` / `pnpm verify` |
-| Corpus tier report | `pnpm audit:ask-docs-quality` | local / PR review (output → `.artifacts/ask-docs-quality-audit.txt`) |
+| Corpus tier report | `pnpm audit:ask-docs-quality` | local / PR review (output → `.artifacts/reports/ask-docs-quality-audit.txt`) |
 | Internal links | `pnpm lint:ask-docs-links` | yes |
 | Prose style | `pnpm lint:ask-docs-prose` | yes |
 

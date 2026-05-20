@@ -2,15 +2,17 @@
 /**
  * ADQS corpus audit — heuristic tier report (A/B/C) for content/ask-docs.
  * Run: node scripts/audit-ask-docs-quality.mjs
- * Output: .artifacts/ask-docs-quality-audit.txt
+ * Output: .artifacts/reports/ask-docs-quality-audit.txt
  */
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { artifactsReportPath } from "./lib/artifacts-paths.shared.mjs"
+
 const root = fileURLToPath(new URL("..", import.meta.url))
 const docsRoot = path.join(root, "content", "ask-docs")
-const outPath = path.join(root, ".artifacts", "ask-docs-quality-audit.txt")
+const outPath = artifactsReportPath(root, "ask-docs-quality-audit.txt")
 
 function listMdxFiles(dir, acc = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
