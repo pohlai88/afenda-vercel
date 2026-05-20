@@ -2,9 +2,9 @@
  * Edit-loop gate (Tier L0) — default command for IDE agents and local iteration.
  *
  * Usage:
- *   pnpm gate                          → app typecheck only (~10–30s warm; cold often minutes)
- *   pnpm gate -- lib/features/hrm/     → lint:path only (ESLint; paths do not narrow tsc)
- *   pnpm gate -- lib/features/hrm/ --typecheck → lint:path + typecheck
+ *   pnpm gate                          → app typecheck only (warm ~10–30s; cold often minutes)
+ *   pnpm gate -- lib/features/hrm/     → lint:path only (ESLint; add --typecheck for slices)
+ *   pnpm gate -- lib/features/hrm/ --typecheck → lint:path + slice-aware typecheck-build
  *   pnpm gate:lint -- <paths>          → lint:path only (alias)
  *   pnpm gate:typecheck                → app typecheck only
  *   pnpm gate:help                     → print ladder

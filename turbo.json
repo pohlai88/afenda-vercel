@@ -190,7 +190,21 @@
     "lint:feature-table-imports": {
       "inputs": ["lib/features/**", "scripts/check-feature-table-imports.mjs"]
     },
-    "typecheck": {
+    "typecheck:lib-db": {
+      "inputs": [
+        "lib/db/**/*.ts",
+        "tsconfig.base.json",
+        "tsconfig.base.tsgo.json",
+        ".config/tsconfig.lib-db.json",
+        ".config/tsconfig.tsgo.lib-db.json"
+      ],
+      "outputs": [
+        ".artifacts/.tsbuildinfo/lib-db",
+        ".artifacts/types/lib-db/**"
+      ]
+    },
+    "typecheck:platform": {
+      "dependsOn": ["typecheck:lib-db"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!drizzle/**",
@@ -199,16 +213,23 @@
         "!public/**",
         "!docs/**",
         "!tests/**",
+        "!scripts/**",
+        "!lib/db/**",
         "!*.md",
         "tsconfig.json",
-        "tsconfig.base.json",
         "tsconfig.build.json",
-        ".config/tsconfig.lib-db.json",
-        "i18n/global.d.ts"
+        "tsconfig.base.json",
+        "tsconfig.tsgo.json",
+        "tsconfig.tsgo.build.json",
+        "i18n/global.d.ts",
+        "scripts/next-typegen-fast.mjs",
+        "scripts/typecheck-build.mjs",
+        "scripts/typecheck-tsgo-pilot.mjs"
       ],
-      "outputs": [".artifacts/.tsbuildinfo/main"]
+      "outputs": [".artifacts/.tsbuildinfo/platform"]
     },
     "typecheck:test": {
+      "dependsOn": ["typecheck:lib-db"],
       "inputs": [
         "tests/**/*.{ts,tsx}",
         ".config/tsconfig.test.json",
@@ -219,6 +240,7 @@
       "outputs": [".artifacts/.tsbuildinfo/test"]
     },
     "typecheck:scripts": {
+      "dependsOn": ["typecheck:lib-db"],
       "inputs": [
         "scripts/**/*.{ts,mjs}",
         ".config/tsconfig.scripts.json",

@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "#collections/*": ["./.source/*"],
+      "#components2/*": ["./components2/*"],
+      "#app-shell": ["./components2/app-shell/index.ts"],
+      "#app-shell/client": ["./components2/app-shell/client.ts"],
+      "#lib/*": ["./lib/*"],
+      "#features/*": ["./lib/features/*"],
+      "#i18n/*": ["./i18n/*"],
+      "#flags": ["./flags.ts"]
+    },
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolvePackageJsonImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "assumeChangesOnlyAffectDirectDependencies": true
+  }
+}

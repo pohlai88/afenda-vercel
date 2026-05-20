@@ -38,7 +38,7 @@ describe("planGateCommands", () => {
       planGateCommands(["lib/features/hrm/"], { typecheck: true })
     ).toEqual([
       "pnpm lint:path -- lib/features/hrm/",
-      "pnpm exec tsc -b tsconfig.json",
+      "node scripts/typecheck-build.mjs lib/features/hrm/",
     ])
   })
 
@@ -46,7 +46,7 @@ describe("planGateCommands", () => {
     expect(planGateCommands(["lib/db/schema.ts"], { typecheck: true })).toEqual(
       [
         "pnpm lint:path -- lib/db/schema.ts",
-        "pnpm exec tsc -b .config/tsconfig.lib-db.json",
+        "node scripts/typecheck-build.mjs lib/db/schema.ts",
       ]
     )
   })

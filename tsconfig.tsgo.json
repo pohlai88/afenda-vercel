@@ -1,0 +1,44 @@
+{
+  "extends": "./tsconfig.base.tsgo.json",
+  "references": [{ "path": ".config/tsconfig.tsgo.lib-db.json" }],
+  "compilerOptions": {
+    "noEmit": true,
+    "tsBuildInfoFile": ".artifacts/.tsbuildinfo/platform-tsgo",
+    "plugins": [
+      {
+        "name": "next"
+      },
+      {
+        "name": "workflow"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "i18n/global.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    ".next-workflow/types/**/*.ts",
+    ".next-workflow/dev/types/**/*.ts",
+    ".next-ui/types/**/*.ts",
+    ".next-ui/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".source",
+    "lib/db",
+    ".next/dev",
+    ".next-ui/dev",
+    ".next-workflow/dev",
+    "tests",
+    "scripts",
+    "turbo",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "playwright.config.ts",
+    "drizzle.config.ts",
+    "source.config.ts"
+  ]
+}

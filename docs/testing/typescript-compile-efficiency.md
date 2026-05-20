@@ -26,10 +26,13 @@ Declaration emit: `.artifacts/types/lib-db/` (gitignored). Warm feature edits ca
 Slice commands:
 
 ```bash
+pnpm typecheck              # direct tsc -b (agents, gate:typecheck)
+pnpm typecheck:turbo          # Turbo parallel lib-db → platform + test + scripts (CI)
 pnpm typecheck:lib-db
 pnpm typecheck:platform
-pnpm typecheck:diagnostics   # tsc -b + --extendedDiagnostics
-pnpm typecheck:profile       # typegen vs tsc -b timing
+pnpm typecheck:tsgo           # tsgo pilot (non-blocking; separate tsgo tsconfigs)
+pnpm typecheck:diagnostics
+pnpm typecheck:profile
 ```
 
 ## Settings already locked in

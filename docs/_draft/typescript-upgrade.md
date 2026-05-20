@@ -1,6 +1,6 @@
 # TypeScript performance and gate upgrade — Afenda
 
-**Status:** Phases 0–3 shipped (lib/db slice + gate mapping + typed ESLint) · Phases 4–5 planned  
+**Status:** Phases 0–5 shipped · `tsgo` CI pilot is non-blocking until parity  
 **Canonical decision:** [ADR-0042](../decisions/0042-typescript-gate-performance.md)  
 **Gate ladder:** [ADR-0033](../decisions/0033-verify-gate-ladder-naming.md)
 
@@ -14,7 +14,7 @@ Three different “type” systems run in parallel, but L0 treated them as one:
 | --- | --- | --- |
 | IDE (TS Server) | Feedback while editing | Per file |
 | `pnpm lint:path` | ESLint + Afenda rules | Yes |
-| `pnpm typecheck` | Whole-program `tsc -b` | **Slices only** (Phase 1–2) |
+| `pnpm typecheck` | Whole-program `tsc -b` | **Slices** (Phase 1–2) |
 
 `pnpm gate -- <paths>` runs ESLint only by default. Full app graph: `pnpm gate:typecheck` or `pnpm gate -- <paths> --typecheck` (slice-aware).
 
@@ -22,113 +22,94 @@ Three different “type” systems run in parallel, but L0 treated them as one:
 
 ## Phase 0 — Shipped
 
-### Commands
-
 ```bash
-# After editing (default L0 — ESLint only)
-pnpm gate -- lib/features/hrm/
-
-# Full app graph (before push)
-pnpm gate:typecheck
-
-# Lint + slice typecheck (HRM → platform only; skips lib/db when unchanged)
-pnpm gate -- lib/features/hrm/ --typecheck
-
-# Lint-only alias
-pnpm gate:lint -- lib/features/hrm/
-
-# Bare gate = full solution typecheck
-pnpm gate
-
-# Profiling
+pnpm gate -- lib/features/hrm/              # ESLint only (L0)
+pnpm gate:typecheck                         # full tsc -b before push
+pnpm gate -- lib/features/hrm/ --typecheck  # ESLint + platform slice
 pnpm typecheck:profile
-pnpm typecheck:diagnostics
 ```
-
-### Already in repo (keep)
-
-| Mechanism | Location |
-| --- | --- |
-| Split graphs | `typecheck`, `typecheck:test`, `typecheck:scripts` |
-| Fast typegen | `scripts/next-typegen-fast.mjs` |
-| Incremental | `tsBuildInfoFile`, `assumeChangesOnlyAffectDirectDependencies` |
-| Ambient types | `types: ["node"]` in `tsconfig.base.json` |
-| Client/server barrels | ADR-0030 |
-
-### Implementation files
-
-- `scripts/gate-args.shared.mjs` — parse `--typecheck`, plan commands
-- `scripts/gate.mjs` — lint-only default; slice `typecheck-build` when `--typecheck`
-- `scripts/typecheck-profile.mjs` — typegen vs `tsc -b` timing
-- `tests/unit/gate-args.shared.test.ts`
 
 ---
 
-## Phase 1 — Project references (shipped, pilot slice)
-
-**Goal:** `tsc -b` rebuilds only affected composite projects.
+## Phase 1 — Project references (shipped)
 
 ```txt
-tsconfig.base.json              # shared compilerOptions + paths
-.config/tsconfig.lib-db.json    # composite: lib/db only (acyclic)
-tsconfig.json                   # platform graph; references lib-db; excludes lib/db from include
-tsconfig.build.json             # solution: files: [], references: [lib-db, platform]
+tsconfig.base.json
+.config/tsconfig.lib-db.json    # composite lib/db
+tsconfig.json                   # platform; references lib-db
+tsconfig.build.json             # solution root (tsc)
 ```
-
-**Emit:** declaration output → `.artifacts/types/lib-db/` (gitignored via `.artifacts/`).
-
-**Why only `lib/db` today:** `lib/auth` → `lib/i18n` → `#features/*` and `lib/erp` → `#lib/auth` prevent a larger foundation slice without refactors. Further slices (HRM-only) need graph surgery or accept “platform” as the main incremental unit.
-
-**Commands:**
 
 ```bash
-pnpm typecheck              # tsc -b lib-db + platform (via scripts/typecheck-build.mjs)
-pnpm typecheck:lib-db       # schema slice only
-pnpm typecheck:platform     # typegen + platform graph
+pnpm typecheck              # typecheck-build.mjs → tsc -b
+pnpm typecheck:lib-db
+pnpm typecheck:platform
 ```
-
-**Caveats:** [TS#40431](https://github.com/microsoft/TypeScript/issues/40431) — use `tsc -b`, not `tsc -p` on referenced projects; export type changes invalidate downstream ([#47793](https://github.com/microsoft/TypeScript/issues/47793)).
 
 ---
 
 ## Phase 2 — Gate ↔ slice mapping (shipped)
 
-| Touched paths | `gate -- … --typecheck` runs |
+| Touched paths | `gate -- … --typecheck` |
 | --- | --- |
 | `lib/db/**` only | `tsc -b .config/tsconfig.lib-db.json` |
-| Anything else (e.g. `lib/features/hrm/`) | `tsc -b tsconfig.json` (platform; skips lib/db if up to date) |
-| Mixed db + feature paths | Full solution (both slices) |
-| `pnpm gate:typecheck` | Full solution via `pnpm typecheck` |
-
-**Implementation:** `scripts/lib/gate-typecheck-slices.shared.mjs` · `scripts/typecheck-build.mjs`
+| Other paths | `tsc -b tsconfig.json` (platform) |
+| Mixed | Full solution |
 
 ---
 
 ## Phase 3 — Typed ESLint (shipped, L2)
 
 ```bash
-pnpm lint:typed
 pnpm lint:typed -- lib/features/hrm/
 ```
 
-- Config: `.config/eslint.typed.config.mjs` (`parserOptions.projectService: true`)
-- **Not** part of L0 `lint:path` / `pnpm gate -- <paths>`
-- Use before push / in `gate:push` when type-aware ESLint rules are needed
-- Watch perf: [typescript-eslint#9571](https://github.com/typescript-eslint/typescript-eslint/issues/9571)
+Not part of L0 `gate -- <paths>`.
 
 ---
 
-## Phase 4 — `tsgo` CI pilot (planned)
+## Phase 4 — `tsgo` CI pilot (shipped)
 
-- Package: `@typescript/native-preview` / [typescript-go](https://github.com/microsoft/typescript-go)
-- CI: run parallel to `tsc`; fail on `tsc` until parity proven
-- Realistic expectation: often **25–40%** faster, not 10× ([#1507](https://github.com/microsoft/typescript-go/issues/1507))
+**Package:** `@typescript/native-preview` (`pnpm exec tsgo`).
+
+**Parallel configs (no `baseUrl` — tsgo requirement):**
+
+```txt
+tsconfig.base.tsgo.json
+.config/tsconfig.tsgo.lib-db.json
+tsconfig.tsgo.json
+tsconfig.tsgo.build.json
+```
+
+```bash
+pnpm typecheck:tsgo                              # advisory (exit 0 on tsgo errors)
+AFENDA_TSGO_ENFORCE=1 pnpm typecheck:tsgo        # blocking when ready
+```
+
+**CI:** `.github/workflows/ci.yml` runs `pnpm typecheck:tsgo` with `continue-on-error: true` after `verify:no-test`. **`tsc` remains the merge authority.**
+
+**Report:** `.artifacts/tsgo-pilot-report.txt` (timing + stderr on failure).
+
+**Expectation:** Often **25–40%** faster than `tsc` on warm runs — not 10×. Compare with `pnpm typecheck:profile`.
 
 ---
 
-## Phase 5 — Turborepo packages (defer)
+## Phase 5 — Turborepo typecheck graph (shipped)
 
-Only if `tsc -b` solution time stays &gt;2–3 min warm after more slices.
+Single-package repo — **not** a pnpm workspace split. Turbo orchestrates parallel graphs:
+
+```txt
+typecheck:lib-db  →  typecheck:platform
+                 ↘  typecheck:test
+                 ↘  typecheck:scripts   (parallel after lib-db)
+```
+
+```bash
+pnpm typecheck:turbo    # CI-style parallel graphs
+pnpm verify:no-test     # uses typecheck:lib-db + platform + test + scripts
+```
+
+**Local agents** keep `pnpm typecheck` (direct `typecheck-build.mjs`, no Turbo startup tax).
 
 ---
 
@@ -136,46 +117,40 @@ Only if `tsc -b` solution time stays &gt;2–3 min warm after more slices.
 
 | Approach | Verdict |
 | --- | --- |
-| Path-scoped `tsc` on one `tsconfig.json` | Reject |
-| `gate -- paths` = lint only; typecheck explicit | **Adopt (Phase 0)** |
-| Project references + `tsc -b` | **Adopt (Phase 1 — lib/db pilot)** |
-| Gate path → slice `tsc -b` | **Adopt (Phase 2)** |
-| `projectService` on every L0 lint | Reject |
-| `lint:typed` at L2 | **Adopt (Phase 3)** |
-| `tsgo` dual-run in CI | Pilot (Phase 4) |
-| `isolatedDeclarations` | Defer |
+| `gate -- paths` = lint only | **Adopt** |
+| Project references + `tsc -b` | **Adopt** |
+| Gate path → slice `tsc -b` | **Adopt** |
+| `lint:typed` at L2 | **Adopt** |
+| `tsgo` dual-run in CI (non-blocking) | **Adopt (Phase 4)** |
+| Turbo parallel typecheck graphs | **Adopt (Phase 5)** |
+| `tsgo` blocks merge | Defer until `AFENDA_TSGO_ENFORCE=1` + parity review |
+| pnpm workspace package split | Defer (out of scope for single-package repo) |
 
 ---
 
-## Hygiene (ongoing)
-
-1. Barrel diet on `index.ts` server graphs.
-2. Profile hot spots: `lib/db/schema.ts`, heavy generics — `pnpm typecheck:diagnostics`, optional `--generateTrace`.
-3. Do not run two full `typecheck` concurrently (`.tsbuildinfo` write contention).
-4. Invalidate Turbo typecheck cache when `pnpm-lock.yaml` or `tsconfig*.json` changes.
-
----
-
-## File inventory (Phases 0–3)
+## File inventory
 
 | Path | Role |
 | --- | --- |
-| `tsconfig.base.json` | Shared compiler options |
-| `tsconfig.json` | Platform graph (Next.js + Workflow plugins) |
-| `tsconfig.build.json` | Solution references |
-| `.config/tsconfig.lib-db.json` | Composite `lib/db` slice |
-| `scripts/typecheck-build.mjs` | `typegen` + `tsc -b` orchestration |
-| `scripts/lib/gate-typecheck-slices.shared.mjs` | Path → slice mapping |
-| `scripts/gate-args.shared.mjs` | Gate CLI parsing |
-| `scripts/gate.mjs` | L0 runner |
-| `scripts/lint-typed.mjs` | L2 typed ESLint entry |
-| `.config/eslint.typed.config.mjs` | `projectService` overlay |
-| `tests/unit/gate-args.shared.test.ts` | Gate plan tests |
-| `tests/unit/gate-typecheck-slices.shared.test.ts` | Slice resolver tests |
+| `tsconfig.base.json` / `tsconfig.build.json` | `tsc` solution |
+| `tsconfig.base.tsgo.json` / `tsconfig.tsgo.build.json` | `tsgo` solution (no `baseUrl`) |
+| `scripts/typecheck-build.mjs` | `tsc -b` orchestration |
+| `scripts/typecheck-tsgo-pilot.mjs` | `tsgo` CI pilot |
+| `scripts/lib/gate-typecheck-slices.shared.mjs` | Gate slice mapping |
+| `turbo.json` | `typecheck:lib-db`, `typecheck:platform`, test/scripts deps |
 | `docs/testing/typescript-compile-efficiency.md` | Operator guide |
+
+---
+
+## Hygiene
+
+1. Do not run two full `pnpm typecheck` concurrently (`.tsbuildinfo` contention).
+2. Invalidate Turbo cache when `tsconfig*.json` or `pnpm-lock.yaml` changes.
+3. Promote `tsgo` to blocking only after report parity with `tsc` on `main`.
+
+---
 
 ## References
 
-- [TypeScript Performance wiki](https://github.com/microsoft/TypeScript/wiki/Performance)
+- [TypeScript native previews](https://devblogs.microsoft.com/typescript/announcing-typescript-native-previews/)
 - [Project references handbook](https://www.typescriptlang.org/docs/handbook/project-references.html)
-- [TS#25600](https://github.com/microsoft/TypeScript/issues/25600) — project references discussion

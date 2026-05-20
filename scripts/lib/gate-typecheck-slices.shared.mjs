@@ -52,9 +52,11 @@ export function resolveTypecheckSlicesForPaths(paths) {
  * @returns {string}
  */
 export function formatTypecheckSliceCommand(paths) {
-  const slices = resolveTypecheckSlicesForPaths(paths)
-  const args = slices.flatMap((slice) => slice.args).join(" ")
-  return `pnpm exec tsc -b ${args}`
+  if (paths.length === 0) {
+    return "pnpm typecheck"
+  }
+  const quoted = paths.map((p) => (/\s/.test(p) ? `"${p}"` : p)).join(" ")
+  return `node scripts/typecheck-build.mjs ${quoted}`
 }
 
 /**

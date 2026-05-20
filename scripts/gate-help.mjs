@@ -27,8 +27,10 @@ COMMON (high frequency — no :full suffix)
   pnpm gate                          full solution typecheck (no paths)
   pnpm lint:path -- <paths>          targeted ESLint only
   pnpm lint:typed -- <paths>         L2 typed ESLint (projectService)
+  pnpm typecheck:turbo               Turbo parallel typecheck graphs (CI)
   pnpm typecheck:lib-db              lib/db slice only
   pnpm typecheck:platform            typegen + platform graph
+  pnpm typecheck:tsgo                tsgo pilot (non-blocking; tsc authority)
   pnpm typecheck:test                when tests/ changed
   pnpm typecheck:scripts             when scripts/ changed
   pnpm typecheck:profile             split typegen vs tsc -b timing

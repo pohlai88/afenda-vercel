@@ -1,0 +1,7 @@
+{
+  "files": [],
+  "references": [
+    { "path": ".config/tsconfig.tsgo.lib-db.json" },
+    { "path": "./tsconfig.tsgo.json" }
+  ]
+}

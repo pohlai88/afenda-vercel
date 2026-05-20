@@ -36,9 +36,13 @@ describe("resolveTypecheckSlicesForPaths", () => {
 })
 
 describe("formatTypecheckSliceCommand", () => {
-  it("joins slice args for tsc -b", () => {
+  it("delegates to typecheck-build for path-scoped slices", () => {
     expect(formatTypecheckSliceCommand(["lib/features/hrm/"])).toBe(
-      "pnpm exec tsc -b tsconfig.json"
+      "node scripts/typecheck-build.mjs lib/features/hrm/"
     )
+  })
+
+  it("uses full solution when no paths", () => {
+    expect(formatTypecheckSliceCommand([])).toBe("pnpm typecheck")
   })
 })

@@ -67,9 +67,14 @@ jobs:
             ${{ runner.os }}-artifacts-${{ hashFiles('pnpm-lock.yaml') }}-
             ${{ runner.os }}-artifacts-
 
-      # verify:no-test = all Turbo tasks except test:ci (lint, typecheck, knip, format).
+      # verify:no-test = all Turbo tasks except test:ci (lint, typecheck slices, knip, format).
       # Tests are handled by the sharded test-shards + merge-coverage jobs.
       - run: pnpm verify:no-test
+
+      # Phase 4: tsgo pilot — tsc remains authority; tsgo is advisory until parity is proven.
+      - name: TypeScript native preview (tsgo, non-blocking)
+        run: pnpm typecheck:tsgo
+        continue-on-error: true
 
   vitest-gate:
     runs-on: ubuntu-latest
