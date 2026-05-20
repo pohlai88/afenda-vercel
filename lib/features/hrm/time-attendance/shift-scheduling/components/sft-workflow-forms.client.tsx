@@ -21,6 +21,7 @@ import {
   approveScheduleChangeRequestAction,
   createShiftAvailabilityAction,
   rejectScheduleChangeRequestAction,
+  returnScheduleChangeRequestAction,
 } from "#features/hrm/client"
 
 const SELECT_CLASS =
@@ -235,6 +236,7 @@ export function SftScheduleChangeDecisionForms({
   const t = useTranslations("Dashboard.Hrm.shiftScheduling")
   const approveId = useId()
   const rejectId = useId()
+  const returnId = useId()
 
   const [approveState, approveAction, approvePending] = useActionState<
     SftSwapMutationFormState | undefined,
@@ -246,8 +248,13 @@ export function SftScheduleChangeDecisionForms({
     FormData
   >(rejectScheduleChangeRequestAction, undefined)
 
+  const [returnState, returnAction, returnPending] = useActionState<
+    SftSwapMutationFormState | undefined,
+    FormData
+  >(returnScheduleChangeRequestAction, undefined)
+
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-4 lg:grid-cols-3">
       <form
         action={approveAction}
         className="flex flex-col gap-2 rounded-md border p-3"
@@ -330,6 +337,53 @@ export function SftScheduleChangeDecisionForms({
           disabled={rejectPending}
         >
           {t("scheduleChangeReject")}
+        </Button>
+      </form>
+      <form
+        action={returnAction}
+        className="flex flex-col gap-2 rounded-md border p-3"
+      >
+        <Field>
+          <FieldLabel htmlFor={`${returnId}-req`}>
+            {t("fieldRequest")}
+          </FieldLabel>
+          <select
+            id={`${returnId}-req`}
+            name="requestId"
+            className={SELECT_CLASS}
+            required
+          >
+            <option value="" disabled>
+              {t("selectRequest")}
+            </option>
+            {requests.map((row) => (
+              <option key={row.id} value={row.id}>
+                {row.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${returnId}-reason`}>
+            {t("scheduleChangeReturnReason")}
+          </FieldLabel>
+          <Textarea
+            id={`${returnId}-reason`}
+            name="returnedReason"
+            required
+            rows={2}
+          />
+        </Field>
+        {returnState && !returnState.ok ? (
+          <FieldError>{returnState.errors?.form}</FieldError>
+        ) : null}
+        <Button
+          type="submit"
+          size="sm"
+          variant="outline"
+          disabled={returnPending}
+        >
+          {t("scheduleChangeReturn")}
         </Button>
       </form>
     </div>

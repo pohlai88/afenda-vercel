@@ -22,6 +22,7 @@ import {
   createCoverageRequirementAction,
   createRotationCycleAction,
   createShiftTemplateAction,
+  submitScheduleChangeRequestAction,
   submitShiftSwapRequestAction,
   updateShiftSchedulingPolicyAction,
 } from "#features/hrm/client"
@@ -718,6 +719,123 @@ export function SftSubmitSwapForm({
           </>
         ) : (
           t("swapSubmitSubmit")
+        )}
+      </Button>
+    </form>
+  )
+}
+
+export function SftSubmitScheduleChangeForm({
+  assignmentChoices,
+  templateChoices,
+  defaultDate,
+}: {
+  assignmentChoices: readonly SwapAssignmentChoice[]
+  templateChoices: readonly SwapAssignmentChoice[]
+  defaultDate: string
+}) {
+  const t = useTranslations("Dashboard.Hrm.shiftScheduling")
+  const [state, formAction, pending] = useActionState<
+    SftSwapMutationFormState | undefined,
+    FormData
+  >(submitScheduleChangeRequestAction, undefined)
+
+  const reasonId = useId()
+  const errors = state && !state.ok ? state.errors : null
+
+  return (
+    <form action={formAction} className="flex flex-col gap-3">
+      <Field>
+        <FieldLabel htmlFor="sft-sch-assign">
+          {t("scheduleChangeFieldAssignment")}
+        </FieldLabel>
+        <select
+          id="sft-sch-assign"
+          name="assignmentId"
+          className={SELECT_CLASS}
+          required
+          defaultValue=""
+        >
+          <option value="" disabled>
+            {t("scheduleChangeSelectAssignment")}
+          </option>
+          {assignmentChoices.map((row) => (
+            <option key={row.id} value={row.id}>
+              {row.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="sft-sch-date">
+          {t("scheduleChangeFieldProposedDate")}
+        </FieldLabel>
+        <Input
+          id="sft-sch-date"
+          name="proposedDate"
+          type="date"
+          required
+          defaultValue={defaultDate}
+        />
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="sft-sch-tpl">
+          {t("scheduleChangeFieldProposedShift")}
+        </FieldLabel>
+        <select
+          id="sft-sch-tpl"
+          name="proposedTemplateId"
+          className={SELECT_CLASS}
+          required
+          defaultValue=""
+        >
+          <option value="" disabled>
+            {t("selectShiftTemplate")}
+          </option>
+          {templateChoices.map((row) => (
+            <option key={row.id} value={row.id}>
+              {row.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor={reasonId}>{t("fieldReason")}</FieldLabel>
+        <Textarea
+          id={reasonId}
+          name="reason"
+          required
+          minLength={3}
+          maxLength={500}
+          rows={2}
+        />
+      </Field>
+      {errors?.form ? (
+        <Alert variant="destructive">
+          <AlertDescription>{errors.form}</AlertDescription>
+        </Alert>
+      ) : null}
+      {state?.ok ? (
+        <p className="text-xs text-muted-foreground">
+          {t("scheduleChangeSubmitSuccess")}
+        </p>
+      ) : null}
+      <Button
+        type="submit"
+        size="sm"
+        disabled={
+          pending ||
+          assignmentChoices.length === 0 ||
+          templateChoices.length === 0
+        }
+      >
+        {pending ? (
+          <>
+            <Loader2 className="size-4 animate-spin" data-icon="inline-start" />
+            {t("scheduleChangeSubmitSubmitting")}
+          </>
+        ) : (
+          t("scheduleChangeSubmitSubmit")
         )}
       </Button>
     </form>

@@ -40,6 +40,7 @@ export type ShiftAssignmentRow = {
 export type RosterAssignmentRow = ShiftAssignmentRow & {
   readonly employeeNumber: string | null
   readonly employeeFullName: string | null
+  readonly managerEmployeeId: string | null
   readonly currentDepartmentId: string | null
   readonly currentPositionId: string | null
 }

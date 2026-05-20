@@ -105,6 +105,7 @@ export async function ShiftSchedulingPage({
               organizationId={organizationId}
               rangeStart={rangeStart}
               rangeEnd={rangeEnd}
+              rosterFilters={rosterFilters}
             />
           ) : null}
           <SftRosterSection

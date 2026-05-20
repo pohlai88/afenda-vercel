@@ -14,6 +14,7 @@ import type { SftAttendanceReconcileRow } from "./sft-integration.server"
 import type { SftRecurrenceRuleRow } from "./sft-recurrence.queries.server"
 import type { ShiftCoverageComparisonRow } from "./sft-coverage.server"
 import type { EmployeeShiftSwapRow } from "./sft-swap.queries.server"
+import type { EmployeeScheduleChangeRow } from "./sft-schedule-change.server"
 import type { ShiftRosterPublicationRow } from "./sft-publication.queries.server"
 
 const SFT_READ_PERMISSION = {
@@ -368,6 +369,53 @@ export function buildSftMySwapsListSurfaceConfiguration(
         role: copy.roleLabel(row.isRequester),
         dates: `${row.requesterDate} ↔ ${row.counterpartyDate}`,
         shifts: `${row.requesterTemplateCode} ↔ ${row.counterpartyTemplateCode}`,
+        state: row.state,
+        reason: row.reason,
+        requested: copy.formatRequestedAt(row.createdAt),
+      },
+    })),
+  }
+}
+
+export function buildSftMyScheduleChangesListSurfaceConfiguration(
+  rows: readonly EmployeeScheduleChangeRow[],
+  copy: {
+    empty: string
+    colDate: string
+    colShift: string
+    colState: string
+    colReason: string
+    colRequested: string
+    formatRequestedAt: (date: Date) => string
+  }
+): ListSurfaceRendererConfigurationInput {
+  return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
+    dataNature: "table",
+    requiresErpPermission: SFT_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: listSurfaceHeader(SFT_LIST_SURFACE_IDS.myScheduleChanges),
+      columnsId: SFT_LIST_SURFACE_IDS.myScheduleChanges,
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "date", header: copy.colDate },
+      { id: "shift", header: copy.colShift },
+      { id: "state", header: copy.colState },
+      { id: "reason", header: copy.colReason },
+      {
+        id: "requested",
+        header: copy.colRequested,
+        cellKind: { kind: "datetime" },
+      },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        date: row.proposedDate,
+        shift: row.proposedTemplateCode,
         state: row.state,
         reason: row.reason,
         requested: copy.formatRequestedAt(row.createdAt),

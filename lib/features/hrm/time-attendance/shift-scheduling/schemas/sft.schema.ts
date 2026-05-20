@@ -234,3 +234,48 @@ export const rosterRangeSchema = z.object({
   rangeStart: isoDateSchema,
   rangeEnd: isoDateSchema,
 })
+
+export const submitScheduleChangeRequestSchema = z.object({
+  assignmentId: z
+    .string()
+    .trim()
+    .min(1, "Current shift assignment is required"),
+  proposedTemplateId: z.string().trim().min(1, "Proposed shift is required"),
+  proposedDate: isoDateSchema,
+  reason: z
+    .string()
+    .trim()
+    .min(3, "Reason is required (minimum 3 characters)")
+    .max(500),
+})
+
+export const scheduleChangeDecisionSchema = z.object({
+  requestId: z.string().trim().min(1, "Request is required"),
+  managerNote: z.string().trim().max(500).optional().nullable(),
+})
+
+export const scheduleChangeRejectSchema = scheduleChangeDecisionSchema.extend({
+  rejectedReason: z
+    .string()
+    .trim()
+    .min(3, "Rejection reason is required (minimum 3 characters)")
+    .max(500),
+})
+
+export const scheduleChangeReturnSchema = scheduleChangeDecisionSchema.extend({
+  returnedReason: z
+    .string()
+    .trim()
+    .min(3, "Return reason is required (minimum 3 characters)")
+    .max(500),
+})
+
+export const saveShiftRosterReportDefinitionSchema = z.object({
+  name: z.string().trim().min(1, "Report name is required").max(120),
+  departmentId: z.string().trim().optional().nullable(),
+  jobGradeId: z.string().trim().optional().nullable(),
+  locationCode: z.string().trim().max(64).optional().nullable(),
+  legalEntityOrgUnitId: z.string().trim().optional().nullable(),
+  teamOrgUnitId: z.string().trim().optional().nullable(),
+  positionId: z.string().trim().optional().nullable(),
+})

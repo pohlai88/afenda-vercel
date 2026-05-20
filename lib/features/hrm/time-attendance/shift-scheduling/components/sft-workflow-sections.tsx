@@ -12,6 +12,7 @@ import {
 import { listShiftAvailabilityForOrg } from "../data/sft-availability.queries.server"
 import { listPendingScheduleChangeRequests } from "../data/sft-schedule-change.server"
 import { listAllShiftTemplatesForOrg } from "../data/sft-template.queries.server"
+import { SftAvailabilityWeekCalendar } from "./sft-availability-week-calendar.client"
 import {
   SftAvailabilityCreateForm,
   SftHolidayPlannerForm,
@@ -44,6 +45,11 @@ export async function SftAvailabilitySection({
         <CardDescription>{t("availabilityDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        <SftAvailabilityWeekCalendar
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          entries={rows}
+        />
         {canManage ? (
           <SftAvailabilityCreateForm defaultDate={rangeStart} />
         ) : null}

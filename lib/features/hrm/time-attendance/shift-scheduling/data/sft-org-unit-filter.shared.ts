@@ -70,6 +70,38 @@ export function collectDescendantDepartmentIds(input: {
   return ids
 }
 
+export type OrgUnitDepartmentNode = {
+  readonly id: string
+  readonly code: string
+  readonly name: string
+  readonly orgUnitType: string | null
+  readonly parentDepartmentId: string | null
+}
+
+/** Walk ancestors until a legal_entity org unit is found (for roster CSV labels). */
+export function resolveLegalEntityLabelForDepartment(input: {
+  readonly departmentId: string | null | undefined
+  readonly departmentsById: ReadonlyMap<string, OrgUnitDepartmentNode>
+}): string {
+  const departmentId = input.departmentId?.trim() ?? ""
+  if (!departmentId) return ""
+
+  const seen = new Set<string>()
+  let cursor: string | null = departmentId
+
+  while (cursor && !seen.has(cursor)) {
+    seen.add(cursor)
+    const node = input.departmentsById.get(cursor)
+    if (!node) return ""
+    if (node.orgUnitType === "legal_entity") {
+      return `${node.code} · ${node.name}`
+    }
+    cursor = node.parentDepartmentId
+  }
+
+  return ""
+}
+
 export function employeeMatchesOrgUnitSubtree(input: {
   readonly currentDepartmentId: string | null
   readonly assignmentDepartmentId: string | null

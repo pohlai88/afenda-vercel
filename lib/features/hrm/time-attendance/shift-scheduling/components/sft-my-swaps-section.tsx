@@ -11,12 +11,22 @@ import {
 import { logUnexpectedServerError } from "#lib/logger.server"
 
 import {
+  listScheduleChangeChoicesForEmployee,
+  listScheduleChangeRequestsForEmployee,
+} from "../data/sft-schedule-change.server"
+import {
   listShiftSwapRequestsForEmployee,
   listSwapAssignmentChoicesForEmployee,
 } from "../data/sft-swap.queries.server"
-import { buildSftMySwapsListSurfaceConfiguration } from "../data/sft-surface-builders.server"
+import {
+  buildSftMyScheduleChangesListSurfaceConfiguration,
+  buildSftMySwapsListSurfaceConfiguration,
+} from "../data/sft-surface-builders.server"
 import { SFT_LIST_SURFACE_IDS } from "../data/sft-surface-metadata.shared"
-import { SftSubmitSwapForm } from "./sft-authoring-forms.client"
+import {
+  SftSubmitScheduleChangeForm,
+  SftSubmitSwapForm,
+} from "./sft-authoring-forms.client"
 
 export async function SftMySwapsSection({
   organizationId,
@@ -32,19 +42,33 @@ export async function SftMySwapsSection({
   const t = await getTranslations("Dashboard.Hrm.shiftScheduling")
   const format = await getFormatter()
 
-  let rows: Awaited<ReturnType<typeof listShiftSwapRequestsForEmployee>>
+  let swapRows: Awaited<ReturnType<typeof listShiftSwapRequestsForEmployee>>
+  let scheduleChangeRows: Awaited<
+    ReturnType<typeof listScheduleChangeRequestsForEmployee>
+  >
   let choices: Awaited<ReturnType<typeof listSwapAssignmentChoicesForEmployee>>
+  let scheduleChoices: Awaited<
+    ReturnType<typeof listScheduleChangeChoicesForEmployee>
+  >
 
   try {
-    ;[rows, choices] = await Promise.all([
-      listShiftSwapRequestsForEmployee({ organizationId, employeeId }),
-      listSwapAssignmentChoicesForEmployee({
-        organizationId,
-        employeeId,
-        rangeStart,
-        rangeEnd,
-      }),
-    ])
+    ;[swapRows, scheduleChangeRows, choices, scheduleChoices] =
+      await Promise.all([
+        listShiftSwapRequestsForEmployee({ organizationId, employeeId }),
+        listScheduleChangeRequestsForEmployee({ organizationId, employeeId }),
+        listSwapAssignmentChoicesForEmployee({
+          organizationId,
+          employeeId,
+          rangeStart,
+          rangeEnd,
+        }),
+        listScheduleChangeChoicesForEmployee({
+          organizationId,
+          employeeId,
+          rangeStart,
+          rangeEnd,
+        }),
+      ])
   } catch (err) {
     logUnexpectedServerError("sft-my-swaps-section: query failed", err, {
       organizationId,
@@ -80,19 +104,34 @@ export async function SftMySwapsSection({
     )
   }
 
-  const listConfiguration = buildSftMySwapsListSurfaceConfiguration(rows, {
-    empty: t("mySwapsEmpty"),
-    colRole: t("colSwapRole"),
-    colDates: t("colDates"),
-    colShifts: t("colShifts"),
-    colState: t("sftColStatus"),
-    colReason: t("colReason"),
-    colRequested: t("colRequested"),
-    roleLabel: (isRequester) =>
-      isRequester ? t("swapRoleRequester") : t("swapRoleCounterparty"),
-    formatRequestedAt: (date) =>
-      format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
-  })
+  const swapListConfiguration = buildSftMySwapsListSurfaceConfiguration(
+    swapRows,
+    {
+      empty: t("mySwapsEmpty"),
+      colRole: t("colSwapRole"),
+      colDates: t("colDates"),
+      colShifts: t("colShifts"),
+      colState: t("sftColStatus"),
+      colReason: t("colReason"),
+      colRequested: t("colRequested"),
+      roleLabel: (isRequester) =>
+        isRequester ? t("swapRoleRequester") : t("swapRoleCounterparty"),
+      formatRequestedAt: (date) =>
+        format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
+    }
+  )
+
+  const scheduleChangeListConfiguration =
+    buildSftMyScheduleChangesListSurfaceConfiguration(scheduleChangeRows, {
+      empty: t("scheduleChangeMyEmpty"),
+      colDate: t("colDate"),
+      colShift: t("colShift"),
+      colState: t("sftColStatus"),
+      colReason: t("colReason"),
+      colRequested: t("colRequested"),
+      formatRequestedAt: (date) =>
+        format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
+    })
 
   return (
     <Card size="sm">
@@ -101,6 +140,29 @@ export async function SftMySwapsSection({
         <CardDescription>{t("mySwapsDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
+        <div className="rounded-md border border-border p-4">
+          <h4 className="text-sm font-medium">
+            {t("scheduleChangeSubmitTitle")}
+          </h4>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("scheduleChangeSubmitDescription")}
+          </p>
+          <div className="mt-4">
+            <SftSubmitScheduleChangeForm
+              assignmentChoices={scheduleChoices.assignments}
+              templateChoices={scheduleChoices.templates}
+              defaultDate={rangeStart}
+            />
+          </div>
+        </div>
+        <GovernedPatternCListSection
+          layout="embedded"
+          title={t("scheduleChangeMyTitle")}
+          listConfiguration={scheduleChangeListConfiguration}
+          surfaceKey={SFT_LIST_SURFACE_IDS.myScheduleChanges}
+          resolveConfiguredPermission={false}
+          data-testid={`governed-list-section:${SFT_LIST_SURFACE_IDS.myScheduleChanges}`}
+        />
         <div className="rounded-md border border-border p-4">
           <h4 className="text-sm font-medium">{t("swapSubmitTitle")}</h4>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -115,8 +177,8 @@ export async function SftMySwapsSection({
         </div>
         <GovernedPatternCListSection
           layout="embedded"
-          title=""
-          listConfiguration={listConfiguration}
+          title={t("swapMyRequestsTitle")}
+          listConfiguration={swapListConfiguration}
           surfaceKey={SFT_LIST_SURFACE_IDS.mySwaps}
           resolveConfiguredPermission={false}
           data-testid={`governed-list-section:${SFT_LIST_SURFACE_IDS.mySwaps}`}

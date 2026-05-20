@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, asc, eq } from "drizzle-orm"
+import { and, asc, desc, eq, gte, lte } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
@@ -18,6 +18,26 @@ import {
   notifyShiftAssignmentChanged,
 } from "./sft-notification.server"
 import { revalidateSftSurfaces } from "./sft-revalidate.server"
+
+export type EmployeeScheduleChangeRow = {
+  readonly id: string
+  readonly state: string
+  readonly reason: string
+  readonly rejectedReason: string | null
+  readonly proposedDate: string
+  readonly proposedTemplateCode: string
+  readonly createdAt: Date
+}
+
+export type ScheduleChangeAssignmentChoice = {
+  readonly id: string
+  readonly label: string
+}
+
+export type ScheduleChangeTemplateChoice = {
+  readonly id: string
+  readonly label: string
+}
 
 export type ScheduleChangeRequestRow = {
   readonly id: string
@@ -70,6 +90,91 @@ export async function listPendingScheduleChangeRequests(input: {
     .orderBy(asc(hrmShiftScheduleChangeRequest.createdAt))
 
   return rows
+}
+
+export async function listScheduleChangeRequestsForEmployee(input: {
+  organizationId: string
+  employeeId: string
+}): Promise<EmployeeScheduleChangeRow[]> {
+  const rows = await db
+    .select({
+      id: hrmShiftScheduleChangeRequest.id,
+      state: hrmShiftScheduleChangeRequest.state,
+      reason: hrmShiftScheduleChangeRequest.reason,
+      rejectedReason: hrmShiftScheduleChangeRequest.rejectedReason,
+      proposedDate: hrmShiftScheduleChangeRequest.proposedDate,
+      proposedTemplateCode: hrmShiftTemplate.code,
+      createdAt: hrmShiftScheduleChangeRequest.createdAt,
+    })
+    .from(hrmShiftScheduleChangeRequest)
+    .innerJoin(
+      hrmShiftTemplate,
+      eq(hrmShiftTemplate.id, hrmShiftScheduleChangeRequest.proposedTemplateId)
+    )
+    .where(
+      and(
+        eq(hrmShiftScheduleChangeRequest.organizationId, input.organizationId),
+        eq(hrmShiftScheduleChangeRequest.requesterEmployeeId, input.employeeId)
+      )
+    )
+    .orderBy(desc(hrmShiftScheduleChangeRequest.createdAt))
+    .limit(50)
+
+  return rows
+}
+
+export async function listScheduleChangeChoicesForEmployee(input: {
+  organizationId: string
+  employeeId: string
+  rangeStart: string
+  rangeEnd: string
+}): Promise<{
+  assignments: ScheduleChangeAssignmentChoice[]
+  templates: ScheduleChangeTemplateChoice[]
+}> {
+  const [assignmentRows, templateRows] = await Promise.all([
+    db
+      .select({
+        id: hrmShiftAssignment.id,
+        attendanceDate: hrmShiftAssignment.attendanceDate,
+        templateCode: hrmShiftAssignment.templateCode,
+      })
+      .from(hrmShiftAssignment)
+      .where(
+        and(
+          eq(hrmShiftAssignment.organizationId, input.organizationId),
+          eq(hrmShiftAssignment.employeeId, input.employeeId),
+          gte(hrmShiftAssignment.attendanceDate, input.rangeStart),
+          lte(hrmShiftAssignment.attendanceDate, input.rangeEnd)
+        )
+      )
+      .orderBy(asc(hrmShiftAssignment.attendanceDate)),
+    db
+      .select({
+        id: hrmShiftTemplate.id,
+        code: hrmShiftTemplate.code,
+        name: hrmShiftTemplate.name,
+      })
+      .from(hrmShiftTemplate)
+      .where(
+        and(
+          eq(hrmShiftTemplate.organizationId, input.organizationId),
+          eq(hrmShiftTemplate.isActive, true)
+        )
+      )
+      .orderBy(asc(hrmShiftTemplate.code)),
+  ])
+
+  return {
+    assignments: assignmentRows.map((row) => ({
+      id: row.id,
+      label: `${row.attendanceDate} · ${row.templateCode}`,
+    })),
+    templates: templateRows.map((row) => ({
+      id: row.id,
+      label: `${row.code} · ${row.name}`,
+    })),
+  }
 }
 
 export async function submitScheduleChangeRequest(input: {
@@ -192,11 +297,20 @@ export async function approveScheduleChangeRequest(input: {
     metadata: { managerNote: input.managerNote ?? null },
   })
 
+  const templateRows = await db
+    .select({ code: hrmShiftTemplate.code })
+    .from(hrmShiftTemplate)
+    .where(eq(hrmShiftTemplate.id, request.proposedTemplateId))
+    .limit(1)
+
   await notifyScheduleChangeResolved({
     organizationId: input.organizationId,
     requestId: request.id,
     requesterEmployeeId: request.requesterEmployeeId,
     outcome: "approved",
+    proposedDate: request.proposedDate,
+    proposedTemplateCode: templateRows[0]?.code,
+    managerNote: input.managerNote ?? null,
   })
 
   await notifyShiftAssignmentChanged({
@@ -255,11 +369,85 @@ export async function rejectScheduleChangeRequest(input: {
     metadata: { rejectedReason: input.rejectedReason },
   })
 
+  const templateRows = await db
+    .select({ code: hrmShiftTemplate.code })
+    .from(hrmShiftTemplate)
+    .where(eq(hrmShiftTemplate.id, request.proposedTemplateId))
+    .limit(1)
+
   await notifyScheduleChangeResolved({
     organizationId: input.organizationId,
     requestId: request.id,
     requesterEmployeeId: request.requesterEmployeeId,
     outcome: "rejected",
+    proposedDate: request.proposedDate,
+    proposedTemplateCode: templateRows[0]?.code,
+  })
+
+  revalidateSftSurfaces()
+  return { ok: true }
+}
+
+export async function returnScheduleChangeRequest(input: {
+  organizationId: string
+  userId: string
+  sessionId: string | null
+  requestId: string
+  returnedReason: string
+  managerNote?: string | null
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  const rows = await db
+    .select()
+    .from(hrmShiftScheduleChangeRequest)
+    .where(
+      and(
+        eq(hrmShiftScheduleChangeRequest.organizationId, input.organizationId),
+        eq(hrmShiftScheduleChangeRequest.id, input.requestId)
+      )
+    )
+    .limit(1)
+  const request = rows[0]
+
+  if (!request || request.state !== "submitted") {
+    return { ok: false, error: "Schedule change request is not pending." }
+  }
+
+  const now = new Date()
+  await db
+    .update(hrmShiftScheduleChangeRequest)
+    .set({
+      state: "returned",
+      rejectedReason: input.returnedReason,
+      managerNote: input.managerNote ?? null,
+      updatedByUserId: input.userId,
+      updatedAt: now,
+    })
+    .where(eq(hrmShiftScheduleChangeRequest.id, request.id))
+
+  await writeIamAuditEventFromNextHeaders({
+    action: HRM_SFT_AUDIT.scheduleChangeReturn,
+    actorUserId: input.userId,
+    actorSessionId: input.sessionId,
+    organizationId: input.organizationId,
+    resourceType: "hrm_shift_schedule_change_request",
+    resourceId: request.id,
+    metadata: { returnedReason: input.returnedReason },
+  })
+
+  const templateRows = await db
+    .select({ code: hrmShiftTemplate.code })
+    .from(hrmShiftTemplate)
+    .where(eq(hrmShiftTemplate.id, request.proposedTemplateId))
+    .limit(1)
+
+  await notifyScheduleChangeResolved({
+    organizationId: input.organizationId,
+    requestId: request.id,
+    requesterEmployeeId: request.requesterEmployeeId,
+    outcome: "returned",
+    proposedDate: request.proposedDate,
+    proposedTemplateCode: templateRows[0]?.code,
+    managerNote: input.managerNote ?? null,
   })
 
   revalidateSftSurfaces()

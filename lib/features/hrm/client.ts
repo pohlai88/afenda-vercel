@@ -349,6 +349,9 @@ export {
   addRotationStepAction,
   publishShiftRosterAction,
   exportShiftRosterCsvAction,
+  saveShiftRosterReportDefinitionAction,
+  deleteShiftRosterReportDefinitionAction,
+  SftExportReportPanel,
   createRecurrenceRuleAction,
   applyRecurrenceRuleAction,
   applyRotationCycleAction,
@@ -360,6 +363,8 @@ export {
   submitScheduleChangeRequestAction,
   approveScheduleChangeRequestAction,
   rejectScheduleChangeRequestAction,
+  returnScheduleChangeRequestAction,
+  SftSubmitScheduleChangeForm,
 } from "./time-attendance/shift-scheduling/client"
 export type {
   AssignEmployeeShiftFormState,

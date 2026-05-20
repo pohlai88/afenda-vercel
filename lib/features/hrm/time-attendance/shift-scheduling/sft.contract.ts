@@ -120,6 +120,18 @@ export const HRM_SFT_AUDIT = {
     object: "shift_schedule_report",
     verb: "audit",
   }),
+  reportDefinitionCreate: buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "shift_schedule_report_definition",
+    verb: "create",
+  }),
+  reportDefinitionDelete: buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "shift_schedule_report_definition",
+    verb: "deprecate",
+  }),
   scheduleChangeSubmit: buildCrudSapAuditAction({
     area: "erp",
     module: "hrm",

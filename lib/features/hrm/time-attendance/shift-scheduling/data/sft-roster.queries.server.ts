@@ -123,6 +123,7 @@ export async function listRosterAssignmentsForOrg(opts: {
       updatedAt: hrmShiftAssignment.updatedAt,
       employeeNumber: hrmEmployee.employeeNumber,
       employeeFullName: hrmEmployee.legalName,
+      managerEmployeeId: hrmEmployee.managerEmployeeId,
       currentDepartmentId: hrmEmployee.currentDepartmentId,
       currentPositionId: hrmEmployee.currentPositionId,
     })
@@ -170,6 +171,7 @@ export async function listRosterAssignmentsForOrg(opts: {
     updatedAt: row.updatedAt,
     employeeNumber: row.employeeNumber,
     employeeFullName: row.employeeFullName,
+    managerEmployeeId: row.managerEmployeeId,
     currentDepartmentId: row.currentDepartmentId,
     currentPositionId: row.currentPositionId,
   }))

@@ -5758,6 +5758,38 @@ export const hrmShiftRosterPublication = pgTable(
   ]
 )
 
+/** Org-scoped saved roster CSV filter preset (shift scheduling reports). */
+export const hrmShiftRosterReportDefinition = pgTable(
+  "hrm_shift_roster_report_definition",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    name: text("name").notNull(),
+    filters: jsonb("filters")
+      .$type<{
+        departmentId?: string | null
+        jobGradeId?: string | null
+        locationCode?: string | null
+        legalEntityOrgUnitId?: string | null
+        teamOrgUnitId?: string | null
+        positionId?: string | null
+      }>()
+      .notNull(),
+    createdByUserId: text("createdByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_shift_roster_report_def_org_name_uidx").on(
+      t.organizationId,
+      t.name
+    ),
+    index("hrm_shift_roster_report_def_org_idx").on(t.organizationId),
+  ]
+)
+
 /** Immutable raw attendance event stream. Corrections create new rows (never update). */
 export const hrmAttendanceEvent = pgTable(
   "hrm_attendance_event",

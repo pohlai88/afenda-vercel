@@ -1,8 +1,9 @@
 import "server-only"
 
 import { cache } from "react"
-import { and, eq, gte, isNotNull, lte } from "drizzle-orm"
+import { and, eq, gte, lte } from "drizzle-orm"
 
+import { sendAuthEmail } from "#lib/auth/auth-mail.server"
 import {
   publishOrgNotification,
   publishOrgNotificationIfMissing,
@@ -11,8 +12,16 @@ import { getOrganizationSlugById } from "#lib/auth/org-slug.server"
 import { db } from "#lib/db"
 import { hrmEmployee, hrmShiftAssignment } from "#lib/db/schema"
 import { organizationAppsPath } from "#lib/org-apps-module-paths"
+import { getSiteUrl } from "#lib/site"
 
 import { HRM_SFT_AUDIT } from "../sft.contract"
+import {
+  buildSftAssignmentChangedTemplate,
+  buildSftRosterPublishedTemplate,
+  buildSftScheduleChangeResolvedTemplate,
+  buildSftSwapResolvedTemplate,
+  type SftNotificationTemplateMessage,
+} from "./sft-notification-templates.shared"
 
 const resolveSftLinkedPath = cache(
   async (organizationId: string): Promise<string> => {
@@ -22,17 +31,25 @@ const resolveSftLinkedPath = cache(
   }
 )
 
-async function notifyLinkedEmployee(input: {
+async function resolveSftWorkbenchUrl(organizationId: string): Promise<string> {
+  const path = await resolveSftLinkedPath(organizationId)
+  return `${getSiteUrl()}${path}`
+}
+
+async function deliverSftEmployeeNotification(input: {
   readonly organizationId: string
   readonly employeeId: string
-  readonly title: string
-  readonly body: string
+  readonly template: SftNotificationTemplateMessage
   readonly linkedEntityType: string
   readonly linkedEntityId: string
   readonly linkedEntityLabel: string
+  readonly useIfMissing?: boolean
 }): Promise<void> {
   const [employee] = await db
-    .select({ linkedUserId: hrmEmployee.linkedUserId })
+    .select({
+      linkedUserId: hrmEmployee.linkedUserId,
+      email: hrmEmployee.email,
+    })
     .from(hrmEmployee)
     .where(
       and(
@@ -42,26 +59,39 @@ async function notifyLinkedEmployee(input: {
     )
     .limit(1)
 
-  const targetUserId = employee?.linkedUserId
-  if (!targetUserId) return
-
   const linkedPath = await resolveSftLinkedPath(input.organizationId)
+  const targetUserId = employee?.linkedUserId
 
-  try {
-    await publishOrgNotification({
-      organizationId: input.organizationId,
-      targetUserId,
-      title: input.title,
-      body: input.body,
-      severity: "info",
-      linkedEntityType: input.linkedEntityType,
-      linkedEntityId: input.linkedEntityId,
-      linkedEntityLabel: input.linkedEntityLabel,
-      linkedPath,
-      expiresAt: null,
+  if (targetUserId) {
+    try {
+      const publish = input.useIfMissing
+        ? publishOrgNotificationIfMissing
+        : publishOrgNotification
+      await publish({
+        organizationId: input.organizationId,
+        targetUserId,
+        title: input.template.inApp.title,
+        body: input.template.inApp.body,
+        severity: "info",
+        linkedEntityType: input.linkedEntityType,
+        linkedEntityId: input.linkedEntityId,
+        linkedEntityLabel: input.linkedEntityLabel,
+        linkedPath,
+        expiresAt: null,
+      })
+    } catch {
+      // In-app delivery must not roll back scheduling mutations.
+    }
+  }
+
+  const email = employee?.email?.trim()
+  if (email && email.includes("@")) {
+    sendAuthEmail({
+      to: email,
+      subject: input.template.email.subject,
+      text: input.template.email.text,
+      html: input.template.email.html,
     })
-  } catch {
-    // Delivery must not roll back assignment mutations.
   }
 }
 
@@ -72,55 +102,39 @@ export async function notifyRosterPublished(input: {
   readonly periodEnd: string
   readonly note?: string | null
 }): Promise<void> {
-  const linkedPath = await resolveSftLinkedPath(input.organizationId)
+  const workbenchUrl = await resolveSftWorkbenchUrl(input.organizationId)
+  const template = buildSftRosterPublishedTemplate({
+    periodStart: input.periodStart,
+    periodEnd: input.periodEnd,
+    note: input.note,
+    workbenchUrl,
+  })
 
   const assignmentRows = await db
     .selectDistinct({
       employeeId: hrmShiftAssignment.employeeId,
-      linkedUserId: hrmEmployee.linkedUserId,
     })
     .from(hrmShiftAssignment)
-    .innerJoin(
-      hrmEmployee,
-      and(
-        eq(hrmEmployee.id, hrmShiftAssignment.employeeId),
-        eq(hrmEmployee.organizationId, hrmShiftAssignment.organizationId)
-      )
-    )
     .where(
       and(
         eq(hrmShiftAssignment.organizationId, input.organizationId),
         gte(hrmShiftAssignment.attendanceDate, input.periodStart),
-        lte(hrmShiftAssignment.attendanceDate, input.periodEnd),
-        isNotNull(hrmEmployee.linkedUserId)
+        lte(hrmShiftAssignment.attendanceDate, input.periodEnd)
       )
     )
 
-  const title = "Shift roster published"
-  const noteSuffix = input.note?.trim() ? ` Note: ${input.note.trim()}` : ""
-  const body = `Your shift roster for ${input.periodStart} through ${input.periodEnd} is published.${noteSuffix}`
-
   await Promise.all(
-    assignmentRows.map(async (row) => {
-      const targetUserId = row.linkedUserId
-      if (!targetUserId) return
-      try {
-        await publishOrgNotificationIfMissing({
-          organizationId: input.organizationId,
-          targetUserId,
-          title,
-          body,
-          severity: "info",
-          linkedEntityType: HRM_SFT_AUDIT.rosterPublish,
-          linkedEntityId: input.publicationId,
-          linkedEntityLabel: "shift_roster",
-          linkedPath,
-          expiresAt: null,
-        })
-      } catch {
-        // Notification delivery must not roll back roster publication.
-      }
-    })
+    assignmentRows.map((row) =>
+      deliverSftEmployeeNotification({
+        organizationId: input.organizationId,
+        employeeId: row.employeeId,
+        template,
+        linkedEntityType: HRM_SFT_AUDIT.rosterPublish,
+        linkedEntityId: input.publicationId,
+        linkedEntityLabel: "shift_roster",
+        useIfMissing: true,
+      })
+    )
   )
 }
 
@@ -131,11 +145,17 @@ export async function notifyShiftAssignmentChanged(input: {
   readonly attendanceDate: string
   readonly templateName: string
 }): Promise<void> {
-  await notifyLinkedEmployee({
+  const workbenchUrl = await resolveSftWorkbenchUrl(input.organizationId)
+  const template = buildSftAssignmentChangedTemplate({
+    attendanceDate: input.attendanceDate,
+    templateName: input.templateName,
+    workbenchUrl,
+  })
+
+  await deliverSftEmployeeNotification({
     organizationId: input.organizationId,
     employeeId: input.employeeId,
-    title: "Shift schedule updated",
-    body: `Your shift on ${input.attendanceDate} is now ${input.templateName}.`,
+    template,
     linkedEntityType: HRM_SFT_AUDIT.assignmentUpdate,
     linkedEntityId: input.assignmentId,
     linkedEntityLabel: "shift_assignment",
@@ -149,39 +169,25 @@ export async function notifyShiftSwapResolved(input: {
   readonly counterpartyEmployeeId: string
   readonly outcome: "approved" | "rejected" | "returned" | "overridden"
 }): Promise<void> {
-  const title =
-    input.outcome === "approved"
-      ? "Shift swap approved"
-      : input.outcome === "rejected"
-        ? "Shift swap rejected"
-        : input.outcome === "returned"
-          ? "Shift swap returned"
-          : "Shift swap updated"
-
-  const body =
-    input.outcome === "approved"
-      ? "Your shift swap request was approved."
-      : input.outcome === "rejected"
-        ? "Your shift swap request was rejected."
-        : input.outcome === "returned"
-          ? "Your shift swap request was returned for changes."
-          : "A manager updated your shift swap request."
+  const workbenchUrl = await resolveSftWorkbenchUrl(input.organizationId)
+  const template = buildSftSwapResolvedTemplate({
+    outcome: input.outcome,
+    workbenchUrl,
+  })
 
   await Promise.all([
-    notifyLinkedEmployee({
+    deliverSftEmployeeNotification({
       organizationId: input.organizationId,
       employeeId: input.requesterEmployeeId,
-      title,
-      body,
+      template,
       linkedEntityType: HRM_SFT_AUDIT.swapApprove,
       linkedEntityId: input.swapRequestId,
       linkedEntityLabel: "shift_swap",
     }),
-    notifyLinkedEmployee({
+    deliverSftEmployeeNotification({
       organizationId: input.organizationId,
       employeeId: input.counterpartyEmployeeId,
-      title,
-      body,
+      template,
       linkedEntityType: HRM_SFT_AUDIT.swapApprove,
       linkedEntityId: input.swapRequestId,
       linkedEntityLabel: "shift_swap",
@@ -194,26 +200,23 @@ export async function notifyScheduleChangeResolved(input: {
   readonly requestId: string
   readonly requesterEmployeeId: string
   readonly outcome: "approved" | "rejected" | "returned"
+  readonly proposedDate?: string
+  readonly proposedTemplateCode?: string
+  readonly managerNote?: string | null
 }): Promise<void> {
-  const title =
-    input.outcome === "approved"
-      ? "Schedule change approved"
-      : input.outcome === "rejected"
-        ? "Schedule change rejected"
-        : "Schedule change returned"
+  const workbenchUrl = await resolveSftWorkbenchUrl(input.organizationId)
+  const template = buildSftScheduleChangeResolvedTemplate({
+    outcome: input.outcome,
+    proposedDate: input.proposedDate,
+    proposedTemplateCode: input.proposedTemplateCode,
+    managerNote: input.managerNote,
+    workbenchUrl,
+  })
 
-  const body =
-    input.outcome === "approved"
-      ? "Your schedule change request was approved."
-      : input.outcome === "rejected"
-        ? "Your schedule change request was rejected."
-        : "Your schedule change request was returned for changes."
-
-  await notifyLinkedEmployee({
+  await deliverSftEmployeeNotification({
     organizationId: input.organizationId,
     employeeId: input.requesterEmployeeId,
-    title,
-    body,
+    template,
     linkedEntityType: HRM_SFT_AUDIT.scheduleChangeApprove,
     linkedEntityId: input.requestId,
     linkedEntityLabel: "schedule_change",

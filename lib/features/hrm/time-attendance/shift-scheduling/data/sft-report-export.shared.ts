@@ -12,12 +12,16 @@ export function buildSftRosterReportCsv(
   labels?: {
     readonly departmentsById?: ReadonlyMap<string, string>
     readonly positionsById?: ReadonlyMap<string, string>
+    readonly legalEntitiesByDepartmentId?: ReadonlyMap<string, string>
+    readonly managersByEmployeeId?: ReadonlyMap<string, string>
   }
 ): string {
   const header = [
     "assignment_id",
     "employee",
     "employee_number",
+    "manager",
+    "legal_entity",
     "department",
     "position",
     "attendance_date",
@@ -40,11 +44,23 @@ export function buildSftRosterReportCsv(
         ? (labels.positionsById.get(row.currentPositionId) ??
           row.currentPositionId)
         : (row.currentPositionId ?? "")
+    const legalEntity =
+      row.currentDepartmentId && labels?.legalEntitiesByDepartmentId
+        ? (labels.legalEntitiesByDepartmentId.get(row.currentDepartmentId) ??
+          "")
+        : ""
+    const manager =
+      row.managerEmployeeId && labels?.managersByEmployeeId
+        ? (labels.managersByEmployeeId.get(row.managerEmployeeId) ??
+          row.managerEmployeeId)
+        : (row.managerEmployeeId ?? "")
 
     return [
       row.id,
       employee,
       row.employeeNumber ?? "",
+      manager,
+      legalEntity,
       department,
       position,
       row.attendanceDate,

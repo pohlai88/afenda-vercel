@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest"
 import {
   collectDescendantDepartmentIds,
   departmentIdWithinOrgUnitAncestor,
+  resolveLegalEntityLabelForDepartment,
+  type OrgUnitDepartmentNode,
 } from "../../lib/features/hrm/time-attendance/shift-scheduling/data/sft-org-unit-filter.shared"
 
 describe("sft org unit filter helpers", () => {
@@ -38,5 +40,37 @@ describe("sft org unit filter helpers", () => {
         parentMap,
       })
     ).toBe(false)
+  })
+
+  it("resolves legal entity label walking department ancestors", () => {
+    const departmentsById = new Map<string, OrgUnitDepartmentNode>([
+      [
+        "legal-1",
+        {
+          id: "legal-1",
+          code: "LE",
+          name: "Afenda Legal",
+          orgUnitType: "legal_entity",
+          parentDepartmentId: null,
+        },
+      ],
+      [
+        "dept-b",
+        {
+          id: "dept-b",
+          code: "OPS",
+          name: "Operations",
+          orgUnitType: "department",
+          parentDepartmentId: "legal-1",
+        },
+      ],
+    ])
+
+    expect(
+      resolveLegalEntityLabelForDepartment({
+        departmentId: "dept-b",
+        departmentsById,
+      })
+    ).toBe("LE · Afenda Legal")
   })
 })

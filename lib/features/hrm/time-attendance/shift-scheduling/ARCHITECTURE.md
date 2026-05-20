@@ -12,6 +12,7 @@
 - **Slice 6 (shipped):** Publish roster, publications history (Pattern B), CSV export, attendance compare, payroll refs on `#features/hrm/server`.
 - **Shipped (follow-up pass):** roster filters (dept, location, job grade); skill coverage on assign; swap return/override; rotation add-step; org in-app notification on publish (`sft-notification.server.ts`).
 - **P1–P3 (2026-05-21):** Shipped per `sft_follow.md` — org-unit roster filters, coverage position/training validation, assignment/swap/schedule-change notifications (`publishOrgNotification`), availability + planners + schedule-change inbox, enriched CSV export. Payroll: `listShiftPayrollReferencesForPeriod` on `#features/hrm/server`.
+- **Report + notify (2026-05-21):** Saved roster report definitions (`hrm_shift_roster_report_definition`) with filter-aware CSV export; SFT-specific copy in `sft-notification-templates.shared.ts` delivered via org in-app notifications and `sendAuthEmail` (no separate mailer product).
 
 ### Phase 0 entity model
 

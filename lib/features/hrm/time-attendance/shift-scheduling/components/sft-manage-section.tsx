@@ -10,12 +10,14 @@ import {
 } from "#components2/ui/card"
 
 import { listActiveEmployeeChoicesForSft } from "../data/sft.queries.server"
+import type { SftRosterListFilters } from "../data/sft-roster.queries.server"
 import { listAllShiftTemplatesForOrg } from "../data/sft-template.queries.server"
 import {
   listRecurrenceRulesForOrg,
   listRotationCyclesForOrg,
 } from "../data/sft-recurrence.queries.server"
-import { SftExportReportButton } from "./sft-export-report-button.client"
+import { listShiftRosterReportDefinitions } from "../data/sft-report-definition.server"
+import { SftExportReportPanel } from "./sft-export-report-panel.client"
 import {
   SftApplyRecurrenceForm,
   SftApplyRotationForm,
@@ -28,20 +30,28 @@ export async function SftManageSection({
   organizationId,
   rangeStart,
   rangeEnd,
+  rosterFilters = {},
 }: {
   organizationId: string
   rangeStart: string
   rangeEnd: string
+  rosterFilters?: SftRosterListFilters
 }) {
   const t = await getTranslations("Dashboard.Hrm.shiftScheduling")
 
-  const [employees, templates, recurrenceRules, rotationCycles] =
-    await Promise.all([
-      listActiveEmployeeChoicesForSft(organizationId),
-      listAllShiftTemplatesForOrg(organizationId),
-      listRecurrenceRulesForOrg(organizationId),
-      listRotationCyclesForOrg(organizationId),
-    ])
+  const [
+    employees,
+    templates,
+    recurrenceRules,
+    rotationCycles,
+    reportDefinitions,
+  ] = await Promise.all([
+    listActiveEmployeeChoicesForSft(organizationId),
+    listAllShiftTemplatesForOrg(organizationId),
+    listRecurrenceRulesForOrg(organizationId),
+    listRotationCyclesForOrg(organizationId),
+    listShiftRosterReportDefinitions({ organizationId }),
+  ])
 
   const templateChoices = templates.map((row) => ({
     id: row.id,
@@ -69,9 +79,21 @@ export async function SftManageSection({
           <CardTitle>{t("assignTitle")}</CardTitle>
           <CardDescription>{t("assignDescription")}</CardDescription>
           <CardAction>
-            <SftExportReportButton
+            <SftExportReportPanel
+              key={[
+                rangeStart,
+                rangeEnd,
+                rosterFilters.departmentId ?? "",
+                rosterFilters.jobGradeId ?? "",
+                rosterFilters.locationCode ?? "",
+                rosterFilters.legalEntityOrgUnitId ?? "",
+                rosterFilters.teamOrgUnitId ?? "",
+                rosterFilters.positionId ?? "",
+              ].join("|")}
               rangeStart={rangeStart}
               rangeEnd={rangeEnd}
+              rosterFilters={rosterFilters}
+              reportDefinitions={reportDefinitions}
             />
           </CardAction>
         </CardHeader>
