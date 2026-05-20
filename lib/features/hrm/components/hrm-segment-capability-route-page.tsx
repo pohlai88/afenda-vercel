@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation"
-import { getTranslations } from "next-intl/server"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
-
 import { listEffectiveErpPermissionsForUser } from "#features/erp-rbac/server"
 import { getOrgTenantContext } from "#lib/auth"
 
 import { HrmCapabilityPlaceholderPage } from "../_hrm_landing_page/hrm-pages"
+import { HrmWorkbenchCapabilityAccessDenied } from "./hrm-shell-access-denied.server"
 import {
   getHrmCapabilityForSegment,
   isAllowedHrmAppsSubsegment,
@@ -30,14 +28,7 @@ export async function HrmSegmentCapabilityRoutePage({
     userId,
   })
   if (!permissions.includes(capability.requiredPermission)) {
-    const t = await getTranslations("Dashboard.Hrm.workbenchCapability")
-
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmWorkbenchCapabilityAccessDenied />
   }
 
   return <HrmCapabilityPlaceholderPage segment={segment} />

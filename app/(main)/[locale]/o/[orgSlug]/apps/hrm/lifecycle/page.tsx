@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDeniedFromNav } from "#features/hrm/components/hrm-shell-access-denied.server"
 import { getTranslations } from "next-intl/server"
 
 import { HrmLifecycleOverviewPage } from "#features/hrm"
@@ -25,14 +25,7 @@ export default async function OrgAppsHrmLifecyclePage({
     function: "search",
   })
   if (!allowed) {
-    const t = await getTranslations("Dashboard.Hrm.lifecycle")
-
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDeniedFromNav navKey="lifecycle" />
   }
   return <HrmLifecycleOverviewPage orgSlug={orgSlug} />
 }

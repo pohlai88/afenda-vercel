@@ -69,6 +69,13 @@ export async function submitTimeReportAction(
 
   const data = parsed.data
 
+  if (data.reportKind === "overtime") {
+    return hrmActionFailure({
+      reportKind:
+        "Overtime time reports are retired. Use Overtime management (/apps/hrm/overtime) to submit and approve overtime.",
+    })
+  }
+
   const employee = await db.query.hrmEmployee.findFirst({
     where: and(
       eq(hrmEmployee.id, data.employeeId),
@@ -100,15 +107,11 @@ export async function submitTimeReportAction(
     employeeId: employee.id,
     employeeNumber: employee.employeeNumber,
     employeeFullName: employee.legalName,
-    workDate: data.reportKind === "overtime" ? (data.workDate ?? null) : null,
-    overtimeMinutes:
-      data.reportKind === "overtime" ? (data.overtimeMinutes ?? null) : null,
-    tripStartDate:
-      data.reportKind === "business_trip" ? (data.tripStartDate ?? null) : null,
-    tripEndDate:
-      data.reportKind === "business_trip" ? (data.tripEndDate ?? null) : null,
-    destination:
-      data.reportKind === "business_trip" ? (data.destination ?? null) : null,
+    workDate: null,
+    overtimeMinutes: null,
+    tripStartDate: data.tripStartDate ?? null,
+    tripEndDate: data.tripEndDate ?? null,
+    destination: data.destination ?? null,
     reason: data.reason ?? null,
     requestedAt: now,
   })
@@ -131,15 +134,11 @@ export async function submitTimeReportAction(
       organizationId,
       employeeId: data.employeeId,
       reportKind: data.reportKind,
-      workDate: data.reportKind === "overtime" ? data.workDate! : null,
-      overtimeMinutes:
-        data.reportKind === "overtime" ? data.overtimeMinutes! : null,
-      tripStartDate:
-        data.reportKind === "business_trip" ? data.tripStartDate! : null,
-      tripEndDate:
-        data.reportKind === "business_trip" ? data.tripEndDate! : null,
-      destination:
-        data.reportKind === "business_trip" ? (data.destination ?? null) : null,
+      workDate: null,
+      overtimeMinutes: null,
+      tripStartDate: data.tripStartDate!,
+      tripEndDate: data.tripEndDate!,
+      destination: data.destination ?? null,
       reason: data.reason ?? null,
       state: "submitted",
       currentApprovalId: approvalId,

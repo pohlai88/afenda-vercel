@@ -1,6 +1,5 @@
 import { SignatureRequestDetailPage } from "#features/tools"
-import { getTranslations } from "next-intl/server"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDeniedFromNav } from "#features/hrm/components/hrm-shell-access-denied.server"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmSignatureDetailPage({
@@ -13,14 +12,7 @@ export default async function OrgAppsHrmSignatureDetailPage({
     function: "read",
   })
   if (!allowed) {
-    const t = await getTranslations("Dashboard.Hrm.publicSignature")
-
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDeniedFromNav navKey="signatures" />
   }
   return (
     <SignatureRequestDetailPage orgSlug={orgSlug} publicSlug={publicSlug} />

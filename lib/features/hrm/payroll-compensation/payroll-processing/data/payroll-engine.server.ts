@@ -39,8 +39,13 @@ export type PayrollEngineInput = {
   readonly unpaidLeaveMinutes: number
   /** Total working minutes in the period (schedule basis). */
   readonly scheduledMinutes: number
-  /** Total approved overtime minutes (earned, not yet deducted). */
+  /** Legacy attendance OT minutes — retained for readiness checks; earnings use `approvedOvertimeEarnings`. */
   readonly overtimeMinutes: number
+  /**
+   * Payroll-ready OTM rows for this employee in the period (HRM-OTM-023).
+   * One earning line per request with `overtimeRequestId` for period lock settlement.
+   */
+  readonly approvedOvertimeEarnings?: ReadonlyArray<PayrollOvertimeEarningInput>
   // ── Statutory profile fields (from hrm_payroll_profile) ──────────────────
   readonly epfMemberCategory:
     | "MY_PR_BELOW60"
@@ -115,6 +120,15 @@ export type PayrollClaimInput = {
   readonly currency: string
 }
 
+export type PayrollOvertimeEarningInput = {
+  readonly overtimeRequestId: string
+  readonly payrollLineCode: string
+  readonly description: string
+  readonly amount: string
+  readonly currency: string
+  readonly payableMinutes: number
+}
+
 export type PayrollContractAllowanceInput = {
   readonly componentCode: string
   readonly amount: string
@@ -146,6 +160,7 @@ export type PayrollLineInput = {
   readonly salaryAdvanceId?: string | null
   readonly salaryAdvanceInstallmentId?: string | null
   readonly bonusPayoutId?: string | null
+  readonly overtimeRequestId?: string | null
 }
 
 export type PayrollEngineResult = {
@@ -317,6 +332,26 @@ export async function computePayrollRun(
     })
   }
 
+  let overtimeEarningTotal = 0
+  for (const ot of input.approvedOvertimeEarnings ?? []) {
+    const amount = parseAmount(ot.amount)
+    if (amount <= 0) continue
+    overtimeEarningTotal += amount
+    lines.push({
+      lineKind: "earning",
+      code: ot.payrollLineCode,
+      description: ot.description,
+      amount: formatAmount(amount),
+      overtimeRequestId: ot.overtimeRequestId,
+      metadata: {
+        currency: ot.currency,
+        payableMinutes: ot.payableMinutes,
+        source: "hrm_overtime_request",
+        sourceOvertimeRequestId: ot.overtimeRequestId,
+      },
+    })
+  }
+
   let bonusPayoutTotal = 0
   for (const payout of input.approvedBonusPayouts ?? []) {
     const amount = parseAmount(payout.amount)
@@ -338,7 +373,11 @@ export async function computePayrollRun(
 
   // 3. Gross pay = BASIC + contract allowances + claim/bonus earnings (before deductions)
   const grossPay =
-    basicAmount + contractAllowanceTotal + claimsTotal + bonusPayoutTotal
+    basicAmount +
+    contractAllowanceTotal +
+    claimsTotal +
+    bonusPayoutTotal +
+    overtimeEarningTotal
   const grossPayFormatted = formatAmount(grossPay)
 
   // 4. Statutory contributions via rule pack

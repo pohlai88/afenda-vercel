@@ -1,6 +1,6 @@
 import { SignaturesPage } from "#features/tools"
 import { getTranslations } from "next-intl/server"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmSignaturesPage({
@@ -15,12 +15,7 @@ export default async function OrgAppsHrmSignaturesPage({
   if (!allowed) {
     const t = await getTranslations("Dashboard.Hrm.signatures")
 
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDenied surface={t("pageTitle")} />
   }
   return <SignaturesPage orgSlug={orgSlug} />
 }

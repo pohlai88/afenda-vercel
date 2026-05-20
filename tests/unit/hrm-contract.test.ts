@@ -43,6 +43,7 @@ const HRM_MESSAGES = (
         cards: Record<string, Record<string, string>>
         placeholders: Record<string, Record<string, string>>
         flexibleWork?: Record<string, string>
+        overtime?: Record<string, string>
         absenceAnalytics?: Record<string, string>
         compensationPlanning?: Record<string, string>
       }
@@ -121,6 +122,18 @@ describe("HRM_CAPABILITIES registry", () => {
     expect(flexibleWork?.auditPrefix).toBe("erp.hrm.flexible_work")
     expect(HRM_MESSAGES.nav["flexible-work"]).toBeTypeOf("string")
     expect(HRM_MESSAGES.flexibleWork?.pageTitle).toBeTypeOf("string")
+  })
+
+  it("registers overtime capability and catalog keys", () => {
+    const overtime = getHrmCapabilityById("overtime")
+    expect(overtime?.segments).toContain("overtime")
+    expect(overtime?.requiredPermission).toBe("hrm.overtime.search")
+    expect(overtime?.auditPrefix).toBe("erp.hrm.overtime")
+    expect(overtime?.nav.order).toBe(34)
+    expect(HRM_MESSAGES.nav.overtime).toBeTypeOf("string")
+    expect(HRM_MESSAGES.cards.overtime?.title).toBeTypeOf("string")
+    expect(HRM_MESSAGES.overtime?.title).toBeTypeOf("string")
+    expect(isAllowedHrmAppsSubsegment("overtime")).toBe(true)
   })
 
   it("registers geolocation capability and catalog keys", () => {

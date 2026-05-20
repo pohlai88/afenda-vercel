@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, desc, eq, inArray } from "drizzle-orm"
+import { and, desc, eq, inArray, ne } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { hrmEmployee, hrmTimeReport } from "#lib/db/schema"
@@ -40,10 +40,18 @@ export async function listTimeReportsForOrg(
       ? inArray(hrmTimeReport.state, [...options.states])
       : undefined
 
+  const excludeLegacyOvertime = ne(hrmTimeReport.reportKind, "overtime")
   const rows = await db.query.hrmTimeReport.findMany({
     where: stateFilter
-      ? and(eq(hrmTimeReport.organizationId, organizationId), stateFilter)
-      : eq(hrmTimeReport.organizationId, organizationId),
+      ? and(
+          eq(hrmTimeReport.organizationId, organizationId),
+          stateFilter,
+          excludeLegacyOvertime
+        )
+      : and(
+          eq(hrmTimeReport.organizationId, organizationId),
+          excludeLegacyOvertime
+        ),
     columns: {
       id: true,
       employeeId: true,

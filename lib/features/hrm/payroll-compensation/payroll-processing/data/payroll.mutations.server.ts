@@ -18,6 +18,7 @@ import {
 } from "#lib/db/schema"
 
 import { markBonusPayoutsPaidForPayrollPeriod } from "../../bonus-incentive-management/server"
+import { markOtmRequestsPaidForPayrollPeriod } from "../../../time-attendance/overtime-management/data/otm-payroll-export.server"
 import type { PayrollLineInput } from "./payroll-engine.server"
 import type { HrmCompensationSnapshotEntry } from "../../compensation-planning-modeling"
 
@@ -386,6 +387,7 @@ export async function insertPayrollLines(
       salaryAdvanceId: l.salaryAdvanceId ?? null,
       salaryAdvanceInstallmentId: l.salaryAdvanceInstallmentId ?? null,
       bonusPayoutId: l.bonusPayoutId ?? null,
+      overtimeRequestId: l.overtimeRequestId ?? null,
     }))
   )
 }
@@ -435,6 +437,10 @@ export async function lockPayrollPeriodAndRunsMutation(opts: {
   }>
   readonly paidBonusPayouts: ReadonlyArray<{
     readonly payoutId: string
+    readonly payrollLineId: string
+  }>
+  readonly paidOvertimeRequests: ReadonlyArray<{
+    readonly overtimeRequestId: string
     readonly payrollLineId: string
   }>
 }> {
@@ -613,5 +619,11 @@ export async function lockPayrollPeriodAndRunsMutation(opts: {
     actorUserId: opts.lockedByUserId,
   })
 
-  return { paidClaims, paidBonusPayouts }
+  const paidOvertimeRequests = await markOtmRequestsPaidForPayrollPeriod({
+    organizationId: opts.organizationId,
+    periodId: opts.periodId,
+    actorUserId: opts.lockedByUserId,
+  })
+
+  return { paidClaims, paidBonusPayouts, paidOvertimeRequests }
 }

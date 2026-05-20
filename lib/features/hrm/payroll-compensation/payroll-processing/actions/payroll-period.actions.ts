@@ -450,9 +450,29 @@ export async function lockPayrollPeriodAction(
         rulePackVersion,
         paidClaimCount: lockResult.paidClaims.length,
         paidBonusPayoutCount: lockResult.paidBonusPayouts.length,
+        paidOvertimeRequestCount: lockResult.paidOvertimeRequests.length,
       },
     })
   )
+
+  for (const entry of lockResult.paidOvertimeRequests) {
+    after(() =>
+      writeIamAuditEventFromNextHeaders({
+        action: "erp.hrm.overtime.request.update",
+        actorUserId: userId,
+        actorSessionId: sessionId,
+        organizationId,
+        resourceType: "hrm_overtime_request",
+        resourceId: entry.overtimeRequestId,
+        metadata: {
+          overtimeRequestId: entry.overtimeRequestId,
+          payrollPeriodId: parsed.data.periodId,
+          payrollLineId: entry.payrollLineId,
+          transition: "paid",
+        },
+      })
+    )
+  }
 
   // Phase 4 — one `erp.hrm.claim.paid` audit per claim that this lock
   // settled. Written via `after` so the response is not blocked by a

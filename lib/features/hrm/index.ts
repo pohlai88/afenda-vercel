@@ -364,6 +364,17 @@ export {
   resolveFwaSurfaceAccess,
 } from "./time-attendance/flexible-work-arrangement-tracking"
 export {
+  OvertimePage,
+  resolveOtmSurfaceAccess,
+  HRM_OTM_AUDIT,
+  OTM_REQUEST_APPROVAL_SUBJECT_KIND,
+  HRM_OTM_SPEC_MAP,
+  listHrmOtmSpecCodes,
+  HRM_OTM_REQUEST_STATES,
+  HRM_OTM_DAY_CATEGORIES,
+  HRM_OTM_TIMING_KINDS,
+} from "./time-attendance/overtime-management"
+export {
   GeolocationPage,
   resolveGeolocationSurfaceAccess,
   HRM_GEOLOCATION_AUDIT,

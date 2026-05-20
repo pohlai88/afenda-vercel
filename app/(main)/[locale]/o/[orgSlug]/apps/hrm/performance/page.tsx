@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDeniedFromNav } from "#features/hrm/components/hrm-shell-access-denied.server"
 import { getTranslations } from "next-intl/server"
 
 import { HrmPerformancePage } from "#features/hrm"
@@ -27,14 +27,7 @@ export default async function OrgAppsHrmPerformancePage({
     function: "search",
   })
   if (!allowed) {
-    const t = await getTranslations("Dashboard.Hrm.performance")
-
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDeniedFromNav navKey="performance" />
   }
   return <HrmPerformancePage orgSlug={orgSlug} />
 }

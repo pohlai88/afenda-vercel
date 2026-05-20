@@ -182,6 +182,12 @@ export const ERP_PERMISSION_REGISTRY = [
   }),
   ...buildPermissionSet({
     module: "hrm",
+    object: "overtime",
+    label: "HRM overtime",
+    sensitivity: "sensitive",
+  }),
+  ...buildPermissionSet({
+    module: "hrm",
     object: "geofence",
     label: "HRM geofence",
     sensitivity: "sensitive",

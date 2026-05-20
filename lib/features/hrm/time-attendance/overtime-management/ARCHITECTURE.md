@@ -1,5 +1,28 @@
 # Overtime Management
 
+## Implementation notes
+
+- **Route:** `/{locale}/o/{orgSlug}/apps/hrm/overtime` — registry segment `overtime`, audit prefix `erp.hrm.overtime`.
+- **Phase 1 (shipped):** `hrm_overtime_request` table, self/on-behalf submit, `hrm_approval` with `subjectKind: overtime_request`, Pattern C pending inbox + org recent + my-requests lists, payable minutes on approve.
+- **Phase 2 (shipped):** `hrm_overtime_type` + `hrm_overtime_eligibility_rule`, type catalog on submit, eligibility validation with HR/manager exception reason, Pattern C admin lists (`hrm:overtime:types`, `hrm:overtime:eligibility`), seed default types action.
+- **Phase 3 (shipped):** `hrm_overtime_policy`, `hrm_overtime_rate_rule`, `hrm_overtime_calculation_snapshot`; policy form; rate rules Pattern C list; calculation on approve (rounding, caps, multiplier, earning code); attendance reconcile panel when `compareAttendanceEnabled` (`hrm:overtime:attendance-reconcile`).
+- **Phase 4 (shipped):** `approved` → `payroll_ready` action + audit; payroll-ready Pattern C list (`hrm:overtime:payroll-ready`); operational CSV export (`hrm:overtime:report`); approved-payroll mark list (`hrm:overtime:approved-payroll`).
+- **Gap closure (shipped):** shift vs scheduled compare (`009`), policy exceptions inbox + approve/reject (`019`), monetary amount on calculation snapshot from active contract salary (`021`), compensatory leave ledger credit on approve when policy allows (`022`), payroll engine consumes `payroll_ready` rows via `approvedOvertimeEarnings` + period lock marks `paid` (`023`), org notifications on submit/approve/reject/return/payroll-ready/exception (`026`), LAM overtime time-report submit blocked and lists exclude legacy OT rows, pending-inbox bulk approve up to 25 requests (`016`).
+- **Compensatory credit:** On approve, when `allowCompensatoryTime` and `compensatoryLeaveTypeCode` are set, payable minutes convert to leave days (`payableMinutes / 480`) and post as `manual_correction` on `hrm_leave_balance` for the work-date entitlement year. Idempotent per request via `erp.hrm.overtime.compensatory_leave.create` audit metadata (`overtimeRequestId`). Payroll-ready path is unchanged.
+- **Bulk approve:** `bulkApproveOtmRequestsAction` reuses `executeOtmRequestApproval`; partial success returns approved + failed rows; summary audit `erp.hrm.overtime.request.audit` with counts.
+
+## Deferred (not removed)
+
+| ID | Item | Notes |
+| --- | --- | --- |
+| **010** | Pre-approval routing | Exceptions + eligibility only; no multi-stage pre-approval graph |
+| **014** | Manager hierarchy routing | Single `currentApproverUserId` on `hrm_approval` |
+| **016** (routing) | Amount/grade/location-based approver matrix | **Bulk approve inbox shipped**; dynamic routing still deferred |
+| **026** | Email / push notifications | In-app org notifications only |
+| **claimDeadlineDays** | Late-submission enforcement | Policy field stored; submit/approve deadline gate not wired |
+| **LAM** | Legacy `hrm_time_report` OT rows | Hidden from lists; not deleted |
+- **Parallel coexistence:** Leave & Attendance `hrm_time_report` (`reportKind: overtime`) on the attendance page remains active until a dedicated deprecation pass. This module is the future system of record for policy, rates, caps, and payroll-ready overtime (see LAM ARCHITECTURE — overtime rate/calculation excluded there).
+
 ## Definition
 
 **Overtime Management is the HRM function that tracks, validates, approves, and calculates overtime hours, overtime eligibility, overtime rates, pay multipliers, overtime requests, overtime exceptions, and payroll-ready overtime outcomes based on configured policies and statutory rules.**

@@ -150,6 +150,21 @@ export const HRM_CAPABILITIES = [
     }),
   },
   {
+    id: "overtime",
+    segments: ["overtime"] as const,
+    auditPrefix: "erp.hrm.overtime",
+    nav: {
+      navKey: "overtime",
+      order: 34,
+      primarySegment: "overtime",
+    },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "overtime",
+      function: "search",
+    }),
+  },
+  {
     id: "benefits",
     segments: ["benefits"] as const,
     auditPrefix: "erp.hrm.benefit",

@@ -1,6 +1,6 @@
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { getTranslations } from "next-intl/server"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
 import { HrmComplianceWorkbenchPage } from "#features/hrm"
 import { getOrgTenantContext } from "#lib/auth"
 
@@ -16,12 +16,7 @@ export default async function OrgAppsHrmCompliancePage({
   if (!allowed) {
     const t = await getTranslations("Dashboard.Hrm.compliance")
 
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDenied surface={t("pageTitle")} />
   }
 
   const [{ orgSlug }, search, orgSession] = await Promise.all([

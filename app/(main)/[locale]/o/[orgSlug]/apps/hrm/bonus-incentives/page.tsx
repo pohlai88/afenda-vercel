@@ -1,6 +1,6 @@
 import { BonusIncentivesPage } from "#features/hrm"
 import { getTranslations } from "next-intl/server"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmBonusIncentivesPage({
@@ -18,12 +18,7 @@ export default async function OrgAppsHrmBonusIncentivesPage({
   if (!allowed) {
     const t = await getTranslations("Dashboard.Hrm.bonusIncentives")
 
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDenied surface={t("pageTitle")} />
   }
 
   return <BonusIncentivesPage orgSlug={orgSlug} tabParam={tabParam} />

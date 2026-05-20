@@ -1,5 +1,5 @@
 import "server-only"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDeniedFromNav } from "#features/hrm/components/hrm-shell-access-denied.server"
 
 import { getTranslations } from "next-intl/server"
 
@@ -170,12 +170,7 @@ export async function PayrollPage() {
   ])
 
   if (!capabilities.canSearch) {
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDeniedFromNav navKey="payroll" />
   }
 
   const periods = await listPayrollPeriodsForOrg(session.organizationId)

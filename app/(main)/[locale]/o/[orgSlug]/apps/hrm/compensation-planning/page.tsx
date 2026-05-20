@@ -4,7 +4,7 @@ import {
   CompensationPlanningPage,
   resolveCompensationPlanningSurfaceAccess,
 } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
 import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAppsHrmCompensationPlanningPage() {
@@ -17,12 +17,7 @@ export default async function OrgAppsHrmCompensationPlanningPage() {
   if (!access.canEnter) {
     const t = await getTranslations("Dashboard.Hrm.compensationPlanning")
 
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDenied surface={t("pageTitle")} />
   }
 
   return (

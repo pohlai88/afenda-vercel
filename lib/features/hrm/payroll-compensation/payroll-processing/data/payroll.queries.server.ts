@@ -17,6 +17,7 @@ import {
   listAttendanceDaysForEmployee,
   listAttendanceDaysForPayroll,
 } from "../../../time-attendance/leave-attendance-management/data/attendance.queries.server"
+import { listOtmPayrollEarningsForEmployeePeriod } from "../../../time-attendance/overtime-management/data/otm-payroll-export.server"
 import { isAttendanceDayReadyForPayroll } from "../../../time-attendance/leave-attendance-management/data/attendance-display.shared"
 import { listBenefitPayrollProjectionEnrollmentsForPeriod } from "../../benefits-administration/data/benefit-enterprise.queries.server"
 import { listApprovedBonusPayoutPayrollInputsForPeriod } from "../../bonus-incentive-management/server"
@@ -560,6 +561,12 @@ export async function getPayrollRunInputSnapshot(
       periodStart: period.periodStart,
       periodEnd: period.periodEnd,
       currency: baseSalaryCurrency,
+    }),
+    approvedOvertimeEarnings: await listOtmPayrollEarningsForEmployeePeriod({
+      organizationId,
+      employeeId: run.employeeId,
+      periodStart: period.periodStart,
+      periodEnd: period.periodEnd,
     }),
   }
 }

@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#features/governed-surface"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+
+import { HrmShellAccessDeniedFromNav } from "#features/hrm/components/hrm-shell-access-denied.server"
 
 import type { CompensationPlanningSurfaceAccess } from "../data/cpm-access.server"
 import { loadCompensationPlanningPageData } from "../data/cpm.queries.server"
@@ -23,21 +24,11 @@ export async function CompensationPlanningPage({
   const t = await getTranslations("Dashboard.Hrm.compensationPlanning")
 
   if (access && !access.canEnter) {
-    return (
-      <ErpAccessDenied
-        title={t("pageTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDeniedFromNav navKey="compensation-planning" />
   }
 
   if (!organizationIdProp) {
-    return (
-      <ErpAccessDenied
-        title={t("pageTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDeniedFromNav navKey="compensation-planning" />
   }
 
   const { cycles, primaryCycleId, budgetPools, participants } =

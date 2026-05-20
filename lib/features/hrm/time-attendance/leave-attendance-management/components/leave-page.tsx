@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
 
 import { getTranslations } from "next-intl/server"
 
@@ -50,12 +50,7 @@ export async function LeavePage({ orgSlug, access }: LeavePageProps) {
   if (!leaveAccess.canEnter) {
     const t = await getTranslations("Dashboard.Hrm.leave")
 
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDenied surface={t("pageTitle")} />
   }
 
   const [t, employees, leaveTypes] = await Promise.all([

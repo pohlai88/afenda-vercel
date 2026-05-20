@@ -1,6 +1,6 @@
 import { AttendancePage } from "#features/hrm"
 import { getTranslations } from "next-intl/server"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmAttendancePage({
@@ -17,12 +17,7 @@ export default async function OrgAppsHrmAttendancePage({
   if (!allowed) {
     const t = await getTranslations("Dashboard.Hrm.attendance")
 
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDenied surface={t("pageTitle")} />
   }
 
   // Coerce only string-shaped search params; arrays / undefined fall back

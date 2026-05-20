@@ -598,6 +598,94 @@ export type FwaApprovalFormState =
       }
     }
 
+export type OtmRequestMutationFormState =
+  | { ok: true; requestId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        employeeId?: string
+        workDate?: string
+        startTime?: string
+        endTime?: string
+        reason?: string
+      }
+    }
+
+export type OtmApprovalFormState =
+  | { ok: true; requestId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        requestId?: string
+        rejectedReason?: string
+        returnedReason?: string
+      }
+    }
+
+export type OtmBulkApprovalFormState =
+  | {
+      ok: true
+      approved: string[]
+      failed: { requestId: string; message: string }[]
+    }
+  | {
+      ok: false
+      errors: {
+        form?: string
+      }
+    }
+
+export type CreateOtmTypeFormState =
+  | { ok: true; typeId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        code?: string
+        label?: string
+        dayCategory?: string
+      }
+    }
+
+export type CreateOtmEligibilityRuleFormState =
+  | { ok: true; ruleId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        overtimeTypeId?: string
+      }
+    }
+
+export type SeedOtmTypesFormState =
+  | { ok: true; seeded: string[]; skipped: string[] }
+  | { ok: false; errors: { form?: string } }
+
+export type UpsertOtmPolicyFormState =
+  | { ok: true }
+  | { ok: false; errors: { form?: string } }
+
+export type CreateOtmRateRuleFormState =
+  | { ok: true; ruleId: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        overtimeTypeId?: string
+        multiplier?: string
+      }
+    }
+
+export type MarkOtmPayrollReadyFormState =
+  | { ok: true; requestId: string }
+  | { ok: false; errors: { form?: string } }
+
+export type OtmExceptionDecisionFormState =
+  | { ok: true; exceptionId: string }
+  | { ok: false; errors: { form?: string } }
+
 export type CreateFwaTypeFormState =
   | { ok: true; typeId: string }
   | {

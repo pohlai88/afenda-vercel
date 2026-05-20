@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
 import { getTranslations } from "next-intl/server"
 
 import { HrmAdvancesPage } from "#features/hrm"
@@ -29,12 +29,7 @@ export default async function OrgAppsHrmAdvancesPage({
   if (!allowed) {
     const t = await getTranslations("Dashboard.Hrm.advances")
 
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmShellAccessDenied surface={t("title")} />
   }
   return <HrmAdvancesPage orgSlug={orgSlug} />
 }

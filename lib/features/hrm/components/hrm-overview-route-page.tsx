@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation"
-import { getTranslations } from "next-intl/server"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
-
 import { listEffectiveErpPermissionsForUser } from "#features/erp-rbac/server"
 import { getOrgTenantContext } from "#lib/auth"
 
 import { HrmOverviewPage } from "../_hrm_landing_page/hrm-pages"
+import { HrmWorkbenchOverviewAccessDenied } from "./hrm-shell-access-denied.server"
 import { HRM_CAPABILITIES, organizationHrmPath } from "../constants"
 import { resolveLeaveSurfaceAccess } from "../time-attendance/leave-attendance-management/data/leave-access.server"
 
@@ -28,14 +26,7 @@ export async function HrmOverviewRoutePage({ orgSlug }: { orgSlug: string }) {
       redirect(organizationHrmPath(orgSlug, "leave"))
     }
 
-    const t = await getTranslations("Dashboard.Hrm.workbenchOverview")
-
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
+    return <HrmWorkbenchOverviewAccessDenied />
   }
   return <HrmOverviewPage orgSlug={orgSlug} />
 }

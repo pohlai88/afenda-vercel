@@ -906,7 +906,17 @@
             "current": "Current"
           }
         },
-        "backToWorkspace": "Back to HR workspace"
+        "backToWorkspace": "Back to HR workspace",
+        "accessDeniedTitle": "Access denied",
+        "accessDeniedDescription": "You do not have permission to access {surface}. Contact your organization administrator if you need access.",
+        "accessDeniedDetailTitle": "Employee record unavailable",
+        "accessDeniedDetailDescription": "You do not have permission to view {surface}. Contact your organization administrator if you need access.",
+        "accessDeniedWorkbenchTitle": "HRM workbench",
+        "accessDeniedWorkbenchDescription": "You do not have permission to open the HRM workbench. If you only need leave, your administrator can grant leave access.",
+        "accessDeniedCapabilityTitle": "HRM capability",
+        "accessDeniedCapabilityDescription": "You do not have permission to open this HRM capability. Contact your organization administrator if you need access.",
+        "accessDeniedComplianceEvidenceTitle": "Compliance evidence",
+        "accessDeniedComplianceEvidenceDescription": "This HRM surface requires Compliance read access."
       },
       "nav": {
         "employees": "Workforce",
@@ -920,6 +930,7 @@
         "absence-analytics": "Absence analytics",
         "flexible-work": "Flexible work",
         "geolocation": "Remote check-in",
+        "overtime": "Overtime",
         "benefits": "Benefits",
         "bonus-incentives": "Bonus & incentives",
         "compensation-planning": "Compensation planning",
@@ -997,6 +1008,10 @@
         "geolocation": {
           "title": "Remote check-in",
           "description": "Mobile or web clock-in with GPS verification, geofence rules, device registration, exception approvals, and audit history — verified rows feed Leave & Attendance Management."
+        },
+        "overtime": {
+          "title": "Overtime",
+          "description": "Overtime requests, eligibility, rate rules, caps, approval workflow, and payroll-ready outcomes."
         },
         "benefits": {
           "title": "Benefits",
@@ -1093,9 +1108,7 @@
         "recentTitle": "Recent import sessions",
         "recentDescription": "Latest dry runs and commits for this organization.",
         "recentEmpty": "No import sessions yet.",
-        "rowsLabel": "Rows",
-        "accessDeniedTitle": "HRM imports",
-        "accessDeniedDescription": "This HRM surface requires HRM import search access."
+        "rowsLabel": "Rows"
       },
       "recruitment": {
         "eyebrow": "Talent",
@@ -1207,9 +1220,7 @@
           "tracked": "Tracked",
           "submitted": "Submitted",
           "recorded": "Recorded"
-        },
-        "accessDeniedTitle": "Recruitment",
-        "accessDeniedDescription": "This HRM surface requires Recruitment search access."
+        }
       },
       "rulePackSg": {
         "leaveAnnual": "Annual leave (Singapore)",
@@ -1458,9 +1469,7 @@
           "colSeverity": "Severity",
           "colIssue": "Issue",
           "colDetail": "Detail"
-        },
-        "accessDeniedTitle": "Organization",
-        "accessDeniedDescription": "This HRM surface requires Organization read access."
+        }
       },
       "snapshot": {
         "eyebrow": "Projection",
@@ -1486,9 +1495,7 @@
         "quickLinksHeading": "Quick links",
         "linkDocuments": "Documents vault",
         "linkPolicies": "Policies",
-        "linkAttendance": "Attendance",
-        "accessDeniedTitle": "Snapshot",
-        "accessDeniedDescription": "This HRM surface requires Snapshot read access."
+        "linkAttendance": "Attendance"
       },
       "lifecycle": {
         "metaTitle": "Lifecycle overview",
@@ -1535,9 +1542,7 @@
           "separated": "Separated",
           "retired": "Retired",
           "archived": "Archived"
-        },
-        "accessDeniedTitle": "Lifecycle overview",
-        "accessDeniedDescription": "This HRM surface requires Workforce search access."
+        }
       },
       "onboarding": {
         "metaTitle": "Onboarding checklist",
@@ -1563,9 +1568,7 @@
         "colCompleted": "Completed steps",
         "colRecord": "Record a step",
         "stepPlaceholder": "step_key",
-        "recordStep": "Record step",
-        "accessDeniedTitle": "Onboarding",
-        "accessDeniedDescription": "This HRM surface requires Onboarding read access."
+        "recordStep": "Record step"
       },
       "offboarding": {
         "eyebrow": "Lifecycle",
@@ -1614,9 +1617,7 @@
         "rehireIneligible": "Ineligible",
         "rehireConditional": "Conditional",
         "rehireNoteLabel": "Rehire note",
-        "recordRehireEligibilitySubmit": "Record rehire eligibility",
-        "accessDeniedTitle": "Offboarding",
-        "accessDeniedDescription": "This HRM surface requires Workforce search access."
+        "recordRehireEligibilitySubmit": "Record rehire eligibility"
       },
       "performance": {
         "metaTitle": "Performance reviews",
@@ -1670,9 +1671,7 @@
         "competencyScoresPlaceholder": "Competency scores JSON (optional)",
         "submitReview": "Submit review",
         "acknowledgeReview": "Acknowledge",
-        "cancelReview": "Cancel review",
-        "accessDeniedTitle": "Performance",
-        "accessDeniedDescription": "This HRM surface requires Performance search access."
+        "cancelReview": "Cancel review"
       },
       "kpi": {
         "metaTitle": "KPI periods",
@@ -1760,9 +1759,7 @@
         "goalMilestoneRemove": "Remove",
         "goalMilestonesEmpty": "No milestones yet.",
         "goalMilestoneColTitle": "Milestone",
-        "goalMilestoneColActions": "Actions",
-        "accessDeniedTitle": "KPI",
-        "accessDeniedDescription": "This HRM surface requires KPI search access."
+        "goalMilestoneColActions": "Actions"
       },
       "training": {
         "metaTitle": "Training & development",
@@ -1887,9 +1884,7 @@
         "prerequisiteRequired": "Required",
         "prerequisiteOptional": "Optional",
         "prerequisiteRemove": "Remove",
-        "prerequisiteEmpty": "No prerequisites defined yet.",
-        "accessDeniedTitle": "Training",
-        "accessDeniedDescription": "This HRM surface requires training search access."
+        "prerequisiteEmpty": "No prerequisites defined yet."
       },
       "portalProfile": {
         "pageTitle": "My profile",
@@ -1973,6 +1968,8 @@
       "advances": {
         "metaTitle": "Salary advances",
         "metaDescription": "Request salary advances and approve or reject them with IAM-audited controls.",
+        "accessDeniedTitle": "Salary advances",
+        "accessDeniedDescription": "This HRM surface requires Salary advances access or a linked employee record.",
         "eyebrow": "Cash flow",
         "title": "Salary advances",
         "description": "Employees request advances for their linked record; org admins approve or reject. Approved amounts can deduct on payroll preview and clear when the period locks.",
@@ -1999,9 +1996,7 @@
         },
         "decisionNotePlaceholder": "Optional note (visible on the decision)",
         "approve": "Approve",
-        "reject": "Reject",
-        "accessDeniedTitle": "Advances",
-        "accessDeniedDescription": "This HRM surface requires Salary advance search access."
+        "reject": "Reject"
       },
       "placeholders": {
         "employees": {
@@ -2047,6 +2042,10 @@
         "geolocation": {
           "title": "Remote check-in",
           "body": "Capture mobile or web clock-in with GPS verification, validate against geofence rules and shift windows, register devices, route exceptions for approval, and surface verified rows to Leave & Attendance Management — all under erp.hrm.remote_checkin.* audits."
+        },
+        "overtime": {
+          "title": "Overtime",
+          "body": "Submit overtime requests, approve policy exceptions, and track payroll-ready outcomes under erp.hrm.overtime.* audits. Legacy attendance overtime time reports are retired — use this module instead."
         },
         "benefits": {
           "title": "Benefits",
@@ -2164,9 +2163,7 @@
           "approvedAmount": "Approved amount",
           "exportedAmount": "Exported amount",
           "clawbackAmount": "Clawback amount"
-        },
-        "accessDeniedTitle": "Bonus & incentives",
-        "accessDeniedDescription": "This HRM surface requires Bonus & Incentive search access."
+        }
       },
       "salaryBenchmarking": {
         "eyebrow": "Payroll compensation",
@@ -2216,9 +2213,7 @@
           "colRange": "Range",
           "colGap": "Gap",
           "colGapRatio": "Gap ratio"
-        },
-        "accessDeniedTitle": "Salary benchmarking",
-        "accessDeniedDescription": "This HRM surface requires Salary Benchmarking search access."
+        }
       },
       "workforce": {
         "pageTitle": "Workforce",
@@ -2752,11 +2747,7 @@
         "offboardingSkipApprovalLabel": "Skip approval workflow",
         "offboardingInitiating": "Starting offboarding...",
         "offboardingInitiateSubmit": "Start offboarding",
-        "offboardingInitiated": "Offboarding started.",
-        "accessDeniedTitle": "Employees",
-        "accessDeniedDescription": "This HRM surface requires Workforce search access.",
-        "accessDeniedDetailTitle": "Employee detail",
-        "accessDeniedDetailDescription": "This HRM surface requires Workforce read access."
+        "offboardingInitiated": "Offboarding started."
       },
       "leavePolicy": {
         "pageTitle": "Leave",
@@ -3009,9 +3000,7 @@
           "open": "Open",
           "computed": "Computed",
           "locked": "Locked"
-        },
-        "accessDeniedTitle": "Attendance",
-        "accessDeniedDescription": "This HRM surface requires Attendance search access."
+        }
       },
       "signatures": {
         "eyebrow": "Signatures",
@@ -3041,9 +3030,7 @@
         "partyOrder": "Signer {order}",
         "addParty": "Add signer",
         "removeParty": "Remove signer",
-        "signerNamePlaceholder": "Signer full name",
-        "accessDeniedTitle": "Signatures",
-        "accessDeniedDescription": "This HRM surface requires signature search access."
+        "signerNamePlaceholder": "Signer full name"
       },
       "portalSignatures": {
         "eyebrow": "Signatures",
@@ -3262,9 +3249,7 @@
           "HRDF": "HRDF/HRD Corp levy",
           "UNPAID_LEAVE_DEDUCT": "Unpaid leave deduction",
           "OT_HOURS": "Overtime earnings"
-        },
-        "accessDeniedTitle": "Payroll",
-        "accessDeniedDescription": "This HRM surface requires Payroll search access."
+        }
       },
       "claims": {
         "eyebrow": "Claims",
@@ -3386,9 +3371,7 @@
         "fieldDuplicateOverride": "Field Duplicate Override",
         "fieldDuplicateOverridePlaceholder": "Field Duplicate Override Placeholder",
         "exceptionQueueTitle": "Exception queue",
-        "exceptionQueueDescription": "Claims requiring policy, evidence, or approval review.",
-        "accessDeniedTitle": "Claims",
-        "accessDeniedDescription": "This HRM surface requires Claims access or a linked employee record."
+        "exceptionQueueDescription": "Claims requiring policy, evidence, or approval review."
       },
       "compensationPlanning": {
         "eyebrow": "Payroll compensation",
@@ -3459,8 +3442,7 @@
           "grade": "Grade",
           "location": "Location",
           "manager_group": "Manager group"
-        },
-        "accessDeniedTitle": "Compensation planning"
+        }
       },
       "absenceAnalytics": {
         "metaTitle": "Absence analytics & trends",
@@ -3737,6 +3719,228 @@
           "terminated": "Terminated",
           "expired": "Expired"
         }
+      },
+      "overtime": {
+        "metaTitle": "Overtime management",
+        "metaDescription": "Overtime requests, eligibility, rate multipliers, caps, approval workflow, and payroll-ready outcomes.",
+        "accessDeniedTitle": "Overtime",
+        "accessDeniedDescription": "This HRM surface requires Overtime access or a linked employee record.",
+        "eyebrow": "Time & attendance",
+        "title": "Overtime management",
+        "description": "Submit overtime requests, route policy exceptions and approvals, calculate payable amounts from salary master data, and export payroll-ready rows into payroll processing.",
+        "selfRequestTitle": "Request overtime",
+        "selfRequestDescription": "Submit planned or actual overtime for your linked employee record.",
+        "onBehalfTitle": "Submit on behalf",
+        "onBehalfDescription": "HR or managers can file overtime for another employee.",
+        "noEmployees": "No active employees are available for on-behalf submission.",
+        "fieldEmployee": "Employee",
+        "fieldEmployeePlaceholder": "Select employee…",
+        "fieldWorkDate": "Work date",
+        "fieldStartTime": "Start time",
+        "fieldEndTime": "End time",
+        "fieldTimingKind": "Timing",
+        "fieldDayCategory": "Day category",
+        "fieldReason": "Reason",
+        "fieldReturnReason": "Return reason",
+        "fieldRejectReason": "Rejection reason",
+        "submit": "Submit request",
+        "submitting": "Submitting…",
+        "submitSuccessTitle": "Request submitted",
+        "submitSuccessBody": "Your overtime request is awaiting approval.",
+        "submitFailedTitle": "Could not submit",
+        "pendingTitle": "Pending approval",
+        "pendingDescription": "Submitted overtime requests awaiting a decision.",
+        "recentTitle": "Recent requests",
+        "recentDescription": "Latest overtime requests across the organization.",
+        "myRequestsTitle": "My overtime requests",
+        "myRequestsDescription": "Requests you submitted and their current status.",
+        "myRequestsEmpty": "You have not submitted any overtime requests yet.",
+        "myRequestsLoadFailed": "Could not load your overtime requests.",
+        "recentEmpty": "No overtime requests yet.",
+        "recentLoadFailed": "Could not load recent requests.",
+        "inboxEmpty": "No pending overtime requests.",
+        "inboxLoadFailed": "Could not load the approval inbox.",
+        "colEmployee": "Employee",
+        "colWorkDate": "Work date",
+        "colTimeRange": "Time",
+        "colDuration": "Duration",
+        "colDayCategory": "Category",
+        "colState": "Status",
+        "colRequested": "Requested",
+        "colActions": "Actions",
+        "decideAction": "Decide",
+        "approve": "Approve",
+        "approving": "Approving…",
+        "approveAria": "Approve overtime for {timeRange}",
+        "bulkApproveTitle": "Bulk approve",
+        "bulkApproveSelectAll": "Select all pending",
+        "bulkApproveSelectRow": "Select {label}",
+        "bulkApproveSubmit": "Approve selected ({count})",
+        "bulkApproving": "Approving selected…",
+        "bulkApproveNoneSelected": "Select one or more requests to bulk approve.",
+        "bulkApproveSuccessAll": "Approved {count} request(s).",
+        "bulkApproveSuccessPartial": "Approved {approved} request(s); {failed} could not be approved.",
+        "reject": "Reject",
+        "rejecting": "Rejecting…",
+        "rejectDialogTitle": "Reject overtime",
+        "rejectDialogDescription": "Reject the request for {timeRange}. A reason is required.",
+        "confirmReject": "Confirm reject",
+        "return": "Return",
+        "returning": "Returning…",
+        "returnDialogTitle": "Return for correction",
+        "returnDialogDescription": "Return the request for {timeRange} so the employee can resubmit.",
+        "confirmReturn": "Confirm return",
+        "timingKindLabels": {
+          "planned": "Planned",
+          "actual": "Actual"
+        },
+        "dayCategoryLabels": {
+          "normal_day": "Normal day",
+          "rest_day": "Rest day",
+          "off_day": "Off day",
+          "public_holiday": "Public holiday",
+          "night": "Night",
+          "emergency": "Emergency"
+        },
+        "stateLabels": {
+          "draft": "Draft",
+          "submitted": "Submitted",
+          "approved": "Approved",
+          "rejected": "Rejected",
+          "returned": "Returned",
+          "cancelled": "Cancelled",
+          "payroll_ready": "Payroll ready",
+          "paid": "Paid"
+        },
+        "fieldOvertimeType": "Overtime type",
+        "fieldOvertimeTypePlaceholder": "Select overtime type…",
+        "fieldEligibilityException": "Eligibility exception reason",
+        "fieldEligibilityExceptionHint": "Required when submitting on behalf of an employee who does not match eligibility rules.",
+        "typesTitle": "Overtime types",
+        "typesDescription": "Catalog of overtime categories used for requests, eligibility, and rate rules.",
+        "typesEmpty": "No overtime types configured.",
+        "noTypesTitle": "Set up overtime types",
+        "noTypesBody": "Seed the default catalog or create custom types before employees submit requests.",
+        "colTypeCode": "Code",
+        "colTypeLabel": "Label",
+        "createTypeOpen": "Add type",
+        "createTypeTitle": "Create overtime type",
+        "createTypeDescription": "Define a code, label, and day category for payroll and eligibility.",
+        "fieldTypeCode": "Code",
+        "fieldTypeLabel": "Label",
+        "fieldTypeDescription": "Description",
+        "createTypeSubmit": "Create type",
+        "createTypeSubmitting": "Creating…",
+        "seedTypes": "Seed default types",
+        "seedTypesSubmitting": "Seeding…",
+        "seedTypesSuccessTitle": "Types seeded",
+        "seedTypesSuccessBody": "Added {seeded} type(s); skipped {skipped} existing code(s).",
+        "eligibilityTitle": "Eligibility rules",
+        "eligibilityDescription": "Restrict which employees may request each overtime type. Leave criteria blank to match any value.",
+        "eligibilityEmpty": "No eligibility rules yet.",
+        "createEligibilityRule": "Add rule",
+        "createEligibilityRuleTitle": "Create eligibility rule",
+        "createEligibilityRuleDescription": "Match employees by org dimensions. At least one criterion should be set.",
+        "createEligibilitySubmit": "Create rule",
+        "createEligibilitySubmitting": "Creating…",
+        "colType": "Type",
+        "colDepartment": "Department",
+        "colGrade": "Grade",
+        "colEmployment": "Employment",
+        "colCountry": "Country",
+        "colLocation": "Location",
+        "colScope": "Scope",
+        "colException": "Allow exception",
+        "colActive": "Active",
+        "yes": "Yes",
+        "no": "No",
+        "anyCriteria": "Any",
+        "scopeLegalEntity": "Legal entity",
+        "scopeRole": "Position",
+        "scopeWorkerCategory": "Worker category",
+        "scopePolicyGroup": "Policy group",
+        "fieldDepartmentId": "Department ID",
+        "fieldJobGradeId": "Job grade ID",
+        "fieldEmploymentType": "Employment type",
+        "fieldCountryCode": "Country (ISO)",
+        "fieldWorkLocationCode": "Work location code",
+        "fieldLegalEntityCode": "Legal entity code",
+        "fieldAllowException": "Allow HR/manager exception with reason",
+        "policyTitle": "Overtime policy",
+        "policyDescription": "Minimum duration, caps, rounding, default earning code, and attendance comparison.",
+        "policyMinDuration": "Minimum duration (minutes)",
+        "policyDefaultEarningCode": "Default earning code",
+        "policyDailyCap": "Daily cap (minutes)",
+        "policyWeeklyCap": "Weekly cap (minutes)",
+        "policyMonthlyCap": "Monthly cap (minutes)",
+        "policyRoundingInterval": "Rounding interval (minutes)",
+        "policyRoundingMode": "Rounding mode",
+        "policyCompareAttendance": "Compare payable minutes to attendance overtime",
+        "policyCompareShift": "Compare requested minutes to scheduled shift length",
+        "policyClaimDeadlineDays": "Claim deadline (days after work date)",
+        "policyAllowCompensatory": "Allow compensatory time (reference leave type on approval)",
+        "policyCompensatoryLeaveCode": "Compensatory leave type code",
+        "exceptionInboxTitle": "Policy exceptions",
+        "exceptionInboxDescription": "Late submission, cap breaches, shift variance, and other exceptions must be approved before the overtime request can be approved.",
+        "exceptionInboxEmpty": "No pending policy exceptions.",
+        "exceptionInboxLoadFailed": "Could not load policy exceptions.",
+        "colExceptionType": "Exception",
+        "colExceptionJustification": "Detail",
+        "exceptionApprove": "Approve exception",
+        "exceptionApproving": "Approving…",
+        "exceptionReject": "Reject exception",
+        "exceptionRejecting": "Rejecting…",
+        "exceptionTypeLabels": {
+          "late_submission": "Late submission",
+          "exceeded_cap": "Exceeded cap",
+          "missing_attendance": "Missing attendance",
+          "shift_variance": "Shift variance",
+          "unplanned": "Unplanned OT"
+        },
+        "policySave": "Save policy",
+        "policySaveSubmitting": "Saving…",
+        "policySaveSuccess": "Policy saved.",
+        "roundingModeLabels": {
+          "none": "No rounding",
+          "up": "Round up",
+          "down": "Round down",
+          "nearest": "Round to nearest"
+        },
+        "rateRulesTitle": "Rate rules",
+        "rateRulesDescription": "Multiplier and earning code by overtime type and optional criteria.",
+        "rateRulesEmpty": "No rate rules configured.",
+        "createRateRule": "Add rate rule",
+        "createRateRuleTitle": "Create rate rule",
+        "createRateRuleDescription": "Applies at approval when calculating payable minutes.",
+        "createRateRuleSubmit": "Create rule",
+        "createRateRuleSubmitting": "Creating…",
+        "fieldMultiplier": "Multiplier",
+        "fieldEarningCode": "Earning code",
+        "colMultiplier": "Multiplier",
+        "colEarning": "Earning code",
+        "colWorker": "Worker",
+        "colEffective": "Effective",
+        "effectiveFrom": "From",
+        "effectiveTo": "To",
+        "approvedPayrollTitle": "Approved — mark payroll ready",
+        "approvedPayrollDescription": "Approved requests ready to export to payroll.",
+        "approvedPayrollEmpty": "No approved requests awaiting payroll export.",
+        "markPayrollReady": "Mark payroll ready",
+        "markPayrollReadySubmitting": "Marking…",
+        "payrollReadyTitle": "Payroll ready",
+        "payrollReadyDescription": "Requests marked for payroll with calculated payable minutes.",
+        "payrollReadyEmpty": "No payroll-ready requests.",
+        "colPayable": "Payable",
+        "reportTitle": "Operational report",
+        "reportDescription": "All recent overtime requests (up to 100 rows). Export CSV for analysis.",
+        "reportEmpty": "No requests to report.",
+        "exportReport": "Export CSV",
+        "exportReportSubmitting": "Exporting…",
+        "attendanceReconcileTitle": "Attendance reconcile",
+        "attendanceReconcileDescription": "Compare calculated payable minutes to attendance overtime for the same work date.",
+        "attendanceReconcileEmpty": "No approved or payroll-ready rows to reconcile.",
+        "colAttendanceOt": "Attendance OT",
+        "colVariance": "Variance"
       },
       "Geolocation": {
         "metaTitle": "Remote check-in",
@@ -4350,9 +4554,7 @@
         "tabClaimReferencesTitle": "Claim references",
         "tabClaimReferencesDescription": "Link benefit enrollments to external provider claim references.",
         "tabOpenEnrollmentTitle": "Open enrollment",
-        "tabOpenEnrollmentDescription": "Manage enrollment windows for eligible employees.",
-        "accessDeniedTitle": "Benefits",
-        "accessDeniedDescription": "This HRM surface requires Benefits search access."
+        "tabOpenEnrollmentDescription": "Manage enrollment windows for eligible employees."
       },
       "portalClaims": {
         "portalEmployee": "Employee {employeeNumber}",
@@ -4453,9 +4655,7 @@
         },
         "matrixTitle": "Skill coverage matrix",
         "matrixDescription": "Employee proficiency (1–5) across top catalog skills.",
-        "matrixEmployee": "Employee",
-        "accessDeniedTitle": "Skills",
-        "accessDeniedDescription": "This HRM surface requires skill search access."
+        "matrixEmployee": "Employee"
       },
       "portalBenefits": {
         "portalPageTitle": "My benefits",
@@ -4733,9 +4933,7 @@
             "rejected": "Rejected",
             "cancelled": "Cancelled"
           }
-        },
-        "accessDeniedTitle": "Leave",
-        "accessDeniedDescription": "This HRM surface requires Leave access or a linked employee record."
+        }
       },
       "documents": {
         "eyebrow": "Documents",
@@ -4836,9 +5034,7 @@
         "noEmployeeBadge": "Org-wide",
         "uploadedBySystem": "system",
         "totalCount": "{count, plural, one {# document} other {# documents}}",
-        "filteredCount": "{count, plural, one {# match} other {# matches}}",
-        "accessDeniedTitle": "Documents",
-        "accessDeniedDescription": "This HRM surface requires Documents search access."
+        "filteredCount": "{count, plural, one {# match} other {# matches}}"
       },
       "policies": {
         "eyebrow": "Policies",
@@ -4987,9 +5183,7 @@
           "colDate": "Date",
           "colName": "Holiday",
           "readOnlyHint": "Statutory rates and contribution rules remain on payroll compliance surfaces; this table is for calendar reference only."
-        },
-        "accessDeniedTitle": "Policies",
-        "accessDeniedDescription": "This HRM surface requires Policy search access."
+        }
       },
       "compliance": {
         "eyebrow": "Compliance",
@@ -5253,9 +5447,7 @@
             "critical": "Critical",
             "no_data": "No signal"
           }
-        },
-        "accessDeniedTitle": "Compliance",
-        "accessDeniedDescription": "This HRM surface requires Compliance search access."
+        }
       },
       "multiCountryPayroll": {
         "configTitle": "Country payroll configuration",
@@ -5281,22 +5473,6 @@
         "reportColNetPay": "Net pay",
         "reportColEmployerCost": "Employer cost",
         "reportColEmployerCostReporting": "Employer cost (reporting)"
-      },
-      "complianceEvidence": {
-        "accessDeniedTitle": "Compliance evidence",
-        "accessDeniedDescription": "This HRM surface requires Compliance read access."
-      },
-      "publicSignature": {
-        "accessDeniedTitle": "Signature request",
-        "accessDeniedDescription": "This HRM surface requires signature read access."
-      },
-      "workbenchOverview": {
-        "accessDeniedTitle": "Human resources",
-        "accessDeniedDescription": "This surface requires explicit HRM RBAC before any HRM page can be opened."
-      },
-      "workbenchCapability": {
-        "accessDeniedTitle": "Human resources",
-        "accessDeniedDescription": "This HRM capability requires explicit RBAC permission."
       }
     },
     "surfaceComingSoon": {
