@@ -2,7 +2,7 @@
  * App typecheck via project references (`tsc -b`). ADR-0042 Phase 1–2.
  *
  * Usage:
- *   node scripts/typecheck-build.mjs              → full solution (lib-db + platform)
+ *   node scripts/typecheck-build.mjs              → `tsc -b tsconfig.build.json` (solution root)
  *   node scripts/typecheck-build.mjs <paths...>   → slice plan from gate paths
  */
 import { spawnSync } from "node:child_process"
@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url"
 import {
   resolveTypecheckSlicesForPaths,
   TYPECHECK_SLICES,
+  slicePlanNeedsRouteTypegen,
 } from "./lib/gate-typecheck-slices.shared.mjs"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -19,8 +20,6 @@ const paths = process.argv.slice(2).filter(Boolean)
 
 const slices =
   paths.length > 0 ? resolveTypecheckSlicesForPaths(paths) : TYPECHECK_SLICES
-
-const needsTypegen = slices.some((slice) => slice.id === "platform")
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -34,7 +33,7 @@ function run(command, args) {
   }
 }
 
-if (needsTypegen) {
+if (slicePlanNeedsRouteTypegen(slices)) {
   run("node", ["scripts/next-typegen-fast.mjs"])
 }
 

@@ -41,10 +41,12 @@ tsconfig.build.json             # solution root (tsc)
 ```
 
 ```bash
-pnpm typecheck              # typecheck-build.mjs → tsc -b
-pnpm typecheck:lib-db
-pnpm typecheck:platform
+pnpm typecheck              # typecheck-build.mjs → tsc -b tsconfig.build.json
+pnpm typecheck:lib-db       # leaf slice only
+pnpm typecheck:platform     # platform graph (references lib-db)
 ```
+
+Full builds use **`tsconfig.build.json`** as the solution root (`files: []` + `references` only) — not two separate `-b` invocations on leaf configs.
 
 ---
 
@@ -54,7 +56,7 @@ pnpm typecheck:platform
 | --- | --- |
 | `lib/db/**` only | `tsc -b .config/tsconfig.lib-db.json` |
 | Other paths | `tsc -b tsconfig.json` (platform) |
-| Mixed | Full solution |
+| Mixed | `tsc -b tsconfig.build.json` (solution root) |
 
 ---
 

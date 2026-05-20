@@ -6,10 +6,12 @@ import {
 } from "../../scripts/lib/gate-typecheck-slices.shared.mjs"
 
 describe("resolveTypecheckSlicesForPaths", () => {
-  it("returns full solution when no paths", () => {
+  it("returns solution root when no paths", () => {
     expect(resolveTypecheckSlicesForPaths([]).map((s) => s.id)).toEqual([
-      "lib-db",
-      "platform",
+      "solution",
+    ])
+    expect(resolveTypecheckSlicesForPaths([])[0]?.args).toEqual([
+      "tsconfig.build.json",
     ])
   })
 
@@ -25,13 +27,13 @@ describe("resolveTypecheckSlicesForPaths", () => {
     ).toEqual(["lib-db"])
   })
 
-  it("returns both when paths span db and features", () => {
+  it("returns solution root when paths span db and features", () => {
     expect(
       resolveTypecheckSlicesForPaths([
         "lib/db/schema.ts",
         "lib/features/hrm/",
       ]).map((s) => s.id)
-    ).toEqual(["lib-db", "platform"])
+    ).toEqual(["solution"])
   })
 })
 

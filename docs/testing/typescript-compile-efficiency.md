@@ -26,7 +26,7 @@ Declaration emit: `.artifacts/types/lib-db/` (gitignored). Warm feature edits ca
 Slice commands:
 
 ```bash
-pnpm typecheck              # direct tsc -b (agents, gate:typecheck)
+pnpm typecheck              # tsc -b tsconfig.build.json (solution root)
 pnpm typecheck:turbo          # Turbo parallel lib-db → platform + test + scripts (CI)
 pnpm typecheck:lib-db
 pnpm typecheck:platform

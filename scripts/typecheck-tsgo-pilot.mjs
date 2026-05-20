@@ -69,16 +69,19 @@ if (tsgo.stderr.trim()) {
 
 writeReport(lines)
 
-console.log(`\n[typecheck:tsgo] tsgo finished in ${tsgo.elapsedMs}ms (exit ${tsgo.status})`)
+console.log(
+  `\n[typecheck:tsgo] tsgo finished in ${tsgo.elapsedMs}ms (exit ${tsgo.status})`
+)
 console.log(`[typecheck:tsgo] report → ${path.relative(root, reportPath)}`)
 
 if (tsgo.status !== 0) {
-  const message =
-    enforce ?
-      "[typecheck:tsgo] tsgo failed — blocking because AFENDA_TSGO_ENFORCE=1"
+  const message = enforce
+    ? "[typecheck:tsgo] tsgo failed — blocking because AFENDA_TSGO_ENFORCE=1"
     : "[typecheck:tsgo] tsgo failed — non-blocking pilot (tsc remains authority)"
   console.error(`\n${message}\n`)
   process.exit(enforce ? (tsgo.status ?? 1) : 0)
 }
 
-console.log("\n[typecheck:tsgo] tsgo OK — compare timings with pnpm typecheck:profile\n")
+console.log(
+  "\n[typecheck:tsgo] tsgo OK — compare timings with pnpm typecheck:profile\n"
+)
