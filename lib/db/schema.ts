@@ -5590,6 +5590,14 @@ export const hrmShiftCoverageRequirement = pgTable(
     requiredSkillId: text("requiredSkillId").references(() => hrmSkill.id, {
       onDelete: "set null",
     }),
+    requiredPositionId: text("requiredPositionId").references(
+      () => hrmPosition.id,
+      { onDelete: "set null" }
+    ),
+    requiredTrainingCourseId: text("requiredTrainingCourseId").references(
+      () => hrmTrainingCourse.id,
+      { onDelete: "set null" }
+    ),
     createdByUserId: text("createdByUserId"),
     updatedByUserId: text("updatedByUserId"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
@@ -5601,6 +5609,83 @@ export const hrmShiftCoverageRequirement = pgTable(
       t.attendanceDate
     ),
     check("hrm_shift_coverage_req_headcount_chk", sql`${t.minHeadcount} > 0`),
+  ]
+)
+
+/** Employee availability blocks or preferences for shift assignment. */
+export const hrmShiftAvailability = pgTable(
+  "hrm_shift_availability",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    attendanceDate: date("attendanceDate").notNull(),
+    kind: text("kind").notNull().default("unavailable"),
+    reason: text("reason"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_shift_availability_org_employee_date_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.attendanceDate
+    ),
+    uniqueIndex("hrm_shift_availability_org_emp_date_kind_uq").on(
+      t.organizationId,
+      t.employeeId,
+      t.attendanceDate,
+      t.kind
+    ),
+    check(
+      "hrm_shift_availability_kind_chk",
+      sql`${t.kind} IN ('unavailable', 'preferred')`
+    ),
+  ]
+)
+
+/** Manager or employee schedule change request (distinct from swap). */
+export const hrmShiftScheduleChangeRequest = pgTable(
+  "hrm_shift_schedule_change_request",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    requesterEmployeeId: text("requesterEmployeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    assignmentId: text("assignmentId")
+      .notNull()
+      .references(() => hrmShiftAssignment.id, { onDelete: "restrict" }),
+    proposedTemplateId: text("proposedTemplateId")
+      .notNull()
+      .references(() => hrmShiftTemplate.id, { onDelete: "restrict" }),
+    proposedDate: date("proposedDate").notNull(),
+    reason: text("reason").notNull(),
+    state: text("state").notNull().default("submitted"),
+    managerNote: text("managerNote"),
+    rejectedReason: text("rejectedReason"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_shift_schedule_change_org_state_idx").on(
+      t.organizationId,
+      t.state
+    ),
+    check(
+      "hrm_shift_schedule_change_state_chk",
+      sql`${t.state} IN ('submitted', 'approved', 'rejected', 'returned', 'cancelled')`
+    ),
   ]
 )
 

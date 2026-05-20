@@ -354,6 +354,12 @@ export {
   applyRotationCycleAction,
   createCoverageRequirementAction,
   createRotationCycleAction,
+  applyRestOffPlanAction,
+  applyHolidayPlanAction,
+  createShiftAvailabilityAction,
+  submitScheduleChangeRequestAction,
+  approveScheduleChangeRequestAction,
+  rejectScheduleChangeRequestAction,
 } from "./time-attendance/shift-scheduling/client"
 export type {
   AssignEmployeeShiftFormState,

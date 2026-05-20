@@ -11,6 +11,8 @@ import {
 import { logUnexpectedServerError } from "#lib/logger.server"
 
 import { listSkillsForOrg } from "../../../talent-management/competency-skills-framework/data/skill.queries.server"
+import { listTrainingCoursesForOrg } from "../../../talent-management/training-development/data/training.queries.server"
+import { listPositionsForOrg } from "../../../employee-management/organizational-chart-hierarchy/data/org-structure.queries.server"
 import { compareCoverageHeadcount } from "../data/sft-coverage.server"
 import { buildSftCoverageListSurfaceConfiguration } from "../data/sft-surface-builders.server"
 import { listAllShiftTemplatesForOrg } from "../data/sft-template.queries.server"
@@ -33,12 +35,16 @@ export async function SftCoverageSection({
   let rows: Awaited<ReturnType<typeof compareCoverageHeadcount>>
   let templates: Awaited<ReturnType<typeof listAllShiftTemplatesForOrg>> = []
   let skills: Awaited<ReturnType<typeof listSkillsForOrg>> = []
+  let positions: Awaited<ReturnType<typeof listPositionsForOrg>> = []
+  let courses: Awaited<ReturnType<typeof listTrainingCoursesForOrg>> = []
 
   try {
     const queries: [
       ReturnType<typeof compareCoverageHeadcount>,
       Promise<typeof templates> | Promise<[]>,
       Promise<typeof skills> | Promise<[]>,
+      Promise<typeof positions> | Promise<[]>,
+      Promise<typeof courses> | Promise<[]>,
     ] = [
       compareCoverageHeadcount({ organizationId, rangeStart, rangeEnd }),
       canManage
@@ -47,8 +53,14 @@ export async function SftCoverageSection({
       canManage
         ? listSkillsForOrg(organizationId, { includeArchived: false })
         : Promise.resolve([]),
+      canManage
+        ? listPositionsForOrg(organizationId, { includeArchived: false })
+        : Promise.resolve([]),
+      canManage
+        ? listTrainingCoursesForOrg(organizationId)
+        : Promise.resolve([]),
     ]
-    ;[rows, templates, skills] = await Promise.all(queries)
+    ;[rows, templates, skills, positions, courses] = await Promise.all(queries)
   } catch (err) {
     logUnexpectedServerError("sft-coverage-section: query failed", err, {
       organizationId,
@@ -125,6 +137,16 @@ export async function SftCoverageSection({
                   id: skill.id,
                   code: skill.code,
                   name: skill.label,
+                }))}
+                positions={positions.map((pos) => ({
+                  id: pos.id,
+                  code: pos.code,
+                  name: pos.title,
+                }))}
+                trainingCourses={courses.map((course) => ({
+                  id: course.id,
+                  code: course.code,
+                  name: course.name,
                 }))}
                 defaultDate={rangeStart}
               />

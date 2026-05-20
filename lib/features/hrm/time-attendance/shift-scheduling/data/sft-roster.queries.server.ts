@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, asc, eq, gte, isNull, lte, or } from "drizzle-orm"
+import { and, asc, eq, gte, inArray, isNull, lte, or } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -14,11 +14,18 @@ import {
   type ShiftHolidayBehavior,
 } from "./sft-shift.shared"
 import type { RosterAssignmentRow } from "./sft-assignment.queries.server"
+import {
+  collectDescendantDepartmentIds,
+  loadDepartmentParentMap,
+} from "./sft-org-unit-filter.shared"
 
 export type SftRosterListFilters = {
   readonly departmentId?: string | null
   readonly jobGradeId?: string | null
   readonly locationCode?: string | null
+  readonly legalEntityOrgUnitId?: string | null
+  readonly teamOrgUnitId?: string | null
+  readonly positionId?: string | null
 }
 
 export async function listRosterAssignmentsForOrg(opts: {
@@ -60,6 +67,39 @@ export async function listRosterAssignmentsForOrg(opts: {
     )
   }
 
+  const positionId = opts.filters?.positionId?.trim() ?? ""
+  if (positionId.length > 0) {
+    filterConditions.push(eq(hrmEmployee.currentPositionId, positionId))
+  }
+
+  const legalEntityOrgUnitId = opts.filters?.legalEntityOrgUnitId?.trim() ?? ""
+  const teamOrgUnitId = opts.filters?.teamOrgUnitId?.trim() ?? ""
+  const orgUnitFilterId =
+    legalEntityOrgUnitId.length > 0
+      ? legalEntityOrgUnitId
+      : teamOrgUnitId.length > 0
+        ? teamOrgUnitId
+        : ""
+
+  if (orgUnitFilterId.length > 0) {
+    const parentMap = await loadDepartmentParentMap(opts.organizationId)
+    const subtreeIds = [
+      ...collectDescendantDepartmentIds({
+        rootOrgUnitId: orgUnitFilterId,
+        parentMap,
+      }),
+    ]
+    if (subtreeIds.length === 0) {
+      return []
+    }
+    filterConditions.push(
+      or(
+        inArray(hrmEmployee.currentDepartmentId, subtreeIds),
+        inArray(hrmEmployeeAssignment.departmentId, subtreeIds)
+      )!
+    )
+  }
+
   const rows = await db
     .select({
       id: hrmShiftAssignment.id,
@@ -83,6 +123,8 @@ export async function listRosterAssignmentsForOrg(opts: {
       updatedAt: hrmShiftAssignment.updatedAt,
       employeeNumber: hrmEmployee.employeeNumber,
       employeeFullName: hrmEmployee.legalName,
+      currentDepartmentId: hrmEmployee.currentDepartmentId,
+      currentPositionId: hrmEmployee.currentPositionId,
     })
     .from(hrmShiftAssignment)
     .innerJoin(
@@ -128,5 +170,7 @@ export async function listRosterAssignmentsForOrg(opts: {
     updatedAt: row.updatedAt,
     employeeNumber: row.employeeNumber,
     employeeFullName: row.employeeFullName,
+    currentDepartmentId: row.currentDepartmentId,
+    currentPositionId: row.currentPositionId,
   }))
 }

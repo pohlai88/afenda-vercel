@@ -10,6 +10,7 @@ import { Input } from "#components2/ui/input"
 import {
   listDepartmentsForOrg,
   listJobGradesForOrg,
+  listPositionsForOrg,
 } from "../../../employee-management/organizational-chart-hierarchy/data/org-structure.queries.server"
 import type { SftRosterListFilters } from "../data/sft-roster.queries.server"
 
@@ -34,16 +35,22 @@ export async function SftRosterFilters({
   const rosterPath = `${organizationAppsPath(orgSlug, "hrm")}/shift-scheduling`
   const clearHref = `${rosterPath}?rangeStart=${encodeURIComponent(rangeStart)}&rangeEnd=${encodeURIComponent(rangeEnd)}`
 
-  const [departments, jobGrades] = await Promise.all([
+  const [departments, jobGrades, positions] = await Promise.all([
     listDepartmentsForOrg(organizationId, { includeArchived: false }),
     listJobGradesForOrg(organizationId, { includeArchived: false }),
+    listPositionsForOrg(organizationId, { includeArchived: false }),
   ])
+
+  const legalEntities = departments.filter(
+    (dept) => dept.orgUnitType === "legal_entity"
+  )
+  const teams = departments.filter((dept) => dept.orgUnitType === "team")
 
   return (
     <form method="get" className="flex flex-col gap-3">
       <input type="hidden" name="rangeStart" value={rangeStart} />
       <input type="hidden" name="rangeEnd" value={rangeEnd} />
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Field>
           <FieldLabel htmlFor="sft-roster-dept">
             {t("rosterFilterDepartment")}
@@ -63,8 +70,62 @@ export async function SftRosterFilters({
           </select>
         </Field>
         <Field>
-          <FieldLabel htmlFor="sft-roster-grade">
+          <FieldLabel htmlFor="sft-roster-legal">
+            {t("rosterFilterLegalEntity")}
+          </FieldLabel>
+          <select
+            id="sft-roster-legal"
+            name="legalEntityOrgUnitId"
+            className={SELECT_CLASS}
+            defaultValue={filters.legalEntityOrgUnitId ?? ""}
+          >
+            <option value="">{t("rosterFilterAll")}</option>
+            {legalEntities.map((dept) => (
+              <option key={dept.id} value={dept.id}>
+                {dept.code} · {dept.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="sft-roster-team">
             {t("rosterFilterTeam")}
+          </FieldLabel>
+          <select
+            id="sft-roster-team"
+            name="teamOrgUnitId"
+            className={SELECT_CLASS}
+            defaultValue={filters.teamOrgUnitId ?? ""}
+          >
+            <option value="">{t("rosterFilterAll")}</option>
+            {teams.map((dept) => (
+              <option key={dept.id} value={dept.id}>
+                {dept.code} · {dept.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="sft-roster-position">
+            {t("rosterFilterPosition")}
+          </FieldLabel>
+          <select
+            id="sft-roster-position"
+            name="positionId"
+            className={SELECT_CLASS}
+            defaultValue={filters.positionId ?? ""}
+          >
+            <option value="">{t("rosterFilterAll")}</option>
+            {positions.map((pos) => (
+              <option key={pos.id} value={pos.id}>
+                {pos.code} · {pos.title}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="sft-roster-grade">
+            {t("rosterFilterJobGrade")}
           </FieldLabel>
           <select
             id="sft-roster-grade"

@@ -120,6 +120,48 @@ export const HRM_SFT_AUDIT = {
     object: "shift_schedule_report",
     verb: "audit",
   }),
+  scheduleChangeSubmit: buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "shift_schedule_change",
+    verb: "create",
+  }),
+  scheduleChangeApprove: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "shift_schedule_change.request",
+    verb: "approve",
+  }),
+  scheduleChangeReject: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "shift_schedule_change.request",
+    verb: "reject",
+  }),
+  scheduleChangeReturn: buildErpAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "shift_schedule_change.request",
+    verb: "update",
+  }),
+  availabilityCreate: buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "shift_availability",
+    verb: "create",
+  }),
+  restOffPlanApply: buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "shift_rest_off_plan",
+    verb: "create",
+  }),
+  holidayPlanApply: buildCrudSapAuditAction({
+    area: "erp",
+    module: "hrm",
+    object: "shift_holiday_plan",
+    verb: "create",
+  }),
 } as const
 
 export type HrmSftAuditAction =

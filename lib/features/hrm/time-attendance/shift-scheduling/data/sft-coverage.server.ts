@@ -14,6 +14,8 @@ export type ShiftCoverageRequirementRow = {
   readonly departmentId: string | null
   readonly locationCode: string | null
   readonly requiredSkillId: string | null
+  readonly requiredPositionId: string | null
+  readonly requiredTrainingCourseId: string | null
 }
 
 export type ShiftCoverageComparisonRow = ShiftCoverageRequirementRow & {
@@ -38,6 +40,9 @@ export async function listCoverageRequirementsForOrg(input: {
       departmentId: hrmShiftCoverageRequirement.departmentId,
       locationCode: hrmShiftCoverageRequirement.locationCode,
       requiredSkillId: hrmShiftCoverageRequirement.requiredSkillId,
+      requiredPositionId: hrmShiftCoverageRequirement.requiredPositionId,
+      requiredTrainingCourseId:
+        hrmShiftCoverageRequirement.requiredTrainingCourseId,
     })
     .from(hrmShiftCoverageRequirement)
     .where(

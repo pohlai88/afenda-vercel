@@ -16,6 +16,9 @@ type PageProps = {
     departmentId?: string
     jobGradeId?: string
     locationCode?: string
+    legalEntityOrgUnitId?: string
+    teamOrgUnitId?: string
+    positionId?: string
   }>
 }
 
@@ -41,6 +44,9 @@ export default async function OrgAppsHrmShiftSchedulingPage({
   const departmentId = searchParamFirst(sp, "departmentId")
   const jobGradeId = searchParamFirst(sp, "jobGradeId")
   const locationCode = searchParamFirst(sp, "locationCode")
+  const legalEntityOrgUnitId = searchParamFirst(sp, "legalEntityOrgUnitId")
+  const teamOrgUnitId = searchParamFirst(sp, "teamOrgUnitId")
+  const positionId = searchParamFirst(sp, "positionId")
 
   const session = await getOrgTenantContext()
   const access = await resolveSftSurfaceAccess({
@@ -71,6 +77,9 @@ export default async function OrgAppsHrmShiftSchedulingPage({
         departmentId: departmentId ?? null,
         jobGradeId: jobGradeId ?? null,
         locationCode: locationCode ?? null,
+        legalEntityOrgUnitId: legalEntityOrgUnitId ?? null,
+        teamOrgUnitId: teamOrgUnitId ?? null,
+        positionId: positionId ?? null,
       }}
     />
   )

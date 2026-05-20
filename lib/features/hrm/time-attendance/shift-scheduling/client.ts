@@ -33,6 +33,19 @@ export { publishShiftRosterAction } from "./actions/sft-publish.actions"
 export { exportShiftRosterCsvAction } from "./actions/sft-report.actions"
 
 export {
+  applyRestOffPlanAction,
+  applyHolidayPlanAction,
+} from "./actions/sft-planner.actions"
+
+export { createShiftAvailabilityAction } from "./actions/sft-availability.actions"
+
+export {
+  submitScheduleChangeRequestAction,
+  approveScheduleChangeRequestAction,
+  rejectScheduleChangeRequestAction,
+} from "./actions/sft-schedule-change.actions"
+
+export {
   SftAssignShiftForm,
   SftBulkAssignForm,
   SftPublishRosterForm,

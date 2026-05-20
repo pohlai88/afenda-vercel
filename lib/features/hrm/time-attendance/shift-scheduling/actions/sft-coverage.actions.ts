@@ -29,6 +29,8 @@ export async function createCoverageRequirementAction(
     departmentId: formData.get("departmentId") || null,
     locationCode: formData.get("locationCode") || null,
     requiredSkillId: formData.get("requiredSkillId") || null,
+    requiredPositionId: formData.get("requiredPositionId") || null,
+    requiredTrainingCourseId: formData.get("requiredTrainingCourseId") || null,
   })
 
   if (!parsed.success) {
@@ -51,6 +53,8 @@ export async function createCoverageRequirementAction(
     departmentId: parsed.data.departmentId ?? null,
     locationCode: parsed.data.locationCode ?? null,
     requiredSkillId: parsed.data.requiredSkillId ?? null,
+    requiredPositionId: parsed.data.requiredPositionId ?? null,
+    requiredTrainingCourseId: parsed.data.requiredTrainingCourseId ?? null,
     createdByUserId: session.userId,
     updatedByUserId: session.userId,
   })

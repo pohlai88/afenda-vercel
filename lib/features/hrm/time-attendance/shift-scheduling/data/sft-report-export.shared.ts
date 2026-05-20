@@ -8,11 +8,18 @@ function escapeCsvCell(value: string): string {
 }
 
 export function buildSftRosterReportCsv(
-  rows: readonly RosterAssignmentRow[]
+  rows: readonly RosterAssignmentRow[],
+  labels?: {
+    readonly departmentsById?: ReadonlyMap<string, string>
+    readonly positionsById?: ReadonlyMap<string, string>
+  }
 ): string {
   const header = [
     "assignment_id",
     "employee",
+    "employee_number",
+    "department",
+    "position",
     "attendance_date",
     "shift_code",
     "shift_name",
@@ -23,12 +30,23 @@ export function buildSftRosterReportCsv(
 
   const body = rows.map((row) => {
     const employee = row.employeeFullName ?? row.employeeId
-    const label = row.employeeNumber
-      ? `${employee} (${row.employeeNumber})`
-      : employee
+    const department =
+      row.currentDepartmentId && labels?.departmentsById
+        ? (labels.departmentsById.get(row.currentDepartmentId) ??
+          row.currentDepartmentId)
+        : (row.currentDepartmentId ?? "")
+    const position =
+      row.currentPositionId && labels?.positionsById
+        ? (labels.positionsById.get(row.currentPositionId) ??
+          row.currentPositionId)
+        : (row.currentPositionId ?? "")
+
     return [
       row.id,
-      label,
+      employee,
+      row.employeeNumber ?? "",
+      department,
+      position,
       row.attendanceDate,
       row.templateCode,
       row.templateName,

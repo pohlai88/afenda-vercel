@@ -12,6 +12,7 @@ import {
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import { HRM_SFT_AUDIT, SFT_SWAP_APPROVAL_SUBJECT_KIND } from "../sft.contract"
+import { notifyShiftSwapResolved } from "./sft-notification.server"
 import { revalidateSftSurfaces } from "./sft-revalidate.server"
 
 export async function submitShiftSwapRequest(input: {
@@ -318,6 +319,14 @@ export async function approveShiftSwapRequest(input: {
     metadata: { decisionNote: input.decisionNote ?? null },
   })
 
+  await notifyShiftSwapResolved({
+    organizationId: input.organizationId,
+    swapRequestId: swap.id,
+    requesterEmployeeId: swap.requesterEmployeeId,
+    counterpartyEmployeeId: swap.counterpartyEmployeeId,
+    outcome: "approved",
+  })
+
   revalidateSftSurfaces()
   return { ok: true }
 }
@@ -391,6 +400,14 @@ export async function rejectShiftSwapRequest(input: {
     resourceType: "hrm_shift_swap_request",
     resourceId: swap.id,
     metadata: { rejectedReason: input.rejectedReason },
+  })
+
+  await notifyShiftSwapResolved({
+    organizationId: input.organizationId,
+    swapRequestId: swap.id,
+    requesterEmployeeId: swap.requesterEmployeeId,
+    counterpartyEmployeeId: swap.counterpartyEmployeeId,
+    outcome: "rejected",
   })
 
   revalidateSftSurfaces()
@@ -467,6 +484,14 @@ export async function returnShiftSwapRequest(input: {
     resourceType: "hrm_shift_swap_request",
     resourceId: swap.id,
     metadata: { returnedReason: input.returnedReason },
+  })
+
+  await notifyShiftSwapResolved({
+    organizationId: input.organizationId,
+    swapRequestId: swap.id,
+    requesterEmployeeId: swap.requesterEmployeeId,
+    counterpartyEmployeeId: swap.counterpartyEmployeeId,
+    outcome: "returned",
   })
 
   revalidateSftSurfaces()
@@ -555,6 +580,14 @@ export async function overrideShiftSwapRequest(input: {
     resourceType: "hrm_shift_swap_request",
     resourceId: swap.id,
     metadata: { overrideNote: input.overrideNote },
+  })
+
+  await notifyShiftSwapResolved({
+    organizationId: input.organizationId,
+    swapRequestId: swap.id,
+    requesterEmployeeId: swap.requesterEmployeeId,
+    counterpartyEmployeeId: swap.counterpartyEmployeeId,
+    outcome: "overridden",
   })
 
   revalidateSftSurfaces()

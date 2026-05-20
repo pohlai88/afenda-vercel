@@ -136,12 +136,17 @@ export const createCoverageRequirementSchema = z.object({
   departmentId: z.string().trim().optional().nullable(),
   locationCode: z.string().trim().max(64).optional().nullable(),
   requiredSkillId: z.string().trim().optional().nullable(),
+  requiredPositionId: z.string().trim().optional().nullable(),
+  requiredTrainingCourseId: z.string().trim().optional().nullable(),
 })
 
 export const rosterListFiltersSchema = z.object({
   departmentId: z.string().trim().optional().nullable(),
   jobGradeId: z.string().trim().optional().nullable(),
   locationCode: z.string().trim().max(64).optional().nullable(),
+  legalEntityOrgUnitId: z.string().trim().optional().nullable(),
+  teamOrgUnitId: z.string().trim().optional().nullable(),
+  positionId: z.string().trim().optional().nullable(),
 })
 
 export type RosterListFiltersInput = z.infer<typeof rosterListFiltersSchema>

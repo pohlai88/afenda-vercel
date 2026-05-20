@@ -25,6 +25,12 @@ import { SftRecurrenceSection } from "./sft-recurrence-section"
 import { SftRosterSection } from "./sft-roster-section"
 import { SftSwapPendingSection } from "./sft-swap-pending-section"
 import { SftTemplatesSection } from "./sft-templates-section"
+import {
+  SftAvailabilitySection,
+  SftHolidayPlannerSection,
+  SftRestOffPlannerSection,
+  SftScheduleChangePendingSection,
+} from "./sft-workflow-sections"
 
 type ShiftSchedulingPageProps = {
   orgSlug: string
@@ -128,6 +134,32 @@ export async function ShiftSchedulingPage({
             rangeEnd={rangeEnd}
             canManage={access.canManage}
           />
+          {access.canManage ? (
+            <>
+              <SftRestOffPlannerSection
+                organizationId={organizationId}
+                rangeStart={rangeStart}
+                rangeEnd={rangeEnd}
+                canManage={access.canManage}
+              />
+              <SftHolidayPlannerSection
+                organizationId={organizationId}
+                rangeStart={rangeStart}
+                rangeEnd={rangeEnd}
+                canManage={access.canManage}
+              />
+              <SftAvailabilitySection
+                organizationId={organizationId}
+                rangeStart={rangeStart}
+                rangeEnd={rangeEnd}
+                canManage={access.canManage}
+              />
+              <SftScheduleChangePendingSection
+                organizationId={organizationId}
+                canManage={access.canManage}
+              />
+            </>
+          ) : null}
           <SftPublicationsSection organizationId={organizationId} />
           <SftSwapPendingSection
             organizationId={organizationId}

@@ -267,10 +267,14 @@ export type SftSkillChoice = {
 export function SftCreateCoverageForm({
   templates,
   skills = [],
+  positions = [],
+  trainingCourses = [],
   defaultDate,
 }: {
   templates: readonly SftTemplateChoice[]
   skills?: readonly SftSkillChoice[]
+  positions?: readonly SftSkillChoice[]
+  trainingCourses?: readonly SftSkillChoice[]
   defaultDate: string
 }) {
   const t = useTranslations("Dashboard.Hrm.shiftScheduling")
@@ -348,6 +352,42 @@ export function SftCreateCoverageForm({
           {skills.map((skill) => (
             <option key={skill.id} value={skill.id}>
               {skill.code} · {skill.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="sft-cov-position">
+          {t("fieldRequiredPosition")}
+        </FieldLabel>
+        <select
+          id="sft-cov-position"
+          name="requiredPositionId"
+          className={SELECT_CLASS}
+          defaultValue=""
+        >
+          <option value="">{t("coveragePositionNone")}</option>
+          {positions.map((pos) => (
+            <option key={pos.id} value={pos.id}>
+              {pos.code} · {pos.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="sft-cov-course">
+          {t("fieldRequiredTrainingCourse")}
+        </FieldLabel>
+        <select
+          id="sft-cov-course"
+          name="requiredTrainingCourseId"
+          className={SELECT_CLASS}
+          defaultValue=""
+        >
+          <option value="">{t("coverageTrainingNone")}</option>
+          {trainingCourses.map((course) => (
+            <option key={course.id} value={course.id}>
+              {course.code} · {course.name}
             </option>
           ))}
         </select>

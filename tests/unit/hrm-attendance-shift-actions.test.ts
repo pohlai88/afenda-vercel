@@ -12,7 +12,8 @@ const mocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
   getOrCreateShiftSchedulingPolicy: vi.fn(),
   detectShiftSchedulingConflicts: vi.fn(),
-  findSkillCoverageViolationsForAssignment: vi.fn(),
+  findCoverageViolationsForAssignment: vi.fn(),
+  employeeIsUnavailableOnDate: vi.fn(),
 }))
 
 const DEFAULT_SFT_POLICY = {
@@ -88,12 +89,23 @@ vi.mock(
 )
 
 vi.mock(
-  "../../lib/features/hrm/time-attendance/shift-scheduling/data/sft-skill-coverage.server.ts",
+  "../../lib/features/hrm/time-attendance/shift-scheduling/data/sft-coverage-validation.server.ts",
   () => ({
-    findSkillCoverageViolationsForAssignment:
-      mocks.findSkillCoverageViolationsForAssignment,
+    findCoverageViolationsForAssignment:
+      mocks.findCoverageViolationsForAssignment,
   })
 )
+
+vi.mock(
+  "../../lib/features/hrm/time-attendance/shift-scheduling/data/sft-availability.queries.server.ts",
+  () => ({
+    employeeIsUnavailableOnDate: mocks.employeeIsUnavailableOnDate,
+  })
+)
+
+vi.mock("next/server", () => ({
+  after: (callback: () => void) => callback(),
+}))
 
 import { assignEmployeeShiftAction } from "../../lib/features/hrm/time-attendance/leave-attendance-management/actions/attendance-shift.actions"
 
@@ -164,7 +176,8 @@ describe("assignEmployeeShiftAction", () => {
     mocks.regenerateAttendanceDayFromEvents.mockResolvedValue("updated")
     mocks.getOrCreateShiftSchedulingPolicy.mockResolvedValue(DEFAULT_SFT_POLICY)
     mocks.detectShiftSchedulingConflicts.mockResolvedValue([])
-    mocks.findSkillCoverageViolationsForAssignment.mockResolvedValue([])
+    mocks.findCoverageViolationsForAssignment.mockResolvedValue([])
+    mocks.employeeIsUnavailableOnDate.mockResolvedValue(false)
   })
 
   it("stops before regeneration, audit, and revalidation when the guarded upsert is blocked by a locked day", async () => {

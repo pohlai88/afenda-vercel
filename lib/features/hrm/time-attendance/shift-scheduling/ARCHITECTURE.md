@@ -10,7 +10,8 @@
 - **Slice 4 (shipped):** Scheduling policy (read + edit form), conflict detection on assign (leave, overlap, rest, weekly hours).
 - **Slice 5 (shipped):** Coverage requirements (create + Pattern B compare), swap submit (employee) + manager approve/reject inbox (Pattern C).
 - **Slice 6 (shipped):** Publish roster, publications history (Pattern B), CSV export, attendance compare, payroll refs on `#features/hrm/server`.
-- **Deferred (v1+):** HRM-SFT-025 employee notifications on publish; skill/role coverage; dept/team roster filters; swap return/override.
+- **Shipped (follow-up pass):** roster filters (dept, location, job grade); skill coverage on assign; swap return/override; rotation add-step; org in-app notification on publish (`sft-notification.server.ts`).
+- **P1–P3 (2026-05-21):** Shipped per `sft_follow.md` — org-unit roster filters, coverage position/training validation, assignment/swap/schedule-change notifications (`publishOrgNotification`), availability + planners + schedule-change inbox, enriched CSV export. Payroll: `listShiftPayrollReferencesForPeriod` on `#features/hrm/server`.
 
 ### Phase 0 entity model
 

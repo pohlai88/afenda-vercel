@@ -8,6 +8,10 @@ import { canUseErpPermission } from "#features/erp-rbac/server"
 
 import { HRM_SFT_AUDIT } from "../sft.contract"
 import { rosterRangeSchema } from "../schemas/sft.schema"
+import {
+  listDepartmentsForOrg,
+  listPositionsForOrg,
+} from "../../../employee-management/organizational-chart-hierarchy/data/org-structure.queries.server"
 import { buildSftRosterReportCsv } from "../data/sft-report-export.shared"
 import { listRosterAssignmentsForOrg } from "../data/sft-roster.queries.server"
 
@@ -46,12 +50,24 @@ export async function exportShiftRosterCsvAction(
     return { ok: false, error: "Range end must be on or after start." }
   }
 
-  const rows = await listRosterAssignmentsForOrg({
-    organizationId,
-    rangeStart: parsed.data.rangeStart,
-    rangeEnd: parsed.data.rangeEnd,
+  const [rows, departments, positions] = await Promise.all([
+    listRosterAssignmentsForOrg({
+      organizationId,
+      rangeStart: parsed.data.rangeStart,
+      rangeEnd: parsed.data.rangeEnd,
+    }),
+    listDepartmentsForOrg(organizationId, { includeArchived: false }),
+    listPositionsForOrg(organizationId, { includeArchived: false }),
+  ])
+
+  const csv = buildSftRosterReportCsv(rows, {
+    departmentsById: new Map(
+      departments.map((dept) => [dept.id, `${dept.code} · ${dept.name}`])
+    ),
+    positionsById: new Map(
+      positions.map((pos) => [pos.id, `${pos.code} · ${pos.title}`])
+    ),
   })
-  const csv = buildSftRosterReportCsv(rows)
   const filename = `shift-roster-${parsed.data.rangeStart}_${parsed.data.rangeEnd}.csv`
 
   after(() =>
