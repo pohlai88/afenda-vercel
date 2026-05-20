@@ -34,16 +34,14 @@ console.log("[typecheck:profile] Afenda app graph — timing split\n")
 const typegenMs = runStep("next typegen (fast)", "node", [
   "scripts/next-typegen-fast.mjs",
 ])
-const tscMs = runStep("tsc --noEmit", "node", [
-  "--max-old-space-size=8192",
-  "node_modules/typescript/bin/tsc",
-  "--noEmit",
+const tscMs = runStep("tsc -b (solution)", "node", [
+  "scripts/typecheck-build.mjs",
 ])
 
 const totalMs = typegenMs + tscMs
 console.log("\n[typecheck:profile] Summary")
 console.log(`  next typegen:  ${typegenMs}ms`)
-console.log(`  tsc --noEmit:  ${tscMs}ms`)
+console.log(`  tsc -b:        ${tscMs}ms`)
 console.log(`  total:         ${totalMs}ms`)
 console.log(
   "\n  Deep dive: pnpm typecheck:diagnostics (add --generateTrace for .artifacts/ts-trace/)\n"

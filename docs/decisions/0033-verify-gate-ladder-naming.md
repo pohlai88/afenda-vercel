@@ -57,7 +57,7 @@ Adopt a **Gate Ladder** with explicit **common** vs **`:full`** command names.
 | **`pnpm gate:typecheck`** | App `typecheck` only |
 | **`pnpm gate:lint -- <paths>`** | ESLint only |
 | **`pnpm gate`** | App `typecheck` only; prints tip to pass paths |
-| **`pnpm typecheck`** | App TypeScript graph (`tsc --noEmit` after `next typegen`) |
+| **`pnpm typecheck`** | App graph (`tsc -b` after `next typegen` — ADR-0042) |
 | **`pnpm lint:path -- <paths>`** | Targeted ESLint only — never `eslint .` |
 
 Add **`pnpm typecheck:test`** or **`pnpm typecheck:scripts`** when those trees change (same tier as L0).

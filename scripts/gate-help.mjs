@@ -16,20 +16,23 @@ L2     Before push / open PR         pnpm gate:push                       ~2–5
 L3     Pre-merge / App Router risk   pnpm gate:merge                      ~5–10 min
 L4     CI                            GitHub Actions — debug locally only  parallel jobs
 
-IMPORTANT: paths narrow ESLint only — NOT tsc. TypeScript has no per-path
-check on a monolithic tsconfig. Use IDE while editing; gate:typecheck before push.
+IMPORTANT: paths narrow ESLint only by default. Typecheck uses tsc -b slices
+(lib/db composite + platform graph). Use IDE while editing; gate:typecheck before push.
 
 COMMON (high frequency — no :full suffix)
   pnpm gate -- lib/features/hrm/     targeted ESLint only (default L0)
-  pnpm gate -- <paths> --typecheck lint:path + app typecheck
+  pnpm gate -- <paths> --typecheck lint:path + slice tsc -b (hrm → platform only)
   pnpm gate:lint -- <paths>          ESLint only (explicit)
-  pnpm gate:typecheck                app typecheck only
-  pnpm gate                          app typecheck only (no paths)
+  pnpm gate:typecheck                full solution typecheck
+  pnpm gate                          full solution typecheck (no paths)
   pnpm lint:path -- <paths>          targeted ESLint only
+  pnpm lint:typed -- <paths>         L2 typed ESLint (projectService)
+  pnpm typecheck:lib-db              lib/db slice only
+  pnpm typecheck:platform            typegen + platform graph
   pnpm typecheck:test                when tests/ changed
   pnpm typecheck:scripts             when scripts/ changed
-  pnpm typecheck:profile             split typegen vs tsc timing
-  pnpm typecheck:diagnostics         tsc --extendedDiagnostics
+  pnpm typecheck:profile             split typegen vs tsc -b timing
+  pnpm typecheck:diagnostics         tsc -b + --extendedDiagnostics
 
 FULL (low frequency — :full or gate:*)
   pnpm typecheck:full                app + test + scripts graphs

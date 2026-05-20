@@ -18,6 +18,7 @@ import {
   planGateCommands,
   shouldRunGateTypecheck,
 } from "./gate-args.shared.mjs"
+import { resolveTypecheckSlicesForPaths } from "./lib/gate-typecheck-slices.shared.mjs"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 const isWindows = process.platform === "win32"
@@ -67,7 +68,15 @@ if (paths.length > 0) {
 }
 
 if (runTypecheck) {
-  run("pnpm", ["typecheck"])
+  if (paths.length > 0) {
+    const slices = resolveTypecheckSlicesForPaths(paths)
+    console.log(
+      `[gate] typecheck slices: ${slices.map((s) => s.label).join(" → ")}\n`
+    )
+    run("node", ["scripts/typecheck-build.mjs", ...paths])
+  } else {
+    run("pnpm", ["typecheck"])
+  }
 } else if (paths.length > 0) {
   console.log(
     "\n[gate] ESLint only — app typecheck was skipped (not path-scoped).\n" +

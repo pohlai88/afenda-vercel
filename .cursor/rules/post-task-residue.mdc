@@ -80,7 +80,7 @@ export function NexusDock() { return null }
 
 **Concurrent agents (default — use this):**
 ```bash
-# L0 gate — ~15–45s
+# L0 gate — ESLint only (seconds); typecheck is separate (pnpm gate:typecheck)
 pnpm gate -- <path1> [path2 ...]
 ```
 

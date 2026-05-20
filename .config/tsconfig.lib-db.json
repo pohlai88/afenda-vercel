@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "outDir": "../.artifacts/types/lib-db",
+    "rootDir": "../lib/db",
+    "tsBuildInfoFile": "../.artifacts/.tsbuildinfo/lib-db"
+  },
+  "include": ["../lib/db/**/*.ts"],
+  "exclude": ["../node_modules"]
+}

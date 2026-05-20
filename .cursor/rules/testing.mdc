@@ -91,7 +91,7 @@ Every `ignoreIssues` entry must answer: *Why intentionally kept? Who consumes it
 
 | Tier | Moment | Command | Cost |
 |---|---|---|---|
-| L0 | every edit / agent task | `pnpm gate -- <paths>` | ~15–45s warm |
+| L0 | every edit / agent task | `pnpm gate -- <paths>` | ESLint only (seconds) |
 | L1 | every `git commit` | lint-staged (auto) | changed files |
 | L2 | before push | `pnpm gate:push` | ~2–5 min warm |
 | L3 | pre-merge / route risk | `pnpm gate:merge` | ~5–10 min |

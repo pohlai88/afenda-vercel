@@ -14,7 +14,9 @@ Run **`pnpm gate:help`** for the full reference. Preview L0 with **`pnpm gate:dr
 | Tier | When | Command | Cost |
 |---|---|---|---|
 | **L0** | After every edit / agent task | `pnpm gate -- <touched-paths…>` | ESLint only (seconds) |
-| **L0** | Before push (app types) | `pnpm gate:typecheck` | warm ~10–30s; cold often minutes |
+| **L0** | Before push (app types) | `pnpm gate:typecheck` | full `tsc -b`; warm ~10–30s; cold often minutes |
+| **L0** | Lint + slice typecheck | `pnpm gate -- <paths> --typecheck` | e.g. HRM → platform slice only (ADR-0042) |
+| **L2** | Typed ESLint (optional) | `pnpm lint:typed -- <paths>` | `projectService`; not L0 |
 | **L0** | Types only | `pnpm gate` or `pnpm typecheck` | app graph |
 | **L2** | Before push / PR | `pnpm gate:push` | ~2–5 min |
 | **L3** | Pre-merge / App Router risk | `pnpm gate:merge` | ~5–10 min |
@@ -27,11 +29,12 @@ Run **`pnpm gate:help`** for the full reference. Preview L0 with **`pnpm gate:dr
 pnpm gate -- <path1> [path2 ...]
 ```
 
-Before push, add app typecheck (paths do not narrow `tsc`):
+Before push, add app typecheck:
 
 ```powershell
 pnpm gate:typecheck
-# or: pnpm gate -- <path1> [path2 ...] --typecheck
+# or slice-aware: pnpm gate -- <path1> [path2 ...] --typecheck
+#   lib/db/** only → lib-db slice; feature paths → platform graph (skips lib/db when fresh)
 ```
 
 Equivalent manual form:

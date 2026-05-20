@@ -215,7 +215,9 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | Command | Purpose |
 | --- | --- |
 | **`pnpm gate -- <paths>`** | **Default L0:** targeted ESLint only (paths do **not** narrow `tsc`) |
-| **`pnpm gate -- <paths> --typecheck`** | ESLint + app `typecheck` |
+| **`pnpm gate -- <paths> --typecheck`** | ESLint + slice `tsc -b` (ADR-0042 Phase 2) |
+| **`pnpm lint:typed -- <paths>`** | L2 ESLint with `projectService` (not L0) |
+| **`pnpm typecheck:lib-db`** / **`pnpm typecheck:platform`** | Single composite slice |
 | **`pnpm gate:lint -- <paths>`** | ESLint only (explicit) |
 | **`pnpm gate:typecheck`** | App `typecheck` only — run before push |
 | **`pnpm gate`** | App `typecheck` only (prints tip to pass paths) |
@@ -223,7 +225,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | **`pnpm typecheck:diagnostics`** | `tsc --extendedDiagnostics` |
 | **`pnpm gate:help`** | Print full gate ladder (onboarding / agent self-correction) |
 | **`pnpm gate:dry-run -- <paths>`** | Print planned L0 commands without executing |
-| **`pnpm typecheck`** | App TypeScript graph (`next typegen` + `tsc --noEmit`) |
+| **`pnpm typecheck`** | App graph (`next typegen` + `tsc -b` lib-db + platform — ADR-0042) |
 | **`pnpm lint:path -- <paths>`** | Targeted ESLint only — never `eslint .` |
 | **`pnpm typecheck:test`** | Test graph — add at L0 when `tests/` changed |
 | **`pnpm typecheck:scripts`** | Scripts graph — add at L0 when `scripts/` changed |
@@ -267,7 +269,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | `pnpm lint:ask-docs-quality`          | ADQS mechanical gate — stub strings, Related graph, stable frontmatter on `content/ask-docs/**/*.mdx` (`scripts/lint-ask-docs-quality.mjs`; ADR-0027)                                                                  |
 | `pnpm audit:ask-docs-quality`         | ADQS corpus tier report A/B/C → `.artifacts/ask-docs-quality-audit.txt` (`scripts/audit-ask-docs-quality.mjs`; not in CI — PR review aid)                                                                               |
 | `pnpm typecheck:full`                 | App + test + scripts graphs (`typecheck` + `typecheck:test` + `typecheck:scripts`) |
-| `pnpm typecheck`                      | `tsc --noEmit` — **app graph only** |
+| `pnpm typecheck`                      | `typecheck-build.mjs` → `tsc -b` (lib-db + platform) |
 | `pnpm typecheck:test`                 | `tsc -p tsconfig.test.json` — test graph |
 | `pnpm typecheck:scripts`              | `tsc -p tsconfig.scripts.json` — scripts graph |
 | `pnpm format` / `pnpm format:check`   | Prettier + Tailwind class sorting                                                                                                                                                                                    |

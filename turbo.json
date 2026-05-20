@@ -201,6 +201,9 @@
         "!tests/**",
         "!*.md",
         "tsconfig.json",
+        "tsconfig.base.json",
+        "tsconfig.build.json",
+        ".config/tsconfig.lib-db.json",
         "i18n/global.d.ts"
       ],
       "outputs": [".artifacts/.tsbuildinfo/main"]

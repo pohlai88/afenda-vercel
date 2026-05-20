@@ -2,19 +2,19 @@
 
 | Field | Value |
 | ----- | ----- |
-| **Status** | Accepted (Phase 0 implemented) |
+| **Status** | Accepted (Phases 0–3 implemented) |
 | **Date** | 2026-05-20 |
 | **Supersedes** | Misleading L0 cost for `pnpm gate -- <paths>` in ADR-0033 narrative only |
-| **Implements in code** | [`scripts/gate.mjs`](../../scripts/gate.mjs), [`scripts/gate-args.shared.mjs`](../../scripts/gate-args.shared.mjs), [`scripts/typecheck-profile.mjs`](../../scripts/typecheck-profile.mjs), [`package.json`](../../package.json) (`gate:lint`, `gate:typecheck`, `typecheck:diagnostics`, `typecheck:profile`) |
+| **Implements in code** | [`scripts/gate.mjs`](../../scripts/gate.mjs), [`scripts/gate-args.shared.mjs`](../../scripts/gate-args.shared.mjs), [`scripts/typecheck-build.mjs`](../../scripts/typecheck-build.mjs), [`scripts/lib/gate-typecheck-slices.shared.mjs`](../../scripts/lib/gate-typecheck-slices.shared.mjs), [`scripts/lint-typed.mjs`](../../scripts/lint-typed.mjs), [`tsconfig.base.json`](../../tsconfig.base.json), [`.config/tsconfig.lib-db.json`](../../.config/tsconfig.lib-db.json), [`package.json`](../../package.json) |
 | **Related** | [ADR-0033](./0033-verify-gate-ladder-naming.md) · [ADR-0007](./0007-turborepo-single-package-verify-cache.md) · [`docs/_draft/typescript-upgrade.md`](../_draft/typescript-upgrade.md) |
 
 ---
 
 ## Context
 
-Afenda uses a **single-package** TypeScript app graph (`tsconfig.json` + split test/scripts configs). `pnpm typecheck` runs `next typegen` then `tsc --noEmit` over the **entire** app program (8GB heap). Warm incremental runs can be tens of seconds; **cold runs are often many minutes** — not the “~15–45s” implied when agents pass paths to `pnpm gate`.
+Afenda uses a **solution-style** app graph: composite `lib/db` + platform `tsconfig.json` (split test/scripts configs). `pnpm typecheck` runs `next typegen` then `tsc -b` (8GB heap). Warm incremental runs can be tens of seconds; **cold runs are often many minutes** — not the “~15–45s” implied when agents pass paths to `pnpm gate`.
 
-**TypeScript cannot path-scope `tsc`** on one monolithic `tsconfig`: ESLint paths narrow; the checker must see the full output graph ([TS modules theory](https://www.typescriptlang.org/docs/handbook/modules/theory.html)).
+**ESLint paths narrow; `tsc` slices only.** The first composite slice is `lib/db` only (acyclic). Feature work uses the platform graph, which skips rebuilding `lib/db` when its `.tsbuildinfo` is fresh.
 
 Prior behavior ran **full typecheck on every** `pnpm gate -- <paths>`, causing agent lock contention and false expectations.
 
@@ -28,11 +28,13 @@ Prior behavior ran **full typecheck on every** `pnpm gate -- <paths>`, causing a
 | --- | --- |
 | `pnpm gate` | App `typecheck` only (unchanged) |
 | `pnpm gate -- <paths>` | **`lint:path` only** — no implicit `typecheck` |
-| `pnpm gate -- <paths> --typecheck` | `lint:path` + `typecheck` |
+| `pnpm gate -- <paths> --typecheck` | `lint:path` + slice `tsc -b` (see Phase 2) |
 | `pnpm gate:lint -- <paths>` | `lint:path` only (explicit alias) |
 | `pnpm gate:typecheck` | App `typecheck` only |
-| `pnpm typecheck:diagnostics` | `tsc --noEmit --extendedDiagnostics` |
-| `pnpm typecheck:profile` | Split timing: `next-typegen-fast` vs `tsc` |
+| `pnpm typecheck` | `typecheck-build.mjs` → `tsc -b` lib-db + platform |
+| `pnpm typecheck:diagnostics` | `tsc -b` solution + `--extendedDiagnostics` |
+| `pnpm typecheck:profile` | Split timing: `next-typegen-fast` vs `tsc -b` |
+| `pnpm lint:typed` | ESLint + `projectService` (L2; not L0) |
 
 **Agent close condition (concurrent):**
 
@@ -43,17 +45,24 @@ Before push:         pnpm gate:typecheck  (or pnpm gate:push)
 
 **IDE** remains the primary per-file type feedback channel during editing.
 
-### Later phases (documented, not implemented here)
+### Phases 1–3 (implemented)
 
 | Phase | Scope |
 | --- | --- |
-| **1** | Solution `tsconfig` + composite project references + `tsc -b` slices |
-| **2** | `gate` maps path prefixes → slice `tsc -b` |
-| **3** | `pnpm lint:typed` with `parserOptions.projectService` at L2 only |
+| **1** | `tsconfig.base.json`, composite `lib/db`, platform `tsconfig.json`, `tsconfig.build.json`, `pnpm typecheck` → `tsc -b` |
+| **2** | `gate -- <paths> --typecheck` → `gate-typecheck-slices` (db-only vs platform vs full) |
+| **3** | `pnpm lint:typed` + `.config/eslint.typed.config.mjs` (`projectService` at L2) |
+
+### Later phases
+
+| Phase | Scope |
+| --- | --- |
 | **4** | `tsgo` CI pilot parallel to `tsc` |
 | **5** | Turborepo packages only if slices plateau |
 
-**Rejected for now:** path-scoped `tsc` on monolithic config; `projectService` on every L0 lint; `isolatedDeclarations` (no emit pipeline).
+**Deferred:** more composite slices until `lib/auth` / `lib/i18n` / `#features` import graph is layered; `isolatedDeclarations` (no emit pipeline).
+
+**Rejected:** path-scoped `tsc` on one non-composite config; `projectService` on every L0 lint.
 
 ---
 
@@ -84,3 +93,4 @@ Before push:         pnpm gate:typecheck  (or pnpm gate:push)
 | Date | Change |
 | ---- | ------ |
 | 2026-05-20 | Phase 0: gate split, diagnostics/profile scripts, ADR acceptance |
+| 2026-05-20 | Phases 1–3: `tsc -b` lib-db slice, gate slice mapping, `lint:typed` |

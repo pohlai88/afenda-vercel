@@ -33,11 +33,20 @@ describe("planGateCommands", () => {
     ])
   })
 
-  it("lint and typecheck when --typecheck", () => {
-    expect(planGateCommands(["lib/features/hrm/"], { typecheck: true })).toEqual(
+  it("lint and slice typecheck when --typecheck", () => {
+    expect(
+      planGateCommands(["lib/features/hrm/"], { typecheck: true })
+    ).toEqual([
+      "pnpm lint:path -- lib/features/hrm/",
+      "pnpm exec tsc -b tsconfig.json",
+    ])
+  })
+
+  it("lib-db slice only when paths stay under lib/db", () => {
+    expect(planGateCommands(["lib/db/schema.ts"], { typecheck: true })).toEqual(
       [
-        "pnpm lint:path -- lib/features/hrm/",
-        "pnpm typecheck",
+        "pnpm lint:path -- lib/db/schema.ts",
+        "pnpm exec tsc -b .config/tsconfig.lib-db.json",
       ]
     )
   })

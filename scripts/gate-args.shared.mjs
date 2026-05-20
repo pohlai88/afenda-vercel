@@ -1,3 +1,5 @@
+import { formatTypecheckSliceCommand } from "./lib/gate-typecheck-slices.shared.mjs"
+
 /**
  * Parse gate CLI args — shared by gate.mjs, gate-dry-run.mjs, and unit tests.
  * @param {string[]} argv process.argv.slice(2)
@@ -35,7 +37,11 @@ export function planGateCommands(paths, options = {}) {
     steps.push(`pnpm lint:path -- ${paths.join(" ")}`)
   }
   if (paths.length === 0 || typecheck) {
-    steps.push("pnpm typecheck")
+    if (paths.length > 0 && typecheck) {
+      steps.push(formatTypecheckSliceCommand(paths))
+    } else {
+      steps.push("pnpm typecheck")
+    }
   }
   return steps
 }
