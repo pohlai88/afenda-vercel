@@ -2,18 +2,26 @@
  * Edit-loop gate (Tier L0) — default command for IDE agents and local iteration.
  *
  * Usage:
- *   pnpm gate                          → app typecheck only (~15s warm)
- *   pnpm gate -- lib/features/hrm/     → lint:path + typecheck
+ *   pnpm gate                          → app typecheck only (~10–30s warm; cold often minutes)
+ *   pnpm gate -- lib/features/hrm/     → lint:path only (ESLint; paths do not narrow tsc)
+ *   pnpm gate -- lib/features/hrm/ --typecheck → lint:path + typecheck
+ *   pnpm gate:lint -- <paths>          → lint:path only (alias)
+ *   pnpm gate:typecheck                → app typecheck only
  *   pnpm gate:help                     → print ladder
  *   pnpm gate:dry-run -- <paths>       → print planned commands only
  */
 import { spawnSync } from "node:child_process"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { parseGateArgs, planGateCommands } from "./gate-args.shared.mjs"
+import {
+  parseGateArgs,
+  planGateCommands,
+  shouldRunGateTypecheck,
+} from "./gate-args.shared.mjs"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 const isWindows = process.platform === "win32"
+const lintOnlyEntry = process.env.npm_lifecycle_event === "gate:lint"
 
 const rawArgs = process.argv.slice(2)
 
@@ -26,10 +34,11 @@ if (rawArgs.includes("--help") || rawArgs.includes("-h")) {
   process.exit(help.status ?? 0)
 }
 
-const { dryRun, paths } = parseGateArgs(rawArgs)
+const { dryRun, paths, typecheck } = parseGateArgs(rawArgs)
+const runTypecheck = shouldRunGateTypecheck(paths, { typecheck, lintOnlyEntry })
 
 if (dryRun) {
-  const steps = planGateCommands(paths)
+  const steps = planGateCommands(paths, { typecheck: runTypecheck })
   console.log("[gate:dry-run] Tier L0 — would run:\n")
   for (const step of steps) {
     console.log(`  ${step}`)
@@ -50,13 +59,25 @@ function run(command, args) {
 
 if (paths.length > 0) {
   run("node", ["scripts/lint-path.mjs", ...paths])
+} else if (lintOnlyEntry) {
+  console.error(
+    "[gate:lint] Pass touched paths:\n  pnpm gate:lint -- lib/features/hrm/\n"
+  )
+  process.exit(1)
 }
 
-run("pnpm", ["typecheck"])
-
-if (paths.length === 0) {
+if (runTypecheck) {
+  run("pnpm", ["typecheck"])
+} else if (paths.length > 0) {
   console.log(
-    "\n[gate] Tip: pass touched paths for ESLint in the same run:\n" +
+    "\n[gate] ESLint only — app typecheck was skipped (not path-scoped).\n" +
+      "  pnpm gate:typecheck\n" +
+      "  pnpm gate -- <paths> --typecheck\n" +
+      "  pnpm gate:help\n"
+  )
+} else {
+  console.log(
+    "\n[gate] Tip: pass touched paths for targeted ESLint:\n" +
       "  pnpm gate -- lib/features/hrm/\n\n" +
       "  pnpm gate:help      full ladder\n" +
       "  pnpm gate:dry-run   print L0 plan without running\n"

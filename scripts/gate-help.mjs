@@ -1,27 +1,35 @@
 /**
  * Gate ladder help — onboarding + agent self-correction.
- * ADR-0033 · AGENTS.md §2
+ * ADR-0033 · ADR-0042 · AGENTS.md §2
  */
 const HELP = `
-Afenda verify gate ladder (ADR-0033)
+Afenda verify gate ladder (ADR-0033, ADR-0042)
 Use the LOWEST sufficient tier. Do not replay full CI after every edit.
 
 TIER   WHEN                          COMMAND                              COST (warm)
 ────   ────                          ───────                              ───────────
-L0     After every edit / agent task pnpm gate -- <touched-paths…>        ~15–45s
-L0     Types only                    pnpm gate  |  pnpm typecheck         ~10–30s
+L0     After every edit / agent task pnpm gate -- <touched-paths…>        ESLint only (seconds)
+L0     Before push (types)           pnpm gate:typecheck                  ~10s–minutes (warm/cold)
+L0     Types only                    pnpm gate  |  pnpm typecheck         app graph
 L1     Git commit                    lint-staged (automatic)              staged files
 L2     Before push / open PR         pnpm gate:push                       ~2–5 min
 L3     Pre-merge / App Router risk   pnpm gate:merge                      ~5–10 min
 L4     CI                            GitHub Actions — debug locally only  parallel jobs
 
+IMPORTANT: paths narrow ESLint only — NOT tsc. TypeScript has no per-path
+check on a monolithic tsconfig. Use IDE while editing; gate:typecheck before push.
+
 COMMON (high frequency — no :full suffix)
-  pnpm gate -- lib/features/hrm/     targeted ESLint + app typecheck (default close)
-  pnpm gate                          app typecheck only
-  pnpm typecheck                     app TypeScript graph
+  pnpm gate -- lib/features/hrm/     targeted ESLint only (default L0)
+  pnpm gate -- <paths> --typecheck lint:path + app typecheck
+  pnpm gate:lint -- <paths>          ESLint only (explicit)
+  pnpm gate:typecheck                app typecheck only
+  pnpm gate                          app typecheck only (no paths)
   pnpm lint:path -- <paths>          targeted ESLint only
   pnpm typecheck:test                when tests/ changed
   pnpm typecheck:scripts             when scripts/ changed
+  pnpm typecheck:profile             split typegen vs tsc timing
+  pnpm typecheck:diagnostics         tsc --extendedDiagnostics
 
 FULL (low frequency — :full or gate:*)
   pnpm typecheck:full                app + test + scripts graphs
@@ -32,6 +40,7 @@ FULL (low frequency — :full or gate:*)
 DRY RUN (print planned L0 commands, do not execute)
   pnpm gate:dry-run
   pnpm gate:dry-run -- lib/features/hrm/
+  pnpm gate:dry-run -- lib/features/hrm/ --typecheck
 
 NARROW (domain-specific — when that domain changed)
   pnpm lint:drizzle-journal          drizzle/*.sql or schema.ts
@@ -52,6 +61,7 @@ FORBIDDEN edit-loop habit
   → replays CI locally (~8–15+ min on Windows)
 
 Docs: docs/decisions/0033-verify-gate-ladder-naming.md
+      docs/decisions/0042-typescript-gate-performance.md
 Rules: .cursor/rules/targeted-verification.mdc
 `.trimStart()
 

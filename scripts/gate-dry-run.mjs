@@ -4,11 +4,13 @@
  * Usage:
  *   pnpm gate:dry-run
  *   pnpm gate:dry-run -- lib/features/hrm/
+ *   pnpm gate:dry-run -- lib/features/hrm/ --typecheck
  */
 import { parseGateArgs, planGateCommands } from "./gate-args.shared.mjs"
 
-const { paths } = parseGateArgs(process.argv.slice(2))
-const steps = planGateCommands(paths)
+const { paths, typecheck } = parseGateArgs(process.argv.slice(2))
+const runTypecheck = paths.length === 0 || typecheck
+const steps = planGateCommands(paths, { typecheck: runTypecheck })
 
 console.log("[gate:dry-run] Tier L0 — would run:\n")
 for (const step of steps) {
@@ -19,6 +21,10 @@ if (paths.length === 0) {
   console.log(
     "\n[gate:dry-run] No paths — ESLint skipped. Pass paths to include lint:path:\n" +
       "  pnpm gate:dry-run -- lib/features/hrm/\n"
+  )
+} else if (!runTypecheck) {
+  console.log(
+    "\n[gate:dry-run] Typecheck skipped. Add --typecheck or run pnpm gate:typecheck before push.\n"
   )
 }
 

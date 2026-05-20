@@ -13,8 +13,9 @@ Run **`pnpm gate:help`** for the full reference. Preview L0 with **`pnpm gate:dr
 
 | Tier | When | Command | Cost |
 |---|---|---|---|
-| **L0** | After every edit / agent task | `pnpm gate -- <touched-paths…>` | ~15–45s warm |
-| **L0** | Types only | `pnpm gate` or `pnpm typecheck` | ~10–30s warm |
+| **L0** | After every edit / agent task | `pnpm gate -- <touched-paths…>` | ESLint only (seconds) |
+| **L0** | Before push (app types) | `pnpm gate:typecheck` | warm ~10–30s; cold often minutes |
+| **L0** | Types only | `pnpm gate` or `pnpm typecheck` | app graph |
 | **L2** | Before push / PR | `pnpm gate:push` | ~2–5 min |
 | **L3** | Pre-merge / App Router risk | `pnpm gate:merge` | ~5–10 min |
 
@@ -26,11 +27,18 @@ Run **`pnpm gate:help`** for the full reference. Preview L0 with **`pnpm gate:dr
 pnpm gate -- <path1> [path2 ...]
 ```
 
+Before push, add app typecheck (paths do not narrow `tsc`):
+
+```powershell
+pnpm gate:typecheck
+# or: pnpm gate -- <path1> [path2 ...] --typecheck
+```
+
 Equivalent manual form:
 
 ```powershell
 pnpm lint:path -- <path1> [path2 ...]
-pnpm typecheck
+pnpm gate:typecheck
 ```
 
 Add when those trees change:
@@ -77,7 +85,7 @@ pnpm typecheck:scripts # scripts/
 ```txt
 Task is closed only when:
   pnpm gate -- <touched-paths> → exits 0
-  (or pnpm lint:path -- <paths> && pnpm typecheck)
+  pnpm gate:typecheck → exits 0 before push (or gate -- <paths> --typecheck in same session)
   pnpm typecheck:test / :scripts when those trees were touched
   No import targets a file that does not exist on disk
   No redirect targets a deleted route

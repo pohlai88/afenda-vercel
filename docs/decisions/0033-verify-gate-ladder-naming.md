@@ -36,8 +36,9 @@ Adopt a **Gate Ladder** with explicit **common** vs **`:full`** command names.
 
 | Tier | When | Command | Typical cost (warm, local) |
 | --- | --- | --- | --- |
-| **L0** | After every edit / agent task | `pnpm gate -- <touched-paths…>` | ~15–45s |
-| **L0** | Types only (no ESLint path handy) | `pnpm gate` or `pnpm typecheck` | ~10–30s |
+| **L0** | After every edit / agent task | `pnpm gate -- <touched-paths…>` | ESLint only (see [ADR-0042](./0042-typescript-gate-performance.md)) |
+| **L0** | Before push (app types) | `pnpm gate:typecheck` | warm ~10–30s; cold often minutes |
+| **L0** | Types only (no ESLint path handy) | `pnpm gate` or `pnpm typecheck` | app graph |
 | **L1** | Git commit | lint-staged (automatic) | staged files only |
 | **L2** | Before push / open PR | `pnpm gate:push` | ~2–5 min |
 | **L3** | Pre-merge / route graph risk | `pnpm gate:merge` | ~5–10 min |
@@ -51,7 +52,10 @@ Adopt a **Gate Ladder** with explicit **common** vs **`:full`** command names.
 | --- | --- |
 | **`pnpm gate:help`** | Print full gate ladder |
 | **`pnpm gate:dry-run -- <paths>`** | Print planned L0 commands without executing |
-| **`pnpm gate -- <paths>`** | **Default agent/human loop:** targeted ESLint + app `typecheck` |
+| **`pnpm gate -- <paths>`** | **Default L0:** targeted ESLint only ([ADR-0042](./0042-typescript-gate-performance.md)) |
+| **`pnpm gate -- <paths> --typecheck`** | ESLint + app `typecheck` |
+| **`pnpm gate:typecheck`** | App `typecheck` only |
+| **`pnpm gate:lint -- <paths>`** | ESLint only |
 | **`pnpm gate`** | App `typecheck` only; prints tip to pass paths |
 | **`pnpm typecheck`** | App TypeScript graph (`tsc --noEmit` after `next typegen`) |
 | **`pnpm lint:path -- <paths>`** | Targeted ESLint only — never `eslint .` |
@@ -118,5 +122,6 @@ Unchanged: `pnpm lint:drizzle-journal`, `pnpm lint:fixtures-parity`, `pnpm ask-d
 
 | Date | Change |
 | ---- | ------ |
+| 2026-05-20 | [ADR-0042](./0042-typescript-gate-performance.md) — `gate -- paths` lint-only; `gate:typecheck` before push |
 | 2026-05-19 | `gate:help` + `gate:dry-run` for onboarding and L0 plan preview |
 | 2026-05-19 | Initial acceptance — gate ladder, `gate` / `:full` naming, `scripts/gate.mjs` + `lint-path.mjs` |

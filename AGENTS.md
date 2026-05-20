@@ -202,8 +202,9 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 
 | Tier | When | Command | Typical cost (warm) |
 | --- | --- | --- | --- |
-| **L0** | After every edit / agent task | `pnpm gate -- <touched-paths…>` | ~15–45s |
-| **L0** | Types only | `pnpm gate` or `pnpm typecheck` | ~10–30s |
+| **L0** | After every edit / agent task | `pnpm gate -- <touched-paths…>` | ESLint only (seconds) |
+| **L0** | Before push (app types) | `pnpm gate:typecheck` or `pnpm gate -- <paths> --typecheck` | warm ~10–30s; cold often minutes |
+| **L0** | Types only | `pnpm gate` or `pnpm typecheck` | app graph |
 | **L1** | Git commit | lint-staged (automatic) | staged files |
 | **L2** | Before push / open PR | `pnpm gate:push` | ~2–5 min |
 | **L3** | Pre-merge / App Router risk | `pnpm gate:merge` | ~5–10 min |
@@ -213,8 +214,13 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 
 | Command | Purpose |
 | --- | --- |
-| **`pnpm gate -- <paths>`** | **Default close condition:** targeted ESLint + app `typecheck` |
+| **`pnpm gate -- <paths>`** | **Default L0:** targeted ESLint only (paths do **not** narrow `tsc`) |
+| **`pnpm gate -- <paths> --typecheck`** | ESLint + app `typecheck` |
+| **`pnpm gate:lint -- <paths>`** | ESLint only (explicit) |
+| **`pnpm gate:typecheck`** | App `typecheck` only — run before push |
 | **`pnpm gate`** | App `typecheck` only (prints tip to pass paths) |
+| **`pnpm typecheck:profile`** | Split `next-typegen-fast` vs `tsc` timing (ADR-0042) |
+| **`pnpm typecheck:diagnostics`** | `tsc --extendedDiagnostics` |
 | **`pnpm gate:help`** | Print full gate ladder (onboarding / agent self-correction) |
 | **`pnpm gate:dry-run -- <paths>`** | Print planned L0 commands without executing |
 | **`pnpm typecheck`** | App TypeScript graph (`next typegen` + `tsc --noEmit`) |

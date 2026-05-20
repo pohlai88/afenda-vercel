@@ -14,7 +14,8 @@ See `verify-pipeline.mdc` for the full tier ladder. See `targeted-verification.m
 
 | When | Command | Cost |
 |---|---|---|
-| After every task — concurrent agents | `pnpm gate -- <touched-paths>` | ~15–45s warm |
+| After every task — concurrent agents | `pnpm gate -- <touched-paths>` | ESLint only (seconds) |
+| Before push — app types | `pnpm gate:typecheck` | warm ~10–30s; cold often minutes |
 | After every task — types only | `pnpm gate` or `pnpm typecheck` | ~10–30s warm |
 | Before push / PR | `pnpm gate:push` | ~2–5 min |
 | Pre-merge / App Router risk | `pnpm gate:merge` | ~5–10 min |
@@ -132,8 +133,8 @@ pnpm typecheck
 ```txt
 Task is closed only when:
   pnpm gate -- <touched-paths> → exits 0                         (concurrent agents)
+  pnpm gate:typecheck → exits 0 before push
   OR pnpm lint:full → exits 0                                     (solo + design-token/globals.css only)
-  pnpm typecheck → exits 0
   pnpm typecheck:test / :scripts when those trees touched
   No import targets a file that does not exist on disk
   No redirect targets a deleted route
