@@ -9,7 +9,7 @@ import { Button } from "#components2/ui/button"
 import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
-import type { SftCoverageFormState } from "../../../types"
+import type { SftReportDefinitionFormState } from "../../../types"
 import {
   deleteShiftRosterReportDefinitionAction,
   exportShiftRosterCsvAction,
@@ -60,12 +60,12 @@ export function SftExportReportPanel({
   const [selectedDefinitionId, setSelectedDefinitionId] = useState("")
 
   const [saveState, saveAction, savePending] = useActionState<
-    SftCoverageFormState | undefined,
+    SftReportDefinitionFormState | undefined,
     FormData
   >(saveShiftRosterReportDefinitionAction, undefined)
 
   const [deleteState, deleteAction, deletePending] = useActionState<
-    SftCoverageFormState | undefined,
+    SftReportDefinitionFormState | undefined,
     FormData
   >(deleteShiftRosterReportDefinitionAction, undefined)
 

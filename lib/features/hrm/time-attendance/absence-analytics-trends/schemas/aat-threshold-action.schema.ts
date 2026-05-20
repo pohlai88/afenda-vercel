@@ -11,7 +11,9 @@ export type UpdateAatThresholdFormState =
   | { ok: true }
   | {
       ok: false
-      errors: Partial<Record<keyof UpdateAatThresholdFormInput, string>>
+      errors: Partial<Record<keyof UpdateAatThresholdFormInput, string>> & {
+        form?: string
+      }
     }
 
 function parseRateField(raw: FormDataEntryValue | null): unknown {

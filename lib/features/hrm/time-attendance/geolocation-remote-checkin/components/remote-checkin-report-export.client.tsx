@@ -9,10 +9,8 @@ import { Button } from "#components2/ui/button"
 import { Field, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
-import {
-  exportRemoteCheckinReportAction,
-  type RemoteCheckinReportExportFormState,
-} from "#features/hrm/client"
+import { exportRemoteCheckinReportAction } from "../actions/remote-checkin-report.actions"
+import type { RemoteCheckinReportExportFormState } from "../../../types"
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10)

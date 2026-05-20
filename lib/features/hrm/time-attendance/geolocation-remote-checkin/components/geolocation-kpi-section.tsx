@@ -14,13 +14,14 @@ import {
   buildRemoteCheckinKpiStatConfiguration,
 } from "../data/geolocation-surface-builders.server"
 import type { RemoteCheckinKpiSummary } from "../data/geolocation.queries.server"
+import type { GeolocationLoadError } from "../data/geolocation-load-error.shared"
 
 export async function GeolocationKpiSummarySection({
   summary,
   loadError,
 }: {
   summary: RemoteCheckinKpiSummary
-  loadError?: boolean
+  loadError?: GeolocationLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.Geolocation.kpi")
 
@@ -29,7 +30,9 @@ export async function GeolocationKpiSummarySection({
       <Card size="sm">
         <CardHeader>
           <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("loadFailed")}</CardDescription>
+          <CardDescription>
+            {loadError.description ?? loadError.title}
+          </CardDescription>
         </CardHeader>
       </Card>
     )

@@ -231,10 +231,16 @@ export type {
   RemoteCheckinReportExportFormState,
 } from "./time-attendance/geolocation-remote-checkin/client"
 export {
+  AatExportReportButton,
+  AatThresholdSettingsForm,
   exportAatAnalyticsReportCsvAction,
   updateAatThresholdAction,
 } from "./time-attendance/absence-analytics-trends/client"
-export type { UpdateAatThresholdFormState } from "./time-attendance/absence-analytics-trends/client"
+export type {
+  AatPeriodKey,
+  AatScopeKey,
+  UpdateAatThresholdFormState,
+} from "./time-attendance/absence-analytics-trends/client"
 export {
   createCompensationCycleAction,
   syncCompensationCycleParticipantsAction,

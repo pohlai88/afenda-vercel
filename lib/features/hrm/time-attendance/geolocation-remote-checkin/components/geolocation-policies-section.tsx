@@ -7,6 +7,10 @@ import {
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 
 import { buildRemoteCheckinPoliciesListSurfaceConfiguration } from "../data/geolocation-surface-builders.server"
+import {
+  toGeolocationListLoadError,
+  type GeolocationLoadError,
+} from "../data/geolocation-load-error.shared"
 import type { RemoteCheckinPolicyRow } from "../data/geolocation.queries.server"
 
 import { RemoteCheckinPolicyDialog } from "./remote-checkin-policy-form.client"
@@ -32,10 +36,12 @@ export async function GeolocationPoliciesSection({
   orgSlug,
   rows,
   canManage,
+  loadError,
 }: {
   orgSlug: string
   rows: readonly RemoteCheckinPolicyRow[]
   canManage: boolean
+  loadError?: GeolocationLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.Geolocation.policies")
   const tCommon = await getTranslations("Dashboard.Hrm.Geolocation")
@@ -66,6 +72,7 @@ export async function GeolocationPoliciesSection({
       description={t("description")}
       surfaceKey="hrm:geolocation:policies"
       listConfiguration={listConfiguration}
+      loadError={toGeolocationListLoadError(loadError)}
       headerSlot={
         canManage ? (
           <div className="flex justify-end">

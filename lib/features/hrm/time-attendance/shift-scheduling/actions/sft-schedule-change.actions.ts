@@ -4,7 +4,7 @@ import { requireOrgSession } from "#lib/auth"
 
 import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
-import type { SftSwapMutationFormState } from "../../../types"
+import type { SftScheduleChangeFormState } from "../../../types"
 import { findSftEmployeeForUser } from "../data/sft.queries.server"
 import {
   approveScheduleChangeRequest,
@@ -12,7 +12,6 @@ import {
   returnScheduleChangeRequest,
   submitScheduleChangeRequest,
 } from "../data/sft-schedule-change.server"
-import { revalidateSftSurfaces } from "../data/sft-revalidate.server"
 import {
   scheduleChangeRejectSchema,
   scheduleChangeReturnSchema,
@@ -20,9 +19,9 @@ import {
 } from "../schemas/sft.schema"
 
 export async function submitScheduleChangeRequestAction(
-  _prev: SftSwapMutationFormState | undefined,
+  _prev: SftScheduleChangeFormState | undefined,
   formData: FormData
-): Promise<SftSwapMutationFormState> {
+): Promise<SftScheduleChangeFormState> {
   const session = await requireOrgSession()
 
   const employee = await findSftEmployeeForUser(
@@ -59,14 +58,13 @@ export async function submitScheduleChangeRequestAction(
 
   if (!result.ok) return hrmActionFailure({ form: result.error })
 
-  revalidateSftSurfaces()
-  return { ok: true, swapRequestId: result.requestId }
+  return { ok: true, scheduleChangeRequestId: result.requestId }
 }
 
 export async function approveScheduleChangeRequestAction(
-  _prev: SftSwapMutationFormState | undefined,
+  _prev: SftScheduleChangeFormState | undefined,
   formData: FormData
-): Promise<SftSwapMutationFormState> {
+): Promise<SftScheduleChangeFormState> {
   const gate = await requireHrmPermission({
     object: "shift_schedule",
     function: "update",
@@ -88,14 +86,13 @@ export async function approveScheduleChangeRequestAction(
 
   if (!result.ok) return hrmActionFailure({ form: result.error })
 
-  revalidateSftSurfaces()
-  return { ok: true, swapRequestId: requestId }
+  return { ok: true, scheduleChangeRequestId: requestId }
 }
 
 export async function rejectScheduleChangeRequestAction(
-  _prev: SftSwapMutationFormState | undefined,
+  _prev: SftScheduleChangeFormState | undefined,
   formData: FormData
-): Promise<SftSwapMutationFormState> {
+): Promise<SftScheduleChangeFormState> {
   const gate = await requireHrmPermission({
     object: "shift_schedule",
     function: "update",
@@ -124,14 +121,13 @@ export async function rejectScheduleChangeRequestAction(
 
   if (!result.ok) return hrmActionFailure({ form: result.error })
 
-  revalidateSftSurfaces()
-  return { ok: true, swapRequestId: parsed.data.requestId }
+  return { ok: true, scheduleChangeRequestId: parsed.data.requestId }
 }
 
 export async function returnScheduleChangeRequestAction(
-  _prev: SftSwapMutationFormState | undefined,
+  _prev: SftScheduleChangeFormState | undefined,
   formData: FormData
-): Promise<SftSwapMutationFormState> {
+): Promise<SftScheduleChangeFormState> {
   const gate = await requireHrmPermission({
     object: "shift_schedule",
     function: "update",
@@ -161,6 +157,5 @@ export async function returnScheduleChangeRequestAction(
 
   if (!result.ok) return hrmActionFailure({ form: result.error })
 
-  revalidateSftSurfaces()
-  return { ok: true, swapRequestId: parsed.data.requestId }
+  return { ok: true, scheduleChangeRequestId: parsed.data.requestId }
 }

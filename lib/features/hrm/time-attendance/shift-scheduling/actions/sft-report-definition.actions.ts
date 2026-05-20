@@ -1,9 +1,10 @@
 "use server"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
-import { requireOrgSession } from "#lib/auth"
-import { canUseErpPermission } from "#features/erp-rbac/server"
 
+import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
+import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
+import type { SftReportDefinitionFormState } from "../../../types"
 import { HRM_SFT_AUDIT } from "../sft.contract"
 import {
   createShiftRosterReportDefinition,
@@ -14,29 +15,18 @@ import {
   rosterListFiltersSchema,
   saveShiftRosterReportDefinitionSchema,
 } from "../schemas/sft.schema"
-import type { SftCoverageFormState } from "../../../types"
-import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 
 export async function saveShiftRosterReportDefinitionAction(
-  _prev: SftCoverageFormState | undefined,
+  _prev: SftReportDefinitionFormState | undefined,
   formData: FormData
-): Promise<SftCoverageFormState> {
-  const session = await requireOrgSession()
-
-  const allowed = await canUseErpPermission({
-    organizationId: session.organizationId,
-    userId: session.userId,
-    permission: {
-      module: "hrm",
-      object: "shift_schedule",
-      function: "update",
-    },
+): Promise<SftReportDefinitionFormState> {
+  const gate = await requireHrmPermission({
+    object: "shift_schedule",
+    function: "update",
+    errorMessage: "HRM shift schedule update permission required.",
   })
-  if (!allowed) {
-    return hrmActionFailure({
-      form: "You are not authorized to save roster report definitions.",
-    })
-  }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
+  const { session } = gate
 
   const parsed = saveShiftRosterReportDefinitionSchema.safeParse({
     name: formData.get("name"),
@@ -81,29 +71,20 @@ export async function saveShiftRosterReportDefinitionAction(
   })
 
   revalidateSftSurfaces()
-  return { ok: true, requirementId: result.definitionId }
+  return { ok: true, definitionId: result.definitionId }
 }
 
 export async function deleteShiftRosterReportDefinitionAction(
-  _prev: SftCoverageFormState | undefined,
+  _prev: SftReportDefinitionFormState | undefined,
   formData: FormData
-): Promise<SftCoverageFormState> {
-  const session = await requireOrgSession()
-
-  const allowed = await canUseErpPermission({
-    organizationId: session.organizationId,
-    userId: session.userId,
-    permission: {
-      module: "hrm",
-      object: "shift_schedule",
-      function: "update",
-    },
+): Promise<SftReportDefinitionFormState> {
+  const gate = await requireHrmPermission({
+    object: "shift_schedule",
+    function: "update",
+    errorMessage: "HRM shift schedule update permission required.",
   })
-  if (!allowed) {
-    return hrmActionFailure({
-      form: "You are not authorized to delete roster report definitions.",
-    })
-  }
+  if (!gate.ok) return hrmActionFailure({ form: gate.error })
+  const { session } = gate
 
   const definitionId = String(formData.get("definitionId") ?? "").trim()
   if (!definitionId) {
@@ -128,5 +109,5 @@ export async function deleteShiftRosterReportDefinitionAction(
   })
 
   revalidateSftSurfaces()
-  return { ok: true, requirementId: definitionId }
+  return { ok: true, definitionId }
 }

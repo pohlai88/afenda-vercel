@@ -22,8 +22,8 @@ import {
 import {
   deprecateGeofenceAction,
   upsertGeofenceAction,
-  type GeofenceMutationFormState,
-} from "#features/hrm/client"
+} from "../actions/geofence.actions"
+import type { GeofenceMutationFormState } from "../../../types"
 
 const SCOPE_KINDS = [
   "office",

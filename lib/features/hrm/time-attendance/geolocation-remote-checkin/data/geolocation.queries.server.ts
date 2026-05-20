@@ -1,5 +1,6 @@
 import "server-only"
 
+import { cache } from "react"
 import {
   and,
   asc,
@@ -664,26 +665,28 @@ export type RemoteCheckinEmployeeContextRow = {
   readonly archivedAt: Date | null
 }
 
-export async function findRemoteCheckinEmployeeForUser(
-  organizationId: string,
-  userId: string
-): Promise<RemoteCheckinEmployeeContextRow | null> {
-  const row = await db.query.hrmEmployee.findFirst({
-    where: and(
-      eq(hrmEmployee.organizationId, organizationId),
-      eq(hrmEmployee.linkedUserId, userId),
-      isNull(hrmEmployee.archivedAt)
-    ),
-    columns: {
-      id: true,
-      employeeNumber: true,
-      legalName: true,
-      managerEmployeeId: true,
-      archivedAt: true,
-    },
-  })
-  return row ?? null
-}
+export const findRemoteCheckinEmployeeForUser = cache(
+  async function findRemoteCheckinEmployeeForUser(
+    organizationId: string,
+    userId: string
+  ): Promise<RemoteCheckinEmployeeContextRow | null> {
+    const row = await db.query.hrmEmployee.findFirst({
+      where: and(
+        eq(hrmEmployee.organizationId, organizationId),
+        eq(hrmEmployee.linkedUserId, userId),
+        isNull(hrmEmployee.archivedAt)
+      ),
+      columns: {
+        id: true,
+        employeeNumber: true,
+        legalName: true,
+        managerEmployeeId: true,
+        archivedAt: true,
+      },
+    })
+    return row ?? null
+  }
+)
 
 export async function getRemoteCheckinEmployeeForOrg(
   organizationId: string,

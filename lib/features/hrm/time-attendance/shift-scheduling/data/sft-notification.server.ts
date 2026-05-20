@@ -1,5 +1,6 @@
 import "server-only"
 
+import { after } from "next/server"
 import { cache } from "react"
 import { and, eq, gte, lte } from "drizzle-orm"
 
@@ -86,11 +87,13 @@ async function deliverSftEmployeeNotification(input: {
 
   const email = employee?.email?.trim()
   if (email && email.includes("@")) {
-    sendAuthEmail({
-      to: email,
-      subject: input.template.email.subject,
-      text: input.template.email.text,
-      html: input.template.email.html,
+    after(() => {
+      void sendAuthEmail({
+        to: email,
+        subject: input.template.email.subject,
+        text: input.template.email.text,
+        html: input.template.email.html,
+      })
     })
   }
 }

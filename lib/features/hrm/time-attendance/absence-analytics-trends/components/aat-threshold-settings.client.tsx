@@ -15,12 +15,9 @@ import {
 import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
-import {
-  updateAatThresholdAction,
-  type UpdateAatThresholdFormState,
-} from "#features/hrm/client"
-
+import { updateAatThresholdAction } from "../actions/aat.actions"
 import type { AatThresholdConfig } from "../schemas/aat-threshold.schema"
+import type { UpdateAatThresholdFormState } from "../schemas/aat-threshold-action.schema"
 
 type AatThresholdSettingsFormProps = {
   thresholds: AatThresholdConfig
@@ -49,6 +46,11 @@ export function AatThresholdSettingsForm({
       </CardHeader>
       <CardContent>
         <form action={formAction} className="grid gap-4 sm:grid-cols-2">
+          {errors?.form ? (
+            <p className="text-sm text-destructive sm:col-span-2" role="alert">
+              {errors.form}
+            </p>
+          ) : null}
           <Field>
             <FieldLabel htmlFor="watchAbsenceRate">
               {t("fieldWatchAbsenceRate")}

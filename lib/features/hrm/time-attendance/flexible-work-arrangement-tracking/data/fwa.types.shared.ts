@@ -53,6 +53,13 @@ export type FwaEligibilityRuleRow = {
   isActive: boolean
 }
 
+/** Section-level query failure copy passed from the page into governed list/KPI slots. */
+export type FwaListLoadError = {
+  title: string
+  description?: string
+  variant?: "error" | "muted" | "cta" | "forbidden"
+}
+
 export type FwaOrgSummaryCounts = {
   pendingCount: number
   activeCount: number

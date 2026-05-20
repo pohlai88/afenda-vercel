@@ -6,7 +6,7 @@ import { Download, Loader2 } from "lucide-react"
 
 import { Button } from "#components2/ui/button"
 
-import { exportFwaOperationalReportCsvAction } from "#features/hrm/client"
+import { exportFwaOperationalReportCsvAction } from "../actions/fwa-report.actions"
 
 export function FwaExportReportButton() {
   const t = useTranslations("Dashboard.Hrm.flexibleWork")

@@ -3507,6 +3507,8 @@
         "pageTitle": "Absence analytics & trends",
         "pageDescription": "Analyze absence rates, unplanned leave, attendance exceptions, department rankings, and workforce availability from approved leave and attendance aggregates.",
         "loadFailed": "Analytics are temporarily unavailable. Retry shortly.",
+        "loadFailedTeamScope": "Team analytics unavailable",
+        "loadFailedTeamScopeDescription": "Link your user account to an active employee record, or switch to organization scope.",
         "kpiTitle": "Summary",
         "kpiAbsenceRate": "Absence rate",
         "kpiLostWorkdays": "Lost workdays",

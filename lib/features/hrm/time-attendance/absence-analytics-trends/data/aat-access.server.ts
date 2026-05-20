@@ -2,6 +2,8 @@ import "server-only"
 
 import { canUseErpPermission } from "#features/erp-rbac/server"
 
+import { findAatManagerContextForUser } from "./aat-employee-context.server"
+
 export type AatSurfaceAccess = {
   canEnter: boolean
   canReadOrg: boolean
@@ -57,8 +59,6 @@ export async function resolveAatSurfaceAccess(input: {
 
   const canReadOrg = canSearch || canRead || canAudit
 
-  const { findAatManagerContextForUser } =
-    await import("./aat-employee-context.server")
   const managerContext = await findAatManagerContextForUser({
     organizationId: input.organizationId,
     userId: input.userId,

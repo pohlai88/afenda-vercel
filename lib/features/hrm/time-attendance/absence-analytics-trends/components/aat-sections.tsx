@@ -1,7 +1,10 @@
 import { getTranslations } from "next-intl/server"
 
 import { GovernedComponentRenderer } from "#components2/metadata"
-import { GovernedPatternCListSection } from "#features/governed-surface"
+import {
+  GovernedPatternCListSection,
+  type EmptyState,
+} from "#features/governed-surface"
 import {
   Card,
   CardContent,
@@ -17,7 +20,10 @@ import {
   buildAatLeaveTypeBreakdownListSurface,
 } from "../data/aat-list-surface.server"
 import type { AatOrgAnalyticsSnapshot } from "../data/aat-analytics.queries.server"
-import { aatRiskTierMessageKey } from "../data/aat-display.shared"
+import {
+  aatRiskTierMessageKey,
+  aatTrendStatTone,
+} from "../data/aat-display.shared"
 import type { AatRiskTier } from "../schemas/aat.schema"
 import {
   AAT_CHART_SURFACE_KEY,
@@ -30,28 +36,49 @@ import {
   buildAatKpiStatConfiguration,
   buildAatTrendChartConfiguration,
 } from "../data/aat-surface-builders.server"
-import { aatTrendStatTone } from "../data/aat-display.shared"
+
+type AatLoadFailure = {
+  readonly title: string
+  readonly description?: string
+}
 
 type AatAnalyticsSectionsProps = {
   snapshot: AatOrgAnalyticsSnapshot
-  loadError?: boolean
+  loadFailure?: AatLoadFailure
+}
+
+function toAatListLoadError(
+  loadFailure: AatLoadFailure | undefined
+): EmptyState | undefined {
+  if (!loadFailure) return undefined
+  return {
+    variant: "error",
+    title: loadFailure.title,
+    description: loadFailure.description,
+  }
+}
+
+function AatLoadFailureCard({ failure }: { failure: AatLoadFailure }) {
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle>{failure.title}</CardTitle>
+        {failure.description ? (
+          <CardDescription>{failure.description}</CardDescription>
+        ) : null}
+      </CardHeader>
+    </Card>
+  )
 }
 
 export async function AatKpiSummarySection({
   snapshot,
-  loadError,
+  loadFailure,
 }: AatAnalyticsSectionsProps) {
   const t = await getTranslations("Dashboard.Hrm.absenceAnalytics")
 
-  if (loadError) {
-    return (
-      <Card size="sm">
-        <CardHeader>
-          <CardTitle>{t("kpiTitle")}</CardTitle>
-          <CardDescription>{t("loadFailed")}</CardDescription>
-        </CardHeader>
-      </Card>
-    )
+  if (loadFailure) {
+    return <AatLoadFailureCard failure={loadFailure} />
   }
 
   const configuration = buildAatKpiStatConfiguration(snapshot, {
@@ -86,12 +113,19 @@ export async function AatKpiSummarySection({
 
 export async function AatTrendChartSection({
   snapshot,
-  loadError,
+  loadFailure,
 }: AatAnalyticsSectionsProps) {
   const t = await getTranslations("Dashboard.Hrm.absenceAnalytics")
 
-  if (loadError) {
-    return null
+  if (loadFailure) {
+    return (
+      <AatLoadFailureCard
+        failure={{
+          title: t("trendChartTitle"),
+          description: loadFailure.description ?? loadFailure.title,
+        }}
+      />
+    )
   }
 
   const configuration = buildAatTrendChartConfiguration(
@@ -122,12 +156,19 @@ export async function AatTrendChartSection({
 
 export async function AatDailyHeatmapSection({
   snapshot,
-  loadError,
+  loadFailure,
 }: AatAnalyticsSectionsProps) {
   const t = await getTranslations("Dashboard.Hrm.absenceAnalytics")
 
-  if (loadError) {
-    return null
+  if (loadFailure) {
+    return (
+      <AatLoadFailureCard
+        failure={{
+          title: t("heatmapTitle"),
+          description: loadFailure.description ?? loadFailure.title,
+        }}
+      />
+    )
   }
 
   const configuration = buildAatDailyHeatmapChartConfiguration(
@@ -158,7 +199,7 @@ export async function AatDailyHeatmapSection({
 
 export async function AatLeaveTypeBreakdownSection({
   snapshot,
-  loadError,
+  loadFailure,
 }: AatAnalyticsSectionsProps) {
   const t = await getTranslations("Dashboard.Hrm.absenceAnalytics")
 
@@ -167,9 +208,7 @@ export async function AatLeaveTypeBreakdownSection({
       title={t("leaveTypeTitle")}
       description={t("leaveTypeDescription")}
       surfaceKey={AAT_LIST_SURFACE_IDS.leaveTypeBreakdown}
-      loadError={
-        loadError ? { variant: "muted", title: t("loadFailed") } : undefined
-      }
+      loadError={toAatListLoadError(loadFailure)}
       listConfiguration={buildAatLeaveTypeBreakdownListSurface(
         snapshot.leaveTypeBreakdown,
         {
@@ -186,7 +225,7 @@ export async function AatLeaveTypeBreakdownSection({
 
 export async function AatDepartmentRankingSection({
   snapshot,
-  loadError,
+  loadFailure,
 }: AatAnalyticsSectionsProps) {
   const t = await getTranslations("Dashboard.Hrm.absenceAnalytics")
   const riskLabelFor = (tier: AatRiskTier) => t(aatRiskTierMessageKey(tier))
@@ -196,9 +235,7 @@ export async function AatDepartmentRankingSection({
       title={t("departmentTitle")}
       description={t("departmentDescription")}
       surfaceKey={AAT_LIST_SURFACE_IDS.departmentRanking}
-      loadError={
-        loadError ? { variant: "muted", title: t("loadFailed") } : undefined
-      }
+      loadError={toAatListLoadError(loadFailure)}
       listConfiguration={buildAatDepartmentRankingListSurface(
         snapshot.departmentRanking,
         {
@@ -217,7 +254,7 @@ export async function AatDepartmentRankingSection({
 
 export async function AatHighRiskEmployeesSection({
   snapshot,
-  loadError,
+  loadFailure,
 }: AatAnalyticsSectionsProps) {
   const t = await getTranslations("Dashboard.Hrm.absenceAnalytics")
   const riskLabelFor = (tier: AatRiskTier) => t(aatRiskTierMessageKey(tier))
@@ -227,9 +264,7 @@ export async function AatHighRiskEmployeesSection({
       title={t("highRiskTitle")}
       description={t("highRiskDescription")}
       surfaceKey={AAT_LIST_SURFACE_IDS.highRiskEmployees}
-      loadError={
-        loadError ? { variant: "muted", title: t("loadFailed") } : undefined
-      }
+      loadError={toAatListLoadError(loadFailure)}
       listConfiguration={buildAatHighRiskEmployeesListSurface(
         snapshot.highRiskEmployees,
         {
@@ -251,7 +286,7 @@ export async function AatHighRiskEmployeesSection({
 
 export async function AatExceptionTrendsSection({
   snapshot,
-  loadError,
+  loadFailure,
 }: AatAnalyticsSectionsProps) {
   const t = await getTranslations("Dashboard.Hrm.absenceAnalytics")
 
@@ -260,9 +295,7 @@ export async function AatExceptionTrendsSection({
       title={t("exceptionTitle")}
       description={t("exceptionDescription")}
       surfaceKey={AAT_LIST_SURFACE_IDS.exceptionTrends}
-      loadError={
-        loadError ? { variant: "muted", title: t("loadFailed") } : undefined
-      }
+      loadError={toAatListLoadError(loadFailure)}
       listConfiguration={buildAatExceptionTrendsListSurface(
         snapshot.exceptionTrends,
         {

@@ -15,6 +15,7 @@ import type {
   SftCoverageFormState,
   SftPolicyFormState,
   SftRotationCycleFormState,
+  SftScheduleChangeFormState,
   SftSwapMutationFormState,
 } from "../../../types"
 import {
@@ -736,7 +737,7 @@ export function SftSubmitScheduleChangeForm({
 }) {
   const t = useTranslations("Dashboard.Hrm.shiftScheduling")
   const [state, formAction, pending] = useActionState<
-    SftSwapMutationFormState | undefined,
+    SftScheduleChangeFormState | undefined,
     FormData
   >(submitScheduleChangeRequestAction, undefined)
 

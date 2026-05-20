@@ -16,10 +16,8 @@ import {
 import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
-import {
-  createFwaArrangementTypeAction,
-  type CreateFwaTypeFormState,
-} from "#features/hrm/client"
+import { createFwaArrangementTypeAction } from "../actions/fwa-type.actions"
+import type { CreateFwaTypeFormState } from "../../../types"
 import { HRM_FWA_ARRANGEMENT_KINDS } from "../schemas/fwa-workflow-state.shared"
 
 const SELECT_CLASS =

@@ -20,8 +20,8 @@ import {
   renewFwaRequestAction,
   suspendFwaRequestAction,
   terminateFwaRequestAction,
-  type FwaApprovalFormState,
-} from "#features/hrm/client"
+} from "../actions/fwa-lifecycle.actions"
+import type { FwaApprovalFormState } from "../../../types"
 
 type FwaLifecycleFormsProps = {
   requestId: string

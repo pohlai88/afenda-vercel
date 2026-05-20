@@ -1,5 +1,6 @@
 import "server-only"
 
+import { cache } from "react"
 import {
   and,
   asc,
@@ -92,7 +93,7 @@ export async function listActiveFwaArrangementTypes(
     .orderBy(asc(hrmFlexibleWorkArrangementType.code))
 }
 
-export async function findFwaEmployeeForUser(
+export const findFwaEmployeeForUser = cache(async function findFwaEmployeeForUser(
   organizationId: string,
   userId: string
 ): Promise<FwaEmployeeContextRow | null> {
@@ -112,7 +113,7 @@ export async function findFwaEmployeeForUser(
   })
 
   return row ?? null
-}
+})
 
 export async function getFwaEmployeeForOrg(
   organizationId: string,

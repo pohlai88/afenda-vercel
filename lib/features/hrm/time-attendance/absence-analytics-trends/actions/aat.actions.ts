@@ -1,6 +1,7 @@
 "use server"
 
 import { after } from "next/server"
+import { revalidatePath } from "next/cache"
 
 import { requireOrgSession, writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
@@ -8,12 +9,21 @@ import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 import { HRM_AAT_AUDIT } from "../aat.contract"
 import { buildAatAnalyticsReportCsv } from "../data/aat-report-export.shared"
 import { buildAatOrgAnalyticsSnapshot } from "../data/aat-analytics.queries.server"
-import { getAatThresholdConfigForOrg } from "../data/aat-threshold.queries.server"
+import {
+  getAatThresholdConfigForOrg,
+  upsertAatThresholdConfigForOrg,
+} from "../data/aat-threshold.queries.server"
 import { parseAatPeriodKey, parseAatScopeKey } from "../schemas/aat.schema"
 import type {
   UpdateAatThresholdFormInput,
   UpdateAatThresholdFormState,
 } from "../schemas/aat-threshold-action.schema"
+
+type AatThresholdFormErrors = Extract<
+  UpdateAatThresholdFormState,
+  { ok: false }
+>["errors"]
+import { parseUpdateAatThresholdFormData } from "../schemas/aat-threshold-action.schema"
 import { resolveAatSurfaceAccess } from "../data/aat-access.server"
 import { findAatManagerContextForUser } from "../data/aat-employee-context.server"
 
@@ -91,33 +101,28 @@ export async function updateAatThresholdAction(
 
   const access = await resolveAatSurfaceAccess({ organizationId, userId })
   if (!access.canConfigureThresholds) {
-    return { ok: false, errors: { watchAbsenceRate: "Permission denied." } }
+    const errors: AatThresholdFormErrors = { form: "Permission denied." }
+    return { ok: false, errors }
   }
 
-  const { parseUpdateAatThresholdFormData } =
-    await import("../schemas/aat-threshold-action.schema")
   const parsed = parseUpdateAatThresholdFormData(formData)
   if (!parsed.success) {
-    const errors: Partial<Record<keyof UpdateAatThresholdFormInput, string>> =
-      {}
+    const errors: AatThresholdFormErrors = {}
     for (const issue of parsed.error.issues) {
       const key = issue.path[0]
       if (typeof key === "string") {
-        errors[key as keyof typeof errors] = issue.message
+        errors[key as keyof UpdateAatThresholdFormInput] = issue.message
       }
     }
     return { ok: false, errors }
   }
 
-  const { upsertAatThresholdConfigForOrg } =
-    await import("../data/aat-threshold.queries.server")
   await upsertAatThresholdConfigForOrg({
     organizationId,
     config: parsed.data,
     updatedByUserId: userId,
   })
 
-  const { revalidatePath } = await import("next/cache")
   revalidatePath(
     toLocaleOrgAppsRevalidatePattern("/hrm/absence-analytics"),
     "page"

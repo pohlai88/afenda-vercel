@@ -8,7 +8,10 @@ import { Link } from "#i18n/navigation"
 
 import { organizationHrmPath } from "../../../constants"
 import type { AatSurfaceAccess } from "../data/aat-access.server"
-import { loadAbsenceAnalyticsPageData } from "../data/aat-page.server"
+import {
+  loadAbsenceAnalyticsPageData,
+  type AbsenceAnalyticsPageData,
+} from "../data/aat-page.server"
 import type { AatOrgAnalyticsSnapshot } from "../data/aat-analytics.queries.server"
 import {
   parseAatPeriodKey,
@@ -86,6 +89,24 @@ function aatFallbackSnapshot(
   return { ...EMPTY_SNAPSHOT, period, scope }
 }
 
+function resolveAatLoadFailure(
+  pageData: AbsenceAnalyticsPageData,
+  copy: {
+    loadFailed: string
+    loadFailedTeamScope: string
+    loadFailedTeamScopeDescription: string
+  }
+): { title: string; description?: string } | undefined {
+  if (pageData.ok) return undefined
+  if (pageData.reason === "team_scope_no_manager") {
+    return {
+      title: copy.loadFailedTeamScope,
+      description: copy.loadFailedTeamScopeDescription,
+    }
+  }
+  return { title: copy.loadFailed }
+}
+
 function aatNavHref(
   basePath: Route,
   period: AatPeriodKey,
@@ -138,7 +159,11 @@ export async function AbsenceAnalyticsPage({
     access,
   })
 
-  const loadError = !pageData.ok
+  const loadFailure = resolveAatLoadFailure(pageData, {
+    loadFailed: t("loadFailed"),
+    loadFailedTeamScope: t("loadFailedTeamScope"),
+    loadFailedTeamScopeDescription: t("loadFailedTeamScopeDescription"),
+  })
   const snapshot = pageData.ok
     ? pageData.snapshot
     : aatFallbackSnapshot(period, scope)
@@ -198,29 +223,35 @@ export async function AbsenceAnalyticsPage({
         {scopeNav}
       </div>
 
-      <AatKpiSummarySection snapshot={snapshot} loadError={loadError} />
+      <AatKpiSummarySection snapshot={snapshot} loadFailure={loadFailure} />
 
       {access.canConfigureThresholds ? (
         <AatThresholdSettingsForm thresholds={thresholds} />
       ) : null}
 
-      <AatLeaveTypeBreakdownSection snapshot={snapshot} loadError={loadError} />
+      <AatLeaveTypeBreakdownSection
+        snapshot={snapshot}
+        loadFailure={loadFailure}
+      />
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <AatTrendChartSection snapshot={snapshot} loadError={loadError} />
-        <AatDailyHeatmapSection snapshot={snapshot} loadError={loadError} />
+        <AatTrendChartSection snapshot={snapshot} loadFailure={loadFailure} />
+        <AatDailyHeatmapSection snapshot={snapshot} loadFailure={loadFailure} />
       </div>
 
-      <AatExceptionTrendsSection snapshot={snapshot} loadError={loadError} />
+      <AatExceptionTrendsSection
+        snapshot={snapshot}
+        loadFailure={loadFailure}
+      />
 
       <div className="grid gap-4 xl:grid-cols-2">
         <AatDepartmentRankingSection
           snapshot={snapshot}
-          loadError={loadError}
+          loadFailure={loadFailure}
         />
         <AatHighRiskEmployeesSection
           snapshot={snapshot}
-          loadError={loadError}
+          loadFailure={loadFailure}
         />
       </div>
     </div>

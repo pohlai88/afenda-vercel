@@ -7,6 +7,10 @@ import {
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 
 import { buildGeofencesListSurfaceConfiguration } from "../data/geolocation-surface-builders.server"
+import {
+  toGeolocationListLoadError,
+  type GeolocationLoadError,
+} from "../data/geolocation-load-error.shared"
 import type { GeofenceRow } from "../data/geolocation.queries.server"
 import type { GeofenceScopeKind } from "../schemas/geolocation-workflow-state.shared"
 import {
@@ -35,10 +39,12 @@ export async function GeolocationGeofencesSection({
   orgSlug,
   rows,
   canManage,
+  loadError,
 }: {
   orgSlug: string
   rows: readonly GeofenceRow[]
   canManage: boolean
+  loadError?: GeolocationLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.Geolocation.geofences")
   const tCommon = await getTranslations("Dashboard.Hrm.Geolocation")
@@ -69,6 +75,7 @@ export async function GeolocationGeofencesSection({
       description={t("description")}
       surfaceKey="hrm:geolocation:geofences"
       listConfiguration={listConfiguration}
+      loadError={toGeolocationListLoadError(loadError)}
       headerSlot={
         canManage ? (
           <div className="flex justify-end">

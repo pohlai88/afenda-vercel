@@ -1,5 +1,7 @@
 "use server"
 
+import { after } from "next/server"
+
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmShiftRosterPublication } from "#lib/db/schema"
@@ -68,13 +70,15 @@ export async function publishShiftRosterAction(
     },
   })
 
-  await notifyRosterPublished({
-    organizationId: session.organizationId,
-    publicationId,
-    periodStart: parsed.data.periodStart,
-    periodEnd: parsed.data.periodEnd,
-    note: parsed.data.note,
-  })
+  after(() =>
+    notifyRosterPublished({
+      organizationId: session.organizationId,
+      publicationId,
+      periodStart: parsed.data.periodStart,
+      periodEnd: parsed.data.periodEnd,
+      note: parsed.data.note,
+    })
+  )
 
   revalidateSftSurfaces()
   return { ok: true, publicationId }

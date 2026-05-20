@@ -22,7 +22,6 @@ import { Button } from "#components2/ui/button"
 import { Skeleton } from "#components2/ui/skeleton"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { requireOrgSession } from "#lib/auth"
-import { canUseErpPermission } from "#features/erp-rbac/server"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
 import { resolveFwaSurfaceAccess } from "../data/fwa-access.server"
@@ -94,7 +93,6 @@ export async function FlexibleWorkPage({
     activeRowsResult,
     summaryResult,
     selfEmployee,
-    canApproveAll,
   ] = await Promise.all([
     fwaAccess.canManage
       ? listActiveEmployeeChoicesForFwa(organizationId).then(
@@ -120,15 +118,6 @@ export async function FlexibleWorkPage({
     fwaAccess.hasSelfServiceEmployee
       ? findFwaEmployeeForUser(organizationId, userId)
       : Promise.resolve(null),
-    canUseErpPermission({
-      organizationId,
-      userId,
-      permission: {
-        module: "hrm",
-        object: "flexible_work",
-        function: "update",
-      },
-    }),
   ])
 
   if (!employeesResult.ok) {
@@ -174,6 +163,9 @@ export async function FlexibleWorkPage({
     ? activeRowsResult.value
     : []
 
+  const summaryLoadError = summaryResult.ok
+    ? undefined
+    : { title: t("summaryLoadFailed") }
   const typesLoadError = typesResult.ok
     ? undefined
     : { title: t("typesLoadFailed") }
@@ -207,7 +199,7 @@ export async function FlexibleWorkPage({
         description={t("pageDescription")}
       />
 
-      <FwaKpiSummarySection summary={summary} loadError={!summaryResult.ok} />
+      <FwaKpiSummarySection summary={summary} loadError={summaryLoadError} />
 
       {fwaAccess.canManage && employees.length === 0 ? (
         <Card size="sm">
@@ -297,7 +289,7 @@ export async function FlexibleWorkPage({
             <FwaPendingInbox
               organizationId={organizationId}
               userId={userId}
-              canApproveAll={canApproveAll}
+              canApproveAll={fwaAccess.canManage}
             />
           </Suspense>
         </CardContent>
@@ -313,7 +305,7 @@ export async function FlexibleWorkPage({
       <FwaActiveArrangementsSection
         rows={orgActiveRows}
         loadError={activeLoadError}
-        canManageLifecycle={fwaAccess.canManage && canApproveAll}
+        canManageLifecycle={fwaAccess.canManage}
       />
 
       {fwaAccess.canManage ? (
@@ -340,5 +332,3 @@ function FwaSectionSkeleton() {
     </div>
   )
 }
-
-export { resolveFwaSurfaceAccess }

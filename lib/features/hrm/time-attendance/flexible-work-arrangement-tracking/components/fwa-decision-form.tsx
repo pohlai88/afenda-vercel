@@ -20,8 +20,8 @@ import {
   approveFwaRequestAction,
   rejectFwaRequestAction,
   returnFwaRequestAction,
-  type FwaApprovalFormState,
-} from "#features/hrm/client"
+} from "../actions/fwa-approval.actions"
+import type { FwaApprovalFormState } from "../../../types"
 
 type FwaDecisionFormsProps = {
   requestId: string

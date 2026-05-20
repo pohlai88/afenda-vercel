@@ -1,5 +1,6 @@
 import "server-only"
 
+import { cache } from "react"
 import { and, eq, isNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
@@ -11,7 +12,7 @@ export type AatManagerContext = {
   legalName: string
 }
 
-export async function findAatManagerContextForUser(input: {
+export const findAatManagerContextForUser = cache(async function findAatManagerContextForUser(input: {
   organizationId: string
   userId: string
 }): Promise<AatManagerContext | null> {
@@ -36,4 +37,4 @@ export async function findAatManagerContextForUser(input: {
     employeeNumber: row.employeeNumber,
     legalName: row.legalName,
   }
-}
+})

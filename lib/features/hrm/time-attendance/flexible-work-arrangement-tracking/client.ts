@@ -33,3 +33,4 @@ export type {
 export type { RegisterFwaEvidenceFormState } from "./actions/fwa-evidence.actions"
 
 export { FwaRequestForm } from "./components/fwa-request-form"
+export { FwaExportReportButton } from "./components/fwa-export-report-button.client"

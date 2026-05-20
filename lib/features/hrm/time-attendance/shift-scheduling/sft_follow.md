@@ -3,7 +3,7 @@
 **Authority:** `ARCHITECTURE.md` · this file (implementation ledger vs disk).  
 **Route:** `/{locale}/o/{orgSlug}/apps/hrm/shift-scheduling`  
 **Module:** `lib/features/hrm/time-attendance/shift-scheduling/`  
-**Last synced:** 2026-05-21 (saved reports + SFT email templates)
+**Last synced:** 2026-05-21 (form-state normalization + notification `after()` delivery)
 
 ---
 
@@ -15,10 +15,10 @@
 
 ## Platform features (beyond 001–030)
 
-| Feature | Status | Notes |
-| --- | --- | --- |
-| Saved roster report definitions | Done | `hrm_shift_roster_report_definition` · save/delete · apply on export |
-| SFT dedicated email templates | Done | `sft-notification-templates.shared.ts` · Resend via `sendAuthEmail` + in-app org notifications |
+| Feature                         | Status | Notes                                                                                          |
+| ------------------------------- | ------ | ---------------------------------------------------------------------------------------------- |
+| Saved roster report definitions | Done   | `hrm_shift_roster_report_definition` · save/delete · apply on export                           |
+| SFT dedicated email templates   | Done   | `sft-notification-templates.shared.ts` · Resend via `sendAuthEmail` + in-app org notifications |
 
 ---
 

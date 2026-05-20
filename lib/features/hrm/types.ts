@@ -982,6 +982,27 @@ export type SftCoverageFormState =
       }
     }
 
+export type SftAvailabilityFormState =
+  | { ok: true; availabilityId: string }
+  | { ok: false; errors: { form?: string } }
+
+export type SftReportDefinitionFormState =
+  | { ok: true; definitionId: string }
+  | { ok: false; errors: { form?: string } }
+
+export type SftScheduleChangeFormState =
+  | { ok: true; scheduleChangeRequestId?: string }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        requestId?: string
+        rejectedReason?: string
+        returnedReason?: string
+        managerNote?: string
+      }
+    }
+
 export type SftRotationCycleFormState =
   | { ok: true; rotationCycleId: string }
   | {

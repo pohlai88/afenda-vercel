@@ -199,6 +199,25 @@ export async function GeolocationPage({
       }))
     : []
 
+  const summaryLoadError = summaryResult.ok
+    ? undefined
+    : { title: t("kpi.loadFailed") }
+  const historyLoadError = historyResult.ok
+    ? undefined
+    : { title: t("history.loadFailed") }
+  const geofencesLoadError =
+    geoAccess.canRead && !geofencesResult.ok
+      ? { title: t("geofences.loadFailed") }
+      : undefined
+  const policiesLoadError =
+    geoAccess.canRead && !policiesResult.ok
+      ? { title: t("policies.loadFailed") }
+      : undefined
+  const devicesLoadError =
+    geoAccess.canRead && !devicesResult.ok
+      ? { title: t("devices.loadFailed") }
+      : undefined
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <ModulePageHeader
@@ -209,7 +228,7 @@ export async function GeolocationPage({
 
       <GeolocationKpiSummarySection
         summary={summary}
-        loadError={!summaryResult.ok}
+        loadError={summaryLoadError}
       />
 
       {geoAccess.hasSelfServiceEmployee ? (
@@ -260,7 +279,7 @@ export async function GeolocationPage({
       {geoAccess.canRead ? (
         <GeolocationHistorySection
           rows={history}
-          loadError={!historyResult.ok}
+          loadError={historyLoadError}
         />
       ) : null}
 
@@ -269,6 +288,7 @@ export async function GeolocationPage({
           orgSlug={orgSlug}
           rows={geofences}
           canManage={geoAccess.canManageGeofences}
+          loadError={geofencesLoadError}
         />
       ) : null}
 
@@ -277,6 +297,7 @@ export async function GeolocationPage({
           orgSlug={orgSlug}
           rows={policies}
           canManage={geoAccess.canManage}
+          loadError={policiesLoadError}
         />
       ) : null}
 
@@ -286,6 +307,7 @@ export async function GeolocationPage({
           rows={devices}
           canManage={geoAccess.canManage}
           employeeChoices={employees}
+          loadError={devicesLoadError}
         />
       ) : null}
 
@@ -313,6 +335,3 @@ function GeolocationSectionSkeleton() {
     </div>
   )
 }
-
-export { resolveGeolocationSurfaceAccess }
-export type { GeolocationSurfaceAccess }

@@ -24,7 +24,9 @@ export {
   type HrmFwaRequestState,
 } from "./schemas/fwa-workflow-state.shared"
 
+export { FlexibleWorkPage } from "./components/flexible-work-page"
+
 export {
-  FlexibleWorkPage,
   resolveFwaSurfaceAccess,
-} from "./components/flexible-work-page"
+  type FwaSurfaceAccess,
+} from "./data/fwa-access.server"

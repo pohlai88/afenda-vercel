@@ -6,14 +6,14 @@ import { hrmShiftAvailability } from "#lib/db/schema"
 
 import { requireHrmPermission } from "../../../_module-governance/hrm-admin-guard.server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
-import type { SftCoverageFormState } from "../../../types"
+import type { SftAvailabilityFormState } from "../../../types"
 import { HRM_SFT_AUDIT } from "../sft.contract"
 import { revalidateSftSurfaces } from "../data/sft-revalidate.server"
 
 export async function createShiftAvailabilityAction(
-  _prev: SftCoverageFormState | undefined,
+  _prev: SftAvailabilityFormState | undefined,
   formData: FormData
-): Promise<SftCoverageFormState> {
+): Promise<SftAvailabilityFormState> {
   const gate = await requireHrmPermission({
     object: "shift_schedule",
     function: "create",
@@ -56,5 +56,5 @@ export async function createShiftAvailabilityAction(
   })
 
   revalidateSftSurfaces()
-  return { ok: true, requirementId: rowId }
+  return { ok: true, availabilityId: rowId }
 }

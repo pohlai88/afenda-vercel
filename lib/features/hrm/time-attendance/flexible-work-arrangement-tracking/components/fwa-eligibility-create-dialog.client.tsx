@@ -16,10 +16,8 @@ import {
 import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
-import {
-  createFwaEligibilityRuleAction,
-  type CreateFwaEligibilityRuleFormState,
-} from "#features/hrm/client"
+import { createFwaEligibilityRuleAction } from "../actions/fwa-eligibility.actions"
+import type { CreateFwaEligibilityRuleFormState } from "../../../types"
 
 import type { FwaArrangementTypeChoiceRow } from "../data/fwa.types.shared"
 

@@ -6,11 +6,12 @@ import { Download, Loader2 } from "lucide-react"
 
 import { Button } from "#components2/ui/button"
 
-import { exportAatAnalyticsReportCsvAction } from "#features/hrm/client"
+import { exportAatAnalyticsReportCsvAction } from "../actions/aat.actions"
+import type { AatPeriodKey, AatScopeKey } from "../schemas/aat.schema"
 
 type AatExportReportButtonProps = {
-  period: string
-  scope: string
+  period: AatPeriodKey
+  scope: AatScopeKey
 }
 
 export function AatExportReportButton({

@@ -7,6 +7,10 @@ import {
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 
 import { buildRemoteCheckinDevicesListSurfaceConfiguration } from "../data/geolocation-surface-builders.server"
+import {
+  toGeolocationListLoadError,
+  type GeolocationLoadError,
+} from "../data/geolocation-load-error.shared"
 import type { RemoteCheckinDeviceRow } from "../data/geolocation.queries.server"
 
 import {
@@ -19,11 +23,13 @@ export async function GeolocationDevicesSection({
   rows,
   canManage,
   employeeChoices,
+  loadError,
 }: {
   orgSlug: string
   rows: readonly RemoteCheckinDeviceRow[]
   canManage: boolean
   employeeChoices: ReadonlyArray<{ id: string; label: string }>
+  loadError?: GeolocationLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.Geolocation.devices")
   const format = await getFormatter()
@@ -56,6 +62,7 @@ export async function GeolocationDevicesSection({
       description={t("description")}
       surfaceKey="hrm:geolocation:devices"
       listConfiguration={listConfiguration}
+      loadError={toGeolocationListLoadError(loadError)}
       headerSlot={
         canManage ? (
           <div className="flex justify-end">

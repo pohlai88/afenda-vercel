@@ -1,5 +1,6 @@
 import "server-only"
 
+import { after } from "next/server"
 import { and, asc, desc, eq, gte, lte } from "drizzle-orm"
 
 import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
@@ -303,25 +304,25 @@ export async function approveScheduleChangeRequest(input: {
     .where(eq(hrmShiftTemplate.id, request.proposedTemplateId))
     .limit(1)
 
-  await notifyScheduleChangeResolved({
-    organizationId: input.organizationId,
-    requestId: request.id,
-    requesterEmployeeId: request.requesterEmployeeId,
-    outcome: "approved",
-    proposedDate: request.proposedDate,
-    proposedTemplateCode: templateRows[0]?.code,
-    managerNote: input.managerNote ?? null,
-  })
-
-  await notifyShiftAssignmentChanged({
-    organizationId: input.organizationId,
-    assignmentId: assignResult.assignmentId,
-    employeeId: request.requesterEmployeeId,
-    attendanceDate: request.proposedDate,
-    templateName: assignResult.templateName,
-  })
-
   revalidateSftSurfaces()
+  after(() => {
+    void notifyScheduleChangeResolved({
+      organizationId: input.organizationId,
+      requestId: request.id,
+      requesterEmployeeId: request.requesterEmployeeId,
+      outcome: "approved",
+      proposedDate: request.proposedDate,
+      proposedTemplateCode: templateRows[0]?.code,
+      managerNote: input.managerNote ?? null,
+    })
+    void notifyShiftAssignmentChanged({
+      organizationId: input.organizationId,
+      assignmentId: assignResult.assignmentId,
+      employeeId: request.requesterEmployeeId,
+      attendanceDate: request.proposedDate,
+      templateName: assignResult.templateName,
+    })
+  })
   return { ok: true }
 }
 
@@ -375,16 +376,17 @@ export async function rejectScheduleChangeRequest(input: {
     .where(eq(hrmShiftTemplate.id, request.proposedTemplateId))
     .limit(1)
 
-  await notifyScheduleChangeResolved({
-    organizationId: input.organizationId,
-    requestId: request.id,
-    requesterEmployeeId: request.requesterEmployeeId,
-    outcome: "rejected",
-    proposedDate: request.proposedDate,
-    proposedTemplateCode: templateRows[0]?.code,
-  })
-
   revalidateSftSurfaces()
+  after(() => {
+    void notifyScheduleChangeResolved({
+      organizationId: input.organizationId,
+      requestId: request.id,
+      requesterEmployeeId: request.requesterEmployeeId,
+      outcome: "rejected",
+      proposedDate: request.proposedDate,
+      proposedTemplateCode: templateRows[0]?.code,
+    })
+  })
   return { ok: true }
 }
 
@@ -440,16 +442,17 @@ export async function returnScheduleChangeRequest(input: {
     .where(eq(hrmShiftTemplate.id, request.proposedTemplateId))
     .limit(1)
 
-  await notifyScheduleChangeResolved({
-    organizationId: input.organizationId,
-    requestId: request.id,
-    requesterEmployeeId: request.requesterEmployeeId,
-    outcome: "returned",
-    proposedDate: request.proposedDate,
-    proposedTemplateCode: templateRows[0]?.code,
-    managerNote: input.managerNote ?? null,
-  })
-
   revalidateSftSurfaces()
+  after(() => {
+    void notifyScheduleChangeResolved({
+      organizationId: input.organizationId,
+      requestId: request.id,
+      requesterEmployeeId: request.requesterEmployeeId,
+      outcome: "returned",
+      proposedDate: request.proposedDate,
+      proposedTemplateCode: templateRows[0]?.code,
+      managerNote: input.managerNote ?? null,
+    })
+  })
   return { ok: true }
 }

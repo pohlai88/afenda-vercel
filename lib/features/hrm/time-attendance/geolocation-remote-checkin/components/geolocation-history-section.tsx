@@ -11,13 +11,14 @@ import {
 
 import { buildRemoteCheckinHistoryListSurfaceConfiguration } from "../data/geolocation-surface-builders.server"
 import type { RemoteCheckinHistoryRow } from "../data/geolocation.queries.server"
+import type { GeolocationLoadError } from "../data/geolocation-load-error.shared"
 
 export async function GeolocationHistorySection({
   rows,
   loadError,
 }: {
   rows: readonly RemoteCheckinHistoryRow[]
-  loadError?: boolean
+  loadError?: GeolocationLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.Geolocation.history")
   const format = await getFormatter()
@@ -27,7 +28,9 @@ export async function GeolocationHistorySection({
       <Card size="sm">
         <CardHeader>
           <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("loadFailed")}</CardDescription>
+          <CardDescription>
+            {loadError.description ?? loadError.title}
+          </CardDescription>
         </CardHeader>
       </Card>
     )

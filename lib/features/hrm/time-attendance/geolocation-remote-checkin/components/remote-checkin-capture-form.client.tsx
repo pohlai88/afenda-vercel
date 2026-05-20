@@ -14,10 +14,8 @@ import {
 } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 
-import {
-  recordRemoteCheckinAction,
-  type RemoteCheckinRecordFormState,
-} from "#features/hrm/client"
+import { recordRemoteCheckinAction } from "../actions/remote-checkin-capture.actions"
+import type { RemoteCheckinRecordFormState } from "../../../types"
 
 import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 

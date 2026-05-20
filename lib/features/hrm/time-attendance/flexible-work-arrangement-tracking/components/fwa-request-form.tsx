@@ -12,8 +12,8 @@ import { Input } from "#components2/ui/input"
 import {
   applyFwaOnBehalfAction,
   requestOwnFwaAction,
-  type FwaRequestMutationFormState,
-} from "#features/hrm/client"
+} from "../actions/fwa-request.actions"
+import type { FwaRequestMutationFormState } from "../../../types"
 
 import type {
   FwaArrangementTypeChoiceRow,

@@ -13,14 +13,17 @@ import {
   buildFwaKpiStatConfiguration,
   FWA_STAT_SURFACE_KEY,
 } from "../data/fwa-surface-builders.server"
-import type { FwaOrgSummaryCounts } from "../data/fwa.types.shared"
+import type {
+  FwaListLoadError,
+  FwaOrgSummaryCounts,
+} from "../data/fwa.types.shared"
 
 export async function FwaKpiSummarySection({
   summary,
   loadError,
 }: {
   summary: FwaOrgSummaryCounts
-  loadError?: boolean
+  loadError?: FwaListLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.flexibleWork")
 
@@ -29,7 +32,9 @@ export async function FwaKpiSummarySection({
       <Card size="sm">
         <CardHeader>
           <CardTitle>{t("kpiTitle")}</CardTitle>
-          <CardDescription>{t("summaryLoadFailed")}</CardDescription>
+          <CardDescription>
+            {loadError.description ?? loadError.title}
+          </CardDescription>
         </CardHeader>
       </Card>
     )

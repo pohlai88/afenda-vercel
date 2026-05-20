@@ -41,8 +41,9 @@ export {
   type RemoteCheckinOutcomeTone,
 } from "./data/geolocation-display.shared"
 
+export { GeolocationPage } from "./components/geolocation-page"
+
 export {
-  GeolocationPage,
   resolveGeolocationSurfaceAccess,
   type GeolocationSurfaceAccess,
-} from "./components/geolocation-page"
+} from "./data/geolocation-access.server"

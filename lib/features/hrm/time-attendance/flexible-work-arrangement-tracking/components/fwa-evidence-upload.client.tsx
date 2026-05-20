@@ -9,7 +9,7 @@ import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 import { Button } from "#components2/ui/button"
 
-import { registerFwaEvidenceDocumentAction } from "#features/hrm/client"
+import { registerFwaEvidenceDocumentAction } from "../actions/fwa-evidence.actions"
 
 const FWA_EVIDENCE_ACCEPT =
   "image/jpeg,image/png,image/webp,application/pdf" as const

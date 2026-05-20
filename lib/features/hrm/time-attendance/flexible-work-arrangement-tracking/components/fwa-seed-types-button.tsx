@@ -7,10 +7,8 @@ import { Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
 import { Button } from "#components2/ui/button"
 
-import {
-  seedDefaultFwaTypesAction,
-  type SeedFwaTypesFormState,
-} from "#features/hrm/client"
+import { seedDefaultFwaTypesAction } from "../actions/fwa-request.actions"
+import type { SeedFwaTypesFormState } from "../../../types"
 
 export function FwaSeedTypesButton() {
   const t = useTranslations("Dashboard.Hrm.flexibleWork")

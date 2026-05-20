@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { FlexibleWorkPage, resolveFwaSurfaceAccess } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getOrgTenantContext } from "#lib/auth"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
@@ -31,17 +30,6 @@ export default async function OrgAppsHrmFlexibleWorkPage({
     organizationId: session.organizationId,
     userId: session.userId,
   })
-
-  const t = await getTranslations("Dashboard.Hrm.flexibleWork")
-
-  if (!access.canEnter) {
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
-  }
 
   return (
     <FlexibleWorkPage

@@ -5,7 +5,7 @@ import {
   isListSurfaceTrailingActionRenderable,
 } from "#features/governed-surface"
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
-import type { EmptyState } from "#features/governed-surface/schemas/list-surface.schema"
+import type { EmptyState } from "#features/governed-surface"
 import {
   Card,
   CardContent,
@@ -27,14 +27,22 @@ import { FwaLifecycleForms } from "./fwa-lifecycle-forms.client"
 import { FWA_LIST_SURFACE_IDS } from "../data/fwa-surface-metadata.shared"
 import type {
   FwaArrangementTypeChoiceRow,
+  FwaListLoadError,
   OrgFwaRequestRow,
 } from "../data/fwa.types.shared"
 import type { HrmFwaArrangementKind } from "../schemas/fwa-workflow-state.shared"
 import { FwaCreateTypeDialog } from "./fwa-create-type-dialog"
 import { FwaSeedTypesButton } from "./fwa-seed-types-button"
 
-type FwaListLoadError = Pick<EmptyState, "title"> & {
-  variant?: EmptyState["variant"]
+function toFwaListLoadError(
+  loadError: FwaListLoadError | undefined
+): EmptyState | undefined {
+  if (!loadError) return undefined
+  return {
+    variant: loadError.variant ?? "error",
+    title: loadError.title,
+    description: loadError.description,
+  }
 }
 
 export async function FwaArrangementTypesSection({
@@ -66,10 +74,7 @@ export async function FwaArrangementTypesSection({
           columns: [{ id: "code", header: t("colCode") }],
           rows: [],
         }}
-        loadError={{
-          variant: loadError.variant ?? "error",
-          title: loadError.title,
-        }}
+        loadError={toFwaListLoadError(loadError)}
       />
     )
   }
@@ -142,11 +147,7 @@ export async function FwaMyArrangementsSection({
         stateLabelFor: (state) =>
           t(`stateLabels.${state}` as "stateLabels.active"),
       })}
-      loadError={
-        loadError
-          ? { variant: loadError.variant ?? "error", title: loadError.title }
-          : undefined
-      }
+      loadError={toFwaListLoadError(loadError)}
     />
   )
 }
@@ -223,11 +224,7 @@ export async function FwaActiveArrangementsSection({
             }
           : undefined
       }
-      loadError={
-        loadError
-          ? { variant: loadError.variant ?? "error", title: loadError.title }
-          : undefined
-      }
+      loadError={toFwaListLoadError(loadError)}
     />
   )
 }

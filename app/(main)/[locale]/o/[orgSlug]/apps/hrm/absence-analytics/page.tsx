@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { AbsenceAnalyticsPage, resolveAatSurfaceAccess } from "#features/hrm"
-import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getOrgTenantContext } from "#lib/auth"
 import { ensureAppLocale } from "#lib/i18n/locales.shared"
 import { searchParamFirst } from "#lib/i18n/app-search-params.shared"
@@ -41,19 +40,6 @@ export default async function OrgAppsHrmAbsenceAnalyticsPage({
     userId: session.userId,
   })
 
-  const t = await getTranslations("Dashboard.Hrm.absenceAnalytics")
-
-  if (!access.canEnter) {
-    return (
-      <ErpAccessDenied
-        title={t("accessDeniedTitle")}
-        description={t("accessDeniedDescription")}
-      />
-    )
-  }
-
-  const scopeRaw = searchParamFirst(resolvedSearchParams, "scope")
-
   return (
     <AbsenceAnalyticsPage
       orgSlug={orgSlug}
@@ -61,7 +47,7 @@ export default async function OrgAppsHrmAbsenceAnalyticsPage({
       userId={session.userId}
       sessionId={session.sessionId}
       period={searchParamFirst(resolvedSearchParams, "period")}
-      scope={scopeRaw}
+      scope={searchParamFirst(resolvedSearchParams, "scope")}
       access={access}
     />
   )

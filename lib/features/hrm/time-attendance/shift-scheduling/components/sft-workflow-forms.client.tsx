@@ -12,8 +12,8 @@ import { Textarea } from "#components2/ui/textarea"
 
 import type {
   BulkAssignEmployeeShiftsFormState,
-  SftCoverageFormState,
-  SftSwapMutationFormState,
+  SftAvailabilityFormState,
+  SftScheduleChangeFormState,
 } from "../../../types"
 import {
   applyHolidayPlanAction,
@@ -40,7 +40,7 @@ export function SftAvailabilityCreateForm({
 }) {
   const t = useTranslations("Dashboard.Hrm.shiftScheduling")
   const [state, formAction, pending] = useActionState<
-    SftCoverageFormState | undefined,
+    SftAvailabilityFormState | undefined,
     FormData
   >(createShiftAvailabilityAction, undefined)
 
@@ -239,17 +239,17 @@ export function SftScheduleChangeDecisionForms({
   const returnId = useId()
 
   const [approveState, approveAction, approvePending] = useActionState<
-    SftSwapMutationFormState | undefined,
+    SftScheduleChangeFormState | undefined,
     FormData
   >(approveScheduleChangeRequestAction, undefined)
 
   const [rejectState, rejectAction, rejectPending] = useActionState<
-    SftSwapMutationFormState | undefined,
+    SftScheduleChangeFormState | undefined,
     FormData
   >(rejectScheduleChangeRequestAction, undefined)
 
   const [returnState, returnAction, returnPending] = useActionState<
-    SftSwapMutationFormState | undefined,
+    SftScheduleChangeFormState | undefined,
     FormData
   >(returnScheduleChangeRequestAction, undefined)
 
