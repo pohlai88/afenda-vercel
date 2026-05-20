@@ -98,7 +98,10 @@ export async function markOtmPayrollReadyAction(
     organizationId,
     resourceType: "hrm_overtime_request",
     resourceId: requestId,
-    metadata: { payableMinutes: req.payableMinutes, transition: "payroll_ready" },
+    metadata: {
+      payableMinutes: req.payableMinutes,
+      transition: "payroll_ready",
+    },
   })
 
   await notifyOtmEmployeeLifecycle({

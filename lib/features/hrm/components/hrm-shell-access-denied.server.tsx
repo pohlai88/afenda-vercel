@@ -57,7 +57,11 @@ export async function HrmShellAccessDeniedFromNav({
   )
 }
 
-export async function HrmShellAccessDeniedDetail({ surface }: { surface: string }) {
+export async function HrmShellAccessDeniedDetail({
+  surface,
+}: {
+  surface: string
+}) {
   const t = await getTranslations("Dashboard.Hrm.shell")
 
   return (

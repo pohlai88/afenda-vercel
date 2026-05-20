@@ -52,8 +52,7 @@ export async function upsertOtmPolicyAction(
       compareShiftEnabled: parsed.data.compareShiftEnabled ?? true,
       claimDeadlineDays: parsed.data.claimDeadlineDays,
       allowCompensatoryTime: parsed.data.allowCompensatoryTime ?? false,
-      compensatoryLeaveTypeCode:
-        parsed.data.compensatoryLeaveTypeCode ?? null,
+      compensatoryLeaveTypeCode: parsed.data.compensatoryLeaveTypeCode ?? null,
       defaultEarningCode: parsed.data.defaultEarningCode,
     },
   })
