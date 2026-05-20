@@ -9,7 +9,10 @@ import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { buildGeofencesListSurfaceConfiguration } from "../data/geolocation-surface-builders.server"
 import type { GeofenceRow } from "../data/geolocation.queries.server"
 import type { GeofenceScopeKind } from "../schemas/geolocation-workflow-state.shared"
-import { GeofenceDeprecateButton, GeofenceUpsertDialog } from "./geofence-form.client"
+import {
+  GeofenceDeprecateButton,
+  GeofenceUpsertDialog,
+} from "./geofence-form.client"
 
 const GEOFENCE_FORM_SCOPE_KINDS = [
   "office",
@@ -84,7 +87,9 @@ export async function GeolocationGeofencesSection({
             return null
           }
           return (
-            <GovernedTrailingActionSlot trailingAction={surfaceRow.trailingAction}>
+            <GovernedTrailingActionSlot
+              trailingAction={surfaceRow.trailingAction}
+            >
               <div className="flex items-center gap-2">
                 <GeofenceUpsertDialog
                   orgSlug={orgSlug}

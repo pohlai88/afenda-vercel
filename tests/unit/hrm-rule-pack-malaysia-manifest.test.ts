@@ -133,7 +133,10 @@ describe("MY-2026-01 composite rule pack manifest", () => {
     const pack = RULE_PACK_REGISTRY.find((p) => p.version === "MY-2026-01")!
 
     it("passes for countryCode=MY", () => {
-      const issues = pack.validateProfile({ countryCode: "MY" })
+      const issues = pack.validateProfile({
+        countryCode: "MY",
+        epfNumber: "EPF-TEST-001",
+      })
       expect(issues).toHaveLength(0)
     })
 

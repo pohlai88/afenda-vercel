@@ -93,7 +93,10 @@ export function FwaEvidenceUploadField({
       formData.set("sizeBytes", String(file.size))
       formData.set("title", file.name)
 
-      const result = await registerFwaEvidenceDocumentAction(undefined, formData)
+      const result = await registerFwaEvidenceDocumentAction(
+        undefined,
+        formData
+      )
       if (!result.ok) {
         setUploadError(result.errors.form ?? t("evidenceUploadFailed"))
         return
@@ -112,7 +115,9 @@ export function FwaEvidenceUploadField({
 
   return (
     <Field>
-      <FieldLabel htmlFor="fwa-evidence-file">{t("fieldEvidenceFile")}</FieldLabel>
+      <FieldLabel htmlFor="fwa-evidence-file">
+        {t("fieldEvidenceFile")}
+      </FieldLabel>
       <div className="flex flex-col gap-2">
         <Input
           id="fwa-evidence-file"
@@ -126,7 +131,11 @@ export function FwaEvidenceUploadField({
         />
         {uploading ? (
           <Button type="button" variant="outline" size="sm" disabled>
-            <Loader2 className="size-4 animate-spin" data-icon="inline-start" aria-hidden />
+            <Loader2
+              className="size-4 animate-spin"
+              data-icon="inline-start"
+              aria-hidden
+            />
             {t("evidenceUploading")}
           </Button>
         ) : documentId ? (

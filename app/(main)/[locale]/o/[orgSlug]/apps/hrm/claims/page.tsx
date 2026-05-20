@@ -1,4 +1,6 @@
-import { ClaimsPage, HrmErpAccessDenied } from "#features/hrm"
+import { ClaimsPage } from "#features/hrm"
+import { getTranslations } from "next-intl/server"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getOrgTenantContext } from "#lib/auth"
 import {
   resolveClaimSurfaceAccess,
@@ -17,8 +19,13 @@ export default async function OrgAppsHrmClaimsPage({
     userId: session.userId,
   })
   if (!access.canEnter) {
+    const t = await getTranslations("Dashboard.Hrm.claims")
+
     return (
-      <HrmErpAccessDenied surface="claims" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   return <ClaimsPage orgSlug={orgSlug} access={access} />

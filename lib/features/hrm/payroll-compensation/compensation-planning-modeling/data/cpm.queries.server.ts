@@ -111,7 +111,10 @@ export async function listCompensationBudgetPoolsForCycle(
         eq(hrmCompensationBudgetPool.cycleId, cycleId)
       )
     )
-    .orderBy(asc(hrmCompensationBudgetPool.scopeType), asc(hrmCompensationBudgetPool.scopeId))
+    .orderBy(
+      asc(hrmCompensationBudgetPool.scopeType),
+      asc(hrmCompensationBudgetPool.scopeId)
+    )
 }
 
 export async function listCompensationParticipantsForCycle(
@@ -247,10 +250,7 @@ export async function syncCompensationCycleParticipants(
       hrmEmploymentContract,
       eq(hrmEmployee.currentEmploymentContractId, hrmEmploymentContract.id)
     )
-    .leftJoin(
-      hrmJobGrade,
-      eq(hrmEmployee.currentJobGradeId, hrmJobGrade.id)
-    )
+    .leftJoin(hrmJobGrade, eq(hrmEmployee.currentJobGradeId, hrmJobGrade.id))
     .where(
       and(
         eq(hrmEmployee.organizationId, organizationId),
@@ -276,8 +276,7 @@ export async function syncCompensationCycleParticipants(
 
     const min = decimalOrNull(employee.gradeMin)
     const max = decimalOrNull(employee.gradeMax)
-    const midpoint =
-      min !== null && max !== null ? (min + max) / 2 : null
+    const midpoint = min !== null && max !== null ? (min + max) / 2 : null
 
     const values = {
       organizationId,
@@ -298,8 +297,7 @@ export async function syncCompensationCycleParticipants(
       departmentId: employee.currentDepartmentId,
       managerEmployeeId: employee.managerEmployeeId,
       bandMinimum: employee.gradeMin,
-      bandMidpoint:
-        midpoint !== null ? String(midpoint.toFixed(2)) : null,
+      bandMidpoint: midpoint !== null ? String(midpoint.toFixed(2)) : null,
       bandMaximum: employee.gradeMax,
       updatedAt: new Date(),
     }
@@ -333,9 +331,7 @@ export async function syncCompensationCycleParticipants(
   return { processed: employees.length }
 }
 
-export async function loadCompensationPlanningPageData(
-  organizationId: string
-) {
+export async function loadCompensationPlanningPageData(organizationId: string) {
   const cycles = await listCompensationCyclesForOrg(organizationId)
   const primaryCycleId = cycles[0]?.id ?? null
 

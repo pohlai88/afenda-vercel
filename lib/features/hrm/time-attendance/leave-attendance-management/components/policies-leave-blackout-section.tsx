@@ -59,11 +59,19 @@ export async function PoliciesLeaveBlackoutSection({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
-                  <th className="pb-2 pr-4 font-medium">{t("blackout.colName")}</th>
-                  <th className="pb-2 pr-4 font-medium">{t("blackout.colPeriod")}</th>
-                  <th className="pb-2 pr-4 font-medium">{t("blackout.colLeaveType")}</th>
+                  <th className="pr-4 pb-2 font-medium">
+                    {t("blackout.colName")}
+                  </th>
+                  <th className="pr-4 pb-2 font-medium">
+                    {t("blackout.colPeriod")}
+                  </th>
+                  <th className="pr-4 pb-2 font-medium">
+                    {t("blackout.colLeaveType")}
+                  </th>
                   {isAdmin ? (
-                    <th className="pb-2 font-medium">{t("blackout.colActions")}</th>
+                    <th className="pb-2 font-medium">
+                      {t("blackout.colActions")}
+                    </th>
                   ) : null}
                 </tr>
               </thead>
@@ -76,12 +84,15 @@ export async function PoliciesLeaveBlackoutSection({
                     </td>
                     <td className="py-2 pr-4">
                       {row.leaveTypeId
-                        ? (leaveTypeById.get(row.leaveTypeId) ?? row.leaveTypeId)
+                        ? (leaveTypeById.get(row.leaveTypeId) ??
+                          row.leaveTypeId)
                         : t("blackout.allLeaveTypes")}
                     </td>
                     {isAdmin ? (
                       <td className="py-2">
-                        <PoliciesLeaveBlackoutArchiveButton blackoutId={row.id} />
+                        <PoliciesLeaveBlackoutArchiveButton
+                          blackoutId={row.id}
+                        />
                       </td>
                     ) : null}
                   </tr>

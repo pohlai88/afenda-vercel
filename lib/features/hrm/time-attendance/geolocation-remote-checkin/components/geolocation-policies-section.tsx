@@ -84,7 +84,9 @@ export async function GeolocationPoliciesSection({
             return null
           }
           return (
-            <GovernedTrailingActionSlot trailingAction={surfaceRow.trailingAction}>
+            <GovernedTrailingActionSlot
+              trailingAction={surfaceRow.trailingAction}
+            >
               <RemoteCheckinPolicyDialog
                 orgSlug={orgSlug}
                 mode="edit"

@@ -46,15 +46,23 @@ export async function PoliciesOrgHolidaysSection({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
-                  <th className="pb-2 pr-4 font-medium">{t("holidays.colDate")}</th>
-                  <th className="pb-2 pr-4 font-medium">{t("holidays.colName")}</th>
-                  <th className="pb-2 font-medium">{t("holidays.colRegion")}</th>
+                  <th className="pr-4 pb-2 font-medium">
+                    {t("holidays.colDate")}
+                  </th>
+                  <th className="pr-4 pb-2 font-medium">
+                    {t("holidays.colName")}
+                  </th>
+                  <th className="pb-2 font-medium">
+                    {t("holidays.colRegion")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id} className="border-b border-border/60">
-                    <td className="py-2 pr-4 tabular-nums">{row.holidayDate}</td>
+                    <td className="py-2 pr-4 tabular-nums">
+                      {row.holidayDate}
+                    </td>
                     <td className="py-2 pr-4">{row.name}</td>
                     <td className="py-2">{row.regionCode ?? "—"}</td>
                   </tr>

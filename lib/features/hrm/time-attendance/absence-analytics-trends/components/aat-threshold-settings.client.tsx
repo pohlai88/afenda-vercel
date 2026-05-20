@@ -169,7 +169,7 @@ export function AatThresholdSettingsForm({
               <FieldError>{errors.highRiskFrequency}</FieldError>
             ) : null}
           </Field>
-          <div className="sm:col-span-2 flex items-center gap-3">
+          <div className="flex items-center gap-3 sm:col-span-2">
             <Button type="submit" size="sm" disabled={pending}>
               {pending ? (
                 <>
@@ -185,7 +185,9 @@ export function AatThresholdSettingsForm({
               )}
             </Button>
             {state?.ok ? (
-              <p className="text-sm text-muted-foreground">{t("thresholdSaved")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("thresholdSaved")}
+              </p>
             ) : null}
           </div>
         </form>

@@ -153,9 +153,9 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | Auth / IAM                     | `#lib/auth` (server — session guards, step-up, audit) · `#lib/auth-client` (browser) · session guards **only** from `#lib/auth` · rule `.cursor/rules/iam-directory.mdc` · lib layout [§6.1–6.3](#6-directory-contract)                                                                          |
 | Scaffold                       | `pnpm gen [capability\|action\|adr\|audit-contract\|workflow-job\|ask-doc]` — see §3                                                                                                                                                                                                              |
 | UI / design                    | `#components2/ui/*` · `#lib/design-system` · `app/globals.css` tokens · rule `.cursor/rules/design-system.mdc`                                                                                                                                                                                     |
-| Tests                          | `pnpm test:fast` (unit) · `pnpm test:e2e` (Playwright port 3001) · rule `.cursor/rules/testing.mdc`                                                                                                                                                                                               |
+| Tests                          | **`pnpm test:changed`** (edit loop) · **`pnpm test:failures`** (reprint digest) · **`pnpm test:audit`** (full suite) · `pnpm test:fast` · `pnpm test:e2e` · rule `.cursor/rules/testing.mdc`                                                                                                        |
 | Local dev stack (WDK)          | **`pnpm dev:stack`** — UI **3000** + workflow **3002** + `workflow web` · **`pnpm dev:stack:preflight`** · **`pnpm dev:stack:inspect`** · ADR-0039 · use **3002** for durable workflow tests                                                                                                        |
-| Green CI                       | **`pnpm gate:help`** · **L0:** `pnpm gate -- <paths>` · **L2:** `pnpm gate:push` · **L3:** `pnpm gate:merge` · ADR-0033 · `.cursor/rules/targeted-verification.mdc`                                                                                                      |
+| Green CI                       | **`pnpm gate:help`** · **L0:** `pnpm gate -- <paths>` · **L2:** `pnpm gate:push` (batch-fix until green — §2) · **L3:** `pnpm gate:merge` · ADR-0033 · `.cursor/rules/targeted-verification.mdc` · `.cursor/rules/gate-batch-fix-workflow.mdc`                                                                 |
 | Neon / Vercel MCP              | Configure in `.cursor/mcp.json` · see §5 [MCP validation](#validating-with-neon-and-vercel-mcp)                                                                                                                                                                                                   |
 | Ask docs                       | `app/(ask-docs)/[locale]/ask-docs/` · `content/ask-docs/` · **`pnpm ask-docs:preflight`** · **`pnpm ask-docs:check`** · **`pnpm ask-docs:validate-manifest`** · **`pnpm ask-docs:scaffold`** · `pnpm gen ask-doc` · ADR-0027 · `.agents/skills/adqs/` · rule `.cursor/rules/ask-docs-directory.mdc` |
 | Ask docs AI chat (Public Lynx) | `app/api/chat/route.ts` · `#components2/ai/search` on `/{locale}/ask-docs` · `pnpm lint:public-lynx-contract` · rule `.cursor/rules/public-lynx.mdc` — **never** import `#features/lynx`                                                                                                           |
@@ -190,7 +190,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 - `i18n-directory.mdc` · `iam-directory.mdc` · `shell-directory.mdc`
 - `ask-docs-directory.mdc` · `design-system.mdc` · `erp-primitives.mdc` · `orbit-directory.mdc`
 - `lynx-knowledge.mdc` · `public-lynx.mdc` · `simulation-directory.mdc` · `org-admin-directory.mdc` · `legal-docs-directory.mdc`
-- `drizzle-migration-ledger.mdc` · `app-router-contracts.mdc` · `testing.mdc`
+- `drizzle-migration-ledger.mdc` · `app-router-contracts.mdc` · `testing.mdc` · `gate-batch-fix-workflow.mdc`
 - `portal-directory.mdc` · `playground-directory.mdc` · `nexus-directory.mdc` · `components2-directory.mdc` · `client-state-management.mdc` · `module-client-server-barrels.mdc` · `assets.mdc` · `figma-code-connect-workflow.mdc`
 
 ---
@@ -270,6 +270,10 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | `pnpm verify:parallel`                | Alias for `pnpm verify` (stable name)                                                                                                                                                                                |
 | `pnpm test`                           | Vitest watch — `tests/unit/` (ADR-0008)                                                                                                                                                                              |
 | `pnpm test:fast`                      | `vitest run --config .config/vitest.config.ts` (required — bare `vitest run` skips stubs)                                                                                                                            |
+| `pnpm test:changed`                   | Git-changed tests only + `.artifacts/vitest-failures.txt` (fastest behavior gate)                                                                                                                                    |
+| `pnpm test:audit`                     | Full suite, `--bail=0`, lean failure digest (JSON deleted on pass)                                                                                                                                                   |
+| `pnpm test:failures`                  | Reprint last `.artifacts/vitest-failures.txt` without re-running                                                                                                                                                     |
+| `pnpm test:fast:node` / `:dom`        | Single Vitest project — skip jsdom when DOM untouched                                                                                                                                                                |
 | `pnpm test:ci`                        | `vitest run --coverage` → `.artifacts/coverage/`                                                                                                                                                                     |
 | `pnpm test:e2e`                       | `pnpm build` → Playwright on port 3001                                                                                                                                                                               |
 | `pnpm env:sync`                       | `.env.config` → `.env.local`                                                                                                                                                                                         |
@@ -299,6 +303,44 @@ pnpm gate:help
 ```bash
 pnpm gate:push
 ```
+
+### L2 batch-fix workflow (agents — do not gate after every file)
+
+When **`pnpm gate:push`** fails, **do not** fix one error and re-run the full ladder. That wastes 2–10 minutes per iteration.
+
+**Workflow:**
+
+1. Run **`pnpm gate:push` once** (or read the Turbo summary: `Failed: //#<task>`).
+2. Fix **all** failures of the same kind in one pass (see triage order below).
+3. Run **`pnpm format`** once if `format:check` failed (or after touching many files).
+4. Run **`pnpm gate:push` once** again — repeat until **23/23 tasks** succeed.
+
+**Triage order** (dependencies first):
+
+| Failure task | Batch fix |
+| --- | --- |
+| `format:check` | `pnpm format` |
+| `lint:eslint` | Fix listed files only; ignore `.next*` build output (must stay in `eslint.config.mjs` `globalIgnores`) |
+| `typecheck` / `typecheck:test` / `typecheck:scripts` | Fix imports, exports, and moved paths in the same PR |
+| `lint:agent-contract`, `lint:public-lynx-contract`, `lint:fixtures-parity`, … | Run the narrow script alone for a clear error (`pnpm lint:public-lynx-contract`, etc.) |
+| `knip` | Unused exports, unlisted deps (`happy-dom` for Vitest `unit-dom`), remove dead types |
+| `test:ci` | `pnpm test:fast -- tests/unit/<failing-files>` — fix all failing tests, then one `test:ci` or final `gate:push` |
+| Coverage thresholds | Update `.config/vitest.shared.ts` `coverage.exclude` when modules moved (e.g. `lib/features/hrm/**/components/**`); ratchet `thresholds` only with comment — see ADR-0008 |
+
+**Vitest / Windows footguns** (ADR-0008 · `.config/vitest.config.ts`):
+
+- **`happy-dom`** is required in `devDependencies` when `unit-dom` uses `environment: "happy-dom"`.
+- Do **not** enable Vitest SSR dependency pre-bundle while tests use **`vi.importActual("drizzle-orm")`** (breaks on Windows with pre-bundle version errors).
+- If mocks fail with “new version of the pre-bundle”, clear **`.artifacts/vitest-vite`** and re-run.
+- **`package.json`** scripts that delegate to `scripts/vitest-*.mjs` are allowed without embedding `--config` in the script string (`check-public-lynx-contract.mjs`).
+
+**Contract tests after moves:** tests that `readFileSync` under `lib/features/<module>/` must use **current nested paths** (HRM: `employee-management/.../data/`, not flat `hrm/data/`). Prefer a small `readHrmSource(...segments)` helper in the test file.
+
+**HRM test mocks:** `vi.mock` paths for admin guard → `lib/features/hrm/_module-governance/hrm-admin-guard.server.ts`.
+
+**Close condition (pre-push):** `pnpm gate:push` → exit **0** (`Tasks: 23 successful, 23 total`).
+
+Full rule: **`.cursor/rules/gate-batch-fix-workflow.mdc`**.
 
 **Narrow lint gates (run instead of `lint:full` when only one concern changed):**
 

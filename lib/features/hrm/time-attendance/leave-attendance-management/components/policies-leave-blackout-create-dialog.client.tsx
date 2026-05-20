@@ -61,7 +61,9 @@ export function PoliciesLeaveBlackoutCreateDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("blackout.createDialogTitle")}</DialogTitle>
-          <DialogDescription>{t("blackout.createDialogDescription")}</DialogDescription>
+          <DialogDescription>
+            {t("blackout.createDialogDescription")}
+          </DialogDescription>
         </DialogHeader>
         <form action={formAction} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -90,7 +92,9 @@ export function PoliciesLeaveBlackoutCreateDialog({
                 <SelectValue placeholder={t("blackout.fieldLeaveTypeAll")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__all__">{t("blackout.allLeaveTypes")}</SelectItem>
+                <SelectItem value="__all__">
+                  {t("blackout.allLeaveTypes")}
+                </SelectItem>
                 {leaveTypes.map((lt) => (
                   <SelectItem key={lt.id} value={lt.id}>
                     {lt.code}
@@ -106,7 +110,9 @@ export function PoliciesLeaveBlackoutCreateDialog({
             </p>
           ) : null}
           <Button type="submit" disabled={pending}>
-            {pending ? t("blackout.submitCreating") : t("blackout.submitCreate")}
+            {pending
+              ? t("blackout.submitCreating")
+              : t("blackout.submitCreate")}
           </Button>
         </form>
       </DialogContent>

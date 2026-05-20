@@ -7,7 +7,10 @@ import { buildErpPermissionKey } from "#features/erp-rbac"
 import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { ORG_APPS_MODULES } from "#lib/i18n/org-apps-path.shared"
 
-import type { QuickCreateMenu, QuickCreateMenuEntry } from "./quick-create-menu.shared"
+import type {
+  QuickCreateMenu,
+  QuickCreateMenuEntry,
+} from "./quick-create-menu.shared"
 
 export type {
   QuickCreateFormEntry,

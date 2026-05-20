@@ -89,7 +89,8 @@ pnpm gate -- <path1> [path2 ...]
 # or: pnpm lint:full  only when design-contract must re-run
 ```
 
-**Before push:**
+**Before push:** use **batch-fix** (`.cursor/rules/gate-batch-fix-workflow.mdc`) — one `pnpm gate:push`, fix all failures by category, one final `pnpm gate:push`. Do not L2 after every single fix.
+
 ```bash
 pnpm gate:push
 ```

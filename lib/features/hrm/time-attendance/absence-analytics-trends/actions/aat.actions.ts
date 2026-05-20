@@ -2,10 +2,7 @@
 
 import { after } from "next/server"
 
-import {
-  requireOrgSession,
-  writeIamAuditEventFromNextHeaders,
-} from "#lib/auth"
+import { requireOrgSession, writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
 import { HRM_AAT_AUDIT } from "../aat.contract"
@@ -97,9 +94,8 @@ export async function updateAatThresholdAction(
     return { ok: false, errors: { watchAbsenceRate: "Permission denied." } }
   }
 
-  const { parseUpdateAatThresholdFormData } = await import(
-    "../schemas/aat-threshold-action.schema"
-  )
+  const { parseUpdateAatThresholdFormData } =
+    await import("../schemas/aat-threshold-action.schema")
   const parsed = parseUpdateAatThresholdFormData(formData)
   if (!parsed.success) {
     const errors: Partial<Record<keyof UpdateAatThresholdFormInput, string>> =
@@ -113,9 +109,8 @@ export async function updateAatThresholdAction(
     return { ok: false, errors }
   }
 
-  const { upsertAatThresholdConfigForOrg } = await import(
-    "../data/aat-threshold.queries.server"
-  )
+  const { upsertAatThresholdConfigForOrg } =
+    await import("../data/aat-threshold.queries.server")
   await upsertAatThresholdConfigForOrg({
     organizationId,
     config: parsed.data,
@@ -123,7 +118,10 @@ export async function updateAatThresholdAction(
   })
 
   const { revalidatePath } = await import("next/cache")
-  revalidatePath(toLocaleOrgAppsRevalidatePattern("/hrm/absence-analytics"), "page")
+  revalidatePath(
+    toLocaleOrgAppsRevalidatePattern("/hrm/absence-analytics"),
+    "page"
+  )
 
   after(() =>
     writeIamAuditEventFromNextHeaders({

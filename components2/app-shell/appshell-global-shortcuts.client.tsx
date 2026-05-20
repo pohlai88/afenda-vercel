@@ -77,7 +77,14 @@ export function AppShellGlobalShortcuts({
 
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [commandOpen, quickCreateOpen, openCommand, openQuickCreate, orgSlug, router])
+  }, [
+    commandOpen,
+    quickCreateOpen,
+    openCommand,
+    openQuickCreate,
+    orgSlug,
+    router,
+  ])
 
   return null
 }

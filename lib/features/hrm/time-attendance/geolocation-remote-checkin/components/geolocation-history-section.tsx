@@ -33,17 +33,20 @@ export async function GeolocationHistorySection({
     )
   }
 
-  const configuration = buildRemoteCheckinHistoryListSurfaceConfiguration(rows, {
-    empty: t("empty"),
-    colEmployee: t("colEmployee"),
-    colEventType: t("colEvent"),
-    colWhen: t("colWhen"),
-    colLocation: t("colSite"),
-    colAccuracy: t("colDevice"),
-    colGeofence: t("colSite"),
-    formatWhen: (date) =>
-      format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
-  })
+  const configuration = buildRemoteCheckinHistoryListSurfaceConfiguration(
+    rows,
+    {
+      empty: t("empty"),
+      colEmployee: t("colEmployee"),
+      colEventType: t("colEvent"),
+      colWhen: t("colWhen"),
+      colLocation: t("colSite"),
+      colAccuracy: t("colDevice"),
+      colGeofence: t("colSite"),
+      formatWhen: (date) =>
+        format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
+    }
+  )
 
   return (
     <Card size="sm">

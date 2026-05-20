@@ -52,11 +52,15 @@ export function FwaEligibilityCreateDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("createEligibilityRuleTitle")}</DialogTitle>
-          <DialogDescription>{t("createEligibilityRuleDescription")}</DialogDescription>
+          <DialogDescription>
+            {t("createEligibilityRuleDescription")}
+          </DialogDescription>
         </DialogHeader>
         <form action={formAction} className="flex flex-col gap-4">
           <Field>
-            <FieldLabel htmlFor={typeId}>{t("fieldArrangementType")}</FieldLabel>
+            <FieldLabel htmlFor={typeId}>
+              {t("fieldArrangementType")}
+            </FieldLabel>
             <select
               id={typeId}
               name="arrangementTypeId"
@@ -76,7 +80,9 @@ export function FwaEligibilityCreateDialog({
             ) : null}
           </Field>
           <Field>
-            <FieldLabel htmlFor="departmentId">{t("fieldDepartmentId")}</FieldLabel>
+            <FieldLabel htmlFor="departmentId">
+              {t("fieldDepartmentId")}
+            </FieldLabel>
             <Input id="departmentId" name="departmentId" disabled={pending} />
           </Field>
           <Field>
@@ -84,15 +90,29 @@ export function FwaEligibilityCreateDialog({
             <Input id="jobGradeId" name="jobGradeId" disabled={pending} />
           </Field>
           <Field>
-            <FieldLabel htmlFor="employmentType">{t("fieldEmploymentType")}</FieldLabel>
-            <Input id="employmentType" name="employmentType" disabled={pending} />
+            <FieldLabel htmlFor="employmentType">
+              {t("fieldEmploymentType")}
+            </FieldLabel>
+            <Input
+              id="employmentType"
+              name="employmentType"
+              disabled={pending}
+            />
           </Field>
           <Field>
-            <FieldLabel htmlFor="legalEntityCode">{t("fieldLegalEntityCode")}</FieldLabel>
-            <Input id="legalEntityCode" name="legalEntityCode" disabled={pending} />
+            <FieldLabel htmlFor="legalEntityCode">
+              {t("fieldLegalEntityCode")}
+            </FieldLabel>
+            <Input
+              id="legalEntityCode"
+              name="legalEntityCode"
+              disabled={pending}
+            />
           </Field>
           <Field>
-            <FieldLabel htmlFor="countryCode">{t("fieldCountryCode")}</FieldLabel>
+            <FieldLabel htmlFor="countryCode">
+              {t("fieldCountryCode")}
+            </FieldLabel>
             <Input
               id="countryCode"
               name="countryCode"
@@ -101,20 +121,38 @@ export function FwaEligibilityCreateDialog({
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor="workLocationCode">{t("fieldWorkLocationCode")}</FieldLabel>
-            <Input id="workLocationCode" name="workLocationCode" disabled={pending} />
+            <FieldLabel htmlFor="workLocationCode">
+              {t("fieldWorkLocationCode")}
+            </FieldLabel>
+            <Input
+              id="workLocationCode"
+              name="workLocationCode"
+              disabled={pending}
+            />
           </Field>
           <Field>
             <FieldLabel htmlFor="positionId">{t("fieldPositionId")}</FieldLabel>
             <Input id="positionId" name="positionId" disabled={pending} />
           </Field>
           <Field>
-            <FieldLabel htmlFor="workerCategory">{t("fieldWorkerCategory")}</FieldLabel>
-            <Input id="workerCategory" name="workerCategory" disabled={pending} />
+            <FieldLabel htmlFor="workerCategory">
+              {t("fieldWorkerCategory")}
+            </FieldLabel>
+            <Input
+              id="workerCategory"
+              name="workerCategory"
+              disabled={pending}
+            />
           </Field>
           <Field>
-            <FieldLabel htmlFor="policyGroupCode">{t("fieldPolicyGroupCode")}</FieldLabel>
-            <Input id="policyGroupCode" name="policyGroupCode" disabled={pending} />
+            <FieldLabel htmlFor="policyGroupCode">
+              {t("fieldPolicyGroupCode")}
+            </FieldLabel>
+            <Input
+              id="policyGroupCode"
+              name="policyGroupCode"
+              disabled={pending}
+            />
           </Field>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="allowException" disabled={pending} />

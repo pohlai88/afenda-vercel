@@ -11,7 +11,6 @@ import {
   renameSync,
   mkdirSync,
   existsSync,
-  statSync,
 } from "node:fs"
 import { join, relative, basename, dirname } from "node:path"
 

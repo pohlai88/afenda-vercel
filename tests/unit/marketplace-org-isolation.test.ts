@@ -17,8 +17,8 @@ const drizzleMocks = vi.hoisted(() => ({
   eqCalls: [] as unknown[][],
 }))
 
-vi.mock("drizzle-orm", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("drizzle-orm")>()
+vi.mock("drizzle-orm", async () => {
+  const actual = await vi.importActual<typeof import("drizzle-orm")>("drizzle-orm")
   return {
     ...actual,
     eq: (...args: unknown[]) => {

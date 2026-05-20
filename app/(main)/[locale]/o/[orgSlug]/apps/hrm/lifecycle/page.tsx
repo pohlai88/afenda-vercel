@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getTranslations } from "next-intl/server"
 
-import { HrmErpAccessDenied, HrmLifecycleOverviewPage } from "#features/hrm"
+import { HrmLifecycleOverviewPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
@@ -24,8 +25,13 @@ export default async function OrgAppsHrmLifecyclePage({
     function: "search",
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.lifecycle")
+
     return (
-      <HrmErpAccessDenied surface="lifecycle" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   return <HrmLifecycleOverviewPage orgSlug={orgSlug} />

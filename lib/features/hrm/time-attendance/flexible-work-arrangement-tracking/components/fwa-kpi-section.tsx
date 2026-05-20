@@ -44,7 +44,10 @@ export async function FwaKpiSummarySection({
   })
 
   return (
-    <Card size="sm" data-testid={`governed-stat-section:${FWA_STAT_SURFACE_KEY}`}>
+    <Card
+      size="sm"
+      data-testid={`governed-stat-section:${FWA_STAT_SURFACE_KEY}`}
+    >
       <CardHeader>
         <CardTitle>{t("kpiTitle")}</CardTitle>
       </CardHeader>
@@ -60,4 +63,3 @@ export async function FwaKpiSummarySection({
     </Card>
   )
 }
-

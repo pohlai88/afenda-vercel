@@ -14,6 +14,13 @@ import {
 } from "../../lib/features/hrm/employee-management/employee-selfservice-portal/data/employee-portal-access.shared.ts"
 import { payrollPayslipSnapshotFromDocumentPayload } from "../../lib/features/hrm/payroll-compensation/payroll-processing/data/payroll-close.shared.ts"
 
+function readHrmSource(...segments: string[]) {
+  return readFileSync(
+    join(process.cwd(), "lib", "features", "hrm", ...segments),
+    "utf8"
+  )
+}
+
 const basePortalContext: PortalContext = {
   portalId: "portal_01",
   portalSlug: "acme-employee",
@@ -157,104 +164,57 @@ describe("HRM employee portal contract", () => {
   })
 
   it("keeps provisioning and portal leave actions behind server-derived context", () => {
-    const provisioningDataSource = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "data",
-        "employee-portal-access.server.ts"
-      ),
-      "utf8"
+    const portalRoot = [
+      "employee-management",
+      "employee-selfservice-portal",
+    ] as const
+    const provisioningDataSource = readHrmSource(
+      ...portalRoot,
+      "data",
+      "employee-portal-access.server.ts"
     )
-    const provisioningSharedSource = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "data",
-        "employee-portal-access.shared.ts"
-      ),
-      "utf8"
+    const provisioningSharedSource = readHrmSource(
+      ...portalRoot,
+      "data",
+      "employee-portal-access.shared.ts"
     )
-    const provisioningSource = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "actions",
-        "employee-portal-access.actions.ts"
-      ),
-      "utf8"
+    const provisioningSource = readHrmSource(
+      ...portalRoot,
+      "actions",
+      "employee-portal-access.actions.ts"
     )
-    const workbenchLeaveSource = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "actions",
-        "leave-request.actions.ts"
-      ),
-      "utf8"
+    const workbenchLeaveSource = readHrmSource(
+      "time-attendance",
+      "leave-attendance-management",
+      "actions",
+      "leave-request.actions.ts"
     )
-    const portalLeaveSource = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "actions",
-        "employee-portal-leave.actions.ts"
-      ),
-      "utf8"
+    const portalLeaveSource = readHrmSource(
+      ...portalRoot,
+      "actions",
+      "employee-portal-leave.actions.ts"
     )
-    const leaveCommandSource = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "data",
-        "leave-request-commands.server.ts"
-      ),
-      "utf8"
+    const leaveCommandSource = readHrmSource(
+      "time-attendance",
+      "leave-attendance-management",
+      "data",
+      "leave-request-commands.server.ts"
     )
-    const payslipQuerySource = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "data",
-        "hrm-document.queries.server.ts"
-      ),
-      "utf8"
+    const payslipQuerySource = readHrmSource(
+      "employee-management",
+      "documents-management",
+      "data",
+      "hrm-document.queries.server.ts"
     )
-    const payslipListPageSource = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "components",
-        "employee-portal-payslips-page.tsx"
-      ),
-      "utf8"
+    const payslipListPageSource = readHrmSource(
+      ...portalRoot,
+      "components",
+      "employee-portal-payslips-page.tsx"
     )
-    const payslipDetailPageSource = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "components",
-        "employee-portal-payslip-detail-page.tsx"
-      ),
-      "utf8"
+    const payslipDetailPageSource = readHrmSource(
+      ...portalRoot,
+      "components",
+      "employee-portal-payslip-detail-page.tsx"
     )
 
     expect(provisioningSource).toContain("requireHrmPermission")
@@ -347,38 +307,22 @@ describe("HRM employee portal contract", () => {
   })
 
   it("keeps portal claims, attendance, and document actions server-context gated", () => {
-    const claimPortal = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "actions",
-        "employee-portal-claim.actions.ts"
-      ),
-      "utf8"
+    const portalActions = [
+      "employee-management",
+      "employee-selfservice-portal",
+      "actions",
+    ] as const
+    const claimPortal = readHrmSource(
+      ...portalActions,
+      "employee-portal-claim.actions.ts"
     )
-    const attendancePortal = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "actions",
-        "employee-portal-attendance.actions.ts"
-      ),
-      "utf8"
+    const attendancePortal = readHrmSource(
+      ...portalActions,
+      "employee-portal-attendance.actions.ts"
     )
-    const documentPortal = readFileSync(
-      join(
-        process.cwd(),
-        "lib",
-        "features",
-        "hrm",
-        "actions",
-        "employee-portal-document.actions.ts"
-      ),
-      "utf8"
+    const documentPortal = readHrmSource(
+      ...portalActions,
+      "employee-portal-document.actions.ts"
     )
 
     for (const src of [claimPortal, attendancePortal, documentPortal]) {

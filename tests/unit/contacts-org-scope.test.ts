@@ -6,8 +6,8 @@ const drizzleEqMocks = vi.hoisted(() => ({
 
 const requireErpPermissionMock = vi.hoisted(() => vi.fn())
 
-vi.mock("drizzle-orm", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("drizzle-orm")>()
+vi.mock("drizzle-orm", async () => {
+  const actual = await vi.importActual<typeof import("drizzle-orm")>("drizzle-orm")
   return {
     ...actual,
     eq: (...args: unknown[]) => {

@@ -1024,8 +1024,6 @@ export {
 } from "./_module-governance/hrm-admin-guard.server"
 export { hrmActionFailure } from "./_module-governance/hrm-action-result.shared"
 export { buildGovernedHrmWorkbenchHeader } from "./_module-governance/hrm-governed-page-header.server"
-export { HrmErpAccessDenied } from "./_module-governance/hrm-erp-access-denied.server"
-export type { HrmAccessDeniedCopyKey } from "./_module-governance/hrm-access-denied-copy.shared"
 export { stablePayrollCloseStringify } from "./payroll-compensation/payroll-processing/data/payroll-close.shared"
 export { transitionBoardingTask } from "./employee-management/employee-lifecycle-management/data/boarding.mutations.server"
 export { onSignatureRequestSealedForBoardingTask } from "./employee-management/employee-lifecycle-management/data/boarding-signature-seal-hook.server"

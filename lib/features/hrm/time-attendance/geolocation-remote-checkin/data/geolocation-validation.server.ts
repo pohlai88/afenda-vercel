@@ -14,9 +14,7 @@ import type {
   RecordRemoteCheckinFormInput,
   UpsertGeofenceFormInput,
 } from "../schemas/geolocation.schema"
-import type {
-  RemoteCheckinVerificationOutcome,
-} from "../schemas/geolocation-workflow-state.shared"
+import type { RemoteCheckinVerificationOutcome } from "../schemas/geolocation-workflow-state.shared"
 import type {
   GeofenceRow,
   RemoteCheckinDeviceRow,

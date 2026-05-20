@@ -23,10 +23,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 const APPLY = process.argv.includes("--apply")
-const root = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../.."
-)
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 
 const TARGETS = [
   "lib/features/hrm/time-attendance/leave-attendance-management/components/attendance-record-event-form.tsx",
@@ -54,7 +51,8 @@ const TARGETS = [
   "lib/features/hrm/payroll-compensation/benefits-administration/components/benefit-enrollment-form.tsx",
 ]
 
-const REACT_IMPORT_RE = /^(import\s*\{\s*)([^}]+?)(\s*\}\s*from\s*["']react["'])/m
+const REACT_IMPORT_RE =
+  /^(import\s*\{\s*)([^}]+?)(\s*\}\s*from\s*["']react["'])/m
 const SUCCESS_BLOCK_RE =
   /(?:\r?\n)?\s*const\s+onSuccessRef\s*=\s*useRef\(onSuccess\)\s*\r?\n\s*useEffect\(\s*\(\)\s*=>\s*\{\s*\r?\n\s*onSuccessRef\.current\s*=\s*onSuccess\s*\r?\n\s*\}\s*,\s*\[onSuccess\]\s*\)\s*\r?\n+\s*useEffect\(\s*\(\)\s*=>\s*\{\s*\r?\n?\s*if\s*\(state\?\.ok\)\s*(?:\{\s*\r?\n?\s*onSuccessRef\.current\?\.\(\)\s*\r?\n?\s*\}|onSuccessRef\.current\?\.\(\))\s*\r?\n\s*\}\s*,\s*\[state\]\s*\)/m
 
@@ -82,7 +80,10 @@ function migrate(filePath) {
   })
 
   // 2. Replace the success ref/effect block with the hook call
-  next = next.replace(SUCCESS_BLOCK_RE, () => `\n  useFormSuccess(state, onSuccess)`)
+  next = next.replace(
+    SUCCESS_BLOCK_RE,
+    () => `\n  useFormSuccess(state, onSuccess)`
+  )
 
   // 3. Insert the hook import. Prefer placement just before the FIRST
   //    relative `from "../...` import so external/alias groups stay
@@ -90,7 +91,9 @@ function migrate(filePath) {
   //    file has no relative imports at all, append after the last
   //    import statement (covers small leaf forms whose only imports
   //    are React + alias paths).
-  const firstRelative = next.match(/^(import[^\n]*\sfrom\s*["']\.\.\/[^"']+["'][^\n]*\n)/m)
+  const firstRelative = next.match(
+    /^(import[^\n]*\sfrom\s*["']\.\.\/[^"']+["'][^\n]*\n)/m
+  )
   if (firstRelative) {
     const idx = next.indexOf(firstRelative[0])
     next = next.slice(0, idx) + `${HOOK_IMPORT}\n` + next.slice(idx)
@@ -128,6 +131,11 @@ for (const r of results) {
 }
 console.log("\nsummary:", summary)
 
-if (results.some((r) => r.status === "no-block-match" || r.status === "no-relative-import-anchor")) {
+if (
+  results.some(
+    (r) =>
+      r.status === "no-block-match" || r.status === "no-relative-import-anchor"
+  )
+) {
   process.exitCode = 1
 }

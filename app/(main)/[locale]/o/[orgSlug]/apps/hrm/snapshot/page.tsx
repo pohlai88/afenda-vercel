@@ -1,4 +1,6 @@
-import { HrmErpAccessDenied, HrmSnapshotPage } from "#features/hrm"
+import { HrmSnapshotPage } from "#features/hrm"
+import { getTranslations } from "next-intl/server"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmSnapshotPage({
@@ -11,8 +13,13 @@ export default async function OrgAppsHrmSnapshotPage({
     function: "read",
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.snapshot")
+
     return (
-      <HrmErpAccessDenied surface="snapshot" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   return <HrmSnapshotPage orgSlug={orgSlug} />

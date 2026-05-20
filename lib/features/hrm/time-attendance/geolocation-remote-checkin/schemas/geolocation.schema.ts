@@ -31,12 +31,7 @@ export const recordRemoteCheckinFormSchema = z.object({
   deviceFingerprint: z.string().trim().min(8).max(256).optional().nullable(),
   remoteLocationLabel: z.string().trim().max(256).optional().nullable(),
   geofenceId: z.string().uuid().optional().nullable(),
-  selfieBlobUrl: z
-    .string()
-    .url()
-    .startsWith("https://")
-    .optional()
-    .nullable(),
+  selfieBlobUrl: z.string().url().startsWith("https://").optional().nullable(),
   /** Client-evaluated hints (location permission state, network IP). Logged for forensics only. */
   capturedClientIp: z.string().trim().max(64).optional().nullable(),
   spoofingSignals: z
@@ -63,18 +58,9 @@ export const submitRemoteCheckinExceptionFormSchema = z.object({
   deviceId: z.string().trim().max(128).optional().nullable(),
   remoteLocationLabel: z.string().trim().max(256).optional().nullable(),
   geofenceId: z.string().uuid().optional().nullable(),
-  selfieBlobUrl: z
-    .string()
-    .url()
-    .startsWith("https://")
-    .optional()
-    .nullable(),
+  selfieBlobUrl: z.string().url().startsWith("https://").optional().nullable(),
   detectionOutcome: remoteCheckinExceptionDetectionOutcomeSchema,
-  reason: z
-    .string()
-    .trim()
-    .min(1, "A short reason is required.")
-    .max(2_000),
+  reason: z.string().trim().min(1, "A short reason is required.").max(2_000),
 })
 
 export type SubmitRemoteCheckinExceptionFormInput = z.infer<
@@ -110,10 +96,7 @@ export const remoteCheckinExceptionDecisionFormSchema = z
       }
     }
     if (data.decision === "correct") {
-      if (
-        !data.decisionReason ||
-        data.decisionReason.trim().length === 0
-      ) {
+      if (!data.decisionReason || data.decisionReason.trim().length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Reason is required when correcting a check-in.",
@@ -144,7 +127,10 @@ export const upsertGeofenceFormSchema = z.object({
     .trim()
     .min(1, "Code is required.")
     .max(48)
-    .regex(/^[A-Z0-9_-]+$/, "Use uppercase letters, numbers, dashes, and underscores."),
+    .regex(
+      /^[A-Z0-9_-]+$/,
+      "Use uppercase letters, numbers, dashes, and underscores."
+    ),
   label: z.string().trim().min(1, "Label is required.").max(160),
   scopeKind: geofenceScopeKindSchema,
   latitude: latitudeNumber,

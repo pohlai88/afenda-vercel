@@ -74,7 +74,9 @@ describe("validateLeavePolicyForRequest", () => {
 
     expect(result.ok).toBe(false)
     if (!result.ok) {
-      expect(result.issues.map((issue) => issue.code)).toContain("blackout_dates")
+      expect(result.issues.map((issue) => issue.code)).toContain(
+        "blackout_dates"
+      )
     }
   })
 

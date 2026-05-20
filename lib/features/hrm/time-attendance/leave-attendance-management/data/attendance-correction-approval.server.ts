@@ -85,7 +85,8 @@ export async function approveAttendanceCorrectionApproval(input: {
     return { ok: false, errors: { form: "Correction approval not found." } }
   }
 
-  const snapshot = approval.snapshot as AttendanceCorrectionApprovalSnapshot | null
+  const snapshot =
+    approval.snapshot as AttendanceCorrectionApprovalSnapshot | null
   if (!snapshot?.correction) {
     return { ok: false, errors: { form: "Correction snapshot is invalid." } }
   }

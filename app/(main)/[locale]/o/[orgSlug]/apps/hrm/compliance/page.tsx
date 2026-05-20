@@ -1,5 +1,7 @@
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
-import { HrmComplianceWorkbenchPage, HrmErpAccessDenied } from "#features/hrm"
+import { getTranslations } from "next-intl/server"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { HrmComplianceWorkbenchPage } from "#features/hrm"
 import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAppsHrmCompliancePage({
@@ -12,8 +14,13 @@ export default async function OrgAppsHrmCompliancePage({
     function: "search",
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.compliance")
+
     return (
-      <HrmErpAccessDenied surface="compliance" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
 

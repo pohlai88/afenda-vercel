@@ -9,7 +9,10 @@ import {
 } from "#features/governed-surface"
 
 import { formatFwaDateRange } from "./fwa-display.shared"
-import { FWA_LIST_SURFACE_IDS, FWA_STAT_SURFACE_KEY } from "./fwa-surface-metadata.shared"
+import {
+  FWA_LIST_SURFACE_IDS,
+  FWA_STAT_SURFACE_KEY,
+} from "./fwa-surface-metadata.shared"
 import type { OrgFwaRequestRow } from "./fwa.types.shared"
 import type { FwaArrangementTypeChoiceRow } from "./fwa.types.shared"
 import type { FwaEligibilityRuleRow } from "./fwa.types.shared"

@@ -147,7 +147,9 @@ export function blockedStageVariant(stage: PlannerBlockedState["stage"]) {
   return "outline" as const
 }
 
-export function noticeSeverityVariant(severity: "info" | "warning" | "critical") {
+export function noticeSeverityVariant(
+  severity: "info" | "warning" | "critical"
+) {
   if (severity === "critical") return "critical" as const
   if (severity === "warning") return "warning" as const
   return "info" as const

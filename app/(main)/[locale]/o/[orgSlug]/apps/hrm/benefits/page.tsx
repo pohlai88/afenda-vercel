@@ -1,4 +1,6 @@
-import { BenefitsPage, HrmErpAccessDenied } from "#features/hrm"
+import { BenefitsPage } from "#features/hrm"
+import { getTranslations } from "next-intl/server"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmBenefitsPage({
@@ -14,8 +16,13 @@ export default async function OrgAppsHrmBenefitsPage({
     function: "search",
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.benefits")
+
     return (
-      <HrmErpAccessDenied surface="benefits" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
 

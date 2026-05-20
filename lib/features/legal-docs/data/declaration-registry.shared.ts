@@ -9,7 +9,6 @@ import type {
   DeclarationContactChannel,
   DeclarationDocumentDefinition,
   DeclarationRelatedLink,
-  LegalDeclarationSlug,
 } from "../types"
 import { formatDeclarationReviewedLabel, maxReviewedAt } from "./review.shared"
 

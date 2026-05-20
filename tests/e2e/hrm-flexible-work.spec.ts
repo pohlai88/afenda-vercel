@@ -31,7 +31,9 @@ test.describe("HRM flexible work", () => {
       await expect(page.getByText("Overview", { exact: true })).toBeVisible()
 
       await expect(
-        page.locator('[data-testid="governed-list-section:hrm:flexible-work:active"]')
+        page.locator(
+          '[data-testid="governed-list-section:hrm:flexible-work:active"]'
+        )
       ).toBeVisible()
     }
   )

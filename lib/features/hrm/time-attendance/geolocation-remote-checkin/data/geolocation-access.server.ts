@@ -17,55 +17,61 @@ export async function resolveGeolocationSurfaceAccess(input: {
   organizationId: string
   userId: string
 }): Promise<GeolocationSurfaceAccess> {
-  const [canRead, canSearch, canManage, canAudit, canManageGeofences, employee] =
-    await Promise.all([
-      canUseErpPermission({
-        organizationId: input.organizationId,
-        userId: input.userId,
-        permission: {
-          module: "hrm",
-          object: "remote_checkin",
-          function: "read",
-        },
-      }),
-      canUseErpPermission({
-        organizationId: input.organizationId,
-        userId: input.userId,
-        permission: {
-          module: "hrm",
-          object: "remote_checkin",
-          function: "search",
-        },
-      }),
-      canUseErpPermission({
-        organizationId: input.organizationId,
-        userId: input.userId,
-        permission: {
-          module: "hrm",
-          object: "remote_checkin",
-          function: "update",
-        },
-      }),
-      canUseErpPermission({
-        organizationId: input.organizationId,
-        userId: input.userId,
-        permission: {
-          module: "hrm",
-          object: "remote_checkin",
-          function: "audit",
-        },
-      }),
-      canUseErpPermission({
-        organizationId: input.organizationId,
-        userId: input.userId,
-        permission: {
-          module: "hrm",
-          object: "geofence",
-          function: "update",
-        },
-      }),
-      findRemoteCheckinEmployeeForUser(input.organizationId, input.userId),
-    ])
+  const [
+    canRead,
+    canSearch,
+    canManage,
+    canAudit,
+    canManageGeofences,
+    employee,
+  ] = await Promise.all([
+    canUseErpPermission({
+      organizationId: input.organizationId,
+      userId: input.userId,
+      permission: {
+        module: "hrm",
+        object: "remote_checkin",
+        function: "read",
+      },
+    }),
+    canUseErpPermission({
+      organizationId: input.organizationId,
+      userId: input.userId,
+      permission: {
+        module: "hrm",
+        object: "remote_checkin",
+        function: "search",
+      },
+    }),
+    canUseErpPermission({
+      organizationId: input.organizationId,
+      userId: input.userId,
+      permission: {
+        module: "hrm",
+        object: "remote_checkin",
+        function: "update",
+      },
+    }),
+    canUseErpPermission({
+      organizationId: input.organizationId,
+      userId: input.userId,
+      permission: {
+        module: "hrm",
+        object: "remote_checkin",
+        function: "audit",
+      },
+    }),
+    canUseErpPermission({
+      organizationId: input.organizationId,
+      userId: input.userId,
+      permission: {
+        module: "hrm",
+        object: "geofence",
+        function: "update",
+      },
+    }),
+    findRemoteCheckinEmployeeForUser(input.organizationId, input.userId),
+  ])
 
   const canReadOrg = canRead || canSearch || canManage || canAudit
   const hasSelfServiceEmployee = Boolean(employee)

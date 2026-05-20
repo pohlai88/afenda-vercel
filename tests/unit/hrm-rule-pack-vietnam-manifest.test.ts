@@ -25,10 +25,16 @@ describe("Vietnam VN-2024-01 rule pack", () => {
 
   it("validates VN payroll profiles only", () => {
     expect(
-      vietnam2024_01RulePack.validateProfile({ countryCode: "VN" })
+      vietnam2024_01RulePack.validateProfile({
+        countryCode: "VN",
+        taxIdentifierNumber: "0123456789",
+      })
     ).toEqual([])
     expect(
-      vietnam2024_01RulePack.validateProfile({ countryCode: "MY" })
+      vietnam2024_01RulePack.validateProfile({
+        countryCode: "MY",
+        taxIdentifierNumber: "0123456789",
+      })
     ).toMatchObject([{ code: "COUNTRY_MISMATCH" }])
   })
 

@@ -207,10 +207,7 @@ export async function FlexibleWorkPage({
         description={t("pageDescription")}
       />
 
-      <FwaKpiSummarySection
-        summary={summary}
-        loadError={!summaryResult.ok}
-      />
+      <FwaKpiSummarySection summary={summary} loadError={!summaryResult.ok} />
 
       {fwaAccess.canManage && employees.length === 0 ? (
         <Card size="sm">

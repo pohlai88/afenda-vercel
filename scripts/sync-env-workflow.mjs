@@ -21,8 +21,7 @@ const destPath = path.join(root, ".env.workflow.local")
 
 const isDirectRun =
   process.argv[1] &&
-  path.resolve(process.argv[1]) ===
-    path.resolve(fileURLToPath(import.meta.url))
+  path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))
 
 if (isDirectRun) {
   main()
@@ -91,8 +90,14 @@ function valIncludesUiPort(val) {
 /** @param {string} val */
 export function rewriteDevPorts(val) {
   return val
-    .replaceAll(`127.0.0.1:${AFENDA_DEV_UI_PORT}`, `127.0.0.1:${AFENDA_DEV_WORKFLOW_PORT}`)
-    .replaceAll(`localhost:${AFENDA_DEV_UI_PORT}`, `localhost:${AFENDA_DEV_WORKFLOW_PORT}`)
+    .replaceAll(
+      `127.0.0.1:${AFENDA_DEV_UI_PORT}`,
+      `127.0.0.1:${AFENDA_DEV_WORKFLOW_PORT}`
+    )
+    .replaceAll(
+      `localhost:${AFENDA_DEV_UI_PORT}`,
+      `localhost:${AFENDA_DEV_WORKFLOW_PORT}`
+    )
     .replaceAll(`:${AFENDA_DEV_UI_PORT}/`, `:${AFENDA_DEV_WORKFLOW_PORT}/`)
     .replaceAll(`:${AFENDA_DEV_UI_PORT}`, `:${AFENDA_DEV_WORKFLOW_PORT}`)
 }

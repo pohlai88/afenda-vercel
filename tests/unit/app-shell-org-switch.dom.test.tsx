@@ -19,15 +19,29 @@ vi.mock("next/image", () => ({
 }))
 
 const TRANSLATIONS: Record<string, string> = {
-  "Dashboard.shell.controlMenu.trigger": "Open control menu",
-  "Dashboard.shell.controlMenu.triggerTooltip":
+  "Dashboard.shell.accountMenu.triggerAriaLabel": "Open control menu",
+  "Dashboard.shell.accountMenu.triggerTooltip":
     "Account and workspace — open personal settings, information, security, open admin, or sign out.",
-  "Dashboard.shell.controlMenu.current": "Current",
-  "Dashboard.shell.controlMenu.admin": "Admin workbench",
-  "Dashboard.shell.controlMenu.account": "Personal settings",
-  "Dashboard.shell.controlMenu.information": "Information",
-  "Dashboard.shell.controlMenu.security": "Security",
-  "Dashboard.shell.controlMenu.signOut": "Sign out",
+  "Dashboard.shell.accountMenu.title": "Account",
+  "Dashboard.shell.accountMenu.profileLabel": "Profile",
+  "Dashboard.shell.accountMenu.profileDescription":
+    "Identity and contact details.",
+  "Dashboard.shell.accountMenu.accountSettingsLabel": "Account & settings",
+  "Dashboard.shell.accountMenu.accountSettingsDescription":
+    "Personal overview, next steps, and workspace context.",
+  "Dashboard.shell.accountMenu.securityLabel": "Security",
+  "Dashboard.shell.accountMenu.securityDescription":
+    "Password, sessions, and sign-in.",
+  "Dashboard.shell.accountMenu.helpCenterLabel": "Help center",
+  "Dashboard.shell.accountMenu.helpCenterDescription":
+    "Documentation and guides.",
+  "Dashboard.shell.accountMenu.privacyLabel": "Privacy",
+  "Dashboard.shell.accountMenu.privacyDescription": "How we handle your data.",
+  "Dashboard.shell.accountMenu.signOut": "Sign out",
+  "Dashboard.shell.accountMenu.signOutDescription":
+    "End this session on this device.",
+  "Dashboard.shell.accountMenu.footer": "Signed in",
+  "Dashboard.shell.accountMenu.defaultSubtitle": "Signed in",
   "Dashboard.shell.orgSwitcher.trigger": "Switch organization",
   "Dashboard.shell.orgSwitcher.triggerTooltip":
     "Choose which organization you are working in. Your next action uses this organization’s data and audit scope.",
@@ -40,6 +54,7 @@ const TRANSLATIONS: Record<string, string> = {
 vi.mock("next-intl", () => ({
   useTranslations: (namespace: string) => (key: string) =>
     TRANSLATIONS[`${namespace}.${key}`] ?? `${namespace}.${key}`,
+  useLocale: () => "en",
 }))
 
 vi.mock("#features/org-admin/client", () => ({

@@ -63,7 +63,16 @@ export function buildNextDevCommand(opts) {
 
   const useVercelWrapper = useVercelEnvRun && fs.existsSync(vercelCli)
   const args = useVercelWrapper
-    ? [vercelCli, "env", "run", "-e", "development", "--", "node", ...withEnvArgs]
+    ? [
+        vercelCli,
+        "env",
+        "run",
+        "-e",
+        "development",
+        "--",
+        "node",
+        ...withEnvArgs,
+      ]
     : withEnvArgs
 
   return {

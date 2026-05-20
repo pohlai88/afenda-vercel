@@ -26,8 +26,7 @@ const vercelCli = path.join(root, "node_modules", "vercel", "dist", "vc.js")
 export async function runDevStackVercelPreflight(options = {}) {
   const strict = options.strict === true
   const skipVercelEnvDryRun = options.skipVercelEnvDryRun === true
-  const envLocalPath =
-    options.envLocalPath ?? path.join(root, ".env.local")
+  const envLocalPath = options.envLocalPath ?? path.join(root, ".env.local")
   /** @type {string[]} */
   const warnings = []
   /** @type {string[]} */
@@ -57,11 +56,7 @@ export async function runDevStackVercelPreflight(options = {}) {
     )
   }
 
-  if (
-    !link &&
-    !process.env.VERCEL_TOKEN &&
-    !process.env.VERCEL_ACCESS_TOKEN
-  ) {
+  if (!link && !process.env.VERCEL_TOKEN && !process.env.VERCEL_ACCESS_TOKEN) {
     warnings.push(
       "No VERCEL_TOKEN — `vercel env run` may fail; use --no-vercel-env-run or `vercel login`."
     )
@@ -192,8 +187,7 @@ async function main() {
 
 const isDirectRun =
   process.argv[1] &&
-  path.resolve(process.argv[1]) ===
-    path.resolve(fileURLToPath(import.meta.url))
+  path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))
 
 if (isDirectRun) {
   await main()

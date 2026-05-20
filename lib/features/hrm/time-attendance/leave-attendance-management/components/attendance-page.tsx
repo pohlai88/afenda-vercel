@@ -178,7 +178,9 @@ export async function AttendancePage({
           <Card size="sm">
             <CardHeader>
               <CardTitle>{t("correctionPendingTitle")}</CardTitle>
-              <CardDescription>{t("correctionPendingDescription")}</CardDescription>
+              <CardDescription>
+                {t("correctionPendingDescription")}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Suspense fallback={<AttendanceTableSkeleton />}>

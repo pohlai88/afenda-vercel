@@ -1,4 +1,6 @@
-import { HrmErpAccessDenied, SalaryBenchmarkingPage } from "#features/hrm"
+import { SalaryBenchmarkingPage } from "#features/hrm"
+import { getTranslations } from "next-intl/server"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmSalaryBenchmarkingPage() {
@@ -8,8 +10,13 @@ export default async function OrgAppsHrmSalaryBenchmarkingPage() {
     function: "search",
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.salaryBenchmarking")
+
     return (
-      <HrmErpAccessDenied surface="salaryBenchmarking" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
 

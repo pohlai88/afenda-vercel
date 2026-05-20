@@ -25,11 +25,7 @@ import { HRM_COMPENSATION_BUDGET_SCOPE_TYPES } from "../schemas/compensation-pla
 const SELECT_CLASS =
   "h-9 w-full rounded border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
 
-export function CpmCreateBudgetPoolDialog({
-  cycleId,
-}: {
-  cycleId: string
-}) {
+export function CpmCreateBudgetPoolDialog({ cycleId }: { cycleId: string }) {
   const t = useTranslations("Dashboard.Hrm.compensationPlanning")
 
   return (
@@ -42,7 +38,9 @@ export function CpmCreateBudgetPoolDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{t("createBudgetPoolTitle")}</DialogTitle>
-          <DialogDescription>{t("createBudgetPoolDescription")}</DialogDescription>
+          <DialogDescription>
+            {t("createBudgetPoolDescription")}
+          </DialogDescription>
         </DialogHeader>
         <CreateCompensationBudgetPoolForm cycleId={cycleId} />
       </DialogContent>
@@ -83,9 +81,7 @@ function CreateCompensationBudgetPoolForm({ cycleId }: { cycleId: string }) {
             </option>
           ))}
         </select>
-        {errors?.scopeType ? (
-          <FieldError>{errors.scopeType}</FieldError>
-        ) : null}
+        {errors?.scopeType ? <FieldError>{errors.scopeType}</FieldError> : null}
       </Field>
       <Field>
         <FieldLabel htmlFor={scopeIdField}>{t("fieldScopeId")}</FieldLabel>

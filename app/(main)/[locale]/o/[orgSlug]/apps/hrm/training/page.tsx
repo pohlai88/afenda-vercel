@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getTranslations } from "next-intl/server"
 
-import { HrmErpAccessDenied, HrmTrainingPage } from "#features/hrm"
+import { HrmTrainingPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
@@ -33,8 +34,13 @@ export default async function OrgAppsHrmTrainingPage({
     }),
   ])
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.training")
+
     return (
-      <HrmErpAccessDenied surface="training" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   return <HrmTrainingPage orgSlug={orgSlug} isHrmAdmin={isHrmAdmin} />

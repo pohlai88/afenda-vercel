@@ -48,10 +48,7 @@ export async function upsertGeofenceAction(
     })
   }
 
-  return upsertGeofence(
-    { organizationId, userId, sessionId },
-    parsed.data
-  )
+  return upsertGeofence({ organizationId, userId, sessionId }, parsed.data)
 }
 
 export async function deprecateGeofenceAction(
@@ -71,8 +68,5 @@ export async function deprecateGeofenceAction(
     return hrmActionFailure({ geofenceId: "Geofence id is required." })
   }
 
-  return deprecateGeofence(
-    { organizationId, userId, sessionId },
-    geofenceId
-  )
+  return deprecateGeofence({ organizationId, userId, sessionId }, geofenceId)
 }

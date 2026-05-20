@@ -1,9 +1,9 @@
 {
   "*.{ts,tsx,mjs}": [
-    "eslint --cache --cache-location .artifacts/.eslintcache --cache-strategy content --max-warnings 0 --no-warn-ignored --fix",
-    "prettier --write --cache --cache-location .artifacts/.prettiercache"
+    "node scripts/lint-staged-eslint.mjs",
+    "node scripts/lint-staged-prettier.mjs"
   ],
   "*.{css,json}": [
-    "prettier --write --cache --cache-location .artifacts/.prettiercache"
+    "node scripts/lint-staged-prettier.mjs"
   ]
 }

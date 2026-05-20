@@ -10,7 +10,10 @@ import {
   buildAatHighRiskEmployeesListSurface,
   buildAatLeaveTypeBreakdownListSurface,
 } from "../../lib/features/hrm/time-attendance/absence-analytics-trends/data/aat-list-surface.server.ts"
-import { buildAatKpiStatConfiguration, buildAatDailyHeatmapChartConfiguration } from "../../lib/features/hrm/time-attendance/absence-analytics-trends/data/aat-surface-builders.server.ts"
+import {
+  buildAatKpiStatConfiguration,
+  buildAatDailyHeatmapChartConfiguration,
+} from "../../lib/features/hrm/time-attendance/absence-analytics-trends/data/aat-surface-builders.server.ts"
 import { parseUpdateAatThresholdFormData } from "../../lib/features/hrm/time-attendance/absence-analytics-trends/schemas/aat-threshold-action.schema.ts"
 
 const riskLabelFor = (tier: string) => tier
@@ -89,7 +92,9 @@ describe("HRM AAT metadata list-surface builders", () => {
       }
     )
 
-    expect(config.surface.columnsId).toBe(AAT_LIST_SURFACE_IDS.departmentRanking)
+    expect(config.surface.columnsId).toBe(
+      AAT_LIST_SURFACE_IDS.departmentRanking
+    )
     expect(parseListSurfaceRendererConfiguration(config).success).toBe(true)
   })
 
@@ -111,7 +116,9 @@ describe("HRM AAT metadata list-surface builders", () => {
       }
     )
 
-    expect(config.surface.columnsId).toBe(AAT_LIST_SURFACE_IDS.leaveTypeBreakdown)
+    expect(config.surface.columnsId).toBe(
+      AAT_LIST_SURFACE_IDS.leaveTypeBreakdown
+    )
     expect(config.rows[0]?.cells.leaveType).toBe("ANNUAL")
   })
 

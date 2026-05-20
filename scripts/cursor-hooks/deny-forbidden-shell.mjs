@@ -62,8 +62,7 @@ const DENY_PATTERNS = [
   },
   {
     pattern: /\bpnpm\s+gate:push\b/i,
-    reason:
-      "pnpm gate:push is L2 (pre-push) — not for the edit loop.",
+    reason: "pnpm gate:push is L2 (pre-push) — not for the edit loop.",
     fix: "Use: pnpm gate -- <touched-paths> after each task; gate:push only before pushing.",
     severity: "warn",
   },

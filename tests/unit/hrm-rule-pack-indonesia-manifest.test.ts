@@ -74,10 +74,16 @@ describe("Indonesia ID-2026-01 rule pack", () => {
 
   it("validates ID payroll profiles only", () => {
     expect(
-      indonesia2026_01RulePack.validateProfile({ countryCode: "ID" })
+      indonesia2026_01RulePack.validateProfile({
+        countryCode: "ID",
+        taxIdentifierNumber: "123456789012345",
+      })
     ).toEqual([])
     expect(
-      indonesia2026_01RulePack.validateProfile({ countryCode: "SG" })
+      indonesia2026_01RulePack.validateProfile({
+        countryCode: "SG",
+        taxIdentifierNumber: "123456789012345",
+      })
     ).toMatchObject([{ code: "COUNTRY_MISMATCH" }])
   })
 

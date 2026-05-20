@@ -17,25 +17,22 @@ export async function GET(request: NextRequest) {
     return routeJsonError("Unauthorized", 401)
   }
 
-  return Sentry.withMonitor(
-    "hrm-fwa-expiry-watch",
-    async () => {
-      const startedAt = Date.now()
-      const [expiry, compliance] = await runWithNodeOtelSpan(
-        "cron.hrm_fwa_expiry_watch.tick",
-        { "erp.cron": "hrm-fwa-expiry-watch" },
-        async () =>
-          Promise.all([runFwaExpiryWatchTick(), runFwaComplianceWatchTick()])
-      )
+  return Sentry.withMonitor("hrm-fwa-expiry-watch", async () => {
+    const startedAt = Date.now()
+    const [expiry, compliance] = await runWithNodeOtelSpan(
+      "cron.hrm_fwa_expiry_watch.tick",
+      { "erp.cron": "hrm-fwa-expiry-watch" },
+      async () =>
+        Promise.all([runFwaExpiryWatchTick(), runFwaComplianceWatchTick()])
+    )
 
-      return routeJsonOk({
-        ok: true,
-        job: "hrm-fwa-expiry-watch",
-        ranAt: new Date().toISOString(),
-        durationMs: Date.now() - startedAt,
-        expiry,
-        compliance,
-      })
-    }
-  )
+    return routeJsonOk({
+      ok: true,
+      job: "hrm-fwa-expiry-watch",
+      ranAt: new Date().toISOString(),
+      durationMs: Date.now() - startedAt,
+      expiry,
+      compliance,
+    })
+  })
 }

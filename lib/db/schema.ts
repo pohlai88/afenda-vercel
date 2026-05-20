@@ -3066,7 +3066,9 @@ export const hrmAbsenceAnalyticsThreshold = pgTable(
     updatedByUserId: text("updatedByUserId"),
   },
   (t) => [
-    uniqueIndex("hrm_absence_analytics_threshold_org_uidx").on(t.organizationId),
+    uniqueIndex("hrm_absence_analytics_threshold_org_uidx").on(
+      t.organizationId
+    ),
   ]
 )
 
@@ -3091,10 +3093,7 @@ export const hrmLeaveBlackout = pgTable(
     updatedByUserId: text("updatedByUserId"),
   },
   (t) => [
-    index("hrm_leave_blackout_org_active_idx").on(
-      t.organizationId,
-      t.isActive
-    ),
+    index("hrm_leave_blackout_org_active_idx").on(t.organizationId, t.isActive),
     index("hrm_leave_blackout_org_range_idx").on(
       t.organizationId,
       t.startDate,
@@ -6885,10 +6884,7 @@ export const hrmCompensationCycle = pgTable(
       t.organizationId,
       t.code
     ),
-    index("hrm_compensation_cycle_org_state_idx").on(
-      t.organizationId,
-      t.state
-    ),
+    index("hrm_compensation_cycle_org_state_idx").on(t.organizationId, t.state),
     index("hrm_compensation_cycle_org_effective_idx").on(
       t.organizationId,
       t.effectiveDate
@@ -8223,7 +8219,9 @@ export const hrmRemoteCheckinPolicy = pgTable(
     scopeKind: text("scopeKind").notNull(),
     /** UUID or code for the scope (department ID, position ID, employment-type slug, policy-group code, employee ID). */
     scopeRef: text("scopeRef"),
-    minGpsAccuracyMeters: integer("minGpsAccuracyMeters").notNull().default(100),
+    minGpsAccuracyMeters: integer("minGpsAccuracyMeters")
+      .notNull()
+      .default(100),
     allowedRadiusBufferMeters: integer("allowedRadiusBufferMeters")
       .notNull()
       .default(50),
@@ -8341,8 +8339,14 @@ export const hrmRemoteCheckinException = pgTable(
     reason: text("reason").notNull(),
     decisionReason: text("decisionReason"),
     /** Set when the approver corrects the capture (HRM-GEO-019). */
-    correctedLatitude: decimal("correctedLatitude", { precision: 10, scale: 6 }),
-    correctedLongitude: decimal("correctedLongitude", { precision: 10, scale: 6 }),
+    correctedLatitude: decimal("correctedLatitude", {
+      precision: 10,
+      scale: 6,
+    }),
+    correctedLongitude: decimal("correctedLongitude", {
+      precision: 10,
+      scale: 6,
+    }),
     correctedEventType: text("correctedEventType"),
     correctedOccurredAt: timestamp("correctedOccurredAt", { mode: "date" }),
     decidedAt: timestamp("decidedAt", { mode: "date" }),

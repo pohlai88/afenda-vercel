@@ -48,7 +48,12 @@
   "eslint.options": {
     "warnIgnored": false
   },
-  "eslint.probe": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.probe": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
 
   "files.associations": {
     "*.css": "tailwindcss"

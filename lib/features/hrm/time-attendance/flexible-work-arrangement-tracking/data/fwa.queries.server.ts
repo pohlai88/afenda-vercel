@@ -1,6 +1,18 @@
 import "server-only"
 
-import { and, asc, count, desc, eq, gte, inArray, isNull, lte, or, sql } from "drizzle-orm"
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNull,
+  lte,
+  or,
+  sql,
+} from "drizzle-orm"
 
 import { db } from "#lib/db"
 import {
@@ -323,56 +335,56 @@ export async function countFwaOrgSummary(
 
   const [pendingRow, activeRow, typesRow, expiringRow, complianceGapCount] =
     await Promise.all([
-    db
-      .select({ value: count() })
-      .from(hrmFlexibleWorkRequest)
-      .where(
-        and(
-          eq(hrmFlexibleWorkRequest.organizationId, organizationId),
-          eq(hrmFlexibleWorkRequest.state, "submitted")
-        )
-      ),
-    db
-      .select({ value: count() })
-      .from(hrmFlexibleWorkRequest)
-      .where(
-        and(
-          eq(hrmFlexibleWorkRequest.organizationId, organizationId),
-          inArray(hrmFlexibleWorkRequest.state, ["active", "approved"])
-        )
-      ),
-    db
-      .select({ value: count() })
-      .from(hrmFlexibleWorkArrangementType)
-      .where(
-        and(
-          eq(hrmFlexibleWorkArrangementType.organizationId, organizationId),
-          isNull(hrmFlexibleWorkArrangementType.archivedAt)
-        )
-      ),
-    db
-      .select({ value: count() })
-      .from(hrmFlexibleWorkRequest)
-      .where(
-        and(
-          eq(hrmFlexibleWorkRequest.organizationId, organizationId),
-          inArray(hrmFlexibleWorkRequest.state, ["active", "approved"]),
-          or(
-            and(
-              sql`${hrmFlexibleWorkRequest.endDate} IS NOT NULL`,
-              lte(hrmFlexibleWorkRequest.endDate, within30),
-              gte(hrmFlexibleWorkRequest.endDate, today)
-            ),
-            and(
-              sql`${hrmFlexibleWorkRequest.reviewDate} IS NOT NULL`,
-              lte(hrmFlexibleWorkRequest.reviewDate, within30),
-              gte(hrmFlexibleWorkRequest.reviewDate, today)
+      db
+        .select({ value: count() })
+        .from(hrmFlexibleWorkRequest)
+        .where(
+          and(
+            eq(hrmFlexibleWorkRequest.organizationId, organizationId),
+            eq(hrmFlexibleWorkRequest.state, "submitted")
+          )
+        ),
+      db
+        .select({ value: count() })
+        .from(hrmFlexibleWorkRequest)
+        .where(
+          and(
+            eq(hrmFlexibleWorkRequest.organizationId, organizationId),
+            inArray(hrmFlexibleWorkRequest.state, ["active", "approved"])
+          )
+        ),
+      db
+        .select({ value: count() })
+        .from(hrmFlexibleWorkArrangementType)
+        .where(
+          and(
+            eq(hrmFlexibleWorkArrangementType.organizationId, organizationId),
+            isNull(hrmFlexibleWorkArrangementType.archivedAt)
+          )
+        ),
+      db
+        .select({ value: count() })
+        .from(hrmFlexibleWorkRequest)
+        .where(
+          and(
+            eq(hrmFlexibleWorkRequest.organizationId, organizationId),
+            inArray(hrmFlexibleWorkRequest.state, ["active", "approved"]),
+            or(
+              and(
+                sql`${hrmFlexibleWorkRequest.endDate} IS NOT NULL`,
+                lte(hrmFlexibleWorkRequest.endDate, within30),
+                gte(hrmFlexibleWorkRequest.endDate, today)
+              ),
+              and(
+                sql`${hrmFlexibleWorkRequest.reviewDate} IS NOT NULL`,
+                lte(hrmFlexibleWorkRequest.reviewDate, within30),
+                gte(hrmFlexibleWorkRequest.reviewDate, today)
+              )
             )
           )
-        )
-      ),
-    countFwaComplianceGaps(organizationId),
-  ])
+        ),
+      countFwaComplianceGaps(organizationId),
+    ])
 
   return {
     pendingCount: Number(pendingRow[0]?.value ?? 0),

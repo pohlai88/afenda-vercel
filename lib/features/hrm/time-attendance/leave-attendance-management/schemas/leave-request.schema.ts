@@ -124,7 +124,9 @@ export const leaveReturnDecisionSchema = leaveApprovalDecisionSchema.extend({
     .max(1000, "Reason must be at most 1000 characters"),
 })
 
-export type LeaveReturnDecisionValues = z.infer<typeof leaveReturnDecisionSchema>
+export type LeaveReturnDecisionValues = z.infer<
+  typeof leaveReturnDecisionSchema
+>
 
 export const leaveClarificationDecisionSchema =
   leaveApprovalDecisionSchema.extend({

@@ -1,4 +1,7 @@
-import { HrmErpAccessDenied, LeavePage, resolveLeaveSurfaceAccess } from "#features/hrm"
+import { getTranslations } from "next-intl/server"
+
+import { ErpAccessDenied } from "#features/erp-rbac/client"
+import { LeavePage, resolveLeaveSurfaceAccess } from "#features/hrm"
 import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAppsHrmLeavePage({
@@ -11,8 +14,13 @@ export default async function OrgAppsHrmLeavePage({
     userId: session.userId,
   })
   if (!access.canEnter) {
+    const t = await getTranslations("Dashboard.Hrm.leave")
+
     return (
-      <HrmErpAccessDenied surface="leave" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   return <LeavePage orgSlug={orgSlug} access={access} />

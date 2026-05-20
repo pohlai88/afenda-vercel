@@ -79,9 +79,7 @@ function QuickCreateFormStep({
       {form === "orbit-signal" ? (
         <QuickCreateSignalForm orgSlug={orgSlug} />
       ) : null}
-      {form === "orbit-item" ? (
-        <QuickCreateItemForm orgSlug={orgSlug} />
-      ) : null}
+      {form === "orbit-item" ? <QuickCreateItemForm orgSlug={orgSlug} /> : null}
       {form === "orbit-session" ? (
         <QuickCreateSessionForm orgSlug={orgSlug} />
       ) : null}
@@ -90,7 +88,9 @@ function QuickCreateFormStep({
   )
 }
 
-export function UtilityBarQuickCreatePanel({ menu }: UtilityBarQuickCreatePanelProps) {
+export function UtilityBarQuickCreatePanel({
+  menu,
+}: UtilityBarQuickCreatePanelProps) {
   const t = useTranslations("Dashboard.shell.utilityBar")
   const tPanel = useTranslations("Dashboard.shell.utilityBar.quickCreatePanel")
   const tNav = useTranslations("Dashboard.nav")

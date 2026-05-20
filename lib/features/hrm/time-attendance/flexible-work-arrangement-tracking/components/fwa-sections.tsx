@@ -105,9 +105,7 @@ export async function FwaArrangementTypesSection({
           colKind: t("colKind"),
           colRemoteRequired: t("colRemoteRequired"),
           kindLabelFor: (kind) =>
-            t(
-              fwaArrangementKindMessageKey(kind as HrmFwaArrangementKind)
-            ),
+            t(fwaArrangementKindMessageKey(kind as HrmFwaArrangementKind)),
           yesNo: (value) => (value ? t("yes") : t("no")),
         }
       )}

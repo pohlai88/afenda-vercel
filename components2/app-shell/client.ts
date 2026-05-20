@@ -106,7 +106,10 @@ export { UtilityBarLynxPanel } from "./top-utils-bar/appshell-utility-bar-lynx.c
 export type { UtilityBarLynxPanelProps } from "./top-utils-bar/appshell-utility-bar-lynx.client"
 export { UtilityBarDensityPanel } from "./top-utils-bar/appshell-utility-bar-density.client"
 export { UtilityBarDiagnosisPanel } from "./top-utils-bar/appshell-utility-bar-diagnosis.client"
-export { UtilityBarScreenshotPanel, buildScreenshotUploadPath } from "./top-utils-bar/appshell-utility-bar-screenshot.client"
+export {
+  UtilityBarScreenshotPanel,
+  buildScreenshotUploadPath,
+} from "./top-utils-bar/appshell-utility-bar-screenshot.client"
 export type { UtilityBarScreenshotPanelProps } from "./top-utils-bar/appshell-utility-bar-screenshot.client"
 export { UtilityBarShortcutsPanel } from "./top-utils-bar/appshell-utility-bar-shortcuts.client"
 export { UtilityBarFeedbackPanel } from "./top-utils-bar/appshell-utility-bar-feedback.client"

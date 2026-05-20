@@ -9,11 +9,9 @@ import {
 const uuid = z.string().uuid()
 
 /** ISO date string YYYY-MM-DD (no time component). */
-const isoDateOnly = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, {
-    message: "Must be a date in YYYY-MM-DD format.",
-  })
+const isoDateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+  message: "Must be a date in YYYY-MM-DD format.",
+})
 
 const optionalIsoDateOnly = isoDateOnly.optional()
 

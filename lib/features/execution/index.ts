@@ -123,9 +123,8 @@ export async function enqueueOrgImportJobWorkflowRun(
       "erp.job.id": payload.jobId,
     },
     async (start) => {
-      const { runOrgImportJobWorkflow } = await import(
-        "./data/import-job-run-entry"
-      )
+      const { runOrgImportJobWorkflow } =
+        await import("./data/import-job-run-entry")
       await start(runOrgImportJobWorkflow, [payload])
     }
   )
@@ -146,9 +145,8 @@ export async function enqueueHrmSignatureSealWorkflowRun(
       "erp.signature.request.id": payload.requestId,
     },
     async (start) => {
-      const { hrmSignatureSealWorkflow } = await import(
-        "./data/signature-seal-run-entry"
-      )
+      const { hrmSignatureSealWorkflow } =
+        await import("./data/signature-seal-run-entry")
       await start(hrmSignatureSealWorkflow, [payload])
     }
   )
@@ -165,9 +163,8 @@ export async function enqueueHrmImportApplyWorkflowRun(
       "erp.import.session.id": payload.sessionId,
     },
     async (start) => {
-      const { hrmImportApplyWorkflow } = await import(
-        "./data/hrm-import-apply-run-entry"
-      )
+      const { hrmImportApplyWorkflow } =
+        await import("./data/hrm-import-apply-run-entry")
       await start(hrmImportApplyWorkflow, [payload])
     }
   )
@@ -184,9 +181,8 @@ export async function enqueuePayrollFinalizeWorkflowRun(
       "erp.payroll.period.id": payload.periodId,
     },
     async (start) => {
-      const { payrollFinalizeWorkflow } = await import(
-        "./data/payroll-finalize-run-entry"
-      )
+      const { payrollFinalizeWorkflow } =
+        await import("./data/payroll-finalize-run-entry")
       await start(payrollFinalizeWorkflow, [payload])
     }
   )
@@ -203,9 +199,8 @@ export async function enqueueKnowledgeEvalWorkflowRun(
       "erp.eval_set.id": payload.evalSetId,
     },
     async (start) => {
-      const { runKnowledgeEvalWorkflow } = await import(
-        "./data/knowledge-eval-run-entry"
-      )
+      const { runKnowledgeEvalWorkflow } =
+        await import("./data/knowledge-eval-run-entry")
       await start(runKnowledgeEvalWorkflow, [payload])
     }
   )
@@ -223,9 +218,8 @@ export async function enqueueKnowledgeSourceSyncWorkflowRun(
       "erp.knowledge.source.id": payload.sourceId,
     },
     async (start) => {
-      const { runKnowledgeSourceSyncWorkflow } = await import(
-        "./data/knowledge-source-sync-entry"
-      )
+      const { runKnowledgeSourceSyncWorkflow } =
+        await import("./data/knowledge-source-sync-entry")
       await start(runKnowledgeSourceSyncWorkflow, [payload])
     }
   )
@@ -239,9 +233,8 @@ export async function enqueuePlannerRecurrenceWorkflowRun(
     payload.organizationId,
     { "erp.workflow": "planner_recurrence" },
     async (start) => {
-      const { runPlannerRecurrenceWorkflow } = await import(
-        "./data/planner-recurrence-run-entry"
-      )
+      const { runPlannerRecurrenceWorkflow } =
+        await import("./data/planner-recurrence-run-entry")
       await start(runPlannerRecurrenceWorkflow, [payload])
     }
   )
@@ -255,9 +248,8 @@ export async function enqueuePlannerReminderWorkflowRun(
     payload.organizationId,
     { "erp.workflow": "planner_reminder" },
     async (start) => {
-      const { runPlannerReminderWorkflow } = await import(
-        "./data/planner-reminder-run-entry"
-      )
+      const { runPlannerReminderWorkflow } =
+        await import("./data/planner-reminder-run-entry")
       await start(runPlannerReminderWorkflow, [payload])
     }
   )

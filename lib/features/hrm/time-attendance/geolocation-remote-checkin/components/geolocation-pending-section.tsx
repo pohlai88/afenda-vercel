@@ -43,7 +43,9 @@ export async function GeolocationPendingInbox({
         listConfiguration={{
           dataNature: "table",
           surface: {
-            header: { title: REMOTE_CHECKIN_LIST_SURFACE_IDS.pendingExceptions },
+            header: {
+              title: REMOTE_CHECKIN_LIST_SURFACE_IDS.pendingExceptions,
+            },
             columnsId: REMOTE_CHECKIN_LIST_SURFACE_IDS.pendingExceptions,
             rowKey: "id",
             empty: { variant: "muted", title: tPending("empty") },
@@ -99,7 +101,9 @@ export async function GeolocationPendingInbox({
             return null
           }
           return (
-            <GovernedTrailingActionSlot trailingAction={surfaceRow.trailingAction}>
+            <GovernedTrailingActionSlot
+              trailingAction={surfaceRow.trailingAction}
+            >
               <RemoteCheckinDecisionForms exceptionId={row.id} />
             </GovernedTrailingActionSlot>
           )

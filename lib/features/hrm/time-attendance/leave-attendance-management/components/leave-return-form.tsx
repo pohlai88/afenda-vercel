@@ -20,7 +20,10 @@ type LeaveReturnFormProps = {
   onSuccess?: () => void
 }
 
-export function LeaveReturnForm({ requestId, onSuccess }: LeaveReturnFormProps) {
+export function LeaveReturnForm({
+  requestId,
+  onSuccess,
+}: LeaveReturnFormProps) {
   const t = useTranslations("Dashboard.Hrm.leave")
   const [state, formAction, pending] = useActionState<
     LeaveApprovalFormState | undefined,

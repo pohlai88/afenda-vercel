@@ -54,14 +54,14 @@ describe("orbit route wrappers", () => {
       searchParams: Promise.resolve(searchParams),
     } as never)
 
-    expect(
-      (element as { props: Record<string, unknown> }).props
-    ).toMatchObject({
-      localeRaw: "en",
-      orgSlug: "acme",
-      surface: "queue",
-      searchParams,
-    })
+    expect((element as { props: Record<string, unknown> }).props).toMatchObject(
+      {
+        localeRaw: "en",
+        orgSlug: "acme",
+        surface: "queue",
+        searchParams,
+      }
+    )
   })
 
   it("passes locale and org slug into the org triage page", async () => {
@@ -77,13 +77,13 @@ describe("orbit route wrappers", () => {
       searchParams: Promise.resolve(searchParams),
     } as never)
 
-    expect(
-      (element as { props: Record<string, unknown> }).props
-    ).toMatchObject({
-      localeRaw: "en",
-      orgSlug: "acme",
-      surface: "triage",
-      searchParams,
-    })
+    expect((element as { props: Record<string, unknown> }).props).toMatchObject(
+      {
+        localeRaw: "en",
+        orgSlug: "acme",
+        surface: "triage",
+        searchParams,
+      }
+    )
   })
 })

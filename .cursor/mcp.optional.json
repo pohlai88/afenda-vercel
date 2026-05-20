@@ -17,7 +17,9 @@
     "next-devtools": {
       "type": "stdio",
       "command": "node",
-      "args": ["${workspaceFolder}/node_modules/next-devtools-mcp/dist/index.js"]
+      "args": [
+        "${workspaceFolder}/node_modules/next-devtools-mcp/dist/index.js"
+      ]
     },
     "neon": {
       "type": "stdio",

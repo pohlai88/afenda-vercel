@@ -15,7 +15,10 @@ export function PoliciesLeaveBlackoutArchiveButton({
   blackoutId,
 }: PoliciesLeaveBlackoutArchiveButtonProps) {
   const t = useTranslations("Dashboard.Hrm.policies")
-  const [, formAction, pending] = useActionState(archiveLeaveBlackoutAction, undefined)
+  const [, formAction, pending] = useActionState(
+    archiveLeaveBlackoutAction,
+    undefined
+  )
 
   return (
     <form action={formAction}>

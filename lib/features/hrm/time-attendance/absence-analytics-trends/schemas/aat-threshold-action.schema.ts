@@ -9,7 +9,10 @@ export type UpdateAatThresholdFormInput = AatThresholdConfig
 
 export type UpdateAatThresholdFormState =
   | { ok: true }
-  | { ok: false; errors: Partial<Record<keyof UpdateAatThresholdFormInput, string>> }
+  | {
+      ok: false
+      errors: Partial<Record<keyof UpdateAatThresholdFormInput, string>>
+    }
 
 function parseRateField(raw: FormDataEntryValue | null): unknown {
   if (typeof raw !== "string" || !raw.trim()) return undefined

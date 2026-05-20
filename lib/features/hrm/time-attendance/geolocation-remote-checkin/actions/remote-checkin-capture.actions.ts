@@ -102,7 +102,10 @@ export async function submitRemoteCheckinExceptionAction(
   const session = await requireOrgSession()
   const { organizationId, userId, sessionId } = session
 
-  const employee = await findRemoteCheckinEmployeeForUser(organizationId, userId)
+  const employee = await findRemoteCheckinEmployeeForUser(
+    organizationId,
+    userId
+  )
   if (!employee) {
     return hrmActionFailure({
       form: "Your user is not linked to an active employee record.",

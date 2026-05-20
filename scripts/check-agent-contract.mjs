@@ -241,10 +241,7 @@ function isAllowedDeepFeatureImport(importedModule, subpath) {
   ) {
     return true
   }
-  if (
-    importedModule === "orbit" &&
-    subpath === "planner-orbit-path.shared"
-  ) {
+  if (importedModule === "orbit" && subpath === "planner-orbit-path.shared") {
     return true
   }
   if (

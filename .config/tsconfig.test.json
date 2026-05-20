@@ -1,14 +1,14 @@
 {
   // Type-checks tests/ in isolation so Playwright + Vitest types stay out of the
   // main compile graph. Run with: pnpm typecheck:test
+  // See docs/testing/typescript-compile-efficiency.md
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    // Separate incremental cache — warm on repeated typecheck:test runs without
-    // invalidating the main tsconfig.tsbuildinfo cache.
     "tsBuildInfoFile": "../.artifacts/.tsbuildinfo/test",
-    "assumeChangesOnlyAffectDirectDependencies": false,
+    "assumeChangesOnlyAffectDirectDependencies": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "plugins": []
   },
   "include": [
     "../next-env.d.ts",
@@ -16,8 +16,15 @@
     "../tests/**/*.ts",
     "../tests/**/*.tsx",
     "vitest.config.ts",
-    "vitest.setup.ts",
+    "vitest.shared.ts",
+    "vitest.setup.shared.ts",
+    "vitest.setup.dom.ts",
     "playwright.config.ts"
   ],
-  "exclude": ["../node_modules"]
+  "exclude": [
+    "../node_modules",
+    "../.next",
+    "../.next-ui",
+    "../.next-workflow"
+  ]
 }

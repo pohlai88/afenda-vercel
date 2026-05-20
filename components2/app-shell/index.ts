@@ -19,7 +19,10 @@ export {
   type AppShellUtilityBarProps,
 } from "./top-utils-bar/appshell-utility-bar"
 
-export { buildAppShellOrgChrome, buildAppShellOrgUtilityBarSlots } from "./compose/appshell-utility-bar-org.server"
+export {
+  buildAppShellOrgChrome,
+  buildAppShellOrgUtilityBarSlots,
+} from "./compose/appshell-utility-bar-org.server"
 export type { AppShellOrgChrome } from "./compose/appshell-utility-bar-org.server"
 export { buildAppShellBootstrapUtilityBarSlots } from "./compose/appshell-utility-bar-bootstrap.server"
 export { buildAppShellPlatformUtilityBarSlots } from "./compose/appshell-utility-bar-platform.server"

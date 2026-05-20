@@ -49,7 +49,9 @@ const ORBIT_COMMAND_QUICK_LINKS: readonly OrbitCommandQuickLink[] = [
 export async function OrbitCommandLayer({ orgSlug }: { orgSlug: string }) {
   const t = await getTranslations("Dashboard.Orbit")
 
-  type SurfaceKey = `surfaces.${OrbitSurface}.label` | `surfaces.${OrbitSurface}.description`
+  type SurfaceKey =
+    | `surfaces.${OrbitSurface}.label`
+    | `surfaces.${OrbitSurface}.description`
   const tSurface = (key: SurfaceKey) => t(key as Parameters<typeof t>[0])
 
   type QuickLinkKey =

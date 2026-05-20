@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getTranslations } from "next-intl/server"
 
-import { HrmErpAccessDenied, HrmOnboardingPage } from "#features/hrm"
+import { HrmOnboardingPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
@@ -26,8 +27,13 @@ export default async function OrgAppsHrmOnboardingPage({
     function: "read",
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.onboarding")
+
     return (
-      <HrmErpAccessDenied surface="onboarding" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   return <HrmOnboardingPage orgSlug={orgSlug} />

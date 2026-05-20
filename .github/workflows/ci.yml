@@ -8,9 +8,11 @@
 #
 # Job layout (all run in parallel; wall time = max across the group):
 #   lint-check    — lint + typecheck + knip (Turbo-cached)          ~1-2 min
+#   vitest-gate   — paths-filter: skip Vitest when no code/test inputs changed
 #   test-shards   — 3-shard Vitest matrix, uploads blob artifacts   ~20-30s each
 #   merge-coverage — merges blobs + checks coverage thresholds      ~15s
 #   e2e           — build + Playwright                              ~4-6 min
+# Scale: when tests/unit exceeds ~500 files, add shard 4/4 (docs/testing/erp-test-scale-strategy.md).
 name: CI
 
 on:
@@ -69,7 +71,36 @@ jobs:
       # Tests are handled by the sharded test-shards + merge-coverage jobs.
       - run: pnpm verify:no-test
 
+  vitest-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      vitest: ${{ steps.filter.outputs.vitest }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            vitest:
+              - 'app/**'
+              - 'components2/**'
+              - 'hooks/**'
+              - 'lib/**'
+              - 'i18n/**'
+              - 'messages/**'
+              - 'tests/**'
+              - '.config/vitest*.ts'
+              - '.config/vitest.*.ts'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'scripts/with-env.mjs'
+              - 'scripts/vitest-*.mjs'
+              - 'scripts/test-local-shards.mjs'
+
   test-shards:
+    needs: vitest-gate
+    if: needs.vitest-gate.outputs.vitest == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -113,8 +144,8 @@ jobs:
 
   merge-coverage:
     runs-on: ubuntu-latest
-    needs: [test-shards]
-    if: ${{ !cancelled() }}
+    needs: [vitest-gate, test-shards]
+    if: ${{ !cancelled() && needs.vitest-gate.outputs.vitest == 'true' }}
     steps:
       - uses: actions/checkout@v4
 

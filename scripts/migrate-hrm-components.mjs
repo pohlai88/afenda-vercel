@@ -5,15 +5,9 @@
 import fs from "node:fs"
 import path from "node:path"
 import { execSync } from "node:child_process"
-import crypto from "node:crypto"
-
 const ROOT = path.resolve(import.meta.dirname, "..")
 const HRM = path.join(ROOT, "lib/features/hrm")
 const FLAT = path.join(HRM, "components")
-
-function hashFile(p) {
-  return crypto.createHash("sha256").update(fs.readFileSync(p)).digest("hex")
-}
 
 function preferGoverned(aPath, bPath) {
   const a = fs.readFileSync(aPath, "utf8")
@@ -314,13 +308,6 @@ const barrelFiles = [
     "employee-management/compliance-regulatory-tracking/client.ts"
   ),
 ]
-
-const exportMap = new Map(
-  moves.map((m) => [
-    m.file.replace(/\.tsx?$/, "").replace(/\.client\.tsx$/, ""),
-    m.to,
-  ])
-)
 
 function rewriteBarrels(filePath) {
   if (!fs.existsSync(filePath)) return

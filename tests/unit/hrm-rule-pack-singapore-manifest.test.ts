@@ -65,10 +65,16 @@ describe("Singapore SG-2026-01 rule pack", () => {
 
   it("validates SG payroll profiles only", () => {
     expect(
-      singapore2026_01RulePack.validateProfile({ countryCode: "SG" })
+      singapore2026_01RulePack.validateProfile({
+        countryCode: "SG",
+        taxIdentifierNumber: "S1234567A",
+      })
     ).toEqual([])
     expect(
-      singapore2026_01RulePack.validateProfile({ countryCode: "MY" })
+      singapore2026_01RulePack.validateProfile({
+        countryCode: "MY",
+        taxIdentifierNumber: "S1234567A",
+      })
     ).toMatchObject([{ code: "COUNTRY_MISMATCH" }])
   })
 

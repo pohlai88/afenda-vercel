@@ -102,7 +102,10 @@ export type PersistRemoteCheckinExceptionInput = {
   readonly employeeId: string
   readonly actorUserId: string
   readonly capture: RecordRemoteCheckinFormInput
-  readonly detectionOutcome: Exclude<RemoteCheckinVerificationOutcome, "verified">
+  readonly detectionOutcome: Exclude<
+    RemoteCheckinVerificationOutcome,
+    "verified"
+  >
   readonly reason: string
 }
 

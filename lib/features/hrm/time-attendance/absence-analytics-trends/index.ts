@@ -1,9 +1,6 @@
 import type { AatPeriodKey } from "./schemas/aat.schema"
 
-export {
-  HRM_AAT_AUDIT,
-  type HrmAatAuditAction,
-} from "./aat.contract"
+export { HRM_AAT_AUDIT, type HrmAatAuditAction } from "./aat.contract"
 
 export {
   HRM_AAT_SPEC_MAP,
@@ -20,9 +17,7 @@ export {
   type AatListSurfaceId,
 } from "./data/aat-surface-metadata.shared"
 
-export {
-  AbsenceAnalyticsPage,
-} from "./components/absence-analytics-page"
+export { AbsenceAnalyticsPage } from "./components/absence-analytics-page"
 
 export {
   resolveAatSurfaceAccess,

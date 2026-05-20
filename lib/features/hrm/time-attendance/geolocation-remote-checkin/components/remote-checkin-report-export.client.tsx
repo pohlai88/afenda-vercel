@@ -24,7 +24,11 @@ function isoDaysAgo(days: number): string {
   return d.toISOString().slice(0, 10)
 }
 
-export function RemoteCheckinReportExportForm({ orgSlug }: { orgSlug: string }) {
+export function RemoteCheckinReportExportForm({
+  orgSlug,
+}: {
+  orgSlug: string
+}) {
   const t = useTranslations("Dashboard.Hrm.Geolocation.report")
   const [state, formAction, pending] = useActionState<
     RemoteCheckinReportExportFormState | undefined,

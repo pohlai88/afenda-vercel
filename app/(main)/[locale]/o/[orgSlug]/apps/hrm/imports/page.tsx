@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation"
+import { getTranslations } from "next-intl/server"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 
-import { getHrmCapabilityById, HrmErpAccessDenied } from "#features/hrm"
+import { getHrmCapabilityById } from "#features/hrm"
 import { HrmImportsPage } from "#features/tools"
 import { getErpPermissionDefinition } from "#features/erp-rbac"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
@@ -20,8 +22,13 @@ export default async function OrgAppsHrmImportsPage({
     function: permission.function,
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.imports")
+
     return (
-      <HrmErpAccessDenied surface="imports" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   return <HrmImportsPage orgSlug={orgSlug} />

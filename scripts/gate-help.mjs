@@ -39,6 +39,14 @@ NARROW (domain-specific — when that domain changed)
   pnpm ask-docs:check                content/ask-docs/**
   pnpm lint:design-contract          app/globals.css or design tokens
 
+DEBUG (full test picture — lean by default)
+  pnpm test:changed                  fastest — git-changed tests only + failure digest
+  pnpm test:audit:changed            same, via audit entry
+  pnpm test:failures                 reprint last digest (no re-run)
+  pnpm test:audit                    full suite + .artifacts/vitest-failures.txt
+  pnpm test:fast:node                skip jsdom project when DOM untouched
+  pnpm test:audit -- --coverage      slow — before push only
+
 FORBIDDEN edit-loop habit
   pnpm lint:full && pnpm gate:push && pnpm build && pnpm test:e2e
   → replays CI locally (~8–15+ min on Windows)

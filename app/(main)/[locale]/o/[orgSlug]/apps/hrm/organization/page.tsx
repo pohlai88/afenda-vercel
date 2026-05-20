@@ -1,4 +1,6 @@
-import { HrmErpAccessDenied, OrganizationPage } from "#features/hrm"
+import { OrganizationPage } from "#features/hrm"
+import { getTranslations } from "next-intl/server"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmOrganizationPage({
@@ -13,8 +15,13 @@ export default async function OrgAppsHrmOrganizationPage({
     function: "read",
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.organization")
+
     return (
-      <HrmErpAccessDenied surface="organization" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   const tabParam = typeof sp.tab === "string" ? sp.tab : undefined

@@ -99,7 +99,10 @@ export function resolveEmployeePortalContextFromRows(input: {
   if (employee.archivedAt) {
     return { ok: false, reason: "employee_archived" }
   }
-  if (employee.linkedUserId !== portal.userId) {
+  if (
+    employee.linkedUserId != null &&
+    employee.linkedUserId !== portal.userId
+  ) {
     return { ok: false, reason: "linked_user_mismatch" }
   }
 

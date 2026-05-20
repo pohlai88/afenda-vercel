@@ -158,9 +158,7 @@ export async function buildRemoteCheckinReportCsv(input: {
   return { csv, rowCount: lines.length - 1, filename }
 }
 
-async function fetchEventRows(
-  conditions: ReturnType<typeof eq>[]
-): Promise<
+async function fetchEventRows(conditions: ReturnType<typeof eq>[]): Promise<
   ReadonlyArray<{
     employeeNumber: string | null
     employeeLegalName: string | null
@@ -199,9 +197,7 @@ async function fetchEventRows(
     .orderBy(asc(hrmAttendanceEvent.occurredAt))
 }
 
-async function fetchExceptionRows(
-  conditions: ReturnType<typeof eq>[]
-): Promise<
+async function fetchExceptionRows(conditions: ReturnType<typeof eq>[]): Promise<
   ReadonlyArray<{
     employeeNumber: string | null
     employeeLegalName: string | null

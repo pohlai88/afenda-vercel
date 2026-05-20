@@ -33,7 +33,12 @@ type RemoteCheckinDecisionFormProps = {
   readonly exceptionId: string
 }
 
-const EVENT_TYPES = ["clock_in", "clock_out", "break_start", "break_end"] as const
+const EVENT_TYPES = [
+  "clock_in",
+  "clock_out",
+  "break_start",
+  "break_end",
+] as const
 
 const SELECT_CLASS =
   "h-9 w-full rounded border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
@@ -134,7 +139,9 @@ function DecisionDialog({
           ) : null}
 
           <Field>
-            <FieldLabel htmlFor={reasonId}>{t("fieldDecisionReason")}</FieldLabel>
+            <FieldLabel htmlFor={reasonId}>
+              {t("fieldDecisionReason")}
+            </FieldLabel>
             <Textarea
               id={reasonId}
               name="decisionReason"

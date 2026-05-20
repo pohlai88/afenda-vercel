@@ -87,9 +87,8 @@ export async function notifyLeaveEmployeeLifecycle(input: {
   readonly endDate: string
   readonly linkedPath?: string | null
 }): Promise<void> {
-  const { getLeaveEmployeeForOrg, getLeaveTypeForRequest } = await import(
-    "./leave-request.queries.server"
-  )
+  const { getLeaveEmployeeForOrg, getLeaveTypeForRequest } =
+    await import("./leave-request.queries.server")
 
   const [employee, leaveType] = await Promise.all([
     getLeaveEmployeeForOrg(input.organizationId, input.employeeId),

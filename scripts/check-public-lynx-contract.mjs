@@ -178,14 +178,16 @@ function assertVitestScriptsUseCanonicalConfig() {
   const pkgPath = path.join(root, "package.json")
   const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"))
   const canonical = "--config .config/vitest.config.ts"
+  const vitestWrapperScriptRe =
+    /scripts\/(?:vitest-audit|vitest-changed|vitest-failures|vitest-analyze-imports)\.mjs/
 
   for (const [name, script] of Object.entries(pkg.scripts ?? {})) {
     if (typeof script !== "string" || !script.includes("vitest")) continue
-    if (!script.includes(canonical)) {
-      fail(
-        `package.json script "${name}" invokes vitest without ${canonical} — bare vitest skips server-only/next stubs and causes false failures (ADR-0008).`
-      )
-    }
+    if (script.includes(canonical) || vitestWrapperScriptRe.test(script))
+      continue
+    fail(
+      `package.json script "${name}" invokes vitest without ${canonical} — bare vitest skips server-only/next stubs and causes false failures (ADR-0008).`
+    )
   }
 
   for (const name of [

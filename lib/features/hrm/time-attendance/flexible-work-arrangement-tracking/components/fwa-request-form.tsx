@@ -200,7 +200,7 @@ export function FwaRequestForm({
             disabled={pending}
             placeholder={t("fieldEligibilityExceptionReasonPlaceholder")}
           />
-          <p className="text-muted-foreground text-xs">
+          <p className="text-xs text-muted-foreground">
             {t("fieldEligibilityExceptionReasonHint")}
           </p>
         </Field>

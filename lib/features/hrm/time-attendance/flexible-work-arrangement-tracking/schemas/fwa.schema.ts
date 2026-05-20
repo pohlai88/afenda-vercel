@@ -123,10 +123,7 @@ export const seedFwaTypesFormSchema = z.object({})
 
 export const fwaSuspendDecisionSchema = z.object({
   requestId: z.string().uuid(),
-  suspensionReason: z
-    .string()
-    .trim()
-    .min(1, "Suspension reason is required."),
+  suspensionReason: z.string().trim().min(1, "Suspension reason is required."),
 })
 
 export const fwaTerminateDecisionSchema = z.object({
@@ -142,7 +139,11 @@ export const registerFwaEvidenceFormSchema = z.object({
   blobUrl: z.string().url().startsWith("https://"),
   payloadHash: z.string().regex(/^[a-f0-9]{64}$/),
   mimeType: z.string().min(3).max(128),
-  sizeBytes: z.coerce.number().int().min(1).max(80 * 1024 * 1024),
+  sizeBytes: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(80 * 1024 * 1024),
   title: z.string().trim().min(1).max(512),
 })
 

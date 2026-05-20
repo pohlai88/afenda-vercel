@@ -4,7 +4,6 @@ export type {
   DeclarationLegalIdentity,
   DeclarationRelatedLink,
   DeclarationSection,
-  LegalDeclarationSlug,
   TrustActivationRule,
   TrustBoundaryStatement,
   TrustCommitment,

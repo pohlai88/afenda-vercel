@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 
 import { getTranslations } from "next-intl/server"
 
@@ -13,8 +14,6 @@ import {
 } from "#components2/ui/card"
 import { Skeleton } from "#components2/ui/skeleton"
 import { requireOrgSession } from "#lib/auth"
-
-import { HrmErpAccessDenied } from "../../../_module-governance/hrm-erp-access-denied.server"
 import { resolveLeaveSurfaceAccess } from "../data/leave-access.server"
 import type { LeaveSurfaceAccess } from "../data/leave-access.server"
 import {
@@ -49,8 +48,13 @@ export async function LeavePage({ orgSlug, access }: LeavePageProps) {
     }))
 
   if (!leaveAccess.canEnter) {
+    const t = await getTranslations("Dashboard.Hrm.leave")
+
     return (
-      <HrmErpAccessDenied surface="leave" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
 

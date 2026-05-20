@@ -69,11 +69,12 @@ export async function recordRemoteCheckin(
     return hrmActionFailure({ employeeId: "Employee not found." })
   }
 
-  const policy =
-    (await getActiveRemoteCheckinPolicyForOrg(ctx.organizationId)) ?? {
-      ...DEFAULT_POLICY_FALLBACK,
-      organizationId: ctx.organizationId,
-    }
+  const policy = (await getActiveRemoteCheckinPolicyForOrg(
+    ctx.organizationId
+  )) ?? {
+    ...DEFAULT_POLICY_FALLBACK,
+    organizationId: ctx.organizationId,
+  }
 
   const [device, nearest] = await Promise.all([
     findCaptureDevice({

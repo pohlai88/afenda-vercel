@@ -62,7 +62,9 @@ export function RemoteCheckinDeviceRegisterDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("registerDialogTitle")}</DialogTitle>
-          <DialogDescription>{t("registerDialogDescription")}</DialogDescription>
+          <DialogDescription>
+            {t("registerDialogDescription")}
+          </DialogDescription>
         </DialogHeader>
         <form action={formAction} className="flex flex-col gap-3">
           <input type="hidden" name="orgSlug" value={orgSlug} />
@@ -83,7 +85,7 @@ export function RemoteCheckinDeviceRegisterDialog({
                 name="employeeId"
                 defaultValue={defaultEmployeeId ?? ""}
                 required
-                className="h-9 w-full rounded border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="h-9 w-full rounded border border-border bg-background px-2 text-sm focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <option value="" disabled>
                   —
@@ -99,11 +101,7 @@ export function RemoteCheckinDeviceRegisterDialog({
               ) : null}
             </Field>
           ) : defaultEmployeeId ? (
-            <input
-              type="hidden"
-              name="employeeId"
-              value={defaultEmployeeId}
-            />
+            <input type="hidden" name="employeeId" value={defaultEmployeeId} />
           ) : null}
 
           <Field>

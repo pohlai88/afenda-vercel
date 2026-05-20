@@ -15,7 +15,7 @@ alwaysApply: false
 | Directory | Purpose | Rules |
 |---|---|---|
 | `tests/fixtures/` | Deterministic IDs, emails, copy strings, static factories | No Playwright/browser APIs; no ERP workflows; parity enforced by `pnpm lint:fixtures-parity` |
-| `tests/unit/` | Vitest — Node by default | Use `// @vitest-environment jsdom` only for DOM/RTL tests; name DOM specs `*.dom.test.tsx`; no Vitest `projects` until DOM suites justify split. Config [`.config/vitest.config.ts`](../../.config/vitest.config.ts): **`test.dir`** = `tests/unit`, **`include`** = `**/*.test.{ts,tsx}`**, **`experimental.fsModuleCache`** (watch reruns). **`--coverage`** → `forks` + `maxWorkers: 1` + `fileParallelism: false`. **ADR-0008** |
+| `tests/unit/` | Vitest — **projects** `unit-pure` (`isolate: false`) · `unit-node` · `unit-dom` (`happy-dom`) | Zod/schema-only: **`*.pure.test.ts`**. DOM/RTL: **`*.dom.test.{ts,tsx}`**. Strategy: [erp-test-scale-strategy.md](../../docs/testing/erp-test-scale-strategy.md). **T0 default:** `pnpm test:changed`. Config: [`.config/vitest.config.ts`](../../.config/vitest.config.ts). **ADR-0008** |
 | `tests/e2e/` | Playwright `*.spec.ts` | Explicit `goto`/`getByRole`/`getByLabel`; tag stable gates `@smoke`; App Router routes validated here |
 | `tests/e2e/utils/` | Browser helpers | Import from `tests/fixtures`; no duplicate magic strings; avoid deep `test.extend` pyramids |
 
@@ -25,6 +25,8 @@ alwaysApply: false
 
 ## Vitest scripts (AGENTS.md §2)
 
+**Pre-push:** when `pnpm gate:push` fails, use **batch-fix** (`.cursor/rules/gate-batch-fix-workflow.mdc`) — do not re-run full L2 after each single test fix.
+
 **Mandatory:** every Vitest invocation must pass `--config .config/vitest.config.ts` (enforced by `pnpm lint:public-lynx-contract` on `package.json` scripts). Bare `pnpm exec vitest run` skips `server-only` / `next/navigation` stubs and produces false failures (e.g. `neon-auth-env.server.test.ts`, Public Lynx tests).
 
 | Script | Purpose |
@@ -32,10 +34,25 @@ alwaysApply: false
 | `pnpm test` | Watch mode (`--config .config/vitest.config.ts`) |
 | `pnpm test:fast` | `vitest run --config .config/vitest.config.ts` without coverage (`with-env.mjs`) |
 | `pnpm test:ci` / `pnpm test:coverage` | `vitest run --config .config/vitest.config.ts --coverage` |
-| `pnpm test:analyze:imports` | `--experimental.importDurations.print=true` — slow imports |
-| `pnpm test:analyze:imports:warn` | `print=on-warn` |
+| `pnpm test:fast:node` / `test:fast:pure` / `test:fast:dom` | Single Vitest project |
+| `pnpm test:changed` | **Default edit loop** — git-changed tests only |
+| `pnpm test:local-shards` | Local 4-way shard + merge (high-core Linux/WSL) |
+| `pnpm test:audit:changed` | Same via audit entry |
+| `pnpm test:failures` | Reprint `.artifacts/vitest-failures.txt` without re-running |
+| `pnpm test:audit` | Full suite, `--bail=0`, lean digest (JSON deleted on pass) |
+| `pnpm test:analyze:imports` | Top slow module imports (console, limit 30) |
+| `pnpm test:analyze:imports:report` | Same → `.artifacts/vitest-import-durations.txt` (limit 50) |
+| `pnpm test:analyze:imports:warn` | `print=on-warn` (direct Vitest flag) |
 
 Append Vitest path filters after `--`, e.g. `pnpm test:analyze:imports -- tests/unit/planner`.
+
+**Speed ladder:** `test:changed` (seconds) → `test:fast:pure` / `test:fast:node` → `test:fast` / `test:audit` → `test:ci` (coverage; WSL on Windows). **`integrity:behavior`** uses Turbo-cached `test:fast`. Forbidden: Vitest-in-runtime, `/api/test/*` (see erp-test-scale-strategy.md).
+
+**Cache (reruns):** `.artifacts/vitest-vite/` + `experimental.fsModuleCache` on `test:fast`. Second run should be faster. `VITEST_FS_CACHE=0` disables fs cache. `VITEST_MAX_WORKERS=N` caps workers. Details: `docs/testing/vitest-wsl-coverage.md`.
+
+**Partial-log anti-pattern:** Do not debug from Turbo (`errors-only` / `new-only`) or CI blob shards. Run `pnpm test:changed` or `pnpm test:audit`, then `pnpm test:failures` to re-read the digest.
+
+**TypeScript:** Three graphs — `pnpm typecheck` (app) · `pnpm typecheck:test` · `pnpm typecheck:scripts`. Do not add `tests/` to root `tsconfig.json`. See [typescript-compile-efficiency.md](../../docs/testing/typescript-compile-efficiency.md).
 
 ## Coverage (V8)
 

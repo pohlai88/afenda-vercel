@@ -12,7 +12,11 @@ import {
   hrmOrgHoliday,
 } from "#lib/db/schema"
 
-import type { AatPeriodKey, AatRiskTier, AatScopeKey } from "../schemas/aat.schema"
+import type {
+  AatPeriodKey,
+  AatRiskTier,
+  AatScopeKey,
+} from "../schemas/aat.schema"
 import {
   classifyAbsenceRiskTier,
   computeAbsenceRate,
@@ -194,10 +198,7 @@ async function listLeaveFactsForOrg(input: {
       reason: hrmLeaveRequest.reason,
     })
     .from(hrmLeaveRequest)
-    .innerJoin(
-      hrmLeaveType,
-      eq(hrmLeaveRequest.leaveTypeId, hrmLeaveType.id)
-    )
+    .innerJoin(hrmLeaveType, eq(hrmLeaveRequest.leaveTypeId, hrmLeaveType.id))
     .where(
       and(
         eq(hrmLeaveRequest.organizationId, input.organizationId),
@@ -416,10 +417,7 @@ function buildDailyHeatmap(input: {
   for (const day of input.attendanceFacts) {
     if (!input.employeeIds.has(day.employeeId)) continue
     if (!day.absenceCode) continue
-    buckets.set(
-      day.attendanceDate,
-      (buckets.get(day.attendanceDate) ?? 0) + 1
-    )
+    buckets.set(day.attendanceDate, (buckets.get(day.attendanceDate) ?? 0) + 1)
   }
 
   return [...buckets.entries()]
@@ -580,7 +578,9 @@ export async function buildAatOrgAnalyticsSnapshot(input: {
     ])
 
   const employeeIds = new Set(employees.map((employee) => employee.id))
-  const scopedLeave = currentLeave.filter((row) => employeeIds.has(row.employeeId))
+  const scopedLeave = currentLeave.filter((row) =>
+    employeeIds.has(row.employeeId)
+  )
   const scopedPriorLeave = priorLeave.filter((row) =>
     employeeIds.has(row.employeeId)
   )
@@ -679,7 +679,9 @@ export async function buildAatOrgAnalyticsSnapshot(input: {
     departmentMap.set(key, existing)
   }
 
-  const departmentRanking: AatDepartmentRankingRow[] = [...departmentMap.values()]
+  const departmentRanking: AatDepartmentRankingRow[] = [
+    ...departmentMap.values(),
+  ]
     .map((row) => {
       const rate = computeAbsenceRate({
         lostWorkdays: row.lostWorkdays,

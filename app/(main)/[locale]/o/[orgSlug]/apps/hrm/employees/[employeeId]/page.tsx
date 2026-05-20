@@ -1,4 +1,6 @@
-import { EmployeeDetailPage, HrmErpAccessDenied } from "#features/hrm"
+import { EmployeeDetailPage } from "#features/hrm"
+import { getTranslations } from "next-intl/server"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmEmployeeDetailPage({
@@ -11,8 +13,13 @@ export default async function OrgAppsHrmEmployeeDetailPage({
     function: "read",
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.workforce")
+
     return (
-      <HrmErpAccessDenied surface="employeeDetail" />
+      <ErpAccessDenied
+        title={t("accessDeniedDetailTitle")}
+        description={t("accessDeniedDetailDescription")}
+      />
     )
   }
   return <EmployeeDetailPage orgSlug={orgSlug} employeeId={employeeId} />

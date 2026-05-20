@@ -10,18 +10,18 @@ function escapeCsvCell(value: string): string {
 export function buildAatAnalyticsReportCsv(
   snapshot: AatOrgAnalyticsSnapshot
 ): string {
-  const header = [
-    "section",
-    "label",
-    "metric",
-    "value",
-  ].join(",")
+  const header = ["section", "label", "metric", "value"].join(",")
 
   const summaryRows = [
     ["summary", "period", "period", snapshot.period],
     ["summary", "absence_rate", "rate", snapshot.absenceRate.toFixed(4)],
     ["summary", "lost_workdays", "days", snapshot.lostWorkdays.toFixed(1)],
-    ["summary", "absence_frequency", "count", String(snapshot.absenceFrequency)],
+    [
+      "summary",
+      "absence_frequency",
+      "count",
+      String(snapshot.absenceFrequency),
+    ],
     [
       "summary",
       "planned_lost_workdays",

@@ -27,11 +27,10 @@ const NAV: AppShellPrimaryLeftRailNavSection[] = [
 ]
 
 describe("filterAppShellPrimaryLeftRailNavSections", () => {
-  it("returns cloned sections for a blank query", () => {
+  it("returns the original sections for a blank query", () => {
     const out = filterAppShellPrimaryLeftRailNavSections(NAV, "  ")
-    expect(out).toHaveLength(1)
+    expect(out).toBe(NAV)
     expect(out[0].items).toHaveLength(2)
-    expect(out[0].items[0]).not.toBe(NAV[0].items[0])
   })
 
   it("matches labels case-insensitively", () => {
@@ -46,11 +45,9 @@ describe("filterAppShellPrimaryLeftRailNavSections", () => {
     expect(out[0].items.map((i) => i.id)).toEqual(["b"])
   })
 
-  it("keeps a parent item when a nested child matches", () => {
+  it("does not search nested child labels (top-level items only)", () => {
     const out = filterAppShellPrimaryLeftRailNavSections(NAV, "signal")
-    expect(out).toHaveLength(1)
-    expect(out[0].items.map((i) => i.id)).toEqual(["b"])
-    expect(out[0].items[0].items?.map((i) => i.id)).toEqual(["b-child"])
+    expect(out).toHaveLength(0)
   })
 
   it("drops sections with no matches", () => {

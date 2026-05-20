@@ -12,9 +12,7 @@ import {
   persistVerifiedRemoteCheckin,
 } from "./geolocation-aggregator.server"
 import { findNearestGeofenceForOrg } from "./geolocation-validation.server"
-import {
-  getRemoteCheckinExceptionForOrg,
-} from "./geolocation.queries.server"
+import { getRemoteCheckinExceptionForOrg } from "./geolocation.queries.server"
 import { revalidateGeolocationSurfaces } from "./geolocation-revalidate.server"
 
 export type RemoteCheckinExceptionContext = {

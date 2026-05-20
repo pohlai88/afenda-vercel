@@ -1,13 +1,14 @@
 // @vitest-environment jsdom
 
-import { render, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import { ListSurfaceCell } from "#components2/metadata/renderers/list-surface-cell.client"
+import { renderWithNextIntl } from "../../../helpers/render-with-next-intl"
 
 describe("ListSurfaceCell", () => {
   it("renders badge tone from cellKind", () => {
-    render(
+    renderWithNextIntl(
       <ListSurfaceCell
         column={{
           id: "status",
@@ -24,7 +25,7 @@ describe("ListSurfaceCell", () => {
   })
 
   it("formats currency values", () => {
-    render(
+    renderWithNextIntl(
       <ListSurfaceCell
         column={{
           id: "amount",

@@ -88,9 +88,7 @@ function CreateCompensationCycleForm() {
             </option>
           ))}
         </select>
-        {errors?.cycleType ? (
-          <FieldError>{errors.cycleType}</FieldError>
-        ) : null}
+        {errors?.cycleType ? <FieldError>{errors.cycleType}</FieldError> : null}
       </Field>
       <Field>
         <FieldLabel htmlFor={effectiveId}>{t("fieldEffectiveDate")}</FieldLabel>

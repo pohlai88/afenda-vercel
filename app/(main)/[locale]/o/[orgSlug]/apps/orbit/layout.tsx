@@ -23,9 +23,5 @@ export default async function OrgAppsOrbitLayout({
     )
   }
 
-  return (
-    <>
-      {children}
-    </>
-  )
+  return <>{children}</>
 }

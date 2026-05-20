@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getTranslations } from "next-intl/server"
 
-import { HrmErpAccessDenied, HrmKpiPage } from "#features/hrm"
+import { HrmKpiPage } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
@@ -37,8 +38,13 @@ export default async function OrgAppsHrmKpiPage({
     }),
   ])
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.kpi")
+
     return (
-      <HrmErpAccessDenied surface="kpi" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   return (

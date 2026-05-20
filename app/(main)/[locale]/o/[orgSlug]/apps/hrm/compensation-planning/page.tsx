@@ -1,6 +1,10 @@
+import { getTranslations } from "next-intl/server"
+
 import {
-  CompensationPlanningPage, HrmErpAccessDenied, resolveCompensationPlanningSurfaceAccess
+  CompensationPlanningPage,
+  resolveCompensationPlanningSurfaceAccess,
 } from "#features/hrm"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAppsHrmCompensationPlanningPage() {
@@ -11,8 +15,13 @@ export default async function OrgAppsHrmCompensationPlanningPage() {
   })
 
   if (!access.canEnter) {
+    const t = await getTranslations("Dashboard.Hrm.compensationPlanning")
+
     return (
-      <HrmErpAccessDenied surface="compensationPlanning" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
 

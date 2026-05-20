@@ -741,9 +741,7 @@ export function TrustControlSurface({
                   "text-sm leading-relaxed text-muted-foreground underline-offset-4 hover:text-foreground",
                   link.href === trustPageHref && "text-foreground"
                 )}
-                aria-current={
-                  link.href === trustPageHref ? "page" : undefined
-                }
+                aria-current={link.href === trustPageHref ? "page" : undefined}
               >
                 {link.label}
               </LegalDocsLocaleLink>

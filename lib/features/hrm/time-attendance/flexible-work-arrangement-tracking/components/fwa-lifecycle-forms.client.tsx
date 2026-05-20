@@ -87,7 +87,12 @@ function RenewFwaDialog({
           </Field>
           <Field>
             <FieldLabel htmlFor={endDateId}>{t("fieldEndDate")}</FieldLabel>
-            <Input id={endDateId} name="endDate" type="date" disabled={pending} />
+            <Input
+              id={endDateId}
+              name="endDate"
+              type="date"
+              disabled={pending}
+            />
           </Field>
           <Field>
             <FieldLabel htmlFor={reasonId}>{t("fieldReason")}</FieldLabel>

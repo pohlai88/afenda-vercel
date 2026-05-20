@@ -33,7 +33,10 @@ export async function upsertAatThresholdConfigForOrg(input: {
   updatedByUserId: string
 }): Promise<void> {
   const existing = await db.query.hrmAbsenceAnalyticsThreshold.findFirst({
-    where: eq(hrmAbsenceAnalyticsThreshold.organizationId, input.organizationId),
+    where: eq(
+      hrmAbsenceAnalyticsThreshold.organizationId,
+      input.organizationId
+    ),
     columns: { id: true },
   })
 

@@ -15,17 +15,18 @@ describe("landing cookie consent preview", () => {
 
     expect(page).toContain("CookieConsentPreview")
     expect(page).toContain("LandingFooter")
-    expect(page).toContain('t("cookieConsent.status")')
+    expect(page).toContain('t("cookieConsent.eyebrow")')
+    expect(page).toContain('t("cookieConsent.accept")')
   })
 
   it("persists an active cookie-notice choice in browser storage", () => {
     const component = readProjectFile(
-      "components",
+      "components2",
       "marketing",
       "cookie-consent-preview.tsx"
     )
 
-    expect(component).toContain("statusLabel")
+    expect(component).toContain("eyebrow")
     expect(component).toContain('href={"/legal-docs/cookies"')
     expect(component).toContain("afenda:cookie-consent-choice")
     expect(component).toContain("rejectLabel")

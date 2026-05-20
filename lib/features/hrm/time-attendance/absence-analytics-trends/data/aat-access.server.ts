@@ -57,9 +57,8 @@ export async function resolveAatSurfaceAccess(input: {
 
   const canReadOrg = canSearch || canRead || canAudit
 
-  const { findAatManagerContextForUser } = await import(
-    "./aat-employee-context.server"
-  )
+  const { findAatManagerContextForUser } =
+    await import("./aat-employee-context.server")
   const managerContext = await findAatManagerContextForUser({
     organizationId: input.organizationId,
     userId: input.userId,

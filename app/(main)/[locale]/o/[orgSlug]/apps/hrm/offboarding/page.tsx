@@ -1,8 +1,9 @@
 import { getTranslations } from "next-intl/server"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 
 import { ModulePageHeader } from "#features/governed-surface"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
-import { HrmErpAccessDenied, OffboardingOrgDashboardPage } from "#features/hrm"
+import { OffboardingOrgDashboardPage } from "#features/hrm"
 import { resolveOffboardingSurfaceCapabilities } from "#features/hrm/server"
 
 export default async function OrgAppsHrmOffboardingPage({
@@ -16,8 +17,13 @@ export default async function OrgAppsHrmOffboardingPage({
     function: "search",
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.offboarding")
+
     return (
-      <HrmErpAccessDenied surface="offboarding" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   const [{ orgSlug }, capabilities, t] = await Promise.all([

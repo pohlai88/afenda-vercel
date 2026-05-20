@@ -57,14 +57,19 @@ export function buildAatKpiStatConfiguration(
       {
         label: copy.availability,
         value: formatAbsenceRatePercent(snapshot.availabilityRate),
-        delta: snapshot.coverageRisk ? copy.coverageRisk : copy.trendDirectionLabel,
+        delta: snapshot.coverageRisk
+          ? copy.coverageRisk
+          : copy.trendDirectionLabel,
         tone: snapshot.coverageRisk ? "attention" : "positive",
       },
       {
         label: copy.plannedVsUnplanned,
         value: `${snapshot.plannedLostWorkdays.toFixed(1)} / ${snapshot.unplannedLostWorkdays.toFixed(1)}`,
         delta: copy.patternSignals,
-        tone: snapshot.unplannedLostWorkdays > snapshot.plannedLostWorkdays ? "attention" : "default",
+        tone:
+          snapshot.unplannedLostWorkdays > snapshot.plannedLostWorkdays
+            ? "attention"
+            : "default",
       },
     ],
   }

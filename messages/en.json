@@ -1093,7 +1093,9 @@
         "recentTitle": "Recent import sessions",
         "recentDescription": "Latest dry runs and commits for this organization.",
         "recentEmpty": "No import sessions yet.",
-        "rowsLabel": "Rows"
+        "rowsLabel": "Rows",
+        "accessDeniedTitle": "HRM imports",
+        "accessDeniedDescription": "This HRM surface requires HRM import search access."
       },
       "recruitment": {
         "eyebrow": "Talent",
@@ -1205,7 +1207,9 @@
           "tracked": "Tracked",
           "submitted": "Submitted",
           "recorded": "Recorded"
-        }
+        },
+        "accessDeniedTitle": "Recruitment",
+        "accessDeniedDescription": "This HRM surface requires Recruitment search access."
       },
       "rulePackSg": {
         "leaveAnnual": "Annual leave (Singapore)",
@@ -1454,7 +1458,9 @@
           "colSeverity": "Severity",
           "colIssue": "Issue",
           "colDetail": "Detail"
-        }
+        },
+        "accessDeniedTitle": "Organization",
+        "accessDeniedDescription": "This HRM surface requires Organization read access."
       },
       "snapshot": {
         "eyebrow": "Projection",
@@ -1480,7 +1486,9 @@
         "quickLinksHeading": "Quick links",
         "linkDocuments": "Documents vault",
         "linkPolicies": "Policies",
-        "linkAttendance": "Attendance"
+        "linkAttendance": "Attendance",
+        "accessDeniedTitle": "Snapshot",
+        "accessDeniedDescription": "This HRM surface requires Snapshot read access."
       },
       "lifecycle": {
         "metaTitle": "Lifecycle overview",
@@ -1527,7 +1535,9 @@
           "separated": "Separated",
           "retired": "Retired",
           "archived": "Archived"
-        }
+        },
+        "accessDeniedTitle": "Lifecycle overview",
+        "accessDeniedDescription": "This HRM surface requires Workforce search access."
       },
       "onboarding": {
         "metaTitle": "Onboarding checklist",
@@ -1553,7 +1563,9 @@
         "colCompleted": "Completed steps",
         "colRecord": "Record a step",
         "stepPlaceholder": "step_key",
-        "recordStep": "Record step"
+        "recordStep": "Record step",
+        "accessDeniedTitle": "Onboarding",
+        "accessDeniedDescription": "This HRM surface requires Onboarding read access."
       },
       "offboarding": {
         "eyebrow": "Lifecycle",
@@ -1602,7 +1614,9 @@
         "rehireIneligible": "Ineligible",
         "rehireConditional": "Conditional",
         "rehireNoteLabel": "Rehire note",
-        "recordRehireEligibilitySubmit": "Record rehire eligibility"
+        "recordRehireEligibilitySubmit": "Record rehire eligibility",
+        "accessDeniedTitle": "Offboarding",
+        "accessDeniedDescription": "This HRM surface requires Workforce search access."
       },
       "performance": {
         "metaTitle": "Performance reviews",
@@ -1656,7 +1670,9 @@
         "competencyScoresPlaceholder": "Competency scores JSON (optional)",
         "submitReview": "Submit review",
         "acknowledgeReview": "Acknowledge",
-        "cancelReview": "Cancel review"
+        "cancelReview": "Cancel review",
+        "accessDeniedTitle": "Performance",
+        "accessDeniedDescription": "This HRM surface requires Performance search access."
       },
       "kpi": {
         "metaTitle": "KPI periods",
@@ -1744,7 +1760,9 @@
         "goalMilestoneRemove": "Remove",
         "goalMilestonesEmpty": "No milestones yet.",
         "goalMilestoneColTitle": "Milestone",
-        "goalMilestoneColActions": "Actions"
+        "goalMilestoneColActions": "Actions",
+        "accessDeniedTitle": "KPI",
+        "accessDeniedDescription": "This HRM surface requires KPI search access."
       },
       "training": {
         "metaTitle": "Training & development",
@@ -1869,7 +1887,9 @@
         "prerequisiteRequired": "Required",
         "prerequisiteOptional": "Optional",
         "prerequisiteRemove": "Remove",
-        "prerequisiteEmpty": "No prerequisites defined yet."
+        "prerequisiteEmpty": "No prerequisites defined yet.",
+        "accessDeniedTitle": "Training",
+        "accessDeniedDescription": "This HRM surface requires training search access."
       },
       "portalProfile": {
         "pageTitle": "My profile",
@@ -1979,7 +1999,9 @@
         },
         "decisionNotePlaceholder": "Optional note (visible on the decision)",
         "approve": "Approve",
-        "reject": "Reject"
+        "reject": "Reject",
+        "accessDeniedTitle": "Advances",
+        "accessDeniedDescription": "This HRM surface requires Salary advance search access."
       },
       "placeholders": {
         "employees": {
@@ -2142,7 +2164,9 @@
           "approvedAmount": "Approved amount",
           "exportedAmount": "Exported amount",
           "clawbackAmount": "Clawback amount"
-        }
+        },
+        "accessDeniedTitle": "Bonus & incentives",
+        "accessDeniedDescription": "This HRM surface requires Bonus & Incentive search access."
       },
       "salaryBenchmarking": {
         "eyebrow": "Payroll compensation",
@@ -2192,7 +2216,9 @@
           "colRange": "Range",
           "colGap": "Gap",
           "colGapRatio": "Gap ratio"
-        }
+        },
+        "accessDeniedTitle": "Salary benchmarking",
+        "accessDeniedDescription": "This HRM surface requires Salary Benchmarking search access."
       },
       "workforce": {
         "pageTitle": "Workforce",
@@ -2726,7 +2752,11 @@
         "offboardingSkipApprovalLabel": "Skip approval workflow",
         "offboardingInitiating": "Starting offboarding...",
         "offboardingInitiateSubmit": "Start offboarding",
-        "offboardingInitiated": "Offboarding started."
+        "offboardingInitiated": "Offboarding started.",
+        "accessDeniedTitle": "Employees",
+        "accessDeniedDescription": "This HRM surface requires Workforce search access.",
+        "accessDeniedDetailTitle": "Employee detail",
+        "accessDeniedDetailDescription": "This HRM surface requires Workforce read access."
       },
       "leavePolicy": {
         "pageTitle": "Leave",
@@ -2979,7 +3009,9 @@
           "open": "Open",
           "computed": "Computed",
           "locked": "Locked"
-        }
+        },
+        "accessDeniedTitle": "Attendance",
+        "accessDeniedDescription": "This HRM surface requires Attendance search access."
       },
       "signatures": {
         "eyebrow": "Signatures",
@@ -3009,7 +3041,9 @@
         "partyOrder": "Signer {order}",
         "addParty": "Add signer",
         "removeParty": "Remove signer",
-        "signerNamePlaceholder": "Signer full name"
+        "signerNamePlaceholder": "Signer full name",
+        "accessDeniedTitle": "Signatures",
+        "accessDeniedDescription": "This HRM surface requires signature search access."
       },
       "portalSignatures": {
         "eyebrow": "Signatures",
@@ -3228,7 +3262,9 @@
           "HRDF": "HRDF/HRD Corp levy",
           "UNPAID_LEAVE_DEDUCT": "Unpaid leave deduction",
           "OT_HOURS": "Overtime earnings"
-        }
+        },
+        "accessDeniedTitle": "Payroll",
+        "accessDeniedDescription": "This HRM surface requires Payroll search access."
       },
       "claims": {
         "eyebrow": "Claims",
@@ -3350,7 +3386,9 @@
         "fieldDuplicateOverride": "Field Duplicate Override",
         "fieldDuplicateOverridePlaceholder": "Field Duplicate Override Placeholder",
         "exceptionQueueTitle": "Exception queue",
-        "exceptionQueueDescription": "Claims requiring policy, evidence, or approval review."
+        "exceptionQueueDescription": "Claims requiring policy, evidence, or approval review.",
+        "accessDeniedTitle": "Claims",
+        "accessDeniedDescription": "This HRM surface requires Claims access or a linked employee record."
       },
       "compensationPlanning": {
         "eyebrow": "Payroll compensation",
@@ -3421,7 +3459,8 @@
           "grade": "Grade",
           "location": "Location",
           "manager_group": "Manager group"
-        }
+        },
+        "accessDeniedTitle": "Compensation planning"
       },
       "absenceAnalytics": {
         "metaTitle": "Absence analytics & trends",
@@ -4311,7 +4350,9 @@
         "tabClaimReferencesTitle": "Claim references",
         "tabClaimReferencesDescription": "Link benefit enrollments to external provider claim references.",
         "tabOpenEnrollmentTitle": "Open enrollment",
-        "tabOpenEnrollmentDescription": "Manage enrollment windows for eligible employees."
+        "tabOpenEnrollmentDescription": "Manage enrollment windows for eligible employees.",
+        "accessDeniedTitle": "Benefits",
+        "accessDeniedDescription": "This HRM surface requires Benefits search access."
       },
       "portalClaims": {
         "portalEmployee": "Employee {employeeNumber}",
@@ -4412,7 +4453,9 @@
         },
         "matrixTitle": "Skill coverage matrix",
         "matrixDescription": "Employee proficiency (1–5) across top catalog skills.",
-        "matrixEmployee": "Employee"
+        "matrixEmployee": "Employee",
+        "accessDeniedTitle": "Skills",
+        "accessDeniedDescription": "This HRM surface requires skill search access."
       },
       "portalBenefits": {
         "portalPageTitle": "My benefits",
@@ -4690,7 +4733,9 @@
             "rejected": "Rejected",
             "cancelled": "Cancelled"
           }
-        }
+        },
+        "accessDeniedTitle": "Leave",
+        "accessDeniedDescription": "This HRM surface requires Leave access or a linked employee record."
       },
       "documents": {
         "eyebrow": "Documents",
@@ -4791,7 +4836,9 @@
         "noEmployeeBadge": "Org-wide",
         "uploadedBySystem": "system",
         "totalCount": "{count, plural, one {# document} other {# documents}}",
-        "filteredCount": "{count, plural, one {# match} other {# matches}}"
+        "filteredCount": "{count, plural, one {# match} other {# matches}}",
+        "accessDeniedTitle": "Documents",
+        "accessDeniedDescription": "This HRM surface requires Documents search access."
       },
       "policies": {
         "eyebrow": "Policies",
@@ -4940,7 +4987,9 @@
           "colDate": "Date",
           "colName": "Holiday",
           "readOnlyHint": "Statutory rates and contribution rules remain on payroll compliance surfaces; this table is for calendar reference only."
-        }
+        },
+        "accessDeniedTitle": "Policies",
+        "accessDeniedDescription": "This HRM surface requires Policy search access."
       },
       "compliance": {
         "eyebrow": "Compliance",
@@ -5204,7 +5253,9 @@
             "critical": "Critical",
             "no_data": "No signal"
           }
-        }
+        },
+        "accessDeniedTitle": "Compliance",
+        "accessDeniedDescription": "This HRM surface requires Compliance search access."
       },
       "multiCountryPayroll": {
         "configTitle": "Country payroll configuration",
@@ -5230,6 +5281,22 @@
         "reportColNetPay": "Net pay",
         "reportColEmployerCost": "Employer cost",
         "reportColEmployerCostReporting": "Employer cost (reporting)"
+      },
+      "complianceEvidence": {
+        "accessDeniedTitle": "Compliance evidence",
+        "accessDeniedDescription": "This HRM surface requires Compliance read access."
+      },
+      "publicSignature": {
+        "accessDeniedTitle": "Signature request",
+        "accessDeniedDescription": "This HRM surface requires signature read access."
+      },
+      "workbenchOverview": {
+        "accessDeniedTitle": "Human resources",
+        "accessDeniedDescription": "This surface requires explicit HRM RBAC before any HRM page can be opened."
+      },
+      "workbenchCapability": {
+        "accessDeniedTitle": "Human resources",
+        "accessDeniedDescription": "This HRM capability requires explicit RBAC permission."
       }
     },
     "surfaceComingSoon": {

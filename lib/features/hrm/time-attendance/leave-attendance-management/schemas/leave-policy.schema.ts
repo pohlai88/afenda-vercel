@@ -51,12 +51,7 @@ export const createLeaveTypeFormSchema = z
       .positive()
       .nullable()
       .default(null),
-    minNoticeDays: z.coerce
-      .number()
-      .int()
-      .min(0)
-      .nullable()
-      .default(null),
+    minNoticeDays: z.coerce.number().int().min(0).nullable().default(null),
     maxConsecutiveDays: z.coerce
       .number()
       .int()

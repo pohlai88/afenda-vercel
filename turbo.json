@@ -226,11 +226,27 @@
     "knip": {
       "inputs": ["$TURBO_DEFAULT$", ".config/knip.json"]
     },
+    "test:fast": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".config/vitest.config.ts",
+        ".config/vitest.shared.ts",
+        ".config/vitest.setup.ts",
+        ".config/vitest.setup.shared.ts",
+        ".config/vitest.setup.dom.ts",
+        "messages/**",
+        "scripts/with-env.mjs"
+      ],
+      "outputs": [".artifacts/vitest-vite/**"]
+    },
     "test:ci": {
       "inputs": [
         "$TURBO_DEFAULT$",
         ".config/vitest.config.ts",
+        ".config/vitest.shared.ts",
         ".config/vitest.setup.ts",
+        ".config/vitest.setup.shared.ts",
+        ".config/vitest.setup.dom.ts",
         "messages/**",
         "scripts/with-env.mjs"
       ],

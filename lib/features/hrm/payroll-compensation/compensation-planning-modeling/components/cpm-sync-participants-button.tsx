@@ -45,7 +45,7 @@ export function CpmSyncParticipantsButton({ cycleId }: { cycleId: string }) {
         )}
       </Button>
       {message ? (
-        <p className="text-muted-foreground text-xs" role="status">
+        <p className="text-xs text-muted-foreground" role="status">
           {message}
         </p>
       ) : null}

@@ -30,9 +30,12 @@ vi.mock("#lib/db", () => ({
   },
 }))
 
-vi.mock("../../lib/features/hrm/hrm-admin-guard.server.ts", () => ({
-  requireHrmPermission: mocks.requireHrmPermission,
-}))
+vi.mock(
+  "../../lib/features/hrm/_module-governance/hrm-admin-guard.server.ts",
+  () => ({
+    requireHrmPermission: mocks.requireHrmPermission,
+  })
+)
 
 vi.mock(
   "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-shift.queries.server.ts",

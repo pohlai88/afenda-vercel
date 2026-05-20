@@ -53,15 +53,15 @@ describe("AAT analytics engine", () => {
   })
 
   it("detects trend direction with stable band", () => {
-    expect(
-      computeTrendDirection({ currentRate: 0.1, priorRate: 0.08 })
-    ).toBe("worsening")
-    expect(
-      computeTrendDirection({ currentRate: 0.05, priorRate: 0.08 })
-    ).toBe("improving")
-    expect(
-      computeTrendDirection({ currentRate: 0.081, priorRate: 0.08 })
-    ).toBe("stable")
+    expect(computeTrendDirection({ currentRate: 0.1, priorRate: 0.08 })).toBe(
+      "worsening"
+    )
+    expect(computeTrendDirection({ currentRate: 0.05, priorRate: 0.08 })).toBe(
+      "improving"
+    )
+    expect(computeTrendDirection({ currentRate: 0.081, priorRate: 0.08 })).toBe(
+      "stable"
+    )
   })
 
   it("flags unplanned leave type codes and weekday patterns", () => {

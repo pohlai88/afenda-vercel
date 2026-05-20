@@ -38,7 +38,9 @@ export function PoliciesOrgHolidayCreateDialog() {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("holidays.createDialogTitle")}</DialogTitle>
-          <DialogDescription>{t("holidays.createDialogDescription")}</DialogDescription>
+          <DialogDescription>
+            {t("holidays.createDialogDescription")}
+          </DialogDescription>
         </DialogHeader>
         <form action={formAction} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -64,7 +66,9 @@ export function PoliciesOrgHolidayCreateDialog() {
             </p>
           ) : null}
           <Button type="submit" disabled={pending}>
-            {pending ? t("holidays.submitCreating") : t("holidays.submitCreate")}
+            {pending
+              ? t("holidays.submitCreating")
+              : t("holidays.submitCreate")}
           </Button>
         </form>
       </DialogContent>

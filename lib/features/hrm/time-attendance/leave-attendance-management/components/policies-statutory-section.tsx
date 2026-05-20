@@ -49,20 +49,27 @@ export async function PoliciesStatutorySection() {
       <CardHeader>
         <CardTitle>{t("statutory.title")}</CardTitle>
         <CardDescription>
-          {t("statutory.description", { country: countryCode, version: packVersion })}
+          {t("statutory.description", {
+            country: countryCode,
+            version: packVersion,
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {packError ? (
           <p className="text-sm text-muted-foreground">{packError}</p>
         ) : holidays.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("statutory.empty")}</p>
+          <p className="text-sm text-muted-foreground">
+            {t("statutory.empty")}
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
-                  <th className="pb-2 pr-4 font-medium">{t("statutory.colDate")}</th>
+                  <th className="pr-4 pb-2 font-medium">
+                    {t("statutory.colDate")}
+                  </th>
                   <th className="pb-2 font-medium">{t("statutory.colName")}</th>
                 </tr>
               </thead>
@@ -77,7 +84,9 @@ export async function PoliciesStatutorySection() {
             </table>
           </div>
         )}
-        <p className="mt-4 text-xs text-muted-foreground">{t("statutory.readOnlyHint")}</p>
+        <p className="mt-4 text-xs text-muted-foreground">
+          {t("statutory.readOnlyHint")}
+        </p>
       </CardContent>
     </Card>
   )

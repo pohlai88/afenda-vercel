@@ -148,9 +148,7 @@ export async function PoliciesPage({
         <PoliciesWorkingPatternSection orgSlug={orgSlug} />
       ) : null}
 
-      {activeTab === "statutory" ? (
-        <PoliciesStatutorySection />
-      ) : null}
+      {activeTab === "statutory" ? <PoliciesStatutorySection /> : null}
     </div>
   )
 }

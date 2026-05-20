@@ -1,11 +1,10 @@
 import "server-only"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 
 import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#features/governed-surface"
 import { requireOrgSession } from "#lib/auth"
-
-import { HrmErpAccessDenied } from "../../../_module-governance/hrm-erp-access-denied.server"
 import { resolvePayrollSurfaceCapabilities } from "../data/payroll-capabilities.server"
 
 import { PayrollConsolePage } from "./payroll-console"
@@ -172,7 +171,10 @@ export async function PayrollPage() {
 
   if (!capabilities.canSearch) {
     return (
-      <HrmErpAccessDenied surface="payroll" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
 

@@ -269,7 +269,10 @@ export async function listRemoteCheckinDevicesForOrg(
       employeeLegalName: hrmEmployee.legalName,
     })
     .from(hrmRemoteCheckinDevice)
-    .leftJoin(hrmEmployee, eq(hrmEmployee.id, hrmRemoteCheckinDevice.employeeId))
+    .leftJoin(
+      hrmEmployee,
+      eq(hrmEmployee.id, hrmRemoteCheckinDevice.employeeId)
+    )
     .where(and(...conditions))
     .orderBy(desc(hrmRemoteCheckinDevice.createdAt))
   return rows.map((row) => ({
@@ -324,14 +327,18 @@ export async function listRemoteCheckinExceptionsForOrg(
   } = {}
 ): Promise<RemoteCheckinExceptionListRow[]> {
   const limit = Math.min(Math.max(options.limit ?? 100, 1), 500)
-  const conditions = [eq(hrmRemoteCheckinException.organizationId, organizationId)]
+  const conditions = [
+    eq(hrmRemoteCheckinException.organizationId, organizationId),
+  ]
   if (options.states && options.states.length > 0) {
     conditions.push(
       inArray(hrmRemoteCheckinException.state, [...options.states])
     )
   }
   if (options.employeeId) {
-    conditions.push(eq(hrmRemoteCheckinException.employeeId, options.employeeId))
+    conditions.push(
+      eq(hrmRemoteCheckinException.employeeId, options.employeeId)
+    )
   }
 
   const rows = await db

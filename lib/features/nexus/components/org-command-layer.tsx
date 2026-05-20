@@ -39,8 +39,7 @@ export async function OrgCommandLayer({
           id: `org-${org.id}`,
           label: org.name?.trim() || org.slug,
           href: organizationAppsPath(org.slug, "home") as Route,
-          description:
-            org.id === currentOrgId ? t("currentOrg") : undefined,
+          description: org.id === currentOrgId ? t("currentOrg") : undefined,
           keywords: [org.slug],
         }))
       : []

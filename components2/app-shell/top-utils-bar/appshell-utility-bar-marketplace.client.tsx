@@ -1,6 +1,12 @@
 "use client"
 
-import { useCallback, useMemo, useState, type DragEvent, type ElementType } from "react"
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type DragEvent,
+  type ElementType,
+} from "react"
 import type { Route } from "next"
 import { useTranslations } from "next-intl"
 import {

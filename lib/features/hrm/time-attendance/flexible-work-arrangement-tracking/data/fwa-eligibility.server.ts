@@ -51,7 +51,8 @@ export async function listFwaEligibilityRulesForOrg(
   return rules.map((rule) => ({
     id: rule.id,
     arrangementTypeId: rule.arrangementTypeId,
-    arrangementTypeLabel: typeMap.get(rule.arrangementTypeId) ?? rule.arrangementTypeId,
+    arrangementTypeLabel:
+      typeMap.get(rule.arrangementTypeId) ?? rule.arrangementTypeId,
     departmentId: rule.departmentId,
     jobGradeId: rule.jobGradeId,
     employmentType: rule.employmentType,

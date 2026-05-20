@@ -41,8 +41,7 @@ export async function GeolocationDevicesSection({
         date
           ? format.dateTime(date, { dateStyle: "medium", timeStyle: "short" })
           : "—",
-      formatCreated: (date) =>
-        format.dateTime(date, { dateStyle: "medium" }),
+      formatCreated: (date) => format.dateTime(date, { dateStyle: "medium" }),
       revokeLabel: t("revokeOpen"),
       reinstateLabel: t("registerOpen"),
     },
@@ -78,7 +77,9 @@ export async function GeolocationDevicesSection({
             return null
           }
           return (
-            <GovernedTrailingActionSlot trailingAction={surfaceRow.trailingAction}>
+            <GovernedTrailingActionSlot
+              trailingAction={surfaceRow.trailingAction}
+            >
               <RemoteCheckinDeviceRevokeButton
                 deviceId={row.id}
                 deviceLabel={row.deviceLabel}

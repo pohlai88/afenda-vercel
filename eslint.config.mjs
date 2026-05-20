@@ -151,8 +151,10 @@ const eslintConfig = defineConfig([
   // Global ignores — build artifacts, generated files, external tooling
   // -------------------------------------------------------------------------
   globalIgnores([
-    // Next.js build output
+    // Next.js build output (isolated dev dirs from pnpm dev:ui / dev:workflow)
     ".next/**",
+    ".next-ui/**",
+    ".next-workflow/**",
     "out/**",
     "build/**",
     "next-env.d.ts",

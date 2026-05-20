@@ -36,19 +36,28 @@ const TARGETS = [
   // app/.../page.tsx sites
   ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/imports/page.tsx", "imports"],
   ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/kpi/page.tsx", "kpi"],
-  ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/compliance/page.tsx", "compliance"],
+  [
+    "app/(main)/[locale]/o/[orgSlug]/apps/hrm/compliance/page.tsx",
+    "compliance",
+  ],
   [
     "app/(main)/[locale]/o/[orgSlug]/apps/hrm/compliance/[evidenceId]/page.tsx",
     "complianceEvidence",
   ],
   ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/training/page.tsx", "training"],
-  ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/onboarding/page.tsx", "onboarding"],
+  [
+    "app/(main)/[locale]/o/[orgSlug]/apps/hrm/onboarding/page.tsx",
+    "onboarding",
+  ],
   [
     "app/(main)/[locale]/o/[orgSlug]/apps/hrm/offboarding/page.tsx",
     "offboarding",
   ],
   ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/leave/page.tsx", "leave"],
-  ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/performance/page.tsx", "performance"],
+  [
+    "app/(main)/[locale]/o/[orgSlug]/apps/hrm/performance/page.tsx",
+    "performance",
+  ],
   ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/claims/page.tsx", "claims"],
   [
     "app/(main)/[locale]/o/[orgSlug]/apps/hrm/compensation-planning/page.tsx",
@@ -66,7 +75,10 @@ const TARGETS = [
     "app/(main)/[locale]/o/[orgSlug]/apps/hrm/employees/[employeeId]/page.tsx",
     "employeeDetail",
   ],
-  ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/signatures/page.tsx", "signatures"],
+  [
+    "app/(main)/[locale]/o/[orgSlug]/apps/hrm/signatures/page.tsx",
+    "signatures",
+  ],
   [
     "app/(main)/[locale]/o/[orgSlug]/apps/hrm/signatures/[publicSlug]/page.tsx",
     "publicSignature",
@@ -75,14 +87,20 @@ const TARGETS = [
     "app/(main)/[locale]/o/[orgSlug]/apps/hrm/salary-benchmarking/page.tsx",
     "salaryBenchmarking",
   ],
-  ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/attendance/page.tsx", "attendance"],
+  [
+    "app/(main)/[locale]/o/[orgSlug]/apps/hrm/attendance/page.tsx",
+    "attendance",
+  ],
   ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/benefits/page.tsx", "benefits"],
   [
     "app/(main)/[locale]/o/[orgSlug]/apps/hrm/bonus-incentives/page.tsx",
     "bonusIncentives",
   ],
   ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/lifecycle/page.tsx", "lifecycle"],
-  ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/recruitment/page.tsx", "recruitment"],
+  [
+    "app/(main)/[locale]/o/[orgSlug]/apps/hrm/recruitment/page.tsx",
+    "recruitment",
+  ],
   ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/policies/page.tsx", "policies"],
   ["app/(main)/[locale]/o/[orgSlug]/apps/hrm/snapshot/page.tsx", "snapshot"],
   // feature-internal sites with the same inlined copy pattern
@@ -158,16 +176,16 @@ function transform(source, surfaceKey, relativePath) {
 
   let addedImport = false
   const importAlreadyPresent = /import\s+\{[^}]*\bHrmErpAccessDenied\b/.test(
-    next,
+    next
   )
   if (importAlreadyPresent) return { next, changes, addedImport }
 
   // Internal HRM files must use a relative path (no self-barrel). External
   // (app) files use the `#features/hrm` barrel — prefer extending an existing
   // named import rather than adding a new line.
-  const isInternal = relativePath.replace(/\\/g, "/").startsWith(
-    HRM_INTERNAL_PREFIX,
-  )
+  const isInternal = relativePath
+    .replace(/\\/g, "/")
+    .startsWith(HRM_INTERNAL_PREFIX)
   if (isInternal) {
     const spec = resolveInternalSpecifier(relativePath)
     const firstImport = next.match(FIRST_IMPORT_RE)
@@ -223,10 +241,12 @@ for (const [relativePath, surfaceKey] of TARGETS) {
   const { next, changes, addedImport } = transform(
     source,
     surfaceKey,
-    relativePath,
+    relativePath
   )
   if (changes === 0) {
-    console.warn(`[skip] ${relativePath}: no <ErpAccessDenied .../> block found`)
+    console.warn(
+      `[skip] ${relativePath}: no <ErpAccessDenied .../> block found`
+    )
     continue
   }
 
@@ -234,17 +254,17 @@ for (const [relativePath, surfaceKey] of TARGETS) {
   if (APPLY && next !== source) {
     writeFileSync(filePath, next, "utf8")
     console.log(
-      `[apply] ${relativePath} surface=${surfaceKey} jsx=${changes} import=${addedImport ? "added" : "exists"}`,
+      `[apply] ${relativePath} surface=${surfaceKey} jsx=${changes} import=${addedImport ? "added" : "exists"}`
     )
   } else {
     console.log(
-      `[dry]   ${relativePath} surface=${surfaceKey} jsx=${changes} import=${addedImport ? "would-add" : "exists"}`,
+      `[dry]   ${relativePath} surface=${surfaceKey} jsx=${changes} import=${addedImport ? "would-add" : "exists"}`
     )
   }
 }
 
 console.log(
-  `\n${APPLY ? "applied" : "would apply"} ${totalChanges} JSX rewrites across ${TARGETS.length} files (${failures} missing)`,
+  `\n${APPLY ? "applied" : "would apply"} ${totalChanges} JSX rewrites across ${TARGETS.length} files (${failures} missing)`
 )
 
 if (failures > 0) process.exit(1)

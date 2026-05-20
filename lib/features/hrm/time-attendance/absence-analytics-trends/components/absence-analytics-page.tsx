@@ -214,8 +214,14 @@ export async function AbsenceAnalyticsPage({
       <AatExceptionTrendsSection snapshot={snapshot} loadError={loadError} />
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <AatDepartmentRankingSection snapshot={snapshot} loadError={loadError} />
-        <AatHighRiskEmployeesSection snapshot={snapshot} loadError={loadError} />
+        <AatDepartmentRankingSection
+          snapshot={snapshot}
+          loadError={loadError}
+        />
+        <AatHighRiskEmployeesSection
+          snapshot={snapshot}
+          loadError={loadError}
+        />
       </div>
     </div>
   )

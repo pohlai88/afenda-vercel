@@ -1,4 +1,6 @@
-import { ComplianceEvidenceDetailPage, HrmErpAccessDenied } from "#features/hrm"
+import { ComplianceEvidenceDetailPage } from "#features/hrm"
+import { getTranslations } from "next-intl/server"
+import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 type OrgAppsHrmComplianceEvidenceDetailPageProps = {
@@ -28,8 +30,13 @@ export default async function OrgAppsHrmComplianceEvidenceDetailPage({
     function: "read",
   })
   if (!allowed) {
+    const t = await getTranslations("Dashboard.Hrm.complianceEvidence")
+
     return (
-      <HrmErpAccessDenied surface="complianceEvidence" />
+      <ErpAccessDenied
+        title={t("accessDeniedTitle")}
+        description={t("accessDeniedDescription")}
+      />
     )
   }
   return (

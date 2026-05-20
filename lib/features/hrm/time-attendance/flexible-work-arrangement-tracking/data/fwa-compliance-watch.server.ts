@@ -65,7 +65,9 @@ type FwaComplianceCandidate = {
   breachKind: string
 }
 
-async function listFwaComplianceCandidates(): Promise<FwaComplianceCandidate[]> {
+async function listFwaComplianceCandidates(): Promise<
+  FwaComplianceCandidate[]
+> {
   const rows = await db
     .select({
       id: hrmFlexibleWorkRequest.id,

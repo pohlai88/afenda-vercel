@@ -42,8 +42,12 @@ export async function AttendanceCorrectionPending() {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-left text-muted-foreground">
-            <th className="pb-2 pr-4 font-medium">{t("correctionPendingColEvent")}</th>
-            <th className="pb-2 pr-4 font-medium">{t("correctionPendingColRequested")}</th>
+            <th className="pr-4 pb-2 font-medium">
+              {t("correctionPendingColEvent")}
+            </th>
+            <th className="pr-4 pb-2 font-medium">
+              {t("correctionPendingColRequested")}
+            </th>
             <th className="pb-2 font-medium">{t("colActions")}</th>
           </tr>
         </thead>

@@ -26,7 +26,10 @@ export async function exportLeaveRequestsReportAction(): Promise<
     permission: { module: "hrm", object: "leave", function: "read" },
   })
   if (!allowed) {
-    return { ok: false, error: "You are not authorized to export leave requests." }
+    return {
+      ok: false,
+      error: "You are not authorized to export leave requests.",
+    }
   }
 
   const rows = await listAllLeaveRequestsForOrg(organizationId, { limit: 500 })

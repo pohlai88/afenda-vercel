@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  PLANNER_AUDIT_ACTIONS,
-  buildPlannerAuditAction,
-} from "#features/orbit"
+import { PLANNER_AUDIT_ACTIONS, buildPlannerAuditAction } from "#features/orbit"
 
 describe("planner.contract", () => {
   it("registry literals match buildPlannerAuditAction for each emitted pair", () => {

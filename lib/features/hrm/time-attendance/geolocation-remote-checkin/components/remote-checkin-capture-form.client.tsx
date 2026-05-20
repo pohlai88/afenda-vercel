@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react"
+import { useActionState, useId, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2, MapPin } from "lucide-react"
 
@@ -19,6 +19,8 @@ import {
   type RemoteCheckinRecordFormState,
 } from "#features/hrm/client"
 
+import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
+
 const SELECT_CLASS =
   "h-9 w-full rounded border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
 
@@ -26,11 +28,20 @@ type RemoteCheckinCaptureFormProps = {
   readonly orgSlug: string
   /** When provided, the form submits for a different employee (HR / manager on-behalf). */
   readonly defaultEmployeeId?: string
-  readonly geofenceChoices?: ReadonlyArray<{ id: string; code: string; label: string }>
+  readonly geofenceChoices?: ReadonlyArray<{
+    id: string
+    code: string
+    label: string
+  }>
   readonly onSuccess?: () => void
 }
 
-const EVENT_TYPES = ["clock_in", "clock_out", "break_start", "break_end"] as const
+const EVENT_TYPES = [
+  "clock_in",
+  "clock_out",
+  "break_start",
+  "break_end",
+] as const
 
 function defaultLocalIso(): string {
   const now = new Date()
@@ -68,16 +79,10 @@ export function RemoteCheckinCaptureForm({
     "idle" | "pending" | "ready" | "denied"
   >("idle")
 
-  const onSuccessRef = useRef(onSuccess)
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
-
-  useEffect(() => {
-    if (state?.ok && state.outcome === "approved") {
-      onSuccessRef.current?.()
-    }
-  }, [state])
+  useFormSuccess(state, onSuccess, {
+    when: (result) =>
+      result.ok && "outcome" in result && result.outcome === "approved",
+  })
 
   const fieldErrors = useMemo(() => {
     if (!state || state.ok) return null
@@ -114,13 +119,17 @@ export function RemoteCheckinCaptureForm({
       {state?.ok && state.outcome === "pending_exception" ? (
         <Alert>
           <AlertTitle>{t("capture.submitSuccessTitle")}</AlertTitle>
-          <AlertDescription>{t("capture.submitSuccessException")}</AlertDescription>
+          <AlertDescription>
+            {t("capture.submitSuccessException")}
+          </AlertDescription>
         </Alert>
       ) : null}
       {state?.ok && state.outcome === "approved" ? (
         <Alert>
           <AlertTitle>{t("capture.submitSuccessTitle")}</AlertTitle>
-          <AlertDescription>{t("capture.submitSuccessVerified")}</AlertDescription>
+          <AlertDescription>
+            {t("capture.submitSuccessVerified")}
+          </AlertDescription>
         </Alert>
       ) : null}
 
@@ -132,7 +141,9 @@ export function RemoteCheckinCaptureForm({
       ) : null}
 
       <Field>
-        <FieldLabel htmlFor={eventTypeId}>{t("capture.fieldEventType")}</FieldLabel>
+        <FieldLabel htmlFor={eventTypeId}>
+          {t("capture.fieldEventType")}
+        </FieldLabel>
         <select
           id={eventTypeId}
           name="eventType"
@@ -153,7 +164,9 @@ export function RemoteCheckinCaptureForm({
       </Field>
 
       <Field>
-        <FieldLabel htmlFor={occurredAtId}>{t("capture.fieldOccurredAt")}</FieldLabel>
+        <FieldLabel htmlFor={occurredAtId}>
+          {t("capture.fieldOccurredAt")}
+        </FieldLabel>
         <Input
           id={occurredAtId}
           name="occurredAtIso"
@@ -250,7 +263,9 @@ export function RemoteCheckinCaptureForm({
 
       {geofenceChoices.length > 0 ? (
         <Field>
-          <FieldLabel htmlFor={geofenceId}>{t("capture.fieldGeofence")}</FieldLabel>
+          <FieldLabel htmlFor={geofenceId}>
+            {t("capture.fieldGeofence")}
+          </FieldLabel>
           <select
             id={geofenceId}
             name="geofenceId"

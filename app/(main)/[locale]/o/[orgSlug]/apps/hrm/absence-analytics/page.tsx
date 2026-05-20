@@ -10,7 +10,10 @@ import { PRIVATE_SURFACE_ROBOTS } from "#lib/i18n/private-surface-robots.shared"
 
 type PageProps = {
   params: Promise<{ locale: string; orgSlug: string }>
-  searchParams: Promise<{ period?: string | string[]; scope?: string | string[] }>
+  searchParams: Promise<{
+    period?: string | string[]
+    scope?: string | string[]
+  }>
 }
 
 export async function generateMetadata(): Promise<Metadata> {

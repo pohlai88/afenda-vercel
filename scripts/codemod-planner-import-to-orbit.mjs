@@ -140,10 +140,16 @@ for (const abs of listFiles(root)) {
 }
 
 const verb = dryRun ? "would touch" : "touched"
-console.log(`[planner→orbit] ${verb} ${touchedFiles} files (${totalReplacements} replacements)`)
-for (const { rel, count } of summary.sort((a, b) => a.rel.localeCompare(b.rel))) {
+console.log(
+  `[planner→orbit] ${verb} ${touchedFiles} files (${totalReplacements} replacements)`
+)
+for (const { rel, count } of summary.sort((a, b) =>
+  a.rel.localeCompare(b.rel)
+)) {
   console.log(`  ${count.toString().padStart(3)} × ${rel}`)
 }
 if (dryRun) {
-  console.log("\n[planner→orbit] dry-run only — re-run without --dry-run to apply.")
+  console.log(
+    "\n[planner→orbit] dry-run only — re-run without --dry-run to apply."
+  )
 }

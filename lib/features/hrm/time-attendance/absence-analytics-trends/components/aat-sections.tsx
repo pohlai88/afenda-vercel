@@ -30,9 +30,7 @@ import {
   buildAatKpiStatConfiguration,
   buildAatTrendChartConfiguration,
 } from "../data/aat-surface-builders.server"
-import {
-  aatTrendStatTone,
-} from "../data/aat-display.shared"
+import { aatTrendStatTone } from "../data/aat-display.shared"
 
 type AatAnalyticsSectionsProps = {
   snapshot: AatOrgAnalyticsSnapshot
@@ -170,9 +168,7 @@ export async function AatLeaveTypeBreakdownSection({
       description={t("leaveTypeDescription")}
       surfaceKey={AAT_LIST_SURFACE_IDS.leaveTypeBreakdown}
       loadError={
-        loadError
-          ? { variant: "muted", title: t("loadFailed") }
-          : undefined
+        loadError ? { variant: "muted", title: t("loadFailed") } : undefined
       }
       listConfiguration={buildAatLeaveTypeBreakdownListSurface(
         snapshot.leaveTypeBreakdown,
@@ -201,9 +197,7 @@ export async function AatDepartmentRankingSection({
       description={t("departmentDescription")}
       surfaceKey={AAT_LIST_SURFACE_IDS.departmentRanking}
       loadError={
-        loadError
-          ? { variant: "muted", title: t("loadFailed") }
-          : undefined
+        loadError ? { variant: "muted", title: t("loadFailed") } : undefined
       }
       listConfiguration={buildAatDepartmentRankingListSurface(
         snapshot.departmentRanking,
@@ -234,9 +228,7 @@ export async function AatHighRiskEmployeesSection({
       description={t("highRiskDescription")}
       surfaceKey={AAT_LIST_SURFACE_IDS.highRiskEmployees}
       loadError={
-        loadError
-          ? { variant: "muted", title: t("loadFailed") }
-          : undefined
+        loadError ? { variant: "muted", title: t("loadFailed") } : undefined
       }
       listConfiguration={buildAatHighRiskEmployeesListSurface(
         snapshot.highRiskEmployees,
@@ -269,9 +261,7 @@ export async function AatExceptionTrendsSection({
       description={t("exceptionDescription")}
       surfaceKey={AAT_LIST_SURFACE_IDS.exceptionTrends}
       loadError={
-        loadError
-          ? { variant: "muted", title: t("loadFailed") }
-          : undefined
+        loadError ? { variant: "muted", title: t("loadFailed") } : undefined
       }
       listConfiguration={buildAatExceptionTrendsListSurface(
         snapshot.exceptionTrends,

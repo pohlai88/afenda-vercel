@@ -40,7 +40,9 @@ if (showHelp) {
 }
 
 if (workflowOnly && uiOnly) {
-  console.error("[dev:stack] --workflow-only and --ui-only are mutually exclusive.")
+  console.error(
+    "[dev:stack] --workflow-only and --ui-only are mutually exclusive."
+  )
   process.exit(1)
 }
 

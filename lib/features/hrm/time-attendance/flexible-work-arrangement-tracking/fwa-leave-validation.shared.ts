@@ -29,9 +29,7 @@ export function validateLeaveAgainstFwaSchedule(input: {
   endDate: string
   halfDay: FwaLeaveHalfDay
   patterns: readonly FwaSchedulePatternInput[]
-}):
-  | { ok: true }
-  | { ok: false; message: string } {
+}): { ok: true } | { ok: false; message: string } {
   if (input.patterns.length === 0) {
     return {
       ok: false,

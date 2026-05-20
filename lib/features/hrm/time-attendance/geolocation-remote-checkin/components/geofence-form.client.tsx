@@ -6,11 +6,7 @@ import { Loader2 } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
 import { Button } from "#components2/ui/button"
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from "#components2/ui/field"
+import { Field, FieldError, FieldLabel } from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 import { Textarea } from "#components2/ui/textarea"
 import {
@@ -59,9 +55,15 @@ type GeofenceFormProps = {
   }
 }
 
-export function GeofenceUpsertDialog({ orgSlug, mode, defaults }: GeofenceFormProps) {
+export function GeofenceUpsertDialog({
+  orgSlug,
+  mode,
+  defaults,
+}: GeofenceFormProps) {
   const t = useTranslations("Dashboard.Hrm.Geolocation.geofences")
-  const tScope = useTranslations("Dashboard.Hrm.Geolocation.geofences.scopeLabels")
+  const tScope = useTranslations(
+    "Dashboard.Hrm.Geolocation.geofences.scopeLabels"
+  )
   const [open, setOpen] = useState(false)
   const [state, formAction, pending] = useActionState<
     GeofenceMutationFormState | undefined,
@@ -87,7 +89,9 @@ export function GeofenceUpsertDialog({ orgSlug, mode, defaults }: GeofenceFormPr
   const dialogTitle =
     mode === "create" ? t("createDialogTitle") : t("editDialogTitle")
   const dialogDescription =
-    mode === "create" ? t("createDialogDescription") : t("editDialogDescription")
+    mode === "create"
+      ? t("createDialogDescription")
+      : t("editDialogDescription")
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -185,7 +189,9 @@ export function GeofenceUpsertDialog({ orgSlug, mode, defaults }: GeofenceFormPr
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor={radiusId}>{t("fieldRadiusMeters")}</FieldLabel>
+              <FieldLabel htmlFor={radiusId}>
+                {t("fieldRadiusMeters")}
+              </FieldLabel>
               <Input
                 id={radiusId}
                 name="radiusMeters"
@@ -200,7 +206,9 @@ export function GeofenceUpsertDialog({ orgSlug, mode, defaults }: GeofenceFormPr
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Field>
-              <FieldLabel htmlFor={bufferId}>{t("fieldBufferMeters")}</FieldLabel>
+              <FieldLabel htmlFor={bufferId}>
+                {t("fieldBufferMeters")}
+              </FieldLabel>
               <Input
                 id={bufferId}
                 name="bufferMeters"
@@ -211,7 +219,9 @@ export function GeofenceUpsertDialog({ orgSlug, mode, defaults }: GeofenceFormPr
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor={countryId}>{t("fieldCountryCode")}</FieldLabel>
+              <FieldLabel htmlFor={countryId}>
+                {t("fieldCountryCode")}
+              </FieldLabel>
               <Input
                 id={countryId}
                 name="countryCode"
@@ -221,7 +231,9 @@ export function GeofenceUpsertDialog({ orgSlug, mode, defaults }: GeofenceFormPr
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor={legalId}>{t("fieldLegalEntityCode")}</FieldLabel>
+              <FieldLabel htmlFor={legalId}>
+                {t("fieldLegalEntityCode")}
+              </FieldLabel>
               <Input
                 id={legalId}
                 name="legalEntityCode"
@@ -264,7 +276,11 @@ export function GeofenceUpsertDialog({ orgSlug, mode, defaults }: GeofenceFormPr
   )
 }
 
-export function GeofenceDeprecateButton({ geofenceId }: { geofenceId: string }) {
+export function GeofenceDeprecateButton({
+  geofenceId,
+}: {
+  geofenceId: string
+}) {
   const t = useTranslations("Dashboard.Hrm.Geolocation.geofences")
   const [state, formAction, pending] = useActionState<
     GeofenceMutationFormState | undefined,

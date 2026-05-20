@@ -60,7 +60,9 @@ export function RemoteCheckinPolicyDialog({
   defaults?: Defaults
 }) {
   const t = useTranslations("Dashboard.Hrm.Geolocation.policies")
-  const tScope = useTranslations("Dashboard.Hrm.Geolocation.policies.scopeLabels")
+  const tScope = useTranslations(
+    "Dashboard.Hrm.Geolocation.policies.scopeLabels"
+  )
   const tCommon = useTranslations("Dashboard.Hrm.Geolocation")
   const [open, setOpen] = useState(false)
   const [state, formAction, pending] = useActionState<
@@ -83,7 +85,9 @@ export function RemoteCheckinPolicyDialog({
   const title =
     mode === "create" ? t("createDialogTitle") : t("editDialogTitle")
   const description =
-    mode === "create" ? t("createDialogDescription") : t("editDialogDescription")
+    mode === "create"
+      ? t("createDialogDescription")
+      : t("editDialogDescription")
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

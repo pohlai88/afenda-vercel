@@ -100,19 +100,18 @@ describe("PLATFORM_ADMIN_ALLOWED_SEGMENTS", () => {
   })
 
   it("has a route page for every registered platform segment", () => {
+    const platformRoot = join(
+      process.cwd(),
+      "app",
+      "(main)",
+      "[locale]",
+      "platform"
+    )
     for (const segment of PLATFORM_ADMIN_ALLOWED_SEGMENTS) {
+      const securedRoute = join(platformRoot, "(secured)", segment, "page.tsx")
+      const legacyRoute = join(platformRoot, segment, "page.tsx")
       expect(
-        existsSync(
-          join(
-            process.cwd(),
-            "app",
-            "(main)",
-            "[locale]",
-            "platform",
-            segment,
-            "page.tsx"
-          )
-        ),
+        existsSync(securedRoute) || existsSync(legacyRoute),
         `missing platform route for ${segment}`
       ).toBe(true)
     }

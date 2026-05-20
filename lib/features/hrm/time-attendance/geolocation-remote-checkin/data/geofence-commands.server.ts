@@ -38,7 +38,9 @@ export async function upsertGeofence(
     columns: { id: true },
   })
   if (existingWithCode && existingWithCode.id !== input.geofenceId) {
-    return hrmActionFailure({ code: "A geofence with this code already exists." })
+    return hrmActionFailure({
+      code: "A geofence with this code already exists.",
+    })
   }
 
   const isUpdate = !!input.geofenceId

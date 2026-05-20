@@ -12,11 +12,9 @@ import {
 const uuid = z.string().uuid()
 const orgSlug = z.string().min(1)
 
-const isoDateOnly = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, {
-    message: "Must be a date in YYYY-MM-DD format.",
-  })
+const isoDateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+  message: "Must be a date in YYYY-MM-DD format.",
+})
 
 const nullableText = z.string().trim().min(1).max(200).optional()
 

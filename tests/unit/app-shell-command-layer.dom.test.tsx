@@ -63,6 +63,7 @@ describe("AppShellCommandPalette", () => {
       <>
         <OpenCommandOnMount />
         <AppShellCommandPalette
+          placeholder="Search…"
           dialogTitle="Admin command palette"
           dialogDescription="Search admin navigation"
           sections={[

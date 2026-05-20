@@ -163,7 +163,9 @@ describe("HRM Geolocation surface builders", () => {
       { canManage: true }
     )
 
-    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(true)
+    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(
+      true
+    )
     expect(configuration.surface.columnsId).toBe(
       REMOTE_CHECKIN_LIST_SURFACE_IDS.geofences
     )
@@ -207,7 +209,9 @@ describe("HRM Geolocation surface builders", () => {
       { canManage: true }
     )
 
-    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(true)
+    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(
+      true
+    )
     expect(configuration.rows[0]?.trailingAction?.state).toBe("ready")
   })
 
@@ -229,7 +233,9 @@ describe("HRM Geolocation surface builders", () => {
       { canManage: true }
     )
 
-    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(true)
+    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(
+      true
+    )
     const trailingAction = configuration.rows[0]?.trailingAction
     expect(trailingAction?.state).toBe("ready")
     if (trailingAction?.state === "ready") {
@@ -254,7 +260,9 @@ describe("HRM Geolocation surface builders", () => {
       { canDecide: true }
     )
 
-    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(true)
+    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(
+      true
+    )
     expect(configuration.rows[0]?.trailingAction?.state).toBe("ready")
   })
 
@@ -273,7 +281,9 @@ describe("HRM Geolocation surface builders", () => {
       }
     )
 
-    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(true)
+    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(
+      true
+    )
     expect(configuration.rows[0]?.trailingAction).toBeUndefined()
   })
 })

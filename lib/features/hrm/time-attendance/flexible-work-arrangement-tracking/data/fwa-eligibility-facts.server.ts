@@ -21,9 +21,7 @@ export type FwaEligibilityEmployeeFacts = {
   policyGroupCode: string | null
 }
 
-function readLegalEntityCodeFromPayrollExtras(
-  extras: unknown
-): string | null {
+function readLegalEntityCodeFromPayrollExtras(extras: unknown): string | null {
   if (!extras || typeof extras !== "object") return null
   const raw = (extras as Record<string, unknown>).legalEntityCode
   return typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : null

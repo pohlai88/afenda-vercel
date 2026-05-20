@@ -20,7 +20,9 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function OrgAppsHrmFlexibleWorkPage({ params }: PageProps) {
+export default async function OrgAppsHrmFlexibleWorkPage({
+  params,
+}: PageProps) {
   const { locale, orgSlug } = await params
   ensureAppLocale(locale)
 

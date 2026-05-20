@@ -11,17 +11,6 @@ export type DeclarationSection = {
   readonly bullets?: readonly string[]
 }
 
-/** Locale-internal declaration keys rendered under `/legal-docs/...`. */
-export type LegalDeclarationSlug =
-  | "cookies"
-  | "data-processing-addendum"
-  | "privacy"
-  | "terms"
-  | "security"
-  | "security/disclosure"
-  | "subprocessors"
-  | "support"
-
 export type DeclarationRelatedLink = {
   readonly href: string
   readonly label: string

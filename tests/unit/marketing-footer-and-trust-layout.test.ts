@@ -59,7 +59,7 @@ describe("landing footer", () => {
 
   it("renders the borrowed footer surface on the landing page", () => {
     const footer = readProjectFile(
-      "components",
+      "components2",
       "marketing",
       "landing-footer.tsx"
     )
@@ -76,8 +76,8 @@ describe("landing footer", () => {
 describe("trust layout", () => {
   it("uses the legal declaration shell layout vocabulary", () => {
     const trust = readProjectFile(
-      "components",
-      "marketing",
+      "components2",
+      "legal-docs",
       "trust-control-surface.tsx"
     )
 
@@ -93,13 +93,13 @@ describe("trust layout", () => {
 describe("legal and trust brand lockups", () => {
   it("uses the shared light/dark brand component instead of the raw SVG lockup", () => {
     const declaration = readProjectFile(
-      "components",
-      "marketing",
+      "components2",
+      "legal-docs",
       "declaration-shell.tsx"
     )
     const trust = readProjectFile(
-      "components",
-      "marketing",
+      "components2",
+      "legal-docs",
       "trust-control-surface.tsx"
     )
 

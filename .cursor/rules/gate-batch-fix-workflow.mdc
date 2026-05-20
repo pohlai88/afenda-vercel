@@ -1,0 +1,128 @@
+---
+description: Batch-fix workflow when pnpm gate:push fails — one triage pass, fix by category, one final gate (not fix-per-error loops).
+alwaysApply: true
+---
+
+# Gate batch-fix workflow (L2 pre-push)
+
+**Pair with:** `.cursor/rules/targeted-verification.mdc` (L0 ladder) · **AGENTS.md §2** — *L2 batch-fix workflow* · [ADR-0033](../docs/decisions/0033-verify-gate-ladder-naming.md) · [ADR-0008](../docs/decisions/0008-vitest-nextjs-unit-test-configuration.md)
+
+## Prime directive
+
+```txt
+Run pnpm gate:push once → triage ALL failures → batch-fix by category → pnpm format once if needed → pnpm gate:push once
+```
+
+**Forbidden:** fix one ESLint file → `gate:push` → fix one test → `gate:push` → … (multiplies 2–10 min per lap).
+
+**Allowed:** L0 `pnpm gate -- <paths>` after every small edit; **L2 only** at pre-push close.
+
+---
+
+## Close condition
+
+```txt
+pnpm gate:push → exit 0
+Turbo summary: Tasks: 23 successful, 23 total
+```
+
+---
+
+## First run: read failures only
+
+Turbo prints `Failed: //#<task>`. Fix **every** failure of that task before re-running L2.
+
+Optional targeted reruns (cheaper than full `gate:push`):
+
+| Failed task | Narrow command |
+| --- | --- |
+| `format:check` | `pnpm format:check` then `pnpm format` |
+| `lint:eslint` | `pnpm lint:eslint` (see ESLint notes below) |
+| `typecheck` | `pnpm typecheck` |
+| `typecheck:test` | `pnpm typecheck:test` |
+| `typecheck:scripts` | `pnpm typecheck:scripts` |
+| `knip` | `pnpm knip` |
+| `test:ci` | `pnpm test:ci` or `pnpm test:fast -- tests/unit/<files>` |
+| Governance lint | `pnpm lint:<name>` (e.g. `pnpm lint:public-lynx-contract`) |
+
+---
+
+## Triage order (fix in this sequence)
+
+1. **`format:check`** — `pnpm format` (safe after large refactors).
+2. **`lint:eslint`** — only files listed at end of output; never chase `.next` / `.next-ui` / `.next-workflow` (must stay in `eslint.config.mjs` `globalIgnores`).
+3. **`typecheck` / `typecheck:test` / `typecheck:scripts`** — imports, exports, moved paths in the **same** change.
+4. **Governance tasks** (`lint:agent-contract`, `lint:public-lynx-contract`, `lint:fixtures-parity`, `lint:drizzle-journal`, …).
+5. **`knip`** — unused exports, unlisted deps, dead types (duplicate-export *warnings* may still print; exit code matters).
+6. **`test:ci`** — batch all failing unit tests, then one coverage run.
+7. **Coverage thresholds** — only after tests pass; see below.
+
+---
+
+## `test:ci` batching
+
+```powershell
+# Fast loop on failing files only
+pnpm test:fast -- tests/unit/foo.test.ts tests/unit/bar.test.ts
+
+# Full coverage gate (slow — run once before final gate:push)
+pnpm test:ci
+```
+
+**359 tests** — expect several minutes with coverage on Windows.
+
+---
+
+## Vitest / Windows footguns
+
+| Symptom | Fix |
+| --- | --- |
+| `Cannot find module '...drizzle-orm/index.js&v=...'` or pre-bundle version mismatch | Do **not** enable Vitest `deps.optimizer.ssr` while using `vi.importActual("drizzle-orm")` in mocks. Clear `.artifacts/vitest-vite` and re-run. |
+| `unit-dom` / happy-dom missing | Add **`happy-dom`** to `devDependencies`; `environment: "happy-dom"` in `.config/vitest.config.ts`. |
+| Public Lynx contract: vitest without `--config` | Scripts delegating to `scripts/vitest-*.mjs` are OK; see `scripts/check-public-lynx-contract.mjs`. |
+| Stale mock path after HRM move | `hrm-admin-guard.server.ts` → `lib/features/hrm/_module-governance/hrm-admin-guard.server.ts` |
+
+Config authority: **`.config/vitest.config.ts`** · **`.config/vitest.shared.ts`**.
+
+---
+
+## Coverage after module moves
+
+When files move under nested folders (HRM, Orbit), update **`buildCoverageConfig().exclude`** in `.config/vitest.shared.ts`:
+
+| Pattern | Exclude when |
+| --- | --- |
+| `lib/features/hrm/**/components/**` | HRM UI (server actions/data already excluded) |
+| `lib/features/hrm/**/data/**` · `**/actions/**` | Server-only HRM (default) |
+| `lib/features/orbit/**/data/**` · `views/**` · `components/**` · `automation/**` | Orbit server/UI shells |
+
+**Threshold ratchet:** if global % drops after a large add, lower `thresholds` in `.config/vitest.shared.ts` **with a one-line comment** citing ADR-0008 — do not disable coverage.
+
+---
+
+## Contract tests (filesystem assertions)
+
+After refactors, tests that `readFileSync` module sources must target **disk truth**:
+
+| Retired | Use instead |
+| --- | --- |
+| `components/marketing/*` | `components2/marketing/*` or `components2/legal-docs/*` |
+| `lib/features/hrm/data/*` | `lib/features/hrm/<segment>/.../data/*` |
+| `lib/features/hrm/actions/*` | `lib/features/hrm/<segment>/.../actions/*` |
+| `app/.../platform/<seg>/page.tsx` | `app/.../platform/(secured)/<seg>/page.tsx` when applicable |
+
+Prefer a local helper, e.g. `readHrmSource(...segments)`, instead of long `join(process.cwd(), …)` chains.
+
+**Payroll rule-pack tests:** `validateProfile` may require statutory fields (`taxIdentifierNumber`, `epfNumber`, …). For wrong-country cases, include IDs so only `COUNTRY_MISMATCH` is asserted.
+
+---
+
+## ESLint log hygiene
+
+If `pnpm lint:eslint` prints hundreds of thousands of lines, **build artifacts are being linted** — fix `eslint.config.mjs` `globalIgnores` (`.next/**`, `.next-ui/**`, `.next-workflow/**`, `.artifacts/**`), delete `.artifacts/.eslintcache`, re-run.
+
+---
+
+## Post-refactor residue (same PR)
+
+When batch-fixing gates, also run the **post-task residue** checklist (`.cursor/rules/post-task-residue.mdc`): stale paths in tests, barrel exports, `pnpm gate -- <touched-paths>` at L0.

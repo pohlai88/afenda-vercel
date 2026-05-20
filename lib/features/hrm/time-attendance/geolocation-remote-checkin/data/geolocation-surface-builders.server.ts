@@ -231,7 +231,9 @@ export function buildRemoteCheckinPoliciesListSurfaceConfiguration(
     rows: rows.map((row) => ({
       id: row.id,
       cells: {
-        scope: row.scopeRef ? `${row.scopeKind}:${row.scopeRef}` : row.scopeKind,
+        scope: row.scopeRef
+          ? `${row.scopeKind}:${row.scopeRef}`
+          : row.scopeKind,
         minAccuracy: `${row.minGpsAccuracyMeters} m`,
         shiftWindow: `${row.shiftWindowMinutes} / ${row.breakWindowMinutes} min`,
         device: copy.yesNo(row.requireRegisteredDevice),
@@ -326,9 +328,7 @@ export function buildRemoteCheckinDevicesListSurfaceConfiguration(
                   ? "erp.hrm.remote_checkin_device.revoke"
                   : "erp.hrm.remote_checkin_device.reinstate",
               label:
-                row.state === "active"
-                  ? copy.revokeLabel
-                  : copy.reinstateLabel,
+                row.state === "active" ? copy.revokeLabel : copy.reinstateLabel,
               intent: row.state === "active" ? "destructive" : "default",
             },
           })

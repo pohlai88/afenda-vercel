@@ -22,7 +22,10 @@ export async function registerRemoteCheckinDeviceAction(
   const submittedEmployeeId = formData.get("employeeId")
   let employeeId: string | null = null
 
-  if (typeof submittedEmployeeId === "string" && submittedEmployeeId.length > 0) {
+  if (
+    typeof submittedEmployeeId === "string" &&
+    submittedEmployeeId.length > 0
+  ) {
     const gate = await requireHrmPermission({
       object: "remote_checkin",
       function: "create",

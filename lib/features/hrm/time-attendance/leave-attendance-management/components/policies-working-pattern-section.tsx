@@ -28,9 +28,13 @@ export async function PoliciesWorkingPatternSection({
         <CardDescription>{t("workingPattern.description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <p className="text-sm text-muted-foreground">{t("workingPattern.body")}</p>
+        <p className="text-sm text-muted-foreground">
+          {t("workingPattern.body")}
+        </p>
         <Button variant="outline" size="sm" asChild>
-          <Link href={attendanceHref}>{t("workingPattern.openAttendance")}</Link>
+          <Link href={attendanceHref}>
+            {t("workingPattern.openAttendance")}
+          </Link>
         </Button>
       </CardContent>
     </Card>
