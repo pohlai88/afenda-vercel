@@ -73,7 +73,20 @@ Before push:         pnpm gate:typecheck  (or pnpm gate:push)
 | **7a** | Route segment SSOT in `lib/i18n/org-apps-route-segments.shared.ts`; remove `#features` imports from `lib/i18n`; HRM/Orbit re-export; `org-apps-redirect` uses `#lib/org-apps-module-paths` |
 | **7b** | `.config/tsconfig.lib-i18n.json` composite (`**/*.shared.ts`); solution + platform references; gate `lib-i18n` slice for shared-only paths |
 
-**Deferred:** `lib/auth` composite slice (still depends on `lib/db` + full `lib/i18n` server graph); `tsgo` as merge gate until `typecheck:compare` is green on `main`; pnpm workspace package split; `isolatedDeclarations`.
+**Out of scope for this ADR** (no follow-up phase planned here): a separate `lib/auth` composite; pnpm workspace package split; `isolatedDeclarations`.
+
+**Why no `lib/auth` composite (IAM + Next.js runtime):**
+
+| Fact | Implication |
+| --- | --- |
+| Tier A layouts call `requireOrgSession`, `getRequestAppLocale`, redirects | Almost all auth edits touch `*.server.ts`, not shared-only files |
+| Six server modules import `#lib/i18n/request-locale.server` (`next-intl/server`, `server-only`) | Locale for guards must stay on the **platform** graph with i18n server code — not isolatable like `lib/i18n/**/*.shared.ts` |
+| Many server modules import `#lib/db`, `#lib/session-cache`, `#lib/logger.server` | A leaf composite would still reference `lib-db` + platform; no smaller incremental slice than **platform** for typical IAM work |
+| `proxy.ts` and edge-safe doors use `*.shared.ts` / `callback-path.ts` only | Those files already typecheck via **lib-i18n** composite when touched alone; gate `lib/auth/foo.shared.ts` still correctly escalates to **platform** when mixed with server paths |
+
+A hypothetical `lib/auth/**/*.shared.ts` composite (mirroring Phase 7b) would not speed up the common agent path (`tenant-session.server.ts`, `audit.server.ts`, …). Extracting `getRequestAppLocale` out of auth would duplicate locale authority and break the server-first layout contract — rejected on correctness grounds, not laziness.
+
+**Optional promotion (operator choice, not backlog):** `pnpm typecheck:compare` reports `exit parity: match` when both compilers pass. To make CI fail on `tsgo` drift, set `AFENDA_TSGO_ENFORCE=1` on the existing `typecheck:tsgo` / `typecheck:compare` steps. **`tsc` remains merge authority** until the team explicitly promotes.
 
 **Rejected:** path-scoped `tsc` on one non-composite config; `projectService` on every L0 lint.
 

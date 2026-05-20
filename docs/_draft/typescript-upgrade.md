@@ -185,6 +185,29 @@ Platform `tsconfig.json` / `tsconfig.tsgo.json` **reference** both `lib-db` and 
 
 ---
 
+## Why no `lib/auth` composite
+
+Phases 0–7 optimize **compile slices**, not IAM architecture. `lib/auth` stays on the platform graph because that matches how Next.js uses it.
+
+```txt
+proxy.ts / edge        →  lib/auth/*.shared.ts, callback-path.ts  (no next/headers)
+layout Tier A          →  tenant-session.server.ts, auth-shell-session.server.ts
+                         →  getRequestAppLocale() from lib/i18n/request-locale.server
+Server Actions / API   →  requireOrgSession(), writeIamAuditEvent(), db via #lib/db
+```
+
+| If you edit… | Gate `--typecheck` runs |
+| --- | --- |
+| `lib/auth/proxy-protected-paths.shared.ts` only | **platform** (auth is not a separate bucket) |
+| `lib/i18n/locales.shared.ts` only | **lib-i18n** composite |
+| `lib/auth/tenant-session.server.ts` | **platform** (correct — pulls db + session-cache + i18n server) |
+
+**Do not** peel `getRequestAppLocale` into `lib/auth` to fake a smaller composite. Locale authority lives in `lib/i18n/request-locale.server` per `.cursor/rules/i18n-directory.mdc`; auth **consumes** it at the layout/guard boundary (server-first, single source of truth).
+
+**Optional later (only if metrics show pain):** a `lib-auth-shared` composite for `lib/auth/**/*.shared.ts` + `callback-path.ts`, referencing `lib-i18n` — same pattern as Phase 7b. Not planned until edit telemetry justifies it (YAGNI).
+
+---
+
 ## Import-boundary cleanup (shipped with Phase 7 PR)
 
 Repeated **agent-contract** failures (same class of error) were fixed in the same release:
@@ -211,10 +234,18 @@ Repeated **agent-contract** failures (same class of error) were fixed in the sam
 | Gate slices for `tests/` + `scripts/` | **Adopt** |
 | `typecheck:compare` | **Adopt** |
 | `lib/i18n` acyclic SSOT + `lib-i18n` composite | **Adopt** |
-| `lib/auth` composite slice | **Defer** |
-| `tsgo` blocks merge | **Defer** until parity on `main` |
-| pnpm workspace package split | **Defer** |
-| `isolatedDeclarations` | **Defer** |
+| `lib/auth` composite slice | **Out of scope** — see [Why no `lib/auth` composite](#why-no-libauth-composite) |
+| pnpm workspace package split | **Out of scope** — single-package Turbo graph is sufficient |
+| `isolatedDeclarations` | **Out of scope** — no measured win yet |
+
+### `tsgo` promotion (optional, not a phase)
+
+Phases 0–7 are **done**. `pnpm typecheck:compare` is the promotion checklist: when `exitParity=match` and both compilers pass, operators *may* set `AFENDA_TSGO_ENFORCE=1` on CI. That does not replace `tsc` unless explicitly decided.
+
+```bash
+pnpm typecheck:compare
+# exit parity: match  →  safe to trial AFENDA_TSGO_ENFORCE=1 in CI
+```
 
 ---
 
