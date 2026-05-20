@@ -1,6 +1,6 @@
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 import { getTranslations } from "next-intl/server"
-import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDenied } from "#features/hrm"
 import { HrmComplianceWorkbenchPage } from "#features/hrm"
 import { getOrgTenantContext } from "#lib/auth"
 

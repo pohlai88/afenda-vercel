@@ -9,7 +9,10 @@ import {
   CardTitle,
 } from "#components2/ui/card"
 import { DemoEmployeePortalSectionNav } from "#components2/demo/demo-employee-portal-section-nav"
-import { GovernedEmpty, GovernedPatternCListSection } from "#features/governed-surface"
+import {
+  GovernedEmpty,
+  GovernedPatternCListSection,
+} from "#features/governed-surface"
 import {
   buildLeaveBalanceListSurfaceConfiguration,
   buildLeaveMyHistoryListSurfaceConfiguration,
@@ -32,7 +35,9 @@ export async function DemoEmployeeLeaveReadOnlySurface({
 
   const stateLabelFor = (state: string) => t(`state.${state}` as "state.draft")
 
-  const historyRows = fixture.requests.filter((row) => row.state !== "submitted")
+  const historyRows = fixture.requests.filter(
+    (row) => row.state !== "submitted"
+  )
 
   const balanceConfiguration = buildLeaveBalanceListSurfaceConfiguration(
     fixture.balances,
@@ -83,7 +88,9 @@ export async function DemoEmployeeLeaveReadOnlySurface({
         <div className="flex flex-col gap-5">
           <Card size="sm">
             <CardHeader>
-              <CardTitle className="text-base">{t("myBalancesTitle")}</CardTitle>
+              <CardTitle className="text-base">
+                {t("myBalancesTitle")}
+              </CardTitle>
               <CardDescription>{t("myBalancesDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
@@ -116,7 +123,9 @@ export async function DemoEmployeeLeaveReadOnlySurface({
 
         <Card size="sm">
           <CardHeader>
-            <CardTitle className="text-base">{t("requestLeaveTitle")}</CardTitle>
+            <CardTitle className="text-base">
+              {t("requestLeaveTitle")}
+            </CardTitle>
             <CardDescription>{t("requestLeaveDescription")}</CardDescription>
           </CardHeader>
           <CardContent>

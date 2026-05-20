@@ -63,8 +63,8 @@ describe("readOtmApprovalStage", () => {
   })
 
   it("defaults to manager when second approval is on and snapshot lacks HR stage", () => {
-    expect(
-      readOtmApprovalStage(null, { requireHrSecondApproval: true })
-    ).toBe("manager")
+    expect(readOtmApprovalStage(null, { requireHrSecondApproval: true })).toBe(
+      "manager"
+    )
   })
 })

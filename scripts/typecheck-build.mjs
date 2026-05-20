@@ -38,9 +38,13 @@ if (slicePlanNeedsRouteTypegen(slices)) {
   run("node", ["scripts/next-typegen-fast.mjs"])
 }
 
-const buildProjects = slices
-  .filter((slice) => slice.mode === "build")
-  .flatMap((slice) => slice.args)
+const buildProjects = [
+  ...new Set(
+    slices
+      .filter((slice) => slice.mode === "build")
+      .flatMap((slice) => slice.args)
+  ),
+]
 
 if (buildProjects.length > 0) {
   run("node", [
@@ -54,7 +58,9 @@ if (buildProjects.length > 0) {
 for (const slice of slices.filter((entry) => entry.mode === "noEmit")) {
   const project = slice.args[0]
   if (!project) {
-    console.error(`[typecheck-build] missing project path for slice ${slice.id}`)
+    console.error(
+      `[typecheck-build] missing project path for slice ${slice.id}`
+    )
     process.exit(1)
   }
   run("node", [

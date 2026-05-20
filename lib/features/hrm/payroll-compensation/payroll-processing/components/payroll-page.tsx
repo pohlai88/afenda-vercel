@@ -1,5 +1,5 @@
 import "server-only"
-import { HrmShellAccessDeniedFromNav } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDeniedFromNav } from "#features/hrm"
 
 import { getTranslations } from "next-intl/server"
 

@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig.base.json",
-  "references": [{ "path": ".config/tsconfig.lib-db.json" }],
+  "references": [
+    { "path": ".config/tsconfig.lib-db.json" },
+    { "path": ".config/tsconfig.lib-i18n.json" }
+  ],
   "compilerOptions": {
     "noEmit": true,
     "tsBuildInfoFile": ".artifacts/.tsbuildinfo/platform",
@@ -29,6 +32,7 @@
     "node_modules",
     ".source",
     "lib/db",
+    "lib/i18n/**/*.shared.ts",
     ".next/dev",
     ".next-ui/dev",
     ".next-workflow/dev",

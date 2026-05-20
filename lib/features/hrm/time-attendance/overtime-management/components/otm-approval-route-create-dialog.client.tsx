@@ -53,7 +53,9 @@ export function OtmApprovalRouteCreateDialog() {
             <Input id="routeLabel" name="label" disabled={pending} />
           </Field>
           <Field>
-            <FieldLabel htmlFor="priority">{t("fieldRoutePriority")}</FieldLabel>
+            <FieldLabel htmlFor="priority">
+              {t("fieldRoutePriority")}
+            </FieldLabel>
             <Input
               id="priority"
               name="priority"

@@ -1,5 +1,5 @@
 import { HrmSnapshotPage } from "#features/hrm"
-import { HrmShellAccessDeniedFromNav } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDeniedFromNav } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmSnapshotPage({

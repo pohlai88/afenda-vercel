@@ -1,9 +1,6 @@
 import "server-only"
 
-import type {
-  LeaveBalanceRow,
-  LeaveRequestRow,
-} from "#features/hrm/server"
+import type { LeaveBalanceRow, LeaveRequestRow } from "#features/hrm/server"
 
 export type DemoEmployeeLeaveFixture = {
   employeeNumber: string

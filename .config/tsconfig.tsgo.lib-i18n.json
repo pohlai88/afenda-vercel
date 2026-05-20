@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.base.tsgo.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "outDir": "../.artifacts/types/lib-i18n",
+    "rootDir": "../lib/i18n",
+    "tsBuildInfoFile": "../.artifacts/.tsbuildinfo/lib-i18n-tsgo"
+  },
+  "include": ["../lib/i18n/**/*.shared.ts"],
+  "exclude": ["../node_modules"]
+}

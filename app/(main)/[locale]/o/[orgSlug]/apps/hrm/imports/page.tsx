@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { HrmShellAccessDeniedFromNav } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDeniedFromNav } from "#features/hrm"
 
 import { getHrmCapabilityById } from "#features/hrm"
 import { HrmImportsPage } from "#features/tools"

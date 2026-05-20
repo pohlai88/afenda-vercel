@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": ".config/tsconfig.lib-db.json" },
+    { "path": ".config/tsconfig.lib-i18n.json" },
     { "path": "./tsconfig.json" }
   ]
 }

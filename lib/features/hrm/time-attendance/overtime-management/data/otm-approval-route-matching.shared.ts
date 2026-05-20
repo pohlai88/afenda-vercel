@@ -27,10 +27,7 @@ export function otmApprovalRouteMatchesContext(
   if (rule.departmentId && rule.departmentId !== context.departmentId) {
     return false
   }
-  if (
-    rule.costCenterCode &&
-    rule.costCenterCode !== context.costCenterCode
-  ) {
+  if (rule.costCenterCode && rule.costCenterCode !== context.costCenterCode) {
     return false
   }
   if (
@@ -43,7 +40,10 @@ export function otmApprovalRouteMatchesContext(
     return false
   }
 
-  if (rule.requiresEligibilityException === true && !context.hasEligibilityException) {
+  if (
+    rule.requiresEligibilityException === true &&
+    !context.hasEligibilityException
+  ) {
     return false
   }
   if (rule.requiresPolicyException === true && !context.hasPolicyException) {

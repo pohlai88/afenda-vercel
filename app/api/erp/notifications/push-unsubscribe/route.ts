@@ -1,4 +1,4 @@
-import { orgPushUnsubscribeBodySchema } from "#features/org-notifications/schemas/org-notifications.schema"
+import { orgPushUnsubscribeBodySchema } from "#features/org-notifications"
 import { deleteOrgPushSubscriptionForUser } from "#features/org-notifications/server"
 import {
   readRequestJson,

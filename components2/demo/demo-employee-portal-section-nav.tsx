@@ -1,4 +1,4 @@
-import { demoPath } from "#features/demo/schemas/demo-paths.shared"
+import { demoPath } from "#features/demo"
 import { Link } from "#i18n/navigation"
 import type { EmployeePortalSection } from "#lib/portal"
 

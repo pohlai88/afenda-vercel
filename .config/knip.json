@@ -36,6 +36,7 @@
     "duplicates": "warn"
   },
   "ignoreFiles": [
+    "public/sw-org-notifications.js",
     "components2/ui/**",
     ".source/**",
     "lib/features/bootstrap/index.ts",
@@ -96,7 +97,8 @@
     "streamdown",
     "tokenlens",
     "use-stick-to-bottom",
-    "turbo"
+    "turbo",
+    "@typescript/native-preview"
   ],
   "ignoreIssues": {
     "lib/auth/index.ts": [

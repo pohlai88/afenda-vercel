@@ -80,8 +80,12 @@ if (tsgo.stderr.trim()) {
 
 writeReport(lines)
 
-console.log(`\n[typecheck:compare] tsc  ${tsc.elapsedMs}ms (exit ${tsc.status})`)
-console.log(`[typecheck:compare] tsgo ${tsgo.elapsedMs}ms (exit ${tsgo.status})`)
+console.log(
+  `\n[typecheck:compare] tsc  ${tsc.elapsedMs}ms (exit ${tsc.status})`
+)
+console.log(
+  `[typecheck:compare] tsgo ${tsgo.elapsedMs}ms (exit ${tsgo.status})`
+)
 console.log(
   `[typecheck:compare] exit parity: ${parityMatch ? "match" : "MISMATCH"}`
 )

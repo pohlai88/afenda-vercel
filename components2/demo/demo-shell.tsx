@@ -45,10 +45,14 @@ export function DemoShell({
 
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <div className="mb-6 flex flex-col gap-2">
-          <p className="max-w-3xl text-sm text-muted-foreground">{description}</p>
+          <p className="max-w-3xl text-sm text-muted-foreground">
+            {description}
+          </p>
           <p className="text-xs text-muted-foreground">
             Mirrors production:{" "}
-            <code className="rounded bg-muted px-1 py-px font-mono">{mirrors}</code>
+            <code className="rounded bg-muted px-1 py-px font-mono">
+              {mirrors}
+            </code>
           </p>
         </div>
         {children}

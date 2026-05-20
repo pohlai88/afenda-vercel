@@ -1,4 +1,4 @@
-import { orgPushSubscriptionBodySchema } from "#features/org-notifications/schemas/org-notifications.schema"
+import { orgPushSubscriptionBodySchema } from "#features/org-notifications"
 import { upsertOrgPushSubscription } from "#features/org-notifications/server"
 import { isOrgPushConfigured } from "#features/org-notifications/server"
 import {

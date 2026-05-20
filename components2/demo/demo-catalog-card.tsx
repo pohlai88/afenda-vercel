@@ -43,7 +43,9 @@ export function DemoCatalogCard({
       <CardContent className="flex-1 text-xs text-muted-foreground">
         <p>
           {mirrorsLabel}:{" "}
-          <code className="rounded bg-muted px-1 py-px font-mono">{entry.mirrors}</code>
+          <code className="rounded bg-muted px-1 py-px font-mono">
+            {entry.mirrors}
+          </code>
         </p>
         <p className="mt-2 capitalize">{entry.category}</p>
       </CardContent>

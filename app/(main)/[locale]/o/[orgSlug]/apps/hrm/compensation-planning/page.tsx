@@ -4,7 +4,7 @@ import {
   CompensationPlanningPage,
   resolveCompensationPlanningSurfaceAccess,
 } from "#features/hrm"
-import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDenied } from "#features/hrm"
 import { getOrgTenantContext } from "#lib/auth"
 
 export default async function OrgAppsHrmCompensationPlanningPage() {

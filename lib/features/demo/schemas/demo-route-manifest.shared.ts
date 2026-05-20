@@ -32,7 +32,8 @@ export const DEMO_ROUTE_MANIFEST: readonly DemoRouteManifestEntry[] = [
     slug: "hrm/employee-records",
     category: "Human Resources",
     title: "Employee Records",
-    teaches: "Browse workforce records, placement, and master data completeness.",
+    teaches:
+      "Browse workforce records, placement, and master data completeness.",
     mirrors: "/o/{orgSlug}/apps/hrm/employees",
     status: "available",
   },

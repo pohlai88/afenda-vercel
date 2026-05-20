@@ -23,9 +23,9 @@ describe("resolveTypecheckSlicesForPaths", () => {
 
   it("returns test graph for tests paths", () => {
     expect(
-      resolveTypecheckSlicesForPaths(["tests/unit/gate-args.shared.test.ts"]).map(
-        (s) => s.id
-      )
+      resolveTypecheckSlicesForPaths([
+        "tests/unit/gate-args.shared.test.ts",
+      ]).map((s) => s.id)
     ).toEqual(["test"])
     expect(
       resolveTypecheckSlicesForPaths(["tests/unit/gate-args.shared.test.ts"])[0]
@@ -52,6 +52,31 @@ describe("resolveTypecheckSlicesForPaths", () => {
     expect(
       resolveTypecheckSlicesForPaths(["lib/db/schema.ts"]).map((s) => s.id)
     ).toEqual(["lib-db"])
+  })
+
+  it("returns lib-i18n only for lib/i18n shared paths", () => {
+    expect(
+      resolveTypecheckSlicesForPaths([
+        "lib/i18n/org-apps-route-segments.shared.ts",
+      ]).map((s) => s.id)
+    ).toEqual(["lib-i18n"])
+  })
+
+  it("returns platform for lib/i18n server paths", () => {
+    expect(
+      resolveTypecheckSlicesForPaths([
+        "lib/i18n/org-apps-redirect.server.ts",
+      ]).map((s) => s.id)
+    ).toEqual(["platform"])
+  })
+
+  it("returns solution root when paths span lib-i18n shared and features", () => {
+    expect(
+      resolveTypecheckSlicesForPaths([
+        "lib/i18n/locales.shared.ts",
+        "lib/features/hrm/",
+      ]).map((s) => s.id)
+    ).toEqual(["solution"])
   })
 
   it("returns solution root when paths span db and features", () => {

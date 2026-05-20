@@ -2,10 +2,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
-import {
-  DEMO_ROUTE_MANIFEST,
-  findDemoManifestEntry,
-} from "#features/demo"
+import { DEMO_ROUTE_MANIFEST, findDemoManifestEntry } from "#features/demo"
 
 const root = join(import.meta.dirname, "..", "..")
 
@@ -21,7 +18,15 @@ function readDemoRoute(...segments: string[]) {
 }
 
 function demoPagePathForSlug(slug: string): string {
-  return join(root, "app", "(main)", "[locale]", "demo", ...slug.split("/"), "page.tsx")
+  return join(
+    root,
+    "app",
+    "(main)",
+    "[locale]",
+    "demo",
+    ...slug.split("/"),
+    "page.tsx"
+  )
 }
 
 describe("demo three-layer seals", () => {
@@ -120,9 +125,9 @@ describe("demo surface contract", () => {
       "demo-employee-leave-page.server.tsx",
     ]
     for (const file of composed) {
-      expect(
-        readRepo(`lib/features/demo/components/${file}`)
-      ).toContain("composeDemoRoutePage")
+      expect(readRepo(`lib/features/demo/components/${file}`)).toContain(
+        "composeDemoRoutePage"
+      )
     }
   })
 
@@ -180,8 +185,8 @@ describe("demo surface contract", () => {
   })
 
   it("manifest has no planned entries while Phase 4 catalog is complete", () => {
-    expect(DEMO_ROUTE_MANIFEST.every((entry) => entry.status === "available")).toBe(
-      true
-    )
+    expect(
+      DEMO_ROUTE_MANIFEST.every((entry) => entry.status === "available")
+    ).toBe(true)
   })
 })

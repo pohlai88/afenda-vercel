@@ -10,21 +10,9 @@ export const ORBIT_SURFACES = [
 
 export type OrbitSurface = (typeof ORBIT_SURFACES)[number]
 
-export const ORBIT_SURFACE_SEGMENTS = [
-  "triage",
-  "today",
-  "timeline",
-  "signals",
-  "sessions",
-  "links",
-] as const
-
-export type OrbitSurfaceSegment = (typeof ORBIT_SURFACE_SEGMENTS)[number]
-
-export const ORBIT_SURFACE_SEGMENT_SET = new Set<string>(ORBIT_SURFACE_SEGMENTS)
-
-export function isOrbitSurfaceSegment(
-  value: string
-): value is OrbitSurfaceSegment {
-  return ORBIT_SURFACE_SEGMENT_SET.has(value)
-}
+export {
+  ORBIT_SURFACE_SEGMENTS,
+  ORBIT_SURFACE_SEGMENT_SET,
+  isOrbitSurfaceSegment,
+  type OrbitSurfaceSegment,
+} from "#lib/i18n/org-apps-route-segments.shared"

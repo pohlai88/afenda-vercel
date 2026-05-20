@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server"
 
 import { ModulePageHeader } from "#features/governed-surface"
 
-import { HrmShellAccessDeniedFromNav } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDeniedFromNav } from "#features/hrm"
 
 import type { CompensationPlanningSurfaceAccess } from "../data/cpm-access.server"
 import { loadCompensationPlanningPageData } from "../data/cpm.queries.server"

@@ -1,5 +1,5 @@
 import { ComplianceEvidenceDetailPage } from "#features/hrm"
-import { HrmComplianceEvidenceAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmComplianceEvidenceAccessDenied } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 type OrgAppsHrmComplianceEvidenceDetailPageProps = {

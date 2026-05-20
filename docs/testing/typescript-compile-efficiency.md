@@ -6,7 +6,7 @@ How Afenda keeps **`pnpm typecheck`** tractable while the app graph stays strict
 
 | Graph | Command | Config | Notes |
 | --- | --- | --- | --- |
-| App | `pnpm typecheck` | `tsconfig.json` + `.config/tsconfig.lib-db.json` | `tsc -b` via `scripts/typecheck-build.mjs` |
+| App | `pnpm typecheck` | `tsconfig.build.json` (lib-db + lib-i18n + platform) | `tsc -b` via `scripts/typecheck-build.mjs` |
 | Tests | `pnpm typecheck:test` | `.config/tsconfig.test.json` | `tsc --noEmit -p` |
 | Scripts | `pnpm typecheck:scripts` | `.config/tsconfig.scripts.json` | `tsc --noEmit -p` |
 
@@ -18,10 +18,13 @@ Splitting keeps Playwright/Vitest config and seed scripts out of the main ERP gr
 | --- | --- |
 | `tsconfig.base.json` | Shared `compilerOptions` + path aliases |
 | `.config/tsconfig.lib-db.json` | Composite slice: `lib/db` only |
-| `tsconfig.json` | Platform graph; `references` lib-db; excludes `lib/db` from `include` |
-| `tsconfig.build.json` | Solution root (`files: []`, references both) |
+| `.config/tsconfig.lib-i18n.json` | Composite slice: `lib/i18n/**/*.shared.ts` (no `#features` imports) |
+| `tsconfig.json` | Platform graph; references lib-db + lib-i18n; excludes those slices from `include` |
+| `tsconfig.build.json` | Solution root (`files: []`, references all composites + platform) |
 
-Declaration emit: `.artifacts/types/lib-db/` (gitignored). Warm feature edits can skip rebuilding lib-db when its `.tsbuildinfo` is fresh.
+Declaration emit: `.artifacts/types/lib-db/`, `.artifacts/types/lib-i18n/` (gitignored). Warm edits can skip rebuilding a slice when its `.tsbuildinfo` is fresh.
+
+Gate `--typecheck` on a single `lib/i18n/*.shared.ts` path runs **lib-i18n** only; server files under `lib/i18n/` still use the **platform** graph.
 
 Slice commands:
 
@@ -39,7 +42,7 @@ pnpm typecheck:profile
 
 | Option | App | Test | Why |
 | --- | --- | --- | --- |
-| `incremental` + `tsBuildInfoFile` | `.artifacts/.tsbuildinfo/platform` / `lib-db` | `…/test` | Warm reruns skip full rebind |
+| `incremental` + `tsBuildInfoFile` | `platform` / `lib-db` / `lib-i18n` under `.artifacts/.tsbuildinfo/` | `…/test` | Warm reruns skip full rebind |
 | `skipLibCheck` | yes | yes | Skips checking all `.d.ts` bodies |
 | `types: ["node"]` | yes (base) | inherited | Avoids scanning every `@types/*` package |
 | `assumeChangesOnlyAffectDirectDependencies` | `true` | `true` | Incremental: only recheck direct importers on change |

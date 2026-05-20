@@ -70,8 +70,7 @@ async function registerWebPushSubscription(): Promise<void> {
 
 export function AppShellOrgNotificationDelivery() {
   const envelope = useRouteEnvelope()
-  const organizationId =
-    envelope?.surface === "org" ? envelope.orgId : null
+  const organizationId = envelope?.surface === "org" ? envelope.orgId : null
   const channelNameRef = useRef<string | null>(null)
   const ablyRef = useRef<Ably.Realtime | null>(null)
   const pushStartedRef = useRef(false)

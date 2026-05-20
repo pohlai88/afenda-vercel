@@ -1,6 +1,6 @@
 import { AttendancePage } from "#features/hrm"
 import { getTranslations } from "next-intl/server"
-import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDenied } from "#features/hrm"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 export default async function OrgAppsHrmAttendancePage({

@@ -66,7 +66,14 @@ Before push:         pnpm gate:typecheck  (or pnpm gate:push)
 | --- | --- |
 | **6** | Gate `--typecheck` maps `tests/**` and `scripts/**` to their isolated `tsc --noEmit -p` graphs; `pnpm typecheck:compare` records `tsc` vs `tsgo` exit parity (`.artifacts/typecheck-parity-report.txt`) |
 
-**Deferred:** `lib/auth` / `lib/i18n` composite slices (import graph cycles via `#features`); `tsgo` as merge gate until `typecheck:compare` is green on `main`; pnpm workspace package split; `isolatedDeclarations`.
+### Phase 7 (implemented)
+
+| Phase | Scope |
+| --- | --- |
+| **7a** | Route segment SSOT in `lib/i18n/org-apps-route-segments.shared.ts`; remove `#features` imports from `lib/i18n`; HRM/Orbit re-export; `org-apps-redirect` uses `#lib/org-apps-module-paths` |
+| **7b** | `.config/tsconfig.lib-i18n.json` composite (`**/*.shared.ts`); solution + platform references; gate `lib-i18n` slice for shared-only paths |
+
+**Deferred:** `lib/auth` composite slice (still depends on `lib/db` + full `lib/i18n` server graph); `tsgo` as merge gate until `typecheck:compare` is green on `main`; pnpm workspace package split; `isolatedDeclarations`.
 
 **Rejected:** path-scoped `tsc` on one non-composite config; `projectService` on every L0 lint.
 
@@ -102,3 +109,4 @@ Before push:         pnpm gate:typecheck  (or pnpm gate:push)
 | 2026-05-20 | Phases 1–3: `tsc -b` lib-db slice, gate slice mapping, `lint:typed` |
 | 2026-05-20 | Phases 4–5: tsgo CI pilot (non-blocking), Turbo parallel typecheck graphs |
 | 2026-05-20 | Phase 6: tests/scripts gate slices, `typecheck:compare` parity reporter |
+| 2026-05-20 | Phase 7: lib/i18n acyclic SSOT + `lib-i18n` composite gate slice |

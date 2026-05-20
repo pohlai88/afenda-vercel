@@ -39,7 +39,9 @@ export async function DemoEmployeeRecordsReadOnlySurface() {
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {t("pageTitle")}
         </p>
-        <h2 className="text-2xl font-semibold tracking-normal">{t("pageTitle")}</h2>
+        <h2 className="text-2xl font-semibold tracking-normal">
+          {t("pageTitle")}
+        </h2>
         <p className="max-w-2xl text-sm text-muted-foreground">
           {t("pageDescription")}
         </p>

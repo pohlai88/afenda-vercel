@@ -20,4 +20,4 @@ export {
   upsertOrgPushSubscription,
 } from "./data/org-push-subscription.server"
 export { isOrgPushConfigured } from "./data/org-push-vapid.shared"
-export { orgNotificationUserChannelName } from "./constants.shared"
+export { orgNotificationUserChannelName } from "./constants"

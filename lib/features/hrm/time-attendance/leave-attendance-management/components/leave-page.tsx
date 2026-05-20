@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDenied } from "#features/hrm"
 
 import { getTranslations } from "next-intl/server"
 

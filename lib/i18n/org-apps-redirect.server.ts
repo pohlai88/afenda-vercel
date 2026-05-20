@@ -3,7 +3,7 @@ import "server-only"
 import { headers } from "next/headers"
 
 import { AFENDA_PATHNAME_HEADER } from "#lib/auth/forwarded-path-headers.shared"
-import { organizationNexusPath } from "#features/nexus"
+import { organizationAppsPath } from "#lib/org-apps-module-paths"
 import { sanitizePathAfterOrgSlug } from "#lib/i18n/org-apps-path.shared"
 import {
   stripLeadingLocalePrefix,
@@ -24,11 +24,17 @@ export async function localePrefixedOrgAppsRedirect(
   }
   const pathname = (await headers()).get(AFENDA_PATHNAME_HEADER)?.trim()
   if (!pathname?.startsWith("/")) {
-    return toLocalePath(locale, organizationNexusPath(safeSlug) as AppPath)
+    return toLocalePath(
+      locale,
+      organizationAppsPath(safeSlug, "home") as AppPath
+    )
   }
   const stripped = stripLeadingLocalePrefix(pathname)
   if (!stripped) {
-    return toLocalePath(locale, organizationNexusPath(safeSlug) as AppPath)
+    return toLocalePath(
+      locale,
+      organizationAppsPath(safeSlug, "home") as AppPath
+    )
   }
   const tailFromO = stripped.pathnameWithoutLocale.replace(/^\/o\/[^/]+/, "")
   const tail = sanitizePathAfterOrgSlug(tailFromO)

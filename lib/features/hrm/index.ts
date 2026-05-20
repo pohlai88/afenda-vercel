@@ -475,3 +475,12 @@ export { ComplianceOperationalHealthSkeleton } from "./employee-management/compl
 /** Per-bureau delivery reliability card (Suspense-streamed). */
 export { BureauReliabilityCard } from "./employee-management/compliance-regulatory-tracking/components/bureau-reliability-card"
 export { BureauReliabilityCardSkeleton } from "./employee-management/compliance-regulatory-tracking/components/bureau-reliability-card-skeleton"
+
+export {
+  HrmComplianceEvidenceAccessDenied,
+  HrmShellAccessDenied,
+  HrmShellAccessDeniedDetail,
+  HrmShellAccessDeniedFromNav,
+  HrmWorkbenchCapabilityAccessDenied,
+  HrmWorkbenchOverviewAccessDenied,
+} from "./components/hrm-shell-access-denied.server"

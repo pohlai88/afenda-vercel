@@ -14,7 +14,10 @@ type DemoLayoutProps = {
   params: Promise<{ locale: string }>
 }
 
-export default async function DemoLayout({ children, params }: DemoLayoutProps) {
+export default async function DemoLayout({
+  children,
+  params,
+}: DemoLayoutProps) {
   const { locale: rawLocale } = await params
   const locale = ensureAppLocale(rawLocale)
 

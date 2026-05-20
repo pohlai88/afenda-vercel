@@ -7,7 +7,7 @@ import { logUnexpectedServerError } from "#lib/logger.server"
 import {
   ORG_NOTIFICATION_REALTIME_EVENT,
   orgNotificationUserChannelName,
-} from "../constants.shared"
+} from "../constants"
 
 let restSingleton: Ably.Rest | null = null
 
@@ -28,16 +28,14 @@ export type OrgNotificationRealtimePayload = {
   linkedPath: string | null
 }
 
-export async function publishOrgNotificationRealtime(
-  input: {
-    organizationId: string
-    targetUserId: string
-    noticeId: string
-    title: string
-    severity: "info" | "warning" | "critical"
-    linkedPath: string | null
-  }
-): Promise<void> {
+export async function publishOrgNotificationRealtime(input: {
+  organizationId: string
+  targetUserId: string
+  noticeId: string
+  title: string
+  severity: "info" | "warning" | "critical"
+  linkedPath: string | null
+}): Promise<void> {
   const rest = getAblyRest()
   if (!rest) return
 
@@ -51,10 +49,7 @@ export async function publishOrgNotificationRealtime(
 
   try {
     const channel = rest.channels.get(
-      orgNotificationUserChannelName(
-        input.organizationId,
-        input.targetUserId
-      )
+      orgNotificationUserChannelName(input.organizationId, input.targetUserId)
     )
     await channel.publish(ORG_NOTIFICATION_REALTIME_EVENT, payload)
   } catch (err: unknown) {

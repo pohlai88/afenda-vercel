@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server"
-import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDenied } from "#features/hrm"
 
 import { ModulePageHeader } from "#features/governed-surface"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"

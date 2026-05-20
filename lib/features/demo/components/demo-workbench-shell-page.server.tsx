@@ -5,7 +5,10 @@ import { generateDemoRouteMetadata } from "../data/demo-route-metadata.server"
 import { DemoWorkbenchShellOverview } from "./demo-workbench-shell-overview.server"
 
 export async function generateDemoWorkbenchShellMetadata() {
-  return generateDemoRouteMetadata("workbench/shell", "workbenchShellPageDescription")
+  return generateDemoRouteMetadata(
+    "workbench/shell",
+    "workbenchShellPageDescription"
+  )
 }
 
 export default async function DemoWorkbenchShellPage() {

@@ -51,7 +51,9 @@ export async function DemoWorkbenchShellOverview() {
       {isDevelopment ? (
         <Card size="sm">
           <CardHeader>
-            <CardTitle className="text-base">{t("shellPreviewTitle")}</CardTitle>
+            <CardTitle className="text-base">
+              {t("shellPreviewTitle")}
+            </CardTitle>
             <CardDescription>{t("shellPreviewDescriptionDev")}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -67,8 +69,12 @@ export async function DemoWorkbenchShellOverview() {
       ) : (
         <Card size="sm">
           <CardHeader>
-            <CardTitle className="text-base">{t("shellPreviewTitle")}</CardTitle>
-            <CardDescription>{t("shellPreviewDescriptionProd")}</CardDescription>
+            <CardTitle className="text-base">
+              {t("shellPreviewTitle")}
+            </CardTitle>
+            <CardDescription>
+              {t("shellPreviewDescriptionProd")}
+            </CardDescription>
           </CardHeader>
         </Card>
       )}

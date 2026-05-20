@@ -151,6 +151,8 @@ Writes `.artifacts/typecheck-parity-report.txt` with **matching `tsc` vs `tsgo` 
 | Turbo parallel typecheck graphs | **Adopt (Phase 5)** |
 | Gate slices for `tests/` + `scripts/` | **Adopt (Phase 6)** |
 | `typecheck:compare` (tsc vs tsgo exits) | **Adopt (Phase 6)** |
+| `lib/i18n` acyclic SSOT + `lib-i18n` composite | **Adopt (Phase 7)** |
+| `lib/auth` composite slice | Defer (server graph still spans db + i18n) |
 | `tsgo` blocks merge | Defer until `AFENDA_TSGO_ENFORCE=1` + `typecheck:compare` parity on `main` |
 | pnpm workspace package split | Defer (out of scope for single-package repo) |
 
@@ -165,6 +167,8 @@ Writes `.artifacts/typecheck-parity-report.txt` with **matching `tsc` vs `tsgo` 
 | `scripts/typecheck-build.mjs` | `tsc -b` orchestration |
 | `scripts/typecheck-tsgo-pilot.mjs` | `tsgo` CI pilot |
 | `scripts/lib/gate-typecheck-slices.shared.mjs` | Gate slice mapping |
+| `.config/tsconfig.lib-i18n.json` | Composite slice: `lib/i18n/**/*.shared.ts` |
+| `lib/i18n/org-apps-route-segments.shared.ts` | HRM/Orbit forward-path segment SSOT |
 | `turbo.json` | `typecheck:lib-db`, `typecheck:platform`, test/scripts deps |
 | `docs/testing/typescript-compile-efficiency.md` | Operator guide |
 

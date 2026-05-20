@@ -3,7 +3,11 @@ import "server-only"
 import { and, asc, eq, isNull } from "drizzle-orm"
 
 import { db } from "#lib/db"
-import { hrmDepartment, hrmEmployee, hrmOvertimeApprovalRoute } from "#lib/db/schema"
+import {
+  hrmDepartment,
+  hrmEmployee,
+  hrmOvertimeApprovalRoute,
+} from "#lib/db/schema"
 
 import {
   pickFirstMatchingOtmApprovalRoute,
@@ -219,7 +223,9 @@ export async function resolveOtmSubmissionApprovers(input: {
     }
   }
 
-  const hrApproverUserId = await resolveOtmHrApproverUserId(input.organizationId)
+  const hrApproverUserId = await resolveOtmHrApproverUserId(
+    input.organizationId
+  )
   const approvalStage = resolveInitialOtmApprovalStage({
     policy: input.policy,
     managerApproverUserId,

@@ -128,9 +128,7 @@ function CancelOtmDialog({
           <Field>
             <FieldLabel htmlFor={reasonId}>{t("fieldCancelReason")}</FieldLabel>
             <Input id={reasonId} name="cancelReason" />
-            {errors?.form ? (
-              <FieldError>{errors.form}</FieldError>
-            ) : null}
+            {errors?.form ? <FieldError>{errors.form}</FieldError> : null}
           </Field>
           <Button type="submit" variant="destructive" disabled={pending}>
             {pending ? t("cancelling") : t("confirmCancel")}

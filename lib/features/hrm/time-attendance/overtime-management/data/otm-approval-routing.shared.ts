@@ -32,8 +32,5 @@ export function readOtmApprovalStage(
 }
 
 export function managerChainDepthClamped(maxDepth: number): number {
-  return Math.min(
-    Math.max(maxDepth, 1),
-    OTM_MANAGER_CHAIN_MAX_DEPTH_LIMIT
-  )
+  return Math.min(Math.max(maxDepth, 1), OTM_MANAGER_CHAIN_MAX_DEPTH_LIMIT)
 }

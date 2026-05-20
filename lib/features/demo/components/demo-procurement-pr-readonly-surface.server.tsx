@@ -38,7 +38,9 @@ export async function DemoProcurementPurchaseRequestReadOnlySurface() {
 
       <Card size="sm">
         <CardHeader>
-          <CardTitle className="text-base">{t("procurementListTitle")}</CardTitle>
+          <CardTitle className="text-base">
+            {t("procurementListTitle")}
+          </CardTitle>
           <CardDescription>{t("procurementListDescription")}</CardDescription>
         </CardHeader>
         <CardContent>

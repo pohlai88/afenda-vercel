@@ -104,7 +104,9 @@ async function main() {
   `
   let employeeId = existingEmployee[0]?.id
   if (employeeId) {
-    console.log(`  • Employee already exists (${existingEmployee[0].employeeNumber})`)
+    console.log(
+      `  • Employee already exists (${existingEmployee[0].employeeNumber})`
+    )
     await sql`
       UPDATE hrm_employee
       SET "linkedUserId" = ${ownerUserId},

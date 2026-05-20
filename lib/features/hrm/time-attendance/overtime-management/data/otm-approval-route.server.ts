@@ -70,13 +70,9 @@ export async function createOtmApprovalRoute(input: {
   managerChainDepth: number | null
   targetUserId: string | null
 }): Promise<
-  | { ok: true; routeId: string }
-  | { ok: false; errors: { form?: string } }
+  { ok: true; routeId: string } | { ok: false; errors: { form?: string } }
 > {
-  if (
-    input.approverKind === "specific_user" &&
-    !input.targetUserId?.trim()
-  ) {
+  if (input.approverKind === "specific_user" && !input.targetUserId?.trim()) {
     return {
       ok: false,
       errors: { form: "Target user is required for a specific-user route." },

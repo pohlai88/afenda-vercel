@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDenied } from "#features/hrm"
 import { LeavePage, resolveLeaveSurfaceAccess } from "#features/hrm"
 import { getOrgTenantContext } from "#lib/auth"
 

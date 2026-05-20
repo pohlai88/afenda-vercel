@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { HrmShellAccessDenied } from "#features/hrm/components/hrm-shell-access-denied.server"
+import { HrmShellAccessDenied } from "#features/hrm"
 import { getTranslations } from "next-intl/server"
 
 import { HrmAdvancesPage } from "#features/hrm"
