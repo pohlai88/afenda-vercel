@@ -2,7 +2,7 @@
 
 | Field | Value |
 | ----- | ----- |
-| **Status** | Accepted (Phases 0–6 implemented; tsgo pilot non-blocking) |
+| **Status** | Accepted (Phases 0–7 implemented; tsgo pilot non-blocking) |
 | **Date** | 2026-05-20 |
 | **Supersedes** | Misleading L0 cost for `pnpm gate -- <paths>` in ADR-0033 narrative only |
 | **Implements in code** | [`scripts/gate.mjs`](../../scripts/gate.mjs), [`scripts/gate-args.shared.mjs`](../../scripts/gate-args.shared.mjs), [`scripts/typecheck-build.mjs`](../../scripts/typecheck-build.mjs), [`scripts/lib/gate-typecheck-slices.shared.mjs`](../../scripts/lib/gate-typecheck-slices.shared.mjs), [`scripts/lint-typed.mjs`](../../scripts/lint-typed.mjs), [`tsconfig.base.json`](../../tsconfig.base.json), [`.config/tsconfig.lib-db.json`](../../.config/tsconfig.lib-db.json), [`package.json`](../../package.json) |
@@ -12,9 +12,9 @@
 
 ## Context
 
-Afenda uses a **solution-style** app graph: composite `lib/db` + platform `tsconfig.json` (split test/scripts configs). `pnpm typecheck` runs `next typegen` then `tsc -b` (8GB heap). Warm incremental runs can be tens of seconds; **cold runs are often many minutes** — not the “~15–45s” implied when agents pass paths to `pnpm gate`.
+Afenda uses a **solution-style** app graph: composite `lib/db` + composite `lib/i18n` shared + platform `tsconfig.json` (split test/scripts configs). `pnpm typecheck` runs `next typegen` then `tsc -b` (8GB heap). Warm incremental runs can be tens of seconds; **cold runs are often many minutes** — not the “~15–45s” implied when agents pass paths to `pnpm gate`.
 
-**ESLint paths narrow; `tsc` slices only.** The first composite slice is `lib/db` only (acyclic). Feature work uses the platform graph, which skips rebuilding `lib/db` when its `.tsbuildinfo` is fresh.
+**ESLint paths narrow; `tsc` slices only.** Composite slices (`lib/db`, `lib/i18n/**/*.shared.ts`) rebuild independently when their `.tsbuildinfo` is fresh. Feature work uses the platform graph, which references those composites.
 
 Prior behavior ran **full typecheck on every** `pnpm gate -- <paths>`, causing agent lock contention and false expectations.
 
