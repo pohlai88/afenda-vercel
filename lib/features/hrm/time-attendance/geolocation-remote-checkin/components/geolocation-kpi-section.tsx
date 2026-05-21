@@ -4,7 +4,6 @@ import { GovernedComponentRenderer } from "#components2/metadata"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
@@ -15,6 +14,7 @@ import {
 } from "../data/geolocation-surface-builders.server"
 import type { RemoteCheckinKpiSummary } from "../data/geolocation.queries.server"
 import type { GeolocationLoadError } from "../data/geolocation-load-error.shared"
+import { GeolocationLoadErrorAlert } from "./geolocation-load-error-alert"
 
 export async function GeolocationKpiSummarySection({
   summary,
@@ -30,10 +30,10 @@ export async function GeolocationKpiSummarySection({
       <Card size="sm">
         <CardHeader>
           <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>
-            {loadError.description ?? loadError.title}
-          </CardDescription>
         </CardHeader>
+        <CardContent>
+          <GeolocationLoadErrorAlert loadError={loadError} />
+        </CardContent>
       </Card>
     )
   }

@@ -3,12 +3,16 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("server-only", () => ({}))
 
 import { parseListSurfaceRendererConfiguration } from "../../lib/features/governed-surface/schemas/list-surface-renderer.schema.ts"
-import { buildAttendanceRecentListSurfaceConfiguration } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-list-surface.server.ts"
+import {
+  buildAttendanceCorrectionPendingListSurfaceConfiguration,
+  buildAttendanceRecentListSurfaceConfiguration,
+} from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/attendance-list-surface.server.ts"
 import { buildLeaveTypesPolicyListSurfaceConfiguration } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/leave-policy-list-surface.server.ts"
 import {
   buildLeaveAbsenceCalendarListSurfaceConfiguration,
   buildLeavePendingListSurfaceConfiguration,
 } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/leave-list-surface.server.ts"
+import { buildEmbeddedListSurfaceErrorConfiguration } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/lam-embedded-list-surface-error.server.ts"
 import { buildTimeReportPendingListSurfaceConfiguration } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/time-report-list-surface.server.ts"
 import type { OrgLeaveRequestRow } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/leave-request.queries.server.ts"
 import type { LeaveTypeAdminRow } from "../../lib/features/hrm/time-attendance/leave-attendance-management/data/leave-policy.queries.server.ts"
@@ -238,6 +242,36 @@ describe("HRM LAM list-surface builders", () => {
     })
     expect(parsed.data.rows[0]?.id).toBe("report-1")
   })
+
+  it("builds attendance correction pending metadata with trailing approve", () => {
+    const config = buildAttendanceCorrectionPendingListSurfaceConfiguration(
+      [
+        {
+          id: "approval-1",
+          subjectId: "event-uuid",
+          requestedAt: "2026-05-20",
+        },
+      ],
+      {
+        empty: "No pending corrections",
+        colEvent: "Original event",
+        colRequested: "Requested",
+        approveLabel: "Approve",
+      }
+    )
+
+    const parsed = parseListSurfaceRendererConfiguration(config)
+    expect(parsed.success).toBe(true)
+    if (!parsed.success) return
+
+    expect(parsed.data.requiresErpPermission).toEqual({
+      module: "hrm",
+      object: "attendance",
+      function: "update",
+    })
+    expect(parsed.data.surface.columnsId).toBe("hrm-attendance-correction-pending")
+    expect(parsed.data.rows[0]?.trailingAction?.state).toBe("ready")
+  })
 })
 
 const leavePendingCopy = {
@@ -298,3 +332,22 @@ function leaveRequestRow(
     ...overrides,
   } as const satisfies OrgLeaveRequestRow
 }
+
+describe("LAM embedded list-surface load errors", () => {
+  it("builds a valid empty table configuration for Pattern C error states", () => {
+    const config = buildEmbeddedListSurfaceErrorConfiguration({
+      columnsId: "hrm-leave-pending",
+      emptyTitle: "Nothing pending",
+      firstColumn: { id: "employee", header: "Employee" },
+    })
+
+    const parsed = parseListSurfaceRendererConfiguration(config)
+    expect(parsed.success).toBe(true)
+    if (!parsed.success) return
+
+    expect(parsed.data.dataNature).toBe("table")
+    expect(parsed.data.surface.columnsId).toBe("hrm-leave-pending")
+    expect(parsed.data.rows).toEqual([])
+    expect(parsed.data.columns).toHaveLength(1)
+  })
+})

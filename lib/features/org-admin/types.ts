@@ -132,6 +132,7 @@ export type OrgImportAdapterId =
   | "hrm_payroll_profile_import"
   | "hrm_employee_hire"
   | "hrm_attendance_import"
+  | "hrm_time_clock_import"
 
 /** Public projection of an `import_job` row for UI listings. */
 export type OrgImportJobSummary = {

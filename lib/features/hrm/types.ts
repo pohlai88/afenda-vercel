@@ -834,6 +834,17 @@ export type RemoteCheckinReportExportFormState =
       }
     }
 
+export type TimeClockReportExportFormState =
+  | { ok: true; csv: string; filename: string; rowCount: number }
+  | {
+      ok: false
+      errors: {
+        form?: string
+        startDate?: string
+        endDate?: string
+      }
+    }
+
 // ---------------------------------------------------------------------------
 // Phase 2C: Attendance form states
 // ---------------------------------------------------------------------------

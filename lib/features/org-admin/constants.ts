@@ -216,6 +216,7 @@ export const IMPORT_ADAPTERS = [
   "hrm_payroll_profile_import",
   "hrm_employee_hire",
   "hrm_attendance_import",
+  "hrm_time_clock_import",
 ] as const satisfies readonly OrgImportAdapterId[]
 
 const IMPORT_ADAPTER_SET = new Set<string>(IMPORT_ADAPTERS)

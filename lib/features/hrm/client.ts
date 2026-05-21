@@ -231,6 +231,23 @@ export type {
   RemoteCheckinReportExportFormState,
 } from "./time-attendance/geolocation-remote-checkin/client"
 export {
+  decideTimeClockPunchExceptionAction,
+  exportTimeClockReportAction,
+  revokeTimeClockDeviceAction,
+  TimeClockDeviceRegisterDialog,
+  TimeClockDeviceRevokeButton,
+  TimeClockExceptionDecisionForms,
+  TimeClockMappingUpsertDialog,
+  TimeClockReportExportForm,
+  upsertTimeClockDeviceAction,
+  upsertTimeClockMappingAction,
+} from "./time-attendance/time-clock-integration/client"
+export type {
+  TimeClockDeviceMutationFormState,
+  TimeClockExceptionDecisionFormState,
+  TimeClockReportExportFormState,
+} from "./time-attendance/time-clock-integration/client"
+export {
   AatExportReportButton,
   AatThresholdSettingsForm,
   exportAatAnalyticsReportCsvAction,

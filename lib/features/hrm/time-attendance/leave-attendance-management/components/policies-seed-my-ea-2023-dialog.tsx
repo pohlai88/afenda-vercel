@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useRef, useState } from "react"
+import { useActionState, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2, SparklesIcon } from "lucide-react"
 
@@ -35,20 +35,21 @@ import {
 export function PoliciesSeedMyEa2023Dialog() {
   const t = useTranslations("Dashboard.Hrm.policies")
   const [open, setOpen] = useState(false)
+  const [dialogGeneration, setDialogGeneration] = useState(0)
   const [state, formAction, pending] = useActionState<
     SeedLeaveTypesFormState | undefined,
     FormData
   >(seedMalaysiaEa2023LeaveTypesAction, undefined)
 
-  // Reset transient state when the dialog is reopened so a previous
-  // run's summary doesn't bleed into the new attempt.
-  const lastOpenRef = useRef(open)
-  useEffect(() => {
-    lastOpenRef.current = open
-  }, [open])
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen && !open) {
+      setDialogGeneration((generation) => generation + 1)
+    }
+    setOpen(nextOpen)
+  }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm" type="button" variant="outline">
           <SparklesIcon data-icon="inline-start" aria-hidden />
@@ -96,7 +97,7 @@ export function PoliciesSeedMyEa2023Dialog() {
         ) : null}
 
         <DialogFooter>
-          <form action={formAction}>
+          <form key={dialogGeneration} action={formAction}>
             <Button type="submit" disabled={pending}>
               {pending ? (
                 <>

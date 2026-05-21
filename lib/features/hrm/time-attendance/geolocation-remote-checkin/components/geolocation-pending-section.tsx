@@ -7,6 +7,7 @@ import {
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
+import { buildGeolocationEmbeddedListSurfaceErrorConfiguration } from "../data/geolocation-embedded-list-surface-error.server"
 import { buildRemoteCheckinPendingListSurfaceConfiguration } from "../data/geolocation-surface-builders.server"
 import { REMOTE_CHECKIN_LIST_SURFACE_IDS } from "../data/geolocation-surface-metadata.shared"
 import { listRemoteCheckinExceptionsForOrg } from "../data/geolocation.queries.server"
@@ -40,19 +41,11 @@ export async function GeolocationPendingInbox({
       <GovernedPatternCListSection
         layout="embedded"
         title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: {
-              title: REMOTE_CHECKIN_LIST_SURFACE_IDS.pendingExceptions,
-            },
-            columnsId: REMOTE_CHECKIN_LIST_SURFACE_IDS.pendingExceptions,
-            rowKey: "id",
-            empty: { variant: "muted", title: tPending("empty") },
-          },
-          columns: [{ id: "employee", header: tPending("colEmployee") }],
-          rows: [],
-        }}
+        listConfiguration={buildGeolocationEmbeddedListSurfaceErrorConfiguration({
+          columnsId: REMOTE_CHECKIN_LIST_SURFACE_IDS.pendingExceptions,
+          emptyTitle: tPending("empty"),
+          firstColumn: { id: "employee", header: tPending("colEmployee") },
+        })}
         surfaceKey="hrm:geolocation:pending:error"
         resolveConfiguredPermission={false}
         loadError={{
@@ -86,8 +79,7 @@ export async function GeolocationPendingInbox({
   return (
     <GovernedPatternCListSection
       layout="embedded"
-      title={tPending("title")}
-      description={tPending("description")}
+      title=""
       surfaceKey="hrm:geolocation:pending"
       listConfiguration={listConfiguration}
       trailingColumn={{

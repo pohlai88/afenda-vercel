@@ -4,7 +4,9 @@ import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
+import { buildEmbeddedListSurfaceErrorConfiguration } from "../data/lam-embedded-list-surface-error.server"
 import { buildTimeReportRecentListSurfaceConfiguration } from "../data/time-report-list-surface.server"
+import { TIME_REPORT_LIST_SURFACE_IDS } from "../data/time-report-surface-metadata.shared"
 import { listTimeReportsForOrg } from "../data/time-report.queries.server"
 
 const RECENT_STATES = ["approved", "rejected", "cancelled"] as const
@@ -34,17 +36,11 @@ export async function AttendanceTimeReportRecent() {
       <GovernedPatternCListSection
         layout="embedded"
         title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: "hrm-time-report-recent" },
-            columnsId: "hrm-time-report-recent",
-            rowKey: "id",
-            empty: { variant: "muted", title: t("recentEmpty") },
-          },
-          columns: [{ id: "employee", header: tAttendance("colEmployee") }],
-          rows: [],
-        }}
+        listConfiguration={buildEmbeddedListSurfaceErrorConfiguration({
+          columnsId: TIME_REPORT_LIST_SURFACE_IDS.recent,
+          emptyTitle: t("recentEmpty"),
+          firstColumn: { id: "employee", header: tAttendance("colEmployee") },
+        })}
         surfaceKey="hrm:attendance:time-report-recent:error"
         resolveConfiguredPermission={false}
         loadError={{

@@ -4,7 +4,9 @@ import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
+import { buildEmbeddedListSurfaceErrorConfiguration } from "../data/lam-embedded-list-surface-error.server"
 import { buildTimeReportPendingListSurfaceConfiguration } from "../data/time-report-list-surface.server"
+import { TIME_REPORT_LIST_SURFACE_IDS } from "../data/time-report-surface-metadata.shared"
 import { listTimeReportsForOrg } from "../data/time-report.queries.server"
 
 export async function AttendanceTimeReportPending() {
@@ -32,17 +34,11 @@ export async function AttendanceTimeReportPending() {
       <GovernedPatternCListSection
         layout="embedded"
         title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: "hrm-time-report-pending" },
-            columnsId: "hrm-time-report-pending",
-            rowKey: "id",
-            empty: { variant: "muted", title: t("inboxEmpty") },
-          },
-          columns: [{ id: "employee", header: tAttendance("colEmployee") }],
-          rows: [],
-        }}
+        listConfiguration={buildEmbeddedListSurfaceErrorConfiguration({
+          columnsId: TIME_REPORT_LIST_SURFACE_IDS.pendingInbox,
+          emptyTitle: t("inboxEmpty"),
+          firstColumn: { id: "employee", header: tAttendance("colEmployee") },
+        })}
         surfaceKey="hrm:attendance:time-report-pending:error"
         resolveConfiguredPermission={false}
         loadError={{

@@ -7,6 +7,7 @@ import {
   REMOTE_CHECKIN_LIST_SURFACE_IDS,
   REMOTE_CHECKIN_STAT_SURFACE_KEY,
 } from "../../lib/features/hrm/time-attendance/geolocation-remote-checkin/data/geolocation-surface-metadata.shared.ts"
+import { buildGeolocationEmbeddedListSurfaceErrorConfiguration } from "../../lib/features/hrm/time-attendance/geolocation-remote-checkin/data/geolocation-embedded-list-surface-error.server.ts"
 import {
   buildGeofencesListSurfaceConfiguration,
   buildRemoteCheckinDevicesListSurfaceConfiguration,
@@ -120,6 +121,24 @@ const HISTORY_ROW = {
 } as const satisfies RemoteCheckinHistoryRow
 
 describe("HRM Geolocation surface builders", () => {
+  it("builds embedded list error configuration for query failures", () => {
+    const configuration = buildGeolocationEmbeddedListSurfaceErrorConfiguration(
+      {
+        columnsId: REMOTE_CHECKIN_LIST_SURFACE_IDS.pendingExceptions,
+        emptyTitle: "No pending",
+        firstColumn: { id: "employee", header: "Employee" },
+      }
+    )
+
+    expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(
+      true
+    )
+    expect(configuration.rows).toHaveLength(0)
+    expect(configuration.surface.columnsId).toBe(
+      REMOTE_CHECKIN_LIST_SURFACE_IDS.pendingExceptions
+    )
+  })
+
   it("builds KPI stat configuration with tone escalations", () => {
     const configuration = buildRemoteCheckinKpiStatConfiguration(
       {
@@ -274,8 +293,8 @@ describe("HRM Geolocation surface builders", () => {
         colEmployee: "Employee",
         colEventType: "Event",
         colWhen: "When",
-        colLocation: "Location",
-        colAccuracy: "Accuracy",
+        colLocation: "Coordinates",
+        colAccuracy: "GPS accuracy",
         colGeofence: "Geofence",
         formatWhen: (date) => date.toISOString(),
       }
@@ -284,6 +303,14 @@ describe("HRM Geolocation surface builders", () => {
     expect(parseListSurfaceRendererConfiguration(configuration).success).toBe(
       true
     )
+    expect(configuration.columns.map((c) => c.header)).toEqual([
+      "Employee",
+      "Event",
+      "When",
+      "Coordinates",
+      "GPS accuracy",
+      "Geofence",
+    ])
     expect(configuration.rows[0]?.trailingAction).toBeUndefined()
   })
 })

@@ -127,6 +127,13 @@
       "when": 1779317454682,
       "tag": "0017_damp_greymalkin",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1779321470600,
+      "tag": "0018_premium_ares",
+      "breakpoints": true
     }
   ]
 }

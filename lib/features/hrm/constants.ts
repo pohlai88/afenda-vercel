@@ -150,6 +150,21 @@ export const HRM_CAPABILITIES = [
     }),
   },
   {
+    id: "timeClock",
+    segments: ["time-clock"] as const,
+    auditPrefix: "erp.hrm.time_clock",
+    nav: {
+      navKey: "time-clock",
+      order: 33.25,
+      primarySegment: "time-clock",
+    },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "time_clock",
+      function: "search",
+    }),
+  },
+  {
     id: "shiftScheduling",
     segments: ["shift-scheduling"] as const,
     auditPrefix: "erp.hrm.shift_schedule",

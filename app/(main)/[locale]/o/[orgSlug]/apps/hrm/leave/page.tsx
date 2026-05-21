@@ -18,5 +18,11 @@ export default async function OrgAppsHrmLeavePage({
 
     return <HrmShellAccessDenied surface={t("pageTitle")} />
   }
-  return <LeavePage orgSlug={orgSlug} access={access} />
+  return (
+    <LeavePage
+      orgSlug={orgSlug}
+      access={access}
+      organizationId={session.organizationId}
+    />
+  )
 }

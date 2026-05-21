@@ -37,6 +37,12 @@ export type AttendanceDayDisplayRow = {
   state: string
 }
 
+export type AttendanceCorrectionPendingRow = {
+  id: string
+  subjectId: string
+  requestedAt: string
+}
+
 function listSurfaceHeader(columnsId: string) {
   return { title: columnsId }
 }
@@ -57,6 +63,14 @@ type AttendancePortalDaysListCopy = {
   colDate: string
   colWorked: string
   colState: string
+}
+
+type AttendanceCorrectionPendingListCopy = {
+  columnsId?: string
+  empty: string
+  colEvent: string
+  colRequested: string
+  approveLabel: string
 }
 
 export function buildAttendanceRecentListSurfaceConfiguration(
@@ -113,6 +127,49 @@ export function buildAttendanceRecentListSurfaceConfiguration(
             },
           })
         : listSurfaceRowTrailingActionHidden(),
+    })),
+  }
+}
+
+export function buildAttendanceCorrectionPendingListSurfaceConfiguration(
+  rows: readonly AttendanceCorrectionPendingRow[],
+  copy: AttendanceCorrectionPendingListCopy
+): ListSurfaceRendererConfigurationInput {
+  const columnsId =
+    copy.columnsId ?? ATTENDANCE_LIST_SURFACE_IDS.correctionPending
+  return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
+    dataNature: "table",
+    requiresErpPermission: {
+      module: "hrm",
+      object: "attendance",
+      function: "update",
+    },
+    presentation: PRESENTATION,
+    surface: {
+      header: listSurfaceHeader(columnsId),
+      columnsId,
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "event", header: copy.colEvent },
+      { id: "requested", header: copy.colRequested, cellKind: { kind: "date" } },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        event: row.subjectId,
+        requested: row.requestedAt,
+      },
+      trailingAction: resolveListSurfaceRowTrailingAction({
+        allowed: true,
+        descriptor: {
+          id: "erp.hrm.attendance.correction.approve",
+          label: copy.approveLabel,
+          intent: "default",
+        },
+      }),
     })),
   }
 }

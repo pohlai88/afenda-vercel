@@ -4,6 +4,7 @@
 
 export const ATTENDANCE_LIST_SURFACE_IDS = {
   recentEvents: "hrm-attendance-recent-events",
+  correctionPending: "hrm-attendance-correction-pending",
   portalDays: "ess-attendance-days",
 } as const
 

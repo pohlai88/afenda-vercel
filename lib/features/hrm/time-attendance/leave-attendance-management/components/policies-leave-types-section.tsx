@@ -11,6 +11,7 @@ import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
 import { organizationHrmPath } from "../../../constants"
+import { buildEmbeddedListSurfaceErrorConfiguration } from "../data/lam-embedded-list-surface-error.server"
 import { buildLeaveTypesPolicyListSurfaceConfiguration } from "../data/leave-policy-list-surface.server"
 import { isHrmLeaveAccrualMethod } from "../data/leave-policy-display.shared"
 import {
@@ -51,17 +52,11 @@ export async function PoliciesLeaveTypesSection({
       <GovernedPatternCListSection
         layout="embedded"
         title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: "hrm-leave-types-policy" },
-            columnsId: "hrm-leave-types-policy",
-            rowKey: "id",
-            empty: { variant: "muted", title: t("leaveTypes.noTypesTitle") },
-          },
-          columns: [{ id: "code", header: t("leaveTypes.colCode") }],
-          rows: [],
-        }}
+        listConfiguration={buildEmbeddedListSurfaceErrorConfiguration({
+          columnsId: "hrm-leave-types-policy",
+          emptyTitle: t("leaveTypes.noTypesTitle"),
+          firstColumn: { id: "code", header: t("leaveTypes.colCode") },
+        })}
         surfaceKey="hrm:leave-types:policy:error"
         resolveConfiguredPermission={false}
         loadError={{

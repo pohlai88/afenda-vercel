@@ -18,8 +18,10 @@ import {
   DialogTrigger,
 } from "#components2/ui/dialog"
 
-import { upsertRemoteCheckinPolicyAction } from "../actions/remote-checkin-policy.actions"
-import type { RemoteCheckinPolicyMutationFormState } from "../../../types"
+import {
+  upsertRemoteCheckinPolicyAction,
+  type RemoteCheckinPolicyMutationFormState,
+} from "#features/hrm/client"
 
 const SCOPES = [
   "org",

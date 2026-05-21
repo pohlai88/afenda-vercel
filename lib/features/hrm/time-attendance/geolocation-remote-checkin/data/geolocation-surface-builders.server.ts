@@ -411,7 +411,7 @@ export function buildRemoteCheckinPendingListSurfaceConfiguration(
 }
 
 // ---------------------------------------------------------------------------
-// History list (Pattern B — read-only)
+// History list (Pattern C — read-only, no trailing column)
 // ---------------------------------------------------------------------------
 
 export function buildRemoteCheckinHistoryListSurfaceConfiguration(

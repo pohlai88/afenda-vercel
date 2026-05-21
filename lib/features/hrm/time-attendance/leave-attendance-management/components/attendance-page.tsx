@@ -15,7 +15,7 @@ import { requireOrgSession } from "#lib/auth"
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
 
 import { isIsoDate, todayIsoDate } from "../data/attendance-display.shared"
-import { listActiveEmployeeChoicesForAttendance } from "../../../server"
+import { listActiveEmployeeChoicesForAttendance } from "../data/attendance.queries.server"
 
 import { AttendanceDaySummary } from "./attendance-day-summary"
 import { AttendanceDaySelector } from "./attendance-day-selector"

@@ -26,8 +26,8 @@ import {
 import {
   registerRemoteCheckinDeviceAction,
   revokeRemoteCheckinDeviceAction,
-} from "../actions/remote-checkin-device.actions"
-import type { RemoteCheckinDeviceMutationFormState } from "../../../types"
+  type RemoteCheckinDeviceMutationFormState,
+} from "#features/hrm/client"
 
 type Choice = { readonly id: string; readonly label: string }
 

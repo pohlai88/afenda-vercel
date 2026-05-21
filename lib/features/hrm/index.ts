@@ -385,6 +385,26 @@ export {
   SFT_PATTERN_KINDS,
 } from "./time-attendance/shift-scheduling"
 export {
+  TimeClockPage,
+  resolveTimeClockSurfaceAccess,
+  HRM_TCI_AUDIT,
+  HRM_TCI_SPEC_MAP,
+  listHrmTciSpecCodes,
+  TCI_STAT_SURFACE_KEY,
+  TCI_LIST_SURFACE_IDS,
+  TCI_DEVICE_TYPES,
+  TCI_DEVICE_STATES,
+  TCI_PUNCH_EVENT_TYPES,
+  type TimeClockSurfaceAccess,
+  type HrmTciAuditAction,
+  type HrmTciSpecCode,
+  type HrmTciSpecArea,
+  type TciListSurfaceId,
+  type TciDeviceType,
+  type TciDeviceState,
+  type TciPunchEventType,
+} from "./time-attendance/time-clock-integration"
+export {
   GeolocationPage,
   resolveGeolocationSurfaceAccess,
   HRM_GEOLOCATION_AUDIT,

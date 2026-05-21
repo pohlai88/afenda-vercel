@@ -3,23 +3,23 @@ name: TCI Six-Slice Plan
 overview: "Build HRM Time Clock Integration from greenfield (`ARCHITECTURE.md` only) into a full-stack slice that owns physical/digital clock ingest, writes `hrm_attendance_event` with `source: device`, and hands off to Leave & Attendance — split across six ordered development slices with ADR-0035 three-layer wiring and ADR-0033 L0 verification per slice."
 todos:
   - id: slice-1-foundation
-    content: "Slice 1: contracts, ERP permissions, HRM registry, time-clock route, i18n, hrm-contract test, placeholder TimeClockPage"
-    status: pending
+    content: "Slice 1: contracts, ERP permissions, HRM registry, time-clock route, i18n, hrm-contract test, TimeClockPage"
+    status: completed
   - id: slice-2-devices
-    content: "Slice 2: Drizzle hrm_time_clock_device + employee_mapping tables; device/mapping CRUD actions; Pattern A+B admin UI"
-    status: pending
+    content: "Slice 2: Drizzle hrm_time_clock_* tables; device/mapping CRUD; Pattern B admin UI"
+    status: completed
   - id: slice-3-ingest
-    content: "Slice 3: API/cron/import ingest; persistTimeClockPunch sole source:device writer; rawPayloadHash dedup; staging optional"
-    status: pending
+    content: "Slice 3: API ingest + manual CSV; persistTimeClockPunch; dedup — vendor scheduled pull deferred"
+    status: completed
   - id: slice-4-validate
-    content: "Slice 4: validation, classification, shift match, exception inbox (Pattern B+C), KPI surfaces"
-    status: pending
+    content: "Slice 4: validation, shift match, exception inbox (Pattern C), KPI surfaces"
+    status: completed
   - id: slice-5-integrate
-    content: "Slice 5: tci-integration.server.ts; LAM regenerate + correction bridge; OTM via attendance_day; e2e smoke"
-    status: pending
+    content: "Slice 5: LAM day rollup + #features/hrm/server read helpers — LAM correction UX + ingest e2e deferred"
+    status: in_progress
   - id: slice-6-ops
-    content: "Slice 6: sync monitoring/alerts, reports/export, full audit matrix, gate:push + residue/knip"
-    status: pending
+    content: "Slice 6: report export + sync watch cron — sync-batch UI, vendor pull, org notifications deferred"
+    status: in_progress
 isProject: false
 ---
 
@@ -29,13 +29,15 @@ isProject: false
 
 | Artifact | Status |
 | --- | --- |
-| [`lib/features/hrm/time-attendance/time-clock-integration/ARCHITECTURE.md`](lib/features/hrm/time-attendance/time-clock-integration/ARCHITECTURE.md) | Requirements only (HRM-TCI-001…030, 24 acceptance criteria) |
-| Feature code (`actions/`, `data/`, `components/`, `schemas/`, `*.contract.ts`) | **Missing** |
-| Route `app/.../apps/hrm/time-clock/` | **Missing** |
-| `HRM_CAPABILITIES` / `HRM_APPS_CAPABILITY_SEGMENTS` | **Missing** |
-| DB tables for clock devices / sync | **Missing** (`hrm_remote_checkin_device` is **GEO only** — do not reuse) |
-| `source: device` writer | **Reserved in schema, no runtime writer** ([`hrm_attendance_event`](lib/db/schema.ts) L5687) |
-| Tests | **None** |
+| [`ARCHITECTURE.md`](lib/features/hrm/time-attendance/time-clock-integration/ARCHITECTURE.md) | Requirements + **implementation notes** (slice status) |
+| Feature code (`time-clock-integration/`) | **Present** — actions, data, components, schemas, contracts |
+| Route `app/.../apps/hrm/time-clock/` | **Present** — thin page (matches geolocation) |
+| `HRM_CAPABILITIES` / segments / i18n | **Present** — `timeClock`, `time-clock`, `tests/unit/hrm-contract.test.ts` |
+| DB tables | **Present** — `hrm_time_clock_*` in `lib/db/schema.ts`, migration `drizzle/0018_premium_ares.sql` |
+| `source: device` writer | **Present** — `persistTimeClockPunch` in `tci-punch-commands.server.ts` (sole writer) |
+| API / cron | **Present** — `app/api/erp/hrm/time-clock/ingest`, `app/api/cron/hrm-time-clock-sync` (watch tick) |
+| `#features/hrm/server` integration reads | **Present** — `listDevicePunchesForEmployeeDate`, `hasDevicePunchOnDate`, `getDeviceAttendanceHoursForEmployeeDateRange` |
+| Tests | **Partial** — `hrm-time-clock-contract.test.ts`, `hrm-time-clock-flow.spec.ts` (UI smoke); behavioral ingest tests deferred |
 
 **Existing ingestion (do not duplicate):**
 

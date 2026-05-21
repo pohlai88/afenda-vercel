@@ -245,6 +245,33 @@ export type {
   RemoteCheckinKpiSummary,
   RemoteCheckinPolicyRow,
 } from "./time-attendance/geolocation-remote-checkin/server"
+
+export {
+  buildTimeClockReportCsv,
+  countTimeClockKpiSummary,
+  decideTimeClockPunchException,
+  getDeviceAttendanceHoursForEmployeeDateRange,
+  hasDevicePunchOnDate,
+  ingestTimeClockBatch,
+  listDevicePunchesForEmployeeDate,
+  listTimeClockDevicesForOrg,
+  listTimeClockExceptionsForOrg,
+  listTimeClockMappingsForOrg,
+  persistTimeClockPunch,
+  resolveTimeClockIngestActor,
+  resolveTimeClockSurfaceAccess,
+  runTimeClockSyncWatchTick,
+  timeClockIngestBatchSchema,
+} from "./time-attendance/time-clock-integration/server"
+export type {
+  TimeClockDeviceRow,
+  TimeClockExceptionRow,
+  TimeClockKpiSummary,
+  TimeClockMappingRow,
+  TimeClockSurfaceAccess,
+  TimeClockSyncWatchSummary,
+} from "./time-attendance/time-clock-integration/server"
+
 export { runFwaExpiryWatchTick } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-expiry-watch.server"
 export { runFwaComplianceWatchTick } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-compliance-watch.server"
 export type { FwaComplianceWatchSummary } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-compliance-watch.server"

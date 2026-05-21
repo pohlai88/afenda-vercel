@@ -46,6 +46,7 @@ const HRM_MESSAGES = (
         shiftScheduling?: Record<string, string>
         overtime?: Record<string, string>
         absenceAnalytics?: Record<string, string>
+        timeClock?: Record<string, string>
         compensationPlanning?: Record<string, string>
       }
     }
@@ -156,6 +157,15 @@ describe("HRM_CAPABILITIES registry", () => {
     expect(geolocation?.requiredPermission).toBe("hrm.remote_checkin.search")
     expect(geolocation?.auditPrefix).toBe("erp.hrm.remote_checkin")
     expect(HRM_MESSAGES.nav["geolocation"]).toBeTypeOf("string")
+  })
+
+  it("registers time-clock capability and catalog keys", () => {
+    const timeClock = getHrmCapabilityById("timeClock")
+    expect(timeClock?.segments).toContain("time-clock")
+    expect(timeClock?.requiredPermission).toBe("hrm.time_clock.search")
+    expect(timeClock?.auditPrefix).toBe("erp.hrm.time_clock")
+    expect(HRM_MESSAGES.nav["time-clock"]).toBeTypeOf("string")
+    expect(HRM_MESSAGES.timeClock?.pageTitle).toBeTypeOf("string")
   })
 
   it("registers absence-analytics capability and catalog keys", () => {

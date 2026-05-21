@@ -8,7 +8,9 @@ import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
+import { buildEmbeddedListSurfaceErrorConfiguration } from "../data/lam-embedded-list-surface-error.server"
 import { buildLeaveRecentListSurfaceConfiguration } from "../data/leave-list-surface.server"
+import { LEAVE_LIST_SURFACE_IDS } from "../data/leave-surface-metadata.shared"
 import {
   type OrgLeaveRequestRow,
   listAllLeaveRequestsForOrg,
@@ -58,17 +60,11 @@ export async function LeaveRecentTable({ isAdmin }: { isAdmin: boolean }) {
       <GovernedPatternCListSection
         layout="embedded"
         title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: "hrm-leave-recent" },
-            columnsId: "hrm-leave-recent",
-            rowKey: "id",
-            empty: { variant: "muted", title: t("recentEmpty") },
-          },
-          columns: [{ id: "employee", header: t("colEmployee") }],
-          rows: [],
-        }}
+        listConfiguration={buildEmbeddedListSurfaceErrorConfiguration({
+          columnsId: LEAVE_LIST_SURFACE_IDS.recent,
+          emptyTitle: t("recentEmpty"),
+          firstColumn: { id: "employee", header: t("colEmployee") },
+        })}
         surfaceKey="hrm:leave:recent:error"
         resolveConfiguredPermission={false}
         loadError={{

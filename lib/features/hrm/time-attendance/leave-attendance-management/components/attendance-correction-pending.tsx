@@ -1,9 +1,22 @@
 import { getTranslations } from "next-intl/server"
 import { and, desc, eq } from "drizzle-orm"
 
+import {
+  GovernedPatternCListSection,
+  isListSurfaceTrailingActionRenderable,
+} from "#features/governed-surface"
+import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
+import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 import { db } from "#lib/db"
 import { hrmApproval } from "#lib/db/schema"
+
+import {
+  buildAttendanceCorrectionPendingListSurfaceConfiguration,
+  type AttendanceCorrectionPendingRow,
+} from "../data/attendance-list-surface.server"
+import { ATTENDANCE_LIST_SURFACE_IDS } from "../data/attendance-surface-metadata.shared"
+import { buildEmbeddedListSurfaceErrorConfiguration } from "../data/lam-embedded-list-surface-error.server"
 
 import { AttendanceCorrectionApproveButton } from "./attendance-correction-approve-button.client"
 
@@ -13,58 +26,90 @@ export async function AttendanceCorrectionPending() {
     getTranslations("Dashboard.Hrm.attendance"),
   ])
 
-  const rows = await db.query.hrmApproval.findMany({
-    where: and(
-      eq(hrmApproval.organizationId, session.organizationId),
-      eq(hrmApproval.subjectKind, "attendance_correction"),
-      eq(hrmApproval.state, "pending")
-    ),
-    columns: {
-      id: true,
-      subjectId: true,
-      requestedAt: true,
-      snapshot: true,
-    },
-    orderBy: [desc(hrmApproval.requestedAt)],
-    limit: 50,
-  })
-
-  if (rows.length === 0) {
+  let rows: AttendanceCorrectionPendingRow[]
+  try {
+    const pending = await db.query.hrmApproval.findMany({
+      where: and(
+        eq(hrmApproval.organizationId, session.organizationId),
+        eq(hrmApproval.subjectKind, "attendance_correction"),
+        eq(hrmApproval.state, "pending")
+      ),
+      columns: {
+        id: true,
+        subjectId: true,
+        requestedAt: true,
+      },
+      orderBy: [desc(hrmApproval.requestedAt)],
+      limit: 50,
+    })
+    rows = pending.map((row) => ({
+      id: row.id,
+      subjectId: row.subjectId,
+      requestedAt: row.requestedAt.toISOString().slice(0, 10),
+    }))
+  } catch (err) {
+    logUnexpectedServerError(
+      "attendance-correction-pending: query failed",
+      err,
+      { organizationId: session.organizationId }
+    )
     return (
-      <p className="text-sm text-muted-foreground">
-        {t("correctionPendingEmpty")}
-      </p>
+      <GovernedPatternCListSection
+        layout="embedded"
+        title=""
+        listConfiguration={buildEmbeddedListSurfaceErrorConfiguration({
+          columnsId: ATTENDANCE_LIST_SURFACE_IDS.correctionPending,
+          emptyTitle: t("correctionPendingEmpty"),
+          firstColumn: { id: "event", header: t("correctionPendingColEvent") },
+        })}
+        surfaceKey="hrm:attendance:correction-pending:error"
+        resolveConfiguredPermission={false}
+        loadError={{
+          variant: "error",
+          title: t("correctionPendingLoadFailed"),
+        }}
+      />
     )
   }
 
+  const listConfiguration = buildAttendanceCorrectionPendingListSurfaceConfiguration(
+    rows,
+    {
+      empty: t("correctionPendingEmpty"),
+      colEvent: t("correctionPendingColEvent"),
+      colRequested: t("correctionPendingColRequested"),
+      approveLabel: t("correctionPendingApprove"),
+    }
+  )
+
+  const rowById = new Map(rows.map((row) => [row.id, row]))
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-muted-foreground">
-            <th className="pr-4 pb-2 font-medium">
-              {t("correctionPendingColEvent")}
-            </th>
-            <th className="pr-4 pb-2 font-medium">
-              {t("correctionPendingColRequested")}
-            </th>
-            <th className="pb-2 font-medium">{t("colActions")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id} className="border-b border-border/60">
-              <td className="py-2 pr-4 font-mono text-xs">{row.subjectId}</td>
-              <td className="py-2 pr-4 tabular-nums">
-                {row.requestedAt.toISOString().slice(0, 10)}
-              </td>
-              <td className="py-2">
-                <AttendanceCorrectionApproveButton approvalId={row.id} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <GovernedPatternCListSection
+      layout="embedded"
+      title=""
+      listConfiguration={listConfiguration}
+      surfaceKey="hrm:attendance:correction-pending"
+      parentAccessAllowed
+      trailingColumn={{
+        header: t("colActions"),
+        render: (surfaceRow) => {
+          const row = rowById.get(surfaceRow.id)
+          if (
+            !row ||
+            !isListSurfaceTrailingActionRenderable(surfaceRow.trailingAction)
+          ) {
+            return null
+          }
+          return (
+            <GovernedTrailingActionSlot
+              trailingAction={surfaceRow.trailingAction}
+            >
+              <AttendanceCorrectionApproveButton approvalId={row.id} />
+            </GovernedTrailingActionSlot>
+          )
+        },
+      }}
+    />
   )
 }

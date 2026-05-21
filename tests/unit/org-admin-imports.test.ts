@@ -44,6 +44,17 @@ vi.mock(
     },
   })
 )
+vi.mock(
+  "../../lib/features/hrm/time-attendance/time-clock-integration/data/tci-manual-import.adapter.server.ts",
+  () => ({
+    timeClockManualImportAdapter: {
+      id: "hrm_time_clock_import",
+      requiredHeaders: [],
+      parseRow: vi.fn(),
+      applyRow: vi.fn(),
+    },
+  })
+)
 
 import {
   IMPORT_ADAPTERS,
@@ -84,6 +95,7 @@ describe("ingestion-job constants", () => {
       "hrm_payroll_profile_import",
       "hrm_employee_hire",
       "hrm_attendance_import",
+      "hrm_time_clock_import",
     ])
   })
 

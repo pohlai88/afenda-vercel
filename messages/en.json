@@ -973,6 +973,7 @@
         "absence-analytics": "Absence analytics",
         "flexible-work": "Flexible work",
         "geolocation": "Remote check-in",
+        "time-clock": "Time clock",
         "overtime": "Overtime",
         "benefits": "Benefits",
         "bonus-incentives": "Bonus & incentives",
@@ -1055,6 +1056,10 @@
         "geolocation": {
           "title": "Remote check-in",
           "description": "Mobile or web clock-in with GPS verification, geofence rules, device registration, exception approvals, and audit history — verified rows feed Leave & Attendance Management."
+        },
+        "time-clock": {
+          "title": "Time clock",
+          "description": "Register physical time clocks, map employees to device users, ingest punch batches, validate against shifts, and route exceptions — device punches feed Leave & Attendance Management."
         },
         "overtime": {
           "title": "Overtime",
@@ -2094,6 +2099,10 @@
           "title": "Remote check-in",
           "body": "Capture mobile or web clock-in with GPS verification, validate against geofence rules and shift windows, register devices, route exceptions for approval, and surface verified rows to Leave & Attendance Management — all under erp.hrm.remote_checkin.* audits."
         },
+        "time-clock": {
+          "title": "Time clock",
+          "body": "Register physical time clocks, map employees to device users, ingest punch batches with validation and deduplication, and route exceptions — verified device punches feed Leave & Attendance Management under erp.hrm.time_clock.* audits."
+        },
         "overtime": {
           "title": "Overtime",
           "body": "Submit overtime requests, approve policy exceptions, and track payroll-ready outcomes under erp.hrm.overtime.* audits. Legacy attendance overtime time reports are retired — use this module instead."
@@ -2964,6 +2973,7 @@
         "correctionPendingTitle": "Pending attendance corrections",
         "correctionPendingDescription": "Employee-submitted corrections awaiting manager approval before raw events are written.",
         "correctionPendingEmpty": "No pending attendance corrections.",
+        "correctionPendingLoadFailed": "Pending corrections are temporarily unavailable. Retry shortly.",
         "correctionPendingColEvent": "Original event",
         "correctionPendingColRequested": "Requested",
         "correctionPendingApprove": "Approve correction",
@@ -4454,6 +4464,9 @@
           "colEmployee": "Employee",
           "colWhen": "When",
           "colEvent": "Action",
+          "colLocation": "Coordinates",
+          "colAccuracy": "GPS accuracy",
+          "colGeofence": "Geofence",
           "colDevice": "Device",
           "colSite": "Site",
           "colOutcome": "Outcome",
@@ -4606,6 +4619,108 @@
         },
         "yes": "Yes",
         "no": "No"
+      },
+      "timeClock": {
+        "metaTitle": "Time clock",
+        "metaDescription": "Physical time clock devices, employee mappings, punch ingest, validation, and exception inbox.",
+        "accessDeniedTitle": "Time clock",
+        "accessDeniedDescription": "This HRM surface requires Time clock access.",
+        "eyebrow": "Time & attendance",
+        "pageTitle": "Time clock integration",
+        "pageDescription": "Register devices, map employees to clock users, ingest punch batches, validate against shifts, and route exceptions — verified punches reach Leave & Attendance with source device.",
+        "loadFailed": "Could not load time clock data.",
+        "kpi": {
+          "title": "Overview",
+          "activeDevices": "Active devices",
+          "activeMappings": "Active mappings",
+          "pendingExceptions": "Pending exceptions",
+          "failedSync": "Failed sync",
+          "punchesToday": "Punches today"
+        },
+        "devices": {
+          "title": "Devices",
+          "description": "Registered time clocks and terminals. Revoking blocks future ingest for that device.",
+          "empty": "No devices registered yet.",
+          "colName": "Name",
+          "colExternalId": "External ID",
+          "colType": "Type",
+          "colLocation": "Location",
+          "colState": "State",
+          "colSync": "Sync",
+          "colLastSync": "Last sync",
+          "colActions": "Actions",
+          "revoke": "Revoke",
+          "revoking": "Revoking…",
+          "registerOpen": "Register device",
+          "registerDialogTitle": "Register time clock",
+          "registerDialogDescription": "Register a physical or digital terminal. External ID must match the vendor device identifier used during API ingest.",
+          "fieldExternalId": "External device ID",
+          "fieldName": "Display name",
+          "fieldDeviceType": "Device type",
+          "fieldLocation": "Location (optional)",
+          "submitRegister": "Register",
+          "submitting": "Saving…",
+          "deviceTypeLabels": {
+            "biometric": "Biometric",
+            "card": "Card reader",
+            "rfid": "RFID",
+            "kiosk": "Kiosk",
+            "web": "Web clock",
+            "api": "API feed"
+          }
+        },
+        "mappings": {
+          "title": "Employee mappings",
+          "description": "Links Afenda employees to time-clock user or badge identifiers per device.",
+          "empty": "No mappings yet.",
+          "colEmployee": "Employee",
+          "colDevice": "Device",
+          "colClockUser": "Clock user ID",
+          "colBadge": "Badge ID",
+          "colState": "State",
+          "createOpen": "Add mapping",
+          "createDialogTitle": "Map employee to device",
+          "createDialogDescription": "Clock user ID must match the identifier sent by the terminal during ingest.",
+          "fieldEmployee": "Employee",
+          "fieldDevice": "Device",
+          "fieldClockUser": "Clock user ID",
+          "fieldBadge": "Badge ID (optional)",
+          "submitCreate": "Save mapping",
+          "submitting": "Saving…"
+        },
+        "exceptions": {
+          "title": "Punch exceptions",
+          "description": "Rejected or blocked punches awaiting HR review.",
+          "empty": "No open exceptions.",
+          "colEmployee": "Employee",
+          "colDevice": "Device",
+          "colEvent": "Event",
+          "colOutcome": "Outcome",
+          "colOccurred": "Occurred",
+          "colActions": "Actions",
+          "decideAction": "Decide",
+          "approveOpen": "Approve",
+          "rejectOpen": "Reject",
+          "approveDialogTitle": "Approve punch",
+          "approveDialogDescription": "Writes a verified device punch to attendance when policy allows (e.g. outside shift window).",
+          "rejectDialogTitle": "Reject punch",
+          "rejectDialogDescription": "Closes the exception without writing attendance.",
+          "fieldDecisionReason": "Reason",
+          "submitting": "Saving…"
+        },
+        "report": {
+          "title": "Operational report",
+          "description": "Device punches, punch exceptions, and sync batches for CSV export — filter by employee, device, and date range.",
+          "exportSubmit": "Export CSV",
+          "exporting": "Exporting…",
+          "exportSuccessTitle": "Report exported",
+          "exportFailedTitle": "Could not export report",
+          "fieldStartDate": "Start date",
+          "fieldEndDate": "End date",
+          "fieldEmployee": "Employee ID (optional)",
+          "fieldDevice": "Device ID (optional)",
+          "fieldOnlyExceptions": "Exceptions only"
+        }
       },
       "benefits": {
         "eyebrow": "Benefits",
@@ -6456,7 +6571,8 @@
           "member_invite": "Member invitations",
           "hrm_payroll_profile_import": "HRM payroll profile rows",
           "hrm_employee_hire": "HRM new hires",
-          "hrm_attendance_import": "HRM attendance import"
+          "hrm_attendance_import": "HRM attendance import",
+          "hrm_time_clock_import": "HRM time clock punch import"
         }
       },
       "endpoints": {

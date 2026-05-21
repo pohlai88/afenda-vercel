@@ -36,16 +36,31 @@ import { LeaveExportReportButton } from "./leave-export-report-button.client"
 type LeavePageProps = {
   orgSlug: string
   access?: LeaveSurfaceAccess
+  /** When the route already resolved tenant context, pass org id to avoid a second session read. */
+  organizationId?: string
 }
 
-export async function LeavePage({ orgSlug, access }: LeavePageProps) {
-  const orgSession = await requireOrgSession()
-  const leaveAccess =
-    access ??
-    (await resolveLeaveSurfaceAccess({
-      organizationId: orgSession.organizationId,
-      userId: orgSession.userId,
-    }))
+export async function LeavePage({
+  orgSlug,
+  access: accessFromRoute,
+  organizationId: organizationIdFromRoute,
+}: LeavePageProps) {
+  let organizationId: string
+  let leaveAccess: LeaveSurfaceAccess
+
+  if (accessFromRoute && organizationIdFromRoute) {
+    organizationId = organizationIdFromRoute
+    leaveAccess = accessFromRoute
+  } else {
+    const session = await requireOrgSession()
+    organizationId = session.organizationId
+    leaveAccess =
+      accessFromRoute ??
+      (await resolveLeaveSurfaceAccess({
+        organizationId: session.organizationId,
+        userId: session.userId,
+      }))
+  }
 
   if (!leaveAccess.canEnter) {
     const t = await getTranslations("Dashboard.Hrm.leave")
@@ -56,9 +71,9 @@ export async function LeavePage({ orgSlug, access }: LeavePageProps) {
   const [t, employees, leaveTypes] = await Promise.all([
     getTranslations("Dashboard.Hrm.leave"),
     leaveAccess.canManage
-      ? listActiveEmployeeChoicesForLeave(orgSession.organizationId)
+      ? listActiveEmployeeChoicesForLeave(organizationId)
       : Promise.resolve([]),
-    listActiveLeaveTypesForOrg(orgSession.organizationId),
+    listActiveLeaveTypesForOrg(organizationId),
   ])
 
   const canApplyOnBehalf =

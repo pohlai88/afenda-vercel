@@ -9056,6 +9056,186 @@ export const hrmRemoteCheckinException = pgTable(
   ]
 )
 
+// ---------------------------------------------------------------------------
+// Time Clock Integration (lib/features/hrm/time-attendance/time-clock-integration/)
+//
+// Physical/digital terminal registry + employee mapping. Validated punches land in
+// `hrm_attendance_event` with `source = 'device'` (sole writer: TCI punch commands).
+// ---------------------------------------------------------------------------
+
+/** Org-owned time clock terminal (HRM-TCI-003 / HRM-TCI-004). */
+export const hrmTimeClockDevice = pgTable(
+  "hrm_time_clock_device",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    externalDeviceId: text("externalDeviceId").notNull(),
+    name: text("name").notNull(),
+    deviceType: text("deviceType").notNull(),
+    locationRef: text("locationRef"),
+    state: text("state").notNull().default("active"),
+    syncStatus: text("syncStatus").notNull().default("idle"),
+    lastSyncAt: timestamp("lastSyncAt", { mode: "date" }),
+    integrationCredentialRef: text("integrationCredentialRef"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_time_clock_device_org_external_uidx").on(
+      t.organizationId,
+      t.externalDeviceId
+    ),
+    index("hrm_time_clock_device_org_state_idx").on(
+      t.organizationId,
+      t.state
+    ),
+    check(
+      "hrm_time_clock_device_type_chk",
+      sql`${t.deviceType} IN ('biometric', 'card', 'rfid', 'kiosk', 'web', 'api')`
+    ),
+    check(
+      "hrm_time_clock_device_state_chk",
+      sql`${t.state} IN ('active', 'inactive', 'revoked')`
+    ),
+    check(
+      "hrm_time_clock_device_sync_status_chk",
+      sql`${t.syncStatus} IN ('idle', 'syncing', 'failed', 'ok')`
+    ),
+  ]
+)
+
+/** Employee ↔ terminal identity mapping (HRM-TCI-005 / HRM-TCI-015). */
+export const hrmTimeClockEmployeeMapping = pgTable(
+  "hrm_time_clock_employee_mapping",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    deviceId: text("deviceId")
+      .notNull()
+      .references(() => hrmTimeClockDevice.id, { onDelete: "cascade" }),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    clockUserId: text("clockUserId"),
+    badgeId: text("badgeId"),
+    biometricRef: text("biometricRef"),
+    state: text("state").notNull().default("active"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_time_clock_mapping_org_device_clock_user_uidx").on(
+      t.organizationId,
+      t.deviceId,
+      t.clockUserId
+    ),
+    index("hrm_time_clock_mapping_org_employee_idx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+    check(
+      "hrm_time_clock_mapping_state_chk",
+      sql`${t.state} IN ('active', 'inactive')`
+    ),
+  ]
+)
+
+/** Import / API / scheduled sync run (HRM-TCI-008–011 / HRM-TCI-030). */
+export const hrmTimeClockSyncBatch = pgTable(
+  "hrm_time_clock_sync_batch",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    deviceId: text("deviceId").references(() => hrmTimeClockDevice.id, {
+      onDelete: "set null",
+    }),
+    sourceKind: text("sourceKind").notNull(),
+    state: text("state").notNull().default("running"),
+    receivedCount: integer("receivedCount").notNull().default(0),
+    acceptedCount: integer("acceptedCount").notNull().default(0),
+    duplicateCount: integer("duplicateCount").notNull().default(0),
+    rejectedCount: integer("rejectedCount").notNull().default(0),
+    errorSummary: text("errorSummary"),
+    startedAt: timestamp("startedAt", { mode: "date" }).notNull().defaultNow(),
+    finishedAt: timestamp("finishedAt", { mode: "date" }),
+    createdByUserId: text("createdByUserId"),
+  },
+  (t) => [
+    index("hrm_time_clock_sync_batch_org_started_idx").on(
+      t.organizationId,
+      t.startedAt
+    ),
+    check(
+      "hrm_time_clock_sync_batch_source_chk",
+      sql`${t.sourceKind} IN ('api', 'manual_import', 'scheduled', 'offline_replay')`
+    ),
+    check(
+      "hrm_time_clock_sync_batch_state_chk",
+      sql`${t.state} IN ('running', 'completed', 'failed')`
+    ),
+  ]
+)
+
+/**
+ * Failed or unmatched punch awaiting HR review (HRM-TCI-017–019 / HRM-TCI-024).
+ * Approved rows write `hrm_attendance_event`.
+ */
+export const hrmTimeClockPunchException = pgTable(
+  "hrm_time_clock_punch_exception",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    deviceId: text("deviceId").references(() => hrmTimeClockDevice.id, {
+      onDelete: "set null",
+    }),
+    syncBatchId: text("syncBatchId").references(() => hrmTimeClockSyncBatch.id, {
+      onDelete: "set null",
+    }),
+    state: text("state").notNull().default("submitted"),
+    eventType: text("eventType").notNull(),
+    occurredAt: timestamp("occurredAt", { mode: "date" }).notNull(),
+    detectionOutcome: text("detectionOutcome").notNull(),
+    reason: text("reason").notNull(),
+    rawPayloadHash: text("rawPayloadHash"),
+    sourceRef: text("sourceRef"),
+    resolvedEventId: text("resolvedEventId"),
+    decidedAt: timestamp("decidedAt", { mode: "date" }),
+    decidedByUserId: text("decidedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_time_clock_punch_exception_org_state_idx").on(
+      t.organizationId,
+      t.state,
+      t.createdAt
+    ),
+    check(
+      "hrm_time_clock_punch_exception_state_chk",
+      sql`${t.state} IN ('submitted', 'approved', 'rejected', 'cancelled')`
+    ),
+    check(
+      "hrm_time_clock_punch_exception_event_type_chk",
+      sql`${t.eventType} IN ('clock_in', 'clock_out', 'break_start', 'break_end', 'correction')`
+    ),
+  ]
+)
+
 /** Public ask-docs page feedback (anonymous or optional signed-in context). */
 export const askDocsFeedback = pgTable(
   "ask_docs_feedback",

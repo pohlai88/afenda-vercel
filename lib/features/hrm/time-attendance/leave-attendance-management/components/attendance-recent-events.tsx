@@ -11,11 +11,13 @@ import { requireOrgSession } from "#lib/auth"
 import {
   type OrgAttendanceEventRow,
   listRecentAttendanceEventsForOrg,
-} from "../../../server"
+} from "../data/attendance.queries.server"
 import {
   buildAttendanceRecentListSurfaceConfiguration,
   type AttendanceEventDisplayRow,
 } from "../data/attendance-list-surface.server"
+import { ATTENDANCE_LIST_SURFACE_IDS } from "../data/attendance-surface-metadata.shared"
+import { buildEmbeddedListSurfaceErrorConfiguration } from "../data/lam-embedded-list-surface-error.server"
 
 import { AttendanceCorrectionDialog } from "./attendance-correction-dialog"
 
@@ -96,17 +98,11 @@ export async function AttendanceRecentEvents({
       <GovernedPatternCListSection
         layout="embedded"
         title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: "hrm-attendance-recent-events" },
-            columnsId: "hrm-attendance-recent-events",
-            rowKey: "id",
-            empty: { variant: "muted", title: t("recentEmpty") },
-          },
-          columns: [{ id: "employee", header: t("colEmployee") }],
-          rows: [],
-        }}
+        listConfiguration={buildEmbeddedListSurfaceErrorConfiguration({
+          columnsId: ATTENDANCE_LIST_SURFACE_IDS.recentEvents,
+          emptyTitle: t("recentEmpty"),
+          firstColumn: { id: "employee", header: t("colEmployee") },
+        })}
         surfaceKey="hrm:attendance:recent:error"
         resolveConfiguredPermission={false}
         loadError={{

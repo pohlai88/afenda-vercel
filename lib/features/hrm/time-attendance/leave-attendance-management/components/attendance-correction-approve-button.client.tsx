@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react"
 
 import { Button } from "#components2/ui/button"
 
-import { approveAttendanceCorrectionAction } from "../actions/attendance-correction-approval.actions"
+import { approveAttendanceCorrectionAction } from "#features/hrm/client"
 
 type AttendanceCorrectionApproveButtonProps = {
   approvalId: string

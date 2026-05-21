@@ -8,7 +8,9 @@ import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
 
+import { buildEmbeddedListSurfaceErrorConfiguration } from "../data/lam-embedded-list-surface-error.server"
 import { buildLeavePendingListSurfaceConfiguration } from "../data/leave-list-surface.server"
+import { LEAVE_LIST_SURFACE_IDS } from "../data/leave-surface-metadata.shared"
 import {
   type OrgLeaveRequestRow,
   listAllLeaveRequestsForOrg,
@@ -41,17 +43,11 @@ export async function LeavePendingInbox({
       <GovernedPatternCListSection
         layout="embedded"
         title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: "hrm-leave-pending" },
-            columnsId: "hrm-leave-pending",
-            rowKey: "id",
-            empty: { variant: "muted", title: t("inboxEmpty") },
-          },
-          columns: [{ id: "employee", header: t("colEmployee") }],
-          rows: [],
-        }}
+        listConfiguration={buildEmbeddedListSurfaceErrorConfiguration({
+          columnsId: LEAVE_LIST_SURFACE_IDS.pending,
+          emptyTitle: t("inboxEmpty"),
+          firstColumn: { id: "employee", header: t("colEmployee") },
+        })}
         surfaceKey="hrm:leave:pending:error"
         resolveConfiguredPermission={false}
         loadError={{

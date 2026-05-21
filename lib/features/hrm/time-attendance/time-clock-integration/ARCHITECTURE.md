@@ -1,5 +1,25 @@
 # Time Clock Integration
 
+## Implementation notes
+
+- **Route:** `/{locale}/o/{orgSlug}/apps/hrm/time-clock` — registry segment `time-clock`, audit prefix `erp.hrm.time_clock`.
+- **Slice 1–4 (shipped on branch):** Contracts, ERP permissions, HRM registry, thin route, device/mapping CRUD (Pattern B), API ingest + manual CSV, validation + exception inbox (Pattern C), KPI summary.
+- **Slice 5 (partial):** `persistTimeClockPunch` sole `source: device` writer; LAM `regenerateAttendanceDayFromEvents`; read helpers on `#features/hrm/server` (`listDevicePunchesForEmployeeDate`, `hasDevicePunchOnDate`, `getDeviceAttendanceHoursForEmployeeDateRange`). LAM correction bridge via exception approve/reject (not full LAM correction form wiring).
+- **Slice 6 (partial):** CSV report export; cron `hrm-time-clock-sync` runs **sync watch** (`runTimeClockSyncWatchTick`) — not vendor punch pull (HRM-TCI-011 deferred). Sync-batch governed list surface id reserved; UI section not wired.
+- **Public doors:** `#features/hrm` (RSC), `#features/hrm/client` (forms), `#features/hrm/server` (ingest, cron, LAM/OTM reads). No `components2/time-clock/`.
+- **Cron truth:** `app/api/cron/hrm-time-clock-sync` — stale/failed device audit tick only until vendor adapter ships.
+
+### Governed surface keys
+
+| `surfaceKey` | Section |
+| --- | --- |
+| `hrm:time-clock:kpi-summary` | KPI stat cards |
+| `hrm:time-clock:devices` | Device registry (Pattern B) |
+| `hrm:time-clock:mappings` | Employee mappings (Pattern B) |
+| `hrm:time-clock:exceptions` | Exception inbox (Pattern C) |
+
+---
+
 ## Definition
 
 **Time Clock Integration is the HRM function that connects physical, digital, biometric, web, mobile, kiosk, and third-party time clock systems to automatically capture employee clock-in, clock-out, break, attendance, and work-hour records for attendance processing, exception handling, overtime validation, and payroll readiness.**

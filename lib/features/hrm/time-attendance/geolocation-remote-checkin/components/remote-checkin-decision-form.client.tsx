@@ -24,8 +24,10 @@ import {
   DialogTrigger,
 } from "#components2/ui/dialog"
 
-import { decideRemoteCheckinExceptionAction } from "../actions/remote-checkin-exception.actions"
-import type { RemoteCheckinExceptionDecisionFormState } from "../../../types"
+import {
+  decideRemoteCheckinExceptionAction,
+  type RemoteCheckinExceptionDecisionFormState,
+} from "#features/hrm/client"
 
 type RemoteCheckinDecisionFormProps = {
   readonly exceptionId: string
