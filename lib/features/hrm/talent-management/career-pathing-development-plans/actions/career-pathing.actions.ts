@@ -2,15 +2,16 @@
 
 import { after } from "next/server"
 import { revalidatePath } from "next/cache"
-import { and, eq } from "drizzle-orm"
+import { and, eq, sql } from "drizzle-orm"
 
 import { requireErpPermission } from "#features/erp-rbac/server"
-import { writeIamAuditEventFromNextHeaders } from "#lib/auth"
+import { requireOrgSession, writeIamAuditEventFromNextHeaders } from "#lib/auth"
 import { ORG_APPS_HRM_CAREER_PATHING } from "#lib/org-apps-module-paths"
 import { db } from "#lib/db"
 import {
   hrmCareerDiscussion,
   hrmCareerPathFramework,
+  hrmCareerPathStage,
   hrmDevelopmentCoachAssignment,
   hrmDevelopmentGoal,
   hrmDevelopmentLearningAction,
@@ -28,13 +29,21 @@ import type { OrgSession } from "#lib/auth"
 import { requireHrmOrgTenantFromForm } from "../../../_module-governance/hrm-action-guard.server"
 import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.shared"
 import { HRM_CAREER_PATH_AUDIT } from "../career-pathing.contract"
+import {
+  notifyCareerPathDiscussionCreated,
+  notifyCareerPathGoalStatusChange,
+  notifyCareerPathMilestoneStatusChange,
+} from "../data/career-pathing-notification.server"
+import { buildCareerPathReadinessExportCsv } from "../data/career-pathing-report.server"
 import { recomputeReadinessForEmployee } from "../data/career-pathing.queries.server"
 import {
   assignCoachFormSchema,
   assignMentorFormSchema,
   createCareerDiscussionFormSchema,
   createCareerPathFrameworkFormSchema,
+  createCareerPathStageFormSchema,
   createDevelopmentGoalFormSchema,
+  deleteCareerPathStageFormSchema,
   createDevelopmentMilestoneFormSchema,
   createDevelopmentPlanFormSchema,
   createDevelopmentSessionFormSchema,
@@ -175,6 +184,126 @@ export async function updateCareerPathFrameworkStatusAction(
       organizationId,
       resourceType: "hrm_career_path_framework",
       resourceId: parsed.data.frameworkId,
+    })
+  )
+
+  revalidateCareerPathing()
+  return { ok: true }
+}
+
+export async function createCareerPathStageAction(
+  formData: FormData
+): Promise<CareerPathingMutationFormState> {
+  const gate = await requireCareerPathPermission(formData, "create")
+  if (!gate.ok) return gate.response
+
+  const parsed = createCareerPathStageFormSchema.safeParse({
+    organizationId: formData.get("organizationId"),
+    orgSlug: formData.get("orgSlug"),
+    frameworkId: formData.get("frameworkId"),
+    title: formData.get("title"),
+    description: formData.get("description") || undefined,
+    targetGradeRef: formData.get("targetGradeRef") || undefined,
+    expectedMonths: formData.get("expectedMonths") || undefined,
+  })
+  if (!parsed.success) {
+    return hrmActionFailure({ form: "Invalid stage payload." })
+  }
+
+  const { session } = gate
+  const organizationId = session.organizationId
+
+  const [framework] = await db
+    .select({ id: hrmCareerPathFramework.id })
+    .from(hrmCareerPathFramework)
+    .where(
+      and(
+        eq(hrmCareerPathFramework.id, parsed.data.frameworkId),
+        eq(hrmCareerPathFramework.organizationId, organizationId)
+      )
+    )
+    .limit(1)
+  if (!framework) {
+    return hrmActionFailure({ form: "Career path framework not found." })
+  }
+
+  const [seqRow] = await db
+    .select({
+      nextSequence: sql<number>`coalesce(max(${hrmCareerPathStage.sequence}), 0) + 1`,
+    })
+    .from(hrmCareerPathStage)
+    .where(
+      and(
+        eq(hrmCareerPathStage.organizationId, organizationId),
+        eq(hrmCareerPathStage.frameworkId, parsed.data.frameworkId)
+      )
+    )
+
+  const sequence = Number(seqRow?.nextSequence ?? 1)
+
+  const [row] = await db
+    .insert(hrmCareerPathStage)
+    .values({
+      organizationId,
+      frameworkId: parsed.data.frameworkId,
+      sequence,
+      title: parsed.data.title,
+      description: parsed.data.description ?? null,
+      targetGradeRef: parsed.data.targetGradeRef ?? null,
+      expectedMonths: parsed.data.expectedMonths ?? null,
+    })
+    .returning({ id: hrmCareerPathStage.id })
+
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: HRM_CAREER_PATH_AUDIT.stage.create,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      organizationId,
+      resourceType: "hrm_career_path_stage",
+      resourceId: row?.id ?? "",
+    })
+  )
+
+  revalidateCareerPathing()
+  return { ok: true }
+}
+
+export async function deleteCareerPathStageAction(
+  formData: FormData
+): Promise<CareerPathingMutationFormState> {
+  const gate = await requireCareerPathPermission(formData, "update")
+  if (!gate.ok) return gate.response
+
+  const parsed = deleteCareerPathStageFormSchema.safeParse({
+    organizationId: formData.get("organizationId"),
+    orgSlug: formData.get("orgSlug"),
+    stageId: formData.get("stageId"),
+  })
+  if (!parsed.success) {
+    return hrmActionFailure({ form: "Invalid stage delete payload." })
+  }
+
+  const { session } = gate
+  const organizationId = session.organizationId
+
+  await db
+    .delete(hrmCareerPathStage)
+    .where(
+      and(
+        eq(hrmCareerPathStage.id, parsed.data.stageId),
+        eq(hrmCareerPathStage.organizationId, organizationId)
+      )
+    )
+
+  after(() =>
+    writeIamAuditEventFromNextHeaders({
+      action: HRM_CAREER_PATH_AUDIT.stage.deprecate,
+      actorUserId: session.userId,
+      actorSessionId: session.sessionId,
+      organizationId,
+      resourceType: "hrm_career_path_stage",
+      resourceId: parsed.data.stageId,
     })
   )
 
@@ -466,6 +595,14 @@ export async function updateDevelopmentGoalStatusAction(
     })
   )
 
+  after(() =>
+    notifyCareerPathGoalStatusChange({
+      organizationId,
+      goalId: parsed.data.goalId,
+      status: parsed.data.status,
+    })
+  )
+
   revalidateCareerPathing()
   return { ok: true }
 }
@@ -560,6 +697,14 @@ export async function updateMilestoneStatusAction(
       organizationId,
       resourceType: "hrm_development_milestone",
       resourceId: parsed.data.milestoneId,
+    })
+  )
+
+  after(() =>
+    notifyCareerPathMilestoneStatusChange({
+      organizationId,
+      milestoneId: parsed.data.milestoneId,
+      status: parsed.data.status,
     })
   )
 
@@ -859,6 +1004,16 @@ export async function createCareerDiscussionAction(
     })
   )
 
+  if (row?.id) {
+    after(() =>
+      notifyCareerPathDiscussionCreated({
+        organizationId,
+        discussionId: row.id,
+        employeeId: parsed.data.employeeId,
+      })
+    )
+  }
+
   revalidateCareerPathing()
   return { ok: true }
 }
@@ -913,4 +1068,23 @@ export async function updateManagerReviewAction(
   }
   revalidateCareerPathing()
   return { ok: true }
+}
+
+/** HRM-CAR-029 — readiness CSV for HR reporting. */
+export async function exportCareerPathReadinessCsvAction(): Promise<
+  { ok: true; csv: string; filename: string } | { ok: false; error: string }
+> {
+  const session = await requireOrgSession()
+  const permission = await requireErpPermission({
+    ...CAREER_PATH_PERMISSION,
+    function: "search",
+  })
+  if (!permission.ok) {
+    return { ok: false, error: permission.error }
+  }
+
+  const { csv, filename } = await buildCareerPathReadinessExportCsv(
+    session.organizationId
+  )
+  return { ok: true, csv, filename }
 }

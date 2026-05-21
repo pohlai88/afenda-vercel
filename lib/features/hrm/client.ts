@@ -618,12 +618,16 @@ export type {
 
 export {
   createCareerPathFrameworkAction,
+  updateCareerPathFrameworkStatusAction,
+  createCareerPathStageAction,
+  deleteCareerPathStageAction,
   createTargetRoleAction,
   createDevelopmentPlanAction,
   createDevelopmentGoalAction,
   updateDevelopmentGoalStatusAction,
   createDevelopmentMilestoneAction,
   updateMilestoneStatusAction,
+  exportCareerPathReadinessCsvAction,
   createLearningActionAction,
   createStretchAssignmentAction,
   assignMentorAction,

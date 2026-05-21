@@ -9,7 +9,8 @@
 - **Slice 3 (shipped):** Development plans, goals, milestones, status updates (Pattern C trailing on goals).
 - **Slice 4 (shipped):** Learning actions (training course ref), stretch assignments, `#features/hrm/server` learning refs export.
 - **Slice 5 (shipped):** Mentor assignment, career discussions, manager review on plans.
-- **Slice 6 (shipped):** Readiness snapshots, dashboard KPIs, overdue milestone counts, succession readiness export helper.
+- **Slice 6 (shipped):** Readiness snapshots, dashboard KPIs, overdue milestone counts, succession readiness export helper, org notifications on overdue milestones / completed goals / career discussions, readiness CSV export (`exportCareerPathReadinessCsvAction`).
+- **UI (shipped):** Aspiration upsert, learning/stretch Pattern B lists on selected plan, mentor/coach session log, manager review form, readiness CSV download, framework status transitions (draft → active → archived → draft), career path stage CRUD under `?frameworkId=`, development plan detail under `?planId=`.
 
 ### Phase 0 entity model
 
@@ -32,6 +33,24 @@
 
 ### Metadata-driven UI (Pattern B / C)
 
+Load failures use `buildCareerPathingEmbeddedListSurfaceErrorConfiguration` + `GovernedPatternCListSection` `loadError` (same contract as LAM/OTM/SFT). Plan goals use Pattern C trailing actions with `state: "ready"` on open goals.
+
+**RSC sections** (OTM-style — each file owns queries + try/catch):
+
+| Component | Responsibility |
+| --- | --- |
+| `hrm-career-pathing-page.tsx` | Session gate, page chrome, section composition |
+| `career-pathing-dashboard-section.tsx` | KPI counts + near-ready tally |
+| `career-pathing-frameworks-section.tsx` | Framework catalog, status transitions, `?frameworkId=` picker, stages slot |
+| `career-pathing-framework-stages-section.tsx` | Stage CRUD for selected framework |
+| `career-pathing-target-roles-section.tsx` | Aspirations, target roles, employee picker |
+| `career-pathing-skill-gaps-section.tsx` | Skill gap compare for `?employeeId=` (from target roles) |
+| `career-pathing-plans-section.tsx` | Plans list, `?planId=` picker, create form |
+| `career-pathing-primary-plan-section.tsx` | Selected plan goals, learning, stretch, mentoring |
+| `career-pathing-query-pickers.client.tsx` | Locale-aware `planId` / `frameworkId` / `employeeId` URL pickers |
+| `career-pathing-discussions-section.tsx` | Career discussion log |
+| `career-pathing-readiness-section.tsx` | Readiness list + CSV export |
+
 | `surfaceKey` | Section |
 | --- | --- |
 | `hrm:career-pathing:dashboard-kpi` | Dashboard KPI strip |
@@ -40,7 +59,17 @@
 | `hrm:career-pathing:skill-gaps` | Skill gap compare |
 | `hrm:career-pathing:plans` | Development plans |
 | `hrm:career-pathing:plan-goals` | Plan goals (Pattern C) |
+| `hrm:career-pathing:learning-actions` | Learning actions on selected plan |
+| `hrm:career-pathing:stretch-assignments` | Stretch assignments on selected plan |
 | `hrm:career-pathing:readiness` | Readiness list |
+| `hrm:career-pathing:framework-stages` | Stages for `?frameworkId=` selection |
+
+### URL selection
+
+- `?frameworkId={uuid}` — framework for stage CRUD (invalid/missing → first framework).
+- `?planId={uuid}` — development plan for goals, learning, stretch, sessions (invalid/missing → first plan).
+- `?employeeId={uuid}` — employee for skill-gap compare (invalid/missing → first target-role employee).
+- Pickers preserve unrelated query params when changing one selection (`URLSearchParams` copy).
 
 ### Integration references
 

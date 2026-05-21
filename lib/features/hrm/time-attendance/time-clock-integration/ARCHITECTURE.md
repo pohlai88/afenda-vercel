@@ -8,6 +8,7 @@
 - **Slice 6 (shipped):** CSV report export; cron `hrm-time-clock-sync` runs **sync watch** + **scheduled vendor poll** (`runTimeClockCronSyncTick`; credentials `poll:`, `vendor:zebra:`, `vendor:ukg:` via `TCI_VENDOR_ADAPTERS`, HRM-TCI-011). Sync-batch governed list (`hrm:time-clock:sync-batches`). Sync failures notify users with `time_clock_device` **update** ERP permission (`tci-notification.server.ts`).
 - **Public doors:** `#features/hrm` (RSC + `TimeClockPageLoading`), `#features/hrm/client` (forms), `#features/hrm/server` (ingest, cron, LAM/OTM reads). No `components2/time-clock/`.
 - **Route loading:** `app/.../hrm/time-clock/loading.tsx` re-exports `TimeClockPageLoading` (KPI + Pattern C list + report skeletons — not generic Nexus spinner).
+- **Page perf:** `TimeClockPage` resolves ERP access once (Tier A); each list/KPI section streams behind `Suspense` via `time-clock-page-stream-sections.tsx` (Tier B — attendance-page pattern). Governed list sections set `resolveConfiguredPermission={false}`. Employee choices load only when `canManageMappings` (inside the mappings stream slot).
 - **Cron truth:** `app/api/cron/hrm-time-clock-sync` — `runTimeClockCronSyncTick` (watch + scheduled). `integrationCredentialRef` formats: `poll:https://…` (generic `{ punches: [...] }`), `vendor:zebra:https://…` (`transactions[]`), `vendor:ukg:https://…` (`punchExports[]`).
 
 ### Governed surface keys

@@ -78,6 +78,10 @@ test.describe("HRM time clock UI surface", () => {
           '[data-testid="governed-list-section:hrm:time-clock:sync-batches"]'
         )
       ).toBeVisible()
+
+      await expect(
+        page.locator('[data-testid="time-clock-page-loading"]')
+      ).toHaveCount(0)
     }
   )
 

@@ -56,15 +56,39 @@ describe("HRM time-clock integration contract", () => {
     expect(routeLoading).toContain("TimeClockPageLoading")
   })
 
-  it("renders sync batches via Pattern B section", () => {
+  it("streams Tier B sections behind Suspense", () => {
     const page = readTciSource("components/time-clock-page.tsx")
-    expect(page).toContain('"time-clock-page: kpi query failed"')
-    expect(page).toContain("TimeClockSyncBatchesSection")
-    expect(page).toContain("listTimeClockSyncBatchesForOrg")
+    expect(page).toContain("Suspense")
+    expect(page).toContain("TimeClockKpiStreamSection")
+    expect(page).toContain("TimeClockDevicesStreamSection")
+    expect(page).toContain("TimeClockMappingsStreamSection")
+    expect(page).toContain("TimeClockSyncBatchesStreamSection")
+    expect(page).toContain("TimeClockExceptionsStreamSection")
+    expect(page).not.toContain("Promise.all([")
+
+    const stream = readTciSource(
+      "components/time-clock-page-stream-sections.tsx"
+    )
+    expect(stream).toContain("`time-clock-page: ${label} query failed`")
+    expect(stream).toContain("listTimeClockSyncBatchesForOrg")
+    expect(stream).toContain("listTimeClockDevicesForOrg")
+  })
+
+  it("renders sync batches via Pattern B section", () => {
+    const stream = readTciSource(
+      "components/time-clock-page-stream-sections.tsx"
+    )
+    expect(stream).toContain("TimeClockSyncBatchesSection")
+    expect(stream).toContain("parentAccessAllowed")
 
     const section = readTciSource("components/tci-sync-batches-section.tsx")
     expect(section).toContain("GovernedPatternCListSection")
     expect(section).toContain('surfaceKey="hrm:time-clock:sync-batches"')
+    expect(section).toContain("parentAccessAllowed={parentAccessAllowed}")
+    expect(section).toContain("resolveConfiguredPermission={false}")
+
+    const devicesSection = readTciSource("components/tci-devices-section.tsx")
+    expect(devicesSection).toContain("resolveConfiguredPermission={false}")
   })
 
   it("uses erp.hrm.time_clock audit namespace", () => {

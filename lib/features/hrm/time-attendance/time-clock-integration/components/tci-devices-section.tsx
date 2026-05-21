@@ -21,10 +21,12 @@ import {
 export async function TimeClockDevicesSection({
   rows,
   canManage,
+  parentAccessAllowed = true,
   loadError,
 }: {
   rows: readonly TimeClockDeviceRow[]
   canManage: boolean
+  parentAccessAllowed?: boolean
   loadError?: TimeClockLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.timeClock.devices")
@@ -58,6 +60,8 @@ export async function TimeClockDevicesSection({
       description={t("description")}
       surfaceKey="hrm:time-clock:devices"
       listConfiguration={listConfiguration}
+      parentAccessAllowed={parentAccessAllowed}
+      resolveConfiguredPermission={false}
       loadError={toTimeClockListLoadError(loadError)}
       headerSlot={
         canManage ? (

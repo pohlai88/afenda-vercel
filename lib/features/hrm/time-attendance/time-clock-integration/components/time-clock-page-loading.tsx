@@ -27,7 +27,7 @@ function ModulePageHeaderSkeleton() {
   )
 }
 
-function TimeClockKpiSectionSkeleton() {
+export function TimeClockKpiSectionSkeleton() {
   return (
     <Card size="sm" aria-hidden="true">
       <CardHeader>
@@ -48,7 +48,7 @@ function TimeClockKpiSectionSkeleton() {
   )
 }
 
-function TimeClockListSectionSkeleton({
+export function TimeClockListSectionSkeleton({
   withHeaderAction = false,
 }: {
   readonly withHeaderAction?: boolean

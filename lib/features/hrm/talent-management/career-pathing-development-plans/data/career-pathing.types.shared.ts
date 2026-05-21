@@ -8,6 +8,16 @@ export type CareerPathFrameworkRow = {
   stageCount: number
 }
 
+export type CareerPathStageRow = {
+  id: string
+  frameworkId: string
+  sequence: number
+  title: string
+  description: string | null
+  targetGradeRef: string | null
+  expectedMonths: number | null
+}
+
 export type TargetRoleRow = {
   id: string
   employeeId: string
@@ -52,4 +62,19 @@ export type ReadinessRow = {
   targetRoleTitle: string | null
   readinessLevel: string
   progressPercent: number
+}
+
+export type LearningActionRow = {
+  id: string
+  title: string
+  status: string
+  courseName: string | null
+  goalTitle: string
+}
+
+export type StretchAssignmentRow = {
+  id: string
+  title: string
+  status: string
+  assignmentKind: string | null
 }

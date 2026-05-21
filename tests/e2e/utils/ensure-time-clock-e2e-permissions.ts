@@ -9,6 +9,10 @@ const E2E_TIME_CLOCK_ROLE_ID = "00000000-0000-4000-8000-000000000e01"
 const E2E_DEMO_EMPLOYEE_ID = "00000000-0000-4000-8000-000000000201"
 const E2E_DEMO_EMPLOYEE_NUMBER = "EMP-DEMO-OWNER"
 
+type NeonUserIdRow = {
+  id: string
+}
+
 const TIME_CLOCK_E2E_PERMISSIONS = [
   { module: "hrm", object: "time_clock", function: "search" },
   { module: "hrm", object: "time_clock", function: "read" },
@@ -36,10 +40,10 @@ export async function ensureTimeClockE2ePermissions(
 
   const organizationId = BOOTSTRAP_FIXTURE.organization.id
 
-  const userRows = await sql`
+  const userRows = (await sql`
     SELECT id FROM neon_auth."user" WHERE email = ${email} LIMIT 1
-  `
-  const userId = userRows[0]?.id as string | undefined
+  `) as NeonUserIdRow[]
+  const userId = userRows[0]?.id
   if (!userId) return
 
   await sql`
@@ -110,19 +114,19 @@ export async function ensureTimeClockE2eEmployee(
 
   let userId = linkedUserId
   if (!userId) {
-    const userRows = await sql`
+    const userRows = (await sql`
       SELECT id FROM neon_auth."user" WHERE email = ${email} LIMIT 1
-    `
-    userId = userRows[0]?.id as string | undefined
+    `) as NeonUserIdRow[]
+    userId = userRows[0]?.id
   }
   if (!userId) return
 
-  const existing = await sql`
+  const existing = (await sql`
     SELECT id FROM hrm_employee
     WHERE "organizationId" = ${organizationId}
       AND "employeeNumber" = ${E2E_DEMO_EMPLOYEE_NUMBER}
     LIMIT 1
-  `
+  `) as NeonUserIdRow[]
   if (existing[0]?.id) {
     await sql`
       UPDATE hrm_employee

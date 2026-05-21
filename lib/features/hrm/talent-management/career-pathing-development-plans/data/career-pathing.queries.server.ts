@@ -27,7 +27,9 @@ import type {
   CareerGapRow,
   DevelopmentGoalRow,
   DevelopmentPlanRow,
+  LearningActionRow,
   ReadinessRow,
+  StretchAssignmentRow,
   TargetRoleRow,
 } from "./career-pathing.types.shared"
 
@@ -155,6 +157,7 @@ export async function listGoalsForPlan(
 
   return goals.map((goal) => ({
     ...goal,
+    targetDate: goal.targetDate ? new Date(goal.targetDate) : null,
     milestoneCount: milestoneMap.get(goal.id) ?? 0,
   }))
 }
@@ -179,7 +182,7 @@ export async function listSkillGapsForEmployee(
 
   const skills = await db
     .select({
-      skillName: hrmSkill.name,
+      skillName: hrmSkill.label,
       proficiency: hrmEmployeeSkill.proficiency,
     })
     .from(hrmEmployeeSkill)
@@ -204,7 +207,7 @@ export async function listSkillGapsForEmployee(
 export async function listLearningActionsForPlan(
   organizationId: string,
   planId: string
-) {
+): Promise<LearningActionRow[]> {
   return db
     .select({
       id: hrmDevelopmentLearningAction.id,
@@ -233,9 +236,14 @@ export async function listLearningActionsForPlan(
 export async function listStretchAssignmentsForPlan(
   organizationId: string,
   planId: string
-) {
-  return db
-    .select()
+): Promise<StretchAssignmentRow[]> {
+  const rows = await db
+    .select({
+      id: hrmDevelopmentStretchAssignment.id,
+      title: hrmDevelopmentStretchAssignment.title,
+      status: hrmDevelopmentStretchAssignment.status,
+      assignmentKind: hrmDevelopmentStretchAssignment.assignmentKind,
+    })
     .from(hrmDevelopmentStretchAssignment)
     .where(
       and(
@@ -243,6 +251,7 @@ export async function listStretchAssignmentsForPlan(
         eq(hrmDevelopmentStretchAssignment.planId, planId)
       )
     )
+  return rows
 }
 
 export async function listMentorAssignmentsForPlan(

@@ -11,9 +11,11 @@ import type { TimeClockSyncBatchRow } from "../data/tci.queries.server"
 
 export async function TimeClockSyncBatchesSection({
   rows,
+  parentAccessAllowed = true,
   loadError,
 }: {
   rows: readonly TimeClockSyncBatchRow[]
+  parentAccessAllowed?: boolean
   loadError?: TimeClockLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.timeClock.syncBatches")
@@ -44,6 +46,8 @@ export async function TimeClockSyncBatchesSection({
       description={t("description")}
       surfaceKey="hrm:time-clock:sync-batches"
       listConfiguration={listConfiguration}
+      parentAccessAllowed={parentAccessAllowed}
+      resolveConfiguredPermission={false}
       loadError={toTimeClockListLoadError(loadError)}
     />
   )

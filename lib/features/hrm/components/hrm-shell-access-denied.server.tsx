@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server"
 
 import { ErpAccessDenied } from "#features/erp-rbac/client"
+import type { HrmNavKey } from "../types"
 
 /** ERP RBAC gate copy — uses `Dashboard.Hrm.shell` so segment namespaces are not unioned with `cards.*` / `placeholders.*`. */
 export async function HrmShellAccessDenied({ surface }: { surface: string }) {
@@ -17,32 +18,7 @@ export async function HrmShellAccessDenied({ surface }: { surface: string }) {
 export async function HrmShellAccessDeniedFromNav({
   navKey,
 }: {
-  navKey:
-    | "imports"
-    | "kpi"
-    | "lifecycle"
-    | "onboarding"
-    | "performance"
-    | "skills"
-    | "snapshot"
-    | "training"
-    | "signatures"
-    | "attendance"
-    | "advances"
-    | "claims"
-    | "leave"
-    | "payroll"
-    | "benefits"
-    | "documents"
-    | "compliance"
-    | "organization"
-    | "recruitment"
-    | "employees"
-    | "offboarding"
-    | "policies"
-    | "compensation-planning"
-    | "salary-benchmarking"
-    | "bonus-incentives"
+  navKey: HrmNavKey
 }) {
   const [tShell, tNav] = await Promise.all([
     getTranslations("Dashboard.Hrm.shell"),

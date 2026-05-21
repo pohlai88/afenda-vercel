@@ -64,6 +64,24 @@ export const updateCareerPathFrameworkStatusFormSchema = z.object({
   status: z.enum(CAREER_PATH_STATUSES),
 })
 
+export const createCareerPathStageFormSchema = z.object({
+  ...orgTenantFields,
+  frameworkId: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  targetGradeRef: z.string().max(120).optional(),
+  expectedMonths: z.preprocess(
+    (value) =>
+      value === "" || value === null || value === undefined ? undefined : value,
+    z.coerce.number().int().min(1).max(600).optional()
+  ),
+})
+
+export const deleteCareerPathStageFormSchema = z.object({
+  ...orgTenantFields,
+  stageId: z.string().uuid(),
+})
+
 export const upsertCareerAspirationFormSchema = z.object({
   ...orgTenantFields,
   employeeId: z.string().uuid(),

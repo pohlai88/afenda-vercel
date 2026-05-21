@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
 import {
@@ -10,25 +11,22 @@ import {
 import { ModulePageHeader } from "#features/governed-surface"
 import { ErpAccessDenied } from "#features/erp-rbac/client"
 import { requireOrgSession } from "#lib/auth"
-import { logUnexpectedServerError } from "#lib/logger.server"
 
 import { resolveTimeClockSurfaceAccess } from "../data/tci-access.server"
 import type { TimeClockSurfaceAccess } from "../data/tci-access.server"
-import {
-  countTimeClockKpiSummary,
-  listTimeClockDevicesForOrg,
-  listTimeClockExceptionsForOrg,
-  listTimeClockMappingsForOrg,
-  listTimeClockSyncBatchesForOrg,
-} from "../data/tci.queries.server"
-import { listActiveEmployeeChoicesForAttendance } from "../../leave-attendance-management/data/attendance.queries.server"
 
-import { TimeClockDevicesSection } from "./tci-devices-section"
-import { TimeClockExceptionsSection } from "./tci-exceptions-section"
-import { TimeClockKpiSection } from "./tci-kpi-section"
-import { TimeClockMappingsSection } from "./tci-mappings-section"
+import {
+  TimeClockKpiSectionSkeleton,
+  TimeClockListSectionSkeleton,
+} from "./time-clock-page-loading"
+import {
+  TimeClockDevicesStreamSection,
+  TimeClockExceptionsStreamSection,
+  TimeClockKpiStreamSection,
+  TimeClockMappingsStreamSection,
+  TimeClockSyncBatchesStreamSection,
+} from "./time-clock-page-stream-sections"
 import { TimeClockReportExportForm } from "./tci-report-export.client"
-import { TimeClockSyncBatchesSection } from "./tci-sync-batches-section"
 
 type TimeClockPageProps = {
   orgSlug: string
@@ -37,6 +35,10 @@ type TimeClockPageProps = {
   userId?: string
 }
 
+/**
+ * Time clock workbench — Tier A (access + header) blocks the shell; Tier B
+ * sections stream behind Suspense so a slow list query does not block KPI tiles.
+ */
 export async function TimeClockPage({
   orgSlug,
   access,
@@ -65,113 +67,6 @@ export async function TimeClockPage({
     )
   }
 
-  const [
-    summaryResult,
-    devicesResult,
-    mappingsResult,
-    syncBatchesResult,
-    exceptionsResult,
-    employeesResult,
-  ] = await Promise.all([
-      countTimeClockKpiSummary(organizationId).then(
-        (value) => ({ ok: true as const, value }),
-        (error) => ({ ok: false as const, error })
-      ),
-      tciAccess.canRead
-        ? listTimeClockDevicesForOrg(organizationId).then(
-            (value) => ({ ok: true as const, value }),
-            (error) => ({ ok: false as const, error })
-          )
-        : Promise.resolve({ ok: true as const, value: [] }),
-      tciAccess.canRead
-        ? listTimeClockMappingsForOrg(organizationId).then(
-            (value) => ({ ok: true as const, value }),
-            (error) => ({ ok: false as const, error })
-          )
-        : Promise.resolve({ ok: true as const, value: [] }),
-      tciAccess.canRead
-        ? listTimeClockSyncBatchesForOrg(organizationId).then(
-            (value) => ({ ok: true as const, value }),
-            (error) => ({ ok: false as const, error })
-          )
-        : Promise.resolve({ ok: true as const, value: [] }),
-      tciAccess.canRead
-        ? listTimeClockExceptionsForOrg(organizationId, {
-            state: "submitted",
-          }).then(
-            (value) => ({ ok: true as const, value }),
-            (error) => ({ ok: false as const, error })
-          )
-        : Promise.resolve({ ok: true as const, value: [] }),
-      listActiveEmployeeChoicesForAttendance(organizationId).then(
-        (value) => ({ ok: true as const, value }),
-        (error) => ({ ok: false as const, error })
-      ),
-    ])
-
-  if (!summaryResult.ok) {
-    logUnexpectedServerError(
-      "time-clock-page: kpi query failed",
-      summaryResult.error,
-      { organizationId }
-    )
-  }
-  if (!devicesResult.ok) {
-    logUnexpectedServerError(
-      "time-clock-page: devices query failed",
-      devicesResult.error,
-      { organizationId }
-    )
-  }
-  if (!mappingsResult.ok) {
-    logUnexpectedServerError(
-      "time-clock-page: mappings query failed",
-      mappingsResult.error,
-      { organizationId }
-    )
-  }
-  if (!syncBatchesResult.ok) {
-    logUnexpectedServerError(
-      "time-clock-page: sync batches query failed",
-      syncBatchesResult.error,
-      { organizationId }
-    )
-  }
-  if (!exceptionsResult.ok) {
-    logUnexpectedServerError(
-      "time-clock-page: exceptions query failed",
-      exceptionsResult.error,
-      { organizationId }
-    )
-  }
-  if (!employeesResult.ok) {
-    logUnexpectedServerError(
-      "time-clock-page: employee choices query failed",
-      employeesResult.error,
-      { organizationId }
-    )
-  }
-
-  const loadFailed = { title: t("loadFailed") }
-
-  const employeeChoices = (employeesResult.ok ? employeesResult.value : []).map(
-    (row) => ({
-      id: row.id,
-      label:
-        row.employeeNumber != null
-          ? `${row.legalName} · ${row.employeeNumber}`
-          : row.legalName,
-    })
-  )
-
-  const deviceRows = devicesResult.ok ? devicesResult.value : []
-  const deviceChoices = deviceRows
-    .filter((row) => row.state === "active")
-    .map((row) => ({
-      id: row.id,
-      label: `${row.name} (${row.externalDeviceId})`,
-    }))
-
   return (
     <div className="flex flex-col gap-6">
       <ModulePageHeader
@@ -180,48 +75,44 @@ export async function TimeClockPage({
         description={t("pageDescription")}
       />
 
-      <TimeClockKpiSection
-        summary={
-          summaryResult.ok
-            ? summaryResult.value
-            : {
-                activeDevices: 0,
-                activeMappings: 0,
-                pendingExceptions: 0,
-                failedSyncDevices: 0,
-                punchesToday: 0,
-              }
-        }
-        loadError={summaryResult.ok ? undefined : loadFailed}
-      />
+      <Suspense fallback={<TimeClockKpiSectionSkeleton />}>
+        <TimeClockKpiStreamSection organizationId={organizationId} />
+      </Suspense>
 
-      <TimeClockDevicesSection
-        rows={devicesResult.ok ? devicesResult.value : []}
-        canManage={tciAccess.canManageDevices}
-        loadError={devicesResult.ok ? undefined : loadFailed}
-      />
+      <Suspense
+        fallback={<TimeClockListSectionSkeleton withHeaderAction />}
+      >
+        <TimeClockDevicesStreamSection
+          organizationId={organizationId}
+          canRead={tciAccess.canRead}
+          canManageDevices={tciAccess.canManageDevices}
+        />
+      </Suspense>
 
-      <TimeClockMappingsSection
-        rows={mappingsResult.ok ? mappingsResult.value : []}
-        canManage={tciAccess.canManageMappings}
-        employeeChoices={employeeChoices}
-        deviceChoices={deviceChoices}
-        loadError={mappingsResult.ok ? undefined : loadFailed}
-      />
+      <Suspense
+        fallback={<TimeClockListSectionSkeleton withHeaderAction />}
+      >
+        <TimeClockMappingsStreamSection
+          organizationId={organizationId}
+          canRead={tciAccess.canRead}
+          canManageMappings={tciAccess.canManageMappings}
+        />
+      </Suspense>
 
       {tciAccess.canRead ? (
-        <TimeClockSyncBatchesSection
-          rows={syncBatchesResult.ok ? syncBatchesResult.value : []}
-          loadError={syncBatchesResult.ok ? undefined : loadFailed}
-        />
+        <Suspense fallback={<TimeClockListSectionSkeleton />}>
+          <TimeClockSyncBatchesStreamSection organizationId={organizationId} />
+        </Suspense>
       ) : null}
 
-      <TimeClockExceptionsSection
-        rows={exceptionsResult.ok ? exceptionsResult.value : []}
-        canDecide={tciAccess.canDecideExceptions}
-        canCorrectAttendance={tciAccess.canCorrectAttendance}
-        loadError={exceptionsResult.ok ? undefined : loadFailed}
-      />
+      <Suspense fallback={<TimeClockListSectionSkeleton />}>
+        <TimeClockExceptionsStreamSection
+          organizationId={organizationId}
+          canRead={tciAccess.canRead}
+          canDecideExceptions={tciAccess.canDecideExceptions}
+          canCorrectAttendance={tciAccess.canCorrectAttendance}
+        />
+      </Suspense>
 
       {tciAccess.canAudit ? (
         <Card size="sm">

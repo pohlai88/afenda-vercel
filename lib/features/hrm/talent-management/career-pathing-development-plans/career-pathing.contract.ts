@@ -21,6 +21,20 @@ export const HRM_CAREER_PATH_AUDIT = {
       verb: "deprecate",
     }),
   },
+  stage: {
+    create: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "career_path.stage",
+      verb: "create",
+    }),
+    deprecate: buildCrudSapAuditAction({
+      area: "erp",
+      module: "hrm",
+      object: "career_path.stage",
+      verb: "deprecate",
+    }),
+  },
   aspiration: {
     update: buildCrudSapAuditAction({
       area: "erp",

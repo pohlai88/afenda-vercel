@@ -1,5 +1,8 @@
 import type { Metadata } from "next"
-import { HrmCareerPathingPage, HrmShellAccessDeniedFromNav } from "#features/hrm"
+import {
+  HrmCareerPathingPage,
+  HrmShellAccessDenied,
+} from "#features/hrm"
 import { getTranslations } from "next-intl/server"
 
 import { canUseErpPermissionForCurrentOrg } from "#features/erp-rbac/server"
@@ -16,11 +19,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function OrgAppsHrmCareerPathingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; orgSlug: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const { orgSlug } = await params
-  const [allowed, isHrmAdmin] = await Promise.all([
+  const [{ orgSlug }, sp] = await Promise.all([params, searchParams])
+  const [allowed, isHrmAdmin, tNav] = await Promise.all([
     canUseErpPermissionForCurrentOrg({
       module: "hrm",
       object: "career_path",
@@ -31,9 +36,16 @@ export default async function OrgAppsHrmCareerPathingPage({
       object: "career_path",
       function: "update",
     }),
+    getTranslations("Dashboard.Hrm.nav"),
   ])
   if (!allowed) {
-    return <HrmShellAccessDeniedFromNav navKey="career-pathing" />
+    return <HrmShellAccessDenied surface={tNav("career-pathing")} />
   }
-  return <HrmCareerPathingPage orgSlug={orgSlug} isHrmAdmin={isHrmAdmin} />
+  return (
+    <HrmCareerPathingPage
+      orgSlug={orgSlug}
+      isHrmAdmin={isHrmAdmin}
+      searchParams={sp}
+    />
+  )
 }

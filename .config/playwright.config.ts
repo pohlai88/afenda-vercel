@@ -45,7 +45,7 @@ const usesExternalDevServer =
   baseURL === "http://127.0.0.1:3000"
 const e2ePort = new URL(baseURL).port || "3001"
 
-function buildPlaywrightWebServerEnv(): NodeJS.ProcessEnv {
+function buildPlaywrightWebServerEnv(): Record<string, string> {
   const trusted = new Set(
     (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
       .split(",")
@@ -56,13 +56,19 @@ function buildPlaywrightWebServerEnv(): NodeJS.ProcessEnv {
   trusted.add("http://localhost:3000")
   trusted.add("http://127.0.0.1:3000")
 
-  return {
-    ...process.env,
-    PORT: e2ePort,
-    BETTER_AUTH_URL: baseURL,
-    NEXT_PUBLIC_BETTER_AUTH_URL: `${baseURL}/api/auth`,
-    BETTER_AUTH_TRUSTED_ORIGINS: [...trusted].join(","),
+  const env: Record<string, string> = {}
+  for (const [key, value] of Object.entries(process.env)) {
+    if (typeof value === "string") {
+      env[key] = value
+    }
   }
+
+  env.PORT = e2ePort
+  env.BETTER_AUTH_URL = baseURL
+  env.NEXT_PUBLIC_BETTER_AUTH_URL = `${baseURL}/api/auth`
+  env.BETTER_AUTH_TRUSTED_ORIGINS = [...trusted].join(",")
+
+  return env
 }
 
 export default defineConfig({

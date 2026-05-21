@@ -8,7 +8,10 @@ import {
   hrmCareerPathStage,
 } from "#lib/db/schema"
 
-import type { CareerPathFrameworkRow } from "./career-pathing.types.shared"
+import type {
+  CareerPathFrameworkRow,
+  CareerPathStageRow,
+} from "./career-pathing.types.shared"
 
 export async function listCareerPathFrameworksForOrg(
   organizationId: string
@@ -43,6 +46,32 @@ export async function listCareerPathFrameworksForOrg(
     ...row,
     stageCount: Number(row.stageCount ?? 0),
   }))
+}
+
+export async function listCareerPathStagesForFramework(
+  organizationId: string,
+  frameworkId: string
+): Promise<CareerPathStageRow[]> {
+  const rows = await db
+    .select({
+      id: hrmCareerPathStage.id,
+      frameworkId: hrmCareerPathStage.frameworkId,
+      sequence: hrmCareerPathStage.sequence,
+      title: hrmCareerPathStage.title,
+      description: hrmCareerPathStage.description,
+      targetGradeRef: hrmCareerPathStage.targetGradeRef,
+      expectedMonths: hrmCareerPathStage.expectedMonths,
+    })
+    .from(hrmCareerPathStage)
+    .where(
+      and(
+        eq(hrmCareerPathStage.organizationId, organizationId),
+        eq(hrmCareerPathStage.frameworkId, frameworkId)
+      )
+    )
+    .orderBy(hrmCareerPathStage.sequence)
+
+  return rows
 }
 
 export async function countActiveCareerPathFrameworksForOrg(

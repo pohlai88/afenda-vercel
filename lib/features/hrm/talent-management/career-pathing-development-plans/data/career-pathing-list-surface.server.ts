@@ -5,9 +5,12 @@ import type { ListSurfaceRendererConfigurationInput } from "#features/governed-s
 import type {
   CareerGapRow,
   CareerPathFrameworkRow,
+  CareerPathStageRow,
   DevelopmentGoalRow,
   DevelopmentPlanRow,
+  LearningActionRow,
   ReadinessRow,
+  StretchAssignmentRow,
   TargetRoleRow,
 } from "./career-pathing.types.shared"
 
@@ -61,6 +64,53 @@ export function buildCareerPathFrameworksListSurfaceConfiguration(
         status: row.status,
         stages: String(row.stageCount),
       },
+      trailingAction:
+        row.status === "draft" ||
+        row.status === "active" ||
+        row.status === "archived"
+          ? { state: "ready" as const }
+          : undefined,
+    })),
+  }
+}
+
+export function buildCareerPathStagesListSurfaceConfiguration(
+  rows: readonly CareerPathStageRow[],
+  copy: {
+    title: string
+    description: string
+    empty: string
+    colSequence: string
+    colTitle: string
+    colGrade: string
+    colMonths: string
+  }
+): ListSurfaceRendererConfigurationInput {
+  return {
+    dataNature: "table",
+    requiresErpPermission: CAREER_PATH_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: { title: copy.title, description: copy.description },
+      columnsId: "hrm-career-path-framework-stages",
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "sequence", header: copy.colSequence },
+      { id: "title", header: copy.colTitle },
+      { id: "grade", header: copy.colGrade },
+      { id: "months", header: copy.colMonths },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        sequence: String(row.sequence),
+        title: row.title,
+        grade: row.targetGradeRef ?? "—",
+        months: row.expectedMonths != null ? String(row.expectedMonths) : "—",
+      },
+      trailingAction: { state: "ready" as const },
     })),
   }
 }
@@ -165,7 +215,7 @@ export function buildPlanGoalsListSurfaceConfiguration(
     requiresErpPermission: CAREER_PATH_READ_PERMISSION,
     presentation: PRESENTATION,
     surface: {
-      header: { title: "plan-goals", columnsId: "hrm-career-path-plan-goals" },
+      header: { title: "plan-goals" },
       columnsId: "hrm-career-path-plan-goals",
       rowKey: "id",
       empty: { variant: "muted", title: copy.empty },
@@ -188,10 +238,7 @@ export function buildPlanGoalsListSurfaceConfiguration(
       },
       trailingAction:
         goal.status !== "completed" && goal.status !== "cancelled"
-          ? {
-              kind: "form-slot",
-              state: "enabled",
-            }
+          ? { state: "ready" as const }
           : undefined,
     })),
   }
@@ -272,6 +319,83 @@ export function buildReadinessListSurfaceConfiguration(
         target: row.targetRoleTitle ?? "—",
         readiness: row.readinessLevel,
         progress: `${row.progressPercent}%`,
+      },
+    })),
+  }
+}
+
+export function buildLearningActionsListSurfaceConfiguration(
+  rows: readonly LearningActionRow[],
+  copy: {
+    title: string
+    description: string
+    empty: string
+    colTitle: string
+    colGoal: string
+    colCourse: string
+    colStatus: string
+  }
+): ListSurfaceRendererConfigurationInput {
+  return {
+    dataNature: "table",
+    requiresErpPermission: CAREER_PATH_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: { title: copy.title, description: copy.description },
+      columnsId: "hrm-career-path-learning-actions",
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "title", header: copy.colTitle },
+      { id: "goal", header: copy.colGoal },
+      { id: "course", header: copy.colCourse },
+      { id: "status", header: copy.colStatus },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        title: row.title,
+        goal: row.goalTitle,
+        course: row.courseName ?? "—",
+        status: row.status,
+      },
+    })),
+  }
+}
+
+export function buildStretchAssignmentsListSurfaceConfiguration(
+  rows: readonly StretchAssignmentRow[],
+  copy: {
+    title: string
+    description: string
+    empty: string
+    colTitle: string
+    colKind: string
+    colStatus: string
+  }
+): ListSurfaceRendererConfigurationInput {
+  return {
+    dataNature: "table",
+    requiresErpPermission: CAREER_PATH_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: { title: copy.title, description: copy.description },
+      columnsId: "hrm-career-path-stretch-assignments",
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "title", header: copy.colTitle },
+      { id: "kind", header: copy.colKind },
+      { id: "status", header: copy.colStatus },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        title: row.title,
+        kind: row.assignmentKind ?? "—",
+        status: row.status,
       },
     })),
   }

@@ -18,12 +18,14 @@ export async function TimeClockMappingsSection({
   canManage,
   employeeChoices,
   deviceChoices,
+  parentAccessAllowed = true,
   loadError,
 }: {
   rows: readonly TimeClockMappingRow[]
   canManage: boolean
   employeeChoices: ReadonlyArray<EmployeeChoice>
   deviceChoices: ReadonlyArray<EmployeeChoice>
+  parentAccessAllowed?: boolean
   loadError?: TimeClockLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.timeClock.mappings")
@@ -46,6 +48,8 @@ export async function TimeClockMappingsSection({
       description={t("description")}
       surfaceKey="hrm:time-clock:mappings"
       listConfiguration={listConfiguration}
+      parentAccessAllowed={parentAccessAllowed}
+      resolveConfiguredPermission={false}
       loadError={toTimeClockListLoadError(loadError)}
       headerSlot={
         canManage ? (

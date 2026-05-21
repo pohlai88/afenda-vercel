@@ -27,6 +27,7 @@ import {
   upsertTimeClockDeviceAction,
   type TimeClockDeviceMutationFormState,
 } from "../actions/tci-device.actions"
+import { formatScheduledSyncCredentialHint } from "../data/tci-scheduled-sync.shared"
 import { upsertTimeClockMappingAction } from "../actions/tci-mapping.actions"
 import { TCI_DEVICE_TYPES } from "../schemas/tci-workflow-state.shared"
 
@@ -115,7 +116,7 @@ export function TimeClockDeviceRegisterDialog() {
               id={credentialId}
               name="integrationCredentialRef"
               maxLength={200}
-              placeholder={t("fieldIntegrationCredentialPlaceholder")}
+              placeholder={formatScheduledSyncCredentialHint()}
             />
             {!state?.ok && state?.errors?.integrationCredentialRef ? (
               <FieldError>{state.errors.integrationCredentialRef}</FieldError>

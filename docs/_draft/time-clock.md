@@ -9,7 +9,7 @@ todos:
     content: "Slice 2: Drizzle hrm_time_clock_* tables; device/mapping CRUD; Pattern B admin UI"
     status: completed
   - id: slice-3-ingest
-    content: "Slice 3: API ingest + manual CSV; persistTimeClockPunch; dedup — vendor scheduled pull deferred"
+    content: "Slice 3: API ingest + manual CSV; persistTimeClockPunch; dedup"
     status: completed
   - id: slice-4-validate
     content: "Slice 4: validation, shift match, exception inbox (Pattern C), KPI surfaces"
@@ -35,7 +35,7 @@ isProject: false
 | `HRM_CAPABILITIES` / segments / i18n | **Present** — `timeClock`, `time-clock`, `tests/unit/hrm-contract.test.ts` |
 | DB tables | **Present** — `hrm_time_clock_*` in `lib/db/schema.ts`, migration `drizzle/0018_premium_ares.sql` |
 | `source: device` writer | **Present** — `persistTimeClockPunch` in `tci-punch-commands.server.ts` (sole writer) |
-| API / cron | **Present** — `app/api/erp/hrm/time-clock/ingest`, `app/api/cron/hrm-time-clock-sync` (watch tick) |
+| API / cron | **Present** — `app/api/erp/hrm/time-clock/ingest`, `app/api/cron/hrm-time-clock-sync` (`runTimeClockCronSyncTick`: sync watch + scheduled vendor pull) |
 | Sync-batch UI (`hrm:time-clock:sync-batches`) | **Present** — `TimeClockSyncBatchesSection` + `listTimeClockSyncBatchesForOrg` |
 | `#features/hrm/server` integration reads | **Present** — `listDevicePunchesForEmployeeDate`, `hasDevicePunchOnDate`, `getDeviceAttendanceHoursForEmployeeDateRange` |
 | Tests | **Present** — `hrm-time-clock-contract.test.ts`, `hrm-time-clock-ingest.test.ts`, `hrm-time-clock-flow.spec.ts` (UI + API ingest + sync batches) |

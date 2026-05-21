@@ -1,10 +1,10 @@
 import { getFormatter, getTranslations } from "next-intl/server"
 
+import { GovernedPatternCListSection } from "#features/governed-surface"
 import {
-  GovernedPatternCListSection,
+  GovernedTrailingActionSlot,
   isListSurfaceTrailingActionRenderable,
-} from "#features/governed-surface"
-import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
+} from "#features/governed-surface/client"
 
 import { buildTimeClockExceptionsListSurfaceConfiguration } from "../data/tci-surface-builders.server"
 import {
@@ -20,11 +20,13 @@ export async function TimeClockExceptionsSection({
   rows,
   canDecide,
   canCorrectAttendance,
+  parentAccessAllowed = true,
   loadError,
 }: {
   rows: readonly TimeClockExceptionRow[]
   canDecide: boolean
   canCorrectAttendance: boolean
+  parentAccessAllowed?: boolean
   loadError?: TimeClockLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.timeClock.exceptions")
@@ -54,6 +56,8 @@ export async function TimeClockExceptionsSection({
       description={t("description")}
       surfaceKey="hrm:time-clock:exceptions"
       listConfiguration={listConfiguration}
+      parentAccessAllowed={parentAccessAllowed}
+      resolveConfiguredPermission={false}
       loadError={toTimeClockListLoadError(loadError)}
       trailingColumn={{
         header: t("colActions"),
