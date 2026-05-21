@@ -130,7 +130,6 @@ export async function AttendanceRecentEvents({
   const listConfiguration = buildAttendanceRecentListSurfaceConfiguration(
     displayRows,
     {
-      columnsId: "hrm-attendance-recent-events",
       empty: t("recentEmpty"),
       colEmployee: t("colEmployee"),
       colEvent: t("colEvent"),

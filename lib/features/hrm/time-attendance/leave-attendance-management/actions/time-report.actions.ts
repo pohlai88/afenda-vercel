@@ -8,6 +8,7 @@ import { db } from "#lib/db"
 import { hrmApproval, hrmEmployee, hrmTimeReport } from "#lib/db/schema"
 import { toLocaleOrgAppsRevalidatePattern } from "#lib/i18n/locales.shared"
 
+import { HRM_TIME_REPORT_OVERTIME_RETIRED_MESSAGE } from "../data/time-report-policy.shared"
 import { buildTimeReportApprovalSnapshot } from "../data/time-report-approval-snapshot.shared"
 import { requireHrmAdmin } from "../../../_module-governance/hrm-admin-guard.server"
 import {
@@ -30,8 +31,9 @@ function revalidateLeaveAndTimeReports() {
 }
 
 /**
- * Tier B (admin-gated) — submits overtime or business-trip report on behalf
- * of an employee. Creates `hrm_time_report` + pending `hrm_approval`.
+ * Tier B (admin-gated) — submits a business-trip time report on behalf of an
+ * employee. Creates `hrm_time_report` + pending `hrm_approval`.
+ * Overtime claims use Overtime Management — not LAM time reports.
  * Audit: `erp.hrm.time_report.create` + `erp.hrm.approval.request`.
  */
 export async function submitTimeReportAction(
@@ -71,8 +73,7 @@ export async function submitTimeReportAction(
 
   if (data.reportKind === "overtime") {
     return hrmActionFailure({
-      reportKind:
-        "Overtime time reports are retired. Use Overtime management (/apps/hrm/overtime) to submit and approve overtime.",
+      reportKind: HRM_TIME_REPORT_OVERTIME_RETIRED_MESSAGE,
     })
   }
 

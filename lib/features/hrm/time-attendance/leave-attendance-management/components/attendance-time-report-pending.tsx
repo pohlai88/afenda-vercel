@@ -10,8 +10,8 @@ import { TIME_REPORT_LIST_SURFACE_IDS } from "../data/time-report-surface-metada
 import { listTimeReportsForOrg } from "../data/time-report.queries.server"
 
 export async function AttendanceTimeReportPending() {
-  const orgSession = await requireOrgSession()
-  const [t, tAttendance] = await Promise.all([
+  const [orgSession, t, tAttendance] = await Promise.all([
+    requireOrgSession(),
     getTranslations("Dashboard.Hrm.leave.timeReports"),
     getTranslations("Dashboard.Hrm.attendance"),
   ])
@@ -49,9 +49,6 @@ export async function AttendanceTimeReportPending() {
     )
   }
 
-  const reportKindLabelFor = (kind: string) =>
-    kind === "overtime" ? t("reportKindOvertime") : t("reportKindTrip")
-
   const listConfiguration = buildTimeReportPendingListSurfaceConfiguration(
     rows,
     {
@@ -60,7 +57,7 @@ export async function AttendanceTimeReportPending() {
       colReportType: t("colReportType"),
       colDetail: t("colDetail"),
       colRequested: t("colRequested"),
-      reportKindLabelFor,
+      reportKindLabelFor: () => t("reportKindTrip"),
     }
   )
 
@@ -70,6 +67,10 @@ export async function AttendanceTimeReportPending() {
       title=""
       listConfiguration={listConfiguration}
       surfaceKey="hrm:attendance:time-report-pending"
+      invalid={{
+        variant: "error",
+        title: t("inboxLoadFailed"),
+      }}
     />
   )
 }

@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server"
-import { and, desc, eq } from "drizzle-orm"
 
 import {
   GovernedPatternCListSection,
@@ -8,13 +7,12 @@ import {
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 import { requireOrgSession } from "#lib/auth"
-import { db } from "#lib/db"
-import { hrmApproval } from "#lib/db/schema"
 
 import {
   buildAttendanceCorrectionPendingListSurfaceConfiguration,
   type AttendanceCorrectionPendingRow,
 } from "../data/attendance-list-surface.server"
+import { listPendingAttendanceCorrectionsForOrg } from "../data/attendance-correction-pending.queries.server"
 import { ATTENDANCE_LIST_SURFACE_IDS } from "../data/attendance-surface-metadata.shared"
 import { buildEmbeddedListSurfaceErrorConfiguration } from "../data/lam-embedded-list-surface-error.server"
 
@@ -28,25 +26,7 @@ export async function AttendanceCorrectionPending() {
 
   let rows: AttendanceCorrectionPendingRow[]
   try {
-    const pending = await db.query.hrmApproval.findMany({
-      where: and(
-        eq(hrmApproval.organizationId, session.organizationId),
-        eq(hrmApproval.subjectKind, "attendance_correction"),
-        eq(hrmApproval.state, "pending")
-      ),
-      columns: {
-        id: true,
-        subjectId: true,
-        requestedAt: true,
-      },
-      orderBy: [desc(hrmApproval.requestedAt)],
-      limit: 50,
-    })
-    rows = pending.map((row) => ({
-      id: row.id,
-      subjectId: row.subjectId,
-      requestedAt: row.requestedAt.toISOString().slice(0, 10),
-    }))
+    rows = await listPendingAttendanceCorrectionsForOrg(session.organizationId)
   } catch (err) {
     logUnexpectedServerError(
       "attendance-correction-pending: query failed",
@@ -72,15 +52,13 @@ export async function AttendanceCorrectionPending() {
     )
   }
 
-  const listConfiguration = buildAttendanceCorrectionPendingListSurfaceConfiguration(
-    rows,
-    {
+  const listConfiguration =
+    buildAttendanceCorrectionPendingListSurfaceConfiguration(rows, {
       empty: t("correctionPendingEmpty"),
       colEvent: t("correctionPendingColEvent"),
       colRequested: t("correctionPendingColRequested"),
       approveLabel: t("correctionPendingApprove"),
-    }
-  )
+    })
 
   const rowById = new Map(rows.map((row) => [row.id, row]))
 
@@ -91,6 +69,10 @@ export async function AttendanceCorrectionPending() {
       listConfiguration={listConfiguration}
       surfaceKey="hrm:attendance:correction-pending"
       parentAccessAllowed
+      invalid={{
+        variant: "error",
+        title: t("correctionPendingLoadFailed"),
+      }}
       trailingColumn={{
         header: t("colActions"),
         render: (surfaceRow) => {

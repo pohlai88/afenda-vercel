@@ -18,11 +18,9 @@ import {
 const ABSENCE_STATES = ["submitted", "approved", "taken"] as const
 
 export async function LeaveAbsenceCalendar() {
-  const [session, t] = await Promise.all([
-    requireOrgSession(),
+  const session = await requireOrgSession()
+  const [t, canReadLeave, canManageLeave] = await Promise.all([
     getTranslations("Dashboard.Hrm.leave"),
-  ])
-  const [canReadLeave, canManageLeave] = await Promise.all([
     canUseErpPermission({
       organizationId: session.organizationId,
       userId: session.userId,

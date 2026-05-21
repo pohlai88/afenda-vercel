@@ -12,8 +12,8 @@ import { listTimeReportsForOrg } from "../data/time-report.queries.server"
 const RECENT_STATES = ["approved", "rejected", "cancelled"] as const
 
 export async function AttendanceTimeReportRecent() {
-  const orgSession = await requireOrgSession()
-  const [t, tAttendance] = await Promise.all([
+  const [orgSession, t, tAttendance] = await Promise.all([
+    requireOrgSession(),
     getTranslations("Dashboard.Hrm.leave.timeReports"),
     getTranslations("Dashboard.Hrm.attendance"),
   ])
@@ -51,9 +51,6 @@ export async function AttendanceTimeReportRecent() {
     )
   }
 
-  const reportKindLabelFor = (kind: string) =>
-    kind === "overtime" ? t("reportKindOvertime") : t("reportKindTrip")
-
   const stateLabelFor = (state: string) => {
     if (state === "submitted") return t("state.submitted")
     if (state === "approved") return t("state.approved")
@@ -71,7 +68,7 @@ export async function AttendanceTimeReportRecent() {
       colDetail: t("colDetail"),
       colState: t("colState"),
       colUpdated: t("colUpdated"),
-      reportKindLabelFor,
+      reportKindLabelFor: () => t("reportKindTrip"),
       stateLabelFor,
     }
   )
@@ -82,6 +79,10 @@ export async function AttendanceTimeReportRecent() {
       title=""
       listConfiguration={listConfiguration}
       surfaceKey="hrm:attendance:time-report-recent"
+      invalid={{
+        variant: "error",
+        title: t("recentLoadFailed"),
+      }}
     />
   )
 }
