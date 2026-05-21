@@ -134,6 +134,13 @@
       "when": 1779321470600,
       "tag": "0018_premium_ares",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1779335950800,
+      "tag": "0019_clear_silverclaw",
+      "breakpoints": true
     }
   ]
 }

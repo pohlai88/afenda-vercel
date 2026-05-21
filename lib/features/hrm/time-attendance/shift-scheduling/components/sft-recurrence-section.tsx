@@ -10,6 +10,7 @@ import {
 import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
+import { buildSftEmbeddedListSurfaceErrorConfiguration } from "../data/sft-embedded-list-surface-error.server"
 import { buildSftRecurrenceRulesListSurfaceConfiguration } from "../data/sft-surface-builders.server"
 import { listRecurrenceRulesForOrg } from "../data/sft-recurrence.queries.server"
 import { listActiveEmployeeChoicesForSft } from "../data/sft.queries.server"
@@ -90,17 +91,11 @@ export async function SftRecurrenceSection({
           <GovernedPatternCListSection
             layout="embedded"
             title=""
-            listConfiguration={{
-              dataNature: "table",
-              surface: {
-                header: { title: SFT_LIST_SURFACE_IDS.recurrenceRules },
-                columnsId: SFT_LIST_SURFACE_IDS.recurrenceRules,
-                rowKey: "id",
-                empty: { variant: "muted", title: t("recurrenceEmpty") },
-              },
-              columns: [{ id: "employee", header: t("colEmployee") }],
-              rows: [],
-            }}
+            listConfiguration={buildSftEmbeddedListSurfaceErrorConfiguration({
+              columnsId: SFT_LIST_SURFACE_IDS.recurrenceRules,
+              emptyTitle: t("recurrenceEmpty"),
+              firstColumn: { id: "employee", header: t("colEmployee") },
+            })}
             surfaceKey="hrm:shift-scheduling:recurrence-rules:error"
             resolveConfiguredPermission={false}
             loadError={{ variant: "error", title: t("recurrenceLoadFailed") }}
@@ -234,6 +229,10 @@ export async function SftRecurrenceSection({
           title=""
           listConfiguration={listConfiguration}
           surfaceKey={SFT_LIST_SURFACE_IDS.recurrenceRules}
+          invalid={{
+            variant: "error",
+            title: t("recurrenceLoadFailed"),
+          }}
           data-testid={`governed-list-section:${SFT_LIST_SURFACE_IDS.recurrenceRules}`}
         />
       </CardContent>

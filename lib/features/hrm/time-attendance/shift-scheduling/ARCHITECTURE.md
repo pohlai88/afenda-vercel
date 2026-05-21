@@ -45,6 +45,9 @@
 | `hrm:shift-scheduling:attendance-reconcile` | Scheduled vs attendance              |
 | `hrm:shift-scheduling:swap-pending`         | Swap approval inbox (Pattern C)      |
 | `hrm:shift-scheduling:my-swaps`             | Employee swap requests + submit form |
+| `hrm:shift-scheduling:my-schedule-changes`  | Employee schedule-change requests    |
+| `hrm:shift-scheduling:availability`         | Employee availability (unavailable/preferred) |
+| `hrm:shift-scheduling:schedule-change-pending` | Manager schedule-change inbox     |
 
 ### Access lanes
 

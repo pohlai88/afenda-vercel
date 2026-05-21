@@ -324,6 +324,7 @@ export {
 export { HrmPerformancePage } from "./talent-management/performance-appraisals/components/hrm-performance-page"
 export { HrmKpiPage } from "./talent-management/competency-skills-framework/components/hrm-kpi-page"
 export { HrmTrainingPage } from "./talent-management/training-development/components/hrm-training-page"
+export { HrmCareerPathingPage } from "./talent-management/career-pathing-development-plans/components/hrm-career-pathing-page"
 export { EmployeePortalRequestsPage } from "./employee-management/employee-selfservice-portal/components/employee-portal-requests-page"
 export { OffboardingOrgDashboardPage } from "./employee-management/offboarding-exit-management/components/offboarding-org-dashboard-page"
 export { CandidatePortalApplyPage } from "./talent-management/candidate-selfservice-portal/components/candidate-portal-apply-page"

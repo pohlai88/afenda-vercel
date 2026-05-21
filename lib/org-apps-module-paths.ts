@@ -72,6 +72,7 @@ export const ORG_APPS_HRM_ONBOARDING = "/hrm/onboarding" as const
 export const ORG_APPS_HRM_PERFORMANCE = "/hrm/performance" as const
 export const ORG_APPS_HRM_KPI = "/hrm/kpi" as const
 export const ORG_APPS_HRM_TRAINING = "/hrm/training" as const
+export const ORG_APPS_HRM_CAREER_PATHING = "/hrm/career-pathing" as const
 export const ORG_APPS_HRM_ADVANCES = "/hrm/advances" as const
 
 /**

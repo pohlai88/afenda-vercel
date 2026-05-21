@@ -36,6 +36,7 @@ export const HRM_APPS_CAPABILITY_SEGMENTS = [
   "signatures",
   "snapshot",
   "training",
+  "career-pathing",
 ] as const
 
 export type HrmAppsCapabilitySegment =

@@ -10,6 +10,7 @@ import {
 } from "#components2/ui/card"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
+import { buildSftEmbeddedListSurfaceErrorConfiguration } from "../data/sft-embedded-list-surface-error.server"
 import { buildSftTemplatesListSurfaceConfiguration } from "../data/sft-surface-builders.server"
 import { listAllShiftTemplatesForOrg } from "../data/sft-template.queries.server"
 import { SFT_LIST_SURFACE_IDS } from "../data/sft-surface-metadata.shared"
@@ -41,17 +42,11 @@ export async function SftTemplatesSection({
           <GovernedPatternCListSection
             layout="embedded"
             title=""
-            listConfiguration={{
-              dataNature: "table",
-              surface: {
-                header: { title: SFT_LIST_SURFACE_IDS.templates },
-                columnsId: SFT_LIST_SURFACE_IDS.templates,
-                rowKey: "id",
-                empty: { variant: "muted", title: t("templatesEmpty") },
-              },
-              columns: [{ id: "code", header: t("colCode") }],
-              rows: [],
-            }}
+            listConfiguration={buildSftEmbeddedListSurfaceErrorConfiguration({
+              columnsId: SFT_LIST_SURFACE_IDS.templates,
+              emptyTitle: t("templatesEmpty"),
+              firstColumn: { id: "code", header: t("colCode") },
+            })}
             surfaceKey="hrm:shift-scheduling:templates:error"
             resolveConfiguredPermission={false}
             loadError={{ variant: "error", title: t("templatesLoadFailed") }}
@@ -95,6 +90,10 @@ export async function SftTemplatesSection({
           title=""
           listConfiguration={listConfiguration}
           surfaceKey={SFT_LIST_SURFACE_IDS.templates}
+          invalid={{
+            variant: "error",
+            title: t("templatesLoadFailed"),
+          }}
           data-testid={`governed-list-section:${SFT_LIST_SURFACE_IDS.templates}`}
         />
       </CardContent>

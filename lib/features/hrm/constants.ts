@@ -328,6 +328,21 @@ export const HRM_CAPABILITIES = [
     }),
   },
   {
+    id: "careerPathing",
+    segments: ["career-pathing"] as const,
+    auditPrefix: "erp.hrm.career_path",
+    nav: {
+      navKey: "career-pathing",
+      order: 49.5,
+      primarySegment: "career-pathing",
+    },
+    requiredPermission: buildErpPermissionKey({
+      module: "hrm",
+      object: "career_path",
+      function: "search",
+    }),
+  },
+  {
     id: "advances",
     segments: ["advances"] as const,
     auditPrefix: "erp.hrm.salary_advance",

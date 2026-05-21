@@ -1092,3 +1092,8 @@ export { getEmployeePortalSectionNavLabels } from "./employee-management/employe
 export { buildWorkforceListSurfaceConfiguration } from "./employee-management/employee-records-management/data/workforce-list-surface.server"
 
 export type { EmployeeRow } from "./types"
+
+export {
+  listDevelopmentLearningRefsForEmployee,
+  listReadinessRefsForSuccession,
+} from "./talent-management/career-pathing-development-plans/data/career-pathing.queries.server"

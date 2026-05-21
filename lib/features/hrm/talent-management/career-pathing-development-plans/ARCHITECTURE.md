@@ -1,5 +1,55 @@
 # Career Pathing & Development Plans
 
+## Implementation notes
+
+- **Route:** `/{locale}/o/{orgSlug}/apps/hrm/career-pathing` — registry segment `career-pathing`, audit prefix `erp.hrm.career_path`.
+- **Migration:** `drizzle/0019_clear_silverclaw.sql` — career path + development plan tables.
+- **Slice 1 (shipped):** Registry, contract, schema, frameworks list (Pattern B), thin app route.
+- **Slice 2 (shipped):** Target roles, aspirations, read-only skill gap compare from employee skills.
+- **Slice 3 (shipped):** Development plans, goals, milestones, status updates (Pattern C trailing on goals).
+- **Slice 4 (shipped):** Learning actions (training course ref), stretch assignments, `#features/hrm/server` learning refs export.
+- **Slice 5 (shipped):** Mentor assignment, career discussions, manager review on plans.
+- **Slice 6 (shipped):** Readiness snapshots, dashboard KPIs, overdue milestone counts, succession readiness export helper.
+
+### Phase 0 entity model
+
+| Entity | Table | Notes |
+| --- | --- | --- |
+| CareerPathFramework | `hrm_career_path_framework` | Org catalog; `pathKind`, `status` |
+| CareerPathStage | `hrm_career_path_stage` | Ordered stages per framework |
+| EmployeeCareerAspiration | `hrm_employee_career_aspiration` | One row per employee |
+| EmployeeTargetRole | `hrm_employee_target_role` | Primary target role per employee |
+| DevelopmentPlan | `hrm_development_plan` | Links employee + optional target role |
+| DevelopmentGoal | `hrm_development_goal` | Goals within plan |
+| DevelopmentMilestone | `hrm_development_milestone` | Milestones per goal |
+| DevelopmentLearningAction | `hrm_development_learning_action` | Optional `hrm_training_course` FK |
+| DevelopmentStretchAssignment | `hrm_development_stretch_assignment` | Project / acting role exposure |
+| DevelopmentMentorAssignment | `hrm_development_mentor_assignment` | Mentor per plan |
+| DevelopmentCoachAssignment | `hrm_development_coach_assignment` | Coach per plan |
+| DevelopmentSession | `hrm_development_session` | Mentor or coach session log |
+| CareerDiscussion | `hrm_career_discussion` | Career conversation record |
+| EmployeeReadinessSnapshot | `hrm_employee_readiness_snapshot` | Append-only readiness compute |
+
+### Metadata-driven UI (Pattern B / C)
+
+| `surfaceKey` | Section |
+| --- | --- |
+| `hrm:career-pathing:dashboard-kpi` | Dashboard KPI strip |
+| `hrm:career-pathing:frameworks` | Career path frameworks |
+| `hrm:career-pathing:target-roles` | Target roles |
+| `hrm:career-pathing:skill-gaps` | Skill gap compare |
+| `hrm:career-pathing:plans` | Development plans |
+| `hrm:career-pathing:plan-goals` | Plan goals (Pattern C) |
+| `hrm:career-pathing:readiness` | Readiness list |
+
+### Integration references
+
+- **Skills:** `listSkillGapsForEmployee` reads `hrm_employee_skill` — no duplicate skill catalog.
+- **Training:** deep link to `/apps/hrm/training`; `listDevelopmentLearningRefsForEmployee` on `#features/hrm/server`.
+- **Succession:** `listReadinessRefsForSuccession` on `#features/hrm/server` (module not yet built).
+
+---
+
 ## Definition
 
 **Career Pathing & Development Plans is the HRM function that creates, tracks, and manages personalized employee career progression roadmaps, including target roles, development goals, competency gaps, skill milestones, mentoring, coaching, learning actions, readiness progress, and career movement references.**

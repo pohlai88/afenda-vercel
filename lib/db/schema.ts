@@ -9236,6 +9236,475 @@ export const hrmTimeClockPunchException = pgTable(
   ]
 )
 
+/** Career path framework catalog (vertical, lateral, specialist, leadership, functional, cross-functional). */
+export const hrmCareerPathFramework = pgTable(
+  "hrm_career_path_framework",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    /** vertical | lateral | specialist | leadership | functional | cross_functional */
+    pathKind: text("pathKind").notNull().default("vertical"),
+    /** draft | active | archived */
+    status: text("status").notNull().default("draft"),
+    jobFamilyRef: text("jobFamilyRef"),
+    departmentRef: text("departmentRef"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_career_path_framework_org_code_uidx").on(
+      t.organizationId,
+      t.code
+    ),
+    index("hrm_career_path_framework_org_status_idx").on(
+      t.organizationId,
+      t.status,
+      t.code
+    ),
+    check(
+      "hrm_career_path_framework_path_kind_chk",
+      sql`${t.pathKind} IN ('vertical', 'lateral', 'specialist', 'leadership', 'functional', 'cross_functional')`
+    ),
+    check(
+      "hrm_career_path_framework_status_chk",
+      sql`${t.status} IN ('draft', 'active', 'archived')`
+    ),
+  ]
+)
+
+/** Ordered stages within a career path framework template. */
+export const hrmCareerPathStage = pgTable(
+  "hrm_career_path_stage",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    frameworkId: text("frameworkId")
+      .notNull()
+      .references(() => hrmCareerPathFramework.id, { onDelete: "cascade" }),
+    sequence: integer("sequence").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    targetGradeRef: text("targetGradeRef"),
+    targetPositionRef: text("targetPositionRef"),
+    expectedMonths: integer("expectedMonths"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_career_path_stage_framework_seq_uidx").on(
+      t.frameworkId,
+      t.sequence
+    ),
+    index("hrm_career_path_stage_org_framework_idx").on(
+      t.organizationId,
+      t.frameworkId,
+      t.sequence
+    ),
+  ]
+)
+
+/** Employee career aspiration and mobility preferences. */
+export const hrmEmployeeCareerAspiration = pgTable(
+  "hrm_employee_career_aspiration",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    preferredRoleTitle: text("preferredRoleTitle"),
+    preferredDepartmentRef: text("preferredDepartmentRef"),
+    preferredLocationRef: text("preferredLocationRef"),
+    mobilityPreference: text("mobilityPreference"),
+    notes: text("notes"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_employee_career_aspiration_org_emp_uidx").on(
+      t.organizationId,
+      t.employeeId
+    ),
+  ]
+)
+
+/** Target role selection for an employee (self or manager/HR recommended). */
+export const hrmEmployeeTargetRole = pgTable(
+  "hrm_employee_target_role",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    frameworkId: text("frameworkId").references(() => hrmCareerPathFramework.id, {
+      onDelete: "set null",
+    }),
+    targetRoleTitle: text("targetRoleTitle").notNull(),
+    jobFamilyRef: text("jobFamilyRef"),
+    gradeRef: text("gradeRef"),
+    positionRef: text("positionRef"),
+    departmentRef: text("departmentRef"),
+    /** employee | manager | hr */
+    source: text("source").notNull().default("employee"),
+    isPrimary: boolean("isPrimary").notNull().default(true),
+    recommendedByUserId: text("recommendedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_employee_target_role_org_emp_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.isPrimary
+    ),
+    check(
+      "hrm_employee_target_role_source_chk",
+      sql`${t.source} IN ('employee', 'manager', 'hr')`
+    ),
+  ]
+)
+
+/** Personalized development plan for an employee. */
+export const hrmDevelopmentPlan = pgTable(
+  "hrm_development_plan",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    targetRoleId: text("targetRoleId").references(() => hrmEmployeeTargetRole.id, {
+      onDelete: "set null",
+    }),
+    title: text("title").notNull(),
+    status: text("status").notNull().default("draft"),
+    startDate: date("startDate"),
+    targetDate: date("targetDate"),
+    managerReviewNote: text("managerReviewNote"),
+    audit7w1h: jsonb("audit7w1h"),
+    createdByUserId: text("createdByUserId"),
+    updatedByUserId: text("updatedByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_development_plan_org_emp_status_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.status
+    ),
+    check(
+      "hrm_development_plan_status_chk",
+      sql`${t.status} IN ('draft', 'active', 'completed', 'archived')`
+    ),
+  ]
+)
+
+/** Development goal within a plan. */
+export const hrmDevelopmentGoal = pgTable(
+  "hrm_development_goal",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    planId: text("planId")
+      .notNull()
+      .references(() => hrmDevelopmentPlan.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    /** skill | competency | certification | leadership | project | mentoring | coaching */
+    goalType: text("goalType").notNull(),
+    status: text("status").notNull().default("not_started"),
+    priority: text("priority"),
+    ownerUserId: text("ownerUserId"),
+    targetDate: date("targetDate"),
+    completionCriteria: text("completionCriteria"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_development_goal_plan_status_idx").on(
+      t.planId,
+      t.status
+    ),
+    check(
+      "hrm_development_goal_type_chk",
+      sql`${t.goalType} IN ('skill', 'competency', 'certification', 'leadership', 'project', 'mentoring', 'coaching')`
+    ),
+    check(
+      "hrm_development_goal_status_chk",
+      sql`${t.status} IN ('not_started', 'in_progress', 'completed', 'overdue', 'blocked', 'cancelled', 'deferred')`
+    ),
+  ]
+)
+
+/** Milestone within a development goal. */
+export const hrmDevelopmentMilestone = pgTable(
+  "hrm_development_milestone",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    goalId: text("goalId")
+      .notNull()
+      .references(() => hrmDevelopmentGoal.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    targetDate: date("targetDate"),
+    status: text("status").notNull().default("not_started"),
+    ownerUserId: text("ownerUserId"),
+    completionCriteria: text("completionCriteria"),
+    completedAt: timestamp("completedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_development_milestone_goal_status_idx").on(
+      t.goalId,
+      t.status
+    ),
+    check(
+      "hrm_development_milestone_status_chk",
+      sql`${t.status} IN ('not_started', 'in_progress', 'completed', 'overdue', 'blocked', 'cancelled', 'deferred')`
+    ),
+  ]
+)
+
+/** Learning action linked to a development goal (course ref or external). */
+export const hrmDevelopmentLearningAction = pgTable(
+  "hrm_development_learning_action",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    goalId: text("goalId")
+      .notNull()
+      .references(() => hrmDevelopmentGoal.id, { onDelete: "cascade" }),
+    trainingCourseId: text("trainingCourseId").references(
+      () => hrmTrainingCourse.id,
+      { onDelete: "set null" }
+    ),
+    externalRef: text("externalRef"),
+    title: text("title").notNull(),
+    status: text("status").notNull().default("recommended"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_development_learning_action_goal_idx").on(t.goalId),
+    check(
+      "hrm_development_learning_action_status_chk",
+      sql`${t.status} IN ('recommended', 'assigned', 'in_progress', 'completed', 'cancelled')`
+    ),
+  ]
+)
+
+/** Stretch assignment or cross-functional exposure. */
+export const hrmDevelopmentStretchAssignment = pgTable(
+  "hrm_development_stretch_assignment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    planId: text("planId")
+      .notNull()
+      .references(() => hrmDevelopmentPlan.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    assignmentKind: text("assignmentKind").notNull().default("project"),
+    status: text("status").notNull().default("planned"),
+    startDate: date("startDate"),
+    endDate: date("endDate"),
+    notes: text("notes"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_development_stretch_plan_idx").on(t.planId),
+    check(
+      "hrm_development_stretch_kind_chk",
+      sql`${t.assignmentKind} IN ('project', 'acting_role', 'leadership_exposure', 'cross_functional')`
+    ),
+    check(
+      "hrm_development_stretch_status_chk",
+      sql`${t.status} IN ('planned', 'active', 'completed', 'cancelled')`
+    ),
+  ]
+)
+
+/** Mentor assignment for a development plan. */
+export const hrmDevelopmentMentorAssignment = pgTable(
+  "hrm_development_mentor_assignment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    planId: text("planId")
+      .notNull()
+      .references(() => hrmDevelopmentPlan.id, { onDelete: "cascade" }),
+    mentorEmployeeId: text("mentorEmployeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    status: text("status").notNull().default("active"),
+    assignedAt: timestamp("assignedAt", { mode: "date" }).notNull().defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_development_mentor_plan_mentor_uidx").on(
+      t.planId,
+      t.mentorEmployeeId
+    ),
+  ]
+)
+
+/** Coach assignment for a development plan. */
+export const hrmDevelopmentCoachAssignment = pgTable(
+  "hrm_development_coach_assignment",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    planId: text("planId")
+      .notNull()
+      .references(() => hrmDevelopmentPlan.id, { onDelete: "cascade" }),
+    coachEmployeeId: text("coachEmployeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    objective: text("objective"),
+    status: text("status").notNull().default("active"),
+    assignedAt: timestamp("assignedAt", { mode: "date" }).notNull().defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("hrm_development_coach_plan_coach_uidx").on(
+      t.planId,
+      t.coachEmployeeId
+    ),
+  ]
+)
+
+/** Mentoring or coaching session log. */
+export const hrmDevelopmentSession = pgTable(
+  "hrm_development_session",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    planId: text("planId")
+      .notNull()
+      .references(() => hrmDevelopmentPlan.id, { onDelete: "cascade" }),
+    /** mentor | coach */
+    sessionKind: text("sessionKind").notNull(),
+    sessionDate: date("sessionDate").notNull(),
+    notes: text("notes"),
+    actions: text("actions"),
+    outcome: text("outcome"),
+    createdByUserId: text("createdByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_development_session_plan_date_idx").on(
+      t.planId,
+      t.sessionDate
+    ),
+    check(
+      "hrm_development_session_kind_chk",
+      sql`${t.sessionKind} IN ('mentor', 'coach')`
+    ),
+  ]
+)
+
+/** Career development discussion record. */
+export const hrmCareerDiscussion = pgTable(
+  "hrm_career_discussion",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    planId: text("planId").references(() => hrmDevelopmentPlan.id, {
+      onDelete: "set null",
+    }),
+    discussionDate: date("discussionDate").notNull(),
+    participants: text("participants"),
+    notes: text("notes"),
+    agreedActions: text("agreedActions"),
+    nextReviewDate: date("nextReviewDate"),
+    createdByUserId: text("createdByUserId"),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_career_discussion_org_emp_date_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.discussionDate
+    ),
+  ]
+)
+
+/** Readiness snapshot toward target role. */
+export const hrmEmployeeReadinessSnapshot = pgTable(
+  "hrm_employee_readiness_snapshot",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organizationId").notNull(),
+    employeeId: text("employeeId")
+      .notNull()
+      .references(() => hrmEmployee.id, { onDelete: "restrict" }),
+    targetRoleId: text("targetRoleId").references(
+      () => hrmEmployeeTargetRole.id,
+      { onDelete: "set null" }
+    ),
+    /** not_ready | developing | near_ready | ready | role_ready */
+    readinessLevel: text("readinessLevel").notNull().default("developing"),
+    progressPercent: integer("progressPercent").notNull().default(0),
+    computedAt: timestamp("computedAt", { mode: "date" }).notNull().defaultNow(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hrm_employee_readiness_org_emp_idx").on(
+      t.organizationId,
+      t.employeeId,
+      t.computedAt
+    ),
+    check(
+      "hrm_employee_readiness_level_chk",
+      sql`${t.readinessLevel} IN ('not_ready', 'developing', 'near_ready', 'ready', 'role_ready')`
+    ),
+    check(
+      "hrm_employee_readiness_progress_chk",
+      sql`${t.progressPercent} >= 0 AND ${t.progressPercent} <= 100`
+    ),
+  ]
+)
+
 /** Public ask-docs page feedback (anonymous or optional signed-in context). */
 export const askDocsFeedback = pgTable(
   "ask_docs_feedback",

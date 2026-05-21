@@ -14,6 +14,7 @@ import { listSkillsForOrg } from "../../../talent-management/competency-skills-f
 import { listTrainingCoursesForOrg } from "../../../talent-management/training-development/data/training.queries.server"
 import { listPositionsForOrg } from "../../../employee-management/organizational-chart-hierarchy/data/org-structure.queries.server"
 import { compareCoverageHeadcount } from "../data/sft-coverage.server"
+import { buildSftEmbeddedListSurfaceErrorConfiguration } from "../data/sft-embedded-list-surface-error.server"
 import { buildSftCoverageListSurfaceConfiguration } from "../data/sft-surface-builders.server"
 import { listAllShiftTemplatesForOrg } from "../data/sft-template.queries.server"
 import { SFT_LIST_SURFACE_IDS } from "../data/sft-surface-metadata.shared"
@@ -75,17 +76,11 @@ export async function SftCoverageSection({
           <GovernedPatternCListSection
             layout="embedded"
             title=""
-            listConfiguration={{
-              dataNature: "table",
-              surface: {
-                header: { title: SFT_LIST_SURFACE_IDS.coverage },
-                columnsId: SFT_LIST_SURFACE_IDS.coverage,
-                rowKey: "id",
-                empty: { variant: "muted", title: t("coverageEmpty") },
-              },
-              columns: [{ id: "date", header: t("colDate") }],
-              rows: [],
-            }}
+            listConfiguration={buildSftEmbeddedListSurfaceErrorConfiguration({
+              columnsId: SFT_LIST_SURFACE_IDS.coverage,
+              emptyTitle: t("coverageEmpty"),
+              firstColumn: { id: "date", header: t("colDate") },
+            })}
             surfaceKey="hrm:shift-scheduling:coverage:error"
             resolveConfiguredPermission={false}
             loadError={{ variant: "error", title: t("coverageLoadFailed") }}
@@ -158,6 +153,10 @@ export async function SftCoverageSection({
           title=""
           listConfiguration={listConfiguration}
           surfaceKey={SFT_LIST_SURFACE_IDS.coverage}
+          invalid={{
+            variant: "error",
+            title: t("coverageLoadFailed"),
+          }}
           data-testid={`governed-list-section:${SFT_LIST_SURFACE_IDS.coverage}`}
         />
       </CardContent>

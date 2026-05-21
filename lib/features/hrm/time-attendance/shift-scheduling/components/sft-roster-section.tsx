@@ -10,6 +10,7 @@ import {
 } from "#components2/ui/card"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
+import { buildSftEmbeddedListSurfaceErrorConfiguration } from "../data/sft-embedded-list-surface-error.server"
 import { buildSftRosterListSurfaceConfiguration } from "../data/sft-surface-builders.server"
 import {
   listRosterAssignmentsForOrg,
@@ -57,17 +58,11 @@ export async function SftRosterSection({
           <GovernedPatternCListSection
             layout="embedded"
             title=""
-            listConfiguration={{
-              dataNature: "table",
-              surface: {
-                header: { title: SFT_LIST_SURFACE_IDS.roster },
-                columnsId: SFT_LIST_SURFACE_IDS.roster,
-                rowKey: "id",
-                empty: { variant: "muted", title: t("rosterEmpty") },
-              },
-              columns: [{ id: "date", header: t("colDate") }],
-              rows: [],
-            }}
+            listConfiguration={buildSftEmbeddedListSurfaceErrorConfiguration({
+              columnsId: SFT_LIST_SURFACE_IDS.roster,
+              emptyTitle: t("rosterEmpty"),
+              firstColumn: { id: "date", header: t("colDate") },
+            })}
             surfaceKey="hrm:shift-scheduling:roster:error"
             resolveConfiguredPermission={false}
             loadError={{ variant: "error", title: t("rosterLoadFailed") }}
@@ -106,6 +101,10 @@ export async function SftRosterSection({
           title=""
           listConfiguration={listConfiguration}
           surfaceKey={SFT_LIST_SURFACE_IDS.roster}
+          invalid={{
+            variant: "error",
+            title: t("rosterLoadFailed"),
+          }}
           data-testid={`governed-list-section:${SFT_LIST_SURFACE_IDS.roster}`}
         />
       </CardContent>

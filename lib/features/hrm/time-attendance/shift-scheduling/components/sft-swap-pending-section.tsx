@@ -14,6 +14,7 @@ import {
 } from "#components2/ui/card"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
+import { buildSftEmbeddedListSurfaceErrorConfiguration } from "../data/sft-embedded-list-surface-error.server"
 import { buildSftSwapPendingListSurfaceConfiguration } from "../data/sft-surface-builders.server"
 import { listPendingShiftSwapRequests } from "../data/sft-swap.queries.server"
 import { SFT_LIST_SURFACE_IDS } from "../data/sft-surface-metadata.shared"
@@ -50,17 +51,11 @@ export async function SftSwapPendingSection({
           <GovernedPatternCListSection
             layout="embedded"
             title=""
-            listConfiguration={{
-              dataNature: "table",
-              surface: {
-                header: { title: SFT_LIST_SURFACE_IDS.swapPending },
-                columnsId: SFT_LIST_SURFACE_IDS.swapPending,
-                rowKey: "id",
-                empty: { variant: "muted", title: t("swapPendingEmpty") },
-              },
-              columns: [{ id: "requester", header: t("colRequester") }],
-              rows: [],
-            }}
+            listConfiguration={buildSftEmbeddedListSurfaceErrorConfiguration({
+              columnsId: SFT_LIST_SURFACE_IDS.swapPending,
+              emptyTitle: t("swapPendingEmpty"),
+              firstColumn: { id: "requester", header: t("colRequester") },
+            })}
             surfaceKey="hrm:shift-scheduling:swap-pending:error"
             resolveConfiguredPermission={false}
             loadError={{ variant: "error", title: t("swapPendingLoadFailed") }}
@@ -95,6 +90,10 @@ export async function SftSwapPendingSection({
           title=""
           listConfiguration={listConfiguration}
           surfaceKey={SFT_LIST_SURFACE_IDS.swapPending}
+          invalid={{
+            variant: "error",
+            title: t("swapPendingLoadFailed"),
+          }}
           trailingColumn={{
             header: t("colActions"),
             render: (surfaceRow) => {

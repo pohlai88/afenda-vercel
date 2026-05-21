@@ -10,6 +10,7 @@ import {
 import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
+import { buildSftEmbeddedListSurfaceErrorConfiguration } from "../data/sft-embedded-list-surface-error.server"
 import { buildSftAttendanceReconcileListSurfaceConfiguration } from "../data/sft-surface-builders.server"
 import { listSftAttendanceReconcileRowsForOrg } from "../data/sft-integration.server"
 import { SFT_LIST_SURFACE_IDS } from "../data/sft-surface-metadata.shared"
@@ -53,17 +54,11 @@ export async function SftAttendanceCompareSection({
           <GovernedPatternCListSection
             layout="embedded"
             title=""
-            listConfiguration={{
-              dataNature: "table",
-              surface: {
-                header: { title: SFT_LIST_SURFACE_IDS.attendanceReconcile },
-                columnsId: SFT_LIST_SURFACE_IDS.attendanceReconcile,
-                rowKey: "id",
-                empty: { variant: "muted", title: t("attendanceCompareEmpty") },
-              },
-              columns: [{ id: "employee", header: t("colEmployee") }],
-              rows: [],
-            }}
+            listConfiguration={buildSftEmbeddedListSurfaceErrorConfiguration({
+              columnsId: SFT_LIST_SURFACE_IDS.attendanceReconcile,
+              emptyTitle: t("attendanceCompareEmpty"),
+              firstColumn: { id: "employee", header: t("colEmployee") },
+            })}
             surfaceKey="hrm:shift-scheduling:attendance-reconcile:error"
             resolveConfiguredPermission={false}
             loadError={{
@@ -103,6 +98,10 @@ export async function SftAttendanceCompareSection({
           title=""
           listConfiguration={listConfiguration}
           surfaceKey={SFT_LIST_SURFACE_IDS.attendanceReconcile}
+          invalid={{
+            variant: "error",
+            title: t("attendanceCompareLoadFailed"),
+          }}
           data-testid={`governed-list-section:${SFT_LIST_SURFACE_IDS.attendanceReconcile}`}
         />
       </CardContent>

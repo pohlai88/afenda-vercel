@@ -8,6 +8,8 @@ export const SFT_LIST_SURFACE_IDS = {
   recurrenceRules: "hrm:shift-scheduling:recurrence-rules",
   coverage: "hrm:shift-scheduling:coverage",
   publications: "hrm:shift-scheduling:publications",
+  availability: "hrm:shift-scheduling:availability",
+  scheduleChangePending: "hrm:shift-scheduling:schedule-change-pending",
 } as const
 
 export type SftListSurfaceId =

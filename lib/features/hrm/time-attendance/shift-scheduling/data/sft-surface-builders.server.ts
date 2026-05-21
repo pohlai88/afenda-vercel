@@ -16,6 +16,8 @@ import type { ShiftCoverageComparisonRow } from "./sft-coverage.server"
 import type { EmployeeShiftSwapRow } from "./sft-swap.queries.server"
 import type { EmployeeScheduleChangeRow } from "./sft-schedule-change.server"
 import type { ShiftRosterPublicationRow } from "./sft-publication.queries.server"
+import type { ShiftAvailabilityRow } from "./sft-availability.queries.server"
+import type { ScheduleChangeRequestRow } from "./sft-schedule-change.server"
 
 const SFT_READ_PERMISSION = {
   module: "hrm" as const,
@@ -460,6 +462,85 @@ export function buildSftPublicationsListSurfaceConfiguration(
         period: `${row.periodStart} – ${row.periodEnd}`,
         published: copy.formatPublishedAt(row.publishedAt),
         note: row.note ?? "—",
+      },
+    })),
+  }
+}
+
+export function buildSftAvailabilityListSurfaceConfiguration(
+  rows: readonly ShiftAvailabilityRow[],
+  copy: {
+    empty: string
+    colEmployee: string
+    colDate: string
+    colKind: string
+    colReason: string
+    kindLabel: (kind: ShiftAvailabilityRow["kind"]) => string
+  }
+): ListSurfaceRendererConfigurationInput {
+  return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
+    dataNature: "table",
+    requiresErpPermission: SFT_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: listSurfaceHeader(SFT_LIST_SURFACE_IDS.availability),
+      columnsId: SFT_LIST_SURFACE_IDS.availability,
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "employee", header: copy.colEmployee },
+      { id: "date", header: copy.colDate },
+      { id: "kind", header: copy.colKind },
+      { id: "reason", header: copy.colReason },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        employee: row.employeeId,
+        date: row.attendanceDate,
+        kind: copy.kindLabel(row.kind),
+        reason: row.reason ?? "—",
+      },
+    })),
+  }
+}
+
+export function buildSftScheduleChangePendingListSurfaceConfiguration(
+  rows: readonly ScheduleChangeRequestRow[],
+  copy: {
+    empty: string
+    colEmployee: string
+    colDate: string
+    colShift: string
+    colReason: string
+  }
+): ListSurfaceRendererConfigurationInput {
+  return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
+    dataNature: "table",
+    requiresErpPermission: SFT_READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: listSurfaceHeader(SFT_LIST_SURFACE_IDS.scheduleChangePending),
+      columnsId: SFT_LIST_SURFACE_IDS.scheduleChangePending,
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "employee", header: copy.colEmployee },
+      { id: "date", header: copy.colDate },
+      { id: "shift", header: copy.colShift },
+      { id: "reason", header: copy.colReason },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        employee: row.requesterName ?? row.requesterEmployeeId,
+        date: row.proposedDate,
+        shift: row.proposedTemplateCode,
+        reason: row.reason,
       },
     })),
   }

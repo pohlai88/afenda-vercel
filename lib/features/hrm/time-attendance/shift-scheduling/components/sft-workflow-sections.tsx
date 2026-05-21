@@ -8,10 +8,18 @@ import {
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
+import { logUnexpectedServerError } from "#lib/logger.server"
 
 import { listShiftAvailabilityForOrg } from "../data/sft-availability.queries.server"
+import type { ShiftAvailabilityRow } from "../data/sft-availability.queries.server"
+import { buildSftEmbeddedListSurfaceErrorConfiguration } from "../data/sft-embedded-list-surface-error.server"
+import {
+  buildSftAvailabilityListSurfaceConfiguration,
+  buildSftScheduleChangePendingListSurfaceConfiguration,
+} from "../data/sft-surface-builders.server"
 import { listPendingScheduleChangeRequests } from "../data/sft-schedule-change.server"
 import { listAllShiftTemplatesForOrg } from "../data/sft-template.queries.server"
+import { SFT_LIST_SURFACE_IDS } from "../data/sft-surface-metadata.shared"
 import { SftAvailabilityWeekCalendar } from "./sft-availability-week-calendar.client"
 import {
   SftAvailabilityCreateForm,
@@ -19,6 +27,13 @@ import {
   SftRestOffPlannerForm,
   SftScheduleChangeDecisionForms,
 } from "./sft-workflow-forms.client"
+
+function availabilityKindLabel(
+  kind: ShiftAvailabilityRow["kind"],
+  copy: { unavailable: string; preferred: string }
+): string {
+  return kind === "unavailable" ? copy.unavailable : copy.preferred
+}
 
 export async function SftAvailabilitySection({
   organizationId,
@@ -32,11 +47,61 @@ export async function SftAvailabilitySection({
   canManage: boolean
 }) {
   const t = await getTranslations("Dashboard.Hrm.shiftScheduling")
-  const rows = await listShiftAvailabilityForOrg({
-    organizationId,
-    rangeStart,
-    rangeEnd,
-  })
+
+  let rows: Awaited<ReturnType<typeof listShiftAvailabilityForOrg>>
+  try {
+    rows = await listShiftAvailabilityForOrg({
+      organizationId,
+      rangeStart,
+      rangeEnd,
+    })
+  } catch (err) {
+    logUnexpectedServerError("sft-availability: query failed", err, {
+      organizationId,
+    })
+    return (
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>{t("availabilityTitle")}</CardTitle>
+          <CardDescription>{t("availabilityDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={buildSftEmbeddedListSurfaceErrorConfiguration({
+              columnsId: SFT_LIST_SURFACE_IDS.availability,
+              emptyTitle: t("availabilityEmpty"),
+              firstColumn: { id: "employee", header: t("colEmployee") },
+            })}
+            surfaceKey="hrm:shift-scheduling:availability:error"
+            resolveConfiguredPermission={false}
+            loadError={{
+              variant: "error",
+              title: t("availabilityLoadFailed"),
+            }}
+          />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const kindLabels = {
+    unavailable: t("availabilityKindUnavailable"),
+    preferred: t("availabilityKindPreferred"),
+  }
+
+  const listConfiguration = buildSftAvailabilityListSurfaceConfiguration(
+    rows,
+    {
+      empty: t("availabilityEmpty"),
+      colEmployee: t("colEmployee"),
+      colDate: t("colDate"),
+      colKind: t("colKind"),
+      colReason: t("colReason"),
+      kindLabel: (kind) => availabilityKindLabel(kind, kindLabels),
+    }
+  )
 
   return (
     <Card size="sm">
@@ -56,32 +121,13 @@ export async function SftAvailabilitySection({
         <GovernedPatternCListSection
           layout="embedded"
           title=""
-          listConfiguration={{
-            dataNature: "table",
-            surface: {
-              header: { title: "hrm:shift-scheduling:availability" },
-              columnsId: "hrm:shift-scheduling:availability",
-              rowKey: "id",
-              empty: { variant: "muted", title: t("availabilityEmpty") },
-            },
-            columns: [
-              { id: "employee", header: t("colEmployee") },
-              { id: "date", header: t("colDate") },
-              { id: "kind", header: t("colKind") },
-              { id: "reason", header: t("colReason") },
-            ],
-            rows: rows.map((row) => ({
-              id: row.id,
-              cells: {
-                employee: row.employeeId,
-                date: row.attendanceDate,
-                kind: row.kind,
-                reason: row.reason ?? "—",
-              },
-            })),
-          }}
-          surfaceKey="hrm:shift-scheduling:availability"
+          listConfiguration={listConfiguration}
+          surfaceKey={SFT_LIST_SURFACE_IDS.availability}
           resolveConfiguredPermission={false}
+          invalid={{
+            variant: "error",
+            title: t("availabilityLoadFailed"),
+          }}
         />
       </CardContent>
     </Card>
@@ -102,7 +148,26 @@ export async function SftRestOffPlannerSection({
   const t = await getTranslations("Dashboard.Hrm.shiftScheduling")
   if (!canManage) return null
 
-  const templates = await listAllShiftTemplatesForOrg(organizationId)
+  let templates: Awaited<ReturnType<typeof listAllShiftTemplatesForOrg>>
+  try {
+    templates = await listAllShiftTemplatesForOrg(organizationId)
+  } catch (err) {
+    logUnexpectedServerError("sft-rest-off-planner: query failed", err, {
+      organizationId,
+    })
+    return (
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>{t("restOffPlannerTitle")}</CardTitle>
+          <CardDescription>{t("restOffPlannerDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-destructive">{t("templatesLoadFailed")}</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   const restOffTemplates = templates.filter(
     (row) => row.shiftCategory === "rest" || row.shiftCategory === "off"
   )
@@ -142,7 +207,25 @@ export async function SftHolidayPlannerSection({
   const t = await getTranslations("Dashboard.Hrm.shiftScheduling")
   if (!canManage) return null
 
-  const templates = await listAllShiftTemplatesForOrg(organizationId)
+  let templates: Awaited<ReturnType<typeof listAllShiftTemplatesForOrg>>
+  try {
+    templates = await listAllShiftTemplatesForOrg(organizationId)
+  } catch (err) {
+    logUnexpectedServerError("sft-holiday-planner: query failed", err, {
+      organizationId,
+    })
+    return (
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>{t("holidayPlannerTitle")}</CardTitle>
+          <CardDescription>{t("holidayPlannerDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-destructive">{t("templatesLoadFailed")}</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card size="sm">
@@ -175,7 +258,50 @@ export async function SftScheduleChangePendingSection({
   const t = await getTranslations("Dashboard.Hrm.shiftScheduling")
   if (!canManage) return null
 
-  const rows = await listPendingScheduleChangeRequests({ organizationId })
+  let rows: Awaited<ReturnType<typeof listPendingScheduleChangeRequests>>
+  try {
+    rows = await listPendingScheduleChangeRequests({ organizationId })
+  } catch (err) {
+    logUnexpectedServerError("sft-schedule-change-pending: query failed", err, {
+      organizationId,
+    })
+    return (
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>{t("scheduleChangePendingTitle")}</CardTitle>
+          <CardDescription>
+            {t("scheduleChangePendingDescription")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <GovernedPatternCListSection
+            layout="embedded"
+            title=""
+            listConfiguration={buildSftEmbeddedListSurfaceErrorConfiguration({
+              columnsId: SFT_LIST_SURFACE_IDS.scheduleChangePending,
+              emptyTitle: t("scheduleChangePendingEmpty"),
+              firstColumn: { id: "employee", header: t("colEmployee") },
+            })}
+            surfaceKey="hrm:shift-scheduling:schedule-change-pending:error"
+            resolveConfiguredPermission={false}
+            loadError={{
+              variant: "error",
+              title: t("scheduleChangePendingLoadFailed"),
+            }}
+          />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const listConfiguration =
+    buildSftScheduleChangePendingListSurfaceConfiguration(rows, {
+      empty: t("scheduleChangePendingEmpty"),
+      colEmployee: t("colEmployee"),
+      colDate: t("colDate"),
+      colShift: t("colShift"),
+      colReason: t("colReason"),
+    })
 
   return (
     <Card size="sm">
@@ -189,35 +315,13 @@ export async function SftScheduleChangePendingSection({
         <GovernedPatternCListSection
           layout="embedded"
           title=""
-          listConfiguration={{
-            dataNature: "table",
-            surface: {
-              header: { title: "hrm:shift-scheduling:schedule-change-pending" },
-              columnsId: "hrm:shift-scheduling:schedule-change-pending",
-              rowKey: "id",
-              empty: {
-                variant: "muted",
-                title: t("scheduleChangePendingEmpty"),
-              },
-            },
-            columns: [
-              { id: "employee", header: t("colEmployee") },
-              { id: "date", header: t("colDate") },
-              { id: "shift", header: t("colShift") },
-              { id: "reason", header: t("colReason") },
-            ],
-            rows: rows.map((row) => ({
-              id: row.id,
-              cells: {
-                employee: row.requesterName ?? row.requesterEmployeeId,
-                date: row.proposedDate,
-                shift: row.proposedTemplateCode,
-                reason: row.reason,
-              },
-            })),
-          }}
-          surfaceKey="hrm:shift-scheduling:schedule-change-pending"
+          listConfiguration={listConfiguration}
+          surfaceKey={SFT_LIST_SURFACE_IDS.scheduleChangePending}
           resolveConfiguredPermission={false}
+          invalid={{
+            variant: "error",
+            title: t("scheduleChangePendingLoadFailed"),
+          }}
         />
         {rows.length > 0 ? (
           <SftScheduleChangeDecisionForms

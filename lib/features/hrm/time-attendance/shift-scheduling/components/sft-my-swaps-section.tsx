@@ -18,6 +18,7 @@ import {
   listShiftSwapRequestsForEmployee,
   listSwapAssignmentChoicesForEmployee,
 } from "../data/sft-swap.queries.server"
+import { buildSftEmbeddedListSurfaceErrorConfiguration } from "../data/sft-embedded-list-surface-error.server"
 import {
   buildSftMyScheduleChangesListSurfaceConfiguration,
   buildSftMySwapsListSurfaceConfiguration,
@@ -84,17 +85,11 @@ export async function SftMySwapsSection({
           <GovernedPatternCListSection
             layout="embedded"
             title=""
-            listConfiguration={{
-              dataNature: "table",
-              surface: {
-                header: { title: SFT_LIST_SURFACE_IDS.mySwaps },
-                columnsId: SFT_LIST_SURFACE_IDS.mySwaps,
-                rowKey: "id",
-                empty: { variant: "muted", title: t("mySwapsEmpty") },
-              },
-              columns: [{ id: "state", header: t("sftColStatus") }],
-              rows: [],
-            }}
+            listConfiguration={buildSftEmbeddedListSurfaceErrorConfiguration({
+              columnsId: SFT_LIST_SURFACE_IDS.mySwaps,
+              emptyTitle: t("mySwapsEmpty"),
+              firstColumn: { id: "state", header: t("sftColStatus") },
+            })}
             surfaceKey="hrm:shift-scheduling:my-swaps:error"
             resolveConfiguredPermission={false}
             loadError={{ variant: "error", title: t("mySwapsLoadFailed") }}
@@ -161,6 +156,10 @@ export async function SftMySwapsSection({
           listConfiguration={scheduleChangeListConfiguration}
           surfaceKey={SFT_LIST_SURFACE_IDS.myScheduleChanges}
           resolveConfiguredPermission={false}
+          invalid={{
+            variant: "error",
+            title: t("mySwapsLoadFailed"),
+          }}
           data-testid={`governed-list-section:${SFT_LIST_SURFACE_IDS.myScheduleChanges}`}
         />
         <div className="rounded-md border border-border p-4">
@@ -181,6 +180,10 @@ export async function SftMySwapsSection({
           listConfiguration={swapListConfiguration}
           surfaceKey={SFT_LIST_SURFACE_IDS.mySwaps}
           resolveConfiguredPermission={false}
+          invalid={{
+            variant: "error",
+            title: t("mySwapsLoadFailed"),
+          }}
           data-testid={`governed-list-section:${SFT_LIST_SURFACE_IDS.mySwaps}`}
         />
       </CardContent>
