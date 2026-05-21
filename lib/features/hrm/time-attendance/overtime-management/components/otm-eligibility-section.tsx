@@ -8,7 +8,9 @@ import {
   CardTitle,
 } from "#components2/ui/card"
 import { GovernedPatternCListSection } from "#features/governed-surface"
+import { logUnexpectedServerError } from "#lib/logger.server"
 
+import { buildOtmEmbeddedListSurfaceErrorConfiguration } from "../data/otm-embedded-list-surface-error.server"
 import { buildOtmEligibilityRulesListSurfaceConfiguration } from "../data/otm-surface-builders.server"
 import { listOtmEligibilityRulesForOrg } from "../data/otm-eligibility.server"
 import { OTM_LIST_SURFACE_IDS } from "../data/otm-surface-metadata.shared"
@@ -25,7 +27,39 @@ export async function OtmEligibilitySection({
   canManage: boolean
 }) {
   const t = await getTranslations("Dashboard.Hrm.overtime")
-  const rows = await listOtmEligibilityRulesForOrg(organizationId)
+
+  let rows: Awaited<ReturnType<typeof listOtmEligibilityRulesForOrg>>
+  try {
+    rows = await listOtmEligibilityRulesForOrg(organizationId)
+  } catch (err) {
+    logUnexpectedServerError("otm-eligibility: query failed", err, {
+      organizationId,
+    })
+    return (
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>{t("eligibilityTitle")}</CardTitle>
+          <CardDescription>{t("eligibilityDescription")}</CardDescription>
+        </CardHeader>
+        <GovernedPatternCListSection
+          layout="embedded"
+          title=""
+          description=""
+          surfaceKey="hrm:overtime:eligibility:error"
+          listConfiguration={buildOtmEmbeddedListSurfaceErrorConfiguration({
+            columnsId: OTM_LIST_SURFACE_IDS.eligibility,
+            emptyTitle: t("eligibilityEmpty"),
+            firstColumn: { id: "type", header: t("colType") },
+          })}
+          resolveConfiguredPermission={false}
+          loadError={{
+            variant: "error",
+            title: t("eligibilityLoadFailed"),
+          }}
+        />
+      </Card>
+    )
+  }
 
   const listConfiguration = buildOtmEligibilityRulesListSurfaceConfiguration(
     rows,
@@ -78,6 +112,10 @@ export async function OtmEligibilitySection({
         description=""
         surfaceKey={OTM_LIST_SURFACE_IDS.eligibility}
         listConfiguration={listConfiguration}
+        invalid={{
+          variant: "error",
+          title: t("eligibilityLoadFailed"),
+        }}
       />
     </Card>
   )

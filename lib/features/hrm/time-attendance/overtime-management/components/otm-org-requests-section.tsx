@@ -3,26 +3,22 @@ import { getFormatter, getTranslations } from "next-intl/server"
 import { GovernedPatternCListSection } from "#features/governed-surface"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
-import { HRM_OTM_DAY_CATEGORIES } from "../schemas/otm.schema"
+import { buildOtmEmbeddedListSurfaceErrorConfiguration } from "../data/otm-embedded-list-surface-error.server"
 import { buildOtmOrgRecentListSurfaceConfiguration } from "../data/otm-surface-builders.server"
+import { getOtmDayCategoryLabelMap } from "../data/otm-section-labels.server"
 import { listOtmRequestsForOrg } from "../data/otm.queries.server"
 import { OTM_LIST_SURFACE_IDS } from "../data/otm-surface-metadata.shared"
-import type { HrmOtmDayCategory } from "../schemas/otm.schema"
 
 export async function OtmOrgRequestsSection({
   organizationId,
 }: {
   organizationId: string
 }) {
-  const t = await getTranslations("Dashboard.Hrm.overtime")
-  const format = await getFormatter()
-
-  const dayCategoryLabels = Object.fromEntries(
-    HRM_OTM_DAY_CATEGORIES.map((category) => [
-      category,
-      t(`dayCategoryLabels.${category}` as `dayCategoryLabels.${HrmOtmDayCategory}`),
-    ])
-  ) as Record<HrmOtmDayCategory, string>
+  const [t, format, dayCategoryLabels] = await Promise.all([
+    getTranslations("Dashboard.Hrm.overtime"),
+    getFormatter(),
+    getOtmDayCategoryLabelMap(),
+  ])
 
   let rows: Awaited<ReturnType<typeof listOtmRequestsForOrg>>
   try {
@@ -40,17 +36,11 @@ export async function OtmOrgRequestsSection({
         title={t("recentTitle")}
         description={t("recentDescription")}
         surfaceKey="hrm:overtime:recent:error"
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: OTM_LIST_SURFACE_IDS.orgRecent },
-            columnsId: OTM_LIST_SURFACE_IDS.orgRecent,
-            rowKey: "id",
-            empty: { variant: "muted", title: t("recentEmpty") },
-          },
-          columns: [{ id: "employee", header: t("colEmployee") }],
-          rows: [],
-        }}
+        listConfiguration={buildOtmEmbeddedListSurfaceErrorConfiguration({
+          columnsId: OTM_LIST_SURFACE_IDS.orgRecent,
+          emptyTitle: t("recentEmpty"),
+          firstColumn: { id: "employee", header: t("colEmployee") },
+        })}
         resolveConfiguredPermission={false}
         loadError={{
           variant: "error",
@@ -82,8 +72,12 @@ export async function OtmOrgRequestsSection({
       layout="embedded"
       title={t("recentTitle")}
       description={t("recentDescription")}
-      surfaceKey="hrm:overtime:recent"
+      surfaceKey={OTM_LIST_SURFACE_IDS.orgRecent}
       listConfiguration={listConfiguration}
+      invalid={{
+        variant: "error",
+        title: t("recentLoadFailed"),
+      }}
     />
   )
 }

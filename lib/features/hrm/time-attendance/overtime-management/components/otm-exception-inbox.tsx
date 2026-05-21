@@ -7,27 +7,23 @@ import {
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
-import { HRM_OTM_EXCEPTION_TYPES } from "../schemas/otm-workflow-state.shared"
+import { buildOtmEmbeddedListSurfaceErrorConfiguration } from "../data/otm-embedded-list-surface-error.server"
 import { buildOtmExceptionInboxListSurfaceConfiguration } from "../data/otm-surface-builders.server"
-import { listPendingOtmExceptionsForOrg } from "../data/otm-exception.server"
 import { formatOvertimeDurationMinutes } from "../data/otm-display.shared"
+import { listPendingOtmExceptionsForOrg } from "../data/otm-exception.server"
+import { getOtmExceptionTypeLabelMap } from "../data/otm-section-labels.server"
 import { OTM_LIST_SURFACE_IDS } from "../data/otm-surface-metadata.shared"
 import { OtmExceptionDecisionForms } from "./otm-exception-decision-form"
-import type { HrmOtmExceptionType } from "../schemas/otm-workflow-state.shared"
 
 export async function OtmExceptionInbox({
   organizationId,
 }: {
   organizationId: string
 }) {
-  const t = await getTranslations("Dashboard.Hrm.overtime")
-
-  const exceptionTypeLabels = Object.fromEntries(
-    HRM_OTM_EXCEPTION_TYPES.map((type) => [
-      type,
-      t(`exceptionTypeLabels.${type}` as `exceptionTypeLabels.${HrmOtmExceptionType}`),
-    ])
-  ) as Record<HrmOtmExceptionType, string>
+  const [t, exceptionTypeLabels] = await Promise.all([
+    getTranslations("Dashboard.Hrm.overtime"),
+    getOtmExceptionTypeLabelMap(),
+  ])
 
   let rows: Awaited<ReturnType<typeof listPendingOtmExceptionsForOrg>>
   try {
@@ -40,17 +36,11 @@ export async function OtmExceptionInbox({
       <GovernedPatternCListSection
         layout="embedded"
         title={t("exceptionInboxTitle")}
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: OTM_LIST_SURFACE_IDS.exceptionInbox },
-            columnsId: OTM_LIST_SURFACE_IDS.exceptionInbox,
-            rowKey: "id",
-            empty: { variant: "muted", title: t("exceptionInboxEmpty") },
-          },
-          columns: [{ id: "employee", header: t("colEmployee") }],
-          rows: [],
-        }}
+        listConfiguration={buildOtmEmbeddedListSurfaceErrorConfiguration({
+          columnsId: OTM_LIST_SURFACE_IDS.exceptionInbox,
+          emptyTitle: t("exceptionInboxEmpty"),
+          firstColumn: { id: "employee", header: t("colEmployee") },
+        })}
         surfaceKey="hrm:overtime:exception-inbox:error"
         resolveConfiguredPermission={false}
         loadError={{
@@ -88,6 +78,10 @@ export async function OtmExceptionInbox({
       description={t("exceptionInboxDescription")}
       surfaceKey={OTM_LIST_SURFACE_IDS.exceptionInbox}
       listConfiguration={listConfiguration}
+      invalid={{
+        variant: "error",
+        title: t("exceptionInboxLoadFailed"),
+      }}
       trailingColumn={{
         header: t("colActions"),
         render: (surfaceRow) => {

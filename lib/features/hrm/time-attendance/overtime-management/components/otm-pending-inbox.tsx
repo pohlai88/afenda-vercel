@@ -7,13 +7,13 @@ import {
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
 import { logUnexpectedServerError } from "#lib/logger.server"
 
-import { HRM_OTM_DAY_CATEGORIES } from "../schemas/otm.schema"
+import { buildOtmEmbeddedListSurfaceErrorConfiguration } from "../data/otm-embedded-list-surface-error.server"
 import { buildOtmPendingListSurfaceConfiguration } from "../data/otm-surface-builders.server"
+import { getOtmDayCategoryLabelMap } from "../data/otm-section-labels.server"
 import { listOtmRequestsForOrg } from "../data/otm.queries.server"
 import { OTM_LIST_SURFACE_IDS } from "../data/otm-surface-metadata.shared"
 import { OtmDecisionForms } from "./otm-decision-form"
 import { OtmPendingBulkApproveToolbar } from "./otm-pending-bulk-approve.client"
-import type { HrmOtmDayCategory } from "../schemas/otm.schema"
 
 export async function OtmPendingInbox({
   organizationId,
@@ -24,15 +24,11 @@ export async function OtmPendingInbox({
   userId: string
   canApproveAll: boolean
 }) {
-  const t = await getTranslations("Dashboard.Hrm.overtime")
-  const format = await getFormatter()
-
-  const dayCategoryLabels = Object.fromEntries(
-    HRM_OTM_DAY_CATEGORIES.map((category) => [
-      category,
-      t(`dayCategoryLabels.${category}` as `dayCategoryLabels.${HrmOtmDayCategory}`),
-    ])
-  ) as Record<HrmOtmDayCategory, string>
+  const [t, format, dayCategoryLabels] = await Promise.all([
+    getTranslations("Dashboard.Hrm.overtime"),
+    getFormatter(),
+    getOtmDayCategoryLabelMap(),
+  ])
 
   let rows: Awaited<ReturnType<typeof listOtmRequestsForOrg>>
   try {
@@ -49,17 +45,11 @@ export async function OtmPendingInbox({
       <GovernedPatternCListSection
         layout="embedded"
         title=""
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: OTM_LIST_SURFACE_IDS.pendingInbox },
-            columnsId: OTM_LIST_SURFACE_IDS.pendingInbox,
-            rowKey: "id",
-            empty: { variant: "muted", title: t("inboxEmpty") },
-          },
-          columns: [{ id: "employee", header: t("colEmployee") }],
-          rows: [],
-        }}
+        listConfiguration={buildOtmEmbeddedListSurfaceErrorConfiguration({
+          columnsId: OTM_LIST_SURFACE_IDS.pendingInbox,
+          emptyTitle: t("inboxEmpty"),
+          firstColumn: { id: "employee", header: t("colEmployee") },
+        })}
         surfaceKey="hrm:overtime:pending:error"
         resolveConfiguredPermission={false}
         loadError={{
@@ -109,39 +99,43 @@ export async function OtmPendingInbox({
   return (
     <div className="flex flex-col gap-4">
       <OtmPendingBulkApproveToolbar rows={bulkRows} />
-    <GovernedPatternCListSection
-      layout="embedded"
-      title={t("pendingTitle")}
-      description={t("pendingDescription")}
-      surfaceKey={OTM_LIST_SURFACE_IDS.pendingInbox}
-      listConfiguration={listConfiguration}
-      trailingColumn={{
-        header: t("colActions"),
-        render: (surfaceRow) => {
-          const row = rowById.get(surfaceRow.id)
-          if (
-            !row ||
-            !isListSurfaceTrailingActionRenderable(surfaceRow.trailingAction)
-          ) {
-            return null
-          }
-          return (
-            <GovernedTrailingActionSlot
-              trailingAction={surfaceRow.trailingAction}
-            >
-              <OtmDecisionForms
-                requestId={row.id}
-                timeRange={`${row.workDate} · ${row.startTime}–${row.endTime}`}
-                workDate={row.workDate}
-                startTime={row.startTime}
-                endTime={row.endTime}
-                approvalStage={row.approvalStage}
-              />
-            </GovernedTrailingActionSlot>
-          )
-        },
-      }}
-    />
+      <GovernedPatternCListSection
+        layout="embedded"
+        title={t("pendingTitle")}
+        description={t("pendingDescription")}
+        surfaceKey={OTM_LIST_SURFACE_IDS.pendingInbox}
+        listConfiguration={listConfiguration}
+        invalid={{
+          variant: "error",
+          title: t("inboxLoadFailed"),
+        }}
+        trailingColumn={{
+          header: t("colActions"),
+          render: (surfaceRow) => {
+            const row = rowById.get(surfaceRow.id)
+            if (
+              !row ||
+              !isListSurfaceTrailingActionRenderable(surfaceRow.trailingAction)
+            ) {
+              return null
+            }
+            return (
+              <GovernedTrailingActionSlot
+                trailingAction={surfaceRow.trailingAction}
+              >
+                <OtmDecisionForms
+                  requestId={row.id}
+                  timeRange={`${row.workDate} · ${row.startTime}–${row.endTime}`}
+                  workDate={row.workDate}
+                  startTime={row.startTime}
+                  endTime={row.endTime}
+                  approvalStage={row.approvalStage}
+                />
+              </GovernedTrailingActionSlot>
+            )
+          },
+        }}
+      />
     </div>
   )
 }

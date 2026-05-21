@@ -11,29 +11,58 @@ import {
   isListSurfaceTrailingActionRenderable,
 } from "#features/governed-surface"
 import { GovernedTrailingActionSlot } from "#features/governed-surface/client"
+import { logUnexpectedServerError } from "#lib/logger.server"
 
-import { HRM_OTM_DAY_CATEGORIES } from "../schemas/otm.schema"
+import { buildOtmEmbeddedListSurfaceErrorConfiguration } from "../data/otm-embedded-list-surface-error.server"
 import { buildOtmApprovedPayrollMarkListSurfaceConfiguration } from "../data/otm-surface-builders.server"
+import { getOtmDayCategoryLabelMap } from "../data/otm-section-labels.server"
 import { listOtmApprovedForPayrollMarking } from "../data/otm.queries.server"
 import { OTM_LIST_SURFACE_IDS } from "../data/otm-surface-metadata.shared"
 import { OtmMarkPayrollReadyButton } from "./otm-mark-payroll-ready-button.client"
-import type { HrmOtmDayCategory } from "../schemas/otm.schema"
 
 export async function OtmApprovedPayrollSection({
   organizationId,
 }: {
   organizationId: string
 }) {
-  const t = await getTranslations("Dashboard.Hrm.overtime")
-  const format = await getFormatter()
-  const rows = await listOtmApprovedForPayrollMarking(organizationId)
+  const [t, format, dayCategoryLabels] = await Promise.all([
+    getTranslations("Dashboard.Hrm.overtime"),
+    getFormatter(),
+    getOtmDayCategoryLabelMap(),
+  ])
 
-  const dayCategoryLabels = Object.fromEntries(
-    HRM_OTM_DAY_CATEGORIES.map((category) => [
-      category,
-      t(`dayCategoryLabels.${category}` as `dayCategoryLabels.${HrmOtmDayCategory}`),
-    ])
-  ) as Record<HrmOtmDayCategory, string>
+  let rows: Awaited<ReturnType<typeof listOtmApprovedForPayrollMarking>>
+  try {
+    rows = await listOtmApprovedForPayrollMarking(organizationId)
+  } catch (err) {
+    logUnexpectedServerError("otm-approved-payroll: query failed", err, {
+      organizationId,
+    })
+    return (
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>{t("approvedPayrollTitle")}</CardTitle>
+          <CardDescription>{t("approvedPayrollDescription")}</CardDescription>
+        </CardHeader>
+        <GovernedPatternCListSection
+          layout="embedded"
+          title=""
+          description=""
+          surfaceKey="hrm:overtime:approved-payroll:error"
+          listConfiguration={buildOtmEmbeddedListSurfaceErrorConfiguration({
+            columnsId: OTM_LIST_SURFACE_IDS.approvedPayroll,
+            emptyTitle: t("approvedPayrollEmpty"),
+            firstColumn: { id: "employee", header: t("colEmployee") },
+          })}
+          resolveConfiguredPermission={false}
+          loadError={{
+            variant: "error",
+            title: t("approvedPayrollLoadFailed"),
+          }}
+        />
+      </Card>
+    )
+  }
 
   const listConfiguration = buildOtmApprovedPayrollMarkListSurfaceConfiguration(
     rows,
@@ -67,6 +96,10 @@ export async function OtmApprovedPayrollSection({
         description=""
         surfaceKey={OTM_LIST_SURFACE_IDS.approvedPayroll}
         listConfiguration={listConfiguration}
+        invalid={{
+          variant: "error",
+          title: t("approvedPayrollLoadFailed"),
+        }}
         trailingColumn={{
           header: t("colActions"),
           render: (surfaceRow) => {

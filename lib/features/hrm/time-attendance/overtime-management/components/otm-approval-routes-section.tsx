@@ -8,7 +8,9 @@ import {
   CardTitle,
 } from "#components2/ui/card"
 import { GovernedPatternCListSection } from "#features/governed-surface"
+import { logUnexpectedServerError } from "#lib/logger.server"
 
+import { buildOtmEmbeddedListSurfaceErrorConfiguration } from "../data/otm-embedded-list-surface-error.server"
 import { buildOtmApprovalRoutesListSurfaceConfiguration } from "../data/otm-surface-builders.server"
 import { listOtmApprovalRoutesForOrg } from "../data/otm-approval-route.server"
 import { OTM_LIST_SURFACE_IDS } from "../data/otm-surface-metadata.shared"
@@ -44,8 +46,45 @@ export async function OtmApprovalRoutesSection({
   organizationId: string
   canManage: boolean
 }) {
+  if (!canManage) return null
+
   const t = await getTranslations("Dashboard.Hrm.overtime")
-  const rows = await listOtmApprovalRoutesForOrg(organizationId)
+
+  let rows: Awaited<ReturnType<typeof listOtmApprovalRoutesForOrg>>
+  try {
+    rows = await listOtmApprovalRoutesForOrg(organizationId)
+  } catch (err) {
+    logUnexpectedServerError("otm-approval-routes: query failed", err, {
+      organizationId,
+    })
+    return (
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>{t("approvalRoutesTitle")}</CardTitle>
+          <CardDescription>{t("approvalRoutesDescription")}</CardDescription>
+          <CardAction>
+            <OtmApprovalRouteCreateDialog />
+          </CardAction>
+        </CardHeader>
+        <GovernedPatternCListSection
+          layout="embedded"
+          title=""
+          description=""
+          surfaceKey="hrm:overtime:approval-routes:error"
+          listConfiguration={buildOtmEmbeddedListSurfaceErrorConfiguration({
+            columnsId: OTM_LIST_SURFACE_IDS.approvalRoutes,
+            emptyTitle: t("approvalRoutesEmpty"),
+            firstColumn: { id: "priority", header: t("colRoutePriority") },
+          })}
+          resolveConfiguredPermission={false}
+          loadError={{
+            variant: "error",
+            title: t("approvalRoutesLoadFailed"),
+          }}
+        />
+      </Card>
+    )
+  }
 
   const listConfiguration = buildOtmApprovalRoutesListSurfaceConfiguration(
     rows,
@@ -78,8 +117,6 @@ export async function OtmApprovalRoutesSection({
     }
   )
 
-  if (!canManage) return null
-
   return (
     <Card size="sm">
       <CardHeader>
@@ -95,6 +132,10 @@ export async function OtmApprovalRoutesSection({
         description=""
         surfaceKey={OTM_LIST_SURFACE_IDS.approvalRoutes}
         listConfiguration={listConfiguration}
+        invalid={{
+          variant: "error",
+          title: t("approvalRoutesLoadFailed"),
+        }}
       />
     </Card>
   )

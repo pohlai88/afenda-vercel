@@ -8,7 +8,9 @@ import {
   CardTitle,
 } from "#components2/ui/card"
 import { GovernedPatternCListSection } from "#features/governed-surface"
+import { logUnexpectedServerError } from "#lib/logger.server"
 
+import { buildOtmEmbeddedListSurfaceErrorConfiguration } from "../data/otm-embedded-list-surface-error.server"
 import { buildOtmRateRulesListSurfaceConfiguration } from "../data/otm-surface-builders.server"
 import { listOtmRateRulesForOrg } from "../data/otm-rate.server"
 import { OTM_LIST_SURFACE_IDS } from "../data/otm-surface-metadata.shared"
@@ -25,7 +27,39 @@ export async function OtmRateRulesSection({
   canManage: boolean
 }) {
   const t = await getTranslations("Dashboard.Hrm.overtime")
-  const rows = await listOtmRateRulesForOrg(organizationId)
+
+  let rows: Awaited<ReturnType<typeof listOtmRateRulesForOrg>>
+  try {
+    rows = await listOtmRateRulesForOrg(organizationId)
+  } catch (err) {
+    logUnexpectedServerError("otm-rate-rules: query failed", err, {
+      organizationId,
+    })
+    return (
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>{t("rateRulesTitle")}</CardTitle>
+          <CardDescription>{t("rateRulesDescription")}</CardDescription>
+        </CardHeader>
+        <GovernedPatternCListSection
+          layout="embedded"
+          title=""
+          description=""
+          surfaceKey="hrm:overtime:rate-rules:error"
+          listConfiguration={buildOtmEmbeddedListSurfaceErrorConfiguration({
+            columnsId: OTM_LIST_SURFACE_IDS.rateRules,
+            emptyTitle: t("rateRulesEmpty"),
+            firstColumn: { id: "type", header: t("colType") },
+          })}
+          resolveConfiguredPermission={false}
+          loadError={{
+            variant: "error",
+            title: t("rateRulesLoadFailed"),
+          }}
+        />
+      </Card>
+    )
+  }
 
   const listConfiguration = buildOtmRateRulesListSurfaceConfiguration(rows, {
     empty: t("rateRulesEmpty"),
@@ -63,6 +97,10 @@ export async function OtmRateRulesSection({
         description=""
         surfaceKey={OTM_LIST_SURFACE_IDS.rateRules}
         listConfiguration={listConfiguration}
+        invalid={{
+          variant: "error",
+          title: t("rateRulesLoadFailed"),
+        }}
       />
     </Card>
   )

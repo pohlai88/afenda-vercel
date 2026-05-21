@@ -9,11 +9,11 @@ import { logUnexpectedServerError } from "#lib/logger.server"
 
 import { OtmMyRequestActions } from "./otm-my-request-actions.client"
 
-import { HRM_OTM_DAY_CATEGORIES } from "../schemas/otm.schema"
+import { buildOtmEmbeddedListSurfaceErrorConfiguration } from "../data/otm-embedded-list-surface-error.server"
 import { buildOtmMyRequestsListSurfaceConfiguration } from "../data/otm-surface-builders.server"
+import { getOtmDayCategoryLabelMap } from "../data/otm-section-labels.server"
 import { listOtmRequestsForOrg } from "../data/otm.queries.server"
 import { OTM_LIST_SURFACE_IDS } from "../data/otm-surface-metadata.shared"
-import type { HrmOtmDayCategory } from "../schemas/otm.schema"
 
 export async function OtmMyRequestsSection({
   organizationId,
@@ -22,15 +22,11 @@ export async function OtmMyRequestsSection({
   organizationId: string
   employeeId: string
 }) {
-  const t = await getTranslations("Dashboard.Hrm.overtime")
-  const format = await getFormatter()
-
-  const dayCategoryLabels = Object.fromEntries(
-    HRM_OTM_DAY_CATEGORIES.map((category) => [
-      category,
-      t(`dayCategoryLabels.${category}` as `dayCategoryLabels.${HrmOtmDayCategory}`),
-    ])
-  ) as Record<HrmOtmDayCategory, string>
+  const [t, format, dayCategoryLabels] = await Promise.all([
+    getTranslations("Dashboard.Hrm.overtime"),
+    getFormatter(),
+    getOtmDayCategoryLabelMap(),
+  ])
 
   let rows: Awaited<ReturnType<typeof listOtmRequestsForOrg>>
   try {
@@ -49,17 +45,11 @@ export async function OtmMyRequestsSection({
         title={t("myRequestsTitle")}
         description={t("myRequestsDescription")}
         surfaceKey="hrm:overtime:my-requests:error"
-        listConfiguration={{
-          dataNature: "table",
-          surface: {
-            header: { title: OTM_LIST_SURFACE_IDS.myRequests },
-            columnsId: OTM_LIST_SURFACE_IDS.myRequests,
-            rowKey: "id",
-            empty: { variant: "muted", title: t("myRequestsEmpty") },
-          },
-          columns: [{ id: "employee", header: t("colWorkDate") }],
-          rows: [],
-        }}
+        listConfiguration={buildOtmEmbeddedListSurfaceErrorConfiguration({
+          columnsId: OTM_LIST_SURFACE_IDS.myRequests,
+          emptyTitle: t("myRequestsEmpty"),
+          firstColumn: { id: "workDate", header: t("colWorkDate") },
+        })}
         resolveConfiguredPermission={false}
         loadError={{
           variant: "error",
@@ -99,6 +89,10 @@ export async function OtmMyRequestsSection({
       description={t("myRequestsDescription")}
       surfaceKey={OTM_LIST_SURFACE_IDS.myRequests}
       listConfiguration={listConfiguration}
+      invalid={{
+        variant: "error",
+        title: t("myRequestsLoadFailed"),
+      }}
       trailingColumn={{
         header: t("colActions"),
         render: (surfaceRow) => {

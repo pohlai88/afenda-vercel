@@ -8,29 +8,61 @@ import {
   CardTitle,
 } from "#components2/ui/card"
 import { GovernedPatternCListSection } from "#features/governed-surface"
+import { logUnexpectedServerError } from "#lib/logger.server"
 
-import { HRM_OTM_DAY_CATEGORIES } from "../schemas/otm.schema"
+import { buildOtmEmbeddedListSurfaceErrorConfiguration } from "../data/otm-embedded-list-surface-error.server"
 import { buildOtmOrgRecentListSurfaceConfiguration } from "../data/otm-surface-builders.server"
+import { getOtmDayCategoryLabelMap } from "../data/otm-section-labels.server"
 import { listOtmRequestsForOrg } from "../data/otm.queries.server"
 import { OTM_LIST_SURFACE_IDS } from "../data/otm-surface-metadata.shared"
 import { OtmExportReportButton } from "./otm-export-report-button.client"
-import type { HrmOtmDayCategory } from "../schemas/otm.schema"
 
 export async function OtmReportSection({
   organizationId,
 }: {
   organizationId: string
 }) {
-  const t = await getTranslations("Dashboard.Hrm.overtime")
-  const format = await getFormatter()
-  const rows = await listOtmRequestsForOrg(organizationId, { limit: 100 })
+  const [t, format, dayCategoryLabels] = await Promise.all([
+    getTranslations("Dashboard.Hrm.overtime"),
+    getFormatter(),
+    getOtmDayCategoryLabelMap(),
+  ])
 
-  const dayCategoryLabels = Object.fromEntries(
-    HRM_OTM_DAY_CATEGORIES.map((category) => [
-      category,
-      t(`dayCategoryLabels.${category}` as `dayCategoryLabels.${HrmOtmDayCategory}`),
-    ])
-  ) as Record<HrmOtmDayCategory, string>
+  let rows: Awaited<ReturnType<typeof listOtmRequestsForOrg>>
+  try {
+    rows = await listOtmRequestsForOrg(organizationId, { limit: 100 })
+  } catch (err) {
+    logUnexpectedServerError("otm-report: query failed", err, {
+      organizationId,
+    })
+    return (
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>{t("reportTitle")}</CardTitle>
+          <CardDescription>{t("reportDescription")}</CardDescription>
+          <CardAction>
+            <OtmExportReportButton />
+          </CardAction>
+        </CardHeader>
+        <GovernedPatternCListSection
+          layout="embedded"
+          title=""
+          description=""
+          surfaceKey="hrm:overtime:report:error"
+          listConfiguration={buildOtmEmbeddedListSurfaceErrorConfiguration({
+            columnsId: OTM_LIST_SURFACE_IDS.report,
+            emptyTitle: t("reportEmpty"),
+            firstColumn: { id: "employee", header: t("colEmployee") },
+          })}
+          resolveConfiguredPermission={false}
+          loadError={{
+            variant: "error",
+            title: t("reportLoadFailed"),
+          }}
+        />
+      </Card>
+    )
+  }
 
   const listConfiguration = buildOtmOrgRecentListSurfaceConfiguration(rows, {
     columnsId: OTM_LIST_SURFACE_IDS.report,
@@ -44,7 +76,7 @@ export async function OtmReportSection({
     colRequested: t("colRequested"),
     dayCategoryLabels,
     stateLabelFor: (state) =>
-      t(`stateLabels.${state}` as `stateLabels.submitted`),
+      t(`stateLabels.${state}` as "stateLabels.submitted"),
     formatRequestedAt: (date) =>
       format.dateTime(date, { dateStyle: "medium", timeStyle: "short" }),
   })
@@ -64,6 +96,10 @@ export async function OtmReportSection({
         description=""
         surfaceKey={OTM_LIST_SURFACE_IDS.report}
         listConfiguration={listConfiguration}
+        invalid={{
+          variant: "error",
+          title: t("reportLoadFailed"),
+        }}
       />
     </Card>
   )
