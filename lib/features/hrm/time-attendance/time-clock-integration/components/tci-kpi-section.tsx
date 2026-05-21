@@ -1,10 +1,10 @@
 import { getTranslations } from "next-intl/server"
 
 import { GovernedComponentRenderer } from "#components2/metadata"
+import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "#components2/ui/card"
@@ -26,14 +26,12 @@ export async function TimeClockKpiSection({
 
   if (loadError) {
     return (
-      <Card size="sm">
-        <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>
-            {loadError.description ?? loadError.title}
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <Alert variant="destructive">
+        <AlertTitle>{t("title")}</AlertTitle>
+        <AlertDescription>
+          {loadError.description ?? loadError.title}
+        </AlertDescription>
+      </Alert>
     )
   }
 

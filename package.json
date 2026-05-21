@@ -147,6 +147,7 @@
     "lynx:seed-demo": "node scripts/with-env.mjs tsx scripts/seed-lynx-demo.ts",
     "dev:seed": "node scripts/with-env.mjs node scripts/seed-dev-users.mjs",
     "dev:seed:demo-erp": "node scripts/with-env.mjs node scripts/seed-demo-erp.mjs",
+    "e2e:preflight:time-clock": "node scripts/with-env.mjs node scripts/e2e-preflight-time-clock.mjs",
     "openstatus:sync-ci": "node scripts/with-env.mjs node scripts/openstatus-sync-ci.mjs",
     "openstatus:env-hints": "node scripts/with-env.mjs node scripts/openstatus-env-hints.mjs",
     "openstatus:validate-feed": "node scripts/with-env.mjs node scripts/validate-openstatus-feed.mjs"

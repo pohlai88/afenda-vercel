@@ -38,6 +38,33 @@ describe("HRM time-clock integration contract", () => {
   it("exposes stable governed surface keys", () => {
     expect(TCI_STAT_SURFACE_KEY).toBe("hrm:time-clock:kpi-summary")
     expect(TCI_LIST_SURFACE_IDS.devices).toBe("hrm:time-clock:devices")
+    expect(TCI_LIST_SURFACE_IDS.syncBatches).toBe("hrm:time-clock:sync-batches")
+  })
+
+  it("exposes route loading skeleton shaped like TimeClockPage", () => {
+    const loading = readTciSource("components/time-clock-page-loading.tsx")
+    expect(loading).toContain('data-testid="time-clock-page-loading"')
+    expect(loading).toContain("GovernedComponentSkeleton")
+
+    const routeLoading = readFileSync(
+      join(
+        REPO_ROOT,
+        "app/(main)/[locale]/o/[orgSlug]/apps/hrm/time-clock/loading.tsx"
+      ),
+      "utf8"
+    )
+    expect(routeLoading).toContain("TimeClockPageLoading")
+  })
+
+  it("renders sync batches via Pattern B section", () => {
+    const page = readTciSource("components/time-clock-page.tsx")
+    expect(page).toContain('"time-clock-page: kpi query failed"')
+    expect(page).toContain("TimeClockSyncBatchesSection")
+    expect(page).toContain("listTimeClockSyncBatchesForOrg")
+
+    const section = readTciSource("components/tci-sync-batches-section.tsx")
+    expect(section).toContain("GovernedPatternCListSection")
+    expect(section).toContain('surfaceKey="hrm:time-clock:sync-batches"')
   })
 
   it("uses erp.hrm.time_clock audit namespace", () => {
@@ -60,13 +87,37 @@ describe("HRM time-clock integration contract", () => {
     expect(typeof getDeviceAttendanceHoursForEmployeeDateRange).toBe("function")
   })
 
-  it("documents cron as sync watch (not vendor punch pull)", () => {
+  it("documents cron as sync watch plus scheduled vendor pull", () => {
     const cronRoute = readFileSync(
       join(REPO_ROOT, "app/api/cron/hrm-time-clock-sync/route.ts"),
       "utf8"
     )
-    expect(cronRoute).toContain("runTimeClockSyncWatchTick")
-    expect(cronRoute).not.toContain("ingestTimeClockBatch")
+    expect(cronRoute).toContain("runTimeClockCronSyncTick")
+    expect(cronRoute).toContain("scheduled")
+
+    const scheduledSync = readTciSource("data/tci-scheduled-sync.server.ts")
+    expect(scheduledSync).toContain("runTimeClockScheduledSyncTick")
+    expect(scheduledSync).toContain('sourceKind: "scheduled"')
+    expect(scheduledSync).toContain("resolveTimeClockVendorAdapter")
+    expect(scheduledSync).toContain("createTimeClockNotificationDispatcher")
+
+    const vendorAdapters = readTciSource("data/tci-vendor-adapters.server.ts")
+    expect(vendorAdapters).toContain("zebraTimeClockVendorAdapter")
+    expect(vendorAdapters).toContain("ukgTimeClockVendorAdapter")
+    expect(vendorAdapters).toContain("httpPollTimeClockVendorAdapter")
+
+    const syncWatch = readTciSource("data/tci-sync-watch.server.ts")
+    expect(syncWatch).toContain("createTimeClockNotificationDispatcher")
+    expect(syncWatch).toContain("notificationsSent")
+  })
+
+  it("bridges approved exceptions to LAM correction dialog", () => {
+    const section = readTciSource("components/tci-exceptions-section.tsx")
+    expect(section).toContain("TimeClockExceptionLamCorrection")
+    expect(section).toContain("resolvedEventId")
+
+    const bridge = readTciSource("components/tci-exception-lam-correction.client.tsx")
+    expect(bridge).toContain("AttendanceCorrectionDialog")
   })
 
   it("persistTimeClockPunch returns duplicate status for batch ingest", () => {
@@ -78,6 +129,7 @@ describe("HRM time-clock integration contract", () => {
   it("exposes ingest API key auth resolver", () => {
     const source = readTciSource("data/tci-ingest-auth.server.ts")
     expect(source).toContain("resolveTimeClockIngestActor")
+    expect(source).toContain("getOrgSessionFromRequestTrusted")
     expect(source).toContain("HRM_TIME_CLOCK_INGEST_API_KEY")
     expect(source).toContain("integrationCredentialRef")
   })

@@ -4,10 +4,11 @@
 
 - **Route:** `/{locale}/o/{orgSlug}/apps/hrm/time-clock` — registry segment `time-clock`, audit prefix `erp.hrm.time_clock`.
 - **Slice 1–4 (shipped on branch):** Contracts, ERP permissions, HRM registry, thin route, device/mapping CRUD (Pattern B), API ingest + manual CSV, validation + exception inbox (Pattern C), KPI summary.
-- **Slice 5 (partial):** `persistTimeClockPunch` sole `source: device` writer; LAM `regenerateAttendanceDayFromEvents`; read helpers on `#features/hrm/server` (`listDevicePunchesForEmployeeDate`, `hasDevicePunchOnDate`, `getDeviceAttendanceHoursForEmployeeDateRange`). LAM correction bridge via exception approve/reject (not full LAM correction form wiring).
-- **Slice 6 (partial):** CSV report export; cron `hrm-time-clock-sync` runs **sync watch** (`runTimeClockSyncWatchTick`) — not vendor punch pull (HRM-TCI-011 deferred). Sync-batch governed list surface id reserved; UI section not wired.
-- **Public doors:** `#features/hrm` (RSC), `#features/hrm/client` (forms), `#features/hrm/server` (ingest, cron, LAM/OTM reads). No `components2/time-clock/`.
-- **Cron truth:** `app/api/cron/hrm-time-clock-sync` — stale/failed device audit tick only until vendor adapter ships.
+- **Slice 5 (shipped):** `persistTimeClockPunch` sole `source: device` writer; LAM `regenerateAttendanceDayFromEvents`; read helpers on `#features/hrm/server`. Approved exceptions with `resolvedEventId` expose **LAM `AttendanceCorrectionDialog`** on the exception inbox (HRM-TCI-024/025).
+- **Slice 6 (shipped):** CSV report export; cron `hrm-time-clock-sync` runs **sync watch** + **scheduled vendor poll** (`runTimeClockCronSyncTick`; credentials `poll:`, `vendor:zebra:`, `vendor:ukg:` via `TCI_VENDOR_ADAPTERS`, HRM-TCI-011). Sync-batch governed list (`hrm:time-clock:sync-batches`). Sync failures notify users with `time_clock_device` **update** ERP permission (`tci-notification.server.ts`).
+- **Public doors:** `#features/hrm` (RSC + `TimeClockPageLoading`), `#features/hrm/client` (forms), `#features/hrm/server` (ingest, cron, LAM/OTM reads). No `components2/time-clock/`.
+- **Route loading:** `app/.../hrm/time-clock/loading.tsx` re-exports `TimeClockPageLoading` (KPI + Pattern C list + report skeletons — not generic Nexus spinner).
+- **Cron truth:** `app/api/cron/hrm-time-clock-sync` — `runTimeClockCronSyncTick` (watch + scheduled). `integrationCredentialRef` formats: `poll:https://…` (generic `{ punches: [...] }`), `vendor:zebra:https://…` (`transactions[]`), `vendor:ukg:https://…` (`punchExports[]`).
 
 ### Governed surface keys
 
@@ -17,6 +18,7 @@
 | `hrm:time-clock:devices` | Device registry (Pattern B) |
 | `hrm:time-clock:mappings` | Employee mappings (Pattern B) |
 | `hrm:time-clock:exceptions` | Exception inbox (Pattern C) |
+| `hrm:time-clock:sync-batches` | Ingest batch history (Pattern B) |
 
 ---
 

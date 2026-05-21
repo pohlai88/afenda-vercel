@@ -15,11 +15,11 @@ todos:
     content: "Slice 4: validation, shift match, exception inbox (Pattern C), KPI surfaces"
     status: completed
   - id: slice-5-integrate
-    content: "Slice 5: LAM day rollup + #features/hrm/server read helpers — LAM correction UX + ingest e2e deferred"
-    status: in_progress
+    content: "Slice 5: LAM day rollup + server read helpers + LAM correction dialog on approved exceptions"
+    status: completed
   - id: slice-6-ops
-    content: "Slice 6: report export + sync watch cron — sync-batch UI, vendor pull, org notifications deferred"
-    status: in_progress
+    content: "Slice 6: report export + cron watch/scheduled sync + sync-batch list + org notifications + zebra/ukg vendor adapters"
+    status: completed
 isProject: false
 ---
 
@@ -36,8 +36,9 @@ isProject: false
 | DB tables | **Present** — `hrm_time_clock_*` in `lib/db/schema.ts`, migration `drizzle/0018_premium_ares.sql` |
 | `source: device` writer | **Present** — `persistTimeClockPunch` in `tci-punch-commands.server.ts` (sole writer) |
 | API / cron | **Present** — `app/api/erp/hrm/time-clock/ingest`, `app/api/cron/hrm-time-clock-sync` (watch tick) |
+| Sync-batch UI (`hrm:time-clock:sync-batches`) | **Present** — `TimeClockSyncBatchesSection` + `listTimeClockSyncBatchesForOrg` |
 | `#features/hrm/server` integration reads | **Present** — `listDevicePunchesForEmployeeDate`, `hasDevicePunchOnDate`, `getDeviceAttendanceHoursForEmployeeDateRange` |
-| Tests | **Partial** — `hrm-time-clock-contract.test.ts`, `hrm-time-clock-flow.spec.ts` (UI smoke); behavioral ingest tests deferred |
+| Tests | **Present** — `hrm-time-clock-contract.test.ts`, `hrm-time-clock-ingest.test.ts`, `hrm-time-clock-flow.spec.ts` (UI + API ingest + sync batches) |
 
 **Existing ingestion (do not duplicate):**
 
@@ -46,7 +47,7 @@ flowchart LR
   subgraph writers [Current event writers]
     LAM[LAM manual csv_import]
     GEO[GEO source mobile]
-    TCI[TCI planned source device]
+    TCI[TCI source device]
   end
   EVT[(hrm_attendance_event)]
   AGG[LAM attendance-aggregator]
@@ -239,7 +240,8 @@ These are recurring failure modes across time-attendance siblings; **fix once in
 
 **Deliverables:**
 
-- Sync failure alerts: `tci-sync-watch.server.ts` + optional cron; in-app alert row or notification hook (reuse ERP notification patterns if already wired for OTM overdue watch)
+- Sync failure alerts: `tci-sync-watch.server.ts` + cron; in-app org notifications via `tci-notification.server.ts` (`publishOrgNotificationIfMissing`, ERP `time_clock_device` update permission)
+- Vendor adapters: `TCI_VENDOR_ADAPTERS` — generic `poll:`, Zebra `vendor:zebra:`, UKG `vendor:ukg:` (`tci-vendor-payload.shared.ts`, `tci-vendor-adapters.server.ts`)
 - Reports: CSV export actions (`tci-report.actions.ts`) — by employee, device, location, date, exception, sync status (Pattern B list + export client)
 - `TimeClockPage` **mixed** workbench: devices, mappings, sync status, exceptions, reports (reference [`geolocation-page.tsx`](lib/features/hrm/time-attendance/geolocation-remote-checkin/components/geolocation-page.tsx))
 - Spec map completeness: all HRM-TCI codes in `tci-spec-map.shared.ts` with `complete|partial|deferred` per code

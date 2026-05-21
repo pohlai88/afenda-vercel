@@ -386,6 +386,7 @@ export {
 } from "./time-attendance/shift-scheduling"
 export {
   TimeClockPage,
+  TimeClockPageLoading,
   resolveTimeClockSurfaceAccess,
   HRM_TCI_AUDIT,
   HRM_TCI_SPEC_MAP,

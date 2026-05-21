@@ -46,6 +46,21 @@ export type TimeClockKpiSummary = {
   readonly punchesToday: number
 }
 
+export type TimeClockSyncBatchRow = {
+  readonly id: string
+  readonly deviceId: string | null
+  readonly deviceName: string | null
+  readonly sourceKind: string
+  readonly state: string
+  readonly receivedCount: number
+  readonly acceptedCount: number
+  readonly duplicateCount: number
+  readonly rejectedCount: number
+  readonly errorSummary: string | null
+  readonly startedAt: Date
+  readonly finishedAt: Date | null
+}
+
 export type TimeClockExceptionRow = {
   readonly id: string
   readonly employeeId: string
@@ -57,6 +72,7 @@ export type TimeClockExceptionRow = {
   readonly detectionOutcome: string
   readonly reason: string
   readonly state: string
+  readonly resolvedEventId: string | null
   readonly createdAt: Date
 }
 
@@ -278,6 +294,7 @@ export async function listTimeClockExceptionsForOrg(
       detectionOutcome: hrmTimeClockPunchException.detectionOutcome,
       reason: hrmTimeClockPunchException.reason,
       state: hrmTimeClockPunchException.state,
+      resolvedEventId: hrmTimeClockPunchException.resolvedEventId,
       createdAt: hrmTimeClockPunchException.createdAt,
     })
     .from(hrmTimeClockPunchException)
@@ -294,10 +311,29 @@ export async function listTimeClockExceptionsForOrg(
     .limit(100)
 }
 
-export async function listTimeClockSyncBatchesForOrg(organizationId: string) {
+export async function listTimeClockSyncBatchesForOrg(
+  organizationId: string
+): Promise<TimeClockSyncBatchRow[]> {
   return db
-    .select()
+    .select({
+      id: hrmTimeClockSyncBatch.id,
+      deviceId: hrmTimeClockSyncBatch.deviceId,
+      deviceName: hrmTimeClockDevice.name,
+      sourceKind: hrmTimeClockSyncBatch.sourceKind,
+      state: hrmTimeClockSyncBatch.state,
+      receivedCount: hrmTimeClockSyncBatch.receivedCount,
+      acceptedCount: hrmTimeClockSyncBatch.acceptedCount,
+      duplicateCount: hrmTimeClockSyncBatch.duplicateCount,
+      rejectedCount: hrmTimeClockSyncBatch.rejectedCount,
+      errorSummary: hrmTimeClockSyncBatch.errorSummary,
+      startedAt: hrmTimeClockSyncBatch.startedAt,
+      finishedAt: hrmTimeClockSyncBatch.finishedAt,
+    })
     .from(hrmTimeClockSyncBatch)
+    .leftJoin(
+      hrmTimeClockDevice,
+      eq(hrmTimeClockSyncBatch.deviceId, hrmTimeClockDevice.id)
+    )
     .where(eq(hrmTimeClockSyncBatch.organizationId, organizationId))
     .orderBy(desc(hrmTimeClockSyncBatch.startedAt))
     .limit(50)

@@ -10,9 +10,11 @@ import {
 } from "../data/tci-device-commands.server"
 import { upsertTimeClockDeviceFormSchema } from "../schemas/tci.schema"
 
-export type TimeClockDeviceMutationFormState =
+export type TimeClockMutationFormState =
   | { ok: true; deviceId: string }
   | { ok: false; errors: Record<string, string | undefined> }
+
+export type TimeClockDeviceMutationFormState = TimeClockMutationFormState
 
 export async function upsertTimeClockDeviceAction(
   _prev: TimeClockDeviceMutationFormState | undefined,

@@ -70,19 +70,24 @@ export const HRM_GEOLOCATION_ACCEPTANCE_COVERAGE: Record<
     ],
   },
   "HRM-GEO-008": {
-    status: "partial",
-    acceptanceCriteria: [8],
-    evidence: ["data/geolocation-validation.server.ts"],
-    note: "Policy eligibility rules ship; per-employee assignment exceptions are exception-workflow only.",
-  },
-  "HRM-GEO-009": {
-    status: "partial",
+    status: "shipped",
     acceptanceCriteria: [8],
     evidence: [
-      "data/remote-checkin-policy-commands.server.ts",
-      "schemas/geolocation-workflow-state.shared.ts",
+      "data/geolocation-policy-resolution.server.ts",
+      "data/geolocation-policy-resolution.shared.ts",
+      "data/geolocation-validation.server.ts",
+      "data/remote-checkin-capture-commands.server.ts",
     ],
-    note: "Scoped policies (org/department/position/employment_type/policy_group/employee); not all HR dimensions wired in v1 UI.",
+  },
+  "HRM-GEO-009": {
+    status: "shipped",
+    acceptanceCriteria: [8],
+    evidence: [
+      "data/geolocation-policy-resolution.server.ts",
+      "components/remote-checkin-policy-form.client.tsx",
+      "components/geolocation-policies-section.tsx",
+      "schemas/geolocation.schema.ts",
+    ],
   },
   "HRM-GEO-010": {
     status: "shipped",
@@ -113,10 +118,14 @@ export const HRM_GEOLOCATION_ACCEPTANCE_COVERAGE: Record<
     evidence: ["data/geolocation-validation.server.ts"],
   },
   "HRM-GEO-015": {
-    status: "partial",
+    status: "shipped",
     acceptanceCriteria: [13],
-    evidence: ["data/geolocation-validation.server.ts"],
-    note: "Spoofing flag when policy.detectSpoofing; no dedicated anti-spoof SDK integration.",
+    evidence: [
+      "data/geolocation-spoofing.shared.ts",
+      "data/geolocation-validation.server.ts",
+      "components/remote-checkin-capture-form.client.tsx",
+      "data/remote-checkin-capture-commands.server.ts",
+    ],
   },
   "HRM-GEO-016": {
     status: "shipped",
@@ -149,10 +158,14 @@ export const HRM_GEOLOCATION_ACCEPTANCE_COVERAGE: Record<
     evidence: ["data/remote-checkin-exception-commands.server.ts"],
   },
   "HRM-GEO-020": {
-    status: "partial",
+    status: "shipped",
     acceptanceCriteria: [18],
-    evidence: ["schemas/geolocation.schema.ts"],
-    note: "selfieBlobUrl on capture schema; optional capture UI not exposed in v1 form.",
+    evidence: [
+      "schemas/geolocation.schema.ts",
+      "components/remote-checkin-selfie-field.client.tsx",
+      "components/remote-checkin-capture-form.client.tsx",
+      "components/geolocation-page.tsx",
+    ],
   },
   "HRM-GEO-021": {
     status: "shipped",
@@ -184,16 +197,22 @@ export const HRM_GEOLOCATION_ACCEPTANCE_COVERAGE: Record<
     ],
   },
   "HRM-GEO-025": {
-    status: "partial",
+    status: "shipped",
     acceptanceCriteria: [23],
-    evidence: ["data/geolocation-integration.server.ts"],
-    note: "Exports overtimeMinutes from attendance_day; Overtime Management module does not consume yet.",
+    evidence: [
+      "data/geolocation-integration.server.ts",
+      "server.ts",
+    ],
+    note: "Overtime compare reads getRemoteCheckinOvertimeMinutesForWorkDate from lib/features/hrm/time-attendance/overtime-management/data/otm-calculation.server.ts.",
   },
   "HRM-GEO-026": {
-    status: "partial",
+    status: "shipped",
     acceptanceCriteria: [24],
-    evidence: ["data/geolocation-aggregator.server.ts"],
-    note: "Approved outcomes land in hrm_attendance_day; Payroll module consumption is downstream of LAM.",
+    evidence: [
+      "data/geolocation-aggregator.server.ts",
+      "data/geolocation-integration.server.ts",
+    ],
+    note: "Payroll locks `hrm_attendance_day` populated by the geolocation aggregator.",
   },
   "HRM-GEO-027": {
     status: "shipped",
@@ -224,10 +243,13 @@ export const HRM_GEOLOCATION_ACCEPTANCE_COVERAGE: Record<
     ],
   },
   "HRM-GEO-031": {
-    status: "deferred",
+    status: "shipped",
     acceptanceCriteria: [29],
-    evidence: [],
-    note: "No push/email notification emitter for exception lifecycle in v1.",
+    evidence: [
+      "data/geolocation-notification.server.ts",
+      "data/remote-checkin-capture-commands.server.ts",
+      "data/remote-checkin-exception-commands.server.ts",
+    ],
   },
   "HRM-GEO-032": {
     status: "shipped",

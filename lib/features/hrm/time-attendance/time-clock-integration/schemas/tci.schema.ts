@@ -1,5 +1,6 @@
 import { z } from "zod"
 
+import { validateTimeClockIntegrationCredentialRef } from "../data/tci-credential-validation.shared"
 import {
   TCI_DEVICE_STATES,
   TCI_DEVICE_TYPES,
@@ -8,15 +9,28 @@ import {
   TCI_SYNC_SOURCE_KINDS,
 } from "./tci-workflow-state.shared"
 
-export const upsertTimeClockDeviceFormSchema = z.object({
-  id: z.string().trim().optional(),
-  externalDeviceId: z.string().trim().min(1).max(120),
-  name: z.string().trim().min(1).max(200),
-  deviceType: z.enum(TCI_DEVICE_TYPES),
-  locationRef: z.string().trim().max(200).optional().nullable(),
-  state: z.enum(TCI_DEVICE_STATES).optional(),
-  integrationCredentialRef: z.string().trim().max(200).optional().nullable(),
-})
+export const upsertTimeClockDeviceFormSchema = z
+  .object({
+    id: z.string().trim().optional(),
+    externalDeviceId: z.string().trim().min(1).max(120),
+    name: z.string().trim().min(1).max(200),
+    deviceType: z.enum(TCI_DEVICE_TYPES),
+    locationRef: z.string().trim().max(200).optional().nullable(),
+    state: z.enum(TCI_DEVICE_STATES).optional(),
+    integrationCredentialRef: z.string().trim().max(200).optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    const ref = data.integrationCredentialRef?.trim()
+    if (!ref) return
+    const message = validateTimeClockIntegrationCredentialRef(ref)
+    if (message) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message,
+        path: ["integrationCredentialRef"],
+      })
+    }
+  })
 
 export const upsertTimeClockMappingFormSchema = z.object({
   id: z.string().trim().optional(),
@@ -40,6 +54,7 @@ export const timeClockIngestPunchSchema = z.object({
 export const timeClockIngestBatchSchema = z.object({
   organizationId: z.string().trim().min(1),
   sourceKind: z.enum(TCI_SYNC_SOURCE_KINDS).default("api"),
+  deviceId: z.string().trim().uuid().optional().nullable(),
   punches: z.array(timeClockIngestPunchSchema).min(1).max(500),
 })
 

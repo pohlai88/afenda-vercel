@@ -804,6 +804,7 @@ export type RemoteCheckinPolicyMutationFormState =
         form?: string
         policyId?: string
         scopeKind?: string
+        scopeRef?: string
         minGpsAccuracyMeters?: string
         allowedRadiusBufferMeters?: string
         breakWindowMinutes?: string

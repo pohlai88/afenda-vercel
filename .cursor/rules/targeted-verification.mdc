@@ -18,10 +18,13 @@ Run **`pnpm gate:help`** for the full reference. Preview L0 with **`pnpm gate:dr
 | **L0** | Lint + slice typecheck | `pnpm gate -- <paths> --typecheck` | e.g. HRM → platform slice only (ADR-0042) |
 | **L2** | Typed ESLint (optional) | `pnpm lint:typed -- <paths>` | `projectService`; not L0 |
 | **L0** | Types only | `pnpm gate` or `pnpm typecheck` | app graph |
+| **E0** | Before Playwright in a session | `pnpm e2e:preflight:time-clock` (feature scripts) | ~20–60s |
+| **E1** | After each E2E fix | `playwright test <spec> -g "…" --workers=1` | ~1–2 min warm |
 | **L2** | Before push / PR (human only) | `pnpm gate:push` | ~5–15 min; interactive YES |
 | **L3** | Pre-merge / App Router risk (human only) | `pnpm gate:merge` | full verify + build; interactive YES |
+| **E2** | Pre-PR E2E parity (human only) | `pnpm test:e2e` | build + full suite |
 
-**Never run L2/L3 after every edit.** Never run `lint:full`, `gate:push`, `build`, and `test:e2e` in one local session unless debugging CI.
+**Never run L2/L3/E2 after every edit.** Never run `lint:full`, `gate:push`, `build`, and `test:e2e` in one local session unless debugging CI. **Never replay full `tests/e2e/**` after one assertion fix** — use E0 + E1 (`docs/testing/e2e-local-playbook.md`).
 
 ### Human approval for ALL full commands (`scripts/confirm-human-full.mjs`)
 
@@ -84,6 +87,7 @@ pnpm typecheck:scripts # scripts/
 | i18n message catalog change | `pnpm lint:fixtures-parity` (narrow) |
 | Design token change (`globals.css`) | `pnpm lint:full` |
 | Solo agent, design-token sweep only | `pnpm lint:full` — not after every feature edit |
+| E2E spec / auth fixture change | `pnpm e2e:preflight:*` then `playwright test … -g "…"` — not `pnpm test:e2e` |
 
 ## Command naming (ADR-0033)
 

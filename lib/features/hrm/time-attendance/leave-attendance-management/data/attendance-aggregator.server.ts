@@ -736,6 +736,7 @@ export async function regenerateAttendanceDayFromEvents(opts: {
   const calculationSnapshotJson = JSON.stringify(draft.calculationSnapshot)
   const upsertResult = await db.execute<{ id: string }>(sql`
     INSERT INTO "hrm_attendance_day" (
+      "id",
       "organizationId",
       "employeeId",
       "attendanceDate",
@@ -755,6 +756,7 @@ export async function regenerateAttendanceDayFromEvents(opts: {
       "updatedByUserId"
     )
     SELECT
+      gen_random_uuid(),
       ${organizationId},
       ${employeeId},
       ${attendanceDate}::date,

@@ -4381,6 +4381,10 @@
           "dialogTitle": "Remote check-in",
           "dialogDescription": "Capture GPS, device, and (optionally) selfie verification. Approved rows reach Attendance immediately; failed validations route to exception approval.",
           "eyebrow": "Self-service",
+          "titleHrCapture": "Record check-in (on behalf)",
+          "descriptionHrCapture": "Submit a remote check-in for an employee when you have create permission.",
+          "fieldEmployee": "Employee",
+          "fieldEmployeePlaceholder": "Select employee…",
           "fieldEventType": "Action",
           "fieldEventTypePlaceholder": "Select action…",
           "fieldOccurredAt": "Captured at",
@@ -4527,6 +4531,13 @@
           "fieldScopeKind": "Scope",
           "fieldScopeRef": "Scope reference",
           "fieldScopeRefHint": "Department / position / employment-type / policy-group / employee ID — leave blank for org-wide.",
+          "fieldScopeRefHintOrg": "Org-wide policy — no reference required.",
+          "fieldScopeRefHintDepartment": "Select the department this policy applies to.",
+          "fieldScopeRefHintPosition": "Select the position this policy applies to.",
+          "fieldScopeRefHintEmploymentType": "Select the employment type (e.g. permanent, contract).",
+          "fieldScopeRefHintPolicyGroup": "Payroll group code from the employee payroll profile.",
+          "fieldScopeRefHintEmployee": "Select the employee this policy applies to.",
+          "fieldScopeRefSelectPlaceholder": "Select…",
           "fieldMinGpsAccuracyMeters": "Minimum GPS accuracy (meters)",
           "fieldAllowedRadiusBufferMeters": "Geofence buffer (meters)",
           "fieldShiftWindowMinutes": "Shift window (minutes)",
@@ -4658,6 +4669,8 @@
           "fieldName": "Display name",
           "fieldDeviceType": "Device type",
           "fieldLocation": "Location (optional)",
+          "fieldIntegrationCredential": "Scheduled sync URL (optional)",
+          "fieldIntegrationCredentialPlaceholder": "poll:https://… · vendor:zebra:https://… · vendor:ukg:https://… · or API ingest secret",
           "submitRegister": "Register",
           "submitting": "Saving…",
           "deviceTypeLabels": {
@@ -4688,6 +4701,19 @@
           "submitCreate": "Save mapping",
           "submitting": "Saving…"
         },
+        "syncBatches": {
+          "title": "Sync batches",
+          "description": "API ingest and manual import runs. Counts show received, accepted, duplicate, and rejected punches per batch.",
+          "empty": "No ingest batches yet.",
+          "colStarted": "Started",
+          "colFinished": "Finished",
+          "colSource": "Source",
+          "colDevice": "Device",
+          "colState": "State",
+          "colReceived": "Received",
+          "colAccepted": "Accepted",
+          "colRejected": "Rejected"
+        },
         "exceptions": {
           "title": "Punch exceptions",
           "description": "Rejected or blocked punches awaiting HR review.",
@@ -4706,7 +4732,8 @@
           "rejectDialogTitle": "Reject punch",
           "rejectDialogDescription": "Closes the exception without writing attendance.",
           "fieldDecisionReason": "Reason",
-          "submitting": "Saving…"
+          "submitting": "Saving…",
+          "lamCorrectionHint": "Approved punches with a resolved device event can be corrected through Leave & Attendance."
         },
         "report": {
           "title": "Operational report",

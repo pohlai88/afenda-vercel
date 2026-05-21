@@ -148,7 +148,9 @@ Traceability for **HRM-GEO-001 … HRM-GEO-032** and acceptance criteria **1–3
 | `geolocation.contract.ts` | Canonical `erp.hrm.*` audit strings (HRM-GEO-032) |
 | `tests/unit/hrm-geolocation-spec-map.test.ts` | Spec map ↔ ARCHITECTURE parity |
 | `tests/unit/hrm-geolocation-acceptance-coverage.test.ts` | Coverage completeness + evidence files on disk |
+| `tests/unit/hrm-geolocation-policy-resolution.test.ts` | Scoped policy matching priority |
+| `tests/unit/hrm-geolocation-spoofing.test.ts` | Spoofing signal collect/merge |
 
-**Deferred in v1:** **HRM-GEO-031** (operational notifications for exception lifecycle). **Partial:** **HRM-GEO-008/009** (full HR dimension matrix in UI), **HRM-GEO-015** (policy-level spoof flag only), **HRM-GEO-020** (selfie field without capture UI), **HRM-GEO-025/026** (integration exports; downstream OTM/Payroll consumers not wired in this module).
+**All HRM-GEO-001 … HRM-GEO-032 are `shipped` in v1** per `geolocation-acceptance-coverage.shared.ts` (no `partial` or `deferred` rows). Highlights: scoped policy resolution + admin scope pickers (**008/009**), client/server spoofing heuristics (**015**), selfie blob upload on capture (**020**), OTM attendance compare + payroll `hrm_attendance_day` path (**025/026**), in-app org notifications (**031**).
 
 **UI surfaces:** Pattern C lists (geofences, policies, devices, pending, history) + Pattern B KPI stats; history uses `GovernedPatternCListSection` with `loadError` (no hand-rolled error card).

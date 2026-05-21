@@ -225,7 +225,10 @@ export {
   getRemoteCheckinEmployeeForOrg,
   getRemoteCheckinExceptionForOrg,
   getRemoteCheckinHoursForEmployeeDateRange,
+  getRemoteCheckinOvertimeMinutesForWorkDate,
+  getRemoteCheckinPayrollAttendanceSummary,
   hasVerifiedRemoteCheckinOnDate,
+  resolveRemoteCheckinPolicyForEmployee,
   listGeofencesForOrg,
   listRemoteCheckinDevicesForOrg,
   listRemoteCheckinExceptionsForOrg,
@@ -257,10 +260,13 @@ export {
   listTimeClockDevicesForOrg,
   listTimeClockExceptionsForOrg,
   listTimeClockMappingsForOrg,
+  listTimeClockSyncBatchesForOrg,
   persistTimeClockPunch,
   resolveTimeClockIngestActor,
   resolveTimeClockSurfaceAccess,
   runTimeClockSyncWatchTick,
+  runTimeClockScheduledSyncTick,
+  runTimeClockCronSyncTick,
   timeClockIngestBatchSchema,
 } from "./time-attendance/time-clock-integration/server"
 export type {
@@ -268,8 +274,11 @@ export type {
   TimeClockExceptionRow,
   TimeClockKpiSummary,
   TimeClockMappingRow,
+  TimeClockSyncBatchRow,
   TimeClockSurfaceAccess,
   TimeClockSyncWatchSummary,
+  TimeClockScheduledSyncSummary,
+  TimeClockCronSyncSummary,
 } from "./time-attendance/time-clock-integration/server"
 
 export { runFwaExpiryWatchTick } from "./time-attendance/flexible-work-arrangement-tracking/data/fwa-expiry-watch.server"

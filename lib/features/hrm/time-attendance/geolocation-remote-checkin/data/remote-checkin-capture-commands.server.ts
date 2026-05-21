@@ -24,9 +24,15 @@ import {
   findShiftAssignmentForCapture,
 } from "./geolocation-validation.server"
 import {
-  getActiveRemoteCheckinPolicyForOrg,
-  getRemoteCheckinEmployeeForOrg,
-} from "./geolocation.queries.server"
+  notifyGeolocationEmployeeLifecycle,
+  notifyGeolocationExceptionPendingForApprovers,
+} from "./geolocation-notification.server"
+import { resolveRemoteCheckinPolicyForEmployee } from "./geolocation-policy-resolution.server"
+import {
+  deriveServerRemoteCheckinSpoofingSignals,
+  mergeRemoteCheckinSpoofingSignals,
+} from "./geolocation-spoofing.shared"
+import { getRemoteCheckinEmployeeForOrg } from "./geolocation.queries.server"
 import { revalidateGeolocationSurfaces } from "./geolocation-revalidate.server"
 
 export type RemoteCheckinCaptureContext = {
@@ -69,11 +75,25 @@ export async function recordRemoteCheckin(
     return hrmActionFailure({ employeeId: "Employee not found." })
   }
 
-  const policy = (await getActiveRemoteCheckinPolicyForOrg(
-    ctx.organizationId
-  )) ?? {
-    ...DEFAULT_POLICY_FALLBACK,
-    organizationId: ctx.organizationId,
+  const policy =
+    (await resolveRemoteCheckinPolicyForEmployee({
+      organizationId: ctx.organizationId,
+      employeeId,
+    })) ?? {
+      ...DEFAULT_POLICY_FALLBACK,
+      organizationId: ctx.organizationId,
+    }
+
+  const captureForValidation = {
+    ...capture,
+    spoofingSignals: mergeRemoteCheckinSpoofingSignals(
+      capture.spoofingSignals,
+      deriveServerRemoteCheckinSpoofingSignals({
+        latitude: capture.latitude,
+        longitude: capture.longitude,
+        gpsAccuracyMeters: capture.gpsAccuracyMeters,
+      })
+    ),
   }
 
   const [device, nearest] = await Promise.all([
@@ -100,7 +120,7 @@ export async function recordRemoteCheckin(
   })
 
   const validation = evaluateRemoteCheckinValidation({
-    capture,
+    capture: captureForValidation,
     policy,
     employee,
     device,
@@ -114,7 +134,7 @@ export async function recordRemoteCheckin(
       organizationId: ctx.organizationId,
       employeeId,
       actorUserId: ctx.userId,
-      capture,
+      capture: captureForValidation,
       detectionOutcome: validation.outcome,
       reason: validation.message,
     })
@@ -132,6 +152,22 @@ export async function recordRemoteCheckin(
         nearestDistanceMeters: nearest.distanceMeters,
       },
     })
+    await Promise.all([
+      notifyGeolocationExceptionPendingForApprovers({
+        organizationId: ctx.organizationId,
+        employeeId,
+        managerEmployeeId: employee.managerEmployeeId,
+        exceptionId: exception.exceptionId,
+        detectionOutcome: validation.outcome,
+      }),
+      notifyGeolocationEmployeeLifecycle({
+        organizationId: ctx.organizationId,
+        employeeId,
+        resourceId: exception.exceptionId,
+        event: "exception_pending",
+        detectionOutcome: validation.outcome,
+      }),
+    ])
     revalidateGeolocationSurfaces()
     return {
       ok: true,
@@ -145,7 +181,7 @@ export async function recordRemoteCheckin(
     organizationId: ctx.organizationId,
     employeeId,
     actorUserId: ctx.userId,
-    capture,
+    capture: captureForValidation,
     validation,
     resolvedGeofenceId: nearest.geofence?.id ?? null,
     deviceRowId: device?.id ?? null,
@@ -165,6 +201,13 @@ export async function recordRemoteCheckin(
       attendanceDate: persisted.attendanceDate,
       regenerateResult: persisted.regenerateResult,
     },
+  })
+
+  await notifyGeolocationEmployeeLifecycle({
+    organizationId: ctx.organizationId,
+    employeeId,
+    resourceId: persisted.eventId,
+    event: "checkin_verified",
   })
 
   revalidateGeolocationSurfaces()
@@ -228,6 +271,23 @@ export async function submitRemoteCheckinException(
       submittedManually: true,
     },
   })
+
+  await Promise.all([
+    notifyGeolocationExceptionPendingForApprovers({
+      organizationId: ctx.organizationId,
+      employeeId,
+      managerEmployeeId: employee.managerEmployeeId,
+      exceptionId: exception.exceptionId,
+      detectionOutcome: input.detectionOutcome,
+    }),
+    notifyGeolocationEmployeeLifecycle({
+      organizationId: ctx.organizationId,
+      employeeId,
+      resourceId: exception.exceptionId,
+      event: "exception_pending",
+      detectionOutcome: input.detectionOutcome,
+    }),
+  ])
 
   revalidateGeolocationSurfaces()
   return { ok: true, exceptionId: exception.exceptionId }

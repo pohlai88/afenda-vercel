@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test"
-import net from "node:net"
 import { fileURLToPath } from "node:url"
+
+import { resolveE2EBaseURL } from "../tests/e2e/utils/e2e-base-url.ts"
 
 /**
  * Node honors `FORCE_COLOR` over `NO_COLOR` (see Node `cli.md` / `util.styleText`).
@@ -26,45 +27,43 @@ if (
  * Override with `PLAYWRIGHT_BASE_URL` or `BASE_URL` to supply your own server;
  * when set, no local `webServer` is started.
  */
-const defaultBaseURL = "http://127.0.0.1:3001"
-const configuredBaseURL = (
-  process.env.PLAYWRIGHT_BASE_URL?.trim() ||
-  process.env.BASE_URL?.trim() ||
-  ""
-).trim()
 const repoRoot = fileURLToPath(new URL("..", import.meta.url))
 
 const isCi = ["1", "true", "yes"].includes(
   String(process.env.CI ?? "").toLowerCase()
 )
 
-async function hasListeningServer(port: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const socket = new net.Socket()
+const configuredBaseURL = (
+  process.env.PLAYWRIGHT_BASE_URL?.trim() ||
+  process.env.BASE_URL?.trim() ||
+  ""
+).trim()
 
-    const finish = (result: boolean) => {
-      socket.destroy()
-      resolve(result)
-    }
-
-    socket.setTimeout(750)
-    socket.once("connect", () => finish(true))
-    socket.once("timeout", () => finish(false))
-    socket.once("error", () => finish(false))
-    socket.connect(port, "127.0.0.1")
-  })
-}
-
-/** Prefer `pnpm dev` on 3000 for this repo; 3001 is the dedicated Playwright port when 3000 is free. */
-const detectedLocalBaseURL =
-  configuredBaseURL.length === 0 && !isCi && (await hasListeningServer(3000))
-    ? "http://127.0.0.1:3000"
-    : ""
-
-const hasExternalServer =
-  configuredBaseURL.length > 0 || detectedLocalBaseURL.length > 0
-const baseURL = configuredBaseURL || detectedLocalBaseURL || defaultBaseURL
+const baseURL = await resolveE2EBaseURL()
+const usesExternalDevServer =
+  configuredBaseURL.length > 0 ||
+  baseURL === "http://127.0.0.1:3000"
 const e2ePort = new URL(baseURL).port || "3001"
+
+function buildPlaywrightWebServerEnv(): NodeJS.ProcessEnv {
+  const trusted = new Set(
+    (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0)
+  )
+  trusted.add(baseURL)
+  trusted.add("http://localhost:3000")
+  trusted.add("http://127.0.0.1:3000")
+
+  return {
+    ...process.env,
+    PORT: e2ePort,
+    BETTER_AUTH_URL: baseURL,
+    NEXT_PUBLIC_BETTER_AUTH_URL: `${baseURL}/api/auth`,
+    BETTER_AUTH_TRUSTED_ORIGINS: [...trusted].join(","),
+  }
+}
 
 export default defineConfig({
   /** Traces, screenshots, videos — keep repo root clean (see AGENTS.md §2). */
@@ -90,7 +89,7 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  ...(hasExternalServer
+  ...(usesExternalDevServer
     ? {}
     : {
         webServer: {
@@ -98,12 +97,8 @@ export default defineConfig({
           cwd: repoRoot,
           url: baseURL,
           reuseExistingServer: !isCi,
-          timeout: 120_000,
-          env: {
-            ...process.env,
-            PORT: e2ePort,
-            BETTER_AUTH_URL: process.env.BETTER_AUTH_URL ?? baseURL,
-          },
+          timeout: 300_000,
+          env: buildPlaywrightWebServerEnv(),
           stdout: "pipe",
           stderr: "pipe",
         },

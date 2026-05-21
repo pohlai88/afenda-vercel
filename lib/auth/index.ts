@@ -86,6 +86,7 @@ export type {
 } from "./auth-shell-session.server"
 export {
   getOrgSessionFromRequest,
+  getOrgSessionFromRequestTrusted,
   getOrgTenantContext,
   getSignedInSessionFromRequest,
   requireGlobalAdminSession,

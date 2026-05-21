@@ -27,7 +27,7 @@ alwaysApply: true
   - `#lib/auth/org-slug-generate.shared` — `slugifyOrganizationName`, `isReservedOrgSlug`, `RESERVED_ORG_SLUGS`
   - `#lib/auth/org-membership.shared` — `mapIamSessionUser`, IAM session user field types
 - **Server-only helpers** (deep import or `#lib/auth` barrel):
-  - `#lib/auth/tenant-session.server` — `requireOrgSession`, `getOrgTenantContext`, `requireSignedInSession`, `setActiveOrganizationForSession`, route-handler session readers (also re-exported from `#lib/auth`)
+  - `#lib/auth/tenant-session.server` — `requireOrgSession`, `getOrgTenantContext`, `requireSignedInSession`, `setActiveOrganizationForSession`, `getOrgSessionFromRequest`, **`getOrgSessionFromRequestTrusted`** (route handlers; DB-backed `activeOrganizationId` — see E2E playbook) (also re-exported from `#lib/auth`)
   - `#lib/auth/org-membership.server` — `hasOrgMembership`, `assertOrgMembership`, `findOrganizationIdBySlug` (membership truth used by tenant + auth-shell guards)
   - `#lib/auth/org-membership.shared` — `mapIamSessionUser`, session user field types (pure; no DB)
   - `#lib/auth/session-lifecycle-audit.shared` — auth API path → `iam.session.*` audit mapping
@@ -36,6 +36,13 @@ alwaysApply: true
   - `audit.server.ts` — `writeIamAuditEvent`, `writeIamAuditEventFromNextHeaders`
   - `iam-audit-telemetry.shared.ts` — `resolveIamAuditTelemetryEnabled` (Vercel log drain gate)
 - **IAM email (deep import, not barrel):** `#lib/auth/auth-mail.server.ts` — `sendAuthEmail`, `authMailContext` (intentionally no `server-only` for test importability)
+
+## Route Handler org session (E2E + integrations)
+
+- **`getOrgSessionFromRequest(request)`** — reads Neon Auth session from request headers; uses signed `session_data` cookie cache when present.
+- **`getOrgSessionFromRequestTrusted(request)`** — same, with `disableCookieCache: true` so **`activeOrganizationId` matches DB** (required when E2E/scripts set org via SQL without refreshing cookie cache — otherwise handlers return **401** while RSC pages work).
+
+Use **Trusted** for machine ingest and any handler that must honor post-sign-in org activation without a full client round-trip. Pair with Playwright guidance in [`docs/testing/e2e-local-playbook.md`](../docs/testing/e2e-local-playbook.md).
 
 ## Proxy and open-redirect validation
 

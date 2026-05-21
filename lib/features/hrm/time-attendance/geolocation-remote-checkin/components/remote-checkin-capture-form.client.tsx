@@ -19,6 +19,11 @@ import {
   type RemoteCheckinRecordFormState,
 } from "#features/hrm/client"
 
+import {
+  collectClientRemoteCheckinSpoofingSignals,
+  serializeRemoteCheckinSpoofingSignals,
+} from "../data/geolocation-spoofing.shared"
+import { RemoteCheckinSelfieField } from "./remote-checkin-selfie-field.client"
 import { useFormSuccess } from "../../../_internal-cross-cutting/use-form-success.client"
 
 const SELECT_CLASS =
@@ -26,12 +31,21 @@ const SELECT_CLASS =
 
 type RemoteCheckinCaptureFormProps = {
   readonly orgSlug: string
+  readonly organizationId: string
   /** When provided, the form submits for a different employee (HR / manager on-behalf). */
   readonly defaultEmployeeId?: string
+  /** Self-service employee id for selfie blob upload path. */
+  readonly captureEmployeeId?: string
+  readonly requireSelfie?: boolean
+  readonly detectSpoofing?: boolean
   readonly geofenceChoices?: ReadonlyArray<{
     id: string
     code: string
     label: string
+  }>
+  readonly employeeChoices?: ReadonlyArray<{
+    readonly id: string
+    readonly label: string
   }>
   readonly onSuccess?: () => void
 }
@@ -52,8 +66,13 @@ function defaultLocalIso(): string {
 
 export function RemoteCheckinCaptureForm({
   orgSlug,
+  organizationId,
   defaultEmployeeId,
+  captureEmployeeId,
+  requireSelfie = false,
+  detectSpoofing = true,
   geofenceChoices = [],
+  employeeChoices = [],
   onSuccess,
 }: RemoteCheckinCaptureFormProps) {
   const t = useTranslations("Dashboard.Hrm.Geolocation")
@@ -71,6 +90,11 @@ export function RemoteCheckinCaptureForm({
   const deviceId = useId()
   const remoteLocationId = useId()
   const geofenceId = useId()
+  const employeeId = useId()
+
+  const showEmployeePicker =
+    employeeChoices.length > 0 && !captureEmployeeId && !defaultEmployeeId
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("")
 
   const [latitude, setLatitude] = useState("")
   const [longitude, setLongitude] = useState("")
@@ -88,6 +112,23 @@ export function RemoteCheckinCaptureForm({
     if (!state || state.ok) return null
     return state.errors
   }, [state])
+
+  const spoofingSignalsSerialized = useMemo(() => {
+    if (!detectSpoofing) return ""
+    return serializeRemoteCheckinSpoofingSignals(
+      collectClientRemoteCheckinSpoofingSignals({
+        geoStatus,
+        latitude,
+        longitude,
+        accuracy,
+      })
+    )
+  }, [detectSpoofing, geoStatus, latitude, longitude, accuracy])
+
+  const selfieEmployeeId =
+    captureEmployeeId ??
+    defaultEmployeeId ??
+    (selectedEmployeeId.trim() ? selectedEmployeeId : undefined)
 
   function requestLocation() {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -114,6 +155,38 @@ export function RemoteCheckinCaptureForm({
       <input type="hidden" name="orgSlug" value={orgSlug} />
       {defaultEmployeeId ? (
         <input type="hidden" name="employeeId" value={defaultEmployeeId} />
+      ) : null}
+
+      {showEmployeePicker ? (
+        <Field>
+          <FieldLabel htmlFor={employeeId}>{t("capture.fieldEmployee")}</FieldLabel>
+          <select
+            id={employeeId}
+            name="employeeId"
+            required
+            value={selectedEmployeeId}
+            onChange={(event) => setSelectedEmployeeId(event.target.value)}
+            className={SELECT_CLASS}
+            aria-invalid={Boolean(fieldErrors?.employeeId)}
+          >
+            <option value="">{t("capture.fieldEmployeePlaceholder")}</option>
+            {employeeChoices.map((row) => (
+              <option key={row.id} value={row.id}>
+                {row.label}
+              </option>
+            ))}
+          </select>
+          {fieldErrors?.employeeId ? (
+            <FieldError>{fieldErrors.employeeId}</FieldError>
+          ) : null}
+        </Field>
+      ) : null}
+      {detectSpoofing ? (
+        <input
+          type="hidden"
+          name="spoofingSignals"
+          value={spoofingSignalsSerialized}
+        />
       ) : null}
 
       {state?.ok && state.outcome === "pending_exception" ? (
@@ -280,6 +353,15 @@ export function RemoteCheckinCaptureForm({
             ))}
           </select>
         </Field>
+      ) : null}
+
+      {selfieEmployeeId ? (
+        <RemoteCheckinSelfieField
+          organizationId={organizationId}
+          employeeId={selfieEmployeeId}
+          required={requireSelfie}
+          fieldError={fieldErrors?.selfieBlobUrl}
+        />
       ) : null}
 
       <Button type="submit" disabled={pending} className="self-start">

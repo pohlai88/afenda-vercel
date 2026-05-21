@@ -14,14 +14,17 @@ import {
 import type { TimeClockExceptionRow } from "../data/tci.queries.server"
 
 import { TimeClockExceptionDecisionForms } from "./tci-exception-decision-forms.client"
+import { TimeClockExceptionLamCorrection } from "./tci-exception-lam-correction.client"
 
 export async function TimeClockExceptionsSection({
   rows,
   canDecide,
+  canCorrectAttendance,
   loadError,
 }: {
   rows: readonly TimeClockExceptionRow[]
   canDecide: boolean
+  canCorrectAttendance: boolean
   loadError?: TimeClockLoadError
 }) {
   const t = await getTranslations("Dashboard.Hrm.timeClock.exceptions")
@@ -56,17 +59,37 @@ export async function TimeClockExceptionsSection({
         header: t("colActions"),
         render: (surfaceRow) => {
           const row = rowById.get(surfaceRow.id)
-          if (
-            !row ||
-            !canDecide ||
-            !isListSurfaceTrailingActionRenderable(surfaceRow.trailingAction)
-          ) {
-            return null
-          }
+          if (!row) return null
+
+          const showDecide =
+            canDecide &&
+            row.state === "submitted" &&
+            isListSurfaceTrailingActionRenderable(surfaceRow.trailingAction)
+
+          const showCorrection =
+            canCorrectAttendance &&
+            row.state === "approved" &&
+            row.resolvedEventId != null
+
+          if (!showDecide && !showCorrection) return null
+
           return (
-            <GovernedTrailingActionSlot trailingAction={surfaceRow.trailingAction}>
-              <TimeClockExceptionDecisionForms exceptionId={row.id} />
-            </GovernedTrailingActionSlot>
+            <div className="flex flex-wrap items-center gap-2">
+              {showDecide ? (
+                <GovernedTrailingActionSlot
+                  trailingAction={surfaceRow.trailingAction}
+                >
+                  <TimeClockExceptionDecisionForms exceptionId={row.id} />
+                </GovernedTrailingActionSlot>
+              ) : null}
+              {showCorrection && row.resolvedEventId ? (
+                <TimeClockExceptionLamCorrection
+                  resolvedEventId={row.resolvedEventId}
+                  occurredAtIso={row.occurredAt.toISOString()}
+                  eventType={row.eventType}
+                />
+              ) : null}
+            </div>
           )
         },
       }}

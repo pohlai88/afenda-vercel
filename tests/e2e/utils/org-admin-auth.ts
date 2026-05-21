@@ -3,22 +3,35 @@ import { neon } from "@neondatabase/serverless"
 
 import { BOOTSTRAP_FIXTURE } from "../../fixtures/bootstrap-mocks"
 
-/** Matches active-org dashboard or admin URLs after sign-in. */
-export const ORG_SLUG_FROM_SESSION_URL_RE =
-  /\/en\/o\/([^/]+)\/(?:dashboard|admin)/
+/** Matches active-org ERP URLs after sign-in (nexus, apps, admin, …). */
+export const ORG_SLUG_FROM_SESSION_URL_RE = /\/en\/o\/([^/]+)\//
 
 let sql: ReturnType<typeof neon> | null = null
 
-async function activateDemoOrgForUser(email: string): Promise<void> {
+async function activateDemoOrgForSession(input: {
+  email: string
+  sessionId: string | undefined
+}): Promise<void> {
   const databaseUrl = process.env.DATABASE_URL
   if (!databaseUrl) return
 
   sql ??= neon(databaseUrl)
+  const organizationId = BOOTSTRAP_FIXTURE.organization.id
+
+  if (input.sessionId) {
+    await sql`
+      UPDATE neon_auth.session
+      SET "activeOrganizationId" = ${organizationId}
+      WHERE id = ${input.sessionId}
+    `
+    return
+  }
+
   await sql`
     UPDATE neon_auth.session
-    SET "activeOrganizationId" = ${BOOTSTRAP_FIXTURE.organization.id}
+    SET "activeOrganizationId" = ${organizationId}
     WHERE "userId" = (
-      SELECT id FROM neon_auth.user WHERE email = ${email} LIMIT 1
+      SELECT id FROM neon_auth.user WHERE email = ${input.email} LIMIT 1
     )
   `
 }
@@ -37,39 +50,49 @@ export async function signInAsOrgAdmin(
   email: string,
   password: string
 ): Promise<void> {
-  let response = await page.request.post("/api/auth/sign-in/email", {
-    data: {
-      email,
-      password,
-      callbackURL: `/en/o/${BOOTSTRAP_FIXTURE.organization.slug}/nexus`,
-    },
-  })
-  for (let attempt = 1; !response.ok() && attempt < 3; attempt++) {
-    await page.waitForTimeout(1_000 * attempt)
-    response = await page.request.post("/api/auth/sign-in/email", {
+  const signInRequest = () =>
+    page.request.post("/api/auth/sign-in/email", {
       data: {
         email,
         password,
         callbackURL: `/en/o/${BOOTSTRAP_FIXTURE.organization.slug}/nexus`,
       },
+      timeout: 120_000,
     })
+
+  let response = await signInRequest()
+  for (let attempt = 1; !response.ok() && attempt < 3; attempt++) {
+    await page.waitForTimeout(1_000 * attempt)
+    response = await signInRequest()
   }
 
   expect(response.ok(), await response.text()).toBe(true)
-  await activateDemoOrgForUser(email)
+
+  let sessionId: string | undefined
+  const sessionResponse = await page.request.get(
+    "/api/auth/get-session?disableCookieCache=true",
+    { timeout: 30_000 }
+  )
+  if (sessionResponse.ok()) {
+    const payload = (await sessionResponse.json()) as {
+      session?: { id?: string } | null
+    } | null
+    sessionId = payload?.session?.id ?? undefined
+  }
+
+  await activateDemoOrgForSession({ email, sessionId })
+
+  // Drop signed session_data cache so the next navigation reads activeOrganizationId from DB.
   await page.context().clearCookies({
     name: "__Secure-neon-auth.local.session_data",
   })
 
   await page.goto(`/en/o/${BOOTSTRAP_FIXTURE.organization.slug}/nexus`, {
     waitUntil: "domcontentloaded",
+    timeout: 180_000,
   })
-  if (ORG_SLUG_FROM_SESSION_URL_RE.test(page.url())) {
-    return
-  }
-  await page.waitForURL(/\/en\/(bootstrap|account|o)/, {
-    timeout: 30_000,
-  })
+  await page.waitForURL(ORG_SLUG_FROM_SESSION_URL_RE, { timeout: 60_000 })
+  await expect(page).not.toHaveURL(/session-expired/)
 }
 
 export async function resolveOrgSlugFromSession(

@@ -28,6 +28,7 @@ export {
 } from "./schemas/tci-workflow-state.shared"
 
 export { TimeClockPage } from "./components/time-clock-page"
+export { TimeClockPageLoading } from "./components/time-clock-page-loading"
 
 export {
   resolveTimeClockSurfaceAccess,

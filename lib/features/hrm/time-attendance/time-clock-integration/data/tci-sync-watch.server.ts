@@ -7,23 +7,35 @@ import { db } from "#lib/db"
 import { hrmTimeClockDevice } from "#lib/db/schema"
 
 import { HRM_TCI_AUDIT } from "../tci.contract"
+import {
+  createTimeClockNotificationDispatcher,
+  type TimeClockNotificationDispatcher,
+} from "./tci-notification.server"
 
 export type TimeClockSyncWatchSummary = {
   readonly scanned: number
   readonly failed: number
   readonly alerted: number
+  readonly notificationsSent: number
 }
 
 /**
  * Marks devices stuck in `syncing` or `failed` beyond threshold for admin attention.
  */
-export async function runTimeClockSyncWatchTick(): Promise<TimeClockSyncWatchSummary> {
+export async function runTimeClockSyncWatchTick(input?: {
+  readonly notify?: TimeClockNotificationDispatcher
+}): Promise<TimeClockSyncWatchSummary> {
+  const notify =
+    input?.notify ?? createTimeClockNotificationDispatcher()
   const staleBefore = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
   const failedDevices = await db
     .select({
       id: hrmTimeClockDevice.id,
       organizationId: hrmTimeClockDevice.organizationId,
+      name: hrmTimeClockDevice.name,
+      externalDeviceId: hrmTimeClockDevice.externalDeviceId,
+      syncStatus: hrmTimeClockDevice.syncStatus,
     })
     .from(hrmTimeClockDevice)
     .where(
@@ -32,6 +44,7 @@ export async function runTimeClockSyncWatchTick(): Promise<TimeClockSyncWatchSum
     )
 
   let alerted = 0
+  let notificationsSent = 0
   for (const device of failedDevices) {
     await writeIamAuditEventFromNextHeaders({
       action: HRM_TCI_AUDIT.syncFail,
@@ -47,6 +60,15 @@ export async function runTimeClockSyncWatchTick(): Promise<TimeClockSyncWatchSum
       .set({ syncStatus: "failed", updatedAt: sql`now()` })
       .where(eq(hrmTimeClockDevice.id, device.id))
     alerted += 1
+
+    notificationsSent += await notify.notifyDeviceSyncFailure({
+      organizationId: device.organizationId,
+      deviceId: device.id,
+      deviceName: device.name,
+      externalDeviceId: device.externalDeviceId,
+      reason:
+        device.syncStatus === "syncing" ? "watch_stale" : "watch_failed",
+    })
   }
 
   const allDevices = await db
@@ -57,5 +79,6 @@ export async function runTimeClockSyncWatchTick(): Promise<TimeClockSyncWatchSum
     scanned: allDevices.length,
     failed: failedDevices.length,
     alerted,
+    notificationsSent,
   }
 }

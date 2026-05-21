@@ -186,6 +186,16 @@ export const upsertRemoteCheckinPolicyFormSchema = z.object({
   detectSpoofing: z.coerce.boolean().default(true),
   allowEligibilityException: z.coerce.boolean().default(true),
   isActive: z.coerce.boolean().default(true),
+}).superRefine((data, ctx) => {
+  if (data.scopeKind === "org") return
+  const ref = data.scopeRef?.trim()
+  if (!ref) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Scope reference is required for non-org policies.",
+      path: ["scopeRef"],
+    })
+  }
 })
 
 export type UpsertRemoteCheckinPolicyFormInput = z.infer<

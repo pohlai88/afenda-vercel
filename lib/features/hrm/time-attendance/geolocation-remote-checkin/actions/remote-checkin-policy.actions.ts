@@ -46,6 +46,7 @@ export async function upsertRemoteCheckinPolicyAction(
     const errs = parsed.error.flatten().fieldErrors
     return hrmActionFailure({
       scopeKind: errs.scopeKind?.[0],
+      scopeRef: errs.scopeRef?.[0],
       minGpsAccuracyMeters: errs.minGpsAccuracyMeters?.[0],
       allowedRadiusBufferMeters: errs.allowedRadiusBufferMeters?.[0],
       breakWindowMinutes: errs.breakWindowMinutes?.[0],

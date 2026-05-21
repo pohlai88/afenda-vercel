@@ -1,12 +1,17 @@
 "use client"
 
-import { useActionState, useId, useState } from "react"
+import { useActionState, useId, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "#components2/ui/alert"
 import { Button } from "#components2/ui/button"
-import { Field, FieldError, FieldLabel } from "#components2/ui/field"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "#components2/ui/field"
 import { Input } from "#components2/ui/input"
 import {
   Dialog,
@@ -18,6 +23,7 @@ import {
   DialogTrigger,
 } from "#components2/ui/dialog"
 
+import { HRM_EMPLOYMENT_TYPES } from "../../../employee-management/employee-records-management/schemas/employee.schema"
 import {
   upsertRemoteCheckinPolicyAction,
   type RemoteCheckinPolicyMutationFormState,
@@ -32,12 +38,16 @@ const SCOPES = [
   "employee",
 ] as const
 
+type PolicyScope = (typeof SCOPES)[number]
+
 const SELECT_CLASS =
   "h-9 w-full rounded border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 
+type ScopeRefChoice = { readonly id: string; readonly label: string }
+
 type Defaults = {
   readonly policyId?: string
-  readonly scopeKind?: (typeof SCOPES)[number]
+  readonly scopeKind?: PolicyScope
   readonly scopeRef?: string | null
   readonly minGpsAccuracyMeters?: number
   readonly allowedRadiusBufferMeters?: number
@@ -54,10 +64,16 @@ export function RemoteCheckinPolicyDialog({
   orgSlug,
   mode,
   defaults,
+  scopeRefChoices,
 }: {
   orgSlug: string
   mode: "create" | "edit"
   defaults?: Defaults
+  scopeRefChoices?: {
+    readonly employees: readonly ScopeRefChoice[]
+    readonly departments: readonly ScopeRefChoice[]
+    readonly positions: readonly ScopeRefChoice[]
+  }
 }) {
   const t = useTranslations("Dashboard.Hrm.Geolocation.policies")
   const tScope = useTranslations(
@@ -65,6 +81,9 @@ export function RemoteCheckinPolicyDialog({
   )
   const tCommon = useTranslations("Dashboard.Hrm.Geolocation")
   const [open, setOpen] = useState(false)
+  const [scopeKind, setScopeKind] = useState<PolicyScope>(
+    defaults?.scopeKind ?? "org"
+  )
   const [state, formAction, pending] = useActionState<
     RemoteCheckinPolicyMutationFormState | undefined,
     FormData
@@ -79,6 +98,23 @@ export function RemoteCheckinPolicyDialog({
   const radiusId = useId()
   const shiftId = useId()
   const breakId = useId()
+
+  const scopeRefHint = useMemo(() => {
+    switch (scopeKind) {
+      case "org":
+        return t("fieldScopeRefHintOrg")
+      case "department":
+        return t("fieldScopeRefHintDepartment")
+      case "position":
+        return t("fieldScopeRefHintPosition")
+      case "employment_type":
+        return t("fieldScopeRefHintEmploymentType")
+      case "policy_group":
+        return t("fieldScopeRefHintPolicyGroup")
+      case "employee":
+        return t("fieldScopeRefHintEmployee")
+    }
+  }, [scopeKind, t])
 
   const triggerLabel = mode === "create" ? t("createOpen") : t("editOpen")
   const submitLabel = mode === "create" ? t("submitCreate") : t("submitUpdate")
@@ -121,7 +157,10 @@ export function RemoteCheckinPolicyDialog({
                 id={scopeId}
                 name="scopeKind"
                 required
-                defaultValue={defaults?.scopeKind ?? "org"}
+                value={scopeKind}
+                onChange={(event) =>
+                  setScopeKind(event.target.value as PolicyScope)
+                }
                 className={SELECT_CLASS}
               >
                 {SCOPES.map((scope) => (
@@ -134,16 +173,16 @@ export function RemoteCheckinPolicyDialog({
                 <FieldError>{state.errors.scopeKind}</FieldError>
               ) : null}
             </Field>
-            <Field>
-              <FieldLabel htmlFor={scopeRefId}>{t("fieldScopeRef")}</FieldLabel>
-              <Input
-                id={scopeRefId}
-                name="scopeRef"
-                maxLength={160}
-                placeholder={t("fieldScopeRefHint")}
-                defaultValue={defaults?.scopeRef ?? ""}
-              />
-            </Field>
+            <ScopeRefField
+              scopeKind={scopeKind}
+              scopeRefId={scopeRefId}
+              defaultValue={defaults?.scopeRef ?? ""}
+              hint={scopeRefHint}
+              choices={scopeRefChoices}
+              fieldError={
+                state && !state.ok ? state.errors.scopeRef : undefined
+              }
+            />
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -252,6 +291,126 @@ export function RemoteCheckinPolicyDialog({
         </form>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function ScopeRefField({
+  scopeKind,
+  scopeRefId,
+  defaultValue,
+  hint,
+  choices,
+  fieldError,
+}: {
+  scopeKind: PolicyScope
+  scopeRefId: string
+  defaultValue: string
+  hint: string
+  choices?: {
+    readonly employees: readonly ScopeRefChoice[]
+    readonly departments: readonly ScopeRefChoice[]
+    readonly positions: readonly ScopeRefChoice[]
+  }
+  fieldError?: string
+}) {
+  const t = useTranslations("Dashboard.Hrm.Geolocation.policies")
+
+  if (scopeKind === "org") {
+    return (
+      <Field>
+        <FieldLabel htmlFor={scopeRefId}>{t("fieldScopeRef")}</FieldLabel>
+        <FieldDescription>{hint}</FieldDescription>
+        <input type="hidden" name="scopeRef" value="" />
+        <Input
+          id={scopeRefId}
+          disabled
+          value="—"
+          aria-describedby={`${scopeRefId}-hint`}
+        />
+      </Field>
+    )
+  }
+
+  const selectOptions = (() => {
+    switch (scopeKind) {
+      case "employee":
+        return choices?.employees ?? []
+      case "department":
+        return choices?.departments ?? []
+      case "position":
+        return choices?.positions ?? []
+      default:
+        return []
+    }
+  })()
+
+  if (selectOptions.length > 0) {
+    return (
+      <Field>
+        <FieldLabel htmlFor={scopeRefId}>{t("fieldScopeRef")}</FieldLabel>
+        <FieldDescription id={`${scopeRefId}-hint`}>{hint}</FieldDescription>
+        <select
+          id={scopeRefId}
+          name="scopeRef"
+          required
+          defaultValue={defaultValue}
+          className={SELECT_CLASS}
+          aria-invalid={Boolean(fieldError)}
+          aria-describedby={`${scopeRefId}-hint`}
+        >
+          <option value="">{t("fieldScopeRefSelectPlaceholder")}</option>
+          {selectOptions.map((row) => (
+            <option key={row.id} value={row.id}>
+              {row.label}
+            </option>
+          ))}
+        </select>
+        {fieldError ? <FieldError>{fieldError}</FieldError> : null}
+      </Field>
+    )
+  }
+
+  if (scopeKind === "employment_type") {
+    return (
+      <Field>
+        <FieldLabel htmlFor={scopeRefId}>{t("fieldScopeRef")}</FieldLabel>
+        <FieldDescription id={`${scopeRefId}-hint`}>{hint}</FieldDescription>
+        <select
+          id={scopeRefId}
+          name="scopeRef"
+          required
+          defaultValue={defaultValue}
+          className={SELECT_CLASS}
+          aria-invalid={Boolean(fieldError)}
+        >
+          <option value="">{t("fieldScopeRefSelectPlaceholder")}</option>
+          {HRM_EMPLOYMENT_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </select>
+        {fieldError ? <FieldError>{fieldError}</FieldError> : null}
+      </Field>
+    )
+  }
+
+  return (
+    <Field>
+      <FieldLabel htmlFor={scopeRefId}>{t("fieldScopeRef")}</FieldLabel>
+      <FieldDescription id={`${scopeRefId}-hint`}>{hint}</FieldDescription>
+      <Input
+        id={scopeRefId}
+        name="scopeRef"
+        maxLength={160}
+        required
+        defaultValue={defaultValue}
+        placeholder={hint}
+        aria-invalid={Boolean(fieldError)}
+        aria-describedby={`${scopeRefId}-hint`}
+      />
+      {fieldError ? <FieldError>{fieldError}</FieldError> : null}
+    </Field>
   )
 }
 

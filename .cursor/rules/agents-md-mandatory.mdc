@@ -15,6 +15,7 @@ alwaysApply: true
    - **IDE & AI quickstart** table for fast routing.
    - **§3** for **`pnpm gen`** / Turborepo generators — `pnpm gen action --module <slug>` is expanded by **`scripts/turbo-gen.mjs`** (positional `--args`; do not pass `--module` to raw `turbo gen`).
    - **§4** for CI gates and enforcement scripts (including Drizzle migrations when editing `drizzle/` or `lib/db/schema.ts`).
+- **§2 → E2E playbook** — [`docs/testing/e2e-local-playbook.md`](../docs/testing/e2e-local-playbook.md): **never** `pnpm test:e2e` per edit; use `pnpm e2e:preflight:*` + `playwright test -g`.
    - **§5** for routing, auth UX, locale, and `proxy.ts`.
    - **§6** for directory shape, **`lib/` root allowlist (§6.1)**, subtrees (§6.2), and anti-drift (§6.3).
    - **§7** for design system boundaries.

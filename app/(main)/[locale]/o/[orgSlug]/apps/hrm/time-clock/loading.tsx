@@ -1,1 +1,1 @@
-export { default } from "#components2/route-loading/nexus-route-loading"
+export { TimeClockPageLoading as default } from "#features/hrm"

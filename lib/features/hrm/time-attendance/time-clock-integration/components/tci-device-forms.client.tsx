@@ -51,6 +51,7 @@ export function TimeClockDeviceRegisterDialog() {
   const nameId = useId()
   const typeId = useId()
   const locationId = useId()
+  const credentialId = useId()
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -105,6 +106,20 @@ export function TimeClockDeviceRegisterDialog() {
           <Field>
             <FieldLabel htmlFor={locationId}>{t("fieldLocation")}</FieldLabel>
             <Input id={locationId} name="locationRef" maxLength={200} />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={credentialId}>
+              {t("fieldIntegrationCredential")}
+            </FieldLabel>
+            <Input
+              id={credentialId}
+              name="integrationCredentialRef"
+              maxLength={200}
+              placeholder={t("fieldIntegrationCredentialPlaceholder")}
+            />
+            {!state?.ok && state?.errors?.integrationCredentialRef ? (
+              <FieldError>{state.errors.integrationCredentialRef}</FieldError>
+            ) : null}
           </Field>
           <DialogFooter>
             <Button type="submit" disabled={pending}>

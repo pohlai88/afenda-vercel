@@ -7,7 +7,7 @@ import { and, eq } from "drizzle-orm"
 
 import { db } from "#lib/db"
 import { hrmTimeClockDevice } from "#lib/db/schema"
-import { getOrgSessionFromRequest } from "#lib/auth"
+import { getOrgSessionFromRequestTrusted } from "#lib/auth"
 
 import type { TimeClockCommandContext } from "./tci-punch-commands.server"
 
@@ -82,7 +82,7 @@ export async function resolveTimeClockIngestActor(
   request: NextRequest,
   bodyOrganizationId: string
 ): Promise<TimeClockCommandContext | null> {
-  const session = await getOrgSessionFromRequest(request)
+  const session = await getOrgSessionFromRequestTrusted(request)
   if (session?.organizationId && session.userId) {
     if (session.organizationId !== bodyOrganizationId) return null
     return {

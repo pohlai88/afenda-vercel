@@ -11,6 +11,7 @@ import {
   markRemoteCheckinExceptionDecided,
   persistVerifiedRemoteCheckin,
 } from "./geolocation-aggregator.server"
+import { notifyGeolocationEmployeeLifecycle } from "./geolocation-notification.server"
 import { findNearestGeofenceForOrg } from "./geolocation-validation.server"
 import { getRemoteCheckinExceptionForOrg } from "./geolocation.queries.server"
 import { revalidateGeolocationSurfaces } from "./geolocation-revalidate.server"
@@ -154,6 +155,30 @@ export async function decideRemoteCheckinException(
       resolvedEventId,
     },
   })
+
+  const lifecycleEvent = ((): Parameters<
+    typeof notifyGeolocationEmployeeLifecycle
+  >[0]["event"] | null => {
+    switch (input.decision) {
+      case "approve":
+      case "correct":
+        return "exception_approved"
+      case "reject":
+        return "exception_rejected"
+      case "return":
+        return "exception_returned"
+    }
+  })()
+
+  if (lifecycleEvent) {
+    await notifyGeolocationEmployeeLifecycle({
+      organizationId: ctx.organizationId,
+      employeeId: existing.employeeId,
+      resourceId: input.exceptionId,
+      event: lifecycleEvent,
+      detectionOutcome: existing.detectionOutcome,
+    })
+  }
 
   revalidateGeolocationSurfaces()
   return {

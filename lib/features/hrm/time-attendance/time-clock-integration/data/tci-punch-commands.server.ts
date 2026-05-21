@@ -202,9 +202,22 @@ export async function ingestTimeClockBatch(
   }
 
   const batchId = crypto.randomUUID()
+  const resolvedDeviceId =
+    input.deviceId ??
+    (input.punches.length === 1
+      ? (
+          await resolveTimeClockIngestContext({
+            organizationId: ctx.organizationId,
+            punch: input.punches[0]!,
+          })
+        )?.device.id
+      : null) ??
+    null
+
   await db.insert(hrmTimeClockSyncBatch).values({
     id: batchId,
     organizationId: ctx.organizationId,
+    deviceId: resolvedDeviceId,
     sourceKind: input.sourceKind,
     state: "running",
     receivedCount: input.punches.length,

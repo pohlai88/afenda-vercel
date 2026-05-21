@@ -7,12 +7,12 @@ import { hrmActionFailure } from "../../../_module-governance/hrm-action-result.
 import { upsertTimeClockMapping } from "../data/tci-mapping-commands.server"
 import { upsertTimeClockMappingFormSchema } from "../schemas/tci.schema"
 
-import type { TimeClockDeviceMutationFormState } from "./tci-device.actions"
+import type { TimeClockMutationFormState } from "./tci-device.actions"
 
 export async function upsertTimeClockMappingAction(
-  _prev: TimeClockDeviceMutationFormState | undefined,
+  _prev: TimeClockMutationFormState | undefined,
   formData: FormData
-): Promise<TimeClockDeviceMutationFormState> {
+): Promise<TimeClockMutationFormState> {
   const session = await requireOrgSession()
   const gate = await requireHrmPermission({
     object: "time_clock_mapping",

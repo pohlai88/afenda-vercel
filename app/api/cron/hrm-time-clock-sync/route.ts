@@ -1,11 +1,10 @@
 /**
- * HRM-TCI-026 sync monitoring — audits stale/failed devices.
- * Vendor scheduled punch pull (HRM-TCI-011) is not implemented here; use API ingest or manual CSV until an adapter exists.
+ * HRM-TCI-026 sync watch + HRM-TCI-011 scheduled vendor poll (`poll:`, `vendor:zebra:`, `vendor:ukg:`).
  */
 import type { NextRequest } from "next/server"
 import * as Sentry from "@sentry/nextjs"
 
-import { runTimeClockSyncWatchTick } from "#features/hrm/server"
+import { runTimeClockCronSyncTick } from "#features/hrm/server"
 import { runWithNodeOtelSpan } from "#lib/observability/otel-span.server"
 import { routeJsonError, routeJsonOk } from "#lib/api/route-handler-json.shared"
 
@@ -25,7 +24,7 @@ export async function GET(request: NextRequest) {
       const summary = await runWithNodeOtelSpan(
         "cron.hrm_time_clock_sync.tick",
         { "erp.cron": "hrm-time-clock-sync" },
-        () => runTimeClockSyncWatchTick()
+        () => runTimeClockCronSyncTick()
       )
 
       return routeJsonOk({
@@ -33,7 +32,8 @@ export async function GET(request: NextRequest) {
         job: "hrm-time-clock-sync",
         ranAt: new Date().toISOString(),
         durationMs: Date.now() - startedAt,
-        ...summary,
+        watch: summary.watch,
+        scheduled: summary.scheduled,
       })
     },
     { schedule: { type: "crontab", value: "0 */6 * * *" } }

@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
   /** Isolated caches for `pnpm dev:stack` (UI `.next-ui` vs workflow `.next-workflow`). */
   distDir: process.env.AFENDA_NEXT_DIST_DIR ?? ".next",
   reactStrictMode: true,
+  /** Playwright and local probes use 127.0.0.1 while dev may bind as localhost. */
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   poweredByHeader: false,
   typedRoutes: true,
   /**

@@ -2,9 +2,13 @@ import "server-only"
 
 export {
   getRemoteCheckinHoursForEmployeeDateRange,
+  getRemoteCheckinOvertimeMinutesForWorkDate,
+  getRemoteCheckinPayrollAttendanceSummary,
   hasVerifiedRemoteCheckinOnDate,
   listVerifiedRemoteCheckinsForEmployeeDate,
 } from "./data/geolocation-integration.server"
+
+export { resolveRemoteCheckinPolicyForEmployee } from "./data/geolocation-policy-resolution.server"
 
 export {
   resolveGeolocationSurfaceAccess,

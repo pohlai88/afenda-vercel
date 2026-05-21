@@ -23,6 +23,7 @@ import path from "node:path"
 import { test as baseTest } from "@playwright/test"
 
 import { BOOTSTRAP_FIXTURE } from "../../fixtures/bootstrap-mocks"
+import { resolveE2EBaseURL } from "../utils/e2e-base-url"
 import { signInAsOrgAdmin } from "../utils/org-admin-auth"
 
 export { expect } from "@playwright/test"
@@ -75,11 +76,7 @@ export const test = baseTest.extend<
       }
 
       // Authenticate in a clean context to avoid contaminating other workers.
-      const baseURL = (
-        process.env.PLAYWRIGHT_BASE_URL ||
-        process.env.BASE_URL ||
-        "http://127.0.0.1:3001"
-      ).trim()
+      const baseURL = await resolveE2EBaseURL()
 
       const context = await browser.newContext({
         storageState: undefined,
@@ -96,6 +93,6 @@ export const test = baseTest.extend<
 
       await provideWorkerStorageState(fileName)
     },
-    { scope: "worker" },
+    { scope: "worker", timeout: 300_000 },
   ],
 })

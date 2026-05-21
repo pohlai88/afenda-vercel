@@ -154,7 +154,7 @@ Full doctrine: [ADR-0035](docs/decisions/0035-three-layer-surface-ide-anti-drift
 | Auth / IAM                     | `#lib/auth` (server — session guards, step-up, audit) · `#lib/auth-client` (browser) · session guards **only** from `#lib/auth` · rule `.cursor/rules/iam-directory.mdc` · lib layout [§6.1–6.3](#6-directory-contract)                                                                          |
 | Scaffold                       | `pnpm gen [capability\|action\|adr\|audit-contract\|workflow-job\|ask-doc]` — see §3                                                                                                                                                                                                              |
 | UI / design                    | `#components2/ui/*` · `#lib/design-system` · `app/globals.css` tokens · rule `.cursor/rules/design-system.mdc`                                                                                                                                                                                     |
-| Tests                          | **`pnpm test:changed`** (edit loop) · **`pnpm test:failures`** (reprint digest) · **`pnpm test:audit`** (full suite) · `pnpm test:fast` · `pnpm test:e2e` · rule `.cursor/rules/testing.mdc`                                                                                                        |
+| Tests                          | **`pnpm test:changed`** (edit loop) · **`pnpm test:failures`** · **`pnpm test:audit`** (full) · `pnpm test:fast` · **E2E:** `docs/testing/e2e-local-playbook.md` · `pnpm e2e:preflight:time-clock` · `pnpm test:e2e` (PR only) · `.cursor/rules/testing.mdc`                                                                                                        |
 | Local dev stack (WDK)          | **`pnpm dev:stack`** (fast default) — UI **3000** + workflow **3002** + `workflow web` · **`pnpm dev:stack:full`** when Vercel env injection needed · **`pnpm dev`** = UI-only **3000** (`.next-ui`) · ADR-0039 · use **3002** for durable workflow tests                                                                                                        |
 | Green CI                       | **`pnpm gate:help`** · **L0:** `pnpm gate -- <paths>` · **L2:** `pnpm gate:push` (batch-fix until green — §2) · **L3:** `pnpm gate:merge` · ADR-0033 · `.cursor/rules/targeted-verification.mdc` · `.cursor/rules/gate-batch-fix-workflow.mdc`                                                                 |
 | Neon / Vercel MCP              | Configure in `~/.cursor/mcp.json` (global) · see §5 [MCP validation](#validating-with-neon-and-vercel-mcp)                                                                                                                                                                                        |
@@ -284,7 +284,10 @@ CI uses pnpm verify:ci (no prompt). See pnpm gate:help.
 
 > **Three-graph rule:** L0 uses **`pnpm typecheck`** (app only). Before push, **`gate:push`** runs all three graphs. Manually run **`pnpm typecheck:full`** only when debugging graph splits — not after every edit.
 
-**Forbidden edit-loop habit:** `pnpm lint:full && pnpm gate:push && pnpm build && pnpm test:e2e` in one session — that replays CI locally (~8–15+ min).
+**Forbidden edit-loop habits:**
+
+- `pnpm lint:full && pnpm gate:push && pnpm build && pnpm test:e2e` in one session — replays CI locally (~8–15+ min).
+- `pnpm test:e2e` after every Playwright selector/auth tweak — use **E0 preflight** + **E1** `-g` on one spec (~1–2 min). Full E2E tree is **E2** (pre-PR only). See [`docs/testing/e2e-local-playbook.md`](docs/testing/e2e-local-playbook.md).
 
 | Command                               | Purpose                                                                                                                                                                                                              |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -327,7 +330,9 @@ CI uses pnpm verify:ci (no prompt). See pnpm gate:help.
 | `pnpm test:failures`                  | Reprint last `.artifacts/reports/vitest-failures.txt` without re-running                                                                                                                                             |
 | `pnpm test:fast:node` / `:dom`        | Single Vitest project — skip jsdom when DOM untouched                                                                                                                                                                |
 | `pnpm test:ci`                        | `vitest run --coverage` → `.artifacts/coverage/`                                                                                                                                                                     |
-| `pnpm test:e2e`                       | `pnpm build` → Playwright on port 3001                                                                                                                                                                               |
+| `pnpm e2e:preflight:time-clock`         | Fast HRM time-clock checks (health, auth, ERP grants, employee, ingest) — **run before** `playwright test … hrm-time-clock-flow`                                                                                    |
+| `pnpm test:e2e`                       | `pnpm build` → Playwright full suite on port 3001 — **pre-PR / CI only**, not per-edit                                                                                                                                 |
+| `pnpm test:e2e:smoke`                 | `@smoke`-tagged Playwright subset (when defined in package scripts)                                                                                                                                                  |
 | `pnpm env:sync`                       | `.env.config` → `.env.local`                                                                                                                                                                                         |
 | `pnpm db:generate`                    | **Agent-owned (required).** After `lib/db/schema.ts` edits — additive only; **abort** if rename disambiguation prompts (no TTY). Commit SQL + meta with schema. **Never** ask human to run. **Never** from CI.       |
 | `pnpm db:migrate:local`               | **Agent-owned (required).** After `lint:drizzle-journal` passes on local `.env.local`. **Never** ask human to run. **Never** from CI.                                                                                |
@@ -418,8 +423,27 @@ pnpm lint:public-lynx-contract # after app/api/chat, components2/ai/search, lib/
 | ------------------ | ------------------------------------------------------------- | --------------------------------------------------------------------- |
 | `tests/fixtures/`  | Canonical deterministic data (UUIDs, copy strings, factories) | No Playwright imports; parity enforced by `pnpm lint:fixtures-parity` |
 | `tests/unit/`      | Vitest, Node-first                                            | `// @vitest-environment jsdom` only for DOM tests (`*.dom.test.tsx`)  |
-| `tests/e2e/`       | Playwright `*.spec.ts`                                        | Explicit steps; tag `@smoke`; base URL `http://127.0.0.1:3001`        |
-| `tests/e2e/utils/` | Browser helpers                                               | Import copy from `tests/fixtures`; no magic strings                   |
+| `tests/e2e/`       | Playwright `*.spec.ts`                                        | Explicit steps; tag `@smoke`; see **E2E playbook** below              |
+| `tests/e2e/utils/` | Browser helpers + preflight scripts                           | `org-admin-auth.ts`, `e2e-base-url.ts`, `ensure-*-e2e-*.ts`           |
+
+**E2E local playbook (agents):** [`docs/testing/e2e-local-playbook.md`](docs/testing/e2e-local-playbook.md) · rule `.cursor/rules/testing.mdc`
+
+```txt
+E0  pnpm e2e:preflight:<feature>     (~30–60s, no browser)
+E1  playwright test <spec> -g "…"   (one test, warm server)
+E2  pnpm test:e2e                     (full tree — pre-PR only)
+```
+
+| Topic | Doctrine |
+| --- | --- |
+| Base URL | Default `http://127.0.0.1:3001`; auto-probe healthy `3000` via `resolveE2EBaseURL()` |
+| Hung port 3000 | TCP listen without `/api/auth/get-session` → use **3001**; do not force `PLAYWRIGHT_BASE_URL=3000` |
+| Auth env | `PLAYWRIGHT_BASE_URL`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_BETTER_AUTH_URL` — **same host** (`localhost` ≠ `127.0.0.1`) |
+| Signed-in specs | Import `test` from `tests/e2e/fixtures/auth.ts`; credentials `E2E_ORG_ADMIN_*` + `pnpm dev:seed` |
+| Demo HRM rows | `pnpm dev:seed:demo-erp` or `ensureTimeClockE2ePermissions` / feature `ensure-*` in `test.beforeAll` |
+| Route Handler 401 | Use `getOrgSessionFromRequestTrusted` when DB `activeOrganizationId` is set without cookie cache refresh |
+| Session cookie POST | Prefer `page.evaluate` + `fetch(..., credentials: "include")` — not `page.request` alone |
+| HRM time clock | `pnpm e2e:preflight:time-clock` → `hrm-time-clock-flow.spec.ts` with `-g` per test |
 
 **Coverage (V8):** `lib/auth/**/*.shared.ts` + `lib/auth/callback-path.ts` → **≥ 95%**. Global ratcheted toward **80%**. Artifacts → `.artifacts/` only (gitignored).
 

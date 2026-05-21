@@ -14,6 +14,7 @@ import type {
   TimeClockExceptionRow,
   TimeClockKpiSummary,
   TimeClockMappingRow,
+  TimeClockSyncBatchRow,
 } from "./tci.queries.server"
 
 export { TCI_STAT_SURFACE_KEY }
@@ -200,6 +201,64 @@ export function buildTimeClockMappingsListSurfaceConfiguration(
         trailingAction: listSurfaceRowTrailingActionHidden(),
       }
     }),
+  }
+}
+
+export function buildTimeClockSyncBatchesListSurfaceConfiguration(
+  rows: readonly TimeClockSyncBatchRow[],
+  copy: {
+    empty: string
+    colStarted: string
+    colFinished: string
+    colSource: string
+    colDevice: string
+    colState: string
+    colReceived: string
+    colAccepted: string
+    colRejected: string
+    formatTimestamp: (date: Date | null) => string
+  }
+): ListSurfaceRendererConfigurationInput {
+  const columnsId = TCI_LIST_SURFACE_IDS.syncBatches
+  return {
+    __schemaVersion: GOVERNED_METADATA_SCHEMA_VERSION,
+    dataNature: "table",
+    requiresErpPermission: READ_PERMISSION,
+    presentation: PRESENTATION,
+    surface: {
+      header: header(columnsId),
+      columnsId,
+      rowKey: "id",
+      empty: { variant: "muted", title: copy.empty },
+    },
+    columns: [
+      { id: "started", header: copy.colStarted },
+      { id: "finished", header: copy.colFinished },
+      { id: "source", header: copy.colSource },
+      { id: "device", header: copy.colDevice },
+      {
+        id: "state",
+        header: copy.colState,
+        cellKind: { kind: "badge", tone: "default" },
+      },
+      { id: "received", header: copy.colReceived },
+      { id: "accepted", header: copy.colAccepted },
+      { id: "rejected", header: copy.colRejected },
+    ],
+    rows: rows.map((row) => ({
+      id: row.id,
+      cells: {
+        started: copy.formatTimestamp(row.startedAt),
+        finished: copy.formatTimestamp(row.finishedAt),
+        source: row.sourceKind,
+        device: row.deviceName ?? "—",
+        state: row.state,
+        received: String(row.receivedCount),
+        accepted: String(row.acceptedCount),
+        rejected: String(row.rejectedCount),
+      },
+      trailingAction: listSurfaceRowTrailingActionHidden(),
+    })),
   }
 }
 

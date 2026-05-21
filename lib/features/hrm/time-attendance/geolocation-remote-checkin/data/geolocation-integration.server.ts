@@ -52,6 +52,44 @@ export async function getRemoteCheckinHoursForEmployeeDateRange(input: {
 export { listVerifiedRemoteCheckinsForEmployeeDate }
 
 /**
+ * Overtime compare path (HRM-GEO-025): reads `hrm_attendance_day.overtimeMinutes`
+ * populated by the remote check-in aggregator for the work date.
+ */
+export async function getRemoteCheckinOvertimeMinutesForWorkDate(input: {
+  readonly organizationId: string
+  readonly employeeId: string
+  readonly workDate: string
+}): Promise<number | null> {
+  const summary = await getRemoteCheckinHoursForEmployeeDateRange({
+    organizationId: input.organizationId,
+    employeeId: input.employeeId,
+    rangeStart: input.workDate,
+    rangeEnd: input.workDate,
+  })
+  if (summary.overtimeMinutes <= 0 && summary.workedMinutes <= 0) {
+    return null
+  }
+  return summary.overtimeMinutes
+}
+
+/**
+ * Payroll readiness (HRM-GEO-026): payroll period lock operates on
+ * `hrm_attendance_day` rows; remote check-ins feed those rows via the aggregator.
+ */
+export async function getRemoteCheckinPayrollAttendanceSummary(input: {
+  readonly organizationId: string
+  readonly employeeId: string
+  readonly rangeStart: string
+  readonly rangeEnd: string
+}): Promise<{
+  readonly workedMinutes: number
+  readonly overtimeMinutes: number
+  readonly verifiedDayCount: number
+}> {
+  return getRemoteCheckinHoursForEmployeeDateRange(input)
+}
+
+/**
  * Convenience helper for the attendance module — returns true when an
  * approved mobile event exists for the given (employee, day).
  */

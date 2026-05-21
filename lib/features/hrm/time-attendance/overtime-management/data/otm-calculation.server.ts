@@ -24,6 +24,7 @@ import {
 import { getOtmPolicyForOrg } from "./otm-policy.server"
 import { resolveOtmRateMultiplierHundredths } from "./otm-rate.server"
 import { resolveOtmEligibilityEmployeeFacts } from "./otm-eligibility-facts.server"
+import { getRemoteCheckinOvertimeMinutesForWorkDate } from "../../geolocation-remote-checkin/data/geolocation-integration.server"
 import { resolveScheduledShiftMinutesForWorkDate } from "./otm-shift-compare.server"
 
 export type OtmCalculationResult =
@@ -167,7 +168,13 @@ export async function calculateOtmPayableForApproval(input: {
       ),
       columns: { overtimeMinutes: true },
     })
-    attendanceMinutes = day?.overtimeMinutes ?? null
+    attendanceMinutes =
+      day?.overtimeMinutes ??
+      (await getRemoteCheckinOvertimeMinutesForWorkDate({
+        organizationId: input.organizationId,
+        employeeId: input.employeeId,
+        workDate: input.workDate,
+      }))
     if (attendanceMinutes != null) {
       attendanceVarianceMinutes = payableMinutes - attendanceMinutes
     }

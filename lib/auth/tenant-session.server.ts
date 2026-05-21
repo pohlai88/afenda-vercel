@@ -204,6 +204,32 @@ export async function getOrgSessionFromRequest(
 }
 
 /**
+ * Route-handler org session read that bypasses signed `session_data` cookie cache
+ * so `activeOrganizationId` matches Neon Auth DB (E2E activates org via SQL).
+ */
+export async function getOrgSessionFromRequestTrusted(
+  request: Request
+): Promise<OrgSession | null> {
+  const { data: session } = await auth.getSession({
+    query: { disableCookieCache: "true" },
+    fetchOptions: { headers: request.headers },
+  })
+
+  if (!session?.user?.id || !session.session?.id) {
+    return null
+  }
+
+  const user = session.user as BetterAuthSessionUserLike
+  const sess = session.session as SessionWithOrg
+
+  return resolveOrgSessionFromParts({
+    user,
+    sessionId: session.session.id,
+    organizationId: sess.activeOrganizationId,
+  })
+}
+
+/**
  * Same checks as {@link requireSignedInSession}, using the incoming request
  * headers (for Route Handlers). Returns null instead of redirecting when invalid.
  */

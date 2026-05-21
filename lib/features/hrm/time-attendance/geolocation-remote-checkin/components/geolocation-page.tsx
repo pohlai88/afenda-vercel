@@ -30,11 +30,13 @@ import {
 } from "../data/geolocation-access.server"
 import {
   countRemoteCheckinKpiSummary,
+  findRemoteCheckinEmployeeForUser,
   listGeofencesForOrg,
   listRemoteCheckinDevicesForOrg,
   listRemoteCheckinPoliciesForOrg,
   listVerifiedRemoteCheckinsForOrg,
 } from "../data/geolocation.queries.server"
+import { resolveRemoteCheckinPolicyForEmployee } from "../data/geolocation-policy-resolution.server"
 import { listActiveEmployeeChoicesForAttendance } from "../../leave-attendance-management/data/attendance.queries.server"
 
 import { GeolocationDevicesSection } from "./geolocation-devices-section"
@@ -218,6 +220,27 @@ export async function GeolocationPage({
       ? { title: t("devices.loadFailed") }
       : undefined
 
+  let captureEmployeeId: string | undefined
+  let captureRequireSelfie = false
+  let captureDetectSpoofing = true
+  if (geoAccess.hasSelfServiceEmployee) {
+    const selfEmployee = await findRemoteCheckinEmployeeForUser(
+      organizationId,
+      userId
+    )
+    if (selfEmployee) {
+      captureEmployeeId = selfEmployee.id
+      const effectivePolicy = await resolveRemoteCheckinPolicyForEmployee({
+        organizationId,
+        employeeId: selfEmployee.id,
+      })
+      if (effectivePolicy) {
+        captureRequireSelfie = effectivePolicy.requireSelfie
+        captureDetectSpoofing = effectivePolicy.detectSpoofing
+      }
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <ModulePageHeader
@@ -231,11 +254,20 @@ export async function GeolocationPage({
         loadError={summaryLoadError}
       />
 
-      {geoAccess.hasSelfServiceEmployee ? (
+      {geoAccess.hasSelfServiceEmployee ||
+      (geoAccess.canManage && employees.length > 0) ? (
         <Card size="sm">
           <CardHeader>
-            <CardTitle>{t("capture.title")}</CardTitle>
-            <CardDescription>{t("capture.description")}</CardDescription>
+            <CardTitle>
+              {geoAccess.hasSelfServiceEmployee
+                ? t("capture.title")
+                : t("capture.titleHrCapture")}
+            </CardTitle>
+            <CardDescription>
+              {geoAccess.hasSelfServiceEmployee
+                ? t("capture.description")
+                : t("capture.descriptionHrCapture")}
+            </CardDescription>
             <CardAction>
               <Dialog>
                 <DialogTrigger asChild>
@@ -250,7 +282,14 @@ export async function GeolocationPage({
                   </DialogHeader>
                   <RemoteCheckinCaptureForm
                     orgSlug={orgSlug}
+                    organizationId={organizationId}
+                    captureEmployeeId={captureEmployeeId}
+                    requireSelfie={captureRequireSelfie}
+                    detectSpoofing={captureDetectSpoofing}
                     geofenceChoices={activeGeofenceChoices}
+                    employeeChoices={
+                      geoAccess.canManage ? employees : undefined
+                    }
                   />
                 </DialogContent>
               </Dialog>
@@ -295,8 +334,10 @@ export async function GeolocationPage({
       {geoAccess.canManage || geoAccess.canRead ? (
         <GeolocationPoliciesSection
           orgSlug={orgSlug}
+          organizationId={organizationId}
           rows={policies}
           canManage={geoAccess.canManage}
+          employeeChoices={employees}
           loadError={policiesLoadError}
         />
       ) : null}

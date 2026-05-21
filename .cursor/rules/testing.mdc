@@ -19,9 +19,57 @@ alwaysApply: false
 | `tests/e2e/` | Playwright `*.spec.ts` | Explicit `goto`/`getByRole`/`getByLabel`; tag stable gates `@smoke`; App Router routes validated here |
 | `tests/e2e/utils/` | Browser helpers | Import from `tests/fixtures`; no duplicate magic strings; avoid deep `test.extend` pyramids |
 
-**Playwright base URL:** `http://127.0.0.1:3001` (`next start`) — keeps `pnpm dev` / `dev:ui` on 3000 (`.next-ui`). Override with `PLAYWRIGHT_BASE_URL`. Do **not** run Playwright inside `pnpm dev:stack` (second WDK + same DB).
+**Playwright playbook (full):** [`docs/testing/e2e-local-playbook.md`](../../docs/testing/e2e-local-playbook.md)
 
-**Workflow DevKit local stack (ADR-0039):** `pnpm dev:stack` (fast default) — UI **3000**, durable workflows **3002**, `workflow web`. Use `pnpm dev:stack:full` only when Vercel env injection is required. Use `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000` when attaching E2E to a running UI dev server. Test payroll/import/planner workflows on **3002** only.
+### E0 / E1 / E2 ladder (agents — mandatory)
+
+```txt
+E0 preflight (seconds–minutes) → E1 one spec -g filter (1–2 min warm) → E2 pnpm test:e2e only at PR close
+```
+
+**Forbidden:** `pnpm test:e2e` after every E2E line change. That rebuilds + runs the whole tree (~8–15+ min).
+
+| Tier | Command | When |
+| --- | --- | --- |
+| **E0** | `pnpm e2e:preflight:time-clock` (HRM TCI) · future `scripts/e2e-preflight-*.mjs` | Before first Playwright run in a session |
+| **E1** | `pnpm exec playwright test <spec> --config .config/playwright.config.ts -g "<fragment>" --workers=1` | After each E2E fix |
+| **E2** | `pnpm test:e2e` / `pnpm test:e2e:smoke` | Pre-PR / CI only (human YES) |
+
+Set `$env:PLAYWRIGHT_BASE_URL='http://127.0.0.1:3001'` when using a warm `next dev -p 3001` (or Playwright `webServer`).
+
+### Base URL and ports
+
+| Port | Role |
+| --- | --- |
+| **3000** | `pnpm dev` — use for E2E only when `resolveE2EBaseURL()` health probe passes (`tests/e2e/utils/e2e-base-url.ts`) |
+| **3001** | Default Playwright harness (`next start` / `webServer`) |
+| **3002** | WDK only — **not** App Router E2E |
+
+**Hung 3000:** TCP listen without HTTP → auto-fallback to **3001**. Do not set `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000` unless auth health responds.
+
+**Cookie / auth env:** `PLAYWRIGHT_BASE_URL`, `BETTER_AUTH_URL`, and `NEXT_PUBLIC_BETTER_AUTH_URL` must use the **same host** (`localhost` vs `127.0.0.1` breaks cookies). Playwright `webServer` aligns these in `.config/playwright.config.ts`.
+
+### Signed-in specs
+
+- Import `test` / `expect` from `tests/e2e/fixtures/auth.ts` (worker storage state).
+- Org activation: `tests/e2e/utils/org-admin-auth.ts` — API sign-in, SQL `activeOrganizationId`, clear `__Secure-neon-auth.local.session_data`, nexus warmup.
+- Demo ERP data: `pnpm dev:seed` then `pnpm dev:seed:demo-erp` when specs need `hrm_employee` or portals.
+
+### Route Handler session (401 traps)
+
+For handlers that call `getOrgSessionFromRequest`, prefer **`getOrgSessionFromRequestTrusted`** (`#lib/auth`) when tests or ops set `activeOrganizationId` in DB without refreshing signed `session_data` cache. Example: `lib/features/hrm/time-attendance/time-clock-integration/data/tci-ingest-auth.server.ts`.
+
+### Cookie APIs from Playwright
+
+`page.request` may not carry the live browser cookie jar. For session-cookie ERP POST routes, use **`page.evaluate` + `fetch(..., { credentials: "include" })`** inside the spec (see playbook).
+
+### HRM time clock reference
+
+- Preflight: `pnpm e2e:preflight:time-clock`
+- Spec: `tests/e2e/hrm-time-clock-flow.spec.ts`
+- Seeds: `tests/e2e/utils/ensure-time-clock-e2e-permissions.ts` (`beforeAll`)
+
+**Workflow DevKit (ADR-0039):** `pnpm dev:stack` — UI **3000**, workflows **3002**. Do **not** run App Router Playwright against **3002**. Do not run Playwright inside `dev:stack` unless you understand shared DB + port isolation.
 
 ## Vitest scripts (AGENTS.md §2)
 

@@ -17,6 +17,7 @@ import {
   findActiveTimeClockMapping,
   findTimeClockDeviceByExternalId,
 } from "./tci.queries.server"
+import { isTimeClockPunchWithinShiftWindow } from "./tci-punch-validation.shared"
 
 export type TimeClockValidationInput = {
   readonly organizationId: string
@@ -141,17 +142,18 @@ export async function evaluateTimeClockPunch(
     attendanceDate,
   })
 
-  if (shift) {
-    const windowMs = 60 * 60 * 1000
-    const earliest = shift.scheduledStartAt.getTime() - windowMs
-    const latest = shift.scheduledEndAt.getTime() + windowMs
-    const ts = occurredAt.getTime()
-    if (ts < earliest || ts > latest) {
-      return {
-        ok: false,
-        outcome: "outside_shift_window",
-        message: "Punch is outside the assigned shift window.",
-      }
+  if (
+    shift &&
+    !isTimeClockPunchWithinShiftWindow({
+      occurredAt,
+      scheduledStartAt: shift.scheduledStartAt,
+      scheduledEndAt: shift.scheduledEndAt,
+    })
+  ) {
+    return {
+      ok: false,
+      outcome: "outside_shift_window",
+      message: "Punch is outside the assigned shift window.",
     }
   }
 

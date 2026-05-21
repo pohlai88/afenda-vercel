@@ -15,6 +15,7 @@ See `verify-pipeline.mdc` for the full tier ladder. See `targeted-verification.m
 | When | Command | Cost |
 |---|---|---|
 | After every task — concurrent agents | `pnpm gate -- <touched-paths>` | ESLint only (seconds) |
+| E2E spec / fixture edit | `pnpm e2e:preflight:*` then `playwright test … -g "…"` | not `pnpm test:e2e` per fix |
 | Before push — app types | `pnpm gate:typecheck` | warm ~10–30s; cold often minutes |
 | After every task — types only | `pnpm gate` or `pnpm typecheck` | ~10–30s warm |
 | Before push / PR | `pnpm gate:push` | ~2–5 min |

@@ -19,8 +19,6 @@ import { addDaysIso, assignOneShift } from "../data/sft-assign-shift.server"
 import { notifyShiftAssignmentChanged } from "../data/sft-notification.server"
 import { revalidateSftSurfaces } from "../data/sft-revalidate.server"
 
-export { assignOneShift } from "../data/sft-assign-shift.server"
-
 export async function assignEmployeeShiftAction(
   _prev: AssignEmployeeShiftFormState | undefined,
   formData: FormData

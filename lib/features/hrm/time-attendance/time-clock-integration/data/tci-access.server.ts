@@ -7,6 +7,7 @@ export type TimeClockSurfaceAccess = {
   readonly canManageDevices: boolean
   readonly canManageMappings: boolean
   readonly canDecideExceptions: boolean
+  readonly canCorrectAttendance: boolean
   readonly canIngest: boolean
   readonly canRead: boolean
   readonly canAudit: boolean
@@ -24,6 +25,7 @@ export async function resolveTimeClockSurfaceAccess(input: {
     canDecideException,
     canIngest,
     canAudit,
+    canCorrectAttendance,
   ] = await Promise.all([
       canUseErpPermission({
         organizationId: input.organizationId,
@@ -88,6 +90,15 @@ export async function resolveTimeClockSurfaceAccess(input: {
           function: "audit",
         },
       }),
+      canUseErpPermission({
+        organizationId: input.organizationId,
+        userId: input.userId,
+        permission: {
+          module: "hrm",
+          object: "attendance",
+          function: "update",
+        },
+      }),
     ])
 
   const canReadOrg = canSearch || canRead || canManageDevice || canAudit
@@ -97,6 +108,7 @@ export async function resolveTimeClockSurfaceAccess(input: {
     canManageDevices: canManageDevice,
     canManageMappings: canManageMapping,
     canDecideExceptions: canDecideException,
+    canCorrectAttendance,
     canIngest,
     canRead: canReadOrg,
     canAudit,

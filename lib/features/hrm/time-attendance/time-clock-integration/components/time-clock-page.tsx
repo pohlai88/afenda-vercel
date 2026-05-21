@@ -19,6 +19,7 @@ import {
   listTimeClockDevicesForOrg,
   listTimeClockExceptionsForOrg,
   listTimeClockMappingsForOrg,
+  listTimeClockSyncBatchesForOrg,
 } from "../data/tci.queries.server"
 import { listActiveEmployeeChoicesForAttendance } from "../../leave-attendance-management/data/attendance.queries.server"
 
@@ -27,6 +28,7 @@ import { TimeClockExceptionsSection } from "./tci-exceptions-section"
 import { TimeClockKpiSection } from "./tci-kpi-section"
 import { TimeClockMappingsSection } from "./tci-mappings-section"
 import { TimeClockReportExportForm } from "./tci-report-export.client"
+import { TimeClockSyncBatchesSection } from "./tci-sync-batches-section"
 
 type TimeClockPageProps = {
   orgSlug: string
@@ -63,8 +65,14 @@ export async function TimeClockPage({
     )
   }
 
-  const [summaryResult, devicesResult, mappingsResult, exceptionsResult, employeesResult] =
-    await Promise.all([
+  const [
+    summaryResult,
+    devicesResult,
+    mappingsResult,
+    syncBatchesResult,
+    exceptionsResult,
+    employeesResult,
+  ] = await Promise.all([
       countTimeClockKpiSummary(organizationId).then(
         (value) => ({ ok: true as const, value }),
         (error) => ({ ok: false as const, error })
@@ -77,6 +85,12 @@ export async function TimeClockPage({
         : Promise.resolve({ ok: true as const, value: [] }),
       tciAccess.canRead
         ? listTimeClockMappingsForOrg(organizationId).then(
+            (value) => ({ ok: true as const, value }),
+            (error) => ({ ok: false as const, error })
+          )
+        : Promise.resolve({ ok: true as const, value: [] }),
+      tciAccess.canRead
+        ? listTimeClockSyncBatchesForOrg(organizationId).then(
             (value) => ({ ok: true as const, value }),
             (error) => ({ ok: false as const, error })
           )
@@ -95,19 +109,47 @@ export async function TimeClockPage({
       ),
     ])
 
-  for (const result of [
-    summaryResult,
-    devicesResult,
-    mappingsResult,
-    exceptionsResult,
-    employeesResult,
-  ]) {
-    if (!result.ok) {
-      logUnexpectedServerError(result.error, {
-        segment: "hrm/time-clock",
-        organizationId,
-      })
-    }
+  if (!summaryResult.ok) {
+    logUnexpectedServerError(
+      "time-clock-page: kpi query failed",
+      summaryResult.error,
+      { organizationId }
+    )
+  }
+  if (!devicesResult.ok) {
+    logUnexpectedServerError(
+      "time-clock-page: devices query failed",
+      devicesResult.error,
+      { organizationId }
+    )
+  }
+  if (!mappingsResult.ok) {
+    logUnexpectedServerError(
+      "time-clock-page: mappings query failed",
+      mappingsResult.error,
+      { organizationId }
+    )
+  }
+  if (!syncBatchesResult.ok) {
+    logUnexpectedServerError(
+      "time-clock-page: sync batches query failed",
+      syncBatchesResult.error,
+      { organizationId }
+    )
+  }
+  if (!exceptionsResult.ok) {
+    logUnexpectedServerError(
+      "time-clock-page: exceptions query failed",
+      exceptionsResult.error,
+      { organizationId }
+    )
+  }
+  if (!employeesResult.ok) {
+    logUnexpectedServerError(
+      "time-clock-page: employee choices query failed",
+      employeesResult.error,
+      { organizationId }
+    )
   }
 
   const loadFailed = { title: t("loadFailed") }
@@ -167,9 +209,17 @@ export async function TimeClockPage({
         loadError={mappingsResult.ok ? undefined : loadFailed}
       />
 
+      {tciAccess.canRead ? (
+        <TimeClockSyncBatchesSection
+          rows={syncBatchesResult.ok ? syncBatchesResult.value : []}
+          loadError={syncBatchesResult.ok ? undefined : loadFailed}
+        />
+      ) : null}
+
       <TimeClockExceptionsSection
         rows={exceptionsResult.ok ? exceptionsResult.value : []}
         canDecide={tciAccess.canDecideExceptions}
+        canCorrectAttendance={tciAccess.canCorrectAttendance}
         loadError={exceptionsResult.ok ? undefined : loadFailed}
       />
 

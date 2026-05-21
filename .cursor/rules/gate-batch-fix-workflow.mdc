@@ -43,6 +43,7 @@ Optional targeted reruns (cheaper than full `gate:push`):
 | `typecheck:scripts` | `pnpm typecheck:scripts` |
 | `knip` | `pnpm knip` |
 | `test:ci` | `pnpm test:ci` or `pnpm test:fast -- tests/unit/<files>` |
+| E2E failure | `pnpm e2e:preflight:*` then `playwright test <spec> -g "…"` — not full `pnpm test:e2e` until green |
 | Governance lint | `pnpm lint:<name>` (e.g. `pnpm lint:public-lynx-contract`) |
 
 ---
